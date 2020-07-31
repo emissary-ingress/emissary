@@ -2,7 +2,7 @@
 
 The following is a reference for the various components of Service Preview. 
 
-See [Service Preview Installation](service-preview-install) for detailed installation instructions.
+See [Service Preview Quick Start](../service-preview-install) for detailed installation instructions.
 
 ### Traffic Manager
 
@@ -111,7 +111,7 @@ It also requires the ability to read your Ambassador Edge Stack license key from
 
 #### Traffic Manager Options
 
-- Remove permission to read `Secret`s
+- __Remove permission to read `Secret`s__
 
    If you do not wish to grant read privileges on `Secrets` to the `traffic-manager` `ServiceAccount`, you may mount the `ambassador-edge-stack` secret containing the license key in an extra volume and reference it using the `AMBASSADOR_LICENSE_FILE` environment variable:
 
@@ -132,7 +132,7 @@ It also requires the ability to read your Ambassador Edge Stack license key from
          secretName: ambassador-edge-stack
    ```
 
-- Run with namespace scope
+- __Run with namespace scope__
 
    You can run the Traffic Agent without cluster-wide permissions if you only want to use service preview in a single namespace. 
    
@@ -240,7 +240,9 @@ Any pod running in a cluster with a Traffic Manager can opt in to intercept func
 
 #### Configuring RBAC
 
-Since the Traffic Agent is built on Ambassador Edge Stack, it needs a subset of the same RBAC permissions that Ambassador does. The easiest way to provide this is to create a `ServiceAccount` in your service's namespace, bound to the `traffic-agent` `Role` or `ClusterRole`:
+Since the Traffic Agent is built on Ambassador Edge Stack, it needs a subset of the same RBAC permissions that Ambassador does. The easiest way to provide this is to create a `ServiceAccount` in your service's namespace, bound to the `traffic-agent` `Role` or `ClusterRole`.
+
+The following YAML is the basic Traffic Agent RBAC configuration manifests that is available for download at https://www.getambassador.io/yaml/traffic-agent-rbac.yaml.
 
 ```yaml
 # This is traffic-agent-rbac.yaml
@@ -296,7 +298,7 @@ If you want to include the Traffic Agent with multiple services, they can all us
 
 ##### RBAC Options
 
-- Run with namespace scope
+- __Run with namespace scope__
 
    You can reduce the scope of the Traffic Agent if you only want to run Service Preview in a single namespace.
 
@@ -352,7 +354,7 @@ If you want to include the Traffic Agent with multiple services, they can all us
        kind: ServiceAccount
    ```
 
-- Give permission to all `ServiceAccount`s in the Cluster
+- __Give permission to all `ServiceAccount`s in the Cluster__
 
    Alternatively, if you already have specific `ServiceAccount`s defined for each of your pod, you may grant all of them the additional `traffic-agent` permissions:
 
@@ -389,13 +391,13 @@ This works well for most usecase but there are a couple of important points to m
 - The port the container is listening on must be defined in the Pod template. The Injector will automatically detect container ports with the name `http` or `https` and use those ports to know how to route to the container.
 
    ```yaml
-       spec:
-         containers:                   # Application container
-           - name: hello
-             image: docker.io/datawire/hello-world:latest
-             ports:
-               - name: http
-                 containerPort: 8000   # Application port
+   spec:
+     containers:                   # Application container
+       - name: hello
+         image: docker.io/datawire/hello-world:latest
+         ports:
+           - name: http
+             containerPort: 8000   # Application port
    ```
 
 Take a look at the following for a more detailed look at what is included in https://www.getambassador.io/yaml/ambassador-injector.yaml:
@@ -663,4 +665,4 @@ spec:
 
 ## What's Next?
 
-See how [Edge Control commands can be used in action](service-preview-tutorial) to establish outbound connectivity with a remote Kubernetes cluster and intercept inbound requests.
+See how [Edge Control commands can be used in action](../service-preview-tutorial) to establish outbound connectivity with a remote Kubernetes cluster and intercept inbound requests.

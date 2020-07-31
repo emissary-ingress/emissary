@@ -18,7 +18,7 @@ See [installing edge control](edge-control#installing-edge-control) to learn how
 
 Service Preview is installed as an additional deployment to Ambassador Edge Stack that runs in your Kubernetes cluster.
 
-See [installing Service Preview](service-preview-install) and [Service Preview in Action](service-preview-quickstart) to learn how to install and use Service Preview.
+See the [installing Service Preview Quick Start](service-preview-install) and [Service Preview tutorial](service-preview-tutorial) to learn how to install and use Service Preview.
 
 ## Reference
 
@@ -26,7 +26,7 @@ See [installing Service Preview](service-preview-install) and [Service Preview i
 
 `edgectl` is used for interacting with your cluster, Ambassador Edge Stack, and Service Preview. It can also be a powerful tool to use for CI/CD pipelines.
 
-See [Edge Control Commands](edge-controll#edge-control-commands) for cli reference and [Edge Control in CI](edge-control-in-ci) for information on using `edgectl` in CI/CD pipelines.
+See [Edge Control Commands](edge-control#edge-control-commands) for cli reference and [Edge Control in CI](edge-control-in-ci) for information on using `edgectl` in CI/CD pipelines.
 
 ### Service Preview Components
 
@@ -34,7 +34,7 @@ See [Edge Control Commands](edge-controll#edge-control-commands) for cli referen
 
 There are three main components to Service Preview:
 
-1. The [Traffic Agent](service-preview-reference#traffic-agent), which controls routing to the microservice. The Traffic Agent is deployed as a sidecar on the same pod as your microservice (behind the scenes, it's a special configuration of the basic Ambassador Edge Stack image). The Traffic Agent sidecar can be manually configured or [automatically injected by the Ambassador Injector](service-preview-reference#automatic-traffic-agent-sidecar-injection) in any pod with a specific annotation.
+1. The [Traffic Agent](service-preview-reference#traffic-agent), which controls routing to the microservice. The Traffic Agent is deployed as a sidecar on the same pod as your microservice (behind the scenes, it's a special configuration of the basic Ambassador Edge Stack image). The Traffic Agent sidecar can be manually configured or [automatically injected by the Ambassador Injector](service-preview-reference#automatic-traffic-agent-sidecar-injection-with-ambassador-injector) in any pod with a specific annotation.
 
 2. The [Traffic Manager](service-preview-reference#traffic-manager), which manages the different instances of the Traffic Agent, and is deployed in the cluster.
 

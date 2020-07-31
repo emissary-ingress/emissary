@@ -28,8 +28,8 @@ $ edgectl install
 
 Two extra Deployments are required to install Service Preview:
 
-- The [Traffic Manager](#1--install-the-traffic-manager) responsible for managing communication between your Kubernetes Cluster and your local machine
-- The [Ambassador Injector](#3--install-the-ambassador-injector) which automates injecting the Traffic Agent sidecar responsible for routing requests to either the container in the cluster or on your local machine
+- The [Traffic Manager](#1-install-the-traffic-manager) responsible for managing communication between your Kubernetes Cluster and your local machine
+- The [Ambassador Injector](#3-install-the-ambassador-injector) which automates injecting the Traffic Agent sidecar responsible for routing requests to either the container in the cluster or on your local machine
 
 ### 1. Install the Traffic Manager
 
@@ -46,7 +46,7 @@ The above will deploy:
 - `ServiceAccount`, `ClusterRole`, and `ClusterRoleBinding` named `traffic-manager` to grant the Traffic Manager the necessary RBAC permissions
 - A `Service` and `Deployment` named `telepresence-proxy` which is the name for the Traffic Manager in the cluster
 
-See the [Traffic Manager reference](service-preview-reference#traffic-manager) for more information on this deployment.
+See the [Traffic Manager reference](../service-preview-reference#traffic-manager) for more information on this deployment.
 
 The traffic manager is now installed in the Ambassador namespace in your cluster and is ready to connect your cluster to your local machine.
 
@@ -62,7 +62,7 @@ $ sudo edgectl daemon
 Launching Edge Control Daemon v1.6.1 (api v1)
 ```
 
-The daemon is now running and your local machine is ready to connect to your laptop. See the [`edgectl daemon` reference](edge-control#edgectl-daemon) for more information on how `edgectl` stages your local machine for connecting to your cluster.
+The daemon is now running and your local machine is ready to connect to your laptop. See the [`edgectl daemon` reference](../edge-control#edgectl-daemon) for more information on how `edgectl` stages your local machine for connecting to your cluster.
 
 After starting the daemon, you are ready to connect to the Traffic Manager.
 
@@ -111,7 +111,7 @@ The Traffic Agent sidecar is required in order to intercept requests to a servic
 At the moment, you can see that no sidecars are currently available with `edgectl`:
 
 ```sh
-edgectl intercept available
+$ edgectl intercept available
 
 No interceptable deployments
 ```
@@ -126,7 +126,7 @@ First, you need to create the RBAC resources required for the Traffic Agent to r
 kubectl apply -f https://getambassador.io/yaml/traffic-agent-rbac.yaml
 ```
 
-Then, apply the helloworld service manifest that is annotated to inject the Traffic Agent.
+Then, apply the `Hello` service manifest that is annotated to inject the Traffic Agent.
 
 ```sh
 kubectl apply -f - <<EOF
@@ -144,7 +144,7 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      targetPort: http              # Application port
+      targetPort: http
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
@@ -176,14 +176,14 @@ spec:
       labels:
         app: hello
     spec:
-      containers:                   # Application container
+      containers:
         - name: hello
           image: docker.io/datawire/hello-world:latest
           ports:
             - name: http
               containerPort: 8000 
 EOF
-
+ 
 service/hello created
 mapping.getambassador.io/hello created
 deployment.apps/hello created
@@ -192,18 +192,18 @@ deployment.apps/hello created
 After applying the above manifest, you can see that there is now an available service to intercept.
 
 ```
-edgectl intercept available
+$ edgectl intercept available
 
 Found 1 interceptable deployment(s):
    1. hello in namespace default
 ```
 
-Take a look at the [Traffic Agent reference](service-preview-reference#traffic-agent) for more information on how to connect your services to Service Preview.
+Take a look at the [Traffic Agent reference](../service-preview-reference#traffic-agent) for more information on how to connect your services to Service Preview.
 
-Service Preview is now installed in your cluster and ready to intercept traffic sent to the helloworld service! 
+Service Preview is now installed in your cluster and ready to intercept traffic sent to the `Hello` service! 
 
 ## Next Steps
 
 Now that you have Service Preview installed, let's see how you can use it to intercept traffic sent to services in your Kubernetes cluster!
 
-Take a look at the [Service Preview Quickstart](service-preview-quickstart) to get Service Preview working for the helloworld service we installed!
+Take a look at the [Service Preview Tutorial](../service-preview-tutorial) to get Service Preview working for the `Hello` service we installed!
