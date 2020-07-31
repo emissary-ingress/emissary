@@ -33,7 +33,7 @@ import requests
 import jsonpatch
 
 from expiringdict import ExpiringDict
-from prometheus_client import CollectorRegistry, ProcessCollector, generate_latest, Info
+from prometheus_client import CollectorRegistry, ProcessCollector, generate_latest, Info, Gauge
 
 import concurrent.futures
 
@@ -124,7 +124,10 @@ class DiagApp (Flask):
     latest_snapshot: str
     banner_endpoint: Optional[str]
     metrics_endpoint: Optional[str]
-    # custom metrics registry to weed-out default metrics collectors
+
+    # Custom metrics registry to weed-out default metrics collectors because the
+    # default collectors can't be prefixed/namespaced with ambassador_.
+    # Using the default metrics collectors would lead to name clashes between the Python and Go instrumentations.
     metrics_registry: CollectorRegistry
 
     config_lock: threading.Lock
@@ -160,12 +163,18 @@ class DiagApp (Flask):
         self.logger.setLevel(logging.INFO)
 
         # Use Timers to keep some stats on reconfigurations
-        self.config_timer = Timer("reconfiguration")
-        self.fetcher_timer = Timer("Fetcher")
-        self.aconf_timer = Timer("AConf")
-        self.ir_timer = Timer("IR")
-        self.econf_timer = Timer("EConf")
-        self.diag_timer = Timer("Diagnostics")
+        self.config_timer = Timer("reconfiguration", self.metrics_registry)
+        self.fetcher_timer = Timer("Fetcher", self.metrics_registry)
+        self.aconf_timer = Timer("AConf", self.metrics_registry)
+        self.ir_timer = Timer("IR", self.metrics_registry)
+        self.econf_timer = Timer("EConf", self.metrics_registry)
+        self.diag_timer = Timer("Diagnostics", self.metrics_registry)
+
+        # Use gauges to keep some metrics on active config
+        self.diag_errors = Gauge(f'diagnostics_errors', f'Number of configuration errors',
+                                 namespace='ambassador', registry=self.metrics_registry)
+        self.diag_notices = Gauge(f'diagnostics_notices', f'Number of configuration notices',
+                                 namespace='ambassador', registry=self.metrics_registry)
 
         # When did we last reconfigure?
         self.last_reconfigure = -1.0
@@ -223,7 +232,7 @@ class DiagApp (Flask):
         self.scout = Scout(local_only=self.local_scout)
 
         ProcessCollector(namespace="ambassador", registry=self.metrics_registry)
-        metrics_info = Info(name='diagnostic', namespace='ambassador', documentation='Ambassador diagnostic info', registry=self.metrics_registry)
+        metrics_info = Info(name='diagnostics', namespace='ambassador', documentation='Ambassador diagnostic info', registry=self.metrics_registry)
         metrics_info.info({
             "version": __version__,
             "ambassador_id": Config.ambassador_id,
@@ -251,6 +260,11 @@ class DiagApp (Flask):
                 # thing to use to time it.
                 with self.diag_timer:
                     app._diag = Diagnostics(app.ir, app.econf)
+
+                    # Update some metrics data points given the new generated Diagnostics
+                    diag_dict = app._diag.as_dict()
+                    self.diag_errors.set(len(diag_dict.get("errors", [])))
+                    self.diag_notices.set(len(diag_dict.get("notices", [])))
 
                     # We've done something time-worthy, so log the timers
                     # in a little bit.
