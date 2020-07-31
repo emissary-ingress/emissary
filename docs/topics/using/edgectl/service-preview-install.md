@@ -35,7 +35,7 @@ Two extra Deployments are required to install Service Preview:
 
 The Traffic Manager is what is responsible for managing communications between your Kubernetes cluster and your local machine.
 
-Deploy the Traffic Manager with `kubectl`
+If you used the `edgectl install` command, the Traffic Manager has already been installed and configured for you. Otherwise, deploy the Traffic Manager with `kubectl`
 
 ```
 kubectl apply -f https://www.getambassador.io/yaml/traffic-manager.yaml
@@ -87,16 +87,13 @@ Connected
   Proxy:         ON (networking to the cluster is enabled)
   Interceptable: 0 deployments
   Intercepts:    0 total, 0 local
-In the last month:
-    1 unique developers have connected, licensed for 5 developers
-    0 unique CI runs have connected
 ```
 
 ### 3. Install the Ambassador Injector
 
 Services in your cluster opt-in to using Service Preview by injecting the Traffic Agent sidecar. Service Preview includes an automatic sidecar injection feature which simplifies the process of injecting the Traffic Agent as sidecars to your services.
 
-Install the Ambassador Injector in the `ambassador` namespace with `kubectl`:
+If you used the `edgectl install` command, the Ambassador Injector has already been installed and configured for you. Otherwise, install the Ambassador Injector in the `ambassador` namespace with `kubectl`:
 
 ```sh
 kubectl apply -f https://getambassador.io/yaml/ambassador-injector.yaml
