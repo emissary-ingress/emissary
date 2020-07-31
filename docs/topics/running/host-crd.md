@@ -8,7 +8,7 @@ single configuration resource:
 * How Ambassador should handle TLS certificates
 * How Ambassador should handle secure and insecure requests
 * Which resources to examine for further configuration
-* How Ambassador should handle [Service Preview URLs](../../using/edgectl/#ambassador-edge-stack)
+* How Ambassador should handle [Service Preview URLs](../../using/edgectl/service-preview-reference#ambassador-edge-stack)
 
 A minimal Host resource, using Let’s Encrypt to handle TLS, would be:
 
@@ -347,7 +347,7 @@ This example is the same for an L4 LB, or without a load balancer at all.
 
 ## Service Preview URLs
 
-See [Service Preview and Edge Control](../../using/edgectl/#ambassador-edge-stack) for more information.
+See [Service Preview](../../using/edgectl/service-preview-reference#ambassador-edge-stack) for more information.
 
 ## `Host` Specification
 
