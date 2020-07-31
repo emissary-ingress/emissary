@@ -28,8 +28,8 @@ $ edgectl install
 
 Two extra Deployments are required to install Service Preview:
 
-- The [Traffic Manager](#1-install-the-traffic-manager) responsible for managing communication between your Kubernetes Cluster and your local machine
-- The [Ambassador Injector](#3-install-the-ambassador-injector) which automates injecting the Traffic Agent sidecar responsible for routing requests to either the container in the cluster or on your local machine
+- The [Traffic Manager](#1-install-the-traffic-manager-and-ambassador-injector) responsible for managing communication between your Kubernetes Cluster and your local machine
+- The [Ambassador Injector](#1-install-the-traffic-manager-and-ambassador-injector) which automates injecting the Traffic Agent sidecar responsible for routing requests to either the container in the cluster or on your local machine
 
 ### 1. Install the Traffic Manager and Ambassador Injector
 
