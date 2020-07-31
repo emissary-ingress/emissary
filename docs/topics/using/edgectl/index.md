@@ -2,7 +2,7 @@
 
 One of the challenges in adopting Kubernetes and microservices is the development and testing workflow. Creating and maintaining a full development environment with many microservices and their dependencies is complex and hard.
 
-Service Preview, based on [Telepresence](https://www.telepresence.io), enables different developers to access different virtual versions of the same microservice. These virtual versions are deployed on your CI system or local development infrastructure, enabling fast development and testing workflows.
+Service Preview, based on [Telepresence](https://www.telepresence.io), enables different developers to run different virtual versions of the same microservice. These virtual versions are deployed on your CI system or local development infrastructure, enabling fast development and testing workflows.
 
 ## Getting started
 
