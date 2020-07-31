@@ -233,9 +233,6 @@ Service Preview bridges your local and cluster DNS. This allows for the use case
      Proxy:         ON (networking to the cluster is enabled)
      Interceptable: 1 deployments
      Intercepts:    0 total, 0 local
-   In the last month:
-       1 unique developers have connected, licensed for 5 developers
-       0 unique CI runs have connected
     
    $ curl -L hello
    Hello, world!
