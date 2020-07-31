@@ -6,7 +6,7 @@ There are two main mechanisms for installing Service Preview
 
 - [`edgectl install`](#install-with-edgectl) will boot strap your cluster with the Ambassador Edge Stack and Service Preview and only works when doing a fresh install of Ambassador.
 
-- [`Manual YAML Install`](#install-with-yaml) will work with an existing installation of Ambassador Edge Stack.
+- [`YAML Install`](#install-with-yaml) will work with an existing installation of Ambassador Edge Stack.
 
 ## Prerequisites
 
@@ -31,20 +31,24 @@ Two extra Deployments are required to install Service Preview:
 - The [Traffic Manager](#1-install-the-traffic-manager) responsible for managing communication between your Kubernetes Cluster and your local machine
 - The [Ambassador Injector](#3-install-the-ambassador-injector) which automates injecting the Traffic Agent sidecar responsible for routing requests to either the container in the cluster or on your local machine
 
-### 1. Install the Traffic Manager
+### 1. Install the Traffic Manager and Ambassador Injector
 
 The Traffic Manager is what is responsible for managing communications between your Kubernetes cluster and your local machine.
 
-If you used the `edgectl install` command, the Traffic Manager has already been installed and configured for you. Otherwise, deploy the Traffic Manager with `kubectl`
+Services in your cluster opt-in to using Service Preview by injecting the Traffic Agent sidecar. Service Preview includes an automatic sidecar injection feature which simplifies the process of injecting the Traffic Agent as sidecars to your services.
+
+If you used the `edgectl install` command, the Traffic Manager and the Ambassador Injector have already been installed and configured for you. Otherwise, deploy the Traffic Manager and Ambassador Injector in the `ambassador` namespace with `kubectl`
 
 ```
-kubectl apply -f https://www.getambassador.io/yaml/traffic-manager.yaml
+kubectl apply -f https://getambassador.io/yaml/traffic-manager.yaml
+kubectl apply -f https://getambassador.io/yaml/ambassador-injector.yaml
 ```
 
 The above will deploy:
 
-- `ServiceAccount`, `ClusterRole`, and `ClusterRoleBinding` named `traffic-manager` to grant the Traffic Manager the necessary RBAC permissions
-- A `Service` and `Deployment` named `telepresence-proxy` which is the name for the Traffic Manager in the cluster
+- `ServiceAccount`, `ClusterRole`, and `ClusterRoleBinding` named `traffic-manager` to grant the Traffic Manager the necessary RBAC permissions.
+- A `Service` and `Deployment` named `telepresence-proxy` which is the name for the Traffic Manager in the cluster.
+- The Ambassador Injector with a `MutatingWebhookConfiguration` that allows injection of the Traffic Agent sidecar in newly created pods.
 
 See the [Traffic Manager reference](../service-preview-reference#traffic-manager) for more information on this deployment.
 
@@ -89,19 +93,7 @@ Connected
   Intercepts:    0 total, 0 local
 ```
 
-### 3. Install the Ambassador Injector
-
-Services in your cluster opt-in to using Service Preview by injecting the Traffic Agent sidecar. Service Preview includes an automatic sidecar injection feature which simplifies the process of injecting the Traffic Agent as sidecars to your services.
-
-If you used the `edgectl install` command, the Ambassador Injector has already been installed and configured for you. Otherwise, install the Ambassador Injector in the `ambassador` namespace with `kubectl`:
-
-```sh
-kubectl apply -f https://getambassador.io/yaml/ambassador-injector.yaml
-```
-
-This installs the Ambassador Injector with a `MutatingWebhookConfiguration` that allows it to inject the sidecar in newly created pods.
-
-### 4. Inject the Traffic Agent Sidecar
+### 3. Inject the Traffic Agent Sidecar
 
 The Traffic Agent sidecar is required in order to intercept requests to a service and route them to your local machine.
 
