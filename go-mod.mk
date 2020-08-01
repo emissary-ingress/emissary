@@ -6,6 +6,7 @@
 #  - File: ./go.mod
 #  - Variable: go.DISABLE_GO_TEST ?=
 #  - Variable: go.PLATFORMS ?= $(GOOS)_$(GOARCH)
+#  - Variable: go.bins.extra ?=
 #
 ## Lazy inputs ##
 #  - Variable: go.GOBUILD ?= go build
@@ -69,6 +70,7 @@ go.DISABLE_GO_TEST ?=
 go.LDFLAGS ?=
 go.PLATFORMS ?= $(GOOS)_$(GOARCH)
 go.GOLANG_LINT_FLAGS ?= $(if $(wildcard .golangci.yml .golangci.toml .golangci.json),,--disable-all --enable=gofmt --enable=govet)
+go.bins.extra ?=
 CI ?=
 
 #
@@ -120,7 +122,7 @@ endif
   # With pruning sub-module packages (qualified)
     # Usage: $(call go.list,ARGS)
     go.list = $(call path.addprefix,$(go.module),$(_go.list))
-    go.bins := $(call go.list,-f='{{if eq .Name "main"}}{{.ImportPath}}{{end}}' $(addprefix ./,$(_go.pkgs)))
+    go.bins := $(call go.list,-f='{{if eq .Name "main"}}{{.ImportPath}}{{end}}' $(addprefix ./,$(_go.pkgs))) $(go.bins.extra)
 
 go.pkgs ?= ./...
 

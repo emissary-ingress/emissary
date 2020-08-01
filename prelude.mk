@@ -16,6 +16,7 @@
 #  String support:
 #  - Variable: export NL
 #  - Variable:        SPACE
+#  - Variable:        COMMA
 #  - Function: str.eq
 #
 #  Unsigned integer support:

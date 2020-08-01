@@ -22,7 +22,7 @@ tmpfile="$(dirname "$outfile")/.tmp.${outfile##*/}.tmp"
 
 cat > "$tmpfile" || exit $?
 if cmp -s "$tmpfile" "$outfile"; then
-        rm -f "$tmpfile" || :
+	rm -f "$tmpfile" || :
 else
 	# It's a little bit tempting to try to merge this "-e
 	# $outfile" check with the one for "docker image rm".  Don't.
@@ -43,7 +43,10 @@ else
 		done
 	} < "$tmpfile"
 	if [[ -e "$outfile" ]]; then
-		docker image rm -- $(grep -vFx -f "$tmpfile" -- "$outfile") || :
+		args="$(grep -vFx -f "$tmpfile" -- "$outfile")"
+		if [[ -n "$args" ]]; then
+			docker image rm -- $args || :
+		fi
 	fi
-        mv -f "$tmpfile" "$outfile"
+	mv -f "$tmpfile" "$outfile"
 fi

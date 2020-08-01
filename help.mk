@@ -96,8 +96,8 @@ help.body ?= $(call _help.genbody,,$(help.body.vars))
 #      (Kubernaut)  unclaim          Destroy the cluster
 #      (Kubernaut)  unproxy          Shut down 'proxy'
 #      -            release-bin      Upload binaries to S3
-#      -            release          Cut a release; upload binaries to S3 and Docker images to Quay
-#      -            release-docker   Upload Docker images to Quay
+#      -            release          Cut a release; upload binaries to S3 and Docker images to $$RELEASE_REGISTRY
+#      -            release-docker   Upload Docker images to $$RELEASE_REGISTRY
 #
 # Using $(NAME) (falling back to "this project", since `help.mk`
 # doesn't assume you set NAME) as the default category name solves
