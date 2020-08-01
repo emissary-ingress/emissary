@@ -6,6 +6,7 @@ generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HO
 generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_grpc_web_pb.js , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
 generate/files += $(OSS_HOME)/pkg/api/envoy
 generate/files += $(OSS_HOME)/pkg/envoy-control-plane
+generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
 generate: ## Update generated sources that get committed to git
 generate:
 	$(MAKE) generate-clean
@@ -22,6 +23,7 @@ generate-clean:
 	rm -rf $(OSS_HOME)/python/ambassador/proto
 	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js
 	rm -rf $(OSS_HOME)/pkg/envoy-control-plane
+	rm -f $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
 .PHONY: generate _generate generate-clean
 
 go-mod-tidy/oss:
@@ -150,6 +152,14 @@ $(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/cxx/go-control-plane FORCE
 
 #
 # `make generate` protobuf rules
+
+$(OSS_HOME)/docker/test-ratelimit/ratelimit.proto:
+	set -e; { \
+	  url=https://raw.githubusercontent.com/envoyproxy/ratelimit/v1.3.0/proto/ratelimit/ratelimit.proto; \
+	  echo "// Downloaded from $$url"; \
+	  echo; \
+	  curl --fail -L "$$url"; \
+	} > $@
 
 # proto_path is a list of where to look for .proto files.
 _proto_path += $(OSS_HOME)/api # input files must be within the path
