@@ -20,34 +20,19 @@ executors:
 
 commands:
 
-  "apt-install":
+  "install-bats":
     parameters:
-      "packages":
+      "version":
         type: string
+        default: "0.4.0"
     steps:
       - run:
-          # CircleCI seems to be in EC2 us-east-1, so use an archive.ubuntu.com mirror there, so that "apt
-          # update" is consistently fast.
+          name: "Install BATS"
           command: |
-            sudo sed -i 's,//archive\.ubuntu\.com,//us-east-1.ec2.archive.ubuntu.com,g' /etc/apt/sources.list &&
-            sudo apt update &&
-            sudo apt install << parameters.packages >>
-
-  "brew-install":
-    parameters:
-      "packages":
-        type: string
-    steps:
-      - restore_cache:
-          name: "Restore brew cache"
-          keys:
-            - brew-{{ arch }}
-      - run: brew install << parameters.packages >>
-      - save_cache:
-          name: "Save brew cache"
-          key: brew-{{ arch }}
-          paths:
-            - "/usr/local/Homebrew"
+            git clone https://github.com/sstephenson/bats.git ~/bats
+            cd ~/bats
+            git checkout v<< parameters.version >>
+            sudo ./install.sh /usr/local
 
   "install-go":
     parameters:
@@ -72,16 +57,14 @@ jobs:
     environment:
       build_aux_unsupported_go: true
     steps:
-      - apt-install:
-          packages: bats
+      - install-bats
       - checkout
       - run: bats tests/
 
   "VM Ubuntu 16-04 Go 1-11":
     executor: vm-ubuntu-16-04
     steps:
-      - apt-install:
-          packages: bats
+      - install-bats
       - install-go:
           version: "1.11.4"
       - checkout
@@ -90,8 +73,7 @@ jobs:
   "VM Ubuntu 16-04 Go 1-12":
     executor: vm-ubuntu-16-04
     steps:
-      - apt-install:
-          packages: bats
+      - install-bats
       - install-go:
           version: "1.12"
       - checkout
@@ -100,8 +82,7 @@ jobs:
   "VM Ubuntu 16-04 Go 1-13":
     executor: vm-ubuntu-16-04
     steps:
-      - apt-install:
-          packages: bats
+      - install-bats
       - install-go:
           version: "1.13"
       - checkout
@@ -110,16 +91,14 @@ jobs:
   "VM macOS 10-13":
     executor: vm-macos-10-13
     steps:
-      - brew-install:
-          packages: bats
+      - install-bats
       - checkout
       - run: bats tests/
 
   "VM macOS 10-13 Go 1-11":
     executor: vm-macos-10-13
     steps:
-      - brew-install:
-          packages: bats
+      - install-bats
       - install-go:
           version: "1.11.4"
       - checkout
@@ -128,8 +107,7 @@ jobs:
   "VM macOS 10-13 Go 1-12":
     executor: vm-macos-10-13
     steps:
-      - brew-install:
-          packages: bats
+      - install-bats
       - install-go:
           version: "1.12"
       - checkout
@@ -138,8 +116,7 @@ jobs:
   "VM macOS 10-13 Go 1-13":
     executor: vm-macos-10-13
     steps:
-      - brew-install:
-          packages: bats
+      - install-bats
       - install-go:
           version: "1.13"
       - checkout
