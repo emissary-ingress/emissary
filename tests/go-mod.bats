@@ -21,7 +21,7 @@ setup() {
 	cat >>Makefile <<-'__EOT__'
 		include build-aux/go-mod.mk
 		$(info outside: $(go.lock))
-		all: ; @echo 'inside: $(go.lock)'
+		tst: ; @echo 'inside: $(go.lock)'
 	__EOT__
 
 	if [[ "$build_aux_unsupported_go" == true ]] || ! type go &>/dev/null; then
@@ -55,7 +55,7 @@ setup() {
 @test "go-mod.mk: build timestamps" {
 	cat >>Makefile <<-'__EOT__'
 		include build-aux/go-mod.mk
-		all: build
+		tst: build
 	__EOT__
 
 	cat >main.go <<-'__EOT__'
@@ -112,7 +112,7 @@ setup() {
 @test "go-mod.mk: build triggers go-get" {
 	cat >>Makefile <<-'__EOT__'
 		include build-aux/go-mod.mk
-		all: build
+		tst: build
 		go-get: fn.go
 		fn.go: ; printf '%s\n' 'package main' '' 'func fn() {}' > $@
 	__EOT__
