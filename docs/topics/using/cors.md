@@ -93,6 +93,59 @@ spec:
     max_age: "86400"
 ```
 
+## Header based routing and Cross-Origin Resource Sharing
+
+When you use header based routing ,CORS mapping together in a single mapping, preferrence is given to header based routing and CORS headers are ignored.
+## Example
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind:  Mapping
+metadata:
+  name:  service1
+spec:
+  prefix: /api/
+  service: service1-example
+  headers:
+    x-quote-mode: backend
+  cors:
+    origins: http://foo.example,http://bar.example
+    methods: POST, GET, OPTIONS
+    headers: Content-Type, x-quote-mode
+```
+The fix for this would be to have CORS and header based as separate mappings.
+## Example with CORS
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind:  Mapping
+metadata:
+  name:  service1
+spec:
+  prefix: /api/
+  service: service1-example
+  cors:
+    origins: http://foo.example,http://bar.example
+    methods: POST, GET, OPTIONS
+    headers: Content-Type, x-quote-mode
+```
+## Example with header-based routing
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind:  Mapping
+metadata:
+  name:  service1
+spec:
+  prefix: /api/
+  service: service1-example
+  headers:
+    x-quote-mode: backend
+```
+
 ## AuthService and Cross-Origin Resource Sharing
 
 When you use external authorization, each incoming request is authenticated before routing to its destination, including pre-flight `OPTIONS` requests.  
