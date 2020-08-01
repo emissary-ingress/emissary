@@ -149,6 +149,15 @@ func licenseIsWeakCopyleft(licenses map[detectlicense.License]struct{}) bool {
 	return false
 }
 
+func licenseIsStrongCopyleft(licenses map[detectlicense.License]struct{}) bool {
+	for license := range licenses {
+		if license.StrongCopyleft {
+			return true
+		}
+	}
+	return false
+}
+
 func Main(args *CLIArgs) error {
 	// Let's do the expensive stuff (stuff that isn't entirely
 	// in-memory) up-front.
@@ -215,6 +224,10 @@ func Main(args *CLIArgs) error {
     file to correctly detect the license.`,
 				errors.Wrapf(err, "package %q", pkgName))
 		}
+		if licenseIsStrongCopyleft(pkgLicenses[pkgName]) {
+			return errors.Wrapf(errors.New("has an unacceptable license for use by Ambassador"),
+				`package %q`, pkgName)
+		}
 	}
 
 	// Group packages by module & collect module info
@@ -275,9 +288,9 @@ func Main(args *CLIArgs) error {
 		}
 	} else {
 		if len(mainLibPkgs) == 1 {
-			readme.WriteString(wordwrap(75, fmt.Sprintf("The package %q incorporates the following Free and Open Source software:", mainLibPkgs[1])))
+			readme.WriteString(wordwrap(75, fmt.Sprintf("The Go package %q incorporates the following Free and Open Source software:", mainLibPkgs[1])))
 		} else {
-			readme.WriteString(wordwrap(75, fmt.Sprintf("The packages %q incorporate the following Free and Open Source software:", args.Package)))
+			readme.WriteString(wordwrap(75, fmt.Sprintf("The Go packages %q incorporate the following Free and Open Source software:", args.Package)))
 		}
 	}
 	readme.WriteString("\n")

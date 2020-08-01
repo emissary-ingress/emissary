@@ -16,15 +16,15 @@ var (
 		`      in the documentation and/or other materials provided with the` + "\n" +
 		`      distribution\.` + "\n"
 	bsdClause3 = `` +
-		` (?:3?[*.-] )?(?:Neither the name of .+ nor the names of its contributors may|The names of its contributors may not)` + "\n" +
+		` (?:3?[*.-] )?(?:Neither the .{1,80} nor the names of its contributors may|(?:My name, .{1,80}|The names of its contributors) may not)` + "\n" +
 		`      be used to endorse or promote products derived from this software` + "\n" +
 		`      without specific prior written permission\.` + "\n"
 	bsdSuffix = `` +
-		`THIS SOFTWARE IS PROVIDED BY .+ AND CONTRIBUTORS` + "\n" +
+		`THIS SOFTWARE IS PROVIDED BY .{1,80} AND CONTRIBUTORS` + "\n" +
 		`"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT` + "\n" +
 		`LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR` + "\n" +
 		`A PARTICULAR PURPOSE ARE DISCLAIMED\. IN NO EVENT SHALL THE COPYRIGHT` + "\n" +
-		`(OWNER|HOLDER) OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,` + "\n" +
+		`(OWNER|HOLDER)( OR CONTRIBUTORS)? BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,` + "\n" +
 		`SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES \(INCLUDING, BUT NOT` + "\n" +
 		`LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,` + "\n" +
 		`DATA, OR PROFITS; OR BUSINESS INTERRUPTION\) HOWEVER CAUSED AND ON ANY` + "\n" +

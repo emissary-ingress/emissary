@@ -7,6 +7,7 @@ generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HO
 generate/files += $(OSS_HOME)/pkg/api/envoy
 generate/files += $(OSS_HOME)/pkg/envoy-control-plane
 generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
+generate/files += $(OSS_HOME)/OPENSOURCE.md
 generate: ## Update generated sources that get committed to git
 generate:
 	$(MAKE) generate-clean
@@ -24,6 +25,7 @@ generate-clean:
 	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js
 	rm -rf $(OSS_HOME)/pkg/envoy-control-plane
 	rm -f $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
+	rm -f $(OSS_HOME)/OPENSOURCE.md
 .PHONY: generate _generate generate-clean
 
 go-mod-tidy/oss:
@@ -103,6 +105,11 @@ $(tools/controller-gen): $(OSS_HOME)/go.mod
 # here are python3, python3-yaml, and python3-packaging... now, if you
 # have 'awscli', which we already require, then you'll have those.
 tools/fix-crds = $(OSS_HOME)/build-aux-local/fix-crds
+
+tools/go-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/go-mkopensource
+$(tools/go-mkopensource): FORCE
+	mkdir -p $(@D)
+	cd $(OSS_HOME)/build-aux/bin-go/go-mkopensource && go build -o $@ github.com/datawire/build-aux/bin-go/go-mkopensource
 
 #
 # `make generate` vendor rules
@@ -288,3 +295,16 @@ update-yaml-clean:
 	rm -f $(update-yaml/files)
 generate-clean: update-yaml-clean
 .PHONY: update-yaml-clean
+
+#
+# Generate report on dependencies
+
+$(OSS_HOME)/build-aux-local/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base
+	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
+
+$(OSS_HOME)/build-aux/go1%.src.tar.gz:
+	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
+
+$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(OSS_HOME)/build-aux-local/go-version.txt
+	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz
+	cd $(OSS_HOME) && $(tools/go-mkopensource) --output-format=txt --package=github.com/datawire/ambassador/... --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz > $@

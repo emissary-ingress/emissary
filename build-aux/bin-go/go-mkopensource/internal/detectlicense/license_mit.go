@@ -1,11 +1,22 @@
 package detectlicense
 
+import (
+	"strings"
+)
+
 var (
 	reMIT = reCompile(reCaseInsensitive(`\s*` +
-		`(?:[^\n]{0,15}\n)?` +
-		`(?:\(?(?:The )?MIT License(?: \(MIT\))?\)?\s*)?` +
-		`(?:Copyright [^\n]*(?:\s+All rights reserved\.)? *\n)*\s*` +
-		`(?:\(?(?:The )?MIT License(?: \(MIT\))?\)?\s*)?` +
+		// Up to 2 short lines of "project name"
+		`([^\n]{0,15}\n){0,2}` +
+		// Any number of license-name, copyright-holder, or header-separator lines
+		`((` +
+		strings.Join([]string{
+			`(Portions )?Copyright [^\n]*(\s+All rights reserved\.)?`,
+			`\(?(The )?MIT License( \((MIT|Expat)\))?\)?`,
+			`=+`,
+		}, `|`) +
+		`)\s*\n\s*)*` +
+		// The license itself
 		reWrap(``+
 			`Permission is hereby granted, free of charge, to any person obtaining`+"\n"+
 			`a copy of this software and associated documentation files \(the`+"\n"+
@@ -24,5 +35,5 @@ var (
 			`NONINFRINGEMENT\. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE`+"\n"+
 			`LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION`+"\n"+
 			`OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION`+"\n"+
-			`WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE\.\s*`)))
+			`WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE\.?\s*`)))
 )

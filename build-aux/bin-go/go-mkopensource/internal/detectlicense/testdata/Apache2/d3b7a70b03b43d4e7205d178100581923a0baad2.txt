@@ -1,8 +1,7 @@
-package detectlicense
 
-var apacheMain = `\s*` + reWrap(reQuote(`Apache License
+                                 Apache License
                            Version 2.0, January 2004
-                        `)+`https?://www\.apache\.org/licenses/`+reQuote(`
+                        https://www.apache.org/licenses/
 
    TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
@@ -93,19 +92,19 @@ var apacheMain = `\s*` + reWrap(reQuote(`Apache License
       modifications, and in Source or Object form, provided that You
       meet the following conditions:
 
-      `)+`(?:\(a\)\s+)?`+reQuote(`You must give any other recipients of the Work or
+      (a) You must give any other recipients of the Work or
           Derivative Works a copy of this License; and
 
-      `)+`(?:\(b\)\s+)?`+reQuote(`You must cause any modified files to carry prominent notices
+      (b) You must cause any modified files to carry prominent notices
           stating that You changed the files; and
 
-      `)+`(?:\(c\)\s+)?`+reQuote(`You must retain, in the Source form of any Derivative Works
+      (c) You must retain, in the Source form of any Derivative Works
           that You distribute, all copyright, patent, trademark, and
           attribution notices from the Source form of the Work,
           excluding those notices that do not pertain to any part of
           the Derivative Works; and
 
-      `)+`(?:\(d\)\s+)?`+reQuote(`If the Work includes a "NOTICE" text file as part of its
+      (d) If the Work includes a "NOTICE" text file as part of its
           distribution, then any Derivative Works that You distribute must
           include a readable copy of the attribution notices contained
           within such NOTICE file, excluding those notices that do not
@@ -173,38 +172,20 @@ var apacheMain = `\s*` + reWrap(reQuote(`Apache License
       of any other Contributor, and only if You agree to indemnify,
       defend, and hold each Contributor harmless for any liability
       incurred by, or claims asserted against, such Contributor by reason
-      of your accepting any such warranty or additional liability.`)+
-	`(?: END OF TERMS AND CONDITIONS)?`)
+      of your accepting any such warranty or additional liability.
 
-var apacheAppendixStart = `` +
-	`\s*` + reWrap(`APPENDIX: How to apply the Apache License to your work\.?
+   END OF TERMS AND CONDITIONS
 
-      To apply the Apache License to your work, attach the following
-      boilerplate notice, with the fields enclosed by brackets "(:?\[\]|\{\})"
-      replaced with your own identifying information\. \(Don't include
-      the brackets!\)  The text should be enclosed in the appropriate
-      comment syntax for the file format\. We also recommend that a
-      file or class name and description of purpose be included on the
-      same "printed page" as the copyright notice for easier
-      identification within third-party archives\.`)
+   Copyright The containerd Authors
 
-var apacheStatement = `(?: *Copyright [^\n]+\n)+` +
-	reWrap(reQuote(`
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
 
-       `)+`https?://www\.apache\.org/licenses/LICENSE-2\.0`+reQuote(`
+       https://www.apache.org/licenses/LICENSE-2.0
 
    Unless required by applicable law or agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
-   limitations under the License.`))
-
-var apacheAppendix = `(?:` + apacheAppendixStart + `\s+)?` + apacheStatement
-
-var (
-	reApacheLicense   = reCompile(`\s*` + apacheMain + `(?:\s+` + apacheAppendix + `+)?\s*`)
-	reApacheStatement = reCompile(`\s*(?:[^\n]{0,15}\n)?\s*` + apacheStatement + `\s*`)
-)
+   limitations under the License.

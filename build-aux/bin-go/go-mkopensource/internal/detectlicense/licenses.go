@@ -20,6 +20,8 @@ type License struct {
 var (
 	Proprietary = License{Name: "proprietary"}
 
+	PublicDomain = License{Name: "public domain"}
+
 	Apache2 = License{Name: "Apache License 2.0", NoticeFile: true}
 	BSD1    = License{Name: "1-clause BSD license"}
 	BSD2    = License{Name: "2-clause BSD license"}
@@ -27,6 +29,8 @@ var (
 	ISC     = License{Name: "ISC license"}
 	MIT     = License{Name: "MIT license"}
 	MPL2    = License{Name: "Mozilla Public License 2.0", NoticeFile: true, WeakCopyleft: true}
+
+	CcBySa40 = License{Name: "Creative Commons Attribution Share Alike 4.0 International", StrongCopyleft: true}
 )
 
 // https://spdx.org/licenses/
@@ -42,6 +46,7 @@ var (
 		"ISC":          ISC,
 		"MIT":          MIT,
 		"MPL-2.0":      MPL2,
+		"CC-BY-SA-4.0": CcBySa40,
 	}
 )
 
@@ -62,21 +67,7 @@ func DetectLicenses(files map[string][]byte) (map[License]struct{}, error) {
 	hasPatents := false
 
 	for filename, filebody := range files {
-		if strings.HasPrefix(filename, "github.com/datawire/liboauth2/") {
-			licenses[Proprietary] = struct{}{}
-			continue
-		}
-		if strings.HasPrefix(filename, "github.com/datawire/teleproxy/") {
-			// https://github.com/datawire/teleproxy/issues/125
-			licenses[Proprietary] = struct{}{}
-			continue
-		}
-		if filename == "github.com/docker/spdystream/LICENSE.docs" {
-			// This file describes the license of the
-			// docs, which are licensed separately from
-			// the code.  We don't care about the docs.
-			continue
-		}
+
 		if filename == "github.com/miekg/dns/COPYRIGHT" {
 			// This file identifies copyright holders, but
 			// the license info is in the LICENSE file.
@@ -97,6 +88,14 @@ func DetectLicenses(files map[string][]byte) (map[License]struct{}, error) {
 			ls := IdentifyLicenses(filebody)
 			if ls == nil || len(ls) == 0 {
 				return nil, errors.Errorf("could not identify license in file %q", filename)
+			}
+			if name == "LICENSE.docs" && len(ls) == 1 {
+				if _, isCc := ls[CcBySa40]; isCc {
+					// This file describes the license of the
+					// docs, which are licensed separately from
+					// the code.  We don't care about the docs.
+					continue
+				}
 			}
 			for l := range ls {
 				licenses[l] = struct{}{}
@@ -204,6 +203,26 @@ are still covered by their original copyright and license:
     yamlprivateh.go
 
 `
+
+	xzPublicDomain = `Licensing of github.com/xi2/xz
+==============================
+
+    This Go package is a modified version of
+
+        XZ Embedded  <http://tukaani.org/xz/embedded.html>
+
+    The contents of the testdata directory are modified versions of
+    the test files from
+
+        XZ Utils  <http://tukaani.org/xz/>
+
+    All the files in this package have been written by Michael Cross,
+    Lasse Collin and/or Igor PavLov. All these files have been put
+    into the public domain. You can do whatever you want with these
+    files.
+
+    This software is provided "as is", without any warranty.
+`
 )
 
 // IdentifyLicense takes the contents of a license-file and attempts
@@ -226,6 +245,8 @@ func IdentifyLicenses(body []byte) map[License]struct{} {
 		licenses[MIT] = struct{}{}
 	case reMatch(reMPL, body):
 		licenses[MPL2] = struct{}{}
+	case reMatch(reCcBySa40, body):
+		licenses[CcBySa40] = struct{}{}
 
 	// special-purpose hacks
 	case reMatch(reCompile(fmt.Sprintf(`%s\n-+\n+AVL Tree:\n+%s`, reBSD2, reISC)), body):
@@ -258,6 +279,9 @@ func IdentifyLicenses(body []byte) map[License]struct{} {
 		// sigs.k8s.io/yaml/LICENSE
 		licenses[MIT] = struct{}{}
 		licenses[BSD3] = struct{}{}
+	case string(body) == xzPublicDomain:
+		// github.com/xi2/xz/LICENSE
+		licenses[PublicDomain] = struct{}{}
 	default:
 		return nil
 	}

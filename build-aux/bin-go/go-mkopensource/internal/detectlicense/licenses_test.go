@@ -35,14 +35,16 @@ func fmtLicenses(set map[detectlicense.License]struct{}) string {
 }
 
 func TestIdentifyLicenses(t *testing.T) {
+	// Mapping of `testdata/{NAME}/` names to detectlicense constants
 	allLicenses := map[string]detectlicense.License{
-		"Apache2": detectlicense.Apache2,
-		"BSD1":    detectlicense.BSD1,
-		"BSD2":    detectlicense.BSD2,
-		"BSD3":    detectlicense.BSD3,
-		"ISC":     detectlicense.ISC,
-		"MIT":     detectlicense.MIT,
-		"MPL2":    detectlicense.MPL2,
+		"Apache2":      detectlicense.Apache2,
+		"BSD1":         detectlicense.BSD1,
+		"BSD2":         detectlicense.BSD2,
+		"BSD3":         detectlicense.BSD3,
+		"ISC":          detectlicense.ISC,
+		"MIT":          detectlicense.MIT,
+		"MPL2":         detectlicense.MPL2,
+		"CC-BY-SA-4.0": detectlicense.CcBySa40,
 	}
 	dirInfos, err := ioutil.ReadDir("testdata")
 	if err != nil {
