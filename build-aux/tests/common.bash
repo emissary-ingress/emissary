@@ -5,9 +5,9 @@ common_setup() {
 	cp -a "$BATS_TEST_DIRNAME/.." "$test_tmpdir/build-aux"
 	cd "$test_tmpdir"
 	cat >Makefile <<-'__EOT__'
-		.DEFAULT_GOAL = all
-		all:
-		.PHONY: all
+		.DEFAULT_GOAL = tst
+		tst:
+		.PHONY: tst
 		include build-aux/prelude.mk
 		expr-eq-strict-actual: FORCE; printf '%s' $(call quote.shell,$(EXPR)) > $@
 		expr-eq-echo-actual: FORCE; echo $(EXPR) > $@
@@ -43,7 +43,7 @@ check_executable() {
 	cat >>Makefile <<-__EOT__
 		include build-aux/${snippet}
 		include build-aux/var.mk
-		all: \$(${varname}) \$(var.)${varname}
+		tst: \$(${varname}) \$(var.)${varname}
 	__EOT__
 
 	if [[ "$_check_go_executable" == true ]] && ([[ "$build_aux_unsupported_go" == true ]] || ! type go &>/dev/null); then
