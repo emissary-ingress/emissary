@@ -254,10 +254,9 @@
         - title: Client Certificate Validation
           link: /docs/latest/howtos/client-cert-validation
 - title: Service Preview
+  link: /docs/latest/topics/using/edgectl/
   items:
-  - title: Introduction to Service Preview
-    link: /docs/latest/topics/using/edgectl/
-  - title: Installation
+  - title: Quick Start
     link: /docs/latest/topics/using/edgectl/service-preview-install
   - title: Tutorial
     link: /docs/latest/topics/using/edgectl/service-preview-tutorial
