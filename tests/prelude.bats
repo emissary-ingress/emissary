@@ -23,7 +23,7 @@ load common
 
 
 		endef
-		all: $(var.)actual
+		tst: $(var.)actual
 	__EOT__
 
 	make
@@ -42,7 +42,7 @@ load common
 		$(info a: $(var))
 		$(info b: $(var))
 		$(info c: $(var))
-		all: noop
+		tst: noop
 		noop: ; @true
 		.PHONY: noop
 	__EOT__
@@ -61,7 +61,7 @@ load common
 	cat >>Makefile <<-'__EOT__'
 		include build-aux/prelude.mk
 		include build-aux/var.mk
-		all: $(var.)build-aux.dir
+		tst: $(var.)build-aux.dir
 	__EOT__
 
 	make
@@ -73,7 +73,7 @@ load common
 	cat >>Makefile <<-'__EOT__'
 		include build-aux/prelude.mk
 		include build-aux/var.mk
-		all: $(build-aux.bindir) $(var.)build-aux.bindir
+		tst: $(build-aux.bindir) $(var.)build-aux.bindir
 	__EOT__
 
 	make
@@ -135,12 +135,12 @@ load common
 	cat >>Makefile <<-'__EOT__'
 		include build-aux/prelude.mk
 		include build-aux/var.mk
-		all: $(COPY_IFCHANGED) $(MOVE_IFCHANGED) $(WRITE_IFCHANGED) $(TAP_DRIVER)
+		tst: $(COPY_IFCHANGED) $(MOVE_IFCHANGED) $(WRITE_IFCHANGED) $(TAP_DRIVER)
 	__EOT__
 
 	[[ -d build-aux ]]
 	[[ ! -d build-aux/bin ]]
-	make all
+	make tst
 	[[ -d build-aux/bin ]]
 	[[ -f build-aux/bin/copy-ifchanged && -x build-aux/bin/copy-ifchanged ]]
 	[[ -n "$(cd build-aux && git clean -ndx)" ]]
@@ -157,7 +157,7 @@ load common
 @test "prelude.mk: FORCE" {
 	cat >>Makefile <<-'__EOT__'
 		include build-aux/prelude.mk
-		all: without-force with-force
+		tst: without-force with-force
 		without-force: ; touch $@
 		with-force: FORCE ; touch $@
 	__EOT__
