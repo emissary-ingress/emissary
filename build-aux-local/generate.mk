@@ -153,7 +153,7 @@ $(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/cxx/go-control-plane FORCE
 
 # proto_path is a list of where to look for .proto files.
 _proto_path += $(OSS_HOME)/api # input files must be within the path
-_proto_path += $(OSS_HOME)/vendor # for "k8s.io/..." and "github.com/gogo/protobuf/gogoproto/..."
+_proto_path += $(OSS_HOME)/vendor # for "k8s.io/..."
 proto_path = $(call lazyonce,proto_path,$(_proto_path))
 
 # Usage: $(call protoc,output_module,output_basedir[,plugin_files])
@@ -165,8 +165,7 @@ protoc = @echo PROTOC --$1_out=$2 $<; mkdir -p $2 && $(tools/protoc) \
 
 # The "M{FOO}={BAR}" options map from .proto files to Go package names.
 _proto_options/go += plugins=grpc
-_proto_options/go += Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types
-_proto_options/go += Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types
+#_proto_options/go += Mgoogle/protobuf/duration.proto=github.com/golang/protobuf/ptypes/duration
 proto_options/go = $(call lazyonce,proto_options/go,$(_proto_options/go))
 $(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-go) | $(OSS_HOME)/vendor
 	$(call protoc,go,$(OSS_HOME)/pkg/api,\
@@ -189,17 +188,9 @@ $(OSS_HOME)/generate.tmp/%_grpc_web_pb.js: $(OSS_HOME)/api/%.proto $(tools/proto
 	$(call protoc,grpc-web,$(OSS_HOME)/generate.tmp,\
 	    $(tools/protoc-gen-grpc-web))
 
-# This madness with sed is because protoc likes to insert broken imports when generating
-# Python code, and my attempts to sort out how to fix the protoc invocation are taking 
-# longer than I have right now.
-# (Previous we just did cp $< $@ instead of the sed call.)
-
 $(OSS_HOME)/python/ambassador/proto/%.py: $(OSS_HOME)/generate.tmp/getambassador.io/%.py
 	mkdir -p $(@D)
-	sed \
-		-e 's/github_dot_com_dot_gogo_dot_protobuf_dot_gogoproto_dot_gogo__pb2.DESCRIPTOR,//' \
-		-e '/from github.com.gogo.protobuf.gogoproto import/d' \
-		< $< > $@
+	cp $< $@
 
 $(OSS_HOME)/tools/sandbox/grpc_web/%.js: $(OSS_HOME)/generate.tmp/kat/%.js
 	cp $< $@
