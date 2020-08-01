@@ -152,8 +152,8 @@ ifneq ($(call go.goversion.HAVE, 1.13beta1),$(FALSE))
   define _go.bin.rule
   bin_%/$1: bin_%/.go-build/$1 $$(COPY_IFCHANGED)
 	$$(COPY_IFCHANGED) $$< $$@
-  bin_%/$1.opensource.tar.gz: bin_%/$1 vendor $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED)
-	$$(_go.mkopensource) --output-name=$1.opensource --package=$2 --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz | $$(WRITE_IFCHANGED) $$@
+  bin_%/$1.opensource.tar.gz: bin_%/$1 $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED)
+	$$(_go.mkopensource) --output-format=tar --output-name=$1.opensource --package=$2 --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz | $$(WRITE_IFCHANGED) $$@
   endef
 else
   # Usage: $(eval $(call _go.bin.rule,BINNAME,GOPACKAGE))
@@ -162,8 +162,8 @@ else
 	$$(go.lock)$$(go.GOBUILD) $$(if $$(go.LDFLAGS),--ldflags $$(call quote.shell,$$(go.LDFLAGS))) -o $$@ $2
   bin_%/$1: bin_%/.go-build/$1 $$(COPY_IFCHANGED)
 	$$(COPY_IFCHANGED) $$< $$@
-  bin_%/$1.opensource.tar.gz: bin_%/$1 vendor $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED) $$(go.lock)
-	$$(go.lock)$$(_go.mkopensource) --output-name=$1.opensource --package=$2 --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz | $$(WRITE_IFCHANGED) $$@
+  bin_%/$1.opensource.tar.gz: bin_%/$1 $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED) $$(go.lock)
+	$$(go.lock)$$(_go.mkopensource) --output-format=tar --output-name=$1.opensource --package=$2 --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz | $$(WRITE_IFCHANGED) $$@
   endef
 endif
 
@@ -173,6 +173,10 @@ $(foreach _go.bin,$(go.bins),$(eval $(call _go.bin.rule,$(_go.bin.name),$(_go.bi
 
 go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name)                   ))
 build:    $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name).opensource.tar.gz ))
+
+build: OPENSOURCE.md
+OPENSOURCE.md: go-get $(go.lock) $(_go.mkopensource) $(dir $(_go-mod.mk))go$(go.goversion).src.tar.gz $(WRITE_IFCHANGED) FORCE
+	$(go.lock)$(_go.mkopensource) --output-format=txt --package=$(go.module)/... --gotar=$(dir $(_go-mod.mk))go$(go.goversion).src.tar.gz | $(WRITE_IFCHANGED) $@
 
 go-build: ## (Go) Build the code with `go build`
 .PHONY: go-build
@@ -190,7 +194,7 @@ go-fmt: go-get $(go.lock)
 go-test: ## (Go) Check the code with `go test`
 go-test: go-build
 ifeq ($(go.DISABLE_GO_TEST),)
-	$(MAKE) $(dir $(_go-mod.mk))go-test.tap.summary
+	$(MAKE) -f $(firstword $(MAKEFILE_LIST)) $(dir $(_go-mod.mk))go-test.tap.summary
 endif
 
 $(dir $(_go-mod.mk))go-test.tap: $(GOTEST2TAP) $(TAP_DRIVER) $(go.lock) FORCE
@@ -203,7 +207,7 @@ go-doc: ## (Go) Run a `godoc -http` server
 go-doc: $(dir $(_go-mod.mk))gopath
 	{ \
 		while sleep 1; do \
-			$(MAKE) --quiet $(dir $(_go-mod.mk))gopath/src/$(go.module); \
+			$(MAKE) -f $(firstword $(MAKEFILE_LIST)) --quiet $(dir $(_go-mod.mk))gopath/src/$(go.module); \
 		done & \
 		trap "kill $$!" EXIT; \
 		GOPATH=$(dir $(_go-mod.mk))gopath godoc -http :8080; \
@@ -214,7 +218,7 @@ $(dir $(_go-mod.mk))gopath: FORCE vendor
 	mkdir -p $(dir $(_go-mod.mk))gopath/src
 	echo 'module bogus' > $(dir $(_go-mod.mk))gopath/go.mod
 	rsync --archive --delete vendor/ $(dir $(_go-mod.mk))gopath/src/
-	$(MAKE) $(dir $(_go-mod.mk))gopath/src/$(go.module)
+	$(MAKE) -f $(firstword $(MAKEFILE_LIST)) $(dir $(_go-mod.mk))gopath/src/$(go.module)
 $(dir $(_go-mod.mk))gopath/src/$(go.module): $(go.lock) FORCE
 	mkdir -p $@
 	$(go.lock)go list ./... | sed -e 's,^$(go.module),,' -e 's,$$,/*.go,' | rsync --archive --prune-empty-dirs --delete-excluded --include='*/' --include-from=/dev/stdin --exclude='*' ./ $@/
