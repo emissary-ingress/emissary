@@ -174,7 +174,7 @@ truncated_diff() {
 
 	cat >>Makefile <<-'__EOT__'
 		include build-aux/prelude.mk
-		all: $(patsubst expected/%,actual/%,$(wildcard expected/*))
+		tst: $(patsubst expected/%,actual/%,$(wildcard expected/*))
 		actual/%: ; @echo $(call _prelude.go.VERSION.parse,$*) > $@
 	__EOT__
 
@@ -214,7 +214,7 @@ truncated_diff() {
 
 	cat >>Makefile <<-'__EOT__'
 		include build-aux/prelude.mk
-		all: $(patsubst expected/%,actual/%,$(wildcard expected/*))
+		tst: $(patsubst expected/%,actual/%,$(wildcard expected/*))
 		A = $(word 1,$(subst -ge-, ,$*))
 		B = $(word 2,$(subst -ge-, ,$*))
 		actual/%: ; @echo $(if $(call _prelude.go.VERSION.prerelease.ge,$A,$B),true,false) > $@
