@@ -69,7 +69,7 @@ GOHOSTARCH=$(call lazyonce,GOHOSTARCH,$(shell go env GOHOSTARCH))
 PROTOC_VERSION            = 3.8.0
 PROTOC_PLATFORM           = $(patsubst darwin,osx,$(GOHOSTOS))-$(patsubst amd64,x86_64,$(patsubst 386,x86_32,$(GOHOSTARCH)))
 tools/protoc              = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/bin/protoc
-$(tools/protoc):
+$(tools/protoc): $(OSS_HOME)/build-aux-local/generate.mk
 	mkdir -p $(dir $(@D))
 	set -o pipefail; curl --fail -L https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip | bsdtar -C $(dir $(@D)) -xf -
 	chmod 755 $@
@@ -85,7 +85,7 @@ $(tools/protoc-gen-go): $(OSS_HOME)/go.mod
 GRPC_WEB_VERSION          = 1.0.3
 GRPC_WEB_PLATFORM         = $(GOHOSTOS)-x86_64
 tools/protoc-gen-grpc-web = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-grpc-web
-$(tools/protoc-gen-grpc-web):
+$(tools/protoc-gen-grpc-web): $(OSS_HOME)/build-aux-local/generate.mk
 	mkdir -p $(@D)
 	curl -o $@ -L --fail https://github.com/grpc/grpc-web/releases/download/$(GRPC_WEB_VERSION)/protoc-gen-grpc-web-$(GRPC_WEB_VERSION)-$(GRPC_WEB_PLATFORM)
 	chmod 755 $@
