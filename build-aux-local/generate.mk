@@ -111,6 +111,12 @@ $(tools/go-mkopensource): FORCE
 	mkdir -p $(@D)
 	cd $(OSS_HOME)/build-aux/bin-go/go-mkopensource && go build -o $@ github.com/datawire/build-aux/bin-go/go-mkopensource
 
+# A python script
+tools/py-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/py-mkopensource
+$(tools/py-mkopensource): FORCE
+	mkdir -p $(@D)
+	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/cmd/py-mkopensource
+
 #
 # `make generate` vendor rules
 
@@ -299,12 +305,19 @@ generate-clean: update-yaml-clean
 #
 # Generate report on dependencies
 
+$(OSS_HOME)/build-aux-local/pip-show.txt: sync
+	docker exec $$($(BUILDER)) sh -c 'pip freeze | cut -d= -f1 | xargs pip show' > $@
+
 $(OSS_HOME)/build-aux-local/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base
 	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
 
 $(OSS_HOME)/build-aux/go1%.src.tar.gz:
 	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
 
-$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(OSS_HOME)/build-aux-local/go-version.txt
+$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux-local/go-version.txt $(OSS_HOME)/build-aux-local/pip-show.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz
-	cd $(OSS_HOME) && $(tools/go-mkopensource) --output-format=txt --package=github.com/datawire/ambassador/... --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz > $@
+	set -e; { \
+		cd $(OSS_HOME) && $(tools/go-mkopensource) --output-format=txt --package=github.com/datawire/ambassador/... --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz; \
+		echo; \
+		sed 's/^---$$//' $(OSS_HOME)/build-aux-local/pip-show.txt | $(tools/py-mkopensource); \
+	} > $@

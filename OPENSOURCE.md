@@ -168,3 +168,78 @@ following Free and Open Source software:
     sigs.k8s.io/kustomize                                    v2.0.3+incompatible                        Apache License 2.0
     sigs.k8s.io/structured-merge-diff/v3                     v3.0.0                                     Apache License 2.0
     sigs.k8s.io/yaml                                         v1.2.0                                     3-clause BSD license, MIT license
+
+The Ambassador Python code makes use of the folloing Free and Open Source
+libraries:
+
+    Name                Version    License(s)
+    ----                -------    ----------
+    Click               7.0        3-clause BSD license
+    Cython              0.29.10    Apache License 2.0
+    Flask               1.0.2      3-clause BSD license
+    GitPython           3.1.7      3-clause BSD license
+    Jinja2              2.10.1     3-clause BSD license
+    MarkupSafe          1.1.1      3-clause BSD license
+    PyJWT               1.7.1      MIT license
+    PyYAML              5.1        MIT license
+    Werkzeug            1.0.1      3-clause BSD license
+    adal                1.2.4      MIT license
+    attrs               19.1.0     MIT license
+    cachetools          4.1.1      MIT license
+    certifi             2020.6.20  Mozilla Public License 2.0
+    cffi                1.14.0     MIT license
+    chardet             3.0.4      GNU Lesser General Public License Version 2.1
+    clize               4.0.3      MIT license
+    coverage            5.2        Apache License 2.0
+    cryptography        2.9.2      Apache License 2.0, Python Software Foundation license
+    decorator           4.4.2      2-clause BSD license
+    docopt              0.6.2      MIT license
+    docutils            0.16       2-clause BSD license, GNU General Public License Version 3, Python Software Foundation license, public domain
+    dpath               2.0.1      MIT license
+    durationpy          0.5        MIT license
+    expiringdict        1.2.0      Apache License 2.0
+    gitdb               4.0.5      3-clause BSD license
+    google-auth         1.18.0     Apache License 2.0
+    gunicorn            19.9.0     MIT license
+    idna                2.7        3-clause BSD license, Python Software Foundation license, Unicode License Agreement for Data Files and Software (2015)
+    importlib-metadata  1.7.0      Apache License 2.0
+    itsdangerous        1.1.0      3-clause BSD license
+    jsonpatch           1.24       3-clause BSD license
+    jsonpointer         2.0        3-clause BSD license
+    jsonschema          2.6.0      MIT license
+    jwt                 0.5.4      Apache License 2.0
+    k8s-proto           0.0.2      Apache License 2.0
+    kubernetes          8.0.0      Apache License 2.0
+    more-itertools      8.4.0      MIT license
+    mypy                0.782      MIT license
+    mypy-extensions     0.4.3      MIT license
+    oauthlib            3.1.0      3-clause BSD license
+    od                  1.0        MIT license
+    packaging           20.4       2-clause BSD license, Apache License 2.0
+    pexpect             4.8.0      ISC license
+    pluggy              0.13.1     MIT license
+    protobuf            3.10.0     3-clause BSD license
+    ptyprocess          0.6.0      ISC license
+    py                  1.9.0      MIT license
+    pyasn1              0.4.8      2-clause BSD license
+    pyasn1-modules      0.2.8      2-clause BSD license
+    pycparser           2.20       3-clause BSD license
+    pyparsing           2.4.7      MIT license
+    pytest              5.4.3      MIT license
+    pytest-cov          2.10.0     MIT license
+    python-dateutil     2.8.1      3-clause BSD license, Apache License 2.0
+    requests            2.20.1     Apache License 2.0
+    requests-oauthlib   1.3.0      ISC license
+    retry               0.9.2      Apache License 2.0
+    rsa                 4.6        Apache License 2.0
+    scout.py            0.5.0      Apache License 2.0
+    semantic-version    2.6.0      2-clause BSD license
+    sigtools            2.0.2      MIT license
+    six                 1.15.0     MIT license
+    smmap               3.0.4      3-clause BSD license
+    typed-ast           1.4.1      Apache License 2.0
+    typing              3.7.4.1    Python Software Foundation license
+    typing-extensions   3.7.4.2    Python Software Foundation license
+    urllib3             1.24.3     MIT license
+    wcwidth             0.2.5      MIT license
+    websocket-client    0.57.0     3-clause BSD license
