@@ -146,7 +146,7 @@ func Main() error {
 	if len(errs) > 0 {
 		return errs
 	}
-	fmt.Printf("The Ambassador Python code makes use of the folloing Free and Open Source\nlibraries:\n\n")
+	fmt.Printf("The Ambassador Python code makes use of the following Free and Open Source\nlibraries:\n\n")
 	table.Flush()
 
 	return nil

@@ -169,7 +169,7 @@ following Free and Open Source software:
     sigs.k8s.io/structured-merge-diff/v3                     v3.0.0                                     Apache License 2.0
     sigs.k8s.io/yaml                                         v1.2.0                                     3-clause BSD license, MIT license
 
-The Ambassador Python code makes use of the folloing Free and Open Source
+The Ambassador Python code makes use of the following Free and Open Source
 libraries:
 
     Name                Version    License(s)
