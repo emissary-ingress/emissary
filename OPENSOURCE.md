@@ -187,10 +187,10 @@ libraries:
     attrs               19.1.0     MIT license
     cachetools          4.1.1      MIT license
     certifi             2020.6.20  Mozilla Public License 2.0
-    cffi                1.14.0     MIT license
+    cffi                1.14.1     MIT license
     chardet             3.0.4      GNU Lesser General Public License Version 2.1
     clize               4.0.3      MIT license
-    coverage            5.2        Apache License 2.0
+    coverage            5.2.1      Apache License 2.0
     cryptography        2.9.2      Apache License 2.0, Python Software Foundation license
     decorator           4.4.2      2-clause BSD license
     docopt              0.6.2      MIT license
@@ -199,10 +199,11 @@ libraries:
     durationpy          0.5        MIT license
     expiringdict        1.2.0      Apache License 2.0
     gitdb               4.0.5      3-clause BSD license
-    google-auth         1.18.0     Apache License 2.0
+    google-auth         1.20.0     Apache License 2.0
     gunicorn            19.9.0     MIT license
     idna                2.7        3-clause BSD license, Python Software Foundation license, Unicode License Agreement for Data Files and Software (2015)
     importlib-metadata  1.7.0      Apache License 2.0
+    iniconfig           1.0.1      MIT license
     itsdangerous        1.1.0      3-clause BSD license
     jsonpatch           1.24       3-clause BSD license
     jsonpointer         2.0        3-clause BSD license
@@ -225,7 +226,7 @@ libraries:
     pyasn1-modules      0.2.8      2-clause BSD license
     pycparser           2.20       3-clause BSD license
     pyparsing           2.4.7      MIT license
-    pytest              5.4.3      MIT license
+    pytest              6.0.1      MIT license
     pytest-cov          2.10.0     MIT license
     python-dateutil     2.8.1      3-clause BSD license, Apache License 2.0
     requests            2.20.1     Apache License 2.0
@@ -237,9 +238,9 @@ libraries:
     sigtools            2.0.2      MIT license
     six                 1.15.0     MIT license
     smmap               3.0.4      3-clause BSD license
+    toml                0.10.1     MIT license
     typed-ast           1.4.1      Apache License 2.0
-    typing              3.7.4.1    Python Software Foundation license
+    typing              3.7.4.3    Python Software Foundation license
     typing-extensions   3.7.4.2    Python Software Foundation license
     urllib3             1.24.3     MIT license
-    wcwidth             0.2.5      MIT license
     websocket-client    0.57.0     3-clause BSD license
