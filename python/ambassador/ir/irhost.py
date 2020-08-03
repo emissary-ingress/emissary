@@ -101,15 +101,21 @@ class IRHost(IRResource):
 
                         # First make sure that the TLSContext is "compatible" i.e. it at least has the same cert related
                         # configuration as the one in this Host AND hosts are same as well.
-                        if 'secret' in host_tls_context:
-                            context_ss = self.resolve(ir, host_tls_context.get('secret'))
+
+                        if host_tls_context.has_secret():
+                            secret_name = host_tls_context.secret_name()
+                            assert(secret_name)     # For mypy -- we checked above to be sure it exists.
+
+                            context_ss = self.resolve(ir, secret_name)
+
+                            self.logger.debug(f"Host {self.name}, ctx {host_tls_context.name}, secret {secret_name}, resolved {context_ss}")
+
                             if str(context_ss) != str(tls_ss):
                                 self.post_error(f"Secret info mismatch between Host: {self.name} (secret: {tls_name})"
-                                                f"and TLSContext: {host_tls_context_name}"
-                                                f"(secret: {host_tls_context.get('secret')})")
+                                                f" and TLSContext: {host_tls_context_name} (secret: {secret_name})")
                                 return False
                         else:
-                            host_tls_context['secret'] = tls_name
+                            host_tls_context.set_secret_name(tls_name)
 
                         if 'hosts' in host_tls_context:
                             is_valid_hosts = False
@@ -123,6 +129,8 @@ class IRHost(IRResource):
                                                 f"(hosts: {host_tls_context.get('hosts')})")
                         else:
                             host_tls_context['hosts'] = [self.hostname or self.name]
+
+                        self.logger.debug(f"Host {self.name}, final ctx {host_tls_context.name}: {host_tls_context.as_json()}")
 
                         # All seems good, this context belongs to self now!
                         self.context = host_tls_context
