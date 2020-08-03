@@ -126,7 +126,7 @@ Now let's set up an intercept with a preview URL.
      # [...]
      previewUrl:
        enabled: true
-       type: path
+       type: Path
    ```
 
    Replace `{{AMBASSADOR_IP_OR_DOMAIN_NAME}}` with the IP address or domain name of your Ambassador service and apply it with `kubectl`
