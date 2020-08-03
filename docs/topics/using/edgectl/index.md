@@ -2,31 +2,13 @@
 
 One of the challenges in adopting Kubernetes and microservices is the development and testing workflow. Creating and maintaining a full development environment with many microservices and their dependencies is complex and hard.
 
-Service Preview addresses this challenge by connecting your CI system or local development infrastructure to the Kubernetes cluster, and dynamically routing specific requests to your local environment.
+Service Preview, based on [Telepresence](https://www.telepresence.io), enables different developers to run different virtual versions of the same microservice. These virtual versions are deployed on your CI system or local development infrastructure, enabling fast development and testing workflows.
 
-## Installation
+## Getting started
 
-Service Preview and `edgectl` are addons to the Ambassador Edge Stack.
+To get started, follow the [installation](service-preview-install) instructions, and try the [tutorial](service-preview-tutorial).
 
-### Edge Control Install
-
-`edgectl` is a binary used to interact with the Ambassador Edge Stack and Service Preview.
-
-See [installing edge control](edge-control#installing-edge-control) to learn how to download and install `edgectl`
-
-### Service Preview Install
-
-Service Preview is installed as an additional deployment to Ambassador Edge Stack that runs in your Kubernetes cluster.
-
-See the [installing Service Preview Quick Start](service-preview-install) and [Service Preview tutorial](service-preview-tutorial) to learn how to install and use Service Preview.
-
-## Reference
-
-### Edge Control Commands
-
-`edgectl` is used for interacting with your cluster, Ambassador Edge Stack, and Service Preview. It can also be a powerful tool to use for CI/CD pipelines.
-
-See [Edge Control Commands](edge-control#edge-control-commands) for cli reference and [Edge Control in CI](edge-control-in-ci) for information on using `edgectl` in CI/CD pipelines.
+Service Preview runs on Mac OS X, Linux, and Windows via WSL2.
 
 ### Service Preview Components
 
