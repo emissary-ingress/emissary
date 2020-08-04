@@ -29,7 +29,7 @@ the project controller by running the following command:
 kubectl apply -f https://www.getambassador.io/yaml/projects.yaml
 ```
 
-**Note:** RBAC changes need to be made to fully activate the projects after manual project install:  Copy the following to add the RBAC permissions and restart the Ambassador Pods for the changes to take effect.
+**Note:** RBAC changes need to be made to fully activate the projects after manual project install:  Apply the following to add the RBAC permissions and restart the Ambassador Pods for the changes to take effect.
    ```yaml
    ---
    apiVersion: rbac.authorization.k8s.io/v1beta1
