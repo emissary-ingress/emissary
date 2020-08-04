@@ -45,8 +45,13 @@ $(build-aux.bindir)/teleproxy: $(build-aux.bindir)/%: $(build-aux.bindir)/.%.sta
 
 proxy: ## (Kubernaut) Launch teleproxy in the background
 proxy: $(KUBECONFIG) $(TELEPROXY)
-	if ! curl -sk $(KUBE_URL); then \
+	@if ! curl -sk $(KUBE_URL); then \
+		echo "Starting proxy"; \
+		set -x; \
+		kubectl delete pods/teleproxy || true; \
 		$(TELEPROXY) > $(TELEPROXY_LOG) 2>&1 & \
+	else \
+		echo "Proxy appears to already be running"; \
 	fi
 	@for i in $$(seq 127); do \
 		echo "Checking proxy ($$i): $(KUBE_URL)"; \
