@@ -940,6 +940,72 @@ class V2Listener(dict):
         }
         return redirect_route
 
+    @classmethod
+    def parse_route_candidate(cls,
+                              logger,
+                              edge_stack_allowed: bool,
+                              listener_name: str,
+                              candidate: (bool, V2Route, str),
+                              route: V2Route,
+                              vhost: V2VirtualHost):
+
+        vhostname = vhost._hostname
+        # If this an SNI route, remember the host[s] to which it pertains.
+        route_sni = route.get('_sni', {})
+        route_hostlist = route_sni.get('hosts', [])
+        route_hosts = set(route_hostlist)
+
+        # Remember, also, if a precedence was set.
+        route_precedence = route.get('_precedence', None)
+
+        secure, c_route, action = candidate
+        variant = "secure" if secure else "insecure"
+        if c_route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
+            # We need to be sure to route ACME challenges, no matter what else is going
+            # on (this is the infamous ACME hole-puncher mentioned everywhere).
+            logger.debug(f"V2Listeners: {listener_name} {vhostname} force Route for ACME challenge")
+            action = "Route"
+
+            # We have to force the correct route entry, too, just in case. (Note that right now,
+            # the user can't create a Mapping that forces redirection. When they can do this
+            # per-Mapping, well, really, we can't force them to not redirect if they explicitly
+            # ask for it, and that'll be OK.)
+
+            if secure:
+                c_route = cls.generate_secure_route(c_route)
+            else:
+                c_route = cls.generate_insecure_route(c_route)
+        elif route_hosts and (vhostname != '*') and (vhostname not in route_hosts):
+            # Drop this because the host is mismatched.
+            logger.debug(
+                f"V2Listeners: {listener_name} {vhostname} {variant}: force Reject (rhosts {route_hostlist}, vhost {vhostname})")
+            action = "Reject"
+        elif (edge_stack_allowed and
+              (route_precedence == -1000000) and
+              (route["match"].get("safe_regex", {}).get("regex", None) == "^/$")):
+            logger.debug(
+                f"V2Listeners: {listener_name} {vhostname} {variant}: force Route for fallback Mapping")
+            action = "Route"
+
+            # Force the actual route entry, instead of using the redirect_route, too.
+            # (If the user overrides the fallback with their own route at precedence -1000000,
+            # uh.... y'know what, on their own head be it.)
+            c_route = cls.generate_insecure_route(c_route)
+
+        if action != 'Reject':
+            logger.debug(
+                f"V2Listeners: {listener_name} {vhostname} {variant}: Accept as {action}")
+            vhost.append_route(c_route)
+        else:
+            logger.debug(
+                f"V2Listeners: {listener_name} {vhostname} {variant}: Drop")
+
+            # Also, remember if we're redirecting so that the VHost finalizer can DTRT
+            # for ACME.
+        if action == 'Redirect':
+            vhost.needs_redirect()
+
+
     def finalize(self) -> None:
         self.config.ir.logger.debug(f"V2Listener finalize {self.pretty()}")
 
@@ -1131,24 +1197,47 @@ class V2Listener(dict):
 
         # OK. We have all the listeners. Time to walk the routes (note that they are already ordered).
         for route in config.routes:
-            # If this an SNI route, remember the host[s] to which it pertains.
-            route_sni = route.get('_sni', {})
-            route_hostlist = route_sni.get('hosts', [])
-            route_hosts = set(route_hostlist)
-
-            # Remember, also, if a precedence was set.
-            route_precedence = route.get('_precedence', None)
-
             logger.debug(f"V2Listeners: route {prettyroute(route)}...")
-
-            # new_insecure_route = cls.generate_insecure_route(route)
-            # new_secure_route = cls.generate_secure_route(route)
-            # new_redirect_route = cls.generate_redirect_route(route)
 
             # We now have a secure route and an insecure route, so we need to walk all listeners
             # and all vhosts, and match up the routes with the vhosts.
 
             for port, listener in listeners_by_port.items():
+                # if this is an insecure first vhost, then we want all the routes added
+                if listener.first_vhost._ctx is None and listener.first_vhost._insecure_action is not None:
+                    # this is a cleartext listener and there is an insecure action set
+                    for rec_vkey, rec_vhost in listener.vhosts.items():
+                        candidates = []
+                        if rec_vhost._ctx is None:
+                            if rec_vhost._insecure_action == "Redirect":
+                                logger.debug(f"yoyoyo: generating redirect route for {dict(route)}")
+                                redirect_route = cls.generate_redirect_route(route)
+                                if "headers" not in redirect_route["match"]:
+                                    redirect_route["match"]["headers"] = []
+                                redirect_route["match"]["headers"].append(
+                                    {
+                                        "name": ":authority",
+                                        "exact_match": rec_vhost._hostname
+                                    }
+                                )
+                                candidates.append(( False, redirect_route, "Redirect" ))
+                            elif rec_vhost._insecure_action is not None:
+                                logger.debug(f"yoyoyo: generating insecure route for {dict(route)}")
+                                insecure_route = cls.generate_insecure_route(route)
+                                if "headers" not in insecure_route["match"]:
+                                    insecure_route["match"]["headers"] = []
+                                insecure_route["match"]["headers"].append(
+                                    {
+                                        "name": ":authority",
+                                        "exact_match": rec_vhost._hostname
+                                    }
+                                )
+                                candidates.append((False, insecure_route, rec_vhost._insecure_action))
+                            # we only want this to run once
+                            # break
+                        for candidate in candidates:
+                            cls.parse_route_candidate(logger, config.ir.edge_stack_allowed, listener.name, candidate, route, listener.first_vhost)
+
                 for vhostkey, vhost in listener.vhosts.items():
                     # For each vhost, we need to look at things for the secure world as well
                     # as the insecure world, depending on what the action is exactly (and note
@@ -1160,94 +1249,16 @@ class V2Listener(dict):
                                  f"insecure_action {vhost._insecure_action}, "
                                  f"context {vhost._ctx}")
                     candidates = []
-                    vhostname = vhost._hostname
-
                     if vhost._action is not None:
                         candidates.append(( True, cls.generate_secure_route(route), vhost._action ))
-
-                    if vhost._insecure_action is not None and vhost._ctx is None:
-                        # this is a cleartext listener and there is an insecure action set
-                        for rec_vkey, rec_vhost in listener.vhosts.items():
-                            if rec_vhost._ctx is None:
-                                if rec_vhost._insecure_action == "Redirect":
-                                    logger.debug(f"yoyoyo: generating redirect route for {dict(route)}")
-                                    redirect_route = cls.generate_redirect_route(route)
-                                    if "headers" not in redirect_route["match"]:
-                                        redirect_route["match"]["headers"] = []
-                                    redirect_route["match"]["headers"].append(
-                                        {
-                                            "name": ":authority",
-                                            "exact_match": rec_vhost._hostname
-                                        }
-                                    )
-                                    candidates.append(( False, redirect_route, "Redirect" ))
-                                elif rec_vhost._insecure_action is not None:
-                                    logger.debug(f"yoyoyo: generating insecure route for {dict(route)}")
-                                    insecure_route = cls.generate_insecure_route(route)
-                                    if "headers" not in insecure_route["match"]:
-                                        insecure_route["match"]["headers"] = []
-                                    insecure_route["match"]["headers"].append(
-                                        {
-                                            "name": ":authority",
-                                            "exact_match": rec_vhost._hostname
-                                        }
-                                    )
-                                    candidates.append((False, insecure_route, rec_vhost._insecure_action))
-                                # we only want this to run once
-                                # break
 
                     # if vhost._insecure_action == "Redirect":
                     #     candidates.append(( False, redirect_route, "Redirect" ))
                     # elif vhost._insecure_action is not None:
                     #     candidates.append((False, insecure_route, vhost._insecure_action))
 
-                    for secure, c_route, action in candidates:
-                        variant = "secure" if secure else "insecure"
-
-                        if c_route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
-                            # We need to be sure to route ACME challenges, no matter what else is going
-                            # on (this is the infamous ACME hole-puncher mentioned everywhere).
-                            logger.debug(f"V2Listeners: {listener.name} {vhostname} force Route for ACME challenge")
-                            action = "Route"
-
-                            # We have to force the correct route entry, too, just in case. (Note that right now,
-                            # the user can't create a Mapping that forces redirection. When they can do this
-                            # per-Mapping, well, really, we can't force them to not redirect if they explicitly
-                            # ask for it, and that'll be OK.)
-
-                            if secure:
-                                c_route = cls.generate_secure_route(c_route)
-                            else:
-                                c_route = cls.generate_insecure_route(c_route)
-                        elif route_hosts and (vhostname != '*') and (vhostname not in route_hosts):
-                            # Drop this because the host is mismatched.
-                            logger.debug(
-                                f"V2Listeners: {listener.name} {vhostname} {variant}: force Reject (rhosts {route_hostlist}, vhost {vhostname})")
-                            action = "Reject"
-                        elif (config.ir.edge_stack_allowed and
-                              (route_precedence == -1000000) and
-                              (route["match"].get("safe_regex", {}).get("regex", None) == "^/$")):
-                            logger.debug(
-                                f"V2Listeners: {listener.name} {vhostname} {variant}: force Route for fallback Mapping")
-                            action = "Route"
-
-                            # Force the actual route entry, instead of using the redirect_route, too.
-                            # (If the user overrides the fallback with their own route at precedence -1000000,
-                            # uh.... y'know what, on their own head be it.)
-                            c_route = cls.generate_insecure_route(c_route)
-
-                        if action != 'Reject':
-                            logger.debug(
-                                f"V2Listeners: {listener.name} {vhostname} {variant}: Accept as {action}")
-                            vhost.append_route(c_route)
-                        else:
-                            logger.debug(
-                                f"V2Listeners: {listener.name} {vhostname} {variant}: Drop")
-
-                        # Also, remember if we're redirecting so that the VHost finalizer can DTRT
-                        # for ACME.
-                        if action == 'Redirect':
-                            vhost.needs_redirect()
+                    for candidate in candidates:
+                        cls.parse_route_candidate(logger, config.ir.edge_stack_allowed, listener.name, candidate, route, vhost)
 
         # OK. Finalize the world.
         for port, listener in listeners_by_port.items():
