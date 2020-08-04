@@ -6,6 +6,8 @@ generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HO
 generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_grpc_web_pb.js , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
 generate/files += $(OSS_HOME)/pkg/api/envoy
 generate/files += $(OSS_HOME)/pkg/envoy-control-plane
+generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
+generate/files += $(OSS_HOME)/OPENSOURCE.md
 generate: ## Update generated sources that get committed to git
 generate:
 	$(MAKE) generate-clean
@@ -22,6 +24,8 @@ generate-clean:
 	rm -rf $(OSS_HOME)/python/ambassador/proto
 	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js
 	rm -rf $(OSS_HOME)/pkg/envoy-control-plane
+	rm -f $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
+	rm -f $(OSS_HOME)/OPENSOURCE.md
 .PHONY: generate _generate generate-clean
 
 go-mod-tidy/oss:
@@ -67,7 +71,7 @@ GOHOSTARCH=$(call lazyonce,GOHOSTARCH,$(shell go env GOHOSTARCH))
 PROTOC_VERSION            = 3.8.0
 PROTOC_PLATFORM           = $(patsubst darwin,osx,$(GOHOSTOS))-$(patsubst amd64,x86_64,$(patsubst 386,x86_32,$(GOHOSTARCH)))
 tools/protoc              = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/bin/protoc
-$(tools/protoc):
+$(tools/protoc): $(OSS_HOME)/build-aux-local/generate.mk
 	mkdir -p $(dir $(@D))
 	set -o pipefail; curl --fail -L https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip | bsdtar -C $(dir $(@D)) -xf -
 	chmod 755 $@
@@ -83,7 +87,7 @@ $(tools/protoc-gen-go): $(OSS_HOME)/go.mod
 GRPC_WEB_VERSION          = 1.0.3
 GRPC_WEB_PLATFORM         = $(GOHOSTOS)-x86_64
 tools/protoc-gen-grpc-web = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-grpc-web
-$(tools/protoc-gen-grpc-web):
+$(tools/protoc-gen-grpc-web): $(OSS_HOME)/build-aux-local/generate.mk
 	mkdir -p $(@D)
 	curl -o $@ -L --fail https://github.com/grpc/grpc-web/releases/download/$(GRPC_WEB_VERSION)/protoc-gen-grpc-web-$(GRPC_WEB_VERSION)-$(GRPC_WEB_PLATFORM)
 	chmod 755 $@
@@ -101,6 +105,17 @@ $(tools/controller-gen): $(OSS_HOME)/go.mod
 # here are python3, python3-yaml, and python3-packaging... now, if you
 # have 'awscli', which we already require, then you'll have those.
 tools/fix-crds = $(OSS_HOME)/build-aux-local/fix-crds
+
+tools/go-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/go-mkopensource
+$(tools/go-mkopensource): FORCE
+	mkdir -p $(@D)
+	cd $(OSS_HOME)/build-aux/bin-go/go-mkopensource && go build -o $@ github.com/datawire/build-aux/bin-go/go-mkopensource
+
+# A python script
+tools/py-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/py-mkopensource
+$(tools/py-mkopensource): FORCE
+	mkdir -p $(@D)
+	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/cmd/py-mkopensource
 
 #
 # `make generate` vendor rules
@@ -151,9 +166,17 @@ $(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/cxx/go-control-plane FORCE
 #
 # `make generate` protobuf rules
 
+$(OSS_HOME)/docker/test-ratelimit/ratelimit.proto:
+	set -e; { \
+	  url=https://raw.githubusercontent.com/envoyproxy/ratelimit/v1.3.0/proto/ratelimit/ratelimit.proto; \
+	  echo "// Downloaded from $$url"; \
+	  echo; \
+	  curl --fail -L "$$url"; \
+	} > $@
+
 # proto_path is a list of where to look for .proto files.
 _proto_path += $(OSS_HOME)/api # input files must be within the path
-_proto_path += $(OSS_HOME)/vendor # for "k8s.io/..." and "github.com/gogo/protobuf/gogoproto/..."
+_proto_path += $(OSS_HOME)/vendor # for "k8s.io/..."
 proto_path = $(call lazyonce,proto_path,$(_proto_path))
 
 # Usage: $(call protoc,output_module,output_basedir[,plugin_files])
@@ -165,8 +188,7 @@ protoc = @echo PROTOC --$1_out=$2 $<; mkdir -p $2 && $(tools/protoc) \
 
 # The "M{FOO}={BAR}" options map from .proto files to Go package names.
 _proto_options/go += plugins=grpc
-_proto_options/go += Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types
-_proto_options/go += Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types
+#_proto_options/go += Mgoogle/protobuf/duration.proto=github.com/golang/protobuf/ptypes/duration
 proto_options/go = $(call lazyonce,proto_options/go,$(_proto_options/go))
 $(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-go) | $(OSS_HOME)/vendor
 	$(call protoc,go,$(OSS_HOME)/pkg/api,\
@@ -189,17 +211,9 @@ $(OSS_HOME)/generate.tmp/%_grpc_web_pb.js: $(OSS_HOME)/api/%.proto $(tools/proto
 	$(call protoc,grpc-web,$(OSS_HOME)/generate.tmp,\
 	    $(tools/protoc-gen-grpc-web))
 
-# This madness with sed is because protoc likes to insert broken imports when generating
-# Python code, and my attempts to sort out how to fix the protoc invocation are taking 
-# longer than I have right now.
-# (Previous we just did cp $< $@ instead of the sed call.)
-
 $(OSS_HOME)/python/ambassador/proto/%.py: $(OSS_HOME)/generate.tmp/getambassador.io/%.py
 	mkdir -p $(@D)
-	sed \
-		-e 's/github_dot_com_dot_gogo_dot_protobuf_dot_gogoproto_dot_gogo__pb2.DESCRIPTOR,//' \
-		-e '/from github.com.gogo.protobuf.gogoproto import/d' \
-		< $< > $@
+	cp $< $@
 
 $(OSS_HOME)/tools/sandbox/grpc_web/%.js: $(OSS_HOME)/generate.tmp/kat/%.js
 	cp $< $@
@@ -287,3 +301,23 @@ update-yaml-clean:
 	rm -f $(update-yaml/files)
 generate-clean: update-yaml-clean
 .PHONY: update-yaml-clean
+
+#
+# Generate report on dependencies
+
+$(OSS_HOME)/build-aux-local/pip-show.txt: sync
+	docker exec $$($(BUILDER)) sh -c 'pip freeze | cut -d= -f1 | xargs pip show' > $@
+
+$(OSS_HOME)/build-aux-local/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base
+	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
+
+$(OSS_HOME)/build-aux/go1%.src.tar.gz:
+	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
+
+$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux-local/go-version.txt $(OSS_HOME)/build-aux-local/pip-show.txt
+	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz
+	set -e; { \
+		cd $(OSS_HOME) && $(tools/go-mkopensource) --output-format=txt --package=github.com/datawire/ambassador/... --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz; \
+		echo; \
+		sed 's/^---$$//' $(OSS_HOME)/build-aux-local/pip-show.txt | $(tools/py-mkopensource); \
+	} > $@
