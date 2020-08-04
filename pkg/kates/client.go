@@ -859,11 +859,12 @@ func (c *Client) PodLogs(ctx context.Context, pod *Pod, options *PodLogOptions, 
 							Error:  err,
 							Closed: true,
 						}
+					} else {
+						events <- LogEvent{PodID: podID, Closed: true}
 					}
 					return
 				}
 			}
-			events <- LogEvent{PodID: podID, Closed: true}
 		}()
 	}
 
