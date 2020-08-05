@@ -221,7 +221,7 @@ $(OSS_HOME)/tools/sandbox/grpc_web/%.js: $(OSS_HOME)/generate.tmp/kat/%.js
 $(OSS_HOME)/vendor: FORCE
 	set -e; { \
 	  cd $(@D); \
-	  GO111MODULE=off go list -f='{{ range .Imports }}{{ . }}{{ "\n" }}{{ end }}' ./... | \
+	  GOPATH=/bogus GO111MODULE=off go list -f='{{ range .Imports }}{{ . }}{{ "\n" }}{{ end }}' ./... | \
 	    sort -u | \
 	    sed -E -n 's,^github\.com/datawire/ambassador/pkg/(api|envoy-control-plane),pkg/\1,p' | \
 	      while read -r dir; do \
