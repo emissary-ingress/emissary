@@ -156,14 +156,20 @@ def test_qualify_service():
 
     assert len(errors) == 8
 
+    # Ugg, different versions of Python have different error messages.  Let's recognize the "Port could not be cast to
+    # integer value as" to keep pytest working on peoples up-to-date laptops with Python 3.8, and let's recognize
+    # "invalid literal for int() with base 10:" for the Python 3.7 in the builder container.
     assert not errors[0]["ok"]
-    assert errors[0]["error"] == "Malformed service 'https://bad-service:443:443': Port could not be cast to integer value as '443:443'"
+    assert (errors[0]["error"] == "Malformed service 'https://bad-service:443:443': Port could not be cast to integer value as '443:443'" or
+            errors[0]["error"] == "Malformed service 'https://bad-service:443:443': invalid literal for int() with base 10: '443:443'")
 
     assert not errors[1]["ok"]
-    assert errors[1]["error"] == "test-rkey: Malformed service 'https://bad-service:443:443': Port could not be cast to integer value as '443:443'"
+    assert (errors[1]["error"] == "test-rkey: Malformed service 'https://bad-service:443:443': Port could not be cast to integer value as '443:443'" or
+            errors[1]["error"] == "test-rkey: Malformed service 'https://bad-service:443:443': invalid literal for int() with base 10: '443:443'")
 
     assert not errors[2]["ok"]
-    assert errors[2]["error"] == "Malformed service 'bad-service:443:443': Port could not be cast to integer value as '443:443'"
+    assert (errors[2]["error"] == "Malformed service 'bad-service:443:443': Port could not be cast to integer value as '443:443'" or
+            errors[2]["error"] == "Malformed service 'bad-service:443:443': invalid literal for int() with base 10: '443:443'")
 
     assert not errors[3]["ok"]
     assert errors[3]["error"] == "Malformed service 'https://[fe80::e022:9cff:fecc:c7c4:443': Invalid IPv6 URL"
@@ -172,7 +178,8 @@ def test_qualify_service():
     assert errors[4]["error"] == "Malformed service 'https://[fe80::e022:9cff:fecc:c7c4': Invalid IPv6 URL"
 
     assert not errors[5]["ok"]
-    assert errors[5]["error"] == "Malformed service 'https://fe80::e022:9cff:fecc:c7c4': Port could not be cast to integer value as ':e022:9cff:fecc:c7c4'"
+    assert (errors[5]["error"] == "Malformed service 'https://fe80::e022:9cff:fecc:c7c4': Port could not be cast to integer value as ':e022:9cff:fecc:c7c4'" or
+            errors[5]["error"] == "Malformed service 'https://fe80::e022:9cff:fecc:c7c4': invalid literal for int() with base 10: ':e022:9cff:fecc:c7c4'")
 
     assert not errors[6]["ok"]
     assert errors[6]["error"] == "Malformed service 'https://bad-service:-1': Port out of range 0-65535"
