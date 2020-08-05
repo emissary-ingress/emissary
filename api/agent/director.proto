@@ -1,0 +1,61 @@
+/**
+ * Communication between the Ambassador Agent and the Director service
+ * to populate the Central Edge Policy Console, which is a cloud service
+ * run by Datawire.
+ */
+syntax = "proto3";
+
+import "google/protobuf/duration.proto";
+
+package agent;
+
+service Director {
+  // Report a consistent Snapshot of information to the CEPC
+  rpc Report(Snapshot) returns (SnapshotResponse) {}
+
+  // Retrieve Directives from the CEPC
+  rpc Retrieve(Identity) returns (stream Directive) {}
+}
+
+// How Ambassador's Agent identifies itself to the CEPC
+message Identity {
+  // The account ID assigned by the CEPC
+  string account_id = 1;
+
+  // The install ID, as determined by Ambassador
+  string install_id = 2;
+}
+
+// Information that Ambassador's Agent can send to the Director
+// component of the CEPC
+message Snapshot {
+  Identity identity = 1;
+  string stuff = 2;
+}
+
+// The Director's response to a Snapshot from the Agent
+message SnapshotResponse {
+  // Empty for now, as the Director only knows how to return success or
+  // an error. In the future this may contain additional information.
+}
+
+// Instructions that the CEPC can send to Ambassador
+message Directive {
+  // Stop sending snapshots. The default value (false) indicates that
+  // snapshot should be sent.
+  bool stop = 1;
+
+  // Minimum time to wait before pushing the next snapshot. The default
+  // value (zero duration) indicates that the Agent should not modify
+  // the existing contact_after setting.
+  google.protobuf.Duration contact_after = 2;
+
+  // Commands to execute
+  repeated Command commands = 3;
+}
+
+// An individual instruction from the CEPC
+message Command {
+  // Log this message if present
+  string message = 1;
+}
