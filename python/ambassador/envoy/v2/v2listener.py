@@ -910,6 +910,14 @@ class V2Listener(dict):
             # Finalize this VirtualHost...
             vhost.finalize()
 
+            if vhost._hostname == "*":
+                domains = [vhost._hostname]
+            else:
+                if vhost._ctx is not None and vhost._ctx.hosts is not None and len(vhost._ctx.hosts) > 0:
+                    domains = vhost._ctx.hosts
+                else:
+                    domains = [vhost._hostname]
+
             # ...then build up the Envoy structures around it.
             filter_chain = {
                 "filter_chain_match": vhost["filter_chain_match"],
@@ -924,7 +932,7 @@ class V2Listener(dict):
                 "virtual_hosts": [
                     {
                         "name": f"{self.name}-{vhost._name}",
-                        "domains": [ vhost._hostname ],
+                        "domains": domains,
                         "routes": vhost["routes"]
                     }
                 ]
