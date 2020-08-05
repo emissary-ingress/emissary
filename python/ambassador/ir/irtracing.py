@@ -71,7 +71,6 @@ class IRTracing(IRResource):
             driver = "envoy.tracers.datadog"
 
         driver_config = config.get("config", {})
-        print(driver_config)
 
         if not driver_config['collector_endpoint_version'] in ['HTTP_JSON_V1', 'HTTP_JSON', 'HTTP_PROTO']:
             self.post_error(RichStatus.fromError("collector_endpoint_version must be one of 'HTTP_JSON_V1, HTTP_JSON, HTTP_PROTO'"))
