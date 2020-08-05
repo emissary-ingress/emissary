@@ -70,6 +70,13 @@ class IRTracing(IRResource):
         if driver == "datadog":
             driver = "envoy.tracers.datadog"
 
+        driver_config = config.get("config", {})
+        print(driver_config)
+
+        if not driver_config['collector_endpoint_version'] in ['HTTP_JSON_V1', 'HTTP_JSON', 'HTTP_PROTO']:
+            self.post_error(RichStatus.fromError("collector_endpoint_version must be one of 'HTTP_JSON_V1, HTTP_JSON, HTTP_PROTO'"))
+            return False
+
         # OK, we have a valid config.
         self.sourced_by(config)
 
@@ -77,7 +84,7 @@ class IRTracing(IRResource):
         self.driver = driver
         self.grpc = grpc
         self.cluster = None
-        self.driver_config = config.get("config", {})
+        self.driver_config = driver_config
         self.tag_headers = config.get('tag_headers', [])
         self.sampling = config.get('sampling', {})
 
