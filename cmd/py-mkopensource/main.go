@@ -71,7 +71,6 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 	}
 
 	static, ok := map[string][]License{
-		"3-Clause BSD License":       []License{BSD3},
 		"ASL 2":                      []License{Apache2},
 		"Apache":                     []License{Apache2},
 		"Apache 2":                   []License{Apache2},
@@ -79,15 +78,18 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		"Apache License 2.0":         []License{Apache2},
 		"Apache License Version 2.0": []License{Apache2},
 		"Apache Software License":    []License{Apache2},
-		"BSD-2-Clause":               []License{BSD2},
-		"BSD-3-Clause":               []License{BSD3},
-		"ISC":                        []License{ISC},
-		"ISC license":                []License{ISC},
-		"MIT":                        []License{MIT},
-		"MIT License":                []License{MIT},
-		"MIT license":                []License{MIT},
-		"MPL-2.0":                    []License{MPL2},
-		"PSF":                        []License{PSF},
+
+		"3-Clause BSD License": []License{BSD3},
+		"BSD-2-Clause":         []License{BSD2},
+		"BSD-3-Clause":         []License{BSD3},
+
+		"ISC license": []License{ISC},
+		"ISC":         []License{ISC},
+		"MIT License": []License{MIT},
+		"MIT license": []License{MIT},
+		"MIT":         []License{MIT},
+		"MPL-2.0":     []License{MPL2},
+		"PSF":         []License{PSF},
 	}[license]
 	if ok {
 		ret := make(map[License]struct{}, len(static))
