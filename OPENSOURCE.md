@@ -218,8 +218,9 @@ libraries:
     od                  1.0        MIT license
     packaging           20.4       2-clause BSD license, Apache License 2.0
     pexpect             4.8.0      ISC license
+    pip-tools           5.3.1      3-clause BSD license
     pluggy              0.13.1     MIT license
-    protobuf            3.10.0     3-clause BSD license
+    protobuf            3.6.1      3-clause BSD license
     ptyprocess          0.6.0      ISC license
     py                  1.9.0      MIT license
     pyasn1              0.4.8      2-clause BSD license
