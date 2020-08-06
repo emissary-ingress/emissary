@@ -64,17 +64,45 @@ dexec() {
     docker exec ${flags} $(builder) "$@"
 }
 
-# Rebuild (and push if DEV_REGISTRY is set) the builder's base image if
-# - Dockerfile.base changes
-# - Enough time has passed
+# Usage: build_builder_base [--stage1-only]
+# Effects:
+#   1. Set the `builder_base_image` variable in the parent scope
+#   2. Ensure that the `$builder_base_image` Docker image exists (pulling
+#      it or building it if it doesn't).
+#   3. (If $DEV_REGISTRY is set AND we built the image) push the
+#      `$builder_base_image` Docker image.
 #
-# The base only has external/third-party dependencies, and most of those
-# dependencies are not pinned by version, so we rebuild periodically to make
-# sure we don't fall too far behind and then get surprised when a rebuild is
-# required for Dockerfile changes.
+# Description:
 #
-# We have defined "enough time" as a few days. See the variable
-# "build_every_n_days" below.
+#   Rebuild (and push if DEV_REGISTRY is set) the builder's base image if
+#    - `Dockerfile.base` changes
+#    - `requirements.txt` changes
+#    - Enough time has passed (The base only has external/third-party
+#      dependencies, and most of those dependencies are not pinned by
+#      version, so we rebuild periodically to make sure we don't fall too
+#      far behind and then get surprised when a rebuild is required for
+#      Dockerfile changes.)  We have defined "enough time" as a few days.
+#      See the variable "build_every_n_days" below.
+#
+#   The base theory of operation is that we generate a Docker tag name that
+#   is essentially the tuple
+#     (rounded_timestamp, hash(Dockerfile.base), hash(requirements.txt)
+#   then check that tag for existence/pullability using `docker run --rm
+#   --entrypoint=true`; and build it if it doesn't exist and can't be
+#   pulled.
+#
+#   OK, now for a wee bit of complexity.  We want to use `pip-compile` to
+#   update `requirements.txt`.  Because of Python-version-conditioned
+#   dependencies, we really want to run it with the image's python3, not
+#   with the host's python3.  And since we're updating `requirements.txt`,
+#   we don't really want the `pip install` to have already been run.  So,
+#   we split the base image in to two stages; stage-1 is everything but
+#   `COPY requirements.txt` / `pip install -r requirements.txt`, and then
+#   stage-2 copies in `requirements.txt` and runs the `pip install`.  In
+#   normal operation we just go ahead and build both stages.  But if the
+#   `--stage1-only` flag is given (as it is by the `pip-compile`
+#   subcommand), then we only build the stage-1, and set the
+#   `builder_base_image` variable to that.
 build_builder_base() {
     local builder_base_tag_py='
 # Someone please rewrite this in portable Bash. Until then, this code
