@@ -110,7 +110,7 @@ print("stage2_tag=%s" % stage2)
             docker push "$name1"
         fi
     fi
-    if [[ $1 = 'stage1-only' ]]; then
+    if [[ $1 = '--stage1-only' ]]; then
         builder_base_image="$name1" # not local
         return
     fi
@@ -451,7 +451,7 @@ case "${cmd}" in
         ;;
 
     pip-compile)
-        build_builder_base stage1-only
+        build_builder_base --stage1-only
         printf "${GRN}Running pip-compile to update ${BLU}requirements.txt${END}\n"
         docker run --rm -i "$builder_base_image" sh -c 'tar xf - && pip-compile --allow-unsafe -q >&2 && cat requirements.txt' \
                < <(cd "$DIR" && tar cf - requirements.in requirements.txt) \
