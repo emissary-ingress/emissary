@@ -8,6 +8,7 @@ generate/files += $(OSS_HOME)/pkg/api/envoy
 generate/files += $(OSS_HOME)/pkg/envoy-control-plane
 generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
 generate/files += $(OSS_HOME)/OPENSOURCE.md
+generate/files += $(OSS_HOME)/builder/requirements.txt
 generate: ## Update generated sources that get committed to git
 generate:
 	$(MAKE) generate-clean
@@ -308,6 +309,10 @@ generate-clean: update-yaml-clean
 $(OSS_HOME)/build-aux-local/pip-show.txt: sync
 	docker exec $$($(BUILDER)) sh -c 'pip freeze | cut -d= -f1 | xargs pip show' > $@
 
+$(OSS_HOME)/builder/requirements.txt: %.txt: %.in FORCE
+	$(BUILDER) pip-compile
+.PRECIOUS: $(OSS_HOME)/builder/requirements.txt
+
 $(OSS_HOME)/build-aux-local/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base
 	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
 
@@ -319,5 +324,5 @@ $(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(O
 	set -e; { \
 		cd $(OSS_HOME) && $(tools/go-mkopensource) --output-format=txt --package=github.com/datawire/ambassador/... --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz; \
 		echo; \
-		sed 's/^---$$//' $(OSS_HOME)/build-aux-local/pip-show.txt | $(tools/py-mkopensource); \
+		{ sed 's/^---$$//' $(OSS_HOME)/build-aux-local/pip-show.txt; echo; } | $(tools/py-mkopensource); \
 	} > $@
