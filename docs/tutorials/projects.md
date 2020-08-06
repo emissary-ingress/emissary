@@ -35,46 +35,46 @@ kubectl apply -f https://www.getambassador.io/yaml/projects.yaml
    apiVersion: rbac.authorization.k8s.io/v1beta1
    kind: ClusterRole
    metadata:
-   name: ambassador-projects
-   labels:
-      app.kubernetes.io/name: ambassador
-      app.kubernetes.io/instance: ambassador
-      product: aes
+     name: ambassador-projects
+     labels:
+       app.kubernetes.io/name: ambassador
+       app.kubernetes.io/instance: ambassador
+       product: aes
    rules:
    - apiGroups: [""]
-   resources: [ "secrets", "services" ]
-   verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
+     resources: [ "secrets", "services" ]
+     verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
    - apiGroups: ["apps"]
-   resources: [ "deployments" ]
-   verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
+     resources: [ "deployments" ]
+     verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
    - apiGroups: ["batch"]
-   resources: [ "jobs" ]
-   verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
+     resources: [ "jobs" ]
+     verbs: [ "get", "list", "create", "patch", "delete", "watch" ]
    - apiGroups: [""]
-   resources: [ "pods" ]
-   verbs: [ "get", "list", "watch" ]
+     resources: [ "pods" ]
+     verbs: [ "get", "list", "watch" ]
    - apiGroups: [""]
-   resources: [ "pods/log" ]
-   verbs: [ "get" ]
+     resources: [ "pods/log" ]
+     verbs: [ "get" ]
    ---
    apiVersion: rbac.authorization.k8s.io/v1beta1
    kind: ClusterRoleBinding
    metadata:
-   name: ambassador-projects
-   namespace: ambassador
-   labels:
-      app.kubernetes.io/name: ambassador
-      app.kubernetes.io/part-of: ambassador
-      app.kubernetes.io/instance: ambassador
-      product: aes
+     name: ambassador-projects
+     namespace: ambassador
+     labels:
+       app.kubernetes.io/name: ambassador
+       app.kubernetes.io/part-of: ambassador
+       app.kubernetes.io/instance: ambassador
+       product: aes
    roleRef:
-   apiGroup: rbac.authorization.k8s.io
-   kind: ClusterRole
-   name: ambassador-projects
+     apiGroup: rbac.authorization.k8s.io
+     kind: ClusterRole
+     name: ambassador-projects
    subjects:
    - name: ambassador
-      namespace: ambassador
-      kind: ServiceAccount
+     namespace: ambassador
+     kind: ServiceAccount
    ```
 
 If you use Helm to install Ambassador, you can get the equivalent by
