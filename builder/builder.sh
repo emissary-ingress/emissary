@@ -75,8 +75,8 @@ dexec() {
 #
 # We have defined "enough time" as a few days. See the variable
 # "build_every_n_days" below.
-
-builder_base_tag_py='
+build_builder_base() {
+    local builder_base_tag_py='
 # Someone please rewrite this in portable Bash. Until then, this code
 # works on Python 2.7 and 3.5+.
 
@@ -97,7 +97,6 @@ print("stage1_tag=%s" % stage1)
 print("stage2_tag=%s" % stage2)
 '
 
-build_builder_base() {
     local stage1_tag stage2_tag
     eval "$(cd "$DIR" && python -c "$builder_base_tag_py")" # sets 'stage1_tag' and 'stage2_tag'
 
