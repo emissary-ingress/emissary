@@ -319,5 +319,5 @@ $(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(O
 	set -e; { \
 		cd $(OSS_HOME) && $(tools/go-mkopensource) --output-format=txt --package=github.com/datawire/ambassador/... --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz; \
 		echo; \
-		sed 's/^---$$//' $(OSS_HOME)/build-aux-local/pip-show.txt | $(tools/py-mkopensource); \
+		{ sed 's/^---$$//' $(OSS_HOME)/build-aux-local/pip-show.txt; echo; } | $(tools/py-mkopensource); \
 	} > $@

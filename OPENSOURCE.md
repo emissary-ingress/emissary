@@ -244,3 +244,4 @@ libraries:
     typing-extensions   3.7.4.2    Python Software Foundation license
     urllib3             1.24.3     MIT license
     websocket-client    0.57.0     3-clause BSD license
+    zipp                3.1.0      MIT license
