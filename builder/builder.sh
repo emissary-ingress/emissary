@@ -83,30 +83,48 @@ builder_base_tag_py='
 import datetime, hashlib
 
 build_every_n_days = 5  # Periodic rebuild even if Dockerfile does not change
-
 epoch = datetime.datetime(2017, 4, 13, 1, 30)
 age = int((datetime.datetime.now() - epoch).days / build_every_n_days)
-hasher = hashlib.sha256(open("Dockerfile.base", "rb").read() + open("requirements.txt", "rb").read())
-print("%s-%sx%s" % (hasher.hexdigest()[:16], age, build_every_n_days))
+age_start = epoch + datetime.timedelta(days=age*build_every_n_days)
+
+dockerfilehash = hashlib.sha256(open("Dockerfile.base", "rb").read()).hexdigest()
+stage1 = "%sx%s-%s" % (age_start.strftime("%Y%m%d"), build_every_n_days, dockerfilehash[:16])
+
+requirementshash = hashlib.sha256(open("requirements.txt", "rb").read()).hexdigest()
+stage2 = "%s-%s" % (stage1, requirementshash[:16])
+
+print("stage1_tag=%s" % stage1)
+print("stage2_tag=%s" % stage2)
 '
 
 build_builder_base() {
-    builder_base_tag="$(cd "$DIR" && python -c "$builder_base_tag_py")"
+    local stage1_tag stage2_tag
+    eval "$(cd "$DIR" && python -c "$builder_base_tag_py")" # sets 'stage1_tag' and 'stage2_tag'
 
-    if [ -n "$DEV_REGISTRY" ]; then
-        # We can push. Build and push if necessary.
-        builder_base_image=${DEV_REGISTRY}/builder-base:${builder_base_tag}
-        printf "${GRN}Using ${BLU}${builder_base_image}${END}\n"
-        if ! docker pull "${builder_base_image}" >& /dev/null ; then
-            ${DBUILD} -f "${DIR}/Dockerfile.base" "${DIR}" -t "${builder_base_image}"
-            docker push "${builder_base_image}"
+    local name1="${DEV_REGISTRY:+$DEV_REGISTRY/}builder-base:stage1-${stage1_tag}"
+    local name2="${DEV_REGISTRY:+$DEV_REGISTRY/}builder-base:stage2-${stage2_tag}"
+
+    printf "${GRN}Using stage-1 base ${BLU}${name1}${END}\n"
+    if ! docker run --rm --entrypoint=true "$name1"; then # skip building if the "$name1" already exists
+        ${DBUILD} -f "${DIR}/Dockerfile.base" -t "${name1}" --target builderbase-stage1 "${DIR}"
+        if [ -n "$DEV_REGISTRY" ]; then
+            docker push "$name1"
         fi
-    else
-        # We CANNOT push. Build locally and lean on the cache.
-        builder_base_image=builder-base:${builder_base_tag}
-        printf "${GRN}Using ${BLU}${builder_base_image}${END}\n"
-        ${DBUILD} -f "${DIR}/Dockerfile.base" "${DIR}" -t "${builder_base_image}"
     fi
+    if [[ $1 = 'stage1-only' ]]; then
+        builder_base_image="$name1" # not local
+        return
+    fi
+
+    printf "${GRN}Using stage-2 base ${BLU}${name2}${END}\n"
+    if ! docker run --rm --entrypoint=true "$name2"; then # skip building if the "$name2" already exists
+        ${DBUILD} --build-arg=builderbase_stage1="$name1" -f "${DIR}/Dockerfile.base" -t "${name2}" --target builderbase-stage2 "${DIR}"
+        if [ -n "$DEV_REGISTRY" ]; then
+            docker push "$name2"
+        fi
+    fi
+
+    builder_base_image="$name2" # not local
 }
 
 bootstrap() {
@@ -432,7 +450,16 @@ case "${cmd}" in
             fi
         done
         ;;
-    
+
+    pip-compile)
+        build_builder_base stage1-only
+        printf "${GRN}Running pip-compile to update ${BLU}requirements.txt${END}\n"
+        docker run --rm -i "$builder_base_image" sh -c 'tar xf - && pip-compile --allow-unsafe -q >&2 && cat requirements.txt' \
+               < <(cd "$DIR" && tar cf - requirements.in requirements.txt) \
+               > "$DIR/requirements.txt.tmp"
+        mv -f "$DIR/requirements.txt.tmp" "$DIR/requirements.txt"
+        ;;
+
     pytest-internal)
         # This runs inside the builder image
         fail=""

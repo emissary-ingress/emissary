@@ -22,7 +22,7 @@ load common
 		$(call test,f%,foo)
 		$(call test,foo,f%)
 		$(call test,f%,f%)
-		all: noop
+		tst: noop
 		noop: ; @true
 		.PHONY: noop
 	__EOT__

@@ -1,8 +1,10 @@
-// Copied from https://github.com/datawire/ambassador/blob/master/ambassador/common/ratelimit/ratelimit.proto
+// Downloaded from https://raw.githubusercontent.com/envoyproxy/ratelimit/v1.3.0/proto/ratelimit/ratelimit.proto
 
 syntax = "proto3";
 
 option go_package = "ratelimit";
+
+option cc_generic_services = true;
 
 package pb.lyft.ratelimit;
 
@@ -26,6 +28,9 @@ message RateLimitRequest {
   // processed by the service (see below). If any of the descriptors are over limit, the entire
   // request is considered to be over limit.
   repeated RateLimitDescriptor descriptors = 2;
+  // Rate limit requests can optionally specify the number of hits a request adds to the matched limit. If the
+  // value is not set in the message, a request increases the matched limit by 1.
+  uint32 hits_addend = 3;
 }
 
 // A RateLimitDescriptor is a list of hierarchical entries that are used by the service to
