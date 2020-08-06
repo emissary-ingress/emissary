@@ -8,7 +8,7 @@ The Ambassador Edge Stack relies on Kubernetes for reliability, availability, an
 
 ## Default Configuration
 
-The default configuration of the Ambassador Edge Stack includes default [resource limits](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#resource-requests-and-limits-of-pod-and-container), as well as [readiness and liveness probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/). These values should be adjusted for your specific environment.
+The default configuration of the Ambassador Edge Stack includes default [resource limits](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container), as well as [readiness and liveness probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/). These values should be adjusted for your specific environment.
 
 ## Running as Non-root
 
