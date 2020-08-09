@@ -533,7 +533,7 @@ class V2TCPListener(dict):
 class V2VirtualHost(dict):
     def __init__(self, config: 'V2Config', listener: 'V2Listener',
                  name: str, hostname: Optional[str], ctx: Optional[IRTLSContext],
-                 secure: bool, action: str, insecure_action: Optional[str]) -> None:
+                 secure: bool, action: str, insecure_action: Optional[str], domains: List[str] = None) -> None:
         super().__init__()
 
         self._config = config
@@ -545,6 +545,7 @@ class V2VirtualHost(dict):
         self._action = action
         self._insecure_action = insecure_action
         self._needs_redirect = False
+        self._domains = domains
 
         self["tls_context"] = V2TLSContext(ctx)
         self["routes"]: List['V2Route'] = []
@@ -861,7 +862,7 @@ class V2Listener(dict):
 
     # Weirdly, the action is optional but the insecure_action is not. This is not a typo.
     def make_vhost(self, name: str, hostname: str, context: Optional[IRTLSContext], secure: bool,
-                   action: Optional[str], insecure_action: str) -> None:
+                   action: Optional[str], insecure_action: str, domains: List[str] = None) -> None:
         self.config.ir.logger.debug("V2Listener %s: adding VHost %s for host %s, secure %s, insecure %s)" %
                                    (self.name, name, hostname, action, insecure_action))
 
@@ -880,7 +881,7 @@ class V2Listener(dict):
 
         vhost = V2VirtualHost(config=self.config, listener=self,
                               name=name, hostname=hostname, ctx=context,
-                              secure=secure, action=action, insecure_action=insecure_action)
+                              secure=secure, action=action, insecure_action=insecure_action, domains=domains)
         self.vhosts[hostname] = vhost
 
         if not self.first_vhost:
@@ -1155,14 +1156,16 @@ class V2Listener(dict):
                                  f"creating insecure vhost {insecure_vhost_name} with no secure action for listener "
                                  f"{listener.pretty()}")
                     listener.make_vhost(name=insecure_vhost_name,
-                                        hostname='*',
+                                        hostname=insecure_vhost_name,
                                         context=None,
                                         secure=False,
                                         action=None,
                                         insecure_action=irlistener.insecure_action)
 
-                vhost = listener.vhosts.get('*')
+                vhost = listener.vhosts.get(insecure_vhost_name)
                 logger.debug(f"V2Listeners: proceeding to add routes to vhost {vhost.pretty()} for listener {listener.pretty()}")
+
+                vhost
 
                 for route in config.routes:
                     candidates = []
@@ -1190,8 +1193,27 @@ class V2Listener(dict):
                             }
                         )
                         candidates.append((False, insecure_route, irlistener.insecure_action))
+
                     for candidate in candidates:
                         cls.parse_route_candidate(logger, config.ir.edge_stack_allowed, listener.name, candidate, route, vhost)
+
+        # # now that all routes are added, let's take care of the generic behavior
+        # vhost = listener.vhosts.get('*')
+        # for route in config.routes:
+        #     candidates = []
+        #
+        #     if irlistener.insecure_action == "Redirect":
+        #         logger.debug(f"yoyoyo: generating final redirect route for {dict(route)}")
+        #         redirect_route = cls.generate_redirect_route(route)
+        #         candidates.append(( False, redirect_route, "Redirect" ))
+        #
+        #     elif irlistener.insecure_action is not None:
+        #         logger.debug(f"yoyoyo: generating final insecure route for {dict(route)}")
+        #         insecure_route = cls.generate_insecure_route(route)
+        #         candidates.append((False, insecure_route, irlistener.insecure_action))
+        #
+        #     for candidate in candidates:
+        #         cls.parse_route_candidate(logger, config.ir.edge_stack_allowed, listener.name, candidate, route, vhost)
 
             logger.debug(f"V2Listeners: final vhosts: {listener.vhosts.keys()}")
 
