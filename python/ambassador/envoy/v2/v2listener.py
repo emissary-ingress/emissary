@@ -1174,7 +1174,7 @@ class V2Listener(dict):
                     if irlistener.insecure_action == "Redirect":
                         logger.debug(f"yoyoyo: generating redirect route for {dict(route)}")
                         redirect_route = cls.generate_redirect_route(route)
-                        if not cls.is_internal_prefix(redirect_route["match"].get("prefix", "")):
+                        if (not cls.is_internal_prefix(redirect_route["match"].get("prefix", ""))) and (irlistener.hostname != "*"):
                             if "headers" not in redirect_route["match"]:
                                 redirect_route["match"]["headers"] = []
                             redirect_route["match"]["headers"].append(
@@ -1187,7 +1187,7 @@ class V2Listener(dict):
                     elif irlistener.insecure_action is not None:
                         logger.debug(f"yoyoyo: generating insecure route for {dict(route)}")
                         insecure_route = cls.generate_insecure_route(route)
-                        if not cls.is_internal_prefix(insecure_route["match"].get("prefix", "")):
+                        if (not cls.is_internal_prefix(insecure_route["match"].get("prefix", ""))) and (irlistener.hostname != "*"):
                             if "headers" not in insecure_route["match"]:
                                 insecure_route["match"]["headers"] = []
                             insecure_route["match"]["headers"].append(
