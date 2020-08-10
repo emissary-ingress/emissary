@@ -1141,12 +1141,13 @@ class V2Listener(dict):
                                 action=irlistener.secure_action,
                                 insecure_action=irlistener.insecure_action)
 
-            if (irlistener.insecure_addl_port is not None) and (irlistener.insecure_addl_port > 0):
-                # Make sure we have a listener on the right port for this.
-                listener = listeners_by_port.get(irlistener.insecure_addl_port, irlistener.use_proxy_proto)
+            if irlistener.insecure_action.lower() == "route":
+                if (irlistener.insecure_addl_port is not None) and (irlistener.insecure_addl_port > 0):
+                    # Make sure we have a listener on the right port for this.
+                    listener = listeners_by_port.get(irlistener.insecure_addl_port, irlistener.use_proxy_proto)
 
-                if irlistener.insecure_addl_port not in first_irlistener_by_port:
-                    first_irlistener_by_port[irlistener.insecure_addl_port] = irlistener
+                    if irlistener.insecure_addl_port not in first_irlistener_by_port:
+                        first_irlistener_by_port[irlistener.insecure_addl_port] = irlistener
 
                 # we do not need a vhost per irlistener here.
                 # What we need is to append this irlistener to existing vhost for this listener.
