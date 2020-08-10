@@ -1,11 +1,11 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 import cProfile
 import difflib
 import logging
 import pstats
 
-from ambassador import Cache, Config, IR
+from ambassador import Cache, Config, IR, EnvoyConfig
 from ambassador.ir.ir import IRFileChecker
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import SecretHandler, NullSecretHandler, Timer
@@ -71,6 +71,7 @@ class Madness:
         self.aconf_timer = Timer("aconf")
         self.fetcher_timer = Timer("fetcher")
         self.ir_timer = Timer("ir")
+        self.econf_timer = Timer("econf")
 
         self.aconf = Config()
 
@@ -89,6 +90,7 @@ class Madness:
             self.fetcher_timer,
             self.aconf_timer,
             self.ir_timer,
+            self.econf_timer,
         ]:
             if timer:
                 self.logger.info(timer.summary())
@@ -109,6 +111,44 @@ class Madness:
             self.summarize()
 
         return (ir, _pr.stats())
+
+    def build_econf(self, ir: Union[IR, Tuple[IR, OptionalStats]],
+                    cache=True, profile=False, summarize=True) -> Tuple[EnvoyConfig, OptionalStats]:
+        self.econf_timer.reset()
+
+        _cache = self.cache if cache else None
+        _pr = Profiler() if profile else NullProfiler()
+
+        _ir: Optional[IR] = None
+
+        if isinstance(ir, tuple):
+            _ir = ir[0]
+        else:
+            _ir = ir
+
+        assert ir is not None
+
+        with self.econf_timer:
+            with _pr:
+                econf = EnvoyConfig.generate(_ir, "V2", cache=_cache)
+
+        if summarize:
+            self.summarize()
+
+        return (econf, _pr.stats())
+
+    def build(self, cache=True, profile=False) -> Tuple[IR, EnvoyConfig, pstats.Stats]:
+        _cache = self.cache if cache else None
+
+        _pr = Profiler() if profile else NullProfiler()
+
+        with _pr:
+            ir, _ = self.build_ir(cache=_cache, profile=False, summarize=False)
+            econf, _ = self.build_econf(ir, cache=_cache, profile=False, summarize=False)
+
+        self.summarize()
+
+        return (ir, econf, _pr.stats())
 
     def diff(self, *rsrcs) -> None:
         jsons = [ rsrc.as_json() for rsrc in rsrcs ]
