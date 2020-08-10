@@ -14,7 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+# http://www.ruanyifeng.com/blog/2017/11/bash-set.html
+# 根据返回值来判断一个命令是否运行失败，若脚本发生错误，就终止其执行，等价于 set -e，但不适用于管道命令
 set -o errexit
+# 遇到不存在的变量则报错，并停止执行，等价于 set -u
 set -o nounset
 
 printf "== Begin: travis-script.sh ==\n"
@@ -57,6 +60,7 @@ git status
 
 printf "========\nSetting up environment...\n"
 
+# 在运行结果之前，先输出执行的那一行命令，等价于 set -x
 set -o xtrace
 eval "$(make export-vars)"
 
