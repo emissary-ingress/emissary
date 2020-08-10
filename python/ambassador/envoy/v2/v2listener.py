@@ -926,6 +926,10 @@ class V2Listener(dict):
 
         return secure_route
 
+    @classmethod
+    def is_internal_prefix(cls, prefix: str) -> bool:
+        return prefix.startswith("/.ambassador") or prefix.startswith("/ambassador") or prefix.startswith("/edge_stack")
+
     # Also gen up a redirecting route.
     @classmethod
     def generate_redirect_route(cls, route: V2Route) -> dict:
@@ -1169,26 +1173,28 @@ class V2Listener(dict):
                     if irlistener.insecure_action == "Redirect":
                         logger.debug(f"yoyoyo: generating redirect route for {dict(route)}")
                         redirect_route = cls.generate_redirect_route(route)
-                        if "headers" not in redirect_route["match"]:
-                            redirect_route["match"]["headers"] = []
-                        redirect_route["match"]["headers"].append(
-                            {
-                                "name": ":authority",
-                                "exact_match": irlistener.hostname
-                            }
-                        )
+                        if not cls.is_internal_prefix(redirect_route["match"].get("prefix", "")):
+                            if "headers" not in redirect_route["match"]:
+                                redirect_route["match"]["headers"] = []
+                            redirect_route["match"]["headers"].append(
+                                {
+                                    "name": ":authority",
+                                    "exact_match": irlistener.hostname
+                                }
+                            )
                         candidates.append(( False, redirect_route, "Redirect" ))
                     elif irlistener.insecure_action is not None:
                         logger.debug(f"yoyoyo: generating insecure route for {dict(route)}")
                         insecure_route = cls.generate_insecure_route(route)
-                        if "headers" not in insecure_route["match"]:
-                            insecure_route["match"]["headers"] = []
-                        insecure_route["match"]["headers"].append(
-                            {
-                                "name": ":authority",
-                                "exact_match": irlistener.hostname
-                            }
-                        )
+                        if not cls.is_internal_prefix(insecure_route["match"].get("prefix", "")):
+                            if "headers" not in insecure_route["match"]:
+                                insecure_route["match"]["headers"] = []
+                            insecure_route["match"]["headers"].append(
+                                {
+                                    "name": ":authority",
+                                    "exact_match": irlistener.hostname
+                                }
+                            )
                         candidates.append((False, insecure_route, irlistener.insecure_action))
                     for candidate in candidates:
                         cls.parse_route_candidate(logger, config.ir.edge_stack_allowed, listener.name, candidate, route, vhost)
