@@ -240,7 +240,7 @@ func (c *Client) Watch(ctx context.Context, queries ...Query) *Accumulator {
 // ==
 
 func (c *Client) watchRaw(ctx context.Context, name string, target chan rawUpdate, cli dynamic.ResourceInterface,
-	selector string, correlation interface{}) {
+	fieldSelector, selector string, correlation interface{}) {
 	var informer cache.SharedInformer
 
 	update := func() {
@@ -255,7 +255,7 @@ func (c *Client) watchRaw(ctx context.Context, name string, target chan rawUpdat
 	// we override Watch to let us signal when our initial List is
 	// complete so we can send an update() even when there are no
 	// resource instances of the kind being watched
-	lw := newListWatcher(ctx, cli, selector, func() {
+	lw := newListWatcher(ctx, cli, fieldSelector, selector, func() {
 		if informer.HasSynced() {
 			update()
 		}
@@ -326,24 +326,27 @@ func isExpiredError(err error) bool {
 }
 
 type lw struct {
-	ctx      context.Context
-	client   dynamic.ResourceInterface
-	selector string
-	synced   func()
-	once     sync.Once
+	ctx           context.Context
+	client        dynamic.ResourceInterface
+	fieldSelector string
+	selector      string
+	synced        func()
+	once          sync.Once
 }
 
-func newListWatcher(ctx context.Context, client dynamic.ResourceInterface, selector string, synced func()) cache.ListerWatcher {
-	return &lw{ctx: ctx, client: client, selector: selector, synced: synced}
+func newListWatcher(ctx context.Context, client dynamic.ResourceInterface, fieldSelector, selector string, synced func()) cache.ListerWatcher {
+	return &lw{ctx: ctx, client: client, fieldSelector: fieldSelector, selector: selector, synced: synced}
 }
 
 func (lw *lw) List(opts ListOptions) (runtime.Object, error) {
+	opts.FieldSelector = lw.fieldSelector
 	opts.LabelSelector = lw.selector
 	return lw.client.List(lw.ctx, opts)
 }
 
 func (lw *lw) Watch(opts ListOptions) (watch.Interface, error) {
 	lw.once.Do(lw.synced)
+	opts.FieldSelector = lw.fieldSelector
 	opts.LabelSelector = lw.selector
 	return lw.client.Watch(lw.ctx, opts)
 }

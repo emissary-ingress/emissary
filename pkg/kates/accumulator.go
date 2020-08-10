@@ -86,7 +86,7 @@ func newAccumulator(ctx context.Context, client *Client, queries ...Query) *Accu
 			panic(err)
 		}
 		mapsels[q.Name] = mapsel{mapping, sel, q}
-		client.watchRaw(ctx, q.Kind, rawUpdateCh, client.cliFor(mapping, q.Namespace), q.LabelSelector, q.Name)
+		client.watchRaw(ctx, q.Kind, rawUpdateCh, client.cliFor(mapping, q.Namespace), q.FieldSelector, q.LabelSelector, q.Name)
 	}
 
 	acc := &Accumulator{client, make(map[string]*field), mapsels, changed, sync.Mutex{}}
