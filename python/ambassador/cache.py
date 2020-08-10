@@ -146,7 +146,7 @@ class Cache():
                 self.logger.debug(f"CACHE: DEL {key}: calling {self.fn_name(on_delete)}")
                 on_delete(rsrc)
 
-    def __getitem__(self, key: str) -> Any:
+    def __getitem__(self, key: str) -> Optional[Any]:
         """
         Fetches only the _resource_ for a given key from the cache. If the
         key is not present in the cache, returns None.

@@ -18,6 +18,8 @@ import json
 
 from abc import abstractmethod
 
+from ..cache import Cache, NullCache
+
 from ..ir import IR, IRResource
 from ..ir.irhttpmappinggroup import IRHTTPMappingGroup
 
@@ -76,11 +78,11 @@ class EnvoyConfig:
         return json.dumps(sanitize_pre_json(self.as_dict()), sort_keys=True, indent=4)
 
     @classmethod
-    def generate(cls, ir: IR, version: str="V2") -> 'EnvoyConfig':
+    def generate(cls, ir: IR, version: str="V2", cache: Optional[Cache]=None) -> 'EnvoyConfig':
         assert version == "V2"
 
         from . import V2Config
-        return V2Config(ir)
+        return V2Config(ir, cache=cache)
 
 
 class EnvoyRoute:
