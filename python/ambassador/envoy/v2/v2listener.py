@@ -1141,7 +1141,7 @@ class V2Listener(dict):
                                 action=irlistener.secure_action,
                                 insecure_action=irlistener.insecure_action)
 
-            if irlistener.insecure_action.lower() == "route":
+            if irlistener.insecure_action is not None:
                 if (irlistener.insecure_addl_port is not None) and (irlistener.insecure_addl_port > 0):
                     # Make sure we have a listener on the right port for this.
                     listener = listeners_by_port.get(irlistener.insecure_addl_port, irlistener.use_proxy_proto)
