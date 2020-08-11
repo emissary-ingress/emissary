@@ -430,6 +430,131 @@ spec:
                     error=[ "EOF", "connection refused" ])
 
 
+class HostCRDMultipleInsecure(AmbassadorTest):
+    """
+    Multiple hosts specifying insecure behavior.
+    """
+    target: ServiceType
+
+    def init(self):
+        self.edge_stack_cleartext_host = False
+        self.allow_edge_stack_redirect = False
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return self.format('''
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}-insecure-host-a
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: {self.path.fqdn}-a
+  acmeProvider:
+    authority: none
+  selector:
+    matchLabels:
+      hostname: {self.path.fqdn}-a
+  requestPolicy:
+    insecure:
+      action: Route
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}-insecure-host-b
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: {self.path.fqdn}-b
+  acmeProvider:
+    authority: none
+  selector:
+    matchLabels:
+      hostname: {self.path.fqdn}-b
+  requestPolicy:
+    insecure:
+      action: Redirect
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}-insecure-host-c
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: {self.path.fqdn}-c
+  acmeProvider:
+    authority: none
+  selector:
+    matchLabels:
+      hostname: {self.path.fqdn}-c
+  requestPolicy:
+    insecure:
+      action: Route
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}-insecure-host-d
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: {self.path.fqdn}-d
+  acmeProvider:
+    authority: none
+  selector:
+    matchLabels:
+      hostname: {self.path.fqdn}-d
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-cleartext-target-mapping
+  labels:
+    hostname: {self.path.k8s}-host-cleartext
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  prefix: /target/
+  service: {self.target.path.fqdn}
+''') + super().manifests()
+
+    def scheme(self) -> str:
+        return "http"
+
+    def queries(self):
+        # 404 for a request that does not match any host. No forced-star behavior here.
+        yield Query(self.url("target/"),
+                    insecure=True,
+                    expected=404)
+
+        yield Query(self.url("target/", scheme="https"),
+                    error=[ "EOF", "connection refused" ])
+
+        yield Query(self.url("target/", scheme="http"),
+                    headers={"Host": self.path.k8s + "-a"},
+                    expected=200,
+                    insecure=True)
+        yield Query(self.url("target/", scheme="http"),
+                    headers={"Host": self.path.k8s + "-b"},
+                    expected=301,
+                    insecure=True)
+        yield Query(self.url("target/", scheme="http"),
+                    headers={"Host": self.path.k8s + "-c"},
+                    expected=200,
+                    insecure=True)
+        yield Query(self.url("target/", scheme="http"),
+                    headers={"Host": self.path.k8s + "-d"},
+                    expected=301,
+                    insecure=True)
+
+
 class HostCRDDouble(AmbassadorTest):
     """
     HostCRDDouble: two Hosts with manually-configured TLS secrets, and Mappings specifying host matches.
