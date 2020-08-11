@@ -22,8 +22,17 @@ message Identity {
   // The account ID assigned by the CEPC
   string account_id = 1;
 
-  // The install ID, as determined by Ambassador
-  string install_id = 2;
+  // Ambassador version
+  string version = 2;
+
+  // This Ambassador's hostname
+  string hostname = 3;
+
+  // License information
+  string license = 4;
+
+  // The cluster ID, as determined by Ambassador
+  string cluster_id = 5;
 }
 
 // Information that Ambassador's Agent can send to the Director
@@ -41,17 +50,19 @@ message SnapshotResponse {
 
 // Instructions that the CEPC can send to Ambassador
 message Directive {
+  string ID = 1;
+
   // Stop sending snapshots. The default value (false) indicates that
   // snapshot should be sent.
-  bool stop = 1;
+  bool stop_reporting = 2;
 
   // Minimum time to wait before pushing the next snapshot. The default
   // value (zero duration) indicates that the Agent should not modify
-  // the existing contact_after setting.
-  google.protobuf.Duration contact_after = 2;
+  // the existing report period.
+  google.protobuf.Duration min_report_period = 3;
 
   // Commands to execute
-  repeated Command commands = 3;
+  repeated Command commands = 4;
 }
 
 // An individual instruction from the CEPC
