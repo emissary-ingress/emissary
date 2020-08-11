@@ -2,7 +2,7 @@ import json
 
 from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
-from urllib.parse import urlparse
+from urllib.parse import scheme_chars, urlparse
 
 from ..config import Config
 
@@ -11,59 +11,67 @@ from .irresource import IRResource
 if TYPE_CHECKING:
     from .ir import IR
 
-def qualify_service_name(ir: 'IR', service: str, namespace: Optional[str], rkey: Optional[str]=None) -> str:
-    to_parse = service
+def would_confuse_urlparse(url: str) -> bool:
+    """Returns whether an URL-ish string would be interpretted by urlparse()
+    differently than we want, by parsing it as a non-URL URI ("scheme:path")
+    instead of as a URL ("[scheme:]//authority[:port]/path").  We don't want to
+    interpret "myhost:8080" as "ParseResult(scheme='myhost', path='8080')"!
 
-    if "://" not in to_parse:
-        to_parse = "ambassador://" + to_parse
+    """
+    if url.find(':') > 0 and url.lstrip(scheme_chars).startswith("://"):
+        # has a scheme
+        return False
+    if url.startswith("//"):
+        # does not have a scheme, but has the "//" URL authority marker
+        return False
+    return True
 
-    p = urlparse(to_parse)
+def normalize_service_name(ir: 'IR', in_service: str, mapping_namespace: Optional[str], resolver_kind: str, rkey: Optional[str]=None) -> str:
+    try:
+        parsed = urlparse(f"//{in_service}" if would_confuse_urlparse(in_service) else in_service)
 
-    fully_qualified = "." in service or "localhost" == p.hostname
+        hostname = parsed.hostname
+        if not hostname:
+            raise ValueError("No hostname")
+        scheme = parsed.scheme
+        port = parsed.port
+    except ValueError as e:
+        # This could happen with mismatched [] in a scheme://[IPv6], or with a port that can't
+        # cast to int, or a port outside [0,2^16), or...
+        #
+        # The best we can do here is probably just to log the error, return the original string
+        # and hope for the best. I guess.
 
-    if namespace != ir.ambassador_namespace and namespace and not fully_qualified and not ir.ambassador_module.use_ambassador_namespace_for_service_resolution:
-        # The target service name is not fully qualified. Parse it and make sure to use
-        # the service's namespace, if possible, rather than the Ambassador process namespace.
-        # 
-        # Note well! The service can be something complex like 'https://myservice:443', so 
-        # naive parsing won't work. The URL parser is actually relevant... but ew, it's kind
-        # of stupid so we need to make sure that there's a scheme. Sigh.
+        errstr = f"Malformed service {repr(in_service)}: {e}"
+        if rkey:
+            errstr = f"{rkey}: {errstr}"
+        ir.post_error(errstr)
 
-        hostname = p.hostname
-        scheme = p.scheme
+        return in_service
 
-        port = None
+    # Consul Resolvers don't allow service names to include subdomains, but
+    # Kubernetes Resolvers _require_ subdomains to correctly handle namespaces.
+    want_qualified = not ir.ambassador_module.use_ambassador_namespace_for_service_resolution and resolver_kind.startswith('Kubernetes')
 
-        try:
-            port = p.port
-        except ValueError:
-            # Malformed port. Uhhhhh... error.
-            errstr = f"Malformed service port in {service}"
-            
-            if rkey:
-                errstr = f"{rkey}: {errstr}"
-            
-            ir.post_error(errstr)
+    is_qualified = "." in hostname or "localhost" == hostname
 
-            # The best we can do here is probably just to return the original string
-            # and hope for the best. I guess.
-            return service
+    if mapping_namespace and mapping_namespace != ir.ambassador_namespace and want_qualified and not is_qualified:
+        hostname += "."+mapping_namespace
 
-        service = f"{hostname}.{namespace}"
+    out_service = hostname
+    if scheme:
+        out_service = f"{scheme}://{out_service}"
+    if port:
+        out_service += f":{port}"
 
-        if scheme and (scheme != "ambassador"):
-            service = f"{scheme}://{service}"
-
-        if port is not None:
-            service += f":{port}"
-
-        ir.logger.debug("KubernetesServiceResolver use_ambassador_namespace_for_service_resolution %s, fully qualified %s, upstream hostname %s" % (
-            ir.ambassador_module.use_ambassador_namespace_for_service_resolution,
-            fully_qualified,
-            service
-        ))
+    ir.logger.debug("%s use_ambassador_namespace_for_service_resolution %s, fully qualified %s, upstream hostname %s" % (
+        resolver_kind,
+        ir.ambassador_module.use_ambassador_namespace_for_service_resolution,
+        is_qualified,
+        out_service
+    ))
     
-    return service
+    return out_service
 
 class IRBaseMapping (IRResource):
     group_id: str

@@ -346,7 +346,7 @@ spec:
                 type:
                   description: What type of Preview URL is allowed?
                   enum:
-                  - path
+                  - Path
                   type: string
               type: object
             requestPolicy:
