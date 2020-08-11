@@ -57,7 +57,7 @@ class IRHost(IRResource):
             tls_name = tls_secret.get('name', None)
 
             if tls_name:
-                ir.logger.debug(f"Host {self.name}: TLS secret name is {tls_name}")
+                ir.logger.debug(f"Host {self.name}: resolving spec.tlsSecret.name: {tls_name}")
 
                 tls_ss = self.resolve(ir, tls_name)
 
@@ -68,14 +68,14 @@ class IRHost(IRResource):
                     ctx_name = f"{self.name}-context"
 
                     implicit_tls_exists = ir.has_tls_context(ctx_name)
-                    self.logger.debug(f"TLSContext with name {ctx_name} exists in the cluster?: {implicit_tls_exists}")
+                    self.logger.debug(f"Host {self.name}: implicit TLSContext {ctx_name} {'exists' if implicit_tls_exists else 'missing'}")
 
                     host_tls_context_obj = self.get('tlsContext', {})
                     host_tls_context_name = host_tls_context_obj.get('name', None)
-                    self.logger.debug(f"Found TLSContext: {host_tls_context_name}")
+                    self.logger.debug(f"Host {self.name}: spec.tlsContext: {host_tls_context_name}")
 
                     host_tls_config = self.get('tls', None)
-                    self.logger.debug(f"Found TLS config: {host_tls_config}")
+                    self.logger.debug(f"Host {self.name}: spec.tls: {host_tls_config}")
 
                     # Choose explicit TLS configuration over implicit TLSContext name
                     if implicit_tls_exists and (host_tls_context_name or host_tls_config):
@@ -90,7 +90,7 @@ class IRHost(IRResource):
                         return False
 
                     if host_tls_context_name:
-                        ir.logger.debug(f"Host {self.name}: found TLSContext name in config: {host_tls_context_name}")
+                        ir.logger.debug(f"Host {self.name}: resolving spec.tlsContext: {host_tls_context_name}")
 
                         if not ir.has_tls_context(host_tls_context_name):
                             self.post_error(f"Host {self.name}: Specified TLSContext does not exist: "
@@ -136,7 +136,7 @@ class IRHost(IRResource):
                         self.context = host_tls_context
 
                     elif host_tls_config:
-                        ir.logger.debug(f"Host {self.name}: found tlsConfig {host_tls_config}")
+                        ir.logger.debug(f"Host {self.name}: examining spec.tls {host_tls_config}")
 
                         camel_snake_map = {
                             'alpnProtocols': 'alpn_protocols',
