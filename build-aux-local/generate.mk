@@ -307,7 +307,7 @@ generate-clean: update-yaml-clean
 # Generate report on dependencies
 
 $(OSS_HOME)/build-aux-local/pip-show.txt: sync
-	docker exec $$($(BUILDER)) sh -c 'pip freeze | cut -d= -f1 | xargs pip show' > $@
+	docker exec $$($(BUILDER)) sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
 
 $(OSS_HOME)/builder/requirements.txt: %.txt: %.in FORCE
 	$(BUILDER) pip-compile
