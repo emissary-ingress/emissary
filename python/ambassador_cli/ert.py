@@ -114,7 +114,7 @@ def main(envoy_config_path: str) -> None:
 
             for filter in filters:
                 if filter["name"] == "envoy.http_connection_manager":
-                    vhosts = lookup(filter, "/config/route_config/virtual_hosts")
+                    vhosts = lookup(filter, "/config/route_config/virtual_hosts") or []
 
                     for vhost in vhosts:
                         domains = vhost["domains"]
@@ -122,7 +122,7 @@ def main(envoy_config_path: str) -> None:
 
                         print(f"... ... VHOST {', '.join(domains)}")
 
-                        actions = OrderedDict()
+                        actions: dict = OrderedDict()
 
                         for route in routes:
                             match = route["match"]

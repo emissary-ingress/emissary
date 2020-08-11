@@ -130,7 +130,7 @@ class WatchSpec:
         return ",".join([ str(x) for x in self.fields or [] ])
 
     @staticmethod
-    def _star(s: str) -> str:
+    def _star(s: Optional[str]) -> str:
         return s if s else "*"
 
     def __repr__(self) -> str:
@@ -149,10 +149,10 @@ class WatchSpec:
 
     def match(self, obj: KubeResource) -> Optional[WatchResult]:
         kind: Optional[str] = obj.get('kind') or None
-        metadata: Optional[Dict[str, Any]] = obj.get('metadata') or {}
+        metadata: Dict[str, Any] = obj.get('metadata') or {}
         name: Optional[str] = metadata.get('name') or None
-        namespace: Optional[str] = metadata.get('namespace') or 'default'
-        labels: Optional[Dict[str, str]] = metadata.get('labels') or {}
+        namespace: str = metadata.get('namespace') or 'default'
+        labels: Dict[str, str] = metadata.get('labels') or {}
 
         if not kind or not name:
             self.logger.error(f"K8s object requires kind and name: {obj}")
@@ -202,7 +202,7 @@ class Mockery:
         self.namespace = namespace
         self.watch = watch
 
-        self.watch_specs = {}
+        self.watch_specs: Dict[str, WatchSpec] = {}
 
         # Set up bootstrap sources.
         for source in sources:

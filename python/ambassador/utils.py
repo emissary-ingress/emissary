@@ -749,7 +749,9 @@ class SecretHandler:
 
         return self.cache_internal(name, namespace, tls_crt, tls_key, user_key, root_crt)
 
-    def cache_internal(self, name: str, namespace: str, tls_crt: str, tls_key: str, user_key: str, root_crt: str) -> SavedSecret:
+    def cache_internal(self, name: str, namespace: str,
+                       tls_crt: Optional[str], tls_key: Optional[str],
+                       user_key: Optional[str], root_crt: Optional[str]) -> SavedSecret:
         h = hashlib.new('sha1')
 
         tls_crt_path = None

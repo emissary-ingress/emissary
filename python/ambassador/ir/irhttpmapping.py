@@ -224,7 +224,10 @@ class IRHTTPMapping (IRBaseMapping):
         # XXX The resolver lookup code is duplicated from IRBaseMapping.setup --
         # needs to be fixed after 1.6.1.
         resolver_name = kwargs.get('resolver') or self.ir.ambassador_module.get('resolver', 'kubernetes-service')
+
+        assert(resolver_name)   # for mypy -- resolver_name cannot be None at this point
         resolver = self.ir.get_resolver(resolver_name)
+
         if resolver:
             resolver_kind = resolver.kind
         else:

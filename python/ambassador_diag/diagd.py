@@ -15,7 +15,8 @@
 # limitations under the License
 import copy
 import subprocess
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, TYPE_CHECKING
+from typing import cast as typecast
 
 import datetime
 import functools
@@ -177,7 +178,7 @@ class DiagApp (Flask):
             logging.getLogger('ambassador').setLevel(logging.DEBUG)
 
         # Assume that we will NOT update Mapping status.
-        ksclass = KubeStatusNoMappings
+        ksclass: Type[KubeStatus] = KubeStatusNoMappings
 
         if os.environ.get("AMBASSADOR_UPDATE_MAPPING_STATUS", "false").lower() == "true":
             self.logger.info("WILL update Mapping status")
@@ -217,13 +218,14 @@ class DiagApp (Flask):
         self.scout = Scout(local_only=self.local_scout)
 
     @property
-    def diag(self) -> Diagnostics:
+    def diag(self) -> Optional[Diagnostics]:
         """
         It turns out to be expensive to generate the Diagnostics class, so 
         app.diag is a property that does it on demand, handling Timers and
         the config lock for you.
 
         You MUST NOT already hold the config_lock when trying to read app.diag.
+        You MUST already have loaded an IR.
         """
 
         # The config_lock is meant to make sure that we don't ever update
@@ -231,8 +233,12 @@ class DiagApp (Flask):
         with self.config_lock:
             # OK. If we haven't already generated the Diagnostics...
             if not app._diag:
-                # ...then we need to fix that, and the diag_timer is the 
-                # thing to use to time it.
+                # ...then we need to fix that, assuming that we have an 
+                # IR and econf to fix it with.
+                if not app.ir or not app.econf:
+                    return None
+
+                # Good to go. Use the diag_timer to time this.
                 with self.diag_timer:
                     app._diag = Diagnostics(app.ir, app.econf)
 
@@ -245,7 +251,7 @@ class DiagApp (Flask):
             return app._diag
 
     @diag.setter
-    def diag(self, diag: Diagnostics) -> None:
+    def diag(self, diag: Optional[Diagnostics]) -> None:
         """
         It turns out to be expensive to generate the Diagnostics class, so 
         app.diag is a property that does it on demand, handling Timers and
@@ -292,7 +298,7 @@ class DiagApp (Flask):
         # ...and reset next_timer_log so we don't log forever.
         self.next_timer_log = None
 
-    def ok_to_log_timers(self, base_time: Optional[float]=None, delta: Optional[float]=10.0) -> None:
+    def ok_to_log_timers(self, base_time: Optional[float]=None, delta: float=10.0) -> None:
         """
         Note that it's OK to log the timers delta seconds (default 10) from base_time (default
         now). Call this whenever you've done something that would be timeable.
@@ -300,6 +306,9 @@ class DiagApp (Flask):
 
         if not base_time:
             base_time = time.perf_counter()
+
+        # Make mypy happy. We know that base_time isn't None at this point.
+        assert(base_time)
 
         self.next_timer_log = base_time + delta
 
@@ -1029,7 +1038,7 @@ class AmbassadorEventWatcher(threading.Thread):
         self.env_good = False       # Is our environment currently believed to be OK?
         self.failure_list: List[str] = [ 'unhealthy at boot' ]     # What's making our environment not OK?
 
-    def post(self, cmd: str, arg: Union[str, Tuple[str, Optional[IR]]]) -> Tuple[int, str]:
+    def post(self, cmd: str, arg: Optional[Union[str, Tuple[str, Optional[IR]]]]) -> Tuple[int, str]:
         rqueue: queue.Queue = queue.Queue()
 
         self.events.put((cmd, arg, rqueue))
@@ -1595,10 +1604,9 @@ class AmbassadorEventWatcher(threading.Thread):
             output.write(config_json)
 
         command = ['envoy', '--config-path', econf_validation_path, '--mode', 'validate']
-        odict = {
-            'exit_code': 0,
-            'output': ''
-        }
+
+        v_exit = 0
+        v_encoded = ''.encode('utf-8')
 
         # Try to validate the Envoy config. Short circuit and fall through
         # immediately on concrete success or failure, and retry (up to the
@@ -1606,31 +1614,33 @@ class AmbassadorEventWatcher(threading.Thread):
         timeout = 5
         for retry in range(retries):
             try:
-                odict['output'] = subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=timeout)
-                odict['exit_code'] = 0
+                v_encoded = subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=timeout)
+                v_exit = 0
                 break
             except subprocess.CalledProcessError as e:
-                odict['exit_code'] = e.returncode
-                odict['output'] = e.output
+                v_exit = e.returncode
+                v_encoded = e.output
                 break
             except subprocess.TimeoutExpired as e:
-                odict['exit_code'] = 1
-                odict['output'] = e.output or ''
+                v_exit = 1
+                v_encoded = e.output or ''.encode('utf-8')
+
                 self.logger.warn("envoy configuration validation timed out after {} seconds{}\n{}",
-                    timeout, ', retrying...' if retry < retries - 1 else '', odict['output'])
+                    timeout, ', retrying...' if retry < retries - 1 else '', v_encoded.decode('utf-8'))
                 continue
 
-        if odict['exit_code'] == 0:
+        if v_exit == 0:
             self.logger.debug("successfully validated the resulting envoy configuration, continuing...")
             return True
 
+        v_str = typecast(str, v_encoded)
+
         try:
-            decoded_error = odict['output'].decode('utf-8')
-            odict['output'] = decoded_error
+            v_str = v_encoded.decode('utf-8')
         except:
             pass
 
-        self.logger.error("{}\ncould not validate the envoy configuration above after {} retries, failed with error \n{}\nAborting update...".format(config_json, retries, odict['output']))
+        self.logger.error("{}\ncould not validate the envoy configuration above after {} retries, failed with error \n{}\n(exit code {})\nAborting update...".format(config_json, retries, v_str, v_exit))
         return False
 
 

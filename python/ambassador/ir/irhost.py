@@ -1,5 +1,5 @@
 import copy
-from typing import Optional, TYPE_CHECKING
+from typing import Dict, List, Optional, TYPE_CHECKING
 
 import os
 
@@ -98,6 +98,7 @@ class IRHost(IRResource):
                             return False
 
                         host_tls_context = ir.get_tls_context(host_tls_context_name)
+                        assert(host_tls_context)    # For mypy -- we checked above to be sure it exists.
 
                         # First make sure that the TLSContext is "compatible" i.e. it at least has the same cert related
                         # configuration as the one in this Host AND hosts are same as well.
@@ -117,16 +118,22 @@ class IRHost(IRResource):
                         else:
                             host_tls_context.set_secret_name(tls_name)
 
-                        if 'hosts' in host_tls_context:
+                        context_hosts = host_tls_context.get('hosts')
+                        host_hosts = [ self.name ]
+
+                        if self.hostname:
+                            host_hosts.append(self.hostname)
+
+                        if context_hosts:
                             is_valid_hosts = False
-                            for host_tc in host_tls_context.get('hosts'):
-                                if host_tc in [self.hostname, self.name]:
+
+                            for host_tc in context_hosts:
+                                if host_tc in host_hosts:
                                     is_valid_hosts = True
+
                             if not is_valid_hosts:
-                                self.post_error(f"Hosts mismatch between Host: {self.name} "
-                                                f"(accepted hosts: {[self.hostname, self.name]}) and "
-                                                f"TLSContext {host_tls_context_name} "
-                                                f"(hosts: {host_tls_context.get('hosts')})")
+                                self.post_error(f"Hosts mismatch between Host: {self.name} (accepted hosts: {host_hosts}) and "
+                                                f"TLSContext {host_tls_context_name} (hosts: {context_hosts})")
                         else:
                             host_tls_context['hosts'] = [self.hostname or self.name]
 
@@ -329,7 +336,11 @@ class HostFactory:
             #
             # If we're running as an intercept agent, there should be a Host in all cases.
             host_count = len(ir.get_hosts() or [])
-            contexts = ir.get_tls_contexts() or []
+
+            # This is mostly mypy silliness to deal with the fact that ir.get_tls_contexts()
+            # returns a ValuesView[IRTLSContext] rather than a List[IRTLSContext].
+            empty_contexts: List[IRTLSContext] = []
+            contexts: List[IRTLSContext] = list(ir.get_tls_contexts()) or empty_contexts
 
             found_termination_context = False
             for ctx in contexts:
@@ -357,7 +368,9 @@ class HostFactory:
                 if not os.environ.get('AMBASSADOR_NO_TLS_REDIRECT', None):
                     new_ctx['redirect_cleartext_from'] = 8080
 
-                ctx = IRTLSContext(ir, aconf, **new_ctx)
+                # XXX mypy doesn't like Dict[str, object] as the keyword args to IRTLSContext, but so far,
+                # everything I've tried just causes more trouble elsewhere. (Flynn)
+                ctx = IRTLSContext(ir, aconf, **new_ctx)    # type: ignore
 
                 assert ctx.is_active()
                 if ctx.resolve_secret(tls_name):
