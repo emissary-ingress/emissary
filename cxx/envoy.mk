@@ -122,7 +122,11 @@ ENVOY_SYNC_DOCKER_TO_HOST = rsync -Pav --delete --blocking-io -e "docker exec -i
 ENVOY_BASH.cmd = bash -c 'PS4=; set -ex; $(ENVOY_SYNC_HOST_TO_DOCKER); trap '\''$(ENVOY_SYNC_DOCKER_TO_HOST)'\'' EXIT; '$(call quote.shell,$1)
 ENVOY_BASH.deps = $(srcdir)/envoy-build-container.txt
 
-ENVOY_DOCKER_EXEC = docker exec --workdir=/root/envoy --env=CC=/opt/llvm/bin/clang --env=CXX=/opt/llvm/bin/clang++ $$(cat $(srcdir)/envoy-build-container.txt)
+ENVOY_DOCKER.env += PATH=/opt/llvm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ENVOY_DOCKER.env += CC=clang
+ENVOY_DOCKER.env += CXX=clang++
+ENVOY_DOCKER.env += CLANG_FORMAT=/opt/llvm/bin/clang-format
+ENVOY_DOCKER_EXEC = docker exec --workdir=/root/envoy $(foreach e,$(ENVOY_DOCKER.env), --env=$e ) $$(cat $(srcdir)/envoy-build-container.txt)
 
 $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	mkdir -p $(@D)
@@ -166,7 +170,7 @@ check-envoy: $(ENVOY_BASH.deps)
 envoy-shell: ## Run a shell in the Envoy build container
 envoy-shell: $(ENVOY_BASH.deps)
 	$(call ENVOY_BASH.cmd, \
-	    docker exec -it $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash || true; \
+	    docker exec -it --workdir=/root/envoy $(foreach e,$(ENVOY_DOCKER.env), --env=$e ) $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash || true; \
 	)
 .PHONY: envoy-shell
 
