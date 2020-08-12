@@ -78,7 +78,15 @@ config:
 """)
 
     def queries(self):
+        # sean~/play/ambassador (use_capabilities_wrapper)$ kubectl get pod canbindtolowport -o go-template --template '{{range .status.containerStatuses}}{{.containerID}}{{end}}'
+        # docker://91e59d6864eee6ad97d48119aca37f829ee1c7e00dc7a8d15f672cddbceda9b1
+        # sean~/play/ambassador (use_capabilities_wrapper)$ docker inspect --format='{{.HostConfig.CapAdd}}'  91e59d6864eee6ad97d48119aca37f829ee1c7e00dc7a8d15f672cddbceda9b1
+        # [NET_BIND_SERVICE]
+
         yield Query(self.url("server-name/", "http", 80), expected=404)
 
     def check(self):
+        print("Platform is", sys.platform)
+        if sys.platform != 'darwin':
+            pytest.xfail('This only works on Darwin')
         assert self.results[0].headers["Server"] == [ "envoy" ]
