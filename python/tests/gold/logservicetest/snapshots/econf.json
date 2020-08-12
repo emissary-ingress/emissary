@@ -175,12 +175,6 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
                                                             "prefix": "/ambassador/v0/check_ready",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -193,50 +187,6 @@
                                                         "route": {
                                                             "cluster": "cluster_127_0_0_1_8877_default",
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
-                                                            "priority": null,
-                                                            "timeout": "10.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "prefix": "/ambassador/v0/check_ready",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
-                                                            }
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_default",
-                                                            "prefix_rewrite": "/ambassador/v0/check_ready",
-                                                            "priority": null,
-                                                            "timeout": "10.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
-                                                            "prefix": "/ambassador/v0/check_alive",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
-                                                            }
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_default",
-                                                            "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "timeout": "10.000s"
                                                         }
@@ -263,12 +213,6 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
                                                             "prefix": "/ambassador/v0/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -288,31 +232,6 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "prefix": "/ambassador/v0/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
-                                                            }
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_default",
-                                                            "prefix_rewrite": "/ambassador/v0/",
-                                                            "priority": null,
-                                                            "timeout": "10.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
                                                             "prefix": "/config_dump",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -332,6 +251,87 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/check_ready",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
+                                                            "prefix_rewrite": "/ambassador/v0/check_ready",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/check_alive",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
+                                                            "prefix_rewrite": "/ambassador/v0/check_alive",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
+                                                            "prefix_rewrite": "/ambassador/v0/",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
                                                             "prefix": "/config_dump",
                                                             "runtime_fraction": {
                                                                 "default_value": {

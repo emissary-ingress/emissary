@@ -175,12 +175,6 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
                                                             "prefix": "/target_add_linkerd_header_only/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -204,78 +198,6 @@
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
                                                             "timeout": "3.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "prefix": "/target_add_linkerd_header_only/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_linkerdheadermapping_http_addlinkerdonly_default"
-                                                            }
-                                                        },
-                                                        "request_headers_to_add": [
-                                                            {
-                                                                "append": true,
-                                                                "header": {
-                                                                    "key": "l5d-dst-override",
-                                                                    "value": "linkerdheadermapping-http-addlinkerdonly:80"
-                                                                }
-                                                            }
-                                                        ],
-                                                        "route": {
-                                                            "cluster": "cluster_linkerdheadermapping_http_addlinkerdonly_default",
-                                                            "prefix_rewrite": "/",
-                                                            "priority": null,
-                                                            "timeout": "3.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
-                                                            "prefix": "/ambassador/v0/check_ready",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
-                                                            }
-                                                        },
-                                                        "request_headers_to_add": [
-                                                            {
-                                                                "append": false,
-                                                                "header": {
-                                                                    "key": "fruit",
-                                                                    "value": "orange"
-                                                                }
-                                                            },
-                                                            {
-                                                                "append": true,
-                                                                "header": {
-                                                                    "key": "l5d-dst-override",
-                                                                    "value": "127.0.0.1:8877"
-                                                                }
-                                                            }
-                                                        ],
-                                                        "request_headers_to_remove": [
-                                                            "x-evil-header"
-                                                        ],
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_default",
-                                                            "prefix_rewrite": "/ambassador/v0/check_ready",
-                                                            "priority": null,
-                                                            "timeout": "10.000s"
                                                         }
                                                     },
                                                     {
@@ -312,50 +234,6 @@
                                                         "route": {
                                                             "cluster": "cluster_127_0_0_1_8877_default",
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
-                                                            "priority": null,
-                                                            "timeout": "10.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
-                                                            "prefix": "/ambassador/v0/check_alive",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
-                                                            }
-                                                        },
-                                                        "request_headers_to_add": [
-                                                            {
-                                                                "append": false,
-                                                                "header": {
-                                                                    "key": "fruit",
-                                                                    "value": "orange"
-                                                                }
-                                                            },
-                                                            {
-                                                                "append": true,
-                                                                "header": {
-                                                                    "key": "l5d-dst-override",
-                                                                    "value": "127.0.0.1:8877"
-                                                                }
-                                                            }
-                                                        ],
-                                                        "request_headers_to_remove": [
-                                                            "x-evil-header"
-                                                        ],
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_default",
-                                                            "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "timeout": "10.000s"
                                                         }
@@ -401,12 +279,6 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
                                                             "prefix": "/target_no_header/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -433,81 +305,6 @@
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
                                                             "timeout": "3.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "prefix": "/target_no_header/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_linkerdheadermapping_http_noheader_default"
-                                                            }
-                                                        },
-                                                        "request_headers_to_add": [
-                                                            {
-                                                                "append": false,
-                                                                "header": {
-                                                                    "key": "fruit",
-                                                                    "value": "orange"
-                                                                }
-                                                            }
-                                                        ],
-                                                        "request_headers_to_remove": [
-                                                            "x-evil-header"
-                                                        ],
-                                                        "route": {
-                                                            "cluster": "cluster_linkerdheadermapping_http_noheader_default",
-                                                            "prefix_rewrite": "/",
-                                                            "priority": null,
-                                                            "timeout": "3.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
-                                                            "prefix": "/ambassador/v0/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
-                                                            }
-                                                        },
-                                                        "request_headers_to_add": [
-                                                            {
-                                                                "append": false,
-                                                                "header": {
-                                                                    "key": "fruit",
-                                                                    "value": "orange"
-                                                                }
-                                                            },
-                                                            {
-                                                                "append": true,
-                                                                "header": {
-                                                                    "key": "l5d-dst-override",
-                                                                    "value": "127.0.0.1:8877"
-                                                                }
-                                                            }
-                                                        ],
-                                                        "request_headers_to_remove": [
-                                                            "x-evil-header"
-                                                        ],
-                                                        "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_default",
-                                                            "prefix_rewrite": "/ambassador/v0/",
-                                                            "priority": null,
-                                                            "timeout": "10.000s"
                                                         }
                                                     },
                                                     {
@@ -551,12 +348,6 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
                                                             "prefix": "/target/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -595,6 +386,215 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/target_add_linkerd_header_only/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_linkerdheadermapping_http_addlinkerdonly_default"
+                                                            }
+                                                        },
+                                                        "request_headers_to_add": [
+                                                            {
+                                                                "append": true,
+                                                                "header": {
+                                                                    "key": "l5d-dst-override",
+                                                                    "value": "linkerdheadermapping-http-addlinkerdonly:80"
+                                                                }
+                                                            }
+                                                        ],
+                                                        "route": {
+                                                            "cluster": "cluster_linkerdheadermapping_http_addlinkerdonly_default",
+                                                            "prefix_rewrite": "/",
+                                                            "priority": null,
+                                                            "timeout": "3.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/check_ready",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "request_headers_to_add": [
+                                                            {
+                                                                "append": false,
+                                                                "header": {
+                                                                    "key": "fruit",
+                                                                    "value": "orange"
+                                                                }
+                                                            },
+                                                            {
+                                                                "append": true,
+                                                                "header": {
+                                                                    "key": "l5d-dst-override",
+                                                                    "value": "127.0.0.1:8877"
+                                                                }
+                                                            }
+                                                        ],
+                                                        "request_headers_to_remove": [
+                                                            "x-evil-header"
+                                                        ],
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
+                                                            "prefix_rewrite": "/ambassador/v0/check_ready",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/check_alive",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "request_headers_to_add": [
+                                                            {
+                                                                "append": false,
+                                                                "header": {
+                                                                    "key": "fruit",
+                                                                    "value": "orange"
+                                                                }
+                                                            },
+                                                            {
+                                                                "append": true,
+                                                                "header": {
+                                                                    "key": "l5d-dst-override",
+                                                                    "value": "127.0.0.1:8877"
+                                                                }
+                                                            }
+                                                        ],
+                                                        "request_headers_to_remove": [
+                                                            "x-evil-header"
+                                                        ],
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
+                                                            "prefix_rewrite": "/ambassador/v0/check_alive",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/target_no_header/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_linkerdheadermapping_http_noheader_default"
+                                                            }
+                                                        },
+                                                        "request_headers_to_add": [
+                                                            {
+                                                                "append": false,
+                                                                "header": {
+                                                                    "key": "fruit",
+                                                                    "value": "orange"
+                                                                }
+                                                            }
+                                                        ],
+                                                        "request_headers_to_remove": [
+                                                            "x-evil-header"
+                                                        ],
+                                                        "route": {
+                                                            "cluster": "cluster_linkerdheadermapping_http_noheader_default",
+                                                            "prefix_rewrite": "/",
+                                                            "priority": null,
+                                                            "timeout": "3.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "request_headers_to_add": [
+                                                            {
+                                                                "append": false,
+                                                                "header": {
+                                                                    "key": "fruit",
+                                                                    "value": "orange"
+                                                                }
+                                                            },
+                                                            {
+                                                                "append": true,
+                                                                "header": {
+                                                                    "key": "l5d-dst-override",
+                                                                    "value": "127.0.0.1:8877"
+                                                                }
+                                                            }
+                                                        ],
+                                                        "request_headers_to_remove": [
+                                                            "x-evil-header"
+                                                        ],
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
+                                                            "prefix_rewrite": "/ambassador/v0/",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
                                                             "prefix": "/target/",
                                                             "runtime_fraction": {
                                                                 "default_value": {

@@ -82,6 +82,9 @@
                 "filter_chains": [
                     {
                         "filter_chain_match": {
+                            "server_names": [
+                                "hostcrdno8080"
+                            ],
                             "transport_protocol": "tls"
                         },
                         "filters": [
@@ -116,9 +119,9 @@
                                         "virtual_hosts": [
                                             {
                                                 "domains": [
-                                                    "*"
+                                                    "hostcrdno8080"
                                                 ],
-                                                "name": "ambassador-listener-8443-hostcrdno8080-forced-star",
+                                                "name": "ambassador-listener-8443-hostcrdno8080",
                                                 "routes": [
                                                     {
                                                         "match": {
@@ -143,22 +146,6 @@
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
                                                             "priority": null,
                                                             "timeout": "10.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "prefix": "/ambassador/v0/check_ready",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
-                                                            }
-                                                        },
-                                                        "redirect": {
-                                                            "https_redirect": true
                                                         }
                                                     },
                                                     {
@@ -189,22 +176,6 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "prefix": "/ambassador/v0/check_alive",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
-                                                            }
-                                                        },
-                                                        "redirect": {
-                                                            "https_redirect": true
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
                                                             "headers": [
                                                                 {
                                                                     "exact_match": "https",
@@ -230,22 +201,6 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "prefix": "/ambassador/v0/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
-                                                            }
-                                                        },
-                                                        "redirect": {
-                                                            "https_redirect": true
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
                                                             "headers": [
                                                                 {
                                                                     "exact_match": "https",
@@ -266,22 +221,6 @@
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
                                                             "timeout": "3.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "prefix": "/target/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrdno8080_http_default"
-                                                            }
-                                                        },
-                                                        "redirect": {
-                                                            "https_redirect": true
                                                         }
                                                     }
                                                 ]
@@ -309,6 +248,126 @@
                                 ]
                             }
                         }
+                    },
+                    {
+                        "filter_chain_match": {},
+                        "filters": [
+                            {
+                                "name": "envoy.http_connection_manager",
+                                "typed_config": {
+                                    "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
+                                    "access_log": [
+                                        {
+                                            "name": "envoy.file_access_log",
+                                            "typed_config": {
+                                                "@type": "type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog",
+                                                "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                                                "path": "/dev/fd/1"
+                                            }
+                                        }
+                                    ],
+                                    "http_filters": [
+                                        {
+                                            "name": "envoy.cors"
+                                        },
+                                        {
+                                            "name": "envoy.router"
+                                        }
+                                    ],
+                                    "http_protocol_options": {
+                                        "accept_http_10": false
+                                    },
+                                    "normalize_path": true,
+                                    "preserve_external_request_id": false,
+                                    "route_config": {
+                                        "virtual_hosts": [
+                                            {
+                                                "domains": [
+                                                    "*"
+                                                ],
+                                                "name": "ambassador-listener-8443-insecure-vhost--1",
+                                                "routes": [
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "prefix": "/ambassador/v0/check_ready",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "redirect": {
+                                                            "https_redirect": true
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "prefix": "/ambassador/v0/check_alive",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "redirect": {
+                                                            "https_redirect": true
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "prefix": "/ambassador/v0/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "redirect": {
+                                                            "https_redirect": true
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "hostcrdno8080",
+                                                                    "name": ":authority"
+                                                                }
+                                                            ],
+                                                            "prefix": "/target/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrdno8080_http_default"
+                                                            }
+                                                        },
+                                                        "redirect": {
+                                                            "https_redirect": true
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "server_name": "envoy",
+                                    "stat_prefix": "ingress_http",
+                                    "use_remote_address": true,
+                                    "xff_num_trusted_hops": 0
+                                }
+                            }
+                        ]
                     }
                 ],
                 "listener_filters": [
