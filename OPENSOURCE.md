@@ -218,8 +218,9 @@ libraries:
     od                  1.0        MIT license
     packaging           20.4       2-clause BSD license, Apache License 2.0
     pexpect             4.8.0      ISC license
+    pip-tools           5.3.1      3-clause BSD license
     pluggy              0.13.1     MIT license
-    protobuf            3.10.0     3-clause BSD license
+    protobuf            3.6.1      3-clause BSD license
     ptyprocess          0.6.0      ISC license
     py                  1.9.0      MIT license
     pyasn1              0.4.8      2-clause BSD license
@@ -244,3 +245,4 @@ libraries:
     typing-extensions   3.7.4.2    Python Software Foundation license
     urllib3             1.24.3     MIT license
     websocket-client    0.57.0     3-clause BSD license
+    zipp                3.1.0      MIT license
