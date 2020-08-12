@@ -48,6 +48,7 @@ following Free and Open Source software:
     github.com/envoyproxy/protoc-gen-validate                v0.3.0-java.0.20200609174644-bd816e4522c1  Apache License 2.0
     github.com/evanphx/json-patch                            v4.5.0+incompatible                        3-clause BSD license
     github.com/exponent-io/jsonpath                          v0.0.0-20151013193312-d6023ce2651d         MIT license
+    github.com/fatih/camelcase                               v1.0.0                                     MIT license
     github.com/fatih/color                                   v1.7.0                                     MIT license
     github.com/fsnotify/fsnotify                             v1.4.9                                     3-clause BSD license
     github.com/ghodss/yaml                                   v1.0.0                                     3-clause BSD license, MIT license
@@ -99,7 +100,7 @@ following Free and Open Source software:
     github.com/liggitt/tabwriter                             v0.0.0-20181228230101-89fcab3d43de         3-clause BSD license
     github.com/mailru/easyjson                               v0.7.0                                     MIT license
     github.com/mattn/go-colorable                            v0.1.2                                     MIT license
-    github.com/mattn/go-isatty                               v0.0.8                                     MIT license
+    github.com/mattn/go-isatty                               v0.0.9                                     MIT license
     github.com/mattn/go-runewidth                            v0.0.4                                     MIT license
     github.com/matttproud/golang_protobuf_extensions         v1.0.1                                     Apache License 2.0
     github.com/mholt/archiver/v3                             v3.3.0                                     MIT license
@@ -114,7 +115,7 @@ following Free and Open Source software:
     github.com/nwaples/rardecode                             v1.0.0                                     2-clause BSD license
     github.com/opencontainers/go-digest                      v1.0.0                                     Apache License 2.0
     github.com/opencontainers/image-spec                     v1.0.1                                     Apache License 2.0
-    github.com/opencontainers/runc                           v0.1.1                                     Apache License 2.0
+    github.com/opencontainers/runc                           v1.0.0-rc10                                Apache License 2.0
     github.com/peterbourgon/diskv                            v2.0.1+incompatible                        MIT license
     github.com/pierrec/lz4                                   v2.0.5+incompatible                        3-clause BSD license
     github.com/pkg/browser                                   v0.0.0-20180916011732-0a3d74bf9ce4         2-clause BSD license
@@ -161,7 +162,9 @@ following Free and Open Source software:
     k8s.io/klog                                              v1.0.0                                     Apache License 2.0
     k8s.io/klog/v2                                           v2.0.0                                     Apache License 2.0
     k8s.io/kube-openapi                                      v0.0.0-20200410145947-61e04a5be9a6         Apache License 2.0
-    k8s.io/kubectl                                           v0.18.0                                    Apache License 2.0
+    k8s.io/kubectl                                           v0.18.4                                    Apache License 2.0
+    k8s.io/kubernetes                                        v1.18.4                                    Apache License 2.0
+    k8s.io/metrics                                           v0.18.4                                    Apache License 2.0
     k8s.io/utils                                             v0.0.0-20200603063816-c1c6865ac451         Apache License 2.0
     sigs.k8s.io/apiserver-network-proxy/konnectivity-client  v0.0.7                                     Apache License 2.0
     sigs.k8s.io/controller-runtime                           v0.6.1                                     Apache License 2.0

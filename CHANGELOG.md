@@ -58,6 +58,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 ### Ambassador API Gateway + Ambassador Edge Stack
 
 - Feature: Upgrade from Envoy 1.14.4 to 1.15.0.
+- Bugfix: Correctly handle a `Host` object with incompatible manually-specified `TLSContext`
 
 ## [1.6.2] July 30, 2020
 [1.6.2]: https://github.com/datawire/ambassador/compare/v1.6.1...v1.6.2
