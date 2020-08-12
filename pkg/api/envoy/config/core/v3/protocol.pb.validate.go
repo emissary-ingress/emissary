@@ -815,10 +815,10 @@ func (m *Http2ProtocolOptions_SettingsParameter) Validate() error {
 
 	if wrapper := m.GetIdentifier(); wrapper != nil {
 
-		if val := wrapper.GetValue(); val < 1 || val > 65536 {
+		if val := wrapper.GetValue(); val < 0 || val > 65535 {
 			return Http2ProtocolOptions_SettingsParameterValidationError{
 				field:  "Identifier",
-				reason: "value must be inside range [1, 65536]",
+				reason: "value must be inside range [0, 65535]",
 			}
 		}
 

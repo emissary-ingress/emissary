@@ -89,6 +89,16 @@ func (m *RedisProxy) Validate() error {
 		}
 	}
 
+	if v, ok := interface{}(m.GetDownstreamAuthUsername()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RedisProxyValidationError{
+				field:  "DownstreamAuthUsername",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	// no validation rules for HiddenEnvoyDeprecatedCluster
 
 	return nil
@@ -160,6 +170,16 @@ func (m *RedisProtocolOptions) Validate() error {
 		if err := v.Validate(); err != nil {
 			return RedisProtocolOptionsValidationError{
 				field:  "AuthPassword",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetAuthUsername()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RedisProtocolOptionsValidationError{
+				field:  "AuthUsername",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}

@@ -178,6 +178,18 @@ func (m *PerXdsConfig) Validate() error {
 			}
 		}
 
+	case *PerXdsConfig_EndpointConfig:
+
+		if v, ok := interface{}(m.GetEndpointConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PerXdsConfigValidationError{
+					field:  "EndpointConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	}
 
 	return nil

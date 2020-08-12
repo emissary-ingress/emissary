@@ -46,6 +46,8 @@ func (m *FilterConfig) Validate() error {
 
 	// no validation rules for EmitFilterState
 
+	// no validation rules for EnableUpstreamStats
+
 	switch m.PerMethodStatSpecifier.(type) {
 
 	case *FilterConfig_IndividualMethodStatsAllowlist:

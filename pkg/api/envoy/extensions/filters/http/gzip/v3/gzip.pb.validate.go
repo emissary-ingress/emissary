@@ -89,6 +89,17 @@ func (m *Gzip) Validate() error {
 		}
 	}
 
+	if wrapper := m.GetChunkSize(); wrapper != nil {
+
+		if val := wrapper.GetValue(); val < 4096 || val > 65536 {
+			return GzipValidationError{
+				field:  "ChunkSize",
+				reason: "value must be inside range [4096, 65536]",
+			}
+		}
+
+	}
+
 	if v, ok := interface{}(m.GetHiddenEnvoyDeprecatedContentLength()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return GzipValidationError{

@@ -43,12 +43,10 @@ func (m *DnsTable) Validate() error {
 		return nil
 	}
 
-	// no validation rules for ExternalRetryCount
-
-	if len(m.GetVirtualDomains()) < 1 {
+	if m.GetExternalRetryCount() > 3 {
 		return DnsTableValidationError{
-			field:  "VirtualDomains",
-			reason: "value must contain at least 1 item(s)",
+			field:  "ExternalRetryCount",
+			reason: "value must be less than or equal to 3",
 		}
 	}
 
@@ -247,6 +245,9 @@ func (m *DnsTable_DnsEndpoint) Validate() error {
 			}
 		}
 
+	case *DnsTable_DnsEndpoint_ClusterName:
+		// no validation rules for ClusterName
+
 	default:
 		return DnsTable_DnsEndpointValidationError{
 			field:  "EndpointConfig",
@@ -356,12 +357,12 @@ func (m *DnsTable_DnsVirtualDomain) Validate() error {
 			}
 		}
 
-		gt := time.Duration(0*time.Second + 0*time.Nanosecond)
+		gte := time.Duration(60*time.Second + 0*time.Nanosecond)
 
-		if dur <= gt {
+		if dur < gte {
 			return DnsTable_DnsVirtualDomainValidationError{
 				field:  "AnswerTtl",
-				reason: "value must be greater than 0s",
+				reason: "value must be greater than or equal to 1m0s",
 			}
 		}
 

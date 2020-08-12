@@ -293,6 +293,26 @@ func (m *GrpcService_GoogleGrpc) Validate() error {
 		}
 	}
 
+	if v, ok := interface{}(m.GetPerStreamBufferLimitBytes()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GrpcService_GoogleGrpcValidationError{
+				field:  "PerStreamBufferLimitBytes",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetChannelArgs()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GrpcService_GoogleGrpcValidationError{
+				field:  "ChannelArgs",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -476,7 +496,9 @@ type GrpcService_GoogleGrpc_GoogleLocalCredentialsValidationError struct {
 func (e GrpcService_GoogleGrpc_GoogleLocalCredentialsValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GrpcService_GoogleGrpc_GoogleLocalCredentialsValidationError) Reason() string { return e.reason }
+func (e GrpcService_GoogleGrpc_GoogleLocalCredentialsValidationError) Reason() string {
+	return e.reason
+}
 
 // Cause function returns cause value.
 func (e GrpcService_GoogleGrpc_GoogleLocalCredentialsValidationError) Cause() error { return e.cause }
@@ -776,6 +798,91 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GrpcService_GoogleGrpc_CallCredentialsValidationError{}
+
+// Validate checks the field values on GrpcService_GoogleGrpc_ChannelArgs with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, an error is returned.
+func (m *GrpcService_GoogleGrpc_ChannelArgs) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	for key, val := range m.GetArgs() {
+		_ = val
+
+		// no validation rules for Args[key]
+
+		if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GrpcService_GoogleGrpc_ChannelArgsValidationError{
+					field:  fmt.Sprintf("Args[%v]", key),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// GrpcService_GoogleGrpc_ChannelArgsValidationError is the validation error
+// returned by GrpcService_GoogleGrpc_ChannelArgs.Validate if the designated
+// constraints aren't met.
+type GrpcService_GoogleGrpc_ChannelArgsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GrpcService_GoogleGrpc_ChannelArgsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GrpcService_GoogleGrpc_ChannelArgsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GrpcService_GoogleGrpc_ChannelArgsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GrpcService_GoogleGrpc_ChannelArgsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GrpcService_GoogleGrpc_ChannelArgsValidationError) ErrorName() string {
+	return "GrpcService_GoogleGrpc_ChannelArgsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GrpcService_GoogleGrpc_ChannelArgsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGrpcService_GoogleGrpc_ChannelArgs.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GrpcService_GoogleGrpc_ChannelArgsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GrpcService_GoogleGrpc_ChannelArgsValidationError{}
 
 // Validate checks the field values on
 // GrpcService_GoogleGrpc_CallCredentials_ServiceAccountJWTAccessCredentials
@@ -1152,3 +1259,87 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GrpcService_GoogleGrpc_CallCredentials_StsServiceValidationError{}
+
+// Validate checks the field values on GrpcService_GoogleGrpc_ChannelArgs_Value
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, an error is returned.
+func (m *GrpcService_GoogleGrpc_ChannelArgs_Value) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	switch m.ValueSpecifier.(type) {
+
+	case *GrpcService_GoogleGrpc_ChannelArgs_Value_StringValue:
+		// no validation rules for StringValue
+
+	case *GrpcService_GoogleGrpc_ChannelArgs_Value_IntValue:
+		// no validation rules for IntValue
+
+	default:
+		return GrpcService_GoogleGrpc_ChannelArgs_ValueValidationError{
+			field:  "ValueSpecifier",
+			reason: "value is required",
+		}
+
+	}
+
+	return nil
+}
+
+// GrpcService_GoogleGrpc_ChannelArgs_ValueValidationError is the validation
+// error returned by GrpcService_GoogleGrpc_ChannelArgs_Value.Validate if the
+// designated constraints aren't met.
+type GrpcService_GoogleGrpc_ChannelArgs_ValueValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GrpcService_GoogleGrpc_ChannelArgs_ValueValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GrpcService_GoogleGrpc_ChannelArgs_ValueValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GrpcService_GoogleGrpc_ChannelArgs_ValueValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GrpcService_GoogleGrpc_ChannelArgs_ValueValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GrpcService_GoogleGrpc_ChannelArgs_ValueValidationError) ErrorName() string {
+	return "GrpcService_GoogleGrpc_ChannelArgs_ValueValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GrpcService_GoogleGrpc_ChannelArgs_ValueValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGrpcService_GoogleGrpc_ChannelArgs_Value.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GrpcService_GoogleGrpc_ChannelArgs_ValueValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GrpcService_GoogleGrpc_ChannelArgs_ValueValidationError{}

@@ -80,6 +80,25 @@ func (m *FileAccessLog) Validate() error {
 			}
 		}
 
+	case *FileAccessLog_LogFormat:
+
+		if m.GetLogFormat() == nil {
+			return FileAccessLogValidationError{
+				field:  "LogFormat",
+				reason: "value is required",
+			}
+		}
+
+		if v, ok := interface{}(m.GetLogFormat()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return FileAccessLogValidationError{
+					field:  "LogFormat",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	}
 
 	return nil

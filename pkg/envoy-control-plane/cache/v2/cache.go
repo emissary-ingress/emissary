@@ -17,9 +17,11 @@ package cache
 
 import (
 	"context"
+	"fmt"
 
 	discovery "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
+	"github.com/golang/protobuf/ptypes/any"
 )
 
 // Request is an alias for the discovery request type.
@@ -48,11 +50,25 @@ type Cache interface {
 	ConfigWatcher
 
 	// Fetch implements the polling method of the config cache using a non-empty request.
-	Fetch(context.Context, Request) (*Response, error)
+	Fetch(context.Context, Request) (Response, error)
 }
 
-// Response is a pre-serialized xDS response.
-type Response struct {
+// Response is a wrapper around Envoy's DiscoveryResponse.
+type Response interface {
+	// Get the Constructed DiscoveryResponse
+	GetDiscoveryResponse() (*discovery.DiscoveryResponse, error)
+
+	// Get te original Request for the Response.
+	GetRequest() *discovery.DiscoveryRequest
+
+	// Get the version in the Response.
+	GetVersion() (string, error)
+}
+
+// RawResponse is a pre-serialized xDS response containing the raw resources to
+// be included in the final Discovery Response.
+type RawResponse struct {
+	Response
 	// Request is the original request.
 	Request discovery.DiscoveryRequest
 
@@ -60,12 +76,82 @@ type Response struct {
 	// Proxy responds with this version as an acknowledgement.
 	Version string
 
-	// The value indicating whether the resource is marshaled, and only one of `Resources` and `MarshaledResources` is available.
-	ResourceMarshaled bool
-
 	// Resources to be included in the response.
 	Resources []types.Resource
 
-	// Marshaled Resources to be included in the response.
-	MarshaledResources []types.MarshaledResource
+	// isResourceMarshaled indicates whether the resources have been marshaled.
+	// This is internally maintained by go-control-plane to prevent future
+	// duplication in marshaling efforts.
+	isResourceMarshaled bool
+
+	// marshaledResponse holds the serialized discovery response.
+	marshaledResponse *discovery.DiscoveryResponse
+}
+
+// PassthroughResponse is a pre constructed xDS response that need not go through marshalling transformations.
+type PassthroughResponse struct {
+	Response
+	// Request is the original request.
+	Request discovery.DiscoveryRequest
+
+	// The discovery response that needs to be sent as is, without any marshalling transformations.
+	DiscoveryResponse *discovery.DiscoveryResponse
+}
+
+// GetDiscoveryResponse performs the marshalling the first time its called and uses the cached response subsequently.
+// This is necessary because the marshalled response does not change across the calls.
+// This caching behavior is important in high throughput scenarios because grpc marshalling has a cost and it drives the cpu utilization under load.
+func (r RawResponse) GetDiscoveryResponse() (*discovery.DiscoveryResponse, error) {
+	if r.isResourceMarshaled {
+		return r.marshaledResponse, nil
+	}
+
+	marshaledResources := make([]*any.Any, len(r.Resources))
+
+	for i, resource := range r.Resources {
+		marshaledResource, err := MarshalResource(resource)
+		if err != nil {
+			return nil, err
+		}
+		marshaledResources[i] = &any.Any{
+			TypeUrl: r.Request.TypeUrl,
+			Value:   marshaledResource,
+		}
+	}
+
+	r.isResourceMarshaled = true
+
+	return &discovery.DiscoveryResponse{
+		VersionInfo: r.Version,
+		Resources:   marshaledResources,
+		TypeUrl:     r.Request.TypeUrl,
+	}, nil
+}
+
+// GetRequest returns the original Discovery Request.
+func (r RawResponse) GetRequest() *discovery.DiscoveryRequest {
+	return &r.Request
+}
+
+// GetVersion returns the response version.
+func (r RawResponse) GetVersion() (string, error) {
+	return r.Version, nil
+}
+
+// GetDiscoveryResponse returns the final passthrough Discovery Response.
+func (r PassthroughResponse) GetDiscoveryResponse() (*discovery.DiscoveryResponse, error) {
+	return r.DiscoveryResponse, nil
+}
+
+// GetRequest returns the original Discovery Request
+func (r PassthroughResponse) GetRequest() *discovery.DiscoveryRequest {
+	return &r.Request
+}
+
+// GetVersion returns the response version.
+func (r PassthroughResponse) GetVersion() (string, error) {
+	if r.DiscoveryResponse != nil {
+		return r.DiscoveryResponse.VersionInfo, nil
+	}
+	return "", fmt.Errorf("DiscoveryResponse is nil")
 }

@@ -60,7 +60,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/census-instrumentation/opencensus-proto v0.2.1
-	github.com/cncf/udpa/go v0.0.0-20200324003616-bae28a880fdb
+	github.com/cncf/udpa/go v0.0.0-20200629203442-efcf912fb354
 	github.com/containerd/containerd v1.3.4 // indirect
 	github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -110,16 +110,6 @@ require (
 	sigs.k8s.io/controller-runtime v0.6.1
 	sigs.k8s.io/controller-tools v0.3.1-0.20200517180335-820a4a27ea84
 	sigs.k8s.io/yaml v1.2.0
-	github.com/census-instrumentation/opencensus-proto v0.2.1
-	github.com/cncf/udpa/go v0.0.0-20200313221541-5f7e5dd04533
-	github.com/envoyproxy/protoc-gen-validate v0.1.0
-	github.com/golang/protobuf v1.4.2
-	github.com/google/go-cmp v0.4.0
-	github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4
-	github.com/stretchr/testify v1.5.1
-	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
-	google.golang.org/grpc v1.27.0
-	google.golang.org/protobuf v1.23.0
 )
 
 // We need to inherit this from helm.sh/helm/v3

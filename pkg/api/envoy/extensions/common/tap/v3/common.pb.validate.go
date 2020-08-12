@@ -246,10 +246,15 @@ func (m *CommonExtensionConfig_TapDSConfig) Validate() error {
 		}
 	}
 
-	if len(m.GetName()) < 1 {
-		return CommonExtensionConfig_TapDSConfigValidationError{
-			field:  "Name",
-			reason: "value length must be at least 1 bytes",
+	// no validation rules for Name
+
+	if v, ok := interface{}(m.GetTapResourceLocator()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CommonExtensionConfig_TapDSConfigValidationError{
+				field:  "TapResourceLocator",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
 		}
 	}
 

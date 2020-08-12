@@ -248,6 +248,13 @@ func (m *SelfConfigSource) Validate() error {
 		return nil
 	}
 
+	if _, ok := ApiVersion_name[int32(m.GetTransportApiVersion())]; !ok {
+		return SelfConfigSourceValidationError{
+			field:  "TransportApiVersion",
+			reason: "value must be one of the defined enum values",
+		}
+	}
+
 	return nil
 }
 

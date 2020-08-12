@@ -149,6 +149,16 @@ func (m *Config_KeyValuePair) Validate() error {
 
 	// no validation rules for Value
 
+	if v, ok := interface{}(m.GetRegexValueRewrite()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Config_KeyValuePairValidationError{
+				field:  "RegexValueRewrite",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	// no validation rules for Type
 
 	// no validation rules for Encode
