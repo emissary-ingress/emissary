@@ -15,10 +15,12 @@ metadata:
     {{- end }}
     app.kubernetes.io/component: ambassador-service
     product: aes
-  {{- with .Values.service.annotations }}
+{{- if .Values.service.annotations }}
   annotations:
-    {{- toYaml . | nindent 4 }}
+  {{- range $key, $value := .Values.service.annotations }}
+    {{ $key }}: {{ $value | quote }}
   {{- end }}
+{{- end }}
 spec:
   type: {{ .Values.service.type }}
   {{- if .Values.service.loadBalancerIP }}
