@@ -5,6 +5,7 @@ generate/files += $(patsubst $(OSS_HOME)/api/getambassador.io/%.proto,  $(OSS_HO
 generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_pb.js          , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_grpc_web_pb.js , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
 generate/files += $(OSS_HOME)/pkg/api/envoy
+generate/files += $(OSS_HOME)/pkg/api/pb
 generate/files += $(OSS_HOME)/pkg/envoy-control-plane
 generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
 generate/files += $(OSS_HOME)/OPENSOURCE.md
@@ -12,14 +13,14 @@ generate/files += $(OSS_HOME)/builder/requirements.txt
 generate: ## Update generated sources that get committed to git
 generate:
 	$(MAKE) generate-clean
-	$(MAKE) $(OSS_HOME)/api/envoy
+	$(MAKE) $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb
 	$(MAKE) _generate
 _generate:
 	@echo '$(MAKE) $$(generate/files)'; $(MAKE) $(generate/files)
 generate-clean: ## Delete generated sources that get committed to git
 generate-clean:
-	rm -rf $(OSS_HOME)/api/envoy
-	rm -rf $(OSS_HOME)/pkg/api/envoy
+	rm -rf $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb
+	rm -rf $(OSS_HOME)/pkg/api/envoy $(OSS_HOME)/pkg/api/pb
 	rm -rf $(OSS_HOME)/cxx/envoy/build_go
 	rm -rf $(OSS_HOME)/pkg/api/kat
 	rm -rf $(OSS_HOME)/python/ambassador/proto
@@ -129,7 +130,7 @@ $(tools/py-mkopensource): FORCE
 # commits are ancestors, I added `make guess-envoy-go-control-plane-commit` to do that in an automated
 # way!  Still look at the commit yourself to make sure it seems sane; blindly trusting machines is
 # bad, mmkay?
-ENVOY_GO_CONTROL_PLANE_COMMIT = ee38d3ad816fdd3a353a3edf7fc7d4d2b54d1b45
+ENVOY_GO_CONTROL_PLANE_COMMIT = v0.9.6
 
 guess-envoy-go-control-plane-commit: $(OSS_HOME)/cxx/envoy $(OSS_HOME)/cxx/go-control-plane
 	@echo

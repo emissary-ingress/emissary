@@ -110,6 +110,16 @@ require (
 	sigs.k8s.io/controller-runtime v0.6.1
 	sigs.k8s.io/controller-tools v0.3.1-0.20200517180335-820a4a27ea84
 	sigs.k8s.io/yaml v1.2.0
+	github.com/census-instrumentation/opencensus-proto v0.2.1
+	github.com/cncf/udpa/go v0.0.0-20200313221541-5f7e5dd04533
+	github.com/envoyproxy/protoc-gen-validate v0.1.0
+	github.com/golang/protobuf v1.4.2
+	github.com/google/go-cmp v0.4.0
+	github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4
+	github.com/stretchr/testify v1.5.1
+	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
+	google.golang.org/grpc v1.27.0
+	google.golang.org/protobuf v1.23.0
 )
 
 // We need to inherit this from helm.sh/helm/v3
