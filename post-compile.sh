@@ -30,3 +30,8 @@ sudo rm -rf /opt/image-build
 sudo install -D -t /opt/image-build /buildroot/ambassador/build-aux-local/install.sh
 sudo cp -a /buildroot/ambassador/build-aux-local/installers /opt/image-build/
 sudo /opt/image-build/install.sh
+
+# run any extra, local post-compile task
+if [ -f post-compile.local.sh ] ; then
+    bash post-compile.local.sh
+fi
