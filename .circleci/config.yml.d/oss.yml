@@ -77,11 +77,38 @@ commands:
           command: |
             make gotest
       - run:
-          name: "KAT"
+          name: "KAT (normal)"
           command: |
             export DEV_KUBE110=yes
             export DEV_KUBE_NO_PVC=yes
             export KAT_REQ_LIMIT=600
+            make pytest-only
+      - run:
+          name: "Cycle cluster"
+          command: |
+            ./.ci/kubernaut-unclaim
+            ./.ci/kubernaut-claim
+      - run:
+          name: "KAT (FAST_VALIDATION)"
+          command: |
+            export DEV_KUBE110=yes
+            export DEV_KUBE_NO_PVC=yes
+            export KAT_REQ_LIMIT=600
+            export AMBASSADOR_FAST_VALIDATION=true
+            make pytest-only
+      - run:
+          name: "Cycle cluster"
+          command: |
+            ./.ci/kubernaut-unclaim
+            ./.ci/kubernaut-claim
+      - run:
+          name: "KAT (FAST_VALIDATION and FAST_RECONFIGURE)"
+          command: |
+            export DEV_KUBE110=yes
+            export DEV_KUBE_NO_PVC=yes
+            export KAT_REQ_LIMIT=600
+            export AMBASSADOR_FAST_VALIDATION=true
+            export AMBASSADOR_FAST_RECONFIGURE=true
             make pytest-only
       # We might want to run ingress-conformance tests in AES in the future
       # This would require we install `kind` on circleci and that the test suite
