@@ -885,7 +885,7 @@ class V2Listener(dict):
                               secure=secure, action=action, insecure_action=insecure_action, domains=domains)
         self.vhosts[hostname] = vhost
 
-        if not self.first_vhost:
+        if (not self.first_vhost) and (domains is None):
             self.first_vhost = vhost
 
     # Build a cleaned-up version of this route without the '_sni' and '_precedence' elements...
