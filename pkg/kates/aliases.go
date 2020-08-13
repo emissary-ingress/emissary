@@ -14,7 +14,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"k8s.io/kubernetes/pkg/util/node"
 	metrics "k8s.io/metrics/pkg/apis/metrics/v1beta1"
 )
 
@@ -72,7 +71,7 @@ var CoreConditionTrue = corev1.ConditionTrue
 
 type Node = corev1.Node
 
-var NodeUnreachablePodReason = node.NodeUnreachablePodReason
+const NodeUnreachablePodReason = "NodeLost" // k8s.io/kubernetes/pkg/util/node.NodeUnreachablePodReason
 
 type Volume = corev1.Volume
 type VolumeSource = corev1.VolumeSource
