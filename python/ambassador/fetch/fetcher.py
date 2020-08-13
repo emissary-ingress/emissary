@@ -401,28 +401,28 @@ class ResourceFetcher:
         return None
 
     def handle_k8s_ingress(self, k8s_object: AnyDict) -> HandlerResult:
-        metadata = k8s_object.get('metadata', None)
+        if 'metadata' not in k8s_object:
+            self.logger.debug("ignoring K8s Ingress with no metadata")
+            return None
+
+        metadata = k8s_object['metadata']
+
+        if 'name' not in metadata:
+            self.logger.debug("ignoring K8s Ingress with no name")
+            return None
+
+        ingress_name = metadata['name']
+
+        if 'spec' not in k8s_object:
+            self.logger.debug(f"ignoring K8s Ingress {ingress_name} with no spec")
+            return None
+
+        ingress_spec = k8s_object['spec']
+        ingress_namespace = metadata.get('namespace') or 'default'
+
         metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
-        ingress_name = metadata.get('name') if metadata else None
-        ingress_namespace = metadata.get('namespace', 'default') if metadata else None
 
         resource_identifier = f'{ingress_name}.{ingress_namespace}'
-
-        ingress_spec = k8s_object.get('spec', None)
-
-        skip = False
-
-        if not metadata:
-            self.logger.debug("ignoring K8s Ingress with no metadata")
-            skip = True
-
-        if not ingress_name:
-            self.logger.debug("ignoring K8s Ingress with no name")
-            skip = True
-
-        if not ingress_spec:
-            self.logger.debug("ignoring K8s Ingress with no spec")
-            skip = True
 
         # we don't need an ingress without ingress class set to ambassador
         annotations = metadata.get('annotations', {})
@@ -442,9 +442,6 @@ class ResourceFetcher:
         #     ingressclass.kubernetes.io/is-default-class: "true"
         if (not has_ambassador_ingress_class_annotation) and (ingress_class is None):
             self.logger.debug(f'ignoring Ingress {ingress_name} without annotation (kubernetes.io/ingress.class: "ambassador") or IngressClass controller (getambassador.io/ingress-controller)')
-            skip = True
-
-        if skip:
             return None
 
         # Let's see if our Ingress resource has Ambassador annotations on it
@@ -604,9 +601,14 @@ class ResourceFetcher:
             self.logger.error(f"Unable to update Ingress {ingress_name}'s status, could not find Ambassador service")
         else:
             ingress_status = self.manager.ambassador_service.status
-            ingress_status_update = (k8s_object.get('kind'), ingress_namespace, ingress_status)
-            self.logger.debug(f"Updating Ingress {ingress_name} status to {ingress_status_update}")
-            self.aconf.k8s_status_updates[f'{ingress_name}.{ingress_namespace}'] = ingress_status_update
+
+            if ingress_status:
+                kind = k8s_object.get('kind')
+                assert(kind)
+
+                ingress_status_update = (kind, ingress_namespace, ingress_status)
+                self.logger.debug(f"Updating Ingress {ingress_name} status to {ingress_status_update}")
+                self.aconf.k8s_status_updates[f'{ingress_name}.{ingress_namespace}'] = ingress_status_update
 
         if parsed_ambassador_annotations is not None:
             # Copy metadata_labels to parsed annotations, if need be.

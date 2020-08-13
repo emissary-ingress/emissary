@@ -163,10 +163,11 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
 
         if has_new_generation or has_new_lb_domain:
             status = self._make_status(generation=obj.generation, lb_domain=current_lb_domain)
-            status_update = (obj.gvk.domain, obj.namespace, status)
 
-            self.logger.info(f"Updating Knative {obj.kind} {obj.name} status to {status_update}")
-            self.aconf.k8s_status_updates[f"{obj.name}.{obj.namespace}"] = status_update
+            if status:
+                status_update = (obj.gvk.domain, obj.namespace or 'default', status)
+                self.logger.info(f"Updating Knative {obj.kind} {obj.name} status to {status_update}")
+                self.aconf.k8s_status_updates[f"{obj.name}.{obj.namespace}"] = status_update
         else:
             self.logger.debug(f"Not reconciling Knative {obj.kind} {obj.name}: observed and current generations are in sync")
 
