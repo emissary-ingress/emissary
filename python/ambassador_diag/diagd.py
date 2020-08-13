@@ -1625,9 +1625,11 @@ class AmbassadorEventWatcher(threading.Thread):
                 v_exit = 1
                 v_encoded = e.output or ''.encode('utf-8')
 
-                self.logger.warn("envoy configuration validation timed out after {} seconds{}\n{}",
-                    timeout, ', retrying...' if retry < retries - 1 else '', v_encoded.decode('utf-8'))
-                continue
+                self.logger.warn("envoy configuration validation timed out after {} seconds{}\n{}".format(
+                    timeout,', retrying...' if retry < retries - 1 else '', v_encoded.decode('utf-8'))
+                )
+
+                # Don't break here; continue on to the next iteration of the loop.
 
         if v_exit == 0:
             self.logger.debug("successfully validated the resulting envoy configuration, continuing...")
