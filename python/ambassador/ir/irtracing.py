@@ -72,7 +72,7 @@ class IRTracing(IRResource):
 
         driver_config = config.get("config", {})
         if driver_config:
-            if driver_config['collector_endpoint_version']:
+            if 'collector_endpoint_version' in driver_config:
                 if not driver_config['collector_endpoint_version'] in ['HTTP_JSON_V1', 'HTTP_JSON', 'HTTP_PROTO']:
                     self.post_error(RichStatus.fromError("collector_endpoint_version must be one of 'HTTP_JSON_V1, HTTP_JSON, HTTP_PROTO'"))
                     return False

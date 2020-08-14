@@ -53,6 +53,8 @@ from ..VERSION import Version, Build
 ## or to run diagnostics.
 
 
+IRFileChecker = Callable[[str], bool]
+
 class IR:
     ambassador_module: IRAmbassador
     ambassador_id: str
@@ -64,7 +66,7 @@ class IR:
     agent_service: Optional[str]
     agent_origination_ctx: Optional[IRTLSContext]
     edge_stack_allowed: bool
-    file_checker: Callable[[str], bool]
+    file_checker: IRFileChecker
     filters: List[IRFilter]
     groups: Dict[str, IRBaseMappingGroup]
     grpc_services: Dict[str, IRCluster]
@@ -84,7 +86,11 @@ class IR:
     tls_module: Optional[IRAmbassadorTLS]
     tracing: Optional[IRTracing]
 
-    def __init__(self, aconf: Config, secret_handler=None, file_checker=None, logger=None, watch_only=False) -> None:
+    def __init__(self, aconf: Config,
+                 secret_handler: SecretHandler, 
+                 file_checker: Optional[IRFileChecker]=None,
+                 logger: Optional[logging.Logger]=None, 
+                 watch_only=False) -> None:
         self.ambassador_id = Config.ambassador_id
         self.ambassador_namespace = Config.ambassador_namespace
         self.ambassador_nodename = aconf.ambassador_nodename
@@ -94,6 +100,9 @@ class IR:
 
         # We're using setattr since since mypy complains about assigning directly to a method.
         secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
+
+        # This setattr business is because mypy seems to think that, since self.file_checker is 
+        # callable, any mention of self.file_checker must be a function call. Sigh.
         setattr(self, 'file_checker', file_checker if file_checker is not None else os.path.isfile)
 
         # The secret_handler is _required_.
@@ -335,7 +344,7 @@ class IR:
 
         # We're going to either create a Host to terminate TLS, or to do cleartext. In neither
         # case will we do ACME. Set additionalPort to -1 so we don't grab 8080 in the TLS case.
-        host_args = {
+        host_args: Dict[str, Any] = {
             "hostname": "*",
             "selector": {
                 "matchLabels": {
@@ -406,6 +415,8 @@ class IR:
         # conflict with the user's application running in the same Pod.
         agent_listen_port_str = os.environ.get("AGENT_LISTEN_PORT", None)
 
+        agent_grpc = os.environ.get("AGENT_ENABLE_GRPC", "false")
+
         if agent_listen_port_str is None:
             self.ambassador_module.service_port = Constants.SERVICE_PORT_AGENT
         else:
@@ -451,6 +462,10 @@ class IR:
                                 prefix="/",
                                 rewrite="/",
                                 service=f"127.0.0.1:{agent_port}",
+                                grpc=agent_grpc,
+                                # Making sure we don't have shorter timeouts on intercepts than the original Mapping
+                                timeout_ms=60000,
+                                idle_timeout_ms=60000,
                                 tls=ctx_name,
                                 precedence=-999999) # No, really. See comment above.
 

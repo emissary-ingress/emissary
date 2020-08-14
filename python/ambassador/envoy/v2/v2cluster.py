@@ -71,7 +71,12 @@ class V2Cluster(dict):
 
         if ctx is not None:
             # If this is a null TLS Context (_ambassador_enabled is True), then we at need to specify a
-            # minimal `tls_context` to enable HTTPS origination.
+            # minimal `tls_context` to enable HTTPS origination. This means that we type envoy_ctx just
+            # as a plain ol' dict, because it's a royal pain to try to use a V2TLSContext (which is a
+            # subclass of dict anyway) for this degenerate case.
+            #
+            # XXX That's a silly reason to not do proper typing.
+            envoy_ctx: dict
 
             if ctx.get('_ambassador_enabled', False):
                 envoy_ctx = {

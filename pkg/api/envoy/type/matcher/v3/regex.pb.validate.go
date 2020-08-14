@@ -145,6 +145,13 @@ func (m *RegexMatchAndSubstitute) Validate() error {
 		return nil
 	}
 
+	if m.GetPattern() == nil {
+		return RegexMatchAndSubstituteValidationError{
+			field:  "Pattern",
+			reason: "value is required",
+		}
+	}
+
 	if v, ok := interface{}(m.GetPattern()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return RegexMatchAndSubstituteValidationError{

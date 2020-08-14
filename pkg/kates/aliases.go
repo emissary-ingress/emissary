@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	metrics "k8s.io/metrics/pkg/apis/metrics/v1beta1"
 )
 
 // The kubernetes client libraries and core protobufs are split across so many different packages
@@ -45,6 +46,7 @@ type ObjectMeta = metav1.ObjectMeta
 
 type Namespace = corev1.Namespace
 
+type Event = corev1.Event
 type ConfigMap = corev1.ConfigMap
 
 type Secret = corev1.Secret
@@ -59,6 +61,17 @@ type Pod = corev1.Pod
 type PodSpec = corev1.PodSpec
 type Container = corev1.Container
 type SecurityContext = corev1.SecurityContext
+type PodCondition = corev1.PodCondition
+type PodLogOptions = corev1.PodLogOptions
+
+var PodSucceeded = corev1.PodSucceeded
+var PodFailed = corev1.PodFailed
+var PodReady = corev1.PodReady
+var CoreConditionTrue = corev1.ConditionTrue
+
+type Node = corev1.Node
+
+const NodeUnreachablePodReason = "NodeLost" // k8s.io/kubernetes/pkg/util/node.NodeUnreachablePodReason
 
 type Volume = corev1.Volume
 type VolumeSource = corev1.VolumeSource
@@ -80,6 +93,10 @@ type CustomResourceDefinition = xv1.CustomResourceDefinition
 var NamesAccepted = xv1.NamesAccepted
 var Established = xv1.Established
 var ConditionTrue = xv1.ConditionTrue
+
+type NodeMetrics = metrics.NodeMetrics
+type PodMetrics = metrics.PodMetrics
+type ContainerMetrics = metrics.ContainerMetrics
 
 type Unstructured = unstructured.Unstructured
 

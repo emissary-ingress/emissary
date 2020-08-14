@@ -1,6 +1,7 @@
 package kates
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -23,6 +25,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/kubectl/pkg/polymorphichelpers"
 
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
@@ -768,6 +771,104 @@ func (c *Client) patchWatch(items *[]*Unstructured, mapping *meta.RESTMapping, s
 		}
 		*items = append(*items, mod)
 	}
+}
+
+// ==
+
+// The LogEvent struct is used to communicate log output from a pod. It includes PodID and Timestamp information so that
+// LogEvents from different pods can be interleaved without losing information about total ordering and/or pod identity.
+type LogEvent struct {
+	// The PodID field indicates what pod the log output is associated with.
+	PodID string `json:"podID"`
+	// The Timestamp field indicates when the log output was created.
+	Timestamp string `json:"timestamp"`
+
+	// The Output field contains log output from the pod.
+	Output string `json:"output,omitempty"`
+
+	// The Closed field is true if the supply of log events from the given pod was terminated. This does not
+	// necessarily mean there is no more log data.
+	Closed bool
+	// The Error field contains error information if the log events were terminated due to an error.
+	Error error `json:"error,omitempty"`
+}
+
+func parseLogLine(line string) (timestamp string, output string) {
+	if parts := strings.SplitN(line, " ", 2); len(parts) == 2 {
+		if _, err := time.Parse(time.RFC3339Nano, parts[0]); err == nil {
+			timestamp = parts[0]
+			output = parts[1]
+			return
+		}
+	}
+	output = line
+	return
+}
+
+// The PodLogs method accesses the log output of a given pod by sending LogEvent structs down the supplied channel. The
+// LogEvent struct is designed to hold enough information that it is feasible to invoke PodLogs multiple times with a
+// single channel in order to multiplex log output from many pods, e.g.:
+//
+//   events := make(chan LogEvent)
+//   client.PodLogs(ctx, pod1, options, events)
+//   client.PodLogs(ctx, pod2, options, events)
+//   client.PodLogs(ctx, pod3, options, events)
+//
+//   for event := range events {
+//       fmt.Printf("%s: %s: %s", event.PodId, event.Timestamp, event.Output)
+//   }
+//
+// The above code will print log output from all 3 pods.
+func (c *Client) PodLogs(ctx context.Context, pod *Pod, options *PodLogOptions, events chan<- LogEvent) error {
+	// always use timestamps
+	options.Timestamps = true
+	timeout := 10 * time.Second
+	allContainers := true
+
+	requests, err := polymorphichelpers.LogsForObjectFn(c.config, pod, options, timeout,
+		allContainers)
+	if err != nil {
+		return err
+	}
+
+	podID := string(pod.GetUID())
+	for _, request := range requests {
+		go func() {
+			readCloser, err := request.Stream(ctx)
+			if err != nil {
+				events <- LogEvent{PodID: podID, Error: err, Closed: true}
+				return
+			}
+			defer readCloser.Close()
+
+			r := bufio.NewReader(readCloser)
+			for {
+				bytes, err := r.ReadBytes('\n')
+				if len(bytes) > 0 {
+					timestamp, output := parseLogLine(string(bytes))
+					events <- LogEvent{
+						PodID:     podID,
+						Timestamp: timestamp,
+						Output:    output,
+					}
+				}
+				if err != nil {
+					if err != io.EOF {
+						events <- LogEvent{
+							PodID:  podID,
+							Error:  err,
+							Closed: true,
+						}
+					} else {
+						events <- LogEvent{PodID: podID, Closed: true}
+					}
+					return
+				}
+			}
+		}()
+	}
+
+	return nil
 }
 
 // Technically this is sketchy since resource versions are opaque, however this exact same approach

@@ -42,7 +42,7 @@ class IRResource (Resource):
                  kind: str,
                  name: str,
                  namespace: Optional[str]=None,
-                 metadata_labels: Optional[str]=None,
+                 metadata_labels: Optional[Dict[str, str]]=None,
                  location: str = "--internal--",
                  apiVersion: str="ambassador/ir",
                  **kwargs) -> None:

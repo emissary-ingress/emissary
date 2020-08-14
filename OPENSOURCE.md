@@ -29,7 +29,7 @@ following Free and Open Source software:
     github.com/blang/semver                                  v3.5.0+incompatible                        MIT license
     github.com/census-instrumentation/opencensus-proto       v0.2.1                                     Apache License 2.0
     github.com/cespare/xxhash/v2                             v2.1.1                                     MIT license
-    github.com/cncf/udpa/go                                  v0.0.0-20200324003616-bae28a880fdb         Apache License 2.0
+    github.com/cncf/udpa/go                                  v0.0.0-20200629203442-efcf912fb354         Apache License 2.0
     github.com/containerd/containerd                         v1.3.4                                     Apache License 2.0
     github.com/cyphar/filepath-securejoin                    v0.2.2                                     3-clause BSD license
     github.com/davecgh/go-spew                               v1.1.1                                     ISC license
@@ -48,6 +48,7 @@ following Free and Open Source software:
     github.com/envoyproxy/protoc-gen-validate                v0.3.0-java.0.20200609174644-bd816e4522c1  Apache License 2.0
     github.com/evanphx/json-patch                            v4.5.0+incompatible                        3-clause BSD license
     github.com/exponent-io/jsonpath                          v0.0.0-20151013193312-d6023ce2651d         MIT license
+    github.com/fatih/camelcase                               v1.0.0                                     MIT license
     github.com/fatih/color                                   v1.7.0                                     MIT license
     github.com/fsnotify/fsnotify                             v1.4.9                                     3-clause BSD license
     github.com/ghodss/yaml                                   v1.0.0                                     3-clause BSD license, MIT license
@@ -139,7 +140,7 @@ following Free and Open Source software:
     golang.org/x/net                                         v0.0.0-20200520004742-59133d7f0dd7         3-clause BSD license
     golang.org/x/oauth2                                      v0.0.0-20190604053449-0f29369cfe45         3-clause BSD license
     golang.org/x/sync                                        v0.0.0-20190911185100-cd5d95a43a6e         3-clause BSD license
-    golang.org/x/sys                                         v0.0.0-20200420163511-1957bb5e6d1f         3-clause BSD license
+    golang.org/x/sys                                         v0.0.0-20200615200032-f1bc736245b1         3-clause BSD license
     golang.org/x/text                                        v0.3.3                                     3-clause BSD license
     golang.org/x/time                                        v0.0.0-20191024005414-555d28b269f0         3-clause BSD license
     google.golang.org/genproto                               v0.0.0-20200115191322-ca5a22157cba         Apache License 2.0
@@ -161,7 +162,8 @@ following Free and Open Source software:
     k8s.io/klog                                              v1.0.0                                     Apache License 2.0
     k8s.io/klog/v2                                           v2.0.0                                     Apache License 2.0
     k8s.io/kube-openapi                                      v0.0.0-20200410145947-61e04a5be9a6         Apache License 2.0
-    k8s.io/kubectl                                           v0.18.0                                    Apache License 2.0
+    k8s.io/kubectl                                           v0.18.4                                    Apache License 2.0
+    k8s.io/metrics                                           v0.18.4                                    Apache License 2.0
     k8s.io/utils                                             v0.0.0-20200603063816-c1c6865ac451         Apache License 2.0
     sigs.k8s.io/apiserver-network-proxy/konnectivity-client  v0.0.7                                     Apache License 2.0
     sigs.k8s.io/controller-runtime                           v0.6.1                                     Apache License 2.0
@@ -220,6 +222,7 @@ libraries:
     pexpect             4.8.0      ISC license
     pip-tools           5.3.1      3-clause BSD license
     pluggy              0.13.1     MIT license
+    prometheus-client   0.8.0      Apache License 2.0
     protobuf            3.6.1      3-clause BSD license
     ptyprocess          0.6.0      ISC license
     py                  1.9.0      MIT license

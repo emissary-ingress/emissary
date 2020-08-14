@@ -26,18 +26,23 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 DBUILD=${DIR}/dbuild.sh
 
-# command for running a container (ie, "docker run")
-DOCKER_RUN=${DOCKER_RUN:-docker run}
+now=$(date +"%H%M%S")
 
-# the name of the Doccker network
-# note: use your local k3d/microk8s/kind network for running tests
-DOCKER_NETWORK=${DOCKER_NETWORK:-${BUILDER_NAME}}
+# container name of the builder
+BUILDER_CONT_NAME=${BUILDER_CONT_NAME:-"bld-${BUILDER_NAME}-${now}"}
+
+# command for running a container (ie, "docker run")
+BUILDER_DOCKER_RUN=${BUILDER_DOCKER_RUN:-docker run}
+
+# the name of the Docker network
+# note: this is necessary for connecting the builder to a local k3d/microk8s/kind network (ie, for running tests)
+BUILDER_DOCKER_NETWORK=${BUILDER_DOCKER_NETWORK:-${BUILDER_NAME}}
 
 # Do this with `eval` so that we properly interpret quotes.
 eval "pytest_args=(${PYTEST_ARGS:-})"
 
 builder() { docker ps -q -f label=builder -f label="${BUILDER_NAME}"; }
-builder_network() { docker network ls -q -f name="${DOCKER_NETWORK}"; }
+builder_network() { docker network ls -q -f name="${BUILDER_DOCKER_NETWORK}"; }
 
 builder_volume() { docker volume ls -q -f label=builder; }
 
@@ -161,10 +166,10 @@ bootstrap() {
     fi
 
     if [ -z "$(builder_network)" ]; then
-        docker network create "${DOCKER_NETWORK}" > /dev/null
-        printf "${GRN}Created docker network ${BLU}${DOCKER_NETWORK}${END}\n"
+        docker network create "${BUILDER_DOCKER_NETWORK}" > /dev/null
+        printf "${GRN}Created docker network ${BLU}${BUILDER_DOCKER_NETWORK}${END}\n"
     else
-        printf "${GRN}Connecting to existing network ${BLU}${DOCKER_NETWORK}${GRN}${END}\n"
+        printf "${GRN}Connecting to existing network ${BLU}${BUILDER_DOCKER_NETWORK}${GRN}${END}\n"
     fi
 
     if [ -z "$(builder)" ] ; then
@@ -182,9 +187,12 @@ bootstrap() {
             exit 1
         fi
 
-        now=$(date +"%H%M%S")
         echo_on
-        $DOCKER_RUN --name "bld-${BUILDER_NAME}-${now}" --network "${DOCKER_NETWORK}" --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} -e BUILDER_NAME=${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
+        $BUILDER_DOCKER_RUN --name "$BUILDER_CONT_NAME" --network "${BUILDER_DOCKER_NETWORK}" --network-alias "builder" \
+            --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} \
+            ${BUILDER_PORTMAPS} ${BUILDER_DOCKER_EXTRA} \
+            -e BUILDER_NAME=${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
         echo_off
 
         printf "${GRN}Started build container ${BLU}$(builder)${END}\n"
@@ -266,7 +274,7 @@ sync() {
         # Don't let 'deleting ambassador' cause the sync to be marked dirty
         dexec sh -c 'rm -rf apro/ambassador'
     fi
-    dsync --exclude-from=${DIR}/sync-excludes.txt --delete ${real}/ ${container}:/buildroot/${name}
+    dsync $DSYNC_EXTRA --exclude-from=${DIR}/sync-excludes.txt --delete ${real}/ ${container}:/buildroot/${name}
     summarize-sync $name "${dsynced[@]}"
     if [[ $name == apro ]]; then
         # BusyBox `ln` 1.30.1's `-T` flag is broken, and doesn't have a `-t` flag.
@@ -312,7 +320,7 @@ clean() {
     fi
     nid=$(builder_network)
     if [ -n "${nid}" ] ; then
-        printf "${GRN}Removing docker network ${BLU}${DOCKER_NETWORK} (${nid})${END}\n"
+        printf "${GRN}Removing docker network ${BLU}${BUILDER_DOCKER_NETWORK} (${nid})${END}\n"
         # This will fail if the network has some other endpoints alive: silence any errors
         docker network rm ${nid} 2>&1 >/dev/null || true
     fi

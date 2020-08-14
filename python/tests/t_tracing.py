@@ -420,10 +420,10 @@ class TracingTestZipkinV2(AmbassadorTest):
 apiVersion: v1
 kind: Service
 metadata:
-  name: zipkin
+  name: zipkin-v2
 spec:
   selector:
-    app: zipkin
+    app: zipkin-v2
   ports:
   - port: 9411
     name: http
@@ -433,18 +433,18 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zipkin
+  name: zipkin-v2
 spec:
   selector:
     matchLabels:
-      app: zipkin
+      app: zipkin-v2
   replicas: 1
   strategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: zipkin
+        app: zipkin-v2
     spec:
       containers:
       - name: zipkin
@@ -473,7 +473,7 @@ service: {self.target.path.fqdn}
 apiVersion: ambassador/v2
 kind: TracingService
 name: tracing
-service: zipkin:9411
+service: zipkin-v2:9411
 driver: zipkin
 config:
   collector_endpoint: /api/v2/spans
@@ -482,7 +482,7 @@ config:
 
     def requirements(self):
         yield from super().requirements()
-        yield ("url", Query("http://zipkin:9411/api/v2/services"))
+        yield ("url", Query("http://zipkin-v2:9411/api/v2/services"))
 
     def queries(self):
         # Speak through each Ambassador to the traced service...
@@ -495,9 +495,9 @@ config:
 
         # ...then ask the Zipkin for services and spans. Including debug=True in these queries
         # is particularly helpful.
-        yield Query("http://zipkin:9411/api/v2/services", phase=2)
-        yield Query("http://zipkin:9411/api/v2/spans?serviceName=tracingtest-default", phase=2)
-        yield Query("http://zipkin:9411/api/v2/traces?serviceName=tracingtest-default", phase=2)
+        yield Query("http://zipkin-v2:9411/api/v2/services", phase=2)
+        yield Query("http://zipkin-v2:9411/api/v2/spans?serviceName=tracingtestzipkinv2-default", phase=2)
+        yield Query("http://zipkin-v2:9411/api/v2/traces?serviceName=tracingtestzipkinv2-default", phase=2)
 
     def check(self):
         for i in range(100):
@@ -505,13 +505,13 @@ config:
 
         assert self.results[100].backend.name == "raw"
         assert len(self.results[100].backend.response) == 1
-        assert self.results[100].backend.response[0] == 'tracingtest-default'
+        assert self.results[100].backend.response[0] == 'tracingtestzipkinv2-default'
 
         assert self.results[101].backend.name == "raw"
 
         tracelist = { x: True for x in self.results[101].backend.response }
 
-        assert 'router cluster_tracingtest_http_default egress' in tracelist
+        assert 'router cluster_tracingtestzipkinv2_http_default egress' in tracelist
 
         # Look for the host that we actually queried, since that's what appears in the spans.
         assert self.results[0].backend.request.host in tracelist
@@ -537,10 +537,10 @@ class TracingTestZipkinV1(AmbassadorTest):
 apiVersion: v1
 kind: Service
 metadata:
-  name: zipkin
+  name: zipkin-v1
 spec:
   selector:
-    app: zipkin
+    app: zipkin-v1
   ports:
   - port: 9411
     name: http
@@ -550,18 +550,18 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zipkin
+  name: zipkin-v1
 spec:
   selector:
     matchLabels:
-      app: zipkin
+      app: zipkin-v1
   replicas: 1
   strategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: zipkin
+        app: zipkin-v1
     spec:
       containers:
       - name: zipkin
@@ -590,7 +590,7 @@ service: {self.target.path.fqdn}
 apiVersion: ambassador/v2
 kind: TracingService
 name: tracing
-service: zipkin:9411
+service: zipkin-v1:9411
 driver: zipkin
 config:
   collector_endpoint: /api/v1/spans
@@ -599,7 +599,7 @@ config:
 
     def requirements(self):
         yield from super().requirements()
-        yield ("url", Query("http://zipkin:9411/api/v2/services"))
+        yield ("url", Query("http://zipkin-v1:9411/api/v2/services"))
 
     def queries(self):
         # Speak through each Ambassador to the traced service...
@@ -612,9 +612,9 @@ config:
 
         # ...then ask the Zipkin for services and spans. Including debug=True in these queries
         # is particularly helpful.
-        yield Query("http://zipkin:9411/api/v2/services", phase=2)
-        yield Query("http://zipkin:9411/api/v2/spans?serviceName=tracingtest-default", phase=2)
-        yield Query("http://zipkin:9411/api/v2/traces?serviceName=tracingtest-default", phase=2)
+        yield Query("http://zipkin-v1:9411/api/v2/services", phase=2)
+        yield Query("http://zipkin-v1:9411/api/v2/spans?serviceName=tracingtestzipkinv1-default", phase=2)
+        yield Query("http://zipkin-v1:9411/api/v2/traces?serviceName=tracingtestzipkinv1-default", phase=2)
 
     def check(self):
         for i in range(100):
@@ -622,13 +622,13 @@ config:
 
         assert self.results[100].backend.name == "raw"
         assert len(self.results[100].backend.response) == 1
-        assert self.results[100].backend.response[0] == 'tracingtest-default'
+        assert self.results[100].backend.response[0] == 'tracingtestzipkinv1-default'
 
         assert self.results[101].backend.name == "raw"
 
         tracelist = { x: True for x in self.results[101].backend.response }
 
-        assert 'router cluster_tracingtest_http_default egress' in tracelist
+        assert 'router cluster_tracingtestzipkinv1_http_default egress' in tracelist
 
         # Look for the host that we actually queried, since that's what appears in the spans.
         assert self.results[0].backend.request.host in tracelist

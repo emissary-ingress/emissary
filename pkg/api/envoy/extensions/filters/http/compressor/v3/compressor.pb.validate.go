@@ -67,6 +67,16 @@ func (m *Compressor) Validate() error {
 		}
 	}
 
+	if v, ok := interface{}(m.GetCompressorLibrary()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CompressorValidationError{
+				field:  "CompressorLibrary",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	return nil
 }
 

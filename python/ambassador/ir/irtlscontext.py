@@ -289,6 +289,30 @@ class IRTLSContext(IRResource):
 
         return True
 
+    def has_secret(self) -> bool:
+        # Safely verify that self.secret_info['secret'] exists -- in other words, verify
+        # that this IRTLSContext is based on a Secret we load from elsewhere, rather than
+        # on files in the filesystem.
+        si = self.get('secret_info', {})
+
+        return 'secret' in si
+
+    def secret_name(self) -> Optional[str]:
+        # Return the name of the Secret we're based on, or None if we're based on files
+        # in the filesystem.
+        #
+        # XXX Currently this implies a _Kubernetes_ Secret, and we might have to change
+        # this later.
+
+        if self.has_secret():
+            return self.secret_info['secret']
+        else:
+            return None
+
+    def set_secret_name(self, secret_name: str) -> None:
+        # Set the name of the Secret we're based on.
+        self.secret_info['secret'] = secret_name
+
     @classmethod
     def null_context(cls, ir: 'IR') -> 'IRTLSContext':
         ctx = ir.get_tls_context("no-cert-upstream")

@@ -808,6 +808,103 @@ var _ interface {
 	ErrorName() string
 } = SecretsConfigDumpValidationError{}
 
+// Validate checks the field values on EndpointsConfigDump with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *EndpointsConfigDump) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	for idx, item := range m.GetStaticEndpointConfigs() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return EndpointsConfigDumpValidationError{
+					field:  fmt.Sprintf("StaticEndpointConfigs[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	for idx, item := range m.GetDynamicEndpointConfigs() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return EndpointsConfigDumpValidationError{
+					field:  fmt.Sprintf("DynamicEndpointConfigs[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// EndpointsConfigDumpValidationError is the validation error returned by
+// EndpointsConfigDump.Validate if the designated constraints aren't met.
+type EndpointsConfigDumpValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EndpointsConfigDumpValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EndpointsConfigDumpValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EndpointsConfigDumpValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EndpointsConfigDumpValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EndpointsConfigDumpValidationError) ErrorName() string {
+	return "EndpointsConfigDumpValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EndpointsConfigDumpValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEndpointsConfigDump.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EndpointsConfigDumpValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EndpointsConfigDumpValidationError{}
+
 // Validate checks the field values on ListenersConfigDump_StaticListener with
 // the rules defined in the proto definition for this message. If any rules
 // are violated, an error is returned.
@@ -1503,7 +1600,9 @@ type ScopedRoutesConfigDump_InlineScopedRouteConfigsValidationError struct {
 }
 
 // Field function returns field value.
-func (e ScopedRoutesConfigDump_InlineScopedRouteConfigsValidationError) Field() string { return e.field }
+func (e ScopedRoutesConfigDump_InlineScopedRouteConfigsValidationError) Field() string {
+	return e.field
+}
 
 // Reason function returns reason value.
 func (e ScopedRoutesConfigDump_InlineScopedRouteConfigsValidationError) Reason() string {
@@ -1614,7 +1713,9 @@ func (e ScopedRoutesConfigDump_DynamicScopedRouteConfigsValidationError) Reason(
 }
 
 // Cause function returns cause value.
-func (e ScopedRoutesConfigDump_DynamicScopedRouteConfigsValidationError) Cause() error { return e.cause }
+func (e ScopedRoutesConfigDump_DynamicScopedRouteConfigsValidationError) Cause() error {
+	return e.cause
+}
 
 // Key function returns key value.
 func (e ScopedRoutesConfigDump_DynamicScopedRouteConfigsValidationError) Key() bool { return e.key }
@@ -1835,3 +1936,181 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SecretsConfigDump_StaticSecretValidationError{}
+
+// Validate checks the field values on EndpointsConfigDump_StaticEndpointConfig
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, an error is returned.
+func (m *EndpointsConfigDump_StaticEndpointConfig) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if v, ok := interface{}(m.GetEndpointConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EndpointsConfigDump_StaticEndpointConfigValidationError{
+				field:  "EndpointConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetLastUpdated()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EndpointsConfigDump_StaticEndpointConfigValidationError{
+				field:  "LastUpdated",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// EndpointsConfigDump_StaticEndpointConfigValidationError is the validation
+// error returned by EndpointsConfigDump_StaticEndpointConfig.Validate if the
+// designated constraints aren't met.
+type EndpointsConfigDump_StaticEndpointConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EndpointsConfigDump_StaticEndpointConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EndpointsConfigDump_StaticEndpointConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EndpointsConfigDump_StaticEndpointConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EndpointsConfigDump_StaticEndpointConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EndpointsConfigDump_StaticEndpointConfigValidationError) ErrorName() string {
+	return "EndpointsConfigDump_StaticEndpointConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EndpointsConfigDump_StaticEndpointConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEndpointsConfigDump_StaticEndpointConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EndpointsConfigDump_StaticEndpointConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EndpointsConfigDump_StaticEndpointConfigValidationError{}
+
+// Validate checks the field values on
+// EndpointsConfigDump_DynamicEndpointConfig with the rules defined in the
+// proto definition for this message. If any rules are violated, an error is returned.
+func (m *EndpointsConfigDump_DynamicEndpointConfig) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for VersionInfo
+
+	if v, ok := interface{}(m.GetEndpointConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EndpointsConfigDump_DynamicEndpointConfigValidationError{
+				field:  "EndpointConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetLastUpdated()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EndpointsConfigDump_DynamicEndpointConfigValidationError{
+				field:  "LastUpdated",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// EndpointsConfigDump_DynamicEndpointConfigValidationError is the validation
+// error returned by EndpointsConfigDump_DynamicEndpointConfig.Validate if the
+// designated constraints aren't met.
+type EndpointsConfigDump_DynamicEndpointConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EndpointsConfigDump_DynamicEndpointConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EndpointsConfigDump_DynamicEndpointConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EndpointsConfigDump_DynamicEndpointConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EndpointsConfigDump_DynamicEndpointConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EndpointsConfigDump_DynamicEndpointConfigValidationError) ErrorName() string {
+	return "EndpointsConfigDump_DynamicEndpointConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EndpointsConfigDump_DynamicEndpointConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEndpointsConfigDump_DynamicEndpointConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EndpointsConfigDump_DynamicEndpointConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EndpointsConfigDump_DynamicEndpointConfigValidationError{}

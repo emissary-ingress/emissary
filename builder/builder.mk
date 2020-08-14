@@ -208,8 +208,9 @@ mypy: mypy-server
 	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal check
 .PHONY: mypy
 
-GOTEST_PKGS ?= ./...
+GOTEST_PKGS = github.com/datawire/ambassador/...
 export GOTEST_PKGS
+
 GOTEST_ARGS ?=
 export GOTEST_ARGS
 

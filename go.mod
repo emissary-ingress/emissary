@@ -38,18 +38,20 @@ go 1.13
 //  3. If you do add a `replace` command to this file, you must also
 //     add it to the go.mod in apro.git (see above for explanation).
 //
-//  4. We used to use complex hacks to manage the Kubernetes library
-//     versions (since the Kubernetes folks made it such a nightmare),
-//     but recent versions of Kubernetes 1.y.z now have useful
-//     "v0.y.z" git tags that Go understands, so it's actually quite
-//     reasonable now.  If you find yourself having to do any hacks
-//     with k8s.io library versions (like doing a `replace` for a
-//     dozen different k8s.io/ packages), stop, and ask someone for
-//     advice.
+//  4. We use https://github.com/datawire/libk8s to manage the
+//     Kubernetes library versions (since the Kubernetes folks make it
+//     such a nightmare).  See the docs there if you need to fuss with
+//     the versions of any of the k8s.io/ libraries.  If you find
+//     yourself having to do any hacks with k8s.io library versions
+//     (like doing a `replace` for a dozen different k8s.io/
+//     packages), stop, and ask someone for advice.
 //
-//  5. Use `make go-mod-tidy` instead of `go mod tidy`.  Unlike normal
-//     `go mod tidy`, it will make sure we're not missing anything
-//     that's needed for `make generate`.
+//  5. Use `make go-mod-tidy` instead of `go mod tidy`.  Normal `go
+//     mod tidy` will try to remove `github.com/cncf/udpa`--don't let
+//     it, that would break `make generate`; the github.com/cncf/udpa
+//     version needs to be kept in-sync with the
+//     github.com/cncf/udpa/go version (`make go-mod-tidy` will do
+//     this).
 
 require (
 	git.lukeshu.com/go/libsystemd v0.5.3
@@ -60,7 +62,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/census-instrumentation/opencensus-proto v0.2.1
-	github.com/cncf/udpa/go v0.0.0-20200324003616-bae28a880fdb
+	github.com/cncf/udpa/go v0.0.0-20200629203442-efcf912fb354
 	github.com/containerd/containerd v1.3.4 // indirect
 	github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -93,7 +95,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7
-	golang.org/x/sys v0.0.0-20200420163511-1957bb5e6d1f
+	golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1
 	google.golang.org/genproto v0.0.0-20200115191322-ca5a22157cba
 	google.golang.org/grpc v1.27.0
 	google.golang.org/protobuf v1.23.0
@@ -106,6 +108,8 @@ require (
 	k8s.io/cli-runtime v0.18.4
 	k8s.io/client-go v0.18.4
 	k8s.io/helm v2.16.9+incompatible
+	k8s.io/kubectl v0.18.4
+	k8s.io/metrics v0.18.4
 	rsc.io/letsencrypt v0.0.3 // indirect
 	sigs.k8s.io/controller-runtime v0.6.1
 	sigs.k8s.io/controller-tools v0.3.1-0.20200517180335-820a4a27ea84

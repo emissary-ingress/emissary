@@ -68,7 +68,12 @@ func (m *JwtProvider) Validate() error {
 
 	}
 
-	// no validation rules for ForwardPayloadHeader
+	if !_JwtProvider_ForwardPayloadHeader_Pattern.MatchString(m.GetForwardPayloadHeader()) {
+		return JwtProviderValidationError{
+			field:  "ForwardPayloadHeader",
+			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+		}
+	}
 
 	// no validation rules for PayloadInMetadata
 
@@ -162,6 +167,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = JwtProviderValidationError{}
+
+var _JwtProvider_ForwardPayloadHeader_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
 
 // Validate checks the field values on RemoteJwks with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
@@ -261,7 +268,19 @@ func (m *JwtHeader) Validate() error {
 		}
 	}
 
-	// no validation rules for ValuePrefix
+	if !_JwtHeader_Name_Pattern.MatchString(m.GetName()) {
+		return JwtHeaderValidationError{
+			field:  "Name",
+			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+		}
+	}
+
+	if !_JwtHeader_ValuePrefix_Pattern.MatchString(m.GetValuePrefix()) {
+		return JwtHeaderValidationError{
+			field:  "ValuePrefix",
+			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+		}
+	}
 
 	return nil
 }
@@ -319,6 +338,10 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = JwtHeaderValidationError{}
+
+var _JwtHeader_Name_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
+
+var _JwtHeader_ValuePrefix_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
 
 // Validate checks the field values on ProviderWithAudiences with the rules
 // defined in the proto definition for this message. If any rules are

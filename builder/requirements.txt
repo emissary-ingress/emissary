@@ -45,6 +45,7 @@ od==1.0                   # via clize
 packaging==20.4           # via pytest
 pexpect==4.8.0            # via -r requirements.in
 pluggy==0.13.1            # via pytest
+prometheus_client==0.8.0  # via -r requirements.in
 protobuf==3.6.1           # via k8s-proto
 ptyprocess==0.6.0         # via pexpect
 py==1.9.0                 # via pytest, retry

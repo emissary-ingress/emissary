@@ -288,6 +288,16 @@ func (m *HealthCheck) Validate() error {
 		}
 	}
 
+	if v, ok := interface{}(m.GetTransportSocketMatchCriteria()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HealthCheckValidationError{
+				field:  "TransportSocketMatchCriteria",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	switch m.HealthChecker.(type) {
 
 	case *HealthCheck_HttpHealthCheck_:
@@ -500,12 +510,24 @@ func (m *HealthCheck_HttpHealthCheck) Validate() error {
 		return nil
 	}
 
-	// no validation rules for Host
+	if !_HealthCheck_HttpHealthCheck_Host_Pattern.MatchString(m.GetHost()) {
+		return HealthCheck_HttpHealthCheckValidationError{
+			field:  "Host",
+			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+		}
+	}
 
 	if len(m.GetPath()) < 1 {
 		return HealthCheck_HttpHealthCheckValidationError{
 			field:  "Path",
 			reason: "value length must be at least 1 bytes",
+		}
+	}
+
+	if !_HealthCheck_HttpHealthCheck_Path_Pattern.MatchString(m.GetPath()) {
+		return HealthCheck_HttpHealthCheckValidationError{
+			field:  "Path",
+			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
 		}
 	}
 
@@ -546,6 +568,18 @@ func (m *HealthCheck_HttpHealthCheck) Validate() error {
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
+			}
+		}
+
+	}
+
+	for idx, item := range m.GetRequestHeadersToRemove() {
+		_, _ = idx, item
+
+		if !_HealthCheck_HttpHealthCheck_RequestHeadersToRemove_Pattern.MatchString(item) {
+			return HealthCheck_HttpHealthCheckValidationError{
+				field:  fmt.Sprintf("RequestHeadersToRemove[%v]", idx),
+				reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
 			}
 		}
 
@@ -642,6 +676,12 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = HealthCheck_HttpHealthCheckValidationError{}
+
+var _HealthCheck_HttpHealthCheck_Host_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
+
+var _HealthCheck_HttpHealthCheck_Path_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
+
+var _HealthCheck_HttpHealthCheck_RequestHeadersToRemove_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
 
 // Validate checks the field values on HealthCheck_TcpHealthCheck with the
 // rules defined in the proto definition for this message. If any rules are
@@ -815,7 +855,12 @@ func (m *HealthCheck_GrpcHealthCheck) Validate() error {
 
 	// no validation rules for ServiceName
 
-	// no validation rules for Authority
+	if !_HealthCheck_GrpcHealthCheck_Authority_Pattern.MatchString(m.GetAuthority()) {
+		return HealthCheck_GrpcHealthCheckValidationError{
+			field:  "Authority",
+			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+		}
+	}
 
 	return nil
 }
@@ -876,6 +921,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = HealthCheck_GrpcHealthCheckValidationError{}
+
+var _HealthCheck_GrpcHealthCheck_Authority_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
 
 // Validate checks the field values on HealthCheck_CustomHealthCheck with the
 // rules defined in the proto definition for this message. If any rules are

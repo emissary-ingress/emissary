@@ -64,6 +64,9 @@ func (m *FaultAbort) Validate() error {
 			}
 		}
 
+	case *FaultAbort_GrpcStatus:
+		// no validation rules for GrpcStatus
+
 	case *FaultAbort_HeaderAbort_:
 
 		if v, ok := interface{}(m.GetHeaderAbort()).(interface{ Validate() error }); ok {
@@ -216,6 +219,8 @@ func (m *HTTPFault) Validate() error {
 	// no validation rules for MaxActiveFaultsRuntime
 
 	// no validation rules for ResponseRateLimitPercentRuntime
+
+	// no validation rules for AbortGrpcStatusRuntime
 
 	return nil
 }

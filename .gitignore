@@ -12,6 +12,10 @@ __pycache__
 .pytest_cache
 .mypy_cache
 
+# local files
+*.local
+*.local.sh
+
 # binaries
 /bin_*/
 
