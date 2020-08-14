@@ -8,7 +8,7 @@ Ambassador Edge Stack enables you to control timeouts in several different ways.
 
 ## Idle Timeout: `idle_timeout_ms`
 
-`idle_timeout_ms` controls how long a connection should remain open when no traffic is being sent through the connection. If not set, Ambassador Edge Stack will wait 5 minutes (300000 milliseconds).
+`idle_timeout_ms` controls how long a connection should remain open when no traffic is being sent through the connection. If not set, Ambassador Edge Stack will default to the value set by `cluster_idle_timeout_ms`
 
 ## Connect Timeout: `connect_timeout_ms`
 
