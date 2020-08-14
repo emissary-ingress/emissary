@@ -568,9 +568,10 @@ class V2VirtualHost(dict):
         if self._ctx:
             match["transport_protocol"] = "tls"
 
-        # Make sure we include a server name match if the hostname isn't "*".
-        if self._hostname and (self._hostname != '*') and (self._domains is None):
-                match["server_names"] = [ self._hostname ]
+            # Make sure we include a server name match if the hostname isn't "*".
+            # ... and we only want server_names when this is a TLS listener, it only works with SNI over TLS.
+            if self._hostname and (self._hostname != '*'):
+                    match["server_names"] = [ self._hostname ]
 
         self["filter_chain_match"] = match
 
@@ -885,6 +886,8 @@ class V2Listener(dict):
                               secure=secure, action=action, insecure_action=insecure_action, domains=domains)
         self.vhosts[hostname] = vhost
 
+        # When there are multiple domains, we don't want first_vhost behavior. The forced_star behavior is taken care of
+        # when domains are populated.
         if (not self.first_vhost) and (domains is None):
             self.first_vhost = vhost
 
@@ -1003,6 +1006,7 @@ class V2Listener(dict):
             logger.debug(
                 f"V2Listeners: {listener_name} {vhostname} {variant}: Accept as {action}")
 
+            # Populate the domains for insecure routes
             if variant == "insecure":
                 if vhost._domains is None:
                     vhost._domains = {}
@@ -1087,6 +1091,9 @@ class V2Listener(dict):
                         }
                     )
 
+                # HACK! HACK! HACK! This should go away whenever we turn the first_vhost behavior off.
+                # This is essentially turning first domain's behavior into the wildcard behavior. All unknown hosts
+                # get this behavior.
                 http_config["route_config"]["virtual_hosts"][0]["domains"] = ["*"]
 
             filter_chain["filters"] = [
@@ -1206,9 +1213,8 @@ class V2Listener(dict):
                 # www.foo.com > *.foo.com > *.com > *
 
                 if insecure_vhost_name not in listener.vhosts:
-                    logger.debug(f"V2Listeners: could not find vhost {insecure_vhost_name} for hostname '*', "
-                                 f"creating insecure vhost {insecure_vhost_name} with no secure action for listener "
-                                 f"{listener.pretty()}")
+                    logger.debug(f"V2Listeners: could not find vhost {insecure_vhost_name}. Creating insecure vhost"
+                                 f"{insecure_vhost_name} with no secure action for listener {listener.pretty()}")
                     listener.make_vhost(name=insecure_vhost_name,
                                         hostname=insecure_vhost_name,
                                         context=None,
