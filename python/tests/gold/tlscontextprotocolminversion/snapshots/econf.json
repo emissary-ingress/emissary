@@ -89,9 +89,6 @@
                 "filter_chains": [
                     {
                         "filter_chain_match": {
-                            "server_names": [
-                                "tls-context-host-1"
-                            ],
                             "transport_protocol": "tls"
                         },
                         "filters": [
@@ -126,9 +123,9 @@
                                         "virtual_hosts": [
                                             {
                                                 "domains": [
-                                                    "tls-context-host-1"
+                                                    "*"
                                                 ],
-                                                "name": "ambassador-listener-8443-tls-context-host-1",
+                                                "name": "ambassador-listener-8443-tls-context-host-1-forced-star",
                                                 "routes": [
                                                     {
                                                         "match": {
@@ -298,9 +295,9 @@
                                         "virtual_hosts": [
                                             {
                                                 "domains": [
-                                                    "*"
+                                                    "insecure-vhost-8443"
                                                 ],
-                                                "name": "ambassador-listener-8443-insecure-vhost-None",
+                                                "name": "ambassador-listener-8443-insecure-vhost-8443",
                                                 "routes": []
                                             }
                                         ]

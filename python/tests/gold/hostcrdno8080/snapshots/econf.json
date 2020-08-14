@@ -82,9 +82,6 @@
                 "filter_chains": [
                     {
                         "filter_chain_match": {
-                            "server_names": [
-                                "hostcrdno8080"
-                            ],
                             "transport_protocol": "tls"
                         },
                         "filters": [
@@ -119,9 +116,9 @@
                                         "virtual_hosts": [
                                             {
                                                 "domains": [
-                                                    "hostcrdno8080"
+                                                    "*"
                                                 ],
-                                                "name": "ambassador-listener-8443-hostcrdno8080",
+                                                "name": "ambassador-listener-8443-hostcrdno8080-forced-star",
                                                 "routes": [
                                                     {
                                                         "match": {
@@ -285,7 +282,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8443-insecure-vhost--1",
+                                                "name": "ambassador-listener-8443-insecure-vhost-8443-hostcrdno8080",
                                                 "routes": [
                                                     {
                                                         "match": {
@@ -338,12 +335,6 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "hostcrdno8080",
-                                                                    "name": ":authority"
-                                                                }
-                                                            ],
                                                             "prefix": "/target/",
                                                             "runtime_fraction": {
                                                                 "default_value": {

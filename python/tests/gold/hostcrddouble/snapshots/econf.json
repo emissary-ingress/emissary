@@ -452,6 +452,35 @@
                                                             "priority": null,
                                                             "timeout": "3.000s"
                                                         }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "tls-context-host-1",
+                                                                    "name": ":authority"
+                                                                },
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/target/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target1_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_hostcrddouble_http_target1_default",
+                                                            "prefix_rewrite": "/",
+                                                            "priority": null,
+                                                            "timeout": "3.000s"
+                                                        }
                                                     }
                                                 ]
                                             }
@@ -534,7 +563,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8080-insecure-vhost-8080",
+                                                "name": "ambassador-listener-8080-insecure-vhost-8080-forced-star-tls-context-host-1",
                                                 "routes": [
                                                     {
                                                         "match": {
@@ -591,10 +620,6 @@
                                                                 {
                                                                     "exact_match": "tls-context-host-2",
                                                                     "name": ":authority"
-                                                                },
-                                                                {
-                                                                    "exact_match": "tls-context-host-1",
-                                                                    "name": ":authority"
                                                                 }
                                                             ],
                                                             "prefix": "/target/",
@@ -617,10 +642,6 @@
                                                                 {
                                                                     "exact_match": "tls-context-host-1",
                                                                     "name": ":authority"
-                                                                },
-                                                                {
-                                                                    "exact_match": "tls-context-host-1",
-                                                                    "name": ":authority"
                                                                 }
                                                             ],
                                                             "prefix": "/target/",
@@ -635,7 +656,15 @@
                                                         "redirect": {
                                                             "https_redirect": true
                                                         }
-                                                    },
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "domains": [
+                                                    "tls-context-host-2"
+                                                ],
+                                                "name": "ambassador-listener-8080-insecure-vhost-8080-forced-star-tls-context-host-2",
+                                                "routes": [
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
@@ -691,10 +720,6 @@
                                                                 {
                                                                     "exact_match": "tls-context-host-2",
                                                                     "name": ":authority"
-                                                                },
-                                                                {
-                                                                    "exact_match": "tls-context-host-2",
-                                                                    "name": ":authority"
                                                                 }
                                                             ],
                                                             "prefix": "/target/",
@@ -716,10 +741,6 @@
                                                             "headers": [
                                                                 {
                                                                     "exact_match": "tls-context-host-1",
-                                                                    "name": ":authority"
-                                                                },
-                                                                {
-                                                                    "exact_match": "tls-context-host-2",
                                                                     "name": ":authority"
                                                                 }
                                                             ],

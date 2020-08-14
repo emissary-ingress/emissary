@@ -82,9 +82,6 @@
                 "filter_chains": [
                     {
                         "filter_chain_match": {
-                            "server_names": [
-                                "hostcrdmanualcontext"
-                            ],
                             "transport_protocol": "tls"
                         },
                         "filters": [
@@ -119,9 +116,9 @@
                                         "virtual_hosts": [
                                             {
                                                 "domains": [
-                                                    "hostcrdmanualcontext"
+                                                    "*"
                                                 ],
-                                                "name": "ambassador-listener-8443-hostcrdmanualcontext",
+                                                "name": "ambassador-listener-8443-hostcrdmanualcontext-forced-star",
                                                 "routes": [
                                                     {
                                                         "match": {
@@ -289,7 +286,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8443-insecure-vhost-None",
+                                                "name": "ambassador-listener-8443-insecure-vhost-8443-hostcrdmanualcontext",
                                                 "routes": [
                                                     {
                                                         "match": {
@@ -342,12 +339,6 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "hostcrdmanualcontext",
-                                                                    "name": ":authority"
-                                                                }
-                                                            ],
                                                             "prefix": "/target/",
                                                             "runtime_fraction": {
                                                                 "default_value": {

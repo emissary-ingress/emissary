@@ -339,6 +339,55 @@
                         }
                     },
                     {
+                        "filter_chain_match": {},
+                        "filters": [
+                            {
+                                "name": "envoy.http_connection_manager",
+                                "typed_config": {
+                                    "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
+                                    "access_log": [
+                                        {
+                                            "name": "envoy.file_access_log",
+                                            "typed_config": {
+                                                "@type": "type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog",
+                                                "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
+                                                "path": "/dev/fd/1"
+                                            }
+                                        }
+                                    ],
+                                    "http_filters": [
+                                        {
+                                            "name": "envoy.cors"
+                                        },
+                                        {
+                                            "name": "envoy.router"
+                                        }
+                                    ],
+                                    "http_protocol_options": {
+                                        "accept_http_10": false
+                                    },
+                                    "normalize_path": true,
+                                    "preserve_external_request_id": false,
+                                    "route_config": {
+                                        "virtual_hosts": [
+                                            {
+                                                "domains": [
+                                                    "insecure-vhost-8443"
+                                                ],
+                                                "name": "ambassador-listener-8443-insecure-vhost-8443",
+                                                "routes": []
+                                            }
+                                        ]
+                                    },
+                                    "server_name": "envoy",
+                                    "stat_prefix": "ingress_http",
+                                    "use_remote_address": true,
+                                    "xff_num_trusted_hops": 0
+                                }
+                            }
+                        ]
+                    },
+                    {
                         "filter_chain_match": {
                             "server_names": [
                                 "tls-context-host-1"
@@ -429,6 +478,35 @@
                                                             "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "tls-context-host-2",
+                                                                    "name": ":authority"
+                                                                },
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/tls-context-same/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_http___tlscontexttest_http_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_http___tlscontexttest_http_default",
+                                                            "prefix_rewrite": "/",
+                                                            "priority": null,
+                                                            "timeout": "3.000s"
                                                         }
                                                     },
                                                     {
@@ -667,6 +745,35 @@
                                                             "case_sensitive": true,
                                                             "headers": [
                                                                 {
+                                                                    "exact_match": "tls-context-host-1",
+                                                                    "name": ":authority"
+                                                                },
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/tls-context-same/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_http___tlscontexttest_http_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_http___tlscontexttest_http_default",
+                                                            "prefix_rewrite": "/",
+                                                            "priority": null,
+                                                            "timeout": "3.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
                                                                     "exact_match": "https",
                                                                     "name": "x-forwarded-proto"
                                                                 }
@@ -796,7 +903,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8080-insecure-vhost-8080",
+                                                "name": "ambassador-listener-8080-insecure-vhost-8080-forced-star-tls-context-host-1",
                                                 "routes": [
                                                     {
                                                         "match": {
@@ -837,36 +944,6 @@
                                                                 {
                                                                     "exact_match": "tls-context-host-2",
                                                                     "name": ":authority"
-                                                                },
-                                                                {
-                                                                    "exact_match": "tls-context-host-1",
-                                                                    "name": ":authority"
-                                                                }
-                                                            ],
-                                                            "prefix": "/tls-context-same/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_http___tlscontexttest_http_default"
-                                                            }
-                                                        },
-                                                        "redirect": {
-                                                            "https_redirect": true
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "tls-context-host-1",
-                                                                    "name": ":authority"
-                                                                },
-                                                                {
-                                                                    "exact_match": "tls-context-host-1",
-                                                                    "name": ":authority"
                                                                 }
                                                             ],
                                                             "prefix": "/tls-context-same/",
@@ -891,6 +968,22 @@
                                                                     "name": ":authority"
                                                                 }
                                                             ],
+                                                            "prefix": "/tls-context-same/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_http___tlscontexttest_http_default"
+                                                            }
+                                                        },
+                                                        "redirect": {
+                                                            "https_redirect": true
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
                                                             "prefix": "/TLSContextTest/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -919,7 +1012,15 @@
                                                         "redirect": {
                                                             "https_redirect": true
                                                         }
-                                                    },
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "domains": [
+                                                    "tls-context-host-2"
+                                                ],
+                                                "name": "ambassador-listener-8080-insecure-vhost-8080-forced-star-tls-context-host-2",
+                                                "routes": [
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
@@ -959,10 +1060,6 @@
                                                                 {
                                                                     "exact_match": "tls-context-host-2",
                                                                     "name": ":authority"
-                                                                },
-                                                                {
-                                                                    "exact_match": "tls-context-host-2",
-                                                                    "name": ":authority"
                                                                 }
                                                             ],
                                                             "prefix": "/tls-context-same/",
@@ -985,10 +1082,6 @@
                                                                 {
                                                                     "exact_match": "tls-context-host-1",
                                                                     "name": ":authority"
-                                                                },
-                                                                {
-                                                                    "exact_match": "tls-context-host-2",
-                                                                    "name": ":authority"
                                                                 }
                                                             ],
                                                             "prefix": "/tls-context-same/",
@@ -1007,12 +1100,6 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "tls-context-host-2",
-                                                                    "name": ":authority"
-                                                                }
-                                                            ],
                                                             "prefix": "/TLSContextTest/",
                                                             "runtime_fraction": {
                                                                 "default_value": {

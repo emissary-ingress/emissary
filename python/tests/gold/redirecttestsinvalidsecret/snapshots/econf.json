@@ -280,7 +280,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8080-insecure-vhost-8080",
+                                                "name": "ambassador-listener-8080-insecure-vhost-8080-forced-star-*",
                                                 "routes": [
                                                     {
                                                         "match": {
