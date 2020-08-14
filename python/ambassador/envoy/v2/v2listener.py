@@ -1012,8 +1012,8 @@ class V2Listener(dict):
 
                 logger.debug(f"V2Listeners: {listener_name} adding route {dict(c_route)} to domain {domain} in vhost {vhostname}")
                 vhost._domains[domain].append(c_route)
-            else:
-                vhost.append_route(c_route)
+
+            vhost.append_route(c_route)
         else:
             logger.debug(
                 f"V2Listeners: {listener_name} {vhostname} {variant}: Drop")
@@ -1164,12 +1164,15 @@ class V2Listener(dict):
             # What VirtualHost hostname are we trying to work with here?
             vhostname = irlistener.hostname or "*"
 
-            listener.make_vhost(name=vhostname,
-                                hostname=vhostname,
-                                context=irlistener.context,
-                                secure=True,
-                                action=irlistener.secure_action,
-                                insecure_action=irlistener.insecure_action)
+            # Well, we only want a secure vhost if this irlistener has a context! If it has no context, the listener
+            # won't set transport_protocol to tls anyway.
+            if irlistener.get('context') is not None:
+                listener.make_vhost(name=vhostname,
+                                    hostname=vhostname,
+                                    context=irlistener.context,
+                                    secure=True,
+                                    action=irlistener.secure_action,
+                                    insecure_action=irlistener.insecure_action)
 
             # Well, this is almost always going to be the case? An irlistener will always have an insecure action,
             # either Route or Redirect, but anyway...
