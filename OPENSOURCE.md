@@ -29,7 +29,7 @@ following Free and Open Source software:
     github.com/blang/semver                                  v3.5.0+incompatible                        MIT license
     github.com/census-instrumentation/opencensus-proto       v0.2.1                                     Apache License 2.0
     github.com/cespare/xxhash/v2                             v2.1.1                                     MIT license
-    github.com/cncf/udpa/go                                  v0.0.0-20200324003616-bae28a880fdb         Apache License 2.0
+    github.com/cncf/udpa/go                                  v0.0.0-20200629203442-efcf912fb354         Apache License 2.0
     github.com/containerd/containerd                         v1.3.4                                     Apache License 2.0
     github.com/cyphar/filepath-securejoin                    v0.2.2                                     3-clause BSD license
     github.com/davecgh/go-spew                               v1.1.1                                     ISC license
@@ -48,6 +48,7 @@ following Free and Open Source software:
     github.com/envoyproxy/protoc-gen-validate                v0.3.0-java.0.20200609174644-bd816e4522c1  Apache License 2.0
     github.com/evanphx/json-patch                            v4.5.0+incompatible                        3-clause BSD license
     github.com/exponent-io/jsonpath                          v0.0.0-20151013193312-d6023ce2651d         MIT license
+    github.com/fatih/camelcase                               v1.0.0                                     MIT license
     github.com/fatih/color                                   v1.7.0                                     MIT license
     github.com/fsnotify/fsnotify                             v1.4.9                                     3-clause BSD license
     github.com/ghodss/yaml                                   v1.0.0                                     3-clause BSD license, MIT license
@@ -161,7 +162,8 @@ following Free and Open Source software:
     k8s.io/klog                                              v1.0.0                                     Apache License 2.0
     k8s.io/klog/v2                                           v2.0.0                                     Apache License 2.0
     k8s.io/kube-openapi                                      v0.0.0-20200410145947-61e04a5be9a6         Apache License 2.0
-    k8s.io/kubectl                                           v0.18.0                                    Apache License 2.0
+    k8s.io/kubectl                                           v0.18.4                                    Apache License 2.0
+    k8s.io/metrics                                           v0.18.4                                    Apache License 2.0
     k8s.io/utils                                             v0.0.0-20200603063816-c1c6865ac451         Apache License 2.0
     sigs.k8s.io/apiserver-network-proxy/konnectivity-client  v0.0.7                                     Apache License 2.0
     sigs.k8s.io/controller-runtime                           v0.6.1                                     Apache License 2.0

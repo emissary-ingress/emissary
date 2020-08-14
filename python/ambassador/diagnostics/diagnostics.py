@@ -509,7 +509,7 @@ class Diagnostics:
             self.add_ambassador_service(self.ir.tracing, 'TracingService (%s)' % self.ir.tracing.driver)
 
         self.ambassador_resolvers = []
-        used_resolvers: Dict[str, List[IRBaseMappingGroup]] = {}
+        used_resolvers: Dict[str, List[str]] = {}
 
         for group in self.groups.values():
             for mapping in group.mappings:

@@ -61,6 +61,8 @@ func (m *ClusterConfig) Validate() error {
 		}
 	}
 
+	// no validation rules for AllowInsecureClusterOptions
+
 	return nil
 }
 

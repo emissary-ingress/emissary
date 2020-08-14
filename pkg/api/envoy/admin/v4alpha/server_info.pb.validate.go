@@ -146,6 +146,10 @@ func (m *CommandLineOptions) Validate() error {
 
 	// no validation rules for BaseId
 
+	// no validation rules for UseDynamicBaseId
+
+	// no validation rules for BaseIdPath
+
 	// no validation rules for Concurrency
 
 	// no validation rules for ConfigPath
@@ -155,6 +159,8 @@ func (m *CommandLineOptions) Validate() error {
 	// no validation rules for AllowUnknownStaticFields
 
 	// no validation rules for RejectUnknownDynamicFields
+
+	// no validation rules for IgnoreUnknownDynamicFields
 
 	// no validation rules for AdminAddressPath
 
@@ -196,6 +202,8 @@ func (m *CommandLineOptions) Validate() error {
 		}
 	}
 
+	// no validation rules for DrainStrategy
+
 	if v, ok := interface{}(m.GetParentShutdownTime()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return CommandLineOptionsValidationError{
@@ -215,6 +223,8 @@ func (m *CommandLineOptions) Validate() error {
 	// no validation rules for RestartEpoch
 
 	// no validation rules for CpusetThreads
+
+	// no validation rules for BootstrapVersion
 
 	return nil
 }

@@ -1121,10 +1121,10 @@ func (m *RetryPolicy) Validate() error {
 		}
 	}
 
-	if v, ok := interface{}(m.GetNumRetries()).(interface{ Validate() error }); ok {
+	if v, ok := interface{}(m.GetMaxRetries()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return RetryPolicyValidationError{
-				field:  "NumRetries",
+				field:  "MaxRetries",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}

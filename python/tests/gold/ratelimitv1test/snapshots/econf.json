@@ -137,7 +137,8 @@
                                                         "envoy_grpc": {
                                                             "cluster_name": "cluster_rate_limit_v1_5000_default"
                                                         }
-                                                    }
+                                                    },
+                                                    "use_alpha": true
                                                 },
                                                 "request_type": "both",
                                                 "timeout": "0.500s"

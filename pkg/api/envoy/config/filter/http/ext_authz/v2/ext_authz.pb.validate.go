@@ -79,6 +79,16 @@ func (m *ExtAuthz) Validate() error {
 		}
 	}
 
+	if v, ok := interface{}(m.GetDenyAtDisable()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ExtAuthzValidationError{
+				field:  "DenyAtDisable",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	// no validation rules for IncludePeerCertificate
 
 	switch m.Services.(type) {

@@ -148,6 +148,25 @@ func (m *VirtualHost) Validate() error {
 
 	}
 
+	for idx, item := range m.GetRequestHeadersToRemove() {
+		_, _ = idx, item
+
+		if len(item) < 1 {
+			return VirtualHostValidationError{
+				field:  fmt.Sprintf("RequestHeadersToRemove[%v]", idx),
+				reason: "value length must be at least 1 bytes",
+			}
+		}
+
+		if !_VirtualHost_RequestHeadersToRemove_Pattern.MatchString(item) {
+			return VirtualHostValidationError{
+				field:  fmt.Sprintf("RequestHeadersToRemove[%v]", idx),
+				reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+			}
+		}
+
+	}
+
 	if len(m.GetResponseHeadersToAdd()) > 1000 {
 		return VirtualHostValidationError{
 			field:  "ResponseHeadersToAdd",
@@ -299,6 +318,8 @@ var _ interface {
 } = VirtualHostValidationError{}
 
 var _VirtualHost_Domains_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
+
+var _VirtualHost_RequestHeadersToRemove_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
 
 // Validate checks the field values on FilterAction with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
@@ -460,6 +481,25 @@ func (m *Route) Validate() error {
 
 	}
 
+	for idx, item := range m.GetRequestHeadersToRemove() {
+		_, _ = idx, item
+
+		if len(item) < 1 {
+			return RouteValidationError{
+				field:  fmt.Sprintf("RequestHeadersToRemove[%v]", idx),
+				reason: "value length must be at least 1 bytes",
+			}
+		}
+
+		if !_Route_RequestHeadersToRemove_Pattern.MatchString(item) {
+			return RouteValidationError{
+				field:  fmt.Sprintf("RequestHeadersToRemove[%v]", idx),
+				reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+			}
+		}
+
+	}
+
 	if len(m.GetResponseHeadersToAdd()) > 1000 {
 		return RouteValidationError{
 			field:  "ResponseHeadersToAdd",
@@ -616,6 +656,8 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RouteValidationError{}
+
+var _Route_RequestHeadersToRemove_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
 
 // Validate checks the field values on WeightedCluster with the rules defined
 // in the proto definition for this message. If any rules are violated, an
@@ -815,6 +857,18 @@ func (m *RouteMatch) Validate() error {
 			if err := v.Validate(); err != nil {
 				return RouteMatchValidationError{
 					field:  "SafeRegex",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *RouteMatch_ConnectMatcher_:
+
+		if v, ok := interface{}(m.GetConnectMatcher()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RouteMatchValidationError{
+					field:  "ConnectMatcher",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -1198,12 +1252,22 @@ func (m *RouteAction) Validate() error {
 
 	}
 
-	// no validation rules for InternalRedirectAction
-
-	if v, ok := interface{}(m.GetMaxInternalRedirects()).(interface{ Validate() error }); ok {
+	if v, ok := interface{}(m.GetInternalRedirectPolicy()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return RouteActionValidationError{
-				field:  "MaxInternalRedirects",
+				field:  "InternalRedirectPolicy",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for HiddenEnvoyDeprecatedInternalRedirectAction
+
+	if v, ok := interface{}(m.GetHiddenEnvoyDeprecatedMaxInternalRedirects()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RouteActionValidationError{
+				field:  "HiddenEnvoyDeprecatedMaxInternalRedirects",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -1376,10 +1440,10 @@ func (m *RetryPolicy) Validate() error {
 
 	// no validation rules for RetryOn
 
-	if v, ok := interface{}(m.GetNumRetries()).(interface{ Validate() error }); ok {
+	if v, ok := interface{}(m.GetMaxRetries()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return RetryPolicyValidationError{
-				field:  "NumRetries",
+				field:  "MaxRetries",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -2132,6 +2196,16 @@ func (m *RateLimit) Validate() error {
 
 	}
 
+	if v, ok := interface{}(m.GetLimit()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RateLimitValidationError{
+				field:  "Limit",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -2423,6 +2497,107 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = QueryParameterMatcherValidationError{}
+
+// Validate checks the field values on InternalRedirectPolicy with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *InternalRedirectPolicy) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if v, ok := interface{}(m.GetMaxInternalRedirects()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return InternalRedirectPolicyValidationError{
+				field:  "MaxInternalRedirects",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(m.GetRedirectResponseCodes()) > 5 {
+		return InternalRedirectPolicyValidationError{
+			field:  "RedirectResponseCodes",
+			reason: "value must contain no more than 5 item(s)",
+		}
+	}
+
+	for idx, item := range m.GetPredicates() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return InternalRedirectPolicyValidationError{
+					field:  fmt.Sprintf("Predicates[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for AllowCrossSchemeRedirect
+
+	return nil
+}
+
+// InternalRedirectPolicyValidationError is the validation error returned by
+// InternalRedirectPolicy.Validate if the designated constraints aren't met.
+type InternalRedirectPolicyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e InternalRedirectPolicyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e InternalRedirectPolicyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e InternalRedirectPolicyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e InternalRedirectPolicyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e InternalRedirectPolicyValidationError) ErrorName() string {
+	return "InternalRedirectPolicyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e InternalRedirectPolicyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sInternalRedirectPolicy.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = InternalRedirectPolicyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = InternalRedirectPolicyValidationError{}
 
 // Validate checks the field values on WeightedCluster_ClusterWeight with the
 // rules defined in the proto definition for this message. If any rules are
@@ -2736,6 +2911,73 @@ var _ interface {
 	ErrorName() string
 } = RouteMatch_TlsContextMatchOptionsValidationError{}
 
+// Validate checks the field values on RouteMatch_ConnectMatcher with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *RouteMatch_ConnectMatcher) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	return nil
+}
+
+// RouteMatch_ConnectMatcherValidationError is the validation error returned by
+// RouteMatch_ConnectMatcher.Validate if the designated constraints aren't met.
+type RouteMatch_ConnectMatcherValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RouteMatch_ConnectMatcherValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RouteMatch_ConnectMatcherValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RouteMatch_ConnectMatcherValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RouteMatch_ConnectMatcherValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RouteMatch_ConnectMatcherValidationError) ErrorName() string {
+	return "RouteMatch_ConnectMatcherValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RouteMatch_ConnectMatcherValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRouteMatch_ConnectMatcher.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RouteMatch_ConnectMatcherValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RouteMatch_ConnectMatcherValidationError{}
+
 // Validate checks the field values on RouteAction_RequestMirrorPolicy with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -2995,6 +3237,16 @@ func (m *RouteAction_UpgradeConfig) Validate() error {
 		}
 	}
 
+	if v, ok := interface{}(m.GetConnectConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RouteAction_UpgradeConfigValidationError{
+				field:  "ConnectConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -3075,6 +3327,16 @@ func (m *RouteAction_HashPolicy_Header) Validate() error {
 		return RouteAction_HashPolicy_HeaderValidationError{
 			field:  "HeaderName",
 			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+		}
+	}
+
+	if v, ok := interface{}(m.GetRegexRewrite()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RouteAction_HashPolicy_HeaderValidationError{
+				field:  "RegexRewrite",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
 		}
 	}
 
@@ -3446,6 +3708,84 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RouteAction_HashPolicy_FilterStateValidationError{}
+
+// Validate checks the field values on RouteAction_UpgradeConfig_ConnectConfig
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, an error is returned.
+func (m *RouteAction_UpgradeConfig_ConnectConfig) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if v, ok := interface{}(m.GetProxyProtocolConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RouteAction_UpgradeConfig_ConnectConfigValidationError{
+				field:  "ProxyProtocolConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// RouteAction_UpgradeConfig_ConnectConfigValidationError is the validation
+// error returned by RouteAction_UpgradeConfig_ConnectConfig.Validate if the
+// designated constraints aren't met.
+type RouteAction_UpgradeConfig_ConnectConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RouteAction_UpgradeConfig_ConnectConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RouteAction_UpgradeConfig_ConnectConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RouteAction_UpgradeConfig_ConnectConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RouteAction_UpgradeConfig_ConnectConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RouteAction_UpgradeConfig_ConnectConfigValidationError) ErrorName() string {
+	return "RouteAction_UpgradeConfig_ConnectConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RouteAction_UpgradeConfig_ConnectConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRouteAction_UpgradeConfig_ConnectConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RouteAction_UpgradeConfig_ConnectConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RouteAction_UpgradeConfig_ConnectConfigValidationError{}
 
 // Validate checks the field values on RetryPolicy_RetryPriority with the rules
 // defined in the proto definition for this message. If any rules are
@@ -3826,6 +4166,18 @@ func (m *RateLimit_Action) Validate() error {
 			}
 		}
 
+	case *RateLimit_Action_DynamicMetadata:
+
+		if v, ok := interface{}(m.GetDynamicMetadata()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RateLimit_ActionValidationError{
+					field:  "DynamicMetadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		return RateLimit_ActionValidationError{
 			field:  "ActionSpecifier",
@@ -3890,6 +4242,95 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RateLimit_ActionValidationError{}
+
+// Validate checks the field values on RateLimit_Override with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *RateLimit_Override) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	switch m.OverrideSpecifier.(type) {
+
+	case *RateLimit_Override_DynamicMetadata_:
+
+		if v, ok := interface{}(m.GetDynamicMetadata()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RateLimit_OverrideValidationError{
+					field:  "DynamicMetadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		return RateLimit_OverrideValidationError{
+			field:  "OverrideSpecifier",
+			reason: "value is required",
+		}
+
+	}
+
+	return nil
+}
+
+// RateLimit_OverrideValidationError is the validation error returned by
+// RateLimit_Override.Validate if the designated constraints aren't met.
+type RateLimit_OverrideValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RateLimit_OverrideValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RateLimit_OverrideValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RateLimit_OverrideValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RateLimit_OverrideValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RateLimit_OverrideValidationError) ErrorName() string {
+	return "RateLimit_OverrideValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RateLimit_OverrideValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRateLimit_Override.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RateLimit_OverrideValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RateLimit_OverrideValidationError{}
 
 // Validate checks the field values on RateLimit_Action_SourceCluster with the
 // rules defined in the proto definition for this message. If any rules are
@@ -4055,6 +4496,8 @@ func (m *RateLimit_Action_RequestHeaders) Validate() error {
 			reason: "value length must be at least 1 bytes",
 		}
 	}
+
+	// no validation rules for SkipIfAbsent
 
 	return nil
 }
@@ -4367,3 +4810,180 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RateLimit_Action_HeaderValueMatchValidationError{}
+
+// Validate checks the field values on RateLimit_Action_DynamicMetaData with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, an error is returned.
+func (m *RateLimit_Action_DynamicMetaData) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if len(m.GetDescriptorKey()) < 1 {
+		return RateLimit_Action_DynamicMetaDataValidationError{
+			field:  "DescriptorKey",
+			reason: "value length must be at least 1 bytes",
+		}
+	}
+
+	if m.GetMetadataKey() == nil {
+		return RateLimit_Action_DynamicMetaDataValidationError{
+			field:  "MetadataKey",
+			reason: "value is required",
+		}
+	}
+
+	if v, ok := interface{}(m.GetMetadataKey()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RateLimit_Action_DynamicMetaDataValidationError{
+				field:  "MetadataKey",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// RateLimit_Action_DynamicMetaDataValidationError is the validation error
+// returned by RateLimit_Action_DynamicMetaData.Validate if the designated
+// constraints aren't met.
+type RateLimit_Action_DynamicMetaDataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RateLimit_Action_DynamicMetaDataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RateLimit_Action_DynamicMetaDataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RateLimit_Action_DynamicMetaDataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RateLimit_Action_DynamicMetaDataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RateLimit_Action_DynamicMetaDataValidationError) ErrorName() string {
+	return "RateLimit_Action_DynamicMetaDataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RateLimit_Action_DynamicMetaDataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRateLimit_Action_DynamicMetaData.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RateLimit_Action_DynamicMetaDataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RateLimit_Action_DynamicMetaDataValidationError{}
+
+// Validate checks the field values on RateLimit_Override_DynamicMetadata with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, an error is returned.
+func (m *RateLimit_Override_DynamicMetadata) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetMetadataKey() == nil {
+		return RateLimit_Override_DynamicMetadataValidationError{
+			field:  "MetadataKey",
+			reason: "value is required",
+		}
+	}
+
+	if v, ok := interface{}(m.GetMetadataKey()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RateLimit_Override_DynamicMetadataValidationError{
+				field:  "MetadataKey",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// RateLimit_Override_DynamicMetadataValidationError is the validation error
+// returned by RateLimit_Override_DynamicMetadata.Validate if the designated
+// constraints aren't met.
+type RateLimit_Override_DynamicMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RateLimit_Override_DynamicMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RateLimit_Override_DynamicMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RateLimit_Override_DynamicMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RateLimit_Override_DynamicMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RateLimit_Override_DynamicMetadataValidationError) ErrorName() string {
+	return "RateLimit_Override_DynamicMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RateLimit_Override_DynamicMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRateLimit_Override_DynamicMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RateLimit_Override_DynamicMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RateLimit_Override_DynamicMetadataValidationError{}

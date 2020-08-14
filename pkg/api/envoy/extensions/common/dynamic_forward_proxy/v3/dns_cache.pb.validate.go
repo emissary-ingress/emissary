@@ -40,6 +40,83 @@ var (
 // define the regex for a UUID once up-front
 var _dns_cache_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 
+// Validate checks the field values on DnsCacheCircuitBreakers with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *DnsCacheCircuitBreakers) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if v, ok := interface{}(m.GetMaxPendingRequests()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DnsCacheCircuitBreakersValidationError{
+				field:  "MaxPendingRequests",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// DnsCacheCircuitBreakersValidationError is the validation error returned by
+// DnsCacheCircuitBreakers.Validate if the designated constraints aren't met.
+type DnsCacheCircuitBreakersValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DnsCacheCircuitBreakersValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DnsCacheCircuitBreakersValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DnsCacheCircuitBreakersValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DnsCacheCircuitBreakersValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DnsCacheCircuitBreakersValidationError) ErrorName() string {
+	return "DnsCacheCircuitBreakersValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DnsCacheCircuitBreakersValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDnsCacheCircuitBreakers.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DnsCacheCircuitBreakersValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DnsCacheCircuitBreakersValidationError{}
+
 // Validate checks the field values on DnsCacheConfig with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -119,6 +196,16 @@ func (m *DnsCacheConfig) Validate() error {
 		if err := v.Validate(); err != nil {
 			return DnsCacheConfigValidationError{
 				field:  "DnsFailureRefreshRate",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetDnsCacheCircuitBreaker()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DnsCacheConfigValidationError{
+				field:  "DnsCacheCircuitBreaker",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}

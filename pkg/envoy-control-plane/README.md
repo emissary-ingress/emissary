@@ -109,11 +109,14 @@ As mentioned in [Scope](https://github.com/envoyproxy/go-control-plane/blob/mast
 Generate the key based on the node information as follows and cache the configurations.
 
 ```go
-import "github.com/envoyproxy/go-control-plane/pkg/cache/v2"
+import (
+	"github.com/envoyproxy/go-control-plane/pkg/cache/v2"
+ 	"github.com/envoyproxy/go-control-plane/pkg/cache/types"
+)
 
-var clusters, endpoints, routes, listeners []cache.Resource
+var clusters, endpoints, routes, listeners, runtimes []types.Resource
 
 snapshotCache := cache.NewSnapshotCache(false, cache.IDHash{}, nil)
-snapshot := cache.NewSnapshot("1.0", endpoints, clusters, routes, listeners)
+snapshot := cache.NewSnapshot("1.0", endpoints, clusters, routes, listeners, runtimes)
 _ = snapshotCache.SetSnapshot("node1", snapshot)
 ```

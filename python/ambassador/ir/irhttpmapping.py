@@ -5,7 +5,7 @@ from typing import Any, ClassVar, Dict, List, Optional, Type, Union, TYPE_CHECKI
 
 from ..config import Config
 
-from .irbasemapping import IRBaseMapping, qualify_service_name
+from .irbasemapping import IRBaseMapping, normalize_service_name
 from .irbasemappinggroup import IRBaseMappingGroup
 from .irhttpmappinggroup import IRHTTPMappingGroup
 from .ircors import IRCORS
@@ -221,30 +221,23 @@ class IRHTTPMapping (IRBaseMapping):
         # Remember that we may need to add the Linkerd headers, too.
         add_linkerd_headers = new_args.get('add_linkerd_headers', False)
 
-        # Consul Resolvers don't allow service names to include subdomains, but 
-        # Kubernetes Resolvers _require_ subdomains to correctly handle namespaces.
-        # So IFF we're not using a Consul Resolver, qualify the service name as
-        # needed.
-        # 
-        # XXX Duplicated code from IRBaseMapping.setup -- needs to be fixed after
-        # 1.6.1.
+        # XXX The resolver lookup code is duplicated from IRBaseMapping.setup --
+        # needs to be fixed after 1.6.1.
+        resolver_name = kwargs.get('resolver') or self.ir.ambassador_module.get('resolver', 'kubernetes-service')
 
-        resolver_name = kwargs.get('resolver')
-
-        if not resolver_name:
-            resolver_name = self.ir.ambassador_module.get('resolver', 'kubernetes-service')
-
+        assert(resolver_name)   # for mypy -- resolver_name cannot be None at this point
         resolver = self.ir.get_resolver(resolver_name)
 
-        # In IRBaseMapping.setup, we post an error if the resolver is unknown. Here,
-        # we just don't bother using it for service qualification.
-
         if resolver:
-            self.ir.logger.debug(f"Mapping {name} using {resolver.name}")
+            resolver_kind = resolver.kind
+        else:
+            # In IRBaseMapping.setup, we post an error if the resolver is unknown.
+            # Here, we just don't bother; we're only using it for service
+            # qualification.
+            resolver_kind = 'KubernetesBogusResolver'
 
-            if resolver.kind != 'ConsulResolver':
-                service = qualify_service_name(ir, service, namespace, rkey=rkey)
-                self.ir.logger.debug(f"Mapping {name} service qualified to {service}")
+        service = normalize_service_name(ir, service, namespace, resolver_kind, rkey=rkey)
+        self.ir.logger.debug(f"Mapping {name} service qualified to {repr(service)}")
 
         svc = Service(ir.logger, service)
 

@@ -494,7 +494,9 @@ type Listener_ConnectionBalanceConfig_ExactBalanceValidationError struct {
 func (e Listener_ConnectionBalanceConfig_ExactBalanceValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e Listener_ConnectionBalanceConfig_ExactBalanceValidationError) Reason() string { return e.reason }
+func (e Listener_ConnectionBalanceConfig_ExactBalanceValidationError) Reason() string {
+	return e.reason
+}
 
 // Cause function returns cause value.
 func (e Listener_ConnectionBalanceConfig_ExactBalanceValidationError) Cause() error { return e.cause }

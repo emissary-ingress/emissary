@@ -61,6 +61,8 @@ func (m *RateLimitServiceConfig) Validate() error {
 		}
 	}
 
+	// no validation rules for UseAlpha
+
 	return nil
 }
 

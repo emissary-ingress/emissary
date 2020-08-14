@@ -36,6 +36,83 @@ var (
 // define the regex for a UUID once up-front
 var _cluster_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 
+// Validate checks the field values on ClusterCollection with the rules defined
+// in the proto definition for this message. If any rules are violated, an
+// error is returned.
+func (m *ClusterCollection) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if v, ok := interface{}(m.GetEntries()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterCollectionValidationError{
+				field:  "Entries",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// ClusterCollectionValidationError is the validation error returned by
+// ClusterCollection.Validate if the designated constraints aren't met.
+type ClusterCollectionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ClusterCollectionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ClusterCollectionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ClusterCollectionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ClusterCollectionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ClusterCollectionValidationError) ErrorName() string {
+	return "ClusterCollectionValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ClusterCollectionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sClusterCollection.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ClusterCollectionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ClusterCollectionValidationError{}
+
 // Validate checks the field values on Cluster with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *Cluster) Validate() error {
@@ -105,6 +182,13 @@ func (m *Cluster) Validate() error {
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
+		}
+	}
+
+	if _, ok := _Cluster_LbPolicy_NotInLookup[m.GetLbPolicy()]; ok {
+		return ClusterValidationError{
+			field:  "LbPolicy",
+			reason: "value must not be in list [7]",
 		}
 	}
 
@@ -408,6 +492,16 @@ func (m *Cluster) Validate() error {
 
 	// no validation rules for TrackTimeoutBudgets
 
+	if v, ok := interface{}(m.GetUpstreamConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "UpstreamConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	switch m.ClusterDiscoveryType.(type) {
 
 	case *Cluster_Type:
@@ -529,6 +623,10 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ClusterValidationError{}
+
+var _Cluster_LbPolicy_NotInLookup = map[Cluster_LbPolicy]struct{}{
+	7: {},
+}
 
 // Validate checks the field values on LoadBalancingPolicy with the rules
 // defined in the proto definition for this message. If any rules are
@@ -963,7 +1061,24 @@ func (m *Cluster_EdsClusterConfig) Validate() error {
 		}
 	}
 
-	// no validation rules for ServiceName
+	switch m.NameSpecifier.(type) {
+
+	case *Cluster_EdsClusterConfig_ServiceName:
+		// no validation rules for ServiceName
+
+	case *Cluster_EdsClusterConfig_EdsResourceLocator:
+
+		if v, ok := interface{}(m.GetEdsResourceLocator()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return Cluster_EdsClusterConfigValidationError{
+					field:  "EdsResourceLocator",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
 
 	return nil
 }
@@ -1810,7 +1925,9 @@ type Cluster_CommonLbConfig_LocalityWeightedLbConfigValidationError struct {
 }
 
 // Field function returns field value.
-func (e Cluster_CommonLbConfig_LocalityWeightedLbConfigValidationError) Field() string { return e.field }
+func (e Cluster_CommonLbConfig_LocalityWeightedLbConfigValidationError) Field() string {
+	return e.field
+}
 
 // Reason function returns reason value.
 func (e Cluster_CommonLbConfig_LocalityWeightedLbConfigValidationError) Reason() string {
@@ -1894,7 +2011,9 @@ func (e Cluster_CommonLbConfig_ConsistentHashingLbConfigValidationError) Reason(
 }
 
 // Cause function returns cause value.
-func (e Cluster_CommonLbConfig_ConsistentHashingLbConfigValidationError) Cause() error { return e.cause }
+func (e Cluster_CommonLbConfig_ConsistentHashingLbConfigValidationError) Cause() error {
+	return e.cause
+}
 
 // Key function returns key value.
 func (e Cluster_CommonLbConfig_ConsistentHashingLbConfigValidationError) Key() bool { return e.key }

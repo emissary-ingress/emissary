@@ -11,7 +11,7 @@ IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= 4d8f23ac70d6994af28e17d74865f13bff013d01
+  ENVOY_COMMIT ?= 82b24e8c257f6741043ecb76a23ab9a00134ea71
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
@@ -87,7 +87,7 @@ $(srcdir)/envoy-build-image.txt: $(srcdir)/envoy $(WRITE_IFCHANGED) FORCE
 	    echo "$$(pwd)"; \
 	    . envoy_build_sha.sh; \
 	    popd; \
-	    echo docker.io/envoyproxy/envoy-build-ubuntu@sha256:$$ENVOY_BUILD_SHA | $(WRITE_IFCHANGED) $@; \
+	    echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA | $(WRITE_IFCHANGED) $@; \
 	}
 
 $(srcdir)/envoy-build-container.txt: $(srcdir)/envoy-build-image.txt FORCE
@@ -122,7 +122,11 @@ ENVOY_SYNC_DOCKER_TO_HOST = rsync -Pav --delete --blocking-io -e "docker exec -i
 ENVOY_BASH.cmd = bash -c 'PS4=; set -ex; $(ENVOY_SYNC_HOST_TO_DOCKER); trap '\''$(ENVOY_SYNC_DOCKER_TO_HOST)'\'' EXIT; '$(call quote.shell,$1)
 ENVOY_BASH.deps = $(srcdir)/envoy-build-container.txt
 
-ENVOY_DOCKER_EXEC = docker exec --workdir=/root/envoy --env=CC=/opt/llvm/bin/clang --env=CXX=/opt/llvm/bin/clang++ $$(cat $(srcdir)/envoy-build-container.txt)
+ENVOY_DOCKER.env += PATH=/opt/llvm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ENVOY_DOCKER.env += CC=clang
+ENVOY_DOCKER.env += CXX=clang++
+ENVOY_DOCKER.env += CLANG_FORMAT=/opt/llvm/bin/clang-format
+ENVOY_DOCKER_EXEC = docker exec --workdir=/root/envoy $(foreach e,$(ENVOY_DOCKER.env), --env=$e ) $$(cat $(srcdir)/envoy-build-container.txt)
 
 $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	mkdir -p $(@D)
@@ -166,36 +170,36 @@ check-envoy: $(ENVOY_BASH.deps)
 envoy-shell: ## Run a shell in the Envoy build container
 envoy-shell: $(ENVOY_BASH.deps)
 	$(call ENVOY_BASH.cmd, \
-	    docker exec -it $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash || true; \
+	    docker exec -it --workdir=/root/envoy $(foreach e,$(ENVOY_DOCKER.env), --env=$e ) $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash || true; \
 	)
 .PHONY: envoy-shell
 
 #
 # Envoy generate
 
-$(OSS_HOME)/api/envoy: $(srcdir)/envoy
-	rsync --recursive --delete --delete-excluded --prune-empty-dirs --include='*/' --include='*.proto' --exclude='*' $</api/envoy/ $@
+$(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb: $(OSS_HOME)/api/%: $(srcdir)/envoy
+	rsync --recursive --delete --delete-excluded --prune-empty-dirs --include='*/' --include='*.proto' --exclude='*' $</api/$*/ $@
 
 $(srcdir)/envoy/build_go: $(ENVOY_BASH.deps) FORCE
 	$(call ENVOY_BASH.cmd, \
 	    $(ENVOY_DOCKER_EXEC) python3 -c 'from tools.api.generate_go_protobuf import generateProtobufs; generateProtobufs("/root/envoy/build_go")'; \
 	)
 	test -d $@ && touch $@
-$(OSS_HOME)/pkg/api/envoy: $(srcdir)/envoy/build_go
+$(OSS_HOME)/pkg/api/pb $(OSS_HOME)/pkg/api/envoy: $(OSS_HOME)/pkg/api/%: $(srcdir)/envoy/build_go
 	rm -rf $@
 	@PS4=; set -ex; { \
 	  unset GIT_DIR GIT_WORK_TREE; \
 	  tmpdir=$$(mktemp -d); \
 	  trap 'rm -rf "$$tmpdir"' EXIT; \
-	  cp -r $</envoy "$$tmpdir"; \
+	  cp -r $</$* "$$tmpdir"; \
 	  find "$$tmpdir" -type f \
 	    -exec chmod 644 {} + \
 	    -exec sed -E -i.bak \
-	      -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/datawire/ambassador/pkg/envoy-control-plane,g' \
 	      -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/datawire/ambassador/pkg/api/envoy,g' \
+	      -e 's,github\.com/envoyproxy/go-control-plane/pb,github.com/datawire/ambassador/pkg/api/pb,g' \
 	      -- {} +; \
 	  find "$$tmpdir" -name '*.bak' -delete; \
-	  mv "$$tmpdir/envoy" $@; \
+	  mv "$$tmpdir/$*" $@; \
 	}
 
 update-base: $(srcdir)/envoy-build-image.txt $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-envoy/envoy-static-stripped

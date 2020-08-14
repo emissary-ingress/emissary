@@ -26,8 +26,12 @@ tier of our core features as part of the Ambassador Edge Stack, designed for sta
 
 ### UPCOMING CHANGES
 
+#### Ingress resources and Namespaces
+
 *In Ambassador 1.7*, TLS secrets in `Ingress` resources will not be able to use `.namespace`
 suffixes to cross namespaces.
+
+#### gRPC names
 
 *In a future version*, Ambassador will change the version of the gRPC service name used to
 communicate with `AuthService`s and `RateLimitService`s:
@@ -39,9 +43,9 @@ communicate with `AuthService`s and `RateLimitService`s:
 
 - In some future version of Ambassador, there will be settings to control which name is
   used; with the default being the current name; it will be opt-in to the new names.
-- In some future version of Ambassador after that, *no sooner than Ambassador 1.7.0*, the
-  default values of those settings will change; making them opt-out from the new names.
 - In some future version of Ambassador after that, *no sooner than Ambassador 1.8.0*, the
+  default values of those settings will change; making them opt-out from the new names.
+- In some future version of Ambassador after that, *no sooner than Ambassador 1.9.0*, the
   settings will go away, and Ambassador will always use the new names.
 
 Note that Ambassador Edge Stack `External` Filters already unconditionally use the newer
@@ -53,6 +57,8 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
+- Feature: Upgrade from Envoy 1.14.4 to 1.15.0.
+- Bugfix: Correctly handle a `Host` object with incompatible manually-specified `TLSContext`
 - Feature: The Ambassador control-plane now publishes Prometheus metrics alongside the existing Envoy data-plane metrics under the `/metrics` endpoint on port 8877.
 
 ## [1.6.2] July 30, 2020

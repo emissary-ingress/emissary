@@ -248,6 +248,13 @@ func (m *SelfConfigSource) Validate() error {
 		return nil
 	}
 
+	if _, ok := ApiVersion_name[int32(m.GetTransportApiVersion())]; !ok {
+		return SelfConfigSourceValidationError{
+			field:  "TransportApiVersion",
+			reason: "value must be one of the defined enum values",
+		}
+	}
+
 	return nil
 }
 
@@ -399,6 +406,21 @@ var _ interface {
 func (m *ConfigSource) Validate() error {
 	if m == nil {
 		return nil
+	}
+
+	for idx, item := range m.GetAuthorities() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ConfigSourceValidationError{
+					field:  fmt.Sprintf("Authorities[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	}
 
 	if v, ok := interface{}(m.GetInitialFetchTimeout()).(interface{ Validate() error }); ok {

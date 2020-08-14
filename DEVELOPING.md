@@ -355,27 +355,20 @@ a fan at it, and leave it running overnight and most of the next day.
 At Datawire, we'll often spin up a temporary build machine in GCE, so
 that we can build it very quickly.
 
-As of Envoy 1.14.4, we've measure the resource use to build and test
+As of Envoy 1.15.0, we've measure the resource use to build and test
 it as:
 
 > | Command            | Disk Size | Disk Used | Duration[1] |
 > |--------------------|-----------|-----------|-------------|
-> | `make update-base` | 400G      | 12GB      | ~11m        |
-> | `make check-envoy` | 400G      | 339GB     | ~45m        |
+> | `make update-base` | 450G      |  12GB     | ~11m        |
+> | `make check-envoy` | 450G      | 424GB     | ~45m        |
 >
 > [1] On a "Machine type: custom (32 vCPUs, 512 GB memory)" VM on GCE,
 > with the following entry in its `/etc/fstab`:
 >
 > ```
-> tmpfs:docker  /var/lib/docker tmpfs size=400G 0 0
+> tmpfs:docker  /var/lib/docker tmpfs size=450G 0 0
 > ```
-
-In the past, we've seen tests fail or refuse to run if there's "low"
-diskspace, even though there's still a lot left; for instance, with
-Envoy 1.13, even though the total disk used by a passing test run is
-only 211GB, about half of the tests would fail or refuse to run on a
-250GB drive.  Since then, we've been dogmatically using a 400GB drive,
-which is still enough as of Envoy 1.14.4.
 
 If you have the RAM, we've seen huge speed gains from doing the builds
 and tests on a RAM disk (see the `/etc/fstab` line above).
@@ -443,20 +436,6 @@ Modify the sources in `./cxx/envoy/`.
      container that does the Envoy builds.
 
   Interpreting the test results:
-
-   * Unfortunately, at this time, there are a few expected failures in
-     the Envoy test suite; we expect some of the Rate Limit Service
-     tests to fail because we patch Envoy to use the old Lyft ("v1")
-     gRPC name, but don't patch the tests, which expect the new Envoy
-     ("v2") gRPC name.  The failures should all look like:
-
-     ```text
-       Expected equality of these values:
-       "/envoy.service.ratelimit.v2.RateLimitService/ShouldRateLimit"
-         Which is: 0x408155
-       ratelimit_request_->headers().Path()->value().getStringView()
-         Which is: "/pb.lyft.ratelimit.RateLimitService/ShouldRateLimit"
-     ```
 
    * If you see the following message, don't worry, it's harmless; the
      tests still ran:
@@ -562,7 +541,8 @@ I'd put this in in the pull request template, but so few PRs change Envoy...
    `datawire-*` tags from stacking on eachother).
  - [ ] It's been tested with...
    * [ ] `make check-envoy`
-   * [ ] `make pytest KAT_RUN_MODE=envoy`
+   * [ ] `make pytest KAT_RUN_MODE=envoy` for OSS
+   * [ ] `make pytest KAT_RUN_MODE=envoy` for AES
 
 Developing Ambassador (Datawire-only advice)
 ============================================

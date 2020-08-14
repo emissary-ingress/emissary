@@ -50,6 +50,23 @@ func (m *Lua) Validate() error {
 		}
 	}
 
+	for key, val := range m.GetSourceCodes() {
+		_ = val
+
+		// no validation rules for SourceCodes[key]
+
+		if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return LuaValidationError{
+					field:  fmt.Sprintf("SourceCodes[%v]", key),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	return nil
 }
 
@@ -106,3 +123,96 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = LuaValidationError{}
+
+// Validate checks the field values on LuaPerRoute with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *LuaPerRoute) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	switch m.Override.(type) {
+
+	case *LuaPerRoute_Disabled:
+
+		if m.GetDisabled() != true {
+			return LuaPerRouteValidationError{
+				field:  "Disabled",
+				reason: "value must equal true",
+			}
+		}
+
+	case *LuaPerRoute_Name:
+
+		if utf8.RuneCountInString(m.GetName()) < 1 {
+			return LuaPerRouteValidationError{
+				field:  "Name",
+				reason: "value length must be at least 1 runes",
+			}
+		}
+
+	default:
+		return LuaPerRouteValidationError{
+			field:  "Override",
+			reason: "value is required",
+		}
+
+	}
+
+	return nil
+}
+
+// LuaPerRouteValidationError is the validation error returned by
+// LuaPerRoute.Validate if the designated constraints aren't met.
+type LuaPerRouteValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e LuaPerRouteValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e LuaPerRouteValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e LuaPerRouteValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e LuaPerRouteValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e LuaPerRouteValidationError) ErrorName() string { return "LuaPerRouteValidationError" }
+
+// Error satisfies the builtin error interface
+func (e LuaPerRouteValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sLuaPerRoute.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = LuaPerRouteValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = LuaPerRouteValidationError{}
