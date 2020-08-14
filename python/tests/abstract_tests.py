@@ -104,6 +104,8 @@ class AmbassadorTest(Test):
         self.manifest_envs += """
     - name: POLL_EVERY_SECS
       value: "0"
+    - name: AMBASSADOR_FAST_RECONFIGURE
+      value: "fast"
     - name: AMBASSADOR_FAST_VALIDATION
       value: "fast"
 """
