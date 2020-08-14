@@ -415,6 +415,8 @@ class IR:
         # conflict with the user's application running in the same Pod.
         agent_listen_port_str = os.environ.get("AGENT_LISTEN_PORT", None)
 
+        agent_grpc = os.environ.get("AGENT_ENABLE_GRPC", "false")
+
         if agent_listen_port_str is None:
             self.ambassador_module.service_port = Constants.SERVICE_PORT_AGENT
         else:
@@ -460,6 +462,10 @@ class IR:
                                 prefix="/",
                                 rewrite="/",
                                 service=f"127.0.0.1:{agent_port}",
+                                grpc=agent_grpc,
+                                # Making sure we don't have shorter timeouts on intercepts than the original Mapping
+                                timeout_ms=60000,
+                                idle_timeout_ms=60000,
                                 tls=ctx_name,
                                 precedence=-999999) # No, really. See comment above.
 
