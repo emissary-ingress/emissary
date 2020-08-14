@@ -33,13 +33,24 @@ message Identity {
 
   // The cluster ID, as determined by Ambassador
   string cluster_id = 5;
+
+  // Label or description for the user
+  string label = 6;
 }
 
 // Information that Ambassador's Agent can send to the Director
 // component of the CEPC
 message Snapshot {
   Identity identity = 1;
-  string stuff = 2;
+  string message = 2;
+  repeated Service services = 3;
+}
+
+message Service {
+  string name = 1;
+  string namespace = 2;
+  map<string, string> labels = 3;
+  map<string, string> annotations = 4;
 }
 
 // The Director's response to a Snapshot from the Agent
