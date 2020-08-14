@@ -531,8 +531,7 @@ spec:
     def queries(self):
         # 404 for a request that does not match any host. No forced-star behavior here.
         yield Query(self.url("target/"),
-                    insecure=True,
-                    expected=404)
+                    insecure=True)
 
         yield Query(self.url("target/", scheme="https"),
                     error=[ "EOF", "connection refused" ])
