@@ -38,18 +38,20 @@ go 1.13
 //  3. If you do add a `replace` command to this file, you must also
 //     add it to the go.mod in apro.git (see above for explanation).
 //
-//  4. We used to use complex hacks to manage the Kubernetes library
-//     versions (since the Kubernetes folks made it such a nightmare),
-//     but recent versions of Kubernetes 1.y.z now have useful
-//     "v0.y.z" git tags that Go understands, so it's actually quite
-//     reasonable now.  If you find yourself having to do any hacks
-//     with k8s.io library versions (like doing a `replace` for a
-//     dozen different k8s.io/ packages), stop, and ask someone for
-//     advice.
+//  4. We use https://github.com/datawire/libk8s to manage the
+//     Kubernetes library versions (since the Kubernetes folks make it
+//     such a nightmare).  See the docs there if you need to fuss with
+//     the versions of any of the k8s.io/ libraries.  If you find
+//     yourself having to do any hacks with k8s.io library versions
+//     (like doing a `replace` for a dozen different k8s.io/
+//     packages), stop, and ask someone for advice.
 //
-//  5. Use `make go-mod-tidy` instead of `go mod tidy`.  Unlike normal
-//     `go mod tidy`, it will make sure we're not missing anything
-//     that's needed for `make generate`.
+//  5. Use `make go-mod-tidy` instead of `go mod tidy`.  Normal `go
+//     mod tidy` will try to remove `github.com/cncf/udpa`--don't let
+//     it, that would break `make generate`; the github.com/cncf/udpa
+//     version needs to be kept in-sync with the
+//     github.com/cncf/udpa/go version (`make go-mod-tidy` will do
+//     this).
 
 require (
 	git.lukeshu.com/go/libsystemd v0.5.3
@@ -93,7 +95,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7
-	golang.org/x/sys v0.0.0-20200420163511-1957bb5e6d1f
+	golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1
 	google.golang.org/genproto v0.0.0-20200115191322-ca5a22157cba
 	google.golang.org/grpc v1.27.0
 	google.golang.org/protobuf v1.23.0

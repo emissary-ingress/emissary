@@ -59,6 +59,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 - Feature: Upgrade from Envoy 1.14.4 to 1.15.0.
 - Bugfix: Correctly handle a `Host` object with incompatible manually-specified `TLSContext`
+- Feature: The Ambassador control-plane now publishes Prometheus metrics alongside the existing Envoy data-plane metrics under the `/metrics` endpoint on port 8877.
 
 ## [1.6.2] July 30, 2020
 [1.6.2]: https://github.com/datawire/ambassador/compare/v1.6.1...v1.6.2

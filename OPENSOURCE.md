@@ -140,7 +140,7 @@ following Free and Open Source software:
     golang.org/x/net                                         v0.0.0-20200520004742-59133d7f0dd7         3-clause BSD license
     golang.org/x/oauth2                                      v0.0.0-20190604053449-0f29369cfe45         3-clause BSD license
     golang.org/x/sync                                        v0.0.0-20190911185100-cd5d95a43a6e         3-clause BSD license
-    golang.org/x/sys                                         v0.0.0-20200420163511-1957bb5e6d1f         3-clause BSD license
+    golang.org/x/sys                                         v0.0.0-20200615200032-f1bc736245b1         3-clause BSD license
     golang.org/x/text                                        v0.3.3                                     3-clause BSD license
     golang.org/x/time                                        v0.0.0-20191024005414-555d28b269f0         3-clause BSD license
     google.golang.org/genproto                               v0.0.0-20200115191322-ca5a22157cba         Apache License 2.0
@@ -222,6 +222,7 @@ libraries:
     pexpect             4.8.0      ISC license
     pip-tools           5.3.1      3-clause BSD license
     pluggy              0.13.1     MIT license
+    prometheus-client   0.8.0      Apache License 2.0
     protobuf            3.6.1      3-clause BSD license
     ptyprocess          0.6.0      ISC license
     py                  1.9.0      MIT license

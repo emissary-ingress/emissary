@@ -34,6 +34,7 @@ import requests
 import jsonpatch
 
 from expiringdict import ExpiringDict
+from prometheus_client import CollectorRegistry, ProcessCollector, generate_latest, Info, Gauge
 
 import concurrent.futures
 
@@ -123,13 +124,19 @@ class DiagApp (Flask):
     last_request_time: Optional[datetime.datetime]
     latest_snapshot: str
     banner_endpoint: Optional[str]
+    metrics_endpoint: Optional[str]
+
+    # Custom metrics registry to weed-out default metrics collectors because the
+    # default collectors can't be prefixed/namespaced with ambassador_.
+    # Using the default metrics collectors would lead to name clashes between the Python and Go instrumentations.
+    metrics_registry: CollectorRegistry
 
     config_lock: threading.Lock
 
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
               config_path: Optional[str], ambex_pid: int, kick: Optional[str], banner_endpoint: Optional[str],
-              k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False, verbose=False,
-              notices=None, validation_retries=5, allow_fs_commands=False, local_scout=False,
+              metrics_endpoint: Optional[str], k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False,
+              verbose=False, notices=None, validation_retries=5, allow_fs_commands=False, local_scout=False,
               report_action_keys=False):
         self.estats = EnvoyStats()
         self.health_checks = do_checks
@@ -145,6 +152,8 @@ class DiagApp (Flask):
         self.local_scout = local_scout
         self.report_action_keys = report_action_keys
         self.banner_endpoint = banner_endpoint
+        self.metrics_endpoint = metrics_endpoint
+        self.metrics_registry = CollectorRegistry(auto_describe=True)
 
         # This will raise an exception and crash if you pass it a string. That's intentional.
         self.ambex_pid = int(ambex_pid)
@@ -155,12 +164,18 @@ class DiagApp (Flask):
         self.logger.setLevel(logging.INFO)
 
         # Use Timers to keep some stats on reconfigurations
-        self.config_timer = Timer("reconfiguration")
-        self.fetcher_timer = Timer("Fetcher")
-        self.aconf_timer = Timer("AConf")
-        self.ir_timer = Timer("IR")
-        self.econf_timer = Timer("EConf")
-        self.diag_timer = Timer("Diagnostics")
+        self.config_timer = Timer("reconfiguration", self.metrics_registry)
+        self.fetcher_timer = Timer("Fetcher", self.metrics_registry)
+        self.aconf_timer = Timer("AConf", self.metrics_registry)
+        self.ir_timer = Timer("IR", self.metrics_registry)
+        self.econf_timer = Timer("EConf", self.metrics_registry)
+        self.diag_timer = Timer("Diagnostics", self.metrics_registry)
+
+        # Use gauges to keep some metrics on active config
+        self.diag_errors = Gauge(f'diagnostics_errors', f'Number of configuration errors',
+                                 namespace='ambassador', registry=self.metrics_registry)
+        self.diag_notices = Gauge(f'diagnostics_notices', f'Number of configuration notices',
+                                 namespace='ambassador', registry=self.metrics_registry)
 
         # When did we last reconfigure?
         self.last_reconfigure = -1.0
@@ -199,7 +214,7 @@ class DiagApp (Flask):
         # Why are we doing this? Aren't we sure we're singlethreaded here?
         # Well, yes. But self.diag is actually a property, and it will raise an
         # assertion failure if we're not holding self.config_lock... and once
-        # the lock is in play at all, we're gonna time it, in case my belief 
+        # the lock is in play at all, we're gonna time it, in case my belief
         # that grabbing the lock here is always effectively free turns out to
         # be wrong.
 
@@ -217,10 +232,20 @@ class DiagApp (Flask):
         # self.scout = Scout(update_frequency=datetime.timedelta(seconds=10))
         self.scout = Scout(local_only=self.local_scout)
 
+        ProcessCollector(namespace="ambassador", registry=self.metrics_registry)
+        metrics_info = Info(name='diagnostics', namespace='ambassador', documentation='Ambassador diagnostic info', registry=self.metrics_registry)
+        metrics_info.info({
+            "version": __version__,
+            "ambassador_id": Config.ambassador_id,
+            "cluster_id": os.environ.get('AMBASSADOR_CLUSTER_ID',
+                                         os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000")),
+            "single_namespace": str(Config.single_namespace),
+        })
+
     @property
     def diag(self) -> Optional[Diagnostics]:
         """
-        It turns out to be expensive to generate the Diagnostics class, so 
+        It turns out to be expensive to generate the Diagnostics class, so
         app.diag is a property that does it on demand, handling Timers and
         the config lock for you.
 
@@ -242,6 +267,11 @@ class DiagApp (Flask):
                 with self.diag_timer:
                     app._diag = Diagnostics(app.ir, app.econf)
 
+                    # Update some metrics data points given the new generated Diagnostics
+                    diag_dict = app._diag.as_dict()
+                    self.diag_errors.set(len(diag_dict.get("errors", [])))
+                    self.diag_notices.set(len(diag_dict.get("notices", [])))
+
                     # We've done something time-worthy, so log the timers
                     # in a little bit.
                     app.ok_to_log_timers()
@@ -253,7 +283,7 @@ class DiagApp (Flask):
     @diag.setter
     def diag(self, diag: Optional[Diagnostics]) -> None:
         """
-        It turns out to be expensive to generate the Diagnostics class, so 
+        It turns out to be expensive to generate the Diagnostics class, so
         app.diag is a property that does it on demand, handling Timers and
         the config lock for you.
 
@@ -665,7 +695,7 @@ def check_ready():
 @app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
 @standard_handler
 def show_overview(reqid=None):
-    # If we don't have an IR yet, do nothing. 
+    # If we don't have an IR yet, do nothing.
     #
     # We don't bother grabbing the config_lock here because we're not changing
     # anything, and an overview request hitting at exactly the same moment as
@@ -798,7 +828,7 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
 @standard_handler
 def show_intermediate(source=None, reqid=None):
-    # If we don't have an IR yet, do nothing. 
+    # If we don't have an IR yet, do nothing.
     #
     # We don't bother grabbing the config_lock here because we're not changing
     # anything, and an overview request hitting at exactly the same moment as
@@ -886,7 +916,24 @@ def source_lookup(name, sources):
 @app.route('/metrics', methods=['GET'])
 @standard_handler
 def get_prometheus_metrics(*args, **kwargs):
-    return app.estats.get_prometheus_state()
+    # Envoy metrics
+    envoy_metrics = app.estats.get_prometheus_stats()
+
+    # Ambassador OSS metrics
+    ambassador_metrics = generate_latest(registry=app.metrics_registry).decode('utf-8')
+
+    # Extra metrics endpoint
+    extra_metrics_content = ''
+    if app.metrics_endpoint and app.ir.edge_stack_allowed:
+        try:
+            response = requests.get(app.metrics_endpoint)
+            if response.status_code == 200:
+                extra_metrics_content = response.text
+        except Exception as e:
+            app.logger.error("could not get metrics_endpoint: %s" % e)
+
+    return Response(''.join([envoy_metrics, ambassador_metrics, extra_metrics_content]).encode('utf-8'),
+                    200, mimetype="text/plain")
 
 
 def bool_fmt(b: bool) -> str:
@@ -1677,7 +1724,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
           *, dev_magic=False, config_path=None, ambex_pid=0, kick=None,
-          banner_endpoint="http://127.0.0.1:8500/banner", k8s=False,
+          banner_endpoint="http://127.0.0.1:8500/banner", metrics_endpoint="http://127.0.0.1:8500/metrics", k8s=False,
           no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
           workers=None, port=Constants.DIAG_PORT, host='0.0.0.0', notices=None,
           validation_retries=5, allow_fs_commands=False, local_scout=False,
@@ -1693,6 +1740,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     :param ambex_pid: Optional PID to signal with HUP after updating Envoy configuration
     :param kick: Optional command to run after updating Envoy configuration
     :param banner_endpoint: Optional endpoint of extra banner to include
+    :param metrics_endpoint: Optional endpoint of extra prometheus metrics to include
     :param no_checks: If True, don't do Envoy-cluster health checking
     :param no_envoy: If True, don't interact with Envoy at all
     :param reload: If True, run Flask in debug mode for live reloading
@@ -1734,7 +1782,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
 
     # Create the application itself.
     app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick, banner_endpoint,
-              k8s, not no_checks, no_envoy, reload, debug, verbose, notices,
+              metrics_endpoint, k8s, not no_checks, no_envoy, reload, debug, verbose, notices,
               validation_retries, allow_fs_commands, local_scout, report_action_keys)
 
     if not workers:

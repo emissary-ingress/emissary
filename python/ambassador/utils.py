@@ -24,12 +24,14 @@ import threading
 import time
 import os
 import logging
+import re
 import requests
 import tempfile
 import yaml
 
 from .VERSION import Version
 from urllib.parse import urlparse
+from prometheus_client import Gauge
 
 if TYPE_CHECKING:
     from .ir import IRResource
@@ -222,8 +224,9 @@ class Timer:
     _maximum: float
     _running: bool
     _faketime: float
+    _gauge: Optional[Gauge]=None
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, prom_metrics_registry: Optional[Any]=None) -> None:
         """
         Create a Timer, given a name. The Timer is initially stopped.
         """
@@ -236,6 +239,10 @@ class Timer:
         self._maximum = -999999999999
         self._running = False
         self._faketime = 0.0
+        if prom_metrics_registry:
+            metric_prefix = re.sub('\s+', '_', name).lower()
+            self._gauge = Gauge(f'{metric_prefix}_time_seconds', f'Elapsed time on {name} operations',
+                                namespace='ambassador', registry=prom_metrics_registry)
 
     def __enter__(self):
         self.start()
@@ -292,6 +299,9 @@ class Timer:
             self._cycles += 1
 
             this_cycle = (when - self._starttime) + self._faketime
+            if self._gauge:
+                self._gauge.set(this_cycle)
+
             self._faketime = 0
 
             self._accumulated += this_cycle
