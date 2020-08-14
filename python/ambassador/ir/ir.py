@@ -415,7 +415,7 @@ class IR:
         # conflict with the user's application running in the same Pod.
         agent_listen_port_str = os.environ.get("AGENT_LISTEN_PORT", None)
 
-        agent_grpc = os.environ.get("AGENT_GRPC", "false")
+        agent_grpc = os.environ.get("AGENT_ENABLE_GRPC", "false")
 
         if agent_listen_port_str is None:
             self.ambassador_module.service_port = Constants.SERVICE_PORT_AGENT
