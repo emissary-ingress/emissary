@@ -1,4 +1,4 @@
-package watt
+package watchapi
 
 import (
 	"os"
@@ -19,7 +19,7 @@ func TestWatchSet_Interpolate(t *testing.T) {
 		},
 	}
 
-	interpolated := set.interpolate()
+	interpolated := set.Interpolate()
 	assert.Equal(t,
 		ConsulWatchSpec{ConsulAddress: "172.10.0.1", ServiceName: "foo-in-consul", Datacenter: "dc1"},
 		interpolated.ConsulWatches[0])

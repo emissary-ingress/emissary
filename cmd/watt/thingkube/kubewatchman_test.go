@@ -1,4 +1,4 @@
-package watt
+package thingkube
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/ecodia/golang-awaitility/awaitility"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/datawire/ambassador/cmd/watt/watchapi"
 	"github.com/datawire/ambassador/pkg/supervisor"
 )
 
@@ -15,7 +16,7 @@ func TestAddAndRemoveKubernetesWatchers(t *testing.T) {
 	iso := startKubewatchmanIsolator(t)
 	defer iso.Stop()
 
-	specs := []KubernetesWatchSpec{
+	specs := []watchapi.KubernetesWatchSpec{
 		{Kind: "Service", Namespace: "", FieldSelector: "metadata.name=foo", LabelSelector: ""},
 		{Kind: "Service", Namespace: "", FieldSelector: "metadata.name=bar", LabelSelector: ""},
 		{Kind: "Service", Namespace: "", FieldSelector: "metadata.name=baz", LabelSelector: ""},
@@ -36,7 +37,7 @@ func TestAddAndRemoveKubernetesWatchers(t *testing.T) {
 		assert.Equal(t, k, worker.Name)
 	}
 
-	specs = []KubernetesWatchSpec{
+	specs = []watchapi.KubernetesWatchSpec{
 		{Kind: "Service", Namespace: "", FieldSelector: "metadata.name=foo", LabelSelector: ""},
 		{Kind: "Service", Namespace: "", FieldSelector: "metadata.name=bar", LabelSelector: ""},
 	}
@@ -55,7 +56,7 @@ func TestAddAndRemoveKubernetesWatchers(t *testing.T) {
 		assert.Equal(t, k, worker.Name)
 	}
 
-	specs = []KubernetesWatchSpec{
+	specs = []watchapi.KubernetesWatchSpec{
 		{Kind: "Service", Namespace: "", FieldSelector: "metadata.name=foo", LabelSelector: ""},
 	}
 
@@ -75,8 +76,8 @@ func TestAddAndRemoveKubernetesWatchers(t *testing.T) {
 }
 
 type kubewatchmanIsolator struct {
-	aggregatorToWatchmanCh          chan []KubernetesWatchSpec
-	kubernetesResourcesToAggregator chan k8sEvent
+	aggregatorToWatchmanCh          chan []watchapi.KubernetesWatchSpec
+	kubernetesResourcesToAggregator chan K8sEvent
 	watchman                        *kubewatchman
 	sup                             *supervisor.Supervisor
 	done                            chan struct{}
@@ -108,11 +109,11 @@ func (iso *kubewatchmanIsolator) Stop() {
 
 func newKubewatchmanIsolator(t *testing.T) *kubewatchmanIsolator {
 	iso := &kubewatchmanIsolator{
-		aggregatorToWatchmanCh: make(chan []KubernetesWatchSpec),
+		aggregatorToWatchmanCh: make(chan []watchapi.KubernetesWatchSpec),
 
 		// we need to create buffered channels for outputs because
 		// nothing is asynchronously reading them in the test
-		kubernetesResourcesToAggregator: make(chan k8sEvent, 100),
+		kubernetesResourcesToAggregator: make(chan K8sEvent, 100),
 
 		// for signaling when the isolator is done
 		done: make(chan struct{}),

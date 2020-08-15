@@ -1,4 +1,4 @@
-package watt
+package aggregator
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/datawire/ambassador/cmd/watt/watchapi"
 	"github.com/datawire/ambassador/pkg/k8s"
-	"github.com/datawire/ambassador/pkg/supervisor"
 )
 
 var (
@@ -74,8 +74,8 @@ func expect(t *testing.T, ch interface{}, values ...interface{}) {
 				if !exp(val) {
 					panic(fmt.Sprintf("predicate %d failed value %v", idx, value))
 				}
-			case func([]ConsulWatchSpec) bool:
-				val, ok := value.Interface().([]ConsulWatchSpec)
+			case func([]watchapi.ConsulWatchSpec) bool:
+				val, ok := value.Interface().([]watchapi.ConsulWatchSpec)
 				if !ok {
 					panic(fmt.Sprintf("expected a []ConsulWatchSpec, got %v", value.Type()))
 				}
@@ -89,37 +89,4 @@ func expect(t *testing.T, ch interface{}, values ...interface{}) {
 			panic(fmt.Sprintf("expected %v, got CLOSE", expected))
 		}
 	}
-}
-
-func createDoNothingWorker(name string) *supervisor.Worker {
-	return &supervisor.Worker{
-		Name: name,
-		Work: func(p *supervisor.Process) error {
-			<-p.Shutdown()
-			time.Sleep(500 * time.Millisecond)
-			return nil
-		},
-		Retry: false,
-	}
-}
-
-type MockWatchMaker struct {
-	errorBeforeCreate bool
-}
-
-func (m *MockWatchMaker) MakeKubernetesWatch(spec KubernetesWatchSpec) (*supervisor.Worker, error) {
-	if m.errorBeforeCreate {
-		return nil, fmt.Errorf("failed to create watch (errorBeforeCreate: %t)", m.errorBeforeCreate)
-	}
-
-	return createDoNothingWorker(
-		fmt.Sprintf("%s|%s|%s|%s", spec.Namespace, spec.Kind, spec.FieldSelector, spec.LabelSelector)), nil
-}
-
-func (m *MockWatchMaker) MakeConsulWatch(spec ConsulWatchSpec) (*supervisor.Worker, error) {
-	if m.errorBeforeCreate {
-		return nil, fmt.Errorf("failed to create watch (errorBeforeCreate: %t)", m.errorBeforeCreate)
-	}
-
-	return createDoNothingWorker(fmt.Sprintf("%s|%s|%s", spec.ConsulAddress, spec.Datacenter, spec.ServiceName)), nil
 }

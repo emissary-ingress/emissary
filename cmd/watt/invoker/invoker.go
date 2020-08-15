@@ -1,4 +1,4 @@
-package watt
+package invoker
 
 import (
 	"fmt"
@@ -170,6 +170,18 @@ type apiServer struct {
 	listenNetwork string
 	listenAddress string
 	invoker       *invoker
+}
+
+type APIServer interface {
+	Work(*supervisor.Process) error
+}
+
+func NewAPIServer(net, addr string, invoker *invoker) APIServer {
+	return &apiServer{
+		listenNetwork: net,
+		listenAddress: addr,
+		invoker:       invoker,
+	}
 }
 
 func (s *apiServer) Work(p *supervisor.Process) error {

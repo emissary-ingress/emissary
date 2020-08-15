@@ -1,4 +1,4 @@
-package watt
+package aggregator
 
 import (
 	"encoding/json"
@@ -8,6 +8,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/datawire/ambassador/cmd/watt/thingconsul"
+	"github.com/datawire/ambassador/cmd/watt/thingkube"
+	"github.com/datawire/ambassador/cmd/watt/watchapi"
 	"github.com/datawire/ambassador/pkg/consulwatch"
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/kates"
@@ -16,17 +19,17 @@ import (
 	"github.com/datawire/ambassador/pkg/watt"
 )
 
-type WatchHook func(p *supervisor.Process, snapshot string) WatchSet
+type WatchHook func(p *supervisor.Process, snapshot string) watchapi.WatchSet
 
 type aggregator struct {
 	// Input channel used to tell us about kubernetes state.
-	KubernetesEvents chan k8sEvent
+	KubernetesEvents chan thingkube.K8sEvent
 	// Input channel used to tell us about consul endpoints.
-	ConsulEvents chan consulEvent
+	ConsulEvents chan thingconsul.ConsulEvent
 	// Output channel used to communicate with the k8s watch manager.
-	k8sWatches chan<- []KubernetesWatchSpec
+	k8sWatches chan<- []watchapi.KubernetesWatchSpec
 	// Output channel used to communicate with the consul watch manager.
-	consulWatches chan<- []ConsulWatchSpec
+	consulWatches chan<- []watchapi.ConsulWatchSpec
 	// Output channel used to communicate with the invoker.
 	snapshots chan<- string
 	// We won't consider ourselves "bootstrapped" until we hear
@@ -43,11 +46,11 @@ type aggregator struct {
 	validator           *kates.Validator
 }
 
-func NewAggregator(snapshots chan<- string, k8sWatches chan<- []KubernetesWatchSpec, consulWatches chan<- []ConsulWatchSpec,
+func NewAggregator(snapshots chan<- string, k8sWatches chan<- []watchapi.KubernetesWatchSpec, consulWatches chan<- []watchapi.ConsulWatchSpec,
 	requiredKinds []string, watchHook WatchHook, limiter limiter.Limiter, validator *kates.Validator) *aggregator {
 	return &aggregator{
-		KubernetesEvents:    make(chan k8sEvent),
-		ConsulEvents:        make(chan consulEvent),
+		KubernetesEvents:    make(chan thingkube.K8sEvent),
+		ConsulEvents:        make(chan thingconsul.ConsulEvent),
 		k8sWatches:          k8sWatches,
 		consulWatches:       consulWatches,
 		snapshots:           snapshots,
@@ -67,7 +70,7 @@ func (a *aggregator) Work(p *supervisor.Process) error {
 	// operation, we coalesce events:
 	//
 	// 1. Be continuously reading all available events from
-	//    a.KubernetesEvents and a.ConsulEvents and store k8sEvents
+	//    a.KubernetesEvents and a.ConsulEvents and store thingkube.K8sEvents
 	//    in the potentialKubernetesEventSignal variable. This means
 	//    at any given point (modulo caveats below), the
 	//    potentialKubernetesEventSignal variable will have the
@@ -108,7 +111,7 @@ func (a *aggregator) Work(p *supervisor.Process) error {
 	p.Ready()
 
 	type eventSignal struct {
-		kubernetesEvent k8sEvent
+		kubernetesEvent thingkube.K8sEvent
 		skip            bool
 	}
 
@@ -124,7 +127,7 @@ func (a *aggregator) Work(p *supervisor.Process) error {
 		}
 	}()
 
-	potentialKubernetesEventSignal := eventSignal{kubernetesEvent: k8sEvent{}, skip: true}
+	potentialKubernetesEventSignal := eventSignal{kubernetesEvent: thingkube.K8sEvent{}, skip: true}
 	for {
 		select {
 		case potentialKubernetesEvent := <-a.KubernetesEvents:
@@ -163,25 +166,25 @@ func (a *aggregator) Work(p *supervisor.Process) error {
 	}
 }
 
-func (a *aggregator) updateConsulResources(event consulEvent) {
+func (a *aggregator) updateConsulResources(event thingconsul.ConsulEvent) {
 	a.ids[event.WatchId] = true
 	a.consulEndpoints[event.Endpoints.Service] = event.Endpoints
 }
 
-func (a *aggregator) setKubernetesResources(event k8sEvent) {
-	if len(event.errors) > 0 {
-		for _, kError := range event.errors {
+func (a *aggregator) setKubernetesResources(event thingkube.K8sEvent) {
+	if len(event.Errors) > 0 {
+		for _, kError := range event.Errors {
 			a.errors[kError.Source] = append(a.errors[kError.Source], kError)
 		}
 		return
 	}
-	a.ids[event.watchId] = true
-	submap, ok := a.kubernetesResources[event.watchId]
+	a.ids[event.WatchID] = true
+	submap, ok := a.kubernetesResources[event.WatchID]
 	if !ok {
 		submap = make(map[string][]k8s.Resource)
-		a.kubernetesResources[event.watchId] = submap
+		a.kubernetesResources[event.WatchID] = submap
 	}
-	submap[event.kind] = event.resources
+	submap[event.Kind] = event.Resources
 }
 
 func (a *aggregator) generateSnapshot(p *supervisor.Process) (string, error) {
@@ -243,7 +246,7 @@ func (a *aggregator) isKubernetesBootstrapped(p *supervisor.Process) bool {
 // aggregate state of the world is complete when any consul services
 // referenced by kubernetes have populated endpoint information (even
 // if the value of the populated info is an empty set of endpoints).
-func (a *aggregator) isComplete(p *supervisor.Process, watchset WatchSet) bool {
+func (a *aggregator) isComplete(p *supervisor.Process, watchset watchapi.WatchSet) bool {
 	complete := true
 
 	for _, w := range watchset.KubernetesWatches {
@@ -310,19 +313,19 @@ func (a *aggregator) notify(p *supervisor.Process) {
 	}
 }
 
-func (a *aggregator) getWatches(p *supervisor.Process) WatchSet {
+func (a *aggregator) getWatches(p *supervisor.Process) watchapi.WatchSet {
 	snapshot, err := a.generateSnapshot(p)
 	if err != nil {
 		p.Logf("generate snapshot failed %v", err)
-		return WatchSet{}
+		return watchapi.WatchSet{}
 	}
 	result := a.watchHook(p, snapshot)
-	return result.interpolate()
+	return result.Interpolate()
 }
 
 func ExecWatchHook(watchHooks []string) WatchHook {
-	return func(p *supervisor.Process, snapshot string) WatchSet {
-		result := WatchSet{}
+	return func(p *supervisor.Process, snapshot string) watchapi.WatchSet {
+		result := watchapi.WatchSet{}
 
 		for _, hook := range watchHooks {
 			ws := invokeHook(p, hook, snapshot)
@@ -338,7 +341,7 @@ func lines(st string) []string {
 	return strings.Split(st, "\n")
 }
 
-func invokeHook(p *supervisor.Process, hook, snapshot string) WatchSet {
+func invokeHook(p *supervisor.Process, hook, snapshot string) watchapi.WatchSet {
 	cmd := exec.Command("sh", "-c", hook)
 	cmd.Stdin = strings.NewReader(snapshot)
 	var watches, errors strings.Builder
@@ -353,21 +356,21 @@ func invokeHook(p *supervisor.Process, hook, snapshot string) WatchSet {
 	}
 	if err != nil {
 		p.Logf("watch hook failed: %v", err)
-		return WatchSet{}
+		return watchapi.WatchSet{}
 	}
 
 	encoded := watches.String()
 
 	decoder := json.NewDecoder(strings.NewReader(encoded))
 	decoder.DisallowUnknownFields()
-	result := WatchSet{}
+	result := watchapi.WatchSet{}
 	err = decoder.Decode(&result)
 	if err != nil {
 		for _, line := range lines(encoded) {
 			p.Debugf("watch hook: %s", line)
 		}
 		p.Logf("watchset decode failed: %v", err)
-		return WatchSet{}
+		return watchapi.WatchSet{}
 	}
 
 	return result

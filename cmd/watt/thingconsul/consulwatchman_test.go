@@ -1,4 +1,4 @@
-package watt
+package thingconsul
 
 import (
 	"context"
@@ -8,12 +8,13 @@ import (
 	"github.com/ecodia/golang-awaitility/awaitility"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/datawire/ambassador/cmd/watt/watchapi"
 	"github.com/datawire/ambassador/pkg/consulwatch"
 	"github.com/datawire/ambassador/pkg/supervisor"
 )
 
 type consulwatchmanIsolator struct {
-	aggregatorToWatchmanCh        chan []ConsulWatchSpec
+	aggregatorToWatchmanCh        chan []watchapi.ConsulWatchSpec
 	consulEndpointsToAggregatorCh chan consulwatch.Endpoints
 	watchman                      *consulwatchman
 	sup                           *supervisor.Supervisor
@@ -26,7 +27,7 @@ func TestAddAndRemoveConsulWatchers(t *testing.T) {
 	iso := startConsulwatchmanIsolator(t)
 	defer iso.Stop()
 
-	specs := []ConsulWatchSpec{
+	specs := []watchapi.ConsulWatchSpec{
 		{ConsulAddress: "127.0.0.1", ServiceName: "foo-in-consul", Datacenter: "dc1"},
 		{ConsulAddress: "127.0.0.1", ServiceName: "bar-in-consul", Datacenter: "dc1"},
 		{ConsulAddress: "127.0.0.1", ServiceName: "baz-in-consul", Datacenter: "dc1"},
@@ -47,7 +48,7 @@ func TestAddAndRemoveConsulWatchers(t *testing.T) {
 		assert.Equal(t, k, worker.Name)
 	}
 
-	specs = []ConsulWatchSpec{
+	specs = []watchapi.ConsulWatchSpec{
 		{ConsulAddress: "127.0.0.1", ServiceName: "bar-in-consul", Datacenter: "dc1"},
 		{ConsulAddress: "127.0.0.1", ServiceName: "baz-in-consul", Datacenter: "dc1"},
 	}
@@ -66,7 +67,7 @@ func TestAddAndRemoveConsulWatchers(t *testing.T) {
 		assert.Equal(t, k, worker.Name)
 	}
 
-	specs = []ConsulWatchSpec{
+	specs = []watchapi.ConsulWatchSpec{
 		{ConsulAddress: "127.0.0.1", ServiceName: "bar-in-consul", Datacenter: "dc1"},
 		{ConsulAddress: "127.0.0.1", ServiceName: "baz-in-consul", Datacenter: "dc1"},
 	}
@@ -113,7 +114,7 @@ func newConsulwatchmanIsolator(t *testing.T) *consulwatchmanIsolator {
 		// by using zero length channels for inputs here, we can
 		// control the total ordering of all inputs and therefore
 		// intentionally trigger any order of events we want to test
-		aggregatorToWatchmanCh: make(chan []ConsulWatchSpec),
+		aggregatorToWatchmanCh: make(chan []watchapi.ConsulWatchSpec),
 
 		// we need to create buffered channels for outputs because
 		// nothing is asynchronously reading them in the test

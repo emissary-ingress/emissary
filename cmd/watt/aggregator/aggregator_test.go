@@ -1,4 +1,4 @@
-package watt
+package aggregator
 
 import (
 	"context"
@@ -7,21 +7,23 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/consulwatch"
-	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/stretchr/testify/require"
 
-	"github.com/datawire/ambassador/pkg/watt"
-
+	"github.com/datawire/ambassador/cmd/watt/thingconsul"
+	"github.com/datawire/ambassador/cmd/watt/thingkube"
+	"github.com/datawire/ambassador/cmd/watt/watchapi"
+	"github.com/datawire/ambassador/pkg/consulwatch"
 	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/limiter"
 	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/pkg/watt"
 )
 
 type aggIsolator struct {
 	snapshots     chan string
-	k8sWatches    chan []KubernetesWatchSpec
-	consulWatches chan []ConsulWatchSpec
+	k8sWatches    chan []watchapi.KubernetesWatchSpec
+	consulWatches chan []watchapi.ConsulWatchSpec
 	aggregator    *aggregator
 	sup           *supervisor.Supervisor
 	done          chan struct{}
@@ -37,8 +39,8 @@ func newAggIsolator(t *testing.T, requiredKinds []string, watchHook WatchHook) *
 		// we need to create buffered channels for outputs
 		// because nothing is asynchronously reading them in
 		// the test
-		k8sWatches:    make(chan []KubernetesWatchSpec, 100),
-		consulWatches: make(chan []ConsulWatchSpec, 100),
+		k8sWatches:    make(chan []watchapi.KubernetesWatchSpec, 100),
+		consulWatches: make(chan []watchapi.ConsulWatchSpec, 100),
 		snapshots:     make(chan string, 100),
 		// for signaling when the isolator is done
 		done: make(chan struct{}),
@@ -127,7 +129,7 @@ func TestAggregatorShutdown(t *testing.T) {
 	defer iso.Stop()
 }
 
-var WATCH = ConsulWatchSpec{
+var WATCH = watchapi.ConsulWatchSpec{
 	ConsulAddress: "127.0.0.1:8500",
 	Datacenter:    "dc1",
 	ServiceName:   "bar",
@@ -141,20 +143,20 @@ var WATCH = ConsulWatchSpec{
 //   b) received (possibly empty) endpoint info about all referenced
 //      consul services...
 func TestAggregatorBootstrap(t *testing.T) {
-	watchHook := func(p *supervisor.Process, snapshot string) WatchSet {
+	watchHook := func(p *supervisor.Process, snapshot string) watchapi.WatchSet {
 		if strings.Contains(snapshot, "configmap") {
-			return WatchSet{
-				ConsulWatches: []ConsulWatchSpec{WATCH},
+			return watchapi.WatchSet{
+				ConsulWatches: []watchapi.ConsulWatchSpec{WATCH},
 			}
 		} else {
-			return WatchSet{}
+			return watchapi.WatchSet{}
 		}
 	}
 	iso := startAggIsolator(t, []string{"service", "configmap"}, watchHook)
 	defer iso.Stop()
 
 	// initial kubernetes state is just services
-	iso.aggregator.KubernetesEvents <- k8sEvent{"", "service", SERVICES, nil}
+	iso.aggregator.KubernetesEvents <- thingkube.K8sEvent{"", "service", SERVICES, nil}
 
 	// we should not generate a snapshot or consulWatches yet
 	// because we specified configmaps are required
@@ -163,9 +165,9 @@ func TestAggregatorBootstrap(t *testing.T) {
 
 	// the configmap references a consul service, so we shouldn't
 	// get a snapshot yet, but we should get watches
-	iso.aggregator.KubernetesEvents <- k8sEvent{"", "configmap", RESOLVER, nil}
+	iso.aggregator.KubernetesEvents <- thingkube.K8sEvent{"", "configmap", RESOLVER, nil}
 	expect(t, iso.snapshots, Timeout(100*time.Millisecond))
-	expect(t, iso.consulWatches, func(watches []ConsulWatchSpec) bool {
+	expect(t, iso.consulWatches, func(watches []watchapi.ConsulWatchSpec) bool {
 		if len(watches) != 1 {
 			t.Logf("expected 1 watch, got %d watches", len(watches))
 			return false
@@ -180,7 +182,7 @@ func TestAggregatorBootstrap(t *testing.T) {
 
 	// now lets send in the first endpoints, and we should get a
 	// snapshot
-	iso.aggregator.ConsulEvents <- consulEvent{
+	iso.aggregator.ConsulEvents <- thingconsul.ConsulEvent{
 		WATCH.WatchId(),
 		consulwatch.Endpoints{
 			Service: "bar",
