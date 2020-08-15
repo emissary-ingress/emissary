@@ -79,6 +79,8 @@ type kubewatchman struct {
 
 type KubeWatchMan interface {
 	Work(*supervisor.Process) error
+	NumWatched() int
+	WithWatched(func(map[string]*supervisor.Worker))
 }
 
 func NewKubeWatchMan(
@@ -221,4 +223,12 @@ func (b *kubebootstrap) Work(p *supervisor.Process) error {
 	}
 
 	return nil
+}
+
+func (w *kubewatchman) NumWatched() int {
+	return len(w.watched)
+}
+
+func (w *kubewatchman) WithWatched(fn func(map[string]*supervisor.Worker)) {
+	fn(w.watched)
 }

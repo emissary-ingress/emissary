@@ -1,4 +1,4 @@
-package thingkube
+package thingkube_test
 
 import (
 	"fmt"

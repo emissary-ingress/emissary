@@ -21,7 +21,7 @@ import (
 
 type WatchHook func(p *supervisor.Process, snapshot string) watchapi.WatchSet
 
-type aggregator struct {
+type Aggregator struct {
 	// Input channel used to tell us about kubernetes state.
 	KubernetesEvents chan thingkube.K8sEvent
 	// Input channel used to tell us about consul endpoints.
@@ -47,8 +47,8 @@ type aggregator struct {
 }
 
 func NewAggregator(snapshots chan<- string, k8sWatches chan<- []watchapi.KubernetesWatchSpec, consulWatches chan<- []watchapi.ConsulWatchSpec,
-	requiredKinds []string, watchHook WatchHook, limiter limiter.Limiter, validator *kates.Validator) *aggregator {
-	return &aggregator{
+	requiredKinds []string, watchHook WatchHook, limiter limiter.Limiter, validator *kates.Validator) *Aggregator {
+	return &Aggregator{
 		KubernetesEvents:    make(chan thingkube.K8sEvent),
 		ConsulEvents:        make(chan thingconsul.ConsulEvent),
 		k8sWatches:          k8sWatches,
@@ -65,7 +65,7 @@ func NewAggregator(snapshots chan<- string, k8sWatches chan<- []watchapi.Kuberne
 	}
 }
 
-func (a *aggregator) Work(p *supervisor.Process) error {
+func (a *Aggregator) Work(p *supervisor.Process) error {
 	// In order to invoke `maybeNotify`, which is a very time consuming
 	// operation, we coalesce events:
 	//
@@ -166,12 +166,12 @@ func (a *aggregator) Work(p *supervisor.Process) error {
 	}
 }
 
-func (a *aggregator) updateConsulResources(event thingconsul.ConsulEvent) {
+func (a *Aggregator) updateConsulResources(event thingconsul.ConsulEvent) {
 	a.ids[event.WatchId] = true
 	a.consulEndpoints[event.Endpoints.Service] = event.Endpoints
 }
 
-func (a *aggregator) setKubernetesResources(event thingkube.K8sEvent) {
+func (a *Aggregator) setKubernetesResources(event thingkube.K8sEvent) {
 	if len(event.Errors) > 0 {
 		for _, kError := range event.Errors {
 			a.errors[kError.Source] = append(a.errors[kError.Source], kError)
@@ -187,7 +187,7 @@ func (a *aggregator) setKubernetesResources(event thingkube.K8sEvent) {
 	submap[event.Kind] = event.Resources
 }
 
-func (a *aggregator) generateSnapshot(p *supervisor.Process) (string, error) {
+func (a *Aggregator) generateSnapshot(p *supervisor.Process) (string, error) {
 	k8sResources := make(map[string][]k8s.Resource)
 	for _, submap := range a.kubernetesResources {
 		for k, v := range submap {
@@ -211,7 +211,7 @@ func (a *aggregator) generateSnapshot(p *supervisor.Process) (string, error) {
 
 var fastValidation = len(os.Getenv("AMBASSADOR_FAST_VALIDATION")) > 0
 
-func (a *aggregator) validate(p *supervisor.Process, resources []k8s.Resource) {
+func (a *Aggregator) validate(p *supervisor.Process, resources []k8s.Resource) {
 	if !fastValidation {
 		return
 	}
@@ -226,7 +226,7 @@ func (a *aggregator) validate(p *supervisor.Process, resources []k8s.Resource) {
 	}
 }
 
-func (a *aggregator) isKubernetesBootstrapped(p *supervisor.Process) bool {
+func (a *Aggregator) isKubernetesBootstrapped(p *supervisor.Process) bool {
 	submap, sok := a.kubernetesResources[""]
 	if !sok {
 		return false
@@ -246,7 +246,7 @@ func (a *aggregator) isKubernetesBootstrapped(p *supervisor.Process) bool {
 // aggregate state of the world is complete when any consul services
 // referenced by kubernetes have populated endpoint information (even
 // if the value of the populated info is an empty set of endpoints).
-func (a *aggregator) isComplete(p *supervisor.Process, watchset watchapi.WatchSet) bool {
+func (a *Aggregator) isComplete(p *supervisor.Process, watchset watchapi.WatchSet) bool {
 	complete := true
 
 	for _, w := range watchset.KubernetesWatches {
@@ -270,7 +270,7 @@ func (a *aggregator) isComplete(p *supervisor.Process, watchset watchapi.WatchSe
 	return complete
 }
 
-func (a *aggregator) maybeNotify(p *supervisor.Process) {
+func (a *Aggregator) maybeNotify(p *supervisor.Process) {
 	now := time.Now()
 	delay := a.limiter.Limit(now)
 	if delay == 0 {
@@ -282,7 +282,7 @@ func (a *aggregator) maybeNotify(p *supervisor.Process) {
 	}
 }
 
-func (a *aggregator) notify(p *supervisor.Process) {
+func (a *Aggregator) notify(p *supervisor.Process) {
 	a.notifyMux.Lock()
 	defer a.notifyMux.Unlock()
 
@@ -313,7 +313,7 @@ func (a *aggregator) notify(p *supervisor.Process) {
 	}
 }
 
-func (a *aggregator) getWatches(p *supervisor.Process) watchapi.WatchSet {
+func (a *Aggregator) getWatches(p *supervisor.Process) watchapi.WatchSet {
 	snapshot, err := a.generateSnapshot(p)
 	if err != nil {
 		p.Logf("generate snapshot failed %v", err)

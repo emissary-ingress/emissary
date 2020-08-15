@@ -1,4 +1,4 @@
-package thingconsul
+package thingconsul_test
 
 import (
 	"context"
@@ -11,12 +11,14 @@ import (
 	"github.com/datawire/ambassador/cmd/watt/watchapi"
 	"github.com/datawire/ambassador/pkg/consulwatch"
 	"github.com/datawire/ambassador/pkg/supervisor"
+
+	. "github.com/datawire/ambassador/cmd/watt/thingconsul"
 )
 
 type consulwatchmanIsolator struct {
 	aggregatorToWatchmanCh        chan []watchapi.ConsulWatchSpec
 	consulEndpointsToAggregatorCh chan consulwatch.Endpoints
-	watchman                      *consulwatchman
+	watchman                      ConsulWatchMan
 	sup                           *supervisor.Supervisor
 	done                          chan struct{}
 	t                             *testing.T
@@ -36,17 +38,19 @@ func TestAddAndRemoveConsulWatchers(t *testing.T) {
 	iso.aggregatorToWatchmanCh <- specs
 
 	err := awaitility.Await(100*time.Millisecond, 1000*time.Millisecond, func() bool {
-		return len(iso.watchman.watched) == len(specs)
+		return iso.watchman.NumWatched() == len(specs)
 	})
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	assert.Len(t, iso.watchman.watched, len(specs))
-	for k, worker := range iso.watchman.watched {
-		assert.Equal(t, k, worker.Name)
-	}
+	iso.watchman.WithWatched(func(watched map[string]*supervisor.Worker) {
+		assert.Len(t, watched, len(specs))
+		for k, worker := range watched {
+			assert.Equal(t, k, worker.Name)
+		}
+	})
 
 	specs = []watchapi.ConsulWatchSpec{
 		{ConsulAddress: "127.0.0.1", ServiceName: "bar-in-consul", Datacenter: "dc1"},
@@ -55,17 +59,19 @@ func TestAddAndRemoveConsulWatchers(t *testing.T) {
 
 	iso.aggregatorToWatchmanCh <- specs
 	err = awaitility.Await(100*time.Millisecond, 1000*time.Millisecond, func() bool {
-		return len(iso.watchman.watched) == len(specs)
+		return iso.watchman.NumWatched() == len(specs)
 	})
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	assert.Len(t, iso.watchman.watched, len(specs))
-	for k, worker := range iso.watchman.watched {
-		assert.Equal(t, k, worker.Name)
-	}
+	iso.watchman.WithWatched(func(watched map[string]*supervisor.Worker) {
+		assert.Len(t, watched, len(specs))
+		for k, worker := range watched {
+			assert.Equal(t, k, worker.Name)
+		}
+	})
 
 	specs = []watchapi.ConsulWatchSpec{
 		{ConsulAddress: "127.0.0.1", ServiceName: "bar-in-consul", Datacenter: "dc1"},
@@ -74,17 +80,19 @@ func TestAddAndRemoveConsulWatchers(t *testing.T) {
 
 	iso.aggregatorToWatchmanCh <- specs
 	err = awaitility.Await(100*time.Millisecond, 1000*time.Millisecond, func() bool {
-		return len(iso.watchman.watched) == len(specs)
+		return iso.watchman.NumWatched() == len(specs)
 	})
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	assert.Len(t, iso.watchman.watched, len(specs))
-	for k, worker := range iso.watchman.watched {
-		assert.Equal(t, k, worker.Name)
-	}
+	iso.watchman.WithWatched(func(watched map[string]*supervisor.Worker) {
+		assert.Len(t, watched, len(specs))
+		for k, worker := range watched {
+			assert.Equal(t, k, worker.Name)
+		}
+	})
 }
 
 func startConsulwatchmanIsolator(t *testing.T) *consulwatchmanIsolator {
@@ -124,11 +132,7 @@ func newConsulwatchmanIsolator(t *testing.T) *consulwatchmanIsolator {
 		done: make(chan struct{}),
 	}
 
-	iso.watchman = &consulwatchman{
-		WatchMaker: &ConsulWatchMaker{},
-		watchesCh:  iso.aggregatorToWatchmanCh,
-		watched:    map[string]*supervisor.Worker{},
-	}
+	iso.watchman = NewConsulWatchMan(nil, iso.aggregatorToWatchmanCh)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	iso.cancel = cancel

@@ -1,4 +1,4 @@
-package aggregator
+package aggregator_test
 
 import (
 	"context"
@@ -18,13 +18,15 @@ import (
 	"github.com/datawire/ambassador/pkg/limiter"
 	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/datawire/ambassador/pkg/watt"
+
+	. "github.com/datawire/ambassador/cmd/watt/aggregator"
 )
 
 type aggIsolator struct {
 	snapshots     chan string
 	k8sWatches    chan []watchapi.KubernetesWatchSpec
 	consulWatches chan []watchapi.ConsulWatchSpec
-	aggregator    *aggregator
+	aggregator    *Aggregator
 	sup           *supervisor.Supervisor
 	done          chan struct{}
 	t             *testing.T

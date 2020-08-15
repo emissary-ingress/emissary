@@ -1,4 +1,4 @@
-package aggregator
+package aggregator_test
 
 import (
 	"fmt"

@@ -1,10 +1,12 @@
-package watchapi
+package watchapi_test
 
 import (
 	"os"
 	"testing"
 
 	"github.com/bmizerany/assert"
+
+	. "github.com/datawire/ambassador/cmd/watt/watchapi"
 )
 
 func TestWatchSet_Interpolate(t *testing.T) {

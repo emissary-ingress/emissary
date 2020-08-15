@@ -1,4 +1,4 @@
-package thingkube
+package thingkube_test
 
 import (
 	"context"
@@ -10,6 +10,8 @@ import (
 
 	"github.com/datawire/ambassador/cmd/watt/watchapi"
 	"github.com/datawire/ambassador/pkg/supervisor"
+
+	. "github.com/datawire/ambassador/cmd/watt/thingkube"
 )
 
 func TestAddAndRemoveKubernetesWatchers(t *testing.T) {
@@ -25,17 +27,19 @@ func TestAddAndRemoveKubernetesWatchers(t *testing.T) {
 	iso.aggregatorToWatchmanCh <- specs
 
 	err := awaitility.Await(100*time.Millisecond, 1000*time.Millisecond, func() bool {
-		return len(iso.watchman.watched) == len(specs)
+		return iso.watchman.NumWatched() == len(specs)
 	})
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	assert.Len(t, iso.watchman.watched, len(specs))
-	for k, worker := range iso.watchman.watched {
-		assert.Equal(t, k, worker.Name)
-	}
+	iso.watchman.WithWatched(func(watched map[string]*supervisor.Worker) {
+		assert.Len(t, watched, len(specs))
+		for k, worker := range watched {
+			assert.Equal(t, k, worker.Name)
+		}
+	})
 
 	specs = []watchapi.KubernetesWatchSpec{
 		{Kind: "Service", Namespace: "", FieldSelector: "metadata.name=foo", LabelSelector: ""},
@@ -44,17 +48,19 @@ func TestAddAndRemoveKubernetesWatchers(t *testing.T) {
 
 	iso.aggregatorToWatchmanCh <- specs
 	err = awaitility.Await(100*time.Millisecond, 1000*time.Millisecond, func() bool {
-		return len(iso.watchman.watched) == len(specs)
+		return iso.watchman.NumWatched() == len(specs)
 	})
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	assert.Len(t, iso.watchman.watched, len(specs))
-	for k, worker := range iso.watchman.watched {
-		assert.Equal(t, k, worker.Name)
-	}
+	iso.watchman.WithWatched(func(watched map[string]*supervisor.Worker) {
+		assert.Len(t, watched, len(specs))
+		for k, worker := range watched {
+			assert.Equal(t, k, worker.Name)
+		}
+	})
 
 	specs = []watchapi.KubernetesWatchSpec{
 		{Kind: "Service", Namespace: "", FieldSelector: "metadata.name=foo", LabelSelector: ""},
@@ -62,23 +68,25 @@ func TestAddAndRemoveKubernetesWatchers(t *testing.T) {
 
 	iso.aggregatorToWatchmanCh <- specs
 	err = awaitility.Await(100*time.Millisecond, 1000*time.Millisecond, func() bool {
-		return len(iso.watchman.watched) == len(specs)
+		return iso.watchman.NumWatched() == len(specs)
 	})
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	assert.Len(t, iso.watchman.watched, len(specs))
-	for k, worker := range iso.watchman.watched {
-		assert.Equal(t, k, worker.Name)
-	}
+	iso.watchman.WithWatched(func(watched map[string]*supervisor.Worker) {
+		assert.Len(t, watched, len(specs))
+		for k, worker := range watched {
+			assert.Equal(t, k, worker.Name)
+		}
+	})
 }
 
 type kubewatchmanIsolator struct {
 	aggregatorToWatchmanCh          chan []watchapi.KubernetesWatchSpec
 	kubernetesResourcesToAggregator chan K8sEvent
-	watchman                        *kubewatchman
+	watchman                        KubeWatchMan
 	sup                             *supervisor.Supervisor
 	done                            chan struct{}
 	t                               *testing.T
@@ -119,10 +127,7 @@ func newKubewatchmanIsolator(t *testing.T) *kubewatchmanIsolator {
 		done: make(chan struct{}),
 	}
 
-	iso.watchman = &kubewatchman{
-		WatchMaker: &MockWatchMaker{},
-		in:         iso.aggregatorToWatchmanCh,
-	}
+	iso.watchman = NewKubeWatchMan(nil, nil, iso.aggregatorToWatchmanCh)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	iso.cancel = cancel

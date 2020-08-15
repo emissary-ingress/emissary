@@ -24,6 +24,8 @@ type consulwatchman struct {
 
 type ConsulWatchMan interface {
 	Work(*supervisor.Process) error
+	NumWatched() int
+	WithWatched(func(map[string]*supervisor.Worker))
 }
 
 func NewConsulWatchMan(eventsCh chan<- ConsulEvent, watchesCh <-chan []watchapi.ConsulWatchSpec) ConsulWatchMan {
@@ -126,4 +128,12 @@ func (w *consulwatchman) Work(p *supervisor.Process) error {
 			return nil
 		}
 	}
+}
+
+func (w *consulwatchman) NumWatched() int {
+	return len(w.watched)
+}
+
+func (w *consulwatchman) WithWatched(fn func(map[string]*supervisor.Worker)) {
+	fn(w.watched)
 }
