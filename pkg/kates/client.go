@@ -30,7 +30,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
 
-// The Client struct provides an interface to interact with the kuberentes api-server. You can think
+// The Client struct provides an interface to interact with the kubernetes api-server. You can think
 // of it like a programatic version of the familiar kubectl command line tool. In fact a goal of
 // these APIs is that where possible, your knowledge of kubectl should translate well into using
 // these APIs. It provides a golang-friendly way to perform basic CRUD and Watch operations on
