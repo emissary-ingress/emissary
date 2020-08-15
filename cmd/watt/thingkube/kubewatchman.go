@@ -2,6 +2,7 @@ package thingkube
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/datawire/ambassador/cmd/watt/watchapi"
 	"github.com/datawire/ambassador/pkg/k8s"
@@ -73,8 +74,10 @@ func (m *KubernetesWatchMaker) MakeKubernetesWatch(spec watchapi.KubernetesWatch
 
 type kubewatchman struct {
 	WatchMaker watchapi.IKubernetesWatchMaker
-	watched    map[string]*supervisor.Worker
 	in         <-chan []watchapi.KubernetesWatchSpec
+
+	mu      sync.RWMutex
+	watched map[string]*supervisor.Worker
 }
 
 type KubeWatchMan interface {
@@ -100,11 +103,14 @@ func NewKubeWatchMan(
 func (w *kubewatchman) Work(p *supervisor.Process) error {
 	p.Ready()
 
+	w.mu.Lock()
 	w.watched = make(map[string]*supervisor.Worker)
+	w.mu.Unlock()
 
 	for {
 		select {
 		case watches := <-w.in:
+			w.mu.Lock()
 			found := make(map[string]*supervisor.Worker)
 			p.Debugf("processing %d kubernetes watch specs", len(watches))
 			for _, spec := range watches {
@@ -133,6 +139,7 @@ func (w *kubewatchman) Work(p *supervisor.Process) error {
 			}
 
 			w.watched = found
+			w.mu.Unlock()
 		case <-p.Shutdown():
 			p.Debugf("shutdown initiated")
 			return nil
@@ -226,9 +233,13 @@ func (b *kubebootstrap) Work(p *supervisor.Process) error {
 }
 
 func (w *kubewatchman) NumWatched() int {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
 	return len(w.watched)
 }
 
 func (w *kubewatchman) WithWatched(fn func(map[string]*supervisor.Worker)) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
 	fn(w.watched)
 }

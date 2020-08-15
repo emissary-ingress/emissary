@@ -2,6 +2,7 @@ package thingconsul
 
 import (
 	"fmt"
+	"sync"
 
 	consulapi "github.com/hashicorp/consul/api"
 
@@ -19,6 +20,8 @@ type ConsulEvent struct {
 type consulwatchman struct {
 	WatchMaker watchapi.IConsulWatchMaker
 	watchesCh  <-chan []watchapi.ConsulWatchSpec
+
+	mu sync.RWMutex
 	watched    map[string]*supervisor.Worker
 }
 
@@ -93,6 +96,7 @@ func (w *consulwatchman) Work(p *supervisor.Process) error {
 	for {
 		select {
 		case watches := <-w.watchesCh:
+			w.mu.Lock()
 			found := make(map[string]*supervisor.Worker)
 			p.Debugf("processing %d consul watches", len(watches))
 			for _, cw := range watches {
@@ -123,6 +127,7 @@ func (w *consulwatchman) Work(p *supervisor.Process) error {
 			}
 
 			w.watched = found
+			w.mu.Unlock()
 		case <-p.Shutdown():
 			p.Debugf("shutdown initiated")
 			return nil
@@ -131,9 +136,13 @@ func (w *consulwatchman) Work(p *supervisor.Process) error {
 }
 
 func (w *consulwatchman) NumWatched() int {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
 	return len(w.watched)
 }
 
 func (w *consulwatchman) WithWatched(fn func(map[string]*supervisor.Worker)) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
 	fn(w.watched)
 }
