@@ -452,35 +452,6 @@
                                                             "priority": null,
                                                             "timeout": "3.000s"
                                                         }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "tls-context-host-1",
-                                                                    "name": ":authority"
-                                                                },
-                                                                {
-                                                                    "exact_match": "https",
-                                                                    "name": "x-forwarded-proto"
-                                                                }
-                                                            ],
-                                                            "prefix": "/target/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target1_default"
-                                                            }
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_hostcrddouble_http_target1_default",
-                                                            "prefix_rewrite": "/",
-                                                            "priority": null,
-                                                            "timeout": "3.000s"
-                                                        }
                                                     }
                                                 ]
                                             }
@@ -612,50 +583,6 @@
                                                         "redirect": {
                                                             "https_redirect": true
                                                         }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "tls-context-host-2",
-                                                                    "name": ":authority"
-                                                                }
-                                                            ],
-                                                            "prefix": "/target/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target2_default"
-                                                            }
-                                                        },
-                                                        "redirect": {
-                                                            "https_redirect": true
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "tls-context-host-1",
-                                                                    "name": ":authority"
-                                                                }
-                                                            ],
-                                                            "prefix": "/target/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target1_default"
-                                                            }
-                                                        },
-                                                        "redirect": {
-                                                            "https_redirect": true
-                                                        }
                                                     }
                                                 ]
                                             },
@@ -707,50 +634,6 @@
                                                                     "numerator": 100
                                                                 },
                                                                 "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
-                                                            }
-                                                        },
-                                                        "redirect": {
-                                                            "https_redirect": true
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "tls-context-host-2",
-                                                                    "name": ":authority"
-                                                                }
-                                                            ],
-                                                            "prefix": "/target/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target2_default"
-                                                            }
-                                                        },
-                                                        "redirect": {
-                                                            "https_redirect": true
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "tls-context-host-1",
-                                                                    "name": ":authority"
-                                                                }
-                                                            ],
-                                                            "prefix": "/target/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_hostcrddouble_http_target1_default"
                                                             }
                                                         },
                                                         "redirect": {
