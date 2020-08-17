@@ -113,14 +113,7 @@
               link: /docs/pre-release/topics/using/filters/external
             - title: Plugin Filter
               link: /docs/pre-release/topics/using/filters/plugin
-        - title: Service Preview and Edge Control
-          items:
-            - title: Introduction to Service Preview and Edge Control
-              link: /docs/pre-release/topics/using/edgectl/
-            - title: Edge Control
-              link: /docs/pre-release/topics/using/edgectl/edge-control
-            - title: Using Edge Control in CI
-              link: /docs/pre-release/topics/using/edgectl/edge-control-in-ci
+
         - title: Developer Portal
           link: /docs/pre-release/topics/using/dev-portal
         - title: Edge Policy Console
@@ -261,6 +254,20 @@
           link: /docs/pre-release/howtos/cert-manager
         - title: Client Certificate Validation
           link: /docs/pre-release/howtos/client-cert-validation
+- title: Service Preview
+  link: /docs/pre-release/topics/using/edgectl/
+  items:
+  - title: Quick Start
+    link: /docs/pre-release/topics/using/edgectl/service-preview-install
+  - title: Tutorial
+    link: /docs/pre-release/topics/using/edgectl/service-preview-tutorial
+  - title: Service Preview Reference
+    link: /docs/pre-release/topics/using/edgectl/service-preview-reference
+  - title: Edge Control Reference
+    link: /docs/pre-release/topics/using/edgectl/edge-control
+  - title: Using Edge Control in CI
+    link: /docs/pre-release/topics/using/edgectl/edge-control-in-ci
+
 - title: Frequently Asked Questions
   link: /docs/pre-release/about/faq
 - title: Community

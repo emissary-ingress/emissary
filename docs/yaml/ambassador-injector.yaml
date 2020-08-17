@@ -1,0 +1,90 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ambassador-injector-tls
+type: kubernetes.io/tls
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM2VENDQWRFQ0NRRG80SHorWTZIN3lEQU5CZ2txaGtpRzl3MEJBUVVGQURCQU1UNHdQQVlEVlFRREREVkIKYldKaGMzTmhaRzl5SUVWa1oyVWdVM1JoWTJzZ1FXUnRhWE56YVc5dUlFTnZiblJ5YjJ4c1pYSWdWMlZpYUc5dgpheUJEUVRBZUZ3MHlNREEzTXpBeE56VTVNVFphRncweU1UQTNNekF4TnpVNU1UWmFNQzB4S3pBcEJnTlZCQU1NCkltRnRZbUZ6YzJGa2IzSXRhVzVxWldOMGIzSXVZVzFpWVhOellXUnZjaTV6ZG1Nd2dnRWlNQTBHQ1NxR1NJYjMKRFFFQkFRVUFBNElCRHdBd2dnRUtBb0lCQVFEc0dMQ2xuZDZOcC9nTlphaVViUjVrbm5GRE1XY2VKc2phV1BCMQpjbE1hcGhxRjhiU2xud0F4VUpKbm1Sd25QZ3I3OERIeDFMTjliMDIremg5cUxCanVqN1FnWndQUG5XUDhQODZxCkxvTzBnMWUzM1pMNzgrdmtRWGl1bUd3ZzZOd29VZlFqc2hFVEE1YllNcW1mNWRsOHA0MWdVbE1TMVFvVDBiVkMKVlpQWW92WDJMa0FmU0EveUpIUmthdXpxV0tjSGdqdm9aVy80N3dZMkJzUW96RFFUbUZWTnN3dGpJamgrcWxHSApnRnp2eTVIV0Z4N3hBbmhaMlNFV2Q5Q0E5Q2N1YTdoM3VGOHQ5QXAyVGhmb2JGTTE4SWpvWXd4emN3ZHd0dVd4Cld5L1h6SWwzVmxFakJSSG5JcGhacERQNXF0UWJ5MGZyS0JubWFremY4RkNScUtBdEFnTUJBQUV3RFFZSktvWkkKaHZjTkFRRUZCUUFEZ2dFQkFBbTErZEtqd2ZHQUZUVjRyUnNNSXd5MURMM25wNDlFazJyc0ZkWktEM2lMeVpKRApjTTRqYy91cEZmdXNpSTVuUzROT0kxQVBuc0VlSmpwd0dWVDhZUVBXV01FdXdMME84dzVhYlRndEZPcHM2NmlLCnE4OStlaTdkWUFiOGwyT3JFcC9xc2hsK3JaVkJwMzM1MTRwazNsclEybjBPZlhIamd0S3c5MVVjL1JsRm9XUnQKZlR3MFBtckRuaDVUWng2cnlKbjBXY2srVm8zdnlUQXovTjFNZ3pLZ3ppM2tzT1pDQjFFMnpRZFVuZGlUZzlXOQoySXFEYkVhUXJzMHFybUxNM2dFcnRHS0lsdFlTeER2bmo4d2l3RDFMdG9JNkpuS3RKQnpublEwYS9wYndNN0dqClVrYkl5T25zY0ZXNC9YcTN4bkZNdEhtd1krOEF1VFNuTFlDNFhXQT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+  tls.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcEFJQkFBS0NBUUVBN0Jpd3BaM2VqYWY0RFdXb2xHMGVaSjV4UXpGbkhpYkkybGp3ZFhKVEdxWWFoZkcwCnBaOEFNVkNTWjVrY0p6NEsrL0F4OGRTemZXOU52czRmYWl3WTdvKzBJR2NEejUxai9EL09xaTZEdElOWHQ5MlMKKy9QcjVFRjRycGhzSU9qY0tGSDBJN0lSRXdPVzJES3BuK1haZktlTllGSlRFdFVLRTlHMVFsV1QyS0wxOWk1QQpIMGdQOGlSMFpHcnM2bGluQjRJNzZHVnYrTzhHTmdiRUtNdzBFNWhWVGJNTFl5STRmcXBSaDRCYzc4dVIxaGNlCjhRSjRXZGtoRm5mUWdQUW5MbXU0ZDdoZkxmUUtkazRYNkd4VE5mQ0k2R01NYzNNSGNMYmxzVnN2MTh5SmQxWlIKSXdVUjV5S1lXYVF6K2FyVUc4dEg2eWdaNW1wTTMvQlFrYWlnTFFJREFRQUJBb0lCQUc5NXVPNTUrL3NtdEJpZgpSMW5OcSt3V1k2UTJUMW9OTmdqaXRhYSt0RDZBNzBVUE94eDRWcjd5TEM1K1BLekt2cVQyWko2cXI1VXFXS3NlCjUvWlptK3dJTGlTZWYwNG9JbTJZTXh4bm1naEJlOGwwOVZIQmVqL3NLZTlHU01mQkt6SmVmOGZhNi9UdVhPcjQKQU45ZXg3SHo2dXp2OGdtU1RZL09GS2VkZ0pGb2VENUFDUlBIREhaVmEzLzhRdVJZa3VrWHFHeHZTRGl5Mmp4ZgoyelJFYy9kd3c3UnNuWWhYSS8xMFRpL29yQksvcWpmZzhUNW5YNTFTNTY0MDlmanlWUUZjUE1yZWI5ZjdsQ0hGClJnd2gyOVVFOU9HR0pURlY2dEJPQVFvVlU4WjljR2FadFdqekhJNlR0ZForN2U5VkVUNDJhQzk4aEg2WTA2Q3IKNE9oL09JRUNnWUVBL0FybzVKbWRoeUZpeEM1SzU5TEJSREFRMDh5T2VuTFJlcktnRXhWU1Z1UWxVanNMZlFEdApBNjY0Q3RTcGt4dUs2QUdRTncxV3hOaWJwaW5HOVhaeHcwb2R5OTVoMTZLTFV4MjdJTmdPdWZnRDhJVTd6Y0tECmtmTnlGNlNCWmNkRkkzM2NmSEZGa3MveDdDOXFXSTVwZ0FRc0ExUi9EMG1yTkJSMzU5Zk1mZzhDZ1lFQTc4MnYKTVFBYkM1M3BZak90b1VnVFd1SzlQYmVTd0Q3eExXZnEzV0tpa0xYbGF4SkJPQ3ZFRDlmenhLMmVzcEg0cmlMTAo3VENCWEJwZWgrTXdLTUlxNld1MDdBSytGY21IRDRadGtwVzZNTDhiNXJJViswRCtEU0c2dTlsT2prVE41TC94CnloVTM1K21GV2dNalVWK1UrdnM3YU04Q255dDJKTU1BdkRiUWVnTUNnWUVBcGhUR1RFU1JVZ2NFM3dNbUpzWncKeGU3cVY3WldPSWZLVTVDNi9IZ3pUc0I5ZTBjZkZkcnpVMWJoUFhuTzEvbnhPVm8yWHFCeWlibTJMdk1lZ0lieApCZCtqN0wvNE56Q0xvRlJhQjVWM2RzSGdUckJzclBRODRJTExycHFmRGFNV2d3R2Z0WHlxZk1oN3dNZXB5dnJrCnVBK0h0UllMdDlZeWMxbjlmUTl0VjY4Q2dZQjB1eTBTcnpoN0dTMW9ianVSRE9MUEZSeUZsSHpOTkZaMmdlVmsKU3dWVGFCZjdYUEYraEY5MlR1c016Rzg2QWJDS0k4b2M5Y1dpcmZ0aUxvZGM3OWV2dEl4bmJwWlZTTHFFSmkzawpjeG9sYklJS2RKb2FxbktBdGZDT1RLUGV3VU53bkxiNFpnZkd6bmZwYnltY0RPa2FtMzA1OGJzVy9ETVFoaFF2CmlvZEZQUUtCZ1FDcEUwOGhlQnBCNXlvZGZEOVdNUjVaZ3J2Tmp1cFpGbzJBUkh2eWdCRjJZQU85NDZmOUtoSU8KZHNBdE9qbCszYndPL1ZKa0V1NUl0Q29kZnVEeFdQaGZJRzB5UkhINitDclVHYnl5ZFFnaHhqRVBMYmlZUmVZNgo0b0pSNHlrUldYWjhxUTFUUDl4S2pCVDIxcS9kQXluekhNLzdqNi80a2t3ZWxqQVJKQ1hWdUE9PQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: ambassador-injector-webhook-config
+webhooks:
+  - name: ambassador-injector.getambassador.io
+    clientConfig:
+      service:
+        name: ambassador-injector
+        namespace: ambassador
+        path: "/traffic-agent"
+      caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMvRENDQWVRQ0NRQzFJTUdvZURNcXhqQU5CZ2txaGtpRzl3MEJBUXNGQURCQU1UNHdQQVlEVlFRREREVkIKYldKaGMzTmhaRzl5SUVWa1oyVWdVM1JoWTJzZ1FXUnRhWE56YVc5dUlFTnZiblJ5YjJ4c1pYSWdWMlZpYUc5dgpheUJEUVRBZUZ3MHlNREEzTXpBeE56VTVNRE5hRncweU1UQTNNekF4TnpVNU1ETmFNRUF4UGpBOEJnTlZCQU1NCk5VRnRZbUZ6YzJGa2IzSWdSV1JuWlNCVGRHRmpheUJCWkcxcGMzTnBiMjRnUTI5dWRISnZiR3hsY2lCWFpXSm8KYjI5cklFTkJNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQTFLT090dVlqYlJIdwpvRjlBVHkyeVl3Z0tSZHpjNXN3UHJEN2xEanExelpzSU9kcGc5ZTFwMlJvWWZmT0hvWXFYM2VLeU5reTQ0azRYClN5dkpSKzZhYXhmd2k3UUhpUGVPcVB4ZzIrR3JkcndJclFuU3huRGo5S3NQV1c0c05DNzlFSTBQOTQ2dlg3NGQKeUpoU0Q2MGppRmNOaVpWZ2UzUE43aUxTZjhTSlNWYldkcHVWeFRydEo5dkIrMEZvaVdPWG1TS1VYMTlsRGY1NgpoTzlBT1lQd3lGZkRQbVZUeThqdlI4MXhxYVBFRDdzZDlVY1MvVUJGd21DbkNQQlNXWkFvOTJEUE5ydHk4QVBzCmVtNWhMdkJvY3l5cEhscy9Od0lXdDJhQTZMMk1aMU5wYWZvamdGblNMYysyM3Z1dXZCV01SZEhSZU8yemZXMTYKd2huSk01QzBJUUlEQVFBQk1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQnVBVFlnTXY1eU4vdkJqWldvVitXKwoyVk1vUjRDL3RvcEg2ZlUrY0ZQYklKNGNQVHhNaFE0ZHZkMWo1MDBxbXBaQUpMeFJ2eUY4L0xnZTYrc2twcjYwCmE3MXhMMzltY1p1R3RLSEUvKzhWL3JwZEhtRG5vVXREVjZWVW5PWXpTVDZHeFVydGRUcTN1L1AzS21kM2dETkEKdTVyeFlxVFpIVmF3TThpRXRQa3BnZ3pHVENRSGJqVnhqWDEzdllkaWd6anFHRE5WQkJIb01wUys4dTdYSS8rSApjRE1xRlU5UG5ZeDlKK01wMEV3bkFLd2QwdDhFQkIxWW91VFNrTUFid2wwdjJkSFVGN2F2bklXSFFSZmh1ZGcvClpiMTFpYnZudm1pYnJ2QjZybCt2dGdVU2MyS3BSR29aQnpTdmgvZUF0a3NFOXY0Wm56d2R1YTIxYzdETEI0RFYKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    failurePolicy: Ignore
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ambassador-injector
+  namespace: ambassador
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ambassador-injector
+      app.kubernetes.io/instance: ambassador
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ambassador-injector
+        app.kubernetes.io/instance: ambassador
+    spec:
+      containers:
+        - name: webhook
+          image: docker.io/datawire/aes:$version$
+          command: [ "aes-injector" ]
+          env:
+            - name: TRAFFIC_AGENT_IMAGE                # Mandatory. The Traffic Agent is included in the AES image.
+              value: docker.io/datawire/aes:$version$
+            - name: TRAFFIC_AGENT_SERVICE_ACCOUNT_NAME # Optional. The Injector can configure the sidecar to use a specific ServiceAccount and service-account-token. if unspecified, the original Pod ServiceAccount is used.
+              value: traffic-agent
+            - name: TRAFFIC_AGENT_AGENT_LISTEN_PORT    # Optional. The port on which the Traffic Agent will listen. Defaults to "9900".
+              value: "9900"
+            - name: AGENT_MANAGER_NAMESPACE            # Optional. Namespace for contacting the Traffic Manager. Defaults to "ambassador".
+              value: ambassador
+          ports:
+            - containerPort: 8443
+              name: https
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: https
+              scheme: HTTPS
+          volumeMounts:
+            - mountPath: /var/run/secrets/tls
+              name: tls
+              readOnly: true
+      volumes:
+        - name: tls
+          secret:
+            secretName: ambassador-injector-tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-injector
+  namespace: ambassador
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: ambassador-injector
+    app.kubernetes.io/instance: ambassador
+  ports:
+    - name: ambassador-injector
+      port: 443
+      targetPort: https
