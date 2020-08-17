@@ -25,7 +25,7 @@ TELEPROXY_LOG ?= $(dir $(_teleproxy.mk))teleproxy.log
 KUBE_URL = https://kubernetes/api/
 
 TELEPROXY ?= $(build-aux.bindir)/teleproxy
-#$(eval $(call build-aux.bin-go.rule,teleproxy,github.com/datawire/teleproxy/cmd/teleproxy))
+$(eval $(call build-aux.bin-go.rule,teleproxy,github.com/datawire/teleproxy/cmd/teleproxy))
 ifeq ($(GOHOSTOS),darwin)
 $(build-aux.bindir)/.teleproxy.stamp: CGO_ENABLED = 1
 endif
@@ -35,7 +35,7 @@ $(build-aux.bindir)/teleproxy: $(build-aux.bindir)/%: $(build-aux.bindir)/.%.sta
 		if ! cmp -s $< $@; then \
 			if [ -n "$${CI}" -a -e $@ ]; then \
 				echo 'error: This should not happen in CI: $@ should not change' >&2; \
-#				exit 1; \
+				exit 1; \
 			fi; \
 			sudo cp -f $< $@; \
 			sudo chown 0:0 $@; \
@@ -44,10 +44,7 @@ $(build-aux.bindir)/teleproxy: $(build-aux.bindir)/%: $(build-aux.bindir)/.%.sta
 	}
 
 proxy: ## (Kubernaut) Launch teleproxy in the background
-proxy: $(KUBECONFIG)
-	sudo chown 0:0 $(TELEPROXY); \
-	sudo chmod go-w,a+sx $(TELEPROXY);
-
+proxy: $(KUBECONFIG) $(TELEPROXY)
 	@if ! curl -sk $(KUBE_URL); then \
 		echo "Starting proxy"; \
 		set -x; \

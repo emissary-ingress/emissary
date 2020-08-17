@@ -32,7 +32,7 @@ else
 	# un-pinned by then, and we don't leak orphaned images.
 	if [[ -n "$CI" && -e "$outfile" ]]; then
 		echo "error: This should not happen in CI: ${outfile} should not change" >&2
-#		exit 1
+		exit 1
 	fi
 	set -e
 	IFS=''
