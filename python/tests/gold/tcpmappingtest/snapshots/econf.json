@@ -400,7 +400,9 @@
                                         "virtual_hosts": [
                                             {
                                                 "domains": [
-                                                    "tls-context-host-2"
+                                                    "tls-context-host-1",
+                                                    "tls-context-host-2",
+                                                    "tls-context-host-3"
                                                 ],
                                                 "name": "ambassador-listener-8443-tls-context-host-2",
                                                 "routes": [
@@ -544,6 +546,8 @@
                                         "virtual_hosts": [
                                             {
                                                 "domains": [
+                                                    "tls-context-host-1",
+                                                    "tls-context-host-2",
                                                     "tls-context-host-3"
                                                 ],
                                                 "name": "ambassador-listener-8443-tls-context-host-3",
