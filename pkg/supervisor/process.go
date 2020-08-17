@@ -61,14 +61,14 @@ func (p *Process) Logf(format string, args ...interface{}) {
 // dlog right now. So for now, these are no-ops.
 func (p *Process) Debug(obj interface{}) {
 	// Yes, this is a no-op, see above.
-	if (false) {
+	if false {
 		p.supervisor.Logger.Printf("%s: %v", p.Worker().Name, obj)
 	}
 }
 
 func (p *Process) Debugf(format string, args ...interface{}) {
 	// Yes, this is a no-op, see above.
-	if (false) {
+	if false {
 		p.supervisor.Logger.Printf("%s: %v", p.Worker().Name, fmt.Sprintf(format, args...))
 	}
 }
