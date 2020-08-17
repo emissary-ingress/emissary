@@ -55,8 +55,8 @@ type Aggregator struct {
 	errorsMu sync.RWMutex
 	errors   map[string][]watt.Error
 
-	notifyMux sync.Mutex
-	bootstrapped        bool
+	notifyMux    sync.Mutex
+	bootstrapped bool
 }
 
 func NewAggregator(snapshots chan<- string, k8sWatches chan<- []watchapi.KubernetesWatchSpec, consulWatches chan<- []watchapi.ConsulWatchSpec,
@@ -199,17 +199,17 @@ func (a *Aggregator) setKubernetesResources(event thingkube.K8sEvent) {
 		for _, kError := range event.Errors {
 			a.errors[kError.Source] = append(a.errors[kError.Source], kError)
 		}
-		return
+	} else {
+		a.resourcesMu.Lock()
+		defer a.resourcesMu.Unlock()
+		a.ids[event.WatchID] = true
+		submap, ok := a.kubernetesResources[event.WatchID]
+		if !ok {
+			submap = make(map[string][]k8s.Resource)
+			a.kubernetesResources[event.WatchID] = submap
+		}
+		submap[event.Kind] = event.Resources
 	}
-	a.resourcesMu.Lock()
-	defer a.resourcesMu.Unlock()
-	a.ids[event.WatchID] = true
-	submap, ok := a.kubernetesResources[event.WatchID]
-	if !ok {
-		submap = make(map[string][]k8s.Resource)
-		a.kubernetesResources[event.WatchID] = submap
-	}
-	submap[event.Kind] = event.Resources
 }
 
 func (a *Aggregator) generateSnapshot(p *supervisor.Process) (string, error) {
