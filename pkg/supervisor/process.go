@@ -122,7 +122,7 @@ func (p *Process) Do(fn func() error) (err error) {
 // function on abort.
 func (p *Process) DoClean(fn, clean func() error) error {
 	sup := p.Supervisor()
-	done := make(chan struct{})
+	done := make(chan error)
 	go func() {
 		var err error
 		defer func() {
