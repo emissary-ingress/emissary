@@ -82,8 +82,6 @@ driver: zipkin
 
     def queries(self):
         # Speak through each Ambassador to the traced service...
-        # yield Query(self.C.url("target/"))
-        # yield Query(self.no_tracing.url("target/"))
 
         for i in range(100):
               yield Query(self.url("target/"), phase=1)
