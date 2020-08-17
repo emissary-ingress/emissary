@@ -13,7 +13,7 @@ There are three method for installing Service Preview.
 
 ### [<img class="Ambassador's OpenSource Blackbird" src="../../../images/features-page-bird.svg"/> Install with Edgectl](#install-with-edgectl)
 
-If you are installing Service Preview and Ambassador Edge Stack for the first time, `edgectl` will bootstrap your cluster with the Ambassador Edge Stack and Service Preview automatically.
+If you are installing Service Preview and Ambassador Edge Stack for the first time, `edgectl` will automatically bootstrap and integrate both tools in your cluster.
 
 ### [<img class="k8s-logo" src="../../../images/kubernetes.png"/> Install with YAML](install with yaml)
 
@@ -41,15 +41,7 @@ Run the following command to let `edgectl` bootstrap your cluster with Ambassado
 $ edgectl install
 ```
 
-### 2. Register and Install a License Key
-
-Register for a license key in the Edge Policy Console to use Service Preview and install it with `edgectl`.
-
-```sh
-$ edgectl license <license_key>
-```
-
-### 3. Connect to your Cluster
+### 2. Connect to your Cluster
 
 Now that you installed the Traffic Manager, you can connect to your cluster using `edgectl`.
 
@@ -88,7 +80,7 @@ Connected
   Intercepts:    0 total, 0 local
 ```
 
-### 4. Inject the Traffic Agent Sidecar
+### 3. Inject the Traffic Agent Sidecar
 
 The Traffic Agent sidecar is required in order to intercept requests to a service and route them to your local machine.
 
@@ -208,19 +200,12 @@ Downloading and installing our published Kubernetes YAML gives you full control 
 
 ### 1. Install the Ambassador Edge Stack
 
-Service Preview runs alongside the Ambassador Edge Stack and requires an up-to-date, licensed copy of Ambassador Edge Stack to run.
+Service Preview runs alongside the Ambassador Edge Stack.
 
 [Install Ambassador Edge Stack](https://www.getambassador.io/docs/latest/topics/install/yaml-install/) if you do not already have it running.
 
-### 2. Register and Install a License Key
 
-Register for a license key in the Edge Policy Console to use Service Preview and install it with `edgectl`.
-
-```sh
-$ edgectl license <license_key>
-```
-
-### 3. Install the Traffic Manager and Ambassador Injector
+### 2. Install the Traffic Manager and Ambassador Injector
 
 The Traffic Manager is what is responsible for managing communications between your Kubernetes cluster and your local machine.
 
@@ -243,7 +228,7 @@ See the [Traffic Manager reference](../service-preview-reference#traffic-manager
 
 The traffic manager is now installed in the Ambassador namespace in your cluster and is ready to connect your cluster to your local machine.
 
-### 4. Connect to your Cluster
+### 3. Connect to your Cluster
 
 Now that you installed the Traffic Manager, you can connect to your cluster using `edgectl`.
 
@@ -430,15 +415,8 @@ Upgrade or install your release of the Ambassador Edge Stack with the Traffic Ma
 $ helm upgrade --install ambassador -n ambassador datawire/ambassador -f values.yaml
 ```
 
-### 2. Register and Install a License Key
 
-Register for a license key in the Edge Policy Console to use Service Preview and install it with `edgectl`.
-
-```sh
-$ edgectl license <license_key>
-```
-
-### 4. Connect to your Cluster
+### 2. Connect to your Cluster
 
 Now that you installed the Traffic Manager, you can connect to your cluster using `edgectl`.
 
