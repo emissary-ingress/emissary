@@ -1460,6 +1460,12 @@ spec:
                   type: string
                 collector_endpoint:
                   type: string
+                collector_endpoint_version:
+                  enum:
+                  - HTTP_JSON_V1
+                  - HTTP_JSON
+                  - HTTP_PROTO
+                  type: string
                 service_name:
                   type: string
                 shared_span_context:

@@ -33,9 +33,11 @@ type TraceConfig struct {
 	AccessTokenFile   string `json:"access_token_file,omitempty"`
 	CollectorCluster  string `json:"collector_cluster,omitempty"`
 	CollectorEndpoint string `json:"collector_endpoint,omitempty"`
-	TraceID128Bit     bool   `json:"trace_id_128bit,omitempty"`
-	SharedSpanContext bool   `json:"shared_span_context,omitempty"`
-	ServiceName       string `json:"service_name,omitempty"`
+	// +kubebuilder:validation:Enum=HTTP_JSON_V1;HTTP_JSON;HTTP_PROTO
+	CollectorEndpointVersion string `json:"collector_endpoint_version,omitempty"`
+	TraceID128Bit            bool   `json:"trace_id_128bit,omitempty"`
+	SharedSpanContext        bool   `json:"shared_span_context,omitempty"`
+	ServiceName              string `json:"service_name,omitempty"`
 }
 
 // TracingServiceSpec defines the desired state of TracingService

@@ -28,6 +28,7 @@
                 "access_token_file": { "type": "string" },
                 "collector_cluster": { "type": "string" },
                 "collector_endpoint": { "type": "string" },
+                "collector_endpoint_version": { "type": "string"},
                 "trace_id_128bit": { "type": "boolean" },
                 "shared_span_context": { "type": "boolean" },
                 "service_name": { "type": "string" }
