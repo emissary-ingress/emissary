@@ -115,7 +115,7 @@ A few other options to `intercept` include:
 
 * `--namespace` to specify the Kubernetes namespace in which to create a mapping for intercept
 * `--prefix` or `-p` which specifies a prefix to intercept (the default is `/`)
-* `--grpc` to instruct Envoy to use HTTP/2 to communicate with the target deployment
+* `--grpc` to instruct Envoy to use HTTP/2 to communicate with the target deployment (the default is `false`)
 
 #### Example
 
