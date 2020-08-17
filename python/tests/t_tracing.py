@@ -12,8 +12,6 @@ from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
 class TracingTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
-        # self.with_tracing = AmbassadorTest(name="ambassador-with-tracing")
-        # self.no_tracing = AmbassadorTest(name="ambassador-no-tracing")
 
     def manifests(self) -> str:
         return """
@@ -58,7 +56,7 @@ spec:
     def config(self):
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
-        # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
+
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
@@ -68,7 +66,7 @@ prefix: /target/
 service: {self.target.path.fqdn}
 """)
 
-        # For self.with_tracing, we want to configure the TracingService.
+        # Configure the TracingService.
         yield self, self.format("""
 ---
 apiVersion: ambassador/v0
@@ -84,7 +82,7 @@ driver: zipkin
 
     def queries(self):
         # Speak through each Ambassador to the traced service...
-        # yield Query(self.with_tracing.url("target/"))
+        # yield Query(self.C.url("target/"))
         # yield Query(self.no_tracing.url("target/"))
 
         for i in range(100):
@@ -166,7 +164,7 @@ spec:
     def config(self):
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
-        # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
+
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
@@ -176,7 +174,7 @@ prefix: /target-64/
 service: {self.target.path.fqdn}
 """)
 
-        # For self.with_tracing, we want to configure the TracingService.
+        # Configure the TracingService.
         yield self, """
 ---
 apiVersion: getambassador.io/v2
@@ -356,7 +354,7 @@ spec:
     def config(self):
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
-        # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
+
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
@@ -366,7 +364,7 @@ prefix: /target-65/
 service: {self.target.path.fqdn}
 """)
 
-        # For self.with_tracing, we want to configure the TracingService.
+        # Configure the TracingService.
         yield self, """
 ---
 apiVersion: getambassador.io/v2
@@ -411,8 +409,6 @@ class TracingTestZipkinV2(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
-        # self.with_tracing = AmbassadorTest(name="ambassador-with-tracing")
-        # self.no_tracing = AmbassadorTest(name="ambassador-no-tracing")
 
     def manifests(self) -> str:
         return """
@@ -457,7 +453,6 @@ spec:
     def config(self):
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
-        # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
@@ -467,7 +462,7 @@ prefix: /target/
 service: {self.target.path.fqdn}
 """)
 
-        # For self.with_tracing, we want to configure the TracingService.
+        # Configure the TracingService.
         yield self, self.format("""
 ---
 apiVersion: ambassador/v2
@@ -486,8 +481,6 @@ config:
 
     def queries(self):
         # Speak through each Ambassador to the traced service...
-        # yield Query(self.with_tracing.url("target/"))
-        # yield Query(self.no_tracing.url("target/"))
 
         for i in range(100):
               yield Query(self.url("target/"), phase=1)
@@ -528,8 +521,6 @@ class TracingTestZipkinV1(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
-        # self.with_tracing = AmbassadorTest(name="ambassador-with-tracing")
-        # self.no_tracing = AmbassadorTest(name="ambassador-no-tracing")
 
     def manifests(self) -> str:
         return """
@@ -574,7 +565,7 @@ spec:
     def config(self):
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
-        # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
+
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
@@ -584,7 +575,7 @@ prefix: /target/
 service: {self.target.path.fqdn}
 """)
 
-        # For self.with_tracing, we want to configure the TracingService.
+        # Configure the TracingService.
         yield self, self.format("""
 ---
 apiVersion: ambassador/v2
@@ -603,8 +594,6 @@ config:
 
     def queries(self):
         # Speak through each Ambassador to the traced service...
-        # yield Query(self.with_tracing.url("target/"))
-        # yield Query(self.no_tracing.url("target/"))
 
         for i in range(100):
               yield Query(self.url("target/"), phase=1)
