@@ -11,21 +11,21 @@ Service Preview is installed as an addon to the Ambassador Edge Stack.
 
 There are three method for installing Service Preview.
 
-### [<img class="Ambassador's OpenSource Blackbird" src="../../../images/features-page-bird.svg"/> Install with Edgectl](#install-with-edgectl)
+### [<img class="os-logo" src="../../../../images/features-page-bird.svg"/> Install with Edgectl](#install-with-edgectl)
 
 If you are installing Service Preview and Ambassador Edge Stack for the first time, `edgectl` will automatically bootstrap and integrate both tools in your cluster.
 
-### [<img class="k8s-logo" src="../../../images/kubernetes.png"/> Install with YAML](install with yaml)
+### [<img class="os-logo" src="../../../../images/kubernetes.png"/> Install with YAML](install with yaml)
 
 The YAML installation method will walk you through a step-by-step deployment of all the resources necessary for installing Service Preview alongside the Ambassador Edge Stack. The YAML installation method is the most common approach to install Ambassador Edge Stack, especially in production environments, with our default, customizable manifest.
 
-### [<img class="helm-logo" src="../../../images/helm-navy.png"/> Install with Helm](#install-with-helm)
+### [<img class="os-logo" src="../../../../images/helm-navy.png"/> Install with Helm](#install-with-helm)
 
 Helm is a popular Kubernetes package manager. The Ambassador helm chart allows you to install Service Preview alongside the Ambassador Edge Stack.
 
 ---
 
-## <img class="Ambassador's OpenSource Blackbird" src="../../../images/features-page-bird.svg"/> Install with Edgectl
+## <img class="Ambassador's OpenSource Blackbird" src="../../../../images/features-page-bird.svg"/> Install with Edgectl
 
 If you are a new user, or you are looking to start using Ambassador Edge Stack with Service Preview on a fresh installation, the `edgectl install` command will get you up and running in no time with a pre-configured Traffic Manager and Traffic Agent supported by automatic sidecar injection.
 
