@@ -864,8 +864,8 @@ class V2Listener(dict):
     # Weirdly, the action is optional but the insecure_action is not. This is not a typo.
     def make_vhost(self, name: str, hostname: str, context: Optional[IRTLSContext], secure: bool,
                    action: Optional[str], insecure_action: str, domains: Dict[str, List[V2Route]] = None) -> None:
-        self.config.ir.logger.debug("V2Listener %s: adding VHost %s for host %s, secure %s, insecure %s)" %
-                                   (self.name, name, hostname, action, insecure_action))
+        self.config.ir.logger.debug("V2Listener %s: adding VHost %s for host %s, secure %s, insecure %s, domains %s)" %
+                                   (self.name, name, hostname, action, insecure_action, domains))
 
         vhost = self.vhosts.get(hostname)
 
@@ -894,6 +894,11 @@ class V2Listener(dict):
     # Build a cleaned-up version of this route without the '_sni' and '_precedence' elements...
     @classmethod
     def generate_insecure_route(cls, route: V2Route) -> dict:
+        """
+        Generates a cleaned up insecure route from a given route, ready to be put in Envoy config.
+        :param route: V2Route from which insecure route will be created.
+        :return: insecure route
+        """
         insecure_route = copy.deepcopy(dict(route))
         insecure_route.pop('_sni', None)
         insecure_route.pop('_precedence', None)
@@ -909,6 +914,11 @@ class V2Listener(dict):
     # time...
     @classmethod
     def generate_secure_route(cls, route: V2Route) -> dict:
+        """
+        Generates a cleaned up secure route from a given route, ready to be put in Envoy config.
+        :param route: V2Route from which secure route will be created.
+        :return: secure route
+        """
         secure_route = cls.generate_insecure_route(route)
         found_xfp = False
         for header in secure_route["match"].get("headers", []):
@@ -932,12 +942,12 @@ class V2Listener(dict):
         return secure_route
 
     @classmethod
-    def is_internal_prefix(cls, prefix: str) -> bool:
-        return prefix.startswith("/.ambassador") or prefix.startswith("/ambassador") or prefix.startswith("/edge_stack")
-
-    # Also gen up a redirecting route.
-    @classmethod
     def generate_redirect_route(cls, route: V2Route) -> dict:
+        """
+        Generates a cleaned up redirect route ready to be put in Envoy config.
+        :param route: V2Route from which redirect route will be created.
+        :return: redirect route
+        """
         redirect_route = cls.generate_insecure_route(route)
         redirect_route.pop("route", None)
         redirect_route["redirect"] = {
@@ -953,7 +963,7 @@ class V2Listener(dict):
                               logger,
                               edge_stack_allowed: bool,
                               listener_name: str,
-                              candidate: (bool, V2Route, str),
+                              candidate: Tuple[bool, V2Route, str],
                               vhost: V2VirtualHost,
                               domain: str=None):
 
@@ -973,6 +983,9 @@ class V2Listener(dict):
         # Remember, also, if a precedence was set.
         route_precedence = c_route.get('_precedence', None)
 
+        # Now, we have basic information of the incoming route, vhost and
+        # listener. First, let's see if we need to change the "action" for
+        # this route and do some sanity checks.
         if c_route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
             # We need to be sure to route ACME challenges, no matter what else is going
             # on (this is the infamous ACME hole-puncher mentioned everywhere).
@@ -1001,6 +1014,9 @@ class V2Listener(dict):
             # (If the user overrides the fallback with their own route at precedence -1000000,
             # uh.... y'know what, on their own head be it.)
 
+        # Now that all we have configured the right action for this route,
+        # let's generate cleaned up routes for secure/insecure routes based
+        # on the action.
         if secure:
             final_route = cls.generate_secure_route(c_route)
         else:
@@ -1027,10 +1043,9 @@ class V2Listener(dict):
                 if vhost._domains is None:
                     vhost._domains = {}
 
-                if domain not in vhost._domains:
-                    vhost._domains[domain] = []
-
-                logger.debug(f"V2Listeners: {listener_name} adding route {dict(final_route)} to domain {domain} in vhost {vhostname}")
+                logger.debug(f"V2Listeners: {listener_name} - adding route {dict(final_route)} to domain {domain} in"
+                             f"vhost {vhostname}. {vhostname} will be not used for field `domains:`")
+                vhost._domains.setdefault(domain, [])
                 vhost._domains[domain].append(final_route)
 
             vhost.append_route(final_route)
@@ -1098,6 +1113,8 @@ class V2Listener(dict):
                     "routes": vhost["routes"]
                     })
             else:
+                # vhost._hostname will *not* be used here because
+                # vhost._domains is present
                 for domain, routes in vhost._domains.items():
                     http_config["route_config"]["virtual_hosts"].append(
                         {
@@ -1197,55 +1214,56 @@ class V2Listener(dict):
                                     action=irlistener.secure_action,
                                     insecure_action=irlistener.insecure_action)
 
-            # Well, this is almost always going to be the case? An irlistener will always have an insecure action,
-            # either Route or Redirect, but anyway...
-            if irlistener.insecure_action is not None:
+            # An irlistener will always have an insecure action, either Route or Redirect
+            assert irlistener.insecure_action is not None
 
-                # There are going to be times when an insecure action will NOT have a port associated with it. If there
-                # is a port specified, then we get a listener for that port (and create a listener in the process if
-                # need be), or we use the current listener we are working with.
-                if (irlistener.insecure_addl_port is not None) and (irlistener.insecure_addl_port > 0):
-                    # Make sure we have a listener on the right port for this.
-                    listener = listeners_by_port.get(irlistener.insecure_addl_port, irlistener.use_proxy_proto)
+            # There are going to be times when an insecure action will NOT have a port associated with it. If there
+            # is a port specified, then we get a listener for that port (and create a listener in the process if
+            # need be), or we use the current listener we are working with.
+            if (irlistener.insecure_addl_port is not None) and (irlistener.insecure_addl_port > 0):
+                # Make sure we have a listener on the right port for this.
+                listener = listeners_by_port.get(irlistener.insecure_addl_port, irlistener.use_proxy_proto)
 
-                    if irlistener.insecure_addl_port not in first_irlistener_by_port:
-                        first_irlistener_by_port[irlistener.insecure_addl_port] = irlistener
+                if irlistener.insecure_addl_port not in first_irlistener_by_port:
+                    first_irlistener_by_port[irlistener.insecure_addl_port] = irlistener
 
-                # Now, we are talking about insecure stuff here - this does not require multiple vhosts.
-                # Multiple vhosts roughly (very, very roughly) translates to multiple fitler chains, and we don't
-                # need that. We don't need separate filter chains with separate "server_names" for "insecure" hosts
-                # because server_names is applicable only to SNI for TLS.
-                # What we need here instead is ONE insecure vhost which header matches for these insecure domains.
-                # Which header? ":authority" i.e. the "Host" header.
+            # Now, we are talking about insecure stuff here - this does not require multiple vhosts.
+            # Multiple vhosts roughly (very, very roughly) translates to multiple fitler chains, and we don't
+            # need that. We don't need separate filter chains with separate "server_names" for "insecure" hosts
+            # because server_names is applicable only to SNI for TLS.
+            # What we need here instead is ONE insecure vhost which header matches for these insecure domains.
+            # Which header? ":authority" i.e. the "Host" header.
 
-                # We have one insecure vhost for every port. All insecure routes (route or redirect or xxx) will be
-                # appended to this vhost. If this vhost exists, then we get it - else let's create one.
-                insecure_vhost_name = f"insecure-vhost-{listener.service_port}"
+            # We have one insecure vhost for every port. All insecure routes (route or redirect or xxx) will be
+            # appended to this vhost. If this vhost exists, then we get it - else let's create one.
+            insecure_vhost_name = f"insecure-vhost-{listener.service_port}"
 
-                # Do we have an existing vhost for this? If not, create one.
-                # We're going to populate all the hostnames in vhost._domains which going to put all of these in
-                # virtual_hosts.domains matches on the Host header of the incoming request. Even though it also takes
-                # wildcard entries, exact matches are preferred over wildcard matches. This means that
-                # www.foo.com > *.foo.com > *.com > *
+            # Do we have an existing vhost for this? If not, create one.
+            # We're going to populate all the hostnames in vhost._domains which going to put all of these in
+            # virtual_hosts.domains matches on the Host header of the incoming request. Even though it also takes
+            # wildcard entries, exact matches are preferred over wildcard matches. This means that
+            # www.foo.com > *.foo.com > *.com > *
 
-                if insecure_vhost_name not in listener.vhosts:
-                    logger.debug(f"V2Listeners: could not find vhost {insecure_vhost_name}. Creating insecure vhost"
-                                 f"{insecure_vhost_name} with no secure action for listener {listener.pretty()}")
-                    listener.make_vhost(name=insecure_vhost_name,
-                                        hostname=insecure_vhost_name,
-                                        context=None,
-                                        secure=False,
-                                        action=None,
-                                        insecure_action=irlistener.insecure_action)
+            # Keep in mind that this insecure_vhost_name will *not* be used, it will be overridden by
+            # `vhost._domains`. We are only using this for identification purposes.
+            if insecure_vhost_name not in listener.vhosts:
+                logger.debug(f"V2Listeners: could not find vhost {insecure_vhost_name}. Creating insecure vhost"
+                             f"{insecure_vhost_name} with no secure action for listener {listener.pretty()}")
+                listener.make_vhost(name=insecure_vhost_name,
+                                    hostname=insecure_vhost_name,
+                                    context=None,
+                                    secure=False,
+                                    action=None,
+                                    insecure_action=irlistener.insecure_action)
 
-                vhost = listener.vhosts.get(insecure_vhost_name)
-                logger.debug(f"V2Listeners: proceeding to add routes to vhost {vhost.pretty()} for listener {listener.pretty()}")
+            vhost = listener.vhosts.get(insecure_vhost_name)
+            logger.debug(f"V2Listeners: proceeding to add routes to vhost {vhost.pretty()} for listener {listener.pretty()}")
 
-                # Go through all the routes and add them based on the indirect action.
-                for route in config.routes:
-                    if irlistener.insecure_action is not None:
-                        cls.parse_route_candidate(logger, config.ir.edge_stack_allowed, listener.name,
-                                                  (False, route, irlistener.insecure_action), vhost, vhostname)
+            # Go through all the routes and add them based on the indirect action.
+            for route in config.routes:
+                if irlistener.insecure_action is not None:
+                    cls.parse_route_candidate(logger, config.ir.edge_stack_allowed, listener.name,
+                                              (False, route, irlistener.insecure_action), vhost, vhostname)
 
             logger.debug(f"V2Listeners: final vhosts: {listener.vhosts.keys()}")
 
