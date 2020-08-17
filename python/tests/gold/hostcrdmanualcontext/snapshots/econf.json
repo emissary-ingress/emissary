@@ -118,7 +118,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8443-hostcrdmanualcontext-forced-star",
+                                                "name": "ambassador-listener-8443-hostcrdmanualcontext-fstar",
                                                 "routes": [
                                                     {
                                                         "match": {
@@ -286,7 +286,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8443-insecure-vhost-8443-hostcrdmanualcontext",
+                                                "name": "ambassador-listener-8443-insecure-8443-hostcrdmanualcontext",
                                                 "routes": [
                                                     {
                                                         "match": {

@@ -372,9 +372,9 @@
                                         "virtual_hosts": [
                                             {
                                                 "domains": [
-                                                    "insecure-vhost-8443"
+                                                    "insecure-8443"
                                                 ],
-                                                "name": "ambassador-listener-8443-insecure-vhost-8443",
+                                                "name": "ambassador-listener-8443-insecure-8443",
                                                 "routes": []
                                             }
                                         ]
@@ -845,7 +845,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8080-insecure-vhost-8080-forced-star-tls-context-host-1",
+                                                "name": "ambassador-listener-8080-insecure-8080-fstar-tls-context-host-1",
                                                 "routes": [
                                                     {
                                                         "match": {
@@ -917,7 +917,7 @@
                                                 "domains": [
                                                     "tls-context-host-2"
                                                 ],
-                                                "name": "ambassador-listener-8080-insecure-vhost-8080-forced-star-tls-context-host-2",
+                                                "name": "ambassador-listener-8080-insecure-8080-fstar-tls-context-host-2",
                                                 "routes": [
                                                     {
                                                         "match": {

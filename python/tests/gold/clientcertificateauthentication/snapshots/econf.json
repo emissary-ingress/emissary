@@ -286,9 +286,9 @@
                                         "virtual_hosts": [
                                             {
                                                 "domains": [
-                                                    "insecure-vhost-8443"
+                                                    "insecure-8443"
                                                 ],
-                                                "name": "ambassador-listener-8443-insecure-vhost-8443",
+                                                "name": "ambassador-listener-8443-insecure-8443",
                                                 "routes": []
                                             }
                                         ]

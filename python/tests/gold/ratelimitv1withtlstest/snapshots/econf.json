@@ -181,7 +181,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8080-insecure-vhost-8080-forced-star-*",
+                                                "name": "ambassador-listener-8080-insecure-8080-fstar-*",
                                                 "routes": [
                                                     {
                                                         "match": {

@@ -1236,7 +1236,7 @@ class V2Listener(dict):
 
             # We have one insecure vhost for every port. All insecure routes (route or redirect or xxx) will be
             # appended to this vhost. If this vhost exists, then we get it - else let's create one.
-            insecure_vhost_name = f"insecure-vhost-{listener.service_port}"
+            insecure_vhost_name = f"insecure-{listener.service_port}"
 
             # Do we have an existing vhost for this? If not, create one.
             # We're going to populate all the hostnames in vhost._domains which going to put all of these in
@@ -1277,7 +1277,7 @@ class V2Listener(dict):
                 # the least surprising thing to do in most situations.
                 first_vhost = listener.first_vhost
                 first_vhost._hostname = '*'
-                first_vhost._name = f"{first_vhost._name}-forced-star"
+                first_vhost._name = f"{first_vhost._name}-fstar"
 
         if config.ir.edge_stack_allowed and not config.ir.agent_active:
             # If we're running Edge Stack, and we're not an intercept agent, make sure we have

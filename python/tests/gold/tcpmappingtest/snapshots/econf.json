@@ -258,7 +258,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8443-tls-context-host-1-forced-star",
+                                                "name": "ambassador-listener-8443-tls-context-host-1-fstar",
                                                 "routes": [
                                                     {
                                                         "match": {
@@ -395,9 +395,9 @@
                                         "virtual_hosts": [
                                             {
                                                 "domains": [
-                                                    "insecure-vhost-8443"
+                                                    "insecure-8443"
                                                 ],
-                                                "name": "ambassador-listener-8443-insecure-vhost-8443",
+                                                "name": "ambassador-listener-8443-insecure-8443",
                                                 "routes": []
                                             }
                                         ]

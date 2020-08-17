@@ -118,7 +118,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8443-hostcrdno8080-forced-star",
+                                                "name": "ambassador-listener-8443-hostcrdno8080-fstar",
                                                 "routes": [
                                                     {
                                                         "match": {
@@ -282,7 +282,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8443-insecure-vhost-8443-hostcrdno8080",
+                                                "name": "ambassador-listener-8443-insecure-8443-hostcrdno8080",
                                                 "routes": [
                                                     {
                                                         "match": {
