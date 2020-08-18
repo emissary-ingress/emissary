@@ -1,0 +1,83 @@
+/**
+ * Communication between the Ambassador Agent and the Director service
+ * to populate the Central Edge Policy Console, which is a cloud service
+ * run by Datawire.
+ */
+syntax = "proto3";
+
+import "google/protobuf/duration.proto";
+
+package agent;
+
+service Director {
+  // Report a consistent Snapshot of information to the CEPC
+  rpc Report(Snapshot) returns (SnapshotResponse) {}
+
+  // Retrieve Directives from the CEPC
+  rpc Retrieve(Identity) returns (stream Directive) {}
+}
+
+// How Ambassador's Agent identifies itself to the CEPC
+message Identity {
+  // The account ID assigned by the CEPC
+  string account_id = 1;
+
+  // Ambassador version
+  string version = 2;
+
+  // This Ambassador's hostname
+  string hostname = 3;
+
+  // License information
+  string license = 4;
+
+  // The cluster ID, as determined by Ambassador
+  string cluster_id = 5;
+
+  // Label or description for the user
+  string label = 6;
+}
+
+// Information that Ambassador's Agent can send to the Director
+// component of the CEPC
+message Snapshot {
+  Identity identity = 1;
+  string message = 2;
+  repeated Service services = 3;
+}
+
+message Service {
+  string name = 1;
+  string namespace = 2;
+  map<string, string> labels = 3;
+  map<string, string> annotations = 4;
+}
+
+// The Director's response to a Snapshot from the Agent
+message SnapshotResponse {
+  // Empty for now, as the Director only knows how to return success or
+  // an error. In the future this may contain additional information.
+}
+
+// Instructions that the CEPC can send to Ambassador
+message Directive {
+  string ID = 1;
+
+  // Stop sending snapshots. The default value (false) indicates that
+  // snapshot should be sent.
+  bool stop_reporting = 2;
+
+  // Minimum time to wait before pushing the next snapshot. The default
+  // value (zero duration) indicates that the Agent should not modify
+  // the existing report period.
+  google.protobuf.Duration min_report_period = 3;
+
+  // Commands to execute
+  repeated Command commands = 4;
+}
+
+// An individual instruction from the CEPC
+message Command {
+  // Log this message if present
+  string message = 1;
+}
