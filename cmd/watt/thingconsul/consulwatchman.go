@@ -21,8 +21,8 @@ type consulwatchman struct {
 	WatchMaker watchapi.IConsulWatchMaker
 	watchesCh  <-chan []watchapi.ConsulWatchSpec
 
-	mu sync.RWMutex
-	watched    map[string]*supervisor.Worker
+	mu      sync.RWMutex
+	watched map[string]*supervisor.Worker
 }
 
 type ConsulWatchMan interface {
