@@ -21,16 +21,20 @@ ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEF
 _teleproxy.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_teleproxy.mk))prelude.mk
 
+OSS_HOME ?= $(build-aux.dir)/..
+
+TELEPROXY = $(tools/teleproxy)
 TELEPROXY_LOG ?= $(dir $(_teleproxy.mk))teleproxy.log
 KUBE_URL = https://kubernetes/api/
 
-TELEPROXY ?= $(build-aux.bindir)/teleproxy
-$(eval $(call build-aux.bin-go.rule,teleproxy,github.com/datawire/teleproxy/cmd/teleproxy))
+tools/teleproxy = $(build-aux.bindir)/teleproxy
 ifeq ($(GOHOSTOS),darwin)
-$(build-aux.bindir)/.teleproxy.stamp: CGO_ENABLED = 1
+$(tools/teleproxy).no-suid: CGO_ENABLED = 1
 endif
-# override the rule for .teleproxy.stamp -> teleproxy
-$(build-aux.bindir)/teleproxy: $(build-aux.bindir)/%: $(build-aux.bindir)/.%.stamp
+$(tools/teleproxy).no-suid: FORCE
+	mkdir -p $(@D)
+	cd $(OSS_HOME) && go build -o $(abspath $@) github.com/datawire/ambassador/cmd/teleproxy
+$(tools/teleproxy): $(tools/teleproxy).no-suid
 	@PS4=; set -ex; { \
 		if ! cmp -s $< $@; then \
 			if [ -n "$${CI}" -a -e $@ ]; then \
