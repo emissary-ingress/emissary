@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
@@ -72,6 +73,12 @@ type Client struct {
 	disco     discovery.CachedDiscoveryInterface
 	mutex     sync.Mutex
 	canonical map[string]*Unstructured
+
+	// This is an internal interface for testing, it lets deliberately introduce delays into the
+	// implementation, e.g. effectively increasing the latency to the api server in a controllable
+	// way and letting us reproduce and test for race conditions far more efficiently than
+	// otherwise.
+	watchUpdated func(interface{}, interface{})
 }
 
 // The ClientOptions struct holds all the parameters and configuration
@@ -116,8 +123,14 @@ func NewClientFromConfigFlags(config *ConfigFlags) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{config: config, cli: cli, mapper: mapper, disco: disco,
-		canonical: make(map[string]*Unstructured)}, nil
+	return &Client{
+		config:       config,
+		cli:          cli,
+		mapper:       mapper,
+		disco:        disco,
+		canonical:    make(map[string]*Unstructured),
+		watchUpdated: func(oldObj, newObj interface{}) {},
+	}, nil
 }
 
 func NewRESTMapper(config *ConfigFlags) (meta.RESTMapper, discovery.CachedDiscoveryInterface, error) {
@@ -277,6 +290,11 @@ func (c *Client) watchRaw(ctx context.Context, name string, target chan rawUpdat
 				}
 			},
 			UpdateFunc: func(oldObj, newObj interface{}) {
+				// This is for testing. It allows us to deliberately increase the probability of
+				// race conditions by e.g. introducing sleeps. At some point I'm sure we will want a
+				// nicer prettier set of hooks, but for now all we need is this hack for
+				// better/faster tests.
+				c.watchUpdated(oldObj, newObj)
 				if informer.HasSynced() {
 					update()
 				}
@@ -598,6 +616,10 @@ func (c *Client) Patch(ctx context.Context, resource interface{}, pt PatchType, 
 // ==
 
 func (c *Client) Upsert(ctx context.Context, resource interface{}, source interface{}, target interface{}) error {
+	if resource == nil || reflect.ValueOf(resource).IsNil() {
+		resource = source
+	}
+
 	var un Unstructured
 	err := convert(resource, &un)
 	if err != nil {
