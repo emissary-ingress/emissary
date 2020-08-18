@@ -16,9 +16,9 @@ Commands:
 
 Libraries:
 
-- [supervisor](https://godoc.org/github.com/datawire/teleproxy/pkg/supervisor) - a library (or very lightweight framework) for helping with error handling, startup/shutdown order, and guaranteed resource cleanup amongst groups of related goroutines
-- [k8s](https://godoc.org/github.com/datawire/teleproxy/pkg/k8s) - an easy-to-use facade around the client-go library
-- [dtest](https://godoc.org/github.com/datawire/teleproxy/pkg/dtest) - testing related utilities
+- [supervisor](https://godoc.org/github.com/datawire/ambassador/pkg/supervisor) - a library (or very lightweight framework) for helping with error handling, startup/shutdown order, and guaranteed resource cleanup amongst groups of related goroutines
+- [k8s](https://godoc.org/github.com/datawire/ambassador/pkg/k8s) - an easy-to-use facade around the client-go library
+- [dtest](https://godoc.org/github.com/datawire/ambassador/pkg/dtest) - testing related utilities
 
 ## Changelog
 
