@@ -1,4 +1,4 @@
-package watt
+package watchapi
 
 import (
 	"fmt"
@@ -19,7 +19,7 @@ type WatchSet struct {
 // FIXES:
 // 	- https://github.com/datawire/ambassador/issues/110
 //	- https://github.com/datawire/ambassador/issues/1508
-func (w *WatchSet) interpolate() WatchSet {
+func (w *WatchSet) Interpolate() WatchSet {
 	result := WatchSet{KubernetesWatches: w.KubernetesWatches}
 
 	if w.ConsulWatches != nil {

@@ -1,36 +1,38 @@
-package watt
+package thingkube
 
 import (
 	"fmt"
+	"sync"
 
+	"github.com/datawire/ambassador/cmd/watt/watchapi"
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/datawire/ambassador/pkg/watt"
 )
 
-type k8sEvent struct {
-	watchId   string
-	kind      string
-	resources []k8s.Resource
-	errors    []watt.Error
+type K8sEvent struct {
+	WatchID   string
+	Kind      string
+	Resources []k8s.Resource
+	Errors    []watt.Error
 }
 
-// makeErrorEvent returns a k8sEvent that contains one error entry for each
+// makeErrorEvent returns a K8sEvent that contains one error entry for each
 // message passed in, all attributed to the same source.
-func makeErrorEvent(source string, messages ...string) k8sEvent {
+func makeErrorEvent(source string, messages ...string) K8sEvent {
 	errors := make([]watt.Error, len(messages))
 	for idx, message := range messages {
 		errors[idx] = watt.NewError(source, message)
 	}
-	return k8sEvent{errors: errors}
+	return K8sEvent{Errors: errors}
 }
 
 type KubernetesWatchMaker struct {
 	kubeAPI *k8s.Client
-	notify  chan<- k8sEvent
+	notify  chan<- K8sEvent
 }
 
-func (m *KubernetesWatchMaker) MakeKubernetesWatch(spec KubernetesWatchSpec) (*supervisor.Worker, error) {
+func (m *KubernetesWatchMaker) MakeKubernetesWatch(spec watchapi.KubernetesWatchSpec) (*supervisor.Worker, error) {
 	var worker *supervisor.Worker
 	var err error
 
@@ -42,7 +44,7 @@ func (m *KubernetesWatchMaker) MakeKubernetesWatch(spec KubernetesWatchSpec) (*s
 				return func(watcher *k8s.Watcher) {
 					resources := watcher.List(kind)
 					p.Debugf("found %d %q in namespace %q", len(resources), kind, fmtNamespace(ns))
-					m.notify <- k8sEvent{watchId: watchId, kind: kind, resources: resources}
+					m.notify <- K8sEvent{WatchID: watchId, Kind: kind, Resources: resources}
 					p.Debugf("sent %q to receivers", kind)
 				}
 			}
@@ -71,19 +73,44 @@ func (m *KubernetesWatchMaker) MakeKubernetesWatch(spec KubernetesWatchSpec) (*s
 }
 
 type kubewatchman struct {
-	WatchMaker IKubernetesWatchMaker
-	watched    map[string]*supervisor.Worker
-	in         <-chan []KubernetesWatchSpec
+	WatchMaker watchapi.IKubernetesWatchMaker
+	in         <-chan []watchapi.KubernetesWatchSpec
+
+	mu      sync.RWMutex
+	watched map[string]*supervisor.Worker
+}
+
+type KubeWatchMan interface {
+	Work(*supervisor.Process) error
+	NumWatched() int
+	WithWatched(func(map[string]*supervisor.Worker))
+}
+
+func NewKubeWatchMan(
+	client *k8s.Client,
+	eventsCh chan<- K8sEvent,
+	watchesCh <-chan []watchapi.KubernetesWatchSpec,
+) KubeWatchMan {
+	return &kubewatchman{
+		WatchMaker: &KubernetesWatchMaker{
+			kubeAPI: client,
+			notify:  eventsCh,
+		},
+		in: watchesCh,
+	}
 }
 
 func (w *kubewatchman) Work(p *supervisor.Process) error {
 	p.Ready()
 
+	w.mu.Lock()
 	w.watched = make(map[string]*supervisor.Worker)
+	w.mu.Unlock()
 
 	for {
 		select {
 		case watches := <-w.in:
+			w.mu.Lock()
 			found := make(map[string]*supervisor.Worker)
 			p.Debugf("processing %d kubernetes watch specs", len(watches))
 			for _, spec := range watches {
@@ -112,6 +139,7 @@ func (w *kubewatchman) Work(p *supervisor.Process) error {
 			}
 
 			w.watched = found
+			w.mu.Unlock()
 		case <-p.Shutdown():
 			p.Debugf("shutdown initiated")
 			return nil
@@ -124,10 +152,32 @@ type kubebootstrap struct {
 	kinds          []string
 	fieldSelector  string
 	labelSelector  string
-	notify         []chan<- k8sEvent
+	notify         []chan<- K8sEvent
 	kubeAPIWatcher *k8s.Watcher
 }
 
+type KubeBootstrap interface {
+	SaveError(message string)
+	Work(*supervisor.Process) error
+}
+
+func NewKubeBootstrap(
+	namespace string,
+	kinds []string,
+	fieldSelector string,
+	labelSelector string,
+	notify []chan<- K8sEvent,
+	kubeAPIWatcher *k8s.Watcher,
+) KubeBootstrap {
+	return &kubebootstrap{
+		namespace:      namespace,
+		kinds:          kinds,
+		fieldSelector:  fieldSelector,
+		labelSelector:  labelSelector,
+		notify:         notify,
+		kubeAPIWatcher: kubeAPIWatcher,
+	}
+}
 func fmtNamespace(ns string) string {
 	if ns == "" {
 		return "*"
@@ -153,7 +203,7 @@ func (b *kubebootstrap) Work(p *supervisor.Process) error {
 				resources := watcher.List(kind)
 				p.Debugf("found %d %q in namespace %q", len(resources), kind, fmtNamespace(ns))
 				for _, n := range b.notify {
-					n <- k8sEvent{kind: kind, resources: resources}
+					n <- K8sEvent{Kind: kind, Resources: resources}
 				}
 				p.Debugf("sent %q to %d receivers", kind, len(b.notify))
 			}
@@ -180,4 +230,16 @@ func (b *kubebootstrap) Work(p *supervisor.Process) error {
 	}
 
 	return nil
+}
+
+func (w *kubewatchman) NumWatched() int {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return len(w.watched)
+}
+
+func (w *kubewatchman) WithWatched(fn func(map[string]*supervisor.Worker)) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	fn(w.watched)
 }

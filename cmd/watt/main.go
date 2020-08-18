@@ -11,6 +11,11 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/datawire/ambassador/cmd/watt/aggregator"
+	"github.com/datawire/ambassador/cmd/watt/invoker"
+	"github.com/datawire/ambassador/cmd/watt/thingconsul"
+	"github.com/datawire/ambassador/cmd/watt/thingkube"
+	"github.com/datawire/ambassador/cmd/watt/watchapi"
 	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/kates"
@@ -111,17 +116,17 @@ func runWatt(ctx context.Context, flags wattFlags, args []string) error {
 
 	// The aggregator sends the current consul resolver set to the
 	// consul watch manager.
-	aggregatorToConsulwatchmanCh := make(chan []ConsulWatchSpec, 100)
+	aggregatorToConsulwatchmanCh := make(chan []watchapi.ConsulWatchSpec, 100)
 
 	// The aggregator sends the current k8s watch set to the
 	// kubernetes watch manager.
-	aggregatorToKubewatchmanCh := make(chan []KubernetesWatchSpec, 100)
+	aggregatorToKubewatchmanCh := make(chan []watchapi.KubernetesWatchSpec, 100)
 
 	apiServerAuthority := flags.listenAddress
 	if strings.HasPrefix(apiServerAuthority, ":") {
 		apiServerAuthority = "localhost" + apiServerAuthority
 	}
-	invoker := NewInvoker(apiServerAuthority, flags.notifyReceivers)
+	invokerObj := invoker.NewInvoker(apiServerAuthority, flags.notifyReceivers)
 	limiter := limiter.NewComposite(limiter.NewUnlimited(), limiter.NewInterval(flags.interval), flags.interval)
 
 	crdYAML, err := ioutil.ReadFile("/opt/ambassador/etc/crds.yaml")
@@ -136,34 +141,34 @@ func runWatt(ctx context.Context, flags wattFlags, args []string) error {
 	if err != nil {
 		return err
 	}
-	aggregator := NewAggregator(invoker.Snapshots, aggregatorToKubewatchmanCh, aggregatorToConsulwatchmanCh,
-		flags.initialSources, ExecWatchHook(flags.watchHooks), limiter, validator)
+	aggregator := aggregator.NewAggregator(invokerObj.Snapshots, aggregatorToKubewatchmanCh, aggregatorToConsulwatchmanCh,
+		flags.initialSources, aggregator.ExecWatchHook(flags.watchHooks), limiter, validator)
 
-	kubebootstrap := kubebootstrap{
-		namespace:      flags.kubernetesNamespace,
-		kinds:          flags.initialSources,
-		fieldSelector:  flags.initialFieldSelector,
-		labelSelector:  flags.initialLabelSelector,
-		kubeAPIWatcher: kubeAPIWatcher,
-		notify:         []chan<- k8sEvent{aggregator.KubernetesEvents},
-	}
+	kubebootstrap := thingkube.NewKubeBootstrap(
+		flags.kubernetesNamespace,                                // namespace
+		flags.initialSources,                                     // kinds
+		flags.initialFieldSelector,                               // fieldSelector
+		flags.initialLabelSelector,                               // labelSelector
+		[]chan<- thingkube.K8sEvent{aggregator.KubernetesEvents}, // notify
+		kubeAPIWatcher,                                           // kubeAPIWatcher
+	)
 
-	consulwatchman := consulwatchman{
-		WatchMaker: &ConsulWatchMaker{aggregatorCh: aggregator.ConsulEvents},
-		watchesCh:  aggregatorToConsulwatchmanCh,
-		watched:    make(map[string]*supervisor.Worker),
-	}
+	consulwatchman := thingconsul.NewConsulWatchMan(
+		aggregator.ConsulEvents,
+		aggregatorToConsulwatchmanCh,
+	)
 
-	kubewatchman := kubewatchman{
-		WatchMaker: &KubernetesWatchMaker{kubeAPI: client, notify: aggregator.KubernetesEvents},
-		in:         aggregatorToKubewatchmanCh,
-	}
+	kubewatchman := thingkube.NewKubeWatchMan(
+		client,                      // k8s client
+		aggregator.KubernetesEvents, // eventsCh
+		aggregatorToKubewatchmanCh,  // watchesCh
+	)
 
-	apiServer := &apiServer{
-		listenNetwork: flags.listenNetwork,
-		listenAddress: flags.listenAddress,
-		invoker:       invoker,
-	}
+	apiServer := invoker.NewAPIServer(
+		flags.listenNetwork,
+		flags.listenAddress,
+		invokerObj,
+	)
 
 	s := supervisor.WithContext(ctx)
 
@@ -189,7 +194,7 @@ func runWatt(ctx context.Context, flags wattFlags, args []string) error {
 
 	s.Supervise(&supervisor.Worker{
 		Name: "invoker",
-		Work: invoker.Work,
+		Work: invokerObj.Work,
 	})
 
 	s.Supervise(&supervisor.Worker{
