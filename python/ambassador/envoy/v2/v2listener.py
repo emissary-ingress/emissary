@@ -556,6 +556,34 @@ class V2VirtualHost(dict):
     def append_route(self, route: V2Route):
         self["routes"].append(route)
 
+    def punch_acme_in_routes(self, route_list: List[V2Route]):
+        for route in route_list:
+            if route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
+                # Nothing to do here if ACME prefix already exists
+                return
+
+        # The target cluster doesn't actually matter -- the auth service grabs the
+        # challenge and does the right thing. But we do need a cluster that actually
+        # exists, so use the sidecar cluster.
+
+        if not self._config.ir.sidecar_cluster_name:
+            # Uh whut? how is Edge Stack running exactly?
+            raise Exception("Edge Stack claims to be running, but we have no sidecar cluster??")
+
+        self._config.ir.logger.debug(f"V2VirtualHost finalize punching a hole for ACME")
+
+        route_list.insert(0, {
+            "match": {
+                "case_sensitive": True,
+                "prefix": "/.well-known/acme-challenge/"
+            },
+            "route": {
+                "cluster": self._config.ir.sidecar_cluster_name,
+                "prefix_rewrite": "/.well-known/acme-challenge/",
+                "timeout": "3.000s"
+            }
+        })
+
     def finalize(self) -> None:
         # Even though this is called V2VirtualHost, we track the filter_chain_match here,
         # because it makes more sense, because this is where we have the domain information.
@@ -578,35 +606,13 @@ class V2VirtualHost(dict):
         # If we're on Edge Stack and we're not an intercept agent, punch a hole for ACME
         # challenges, for every listener.
         if self._config.ir.edge_stack_allowed and not self._config.ir.agent_active:
-            found_acme = False
+            # Punch ACME hole in routes
+            self.punch_acme_in_routes(self["routes"])
 
-            for route in self["routes"]:
-                if route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
-                    found_acme = True
-                    break
-
-            if not found_acme:
-                # The target cluster doesn't actually matter -- the auth service grabs the
-                # challenge and does the right thing. But we do need a cluster that actually
-                # exists, so use the sidecar cluster.
-
-                if not self._config.ir.sidecar_cluster_name:
-                    # Uh whut? how is Edge Stack running exactly?
-                    raise Exception("Edge Stack claims to be running, but we have no sidecar cluster??")
-
-                self._config.ir.logger.debug(f"V2VirtualHost finalize punching a hole for ACME")
-
-                self["routes"].insert(0, {
-                    "match": {
-                        "case_sensitive": True,
-                        "prefix": "/.well-known/acme-challenge/"
-                    },
-                    "route": {
-                        "cluster": self._config.ir.sidecar_cluster_name,
-                        "prefix_rewrite": "/.well-known/acme-challenge/",
-                        "timeout": "3.000s"
-                    }
-                })
+            # Punch ACME hole in domains
+            if self._domains is not None:
+                for domain in self._domains:
+                    self.punch_acme_in_routes(self._domains[domain])
 
         for route in self["routes"]:
             self._config.ir.logger.debug(f"VHost Route {prettyroute(route)}")
