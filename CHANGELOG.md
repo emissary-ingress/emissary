@@ -63,7 +63,20 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ### Ambassador Edge Stack only
 
+- Feature: DevPortal can now discover openapi documentation from `Mapping`s that set `host` and `headers`
+- Feature: `edgectl install` will automatically enable Service Preview with a Preview URL on the Host resource it creates.
+- Feature: Service Preview will inject an `x-service-preview-path` header in filtered requests with the original request prefix to allow for context propagation.
+- Feature: Service Preview can intercept gRPC requests using the `--grpc` flag on the `edgectl intercept add` command and the `getambassador.io/inject-traffic-agent-grpc: "true"` annotation when using automatic Traffic-Agent injection.
+- Feature: The `TracingService` Zipkin config now supports setting `collector_endpoint_version` to tell Envoy to use Zipkin v2.
+- Feature: You can now inject request and/or response headers from a `RateLimit`.
 - Bugfix: Don't crash during startup if Redis is down.
+- Bugfix: Service Preview correctly uses the Host default `Path` value for the `spec.previewUrl.type` field.
+- Bugfix: The `JWT`, `OAuth2`, and other Filters are now better about reusing connections for outgoing HTTP requests.
+- Bugfix: Fixed a potential deadlock in the HTTP cache used for fetching JWKS and such for `Filters`.
+- Bugfix: Fixed insecure route action behavior. Host security policies no longer affect other Hosts.
+- Bugfix: Internal Ambassador data is no longer exposed to the `/.ambassador-internal/` endpoints used by the DevPortal.
+- Bugfix: Problems with license key limits will no longer trigger spurious HTTP 429 errors.  Using the `RateLimit` resource beyond 5rps without any form of license key will still trigger 429 responses, but now with a `X-Ambassador-Message` header indicating that's what happned.
+- Bugfix: When multiple `RateLimit`s overlap, it is supposed to enforce the strictest limit; but the strictness comparison didn't correctly handle comparing limits with different units.
 
 ## [1.6.2] July 30, 2020
 [1.6.2]: https://github.com/datawire/ambassador/compare/v1.6.1...v1.6.2
