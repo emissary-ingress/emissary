@@ -76,6 +76,8 @@ commands:
           name: "Go Tests"
           command: |
             make gotest
+      # XXX The three KAT runs should really be split out into separate parallel jobs.
+      # Circle makes that hard enough that we're not going to do it just yet, though.
       - run:
           name: "KAT (normal)"
           command: |
