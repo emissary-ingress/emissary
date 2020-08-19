@@ -18,7 +18,7 @@ import json
 
 from abc import abstractmethod
 
-from ..cache import Cache, NullCache
+from ..cache import Cache
 
 from ..ir import IR, IRResource
 from ..ir.irhttpmappinggroup import IRHTTPMappingGroup
