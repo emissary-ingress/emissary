@@ -3,12 +3,33 @@ from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union, TYPE_CHECK
 from ..config import Config
 
 from .irresource import IRResource
+from .irbasemapping import IRBaseMapping
 
 if TYPE_CHECKING:
     from .ir import IR
 
 
 class IRBaseMappingGroup (IRResource):
+    mappings: List[IRBaseMapping]
+    group_id: str
+    group_weight: List[Union[str, int]]
+    labels: Dict[str, Any]
+
+    def __init__(self, ir: 'IR', aconf: Config,
+                 location: str,
+                 rkey: str="ir.mappinggroup",
+                 kind: str="IRBaseMappingGroup",
+                 name: str="ir.mappinggroup",
+                 **kwargs) -> None:
+        # Default to no mappings...
+        self.mappings = []
+
+        # ...before we init the superclass, which will call self.setup().
+        super().__init__(
+            ir=ir, aconf=aconf, rkey=rkey, location=location,
+            kind=kind, name=name, **kwargs
+        )
+
     def normalize_weights_in_mappings(self):
         weightless_mappings = []
         num_weightless_mappings = 0

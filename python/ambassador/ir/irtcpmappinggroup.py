@@ -18,11 +18,6 @@ if TYPE_CHECKING:
 ## so the group itself ends up with some of the group-wide attributes of its Mappings.
 
 class IRTCPMappingGroup (IRBaseMappingGroup):
-    mappings: List[IRBaseMapping]
-    group_id: str
-    group_weight: List[Union[str, int]]
-    labels: Dict[str, Any]
-
     CoreMappingKeys: ClassVar[Dict[str, bool]] = {
         'address': True,
         'circuit_breakers': True,
@@ -66,8 +61,8 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
         del rkey    # silence unused-variable warning
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=mapping.rkey, location=location, kind=kind, name=name,
-            mappings=[], host_redirect=None, shadows=[], **kwargs
+            ir=ir, aconf=aconf, rkey=mapping.rkey, location=location,
+            kind=kind, name=name, **kwargs
         )
 
         self.add_dict_helper('mappings', IRTCPMappingGroup.helper_mappings)

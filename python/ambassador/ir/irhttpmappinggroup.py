@@ -18,15 +18,11 @@ if TYPE_CHECKING:
 ## so the group itself ends up with some of the group-wide attributes of its Mappings.
 
 class IRHTTPMappingGroup (IRBaseMappingGroup):
-    mappings: List[IRBaseMapping]
     host_redirect: Optional[IRBaseMapping]
     shadow: List[IRBaseMapping]
-    group_id: str
-    group_weight: List[Union[str, int]]
     rewrite: str
     add_request_headers: Dict[str, str]
     add_response_headers: Dict[str, str]
-    labels: Dict[str, Any]
 
     CoreMappingKeys: ClassVar[Dict[str, bool]] = {
         'bypass_auth': True,
@@ -98,9 +94,12 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
             raise Exception("IRHTTPMappingGroup cannot accept shadow or shadows as a keyword argument")
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=mapping.rkey, location=location, kind=kind, name=name,
-            mappings=[], host_redirect=None, shadows=[], **kwargs
+            ir=ir, aconf=aconf, rkey=mapping.rkey, location=location,
+            kind=kind, name=name, **kwargs
         )
+
+        self.host_redirect = None
+        self.shadows: List[IRBaseMapping] = []  # XXX This should really be IRHTTPMapping, no?
 
         self.add_dict_helper('mappings', IRHTTPMappingGroup.helper_mappings)
         self.add_dict_helper('shadows', IRHTTPMappingGroup.helper_shadows)
