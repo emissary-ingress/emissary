@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import json
 import logging
@@ -78,6 +78,9 @@ class ResourceFetcher:
 
         # For deduplicating objects coming in from watt
         self.k8s_parsed: Dict[str, bool] = {}
+
+        # Deltas, for managing the cache.
+        self.deltas: List[Dict[str, Union[str, Dict[str, str]]]] = []
 
         # HACK
         # If AGENT_SERVICE is set, skip the init dir: we'll force some defaults later
@@ -223,6 +226,10 @@ class ResourceFetcher:
         try:
             watt_dict = json.loads(serialization)
 
+            # Grab deltas if they're present.
+            self.deltas = watt_dict.get('Deltas', [])
+
+            # ...then it's off to deal with Kubernetes.
             watt_k8s = watt_dict.get('Kubernetes', {})
 
             # These objects have to be processed first, in order, as they depend
