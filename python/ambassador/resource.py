@@ -73,15 +73,6 @@ class Resource (dict):
         self.rkey = other.rkey
         self.location = other.location
 
-    def references(self, other: 'Resource'):
-        """
-        Mark another Resource as referenced by this one.
-
-        :param other:
-        :return:
-        """
-
-        other.referenced_by(self)
 
     def referenced_by(self, other: 'Resource') -> None:
         # print("%s %s REF BY %s %s" % (self.kind, self.name, other.kind, other.rkey))
