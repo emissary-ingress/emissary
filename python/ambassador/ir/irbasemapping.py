@@ -80,6 +80,7 @@ class IRBaseMapping (IRResource):
     sni: bool
     cached_status: Optional[Dict[str, str]]
     status_update: Optional[Dict[str, str]]
+    cluster_key: Optional[str]
 
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str,      # REQUIRED
@@ -95,6 +96,9 @@ class IRBaseMapping (IRResource):
         # Default status...
         self.cached_status = None
         self.status_update = None
+
+        # Start by assuming that we don't know the cluster key for this Mapping.
+        self.cluster_key = None
 
         # Init the superclass...
         super().__init__(

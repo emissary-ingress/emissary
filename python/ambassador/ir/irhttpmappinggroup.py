@@ -54,6 +54,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         'add_request_headers': True,    # do this manually.
         'add_response_headers': True,   # do this manually.
         'cluster': True,
+        'cluster_key': True,
         'host': True,
         'kind': True,
         'location': True,
@@ -186,31 +187,72 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
 
         # self.ir.logger.debug("%s: group now %s" % (self, self.as_json()))
 
-    @staticmethod
-    def add_cluster_for_mapping(ir: 'IR', aconf: Config, mapping: IRBaseMapping,
+    def add_cluster_for_mapping(self, mapping: IRBaseMapping,
                                 marker: Optional[str] = None) -> IRCluster:
         # Find or create the cluster for this Mapping...
 
-        cluster = IRCluster(ir=ir, aconf=aconf, parent_ir_resource=mapping,
-                            location=mapping.location,
-                            service=mapping.service,
-                            resolver=mapping.resolver,
-                            ctx_name=mapping.get('tls', None),
-                            host_rewrite=mapping.get('host_rewrite', False),
-                            enable_ipv4=mapping.get('enable_ipv4', None),
-                            enable_ipv6=mapping.get('enable_ipv6', None),
-                            grpc=mapping.get('grpc', False),
-                            load_balancer=mapping.get('load_balancer', None),
-                            keepalive=mapping.get('keepalive', None),
-                            connect_timeout_ms=mapping.get('connect_timeout_ms', 3000),
-                            cluster_idle_timeout_ms=mapping.get('cluster_idle_timeout_ms', None),
-                            circuit_breakers=mapping.get('circuit_breakers', None),
-                            marker=marker)
+        # self.ir.logger.info(f"AC4M: {self.group_id} Mapping {mapping.name}")
 
-        stored = ir.add_cluster(cluster)
+        cluster: Optional[IRCluster] = None
+
+        if mapping.cluster_key:
+            # Aha. Is our cluster already in the cache?
+            cached_cluster = self.ir.cache_fetch(mapping.cluster_key)
+
+            if cached_cluster is not None:
+                # We know a priori that anything in the cache under a cluster key must be
+                # an IRCluster, but let's assert that rather than casting.
+                assert(isinstance(cached_cluster, IRCluster))
+                cluster = cached_cluster
+
+                self.ir.logger.debug(f"IRHTTPMappingGroup: got Cluster from cache for {mapping.cluster_key}")
+
+        if not cluster:
+            # OK, we have to actually do some work.
+            self.ir.logger.debug(f"IRHTTPMappingGroup: synthesizing Cluster for {mapping.name}")
+            cluster = IRCluster(ir=self.ir, aconf=self.ir.aconf,
+                                parent_ir_resource=mapping,
+                                location=mapping.location,
+                                service=mapping.service,
+                                resolver=mapping.resolver,
+                                ctx_name=mapping.get('tls', None),
+                                host_rewrite=mapping.get('host_rewrite', False),
+                                enable_ipv4=mapping.get('enable_ipv4', None),
+                                enable_ipv6=mapping.get('enable_ipv6', None),
+                                grpc=mapping.get('grpc', False),
+                                load_balancer=mapping.get('load_balancer', None),
+                                keepalive=mapping.get('keepalive', None),
+                                connect_timeout_ms=mapping.get('connect_timeout_ms', 3000),
+                                cluster_idle_timeout_ms=mapping.get('cluster_idle_timeout_ms', None),
+                                circuit_breakers=mapping.get('circuit_breakers', None),
+                                marker=marker)
+
+        # Make sure that the cluster is actually in our IR...
+        stored = self.ir.add_cluster(cluster)
         stored.referenced_by(mapping)
 
-        # ...and return it. Done.
+        # ...and then check if we just synthesized this cluster.
+        if not mapping.cluster_key:
+            # Yes. The mapping is already in the cache, but we need to cache the cluster...
+            self.ir.cache_add(stored)
+
+            # ...and link the Group to the cluster.
+            #
+            # Right now, I'm going for maximum safety, which means a single chain linking 
+            # Mapping -> Group -> Cluster. That means that deleting a single Mapping deletes
+            # the Group to which that Mapping is attached, which in turn deletes all the
+            # Clusters for that Group.
+            #
+            # Performance might dictate linking Mapping -> Group and Mapping -> Cluster, so 
+            # that deleting a Mapping deletes the Group but only the single Cluster. Needs
+            # testing.
+
+            self.ir.cache_link(self, stored)
+
+            # Finally, save the cluster's cache_key in this Mapping.
+            mapping.cluster_key = stored.cache_key
+
+        # Finally, return the stored cluster. Done.
         return stored
 
     def finalize(self, ir: 'IR', aconf: Config) -> List[IRCluster]:
@@ -331,7 +373,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
             shadow = self.shadows[0]
 
             # The shadow is an IRMapping. Save the cluster for it.
-            shadow.cluster = self.add_cluster_for_mapping(ir, aconf, shadow, marker='shadow')
+            shadow.cluster = self.add_cluster_for_mapping(shadow, marker='shadow')
 
         # We don't need a cluster for host_redirect: it's just a name to redirect to.
 
@@ -339,7 +381,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
 
         if not redir:
             for mapping in self.mappings:
-                mapping.cluster = self.add_cluster_for_mapping(ir, aconf, mapping, mapping.cluster_tag)
+                mapping.cluster = self.add_cluster_for_mapping(mapping, mapping.cluster_tag)
 
             self.logger.debug(f"Normalizing weights in mappings now...")
             if not self.normalize_weights_in_mappings():
