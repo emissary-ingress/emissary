@@ -9,7 +9,7 @@ generate/files += $(OSS_HOME)/pkg/api/envoy
 generate/files += $(OSS_HOME)/pkg/api/pb
 generate/files += $(OSS_HOME)/pkg/envoy-control-plane
 generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
-generate/files += $(OSS_HOME)/OPENSOURCE.md
+# generate/files += $(OSS_HOME)/OPENSOURCE.md 	# Per @LukeShu for 1.7.0 -- something is broken here
 generate/files += $(OSS_HOME)/builder/requirements.txt
 generate: ## Update generated sources that get committed to git
 generate:
@@ -29,7 +29,7 @@ generate-clean:
 	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js
 	rm -rf $(OSS_HOME)/pkg/envoy-control-plane
 	rm -f $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
-	rm -f $(OSS_HOME)/OPENSOURCE.md
+# 	rm -f $(OSS_HOME)/OPENSOURCE.md 			 # Per @LukeShu for 1.7.0 -- something is broken here
 .PHONY: generate _generate generate-clean
 
 go-mod-tidy/oss:
