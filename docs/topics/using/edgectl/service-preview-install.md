@@ -19,15 +19,8 @@ There are two main mechanisms for installing Service Preview
 Service Preview is not currently compatible with Service Mesh installations.
 
 Please sign-up here to be notified when Service Mesh support is available in Service Preview.
-{{
-<!--[if lte IE 8]>
-<script charset="utf-8" type="text/javascript" src="//js.hsforms.net/forms/v2-legacy.js"></script>
-<![endif]-->
-<script charset="utf-8" type="text/javascript" src="//js.hsforms.net/forms/v2.js"></script>
-<script>
-    hbspt.forms.create({portalId: "485087", formId: "74d88685-9aac-41ff-b3e6-b580b1171020"});
-</script>
-}}
+
+<iframe style="display: block; margin: auto;" width="560" height="315" src="https://share.hsforms.com/1dNiGhZqsQf-z5rWAsRcQIAaean" frameborder="0"></iframe>
 
 ## Install with Edgectl
 
