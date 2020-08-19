@@ -23,6 +23,7 @@ from ipaddress import ip_address
 from ..constants import Constants
 
 from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo
+from ..cache import Cache, NullCache
 from ..config import Config
 
 from .irresource import IRResource
@@ -51,6 +52,20 @@ from ..VERSION import Version, Build
 ## After getting an ambassador.Config, you can create an ambassador.IR. The
 ## IR is the basis for everything else: you can use it to configure an Envoy
 ## or to run diagnostics.
+##
+## IRs are not meant to be terribly long-lived: if anything at all changes
+## in your world, you should toss the IR and make a new one. In particular,
+## it is _absolutely not OK_ to try to edit the contents of an IR and then
+## re-run any of the generators -- IRs are to be considered immutable once
+## created.
+##
+## This goes double in the incremental-reconfiguration world: the IRResources
+## that make up the IR all point back to their IR to make life easier on the
+## generators, so - to ease the transition to the incremental-reconfiguration
+## world - right now we reset the IR pointer when we pull these objects out
+## the cache. In the future this should be fixed, but at present, you can
+## really mess up your world if you try to have two active IRs sharing a
+## cache.
 
 
 IRFileChecker = Callable[[str], bool]
@@ -61,6 +76,7 @@ class IR:
     ambassador_namespace: str
     ambassador_nodename: str
     aconf: Config
+    cache: Cache
     clusters: Dict[str, IRCluster]
     agent_active: bool
     agent_service: Optional[str]
@@ -90,13 +106,19 @@ class IR:
                  secret_handler: SecretHandler, 
                  file_checker: Optional[IRFileChecker]=None,
                  logger: Optional[logging.Logger]=None, 
+                 cache: Optional[Cache]=None, 
                  watch_only=False) -> None:
+        # Initialize the basics...
         self.ambassador_id = Config.ambassador_id
         self.ambassador_namespace = Config.ambassador_namespace
         self.ambassador_nodename = aconf.ambassador_nodename
         self.statsd = aconf.statsd
 
+        # ...then make sure we have a logger...
         self.logger = logger or logging.getLogger("ambassador.ir")
+
+        # ...then make sure we have a cache (which might be a NullCache).
+        self.cache = cache or NullCache(self.logger)
 
         # We're using setattr since since mypy complains about assigning directly to a method.
         secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
@@ -471,6 +493,44 @@ class IR:
 
         mapping.referenced_by(self.ambassador_module)
         self.add_mapping(aconf, mapping)
+
+    def cache_fetch(self, key: str) -> Optional[IRResource]:
+        """
+        Fetch a key from our cache. If we get anything, make sure that its
+        IR pointer is set back to us -- since the cache can easily outlive 
+        the IR, chances are pretty high that the object might've originally
+        been part of a different IR.
+
+        Yes, this implies that trying to use the cache for multiple IRs at
+        the same time is a Very Bad Idea.
+        """
+
+        rsrc = self.cache[key]
+
+        # Did we get anything?
+        if rsrc is not None:
+            # By definition, anything the IR layer pulls from the cache must be
+            # an IRResource.
+            assert(isinstance(rsrc, IRResource))
+
+            # Since it's an IRResource, it has a pointer to the IR. Reset that.
+            rsrc.ir = self
+
+        return rsrc
+
+    def cache_add(self, rsrc: IRResource) -> None:
+        """
+        Add an IRResource to our cache. Mostly this is here to let mypy check
+        that everything cached by the IR layer is an IRResource.
+        """
+        self.cache.add(rsrc)
+
+    def cache_link(self, owner: IRResource, owned: IRResource) -> None:
+        """
+        Link two IRResources in our cache. Mostly this is here to let mypy check
+        that everything linked by the IR layer is an IRResource.
+        """
+        self.cache.link(owner, owned)
 
     def save_resource(self, resource: IRResource) -> IRResource:
         if resource.is_active():
@@ -1029,5 +1089,7 @@ class IR:
 
         od['fast_validation'] = Config.fast_validation
         od['fast_validation_disagreements'] = len(self.aconf.fast_validation_disagreements.keys())
+
+        od['fast_reconfigure'] = not isinstance(self.cache, NullCache)
 
         return od

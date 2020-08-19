@@ -5,12 +5,13 @@ from typing import Any, Dict, List, Optional, Type, TypeVar
 import json
 
 from .utils import parse_yaml
+from .cache import Cacheable
 
 
 R = TypeVar('R', bound='Resource')
 
 
-class Resource (dict):
+class Resource (Cacheable):
     """
     A resource that's part of the overall Ambassador configuration world. This is
     the base class for IR resources, Ambassador-config resources, etc.
