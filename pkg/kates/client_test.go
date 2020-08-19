@@ -2,6 +2,7 @@ package kates
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 func TestCRUD(t *testing.T) {
@@ -237,9 +237,8 @@ func TestCoherence(t *testing.T) {
 
 	// This simulates an api server that is very slow at notifying its watch clients of updates to
 	// config maps, but notifies of other resources at normal speeds. This can really happen.
-	cli.watchUpdated = func(_, obj interface{}) {
-		un := obj.(*unstructured.Unstructured)
-		if un.GetKind() == "ConfigMap" {
+	cli.watchUpdated = func(_, obj *Unstructured) {
+		if obj.GetKind() == "ConfigMap" {
 			time.Sleep(5 * time.Second)
 		}
 	}
@@ -318,15 +317,22 @@ func TestCoherence(t *testing.T) {
 		defer close(done)
 
 		for {
+			var deltas []*Delta
 			select {
 			case <-acc.Changed():
 				mutex.Lock()
-				if !acc.Update(snap) {
+				if !acc.UpdateWithDeltas(snap, &deltas) {
 					mutex.Unlock()
 					continue
 				}
 			case <-ctx.Done():
 				return
+			}
+
+			for _, delta := range deltas {
+				bytes, err := json.Marshal(delta)
+				assert.NoError(t, err)
+				t.Log(string(bytes))
 			}
 
 			func() {
@@ -391,4 +397,161 @@ func TestCoherence(t *testing.T) {
 	}
 
 	<-done
+}
+
+func TestDeltas(t *testing.T) {
+	doDeltaTest(t, 0, func(_, _ *Unstructured) {})
+}
+
+func TestDeltasWithLocalDelay(t *testing.T) {
+	doDeltaTest(t, 3*time.Second, func(_, _ *Unstructured) {})
+}
+
+func TestDeltasWithRemoteDelay(t *testing.T) {
+	doDeltaTest(t, 0, func(old, new *Unstructured) {
+		// This will slow down updates to just the resources we are paying attention to in this test.
+		obj := new
+		if obj == nil {
+			obj = old
+		}
+
+		if strings.HasPrefix(obj.GetName(), "test-deltas") {
+			time.Sleep(3 * time.Second)
+		}
+	})
+}
+
+func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstructured, *Unstructured)) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+	cli, err := NewClient(ClientOptions{})
+	require.NoError(t, err)
+	cli.watchAdded = watchHook
+	cli.watchUpdated = watchHook
+	cli.watchDeleted = watchHook
+
+	cm1 := &ConfigMap{
+		TypeMeta: TypeMeta{
+			Kind: "ConfigMap",
+		},
+		ObjectMeta: ObjectMeta{
+			Name:   "test-deltas-1",
+			Labels: map[string]string{},
+		},
+	}
+
+	cm2 := &ConfigMap{
+		TypeMeta: TypeMeta{
+			Kind: "ConfigMap",
+		},
+		ObjectMeta: ObjectMeta{
+			Name:   "test-deltas-2",
+			Labels: map[string]string{},
+		},
+	}
+
+	defer func() {
+		ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+		if cm1 != nil {
+			err := cli.Delete(ctx, cm1, nil)
+			if err != nil {
+				t.Log(err)
+			}
+		}
+		err := cli.Delete(ctx, cm2, nil)
+		if err != nil {
+			t.Log(err)
+		}
+	}()
+
+	err = cli.Get(ctx, cm1, nil)
+	assert.Error(t, err, "expecting not found error")
+	if !IsNotFound(err) {
+		t.Error(err)
+		return
+	}
+
+	err = cli.Get(ctx, cm2, nil)
+	assert.Error(t, err, "expecting not found error")
+	if !IsNotFound(err) {
+		t.Error(err)
+		return
+	}
+
+	acc := cli.Watch(ctx, Query{Name: "ConfigMaps", Kind: "ConfigMap"})
+	snap := &TestSnapshot{}
+
+	err = cli.Upsert(ctx, cm1, cm1, nil)
+	require.NoError(t, err)
+	err = cli.Upsert(ctx, cm2, cm2, nil)
+	require.NoError(t, err)
+
+	time.Sleep(localDelay)
+
+	for {
+		<-acc.Changed()
+		var deltas []*Delta
+		if !acc.UpdateWithDeltas(snap, &deltas) {
+			continue
+		}
+
+		checkForDelta(t, ObjectAdd, "test-deltas-1", deltas)
+		checkForDelta(t, ObjectAdd, "test-deltas-2", deltas)
+		break
+	}
+
+	cm1.SetLabels(map[string]string{"foo": "bar"})
+	err = cli.Upsert(ctx, cm1, cm1, nil)
+	require.NoError(t, err)
+
+	for {
+		<-acc.Changed()
+		var deltas []*Delta
+		if !acc.UpdateWithDeltas(snap, &deltas) {
+			continue
+		}
+
+		checkForDelta(t, ObjectUpdate, "test-deltas-1", deltas)
+		checkNoDelta(t, "test-deltas-2", deltas)
+		break
+	}
+
+	err = cli.Delete(ctx, cm1, nil)
+	require.NoError(t, err)
+	cm1 = nil
+
+	time.Sleep(localDelay)
+
+	for {
+		<-acc.Changed()
+		var deltas []*Delta
+		if !acc.UpdateWithDeltas(snap, &deltas) {
+			continue
+		}
+
+		checkForDelta(t, ObjectDelete, "test-deltas-1", deltas)
+		checkNoDelta(t, "test-deltas-2", deltas)
+		break
+	}
+
+	cancel()
+}
+
+func checkForDelta(t *testing.T, dt DeltaType, name string, deltas []*Delta) {
+	for _, delta := range deltas {
+		if delta.DeltaType == dt && delta.GetName() == name {
+			return
+		}
+	}
+
+	assert.Fail(t, fmt.Sprintf("could not find delta %d %s", dt, name))
+}
+
+func checkNoDelta(t *testing.T, name string, deltas []*Delta) {
+	for _, delta := range deltas {
+		if delta.GetName() == name {
+			assert.Fail(t, fmt.Sprintf("found delta %s: %d", name, delta.DeltaType))
+			return
+		}
+	}
 }
