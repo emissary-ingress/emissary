@@ -92,7 +92,7 @@ class IRBaseMapping (IRResource):
                  precedence: int=0,
                  cluster_tag: Optional[str]=None,
                  **kwargs) -> None:
-        # Default status.
+        # Default status...
         self.cached_status = None
         self.status_update = None
 
@@ -105,6 +105,13 @@ class IRBaseMapping (IRResource):
         )
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
+        # Set up our cache key. We're using this format so that it'll be easy
+        # to generate it just from the Mapping's K8s metadata.
+        self._cache_key = f"Mapping-v2-{self.name}-{self.namespace}"
+
+        # ...and start without a cluster key for this Mapping.
+        self.cluster_key = None
+
         # We assume that any subclass madness is managed already, so we can compute the group ID...
         self.group_id = self._group_id()
 

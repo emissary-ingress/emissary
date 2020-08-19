@@ -700,15 +700,31 @@ class IR:
 
         if mapping.is_active():
             if mapping.group_id not in self.groups:
-                group_name = "GROUP: %s" % mapping.name
-                group_class = mapping.group_class()
-                group = group_class(ir=self, aconf=aconf,
-                                    location=mapping.location,
-                                    name=group_name,
-                                    mapping=mapping)
+                # Is this group in our external cache?
+                group_key = mapping.group_class().key_for_id(mapping.group_id)
+                group = self.cache_fetch(group_key)
 
+                if group is not None:
+                    self.logger.debug(f"IR: got group from cache for {mapping.name}")
+                else:
+                    self.logger.debug(f"IR: synthesizing group for {mapping.name}")
+                    group_name = "GROUP: %s" % mapping.name
+                    group_class = mapping.group_class()
+                    group = group_class(ir=self, aconf=aconf,
+                                        location=mapping.location,
+                                        name=group_name,
+                                        mapping=mapping)
+
+                    self.cache_add(mapping)
+                    self.cache_add(group)
+                    self.cache_link(mapping, group)
+
+                # There's no way group can be anything but a non-None IRBaseMappingGroup
+                # here. assert() that so that mypy understands it.
+                assert(isinstance(group, IRBaseMappingGroup))   # for mypy
                 self.groups[group.group_id] = group
             else:
+                self.logger.debug(f"IR: already have group for {mapping.name}")
                 group = self.groups[mapping.group_id]
                 group.add_mapping(aconf, mapping)
 

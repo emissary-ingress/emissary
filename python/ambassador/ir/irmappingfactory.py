@@ -42,7 +42,23 @@ class MappingFactory:
         for config in config_info.values():
             # ir.logger.debug("creating mapping for %s" % repr(config))
 
-            mapping = mapping_class(ir, aconf, **config)
+            # Is this mapping already in the cache?
+            key = f"Mapping-{config.rkey}-{config.name}"
+
+            mapping: Optional[IRBaseMapping] = None
+            cached_mapping = ir.cache_fetch(key)
+
+            if cached_mapping is None:
+                # Cache miss: synthesize a new Mapping.
+                ir.logger.debug(f"IR: synthesizing Mapping for {config.name}")
+                mapping = mapping_class(ir, aconf, **config)
+            else:
+                # Cache hit. We know a priori that anything in the cache under a Mapping
+                # key must be an IRBaseMapping, but let's assert that rather than casting.
+                assert(isinstance(cached_mapping, IRBaseMapping))
+                mapping = cached_mapping
+               
+            ir.logger.debug(f"IR: adding Mapping for {config.name}")
             ir.add_mapping(aconf, mapping)
 
     @classmethod
