@@ -188,7 +188,7 @@ class NullCache(Cache):
         pass
     
     def dump(self) -> None:
-        self.logger.info("NULLCACHE: empty")
+        self.logger.info("NullCache: empty")
 
     def delete(self, key: str) -> None:
         pass
