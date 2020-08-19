@@ -43,9 +43,9 @@ class IRBaseMappingGroup (IRResource):
     # setter, too, and I cannot figure out how else to shut it up.
     @property   # type: ignore
     def cache_key(self) -> str:
-        # XXX WTFO, I hear you cry again! Can this possible be thread-safe??!
+        # XXX WTFO, I hear you cry again! Can this possibly be thread-safe??!
         # Well, no, not really. But as long as you're not trying to use the
-        # cache_key before actually initializing this group, init_cache_key()
+        # cache_key before actually initializing this group, key_for_id()
         # will be idempotent, so it doesn't matter.
 
         if not self._cache_key:
