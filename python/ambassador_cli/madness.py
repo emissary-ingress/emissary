@@ -137,7 +137,7 @@ class Madness:
 
         return (econf, _pr.stats())
 
-    def build(self, cache=True, profile=False) -> Tuple[IR, EnvoyConfig, pstats.Stats]:
+    def build(self, cache=True, profile=False) -> Tuple[IR, EnvoyConfig, OptionalStats]:
         _cache = self.cache if cache else None
 
         _pr = Profiler() if profile else NullProfiler()
