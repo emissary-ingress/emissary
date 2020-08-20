@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"text/tabwriter"
+
+	. "github.com/datawire/ambassador/pkg/mkopensource/detectlicense"
 )
 
 type tuple struct {
