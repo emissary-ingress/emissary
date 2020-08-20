@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/datawire/build-aux/bin-go/go-mkopensource/internal/golist"
+	"github.com/datawire/ambassador/cmd/go-mkopensource/internal/golist"
 )
 
 ////////////////////////////////////////////////////////////////////////

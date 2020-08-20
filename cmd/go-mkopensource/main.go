@@ -17,8 +17,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
-	"github.com/datawire/build-aux/bin-go/go-mkopensource/internal/detectlicense"
-	"github.com/datawire/build-aux/bin-go/go-mkopensource/internal/golist"
+	"github.com/datawire/ambassador/cmd/go-mkopensource/internal/detectlicense"
+	"github.com/datawire/ambassador/cmd/go-mkopensource/internal/golist"
 )
 
 type CLIArgs struct {
@@ -220,7 +220,7 @@ func Main(args *CLIArgs) error {
     the license is.  (This is a good thing, because it is reminding you
     to check the license of libraries before using them.)
 
-    You need to update the "./build-aux/bin-go/go-mkopensource/**/licenses.go"
+    You need to update the "github.com/datawire/ambassador/cmd/go-mkopensource/**/licenses.go"
     file to correctly detect the license.`,
 				errors.Wrapf(err, "package %q", pkgName))
 		}

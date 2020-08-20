@@ -113,7 +113,7 @@ tools/fix-crds = $(OSS_HOME)/build-aux-local/fix-crds
 tools/go-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/go-mkopensource
 $(tools/go-mkopensource): FORCE
 	mkdir -p $(@D)
-	cd $(OSS_HOME)/build-aux/bin-go/go-mkopensource && go build -o $@ github.com/datawire/build-aux/bin-go/go-mkopensource
+	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/cmd/go-mkopensource
 
 # A python script
 tools/py-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/py-mkopensource
