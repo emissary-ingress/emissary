@@ -68,7 +68,7 @@ class Builder:
                     raise RuntimeError(f"Cannot update {key}")
 
                 if self.cache is not None:
-                    self.cache.delete(key)
+                    self.cache.invalidate(key)
 
             self.resources[key] = rsrc
 
@@ -88,7 +88,7 @@ class Builder:
                 del(self.resources[key])
 
                 if self.cache is not None:
-                    self.cache.delete(key)
+                    self.cache.invalidate(key)
 
     def build(self) -> Tuple[IR, EnvoyConfig]:
         # Do a build, return IR & econf, but also stash them in self.builds.
@@ -116,10 +116,10 @@ class Builder:
 
         return ir, econf
 
-    def delete(self, key) -> None:
+    def invalidate(self, key) -> None:
         assert self.cache[key] is not None, f"key {key} is not cached"
 
-        self.cache.delete(key)
+        self.cache.invalidate(key)
 
     def check(self, what: str, b1: Tuple[IR, EnvoyConfig], b2: Tuple[IR, EnvoyConfig],
               strip_cache_keys=False) -> None:
@@ -196,7 +196,7 @@ def test_simple_targets():
 
     builder.check_last("immediate rebuild")
 
-    builder.delete("Mapping-v2-foo-4-default")
+    builder.invalidate("Mapping-v2-foo-4-default")
 
     builder.build()
 
@@ -211,11 +211,13 @@ def test_smashed_targets():
 
     builder.check_last("immediate rebuild")
 
-    builder.delete("Mapping-v2-foo-4-default")
+    # Invalidate two things that share common links.
+    builder.invalidate("Mapping-v2-foo-4-default")
+    builder.invalidate("Mapping-v2-foo-6-default")
 
     builder.build()
 
-    builder.check_last("after delete foo-4")
+    builder.check_last("after invalidating foo-4 and foo-6")
 
 
 def test_delta_1():

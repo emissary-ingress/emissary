@@ -1322,7 +1322,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 # list.
     
                 delta_errors = 0
-                to_delete: List[str] = []
+                to_invalidate: List[str] = []
 
                 for delta in fetcher.deltas:
                     self.logger.debug(f"Delta: {delta}")
@@ -1347,16 +1347,16 @@ class AmbassadorEventWatcher(threading.Thread):
                             self.logger.error(f"Delta object needs name and namespace: {delta}")
                         else:
                             key = IRBaseMapping.make_cache_key(delta_kind, name, namespace)
-                            to_delete.append(key)
+                            to_invalidate.append(key)
 
-                # OK. If we have things to delete, and we have NO ERRORS...
-                if to_delete and not delta_errors:
-                    # ...then we can delete all those things instead of clearing the cache.
+                # OK. If we have things to invalidate, and we have NO ERRORS...
+                if to_invalidate and not delta_errors:
+                    # ...then we can invalidate all those things instead of clearing the cache.
                     reset_cache = False
 
-                    for key in to_delete:
-                        self.logger.debug(f"Delta: deleting {key}")
-                        self.app.cache.delete(key)
+                    for key in to_invalidate:
+                        self.logger.debug(f"Delta: invalidating {key}")
+                        self.app.cache.invalidate(key)
                 
             # When all is said and done, reset the cache if necessary.
             if reset_cache:

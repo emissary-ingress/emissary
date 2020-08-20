@@ -113,28 +113,52 @@ class Cache():
                 for owned in sorted(self.links[k]):
                     self.logger.info(f"CACHE:   -> {owned}")
 
-    def delete(self, key: str) -> None:
+    def invalidate(self, key: str) -> None:
         """
-        Recursively delete the entry named by 'key' and everything it owns.
+        Recursively invalidate the entry named by 'key' and everything to which it
+        is linked.
         """
 
+        # We use worklist to keep track of things to consider: for starters, 
+        # it just has our key in it, and as we find owned things, we add them
+        # to the worklist to consider.
+        #
+        # Note that word "consider". If you want to invalidate something from 
+        # the cache that isn't in the cache, that's not an error -- it'll be
+        # silently ignored. That helps with dangling links (e.g. if two Mappings
+        # both link to the same Group, and you invalidate the first Mapping, the 
+        # second will have a dangling link to the now-invalidated Group, and that
+        # needs to not break anything).
         worklist = [ key ]
+
+        # Under the hood, "invalidating" something from this cache is really
+        # deleting it, so we'll use "to_delete" for the set of things we're going
+        # to, y'knom, delete. We find all the resources we're going to work with
+        # before deleting any of them, because I get paranoid about modifying a
+        # data structure while I'm trying to traverse it.
         to_delete = []
 
+        # Keep going until we have nothing else to do.
         while worklist:
+            # Pop off the first thing...
             key = worklist.pop(0)
 
+            # ...and check if it's in the cache.
             if key in self.cache:
+                # It is, good. We can append it to our set of things to delete...
                 rsrc, on_delete = self.cache[key]
 
                 self.logger.debug(f"CACHE: DEL {key}: will delete {rsrc}")
                 to_delete.append((key, rsrc, on_delete))
 
+                # ...and then toss all of its linked objects on our list to
+                # consider.
                 if key in self.links:
                     for owned in sorted(self.links[key]):
                         self.logger.debug(f"CACHE: DEL {key}: will check owned {owned}")
                         worklist.append(owned)
                 
+        # OK, we have a set of things to delete. Get to it.
         for key, rsrc, on_delete in to_delete:
             self.logger.debug(f"CACHE: DEL {key}: smiting!")
             del(self.cache[key])
@@ -190,7 +214,7 @@ class NullCache(Cache):
     def dump(self) -> None:
         self.logger.info("NullCache: empty")
 
-    def delete(self, key: str) -> None:
+    def invalidate(self, key: str) -> None:
         pass
 
     def __getitem__(self, key: str) -> Any:
