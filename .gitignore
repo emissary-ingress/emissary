@@ -82,6 +82,12 @@ ambassador-secrets-deployment.yaml
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2020-08-20
+/cxx/envoy/
+/cxx/envoy-static
+/cxx/envoy-build-image.txt
+/cxx/envoy-build-container.txt
+/cxx/go-control-plane/
 # 2019-10-13
 /build/kat/client/kat_client
 /build/kat/client/teleproxy

@@ -379,8 +379,8 @@ and tests on a RAM disk (see the `/etc/fstab` line above).
    version of the Envoy sources, and create a branch from that:
 
    ```shell
-   make $(pwd)/cxx/envoy
-   git -C cxx/envoy checkout -b YOUR_BRANCHNAME
+   make $(pwd)/_cxx/envoy
+   git -C _cxx/envoy checkout -b YOUR_BRANCHNAME
    ```
 
 2. Tell the build system that, yes, you really would like to be
@@ -398,7 +398,7 @@ and tests on a RAM disk (see the `/etc/fstab` line above).
 
    Setting `ENVOY_COMMIT=-` does 3 things:
     1. Tell it to use whatever is currently checked out in
-       `./cxx/envoy/` (instead of checking out a specific commit), so
+       `./_cxx/envoy/` (instead of checking out a specific commit), so
        that you are free to modify those sources.
     2. Don't try to download a cached build of Envoy from a Docker
        cache (since it wouldn't know which `ENVOY_COMMIT` do download
@@ -408,7 +408,7 @@ and tests on a RAM disk (see the `/etc/fstab` line above).
 
 ### 3. Hacking on Envoy
 
-Modify the sources in `./cxx/envoy/`.
+Modify the sources in `./_cxx/envoy/`.
 
 ### 4. Building and testing your hacked-up Envoy
 
@@ -473,18 +473,18 @@ Modify the sources in `./cxx/envoy/`.
 
 Once you're happy with your changes to Envoy:
 
-1. Ensure they're committed to `cxx/envoy/` and push/PR them in to
+1. Ensure they're committed to `_cxx/envoy/` and push/PR them in to
    https://github.com/datawire/envoy branch `rebase/master`.
 
    If you're outside of Datawire, you'll need to
     a. Create a fork of https://github.com/datawire/envoy on the
        GitHub web interface
-    b. Add it as a remote to your `./cxx/envoy/`:
+    b. Add it as a remote to your `./_cxx/envoy/`:
        `git remote add my-fork git@github.com:YOUR_USERNAME/envoy.git`
     c. Push the branch to that fork:
        `git push my-fork YOUR_BRANCHNAME`
 
-2. Update `ENVOY_COMMIT` in `cxx/envoy.mk`
+2. Update `ENVOY_COMMIT` in `_cxx/envoy.mk`
 
 3. Unset `ENVOY_COMMIT=-` and run a final `make update-base` to
    push a cached build:

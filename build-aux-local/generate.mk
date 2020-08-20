@@ -22,7 +22,7 @@ generate-clean: ## Delete generated sources that get committed to git
 generate-clean:
 	rm -rf $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb
 	rm -rf $(OSS_HOME)/pkg/api/envoy $(OSS_HOME)/pkg/api/pb
-	rm -rf $(OSS_HOME)/cxx/envoy/build_go
+	rm -rf $(OSS_HOME)/_cxx/envoy/build_go
 	rm -rf $(OSS_HOME)/pkg/api/kat
 	rm -f $(OSS_HOME)/pkg/api/agent/*.pb.go
 	rm -rf $(OSS_HOME)/python/ambassador/proto
@@ -134,14 +134,14 @@ $(tools/py-mkopensource): FORCE
 # bad, mmkay?
 ENVOY_GO_CONTROL_PLANE_COMMIT = v0.9.6
 
-guess-envoy-go-control-plane-commit: $(OSS_HOME)/cxx/envoy $(OSS_HOME)/cxx/go-control-plane
+guess-envoy-go-control-plane-commit: $(OSS_HOME)/_cxx/envoy $(OSS_HOME)/_cxx/go-control-plane
 	@echo
 	@echo '######################################################################'
 	@echo
 	@set -e; { \
-	  (cd $(OSS_HOME)/cxx/go-control-plane && git log --format='%H %s' origin/master) | sed -n 's, Mirrored from envoyproxy/envoy @ , ,p' | \
+	  (cd $(OSS_HOME)/_cxx/go-control-plane && git log --format='%H %s' origin/master) | sed -n 's, Mirrored from envoyproxy/envoy @ , ,p' | \
 	  while read -r go_commit cxx_commit; do \
-	    if (cd $(OSS_HOME)/cxx/envoy && git merge-base --is-ancestor "$$cxx_commit" $(ENVOY_COMMIT) 2>/dev/null); then \
+	    if (cd $(OSS_HOME)/_cxx/envoy && git merge-base --is-ancestor "$$cxx_commit" $(ENVOY_COMMIT) 2>/dev/null); then \
 	      echo "ENVOY_GO_CONTROL_PLANE_COMMIT = $$go_commit"; \
 	      break; \
 	    fi; \
@@ -149,14 +149,14 @@ guess-envoy-go-control-plane-commit: $(OSS_HOME)/cxx/envoy $(OSS_HOME)/cxx/go-co
 	}
 .PHONY: guess-envoy-go-control-plane-commit
 
-$(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/cxx/go-control-plane FORCE
+$(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
 	rm -rf $@
 	@PS4=; set -ex; { \
 	  unset GIT_DIR GIT_WORK_TREE; \
 	  tmpdir=$$(mktemp -d); \
 	  trap 'rm -rf "$$tmpdir"' EXIT; \
 	  cd "$$tmpdir"; \
-	  cd $(OSS_HOME)/cxx/go-control-plane; \
+	  cd $(OSS_HOME)/_cxx/go-control-plane; \
 	  cp -r $$(git ls-files ':[A-Z]*' ':!Dockerfile*' ':!Makefile') pkg/* "$$tmpdir"; \
 	  find "$$tmpdir" -name '*.go' -exec sed -E -i.bak \
 	    -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/datawire/ambassador/pkg/envoy-control-plane,g' \
