@@ -42,7 +42,9 @@ class NullProfiler(Profiler):
         
 
 class Madness:
-    def __init__(self, snapshot_path: str, 
+    def __init__(self,
+                 watt_path: Optional[str]=None,
+                 yaml_path: Optional[str]=None,
                  logger: Optional[logging.Logger]=None,
                  secret_handler: Optional[SecretHandler]=None, 
                  file_checker: Optional[IRFileChecker]=None) -> None:
@@ -77,7 +79,13 @@ class Madness:
 
         with self.fetcher_timer:
             self.fetcher = ResourceFetcher(self.logger, self.aconf)
-            self.fetcher.parse_watt(open(snapshot_path, "r").read())
+
+            if watt_path: 
+                self.fetcher.parse_watt(open(watt_path, "r").read())
+            elif yaml_path:
+                self.fetcher.parse_yaml(open(yaml_path, "r").read(), k8s=True)
+            else:
+                raise RuntimeError("either watt_path or yaml_path must be provided")
 
         with self.aconf_timer:
             self.aconf.load_all(self.fetcher.sorted())
