@@ -1333,8 +1333,8 @@ class AmbassadorEventWatcher(threading.Thread):
                     delta_kind = delta['kind']
                     assert(isinstance(delta_kind, str))
 
-                    # Only worry about Mappings right now.
-                    if delta_kind == 'Mapping':
+                    # Only worry about Mappings and TCPMappings right now.
+                    if (delta_kind == 'Mapping') or (delta_kind == 'TCPMapping'):
                         # XXX C'mon, mypy, is this cast really necessary?
                         metadata = typecast(Dict[str, str], delta.get("metadata", {}))
                         name = metadata.get("name", "")
