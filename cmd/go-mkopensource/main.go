@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"sort"
@@ -169,15 +170,37 @@ func Main(args *CLIArgs) error {
 	}
 
 	// `go list`
-	listPkgs, err := golist.GoList(args.Package, "-deps")
-	if err != nil {
-		return err
-	}
-	// `go list -m` (fast: in-memory)
-	mainMods := make(map[string]struct{})
-	for _, pkg := range listPkgs {
-		if !pkg.DepOnly && pkg.Module != nil {
-			mainMods[pkg.Module.Path] = struct{}{}
+	var mainMods map[string]struct{}
+	var listPkgs []golist.Package
+	if args.Package == "mod" {
+		// `go list`
+		listPkgs, err = VendorList()
+		if err != nil {
+			return err
+		}
+		listPkgs = append(listPkgs, golist.Package{}) // stdlib
+
+		// `go list -m`
+		cmd := exec.Command("go", "list", "-m")
+		cmd.Stderr = os.Stderr
+		modname, err := cmd.Output()
+		if err != nil {
+			return err
+		}
+		mainMods = make(map[string]struct{}, 1)
+		mainMods[strings.TrimSpace(string(modname))] = struct{}{}
+	} else {
+		// `go list`
+		listPkgs, err = golist.GoListPackages([]string{"-deps"}, []string{args.Package})
+		if err != nil {
+			return err
+		}
+		// `go list -m` (fast: in-memory)
+		mainMods = make(map[string]struct{})
+		for _, pkg := range listPkgs {
+			if !pkg.DepOnly && pkg.Module != nil {
+				mainMods[pkg.Module.Path] = struct{}{}
+			}
 		}
 	}
 
@@ -193,8 +216,14 @@ func Main(args *CLIArgs) error {
 			if _, isMainMod := mainMods[pkg.Module.Path]; isMainMod {
 				continue
 			}
-			if err := collectPkg(vendor, pkg); err != nil {
-				return err
+			if args.Package == "mod" {
+				if err := collectVendoredPkg(vendor, pkg); err != nil {
+					return err
+				}
+			} else {
+				if err := collectPkg(vendor, pkg); err != nil {
+					return err
+				}
 			}
 		}
 		pkgFiles[pkg.ImportPath] = vendor
@@ -281,7 +310,18 @@ func Main(args *CLIArgs) error {
 
 	// Generate the readme file.
 	readme := new(bytes.Buffer)
-	if len(mainLibPkgs) == 0 {
+	if args.Package == "mod" {
+		modnames := make([]string, 0, len(mainMods))
+		for modname := range mainMods {
+			modnames = append(modnames, modname)
+		}
+		if len(mainMods) == 1 {
+			readme.WriteString(wordwrap(75, fmt.Sprintf("The Go module %q incorporates the following Free and Open Source software:", modnames[0])))
+		} else {
+			sort.Strings(modnames)
+			readme.WriteString(wordwrap(75, fmt.Sprintf("The Go modules %q incorporate the following Free and Open Source software:", modnames)))
+		}
+	} else if len(mainLibPkgs) == 0 {
 		if len(mainCmdPkgs) == 1 {
 			readme.WriteString(wordwrap(75, fmt.Sprintf("The program %q incorporates the following Free and Open Source software:", path.Base(mainCmdPkgs[0]))))
 		} else {
@@ -332,7 +372,9 @@ func Main(args *CLIArgs) error {
 		}
 		sort.Strings(licenseList)
 		depLicenses = strings.Join(licenseList, ", ")
-
+		if depLicenses == "" {
+			panic(errors.Errorf("this should not happen: empty license string for %q", depName))
+		}
 		fmt.Fprintf(table, "\t%s\t%s\t%s\n", depName, depVersion, depLicenses)
 	}
 	table.Flush()

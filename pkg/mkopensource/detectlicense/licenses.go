@@ -133,6 +133,9 @@ func DetectLicenses(files map[string][]byte) (map[License]struct{}, error) {
 		return nil, errors.New("could not identify a license for all sources (had no global LICENSE file)")
 	}
 
+	if len(licenses) == 0 {
+		panic(errors.New("should not happen"))
+	}
 	return licenses, nil
 }
 
