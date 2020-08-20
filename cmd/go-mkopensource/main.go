@@ -289,7 +289,7 @@ func Main(args *CLIArgs) error {
 		}
 	} else {
 		if len(mainLibPkgs) == 1 {
-			readme.WriteString(wordwrap(75, fmt.Sprintf("The Go package %q incorporates the following Free and Open Source software:", mainLibPkgs[1])))
+			readme.WriteString(wordwrap(75, fmt.Sprintf("The Go package %q incorporates the following Free and Open Source software:", mainLibPkgs[0])))
 		} else {
 			readme.WriteString(wordwrap(75, fmt.Sprintf("The Go packages %q incorporate the following Free and Open Source software:", args.Package)))
 		}
