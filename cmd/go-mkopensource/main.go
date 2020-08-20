@@ -162,25 +162,26 @@ func Main(args *CLIArgs) error {
 	// Let's do the expensive stuff (stuff that isn't entirely
 	// in-memory) up-front.
 
-	// `go list`
-	listPkgs, err := golist.GoList(args.Package, "-deps")
-	if err != nil {
-		return err
-	}
-
 	// `tar xf go{version}.src.tar.gz`
 	goVersion, goLicense, err := loadGoTar(args.GoTarFilename)
 	if err != nil {
 		return err
 	}
 
-	// `go mod vendor`
+	// `go list`
+	listPkgs, err := golist.GoList(args.Package, "-deps")
+	if err != nil {
+		return err
+	}
+	// `go list -m` (fast: in-memory)
 	mainMods := make(map[string]struct{})
 	for _, pkg := range listPkgs {
 		if !pkg.DepOnly && pkg.Module != nil {
 			mainMods[pkg.Module.Path] = struct{}{}
 		}
 	}
+
+	// `go mod vendor`
 	pkgFiles := make(map[string]map[string][]byte)
 	for _, pkg := range listPkgs {
 		vendor := make(map[string][]byte)
