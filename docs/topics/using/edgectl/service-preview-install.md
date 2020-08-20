@@ -20,7 +20,7 @@ Service Preview is not currently compatible with Service Mesh installations.
 
 Please sign-up here to be notified when Service Mesh support is available in Service Preview.
 
-<iframe style="display: block; margin: auto;" width="560" height="315" src="https://share.hsforms.com/1dNiGhZqsQf-z5rWAsRcQIAaean" frameborder="0"></iframe>
+<iframe width="560" height="150" src="https://share.hsforms.com/1dNiGhZqsQf-z5rWAsRcQIAaean" frameborder="0"></iframe>
 
 ## Install with Edgectl
 
