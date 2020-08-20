@@ -24,7 +24,7 @@ generate-clean:
 	rm -rf $(OSS_HOME)/pkg/api/envoy $(OSS_HOME)/pkg/api/pb
 	rm -rf $(OSS_HOME)/cxx/envoy/build_go
 	rm -rf $(OSS_HOME)/pkg/api/kat
-	rm -r $(OSS_HOME)/pkg/api/agent/*.pb.go
+	rm -f $(OSS_HOME)/pkg/api/agent/*.pb.go
 	rm -rf $(OSS_HOME)/python/ambassador/proto
 	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js
 	rm -rf $(OSS_HOME)/pkg/envoy-control-plane
