@@ -3,14 +3,53 @@ package entrypoint
 import (
 	"context"
 	"fmt"
+	"log"
 	"reflect"
 	"sync"
 
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/pkg/consulwatch"
+	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/watt"
 	consulapi "github.com/hashicorp/consul/api"
 )
+
+func (s *AmbassadorInputs) ReconcileConsul(ctx context.Context, consul *consul) {
+	var mappings []*amb.Mapping
+	for _, svc := range s.Services {
+		ann, ok := svc.GetAnnotations()["getambassador.io/config"]
+		if ok {
+			objs, err := kates.ParseManifests(ann)
+			if err != nil {
+				log.Printf("error parsing annotations: %v", err)
+			} else {
+				for _, o := range objs {
+					u, ok := o.(*kates.Unstructured)
+					c := convertAnnotation(svc.GetNamespace(), u)
+					m, ok := c.(*amb.Mapping)
+					if ok && include(m.Spec.AmbassadorID) {
+						mappings = append(mappings, m)
+					}
+				}
+			}
+		}
+	}
+
+	var resolvers []*amb.ConsulResolver
+	for _, cr := range s.ConsulResolvers {
+		if include(cr.Spec.AmbassadorID) {
+			resolvers = append(resolvers, cr)
+		}
+	}
+
+	for _, m := range s.Mappings {
+		if include(m.Spec.AmbassadorID) {
+			mappings = append(mappings, m)
+		}
+	}
+
+	consul.reconcile(s.ConsulResolvers, mappings)
+}
 
 type consul struct {
 	watcher                   Watcher
