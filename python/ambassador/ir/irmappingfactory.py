@@ -27,11 +27,12 @@ def unique_mapping_name(aconf: Config, name: str) -> str:
 class MappingFactory:
     @classmethod
     def load_all(cls, ir: 'IR', aconf: Config) -> None:
-        cls.load_config(ir, aconf, "mappings", IRHTTPMapping)
-        cls.load_config(ir, aconf, "tcpmappings", IRTCPMapping)
+        cls.load_config(ir, aconf, "Mapping", "mappings", IRHTTPMapping)
+        cls.load_config(ir, aconf, "TCPMapping", "tcpmappings", IRTCPMapping)
 
     @classmethod
-    def load_config(cls, ir: 'IR', aconf: Config, config_name: str, mapping_class: Type[IRBaseMapping]) -> None:
+    def load_config(cls, ir: 'IR', aconf: Config,
+                    kind: str, config_name: str, mapping_class: Type[IRBaseMapping]) -> None:
         config_info = aconf.get_config(config_name)
 
         if not config_info:
@@ -43,7 +44,7 @@ class MappingFactory:
             # ir.logger.debug("creating mapping for %s" % repr(config))
 
             # Is this mapping already in the cache?
-            key = f"Mapping-{config.rkey}-{config.name}"
+            key = IRBaseMapping.make_cache_key(kind, config.name, config.namespace)
 
             mapping: Optional[IRBaseMapping] = None
             cached_mapping = ir.cache_fetch(key)

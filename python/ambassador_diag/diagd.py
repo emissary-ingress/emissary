@@ -48,6 +48,7 @@ import gunicorn.app.base
 from gunicorn.six import iteritems
 
 from ambassador import Cache, Config, IR, EnvoyConfig, Diagnostics, Scout, Version
+from ambassador.ir.irbasemapping import IRBaseMapping
 from ambassador.utils import SystemInfo, Timer, PeriodicTrigger, SavedSecret, load_url_contents
 from ambassador.utils import SecretHandler, KubewatchSecretHandler, FSSecretHandler
 from ambassador.fetch import ResourceFetcher
@@ -1326,8 +1327,14 @@ class AmbassadorEventWatcher(threading.Thread):
                 for delta in fetcher.deltas:
                     self.logger.debug(f"Delta: {delta}")
 
+                    # The "kind" of a Delta must be a string; assert that to make
+                    # mypy happy.
+
+                    delta_kind = delta['kind']
+                    assert(isinstance(delta_kind, str))
+
                     # Only worry about Mappings right now.
-                    if delta['kind'] == 'Mapping':
+                    if delta_kind == 'Mapping':
                         # XXX C'mon, mypy, is this cast really necessary?
                         metadata = typecast(Dict[str, str], delta.get("metadata", {}))
                         name = metadata.get("name", "")
@@ -1339,7 +1346,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
                             self.logger.error(f"Delta object needs name and namespace: {delta}")
                         else:
-                            key = f"Mapping-v2-{name}-{namespace}"
+                            key = IRBaseMapping.make_cache_key(delta_kind, name, namespace)
                             to_delete.append(key)
 
                 # OK. If we have things to delete, and we have NO ERRORS...

@@ -108,10 +108,14 @@ class IRBaseMapping (IRResource):
             **kwargs
         )
 
+    @classmethod
+    def make_cache_key(cls, kind: str, name: str, namespace: str, version: str="v2") -> str:
+        return f"{kind}-{version}-{name}-{namespace}"
+
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         # Set up our cache key. We're using this format so that it'll be easy
         # to generate it just from the Mapping's K8s metadata.
-        self._cache_key = f"Mapping-v2-{self.name}-{self.namespace}"
+        self._cache_key = IRBaseMapping.make_cache_key(self.kind, self.name, self.namespace)
 
         # ...and start without a cluster key for this Mapping.
         self.cluster_key = None
