@@ -55,9 +55,20 @@ panic() {
 }
 
 builder() {
+    if ! [ -e docker/builder-base.docker ]; then
+        panic "This should not happen: 'docker/builder-base.docker' does not exist"
+    fi
+    if ! [ -e docker/base-envoy.docker ]; then
+        panic "This should not happen: 'docker/base-envoy.docker' does not exist"
+    fi
+    local builder_base_image envoy_base_image
+    builder_base_image=$(cat docker/builder-base.docker)
+    envoy_base_image=$(cat docker/base-envoy.docker)
     docker ps --quiet \
            --filter=label=builder \
-           --filter=label="$BUILDER_NAME"
+           --filter=label="$BUILDER_NAME" \
+           --filter=label=builderbase="$builder_base_image" \
+           --filter=label=envoybase="$envoy_base_image"
 }
 builder_network() { docker network ls -q -f name="${BUILDER_DOCKER_NETWORK}"; }
 
@@ -193,10 +204,13 @@ bootstrap() {
 
     if [ -z "$(builder)" ] ; then
         if ! [ -e docker/builder-base.docker ]; then
-            panic "This should not happen"
+            panic "This should not happen: 'docker/builder-base.docker' does not exist"
         fi
+        if ! [ -e docker/base-envoy.docker ]; then
+            panic "This should not happen: 'docker/base-envoy.docker' does not exist"
+        fi
+        local builder_base_image envoy_base_image
         builder_base_image=$(cat docker/builder-base.docker)
-        local envoy_base_image
         envoy_base_image=$(cat docker/base-envoy.docker)
         msg2 'Bootstrapping build image'
         ${DBUILD} \
@@ -229,7 +243,8 @@ bootstrap() {
             --cap-add=NET_ADMIN \
             --label=builder \
             --label="${BUILDER_NAME}" \
-            --label="${BUILDER_NAME}" \
+            --label=builderbase="$builder_base_image" \
+            --label=envoybase="$envoy_base_image" \
             ${BUILDER_PORTMAPS} \
             ${BUILDER_DOCKER_EXTRA} \
             --env=BUILDER_NAME="${BUILDER_NAME}" \
@@ -351,12 +366,24 @@ summarize-sync() {
 }
 
 clean() {
-    cid=$(builder)
-    if [ -n "${cid}" ] ; then
+    local cid
+    # This command is similar to
+    #
+    #     builder | while read -r cid; do
+    #
+    # except that this command does *not* filter based on the
+    # `builderbase=` and `envoybase=` labels, because we want to
+    # garbage-collect old containers that were orphaned when either
+    # the builderbase or the envoybase image changed.
+    docker ps --quiet \
+           --filter=label=builder \
+           --filter=label="$BUILDER_NAME" \
+    | while read -r cid; do
         printf "${GRN}Killing build container ${BLU}${cid}${END}\n"
         docker kill ${cid} > /dev/null 2>&1
         docker wait ${cid} > /dev/null 2>&1 || true
-    fi
+    done
+    local nid
     nid=$(builder_network)
     if [ -n "${nid}" ] ; then
         printf "${GRN}Removing docker network ${BLU}${BUILDER_DOCKER_NETWORK} (${nid})${END}\n"

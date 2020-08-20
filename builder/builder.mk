@@ -674,10 +674,10 @@ with confusing results.
 The build system doesn't try to magically handle all dependencies.  In
 general, if you change something that is not pure source code, you will
 likely need to do a $(BLD)$(MAKE) clean$(END) in order to see the effect.  For example,
-Python code only gets set up once, so if you change $(BLD)requirements.txt$(END) or
-$(BLD)setup.py$(END), then you will need to do a clean build to see the effects.
-Assuming you didn't $(BLD)$(MAKE) clobber$(END), this shouldn't take long due to the
-cache in the Docker volume.
+Python code only gets set up once, so if you change $(BLD)setup.py$(END), then you
+will need to do a clean build to see the effects.  Assuming you didn't
+$(BLD)$(MAKE) clobber$(END), this shouldn't take long due to the cache in the Docker
+volume.
 
 All targets that deploy to a cluster by way of $(BLU)$$DEV_REGISTRY$(END) can be made
 to have the cluster use an imagePullSecret to pull from $(BLD)$$DEV_REGISTRY$(END),
