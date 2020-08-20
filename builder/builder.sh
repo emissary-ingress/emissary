@@ -41,7 +41,11 @@ BUILDER_DOCKER_NETWORK=${BUILDER_DOCKER_NETWORK:-${BUILDER_NAME}}
 # Do this with `eval` so that we properly interpret quotes.
 eval "pytest_args=(${PYTEST_ARGS:-})"
 
-builder() { docker ps -q -f label=builder -f label="${BUILDER_NAME}"; }
+builder() {
+    docker ps --quiet \
+           --filter=label=builder \
+           --filter=label="$BUILDER_NAME"
+}
 builder_network() { docker network ls -q -f name="${BUILDER_DOCKER_NETWORK}"; }
 
 builder_volume() { docker volume ls -q -f label=builder; }
@@ -188,11 +192,24 @@ bootstrap() {
         fi
 
         echo_on
-        $BUILDER_DOCKER_RUN --name "$BUILDER_CONT_NAME" --network "${BUILDER_DOCKER_NETWORK}" --network-alias "builder" \
-            --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock \
-            -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} \
-            ${BUILDER_PORTMAPS} ${BUILDER_DOCKER_EXTRA} \
-            -e BUILDER_NAME=${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
+        $BUILDER_DOCKER_RUN \
+            --name="$BUILDER_CONT_NAME" \
+            --network="${BUILDER_DOCKER_NETWORK}" \
+            --network-alias="builder" \
+            --group-add="${DOCKER_GID}" \
+            --detach \
+            --rm \
+            --volume=/var/run/docker.sock:/var/run/docker.sock \
+            --volume="$(builder_volume):/home/dw" \
+            ${BUILDER_MOUNTS} \
+            --cap-add=NET_ADMIN \
+            --label=builder \
+            --label="${BUILDER_NAME}" \
+            --label="${BUILDER_NAME}" \
+            ${BUILDER_PORTMAPS} \
+            ${BUILDER_DOCKER_EXTRA} \
+            --env=BUILDER_NAME="${BUILDER_NAME}" \
+            --entrypoint=tail builder -f /dev/null > /dev/null
         echo_off
 
         printf "${GRN}Started build container ${BLU}$(builder)${END}\n"
