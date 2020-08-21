@@ -115,7 +115,6 @@ $(tools/go-mkopensource): FORCE
 	mkdir -p $(@D)
 	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/cmd/go-mkopensource
 
-# A python script
 tools/py-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/py-mkopensource
 $(tools/py-mkopensource): FORCE
 	mkdir -p $(@D)
