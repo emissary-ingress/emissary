@@ -1309,6 +1309,10 @@ class V2Listener(dict):
                                     action=None,
                                     insecure_action='Reject')
 
+                for route in config.routes:
+                    cls.parse_route_candidate(logger, config.ir.edge_stack_allowed, listener.name,
+                                              (False, route, 'Reject'), listener.vhosts.get('*'))
+
         # OK. We have all the listeners. Time to walk the routes (note that they are already ordered).
         for route in config.routes:
             logger.debug(f"V2Listeners: route {prettyroute(route)}...")
