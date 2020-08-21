@@ -41,7 +41,15 @@ class Cache():
         self.links: Dict[str, CacheLink] = {}
         self.logger = logger
 
+        self.reset_stats()
+
         self.logger.info("Cache initialized")
+
+    def reset_stats(self) -> None:
+        self.hits = 0
+        self.misses = 0
+        self.invalidate_calls = 0
+        self.invalidated_objects = 0
 
     @staticmethod
     def fn_name(fn: Optional[Callable]) -> str:
@@ -115,6 +123,9 @@ class Cache():
         # both link to the same Group, and you invalidate the first Mapping, the 
         # second will have a dangling link to the now-invalidated Group, and that
         # needs to not break anything).
+
+        self.invalidate_calls += 1
+
         worklist = [ key ]
 
         # Under the hood, "invalidating" something from this cache is really
@@ -155,6 +166,7 @@ class Cache():
         for key, rdh in to_delete.items():
             self.logger.debug(f"CACHE: DEL {key}: smiting!")
 
+            self.invalidated_objects += 1
             del(self.cache[key])
 
             if key in self.links:
@@ -179,9 +191,11 @@ class Cache():
 
         if item is not None:
             self.logger.debug(f"CACHE: fetch {key}")
+            self.hits += 1
             return item[0]
         else:
             self.logger.debug(f"CACHE: missing {key}")
+            self.misses += 1
             return None
 
     def dump(self) -> None:
@@ -198,6 +212,19 @@ class Cache():
                 for owned in sorted(self.links[k]):
                     self.logger.info(f"CACHE:   -> {owned}")
 
+    def dump_stats(self) -> None:
+        total = self.hits + self.misses
+
+        if total > 0:
+            ratio = "%.1f%%" % ((float(self.hits) / float(total)) * 100.0)
+        else:
+            ratio = "--"
+
+        self.logger.info("CACHE: Total requests: %d" % total)
+        self.logger.info("CACHE: Hit ratio:      %s" % ratio)
+        self.logger.info("CACHE: Invalidations:  %d calls" % self.invalidate_calls)
+        self.logger.info("CACHE:                 %d objects" % self.invalidated_objects)
+
 
 class NullCache(Cache):
     """
@@ -212,6 +239,7 @@ class NullCache(Cache):
     def __init__(self, logger: logging.Logger) -> None:
         self.logger = logger
         self.logger.info("NullCache: INIT")
+        self.reset_stats()
         pass
 
     def add(self, rsrc: Cacheable, 
@@ -222,9 +250,11 @@ class NullCache(Cache):
         pass
 
     def invalidate(self, key: str) -> None:
+        self.invalidate_calls += 1
         pass
 
     def __getitem__(self, key: str) -> Any:
+        self.misses += 1
         return None
     
     def dump(self) -> None:
