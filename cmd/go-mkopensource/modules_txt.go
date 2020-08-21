@@ -32,7 +32,14 @@ func VendorList() ([]golist.Package, error) {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "#") {
 			parts := strings.Split(line, " ")
-			if len(parts) != 3 {
+			switch len(parts) {
+			case 3:
+				// ok
+			case 5, 6:
+				if parts[3] != "=>" {
+					return nil, errors.Errorf("malformed line in vendor/modules.txt: %q", line)
+				}
+			default:
 				return nil, errors.Errorf("malformed line in vendor/modules.txt: %q", line)
 			}
 			modname := parts[1]

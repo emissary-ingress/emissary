@@ -6,14 +6,14 @@ import (
 
 var (
 	reMIT = reCompile(reCaseInsensitive(`\s*` +
-		// Up to 2 short lines of "project name"
-		`([^\n]{0,15}\n){0,2}` +
 		// Any number of license-name, copyright-holder, or header-separator lines
 		`((` +
 		strings.Join([]string{
-			`(Portions )?Copyright [^\n]*(\s+All rights reserved\.)?`,
 			`\(?(The )?MIT License( \((MIT|Expat)\))?\)?`,
-			`=+`,
+			`(Portions )?Copyright [^\n]*(\s+All rights reserved\.)?`, // copyright line
+			`[^\n]{0,15}`,  // project name
+			`https?://\S+`, // project url
+			`=+`,           // separator
 		}, `|`) +
 		`)\s*\n\s*)*` +
 		// The license itself
