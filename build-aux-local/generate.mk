@@ -104,11 +104,10 @@ $(tools/controller-gen): $(OSS_HOME)/go.mod
 	mkdir -p $(@D)
 	cd $(OSS_HOME) && go build -o $@ sigs.k8s.io/controller-tools/cmd/controller-gen
 
-# A python script... normally we might want to shove this in the
-# builder image, but (1) that'd be a pain, and (2) the requirements
-# here are python3, python3-yaml, and python3-packaging... now, if you
-# have 'awscli', which we already require, then you'll have those.
-tools/fix-crds = $(OSS_HOME)/build-aux-local/fix-crds
+tools/fix-crds = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/fix-crds
+$(tools/fix-crds): FORCE
+	mkdir -p $(@D)
+	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/cmd/fix-crds
 
 tools/go-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/go-mkopensource
 $(tools/go-mkopensource): FORCE
