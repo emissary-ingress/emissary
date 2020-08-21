@@ -136,7 +136,7 @@ class Cache():
         # to, y'knom, delete. We find all the resources we're going to work with
         # before deleting any of them, because I get paranoid about modifying a
         # data structure while I'm trying to traverse it.
-        to_delete = []
+        to_delete: Dict[str, CacheEntry] = {}
 
         # Keep going until we have nothing else to do.
         while worklist:
@@ -149,22 +149,32 @@ class Cache():
                 rsrc, on_delete = self.cache[key]
 
                 self.logger.debug(f"CACHE: DEL {key}: will delete {rsrc}")
-                to_delete.append((key, rsrc, on_delete))
 
-                # ...and then toss all of its linked objects on our list to
-                # consider.
-                if key in self.links:
-                    for owned in sorted(self.links[key]):
-                        self.logger.debug(f"CACHE: DEL {key}: will check owned {owned}")
-                        worklist.append(owned)
-                
+                if key not in to_delete:
+                    # We haven't seen this key, so remember to delete it...
+                    to_delete[key] = (rsrc, on_delete)
+
+                    # ...and then toss all of its linked objects on our list to
+                    # consider.
+                    if key in self.links:
+                        for owned in sorted(self.links[key]):
+                            self.logger.debug(f"CACHE: DEL {key}: will check owned {owned}")
+                            worklist.append(owned)
+
+                    # (If we have seen the key already, just ignore it and go to the next
+                    # key in the worklist. This is important to not get stuck if we somehow
+                    # get a circular link list.)
+
         # OK, we have a set of things to delete. Get to it.
-        for key, rsrc, on_delete in to_delete:
+        for key, rdh in to_delete.items():
             self.logger.debug(f"CACHE: DEL {key}: smiting!")
+
             del(self.cache[key])
 
             if key in self.links:
                 del(self.links[key])
+
+            rsrc, on_delete = rdh
 
             if on_delete:
                 self.logger.debug(f"CACHE: DEL {key}: calling {self.fn_name(on_delete)}")

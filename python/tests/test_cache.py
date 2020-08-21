@@ -178,6 +178,43 @@ class Builder:
             return node
 
 
+def test_circular_link():
+    builder = Builder(logger, "cache_test_1.yaml")
+    builder.build()
+
+    # This Can't Happen(tm) in Ambassador, but it's important that it not go 
+    # off the rails. Find a Mapping...
+    mapping_key = "Mapping-v2-foo-4-default"
+    m = builder.cache[mapping_key]
+
+    # ...then walk the link chain until we get to a V2-Cluster.
+    worklist = [ m.cache_key ]
+    cluster_key: Optional[str] = None
+
+    while worklist:
+        key = worklist.pop(0)
+
+        if key.startswith('V2-Cluster'):
+            cluster_key = key
+            break
+
+        if key in builder.cache.links:
+            for owned in builder.cache.links[key]:
+                worklist.append(owned)
+
+    assert cluster_key is not None, f"No V2-Cluster linked from {m}?"
+
+    c = builder.cache[cluster_key]
+
+    assert c is not None, f"No V2-Cluster in the cache for {c}"
+
+    builder.cache.link(c, m)
+    builder.cache.invalidate(mapping_key)
+
+    builder.build()
+    builder.check_last("after invalidating circular links")
+
+
 def test_multiple_rebuilds():
     builder = Builder(logger, "cache_test_1.yaml")
 
