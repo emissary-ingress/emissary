@@ -51,11 +51,13 @@ import (
 //     snapshot update. This prevents excessively triggering business logic to process an entire
 //     snapshot for each individual object change that occurs.
 type Accumulator struct {
-	client  *Client
-	fields  map[string]*field
-	synced  int
-	changed chan struct{}
-	mutex   sync.Mutex
+	client *Client
+	fields map[string]*field
+	// keyed by unKey(*Unstructured), tracks excluded resources for filtered updates
+	excluded map[string]bool
+	synced   int
+	changed  chan struct{}
+	mutex    sync.Mutex
 }
 
 type field struct {
@@ -162,7 +164,7 @@ func newAccumulator(ctx context.Context, client *Client, queries ...Query) *Accu
 		client.watchRaw(ctx, q, rawUpdateCh, client.cliFor(mapping, q.Namespace))
 	}
 
-	acc := &Accumulator{client, fields, 0, changed, sync.Mutex{}}
+	acc := &Accumulator{client, fields, map[string]bool{}, 0, changed, sync.Mutex{}}
 
 	// This coalesces reads from rawUpdateCh to notifications that changes are available to be
 	// processed. This loop along with the logic in storeField guarantees the 3
@@ -212,9 +214,16 @@ func (a *Accumulator) Update(target interface{}) bool {
 }
 
 func (a *Accumulator) UpdateWithDeltas(target interface{}, deltas *[]*Delta) bool {
+	return a.FilteredUpdate(target, deltas, nil)
+}
+
+// The FilteredUpdate method updates the target snapshot with only those resources for which
+// "predicate" returns true. The predicate is only called when objects are added/updated, it is not
+// repeatedly called on objects that have not changed. The predicate must not modify its argument.
+func (a *Accumulator) FilteredUpdate(target interface{}, deltas *[]*Delta, predicate func(*Unstructured) bool) bool {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
-	return a.update(reflect.ValueOf(target), deltas)
+	return a.update(reflect.ValueOf(target), deltas, predicate)
 }
 
 func (a *Accumulator) storeUpdate(update rawUpdate) bool {
@@ -255,7 +264,8 @@ func (a *Accumulator) storeUpdate(update rawUpdate) bool {
 	return a.synced >= len(a.fields)
 }
 
-func (a *Accumulator) updateField(target reflect.Value, name string, field *field, deltas *[]*Delta) bool {
+func (a *Accumulator) updateField(target reflect.Value, name string, field *field, deltas *[]*Delta,
+	predicate func(*Unstructured) bool) bool {
 	a.client.patchWatch(field)
 
 	if field.firstUpdate && len(field.deltas) == 0 {
@@ -268,10 +278,26 @@ func (a *Accumulator) updateField(target reflect.Value, name string, field *fiel
 		if deltas != nil {
 			*deltas = append(*deltas, delta)
 		}
+
+		if predicate != nil {
+			if delta.DeltaType == ObjectDelete {
+				delete(a.excluded, key)
+			} else {
+				un := field.values[key]
+				if predicate(un) {
+					delete(a.excluded, key)
+				} else {
+					a.excluded[key] = true
+				}
+			}
+		}
 	}
 
 	var items []*Unstructured
-	for _, un := range field.values {
+	for key, un := range field.values {
+		if a.excluded[key] {
+			continue
+		}
 		items = append(items, un)
 	}
 
@@ -311,14 +337,14 @@ func (a *Accumulator) updateField(target reflect.Value, name string, field *fiel
 	return true
 }
 
-func (a *Accumulator) update(target reflect.Value, deltas *[]*Delta) bool {
+func (a *Accumulator) update(target reflect.Value, deltas *[]*Delta, predicate func(*Unstructured) bool) bool {
 	if deltas != nil {
 		*deltas = nil
 	}
 
 	updated := false
 	for name, field := range a.fields {
-		if a.updateField(target, name, field, deltas) {
+		if a.updateField(target, name, field, deltas, predicate) {
 			updated = true
 		}
 	}
