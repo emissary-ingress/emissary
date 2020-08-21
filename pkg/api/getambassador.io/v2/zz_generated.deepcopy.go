@@ -235,7 +235,11 @@ func (in *AuthServiceSpec) DeepCopyInto(out *AuthServiceSpec) {
 		*out = make(AmbassadorID, len(*in))
 		copy(*out, *in)
 	}
-	in.TLS.DeepCopyInto(&out.TLS)
+	if in.TLS != nil {
+		in, out := &in.TLS, &out.TLS
+		*out = new(BoolOrString)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.AllowedRequestHeaders != nil {
 		in, out := &in.AllowedRequestHeaders, &out.AllowedRequestHeaders
 		*out = make([]string, len(*in))
