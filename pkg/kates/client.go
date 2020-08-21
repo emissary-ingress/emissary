@@ -75,7 +75,7 @@ type Client struct {
 	mutex     sync.Mutex
 	canonical map[string]*Unstructured
 
-	// This is an internal interface for testing, it lets deliberately introduce delays into the
+	// This is an internal interface for testing, it lets us deliberately introduce delays into the
 	// implementation, e.g. effectively increasing the latency to the api server in a controllable
 	// way and letting us reproduce and test for race conditions far more efficiently than
 	// otherwise.
