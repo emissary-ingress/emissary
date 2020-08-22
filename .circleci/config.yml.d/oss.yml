@@ -105,6 +105,10 @@ jobs:
       - oss-linux-setup
       - run: make generate
       - dirty-check
+      # Run it again to make sure that it is possible to run it twice
+      # in a row.
+      - run: make generate
+      - dirty-check
 
   "oss-dev-images":
     <<: *oss-linux-job

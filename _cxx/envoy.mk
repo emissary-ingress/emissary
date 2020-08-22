@@ -1,4 +1,4 @@
-srcdir := $(OSS_HOME)/cxx
+srcdir := $(OSS_HOME)/_cxx
 
 include $(OSS_HOME)/build-aux/prelude.mk
 
@@ -33,13 +33,14 @@ $(srcdir)/envoy: FORCE
 # Migrate from old layouts
 	@set -e; { \
 	    if ! test -d $@; then \
-	        if test -d $(OSS_HOME)/envoy; then \
-	            set -x; \
-	            mv $(OSS_HOME)/envoy $@; \
-	        elif test -d $(OSS_HOME)/envoy-src; then \
-	            set -x; \
-	            mv $(OSS_HOME)/envoy-src $@; \
-	        fi; \
+	        for old in $(OSS_HOME)/envoy $(OSS_HOME)/envoy-src $(OSS_HOME)/cxx/envoy; do \
+	            if test -d $$old; then \
+	                set -x; \
+	                mv $$old $@; \
+	                { set +x; } >&/dev/null; \
+	                break; \
+	            fi; \
+	        done; \
 	    fi; \
 	}
 # Ensure that GIT_DIR and GIT_WORK_TREE are unset so that `git bisect`
@@ -66,6 +67,19 @@ $(srcdir)/envoy: FORCE
 
 $(srcdir)/go-control-plane: FORCE
 	@echo "Getting Envoy go-control-plane sources..."
+# Migrate from old layouts
+	@set -e; { \
+	    if ! test -d $@; then \
+	        for old in $(OSS_HOME)/cxx/go-control-plane; do \
+	            if test -d $$old; then \
+	                set -x; \
+	                mv $$old $@; \
+	                { set +x; } >&/dev/null; \
+	                break; \
+	            fi; \
+	        done; \
+	    fi; \
+	}
 # Ensure that GIT_DIR and GIT_WORK_TREE are unset so that `git bisect`
 # and friends work properly.
 	@PS4=; set -ex; { \

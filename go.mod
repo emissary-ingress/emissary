@@ -60,7 +60,6 @@ require (
 	github.com/Masterminds/squirrel v1.4.0 // indirect
 	github.com/aokoli/goutils v1.1.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
-	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/census-instrumentation/opencensus-proto v0.2.1
 	github.com/cncf/udpa/go v0.0.0-20200629203442-efcf912fb354
 	github.com/containerd/containerd v1.3.4 // indirect

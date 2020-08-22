@@ -337,6 +337,8 @@ jobs:
     - oss-linux-setup
     - run: make generate
     - dirty-check
+    - run: make generate
+    - dirty-check
     machine:
       image: "ubuntu-1604:201903-01"
     working_directory: ~/project/ambassador

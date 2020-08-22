@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"text/tabwriter"
+
+	. "github.com/datawire/ambassador/pkg/mkopensource/detectlicense"
 )
 
 type tuple struct {
@@ -36,6 +38,13 @@ func (e errset) Error() string {
 
 func parseLicenses(name, version, license string) map[License]struct{} {
 	override, ok := map[tuple][]License{
+		// These are packages that don't have sufficient metadata to get
+		// the license normally.  Either the license isn't specified in
+		// the metadata, or the license string that is specified is
+		// ambiguous (for example: "BSD" is too ambiguous, which variant
+		// of the BSD license is it?).  We pin the exact versions so
+		// that a human has to go make sure that the license didn't
+		// change when upgrading.
 		{"Click", "7.0", "BSD"}:                        []License{BSD3},
 		{"Flask", "1.0.2", "BSD"}:                      []License{BSD3},
 		{"GitPython", "3.1.7", "UNKNOWN"}:              []License{BSD3},
@@ -62,6 +71,8 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"websocket-client", "0.57.0", "BSD"}:          []License{BSD3},
 		{"zipp", "3.1.0", "UNKNOWN"}:                   []License{MIT},
 
+		// These are packages with non-trivial strings to parse, and
+		// it's easier to just hard-code it.
 		{"cryptography", "2.9.2", "BSD or Apache License, Version 2.0"}:                      []License{Apache2, PSF},
 		{"docutils", "0.16", "public domain, Python, 2-Clause BSD, GPL 3 (see COPYING.txt)"}: []License{PublicDomain, PSF, BSD2, GPL3},
 		{"packaging", "20.4", "BSD-2-Clause or Apache-2.0"}:                                  []License{BSD2, Apache2},

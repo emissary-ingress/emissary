@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/datawire/ambassador/cmd/watt/watchapi"
 )

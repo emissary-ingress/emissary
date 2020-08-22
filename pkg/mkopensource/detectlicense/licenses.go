@@ -133,6 +133,9 @@ func DetectLicenses(files map[string][]byte) (map[License]struct{}, error) {
 		return nil, errors.New("could not identify a license for all sources (had no global LICENSE file)")
 	}
 
+	if len(licenses) == 0 {
+		panic(errors.New("should not happen"))
+	}
 	return licenses, nil
 }
 
@@ -190,20 +193,6 @@ specific language governing permissions and limitations under the License.
 
 ------`
 
-	yamlHeader = `The following files were ported to Go from C files of libyaml, and thus
-are still covered by their original copyright and license:
-
-    apic.go
-    emitterc.go
-    parserc.go
-    readerc.go
-    scannerc.go
-    writerc.go
-    yamlh.go
-    yamlprivateh.go
-
-`
-
 	xzPublicDomain = `Licensing of github.com/xi2/xz
 ==============================
 
@@ -223,6 +212,33 @@ are still covered by their original copyright and license:
 
     This software is provided "as is", without any warranty.
 `
+)
+
+var (
+	yamlHeader = reWrap(`The following files were ported to Go from C files of libyaml, and thus
+are still covered by their original (copyright and license|MIT license, with the additional
+copyright start?ing in 2011 when the project was ported over):
+
+    apic\.go
+    emitterc\.go
+    parserc\.go
+    readerc\.go
+    scannerc\.go
+    writerc\.go
+    yamlh\.go
+    yamlprivateh\.go
+
+`)
+	reYamlV2 = reCompile(yamlHeader + `\s*` + reMIT.String())
+
+	reYamlV3 = reCompile(`\s*` +
+		reQuote(`This project is covered by two different licenses: MIT and Apache.`) + `\s*` +
+		`#+ MIT License #+\s*` +
+		yamlHeader + `\s*` +
+		reMIT.String() + `\s*` +
+		`#+ Apache License #+\s*` +
+		reQuote(`All the remaining project files are covered by the Apache license:`) + `\s*` +
+		reApacheStatement.String())
 )
 
 // IdentifyLicense takes the contents of a license-file and attempts
@@ -273,8 +289,11 @@ func IdentifyLicenses(body []byte) map[License]struct{} {
 	case reMatch(reCompile(`Blackfriday is distributed under the Simplified BSD License:\s*`+reBSD2.String()), regexp.MustCompile(`>\s*`).ReplaceAllLiteral(body, []byte{})):
 		// gopkg.in/russross/blackfriday.v2/LICENSE.txt
 		licenses[BSD2] = struct{}{}
-	case reMatch(reCompile(yamlHeader+`\s*`+reMIT.String()), body):
+	case reMatch(reYamlV2, body):
 		licenses[MIT] = struct{}{}
+	case reMatch(reYamlV3, body):
+		licenses[MIT] = struct{}{}
+		licenses[Apache2] = struct{}{}
 	case reMatch(reCompile(reMIT.String()+`\s*`+reBSD3.String()), body):
 		// sigs.k8s.io/yaml/LICENSE
 		licenses[MIT] = struct{}{}

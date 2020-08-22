@@ -9,7 +9,7 @@ generate/files += $(OSS_HOME)/pkg/api/envoy
 generate/files += $(OSS_HOME)/pkg/api/pb
 generate/files += $(OSS_HOME)/pkg/envoy-control-plane
 generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
-# generate/files += $(OSS_HOME)/OPENSOURCE.md 	# Per @LukeShu for 1.7.0 -- something is broken here
+generate/files += $(OSS_HOME)/OPENSOURCE.md
 generate/files += $(OSS_HOME)/builder/requirements.txt
 generate: ## Update generated sources that get committed to git
 generate:
@@ -22,14 +22,14 @@ generate-clean: ## Delete generated sources that get committed to git
 generate-clean:
 	rm -rf $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb
 	rm -rf $(OSS_HOME)/pkg/api/envoy $(OSS_HOME)/pkg/api/pb
-	rm -rf $(OSS_HOME)/cxx/envoy/build_go
+	rm -rf $(OSS_HOME)/_cxx/envoy/build_go
 	rm -rf $(OSS_HOME)/pkg/api/kat
-	rm -r $(OSS_HOME)/pkg/api/agent/*.pb.go
+	rm -f $(OSS_HOME)/pkg/api/agent/*.pb.go
 	rm -rf $(OSS_HOME)/python/ambassador/proto
 	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js
 	rm -rf $(OSS_HOME)/pkg/envoy-control-plane
 	rm -f $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
-# 	rm -f $(OSS_HOME)/OPENSOURCE.md 			 # Per @LukeShu for 1.7.0 -- something is broken here
+	rm -f $(OSS_HOME)/OPENSOURCE.md
 .PHONY: generate _generate generate-clean
 
 go-mod-tidy/oss:
@@ -104,18 +104,16 @@ $(tools/controller-gen): $(OSS_HOME)/go.mod
 	mkdir -p $(@D)
 	cd $(OSS_HOME) && go build -o $@ sigs.k8s.io/controller-tools/cmd/controller-gen
 
-# A python script... normally we might want to shove this in the
-# builder image, but (1) that'd be a pain, and (2) the requirements
-# here are python3, python3-yaml, and python3-packaging... now, if you
-# have 'awscli', which we already require, then you'll have those.
-tools/fix-crds = $(OSS_HOME)/build-aux-local/fix-crds
+tools/fix-crds = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/fix-crds
+$(tools/fix-crds): FORCE
+	mkdir -p $(@D)
+	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/cmd/fix-crds
 
 tools/go-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/go-mkopensource
 $(tools/go-mkopensource): FORCE
 	mkdir -p $(@D)
-	cd $(OSS_HOME)/build-aux/bin-go/go-mkopensource && go build -o $@ github.com/datawire/build-aux/bin-go/go-mkopensource
+	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/cmd/go-mkopensource
 
-# A python script
 tools/py-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/py-mkopensource
 $(tools/py-mkopensource): FORCE
 	mkdir -p $(@D)
@@ -134,14 +132,14 @@ $(tools/py-mkopensource): FORCE
 # bad, mmkay?
 ENVOY_GO_CONTROL_PLANE_COMMIT = v0.9.6
 
-guess-envoy-go-control-plane-commit: $(OSS_HOME)/cxx/envoy $(OSS_HOME)/cxx/go-control-plane
+guess-envoy-go-control-plane-commit: $(OSS_HOME)/_cxx/envoy $(OSS_HOME)/_cxx/go-control-plane
 	@echo
 	@echo '######################################################################'
 	@echo
 	@set -e; { \
-	  (cd $(OSS_HOME)/cxx/go-control-plane && git log --format='%H %s' origin/master) | sed -n 's, Mirrored from envoyproxy/envoy @ , ,p' | \
+	  (cd $(OSS_HOME)/_cxx/go-control-plane && git log --format='%H %s' origin/master) | sed -n 's, Mirrored from envoyproxy/envoy @ , ,p' | \
 	  while read -r go_commit cxx_commit; do \
-	    if (cd $(OSS_HOME)/cxx/envoy && git merge-base --is-ancestor "$$cxx_commit" $(ENVOY_COMMIT) 2>/dev/null); then \
+	    if (cd $(OSS_HOME)/_cxx/envoy && git merge-base --is-ancestor "$$cxx_commit" $(ENVOY_COMMIT) 2>/dev/null); then \
 	      echo "ENVOY_GO_CONTROL_PLANE_COMMIT = $$go_commit"; \
 	      break; \
 	    fi; \
@@ -149,14 +147,14 @@ guess-envoy-go-control-plane-commit: $(OSS_HOME)/cxx/envoy $(OSS_HOME)/cxx/go-co
 	}
 .PHONY: guess-envoy-go-control-plane-commit
 
-$(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/cxx/go-control-plane FORCE
+$(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
 	rm -rf $@
 	@PS4=; set -ex; { \
 	  unset GIT_DIR GIT_WORK_TREE; \
 	  tmpdir=$$(mktemp -d); \
 	  trap 'rm -rf "$$tmpdir"' EXIT; \
 	  cd "$$tmpdir"; \
-	  cd $(OSS_HOME)/cxx/go-control-plane; \
+	  cd $(OSS_HOME)/_cxx/go-control-plane; \
 	  cp -r $$(git ls-files ':[A-Z]*' ':!Dockerfile*' ':!Makefile') pkg/* "$$tmpdir"; \
 	  find "$$tmpdir" -name '*.go' -exec sed -E -i.bak \
 	    -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/datawire/ambassador/pkg/envoy-control-plane,g' \
@@ -322,10 +320,11 @@ $(OSS_HOME)/build-aux-local/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base
 $(OSS_HOME)/build-aux/go1%.src.tar.gz:
 	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
 
-$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux-local/go-version.txt $(OSS_HOME)/build-aux-local/pip-show.txt
+$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux-local/go-version.txt $(OSS_HOME)/build-aux-local/pip-show.txt $(OSS_HOME)/vendor
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz
 	set -e; { \
-		cd $(OSS_HOME) && $(tools/go-mkopensource) --output-format=txt --package=github.com/datawire/ambassador/... --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz; \
+		cd $(OSS_HOME); \
+		$(tools/go-mkopensource) --output-format=txt --package=mod --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz; \
 		echo; \
 		{ sed 's/^---$$//' $(OSS_HOME)/build-aux-local/pip-show.txt; echo; } | $(tools/py-mkopensource); \
 	} > $@

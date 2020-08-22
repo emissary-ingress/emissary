@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/datawire/build-aux/bin-go/go-mkopensource/internal/golist"
+	"github.com/datawire/ambassador/pkg/mkopensource/golist"
 )
 
 ////////////////////////////////////////////////////////////////////////
@@ -138,6 +138,10 @@ func matchSourceFiles(pkgInfo golist.Package) func(filename string) bool {
 	}
 }
 
+func matchAll(string) bool {
+	return true
+}
+
 ////////////////////////////////////////////////////////////////////////
 // OK, this is where it gets hard to build sane abstractions, and we
 // start having to think about global program operations.
@@ -168,4 +172,22 @@ func collectMetadata(ret map[string][]byte, modPath, dst, src string) error {
 		dst = filepath.Dir(dst)
 		src = filepath.Dir(src)
 	}
+}
+
+// collectVendoredPkg is like collectPkg, but behaves as if
+// `-mod=vendor`; inspecting the `vendor/` directory instead of the
+// module cache.  The point of that is that we use matchAll instead of
+// matchSourcefiles, because
+//  1. we trust `go mod vendor` to have already pruned out files we
+//     don't want, and
+//  2. VendorList() doesn't populate the `pkgInfo.{Whatever}Files`
+//     variables.
+func collectVendoredPkg(vendor map[string][]byte, pkgInfo golist.Package) error {
+	dst := pkgInfo.ImportPath
+	src := pkgInfo.Dir
+	err := collectDir(vendor, dst, src, matchAll)
+	if err != nil {
+		return err
+	}
+	return collectMetadata(vendor, pkgInfo.Module.Path, dst, src)
 }

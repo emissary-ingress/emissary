@@ -21,6 +21,7 @@ venv/
 /Makefile
 /builder/
 /cxx/envoy/
+/_cxx/envoy/
 /vendor/
 /docker/
 
