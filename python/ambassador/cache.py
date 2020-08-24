@@ -99,20 +99,6 @@ class Cache():
         links = self.links.setdefault(owner_key, set())
         links.update([ owned_key ])
 
-    def dump(self) -> None:
-        """
-        Dump the cache to the logger.
-        """
-
-        for k in sorted(self.cache.keys()):
-            rsrc, on_delete = self.cache[k]
-
-            self.logger.info(f"CACHE: {k}, on_delete {self.fn_name(on_delete)}:")
-
-            if k in self.links:
-                for owned in sorted(self.links[k]):
-                    self.logger.info(f"CACHE:   -> {owned}")
-
     def invalidate(self, key: str) -> None:
         """
         Recursively invalidate the entry named by 'key' and everything to which it
@@ -198,6 +184,20 @@ class Cache():
             self.logger.debug(f"CACHE: missing {key}")
             return None
 
+    def dump(self) -> None:
+        """
+        Dump the cache to the logger.
+        """
+
+        for k in sorted(self.cache.keys()):
+            rsrc, on_delete = self.cache[k]
+
+            self.logger.info(f"CACHE: {k}, on_delete {self.fn_name(on_delete)}:")
+
+            if k in self.links:
+                for owned in sorted(self.links[k]):
+                    self.logger.info(f"CACHE:   -> {owned}")
+
 
 class NullCache(Cache):
     """
@@ -220,12 +220,12 @@ class NullCache(Cache):
 
     def link(self, owner: Cacheable, owned: Cacheable) -> None:
         pass
-    
-    def dump(self) -> None:
-        self.logger.info("NullCache: empty")
 
     def invalidate(self, key: str) -> None:
         pass
 
     def __getitem__(self, key: str) -> Any:
         return None
+    
+    def dump(self) -> None:
+        self.logger.info("NullCache: empty")
