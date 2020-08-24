@@ -3,7 +3,7 @@ Free and Open Source software:
 
     Name                                                     Version                                    License(s)
     ----                                                     -------                                    ----------
-    the Go language standard library ("std")                 v1.14.4                                    3-clause BSD license
+    the Go language standard library ("std")                 v1.15                                      3-clause BSD license
     cloud.google.com/go                                      v0.38.0                                    Apache License 2.0
     git.lukeshu.com/go/libsystemd                            v0.5.3                                     Apache License 2.0
     github.com/Azure/go-ansiterm                             v0.0.0-20170929234023-d6e3b3328b78         MIT license
