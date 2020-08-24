@@ -74,7 +74,7 @@ that is only used for per-second RateLimits; this second connection
 pool is configured by the `REDIS_PERSECOND_*` variables rather than
 the usual `REDIS_*` variables.
 
-#### Redis layer 4 connectivity
+#### Redis layer 4 connectivity (L4)
 
 - `SOCKET_TYPE` and `URL` are the Go network name and Go network
   address to dial to talk to Redis; see [Go `net.Dial`][].  Note that
@@ -90,16 +90,16 @@ the usual `REDIS_*` variables.
   container](../../using/filters/#installing-self-signed-certificates)
   in order to leave certificate verification on.
 
-#### Redis authentication
+#### Redis authentication (auth)
 
 - If `PASSWORD` (new in 1.5.0) is non-empty, then it is used to `AUTH`
   to Redis immediately after the connection is established.
 - If `USERNAME` (new in 1.5.0) is set, then that username is used with
-  the password to log in as that user in the [Redis 6 ACL].  It is
+  the password to log in as that user in the [Redis 6 ACL][].  It is
   invalid to set a username without setting a password.  It is invalid
   to set a username with Redis 5 or lower.
 
-#### Redis performance tuning
+#### Redis performance tuning (tune)
 
 - `POOL_SIZE` is the number of connections to keep around when idle.
   The total number of connections may go lower than this if there are
@@ -132,13 +132,16 @@ the usual `REDIS_*` variables.
   value changed from "10s" to "0", defaulting to the pre-1.6.0
   behavior.)
 
-- `SURGE_LIMIT_INTERVAL` (new in 1.7.0) During a load surge, the
-  creation of new connections is limited to one new connection per
-  `SURGE_LIMIT_INTERVAL`.  A value of "0" (the default) means "allow
-  new connections to be created as fast as necessary.  (Backward
-  incompatibility: in 1.6.x this was hard-coded as "1s"; in 1.7.0 the
-  default value is "0", defaulting to the pre-1.6.0 behavior.)
-  
+- `SURGE_LIMIT_INTERVAL` (new in 1.7.0) During a load surge, if the
+  pool is depleted, then Ambassador may create new connections to
+  Redis in order to fulfill demand, at a maximum rate of one new
+  connection per `SURGE_LIMIT_INTERVAL`.  A value of "0" (the default)
+  means "allow new connections to be created as fast as necessary.
+  (Backward incompatibility: in 1.6.x this was a non-configurable
+  "1s"; in 1.7.0 the default value is "0", defaulting to the pre-1.6.0
+  behavior.)  The total number of connections that Ambassador can
+  surge to is unbounded.
+
 - `SURGE_LIMIT_AFTER` (new in 1.7.0) is how many connections *after*
   the normal pool is depleted can be created before
   `SURGE_LIMIT_INTERVAL` kicks in; the first
