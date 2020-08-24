@@ -22,7 +22,7 @@ Use the following variables for the environment of your Ambassador container:
 | Ambassador                        | `AMBASSADOR_FAST_VALIDATION`                | Empty                                               | EXPERIMENTAL -- Boolean; non-empty=true, empty=false                          |
 | Ambassador                        | `AMBASSADOR_UPDATE_MAPPING_STATUS`          | `false`                                             | Boolean; `true`=true, any other value=false                                   |
 | Ambassador Edge Stack             | `AES_LOG_LEVEL`                             | `info`                                              | Log level (see below)                                                         |
-| Primary Redis (L4)                | `REDIS_SOCKET_TYPE`                         | None, must be set explicitly                        | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
+| Primary Redis (L4)                | `REDIS_SOCKET_TYPE`                         | `tcp`                                               | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
 | Primary Redis (L4)                | `REDIS_URL`                                 | None, must be set explicitly                        | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
 | Primary Redis (L4)                | `REDIS_TLS_ENABLED`                         | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | Primary Redis (L4)                | `REDIS_TLS_INSECURE`                        | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
@@ -80,7 +80,9 @@ the usual `REDIS_*` variables.
   address to dial to talk to Redis; see [Go `net.Dial`][].  Note that
   when using a port name instead of a port number, the name refers a
   well-known port name in the container's `/etc/services`, and **not**
-  to a Kubernetes port name.
+  to a Kubernetes port name.  For `REDIS_URL` (but not
+  `REDIS_PERSECOND_URL`), not setting a value disables Ambassador Edge
+  Stack features that require Redis.
 - `TLS_ENABLED` (new in 1.5.0) specifies whether to use TLS when
   talking to Redis.
 - `TLS_INSECURE` (new in 1.5.0) specifies whether to skip certificate
