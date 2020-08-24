@@ -109,7 +109,7 @@ the usual `REDIS_*` variables.
   the introduction of this setting in 1.6.0 this was non-configurable
   and Ambassador would `PING` a connection every `10÷POOL_SIZE`
   seconds, as if `PING_INTERVAL=10÷POOL_SIZE`.)
-- `IO_TIMEOUT` sets 3 different timeouts:
+- `IO_TIMEOUT` (new in 1.6.0) sets 3 different timeouts:
    1. `(*net.Dialer).Timeout` for establishing connections
    2. `(*redis.Client).ReadTimeout` for reading a single complete response
    3. `(*redis.Client).WriteTimeout` for writing a single complete request
