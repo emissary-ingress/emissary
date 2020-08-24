@@ -97,8 +97,11 @@ func setup(t *testing.T) (resolvers []*amb.ConsulResolver, mappings []*amb.Mappi
 	objs, err := kates.ParseManifests(manifests)
 	require.NoError(t, err)
 
+	parent := &kates.Unstructured{}
+	parent.SetNamespace("default")
+
 	for _, obj := range objs {
-		obj = convertAnnotation("default", obj)
+		obj = convertAnnotation(parent, obj)
 		obj.SetNamespace("default")
 		switch o := obj.(type) {
 		case *amb.ConsulResolver:

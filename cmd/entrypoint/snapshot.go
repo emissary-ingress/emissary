@@ -1,7 +1,9 @@
 package entrypoint
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"reflect"
 	"strings"
 
@@ -36,14 +38,16 @@ type AmbassadorInputs struct {
 	KubernetesEndpointResolvers []*amb.KubernetesEndpointResolver `json:"KubernetesEndpointResolver"`
 	KubernetesServiceResolvers  []*amb.KubernetesServiceResolver  `json:"KubernetesServiceResolver"`
 
-	// missing:
-	// AmbassadorInstallation
-	// KNative ClusterIngress
-	// KNative Ingress
+	// It is safe to ignore AmbassadorInstallation, ambassador doesn't need to look at those, just
+	// the operator.
 
-	AllSecrets        []*kates.Secret     `json:"-"`
-	referencedSecrets map[string]struct{} `json:"-"`
-	Secrets           []*kates.Secret     `json:"secret"`
+	KNativeClusterIngresses []*kates.Unstructured `json:"clusteringresses.networking.internal.knative.dev,omitempty"`
+	KNativeIngresses        []*kates.Unstructured `json:"ingresses.networking.internal.knative.dev,omitempty"`
+
+	AllSecrets []*kates.Secret `json:"-"`
+	Secrets    []*kates.Secret `json:"secret"`
+
+	annotations []kates.Object `json:"-"`
 }
 
 func (a *AmbassadorInputs) Render() string {
@@ -55,4 +59,62 @@ func (a *AmbassadorInputs) Render() string {
 		result.WriteString(fmt.Sprintf("%s: %d\n", f.Name, reflect.Indirect(v).Field(i).Len()))
 	}
 	return result.String()
+}
+
+// GetAmbId extracts the AmbassadorId from the kubernetes resource.
+func GetAmbId(resource kates.Object) amb.AmbassadorID {
+	switch r := resource.(type) {
+	case *amb.Host:
+		var id amb.AmbassadorID
+		if r.Spec != nil {
+			if len(r.Spec.AmbassadorID) > 0 {
+				id = r.Spec.AmbassadorID
+			} else {
+				id = r.Spec.DeprecatedAmbassadorID
+			}
+		}
+		return id
+
+	case *amb.Mapping:
+		return r.Spec.AmbassadorID
+	case *amb.TCPMapping:
+		return r.Spec.AmbassadorID
+	case *amb.Module:
+		return r.Spec.AmbassadorID
+	case *amb.TLSContext:
+		return r.Spec.AmbassadorID
+	case *amb.AuthService:
+		return r.Spec.AmbassadorID
+	case *amb.RateLimitService:
+		return r.Spec.AmbassadorID
+	case *amb.LogService:
+		return r.Spec.AmbassadorID
+	case *amb.TracingService:
+		return r.Spec.AmbassadorID
+	case *amb.ConsulResolver:
+		return r.Spec.AmbassadorID
+	case *amb.KubernetesEndpointResolver:
+		return r.Spec.AmbassadorID
+	case *amb.KubernetesServiceResolver:
+		return r.Spec.AmbassadorID
+	}
+
+	ann := resource.GetAnnotations()
+	idstr, ok := ann["getambassador.io/ambassador-id"]
+	if ok {
+		var id amb.AmbassadorID
+		err := json.Unmarshal([]byte(idstr), &id)
+		if err != nil {
+			log.Printf("%s: error parsing ambassador-id '%s'", location(resource), idstr)
+		} else {
+			return id
+		}
+	}
+
+	return amb.AmbassadorID{}
+}
+
+func location(obj kates.Object) string {
+	return fmt.Sprintf("%s %s in namespace %s", obj.GetObjectKind().GroupVersionKind().Kind, obj.GetName(),
+		obj.GetNamespace())
 }

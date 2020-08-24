@@ -116,10 +116,10 @@ func watcher(ctx context.Context, encoded *atomic.Value) {
 			return
 		}
 
-		// entrypoint based feature flag to swap out watt vs watt2
+		snapshot.parseAnnotations()
 
-		snapshot.ReconcileSecrets(ctx, client) // straighforward plumbing
-		snapshot.ReconcileConsul(ctx, consul)  // more risk, we haven't touched this code in ages, and we don't have good tests
+		snapshot.ReconcileSecrets()           // straighforward plumbing
+		snapshot.ReconcileConsul(ctx, consul) // more risk, we haven't touched this code in ages, and we don't have good tests
 
 		if !consul.isBootstrapped() {
 			continue

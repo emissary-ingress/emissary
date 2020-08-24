@@ -1,7 +1,6 @@
 package entrypoint
 
 import (
-	"context"
 	"log"
 	"strings"
 
@@ -9,25 +8,11 @@ import (
 	"github.com/datawire/ambassador/pkg/kates"
 )
 
-func (s *AmbassadorInputs) ReconcileSecrets(ctx context.Context, client *kates.Client) {
+func (s *AmbassadorInputs) ReconcileSecrets() {
 	var resources []kates.Object
-
-	for _, svc := range s.Services {
-		ann, ok := svc.GetAnnotations()["getambassador.io/config"]
-		if ok {
-			objs, err := kates.ParseManifests(ann)
-			if err != nil {
-				log.Printf("error parsing annotations: %v", err)
-			} else {
-				for _, o := range objs {
-					u, ok := o.(*kates.Unstructured)
-					if ok {
-						resources = append(resources, convertAnnotation(svc.GetNamespace(), u))
-					} else {
-						resources = append(resources, o)
-					}
-				}
-			}
+	for _, a := range s.annotations {
+		if include(GetAmbId(a)) {
+			resources = append(resources, a)
 		}
 	}
 
@@ -97,10 +82,14 @@ func (s *AmbassadorInputs) ReconcileSecrets(ctx context.Context, client *kates.C
 }
 
 func include(id amb.AmbassadorID) bool {
-	me := GetAmbassadorId()
-	// XXX: is this right
-	if len(id) == 0 && (me == "default" || me == "") {
+	if len(id) == 1 && id[0] == "_automatic_" {
 		return true
+	}
+
+	me := GetAmbassadorId()
+
+	if len(id) == 0 {
+		id = amb.AmbassadorID{"default"}
 	}
 
 	for _, name := range id {
@@ -114,10 +103,13 @@ func include(id amb.AmbassadorID) bool {
 func traverseSecretRefs(resource kates.Object, secretNamespacing bool, action func(Ref)) {
 	switch r := resource.(type) {
 	case *amb.Host:
-		// Is this a kubernetes secret or something else, gonna assume it's something else right now:
-		/*if host.TLS != nil {
-			fmt.Println(host.TLS.CASecret)
-		}*/
+		if r.Spec == nil {
+			return
+		}
+
+		if r.Spec.TLS != nil {
+			secretRef(r.GetNamespace(), r.Spec.TLS.CASecret, secretNamespacing, action)
+		}
 		if r.Spec.TLSSecret != nil && r.Spec.TLSSecret.Name != "" {
 			secretRef(r.GetNamespace(), r.Spec.TLSSecret.Name, secretNamespacing, action)
 		}

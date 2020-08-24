@@ -21,7 +21,7 @@ func GetAmbassadorId() string {
 	if svc != "" {
 		return fmt.Sprintf("intercept-%s", svc)
 	}
-	return ""
+	return "default"
 }
 
 func GetAmbassadorNamespace() string {
