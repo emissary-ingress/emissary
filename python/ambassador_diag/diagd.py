@@ -335,6 +335,10 @@ class DiagApp (Flask):
             if t:
                 self.logger.info(t.summary())
 
+        # ...and the cache statistics.
+
+        self.cache.dump_stats()
+
         # ...and reset next_timer_log so we don't log forever.
         self.next_timer_log = None
 
