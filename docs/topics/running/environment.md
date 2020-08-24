@@ -68,7 +68,7 @@ that is only used for per-second RateLimits; this second connection
 pool is configured by the `REDIS_PERSECOND_*` variables rather than
 the usual `REDIS_*` variables.
 
-#### Redis layer 4 connectivity
+#### Redis layer 4 connectivity (L4)
 
 - `SOCKET_TYPE` and `URL` are the Go network name and Go network
   address to dial to talk to Redis; see [Go `net.Dial`][].  Note that
@@ -84,16 +84,16 @@ the usual `REDIS_*` variables.
   container](../../using/filters/#installing-self-signed-certificates)
   in order to leave certificate verification on.
 
-#### Redis authentication
+#### Redis authentication (auth)
 
 - If `PASSWORD` (new in 1.5.0) is non-empty, then it is used to `AUTH`
   to Redis immediately after the connection is established.
 - If `USERNAME` (new in 1.5.0) is set, then that username is used with
-  the password to log in as that user in the [Redis 6 ACL].  It is
+  the password to log in as that user in the [Redis 6 ACL][].  It is
   invalid to set a username without setting a password.  It is invalid
   to set a username with Redis 5 or lower.
 
-#### Redis performance tuning
+#### Redis performance tuning (tune)
 
 - `POOL_SIZE` is the number of connections to keep around when idle.
   The total number of connections may go lower than this if there are
@@ -106,19 +106,21 @@ the usual `REDIS_*` variables.
   `PING_INTERVAL×POOL_SIZE` seconds; increasing `POOL_SIZE` without
   reducing `PING_INTERVAL` will increase the amount of time between
   `PING`s on a given connection.  (Backward incompatibility: prior to
-  the introduction of this setting in 1.6.0, it behaved as if
-  `PING_INTERVAL=10s÷POOL_SIZE`.)
+  the introduction of this setting in 1.6.0 this was non-configurable
+  and Ambassador would `PING` a connection every `10÷POOL_SIZE`
+  seconds, as if `PING_INTERVAL=10÷POOL_SIZE`.)
 - `IO_TIMEOUT` sets 3 different timeouts:
    1. `(*net.Dialer).Timeout` for establishing connections
    2. `(*redis.Client).ReadTimeout` for reading a single complete response
    3. `(*redis.Client).WriteTimeout` for writing a single complete request
 
-During a load surge, if the pool is depleted, Ambassador allows new
-connections to be created as fast as necessary for the first
+During a load surge, if the pool is depleted, then Ambassador allows
+new connections to be created as fast as necessary for the first
 `POOL_SIZE` connections; once the number of connections reaches
-`2×POOL_SIZE` it is limited to creating only 1 new connection per
-second.  (Backward incompatibility: prior to 1.6.0 it never limited
-the creation of new connections during a surge.)
+`2×POOL_SIZE` Ambassador limits creation of new connections to once
+per second.  (Backward incompatibility: prior to 1.6.0 the creation of
+new connections was never limited during a surge.)  The total number
+of connections that Ambassador can surge to is unbounded.
 
 - `POOL_MAX_SIZE` (new in 1.6.0) During a load surge, instead of
   closing connections immediately after use, they are placed in to a
