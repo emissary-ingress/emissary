@@ -18,13 +18,10 @@ import (
 func Main() {
 
 	// TODO:
-	//  - CRD optionality
-	//  - add validation back
 	//  - figure out a better way to get the envoy image
 	//  - logging
 	//  - error/crash analysis
 	//  - how to get errors to users?
-	//  - by not watch-hooking are we missing error checking?
 	//  - fork e2e tests
 
 	log.Println("Started")

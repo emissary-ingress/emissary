@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"strings"
 	"sync/atomic"
 
@@ -45,10 +46,24 @@ func watcher(ctx context.Context, encoded *atomic.Value) {
 		endpointFs += fmt.Sprintf(",%s", fs)
 	}
 
-	snapshot := &AmbassadorInputs{}
-	acc := client.Watch(ctx,
-		kates.Query{Namespace: ns, Name: "CRDs", Kind: "CustomResourceDefinition"},
-		// kates.Query{Name: "IngressClasses", Kind: "IngressClass"}, // I guess k3s doesn't have these.?
+	var CRDs []*kates.CustomResourceDefinition
+	err = client.List(ctx, kates.Query{Kind: "CustomResourceDefinition"}, &CRDs)
+	if err != nil {
+		panic(err)
+	}
+
+	crdNames := map[string]bool{}
+	for _, crd := range CRDs {
+		crdNames[crd.Spec.Names.Kind] = true
+		crdNames[crd.GetName()] = true
+	}
+
+	for _, name := range []string{"Ingress", "Service", "Secret", "Endpoints"} {
+		crdNames[name] = true
+	}
+
+	allQueries := []kates.Query{
+		//kates.Query{Name: "IngressClasses", Kind: "IngressClass"}, // XXX: what is an ingress class?
 		kates.Query{Namespace: ns, Name: "Ingresses", Kind: "Ingress",
 			FieldSelector: fs, LabelSelector: ls},
 		kates.Query{Namespace: ns, Name: "Services", Kind: "Service",
@@ -79,8 +94,25 @@ func watcher(ctx context.Context, encoded *atomic.Value) {
 			FieldSelector: fs, LabelSelector: ls},
 		kates.Query{Namespace: ns, Name: "KubernetesServiceResolvers", Kind: "KubernetesServiceResolver",
 			FieldSelector: fs, LabelSelector: ls},
+		kates.Query{Namespace: ns, Name: "KNativeClusterIngresses",
+			Kind: "clusteringresses.networking.internal.knative.dev", FieldSelector: fs, LabelSelector: ls},
+		kates.Query{Namespace: ns, Name: "KNativeIngresses", Kind: "ingresses.networking.internal.knative.dev",
+			FieldSelector: fs, LabelSelector: ls},
 		kates.Query{Namespace: ns, Name: "Endpoints", Kind: "Endpoints", FieldSelector: endpointFs, LabelSelector: ls},
-	)
+	}
+
+	var queries []kates.Query
+
+	for _, q := range allQueries {
+		if crdNames[q.Kind] {
+			queries = append(queries, q)
+		} else {
+			log.Printf("Warning, unable to watch %s, unknown kind.", q.Kind)
+		}
+	}
+
+	snapshot := &AmbassadorInputs{}
+	acc := client.Watch(ctx, queries...)
 
 	consulSnapshot := watt.ConsulSnapshot{}
 	consul := newConsul(ctx, &consulWatcher{})
@@ -106,6 +138,8 @@ func watcher(ctx context.Context, encoded *atomic.Value) {
 		select {
 		case <-acc.Changed():
 			var deltas []*kates.Delta
+			// We could probably get a win in some scenarios by using this filtered update thing to
+			// pre-exclude based on ambassador-id.
 			if !acc.FilteredUpdate(snapshot, &deltas, isValid) {
 				continue
 			}
@@ -118,8 +152,8 @@ func watcher(ctx context.Context, encoded *atomic.Value) {
 
 		snapshot.parseAnnotations()
 
-		snapshot.ReconcileSecrets()           // straighforward plumbing
-		snapshot.ReconcileConsul(ctx, consul) // more risk, we haven't touched this code in ages, and we don't have good tests
+		snapshot.ReconcileSecrets()
+		snapshot.ReconcileConsul(ctx, consul)
 
 		if !consul.isBootstrapped() {
 			continue
@@ -136,22 +170,12 @@ func watcher(ctx context.Context, encoded *atomic.Value) {
 		}
 		sn["Invalid"] = invalidSlice
 
-		//Errors map[string][]Error `json:",omitempty"`
-
 		bytes, err := json.MarshalIndent(sn, "", "  ")
 		if err != nil {
 			panic(err)
 		}
 		encoded.Store(bytes)
 		notifyReconfigWebhooks(ctx)
-
-		// invokePython is straighforward plumbing
-		// ComputeDirrrty() is optional (we still get watch hook win without it)
-		// ComputeDirrrty() starting out as advisory is a low-risk way to move forward
-		//invokePython(snapshot.ComputeDirrrty()) // ComputeDirrrty() should always be pronounced the way Cardi B would
-		/*resources =
-		envoySnapshot.update(resources)
-		envoySnapshot.save()*/
 
 		// we really only need to be incremental for a subset of things:
 		//  - Mappings & Endpoints are the biggies
@@ -160,10 +184,6 @@ func watcher(ctx context.Context, encoded *atomic.Value) {
 		// for Endpoints, we can probably figure out a way to wire things up where we bypass  python entirely:
 		//   - maybe have the python put in a placeholder that the go code fills in
 		//   - maybe use EDS to pump the endpoint data directly to the cluster
-
-		// we could make this skeleton subsume large parts of entrypoint.sh (e.g. ambex)
-
-		//log.Println(snapshot.Render())
 	}
 }
 
