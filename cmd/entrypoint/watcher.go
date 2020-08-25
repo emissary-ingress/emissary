@@ -94,11 +94,15 @@ func watcher(ctx context.Context, encoded *atomic.Value) {
 			FieldSelector: fs, LabelSelector: ls},
 		kates.Query{Namespace: ns, Name: "KubernetesServiceResolvers", Kind: "KubernetesServiceResolver",
 			FieldSelector: fs, LabelSelector: ls},
-		kates.Query{Namespace: ns, Name: "KNativeClusterIngresses",
-			Kind: "clusteringresses.networking.internal.knative.dev", FieldSelector: fs, LabelSelector: ls},
-		kates.Query{Namespace: ns, Name: "KNativeIngresses", Kind: "ingresses.networking.internal.knative.dev",
-			FieldSelector: fs, LabelSelector: ls},
 		kates.Query{Namespace: ns, Name: "Endpoints", Kind: "Endpoints", FieldSelector: endpointFs, LabelSelector: ls},
+	}
+
+	if IsKnativeEnabled() {
+		allQueries = append(allQueries,
+			kates.Query{Namespace: ns, Name: "KNativeClusterIngresses",
+				Kind: "clusteringresses.networking.internal.knative.dev", FieldSelector: fs, LabelSelector: ls},
+			kates.Query{Namespace: ns, Name: "KNativeIngresses", Kind: "ingresses.networking.internal.knative.dev",
+				FieldSelector: fs, LabelSelector: ls})
 	}
 
 	var queries []kates.Query

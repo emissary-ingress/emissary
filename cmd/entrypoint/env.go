@@ -187,3 +187,7 @@ func GetEventUrl() string {
 func GetSidecarUrl() string {
 	return fmt.Sprintf("%s/%s/watt", GetSidecarHost(), GetSidecarPath())
 }
+
+func IsKnativeEnabled() bool {
+	return strings.ToLower(env("AMBASSADOR_KNATIVE_SUPPORT", "")) == "true"
+}
