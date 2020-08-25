@@ -161,11 +161,11 @@ metadata:
 spec:
   rules:
   - host: foo.bar.com
-    path: *
+    path: "*"
     filters:
       - name: foo-keycloak
   - host: example.com
-    path: *
+    path: "*"
     filters:
       - name: example-auth0
 ```
