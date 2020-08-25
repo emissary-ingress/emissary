@@ -66,6 +66,10 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Bugfix: Correctly handle a `Host` object with incompatible manually-specified `TLSContext`
 - Feature: The Ambassador control-plane now publishes Prometheus metrics alongside the existing Envoy data-plane metrics under the `/metrics` endpoint on port 8877.
 
+### Ambassador API Gateway only
+
+- Bugfix: Fixes regression in 1.5.1 that caused it to not correctly know its own version number, leading to notifications about an available upgrade despite being on the most recent version.
+
 ### Ambassador Edge Stack only
 
 - Feature: DevPortal can now discover openapi documentation from `Mapping`s that set `host` and `headers`
