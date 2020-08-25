@@ -80,7 +80,6 @@ func isDebug(name string) bool {
 	return strings.Contains(GetAmbassadorDebug(), name)
 }
 
-// XXX: this is different from entrypoint, the starting point is not overridable
 func GetEnvoyFlags() []string {
 	result := []string{"-c", GetEnvoyBootstrapFile(), "--base-id", GetEnvoyBaseId()}
 	svc := GetAgentService()

@@ -3,7 +3,6 @@ package entrypoint
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"time"
@@ -11,14 +10,14 @@ import (
 
 func runEnvoy(ctx context.Context, envoyHUP chan os.Signal) {
 	// Wait until we get a SIGHUP to start envoy.
-	var bootstrap string
+	//var bootstrap string
 	select {
 	case <-envoyHUP:
-		bytes, err := ioutil.ReadFile(GetEnvoyBootstrapFile())
+		/*bytes, err := ioutil.ReadFile(GetEnvoyBootstrapFile())
 		if err != nil {
 			panic(err)
 		}
-		bootstrap = string(bytes)
+		bootstrap = string(bytes)*/
 	case <-ctx.Done():
 		return
 	}
@@ -32,7 +31,7 @@ func runEnvoy(ctx context.Context, envoyHUP chan os.Signal) {
 	// envoy lying around.
 	var dieharder func()
 	if IsEnvoyAvailable() {
-		cmd = subcommand(ctx, "envoy", "--config-yaml", bootstrap)
+		cmd = subcommand(ctx, "envoy", GetEnvoyFlags()...)
 		dieharder = func() {}
 	} else {
 		// Create a label unique to this invocation so we can use it to do a docker
@@ -40,9 +39,11 @@ func runEnvoy(ctx context.Context, envoyHUP chan os.Signal) {
 		label := fmt.Sprintf("amb-envoy-label-%d", os.Getpid())
 		// XXX: will host networking work on a mac? (probably not)
 		snapdir := GetSnapshotDir()
-		cmd = subcommand(ctx, "docker", "run", "-l", label, "--rm", "--network", "host", "-v",
-			fmt.Sprintf("%s:%s", snapdir, snapdir), "--entrypoint", "envoy",
-			"docker.io/datawire/aes:1.6.2", "--config-yaml", bootstrap)
+		cmd = subcommand(ctx, "docker", append([]string{"run", "-l", label, "--rm", "--network", "host",
+			"-v", fmt.Sprintf("%s:%s", snapdir, snapdir),
+			"-v", fmt.Sprintf("%s:%s", GetEnvoyBootstrapFile(), GetEnvoyBootstrapFile()),
+			"--entrypoint", "envoy", "docker.io/datawire/aes:1.6.2"},
+			GetEnvoyFlags()...)...)
 		dieharder = func() {
 			cids := cidsForLabel(label)
 			if len(cids) == 0 {
