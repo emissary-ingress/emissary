@@ -221,22 +221,9 @@ bootstrap() {
 
 module_version() {
     echo MODULE="\"$1\""
-    # This is only "kinda" the git branch name:
-    #
-    #  - if checked out is the synthetic merge-commit for a PR, then use
-    #    the PR's branch name (even though the merge commit we have
-    #    checked out isn't part of the branch")
-    #  - if this is a CI run for a tag (not a branch or PR), then use the
-    #    tag name
-    #  - if none of the above, then use the actual git branch name
-    #
-    # read: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
-    for VAR in "${TRAVIS_PULL_REQUEST_BRANCH}" "${TRAVIS_BRANCH}" $(git rev-parse --abbrev-ref HEAD); do
-        if [ -n "${VAR}" ]; then
-            echo GIT_BRANCH="\"${VAR}\""
-            break
-        fi
-    done
+
+    echo GIT_BRANCH="\"$(git rev-parse --abbrev-ref HEAD)\""
+
     # The short git commit hash
     echo GIT_COMMIT="\"$(git rev-parse --short HEAD)\""
     # Whether `git add . && git commit` would commit anything (empty=false, nonempty=true)
