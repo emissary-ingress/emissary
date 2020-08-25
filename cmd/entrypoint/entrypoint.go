@@ -3,16 +3,21 @@ package entrypoint
 import (
 	"context"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
 	"path"
+	"strings"
 	"sync/atomic"
 	"syscall"
 	"time"
 
 	"github.com/datawire/ambassador/cmd/ambex"
+	"github.com/datawire/ambassador/pkg/kates"
+
+	"github.com/google/uuid"
 )
 
 func Main() {
@@ -24,7 +29,11 @@ func Main() {
 	//  - how to get errors to users?
 	//  - fork e2e tests
 
-	log.Println("Started")
+	log.Println("Started Ambassador")
+
+	clusterID := GetClusterID(context.Background())
+	os.Setenv("AMBASSADOR_CLUSTER_ID", clusterID)
+	log.Printf("AMBASSADOR_CLUSTER_ID=%s", clusterID)
 
 	pec := "PYTHON_EGG_CACHE"
 	if os.Getenv(pec) == "" {
@@ -35,8 +44,6 @@ func Main() {
 	ensureDir(GetAmbassadorConfigBaseDir())
 
 	// TODO: --demo
-
-	// TODO: AMBASSADOR_CLUSTER_ID
 
 	// TODO: demo_chimed
 
@@ -100,4 +107,35 @@ func Main() {
 	for name, value := range results {
 		log.Printf("%s: %s", name, value)
 	}
+}
+
+func GetClusterID(ctx context.Context) string {
+	clusterID := env("AMBASSADOR_CLUSTER_ID", env("AMBASSADOR_SCOUT_ID", ""))
+	if clusterID != "" {
+		return clusterID
+	}
+
+	rootID := "00000000-0000-0000-0000-000000000000"
+
+	client, err := kates.NewClient(kates.ClientOptions{})
+	if err == nil {
+		nsName := "default"
+		if IsAmbassadorSingleNamespace() {
+			nsName = GetAmbassadorNamespace()
+		}
+		ns := &kates.Namespace{
+			TypeMeta:   kates.TypeMeta{Kind: "Namespace"},
+			ObjectMeta: kates.ObjectMeta{Name: nsName},
+		}
+
+		err := client.Get(ctx, ns, ns)
+		if err == nil {
+			rootID = string(ns.GetUID())
+		}
+	}
+
+	clusterUrl := fmt.Sprintf("d6e_id://%s/%s", rootID, GetAmbassadorId())
+	uid := uuid.NewSHA1(uuid.NameSpaceURL, []byte(clusterUrl))
+
+	return strings.ToLower(uid.String())
 }

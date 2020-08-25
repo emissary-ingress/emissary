@@ -138,6 +138,8 @@ func watcher(ctx context.Context, encoded *atomic.Value) {
 		}
 	}
 
+	firstReconfig := true
+
 	for {
 		select {
 		case <-acc.Changed():
@@ -179,6 +181,10 @@ func watcher(ctx context.Context, encoded *atomic.Value) {
 			panic(err)
 		}
 		encoded.Store(bytes)
+		if firstReconfig {
+			log.Println("Bootstrapped! Computing initial configuration...")
+			firstReconfig = false
+		}
 		notifyReconfigWebhooks(ctx)
 
 		// we really only need to be incremental for a subset of things:
