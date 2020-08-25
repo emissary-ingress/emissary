@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-if [ -n "${AMBASSADOR_FAST_RECONFIGURE}" ]; then
+if [ "${AMBASSADOR_FAST_RECONFIGURE,,}" == "true" ]; then
   exec ambassador entrypoint
 fi
 
