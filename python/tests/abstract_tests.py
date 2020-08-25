@@ -104,10 +104,18 @@ class AmbassadorTest(Test):
         self.manifest_envs += """
     - name: POLL_EVERY_SECS
       value: "0"
-    - name: AMBASSADOR_FAST_RECONFIGURE
-      value: "fast"
+"""
+
+        if os.environ.get('AMBASSADOR_FAST_VALIDATION', 'false').lower() == 'true':
+            self.manifest_envs += """
     - name: AMBASSADOR_FAST_VALIDATION
-      value: "fast"
+      value: "true"
+"""
+
+        if os.environ.get('AMBASSADOR_FAST_RECONFIGURE', 'false').lower() == 'true':
+            self.manifest_envs += """
+    - name: AMBASSADOR_FAST_RECONFIGURE
+      value: "true"
 """
 
         if self.debug_diagd:
