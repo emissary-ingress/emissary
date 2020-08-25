@@ -73,15 +73,19 @@ local, editable copies.
 [Graphite](http://graphite.readthedocs.org/) is a web-based realtime
 graphing system.  Spin up an example Graphite setup:
 
-    kubectl apply -f statsd-sink/graphite/graphite-statsd-sink.yaml
+```shell
+kubectl apply -f statsd-sink/graphite/graphite-statsd-sink.yaml
+```
 
 This sets up the `statsd-sink` service and a deployment that contains
 Graphite and its related infrastructure.  Graphite's web interface is
 available at `http://statsd-sink/` from within the cluster.  Use port
 forwarding to access the interface from your local machine:
 
-    SINKPOD=$(kubectl get pod -l service=statsd-sink -o jsonpath="{.items[0].metadata.name}")
-    kubectl port-forward $SINKPOD 8080:80
+```shell
+SINKPOD=$(kubectl get pod -l service=statsd-sink -o jsonpath="{.items[0].metadata.name}")
+kubectl port-forward $SINKPOD 8080:80
+```
 
 This sets up Graphite access at `http://localhost:8080/`.
 
@@ -188,7 +192,7 @@ available
 Ensure `STATSD_ENABLED` is set to `"true"` and apply the YAML with
 `kubectl`.
 
-```
+```shell
 kubectl apply -f statsd-sink.yaml
 kubectl apply -f prometheus.yaml
 ```
@@ -197,7 +201,7 @@ Wait for a minute after the pods spin up and then access the
 Prometheus dashboard by port-forwarding the Prometheus pod and going
 to `http://localhost:9090/` on a web-browser.
 
-```
+```shell
 kubectl port-forward prometheus-prometheus-0 9090
 ```
 
@@ -224,8 +228,8 @@ monitoring system, pulling in Ambassador Edge Stack statistics is very
 easy.  Replace the sample API key in the YAML file with your own, then
 launch the DogStatsD agent:
 
-```
-    kubectl apply -f statsd-sink/datadog/dd-statsd-sink.yaml
+```shell
+kubectl apply -f statsd-sink/datadog/dd-statsd-sink.yaml
 ```
 
 This sets up the `statsd-sink` service and a deployment of the
