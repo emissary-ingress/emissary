@@ -237,6 +237,24 @@ module_version() {
     # The _previous_ tag, plus a git delta, like 0.36.0-436-g8b8c5d3
     echo GIT_DESCRIPTION="\"$(git describe --tags)\""
 
+    # We're going to post-process RELEASE_VERSION below.  But for now
+    # what you need to know is: This block is just going to set it to
+    # the git tag.
+    #
+    # The reason that we give precedence to `TRAVIS_TAG` over `git
+    # describe` is that if there are multiple tags pointing at the
+    # same commit, then it is non-deterministic which tag `git
+    # describe` will choose.  We want to know which one of those tags
+    # actually triggered this CI run, so we give precedence to
+    # Travis-CI, since it has information that isn't actually stored
+    # in Git.
+    for VAR in "${TRAVIS_TAG}" "$(git describe --tags --always)"; do
+        if [ -n "${VAR}" ]; then
+            RELEASE_VERSION="${VAR}"
+            break
+        fi
+    done
+
     # RELEASE_VERSION is an X.Y.Z[-prerelease] (semver) string that we
     # will upload/release the image as.  It does NOT include a leading 'v'
     # (trimming the 'v' from the git tag is what the 'patsubst' is for).
@@ -247,13 +265,6 @@ module_version() {
     # we build into the image.  Because an image built as a "release
     # candidate" will ideally get promoted to be the GA image, we trim off
     # the '-rc.N' suffix.
-    for VAR in "${TRAVIS_TAG}" "$(git describe --tags --always)"; do
-        if [ -n "${VAR}" ]; then
-            RELEASE_VERSION="${VAR}"
-            break
-        fi
-    done
-
     if [[ ${RELEASE_VERSION} =~ ^v[0-9]+.*$ ]]; then
         RELEASE_VERSION=${RELEASE_VERSION:1}
     fi
