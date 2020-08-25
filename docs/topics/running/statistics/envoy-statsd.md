@@ -1,77 +1,49 @@
-# Statistics and Monitoring
+# Envoy statistics with StatsD
 
-Ambassador Edge Stack uses [Envoy Proxy](https://www.envoyproxy.io),
-which has Observability to expose a multitude of statistics about its
-own operations.  You can use the Envoy `/metrics` endpoint to scrap
-states and metrics directly, so you don't need to configure your
-Ambassador Edge Stack to output statistics to another tool, such as
-StatsD.
+> For an overview of other options for gathering statistics on
+> Ambassador, see the [Statistics and Monitoring](../) overview.
 
-To scrape metrics directly, follow the instructions for [Monitoring
-with Prometheus and Grafana](../../../howtos/prometheus).
+At the core of Ambassador is [Envoy Proxy][], which has built-in
+support for exporting a multitude of statistics about its own
+operations to StatsD (or to the modified DogStatsD used by Datadog).
 
-Ambassador Edge Stack makes it easy to direct this information to a
-statistics and monitoring tool of your choice.  As an example, for a
-given service `usersvc`, here are some interesting statistics to
-investigate:
+[Envoy Proxy]: https://www.envoyproxy.io
 
-- `envoy.cluster.usersvc_cluster.upstream_rq_total` is the total
-  number of requests that `usersvc` has received via Ambassador Edge
-  Stack.  The rate of change of this value is one basic measure of
-  service utilization, i.e. requests per second.
-- `envoy.cluster.usersvc_cluster.upstream_rq_2xx` is the total number
-  of requests to which `usersvc` responded with an HTTP response
-  indicating success.  This value divided by the prior one, taken on
-  an rolling window basis, represents the recent success rate of the
-  service.  There are corresponding `4xx` and `5xx` counters that can
-  help clarify the nature of unsuccessful requests.
-- `envoy.cluster.usersvc_cluster.upstream_rq_time` is a StatsD timer
-  that tracks the latency in milliseconds of `usersvc` from Ambassador
-  Edge Stack's perspective.  StatsD timers include information about
-  means, standard deviations, and decile values.
+If enabled, then Ambassador has Envoy expose this information via the
+ubiquitous and well-tested [StatsD](https://github.com/etsy/statsd)
+protocol.  To enable this, you will simply need to set the environment
+variable `STATSD_ENABLED=true` in Ambassador's deployment YAML:
 
-## Exposing Statistics via StatsD
-
-Statistics can be exposed via the ubiquitous and well-tested
-[StatsD](https://github.com/etsy/statsd) protocol.
-
-To expose statistics via StatsD, you will need to set an environment
-variable `STATSD_ENABLED: true` in Ambassador Edge Stack's deployment
-YAML.
-
-```yaml
-<redacted>
-    spec:
-      containers:
-      - env:
-        - name: STATSD_ENABLED
-          value: "true"
-        - name: AMBASSADOR_NAMESPACE
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.namespace
-        image: <ambassador image>
-        imagePullPolicy: IfNotPresent
-<redacted>
+```diff
+     spec:
+       containers:
+       - env:
++        - name: STATSD_ENABLED
++          value: "true"
+         - name: AMBASSADOR_NAMESPACE
+           valueFrom:
+             fieldRef:
 ```
 
-When this variable is set, Ambassador Edge Stack automatically sends
-statistics information to a Kubernetes service called `statsd-sink`
-using typical StatsD protocol settings, UDP to port 8125.  You may
-also override the StatsD host by setting the `STATSD_HOST` environment
-variable.  This can be useful if you have an existing StatsD sink
-available in your cluster.
+When this variable is set, Ambassador by default sends statistics to a
+Kubernetes service named `statsd-sink` on UDP port 8125 (the usual
+port of the StatsD protocol).  You may instead tell Ambassador to send
+the statistics to a different StatsD server by setting the
+`STATSD_HOST` environment variable.  This can be useful if you have an
+existing StatsD sink available in your cluster.
 
 We have included a few example configurations in the
-[statsd-sink](https://github.com/datawire/ambassador/tree/master/deployments/statsd-sink)
-subdirectory to help you get started.  Clone the repository to get
-local, editable copies.
+[`statsd-sink/`][] directory to help you get started.  Clone the
+repository to get local, editable copies.
 
-## Graphite
+[`statsd-sink/`]: https://github.com/datawire/ambassador/tree/$branch$/deployments/statsd-sink
 
-[Graphite](http://graphite.readthedocs.org/) is a web-based realtime
-graphing system.  Spin up an example Graphite setup:
+## Using Graphite as the StatsD sink
+
+[Graphite][] is a web-based real-time graphing system.  Spin up an
+example Graphite setup:
+
+[Graphite]: http://graphite.readthedocs.org/
 
 ```shell
 kubectl apply -f statsd-sink/graphite/graphite-statsd-sink.yaml
@@ -89,46 +61,63 @@ kubectl port-forward $SINKPOD 8080:80
 
 This sets up Graphite access at `http://localhost:8080/`.
 
-## Prometheus
+## Using Prometheus StatsD Exporter as the StatsD sink
 
-[Prometheus](https://prometheus.io/) is an open-source monitoring and
-alerting system.  If you use Prometheus, you can use the `/metrics`
-endpoint for scraping metrics directly from the Ambassador admin port
-(`:8877`), or deploy the [Prometheus StatsD
-Exporter](https://github.com/prometheus/statsd_exporter) as the
-`statsd-sink` service.  The latter will translate StatsD metrics into
-Prometheus metrics; configure a Prometheus target to read from
-`statsd-sink` on port 9102 to complete the Prometheus configuration.
-A sample configuration for Prometheus is available
-[here](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/prom-statsd-sink.yaml).
+> Ambassador has an endpoint that has exposes statistics in a format
+> that Prometheus understands natively.  If you're using Prometheus,
+> we recommend configuring Prometheus to talk to [the `:8877/metrics`
+> endpoint][] directly, instead of instead of going through StatsD and
+> a translator.
 
-You can optionally also add the `statsd-sink` service and Prometheus
-exporter as a sidecar on the Ambassador Edge Stack pod.  If you do
-this, make sure to set `STATSD_HOST: localhost` so that UDP packets
-are routed to the sidecar.
+[the `:8877/metrics` endpoint]: ../8877-metrics)
 
-### Configuring Metrics Mappings for Prometheus
+[Prometheus][] is an open-source monitoring and alerting system.
+Prometheus does not natively understand the StatsD protocol, but you
+can deploy the [Prometheus StatsD Exporter][] to act as the StatsD
+sink, and it will translate from StatsD to the [exposition format][]
+that Prometheus requires.  An example of how deploying Prometheus
+StatsD Exporter is available in [`prom-statsd-sink.yaml`][].
+
+[Prometheus]: https://prometheus.io/
+[Prometheus StatsD Exporter]: https://github.com/prometheus/statsd_exporter
+[exposition format]: https://prometheus.io/docs/instrumenting/exposition_formats/
+[`prom-statsd-sink.yaml`]: https://github.com/datawire/ambassador/blob/$branch$/deployments/statsd-sink/prometheus/prom-statsd-sink.yaml
+
+To finally get the statistics to Prometheus, you then configure a
+Prometheus target to read from `statsd-sink` on port 9102.
+
+You could instead add the `statsd-sink` service and Prometheus StatsD
+Exporter as a sidecar on the Ambassador pod.  If you do this, make
+sure to set `STATSD_HOST=localhost` so that UDP packets are routed to
+the sidecar.
+
+### Configuring how Prometheus StatsD Exporter translates from StatsD to the Prometheus format
 
 It may be desirable to change how metrics produced by the
-`statsd-sink` are named, labeled and grouped.
+`statsd-sink` are named, labeled and grouped when they finally make it
+to Prometheus.
 
-For example, by default, each service that the API Gateway serves will
+For example, by default, each service that Ambassador serves will
 create a new metric using its name.  For the service called `usersvc`
-you will see this metric:
+you will see this metric
 `envoy.cluster.usersvc_cluster.upstream_rq_total`.  This may lead to
 problems if you are trying to create a single aggregate that is the
 sum of all similar metrics from different services.  In this case, it
 is common to differentiate the metrics for an individual service with
-a `label`.  This can be done using a mapping.
+a `label`.  This can be done by configuring a Prometheus StatsD
+Exporter "mapping" (not to be confused with an [Ambassador
+"Mapping"][mappings]).  See [Metric Mapping and Configuration][] in
+the Prometheus StatsD Exporter documentation to learn how to modify
+its mappings.
 
-[Follow this
-guide](https://github.com/prometheus/statsd_exporter/tree/v0.6.0#metric-mapping-and-configuration)
-to learn how to modify your mappings.
+[mappings]: ../../../using/mappings
+[Metric Mapping and Configuration]: https://github.com/prometheus/statsd_exporter/tree/v0.6.0#metric-mapping-and-configuration
 
-#### Configuring for Helm
+#### Configuring Prometheus StatsD Exporter with Helm
 
 If you deploy Prometheus using Helm the value that you should change
-is `prometheusExporter.configuration`.  Set it to something like this:
+in order to add a mapping is `prometheusExporter.configuration`.  Set
+it to something like this:
 
 ```yaml
   configuration: |
@@ -141,12 +130,13 @@ is `prometheusExporter.configuration`.  Set it to something like this:
         cluster_name: "$1"
 ```
 
-#### Configuring for `kubectl`
+#### Configuring Prometheus StatsD Exporter with `kubectl`
 
-In the
-[`ambassador-rbac-prometheus.yaml`](../../../../../yaml/ambassador/ambassador-rbac-prometheus.yaml)
-example template there is a `ConfigMap` that should be updated.  Add
-your mapping to the `configuration` property.
+In the [`ambassador-rbac-prometheus.yaml`][] example template there is
+a `ConfigMap` that should be updated.  Add your mapping to the
+`configuration` property.
+
+[`ambassador-rbac-prometheus.yaml`]: ../../../../../yaml/ambassador/ambassador-rbac-prometheus.yaml
 
 ```yaml
 ---
@@ -165,32 +155,34 @@ data:
         cluster_name: "$1"
 ```
 
-### The Prometheus Operator
+### Using the Prometheus Operator to configure Prometheus for use with the Prometheus StatsD Exporter
 
 If you don't already have a Prometheus setup, the [Prometheus
-operator](https://github.com/coreos/prometheus-operator) is a powerful
-way to create and deploy Prometheus instances.  Use the following YAML
-to quickly configure the Prometheus Operator with Ambassador Edge
-Stack:
+Operator][] is a powerful way to create and deploy Prometheus
+instances.  Use the following YAML to quickly configure the Prometheus
+Operator with Ambassador:
 
-- [`statsd-sink.yaml`](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/statsd-sink.yaml)
-  Creates the `statsd-sink` service that collects stats date from
-  Ambassador Edge Stack and translates it to Prometheus metrics.  It
-  also creates a `ServiceMonitor` that adds `statsd-sink` as a
-  Prometheus target.
-- [`prometheus.yaml`](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/prometheus.yaml)
-  Deploys the Prometheus Operator and creates a `Prometheus` object
-  that collects data from the location defined by the
-  `ServiceMonitor`.
+- [`statsd-sink.yaml`][] Creates the Prometheus Stats Exporter
+  deployment and `statsd-sink` service that receives the statistics
+  from Ambassador and translates them to Prometheus metrics.  It also
+  creates a `ServiceMonitor` resource that tells the Prometheus
+  Operator to configure Prometheus to fetch those metrics from the
+  StatsD Exporter.
+- [`prometheus.yaml`][] Deploys the Prometheus Operator and creates
+  `Prometheus` resource that tells the Prometheus Operator to create
+  the actual Prometheus deployment.
+
+[Prometheus operator]: https://github.com/coreos/prometheus-operator
+[`statsd-sink.yaml`]: https://github.com/datawire/ambassador/blob/$branch$/deployments/statsd-sink/prometheus/statsd-sink.yaml
+[`prometheus.yaml`]: https://github.com/datawire/ambassador/blob/$branch$/deployments/statsd-sink/prometheus/prometheus.yaml
 
 Make sure that the `ServiceMonitor` is in the same namespace as
-Ambassador Edge Stack.  A walk-through of the basics of configuring
-the Prometheus operator with Ambassador Edge Stack and Envoy is
-available
+Ambassador.  A walk-through of the basics of configuring the
+Prometheus Operator with Ambassador is available
 [here](http://www.datawire.io/faster/ambassador-prometheus/).
 
 Ensure `STATSD_ENABLED` is set to `"true"` and apply the YAML with
-`kubectl`.
+`kubectl`:
 
 ```shell
 kubectl apply -f statsd-sink.yaml
@@ -205,55 +197,54 @@ to `http://localhost:9090/` on a web-browser.
 kubectl port-forward prometheus-prometheus-0 9090
 ```
 
-## StatsD as an Independent Deployment
+### Using Grafana to visualize statistics gathered by Prometheus
 
-If you want to set up the StatsD sink as an independent deployment,
-[this
-example](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/prom-statsd-sink.yaml)
-configuration mirrors the Graphite and Datadog configurations.
+![Grafana dashboard](../../../../images/grafana.png)
 
-## Grafana
+If you're using Grafana, [Alex Gervais][] has written a template
+[Ambassador dashboard for Grafana][] that works with either the
+metrics exposed by the Prometheus StatsD Exporter, or by [the
+`:8877/metrics` endpoint][].
 
-![Grafana dashboard](../../../images/grafana.png)
+[Alex Gervais]: https://twitter.com/alex_gervais
+[Ambassador dashboard for Grafana]: https://grafana.com/dashboards/4698
 
-If you're using Grafana, [Alex
-Gervais](https://twitter.com/alex_gervais) has written a template
-[Grafana dashboard for Ambassador Edge
-Stack](https://grafana.com/dashboards/4698).
+## Using Datadog DogStatsD as the StatsD sink
 
-## Datadog
+If you are a user of the [Datadog][] monitoring system, pulling in the
+Envoy statistics from Ambassador is very easy.
 
-If you are a user of the [Datadog](https://www.datadoghq.com/)
-monitoring system, pulling in Ambassador Edge Stack statistics is very
-easy.  Replace the sample API key in the YAML file with your own, then
-launch the DogStatsD agent:
+[Datadog]: https://www.datadoghq.com/
+
+Because the DogStatsD protocol is slightly different than the normal
+StatsD protocol, in addition to setting Ambassador's
+`STATSD_ENABLED=true` environment variable, you also need to set the
+`DOGSTATSD=true` environment variable:
+
+```diff
+     spec:
+       containers:
+       - env:
++        - name: STATSD_ENABLED
++          value: "true"
++        - name: DOGSTATSD
++          value: "true"
+         - name: AMBASSADOR_NAMESPACE
+           valueFrom:
+             fieldRef:
+```
+
+Then, you will need to deploy the DogStatsD agent in to your cluster
+to act as the StatsD sink.  To do this, replace the sample API key in
+our [sample YAML file][`dd-statsd-sink.yaml`] with your own, then
+apply that YAML:
+
+[`dd-statsd-sink.yaml`]: https://github.com/datawire/ambassador/blob/$branch$/deployments/statsd-sink/datadog/dd-statsd-sink.yaml
 
 ```shell
 kubectl apply -f statsd-sink/datadog/dd-statsd-sink.yaml
 ```
 
 This sets up the `statsd-sink` service and a deployment of the
-DogStatsD agent that automatically forwards Ambassador Edge Stack
-stats to your Datadog account.
-
-Next, add the `DOGSTATSD` environment variable to your deployment to
-tell Envoy to emit stats with DogStatsD-compliant tags:
-
-```yaml
-<redacted>
-    spec:
-      containers:
-      - env:
-        - name: STATSD_ENABLED
-          value: "true"
-        - name: DOGSTATSD
-          value: "true"
-        - name: AMBASSADOR_NAMESPACE
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.namespace
-        image: <ambassador image>
-        imagePullPolicy: IfNotPresent
-<redacted>
-```
+DogStatsD agent that forwards the Ambassador statistics to your
+Datadog account.
