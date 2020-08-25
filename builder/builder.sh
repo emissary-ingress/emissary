@@ -241,14 +241,14 @@ module_version() {
     # what you need to know is: This block is just going to set it to
     # the git tag.
     #
-    # The reason that we give precedence to `TRAVIS_TAG` over `git
+    # The reason that we give precedence to `CIRCLE_TAG` over `git
     # describe` is that if there are multiple tags pointing at the
     # same commit, then it is non-deterministic which tag `git
     # describe` will choose.  We want to know which one of those tags
     # actually triggered this CI run, so we give precedence to
-    # Travis-CI, since it has information that isn't actually stored
-    # in Git.
-    for VAR in "${TRAVIS_TAG}" "$(git describe --tags --always)"; do
+    # CircleCI, since it has information that isn't actually stored in
+    # Git.
+    for VAR in "${CIRCLE_TAG}" "$(git describe --tags --always)"; do
         if [ -n "${VAR}" ]; then
             RELEASE_VERSION="${VAR}"
             break
