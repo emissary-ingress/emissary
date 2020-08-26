@@ -401,5 +401,5 @@ sampling:
 
         # We constantly find that Envoy's RNG isn't exactly predictable with small sample
         # sizes, so even though 10% of 100 is 10, we'll make this pass as long as we don't
-        # go over 50.
-        assert 5 < len(traces) < 50
+        # go over 50 or under 1.
+        assert 1 <= len(traces) <= 50
