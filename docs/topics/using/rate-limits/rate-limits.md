@@ -1,41 +1,241 @@
-# Rate Limiting in Ambassador Edge Stack
+# Rate Limiting in the Ambassador Edge Stack
 
-## The Basic Configuration Objects
+Rate limiting in the Ambassador Edge Stack is composed of two parts:
 
-Rate limits in Ambassador Edge Stack are composed of two parts:
+* Labels that get attached to requests; a label is basic metadata that
+  is used by the `RateLimitService` to decide which limits to apply to
+  the request.
+* `RateLimit`s configure the Ambassador Edge Stack's built-in
+  `RateLimitService`, and set limits based on the labels on the
+  request.
 
-* Labels applied to requests (a label is basic metadata that is used
-  by the rate limiting service).
-* `RateLimits` that set limits based on the labels in the request
+## Attaching labels to requests
 
-### Labels
+<!-- TODO(lukeshu): This section applies both to Ambassador Edge Stack
+and to Ambassador API Gateway; move it to a shared location instead of
+putting it alongside the AES `RateLimit` docs. -->
 
-Edge Stack supports three types of labels:
+There are two ways of setting labels on a request:
 
-* `generic_key` which is a simple string
-* `remote_address` which is the value of the client IP address,
-  assuming the load balancer configuration is set correctly
-* a custom type that can forward the value of a header to Ambassador
-  for rate limiting
+1. Per [`Mapping`](../../mappings#configuring-mappings).  Labels set
+   here will only apply to requests that use that Mapping
 
-## Global vs service-level rate limits
+   ```yaml
+   ---
+   apiVersion: getambassador.io/v2
+   kind: Mapping
+   metadata:
+     name: foo-app
+   spec:
+     prefix: /foo/
+     service: foo
+     labels:
+       "my_first_label_domain":
+       - "my_first_label_group":
+         - "my_label_specifier_1"
+         - "my_label_specifier_2"
+       - "my_second_label_group":
+         - "my_label_specifier_3"
+         - "my_label_specifier_4"
+       "my_second_label_domain":
+       - ...
+   ```
 
-Edge Stack supports both global and service-level rate limits via two
-different labeling mechanisms.
+2. Globally, in the [`ambassador`
+   `Module`](../../../running/ambassador).  Labels set here are
+   applied to every single request that goes through Ambassador.  This
+   includes requests go through a `Mapping` that sets more labels; for
+   those requests, the global labels are prepended to each of the
+   Mapping's label groups for the matching domain; otherwise the
+   global labels are put in to a new label group named "default" for
+   that domain.
 
-* Labels applied in the `ambassador` Module are "global" and applied
-  to every single request that goes through Ambassador; these labels
-  are typically managed by operations
-* Labels applied at the `Mapping` are at the service-level and applied
-  only to the requests that use that `Mapping`
+   ```yaml
+   ---
+   apiVersion: getambassador.io/v2
+   kind: Module
+   metadata:
+     name: ambassador
+   spec:
+     config:
+       default_labels:
+         "my_first_label_domain":
+           defaults:
+           - "my_label_specifier_a"
+           - "my_label_specifier_b"
+         "my_second_label_domain":
+           defaults:
+           - "my_label_specifier_c"
+           - "my_label_specifier_d"
+   ```
 
-## An example service-level rate limit
+*Labels* on a request are lists of key/value pairs, organized in to
+*label groups*.  Because a label group is a *list* of key/value pairs
+(rather than a map),
+- it is possible to have multiple labels with the same key
+- the order of labels matters
 
-The following `Mapping` resource will add the `{"generic_key":
-"default_generic_key_label"}` to every request to the `foo-app`
-service:
+Your Module and Mappings contain *label specifiers* that tell
+Ambassador what labels to set on the request.
 
+> Note: The terminology used by the Envoy documentation differs from
+> the terminology used by Ambassador:
+>
+> | Ambassador      | Envoy             |
+> |-----------------|-------------------|
+> | label group     | descriptor        |
+> | label           | descriptor entry  |
+> | label specifier | rate limit action |
+
+The Mappings' listing of the groups of specifiers have names for the
+groups; the group names are useful for humans dealing with the YAML,
+but are ignored by Ambassador, all Ambassador cares about are the
+*contents* of the groupings of label specifiers.
+
+There are 5 types of label specifiers in Ambassador:
+
+<!-- This table is ordered the same way as the protobuf fields in
+  `route_components.proto`.  There's also a 6th action:
+  "header_value_match" (since Envoy 1.2), but Ambassador doesn't
+  support it?  -->
+
+| #             | Label Specifier                        | Action, in human terms                                                                                                                  | Action, in [Envoy gRPC terms][`envoy.api.v2.route.RateLimit.Action`]           |
+|---------------|----------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| 1             | `"source_cluster"`                     | Sets the label "`source_cluster`=«Envoy source cluster name»"                                                                           | `{ "source_cluster": {} }`                                                     |
+| 2             | `"destination_cluster"`                | Sets the label "`destination_cluster`=«Envoy destination cluster name»"                                                                 | `{ "destination_cluster": {} }`                                                |
+| 3             | `{ "my_key": { "header": "my_hdr" } }` | If the `my_hdr` header is set, then set the label "«`my_key`»=«Value of the `my_hdr` header»"; otherwise skip applying this label group | `{ "request_headers": { "header_name": "my_hdr", descriptor_key: "my_key" } }` |
+| 4             | `"remote_address"`                     | Sets the label "`remote_address`=«IP address of the client»"                                                                            | `{ "remote_address": {} }`                                                     |
+| 5             | `{ "generic_key": "my_val" }`          | Sets the label "`generic_key`=«`my_val`»"                                                                                               | `{ "generic_key": { "descriptor_value": "my_val" } }`                          |
+| 5 (shorthand) | `"my_val"`                             | Shorthand for `{ "generic_key": "my_val" }`                                                                                             |                                                                                |
+
+[`envoy.api.v2.route.RateLimit.Action`]: https://github.com/datawire/ambassador/blob/$branch$/api/envoy/api/v2/route/route_components.proto#L1328-L1439
+
+1. The Envoy source cluster name is the name of the Envoy listener
+   cluster that the request name in on.
+2. The Envoy destination cluster is the name of the Envoy cluster that
+   the Mapping routes the request to.  Typically, there is a 1:1
+   correspondence between upstream services (pointed to by Mappings)
+   and clusters.  You can get the name for a cluster from the
+   diagnostics service or Edge Policy Console.
+3. When setting a label from an HTTP request header, be aware that if
+   that header is not set in the request, then the entire label group
+   is skipped.
+4. The IP address of the HTTP client could be the actual IP of the
+   client talking directly to Ambassador, or it could be the IP
+   address from `X-Forwarded-For` if Ambassador is configured to trust
+   the `X-Fowarded-For` header.
+5. `generic_key` allows you to apply a simple string label to requests
+   flowing through that Mapping.
+
+## Rate limiting requests based on their labels
+
+A `RateLimit` resource defines a list of limits that apply to
+different requests.
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind: RateLimit
+metadata:
+  name: example-limits
+spec:
+  domain: "my_domain"
+  limits:
+  - pattern:
+    - "my_key1": "my_value1"
+      "my_key2": "my_value2"
+    - "my_key3": "my_value3"
+    rate: 5
+    unit: "minute"
+  - pattern:
+    - "my_key4": ""   # check the key but not the value
+    - "my_key5": "*"  # check the key but not the value
+    rate: 5
+    unit: "second"
+  ...
 ```
+
+It makes no difference whether a limits are defined together in one
+`RateLimit` resource or are defined separately in many `RateLimit`
+resources.
+
+<!-- FIXME(lukeshu): I'm only mostly sure that I'm describing the
+algorithm correctly.  The thing to reference is
+`vendor-ratelimit/src/config/config_impl.go:rateLimitConfigImpl.GetLimit()`
+and/or `lib/rltypes/rls.go:Config.Add()` -->
+
+ - `pattern`: Each limit has a *pattern* that matches against a label
+   group on a request to decide if that limit should apply to that
+   request.  For a pattern to match, the request's label group must
+   start with exactly the labels specified in the pattern, in order.
+   If a label in a pattern has an empty string or `"*"` as the value,
+   then it only checks the key of that label on the request; not the
+   value.  If a list item in the pattern has multiple key/value pairs,
+   if any of them match the label then it is considered a match.
+
+   For example, the pattern
+
+   ```yaml
+   pattern:
+   - "key1": "foo"
+     "key1": "bar"
+   - "key2": ""
+   ```
+
+   matches the label group
+
+   ```yaml
+   - key1: foo
+   - key2: baz
+   - otherkey: knob
+   ```
+
+   and
+
+   ```yaml
+   - key1: bar
+   - key2: baz
+   - otherkey: knob
+   ```
+
+   but not the label group
+
+   ```yaml
+   - key0: frob
+   - key1: foo
+   - key2: baz
+   ```
+
+   If a label group is matched by multiple patterns, the pattern with
+   the longest list of items wins.
+
+   If a request has multiple label groups, then multiple limits may apply
+   to that request; if *any* of the limits are being hit, then Ambassador
+   will reject the request as an HTTP 429.
+
+ - `rate`, `unit`: The limit itself is specified as an integer number
+   of requests per a unit of time.  Valid units of time are `second`,
+   `minute`, `hour`, or `day` (all case-insensitive).
+
+   So for example
+
+   ```yaml
+   rate: 5
+   unit: minute
+   ```
+
+   would allow 5 requests per minute, and any requests in excess of
+   that would result in HTTP 429 errors.
+
+## Examples
+
+### An example service-level rate limit
+
+The following `Mapping` resource will add a
+`my_default_generic_key_label` `generic_key` label to every request to
+the `foo-app` service:
+
+```yaml
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
@@ -46,14 +246,14 @@ spec:
   service: foo
   labels:
     ambassador:
-      - label_group:
-        - default_generic_key_label
+    - label_group:
+      - my_default_generic_key_label
 ```
 
-You can then create a default rate limit on every request that matches
+You can then create a default RateLimit for every request that matches
 this label:
 
-```
+```yaml
 ---
 apiVersion: getambassador.io/v2
 kind: RateLimit
@@ -62,47 +262,65 @@ metadata:
 spec:
   domain: ambassador
   limits:
-   - pattern: [{generic_key: "default_generic_key_label"}]
-     rate: 10
-     unit: minute
+  - pattern:
+    - generic_key: "my_default_generic_key_label"
+    rate: 10
+    unit: minute
 ```
 
-Tip: For testing purposes, it is helpful to configure per-minute rate
-limits before switching the rate limits to per second or per hour.
+> Tip: For testing purposes, it is helpful to configure per-minute
+> rate limits before switching the rate limits to per second or per
+> hour.
 
-## Request Labels
+### An example with multiple labels
 
 Mappings can have multiple `labels` which annotate a given request.
 
 ```yaml
 ---
 apiVersion: getambassador.io/v2
-kind:  Mapping
+kind: Mapping
 metadata:
-  name:  catalog
+  name: catalog
 spec:
   prefix: /catalog/
   service: catalog
   labels:
-    ambassador:
-      - string_request_label:         # a specific request label group
-        - catalog                     # annotate the request with the string `catalog`
-      - header_request_label:
-        - headerkey:                  # The name of the label
-            header: ":method"         # annotate the request with the specific HTTP method used
-            omit_if_not_present: true # if the header is not present, omit the label
-      - multi_request_label_group:
-        - authorityheader:
-            header: ":authority"
-            omit_if_not_present: true
-        - xuserheader:
-            header: "x-user"
-            omit_if_not_present: true
+    ambassador:                     # the label domain
+    - string_request_label:           # the label group name -- useful for humans, ignored by Ambassador
+      - catalog                         # annotate the request with `generic_key=catalog`
+    - header_request_label:           # another label group name
+      - headerkey:                      # The name of the label
+          header: ":method"               # annotate the request with the specific HTTP method used
+    - multi_request_label_group:
+      - authorityheader:
+          header: ":authority"
+          omit_if_not_present: true
+      - xuserheader:
+          header: "x-user"
+          omit_if_not_present: true
 ```
+
+<!--
+
+The above example used to say
+
+    omit_if_not_present: true       # if the header is not present, omit the label
+
+on all of the header labels, but I've removed it from the example
+because "omit_if_not_present" doesn't actually work right now and is
+commented out in the code.
+
+-->
 
 Let's digest the above example:
 
-* Request labels must be part of the `ambassador` label domain.
+* Request labels must be part of the "ambassador" label domain.  Or
+  rather, it must match the domain in your
+  `RateLimitService.spec.domain` which defaults to
+  `Module.spec.default_label_domain` which defaults to `ambassador`;
+  but normally you should accept the default and just accept that the
+  domain on the Mappings must be set to "ambassador".
 * Each label must have a name, e.g., `one_request_label`
 * The `string_request_label` simply adds the string `catalog` to every
   incoming request to the given mapping.  The string is referenced
@@ -118,22 +336,7 @@ Let's digest the above example:
   remind end-users of this limitation.  `false` is *not* a supported
   value.
 
-Ambassador Edge Stack supports several special labels:
-
-* `remote_address` automatically populates the remote IP address using
-  the trusted IP address from `X-Forwarded-For`
-* `request_headers: HEADER` will extract the value from a given HTTP
-  header
-* `destination_cluster` populates the name of the Envoy cluster.
-  Typically, there is a 1:1 correspondence between a `service` in a
-  `Mapping` to a `destination_cluster`.  You can get the name of the
-  cluster from the diagnostics service.
-* `source_cluster` populates the name of the originating cluster
-  (e.g., the Envoy listener).
-
-Note: In Envoy, labels are referred to as descriptors.
-
-## Grouping
+### An example with multiple limits
 
 Labels can be grouped.  This allows for a single request to count
 against multiple different `RateLimit` resources.  For example,
@@ -145,8 +348,7 @@ imagine the following scenario:
 
 The following `Mapping` resources could be configured:
 
-```
-
+```yaml
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
@@ -178,12 +380,19 @@ spec:
 ```
 
 Now requests to the `foo-app` and the `bar-app` would be labeled with
-{{"generic_key": "foo-app"},{"remote_address", 10.10.11.12}} and
-{{"generic_key": "bar-app"},{"remote_address", 10.10.11.12}},
-respectively.  Rate limits on these two services could be created as
+```yaml
+- "generic_key": "foo-app"
+- "remote_address": "10.10.11.12"
+```
+and
+```yaml
+- "generic_key": "bar-app"
+- "remote_address": "10.10.11.12"
+```
+respectively.  `RateLimit`s on these two services could be created as
 such:
 
-```
+```yaml
 ---
 apiVersion: getambassador.io/v2
 kind: RateLimit
@@ -219,14 +428,14 @@ spec:
      unit: minute
 ```
 
-## Global labels and groups
+### An example with global labels and groups
 
 Global labels are prepended to every single label group.  In the above
 example, if the following global label was added in the `ambassador`
 Module:
 
-```
-—--
+```yaml
+---
 apiVersion: getambassador.io/v2
 kind: Module
 metadata:
@@ -237,14 +446,38 @@ spec:
     default_labels:
       ambassador:
         defaults:
-        - default
+        - "my_default_label"
 ```
 
-The labels metadata would change from: `{{"generic_key":
-"foo-app"},{"remote_address", 10.10.11.12}}` and `{{"generic_key":
-"bar-app"},{"remote_address", 10.10.11.12}}` to: `{{"generic_key":
-"default", "generic_key": "foo-app"},{"generic_key": "default",
-"remote_address", 10.10.11.12}}` and `{{"generic_key": "default",
-"generic_key": "bar-app"},{"generic_key": "default", "remote_address",
-10.10.11.12}}` and thus our `RateLimit`s would need to change to
-appropriately handle the new labels.
+The labels metadata would change
+
+ - from
+   ```yaml
+   - "generic_key": "foo-app"
+   - "remote_address": "10.10.11.12"
+   ```
+   to
+   ```yaml
+   - "generic_key": "my_default_label"
+   - "generic_key": "foo-app"
+   - "remote_address": "10.10.11.12"
+   ```
+
+and
+
+ - from
+   ```yaml
+   - "generic_key": "bar-app"
+   - "remote_address": "10.10.11.12"
+   ```
+   to
+   ```yaml
+   - "generic_key": "my_default_label"
+   - "generic_key": "bar-app"
+   - "remote_address": "10.10.11.12"
+   ```
+
+respectively.
+
+And thus our `RateLimit`s would need to change to appropriately handle
+the new labels.
