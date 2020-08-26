@@ -47,6 +47,7 @@ from flask import json as flask_json
 import gunicorn.app.base
 
 from ambassador import Cache, Config, IR, EnvoyConfig, Diagnostics, Scout, Version
+from ambassador.reconfig_stats import ReconfigStats
 from ambassador.ir.irbasemapping import IRBaseMapping
 from ambassador.utils import SystemInfo, Timer, PeriodicTrigger, SavedSecret, load_url_contents
 from ambassador.utils import SecretHandler, KubewatchSecretHandler, FSSecretHandler
@@ -127,6 +128,9 @@ class DiagApp (Flask):
     banner_endpoint: Optional[str]
     metrics_endpoint: Optional[str]
 
+    # Reconfiguration stats
+    reconf_stats: ReconfigStats
+
     # Custom metrics registry to weed-out default metrics collectors because the
     # default collectors can't be prefixed/namespaced with ambassador_.
     # Using the default metrics collectors would lead to name clashes between the Python and Go instrumentations.
@@ -155,6 +159,9 @@ class DiagApp (Flask):
         self.banner_endpoint = banner_endpoint
         self.metrics_endpoint = metrics_endpoint
         self.metrics_registry = CollectorRegistry(auto_describe=True)
+
+        # Initialize the incremental-reconfigure stats.
+        self.reconf_stats = ReconfigStats(self.logger)
 
         # This will raise an exception and crash if you pass it a string. That's intentional.
         self.ambex_pid = int(ambex_pid)
@@ -185,17 +192,6 @@ class DiagApp (Flask):
                                  namespace='ambassador', registry=self.metrics_registry)
         self.diag_notices = Gauge(f'diagnostics_notices', f'Number of configuration notices',
                                  namespace='ambassador', registry=self.metrics_registry)
-
-        # When did we last reconfigure?
-        self.last_reconfigure = -1.0
-
-        # What's the longest we'll go without logging the timers?
-        self.timer_log_interval = 60    # seconds
-
-        # When will we next be willing to log the timers? (None means that
-        # we're not ready to log, because no reconfigure has happened since
-        # we last logged.)
-        self.next_timer_log: Optional[float] = None
 
         if debug:
             self.logger.setLevel(logging.DEBUG)
@@ -281,9 +277,9 @@ class DiagApp (Flask):
                     self.diag_errors.set(len(diag_dict.get("errors", [])))
                     self.diag_notices.set(len(diag_dict.get("notices", [])))
 
-                    # We've done something time-worthy, so log the timers
-                    # in a little bit.
-                    app.ok_to_log_timers()
+                    # Note that we've updated diagnostics, since that might trigger a 
+                    # timer log.
+                    self.reconf_stats.mark("diag")
 
             # Either we had a Diagnostics to start with, or we just generated
             # it, so we should be good to go.
@@ -309,52 +305,36 @@ class DiagApp (Flask):
 
     def check_timers(self) -> None:
         # Actually do the timer check.
-        #
-        # First up, we have nothing to do if self.next_timer_log is None...
+        
+        if self.reconf_stats.needs_timers():
+            # OK! Log the timers...
 
-        if not self.next_timer_log:
-            return
+            for t in [ self.config_timer,
+                    self.fetcher_timer,
+                    self.aconf_timer,
+                    self.ir_timer,
+                    self.econf_timer,
+                    self.diag_timer ]:
+                if t:
+                    self.logger.info(t.summary())
 
-        # ...or if it's set, but it's not yet time.
+            # ...and the cache statistics, if we can.
+            if self.cache:
+                self.cache.dump_stats()
 
-        now = time.perf_counter()
+            # Always dump the reconfiguration stats...
+            self.reconf_stats.dump()
 
-        if now < self.next_timer_log:
-            # Nope. Bail until we're called again (another second from now).
-            return
+            # ...and mark that the timers have been logged.
+            self.reconf_stats.mark_timers_logged()
 
-        # OK! Log the timers...
+        # In this case we need to check to see if it's time to do a configuration
+        # check, too.
+        if self.reconf_stats.needs_check():
+            self.logger.info("CACHE: NEEDS CHECK")
 
-        for t in [ self.config_timer,
-                   self.fetcher_timer,
-                   self.aconf_timer,
-                   self.ir_timer,
-                   self.econf_timer,
-                   self.diag_timer ]:
-            if t:
-                self.logger.info(t.summary())
-
-        # ...and the cache statistics.
-
-        if self.cache:
-            self.cache.dump_stats()
-
-        # ...and reset next_timer_log so we don't log forever.
-        self.next_timer_log = None
-
-    def ok_to_log_timers(self, base_time: Optional[float]=None, delta: float=10.0) -> None:
-        """
-        Note that it's OK to log the timers delta seconds (default 10) from base_time (default
-        now). Call this whenever you've done something that would be timeable.
-        """
-
-        if not base_time:
-            base_time = time.perf_counter()
-
-        # Make mypy happy. We know that base_time isn't None at this point.
-        assert(base_time)
-
-        self.next_timer_log = base_time + delta
+            # Mark that the check has happened.
+            self.reconf_stats.mark_checked(True)
 
 # get the "templates" directory, or raise "FileNotFoundError" if not found
 def get_templates_dir():
@@ -1314,6 +1294,9 @@ class AmbassadorEventWatcher(threading.Thread):
         aconf_path = os.path.join(app.snapshot_path, "aconf-tmp.json")
         open(aconf_path, "w").write(aconf.as_json())
 
+        # Assume that this should be marked as a complete reconfigure.
+        config_type = "complete"
+
         # OK. If we have a cache...
         if self.app.cache is not None:
             # ...then we'll start by assuming that we'll need to reset it.
@@ -1364,8 +1347,12 @@ class AmbassadorEventWatcher(threading.Thread):
                 
             # When all is said and done, reset the cache if necessary.
             if reset_cache:
+                # This is _not_ an incremental reconfigure. Reset the cache...
                 self.logger.debug("RESETTING CACHE")
                 self.app.cache = Cache(self.logger)
+            else:
+                # OK, we're doing an incremental reconfigure. 
+                config_type = "incremental"
 
         with self.app.ir_timer:
             ir = IR(aconf, secret_handler=secret_handler, cache=self.app.cache)
@@ -1486,16 +1473,14 @@ class AmbassadorEventWatcher(threading.Thread):
         listener_count = len(app.ir.listeners)
         service_count = len(app.ir.services)
 
-        self._respond(rqueue, 200, 'configuration updated from snapshot %s' % snapshot)
+        self._respond(rqueue, 200, 
+                      'configuration updated (%s) from snapshot %s' % (config_type, snapshot))
 
-        self.logger.info("configuration updated from snapshot %s (S%d L%d G%d C%d)" % 
-                         (snapshot, service_count, listener_count, group_count, cluster_count))
+        self.logger.info("configuration updated (%s) from snapshot %s (S%d L%d G%d C%d)" % 
+                         (config_type, snapshot, service_count, listener_count, group_count, cluster_count))
 
-        # Remember that we've reconfigured...
-        app.last_reconfigure = time.perf_counter()
-
-        # ...and make sure we log the timers sometime soonish.
-        self.app.ok_to_log_timers(base_time=app.last_reconfigure)
+        # Remember that we've reconfigured.
+        self.app.reconf_stats.mark(config_type)
 
         if app.health_checks and not app.stats_updater:
             app.logger.debug("starting Envoy status updater")
