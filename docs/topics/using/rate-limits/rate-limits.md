@@ -147,6 +147,14 @@ spec:
     - "my_key3": "my_value3"
     rate: 5
     unit: "minute"
+    injectRequestHeaders:          # optional
+    - name "header-name-string-1"    # required
+      value: "go-template-string"    # required
+    - name "header-name-string-2"    # required
+      value: "go-template-string"    # required
+    injectResponseHeaders:         # optional
+    - name "header-name-string-1"    # required
+      value: "go-template-string"    # required
   - pattern:
     - "my_key4": ""   # check the key but not the value
     - "my_key5": "*"  # check the key but not the value
@@ -226,6 +234,47 @@ and/or `lib/rltypes/rls.go:Config.Add()` -->
 
    would allow 5 requests per minute, and any requests in excess of
    that would result in HTTP 429 errors.
+
+ - `injectRequestHeaders`, `injectResponseHeaders`: If this limit's
+   pattern matches the request, then `injectRequestHeaders` injects
+   HTTP header fields in to the request before sending it to the
+   upstream service (assuming the limit even allows the request to go
+   to the upstream service), and `injectResponseHeaders` injects
+   headers in to the response sent back to the client (whether the
+   response came from the upstream service or is an HTTP 429 response
+   because it got rate limited).  This is very similar to
+   `injectRequestHeaders` in a [`JWT` Filter][].  The header value is
+   specified as a [Go `text/template`][] string, with the following
+   data made available to it:
+
+    * `.RateLimitResponse.OverallCode` → `int` : `1` for OK, `2` for
+      OVER_LIMIT.
+    * `.RateLimitResponse.Statuses` →
+      [`[]*RateLimitResponse_DescriptorStatus]`][`v2.RateLimitResponse_DescriptorStatus`]
+      The itemized status codes for each limit that was selected for
+      this request.
+    * `.RetryAfter` → `time.Duration` the amount of time until all of
+      the limits would allow access again (0 if they all currently
+      allow access).
+
+   Also available to the template are the [standard functions available
+   to Go `text/template`s][Go `text/template` functions], as well as:
+
+    * a `hasKey` function that takes the a string-indexed map as arg1,
+      and returns whether it contains the key arg2.  (This is the same
+      as the [Sprig function of the same name][Sprig `hasKey`].)
+
+    * a `doNotSet` function that causes the result of the template to
+      be discarded, and the header field to not be adjusted.  This is
+      useful for only conditionally setting a header field; rather
+      than setting it to an empty string or `"<no value>"`.  Note that
+      this does _not_ unset an existing header field of the same name.
+
+[`JWT` Filter]: ../../filters/jwt
+[Go `text/template`]: https://golang.org/pkg/text/template/
+[Go `text/template` functions]: https://golang.org/pkg/text/template/#hdr-Functions
+[`v2.RateLimitResponse_DescriptorStatus`]: https://godoc.org/github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v2#RateLimitResponse_DescriptorStatus
+[Sprig `hasKey`]: https://masterminds.github.io/sprig/dicts.html#haskey
 
 ## Examples
 
