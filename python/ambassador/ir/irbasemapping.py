@@ -80,6 +80,7 @@ class IRBaseMapping (IRResource):
     sni: bool
     cached_status: Optional[Dict[str, str]]
     status_update: Optional[Dict[str, str]]
+    cluster_key: Optional[str]
 
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str,      # REQUIRED
@@ -92,9 +93,12 @@ class IRBaseMapping (IRResource):
                  precedence: int=0,
                  cluster_tag: Optional[str]=None,
                  **kwargs) -> None:
-        # Default status.
+        # Default status...
         self.cached_status = None
         self.status_update = None
+
+        # Start by assuming that we don't know the cluster key for this Mapping.
+        self.cluster_key = None
 
         # Init the superclass...
         super().__init__(
@@ -104,7 +108,18 @@ class IRBaseMapping (IRResource):
             **kwargs
         )
 
+    @classmethod
+    def make_cache_key(cls, kind: str, name: str, namespace: str, version: str="v2") -> str:
+        return f"{kind}-{version}-{name}-{namespace}"
+
     def setup(self, ir: 'IR', aconf: Config) -> bool:
+        # Set up our cache key. We're using this format so that it'll be easy
+        # to generate it just from the Mapping's K8s metadata.
+        self._cache_key = IRBaseMapping.make_cache_key(self.kind, self.name, self.namespace)
+
+        # ...and start without a cluster key for this Mapping.
+        self.cluster_key = None
+
         # We assume that any subclass madness is managed already, so we can compute the group ID...
         self.group_id = self._group_id()
 
