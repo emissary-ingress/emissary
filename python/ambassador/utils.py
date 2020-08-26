@@ -232,6 +232,15 @@ class Timer:
         """
 
         self.name = name
+
+        if prom_metrics_registry:
+            metric_prefix = re.sub('\s+', '_', name).lower()
+            self._gauge = Gauge(f'{metric_prefix}_time_seconds', f'Elapsed time on {name} operations',
+                                namespace='ambassador', registry=prom_metrics_registry)
+
+        self.reset()
+
+    def reset(self) -> None:
         self._cycles = 0
         self._starttime = 0
         self._accumulated = 0.0
@@ -239,10 +248,6 @@ class Timer:
         self._maximum = -999999999999
         self._running = False
         self._faketime = 0.0
-        if prom_metrics_registry:
-            metric_prefix = re.sub('\s+', '_', name).lower()
-            self._gauge = Gauge(f'{metric_prefix}_time_seconds', f'Elapsed time on {name} operations',
-                                namespace='ambassador', registry=prom_metrics_registry)
 
     def __enter__(self):
         self.start()

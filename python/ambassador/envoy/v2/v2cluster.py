@@ -15,6 +15,7 @@
 import urllib
 from typing import Dict, List, Union, TYPE_CHECKING
 
+from ...cache import Cacheable
 from ...ir.ircluster import IRCluster
 
 from .v2tls import V2TLSContext
@@ -23,7 +24,7 @@ if TYPE_CHECKING:
     from . import V2Config
 
 
-class V2Cluster(dict):
+class V2Cluster(Cacheable):
     def __init__(self, config: 'V2Config', cluster: IRCluster) -> None:
         super().__init__()
 
@@ -171,8 +172,33 @@ class V2Cluster(dict):
 
     @classmethod
     def generate(self, config: 'V2Config') -> None:
+        cluster: 'V2Cluster'
+
         config.clusters = []
 
         for ircluster in sorted(config.ir.clusters.values(), key=lambda x: x.name):
-            cluster = config.save_element('cluster', ircluster, V2Cluster(config, ircluster))
+            cache_key = f"V2-{ircluster.cache_key}"
+            cached_cluster = config.cache[cache_key]
+
+            if cached_cluster is None:
+                # Cache miss.
+                cluster = config.save_element('cluster', ircluster, V2Cluster(config, ircluster))
+
+                # Cheat a bit and force the route's cache key.
+                cluster.cache_key = cache_key
+
+                # Not all IRClusters are cached yet -- e.g. AuthService and RateLimitService
+                # don't participate in the cache yet. Don't try to cache this V2Cluster if
+                # we won't be able to link it correctly.
+                cached_ircluster = config.cache[ircluster.cache_key]
+
+                if cached_ircluster is not None:
+                    config.cache.add(cluster)
+                    config.cache.link(ircluster, cluster)
+            else:
+                # Cache hit. We know a priori that it's a V2Cluster, but let's assert
+                # that rather than casting.
+                assert(isinstance(cached_cluster, V2Cluster))
+                cluster = cached_cluster
+
             config.clusters.append(cluster)

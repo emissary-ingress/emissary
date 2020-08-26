@@ -886,8 +886,6 @@ spec:
             enable_ipv6:
               type: boolean
             envoy_override:
-              description: UntypedDict is non-functional as a Go type, but it gets
-                controller-gen to spit out the correct schema.
               type: object
             grpc:
               type: boolean
@@ -917,8 +915,12 @@ spec:
                   type: integer
               type: object
             labels:
-              additionalProperties: {}
-              description: 'Python: MappingLabels = Dict[str, Union[str,'MappingLabels'']]'
+              additionalProperties:
+                items:
+                  additionalProperties: {}
+                  description: 'Python: MappingLabels = Dict[str, Union[str,'MappingLabels'']]'
+                  type: object
+                type: array
               type: object
             load_balancer:
               properties:
@@ -953,8 +955,6 @@ spec:
               type: boolean
             modules:
               items:
-                description: UntypedDict is non-functional as a Go type, but it gets
-                  controller-gen to spit out the correct schema.
                 type: object
               type: array
             outlier_detection:
@@ -1117,8 +1117,6 @@ spec:
               - type: string
               - type: array
             config:
-              description: UntypedDict is non-functional as a Go type, but it gets
-                controller-gen to spit out the correct schema.
               type: object
           type: object
       type: object

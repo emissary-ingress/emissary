@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+from .cache import Cache
 from .config import Config
 from .ir import IR
 from .ambscout import AmbScout as Scout, ScoutNotice
