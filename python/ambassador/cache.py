@@ -43,7 +43,7 @@ class Cache():
 
         self.reset_stats()
 
-        self.logger.info("Cache initialized")
+        self.logger.debug("Cache initialized")
 
     def reset_stats(self) -> None:
         self.hits = 0
@@ -238,7 +238,7 @@ class NullCache(Cache):
 
     def __init__(self, logger: logging.Logger) -> None:
         self.logger = logger
-        self.logger.info("NullCache: INIT")
+        self.logger.debug("NullCache: INIT")
         self.reset_stats()
         pass
 

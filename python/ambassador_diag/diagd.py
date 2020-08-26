@@ -166,7 +166,7 @@ class DiagApp (Flask):
 
         # Initialize the cache if we're allowed to.
         if os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "false").lower() == "true":
-            self.logger.info("AMBASSADOR_FAST_RECONFIGURE enable, initializing cache")
+            self.logger.info("AMBASSADOR_FAST_RECONFIGURE enabled, initializing cache")
             self.cache = Cache(self.logger)
         else:
             self.logger.info("AMBASSADOR_FAST_RECONFIGURE disabled, not initializing cache")
