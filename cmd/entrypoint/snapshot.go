@@ -9,11 +9,28 @@ import (
 
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/pkg/watt"
 )
 
-type AmbassadorInputs struct {
-	CRDs []*kates.CustomResourceDefinition
+// The snapshot type represents a complete configuration snapshot as sent to
+// diagd.
+type Snapshot struct {
+	// The Kubernetes field contains all the ambassador inputs from kubernetes.
+	Kubernetes *AmbassadorInputs
+	// The Consul field contains endpoint data for any mappings setup to use a
+	// consul resolver.
+	Consul *watt.ConsulSnapshot
+	// The Deltas field contains a list of deltas to indicate what has changed
+	// since the prior snapshot. This is only computed for the Kubernetes
+	// portion of the snapshot. Changes in the Consul endpoint data are not
+	// reflected in this field.
+	Deltas []*kates.Delta
+	// The Invalid field contains any kubernetes resources that have failed
+	// validation.
+	Invalid []*kates.Unstructured
+}
 
+type AmbassadorInputs struct {
 	// k8s resources
 	IngressClasses []*kates.IngressClass `json:"ingressclasses"`
 	Ingresses      []*kates.Ingress      `json:"ingresses"`
