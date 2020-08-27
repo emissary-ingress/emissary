@@ -1106,6 +1106,6 @@ class IR:
         od['fast_validation'] = Config.fast_validation
         od['fast_validation_disagreements'] = len(self.aconf.fast_validation_disagreements.keys())
 
-        od['fast_reconfigure'] = not isinstance(self.cache, NullCache)
+        # Fast reconfiguration information is supplied in check_scout in diagd.py.
 
         return od

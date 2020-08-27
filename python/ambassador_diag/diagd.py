@@ -1753,6 +1753,26 @@ class AmbassadorEventWatcher(threading.Thread):
                 self.app.logger.debug("check_scout: including features")
                 feat = ir.features()
 
+                # Include features about the cache and incremental reconfiguration,
+                # too.
+
+                if self.app.cache is not None:
+                    # Fast reconfigure is on. Supply the real info.
+                    feat['frc_enabled'] = True
+                    feat['frc_cache_hits'] = self.app.cache.hits
+                    feat['frc_cache_misses'] = self.app.cache.misses
+                    feat['frc_inv_calls'] = self.app.cache.invalidate_calls
+                    feat['frc_inv_objects'] = self.app.cache.invalidated_objects
+                else:
+                    # Fast reconfigure is off.
+                    feat['frc_enabled'] = False
+                
+                # Whether the cache is on or off, we can talk about reconfigurations.
+                feat['frc_incr_count'] = self.app.reconf_stats.counts["incremental"]
+                feat['frc_complete_count'] = self.app.reconf_stats.counts["complete"]
+                feat['frc_check_count'] = self.app.reconf_stats.checks
+                feat['frc_check_errors'] = self.app.reconf_stats.errors
+
                 request_data = app.estats.stats.get('requests', None)
 
                 if request_data:
