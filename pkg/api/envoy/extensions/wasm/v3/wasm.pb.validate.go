@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -52,32 +52,22 @@ func (m *VmConfig) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetCode()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return VmConfigValidationError{
-					field:  "Code",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetCode()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return VmConfigValidationError{
+				field:  "Code",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetConfiguration()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return VmConfigValidationError{
-					field:  "Configuration",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetConfiguration()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return VmConfigValidationError{
+				field:  "Configuration",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -153,17 +143,12 @@ func (m *PluginConfig) Validate() error {
 
 	// no validation rules for GroupName
 
-	{
-		tmp := m.GetConfiguration()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return PluginConfigValidationError{
-					field:  "Configuration",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetConfiguration()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PluginConfigValidationError{
+				field:  "Configuration",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -172,17 +157,12 @@ func (m *PluginConfig) Validate() error {
 
 	case *PluginConfig_InlineVmConfig:
 
-		{
-			tmp := m.GetInlineVmConfig()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return PluginConfigValidationError{
-						field:  "InlineVmConfig",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetInlineVmConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PluginConfigValidationError{
+					field:  "InlineVmConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -254,17 +234,12 @@ func (m *WasmService) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetConfig()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return WasmServiceValidationError{
-					field:  "Config",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return WasmServiceValidationError{
+				field:  "Config",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

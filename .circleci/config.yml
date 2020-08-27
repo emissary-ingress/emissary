@@ -84,11 +84,38 @@ commands:
         command: |
           make gotest
     - run:
-        name: "KAT"
+        name: "KAT (normal)"
         command: |
           export DEV_KUBE110=yes
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=600
+          make pytest-only
+    - run:
+        name: "Cycle cluster"
+        command: |
+          ./.ci/kubernaut-unclaim
+          ./.ci/kubernaut-claim
+    - run:
+        name: "KAT (FAST_VALIDATION)"
+        command: |
+          export DEV_KUBE110=yes
+          export DEV_KUBE_NO_PVC=yes
+          export KAT_REQ_LIMIT=600
+          export AMBASSADOR_FAST_VALIDATION=true
+          make pytest-only
+    - run:
+        name: "Cycle cluster"
+        command: |
+          ./.ci/kubernaut-unclaim
+          ./.ci/kubernaut-claim
+    - run:
+        name: "KAT (FAST_VALIDATION and FAST_RECONFIGURE)"
+        command: |
+          export DEV_KUBE110=yes
+          export DEV_KUBE_NO_PVC=yes
+          export KAT_REQ_LIMIT=600
+          export AMBASSADOR_FAST_VALIDATION=true
+          export AMBASSADOR_FAST_RECONFIGURE=true
           make pytest-only
     - run:
         command: "./.ci/kubernaut-unclaim"
@@ -126,7 +153,7 @@ commands:
     parameters:
       version:
         type: string
-        default: "1.14.4"
+        default: "1.15"
     steps:
     - run:
         name: "Install Go << parameters.version >>"
@@ -335,6 +362,8 @@ jobs:
   oss-dev-generate:
     steps:
     - oss-linux-setup
+    - run: make generate
+    - dirty-check
     - run: make generate
     - dirty-check
     machine:

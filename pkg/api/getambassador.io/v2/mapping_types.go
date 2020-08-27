@@ -57,14 +57,14 @@ type MappingSpec struct {
 	RemoveRequestHeaders  StringOrStringList      `json:"remove_request_headers,omitempty"`
 	RemoveResponseHeaders StringOrStringList      `json:"remove_response_headers,omitempty"`
 	Resolver              string                  `json:"resolver,omitempty"`
-	Rewrite               string                  `json:"rewrite,omitempty"`
+	Rewrite               *string                 `json:"rewrite,omitempty"`
 	RegexRewrite          map[string]BoolOrString `json:"regex_rewrite,omitempty"`
 	Shadow                bool                    `json:"shadow,omitempty"`
 	ConnectTimeoutMs      int                     `json:"connect_timeout_ms,omitempty"`
 	ClusterIdleTimeoutMs  int                     `json:"cluster_idle_timeout_ms,omitempty"`
 	TimeoutMs             int                     `json:"timeout_ms,omitempty"`
 	IdleTimeoutMs         int                     `json:"idle_timeout_ms,omitempty"`
-	TLS                   BoolOrString            `json:"tls,omitempty"`
+	TLS                   *BoolOrString           `json:"tls,omitempty"`
 
 	// use_websocket is deprecated, and is equivlaent to setting
 	// `allow_upgrade: ["websocket"]`
@@ -99,12 +99,16 @@ type MappingSpec struct {
 	HostRegex            bool                    `json:"host_regex,omitempty"`
 	Headers              map[string]BoolOrString `json:"headers,omitempty"`
 	RegexHeaders         map[string]BoolOrString `json:"regex_headers,omitempty"`
-	Labels               MappingLabels           `json:"labels,omitempty"`
-	EnvoyOverride        UntypedDict             `json:"envoy_override,omitempty"`
+	Labels               DomainMap               `json:"labels,omitempty"`
+	EnvoyOverride        *UntypedDict            `json:"envoy_override,omitempty"`
 	LoadBalancer         *LoadBalancer           `json:"load_balancer,omitempty"`
 	QueryParameters      map[string]BoolOrString `json:"query_parameters,omitempty"`
 	RegexQueryParameters map[string]BoolOrString `json:"regex_query_parameters,omitempty"`
 }
+
+type DomainMap map[string]MappingLabelsArray
+
+type MappingLabelsArray []MappingLabels
 
 // Python: MappingLabels = Dict[str, Union[str,'MappingLabels']]
 type MappingLabels map[string]StringOrMappingLabels
@@ -117,7 +121,7 @@ type MappingLabels map[string]StringOrMappingLabels
 // +kubebuilder:validation:Type=""
 type StringOrMappingLabels struct {
 	String *string
-	Labels MappingLabels
+	Labels []StringOrMappingLabels
 }
 
 // MarshalJSON is important both so that we generate the proper
@@ -146,7 +150,7 @@ func (o *StringOrMappingLabels) UnmarshalJSON(data []byte) error {
 
 	var err error
 
-	var labels MappingLabels
+	var labels []StringOrMappingLabels
 	if err = json.Unmarshal(data, &labels); err == nil {
 		*o = StringOrMappingLabels{Labels: labels}
 		return nil
@@ -272,8 +276,8 @@ type Mapping struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   MappingSpec   `json:"spec,omitempty"`
-	Status MappingStatus `json:"status,omitempty"`
+	Spec   MappingSpec    `json:"spec,omitempty"`
+	Status *MappingStatus `json:"status,omitempty"`
 }
 
 // MappingList contains a list of Mappings.

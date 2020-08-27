@@ -124,7 +124,7 @@ How to use
 Step 1:
 
 ```
-go get github.com/datawire/teleproxy/cmd/teleproxy
+go get github.com/datawire/ambassador/cmd/teleproxy
 sudo teleproxy -kubeconfig ~/.kube/config
 ```
 

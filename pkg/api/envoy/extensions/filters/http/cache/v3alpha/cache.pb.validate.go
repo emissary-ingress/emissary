@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -58,34 +58,24 @@ func (m *CacheConfig) Validate() error {
 	for idx, item := range m.GetAllowedVaryHeaders() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return CacheConfigValidationError{
-						field:  fmt.Sprintf("AllowedVaryHeaders[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CacheConfigValidationError{
+					field:  fmt.Sprintf("AllowedVaryHeaders[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	}
 
-	{
-		tmp := m.GetKeyCreatorParams()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return CacheConfigValidationError{
-					field:  "KeyCreatorParams",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetKeyCreatorParams()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CacheConfigValidationError{
+				field:  "KeyCreatorParams",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -164,17 +154,12 @@ func (m *CacheConfig_KeyCreatorParams) Validate() error {
 	for idx, item := range m.GetQueryParametersIncluded() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return CacheConfig_KeyCreatorParamsValidationError{
-						field:  fmt.Sprintf("QueryParametersIncluded[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CacheConfig_KeyCreatorParamsValidationError{
+					field:  fmt.Sprintf("QueryParametersIncluded[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -184,17 +169,12 @@ func (m *CacheConfig_KeyCreatorParams) Validate() error {
 	for idx, item := range m.GetQueryParametersExcluded() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return CacheConfig_KeyCreatorParamsValidationError{
-						field:  fmt.Sprintf("QueryParametersExcluded[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CacheConfig_KeyCreatorParamsValidationError{
+					field:  fmt.Sprintf("QueryParametersExcluded[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}

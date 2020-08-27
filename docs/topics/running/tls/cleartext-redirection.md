@@ -8,10 +8,6 @@ Ambassador supports both forcing
 [automatic redirection to HTTPS](#http---https-redirection) and 
 [serving cleartext](#cleartext-routing) traffic on a `Host`.
 
-**Note:** Currently you can only configure a single Ambassador to `Route` 
-**or** `Redirect` cleartext. Future versions of Ambassador will allow this
-to be configured on a per-`Host` basis.
-
 ## Cleartext Routing
 
 Ambassador has full support for routing cleartext traffic to upstream services

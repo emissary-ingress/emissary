@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -44,17 +44,12 @@ func (m *OmitHostMetadataConfig) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetMetadataMatch()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return OmitHostMetadataConfigValidationError{
-					field:  "MetadataMatch",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMetadataMatch()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OmitHostMetadataConfigValidationError{
+				field:  "MetadataMatch",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

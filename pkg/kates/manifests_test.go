@@ -1,9 +1,12 @@
 package kates
 
 import (
+	"reflect"
 	"testing"
 
+	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"k8s.io/api/core/v1"
 )
 
@@ -76,4 +79,26 @@ func TestMergeUpdate(t *testing.T) {
 	assert.Equal(t, "arf", a.GetLabels()["moo"])
 	assert.Equal(t, "bar", a.GetAnnotations()["foo"])
 	assert.Equal(t, b.Object["spec"], a.Object["spec"])
+}
+
+const mapping = `---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name:  mapping-name
+spec:
+  prefix: /mapping-prefix/
+  service: http://mapping-service
+`
+
+func TestParseManifestsResultTypes(t *testing.T) {
+	objs, err := ParseManifests(mapping)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(objs))
+
+	m := objs[0]
+	t.Log(m)
+	t.Log(reflect.TypeOf(m))
+	_, ok := m.(*amb.Mapping)
+	require.True(t, ok)
 }

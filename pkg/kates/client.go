@@ -1,19 +1,23 @@
 package kates
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"os"
+	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/spf13/pflag"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/watch"
@@ -23,11 +27,12 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/kubectl/pkg/polymorphichelpers"
 
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
 
-// The Client struct provides an interface to interact with the kuberentes api-server. You can think
+// The Client struct provides an interface to interact with the kubernetes api-server. You can think
 // of it like a programatic version of the familiar kubectl command line tool. In fact a goal of
 // these APIs is that where possible, your knowledge of kubectl should translate well into using
 // these APIs. It provides a golang-friendly way to perform basic CRUD and Watch operations on
@@ -69,6 +74,14 @@ type Client struct {
 	disco     discovery.CachedDiscoveryInterface
 	mutex     sync.Mutex
 	canonical map[string]*Unstructured
+
+	// This is an internal interface for testing, it lets us deliberately introduce delays into the
+	// implementation, e.g. effectively increasing the latency to the api server in a controllable
+	// way and letting us reproduce and test for race conditions far more efficiently than
+	// otherwise.
+	watchAdded   func(*Unstructured, *Unstructured)
+	watchUpdated func(*Unstructured, *Unstructured)
+	watchDeleted func(*Unstructured, *Unstructured)
 }
 
 // The ClientOptions struct holds all the parameters and configuration
@@ -113,8 +126,16 @@ func NewClientFromConfigFlags(config *ConfigFlags) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{config: config, cli: cli, mapper: mapper, disco: disco,
-		canonical: make(map[string]*Unstructured)}, nil
+	return &Client{
+		config:       config,
+		cli:          cli,
+		mapper:       mapper,
+		disco:        disco,
+		canonical:    make(map[string]*Unstructured),
+		watchAdded:   func(oldObj, newObj *Unstructured) {},
+		watchUpdated: func(oldObj, newObj *Unstructured) {},
+		watchDeleted: func(oldObj, newObj *Unstructured) {},
+	}, nil
 }
 
 func NewRESTMapper(config *ConfigFlags) (meta.RESTMapper, discovery.CachedDiscoveryInterface, error) {
@@ -236,25 +257,15 @@ func (c *Client) Watch(ctx context.Context, queries ...Query) *Accumulator {
 
 // ==
 
-func (c *Client) watchRaw(ctx context.Context, name string, target chan rawUpdate, cli dynamic.ResourceInterface,
-	selector string, correlation interface{}) {
+func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdate, cli dynamic.ResourceInterface) {
 	var informer cache.SharedInformer
-
-	update := func() {
-		items := informer.GetStore().List()
-		copy := make([]*Unstructured, len(items))
-		for i, o := range items {
-			copy[i] = o.(*Unstructured)
-		}
-		target <- rawUpdate{copy, correlation}
-	}
 
 	// we override Watch to let us signal when our initial List is
 	// complete so we can send an update() even when there are no
 	// resource instances of the kind being watched
-	lw := newListWatcher(ctx, cli, selector, func() {
+	lw := newListWatcher(ctx, cli, query.FieldSelector, query.LabelSelector, func() {
 		if informer.HasSynced() {
-			update()
+			target <- rawUpdate{query.Name, informer, nil, nil}
 		}
 	})
 	informer = cache.NewSharedInformer(lw, &Unstructured{}, 5*time.Minute)
@@ -263,31 +274,52 @@ func (c *Client) watchRaw(ctx context.Context, name string, target chan rawUpdat
 	// more useful error message:
 	/*
 		informer.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
-			errorHandler(name, err)
+			errorHandler(query.Kind, err)
 		})
 	*/
 	informer.AddEventHandler(
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
-				if informer.HasSynced() {
-					update()
-				}
+				// This is for testing. It allows us to deliberately increase the probability of
+				// race conditions by e.g. introducing sleeps. At some point I'm sure we will want a
+				// nicer prettier set of hooks, but for now all we need is this hack for
+				// better/faster tests.
+				c.watchAdded(nil, obj.(*Unstructured))
+				target <- rawUpdate{query.Name, informer, nil, obj.(*Unstructured)}
 			},
 			UpdateFunc: func(oldObj, newObj interface{}) {
-				if informer.HasSynced() {
-					update()
-				}
+				old := oldObj.(*Unstructured)
+				new := newObj.(*Unstructured)
+
+				// This is for testing. It allows us to deliberately increase the probability of
+				// race conditions by e.g. introducing sleeps. At some point I'm sure we will want a
+				// nicer prettier set of hooks, but for now all we need is this hack for
+				// better/faster tests.
+				c.watchUpdated(old, new)
+				target <- rawUpdate{query.Name, informer, old, new}
 			},
 			DeleteFunc: func(obj interface{}) {
-				key := unKey(obj.(*Unstructured))
+				var old *Unstructured
+				switch o := obj.(type) {
+				case cache.DeletedFinalStateUnknown:
+					old = o.Obj.(*Unstructured)
+				case *Unstructured:
+					old = o
+				}
+
+				// This is for testing. It allows us to deliberately increase the probability of
+				// race conditions by e.g. introducing sleeps. At some point I'm sure we will want a
+				// nicer prettier set of hooks, but for now all we need is this hack for
+				// better/faster tests.
+				c.watchDeleted(old, nil)
+
+				key := unKey(old)
 				// For the Add and Update cases, we clean out c.canonical in
 				// patchWatch.
 				c.mutex.Lock()
 				delete(c.canonical, key)
 				c.mutex.Unlock()
-				if informer.HasSynced() {
-					update()
-				}
+				target <- rawUpdate{query.Name, informer, old, nil}
 			},
 		},
 	)
@@ -296,8 +328,10 @@ func (c *Client) watchRaw(ctx context.Context, name string, target chan rawUpdat
 }
 
 type rawUpdate struct {
-	items       []*Unstructured
-	correlation interface{}
+	name     string
+	informer cache.SharedInformer
+	old      *unstructured.Unstructured
+	new      *unstructured.Unstructured
 }
 
 func errorHandler(name string, err error) {
@@ -323,24 +357,27 @@ func isExpiredError(err error) bool {
 }
 
 type lw struct {
-	ctx      context.Context
-	client   dynamic.ResourceInterface
-	selector string
-	synced   func()
-	once     sync.Once
+	ctx           context.Context
+	client        dynamic.ResourceInterface
+	fieldSelector string
+	selector      string
+	synced        func()
+	once          sync.Once
 }
 
-func newListWatcher(ctx context.Context, client dynamic.ResourceInterface, selector string, synced func()) cache.ListerWatcher {
-	return &lw{ctx: ctx, client: client, selector: selector, synced: synced}
+func newListWatcher(ctx context.Context, client dynamic.ResourceInterface, fieldSelector, selector string, synced func()) cache.ListerWatcher {
+	return &lw{ctx: ctx, client: client, fieldSelector: fieldSelector, selector: selector, synced: synced}
 }
 
 func (lw *lw) List(opts ListOptions) (runtime.Object, error) {
+	opts.FieldSelector = lw.fieldSelector
 	opts.LabelSelector = lw.selector
 	return lw.client.List(lw.ctx, opts)
 }
 
 func (lw *lw) Watch(opts ListOptions) (watch.Interface, error) {
 	lw.once.Do(lw.synced)
+	opts.FieldSelector = lw.fieldSelector
 	opts.LabelSelector = lw.selector
 	return lw.client.Watch(lw.ctx, opts)
 }
@@ -592,6 +629,10 @@ func (c *Client) Patch(ctx context.Context, resource interface{}, pt PatchType, 
 // ==
 
 func (c *Client) Upsert(ctx context.Context, resource interface{}, source interface{}, target interface{}) error {
+	if resource == nil || reflect.ValueOf(resource).IsNil() {
+		resource = source
+	}
+
 	var un Unstructured
 	err := convert(resource, &un)
 	if err != nil {
@@ -722,52 +763,145 @@ func (c *Client) Delete(ctx context.Context, resource interface{}, target interf
 
 // Update the result of a watch with newer items from our local cache. This guarantees we never give
 // back stale objects that are known to be modified by us.
-func (c *Client) patchWatch(items *[]*Unstructured, mapping *meta.RESTMapping, sel Selector) {
+func (c *Client) patchWatch(field *field) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	included := make(map[string]bool)
+	// The canonical map holds all local changes made by this client which have not been reflected
+	// back to it through a watch. This should normally be quite small since objects only occupy
+	// this map for the duration of a round trip to the API server. (XXX: We don't yet handle the
+	// case of modifying objects that are not watched. Those objects will get stuck in this map, but
+	// that is ok for our current set of use cases.)
 
-	// loop through updates and replace anything returned with the newer version
-	idx := 0
-	for _, item := range *items {
-		key := unKey(item)
-		mod, ok := c.canonical[key]
+	// Loop over the canonical map and patch the watch result.
+	for key, can := range c.canonical {
+		item, ok := field.values[key]
 		if ok {
-			log.Println("Patching", key)
-			if mod != nil {
-				if gteq(item.GetResourceVersion(), mod.GetResourceVersion()) {
-					delete(c.canonical, key)
-					(*items)[idx] = item
-				} else {
-					(*items)[idx] = mod
-				}
-				idx += 1
+			// An object is both in our canonical map and in the watch.
+			if can == nil {
+				// The object is deleted, but has not yet been reported so by the apiserver, so we
+				// remove it.
+				log.Println("Patching delete", field.mapping.GroupVersionKind.Kind, key)
+				delete(field.values, key)
+				field.deltas[key] = newDelta(ObjectDelete, can)
+			} else if gteq(item.GetResourceVersion(), can.GetResourceVersion()) {
+				// The object in the watch result is the same or newer than our canonical value, so
+				// no need to track it anymore.
+				log.Println("Patching synced", field.mapping.GroupVersionKind.Kind, key)
+				delete(c.canonical, key)
+			} else {
+				// The object in the watch result is stale, so we update it with the canonical
+				// version and track it as a delta.
+				log.Println("Patching update", field.mapping.GroupVersionKind.Kind, key)
+				field.values[key] = can
+				field.deltas[key] = newDelta(ObjectUpdate, can)
 			}
-		} else {
-			(*items)[idx] = item
-			idx += 1
+		} else if can != nil && can.GroupVersionKind() == field.mapping.GroupVersionKind &&
+			field.selector.Matches(LabelSet(can.GetLabels())) {
+			// An object that was created locally is not yet present in the watch result, so we add it.
+			log.Println("Patching add", field.mapping.GroupVersionKind.Kind, key)
+			field.values[key] = can
+			field.deltas[key] = newDelta(ObjectAdd, can)
 		}
-		included[key] = true
 	}
-	*items = (*items)[:idx]
+}
 
-	// loop through any canonical items not included in the result and add them
-	for key, mod := range c.canonical {
-		if _, ok := included[key]; ok {
-			continue
+// ==
+
+// The LogEvent struct is used to communicate log output from a pod. It includes PodID and Timestamp information so that
+// LogEvents from different pods can be interleaved without losing information about total ordering and/or pod identity.
+type LogEvent struct {
+	// The PodID field indicates what pod the log output is associated with.
+	PodID string `json:"podID"`
+	// The Timestamp field indicates when the log output was created.
+	Timestamp string `json:"timestamp"`
+
+	// The Output field contains log output from the pod.
+	Output string `json:"output,omitempty"`
+
+	// The Closed field is true if the supply of log events from the given pod was terminated. This does not
+	// necessarily mean there is no more log data.
+	Closed bool
+	// The Error field contains error information if the log events were terminated due to an error.
+	Error error `json:"error,omitempty"`
+}
+
+func parseLogLine(line string) (timestamp string, output string) {
+	if parts := strings.SplitN(line, " ", 2); len(parts) == 2 {
+		if _, err := time.Parse(time.RFC3339Nano, parts[0]); err == nil {
+			timestamp = parts[0]
+			output = parts[1]
+			return
 		}
-		if mod == nil {
-			continue
-		}
-		if mod.GroupVersionKind() != mapping.GroupVersionKind {
-			continue
-		}
-		if !sel.Matches(LabelSet(mod.GetLabels())) {
-			continue
-		}
-		*items = append(*items, mod)
 	}
+	output = line
+	return
+}
+
+// The PodLogs method accesses the log output of a given pod by sending LogEvent structs down the supplied channel. The
+// LogEvent struct is designed to hold enough information that it is feasible to invoke PodLogs multiple times with a
+// single channel in order to multiplex log output from many pods, e.g.:
+//
+//   events := make(chan LogEvent)
+//   client.PodLogs(ctx, pod1, options, events)
+//   client.PodLogs(ctx, pod2, options, events)
+//   client.PodLogs(ctx, pod3, options, events)
+//
+//   for event := range events {
+//       fmt.Printf("%s: %s: %s", event.PodId, event.Timestamp, event.Output)
+//   }
+//
+// The above code will print log output from all 3 pods.
+func (c *Client) PodLogs(ctx context.Context, pod *Pod, options *PodLogOptions, events chan<- LogEvent) error {
+	// always use timestamps
+	options.Timestamps = true
+	timeout := 10 * time.Second
+	allContainers := true
+
+	requests, err := polymorphichelpers.LogsForObjectFn(c.config, pod, options, timeout,
+		allContainers)
+	if err != nil {
+		return err
+	}
+
+	podID := string(pod.GetUID())
+	for _, request := range requests {
+		go func() {
+			readCloser, err := request.Stream(ctx)
+			if err != nil {
+				events <- LogEvent{PodID: podID, Error: err, Closed: true}
+				return
+			}
+			defer readCloser.Close()
+
+			r := bufio.NewReader(readCloser)
+			for {
+				bytes, err := r.ReadBytes('\n')
+				if len(bytes) > 0 {
+					timestamp, output := parseLogLine(string(bytes))
+					events <- LogEvent{
+						PodID:     podID,
+						Timestamp: timestamp,
+						Output:    output,
+					}
+				}
+				if err != nil {
+					if err != io.EOF {
+						events <- LogEvent{
+							PodID:  podID,
+							Error:  err,
+							Closed: true,
+						}
+					} else {
+						events <- LogEvent{PodID: podID, Closed: true}
+					}
+					return
+				}
+			}
+		}()
+	}
+
+	return nil
 }
 
 // Technically this is sketchy since resource versions are opaque, however this exact same approach

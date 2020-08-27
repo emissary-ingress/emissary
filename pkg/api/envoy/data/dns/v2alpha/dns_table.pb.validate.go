@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -55,17 +55,12 @@ func (m *DnsTable) Validate() error {
 	for idx, item := range m.GetVirtualDomains() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return DnsTableValidationError{
-						field:  fmt.Sprintf("VirtualDomains[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DnsTableValidationError{
+					field:  fmt.Sprintf("VirtualDomains[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -75,17 +70,12 @@ func (m *DnsTable) Validate() error {
 	for idx, item := range m.GetKnownSuffixes() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return DnsTableValidationError{
-						field:  fmt.Sprintf("KnownSuffixes[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DnsTableValidationError{
+					field:  fmt.Sprintf("KnownSuffixes[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -247,17 +237,12 @@ func (m *DnsTable_DnsEndpoint) Validate() error {
 
 	case *DnsTable_DnsEndpoint_AddressList:
 
-		{
-			tmp := m.GetAddressList()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return DnsTable_DnsEndpointValidationError{
-						field:  "AddressList",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetAddressList()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DnsTable_DnsEndpointValidationError{
+					field:  "AddressList",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -351,23 +336,18 @@ func (m *DnsTable_DnsVirtualDomain) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetEndpoint()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return DnsTable_DnsVirtualDomainValidationError{
-					field:  "Endpoint",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetEndpoint()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DnsTable_DnsVirtualDomainValidationError{
+				field:  "Endpoint",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
 	if d := m.GetAnswerTtl(); d != nil {
-		dur, err := types.DurationFromProto(d)
+		dur, err := ptypes.Duration(d)
 		if err != nil {
 			return DnsTable_DnsVirtualDomainValidationError{
 				field:  "AnswerTtl",

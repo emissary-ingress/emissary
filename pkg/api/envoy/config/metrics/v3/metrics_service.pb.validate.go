@@ -15,7 +15,9 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
+
+	v3 "github.com/datawire/ambassador/pkg/api/envoy/config/core/v3"
 )
 
 // ensure the imports are used
@@ -30,7 +32,9 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
+
+	_ = v3.ApiVersion(0)
 )
 
 // define the regex for a UUID once up-front
@@ -51,17 +55,29 @@ func (m *MetricsServiceConfig) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetGrpcService()
+	if v, ok := interface{}(m.GetGrpcService()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MetricsServiceConfigValidationError{
+				field:  "GrpcService",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+	if _, ok := v3.ApiVersion_name[int32(m.GetTransportApiVersion())]; !ok {
+		return MetricsServiceConfigValidationError{
+			field:  "TransportApiVersion",
+			reason: "value must be one of the defined enum values",
+		}
+	}
 
-			if err := v.Validate(); err != nil {
-				return MetricsServiceConfigValidationError{
-					field:  "GrpcService",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetReportCountersAsDeltas()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MetricsServiceConfigValidationError{
+				field:  "ReportCountersAsDeltas",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

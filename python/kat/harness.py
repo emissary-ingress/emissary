@@ -28,8 +28,8 @@ from .utils import namespace_manifest
 
 import yaml as pyyaml
 
-pyyaml_loader = pyyaml.SafeLoader
-pyyaml_dumper = pyyaml.SafeDumper
+pyyaml_loader: Any = pyyaml.SafeLoader
+pyyaml_dumper: Any = pyyaml.SafeDumper
 
 try:
     pyyaml_loader = pyyaml.CSafeLoader
@@ -1200,7 +1200,7 @@ class Runner:
                 self.done = True
 
     def get_manifests(self, selected) -> OrderedDict:
-        manifests = OrderedDict()  # type: ignore
+        manifests: OrderedDict[Union[Superpod,Node], list] = OrderedDict()  # type: ignore
         superpods: Dict[str, Superpod] = {}
 
         for n in (n for n in self.nodes if n in selected and not n.xfail):
@@ -1304,7 +1304,7 @@ class Runner:
                             metadata['namespace'] = nsp
 
                 # ...and, finally, save the manifest list.
-                manifests[n] = manifest
+                manifests[n] = list(manifest)
 
         for superpod in superpods.values():
             manifests[superpod] = superpod.get_manifest_list()

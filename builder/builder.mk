@@ -190,6 +190,7 @@ pytest-only: sync preflight-cluster
 		-e DEV_REGISTRY \
 		-e DOCKER_BUILD_USERNAME \
 		-e DOCKER_BUILD_PASSWORD \
+		-e AMBASSADOR_FAST_RECONFIGURE \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal
 .PHONY: pytest-only
 
@@ -208,9 +209,10 @@ mypy: mypy-server
 	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal check
 .PHONY: mypy
 
-GOTEST_PKGS ?= ./...
+GOTEST_PKGS = github.com/datawire/ambassador/...
 export GOTEST_PKGS
-GOTEST_ARGS ?=
+
+GOTEST_ARGS ?= -race
 export GOTEST_ARGS
 
 gotest: test-ready
@@ -612,4 +614,6 @@ define _help.targets
   $(BLD)$(MAKE) $(BLU)update-yaml$(END) -- like $(BLD)make generate$(END), but skips the slow Envoy stuff.
 
   $(BLD)$(MAKE) $(BLU)go-mod-tidy$(END) -- 'go mod tidy', but plays nice with 'make generate'
+
+  $(BLD)$(MAKE) $(BLU)guess-envoy-go-control-plane-commit$(END) -- Make a suggestion for setting ENVOY_GO_CONTROL_PLANE_COMMIT= in generate.mk
 endef

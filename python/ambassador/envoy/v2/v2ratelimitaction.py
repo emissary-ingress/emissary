@@ -21,6 +21,13 @@ if TYPE_CHECKING:
 
 
 class V2RateLimitAction(dict):
+    """V2RateLimitAction is the Python type for the gRPC
+    `envoy.api.v2.route.RateLimit` message (not the
+    `envoy.api.v2.route.RateLimit.Action` message, despite what the
+    name suggests).
+
+    """
+
     already_errored: ClassVar[bool] = False
 
     def __init__(self, config: 'V2Config', rate_limit: Dict[str, Any]) -> None:
@@ -28,6 +35,7 @@ class V2RateLimitAction(dict):
 
         self.valid = False
         self.stage = 0
+        # self.actions is a list of `envoy.api.v2.route.RateLimit.Action`s
         self.actions: List[dict] = []
 
         # if rate_limit == {}:
@@ -73,7 +81,10 @@ class V2RateLimitAction(dict):
                     hdr_action = action[dkey]
 
                     hdr_name = hdr_action['header']
-                    # hdr_omit = hdr_action.get('omit_if_not_present', False)
+                    # Envoy API v3 adds a "skip_if_absent"
+                    # setting--but we don't have access to it because
+                    # we're still using API v2.
+                    #hdr_omit = hdr_action.get('omit_if_not_present', False)
 
                     self.save_action({
                         'request_headers': {
