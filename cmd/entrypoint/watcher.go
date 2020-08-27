@@ -118,7 +118,7 @@ func watcher(ctx context.Context, encoded *atomic.Value) {
 	snapshot := &AmbassadorInputs{}
 	acc := client.Watch(ctx, queries...)
 
-	consulSnapshot := watt.ConsulSnapshot{}
+	consulSnapshot := &watt.ConsulSnapshot{}
 	consul := newConsul(ctx, &consulWatcher{})
 
 	var unsentDeltas []*kates.Delta
@@ -151,7 +151,7 @@ func watcher(ctx context.Context, encoded *atomic.Value) {
 			}
 			unsentDeltas = append(unsentDeltas, deltas...)
 		case <-consul.changed():
-			consul.update(&consulSnapshot)
+			consul.update(consulSnapshot)
 		case <-ctx.Done():
 			return
 		}
@@ -165,16 +165,18 @@ func watcher(ctx context.Context, encoded *atomic.Value) {
 			continue
 		}
 
-		sn := map[string]interface{}{"Kubernetes": snapshot}
-		sn["Consul"] = consulSnapshot
-		sn["Deltas"] = unsentDeltas
-		unsentDeltas = nil
-
 		var invalidSlice []*kates.Unstructured
 		for _, inv := range invalid {
 			invalidSlice = append(invalidSlice, inv)
 		}
-		sn["Invalid"] = invalidSlice
+
+		sn := &Snapshot{
+			Kubernetes: snapshot,
+			Consul:     consulSnapshot,
+			Invalid:    invalidSlice,
+			Deltas:     unsentDeltas,
+		}
+		unsentDeltas = nil
 
 		bytes, err := json.MarshalIndent(sn, "", "  ")
 		if err != nil {
