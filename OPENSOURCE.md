@@ -32,6 +32,7 @@ following Free and Open Source software:
     github.com/cncf/udpa/go                                  v0.0.0-20200629203442-efcf912fb354         Apache License 2.0
     github.com/containerd/containerd                         v1.3.4                                     Apache License 2.0
     github.com/cyphar/filepath-securejoin                    v0.2.2                                     3-clause BSD license
+    github.com/datawire/pf                                   v0.0.0-20180510150411-31a823f9495a         2-clause BSD license
     github.com/davecgh/go-spew                               v1.1.1                                     ISC license
     github.com/deislabs/oras                                 v0.8.1                                     MIT license
     github.com/dgrijalva/jwt-go                              v3.2.0+incompatible                        MIT license
@@ -106,6 +107,7 @@ following Free and Open Source software:
     github.com/mholt/archiver/v3                             v3.3.0                                     MIT license
     github.com/miekg/dns                                     v1.1.6                                     3-clause BSD license
     github.com/mitchellh/copystructure                       v1.0.0                                     MIT license
+    github.com/mitchellh/go-homedir                          v1.1.0                                     MIT license
     github.com/mitchellh/go-wordwrap                         v1.0.0                                     MIT license
     github.com/mitchellh/mapstructure                        v1.1.2                                     MIT license
     github.com/mitchellh/reflectwalk                         v1.0.0                                     MIT license
@@ -176,22 +178,22 @@ libraries:
 
     Name                Version    License(s)
     ----                -------    ----------
-    Click               7.0        3-clause BSD license
     Cython              0.29.10    Apache License 2.0
-    Flask               1.0.2      3-clause BSD license
+    Flask               1.1.2      3-clause BSD license
     GitPython           3.1.7      3-clause BSD license
-    Jinja2              2.10.1     3-clause BSD license
+    Jinja2              2.11.2     3-clause BSD license
     MarkupSafe          1.1.1      3-clause BSD license
     PyJWT               1.7.1      MIT license
-    PyYAML              5.1        MIT license
+    PyYAML              5.3.1      MIT license
     Werkzeug            1.0.1      3-clause BSD license
     adal                1.2.4      MIT license
-    attrs               19.1.0     MIT license
+    attrs               19.3.0     MIT license
     cachetools          4.1.1      MIT license
     certifi             2020.6.20  Mozilla Public License 2.0
     cffi                1.14.1     MIT license
     chardet             3.0.4      GNU Lesser General Public License Version 2.1
-    clize               4.0.3      MIT license
+    click               7.1.2      3-clause BSD license
+    clize               4.1.1      MIT license
     coverage            5.2.1      Apache License 2.0
     cryptography        2.9.2      Apache License 2.0, Python Software Foundation license
     decorator           4.4.2      2-clause BSD license
@@ -199,19 +201,19 @@ libraries:
     docutils            0.16       2-clause BSD license, GNU General Public License Version 3, Python Software Foundation license, public domain
     dpath               2.0.1      MIT license
     durationpy          0.5        MIT license
-    expiringdict        1.2.0      Apache License 2.0
+    expiringdict        1.2.1      Apache License 2.0
     gitdb               4.0.5      3-clause BSD license
     google-auth         1.20.0     Apache License 2.0
-    gunicorn            19.9.0     MIT license
+    gunicorn            20.0.4     MIT license
     idna                2.7        3-clause BSD license, Python Software Foundation license, Unicode License Agreement for Data Files and Software (2015)
     importlib-metadata  1.7.0      Apache License 2.0
     iniconfig           1.0.1      MIT license
     itsdangerous        1.1.0      3-clause BSD license
-    jsonpatch           1.24       3-clause BSD license
+    jsonpatch           1.26       3-clause BSD license
     jsonpointer         2.0        3-clause BSD license
-    jsonschema          2.6.0      MIT license
-    jwt                 0.5.4      Apache License 2.0
-    k8s-proto           0.0.2      Apache License 2.0
+    jsonschema          3.2.0      MIT license
+    jwt                 1.0.0      Apache License 2.0
+    k8s-proto           0.0.3      Apache License 2.0
     kubernetes          8.0.0      Apache License 2.0
     more-itertools      8.4.0      MIT license
     mypy                0.782      MIT license
@@ -230,6 +232,7 @@ libraries:
     pyasn1-modules      0.2.8      2-clause BSD license
     pycparser           2.20       3-clause BSD license
     pyparsing           2.4.7      MIT license
+    pyrsistent          0.16.0     MIT license
     pytest              6.0.1      MIT license
     pytest-cov          2.10.0     MIT license
     python-dateutil     2.8.1      3-clause BSD license, Apache License 2.0
@@ -238,13 +241,12 @@ libraries:
     retry               0.9.2      Apache License 2.0
     rsa                 4.6        Apache License 2.0
     scout.py            0.5.0      Apache License 2.0
-    semantic-version    2.6.0      2-clause BSD license
+    semantic-version    2.8.5      2-clause BSD license
     sigtools            2.0.2      MIT license
     six                 1.15.0     MIT license
     smmap               3.0.4      3-clause BSD license
     toml                0.10.1     MIT license
     typed-ast           1.4.1      Apache License 2.0
-    typing              3.7.4.3    Python Software Foundation license
     typing-extensions   3.7.4.2    Python Software Foundation license
     urllib3             1.24.3     MIT license
     websocket-client    0.57.0     3-clause BSD license

@@ -28,8 +28,8 @@ tier of our core features as part of the Ambassador Edge Stack, designed for sta
 
 #### Ingress resources and Namespaces
 
-*In Ambassador 1.7*, TLS secrets in `Ingress` resources will not be able to use `.namespace`
-suffixes to cross namespaces.
+In a future version of Ambassador, *no sooner than Ambassador 1.8.0*, TLS secrets
+in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
 
 #### gRPC names
 

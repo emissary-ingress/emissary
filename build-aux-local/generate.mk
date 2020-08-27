@@ -1,6 +1,7 @@
 crds_yaml_dir = $(OSS_HOME)/../ambassador-chart/crds
 
 generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
+generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/getambassador.io/%.proto,  $(OSS_HOME)/python/ambassador/proto/%_pb2.py        , $(shell find $(OSS_HOME)/api/getambassador.io/ -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_pb.js          , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_grpc_web_pb.js , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
@@ -8,7 +9,7 @@ generate/files += $(OSS_HOME)/pkg/api/envoy
 generate/files += $(OSS_HOME)/pkg/api/pb
 generate/files += $(OSS_HOME)/pkg/envoy-control-plane
 generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
-generate/files += $(OSS_HOME)/OPENSOURCE.md
+# generate/files += $(OSS_HOME)/OPENSOURCE.md 	# Per @LukeShu for 1.7.0 -- something is broken here
 generate/files += $(OSS_HOME)/builder/requirements.txt
 generate: ## Update generated sources that get committed to git
 generate:
@@ -23,11 +24,12 @@ generate-clean:
 	rm -rf $(OSS_HOME)/pkg/api/envoy $(OSS_HOME)/pkg/api/pb
 	rm -rf $(OSS_HOME)/cxx/envoy/build_go
 	rm -rf $(OSS_HOME)/pkg/api/kat
+	rm -r $(OSS_HOME)/pkg/api/agent/*.pb.go
 	rm -rf $(OSS_HOME)/python/ambassador/proto
 	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js
 	rm -rf $(OSS_HOME)/pkg/envoy-control-plane
 	rm -f $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
-	rm -f $(OSS_HOME)/OPENSOURCE.md
+# 	rm -f $(OSS_HOME)/OPENSOURCE.md 			 # Per @LukeShu for 1.7.0 -- something is broken here
 .PHONY: generate _generate generate-clean
 
 go-mod-tidy/oss:

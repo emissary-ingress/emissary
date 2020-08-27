@@ -9,7 +9,7 @@
 //
 // Things that are in scout.py, but are intentionally left of this package:
 //  - automatically setting the HTTP client user-agent string
-//  - a InstallIDFromConfigMap getter
+//  - an InstallIDFromConfigMap getter
 package metriton
 
 import (

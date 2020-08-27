@@ -1303,3 +1303,64 @@ secret_namespacing: False
 
     def check(self):
         assert self.results[0].backend is None, f'expected 0 errors, got {len(self.results[0].backend.response)}: received {self.results[0].backend.response}'
+
+
+class TLSCoalescing(AmbassadorTest):
+
+    def init(self):
+        self.target = HTTP()
+
+        if EDGE_STACK:
+            self.xfail = "Not yet supported in Edge Stack"
+
+    def manifests(self) -> str:
+        return self.format("""
+---
+apiVersion: v1
+metadata:
+  name: tlscoalescing-certs
+  labels:
+    kat-ambassador-id: tlscoalescing
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVnekNDQXV1Z0F3SUJBZ0lSQU5veUpsWk94M3NYR2thc24rTlExR3d3RFFZSktvWklodmNOQVFFTEJRQXcKZHpFZU1Cd0dBMVVFQ2hNVmJXdGpaWEowSUdSbGRtVnNiM0J0Wlc1MElFTkJNU1l3SkFZRFZRUUxEQjFoYkhaaApjbTlBWTJGeVltOXVJQ2hCYkhaaGNtOGdVMkYxY21sdUtURXRNQ3NHQTFVRUF3d2tiV3RqWlhKMElHRnNkbUZ5CmIwQmpZWEppYjI0Z0tFRnNkbUZ5YnlCVFlYVnlhVzRwTUI0WERURTVNRFl3TVRBd01EQXdNRm9YRFRNd01EZ3cKTkRFeE1UTTBOMW93VVRFbk1DVUdBMVVFQ2hNZWJXdGpaWEowSUdSbGRtVnNiM0J0Wlc1MElHTmxjblJwWm1sagpZWFJsTVNZd0pBWURWUVFMREIxaGJIWmhjbTlBWTJGeVltOXVJQ2hCYkhaaGNtOGdVMkYxY21sdUtUQ0NBU0l3CkRRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFLRXdLK3hubk1IbldnL1NPK2FPbzhFTjVucFYKdFZLWlArNEJ0VHBOOUkyUldRSmwzY1RiNWRUUTFCWERvSzc0RStENGhib3d5VWppMjRLOTV5M1c1KzVDbFkvRQpZME5taUtCVzh3enJjVzRydEc4dVJ5R01ES2UvUTJaZHBTS1dRQTRXWU9qZHpxYmc0L1RrMUZYd0NSN2dHQmpqCmc4YnhXR1VJYm5MRUxyODNRVjRHdXlzQTA5QnEyZVVNYnVabEVyblhFenJMaE9nRkRHR0JFOWlnZXgrL3ZYRXoKNHFRV2lXc3BpZTZlZEdMRHFpeHN3dUR5UW5MM09UbE9xQjlsU1JlYXNDVTJnRVluRm5ZKzk4QnRQaXAzVVZDMApWczc5UkhBN0I0Vko1ZTIxRmdqTTdNVDNvc1FnOFcyNXd4RXJGYU52SW55Y3cwM1hCYUFjNFVzMko2Y0NBd0VBCkFhT0JyekNCckRBT0JnTlZIUThCQWY4RUJBTUNCYUF3RXdZRFZSMGxCQXd3Q2dZSUt3WUJCUVVIQXdFd0RBWUQKVlIwVEFRSC9CQUl3QURBZkJnTlZIU01FR0RBV2dCUUY3c0hlcVRRUFZkamZ0QUtaUjNKdDhRRkNjREJXQmdOVgpIUkVFVHpCTmdneGhMbVJ2YldGcGJpNWpiMjJDREdJdVpHOXRZV2x1TG1OdmJZSU1LaTVrYjIxaGFXNHVZMjl0CmdnbHNiMk5oYkdodmMzU0hCSDhBQUFHSEVBQUFBQUFBQUFBQUFBQUFBQUFBQUFFd0RRWUpLb1pJaHZjTkFRRUwKQlFBRGdnR0JBSXZUdmUveGVhaXhYMXFVbmZORkhSUS9GckZiTDF4aGpocEx5MXB1NmFxTVgyWkM1RkV4dktyUQp2N1ZLdDV4RkxERUhwQnBuTkVFVTVBTmdpS1JVU1A5RGI2aHpzcHpYa2hEYU9vTEFrTkIvN3c1V2FxOVJzZk5UClRDMk9ZNDhjcFJQbG0wQVV5VUR0UzNpQ0xQYUlMdjl6WWFlV3ZxZEJ1RG9idklFT0ZOTHBMbXoxTUxoZ1FnV2IKd3Z0blg0MlcydFlLejc1enlPMGpqcXBycENudTdBeVBVeGJmbUwraFB3OXBUeUNGNjcwLzlhZnlYTVVoajN1OAp5cHRlQVcrNVRtZnhxc0F2Ti80VWJsUmZzNUNjL3N1L2RYZFBuSjFtQlhKTlhwWlY0ZHArNU42dWExQnE1Y1l2Ck5sTENGTnFTelFGOFVnd1NZQWdQUVV3YnZEa21QMndOelNzUWR0aFlYMDdCQVpNVFkyYThBWDdDVDBQcFRYc3YKbC9TWnlyWmhXZlBnVCtPTkVudmhSeG5xbGVrZG9CVGo5dWFRQTE2L0d4WVhkcTk4Z0JKTHlmOVJhekIrZW1CTQpvSVc0aEJCRyswRnFqMWM1Z05kaTRnK3Q3UGxHa0d1cy9JTjVIRUJQRkVxY2NqWVNxek5rbm5rZjRMVlA3eTVxCmpWZFhLS0ZPNEE9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+  tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2Z0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktnd2dnU2tBZ0VBQW9JQkFRQ2hNQ3ZzWjV6QjUxb1AKMGp2bWpxUEJEZVo2VmJWU21UL3VBYlU2VGZTTmtWa0NaZDNFMitYVTBOUVZ3NkN1K0JQZytJVzZNTWxJNHR1Qwp2ZWN0MXVmdVFwV1B4R05EWm9pZ1Z2TU02M0Z1SzdSdkxrY2hqQXludjBObVhhVWlsa0FPRm1EbzNjNm00T1AwCjVOUlY4QWtlNEJnWTQ0UEc4VmhsQ0c1eXhDNi9OMEZlQnJzckFOUFFhdG5sREc3bVpSSzUxeE02eTRUb0JReGgKZ1JQWW9Ic2Z2NzF4TStLa0ZvbHJLWW51bm5SaXc2b3NiTUxnOGtKeTl6azVUcWdmWlVrWG1yQWxOb0JHSnhaMgpQdmZBYlQ0cWQxRlF0RmJPL1VSd093ZUZTZVh0dFJZSXpPekU5NkxFSVBGdHVjTVJLeFdqYnlKOG5NTk4xd1dnCkhPRkxOaWVuQWdNQkFBRUNnZ0VBWjBnZmpONGpNcGZVUEhrQVNzNHhIVDJUNWVWUFJ2ck5YT3NaUForL3lJcE8KbDF2QVN5aC96dXAwU3ZITDN2RTBnNTJheW1BQ1NjS2ExdDVwNkJSaERtajV2bUlmSEl2eGxaUEJMeEVaNEhiKwpxWkxrbnhsRzdxRitSWFJSb0tUWHJHOG9iMjNZd1ZNdW5iZVdXdTV3V2FsTHAzNzQ3QnV2QVNYeTUzVFBZMU8zCkVCY25IUU5vbi9zZU9Rb0g5V0FSMzQzVW5XVlg2S0JNYmduNkJLNlE5aXZHdk4wd3FFSXZ1Nmh3THREVXhFbjUKd2ozR3hsZDFoc0RpM0xhMHlqaUJubkFBbGNidGdSR1pWY3c2N01CeVkrRFlncnJIb1hFSW4rT0lQODZ3QnRQawo4ZTF6MGxldUNONkV6VGN4UXYycVRudml1NllkNHN4VEFraXdkdmlnNlFLQmdRREZjbVRpTVQ4YlZhVmxQbnFlCmZGdW1yYjlRNUNRcExFZlRvajNXR0JrdERydkNBcUU3aDhIREhzK2RSZGY4czIrQm13bDFKZDNFemlaWmxsbzkKNlF2dUhaalFiWjdrMUhmdDVYWlB4Mk9waXFENlJqSXdmekpUOHh2ZGwvNkp6MFAyNGkwNjlveEtRL2hnVWJkMQo1RVpVeWYybFNiMkFzUjhmb2E5UGcwNU5wUUtCZ1FEUS9SNzlmMHhQR093QjA2WmJ4emZHeGlQZGdoUGVxencrCkxVUmY4U0x4eWdCN3hEQm9rUU93T1lOR3ZHbEZRWVM3cm5CN3o4Z1FGOE90Y3RKRVJwZ0FYOWo1VjArYVJndnQKeFZlZS84MVA1OGlvV3dCbW9EWGhKcXQzM1k5eG5nVEh5dXBaenVLN2dheE5oQWtXL0JHeGJsbG9VL2FuaEpUKwpFSE5MblhUMld3S0JnQytqUGZ2azdkam1mUlZFVWNsVEw3bXpTZWwyWWRNZFArY3J5Y2VSNE9FaUlPTGFSNVJaCldNSisrSkIxZlhzV3Y5eUJUM0xZUS8xcno0emwzYmY2TmtxcEVXbVlTVEhrb1ZyZ2RmOGhtRVlia0dOUjlHSUgKRGxsNjJrcElsYjBpS0wrMEtqMkRwcTEwWU1TOGNvc2JIR3p3bnlYMStLYklGVDVJZ0VlcTRvV1JBb0dCQUpVbApmOTlqNE42Mko0QXFQeGhTdGFDYk9XOVU3TDlGcjBta1hwNmw1YzF1M3lkMDNTTlRFckhLYWNDcXArb3dGdjBtClFjcHFnQm5VQytjV0FhK09QZDVPaVBkeGN6TGplSkhvKzE1U3FvQ3pKd1hYWkJMWmxYb29jY2lxaXp1SGpWdlUKbWFrY043MmZqb3NIaHNFcmhhajkycnJVNlR1bUovcWxYTk1DL1R6dkFvR0JBSnpxQjFKb3ByRzl2VHBNWU1LSQpGZFJNL2N2MnpSeWNxcWF0T3Ixc0pUOEpaU3Z3SFRObDdNTitoWDBNK3ljSWxLNUMvRlhQbWVhRlZraWZXRURlClhTcDZzWVBjQ0dvbjNUVGppejVCY0gzUHpTMUZvc2hlanBId2Nkc3JXdWdOZlV1UisxeUhDZjJPTmlsRmJkaXAKTEVqQ1M4amZoWkUrYm5LaHpOd2Vtc1B1Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K
+kind: Secret
+type: kubernetes.io/tls
+""") + super().manifests()
+
+    def config(self):
+        yield self, self.format("""
+apiVersion: ambassador/v1
+kind: TLSContext
+name: tlscoalescing-context
+secret: tlscoalescing-certs
+alpn_protocols: h2, http/1.1
+hosts:
+- domain.com
+- a.domain.com
+- b.domain.com
+""")
+
+    def scheme(self) -> str:
+        return "https"
+
+    @staticmethod
+    def _go_close_connection_error(url):
+        """
+        :param url: url passed to the query
+        :return: error message string that Go's net/http package throws when server closes connection
+        """
+        return "Get {}: EOF".format(url)
+
+    def queries(self):
+        yield Query(self.url("ambassador/v0/diag/"),
+                    headers={"Host": "a.domain.com"},
+                    insecure=True,
+                    sni=True)
+        yield Query(self.url("ambassador/v0/diag/"),
+                    headers={"Host": "b.domain.com"},
+                    insecure=True,
+                    sni=True)
+
+    def requirements(self):
+        yield ("url", Query(self.url("ambassador/v0/check_ready"), insecure=True, sni=True))

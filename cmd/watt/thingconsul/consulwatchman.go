@@ -1,31 +1,49 @@
-package watt
+package thingconsul
 
 import (
 	"fmt"
+	"sync"
 
 	consulapi "github.com/hashicorp/consul/api"
 
+	"github.com/datawire/ambassador/cmd/watt/watchapi"
 	"github.com/datawire/ambassador/pkg/consulwatch"
 	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/supervisor"
 )
 
-type consulEvent struct {
+type ConsulEvent struct {
 	WatchId   string
 	Endpoints consulwatch.Endpoints
 }
 
 type consulwatchman struct {
-	WatchMaker IConsulWatchMaker
-	watchesCh  <-chan []ConsulWatchSpec
-	watched    map[string]*supervisor.Worker
+	WatchMaker watchapi.IConsulWatchMaker
+	watchesCh  <-chan []watchapi.ConsulWatchSpec
+
+	mu      sync.RWMutex
+	watched map[string]*supervisor.Worker
+}
+
+type ConsulWatchMan interface {
+	Work(*supervisor.Process) error
+	NumWatched() int
+	WithWatched(func(map[string]*supervisor.Worker))
+}
+
+func NewConsulWatchMan(eventsCh chan<- ConsulEvent, watchesCh <-chan []watchapi.ConsulWatchSpec) ConsulWatchMan {
+	return &consulwatchman{
+		WatchMaker: &ConsulWatchMaker{aggregatorCh: eventsCh},
+		watchesCh:  watchesCh,
+		watched:    make(map[string]*supervisor.Worker),
+	}
 }
 
 type ConsulWatchMaker struct {
-	aggregatorCh chan<- consulEvent
+	aggregatorCh chan<- ConsulEvent
 }
 
-func (m *ConsulWatchMaker) MakeConsulWatch(spec ConsulWatchSpec) (*supervisor.Worker, error) {
+func (m *ConsulWatchMaker) MakeConsulWatch(spec watchapi.ConsulWatchSpec) (*supervisor.Worker, error) {
 	consulConfig := consulapi.DefaultConfig()
 	consulConfig.Address = spec.ConsulAddress
 
@@ -51,7 +69,7 @@ func (m *ConsulWatchMaker) MakeConsulWatch(spec ConsulWatchSpec) (*supervisor.Wo
 
 			w.Watch(func(endpoints consulwatch.Endpoints, e error) {
 				endpoints.Id = spec.Id
-				m.aggregatorCh <- consulEvent{spec.WatchId(), endpoints}
+				m.aggregatorCh <- ConsulEvent{spec.WatchId(), endpoints}
 			})
 			_ = p.Go(func(p *supervisor.Process) error {
 				x := w.Start()
@@ -78,6 +96,7 @@ func (w *consulwatchman) Work(p *supervisor.Process) error {
 	for {
 		select {
 		case watches := <-w.watchesCh:
+			w.mu.Lock()
 			found := make(map[string]*supervisor.Worker)
 			p.Debugf("processing %d consul watches", len(watches))
 			for _, cw := range watches {
@@ -108,9 +127,22 @@ func (w *consulwatchman) Work(p *supervisor.Process) error {
 			}
 
 			w.watched = found
+			w.mu.Unlock()
 		case <-p.Shutdown():
 			p.Debugf("shutdown initiated")
 			return nil
 		}
 	}
+}
+
+func (w *consulwatchman) NumWatched() int {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return len(w.watched)
+}
+
+func (w *consulwatchman) WithWatched(fn func(map[string]*supervisor.Worker)) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	fn(w.watched)
 }

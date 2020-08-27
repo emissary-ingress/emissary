@@ -212,7 +212,7 @@ mypy: mypy-server
 GOTEST_PKGS = github.com/datawire/ambassador/...
 export GOTEST_PKGS
 
-GOTEST_ARGS ?=
+GOTEST_ARGS ?= -race
 export GOTEST_ARGS
 
 gotest: test-ready

@@ -78,9 +78,9 @@ RUN curl --fail -L https://raw.githubusercontent.com/jonmosco/kube-ps1/v0.7.0/ku
 # Download, build, and install PyYAML.
 RUN mkdir /tmp/pyyaml && \
   cd /tmp/pyyaml && \
-  curl -O -L http://pyyaml.org/download/pyyaml/PyYAML-5.1.tar.gz && \
-  tar xzf PyYAML-5.1.tar.gz && \
-  cd PyYAML-5.1 && \
+  curl -O -L http://pyyaml.org/download/pyyaml/PyYAML-5.3.1.tar.gz && \
+  tar xzf PyYAML-5.3.1.tar.gz && \
+  cd PyYAML-5.3.1 && \
   python3 setup.py --with-libyaml install
 
 FROM ${builderbase_stage1} as builderbase-stage2
