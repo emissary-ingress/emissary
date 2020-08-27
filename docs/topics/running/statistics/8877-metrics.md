@@ -55,12 +55,25 @@ with Prometheus and Grafana](../../../../howtos/prometheus).
 
 ### Using Grafana to visualize statistics gathered by Prometheus
 
+#### Sample dashboard
+
+We provide a [sample Grafana dashboard][`8877-metrics-grafana.json`]
+that displays information collected by Prometheus from the
+`:8877/metrics` endpoint.
+
+[`8877-metrics-grafana.json`]: https://raw.githubusercontent.com/datawire/ambassador/$branch$/docs/topics/running/statistics/8877-metrics-grafana.json
+
+#### Just Envoy information
+
 ![Screenshot of a Grafana dashboard that displays just information from Envoy](../../../../images/grafana.png)
 
-If you're using Grafana, [Alex Gervais][] has written a template
-[Ambassador dashboard for Grafana][] that works with either the
-metrics exposed by [the `:8877/metrics` endpoint], or by [Envoy over
-StatsD][envoy-statsd-prometheus].
+[Alex Gervais][] has written a template [Ambassador dashboard for
+Grafana][] that displays information collected by Prometheus either
+from the `:8877/metrics` endpoint, or from [Envoy over
+StatsD][envoy-statsd-prometheus].  Because it is designed to work with
+the Envoy StatsD set up, it does not include any of the `ambassador_*`
+statistics; because of this, we recommend using the other sample
+dashboard above.
 
 [Alex Gervais]: https://twitter.com/alex_gervais
 [Ambassador dashboard for Grafana]: https://grafana.com/dashboards/4698
