@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -43,17 +43,12 @@ func (m *Router) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetDynamicStats()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RouterValidationError{
-					field:  "DynamicStats",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetDynamicStats()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RouterValidationError{
+				field:  "DynamicStats",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -63,17 +58,12 @@ func (m *Router) Validate() error {
 	for idx, item := range m.GetUpstreamLog() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return RouterValidationError{
-						field:  fmt.Sprintf("UpstreamLog[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RouterValidationError{
+					field:  fmt.Sprintf("UpstreamLog[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}

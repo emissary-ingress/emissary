@@ -49,7 +49,7 @@ mv edgectl ~/bin  # Somewhere in your PATH
 > Note: You can build Edge Control from source, but the straightforward way
 >
 > ```console
-> go get github.com/datawire/teleproxy/cmd/edgectl
+> go get github.com/datawire/ambassador/cmd/edgectl
 > ```
 >
 > leaves you with a binary that has no embedded version number. If you really want to build from source, check out the repository and run `make build`, which will build binaries in a `bin_*` directory.

@@ -36,13 +36,14 @@ class IRResource (Resource):
 
     _active: bool
     _errored: bool
-
+    _cache_key: Optional[str]
+    
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str,
                  kind: str,
                  name: str,
                  namespace: Optional[str]=None,
-                 metadata_labels: Optional[str]=None,
+                 metadata_labels: Optional[Dict[str, str]]=None,
                  location: str = "--internal--",
                  apiVersion: str="ambassador/ir",
                  **kwargs) -> None:
@@ -69,8 +70,20 @@ class IRResource (Resource):
         # Make certain that _active has a default...
         self.set_active(False)
 
+        # ...and start with an empty cache key...
+        self._cache_key = None
+
         # ...before we override it with the setup results.
         self.set_active(self.setup(ir, aconf))
+
+    # XXX WTFO, I hear you cry. Why is this "type: ignore here?" So here's the deal:
+    # mypy doesn't like it if you override just the getter of a property that has a
+    # setter, too, and I cannot figure out how else to shut it up.
+    @property   # type: ignore
+    def cache_key(self) -> str:
+        # If you ask for the cache key and it's not set, that is an error.
+        assert(self._cache_key is not None)
+        return self._cache_key
 
     def lookup_default(self, key: str, default_value: Optional[Any]=None, lookup_class: Optional[str]=None) -> Any:
         """

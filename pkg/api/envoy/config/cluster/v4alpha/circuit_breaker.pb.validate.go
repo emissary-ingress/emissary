@@ -15,9 +15,9 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 
-	envoy_config_core_v4alpha "github.com/datawire/ambassador/pkg/api/envoy/config/core/v4alpha"
+	v4alpha "github.com/datawire/ambassador/pkg/api/envoy/config/core/v4alpha"
 )
 
 // ensure the imports are used
@@ -32,9 +32,9 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 
-	_ = envoy_config_core_v4alpha.RoutingPriority(0)
+	_ = v4alpha.RoutingPriority(0)
 )
 
 // define the regex for a UUID once up-front
@@ -51,17 +51,12 @@ func (m *CircuitBreakers) Validate() error {
 	for idx, item := range m.GetThresholds() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return CircuitBreakersValidationError{
-						field:  fmt.Sprintf("Thresholds[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CircuitBreakersValidationError{
+					field:  fmt.Sprintf("Thresholds[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -133,101 +128,71 @@ func (m *CircuitBreakers_Thresholds) Validate() error {
 		return nil
 	}
 
-	if _, ok := envoy_config_core_v4alpha.RoutingPriority_name[int32(m.GetPriority())]; !ok {
+	if _, ok := v4alpha.RoutingPriority_name[int32(m.GetPriority())]; !ok {
 		return CircuitBreakers_ThresholdsValidationError{
 			field:  "Priority",
 			reason: "value must be one of the defined enum values",
 		}
 	}
 
-	{
-		tmp := m.GetMaxConnections()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return CircuitBreakers_ThresholdsValidationError{
-					field:  "MaxConnections",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMaxConnections()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CircuitBreakers_ThresholdsValidationError{
+				field:  "MaxConnections",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetMaxPendingRequests()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return CircuitBreakers_ThresholdsValidationError{
-					field:  "MaxPendingRequests",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMaxPendingRequests()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CircuitBreakers_ThresholdsValidationError{
+				field:  "MaxPendingRequests",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetMaxRequests()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return CircuitBreakers_ThresholdsValidationError{
-					field:  "MaxRequests",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMaxRequests()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CircuitBreakers_ThresholdsValidationError{
+				field:  "MaxRequests",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetMaxRetries()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return CircuitBreakers_ThresholdsValidationError{
-					field:  "MaxRetries",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMaxRetries()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CircuitBreakers_ThresholdsValidationError{
+				field:  "MaxRetries",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetRetryBudget()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return CircuitBreakers_ThresholdsValidationError{
-					field:  "RetryBudget",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetRetryBudget()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CircuitBreakers_ThresholdsValidationError{
+				field:  "RetryBudget",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
 	// no validation rules for TrackRemaining
 
-	{
-		tmp := m.GetMaxConnectionPools()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return CircuitBreakers_ThresholdsValidationError{
-					field:  "MaxConnectionPools",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMaxConnectionPools()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CircuitBreakers_ThresholdsValidationError{
+				field:  "MaxConnectionPools",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -299,32 +264,22 @@ func (m *CircuitBreakers_Thresholds_RetryBudget) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetBudgetPercent()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return CircuitBreakers_Thresholds_RetryBudgetValidationError{
-					field:  "BudgetPercent",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetBudgetPercent()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CircuitBreakers_Thresholds_RetryBudgetValidationError{
+				field:  "BudgetPercent",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetMinRetryConcurrency()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return CircuitBreakers_Thresholds_RetryBudgetValidationError{
-					field:  "MinRetryConcurrency",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMinRetryConcurrency()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CircuitBreakers_Thresholds_RetryBudgetValidationError{
+				field:  "MinRetryConcurrency",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

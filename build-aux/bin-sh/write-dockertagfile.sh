@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# docker-tagfile: write-ifchanged, but keeps Docker tags in-sync
+# write-dockertagfile: write-ifchanged, but keeps Docker tags in-sync
 #
 # Copyright (C) 2015  Luke Shumaker
 # Copyright 2019 Datawire

@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -51,32 +51,22 @@ func (m *HealthCheck) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetPassThroughMode()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return HealthCheckValidationError{
-					field:  "PassThroughMode",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetPassThroughMode()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HealthCheckValidationError{
+				field:  "PassThroughMode",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetCacheTime()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return HealthCheckValidationError{
-					field:  "CacheTime",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetCacheTime()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HealthCheckValidationError{
+				field:  "CacheTime",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -86,17 +76,12 @@ func (m *HealthCheck) Validate() error {
 
 		// no validation rules for ClusterMinHealthyPercentages[key]
 
-		{
-			tmp := val
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return HealthCheckValidationError{
-						field:  fmt.Sprintf("ClusterMinHealthyPercentages[%v]", key),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return HealthCheckValidationError{
+					field:  fmt.Sprintf("ClusterMinHealthyPercentages[%v]", key),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -106,17 +91,12 @@ func (m *HealthCheck) Validate() error {
 	for idx, item := range m.GetHeaders() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return HealthCheckValidationError{
-						field:  fmt.Sprintf("Headers[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return HealthCheckValidationError{
+					field:  fmt.Sprintf("Headers[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}

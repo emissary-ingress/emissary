@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -49,17 +49,12 @@ func (m *RouteConfiguration) Validate() error {
 	for idx, item := range m.GetRoutes() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return RouteConfigurationValidationError{
-						field:  fmt.Sprintf("Routes[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RouteConfigurationValidationError{
+					field:  fmt.Sprintf("Routes[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -139,17 +134,12 @@ func (m *Route) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetMatch()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RouteValidationError{
-					field:  "Match",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMatch()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RouteValidationError{
+				field:  "Match",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -161,17 +151,12 @@ func (m *Route) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetRoute()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RouteValidationError{
-					field:  "Route",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetRoute()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RouteValidationError{
+				field:  "Route",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -245,17 +230,12 @@ func (m *RouteMatch) Validate() error {
 	for idx, item := range m.GetHeaders() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return RouteMatchValidationError{
-						field:  fmt.Sprintf("Headers[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RouteMatchValidationError{
+					field:  fmt.Sprintf("Headers[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -343,17 +323,12 @@ func (m *RouteAction) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetMetadataMatch()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RouteActionValidationError{
-					field:  "MetadataMatch",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMetadataMatch()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RouteActionValidationError{
+				field:  "MetadataMatch",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -361,17 +336,12 @@ func (m *RouteAction) Validate() error {
 	for idx, item := range m.GetRateLimits() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return RouteActionValidationError{
-						field:  fmt.Sprintf("RateLimits[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RouteActionValidationError{
+					field:  fmt.Sprintf("RateLimits[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -393,17 +363,12 @@ func (m *RouteAction) Validate() error {
 
 	case *RouteAction_WeightedClusters:
 
-		{
-			tmp := m.GetWeightedClusters()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return RouteActionValidationError{
-						field:  "WeightedClusters",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetWeightedClusters()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RouteActionValidationError{
+					field:  "WeightedClusters",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -500,17 +465,12 @@ func (m *WeightedCluster) Validate() error {
 	for idx, item := range m.GetClusters() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return WeightedClusterValidationError{
-						field:  fmt.Sprintf("Clusters[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return WeightedClusterValidationError{
+					field:  fmt.Sprintf("Clusters[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -600,17 +560,12 @@ func (m *WeightedCluster_ClusterWeight) Validate() error {
 
 	}
 
-	{
-		tmp := m.GetMetadataMatch()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return WeightedCluster_ClusterWeightValidationError{
-					field:  "MetadataMatch",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMetadataMatch()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return WeightedCluster_ClusterWeightValidationError{
+				field:  "MetadataMatch",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

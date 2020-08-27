@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 
 	"github.com/datawire/ambassador/cmd/ambex"
+	"github.com/datawire/ambassador/cmd/entrypoint"
 	"github.com/datawire/ambassador/cmd/kubestatus"
 	"github.com/datawire/ambassador/cmd/watt"
 	"github.com/datawire/ambassador/pkg/environment"
@@ -19,16 +20,20 @@ import (
 var Version = "(unknown version)"
 
 func main() {
-	environment.EnvironmentSetupEntrypoint()
-
-	ambex.Version = Version
-	watt.Version = Version
-
 	name := filepath.Base(os.Args[0])
 	if name == "ambassador" && len(os.Args) > 1 {
 		name = os.Args[1]
 		os.Args = os.Args[1:]
 	}
+
+	// XXX: entrypoint does it's own environment bootstrapping
+	if name != "entrypoint" {
+		environment.EnvironmentSetupEntrypoint()
+	}
+
+	ambex.Version = Version
+	watt.Version = Version
+
 	switch name {
 	case "ambex":
 		ambex.Main()
@@ -36,6 +41,8 @@ func main() {
 		watt.Main()
 	case "kubestatus":
 		kubestatus.Main()
+	case "entrypoint":
+		entrypoint.Main()
 	default:
 		fmt.Println("The Ambassador main program is a multi-call binary that combines various")
 		fmt.Println("support programs into one executable.")

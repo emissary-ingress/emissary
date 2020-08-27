@@ -310,9 +310,45 @@ headers:
 
 ## Note
 
+### Ingress Controllers
+
 Some [Kubernetes ingress controllers](https://kubernetes.io/docs/concepts/services-networking/ingress/) do not support HTTP/2 fully. As a result, if you are running Ambassador with an ingress controller in front, you may find that gRPC requests fail even with correct Ambassador Edge Stack configuration.
 
 A simple way around this is to use Ambassador Edge Stack with a `LoadBalancer` service, rather than an Ingress controller. You can also consider using [Ambassador Edge Stack as your Ingress Controller](../../topics/running/ingress-controller).
+
+### Mappings with hosts
+
+As with any `Mapping`, your gRPC service's `Mapping` may include a `host`:
+
+```yaml
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: grpc-py
+spec:
+  grpc: true
+  prefix: /helloworld.Greeter/
+  rewrite: /helloworld.Greeter/
+  service: grpc-example
+  host: api.example.com
+```
+
+Some gRPC client libraries produce requests where the `host` or `:authority` header includes the port number. For example, a request to the above service might include `host: api.example.com:443` instead of just `host: api.example.com`. Ambassador returns a 404 (not found) response to these requests due to the mismatched host.
+
+A future version of Ambassador may be able to strip away the port number. In the meantime, the easiest solution is to make sure your gRPC client does not include the port in the `host` header. Here is an example using gRPC/Go.
+
+```go
+hostname := "api.example.com"
+port := "443"
+config := &tls.Config{ServerName: hostname}
+creds := credentials.NewTLS(config)
+opts := []grpc.DialOption{
+    grpc.WithTransportCredentials(creds),
+// ...
+}
+conn, err := grpc.Dial(hostname+":"+port, opts...)
+// ...
+```
 
 ## gRPC-Web
 

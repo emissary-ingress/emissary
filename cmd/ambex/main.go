@@ -56,9 +56,10 @@ import (
 	"google.golang.org/grpc"
 
 	// protobuf library
-	"github.com/gogo/protobuf/jsonpb"
-	"github.com/gogo/protobuf/proto"
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
 
 	// envoy control plane
 	ctypes "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
@@ -135,7 +136,7 @@ func runManagementServer(ctx context.Context, server server.Server, adsNetwork, 
 
 	lis, err := net.Listen(adsNetwork, adsAddress)
 	if err != nil {
-		log.WithError(err).Fatal("failed to listen")
+		log.WithError(err).Panic("failed to listen")
 	}
 
 	// register services
@@ -184,7 +185,7 @@ type Validatable interface {
 }
 
 func decode(name string) (proto.Message, error) {
-	any := &types.Any{}
+	any := &any.Any{}
 	contents, err := ioutil.ReadFile(name)
 	if err != nil {
 		return nil, err
@@ -197,8 +198,8 @@ func decode(name string) (proto.Message, error) {
 		return nil, err
 	}
 
-	var m types.DynamicAny
-	err = types.UnmarshalAny(any, &m)
+	var m ptypes.DynamicAny
+	err = ptypes.UnmarshalAny(any, &m)
 	if err != nil {
 		return nil, err
 	}
@@ -312,7 +313,7 @@ func update(config cache.SnapshotCache, generation *int, dirs []string) {
 	}
 
 	if err != nil {
-		log.Fatalf("Snapshot error %q for %+v", err, snapshot)
+		log.Panicf("Snapshot error %q for %+v", err, snapshot)
 	} else {
 		// log.Infof("Snapshot %+v", snapshot)
 		log.Infof("Pushing snapshot %+v", version)
@@ -362,7 +363,13 @@ func (l logger) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryRespo
 }
 
 func Main() {
-	flag.Parse()
+	MainContext(context.Background())
+}
+
+func MainContext(parent context.Context) {
+	if !flag.Parsed() {
+		flag.Parse()
+	}
 	if legacyAdsPort != 0 {
 		adsAddress = fmt.Sprintf(":%v", legacyAdsPort)
 	}
@@ -377,7 +384,7 @@ func Main() {
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.WithError(err).Fatal()
+		log.WithError(err).Panic()
 	}
 	defer watcher.Close()
 
@@ -396,7 +403,7 @@ func Main() {
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGHUP, os.Interrupt, syscall.SIGTERM)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(parent)
 	defer cancel()
 
 	config := cache.NewSnapshotCache(true, Hasher{}, log)
@@ -428,6 +435,8 @@ OUTER:
 			update(config, &generation, dirs)
 		case err := <-watcher.Errors:
 			log.WithError(err).Warn("Watcher error")
+		case <-parent.Done():
+			break OUTER
 		}
 
 	}

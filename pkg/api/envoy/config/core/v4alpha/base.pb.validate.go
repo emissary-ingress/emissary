@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -114,32 +114,22 @@ func (m *BuildVersion) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetVersion()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return BuildVersionValidationError{
-					field:  "Version",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetVersion()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return BuildVersionValidationError{
+				field:  "Version",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetMetadata()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return BuildVersionValidationError{
-					field:  "Metadata",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return BuildVersionValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -214,17 +204,12 @@ func (m *Extension) Validate() error {
 
 	// no validation rules for TypeDescriptor
 
-	{
-		tmp := m.GetVersion()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ExtensionValidationError{
-					field:  "Version",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetVersion()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ExtensionValidationError{
+				field:  "Version",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -299,32 +284,22 @@ func (m *Node) Validate() error {
 
 	// no validation rules for Cluster
 
-	{
-		tmp := m.GetMetadata()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return NodeValidationError{
-					field:  "Metadata",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return NodeValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetLocality()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return NodeValidationError{
-					field:  "Locality",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetLocality()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return NodeValidationError{
+				field:  "Locality",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -334,17 +309,12 @@ func (m *Node) Validate() error {
 	for idx, item := range m.GetExtensions() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return NodeValidationError{
-						field:  fmt.Sprintf("Extensions[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return NodeValidationError{
+					field:  fmt.Sprintf("Extensions[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -354,17 +324,12 @@ func (m *Node) Validate() error {
 	for idx, item := range m.GetListeningAddresses() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return NodeValidationError{
-						field:  fmt.Sprintf("ListeningAddresses[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return NodeValidationError{
+					field:  fmt.Sprintf("ListeningAddresses[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -378,17 +343,12 @@ func (m *Node) Validate() error {
 
 	case *Node_UserAgentBuildVersion:
 
-		{
-			tmp := m.GetUserAgentBuildVersion()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return NodeValidationError{
-						field:  "UserAgentBuildVersion",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetUserAgentBuildVersion()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return NodeValidationError{
+					field:  "UserAgentBuildVersion",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -464,17 +424,12 @@ func (m *Metadata) Validate() error {
 
 		// no validation rules for FilterMetadata[key]
 
-		{
-			tmp := val
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return MetadataValidationError{
-						field:  fmt.Sprintf("FilterMetadata[%v]", key),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MetadataValidationError{
+					field:  fmt.Sprintf("FilterMetadata[%v]", key),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -701,17 +656,12 @@ func (m *RuntimeFeatureFlag) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetDefaultValue()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RuntimeFeatureFlagValidationError{
-					field:  "DefaultValue",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetDefaultValue()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RuntimeFeatureFlagValidationError{
+				field:  "DefaultValue",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -894,32 +844,22 @@ func (m *HeaderValueOption) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetHeader()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return HeaderValueOptionValidationError{
-					field:  "Header",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetHeader()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HeaderValueOptionValidationError{
+				field:  "Header",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetAppend()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return HeaderValueOptionValidationError{
-					field:  "Append",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetAppend()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HeaderValueOptionValidationError{
+				field:  "Append",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -993,17 +933,12 @@ func (m *HeaderMap) Validate() error {
 	for idx, item := range m.GetHeaders() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return HeaderMapValidationError{
-						field:  fmt.Sprintf("Headers[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return HeaderMapValidationError{
+					field:  fmt.Sprintf("Headers[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -1176,32 +1111,22 @@ func (m *RetryPolicy) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetRetryBackOff()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RetryPolicyValidationError{
-					field:  "RetryBackOff",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetRetryBackOff()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RetryPolicyValidationError{
+				field:  "RetryBackOff",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetNumRetries()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RetryPolicyValidationError{
-					field:  "NumRetries",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMaxRetries()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RetryPolicyValidationError{
+				field:  "MaxRetries",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -1278,17 +1203,12 @@ func (m *RemoteDataSource) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetHttpUri()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RemoteDataSourceValidationError{
-					field:  "HttpUri",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetHttpUri()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RemoteDataSourceValidationError{
+				field:  "HttpUri",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -1300,17 +1220,12 @@ func (m *RemoteDataSource) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetRetryPolicy()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RemoteDataSourceValidationError{
-					field:  "RetryPolicy",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetRetryPolicy()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RemoteDataSourceValidationError{
+				field:  "RetryPolicy",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -1384,34 +1299,24 @@ func (m *AsyncDataSource) Validate() error {
 
 	case *AsyncDataSource_Local:
 
-		{
-			tmp := m.GetLocal()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return AsyncDataSourceValidationError{
-						field:  "Local",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetLocal()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return AsyncDataSourceValidationError{
+					field:  "Local",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *AsyncDataSource_Remote:
 
-		{
-			tmp := m.GetRemote()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return AsyncDataSourceValidationError{
-						field:  "Remote",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetRemote()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return AsyncDataSourceValidationError{
+					field:  "Remote",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -1500,17 +1405,12 @@ func (m *TransportSocket) Validate() error {
 
 	case *TransportSocket_TypedConfig:
 
-		{
-			tmp := m.GetTypedConfig()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return TransportSocketValidationError{
-						field:  "TypedConfig",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetTypedConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TransportSocketValidationError{
+					field:  "TypedConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -1589,17 +1489,12 @@ func (m *RuntimeFractionalPercent) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetDefaultValue()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RuntimeFractionalPercentValidationError{
-					field:  "DefaultValue",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetDefaultValue()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RuntimeFractionalPercentValidationError{
+				field:  "DefaultValue",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

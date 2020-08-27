@@ -146,6 +146,67 @@ If you notice this happening, run `make go-mod-tidy`, and commit that.
 (If you're in Datawire, you should do this from `apro/`, not
 `apro/ambassador/`, so that apro.git's files are included too.)
 
+How do I run ambassador for local development using the new entrypoint?
+-----------------------------------------------------------------------
+
+The new entrypoint is written in go. It strives to be as compatible as possible
+with the normal go toolchain. You should be able to run it with:
+
+    go run ./cmd/ambassador entrypoint
+
+Of course just because you can run it this way does not mean it will succeed.
+The entrypoint needs to launch `diagd` and `envoy` in order to function, and it
+also expect to be able to write to the `/ambassador` directory.
+
+### Setting up diagd
+
+If you want to hack on diagd, its easiest to setup a virtualenv with an editable
+copy and launch your `go run` from within that virtualenv. Note that these
+instructions depend on the virtualenvwrapper
+(https://virtualenvwrapper.readthedocs.io/en/latest/) package:
+
+    # Create a virtualenv named amb with all the python requirements
+    # installed.
+    mkvirtualenv -p python3 -r builder/requirements.txt amb
+    # Created an editable installation of ambassador:
+    pip install -e python/
+    # Check that we do indeed have diagd in our path.
+    which diagd
+
+### Changing the ambassador root
+
+You should now be able to launch ambassador if you set the
+`ambassador_root` environment variable to a writeable location:
+
+   ambassador_root=/tmp go run ./cmd/ambassador entrypoint
+
+### Getting envoy
+
+If you do not have envoy in your path already, the entrypoint will use
+docker to run it. At the moment this is untested for macs which probably
+means it is broken since localhost communication does not work by
+default on macs. This can be made to work as soon an intrepid volunteer
+with a mac reaches out to me (rhs@datawire.io).
+
+### Shutting up the pod labels error
+
+An astute observe of the logs will notice that ambassador complains
+voiciferously that pod labels are not mounted in the ambassador
+container. To reduce this noise, you can:
+
+    mkdir /tmp/ambassador-pod-info && touch /tmp/ambassador-pod-info/labels
+
+### Extra credit
+
+When you run ambassador locally it will configure itself exactly as it
+would in the cluster. That means with two caveats you can actually
+interact with it and it will function normally:
+
+1. You need to run teleproxy or equivalent so it can connect to the
+   backend services in its configuration.
+
+2. You need to supply the host header when you talk to it.
+
 How do I debug/develop envoy config generation?
 -----------------------------------------------
 
@@ -355,27 +416,20 @@ a fan at it, and leave it running overnight and most of the next day.
 At Datawire, we'll often spin up a temporary build machine in GCE, so
 that we can build it very quickly.
 
-As of Envoy 1.14.4, we've measure the resource use to build and test
+As of Envoy 1.15.0, we've measure the resource use to build and test
 it as:
 
 > | Command            | Disk Size | Disk Used | Duration[1] |
 > |--------------------|-----------|-----------|-------------|
-> | `make update-base` | 400G      | 12GB      | ~11m        |
-> | `make check-envoy` | 400G      | 339GB     | ~45m        |
+> | `make update-base` | 450G      |  12GB     | ~11m        |
+> | `make check-envoy` | 450G      | 424GB     | ~45m        |
 >
 > [1] On a "Machine type: custom (32 vCPUs, 512 GB memory)" VM on GCE,
 > with the following entry in its `/etc/fstab`:
 >
 > ```
-> tmpfs:docker  /var/lib/docker tmpfs size=400G 0 0
+> tmpfs:docker  /var/lib/docker tmpfs size=450G 0 0
 > ```
-
-In the past, we've seen tests fail or refuse to run if there's "low"
-diskspace, even though there's still a lot left; for instance, with
-Envoy 1.13, even though the total disk used by a passing test run is
-only 211GB, about half of the tests would fail or refuse to run on a
-250GB drive.  Since then, we've been dogmatically using a 400GB drive,
-which is still enough as of Envoy 1.14.4.
 
 If you have the RAM, we've seen huge speed gains from doing the builds
 and tests on a RAM disk (see the `/etc/fstab` line above).
@@ -386,8 +440,8 @@ and tests on a RAM disk (see the `/etc/fstab` line above).
    version of the Envoy sources, and create a branch from that:
 
    ```shell
-   make $(pwd)/cxx/envoy
-   git -C cxx/envoy checkout -b YOUR_BRANCHNAME
+   make $(pwd)/_cxx/envoy
+   git -C _cxx/envoy checkout -b YOUR_BRANCHNAME
    ```
 
 2. Tell the build system that, yes, you really would like to be
@@ -405,7 +459,7 @@ and tests on a RAM disk (see the `/etc/fstab` line above).
 
    Setting `ENVOY_COMMIT=-` does 3 things:
     1. Tell it to use whatever is currently checked out in
-       `./cxx/envoy/` (instead of checking out a specific commit), so
+       `./_cxx/envoy/` (instead of checking out a specific commit), so
        that you are free to modify those sources.
     2. Don't try to download a cached build of Envoy from a Docker
        cache (since it wouldn't know which `ENVOY_COMMIT` do download
@@ -415,7 +469,7 @@ and tests on a RAM disk (see the `/etc/fstab` line above).
 
 ### 3. Hacking on Envoy
 
-Modify the sources in `./cxx/envoy/`.
+Modify the sources in `./_cxx/envoy/`.
 
 ### 4. Building and testing your hacked-up Envoy
 
@@ -443,20 +497,6 @@ Modify the sources in `./cxx/envoy/`.
      container that does the Envoy builds.
 
   Interpreting the test results:
-
-   * Unfortunately, at this time, there are a few expected failures in
-     the Envoy test suite; we expect some of the Rate Limit Service
-     tests to fail because we patch Envoy to use the old Lyft ("v1")
-     gRPC name, but don't patch the tests, which expect the new Envoy
-     ("v2") gRPC name.  The failures should all look like:
-
-     ```text
-       Expected equality of these values:
-       "/envoy.service.ratelimit.v2.RateLimitService/ShouldRateLimit"
-         Which is: 0x408155
-       ratelimit_request_->headers().Path()->value().getStringView()
-         Which is: "/pb.lyft.ratelimit.RateLimitService/ShouldRateLimit"
-     ```
 
    * If you see the following message, don't worry, it's harmless; the
      tests still ran:
@@ -494,18 +534,18 @@ Modify the sources in `./cxx/envoy/`.
 
 Once you're happy with your changes to Envoy:
 
-1. Ensure they're committed to `cxx/envoy/` and push/PR them in to
+1. Ensure they're committed to `_cxx/envoy/` and push/PR them in to
    https://github.com/datawire/envoy branch `rebase/master`.
 
    If you're outside of Datawire, you'll need to
     a. Create a fork of https://github.com/datawire/envoy on the
        GitHub web interface
-    b. Add it as a remote to your `./cxx/envoy/`:
+    b. Add it as a remote to your `./_cxx/envoy/`:
        `git remote add my-fork git@github.com:YOUR_USERNAME/envoy.git`
     c. Push the branch to that fork:
        `git push my-fork YOUR_BRANCHNAME`
 
-2. Update `ENVOY_COMMIT` in `cxx/envoy.mk`
+2. Update `ENVOY_COMMIT` in `_cxx/envoy.mk`
 
 3. Unset `ENVOY_COMMIT=-` and run a final `make update-base` to
    push a cached build:
@@ -562,7 +602,8 @@ I'd put this in in the pull request template, but so few PRs change Envoy...
    `datawire-*` tags from stacking on eachother).
  - [ ] It's been tested with...
    * [ ] `make check-envoy`
-   * [ ] `make pytest KAT_RUN_MODE=envoy`
+   * [ ] `make pytest KAT_RUN_MODE=envoy` for OSS
+   * [ ] `make pytest KAT_RUN_MODE=envoy` for AES
 
 Developing Ambassador (Datawire-only advice)
 ============================================

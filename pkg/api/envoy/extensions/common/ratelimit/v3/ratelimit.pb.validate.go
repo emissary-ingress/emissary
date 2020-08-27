@@ -15,7 +15,9 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
+
+	v3 "github.com/datawire/ambassador/pkg/api/envoy/type/v3"
 )
 
 // ensure the imports are used
@@ -30,7 +32,9 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
+
+	_ = v3.RateLimitUnit(0)
 )
 
 // define the regex for a UUID once up-front
@@ -54,21 +58,26 @@ func (m *RateLimitDescriptor) Validate() error {
 	for idx, item := range m.GetEntries() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return RateLimitDescriptorValidationError{
-						field:  fmt.Sprintf("Entries[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RateLimitDescriptorValidationError{
+					field:  fmt.Sprintf("Entries[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
+	}
+
+	if v, ok := interface{}(m.GetLimit()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RateLimitDescriptorValidationError{
+				field:  "Limit",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	return nil
@@ -210,3 +219,80 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RateLimitDescriptor_EntryValidationError{}
+
+// Validate checks the field values on RateLimitDescriptor_RateLimitOverride
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, an error is returned.
+func (m *RateLimitDescriptor_RateLimitOverride) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for RequestsPerUnit
+
+	if _, ok := v3.RateLimitUnit_name[int32(m.GetUnit())]; !ok {
+		return RateLimitDescriptor_RateLimitOverrideValidationError{
+			field:  "Unit",
+			reason: "value must be one of the defined enum values",
+		}
+	}
+
+	return nil
+}
+
+// RateLimitDescriptor_RateLimitOverrideValidationError is the validation error
+// returned by RateLimitDescriptor_RateLimitOverride.Validate if the
+// designated constraints aren't met.
+type RateLimitDescriptor_RateLimitOverrideValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RateLimitDescriptor_RateLimitOverrideValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RateLimitDescriptor_RateLimitOverrideValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RateLimitDescriptor_RateLimitOverrideValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RateLimitDescriptor_RateLimitOverrideValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RateLimitDescriptor_RateLimitOverrideValidationError) ErrorName() string {
+	return "RateLimitDescriptor_RateLimitOverrideValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RateLimitDescriptor_RateLimitOverrideValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRateLimitDescriptor_RateLimitOverride.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RateLimitDescriptor_RateLimitOverrideValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RateLimitDescriptor_RateLimitOverrideValidationError{}

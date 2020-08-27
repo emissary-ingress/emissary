@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strings"
 
+	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -21,6 +22,7 @@ var sch = runtime.NewScheme()
 func init() {
 	scheme.AddToScheme(sch)
 	apiextensions.AddToScheme(sch)
+	amb.AddToScheme(sch)
 }
 
 func NewObject(kind, version string) (Object, error) {

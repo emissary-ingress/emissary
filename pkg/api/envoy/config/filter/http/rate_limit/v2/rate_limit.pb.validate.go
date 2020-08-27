@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -64,17 +64,12 @@ func (m *RateLimit) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetTimeout()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RateLimitValidationError{
-					field:  "Timeout",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetTimeout()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RateLimitValidationError{
+				field:  "Timeout",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -90,17 +85,12 @@ func (m *RateLimit) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetRateLimitService()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RateLimitValidationError{
-					field:  "RateLimitService",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetRateLimitService()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RateLimitValidationError{
+				field:  "RateLimitService",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

@@ -27,11 +27,12 @@ def unique_mapping_name(aconf: Config, name: str) -> str:
 class MappingFactory:
     @classmethod
     def load_all(cls, ir: 'IR', aconf: Config) -> None:
-        cls.load_config(ir, aconf, "mappings", IRHTTPMapping)
-        cls.load_config(ir, aconf, "tcpmappings", IRTCPMapping)
+        cls.load_config(ir, aconf, "Mapping", "mappings", IRHTTPMapping)
+        cls.load_config(ir, aconf, "TCPMapping", "tcpmappings", IRTCPMapping)
 
     @classmethod
-    def load_config(cls, ir: 'IR', aconf: Config, config_name: str, mapping_class: Type[IRBaseMapping]) -> None:
+    def load_config(cls, ir: 'IR', aconf: Config,
+                    kind: str, config_name: str, mapping_class: Type[IRBaseMapping]) -> None:
         config_info = aconf.get_config(config_name)
 
         if not config_info:
@@ -42,7 +43,23 @@ class MappingFactory:
         for config in config_info.values():
             # ir.logger.debug("creating mapping for %s" % repr(config))
 
-            mapping = mapping_class(ir, aconf, **config)
+            # Is this mapping already in the cache?
+            key = IRBaseMapping.make_cache_key(kind, config.name, config.namespace)
+
+            mapping: Optional[IRBaseMapping] = None
+            cached_mapping = ir.cache_fetch(key)
+
+            if cached_mapping is None:
+                # Cache miss: synthesize a new Mapping.
+                ir.logger.debug(f"IR: synthesizing Mapping for {config.name}")
+                mapping = mapping_class(ir, aconf, **config)
+            else:
+                # Cache hit. We know a priori that anything in the cache under a Mapping
+                # key must be an IRBaseMapping, but let's assert that rather than casting.
+                assert(isinstance(cached_mapping, IRBaseMapping))
+                mapping = cached_mapping
+               
+            ir.logger.debug(f"IR: adding Mapping for {config.name}")
             ir.add_mapping(aconf, mapping)
 
     @classmethod
