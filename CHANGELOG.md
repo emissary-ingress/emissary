@@ -65,7 +65,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Feature: Upgrade from Envoy 1.14.4 to 1.15.0.
 - Bugfix: Correctly handle a `Host` object with incompatible manually-specified `TLSContext`
 - Feature: The Ambassador control-plane now publishes Prometheus metrics alongside the existing Envoy data-plane metrics under the `/metrics` endpoint on port 8877.
-- Performance improvement: Experimental changes to allow Ambassador to more quickly process configuration changes (especially with larger configurations) have been added. The `AMBASSADOR_FAST_RECONFIGURE` env var must be set to enable this. `AMBASSADOR_FAST_VALIDATION` should also be set for maximum benefit.
+- Default-off early access: Experimental changes to allow Ambassador to more quickly process configuration changes (especially with larger configurations) have been added. The `AMBASSADOR_FAST_RECONFIGURE` env var must be set to enable this. `AMBASSADOR_FAST_VALIDATION` should also be set for maximum benefit.
 
 ### Ambassador API Gateway only
 
