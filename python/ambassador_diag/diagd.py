@@ -19,6 +19,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union, TYPE
 from typing import cast as typecast
 
 import datetime
+import difflib
 import functools
 import json
 import logging
@@ -27,8 +28,10 @@ import os
 import queue
 import re
 import signal
+import sys
 import threading
 import time
+import traceback
 import uuid
 import requests
 import jsonpatch
@@ -331,10 +334,118 @@ class DiagApp (Flask):
         # In this case we need to check to see if it's time to do a configuration
         # check, too.
         if self.reconf_stats.needs_check():
-            self.logger.info("CACHE: NEEDS CHECK")
+            result = False
+
+            try:
+                result = self.check_cache()
+            except Exception as e:
+                tb = "\n".join(traceback.format_exception(*sys.exc_info()))
+                self.logger.error("CACHE: CHECK FAILED: %s\n%s" % (e, tb))
 
             # Mark that the check has happened.
-            self.reconf_stats.mark_checked(True)
+            self.reconf_stats.mark_checked(result)
+
+    @staticmethod
+    def json_diff(what: str, j1: str, j2: str) -> str:
+        output = ""
+
+        l1 = j1.split("\n")
+        l2 = j2.split("\n")
+
+        n1 = f"{what} incremental"
+        n2 = f"{what} nonincremental"
+
+        output += "\n--------\n"
+
+        for line in difflib.context_diff(l1, l2, fromfile=n1, tofile=n2):
+            line = line.rstrip()
+            output += line
+            output += "\n"
+
+        return output
+
+    def check_cache(self) -> bool:
+        # We're going to build a shiny new IR and econf from our existing aconf, and make
+        # sure everything matches. We will _not_ use the existing cache for this.
+        # 
+        # For this, make sure we have an IR already...
+        assert(self.aconf)
+        assert(self.ir)
+        assert(self.econf)
+
+        # Compute this IR/econf with a new empty cache. It saves a lot of trouble with 
+        # having to delete cache keys from the JSON.
+
+        self.logger.debug("CACHE: starting check")
+        cache = Cache(self.logger)
+        scc = SecretHandler(app.logger, "check_cache", app.snapshot_path, "check")
+        ir = IR(self.aconf, secret_handler=scc, cache=cache)
+        econf = EnvoyConfig.generate(ir, "V2", cache=cache)
+
+        # This is testing code.
+        # name = list(ir.clusters.keys())[0]
+        # del(ir.clusters[name])
+
+        i1 = self.ir.as_json()
+        i2 = ir.as_json()
+
+        e1 = self.econf.as_json()
+        e2 = econf.as_json()
+
+        result = True
+        errors = ""
+
+        if i1 != i2:
+            result = False
+            self.logger.error("CACHE: IR MISMATCH")
+            errors += "IR diffs:\n"
+            errors += self.json_diff("IR", i1, i2)
+
+        if e1 != e2:
+            result = False
+            self.logger.error("CACHE: ENVOY CONFIG MISMATCH")
+            errors += "econf diffs:\n"
+            errors += self.json_diff("econf", i1, i2)
+
+        if not result:
+            err_path = os.path.join(self.snapshot_path, "diff-tmp.txt")
+
+            open(err_path, "w").write(errors)
+
+            snapcount = int(os.environ.get('AMBASSADOR_SNAPSHOT_COUNT', "4"))
+            snaplist: List[Tuple[str, str]] = []
+
+            if snapcount > 0:
+                # If snapcount is 4, this range statement becomes range(-4, -1)
+                # which gives [ -4, -3, -2 ], which the list comprehension turns
+                # into [ ( "-3", "-4" ), ( "-2", "-3" ), ( "-1", "-2" ) ]...
+                # which is the list of suffixes to rename to rotate the snapshots.
+
+                snaplist += [ (str(x+1), str(x)) for x in range(-1 * snapcount, -1) ]
+
+                # After dealing with that, we need to rotate the current file into -1.
+                snaplist.append(( '', '-1' ))
+
+            # Whether or not we do any rotation, we need to cycle in the '-tmp' file.
+            snaplist.append(( '-tmp', '' ))
+
+            for from_suffix, to_suffix in snaplist:
+                from_path = os.path.join(app.snapshot_path, "diff{}.txt".format(from_suffix))
+                to_path = os.path.join(app.snapshot_path, "diff{}.txt".format(to_suffix))
+
+                try:
+                    self.logger.debug("rotate: %s -> %s" % (from_path, to_path))
+                    os.rename(from_path, to_path)
+                except IOError as e:
+                    self.logger.debug("skip %s -> %s: %s" % (from_path, to_path, e))
+                    pass
+                except Exception as e:
+                    self.logger.debug("could not rename %s -> %s: %s" % (from_path, to_path, e))
+
+        self.logger.info("CACHE: check %s" % ("succeeded" if result else "failed"))
+
+        return result
+
 
 # get the "templates" directory, or raise "FileNotFoundError" if not found
 def get_templates_dir():
