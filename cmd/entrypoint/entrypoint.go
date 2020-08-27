@@ -20,6 +20,58 @@ import (
 	"github.com/google/uuid"
 )
 
+// This is the main ambassador entrypoint. It launches and manages two other
+// processes:
+//
+//  1. The diagd process.
+//  2. Envoy
+//
+// The entrypoint process manages two other goroutines:
+//
+//  1. The watcher goroutine that watches for changes in ambassador inputs and
+//     notifies diagd.
+//  2. The ambex goroutine that feeds envoy configuration updates via ADS.
+//
+// Dataflow Diagram
+//
+//   Kubernetes Watches
+//          |
+//          | (k8s resources, subscription)
+//          |
+//         \|/               consul endpoints, subscription)
+//     entrypoint[watcher]<----------------------------------- Consul Watches
+//          |
+//          | (Snapshot, POST)
+//          |
+//         \|/
+//        diagd
+//          |
+//          | (envoy config resources, pushed via writing files + SIGHUP)
+//          |
+//         \|/
+//     entrypoint[ambex]
+//          |
+//          | (envoy config resources, ADS subscription)
+//          |
+//         \|/
+//        envoy
+//
+// Notation:
+//
+//   The arrows point in the direction that data flows. Each arrow is labeled
+//   with a tuple of the data type, and a short description of the nature of
+//   communication.
+//
+// The golang entrypoint process assembles all the ambassador inputs from
+// kubernetes and consul. When it has a complete/consistent set of inputs, it
+// passes the complete snapshot of inputs along to diagd along with a list of
+// deltas and invalid objects. This snapshot is fully detailed in snapshot.go
+//
+// The entrypoint goes to some trouble to ensure shared fate between all three
+// processes as well as all the goroutines it manages, i.e. if any one of them
+// dies for any reason, the whole process will shutdown and some larger process
+// manager (e.g. kubernetes) is expected to take note and restart if
+// appropriate.
 func Main() {
 
 	// TODO:
@@ -49,8 +101,6 @@ func Main() {
 
 	ensureDir(GetSnapshotDir())
 	ensureDir(GetEnvoyDir())
-
-	// stopped at WORKER: traffic-agent
 
 	// We use this to wait until the bootstrap config has been written before starting envoy.
 	envoyHUP := make(chan os.Signal, 1)
