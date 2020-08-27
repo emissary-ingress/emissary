@@ -20,6 +20,7 @@ Use the following variables for the environment of your Ambassador container:
 | Ambassador                 | `AMBASSADOR_SINGLE_NAMESPACE`      | Empty                                               | Boolean; non-empty=true, empty=false                                          |
 | Ambassador                 | `AMBASSADOR_ENVOY_BASE_ID`         | `0`                                                 | Integer                                                                       |
 | Ambassador                 | `AMBASSADOR_FAST_VALIDATION`       | Empty                                               | EXPERIMENTAL -- Boolean; non-empty=true, empty=false                          |
+| Ambassador                 | `AMBASSADOR_FAST_RECONFIGURE`      | false                                               | EXPERIMENTAL -- Boolean; `true`=true, any other value=false                                   |
 | Ambassador                 | `AMBASSADOR_UPDATE_MAPPING_STATUS` | `false`                                             | Boolean; `true`=true, any other value=false                                   |
 | Ambassador Edge Stack      | `AES_LOG_LEVEL`                    | `info`                                              | Log level (see below)                                                         |
 | Primary Redis              | `REDIS_POOL_SIZE`                  | `10`                                                | Integer                                                                       |
