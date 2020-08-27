@@ -199,7 +199,7 @@ kubectl port-forward prometheus-prometheus-0 9090
 
 ### Using Grafana to visualize statistics gathered by Prometheus
 
-![Grafana dashboard](../../../../images/grafana.png)
+![Screenshot of a Grafana dashboard that displays just information from Envoy](../../../../images/grafana.png)
 
 If you're using Grafana, [Alex Gervais][] has written a template
 [Ambassador dashboard for Grafana][] that works with either the

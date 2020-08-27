@@ -55,7 +55,7 @@ with Prometheus and Grafana](../../../../howtos/prometheus).
 
 ### Using Grafana to visualize statistics gathered by Prometheus
 
-![Grafana dashboard](../../../../images/grafana.png)
+![Screenshot of a Grafana dashboard that displays just information from Envoy](../../../../images/grafana.png)
 
 If you're using Grafana, [Alex Gervais][] has written a template
 [Ambassador dashboard for Grafana][] that works with either the
