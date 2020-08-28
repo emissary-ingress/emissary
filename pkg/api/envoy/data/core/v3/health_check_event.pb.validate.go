@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -51,17 +51,12 @@ func (m *HealthCheckEvent) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetHost()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return HealthCheckEventValidationError{
-					field:  "Host",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetHost()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HealthCheckEventValidationError{
+				field:  "Host",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -73,17 +68,12 @@ func (m *HealthCheckEvent) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetTimestamp()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return HealthCheckEventValidationError{
-					field:  "Timestamp",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetTimestamp()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HealthCheckEventValidationError{
+				field:  "Timestamp",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -92,85 +82,60 @@ func (m *HealthCheckEvent) Validate() error {
 
 	case *HealthCheckEvent_EjectUnhealthyEvent:
 
-		{
-			tmp := m.GetEjectUnhealthyEvent()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return HealthCheckEventValidationError{
-						field:  "EjectUnhealthyEvent",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetEjectUnhealthyEvent()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return HealthCheckEventValidationError{
+					field:  "EjectUnhealthyEvent",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *HealthCheckEvent_AddHealthyEvent:
 
-		{
-			tmp := m.GetAddHealthyEvent()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return HealthCheckEventValidationError{
-						field:  "AddHealthyEvent",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetAddHealthyEvent()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return HealthCheckEventValidationError{
+					field:  "AddHealthyEvent",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *HealthCheckEvent_HealthCheckFailureEvent:
 
-		{
-			tmp := m.GetHealthCheckFailureEvent()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return HealthCheckEventValidationError{
-						field:  "HealthCheckFailureEvent",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetHealthCheckFailureEvent()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return HealthCheckEventValidationError{
+					field:  "HealthCheckFailureEvent",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *HealthCheckEvent_DegradedHealthyHost:
 
-		{
-			tmp := m.GetDegradedHealthyHost()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return HealthCheckEventValidationError{
-						field:  "DegradedHealthyHost",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetDegradedHealthyHost()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return HealthCheckEventValidationError{
+					field:  "DegradedHealthyHost",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *HealthCheckEvent_NoLongerDegradedHost:
 
-		{
-			tmp := m.GetNoLongerDegradedHost()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return HealthCheckEventValidationError{
-						field:  "NoLongerDegradedHost",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetNoLongerDegradedHost()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return HealthCheckEventValidationError{
+					field:  "NoLongerDegradedHost",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}

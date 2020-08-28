@@ -18,11 +18,6 @@ if TYPE_CHECKING:
 ## so the group itself ends up with some of the group-wide attributes of its Mappings.
 
 class IRTCPMappingGroup (IRBaseMappingGroup):
-    mappings: List[IRBaseMapping]
-    group_id: str
-    group_weight: List[Union[str, int]]
-    labels: Dict[str, Any]
-
     CoreMappingKeys: ClassVar[Dict[str, bool]] = {
         'address': True,
         'circuit_breakers': True,
@@ -41,6 +36,7 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
     DoNotFlattenKeys: ClassVar[Dict[str, bool]] = dict(CoreMappingKeys)
     DoNotFlattenKeys.update({
         'cluster': True,
+        'cluster_key': True,
         'kind': True,
         'location': True,
         'name': True,
@@ -66,8 +62,8 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
         del rkey    # silence unused-variable warning
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=mapping.rkey, location=location, kind=kind, name=name,
-            mappings=[], host_redirect=None, shadows=[], **kwargs
+            ir=ir, aconf=aconf, rkey=mapping.rkey, location=location,
+            kind=kind, name=name, **kwargs
         )
 
         self.add_dict_helper('mappings', IRTCPMappingGroup.helper_mappings)
@@ -112,26 +108,62 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
         bind_addr = self.get('address') or '0.0.0.0'
         return "%s-%s" % (bind_addr, self.port)
 
-    @staticmethod
-    def add_cluster_for_mapping(ir: 'IR', aconf: Config, mapping: IRBaseMapping,
+    def add_cluster_for_mapping(self, mapping: IRBaseMapping,
                                 marker: Optional[str] = None) -> IRCluster:
-        # Find or create the cluster for this Mapping...
-        cluster = IRCluster(ir=ir, aconf=aconf, parent_ir_resource=mapping,
-                            location=mapping.location,
-                            service=mapping.service,
-                            resolver=mapping.resolver,
-                            ctx_name=mapping.get('tls', None),
-                            host_rewrite=mapping.get('host_rewrite', False),
-                            enable_ipv4=mapping.get('enable_ipv4', None),
-                            enable_ipv6=mapping.get('enable_ipv6', None),
-                            circuit_breakers=mapping.get('circuit_breakers', None),
-                            marker=marker,
-                            allow_scheme=False)
+        cluster: Optional[IRCluster] = None
 
-        stored = ir.add_cluster(cluster)
+        if mapping.cluster_key:
+            # Aha. Is our cluster already in the cache?
+            cached_cluster = self.ir.cache_fetch(mapping.cluster_key)
+
+            if cached_cluster is not None:
+                # We know a priori that anything in the cache under a cluster key must be
+                # an IRCluster, but let's assert that rather than casting.
+                assert(isinstance(cached_cluster, IRCluster))
+                cluster = cached_cluster
+
+                self.ir.logger.debug(f"IRTCPMappingGroup: got Cluster from cache for {mapping.cluster_key}")
+
+        if not cluster:
+            # Find or create the cluster for this Mapping...
+            cluster = IRCluster(ir=self.ir, aconf=self.ir.aconf, parent_ir_resource=mapping,
+                                location=mapping.location,
+                                service=mapping.service,
+                                resolver=mapping.resolver,
+                                ctx_name=mapping.get('tls', None),
+                                host_rewrite=mapping.get('host_rewrite', False),
+                                enable_ipv4=mapping.get('enable_ipv4', None),
+                                enable_ipv6=mapping.get('enable_ipv6', None),
+                                circuit_breakers=mapping.get('circuit_breakers', None),
+                                marker=marker,
+                                allow_scheme=False)
+
+        # Make sure that the cluster is really in our IR...
+        stored = self.ir.add_cluster(cluster)
         stored.referenced_by(mapping)
 
-        # ...and return it. Done.
+        # ...and then check if we just synthesized this cluster.
+        if not mapping.cluster_key:
+            # Yes. The mapping is already in the cache, but we need to cache the cluster...
+            self.ir.cache_add(stored)
+
+            # ...and link the Group to the cluster.
+            #
+            # Right now, I'm going for maximum safety, which means a single chain linking 
+            # Mapping -> Group -> Cluster. That means that deleting a single Mapping deletes
+            # the Group to which that Mapping is attached, which in turn deletes all the
+            # Clusters for that Group.
+            #
+            # Performance might dictate linking Mapping -> Group and Mapping -> Cluster, so 
+            # that deleting a Mapping deletes the Group but only the single Cluster. Needs
+            # testing.
+
+            self.ir.cache_link(self, stored)
+
+            # Finally, save the cluster's cache_key in this Mapping.
+            mapping.cluster_key = stored.cache_key
+
+        # Finally, return the stored cluster. Done.
         return stored
 
     def finalize(self, ir: 'IR', aconf: Config) -> List[IRCluster]:
@@ -216,7 +248,7 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
         #                 label[lkey] = defaults + label[lkey]
 
         for mapping in self.mappings:
-            mapping.cluster = self.add_cluster_for_mapping(ir, aconf, mapping, mapping.cluster_tag)
+            mapping.cluster = self.add_cluster_for_mapping(mapping, mapping.cluster_tag)
 
         self.logger.debug(f"Normalizing weights in mappings now...")
         if not self.normalize_weights_in_mappings():

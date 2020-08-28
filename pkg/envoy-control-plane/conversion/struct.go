@@ -19,9 +19,9 @@ import (
 	"bytes"
 	"errors"
 
-	"github.com/gogo/protobuf/jsonpb"
-	"github.com/gogo/protobuf/proto"
-	pstruct "github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/proto"
+	pstruct "github.com/golang/protobuf/ptypes/struct"
 )
 
 // MessageToStruct encodes a protobuf Message into a Struct. Hilariously, it

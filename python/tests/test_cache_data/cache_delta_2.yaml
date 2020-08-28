@@ -1,0 +1,9 @@
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  namespace: default
+  name: foo-4
+spec:
+  prefix: /foo-4/
+  service: foo-4.example.com

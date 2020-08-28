@@ -337,10 +337,3 @@ class IRAmbassador (IRResource):
         self.logger.debug("default_labels info for %s: %s" % (domain, domain_info))
 
         return domain_info.get('defaults')
-
-    def get_default_label_prefix(self, domain: Optional[str]=None) -> Optional[List]:
-        if not domain:
-            domain = self.get_default_label_domain()
-
-        domain_info = self.default_labels.get(domain, {})
-        return domain_info.get('label_prefix')

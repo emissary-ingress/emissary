@@ -92,6 +92,7 @@ class ListenerFactory:
         #
         # So. First build our set of TLSContexts.
         unused_contexts: Dict[str, IRTLSContext] = {}
+        ctx: Optional[IRTLSContext]
 
         for ctx in ir.get_tls_contexts():
             if ctx.is_active:

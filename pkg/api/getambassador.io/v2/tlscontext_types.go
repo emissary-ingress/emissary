@@ -41,7 +41,7 @@ type TLSContextSpec struct {
 	MaxTLSVersion         string   `json:"max_tls_version,omitempty"`
 	CipherSuites          []string `json:"cipher_suites,omitempty"`
 	ECDHCurves            []string `json:"ecdh_curves,omitempty"`
-	SecretNamespacing     bool     `json:"secret_namespacing,omitempty"`
+	SecretNamespacing     *bool    `json:"secret_namespacing,omitempty"`
 	RedirectCleartextFrom int      `json:"redirect_cleartext_from,omitempty"`
 	SNI                   string   `json:"sni,omitempty"`
 }

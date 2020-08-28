@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -61,17 +61,12 @@ func (m *MetadataKey) Validate() error {
 	for idx, item := range m.GetPath() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return MetadataKeyValidationError{
-						field:  fmt.Sprintf("Path[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MetadataKeyValidationError{
+					field:  fmt.Sprintf("Path[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -147,68 +142,48 @@ func (m *MetadataKind) Validate() error {
 
 	case *MetadataKind_Request_:
 
-		{
-			tmp := m.GetRequest()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return MetadataKindValidationError{
-						field:  "Request",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetRequest()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MetadataKindValidationError{
+					field:  "Request",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *MetadataKind_Route_:
 
-		{
-			tmp := m.GetRoute()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return MetadataKindValidationError{
-						field:  "Route",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetRoute()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MetadataKindValidationError{
+					field:  "Route",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *MetadataKind_Cluster_:
 
-		{
-			tmp := m.GetCluster()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return MetadataKindValidationError{
-						field:  "Cluster",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetCluster()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MetadataKindValidationError{
+					field:  "Cluster",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *MetadataKind_Host_:
 
-		{
-			tmp := m.GetHost()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return MetadataKindValidationError{
-						field:  "Host",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetHost()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MetadataKindValidationError{
+					field:  "Host",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}

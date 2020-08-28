@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -56,17 +56,12 @@ func (m *JwtProvider) Validate() error {
 	for idx, item := range m.GetFromHeaders() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return JwtProviderValidationError{
-						field:  fmt.Sprintf("FromHeaders[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JwtProviderValidationError{
+					field:  fmt.Sprintf("FromHeaders[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -81,34 +76,24 @@ func (m *JwtProvider) Validate() error {
 
 	case *JwtProvider_RemoteJwks:
 
-		{
-			tmp := m.GetRemoteJwks()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return JwtProviderValidationError{
-						field:  "RemoteJwks",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetRemoteJwks()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JwtProviderValidationError{
+					field:  "RemoteJwks",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *JwtProvider_LocalJwks:
 
-		{
-			tmp := m.GetLocalJwks()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return JwtProviderValidationError{
-						field:  "LocalJwks",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetLocalJwks()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JwtProviderValidationError{
+					field:  "LocalJwks",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -185,32 +170,22 @@ func (m *RemoteJwks) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetHttpUri()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RemoteJwksValidationError{
-					field:  "HttpUri",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetHttpUri()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RemoteJwksValidationError{
+				field:  "HttpUri",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetCacheDuration()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RemoteJwksValidationError{
-					field:  "CacheDuration",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetCacheDuration()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RemoteJwksValidationError{
+				field:  "CacheDuration",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -429,85 +404,60 @@ func (m *JwtRequirement) Validate() error {
 
 	case *JwtRequirement_ProviderAndAudiences:
 
-		{
-			tmp := m.GetProviderAndAudiences()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return JwtRequirementValidationError{
-						field:  "ProviderAndAudiences",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetProviderAndAudiences()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JwtRequirementValidationError{
+					field:  "ProviderAndAudiences",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *JwtRequirement_RequiresAny:
 
-		{
-			tmp := m.GetRequiresAny()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return JwtRequirementValidationError{
-						field:  "RequiresAny",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetRequiresAny()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JwtRequirementValidationError{
+					field:  "RequiresAny",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *JwtRequirement_RequiresAll:
 
-		{
-			tmp := m.GetRequiresAll()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return JwtRequirementValidationError{
-						field:  "RequiresAll",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetRequiresAll()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JwtRequirementValidationError{
+					field:  "RequiresAll",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *JwtRequirement_AllowMissingOrFailed:
 
-		{
-			tmp := m.GetAllowMissingOrFailed()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return JwtRequirementValidationError{
-						field:  "AllowMissingOrFailed",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetAllowMissingOrFailed()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JwtRequirementValidationError{
+					field:  "AllowMissingOrFailed",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *JwtRequirement_AllowMissing:
 
-		{
-			tmp := m.GetAllowMissing()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return JwtRequirementValidationError{
-						field:  "AllowMissing",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetAllowMissing()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JwtRequirementValidationError{
+					field:  "AllowMissing",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -589,17 +539,12 @@ func (m *JwtRequirementOrList) Validate() error {
 	for idx, item := range m.GetRequirements() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return JwtRequirementOrListValidationError{
-						field:  fmt.Sprintf("Requirements[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JwtRequirementOrListValidationError{
+					field:  fmt.Sprintf("Requirements[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -683,17 +628,12 @@ func (m *JwtRequirementAndList) Validate() error {
 	for idx, item := range m.GetRequirements() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return JwtRequirementAndListValidationError{
-						field:  fmt.Sprintf("Requirements[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JwtRequirementAndListValidationError{
+					field:  fmt.Sprintf("Requirements[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -774,32 +714,22 @@ func (m *RequirementRule) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetMatch()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RequirementRuleValidationError{
-					field:  "Match",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMatch()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RequirementRuleValidationError{
+				field:  "Match",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetRequires()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RequirementRuleValidationError{
-					field:  "Requires",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetRequires()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RequirementRuleValidationError{
+				field:  "Requires",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -881,17 +811,12 @@ func (m *FilterStateRule) Validate() error {
 
 		// no validation rules for Requires[key]
 
-		{
-			tmp := val
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return FilterStateRuleValidationError{
-						field:  fmt.Sprintf("Requires[%v]", key),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return FilterStateRuleValidationError{
+					field:  fmt.Sprintf("Requires[%v]", key),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -968,17 +893,12 @@ func (m *JwtAuthentication) Validate() error {
 
 		// no validation rules for Providers[key]
 
-		{
-			tmp := val
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return JwtAuthenticationValidationError{
-						field:  fmt.Sprintf("Providers[%v]", key),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JwtAuthenticationValidationError{
+					field:  fmt.Sprintf("Providers[%v]", key),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -988,34 +908,24 @@ func (m *JwtAuthentication) Validate() error {
 	for idx, item := range m.GetRules() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return JwtAuthenticationValidationError{
-						field:  fmt.Sprintf("Rules[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JwtAuthenticationValidationError{
+					field:  fmt.Sprintf("Rules[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	}
 
-	{
-		tmp := m.GetFilterStateRules()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return JwtAuthenticationValidationError{
-					field:  "FilterStateRules",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetFilterStateRules()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JwtAuthenticationValidationError{
+				field:  "FilterStateRules",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

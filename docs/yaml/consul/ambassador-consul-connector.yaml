@@ -73,7 +73,8 @@ spec:
       terminationGracePeriodSeconds: 0
       containers:
         - name: consul-connect-integration
-          image: docker.io/datawire/ambassador_pro:consul_connect_integration-$aproVersion$
+          image: docker.io/datawire/aes:$version$
+          command: [ "consul_connect_integration" ]
           resources:
             limits:
               cpu: 200m

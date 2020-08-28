@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -44,17 +44,12 @@ func (m *GradientControllerConfig) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetSampleAggregatePercentile()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return GradientControllerConfigValidationError{
-					field:  "SampleAggregatePercentile",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetSampleAggregatePercentile()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GradientControllerConfigValidationError{
+				field:  "SampleAggregatePercentile",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -66,17 +61,12 @@ func (m *GradientControllerConfig) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetConcurrencyLimitParams()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return GradientControllerConfigValidationError{
-					field:  "ConcurrencyLimitParams",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetConcurrencyLimitParams()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GradientControllerConfigValidationError{
+				field:  "ConcurrencyLimitParams",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -88,17 +78,12 @@ func (m *GradientControllerConfig) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetMinRttCalcParams()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return GradientControllerConfigValidationError{
-					field:  "MinRttCalcParams",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMinRttCalcParams()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GradientControllerConfigValidationError{
+				field:  "MinRttCalcParams",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -170,17 +155,12 @@ func (m *AdaptiveConcurrency) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetEnabled()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return AdaptiveConcurrencyValidationError{
-					field:  "Enabled",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetEnabled()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AdaptiveConcurrencyValidationError{
+				field:  "Enabled",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -196,17 +176,12 @@ func (m *AdaptiveConcurrency) Validate() error {
 			}
 		}
 
-		{
-			tmp := m.GetGradientControllerConfig()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return AdaptiveConcurrencyValidationError{
-						field:  "GradientControllerConfig",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetGradientControllerConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return AdaptiveConcurrencyValidationError{
+					field:  "GradientControllerConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -306,7 +281,7 @@ func (m *GradientControllerConfig_ConcurrencyLimitCalculationParams) Validate() 
 	}
 
 	if d := m.GetConcurrencyUpdateInterval(); d != nil {
-		dur, err := types.DurationFromProto(d)
+		dur, err := ptypes.Duration(d)
 		if err != nil {
 			return GradientControllerConfig_ConcurrencyLimitCalculationParamsValidationError{
 				field:  "ConcurrencyUpdateInterval",
@@ -412,7 +387,7 @@ func (m *GradientControllerConfig_MinimumRTTCalculationParams) Validate() error 
 	}
 
 	if d := m.GetInterval(); d != nil {
-		dur, err := types.DurationFromProto(d)
+		dur, err := ptypes.Duration(d)
 		if err != nil {
 			return GradientControllerConfig_MinimumRTTCalculationParamsValidationError{
 				field:  "Interval",
@@ -443,17 +418,12 @@ func (m *GradientControllerConfig_MinimumRTTCalculationParams) Validate() error 
 
 	}
 
-	{
-		tmp := m.GetJitter()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return GradientControllerConfig_MinimumRTTCalculationParamsValidationError{
-					field:  "Jitter",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetJitter()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GradientControllerConfig_MinimumRTTCalculationParamsValidationError{
+				field:  "Jitter",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -469,17 +439,12 @@ func (m *GradientControllerConfig_MinimumRTTCalculationParams) Validate() error 
 
 	}
 
-	{
-		tmp := m.GetBuffer()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return GradientControllerConfig_MinimumRTTCalculationParamsValidationError{
-					field:  "Buffer",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetBuffer()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GradientControllerConfig_MinimumRTTCalculationParamsValidationError{
+				field:  "Buffer",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

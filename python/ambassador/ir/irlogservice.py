@@ -51,7 +51,8 @@ class IRLogService(IRResource):
             if self.driver != 'http' and self.driver_config['additional_log_headers']:
                 self.post_error("additional_log_headers are not supported in tcp mode")
                 return False
-            for header_obj in self.driver_config.get('additional_log_headers'):
+
+            for header_obj in self.get_additional_headers():
                 if header_obj.get('header_name', '') == '':
                     self.post_error("Please provide a header name for every additional log header!")
                     return False
@@ -78,6 +79,12 @@ class IRLogService(IRResource):
         self.cluster.referenced_by(self)
 
     def get_common_config(self) -> dict:
+        # get_common_config isn't allowed to be called before add_mappings 
+        # is called (by ir.walk_saved_resources). So we can assert that 
+        # self.cluster isn't None here, both to make mypy happier and out
+        # of paranoia.
+        assert(self.cluster)
+
         return {
             "log_name": self.name,
             "grpc_service": {
@@ -91,7 +98,7 @@ class IRLogService(IRResource):
 
     def get_additional_headers(self) -> list:
         if 'additional_log_headers' in self.driver_config:
-            return self.driver_config.get('additional_log_headers')
+            return self.driver_config.get('additional_log_headers', [])
         else:
             return []
 

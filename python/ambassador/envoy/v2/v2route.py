@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Union, TYPE_CHECKING
 from typing import cast as typecast
 
 from ..common import EnvoyRoute
+from ...cache import Cacheable
 from ...ir.irhttpmappinggroup import IRHTTPMappingGroup
 from ...ir.irbasemapping import IRBaseMapping
 
@@ -54,7 +55,7 @@ def regex_matcher(config: 'V2Config', regex: str, key="regex", safe_key=None, re
             }
 
 
-class V2Route(dict):
+class V2Route(Cacheable):
     def __init__(self, config: 'V2Config', group: IRHTTPMappingGroup, mapping: IRBaseMapping) -> None:
         super().__init__()
 
@@ -258,9 +259,38 @@ class V2Route(dict):
 
         # Save upgrade configs.
         if group.get('allow_upgrade'):
-            route["upgrade_configs"] = [{'upgrade_type': proto} for proto in group.get('allow_upgrade')]
+            route["upgrade_configs"] = [ { 'upgrade_type': proto } for proto in group.get('allow_upgrade', []) ]
 
         self['route'] = route
+
+    @classmethod
+    def get_route(cls, config: 'V2Config', cache_key: str,
+                  irgroup: IRHTTPMappingGroup, mapping: IRBaseMapping) -> 'V2Route':
+        route: 'V2Route'
+
+        cached_route = config.cache[cache_key]
+
+        if cached_route is None:
+            # Cache miss.
+            # config.ir.logger.info(f"V2Route: cache miss for {cache_key}, synthesizing route")
+            
+            route = V2Route(config, irgroup, mapping)
+
+            # Cheat a bit and force the route's cache_key.
+            route.cache_key = cache_key
+
+            config.cache.add(route)
+            config.cache.link(irgroup, route)
+        else:
+            # Cache hit. We know a priori that it's a V2Route, but let's assert that
+            # before casting.
+            assert(isinstance(cached_route, V2Route))
+            route = cached_route
+
+            # config.ir.logger.info(f"V2Route: cache hit for {cache_key}")
+
+        # One way or another, we have a route now.
+        return route
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:
@@ -272,17 +302,24 @@ class V2Route(dict):
                 continue
 
             if irgroup.get('host_redirect') is not None and len(irgroup.get('mappings', [])) == 0:
+                # This is a host-redirect-only group, which is weird, but can happen. Do we 
+                # have a cached route for it?
+                key = f"Route-{irgroup.group_id}-hostredirect"
+
                 # Casting an empty dict to an IRBaseMapping may look weird, but in fact IRBaseMapping
                 # is (ultimately) a subclass of dict, so it's the cleanest way to pass in a completely
                 # empty IRBaseMapping to V2Route().
                 #
                 # (We could also have written V2Route to allow the mapping to be Optional, but that
                 # makes a lot of its constructor much uglier.)
-                route = config.save_element('route', irgroup, V2Route(config, irgroup, typecast(IRBaseMapping, {})))
+                route = config.save_element('route', irgroup, cls.get_route(config, key, irgroup, typecast(IRBaseMapping, {})))
                 config.routes.append(route)
 
+            # Repeat for our real mappings.
             for mapping in irgroup.mappings:
-                route = config.save_element('route', irgroup, V2Route(config, irgroup, mapping))
+                key = f"Route-{irgroup.group_id}-{mapping.cache_key}"
+
+                route = config.save_element('route', irgroup, cls.get_route(config, key, irgroup, mapping))
                 config.routes.append(route)
 
     @staticmethod

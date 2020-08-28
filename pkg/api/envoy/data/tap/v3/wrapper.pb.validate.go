@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -48,68 +48,48 @@ func (m *TraceWrapper) Validate() error {
 
 	case *TraceWrapper_HttpBufferedTrace:
 
-		{
-			tmp := m.GetHttpBufferedTrace()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return TraceWrapperValidationError{
-						field:  "HttpBufferedTrace",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetHttpBufferedTrace()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TraceWrapperValidationError{
+					field:  "HttpBufferedTrace",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *TraceWrapper_HttpStreamedTraceSegment:
 
-		{
-			tmp := m.GetHttpStreamedTraceSegment()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return TraceWrapperValidationError{
-						field:  "HttpStreamedTraceSegment",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetHttpStreamedTraceSegment()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TraceWrapperValidationError{
+					field:  "HttpStreamedTraceSegment",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *TraceWrapper_SocketBufferedTrace:
 
-		{
-			tmp := m.GetSocketBufferedTrace()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return TraceWrapperValidationError{
-						field:  "SocketBufferedTrace",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetSocketBufferedTrace()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TraceWrapperValidationError{
+					field:  "SocketBufferedTrace",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *TraceWrapper_SocketStreamedTraceSegment:
 
-		{
-			tmp := m.GetSocketStreamedTraceSegment()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return TraceWrapperValidationError{
-						field:  "SocketStreamedTraceSegment",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetSocketStreamedTraceSegment()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TraceWrapperValidationError{
+					field:  "SocketStreamedTraceSegment",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}

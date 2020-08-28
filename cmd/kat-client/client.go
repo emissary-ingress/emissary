@@ -22,7 +22,7 @@ import (
 	"time"
 
 	grpc_echo_pb "github.com/datawire/ambassador/pkg/api/kat"
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
