@@ -24,12 +24,14 @@ import threading
 import time
 import os
 import logging
+import re
 import requests
 import tempfile
 import yaml
 
 from .VERSION import Version
 from urllib.parse import urlparse
+from prometheus_client import Gauge
 
 if TYPE_CHECKING:
     from .ir import IRResource
@@ -161,7 +163,7 @@ class RichStatus:
         return key in self.info
 
     def __str__(self):
-        attrs = ["%s=%s" % (key, self.info[key]) for key in sorted(self.info.keys())]
+        attrs = ["%s=%s" % (key, repr(self.info[key])) for key in sorted(self.info.keys())]
         astr = " ".join(attrs)
 
         if astr:
@@ -222,13 +224,23 @@ class Timer:
     _maximum: float
     _running: bool
     _faketime: float
+    _gauge: Optional[Gauge]=None
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, prom_metrics_registry: Optional[Any]=None) -> None:
         """
         Create a Timer, given a name. The Timer is initially stopped.
         """
 
         self.name = name
+
+        if prom_metrics_registry:
+            metric_prefix = re.sub('\s+', '_', name).lower()
+            self._gauge = Gauge(f'{metric_prefix}_time_seconds', f'Elapsed time on {name} operations',
+                                namespace='ambassador', registry=prom_metrics_registry)
+
+        self.reset()
+
+    def reset(self) -> None:
         self._cycles = 0
         self._starttime = 0
         self._accumulated = 0.0
@@ -292,6 +304,9 @@ class Timer:
             self._cycles += 1
 
             this_cycle = (when - self._starttime) + self._faketime
+            if self._gauge:
+                self._gauge.set(this_cycle)
+
             self._faketime = 0
 
             self._accumulated += this_cycle
@@ -749,7 +764,9 @@ class SecretHandler:
 
         return self.cache_internal(name, namespace, tls_crt, tls_key, user_key, root_crt)
 
-    def cache_internal(self, name: str, namespace: str, tls_crt: str, tls_key: str, user_key: str, root_crt: str) -> SavedSecret:
+    def cache_internal(self, name: str, namespace: str,
+                       tls_crt: Optional[str], tls_key: Optional[str],
+                       user_key: Optional[str], root_crt: Optional[str]) -> SavedSecret:
         h = hashlib.new('sha1')
 
         tls_crt_path = None

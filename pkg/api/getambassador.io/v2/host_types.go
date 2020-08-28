@@ -62,7 +62,7 @@ type PreviewURLSpec struct {
 //  - wildcard
 //  - datawire // FIXME rename this before release
 //
-// +kubebuilder:validation:Enum={"path"}
+// +kubebuilder:validation:Enum={"Path"}
 type PreviewURLType string
 
 // HostSpec defines the desired state of Host

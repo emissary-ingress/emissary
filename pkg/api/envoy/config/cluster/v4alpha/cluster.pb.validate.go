@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,11 +30,88 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
 var _cluster_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
+// Validate checks the field values on ClusterCollection with the rules defined
+// in the proto definition for this message. If any rules are violated, an
+// error is returned.
+func (m *ClusterCollection) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if v, ok := interface{}(m.GetEntries()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterCollectionValidationError{
+				field:  "Entries",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// ClusterCollectionValidationError is the validation error returned by
+// ClusterCollection.Validate if the designated constraints aren't met.
+type ClusterCollectionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ClusterCollectionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ClusterCollectionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ClusterCollectionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ClusterCollectionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ClusterCollectionValidationError) ErrorName() string {
+	return "ClusterCollectionValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ClusterCollectionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sClusterCollection.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ClusterCollectionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ClusterCollectionValidationError{}
 
 // Validate checks the field values on Cluster with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
@@ -46,17 +123,12 @@ func (m *Cluster) Validate() error {
 	for idx, item := range m.GetTransportSocketMatches() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return ClusterValidationError{
-						field:  fmt.Sprintf("TransportSocketMatches[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ClusterValidationError{
+					field:  fmt.Sprintf("TransportSocketMatches[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -72,23 +144,18 @@ func (m *Cluster) Validate() error {
 
 	// no validation rules for AltStatName
 
-	{
-		tmp := m.GetEdsClusterConfig()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "EdsClusterConfig",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetEdsClusterConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "EdsClusterConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
 	if d := m.GetConnectTimeout(); d != nil {
-		dur, err := types.DurationFromProto(d)
+		dur, err := ptypes.Duration(d)
 		if err != nil {
 			return ClusterValidationError{
 				field:  "ConnectTimeout",
@@ -108,18 +175,20 @@ func (m *Cluster) Validate() error {
 
 	}
 
-	{
-		tmp := m.GetPerConnectionBufferLimitBytes()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "PerConnectionBufferLimitBytes",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetPerConnectionBufferLimitBytes()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "PerConnectionBufferLimitBytes",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
+		}
+	}
+
+	if _, ok := _Cluster_LbPolicy_NotInLookup[m.GetLbPolicy()]; ok {
+		return ClusterValidationError{
+			field:  "LbPolicy",
+			reason: "value must not be in list [7]",
 		}
 	}
 
@@ -130,17 +199,12 @@ func (m *Cluster) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetLoadAssignment()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "LoadAssignment",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetLoadAssignment()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "LoadAssignment",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -148,109 +212,74 @@ func (m *Cluster) Validate() error {
 	for idx, item := range m.GetHealthChecks() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return ClusterValidationError{
-						field:  fmt.Sprintf("HealthChecks[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ClusterValidationError{
+					field:  fmt.Sprintf("HealthChecks[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	}
 
-	{
-		tmp := m.GetMaxRequestsPerConnection()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "MaxRequestsPerConnection",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMaxRequestsPerConnection()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "MaxRequestsPerConnection",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetCircuitBreakers()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "CircuitBreakers",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetCircuitBreakers()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "CircuitBreakers",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetUpstreamHttpProtocolOptions()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "UpstreamHttpProtocolOptions",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetUpstreamHttpProtocolOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "UpstreamHttpProtocolOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetCommonHttpProtocolOptions()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "CommonHttpProtocolOptions",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetCommonHttpProtocolOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "CommonHttpProtocolOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetHttpProtocolOptions()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "HttpProtocolOptions",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetHttpProtocolOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "HttpProtocolOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetHttp2ProtocolOptions()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "Http2ProtocolOptions",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetHttp2ProtocolOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "Http2ProtocolOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -260,17 +289,12 @@ func (m *Cluster) Validate() error {
 
 		// no validation rules for TypedExtensionProtocolOptions[key]
 
-		{
-			tmp := val
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return ClusterValidationError{
-						field:  fmt.Sprintf("TypedExtensionProtocolOptions[%v]", key),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ClusterValidationError{
+					field:  fmt.Sprintf("TypedExtensionProtocolOptions[%v]", key),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -278,7 +302,7 @@ func (m *Cluster) Validate() error {
 	}
 
 	if d := m.GetDnsRefreshRate(); d != nil {
-		dur, err := types.DurationFromProto(d)
+		dur, err := ptypes.Duration(d)
 		if err != nil {
 			return ClusterValidationError{
 				field:  "DnsRefreshRate",
@@ -298,17 +322,12 @@ func (m *Cluster) Validate() error {
 
 	}
 
-	{
-		tmp := m.GetDnsFailureRefreshRate()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "DnsFailureRefreshRate",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetDnsFailureRefreshRate()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "DnsFailureRefreshRate",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -325,17 +344,12 @@ func (m *Cluster) Validate() error {
 	for idx, item := range m.GetDnsResolvers() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return ClusterValidationError{
-						field:  fmt.Sprintf("DnsResolvers[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ClusterValidationError{
+					field:  fmt.Sprintf("DnsResolvers[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -344,23 +358,18 @@ func (m *Cluster) Validate() error {
 
 	// no validation rules for UseTcpForDnsLookups
 
-	{
-		tmp := m.GetOutlierDetection()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "OutlierDetection",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetOutlierDetection()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "OutlierDetection",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
 	if d := m.GetCleanupInterval(); d != nil {
-		dur, err := types.DurationFromProto(d)
+		dur, err := ptypes.Duration(d)
 		if err != nil {
 			return ClusterValidationError{
 				field:  "CleanupInterval",
@@ -380,94 +389,64 @@ func (m *Cluster) Validate() error {
 
 	}
 
-	{
-		tmp := m.GetUpstreamBindConfig()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "UpstreamBindConfig",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetUpstreamBindConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "UpstreamBindConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetLbSubsetConfig()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "LbSubsetConfig",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetLbSubsetConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "LbSubsetConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetCommonLbConfig()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "CommonLbConfig",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetCommonLbConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "CommonLbConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetTransportSocket()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "TransportSocket",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetTransportSocket()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "TransportSocket",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetMetadata()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "Metadata",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
 	// no validation rules for ProtocolSelection
 
-	{
-		tmp := m.GetUpstreamConnectionOptions()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "UpstreamConnectionOptions",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetUpstreamConnectionOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "UpstreamConnectionOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -479,54 +458,49 @@ func (m *Cluster) Validate() error {
 	for idx, item := range m.GetFilters() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return ClusterValidationError{
-						field:  fmt.Sprintf("Filters[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ClusterValidationError{
+					field:  fmt.Sprintf("Filters[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	}
 
-	{
-		tmp := m.GetLoadBalancingPolicy()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "LoadBalancingPolicy",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetLoadBalancingPolicy()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "LoadBalancingPolicy",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetLrsServer()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterValidationError{
-					field:  "LrsServer",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetLrsServer()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "LrsServer",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
 	// no validation rules for TrackTimeoutBudgets
+
+	if v, ok := interface{}(m.GetUpstreamConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "UpstreamConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	switch m.ClusterDiscoveryType.(type) {
 
@@ -541,17 +515,12 @@ func (m *Cluster) Validate() error {
 
 	case *Cluster_ClusterType:
 
-		{
-			tmp := m.GetClusterType()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return ClusterValidationError{
-						field:  "ClusterType",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetClusterType()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ClusterValidationError{
+					field:  "ClusterType",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -562,51 +531,36 @@ func (m *Cluster) Validate() error {
 
 	case *Cluster_RingHashLbConfig_:
 
-		{
-			tmp := m.GetRingHashLbConfig()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return ClusterValidationError{
-						field:  "RingHashLbConfig",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetRingHashLbConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ClusterValidationError{
+					field:  "RingHashLbConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *Cluster_OriginalDstLbConfig_:
 
-		{
-			tmp := m.GetOriginalDstLbConfig()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return ClusterValidationError{
-						field:  "OriginalDstLbConfig",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetOriginalDstLbConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ClusterValidationError{
+					field:  "OriginalDstLbConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *Cluster_LeastRequestLbConfig_:
 
-		{
-			tmp := m.GetLeastRequestLbConfig()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return ClusterValidationError{
-						field:  "LeastRequestLbConfig",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetLeastRequestLbConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ClusterValidationError{
+					field:  "LeastRequestLbConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -670,6 +624,10 @@ var _ interface {
 	ErrorName() string
 } = ClusterValidationError{}
 
+var _Cluster_LbPolicy_NotInLookup = map[Cluster_LbPolicy]struct{}{
+	7: {},
+}
+
 // Validate checks the field values on LoadBalancingPolicy with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -681,17 +639,12 @@ func (m *LoadBalancingPolicy) Validate() error {
 	for idx, item := range m.GetPolicies() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return LoadBalancingPolicyValidationError{
-						field:  fmt.Sprintf("Policies[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return LoadBalancingPolicyValidationError{
+					field:  fmt.Sprintf("Policies[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -765,17 +718,12 @@ func (m *UpstreamBindConfig) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetSourceAddress()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return UpstreamBindConfigValidationError{
-					field:  "SourceAddress",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetSourceAddress()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpstreamBindConfigValidationError{
+				field:  "SourceAddress",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -847,17 +795,12 @@ func (m *UpstreamConnectionOptions) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetTcpKeepalive()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return UpstreamConnectionOptionsValidationError{
-					field:  "TcpKeepalive",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetTcpKeepalive()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpstreamConnectionOptionsValidationError{
+				field:  "TcpKeepalive",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -936,32 +879,22 @@ func (m *Cluster_TransportSocketMatch) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetMatch()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return Cluster_TransportSocketMatchValidationError{
-					field:  "Match",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMatch()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Cluster_TransportSocketMatchValidationError{
+				field:  "Match",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetTransportSocket()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return Cluster_TransportSocketMatchValidationError{
-					field:  "TransportSocket",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetTransportSocket()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Cluster_TransportSocketMatchValidationError{
+				field:  "TransportSocket",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -1041,17 +974,12 @@ func (m *Cluster_CustomClusterType) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetTypedConfig()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return Cluster_CustomClusterTypeValidationError{
-					field:  "TypedConfig",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetTypedConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Cluster_CustomClusterTypeValidationError{
+				field:  "TypedConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -1123,22 +1051,34 @@ func (m *Cluster_EdsClusterConfig) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetEdsConfig()
+	if v, ok := interface{}(m.GetEdsConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Cluster_EdsClusterConfigValidationError{
+				field:  "EdsConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+	switch m.NameSpecifier.(type) {
 
+	case *Cluster_EdsClusterConfig_ServiceName:
+		// no validation rules for ServiceName
+
+	case *Cluster_EdsClusterConfig_EdsResourceLocator:
+
+		if v, ok := interface{}(m.GetEdsResourceLocator()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return Cluster_EdsClusterConfigValidationError{
-					field:  "EdsConfig",
+					field:  "EdsResourceLocator",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
 			}
 		}
-	}
 
-	// no validation rules for ServiceName
+	}
 
 	return nil
 }
@@ -1214,17 +1154,12 @@ func (m *Cluster_LbSubsetConfig) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetDefaultSubset()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return Cluster_LbSubsetConfigValidationError{
-					field:  "DefaultSubset",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetDefaultSubset()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Cluster_LbSubsetConfigValidationError{
+				field:  "DefaultSubset",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -1232,17 +1167,12 @@ func (m *Cluster_LbSubsetConfig) Validate() error {
 	for idx, item := range m.GetSubsetSelectors() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return Cluster_LbSubsetConfigValidationError{
-						field:  fmt.Sprintf("SubsetSelectors[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return Cluster_LbSubsetConfigValidationError{
+					field:  fmt.Sprintf("SubsetSelectors[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -1569,32 +1499,22 @@ func (m *Cluster_CommonLbConfig) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetHealthyPanicThreshold()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return Cluster_CommonLbConfigValidationError{
-					field:  "HealthyPanicThreshold",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetHealthyPanicThreshold()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Cluster_CommonLbConfigValidationError{
+				field:  "HealthyPanicThreshold",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetUpdateMergeWindow()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return Cluster_CommonLbConfigValidationError{
-					field:  "UpdateMergeWindow",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetUpdateMergeWindow()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Cluster_CommonLbConfigValidationError{
+				field:  "UpdateMergeWindow",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -1603,17 +1523,12 @@ func (m *Cluster_CommonLbConfig) Validate() error {
 
 	// no validation rules for CloseConnectionsOnHostSetChange
 
-	{
-		tmp := m.GetConsistentHashingLbConfig()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return Cluster_CommonLbConfigValidationError{
-					field:  "ConsistentHashingLbConfig",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetConsistentHashingLbConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Cluster_CommonLbConfigValidationError{
+				field:  "ConsistentHashingLbConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -1622,34 +1537,24 @@ func (m *Cluster_CommonLbConfig) Validate() error {
 
 	case *Cluster_CommonLbConfig_ZoneAwareLbConfig_:
 
-		{
-			tmp := m.GetZoneAwareLbConfig()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return Cluster_CommonLbConfigValidationError{
-						field:  "ZoneAwareLbConfig",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetZoneAwareLbConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return Cluster_CommonLbConfigValidationError{
+					field:  "ZoneAwareLbConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *Cluster_CommonLbConfig_LocalityWeightedLbConfig_:
 
-		{
-			tmp := m.GetLocalityWeightedLbConfig()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return Cluster_CommonLbConfigValidationError{
-						field:  "LocalityWeightedLbConfig",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetLocalityWeightedLbConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return Cluster_CommonLbConfigValidationError{
+					field:  "LocalityWeightedLbConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -1731,7 +1636,7 @@ func (m *Cluster_RefreshRate) Validate() error {
 	}
 
 	if d := m.GetBaseInterval(); d != nil {
-		dur, err := types.DurationFromProto(d)
+		dur, err := ptypes.Duration(d)
 		if err != nil {
 			return Cluster_RefreshRateValidationError{
 				field:  "BaseInterval",
@@ -1752,7 +1657,7 @@ func (m *Cluster_RefreshRate) Validate() error {
 	}
 
 	if d := m.GetMaxInterval(); d != nil {
-		dur, err := types.DurationFromProto(d)
+		dur, err := ptypes.Duration(d)
 		if err != nil {
 			return Cluster_RefreshRateValidationError{
 				field:  "MaxInterval",
@@ -1914,32 +1819,22 @@ func (m *Cluster_CommonLbConfig_ZoneAwareLbConfig) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetRoutingEnabled()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return Cluster_CommonLbConfig_ZoneAwareLbConfigValidationError{
-					field:  "RoutingEnabled",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetRoutingEnabled()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Cluster_CommonLbConfig_ZoneAwareLbConfigValidationError{
+				field:  "RoutingEnabled",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetMinClusterSize()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return Cluster_CommonLbConfig_ZoneAwareLbConfigValidationError{
-					field:  "MinClusterSize",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMinClusterSize()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Cluster_CommonLbConfig_ZoneAwareLbConfigValidationError{
+				field:  "MinClusterSize",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -2168,17 +2063,12 @@ func (m *LoadBalancingPolicy_Policy) Validate() error {
 
 	// no validation rules for Name
 
-	{
-		tmp := m.GetTypedConfig()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return LoadBalancingPolicy_PolicyValidationError{
-					field:  "TypedConfig",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetTypedConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return LoadBalancingPolicy_PolicyValidationError{
+				field:  "TypedConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

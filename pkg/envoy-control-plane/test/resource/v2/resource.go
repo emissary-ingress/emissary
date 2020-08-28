@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"time"
 
-	pstruct "github.com/gogo/protobuf/types"
+	pstruct "github.com/golang/protobuf/ptypes/struct"
 
-	ptypes "github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 
 	cluster "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
 	endpoint "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
@@ -142,6 +142,7 @@ func configSource(mode string) *core.ConfigSource {
 	case Xds:
 		source.ConfigSourceSpecifier = &core.ConfigSource_ApiConfigSource{
 			ApiConfigSource: &core.ApiConfigSource{
+				TransportApiVersion:       resource.DefaultAPIVersion,
 				ApiType:                   core.ApiConfigSource_GRPC,
 				SetNodeOnFirstMessageOnly: true,
 				GrpcServices: []*core.GrpcService{{
@@ -154,9 +155,10 @@ func configSource(mode string) *core.ConfigSource {
 	case Rest:
 		source.ConfigSourceSpecifier = &core.ConfigSource_ApiConfigSource{
 			ApiConfigSource: &core.ApiConfigSource{
-				ApiType:      core.ApiConfigSource_REST,
-				ClusterNames: []string{XdsCluster},
-				RefreshDelay: ptypes.DurationProto(RefreshDelay),
+				ApiType:             core.ApiConfigSource_REST,
+				TransportApiVersion: resource.DefaultAPIVersion,
+				ClusterNames:        []string{XdsCluster},
+				RefreshDelay:        ptypes.DurationProto(RefreshDelay),
 			},
 		}
 	}

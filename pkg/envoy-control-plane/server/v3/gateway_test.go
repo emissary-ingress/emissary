@@ -19,14 +19,15 @@ import (
 	"context"
 	"io"
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 	"testing/iotest"
 
+	discovery "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v3"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v3"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/resource/v3"
+	rsrc "github.com/datawire/ambassador/pkg/envoy-control-plane/resource/v3"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/server/v3"
 )
 
@@ -41,18 +42,21 @@ func (log logger) Errorf(format string, args ...interface{}) { log.t.Logf(format
 
 func TestGateway(t *testing.T) {
 	config := makeMockConfigWatcher()
-	config.responses = map[string][]cache.Response{
+	config.responses = map[string][]cache.RawResponse{
 		resource.ClusterType: {{
 			Version:   "2",
 			Resources: []types.Resource{cluster},
+			Request:   discovery.DiscoveryRequest{TypeUrl: rsrc.ClusterType},
 		}},
 		resource.RouteType: {{
 			Version:   "3",
 			Resources: []types.Resource{route},
+			Request:   discovery.DiscoveryRequest{TypeUrl: rsrc.RouteType},
 		}},
 		resource.ListenerType: {{
 			Version:   "4",
 			Resources: []types.Resource{listener},
+			Request:   discovery.DiscoveryRequest{TypeUrl: rsrc.ListenerType},
 		}},
 	}
 	gtw := server.HTTPGateway{Log: logger{t: t}, Server: server.NewServer(context.Background(), config, nil)}
@@ -88,25 +92,29 @@ func TestGateway(t *testing.T) {
 		},
 	}
 	for _, cs := range failCases {
-		rr := httptest.NewRecorder()
 		req, err := http.NewRequest(http.MethodPost, cs.path, cs.body)
 		if err != nil {
 			t.Fatal(err)
 		}
-		_ = gtw.ServeHTTP(rr, req)
-		if status := rr.Code; status != cs.expect {
+		resp, code, err := gtw.ServeHTTP(req)
+		if resp != nil {
+			t.Errorf("handler returned wrong response")
+		}
+		if status := code; status != cs.expect {
 			t.Errorf("handler returned wrong status: %d, want %d", status, cs.expect)
 		}
 	}
 
 	for _, path := range []string{resource.FetchClusters, resource.FetchRoutes, resource.FetchListeners} {
-		rr := httptest.NewRecorder()
 		req, err := http.NewRequest(http.MethodPost, path, strings.NewReader("{\"node\": {\"id\": \"test\"}}"))
 		if err != nil {
 			t.Fatal(err)
 		}
-		_ = gtw.ServeHTTP(rr, req)
-		if status := rr.Code; status != 200 {
+		resp, code, err := gtw.ServeHTTP(req)
+		if resp == nil {
+			t.Errorf("handler returned wrong response")
+		}
+		if status := code; status != 200 {
 			t.Errorf("handler returned wrong status: %d, want %d", status, 200)
 		}
 	}

@@ -17,8 +17,8 @@ package conversion_test
 import (
 	"testing"
 
-	"github.com/gogo/protobuf/proto"
-	pstruct "github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/proto"
+	pstruct "github.com/golang/protobuf/ptypes/struct"
 	"github.com/google/go-cmp/cmp"
 
 	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"

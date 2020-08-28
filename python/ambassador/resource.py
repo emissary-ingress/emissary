@@ -5,12 +5,13 @@ from typing import Any, Dict, List, Optional, Type, TypeVar
 import json
 
 from .utils import parse_yaml
+from .cache import Cacheable
 
 
 R = TypeVar('R', bound='Resource')
 
 
-class Resource (dict):
+class Resource (Cacheable):
     """
     A resource that's part of the overall Ambassador configuration world. This is
     the base class for IR resources, Ambassador-config resources, etc.
@@ -73,15 +74,6 @@ class Resource (dict):
         self.rkey = other.rkey
         self.location = other.location
 
-    def references(self, other: 'Resource'):
-        """
-        Mark another Resource as referenced by this one.
-
-        :param other:
-        :return:
-        """
-
-        other.referenced_by(self)
 
     def referenced_by(self, other: 'Resource') -> None:
         # print("%s %s REF BY %s %s" % (self.kind, self.name, other.kind, other.rkey))

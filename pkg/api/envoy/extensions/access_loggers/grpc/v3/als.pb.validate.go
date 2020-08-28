@@ -15,7 +15,9 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
+
+	v3 "github.com/datawire/ambassador/pkg/api/envoy/config/core/v3"
 )
 
 // ensure the imports are used
@@ -30,7 +32,9 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
+
+	_ = v3.ApiVersion(0)
 )
 
 // define the regex for a UUID once up-front
@@ -51,17 +55,12 @@ func (m *HttpGrpcAccessLogConfig) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetCommonConfig()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return HttpGrpcAccessLogConfigValidationError{
-					field:  "CommonConfig",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetCommonConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HttpGrpcAccessLogConfigValidationError{
+				field:  "CommonConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -140,17 +139,12 @@ func (m *TcpGrpcAccessLogConfig) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetCommonConfig()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return TcpGrpcAccessLogConfigValidationError{
-					field:  "CommonConfig",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetCommonConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return TcpGrpcAccessLogConfigValidationError{
+				field:  "CommonConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -236,23 +230,25 @@ func (m *CommonGrpcAccessLogConfig) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetGrpcService()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return CommonGrpcAccessLogConfigValidationError{
-					field:  "GrpcService",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetGrpcService()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CommonGrpcAccessLogConfigValidationError{
+				field:  "GrpcService",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
+	if _, ok := v3.ApiVersion_name[int32(m.GetTransportApiVersion())]; !ok {
+		return CommonGrpcAccessLogConfigValidationError{
+			field:  "TransportApiVersion",
+			reason: "value must be one of the defined enum values",
+		}
+	}
+
 	if d := m.GetBufferFlushInterval(); d != nil {
-		dur, err := types.DurationFromProto(d)
+		dur, err := ptypes.Duration(d)
 		if err != nil {
 			return CommonGrpcAccessLogConfigValidationError{
 				field:  "BufferFlushInterval",
@@ -272,17 +268,12 @@ func (m *CommonGrpcAccessLogConfig) Validate() error {
 
 	}
 
-	{
-		tmp := m.GetBufferSizeBytes()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return CommonGrpcAccessLogConfigValidationError{
-					field:  "BufferSizeBytes",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetBufferSizeBytes()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CommonGrpcAccessLogConfigValidationError{
+				field:  "BufferSizeBytes",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

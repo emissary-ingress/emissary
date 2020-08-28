@@ -26,18 +26,27 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 DBUILD=${DIR}/dbuild.sh
 
-# command for running a container (ie, "docker run")
-DOCKER_RUN=${DOCKER_RUN:-docker run}
+now=$(date +"%H%M%S")
 
-# the name of the Doccker network
-# note: use your local k3d/microk8s/kind network for running tests
-DOCKER_NETWORK=${DOCKER_NETWORK:-${BUILDER_NAME}}
+# container name of the builder
+BUILDER_CONT_NAME=${BUILDER_CONT_NAME:-"bld-${BUILDER_NAME}-${now}"}
+
+# command for running a container (ie, "docker run")
+BUILDER_DOCKER_RUN=${BUILDER_DOCKER_RUN:-docker run}
+
+# the name of the Docker network
+# note: this is necessary for connecting the builder to a local k3d/microk8s/kind network (ie, for running tests)
+BUILDER_DOCKER_NETWORK=${BUILDER_DOCKER_NETWORK:-${BUILDER_NAME}}
 
 # Do this with `eval` so that we properly interpret quotes.
 eval "pytest_args=(${PYTEST_ARGS:-})"
 
-builder() { docker ps -q -f label=builder -f label="${BUILDER_NAME}"; }
-builder_network() { docker network ls -q -f name="${DOCKER_NETWORK}"; }
+builder() {
+    docker ps --quiet \
+           --filter=label=builder \
+           --filter=label="$BUILDER_NAME"
+}
+builder_network() { docker network ls -q -f name="${BUILDER_DOCKER_NETWORK}"; }
 
 builder_volume() { docker volume ls -q -f label=builder; }
 
@@ -64,47 +73,94 @@ dexec() {
     docker exec ${flags} $(builder) "$@"
 }
 
-# Rebuild (and push if DEV_REGISTRY is set) the builder's base image if
-# - Dockerfile.base changes
-# - Enough time has passed
+# Usage: build_builder_base [--stage1-only]
+# Effects:
+#   1. Set the `builder_base_image` variable in the parent scope
+#   2. Ensure that the `$builder_base_image` Docker image exists (pulling
+#      it or building it if it doesn't).
+#   3. (If $DEV_REGISTRY is set AND we built the image) push the
+#      `$builder_base_image` Docker image.
 #
-# The base only has external/third-party dependencies, and most of those
-# dependencies are not pinned by version, so we rebuild periodically to make
-# sure we don't fall too far behind and then get surprised when a rebuild is
-# required for Dockerfile changes.
+# Description:
 #
-# We have defined "enough time" as a few days. See the variable
-# "build_every_n_days" below.
-
-builder_base_tag_py='
+#   Rebuild (and push if DEV_REGISTRY is set) the builder's base image if
+#    - `Dockerfile.base` changes
+#    - `requirements.txt` changes
+#    - Enough time has passed (The base only has external/third-party
+#      dependencies, and most of those dependencies are not pinned by
+#      version, so we rebuild periodically to make sure we don't fall too
+#      far behind and then get surprised when a rebuild is required for
+#      Dockerfile changes.)  We have defined "enough time" as a few days.
+#      See the variable "build_every_n_days" below.
+#
+#   The base theory of operation is that we generate a Docker tag name that
+#   is essentially the tuple
+#     (rounded_timestamp, hash(Dockerfile.base), hash(requirements.txt)
+#   then check that tag for existence/pullability using `docker run --rm
+#   --entrypoint=true`; and build it if it doesn't exist and can't be
+#   pulled.
+#
+#   OK, now for a wee bit of complexity.  We want to use `pip-compile` to
+#   update `requirements.txt`.  Because of Python-version-conditioned
+#   dependencies, we really want to run it with the image's python3, not
+#   with the host's python3.  And since we're updating `requirements.txt`,
+#   we don't really want the `pip install` to have already been run.  So,
+#   we split the base image in to two stages; stage-1 is everything but
+#   `COPY requirements.txt` / `pip install -r requirements.txt`, and then
+#   stage-2 copies in `requirements.txt` and runs the `pip install`.  In
+#   normal operation we just go ahead and build both stages.  But if the
+#   `--stage1-only` flag is given (as it is by the `pip-compile`
+#   subcommand), then we only build the stage-1, and set the
+#   `builder_base_image` variable to that.
+build_builder_base() {
+    local builder_base_tag_py='
 # Someone please rewrite this in portable Bash. Until then, this code
 # works on Python 2.7 and 3.5+.
 
 import datetime, hashlib
 
 build_every_n_days = 5  # Periodic rebuild even if Dockerfile does not change
-
 epoch = datetime.datetime(2017, 4, 13, 1, 30)
 age = int((datetime.datetime.now() - epoch).days / build_every_n_days)
-hasher = hashlib.sha256(open("Dockerfile.base", "rb").read())
-print("%s-%sx%s" % (hasher.hexdigest()[:16], age, build_every_n_days))
+age_start = epoch + datetime.timedelta(days=age*build_every_n_days)
+
+dockerfilehash = hashlib.sha256(open("Dockerfile.base", "rb").read()).hexdigest()
+stage1 = "%sx%s-%s" % (age_start.strftime("%Y%m%d"), build_every_n_days, dockerfilehash[:16])
+
+requirementshash = hashlib.sha256(open("requirements.txt", "rb").read()).hexdigest()
+stage2 = "%s-%s" % (stage1, requirementshash[:16])
+
+print("stage1_tag=%s" % stage1)
+print("stage2_tag=%s" % stage2)
 '
 
-build_builder_base() {
-    builder_base_tag="$(cd "$DIR" && python -c "$builder_base_tag_py")"
+    local stage1_tag stage2_tag
+    eval "$(cd "$DIR" && python -c "$builder_base_tag_py")" # sets 'stage1_tag' and 'stage2_tag'
 
-    if [ -n "$DEV_REGISTRY" ]; then
-        # We can push. Build and push if necessary.
-        builder_base_image=${DEV_REGISTRY}/builder-base:${builder_base_tag}
-        if ! docker pull "${builder_base_image}" >& /dev/null ; then
-            ${DBUILD} -f "${DIR}/Dockerfile.base" "${DIR}" -t "${builder_base_image}"
-            docker push "${builder_base_image}"
+    local name1="${DEV_REGISTRY:+$DEV_REGISTRY/}builder-base:stage1-${stage1_tag}"
+    local name2="${DEV_REGISTRY:+$DEV_REGISTRY/}builder-base:stage2-${stage2_tag}"
+
+    printf "${GRN}Using stage-1 base ${BLU}${name1}${END}\n"
+    if ! docker run --rm --entrypoint=true "$name1"; then # skip building if the "$name1" already exists
+        ${DBUILD} -f "${DIR}/Dockerfile.base" -t "${name1}" --target builderbase-stage1 "${DIR}"
+        if [ -n "$DEV_REGISTRY" ]; then
+            docker push "$name1"
         fi
-    else
-        # We CANNOT push. Build locally and lean on the cache.
-        builder_base_image=builder-base:${builder_base_tag}
-        ${DBUILD} -f "${DIR}/Dockerfile.base" "${DIR}" -t "${builder_base_image}"
     fi
+    if [[ $1 = '--stage1-only' ]]; then
+        builder_base_image="$name1" # not local
+        return
+    fi
+
+    printf "${GRN}Using stage-2 base ${BLU}${name2}${END}\n"
+    if ! docker run --rm --entrypoint=true "$name2"; then # skip building if the "$name2" already exists
+        ${DBUILD} --build-arg=builderbase_stage1="$name1" -f "${DIR}/Dockerfile.base" -t "${name2}" --target builderbase-stage2 "${DIR}"
+        if [ -n "$DEV_REGISTRY" ]; then
+            docker push "$name2"
+        fi
+    fi
+
+    builder_base_image="$name2" # not local
 }
 
 bootstrap() {
@@ -114,10 +170,10 @@ bootstrap() {
     fi
 
     if [ -z "$(builder_network)" ]; then
-        docker network create "${DOCKER_NETWORK}" > /dev/null
-        printf "${GRN}Created docker network ${BLU}${DOCKER_NETWORK}${END}\n"
+        docker network create "${BUILDER_DOCKER_NETWORK}" > /dev/null
+        printf "${GRN}Created docker network ${BLU}${BUILDER_DOCKER_NETWORK}${END}\n"
     else
-        printf "${GRN}Connecting to existing network ${BLU}${DOCKER_NETWORK}${GRN}${END}\n"
+        printf "${GRN}Connecting to existing network ${BLU}${BUILDER_DOCKER_NETWORK}${GRN}${END}\n"
     fi
 
     if [ -z "$(builder)" ] ; then
@@ -135,9 +191,25 @@ bootstrap() {
             exit 1
         fi
 
-        now=$(date +"%H%M%S")
         echo_on
-        $DOCKER_RUN --name "bld-${BUILDER_NAME}-${now}" --network "${DOCKER_NETWORK}" --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} -e BUILDER_NAME=${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
+        $BUILDER_DOCKER_RUN \
+            --name="$BUILDER_CONT_NAME" \
+            --network="${BUILDER_DOCKER_NETWORK}" \
+            --network-alias="builder" \
+            --group-add="${DOCKER_GID}" \
+            --detach \
+            --rm \
+            --volume=/var/run/docker.sock:/var/run/docker.sock \
+            --volume="$(builder_volume):/home/dw" \
+            ${BUILDER_MOUNTS} \
+            --cap-add=NET_ADMIN \
+            --label=builder \
+            --label="${BUILDER_NAME}" \
+            --label="${BUILDER_NAME}" \
+            ${BUILDER_PORTMAPS} \
+            ${BUILDER_DOCKER_EXTRA} \
+            --env=BUILDER_NAME="${BUILDER_NAME}" \
+            --entrypoint=tail builder -f /dev/null > /dev/null
         echo_off
 
         printf "${GRN}Started build container ${BLU}$(builder)${END}\n"
@@ -149,22 +221,9 @@ bootstrap() {
 
 module_version() {
     echo MODULE="\"$1\""
-    # This is only "kinda" the git branch name:
-    #
-    #  - if checked out is the synthetic merge-commit for a PR, then use
-    #    the PR's branch name (even though the merge commit we have
-    #    checked out isn't part of the branch")
-    #  - if this is a CI run for a tag (not a branch or PR), then use the
-    #    tag name
-    #  - if none of the above, then use the actual git branch name
-    #
-    # read: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
-    for VAR in "${TRAVIS_PULL_REQUEST_BRANCH}" "${TRAVIS_BRANCH}" $(git rev-parse --abbrev-ref HEAD); do
-        if [ -n "${VAR}" ]; then
-            echo GIT_BRANCH="\"${VAR}\""
-            break
-        fi
-    done
+
+    echo GIT_BRANCH="\"$(git rev-parse --abbrev-ref HEAD)\""
+
     # The short git commit hash
     echo GIT_COMMIT="\"$(git rev-parse --short HEAD)\""
     # Whether `git add . && git commit` would commit anything (empty=false, nonempty=true)
@@ -178,6 +237,24 @@ module_version() {
     # The _previous_ tag, plus a git delta, like 0.36.0-436-g8b8c5d3
     echo GIT_DESCRIPTION="\"$(git describe --tags)\""
 
+    # We're going to post-process RELEASE_VERSION below.  But for now
+    # what you need to know is: This block is just going to set it to
+    # the git tag.
+    #
+    # The reason that we give precedence to `CIRCLE_TAG` over `git
+    # describe` is that if there are multiple tags pointing at the
+    # same commit, then it is non-deterministic which tag `git
+    # describe` will choose.  We want to know which one of those tags
+    # actually triggered this CI run, so we give precedence to
+    # CircleCI, since it has information that isn't actually stored in
+    # Git.
+    for VAR in "${CIRCLE_TAG}" "$(git describe --tags --always)"; do
+        if [ -n "${VAR}" ]; then
+            RELEASE_VERSION="${VAR}"
+            break
+        fi
+    done
+
     # RELEASE_VERSION is an X.Y.Z[-prerelease] (semver) string that we
     # will upload/release the image as.  It does NOT include a leading 'v'
     # (trimming the 'v' from the git tag is what the 'patsubst' is for).
@@ -188,13 +265,6 @@ module_version() {
     # we build into the image.  Because an image built as a "release
     # candidate" will ideally get promoted to be the GA image, we trim off
     # the '-rc.N' suffix.
-    for VAR in "${TRAVIS_TAG}" "$(git describe --tags --always)"; do
-        if [ -n "${VAR}" ]; then
-            RELEASE_VERSION="${VAR}"
-            break
-        fi
-    done
-
     if [[ ${RELEASE_VERSION} =~ ^v[0-9]+.*$ ]]; then
         RELEASE_VERSION=${RELEASE_VERSION:1}
     fi
@@ -219,7 +289,7 @@ sync() {
         # Don't let 'deleting ambassador' cause the sync to be marked dirty
         dexec sh -c 'rm -rf apro/ambassador'
     fi
-    dsync --exclude-from=${DIR}/sync-excludes.txt --delete ${real}/ ${container}:/buildroot/${name}
+    dsync $DSYNC_EXTRA --exclude-from=${DIR}/sync-excludes.txt --delete ${real}/ ${container}:/buildroot/${name}
     summarize-sync $name "${dsynced[@]}"
     if [[ $name == apro ]]; then
         # BusyBox `ln` 1.30.1's `-T` flag is broken, and doesn't have a `-t` flag.
@@ -265,7 +335,7 @@ clean() {
     fi
     nid=$(builder_network)
     if [ -n "${nid}" ] ; then
-        printf "${GRN}Removing docker network ${BLU}${DOCKER_NETWORK} (${nid})${END}\n"
+        printf "${GRN}Removing docker network ${BLU}${BUILDER_DOCKER_NETWORK} (${nid})${END}\n"
         # This will fail if the network has some other endpoints alive: silence any errors
         docker network rm ${nid} 2>&1 >/dev/null || true
     fi
@@ -430,7 +500,16 @@ case "${cmd}" in
             fi
         done
         ;;
-    
+
+    pip-compile)
+        build_builder_base --stage1-only
+        printf "${GRN}Running pip-compile to update ${BLU}requirements.txt${END}\n"
+        docker run --rm -i "$builder_base_image" sh -c 'tar xf - && pip-compile --allow-unsafe -q >&2 && cat requirements.txt' \
+               < <(cd "$DIR" && tar cf - requirements.in requirements.txt) \
+               > "$DIR/requirements.txt.tmp"
+        mv -f "$DIR/requirements.txt.tmp" "$DIR/requirements.txt"
+        ;;
+
     pytest-internal)
         # This runs inside the builder image
         fail=""

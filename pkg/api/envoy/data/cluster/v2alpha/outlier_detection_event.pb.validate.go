@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -51,32 +51,22 @@ func (m *OutlierDetectionEvent) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetTimestamp()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return OutlierDetectionEventValidationError{
-					field:  "Timestamp",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetTimestamp()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OutlierDetectionEventValidationError{
+				field:  "Timestamp",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetSecsSinceLastAction()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return OutlierDetectionEventValidationError{
-					field:  "SecsSinceLastAction",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetSecsSinceLastAction()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OutlierDetectionEventValidationError{
+				field:  "SecsSinceLastAction",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -110,51 +100,36 @@ func (m *OutlierDetectionEvent) Validate() error {
 
 	case *OutlierDetectionEvent_EjectSuccessRateEvent:
 
-		{
-			tmp := m.GetEjectSuccessRateEvent()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return OutlierDetectionEventValidationError{
-						field:  "EjectSuccessRateEvent",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetEjectSuccessRateEvent()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return OutlierDetectionEventValidationError{
+					field:  "EjectSuccessRateEvent",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *OutlierDetectionEvent_EjectConsecutiveEvent:
 
-		{
-			tmp := m.GetEjectConsecutiveEvent()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return OutlierDetectionEventValidationError{
-						field:  "EjectConsecutiveEvent",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetEjectConsecutiveEvent()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return OutlierDetectionEventValidationError{
+					field:  "EjectConsecutiveEvent",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *OutlierDetectionEvent_EjectFailurePercentageEvent:
 
-		{
-			tmp := m.GetEjectFailurePercentageEvent()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return OutlierDetectionEventValidationError{
-						field:  "EjectFailurePercentageEvent",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetEjectFailurePercentageEvent()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return OutlierDetectionEventValidationError{
+					field:  "EjectFailurePercentageEvent",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}

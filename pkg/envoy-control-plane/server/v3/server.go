@@ -22,7 +22,6 @@ import (
 	"strconv"
 	"sync/atomic"
 
-	any "github.com/gogo/protobuf/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -72,6 +71,66 @@ type Callbacks interface {
 	OnFetchRequest(context.Context, *discovery.DiscoveryRequest) error
 	// OnFetchResponse is called immediately prior to sending a response.
 	OnFetchResponse(*discovery.DiscoveryRequest, *discovery.DiscoveryResponse)
+}
+
+// CallbackFuncs is a convenience type for implementing the Callbacks interface.
+type CallbackFuncs struct {
+	StreamOpenFunc     func(context.Context, int64, string) error
+	StreamClosedFunc   func(int64)
+	StreamRequestFunc  func(int64, *discovery.DiscoveryRequest) error
+	StreamResponseFunc func(int64, *discovery.DiscoveryRequest, *discovery.DiscoveryResponse)
+	FetchRequestFunc   func(context.Context, *discovery.DiscoveryRequest) error
+	FetchResponseFunc  func(*discovery.DiscoveryRequest, *discovery.DiscoveryResponse)
+}
+
+var _ Callbacks = CallbackFuncs{}
+
+// OnStreamOpen invokes StreamOpenFunc.
+func (c CallbackFuncs) OnStreamOpen(ctx context.Context, streamID int64, typeURL string) error {
+	if c.StreamOpenFunc != nil {
+		return c.StreamOpenFunc(ctx, streamID, typeURL)
+	}
+
+	return nil
+}
+
+// OnStreamClosed invokes StreamClosedFunc.
+func (c CallbackFuncs) OnStreamClosed(streamID int64) {
+	if c.StreamClosedFunc != nil {
+		c.StreamClosedFunc(streamID)
+	}
+}
+
+// OnStreamRequest invokes StreamRequestFunc.
+func (c CallbackFuncs) OnStreamRequest(streamID int64, req *discovery.DiscoveryRequest) error {
+	if c.StreamRequestFunc != nil {
+		return c.StreamRequestFunc(streamID, req)
+	}
+
+	return nil
+}
+
+// OnStreamResponse invokes StreamResponseFunc.
+func (c CallbackFuncs) OnStreamResponse(streamID int64, req *discovery.DiscoveryRequest, resp *discovery.DiscoveryResponse) {
+	if c.StreamResponseFunc != nil {
+		c.StreamResponseFunc(streamID, req, resp)
+	}
+}
+
+// OnFetchRequest invokes FetchRequestFunc.
+func (c CallbackFuncs) OnFetchRequest(ctx context.Context, req *discovery.DiscoveryRequest) error {
+	if c.FetchRequestFunc != nil {
+		return c.FetchRequestFunc(ctx, req)
+	}
+
+	return nil
+}
+
+// OnFetchResponse invoked FetchResponseFunc.
+func (c CallbackFuncs) OnFetchResponse(req *discovery.DiscoveryRequest, resp *discovery.DiscoveryResponse) {
+	if c.FetchResponseFunc != nil {
+		c.FetchResponseFunc(req, resp)
+	}
 }
 
 // NewServer creates handlers from a config watcher and callbacks.
@@ -141,44 +200,17 @@ func (values watches) Cancel() {
 	}
 }
 
-func createResponse(resp *cache.Response, typeURL string) (*discovery.DiscoveryResponse, error) {
+func createResponse(resp cache.Response, typeURL string) (*discovery.DiscoveryResponse, error) {
 	if resp == nil {
 		return nil, errors.New("missing response")
 	}
 
-	var resources []*any.Any
-	if resp.ResourceMarshaled {
-		resources = make([]*any.Any, len(resp.MarshaledResources))
-	} else {
-		resources = make([]*any.Any, len(resp.Resources))
+	marshalledResponse, err := resp.GetDiscoveryResponse()
+	if err != nil {
+		return nil, err
 	}
 
-	for i := 0; i < len(resources); i++ {
-		// Envoy relies on serialized protobuf bytes for detecting changes to the resources.
-		// This requires deterministic serialization.
-		if resp.ResourceMarshaled {
-			resources[i] = &any.Any{
-				TypeUrl: typeURL,
-				Value:   resp.MarshaledResources[i],
-			}
-		} else {
-			marshaledResource, err := cache.MarshalResource(resp.Resources[i])
-			if err != nil {
-				return nil, err
-			}
-
-			resources[i] = &any.Any{
-				TypeUrl: typeURL,
-				Value:   marshaledResource,
-			}
-		}
-	}
-	out := &discovery.DiscoveryResponse{
-		VersionInfo: resp.Version,
-		Resources:   resources,
-		TypeUrl:     typeURL,
-	}
-	return out, nil
+	return marshalledResponse, nil
 }
 
 // process handles a bi-di stream request
@@ -201,7 +233,7 @@ func (s *server) process(stream stream, reqCh <-chan *discovery.DiscoveryRequest
 
 	// sends a response by serializing to protobuf Any
 	send := func(resp cache.Response, typeURL string) (string, error) {
-		out, err := createResponse(&resp, typeURL)
+		out, err := createResponse(resp, typeURL)
 		if err != nil {
 			return "", err
 		}
@@ -210,7 +242,7 @@ func (s *server) process(stream stream, reqCh <-chan *discovery.DiscoveryRequest
 		streamNonce = streamNonce + 1
 		out.Nonce = strconv.FormatInt(streamNonce, 10)
 		if s.callbacks != nil {
-			s.callbacks.OnStreamResponse(streamID, &resp.Request, out)
+			s.callbacks.OnStreamResponse(streamID, resp.GetRequest(), out)
 		}
 		return out.Nonce, stream.Send(out)
 	}

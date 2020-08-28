@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -43,32 +43,22 @@ func (m *Connection) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetLocalAddress()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ConnectionValidationError{
-					field:  "LocalAddress",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetLocalAddress()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ConnectionValidationError{
+				field:  "LocalAddress",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetRemoteAddress()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ConnectionValidationError{
-					field:  "RemoteAddress",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetRemoteAddress()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ConnectionValidationError{
+				field:  "RemoteAddress",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -138,17 +128,12 @@ func (m *SocketEvent) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetTimestamp()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return SocketEventValidationError{
-					field:  "Timestamp",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetTimestamp()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SocketEventValidationError{
+				field:  "Timestamp",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -157,51 +142,36 @@ func (m *SocketEvent) Validate() error {
 
 	case *SocketEvent_Read_:
 
-		{
-			tmp := m.GetRead()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return SocketEventValidationError{
-						field:  "Read",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetRead()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SocketEventValidationError{
+					field:  "Read",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *SocketEvent_Write_:
 
-		{
-			tmp := m.GetWrite()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return SocketEventValidationError{
-						field:  "Write",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetWrite()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SocketEventValidationError{
+					field:  "Write",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *SocketEvent_Closed_:
 
-		{
-			tmp := m.GetClosed()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return SocketEventValidationError{
-						field:  "Closed",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetClosed()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SocketEventValidationError{
+					field:  "Closed",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -275,17 +245,12 @@ func (m *SocketBufferedTrace) Validate() error {
 
 	// no validation rules for TraceId
 
-	{
-		tmp := m.GetConnection()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return SocketBufferedTraceValidationError{
-					field:  "Connection",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetConnection()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SocketBufferedTraceValidationError{
+				field:  "Connection",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -293,17 +258,12 @@ func (m *SocketBufferedTrace) Validate() error {
 	for idx, item := range m.GetEvents() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return SocketBufferedTraceValidationError{
-						field:  fmt.Sprintf("Events[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SocketBufferedTraceValidationError{
+					field:  fmt.Sprintf("Events[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -387,34 +347,24 @@ func (m *SocketStreamedTraceSegment) Validate() error {
 
 	case *SocketStreamedTraceSegment_Connection:
 
-		{
-			tmp := m.GetConnection()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return SocketStreamedTraceSegmentValidationError{
-						field:  "Connection",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetConnection()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SocketStreamedTraceSegmentValidationError{
+					field:  "Connection",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	case *SocketStreamedTraceSegment_Event:
 
-		{
-			tmp := m.GetEvent()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return SocketStreamedTraceSegmentValidationError{
-						field:  "Event",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetEvent()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SocketStreamedTraceSegmentValidationError{
+					field:  "Event",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -488,17 +438,12 @@ func (m *SocketEvent_Read) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetData()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return SocketEvent_ReadValidationError{
-					field:  "Data",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetData()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SocketEvent_ReadValidationError{
+				field:  "Data",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -568,17 +513,12 @@ func (m *SocketEvent_Write) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetData()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return SocketEvent_WriteValidationError{
-					field:  "Data",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetData()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SocketEvent_WriteValidationError{
+				field:  "Data",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
