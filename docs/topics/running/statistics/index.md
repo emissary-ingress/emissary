@@ -28,4 +28,4 @@ There are several ways to get different statistics out of Ambassador:
 - Ambassador can push [Envoy statistics](./envoy-statsd) over the
   StatsD or DogStatsD protocol.
 - Ambassador Edge Stack can push [RateLimiting
-  statistics](../../environment) over the StatsD protocol.
+  statistics](../environment) over the StatsD protocol.
