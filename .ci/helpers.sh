@@ -76,11 +76,12 @@ crashLoops() {( # use a subshell so the set +x is local to the function
 start_cluster() {
     kubeconfig=${1}
     timeout=${2:-3600}
+    profile=${3:-default}
     if [ -e "${kubeconfig}" ]; then
         echo "cannot get cluster, kubeconfig ${kubeconfig} exists" 1>&2
         return 1
     fi
-    name=$(curl -s -H "Authorization: bearer ${KUBECEPTION_TOKEN}" "https://sw.bakerstreet.io/kubeception/api/klusters/ci-?generate=true&timeoutSecs=${timeout}" -X PUT | head -1 | cut -c2-)
+    name=$(curl -s -H "Authorization: bearer ${KUBECEPTION_TOKEN}" "https://sw.bakerstreet.io/kubeception/api/klusters/ci-?generate=true&timeoutSecs=${timeout}&profile=${profile}" -X PUT | head -1 | cut -c2-)
     echo "#${name}" > ${kubeconfig}
 }
 
