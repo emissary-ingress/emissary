@@ -32,7 +32,7 @@ if [ -n "${KUBECEPTION_TOKEN}" ]; then
     echo ${CLAIM_NAME} > ~/kubernaut-claim.txt
     mkdir ~/.kube
     export DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
-    get_cluster ${DEV_KUBECONFIG}
+    get_cluster ${DEV_KUBECONFIG} 3600 large
     kubectl --kubeconfig ${DEV_KUBECONFIG} -n default get service kubernetes
     exit
 fi
