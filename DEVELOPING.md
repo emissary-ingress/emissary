@@ -146,6 +146,67 @@ If you notice this happening, run `make go-mod-tidy`, and commit that.
 (If you're in Datawire, you should do this from `apro/`, not
 `apro/ambassador/`, so that apro.git's files are included too.)
 
+How do I run ambassador for local development using the new entrypoint?
+-----------------------------------------------------------------------
+
+The new entrypoint is written in go. It strives to be as compatible as possible
+with the normal go toolchain. You should be able to run it with:
+
+    go run ./cmd/ambassador entrypoint
+
+Of course just because you can run it this way does not mean it will succeed.
+The entrypoint needs to launch `diagd` and `envoy` in order to function, and it
+also expect to be able to write to the `/ambassador` directory.
+
+### Setting up diagd
+
+If you want to hack on diagd, its easiest to setup a virtualenv with an editable
+copy and launch your `go run` from within that virtualenv. Note that these
+instructions depend on the virtualenvwrapper
+(https://virtualenvwrapper.readthedocs.io/en/latest/) package:
+
+    # Create a virtualenv named amb with all the python requirements
+    # installed.
+    mkvirtualenv -p python3 -r builder/requirements.txt amb
+    # Created an editable installation of ambassador:
+    pip install -e python/
+    # Check that we do indeed have diagd in our path.
+    which diagd
+
+### Changing the ambassador root
+
+You should now be able to launch ambassador if you set the
+`ambassador_root` environment variable to a writeable location:
+
+   ambassador_root=/tmp go run ./cmd/ambassador entrypoint
+
+### Getting envoy
+
+If you do not have envoy in your path already, the entrypoint will use
+docker to run it. At the moment this is untested for macs which probably
+means it is broken since localhost communication does not work by
+default on macs. This can be made to work as soon an intrepid volunteer
+with a mac reaches out to me (rhs@datawire.io).
+
+### Shutting up the pod labels error
+
+An astute observe of the logs will notice that ambassador complains
+voiciferously that pod labels are not mounted in the ambassador
+container. To reduce this noise, you can:
+
+    mkdir /tmp/ambassador-pod-info && touch /tmp/ambassador-pod-info/labels
+
+### Extra credit
+
+When you run ambassador locally it will configure itself exactly as it
+would in the cluster. That means with two caveats you can actually
+interact with it and it will function normally:
+
+1. You need to run teleproxy or equivalent so it can connect to the
+   backend services in its configuration.
+
+2. You need to supply the host header when you talk to it.
+
 How do I debug/develop envoy config generation?
 -----------------------------------------------
 

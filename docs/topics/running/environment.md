@@ -15,13 +15,14 @@ Use the following variables for the environment of your Ambassador container:
 
 | Purpose                           | Variable                                    | Default value                                       | Value type                                                                    |
 |-----------------------------------|---------------------------------------------|-----------------------------------------------------|-------------------------------------------------------------------------------|
-| Ambassador                        | `AMBASSADOR_ID`                             | `default`                                           | Plain string                                                                  |
-| Ambassador                        | `AMBASSADOR_NAMESPACE`                      | `default` ([^1])                                    | Kubernetes namespace                                                          |
-| Ambassador                        | `AMBASSADOR_SINGLE_NAMESPACE`               | Empty                                               | Boolean; non-empty=true, empty=false                                          |
-| Ambassador                        | `AMBASSADOR_ENVOY_BASE_ID`                  | `0`                                                 | Integer                                                                       |
-| Ambassador                        | `AMBASSADOR_FAST_VALIDATION`                | Empty                                               | EXPERIMENTAL -- Boolean; non-empty=true, empty=false                          |
-| Ambassador                        | `AMBASSADOR_UPDATE_MAPPING_STATUS`          | `false`                                             | Boolean; `true`=true, any other value=false                                   |
-| Ambassador Edge Stack             | `AES_LOG_LEVEL`                             | `info`                                              | Log level (see below)                                                         |
+| Core                              | `AMBASSADOR_ID`                             | `default`                                           | Plain string                                                                  |
+| Core                              | `AMBASSADOR_NAMESPACE`                      | `default` ([^1])                                    | Kubernetes namespace                                                          |
+| Core                              | `AMBASSADOR_SINGLE_NAMESPACE`               | Empty                                               | Boolean; non-empty=true, empty=false                                          |
+| Core                              | `AMBASSADOR_ENVOY_BASE_ID`                  | `0`                                                 | Integer                                                                       |
+| Core                              | `AMBASSADOR_FAST_VALIDATION`                | Empty                                               | EXPERIMENTAL -- Boolean; non-empty=true, empty=false                          |
+| Core                              | `AMBASSADOR_FAST_RECONFIGURE`               | `false`                                             | EXPERIMENTAL -- Boolean; `true`=true, any other value=false                   |
+| Core                              | `AMBASSADOR_UPDATE_MAPPING_STATUS`          | `false`                                             | Boolean; `true`=true, any other value=false                                   |
+| Edge Stack                        | `AES_LOG_LEVEL`                             | `info`                                              | Log level (see below)                                                         |
 | Primary Redis (L4)                | `REDIS_SOCKET_TYPE`                         | `tcp`                                               | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
 | Primary Redis (L4)                | `REDIS_URL`                                 | None, must be set explicitly                        | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
 | Primary Redis (L4)                | `REDIS_TLS_ENABLED`                         | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
@@ -32,7 +33,7 @@ Use the following variables for the environment of your Ambassador container:
 | Primary Redis (tune)              | `REDIS_PING_INTERVAL`                       | `10s`                                               | Duration; [Go `time.ParseDuration`][]                                         |
 | Primary Redis (tune)              | `REDIS_TIMEOUT`                             | `0s`                                                | Duration; [Go `time.ParseDuration`][]                                         |
 | Primary Redis (tune)              | `REDIS_SURGE_LIMIT_INTERVAL`                | `0s`                                                | Duration; [Go `time.ParseDuration`][]                                         |
-| Primary Redis (tune)              | `REDIS_SURGE_LIMIT_AFTER`                   | The value of `REDIS_POOL_SIZE``                     | Integer                                                                       |
+| Primary Redis (tune)              | `REDIS_SURGE_LIMIT_AFTER`                   | The value of `REDIS_POOL_SIZE`                      | Integer                                                                       |
 | Primary Redis (tune)              | `REDIS_SURGE_POOL_SIZE`                     | `0`                                                 | Integer                                                                       |
 | Primary Redis (tune)              | `REDIS_SURGE_POOL_DRAIN_INTERVAL`           | `1m`                                                | Duration; [Go `time.ParseDuration`][]                                         |
 | Per-Second RateLimit Redis        | `REDIS_PERSECOND`                           | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
@@ -59,6 +60,8 @@ Use the following variables for the environment of your Ambassador container:
 | Developer Portal                  | `DEVPORTAL_CONTENT_DIR`                     | `/`                                                 | Rooted Git directory                                                          |
 | Developer Portal                  | `DEVPORTAL_CONTENT_BRANCH`                  | `master`                                            | Git branch name                                                               |
 | Developer Portal                  | `POLL_EVERY_SECS`                           | `60`                                                | Integer                                                                       |
+| Envoy                             | `STATSD_ENABLED`                            | `false`                                             | Boolean; Python `value.lower() == "true"`                                     |
+| Envoy                             | `DOGSTATSD`                                 | `false`                                             | Boolean; Python `value.lower() == "true"`                                     |
 
 Log level names are case-insensitive.  From least verbose to most
 verbose, valid log levels are `error`, `warn`/`warning`, `info`,

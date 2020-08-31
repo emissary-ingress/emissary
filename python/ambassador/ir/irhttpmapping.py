@@ -91,7 +91,7 @@ class IRHTTPMapping (IRBaseMapping):
         "host_rewrite": False,
         "idle_timeout_ms": False,
         "keepalive": False,
-        "labels": False,        # Only supported in v1, handled in setup
+        "labels": False,        # Not supported in v0; requires v1+; handled in setup
         "load_balancer": False,
         # Do not include method
         "method_regex": False,
@@ -101,7 +101,7 @@ class IRHTTPMapping (IRBaseMapping):
         "prefix_exact": False,
         "prefix_regex": False,
         "priority": False,
-        "rate_limits": False,   # Only supported in v0, handled in setup
+        "rate_limits": False,   # Only supported in v0; replaced by "labels" in v1; handled in setup
         # Do not include regex_headers
         "remove_request_headers": True,
         "remove_response_headers": True,
