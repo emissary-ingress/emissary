@@ -176,11 +176,6 @@ $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto:
 	  curl --fail -L "$$url"; \
 	} > $@
 
-# proto_path is a list of where to look for .proto files.
-_proto_path += $(OSS_HOME)/api # input files must be within the path
-_proto_path += $(OSS_HOME)/vendor # for "k8s.io/..."
-proto_path = $(call lazyonce,proto_path,$(_proto_path))
-
 # Usage: $(call protoc,output_module,output_basedir[,plugin_files])
 protoc = @echo PROTOC --$1_out=$2 $<; mkdir -p $2 && $(tools/protoc) \
   $(addprefix --proto_path=,$(proto_path)) \
@@ -188,10 +183,13 @@ protoc = @echo PROTOC --$1_out=$2 $<; mkdir -p $2 && $(tools/protoc) \
   --$1_out=$(if $(proto_options/$(strip $1)),$(call joinlist,$(comma),$(proto_options/$(strip $1))):)$2 \
   $<
 
+# proto_path is a list of where to look for .proto files.
+proto_path += $(OSS_HOME)/api # input files must be within the path
+proto_path += $(OSS_HOME)/vendor # for "k8s.io/..."
+
 # The "M{FOO}={BAR}" options map from .proto files to Go package names.
-_proto_options/go += plugins=grpc
-#_proto_options/go += Mgoogle/protobuf/duration.proto=github.com/golang/protobuf/ptypes/duration
-proto_options/go = $(call lazyonce,proto_options/go,$(_proto_options/go))
+proto_options/go += plugins=grpc
+#proto_options/go += Mgoogle/protobuf/duration.proto=github.com/golang/protobuf/ptypes/duration
 $(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-go) | $(OSS_HOME)/vendor
 	$(call protoc,go,$(OSS_HOME)/pkg/api,\
 	    $(tools/protoc-gen-go))
