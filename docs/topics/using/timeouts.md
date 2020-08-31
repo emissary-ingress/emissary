@@ -12,17 +12,17 @@ Ambassador Edge Stack enables you to control timeouts in several different ways.
 
 ## Cluster Idle Timeout: `cluster_idle_timeout_ms`
 
-`cluster_idle_timeout_ms` controls how long a connection stream will remain open if there are no active requests. This timeout operates based on outgoing requests to upstream services. It can be disabled by setting the value to 0.
+`cluster_idle_timeout_ms` controls how long a connection stream will remain open if there are no active requests. This timeout operates based on outgoing requests to upstream services. By default this is set to 30000ms.  It can be disabled by setting the value to 0.
 
 ## Connect Timeout: `connect_timeout_ms`
 
-`connect_timeout_ms` sets the connection-level timeout for Ambassador Edge Stack to an upstream service at the network layer.  This timeout runs until Ambassador can verify that a TCP connection has been established.  This timeout cannot be disabled. The default is `3000m`.
+`connect_timeout_ms` sets the connection-level timeout for Ambassador Edge Stack to an upstream service at the network layer.  This timeout runs until Ambassador can verify that a TCP connection has been established.  This timeout cannot be disabled. The default is 3000ms.
 
 ## Module Only
 
 ## Listener Idle Timeout: `listener_idle_timeout_ms`
 
-`listener_idle_timeout_ms` controls how long a connection stream will remain open if there are no active requests.  This timeout operates based on incoming requests to the listener.  It can be disabled by setting the value to 0.  **Caution** Disabling this timeout increases the likelihood of stream leaks due to missed FINs in the TCP connection.
+`listener_idle_timeout_ms` controls how long a connection stream will remain open if there are no active requests.  This timeout operates based on incoming requests to the listener.  By default, this is set to 30000ms.  It can be disabled by setting the value to 0.  **Caution** Disabling this timeout increases the likelihood of stream leaks due to missed FINs in the TCP connection.
 
 ### Example
 
