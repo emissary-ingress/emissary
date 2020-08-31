@@ -3,6 +3,7 @@ package kates
 import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	netv1beta1 "k8s.io/api/networking/v1beta1"
 	xv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -46,14 +47,20 @@ type ObjectMeta = metav1.ObjectMeta
 
 type Namespace = corev1.Namespace
 
+type LocalObjectReference = corev1.LocalObjectReference
+
 type Event = corev1.Event
 type ConfigMap = corev1.ConfigMap
 
 type Secret = corev1.Secret
 
+type Ingress = netv1beta1.Ingress
+type IngressClass = netv1beta1.IngressClass
+
 type Service = corev1.Service
 type ServiceSpec = corev1.ServiceSpec
 type ServicePort = corev1.ServicePort
+type Endpoints = corev1.Endpoints
 
 var ServiceTypeLoadBalancer = corev1.ServiceTypeLoadBalancer
 
