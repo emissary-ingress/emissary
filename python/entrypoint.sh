@@ -15,7 +15,7 @@
 # limitations under the License
 
 if [ "${AMBASSADOR_FAST_RECONFIGURE,,}" == "true" ]; then
-  exec ambassador entrypoint
+  exec busyambassador entrypoint
 fi
 
 ENTRYPOINT_DEBUG=
