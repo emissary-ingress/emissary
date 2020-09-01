@@ -69,8 +69,8 @@ limiting service.
 > +	envoy_ratelimit_v2.RegisterRateLimitServiceServer(myGRPCServer, myRateLimitImplementation)
 > ```
 
-[`v1/rls.proto`]: https://github.com/datawire/ambassador/tree/master/api/pb/lyft/ratelimit/rls.proto
-[`v2/rls.proto`]: https://github.com/datawire/ambassador/tree/master/api/envoy/service/ratelimit/v2/rls.proto
+[`v1/rls.proto`]: https://github.com/datawire/ambassador/tree/$branch$/api/pb/lyft/ratelimit/rls.proto
+[`v2/rls.proto`]: https://github.com/datawire/ambassador/tree/$branch$/api/envoy/service/ratelimit/v2/rls.proto
 
 The Ambassador API Gateway generates a gRPC request to the external rate limit
 service and provides a list of labels on which the rate limit service can base
