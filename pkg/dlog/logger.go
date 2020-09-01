@@ -93,12 +93,14 @@ func WithLoggerField(ctx context.Context, key string, value interface{}) context
 }
 
 // GetLogger returns the Logger associated with ctx.  If ctx has no
-// Logger associated with it, a "default" logger is returned.  This
-// function always returns a usable logger.
+// Logger associated with it, a "fallback" logger (see
+// SetFallbackLogger) is returned.  This function always returns a
+// usable logger, unless you have specifically told it not to by
+// calling SetFallbackLogger(nil).
 func GetLogger(ctx context.Context) Logger {
 	logger := ctx.Value(loggerContextKey{})
 	if logger == nil {
-		return getDefaultLogger()
+		return getFallbackLogger()
 	}
 	return logger.(Logger)
 }
