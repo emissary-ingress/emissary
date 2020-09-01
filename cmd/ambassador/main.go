@@ -6,52 +6,26 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"path/filepath"
+	"github.com/datawire/ambassador/pkg/busy"
 
 	"github.com/datawire/ambassador/cmd/ambex"
 	"github.com/datawire/ambassador/cmd/entrypoint"
 	"github.com/datawire/ambassador/cmd/kubestatus"
 	"github.com/datawire/ambassador/cmd/watt"
-	"github.com/datawire/ambassador/pkg/environment"
 )
 
 var Version = "(unknown version)"
 
 func main() {
-	name := filepath.Base(os.Args[0])
-	if name == "ambassador" && len(os.Args) > 1 {
-		name = os.Args[1]
-		os.Args = os.Args[1:]
-	}
-
-	// XXX: entrypoint does it's own environment bootstrapping
-	if name != "entrypoint" {
-		environment.EnvironmentSetupEntrypoint()
-	}
-
 	ambex.Version = Version
+	//entrypoint.Version = Version // Does not exist
+	//kubestatus.Version = Version // Does not exist
 	watt.Version = Version
 
-	switch name {
-	case "ambex":
-		ambex.Main()
-	case "watt":
-		watt.Main()
-	case "kubestatus":
-		kubestatus.Main()
-	case "entrypoint":
-		entrypoint.Main()
-	default:
-		fmt.Println("The Ambassador main program is a multi-call binary that combines various")
-		fmt.Println("support programs into one executable.")
-		fmt.Println()
-		fmt.Println("Usage: ambassador <PROGRAM> [arguments]...")
-		fmt.Println("   or: <PROGRAM> [arguments]...")
-		fmt.Println()
-		fmt.Println("Available programs: ambex kubestatus watt")
-		fmt.Println()
-		fmt.Printf("Unknown name %q\n", name)
-	}
+	busy.Main("ambassador", "Ambassador", map[string]func(){
+		"ambex":      ambex.Main,
+		"watt":       watt.Main,
+		"kubestatus": kubestatus.Main,
+		"entrypoint": entrypoint.Main,
+	})
 }
