@@ -22,7 +22,7 @@ func main() {
 	//kubestatus.Version = Version // Does not exist
 	watt.Version = Version
 
-	busy.Main("ambassador", "Ambassador", map[string]func(){
+	busy.Main("busyambassador", "Ambassador", map[string]func(){
 		"ambex":      ambex.Main,
 		"watt":       watt.Main,
 		"kubestatus": kubestatus.Main,
