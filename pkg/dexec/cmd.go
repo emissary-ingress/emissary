@@ -77,7 +77,7 @@ var LookPath = exec.LookPath
 // must be created with CommandContext.
 type Cmd struct {
 	*exec.Cmd
-	logger dlog.Logger
+	ctx context.Context
 
 	pidlock sync.RWMutex
 }
@@ -96,8 +96,8 @@ type Cmd struct {
 // for more information.
 func CommandContext(ctx context.Context, name string, arg ...string) *Cmd {
 	ret := &Cmd{
-		Cmd:    exec.CommandContext(ctx, name, arg...),
-		logger: dlog.GetLogger(ctx),
+		Cmd: exec.CommandContext(ctx, name, arg...),
+		ctx: ctx,
 	}
 	ret.pidlock.Lock()
 	return ret
@@ -111,7 +111,7 @@ func (c *Cmd) logiofn(prefix string) func(string) {
 		if c.Process != nil {
 			pid = c.Process.Pid
 		}
-		c.logger.Printf("[pid:%v] %s %s", pid, prefix, msg)
+		dlog.GetLogger(c.ctx).Printf("[pid:%v] %s %s", pid, prefix, msg)
 	}
 }
 
@@ -130,15 +130,15 @@ func (c *Cmd) Start() error {
 
 	err := c.Cmd.Start()
 	if err == nil {
-		c.logger.Printf("[pid:%v] started command %#v", c.Process.Pid, c.Args)
+		dlog.GetLogger(c.ctx).Printf("[pid:%v] started command %#v", c.Process.Pid, c.Args)
 		if stdin, isFile := c.Stdin.(*os.File); isFile {
-			c.logger.Printf("[pid:%v] stdin  < not logging input read from file %s", c.Process.Pid, stdin.Name())
+			dlog.GetLogger(c.ctx).Printf("[pid:%v] stdin  < not logging input read from file %s", c.Process.Pid, stdin.Name())
 		}
 		if stdout, isFile := c.Stdout.(*os.File); isFile {
-			c.logger.Printf("[pid:%v] stdout > not logging output written to file %s", c.Process.Pid, stdout.Name())
+			dlog.GetLogger(c.ctx).Printf("[pid:%v] stdout > not logging output written to file %s", c.Process.Pid, stdout.Name())
 		}
 		if stderr, isFile := c.Stderr.(*os.File); isFile {
-			c.logger.Printf("[pid:%v] stderr > not logging output written to file %s", c.Process.Pid, stderr.Name())
+			dlog.GetLogger(c.ctx).Printf("[pid:%v] stderr > not logging output written to file %s", c.Process.Pid, stderr.Name())
 		}
 	}
 	c.pidlock.Unlock()
@@ -158,9 +158,9 @@ func (c *Cmd) Wait() error {
 	}
 
 	if err == nil {
-		c.logger.Printf("[pid:%v] finished successfully: %v", pid, c.ProcessState)
+		dlog.GetLogger(c.ctx).Printf("[pid:%v] finished successfully: %v", pid, c.ProcessState)
 	} else {
-		c.logger.Printf("[pid:%v] finished with error: %v", pid, err)
+		dlog.GetLogger(c.ctx).Printf("[pid:%v] finished with error: %v", pid, err)
 	}
 
 	return err
