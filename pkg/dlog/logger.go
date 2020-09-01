@@ -1,6 +1,6 @@
 // Package dlog implements a generic logger facade.
 //
-// There are two first-class things of value in this package:
+// There are three first-class things of value in this package:
 //
 // First: The Logger interface.  This is a simple structured logging
 // interface that is mostly trivial to implement on top of most
@@ -11,13 +11,13 @@
 // tracking logger context.  These allow you to painlessly associate a
 // logger with a context.
 //
-// If you are writing library code and want a logger, then you should
-// take a context.Context as an argument, and then call GetLogger on
-// that Context argument.
+// Third: The actual logging functions.  If you are writing library
+// code and want to log things, then you should take a context.Context
+// as an argument, and then call dlog.{Level}{,f,ln}(ctx, args) to
+// log.
 package dlog
 
 import (
-	"context"
 	"log"
 )
 
@@ -75,34 +75,3 @@ const (
 	// informational events than the Debug.
 	LogLevelTrace
 )
-
-// WithLogger returns a copy of ctx with logger associated with it,
-// for future calls to GetLogger.
-//
-// You should only really ever call WithLogger from the initial
-// process set up (i.e. directly inside your 'main()' function).
-func WithLogger(ctx context.Context, logger Logger) context.Context {
-	return context.WithValue(ctx, loggerContextKey{}, logger)
-}
-
-// WithField is a convenience wrapper for
-//
-//     WithLogger(ctx, GetLogger(ctx).WithField(key, value))
-func WithField(ctx context.Context, key string, value interface{}) context.Context {
-	return WithLogger(ctx, GetLogger(ctx).WithField(key, value))
-}
-
-// GetLogger returns the Logger associated with ctx.  If ctx has no
-// Logger associated with it, a "fallback" logger (see
-// SetFallbackLogger) is returned.  This function always returns a
-// usable logger, unless you have specifically told it not to by
-// calling SetFallbackLogger(nil).
-func GetLogger(ctx context.Context) Logger {
-	logger := ctx.Value(loggerContextKey{})
-	if logger == nil {
-		return getFallbackLogger()
-	}
-	return logger.(Logger)
-}
-
-type loggerContextKey struct{}
