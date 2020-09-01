@@ -7,9 +7,9 @@
 // logging backends, and allows library code to not need to care about
 // what specific logging system the calling program uses.
 //
-// Second: The WithLogger, GetLogger, and WithLoggerField functions
-// for tracking logger context.  These allow you to painlessly
-// associate a logger with a context.
+// Second: The WithLogger, GetLogger, and WithField functions for
+// tracking logger context.  These allow you to painlessly associate a
+// logger with a context.
 //
 // If you are writing library code and want a logger, then you should
 // take a context.Context as an argument, and then call GetLogger on
@@ -85,10 +85,10 @@ func WithLogger(ctx context.Context, logger Logger) context.Context {
 	return context.WithValue(ctx, loggerContextKey{}, logger)
 }
 
-// WithLoggerField is a convenience wrapper for
+// WithField is a convenience wrapper for
 //
 //     WithLogger(ctx, GetLogger(ctx).WithField(key, value))
-func WithLoggerField(ctx context.Context, key string, value interface{}) context.Context {
+func WithField(ctx context.Context, key string, value interface{}) context.Context {
 	return WithLogger(ctx, GetLogger(ctx).WithField(key, value))
 }
 
