@@ -55,7 +55,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
-(no changes yet)
+- Bugfix: The container no longer exits "successfully" when the Deployment specifies an invalid `command`.
 
 ## [1.7.0] August 27, 2020
 [1.7.0]: https://github.com/datawire/ambassador/compare/v1.6.2...v1.7.0

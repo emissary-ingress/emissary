@@ -38,5 +38,11 @@ func Main(binName, humanName string, cmds map[string]func()) {
 		fmt.Println("Available programs:", cmdnames)
 		fmt.Println()
 		fmt.Printf("Unknown program %q\n", name)
+		// POSIX says the shell should set $?=127 for "command
+		// not found", so non-shell programs that just run a
+		// command for you (including busybox) tend to mimic
+		// that and use exit code 127 to indicate "command not
+		// found".
+		os.Exit(127)
 	}
 }
