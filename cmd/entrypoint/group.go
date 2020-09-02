@@ -4,113 +4,105 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"sync"
 	"time"
+
+	"github.com/datawire/ambassador/pkg/derrgroup"
+	"github.com/datawire/ambassador/pkg/errutil"
 )
 
-// XXX: should we replace with Luke's stuff?
-// Manage a group of related goroutines:
-//  - if one dies, we all die
-//    + even if one of us is poorly behaved
-//  - capture all background errors so it is easy to ensure they are repeated when the program
-//    terminates and not swallowed in log output
-//  - always report poorly behaved goroutines that refuse to exit
+// Group manages a group group of related goroutines.
+//
+// TODO(lukeshu): Merge this with cmd/amb-sidecar/group.
 type Group struct {
-	// Parent context
+	inner *derrgroup.Group
+
+	// To pass to the worker goroutines
 	ctx context.Context
 
-	// How long we should wait for other routines to shutdown.
-	grace time.Duration
-
-	cancel context.CancelFunc
-	once   sync.Once
-	wg     sync.WaitGroup
-
-	// The "do" mutex, protects running, paniced, and all invocations of "do".
-	mutex   sync.Mutex
-	running map[string]bool
-	paniced map[string]interface{}
+	// For dealing with shutdown
+	grace            time.Duration
+	cancel           func()
+	shutdownTimedOut chan struct{}
 }
 
+// NewGroup returns a manager for group of related goroutines:
+//
+//  - If one dies, they all die.
+//  - If one is poorly behaved and does not die within `grace` of its
+//    Context being canceled, then Wait() returns early, and indicates
+//    the poorly behaved goroutine.  Because it is not possible to
+//    kill a goroutine, the poorly behaved goroutine will still be
+//    running when Wait() returns.
+//  - Capture all background errors so it is easy to ensure they are
+//    repeated when the program terminates and not swallowed in log
+//    output.
 func NewGroup(parent context.Context, grace time.Duration) *Group {
 	ctx, cancel := context.WithCancel(parent)
-	return &Group{
-		ctx:     ctx,
-		grace:   grace,
-		cancel:  cancel,
-		running: map[string]bool{},
-		paniced: map[string]interface{}{},
+	ret := &Group{
+		ctx:              ctx,
+		grace:            grace,
+		shutdownTimedOut: make(chan struct{}),
+		inner:            derrgroup.NewGroup(cancel),
 	}
+	go func() {
+		<-ctx.Done()
+		time.Sleep(grace)
+		close(ret.shutdownTimedOut)
+	}()
+	return ret
 }
 
 // Launch a goroutine as part of the group.
 func (g *Group) Go(name string, f func(context.Context)) {
-	g.do(func() {
-		_, ok := g.running[name]
-		if ok {
-			panic(fmt.Sprintf("duplicate goroutine name: %s", name))
-		}
-		g.running[name] = true
-	})
-
-	g.wg.Add(1)
-	go func() {
+	g.inner.Go(name, func() (err error) {
 		// exit bookeeping:
-		//  1. updated running and paniced maps
-		//  2. call g.wg.Done() to signal we have exited
-		//  3. cancel the context so others know to exit
-		//  4. if we are the first to exit, start a watchdog in case others don't exit
+		//  1. Log that we exited.
+		//  2. Cancel the context so others know to exit.
 		defer func() {
-			err := recover()
+			err = errutil.PanicToError(recover())
 			if err == nil {
-				g.do(func() { g.running[name] = false })
 				log.Printf("EXIT %s normal", name)
 			} else {
-				g.do(func() { g.running[name] = false; g.paniced[name] = err })
 				log.Printf("EXIT %s panic: %v", name, err)
 			}
-			g.wg.Done()
-			g.cancel()
-			g.once.Do(func() { go g.watchdog() })
+			g.cancel() // trigger a shutdown whether or not there was an error
 		}()
 		f(g.ctx)
+		return
+	})
+}
+
+// Wait for all goroutines in the group to finish, and return a map of
+// any errors.  No news is good news.  If the map does not contain an
+// entry for the goroutine, then it exited normally.
+//
+// Once the group has initiated shutdown (either one of the goroutines
+// has exited, or the parent context has been canceled), Wait will
+// return within the `grace` period passed to NewGroup.  If a
+// poorly-behaved goroutine is still running at the end of that time,
+// it is left running, and it is indicated as "running, did not exit
+// in time ({{grace}} shutdown grace)" in the returned map.
+func (g *Group) Wait() map[string]string {
+	shutdownCompleted := make(chan struct{})
+	go func() {
+		g.inner.Wait()
+		close(shutdownCompleted)
 	}()
-}
-
-// This is the watchdog, sleep for the grace period and then call g.wg.Done() on behalf of any
-// goroutines that have not yet exited and fill in an error.
-func (g *Group) watchdog() {
-	time.Sleep(g.grace)
-	g.do(func() {
-		for _, isRunning := range g.running {
-			if isRunning {
-				g.wg.Done()
-			}
+	select {
+	case <-g.shutdownTimedOut:
+	case <-shutdownCompleted:
+	}
+	rawList := g.inner.List()
+	formattedList := make(map[string]string, len(rawList))
+	for name, state := range rawList {
+		switch state {
+		case derrgroup.GoroutineRunning:
+			formattedList[name] = fmt.Sprintf("%s, did not exit in time (%v shutdown grace)", state, g.grace)
+		case derrgroup.GoroutineErrored:
+			formattedList[name] = state.String()
+		case derrgroup.GoroutineExited:
+			// leave it out of the result
 		}
-	})
-}
-
-// Wait for all goroutines in the group to finish, and return a map of any errors. No news is good
-// news. If the map does not contain an entry for the goroutine, then it exited normally.
-func (g *Group) Wait() map[string]interface{} {
-	g.wg.Wait()
-	result := map[string]interface{}{}
-	g.do(func() {
-		for k, v := range g.running {
-			if v {
-				result[k] = fmt.Errorf("%s did not exit in time (%s shutdown grace)", k, g.grace.String())
-			}
-		}
-		for k, v := range g.paniced {
-			result[k] = v
-		}
-	})
-	return result
-}
-
-// Do something while holding the group mutex.
-func (g *Group) do(f func()) {
-	g.mutex.Lock()
-	defer g.mutex.Unlock()
-	f()
+	}
+	return formattedList
 }
