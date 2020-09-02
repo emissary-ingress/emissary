@@ -1,10 +1,15 @@
+// Copyright 2020 Datawire. All rights reserved.
+//
 // Copyright 2016 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package errgroup provides synchronization, error propagation, and Context
+// Package derrgroup provides synchronization, error propagation, and Context
 // cancelation for groups of goroutines working on subtasks of a common task.
-package errgroup
+//
+// derrgroup is a fork of golang.org/x/sync/errgroup commit
+// 6e8e738ad208923de99951fe0b48239bfd864f28 (2020-06-04).
+package derrgroup
 
 import (
 	"context"
