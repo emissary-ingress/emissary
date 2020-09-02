@@ -4,8 +4,17 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package derrgroup provides synchronization, error propagation, and Context
-// cancelation for groups of goroutines working on subtasks of a common task.
+// Package derrgroup provides synchronization, error propagation, and
+// cancelation callback for groups of goroutines working on subtasks
+// of a common task.
+//
+// The principle is that derrgroup contains the things on top of
+// sync.WaitGroup that can't be solved at a higher-level without
+// re-implementing the synchronization of derrgroup.  If it can be
+// solved by adding another layer on top of derrgroup, then it is NOT
+// solved here; contexts are trivial to add by the caller, signal
+// handling can be done as a worker in the group.  This is a low-level
+// primitive for implementing your more sophisticated groups.
 //
 // derrgroup is a fork of golang.org/x/sync/errgroup commit
 // 6e8e738ad208923de99951fe0b48239bfd864f28 (2020-06-04).
