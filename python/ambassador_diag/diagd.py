@@ -1480,7 +1480,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
         bootstrap_config, ads_config = econf.split_config()
 
-        if not self.validate_envoy_config(config=ads_config, retries=self.app.validation_retries):
+        if not self.validate_envoy_config(ir, config=ads_config, retries=self.app.validation_retries):
             self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
 
             # Don't use app.check_scout; it will deadlock.
@@ -1817,7 +1817,7 @@ class AmbassadorEventWatcher(threading.Thread):
         self.app.logger.debug("Scout notices: %s" % json.dumps(scout_notices))
         self.app.logger.debug("App notices after scout: %s" % json.dumps(app.notices.notices))
 
-    def validate_envoy_config(self, config, retries) -> bool:
+    def validate_envoy_config(self, ir: IR, config, retries) -> bool:
         if self.app.no_envoy:
             self.app.logger.debug("Skipping validation")
             return True
@@ -1841,7 +1841,18 @@ class AmbassadorEventWatcher(threading.Thread):
         # Try to validate the Envoy config. Short circuit and fall through
         # immediately on concrete success or failure, and retry (up to the
         # limit) on timeout.
-        timeout = 5
+        #
+        # The default timeout is 5s, but this can be overridden in the Ambassador
+        # module.
+
+        amod = ir.ambassador_module
+        timeout = amod.envoy_validation_timeout if amod else 5
+
+        # If the timeout is zero, don't do the validation.
+        if timeout == 0:
+            self.logger.debug("not validating Envoy configuration since timeout is 0")
+            return True
+        
         for retry in range(retries):
             try:
                 v_encoded = subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=timeout)

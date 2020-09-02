@@ -37,6 +37,7 @@ class IRAmbassador (IRResource):
         'envoy_log_type',
         'envoy_log_path',
         'envoy_log_format',
+        # Do not include envoy_validation_timeout; we let finalize() type-check it.
         'enable_ipv4',
         'cluster_idle_timeout_ms',
         'listener_idle_timeout_ms',
@@ -96,6 +97,7 @@ class IRAmbassador (IRResource):
             envoy_log_type="text",
             envoy_log_path="/dev/fd/1",
             envoy_log_format=None,
+            envoy_validation_timeout=5,
             enable_ipv4=True,
             listener_idle_timeout_ms=None,
             liveness_probe={"enabled": True},
@@ -162,10 +164,19 @@ class IRAmbassador (IRResource):
         # get handled manually below.
         amod = aconf.get_module("ambassador")
 
-        for key in IRAmbassador.AModTransparentKeys:
-            if amod and (key in amod):
-                # Yes. It overrides the default.
-                self[key] = amod[key]
+        if amod:
+            for key in IRAmbassador.AModTransparentKeys:
+                if key in amod:
+                    # Override the default here.
+                    self[key] = amod[key]
+
+            # If we have an envoy_validation_timeout...
+            if 'envoy_validation_timeout' in amod:
+                # ...then set our timeout from it.
+                try:
+                    self.envoy_validation_timeout = int(amod['envoy_validation_timeout'])
+                except ValueError:
+                    self.post_error("envoy_validation_timeout must be an integer number of seconds")
 
         # If we don't have a default label domain, force it to 'ambassador'.
         if not self.get('default_label_domain'):
