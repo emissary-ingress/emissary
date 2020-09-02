@@ -89,8 +89,7 @@ type Cmd struct {
 //
 //  1. To kill the process (by calling os.Process.Kill) if the context
 //     becomes done before the command completes on its own.
-//  2. To get the logger (by calling
-//     github.com/datawire/ambassador/pkg/dlog.GetLogger on it).
+//  2. For logging (see github.com/datawire/ambassador/pkg/dlog).
 //
 // See the os/exec.Command and os/exec.CommandContext documentation
 // for more information.

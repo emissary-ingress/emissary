@@ -7,9 +7,8 @@
 // logging backends, and allows library code to not need to care about
 // what specific logging system the calling program uses.
 //
-// Second: The WithLogger, GetLogger, and WithField functions for
-// tracking logger context.  These allow you to painlessly associate a
-// logger with a context.
+// Second: The WithLogger and WithField functions for affecting the
+// logging for a context.
 //
 // Third: The actual logging functions.  If you are writing library
 // code and want to log things, then you should take a context.Context
