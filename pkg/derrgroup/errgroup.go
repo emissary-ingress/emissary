@@ -5,19 +5,37 @@
 // license that can be found in the LICENSE file.
 
 // Package derrgroup provides synchronization, error propagation, and
-// cancelation callback for groups of goroutines working on subtasks
+// cancellation callback for groups of goroutines working on subtasks
 // of a common task.
 //
-// The principle is that derrgroup contains the things on top of
-// sync.WaitGroup that can't be solved at a higher-level without
-// re-implementing the synchronization of derrgroup.  If it can be
-// solved by adding another layer on top of derrgroup, then it is NOT
-// solved here; contexts are trivial to add by the caller, signal
-// handling can be done as a worker in the group.  This is a low-level
-// primitive for implementing your more sophisticated groups.
-//
 // derrgroup is a fork of golang.org/x/sync/errgroup commit
-// 6e8e738ad208923de99951fe0b48239bfd864f28 (2020-06-04).
+// 6e8e738ad208923de99951fe0b48239bfd864f28 (2020-06-04).  It is
+// forked to provide only things that cannot reasonably be implemented
+// on top of itself; it is impossible to add goroutine enumeration on
+// top of errgroup without duplicating and doubling up on all of
+// errgroup's synchronization/locking.  Anything that can reasonably
+// be implemented *on top of* derrgroup is not included in derrgroup:
+//  - Managing `context.Contexts`s (this is something that errgroup
+//    kind of does, but derrgroup ripped out, because it can trivially
+//    be implemented on top of derrgroup)
+//  - Signal handling
+//  - Logging
+//  - Hard/soft cancellation
+//  - Having `Wait()` timeout on a shutdown that takes too long
+// Those are all good and useful things to have.  But they should be
+// implemented in a layer *on top of* derrgroup. "derrgroup.Group" was
+// originally called "llGroup" for "low-level group"; it is
+// intentionally low-level in order the be a clean primitive for other
+// things to build on top of.
+//
+// Right now, there are at least 3 Go implementations of "group"
+// functionality in use at Datawire (amb-sidecar/group,
+// entrypoint/group, and pkg/supervisor), which each offer some subset
+// of the above.  derrgroup offers to them a common robust base.  If
+// you're writing new application code, you should use one of those,
+// and not use derrgroup directly.  If you're writing a new "group"
+// abstraction, you should use derrgroup instead of implementing your
+// own locking/synchronization.
 package derrgroup
 
 import (
