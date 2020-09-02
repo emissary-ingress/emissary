@@ -59,8 +59,9 @@ func (m *ConsulWatchMaker) MakeConsulWatch(spec watchapi.ConsulWatchSpec) (*supe
 	worker := &supervisor.Worker{
 		Name: fmt.Sprintf("consul:%s", spec.WatchId()),
 		Work: func(p *supervisor.Process) error {
-			logger := dlog.GetLogger(p.Context()).
-				StdLogger(dlog.LogLevelInfo)
+			logger := dlog.StdLogger(p.Context(),
+				dlog.LogLevelInfo)
+
 			w, err := consulwatch.New(consul, logger, spec.Datacenter, spec.ServiceName, true)
 			if err != nil {
 				p.Logf("failed to setup new consul watch %v", err)
