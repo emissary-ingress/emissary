@@ -139,6 +139,12 @@ jobs:
       - run: make generate
       - dirty-check
 
+  "oss-dev-lint":
+    <<: *oss-linux-job
+    steps:
+      - oss-linux-setup
+      - run: make lint
+
   "oss-dev-images":
     <<: *oss-linux-job
     steps:
@@ -190,6 +196,7 @@ workflows:
     jobs:
       - "oss-dev-images"
       - "oss-dev-generate"
+      - "oss-dev-lint"
   "OSS: Release":
     when:
       or:

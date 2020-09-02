@@ -369,6 +369,13 @@ jobs:
     machine:
       image: "ubuntu-1604:201903-01"
     working_directory: ~/project/ambassador
+  oss-dev-lint:
+    steps:
+    - oss-linux-setup
+    - run: make lint
+    machine:
+      image: "ubuntu-1604:201903-01"
+    working_directory: ~/project/ambassador
   oss-dev-images:
     steps:
     - oss-linux-setup
@@ -489,6 +496,7 @@ workflows:
     jobs:
     - "oss-dev-images"
     - "oss-dev-generate"
+    - "oss-dev-lint"
   'OSS: Release':
     when:
       or:
