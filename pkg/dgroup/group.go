@@ -13,9 +13,12 @@ import (
 	"github.com/datawire/ambassador/pkg/dlog"
 )
 
-// Group is a wrapper around golang.org/x/sync/errgroup.Group (err, a
-// fork of errgroup) that:
+// Group is a wrapper around
+// github.com/datawire/ambassador/pkg/derrgroup.Group that:
 //  - handles SIGINT and SIGTERM
+//  - manages Context for you
+//  - adds hard/soft cancelation
+//  - does some minimal logging
 type Group struct {
 	hardCtx       context.Context
 	softCtx       context.Context
