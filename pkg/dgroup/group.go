@@ -26,8 +26,8 @@ type Group struct {
 	inner         *derrgroup.Group
 }
 
-func logGoroutines(printf func(format string, args ...interface{}), list map[string]derrgroup.GoroutineState) {
-	printf("  goroutine shutdown status:")
+func logGoroutines(ctx context.Context, printf func(ctx context.Context, format string, args ...interface{}), list map[string]derrgroup.GoroutineState) {
+	printf(ctx, "  goroutine shutdown status:")
 	names := make([]string, 0, len(list))
 	nameWidth := 0
 	for name := range list {
@@ -38,7 +38,7 @@ func logGoroutines(printf func(format string, args ...interface{}), list map[str
 	}
 	sort.Strings(names)
 	for _, name := range names {
-		printf("    %-*s: %s", nameWidth, name, list[name])
+		printf(ctx, "    %-*s: %s", nameWidth, name, list[name])
 	}
 }
 
@@ -57,13 +57,13 @@ func NewGroup(ctx context.Context, loggerFactory func(name string) dlog.Logger) 
 		inner:         derrgroup.NewGroup(softCancel),
 	}
 
-	ret.Go("supervisor", func(hardCtx, _ context.Context) error {
+	ret.Go("supervisor", func(hardCtx, softCtx context.Context) error {
 		<-softCtx.Done()
 		dlog.Infoln(hardCtx, "shutting down...")
 		return nil
 	})
 
-	ret.Go("signal_handler", func(hardCtx, _ context.Context) error {
+	ret.Go("signal_handler", func(hardCtx, softCtx context.Context) error {
 		defer func() {
 			// If we receive another signal after
 			// graceful-shutdown, we should trigger a
@@ -71,15 +71,12 @@ func NewGroup(ctx context.Context, loggerFactory func(name string) dlog.Logger) 
 			go func() {
 				sig := <-sigs
 				dlog.Errorln(hardCtx, errors.Errorf("received signal %v", sig))
-				errorf := func(fmt string, args ...interface{}) {
-					dlog.Errorf(hardCtx, fmt, args...)
-				}
-				logGoroutines(errorf, ret.List())
+				logGoroutines(hardCtx, dlog.Errorf, ret.List())
 				hardCancel()
 				// keep logging signals
 				for sig := range sigs {
 					dlog.Errorln(hardCtx, errors.Errorf("received signal %v", sig))
-					logGoroutines(errorf, ret.List())
+					logGoroutines(hardCtx, dlog.Errorf, ret.List())
 				}
 			}()
 		}()
@@ -118,7 +115,8 @@ func (g *Group) Go(name string, fn func(hardCtx, softCtx context.Context) error)
 func (g *Group) Wait() error {
 	ret := g.inner.Wait()
 	if ret != nil {
-		logGoroutines(g.loggerFactory("shutdown_status").Infof, g.List())
+		ctx := dlog.WithLogger(g.hardCtx, g.loggerFactory("shutdown_status"))
+		logGoroutines(ctx, dlog.Infof, g.List())
 	}
 	return ret
 }
