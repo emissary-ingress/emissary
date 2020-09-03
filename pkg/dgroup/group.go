@@ -133,6 +133,7 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 func (g *Group) Go(name string, fn func(ctx context.Context) error) {
 	g.inner.Go(name, func() error {
 		ctx := g.baseCtx
+		ctx = WithGoroutineName(ctx, "/"+name)
 		if g.cfg.WorkerContext != nil {
 			ctx = g.cfg.WorkerContext(ctx, name)
 		}
@@ -152,10 +153,7 @@ func (g *Group) Go(name string, fn func(ctx context.Context) error) {
 func (g *Group) Wait() error {
 	ret := g.inner.Wait()
 	if ret != nil && !g.cfg.DisableLogging {
-		ctx := g.baseCtx
-		if g.cfg.WorkerContext != nil {
-			ctx = g.cfg.WorkerContext(ctx, "shutdown_status")
-		}
+		ctx := WithGoroutineName(g.baseCtx, ":shutdown_status")
 		logGoroutines(ctx, dlog.Infof, g.List())
 	}
 	return ret
