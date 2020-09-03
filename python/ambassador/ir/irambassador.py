@@ -80,8 +80,13 @@ class IRAmbassador (IRResource):
         "rewrite": "/ambassador/v0/",
     }
 
-    # Set up the default Envoy validation timeout.
-    default_validation_timeout: ClassVar[int] = 10
+    # Set up the default Envoy validation timeout. This is deliberately chosen to be very large
+    # because the consequences of this timeout tripping are very bad. Ambassador basically ceases
+    # to function. It is far better to slow down as our configurations grow and give users a
+    # leading indicator that there is a scaling issue that needs to be dealt with than to
+    # suddenly and mysteriously stop functioning the day their configuration happens to become
+    # large enough to exceed this threshold. 
+    default_validation_timeout: ClassVar[int] = 60
 
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.ambassador",
