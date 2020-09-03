@@ -34,7 +34,7 @@ if [ -n "${KUBECEPTION_TOKEN}" ]; then
     mkdir -p ~/.kube
     export DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
     # get a kluster with a 1 timeout that is size "medium"
-    get_cluster ${DEV_KUBECONFIG} 3600 medium
+    get_cluster ${DEV_KUBECONFIG} 28800 medium
     kubectl --kubeconfig ${DEV_KUBECONFIG} -n default get service kubernetes
     exit
 fi
