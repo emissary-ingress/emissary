@@ -1,0 +1,126 @@
+package dgroup
+
+import (
+	"context"
+	"os"
+	"os/signal"
+	"sort"
+	"syscall"
+
+	"github.com/pkg/errors"
+
+	"github.com/datawire/ambassador/pkg/derrgroup"
+	"github.com/datawire/ambassador/pkg/dlog"
+)
+
+// Group is a wrapper around golang.org/x/sync/errgroup.Group (err, a
+// fork of errgroup) that:
+//  - handles SIGINT and SIGTERM
+type Group struct {
+	hardCtx       context.Context
+	softCtx       context.Context
+	loggerFactory func(name string) dlog.Logger
+	inner         *derrgroup.Group
+}
+
+func logGoroutines(printf func(format string, args ...interface{}), list map[string]derrgroup.GoroutineState) {
+	printf("  goroutine shutdown status:")
+	names := make([]string, 0, len(list))
+	nameWidth := 0
+	for name := range list {
+		names = append(names, name)
+		if len(name) > nameWidth {
+			nameWidth = len(name)
+		}
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		printf("    %-*s: %s", nameWidth, name, list[name])
+	}
+}
+
+// NewGroup returns a new Group.
+func NewGroup(ctx context.Context, loggerFactory func(name string) dlog.Logger) *Group {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	hardCtx, hardCancel := context.WithCancel(ctx)
+	softCtx, softCancel := context.WithCancel(hardCtx)
+
+	ret := &Group{
+		hardCtx:       hardCtx,
+		softCtx:       softCtx,
+		loggerFactory: loggerFactory,
+		inner:         derrgroup.NewGroup(softCancel),
+	}
+
+	ret.Go("supervisor", func(hardCtx, _ context.Context) error {
+		<-softCtx.Done()
+		dlog.Infoln(hardCtx, "shutting down...")
+		return nil
+	})
+
+	ret.Go("signal_handler", func(hardCtx, _ context.Context) error {
+		defer func() {
+			// If we receive another signal after
+			// graceful-shutdown, we should trigger a
+			// not-so-graceful shutdown.
+			go func() {
+				sig := <-sigs
+				dlog.Errorln(hardCtx, errors.Errorf("received signal %v", sig))
+				errorf := func(fmt string, args ...interface{}) {
+					dlog.Errorf(hardCtx, fmt, args...)
+				}
+				logGoroutines(errorf, ret.List())
+				hardCancel()
+				// keep logging signals
+				for sig := range sigs {
+					dlog.Errorln(hardCtx, errors.Errorf("received signal %v", sig))
+					logGoroutines(errorf, ret.List())
+				}
+			}()
+		}()
+
+		select {
+		case sig := <-sigs:
+			return errors.Errorf("received signal %v", sig)
+		case <-softCtx.Done():
+			return nil
+		}
+	})
+
+	return ret
+}
+
+// Go wraps derrgroup.Group.Go().
+//
+//  - `softCtx` being canceled should trigger a graceful shutdown
+//  - `hardCtx` being canceled should trigger a not-so-graceful shutdown
+func (g *Group) Go(name string, fn func(hardCtx, softCtx context.Context) error) {
+	g.inner.Go(name, func() error {
+		logger := g.loggerFactory(name)
+		hardCtx := dlog.WithLogger(g.hardCtx, logger)
+		softCtx := dlog.WithLogger(g.softCtx, logger)
+		err := fn(hardCtx, softCtx)
+		if err == nil {
+			logger.Debugln("goroutine exited without error")
+		} else {
+			logger.Errorln("goroutine exited with error:", err)
+		}
+		return err
+	})
+}
+
+// Wait wraps derrgroup.Group.Wait().
+func (g *Group) Wait() error {
+	ret := g.inner.Wait()
+	if ret != nil {
+		logGoroutines(g.loggerFactory("shutdown_status").Infof, g.List())
+	}
+	return ret
+}
+
+// List wraps derrgroup.Group.List().
+func (g *Group) List() map[string]derrgroup.GoroutineState {
+	return g.inner.List()
+}
