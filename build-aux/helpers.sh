@@ -85,8 +85,10 @@ start_cluster() {
         echo "cannot get cluster, kubeconfig ${kubeconfig} exists" 1>&2
         return 1
     fi
-    name=$(curl -s -H "Authorization: bearer ${KUBECEPTION_TOKEN}" "https://sw.bakerstreet.io/kubeception/api/klusters/ci-?generate=true&timeoutSecs=${timeout}&profile=${profile}" -X PUT | head -1 | cut -c2-)
-    echo "#${name}" > "${kubeconfig}"
+    curl -s -H "Authorization: bearer ${KUBECEPTION_TOKEN}" "https://sw.bakerstreet.io/kubeception/api/klusters/ci-?generate=true&timeoutSecs=${timeout}&profile=${profile}" -X PUT > "${kubeconfig}"
+    printf "${BLU}Acquiring cluster:\n==${END}\n" 1>&2
+    cat "${kubeconfig}" 1>&2
+    printf "${BLU}==${END}\n" 1>&2
 }
 
 await_cluster() {
