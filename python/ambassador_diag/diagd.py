@@ -51,6 +51,7 @@ import gunicorn.app.base
 
 from ambassador import Cache, Config, IR, EnvoyConfig, Diagnostics, Scout, Version
 from ambassador.reconfig_stats import ReconfigStats
+from ambassador.ir.irambassador import IRAmbassador
 from ambassador.ir.irbasemapping import IRBaseMapping
 from ambassador.utils import SystemInfo, Timer, PeriodicTrigger, SavedSecret, load_url_contents
 from ambassador.utils import SecretHandler, KubewatchSecretHandler, FSSecretHandler
@@ -1846,13 +1847,15 @@ class AmbassadorEventWatcher(threading.Thread):
         # module.
 
         amod = ir.ambassador_module
-        timeout = amod.envoy_validation_timeout if amod else 5
+        timeout = amod.envoy_validation_timeout if amod else IRAmbassador.default_validation_timeout
 
         # If the timeout is zero, don't do the validation.
         if timeout == 0:
             self.logger.debug("not validating Envoy configuration since timeout is 0")
             return True
-        
+
+        self.logger.debug(f"validating Envoy configuration with timeout {timeout}")
+
         for retry in range(retries):
             try:
                 v_encoded = subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=timeout)

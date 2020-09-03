@@ -80,6 +80,9 @@ class IRAmbassador (IRResource):
         "rewrite": "/ambassador/v0/",
     }
 
+    # Set up the default Envoy validation timeout.
+    default_validation_timeout: ClassVar[int] = 10
+
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.ambassador",
                  kind: str="IRAmbassador",
@@ -97,7 +100,7 @@ class IRAmbassador (IRResource):
             envoy_log_type="text",
             envoy_log_path="/dev/fd/1",
             envoy_log_format=None,
-            envoy_validation_timeout=5,
+            envoy_validation_timeout=IRAmbassador.default_validation_timeout,
             enable_ipv4=True,
             listener_idle_timeout_ms=None,
             liveness_probe={"enabled": True},
