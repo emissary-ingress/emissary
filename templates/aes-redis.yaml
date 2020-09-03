@@ -4,7 +4,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "ambassador.fullname" . }}-redis
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-redis
     app.kubernetes.io/part-of: {{ .Release.Name }}
@@ -30,7 +30,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "ambassador.fullname" . }}-redis
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-redis
     app.kubernetes.io/part-of: {{ .Release.Name }}

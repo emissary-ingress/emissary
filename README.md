@@ -80,6 +80,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | ---------------------------------- | ------------------------------------------------------------------------------- | --------------------------------- |
 | `nameOverride`                     | Override the generated chart name. Defaults to .Chart.Name.                     |                                   |
 | `fullnameOverride`                 | Override the generated release name. Defaults to .Release.Name.                 |                                   |
+| `namespaceOverride`                | Override the generated release namespace. Defaults to .Release.Namespace.       |                                   |
 | `adminService.create`              | If `true`, create a service for Ambassador's admin UI                           | `true`                            |
 | `adminService.nodePort`            | If explicit NodePort for admin service is required                              | `true`                            |
 | `adminService.type`                | Ambassador's admin service type to be used                                      | `ClusterIP`                       |

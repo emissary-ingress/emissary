@@ -5,6 +5,8 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+- Feature: Allow overriding the namespace for the release using the values file: 
+
 ## v6.5.3
 
 - Upgrade Ambassador to version 1.7.0: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)

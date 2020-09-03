@@ -9,6 +9,8 @@
 nameOverride: ""
 # Defaults to .Release.Name-.Chart.Name unless .Release.Name contains "ambassador"
 fullnameOverride: ""
+# Defaults to .Release.Namespace
+namespaceOverride: ""
 
 replicaCount: 3
 daemonSet: false

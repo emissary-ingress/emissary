@@ -4,7 +4,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     app.kubernetes.io/name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
@@ -25,7 +25,7 @@ kind: ClusterRole
 {{- end }}
 metadata:
   name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     app.kubernetes.io/name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
@@ -50,7 +50,7 @@ kind: ClusterRoleBinding
 {{- end }}
 metadata:
   name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     app.kubernetes.io/name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
@@ -73,13 +73,13 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
-    namespace: {{ .Release.Namespace }}
+    namespace: {{ include "ambassador.namespace" . }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: telepresence-proxy
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     app.kubernetes.io/name: telepresence-proxy
     app.kubernetes.io/part-of: {{ .Release.Name }}
@@ -150,7 +150,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: telepresence-proxy
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     app.kubernetes.io/name: telepresence-proxy
     app.kubernetes.io/part-of: {{ .Release.Name }}

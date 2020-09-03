@@ -3,7 +3,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ include "ambassador.fullname" . }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     app: {{ include "ambassador.name" . }}
     {{- if .Values.metrics.serviceMonitor.selector }}
@@ -21,7 +21,7 @@ spec:
       {{- end }}
   namespaceSelector:
     matchNames:
-      - {{ .Release.Namespace }}
+      - {{ include "ambassador.namespace" . }}
   selector:
     matchLabels:
       service: ambassador-admin

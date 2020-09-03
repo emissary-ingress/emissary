@@ -3,7 +3,7 @@ apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
   name: {{ include "ambassador.fullname" . }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
