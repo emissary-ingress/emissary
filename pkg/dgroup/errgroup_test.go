@@ -36,7 +36,9 @@ func fakeSearch(kind string) Search {
 // simplify goroutine counting and error handling. This example is derived from
 // the sync.WaitGroup example at https://golang.org/pkg/sync/#example_WaitGroup.
 func ExampleGroup_justErrors() {
-	g := errgroup.NewGroup(context.Background(), errgroup.GroupConfig{})
+	g := errgroup.NewGroup(context.Background(), errgroup.GroupConfig{
+		DisableLogging: true,
+	})
 	var urls = []string{
 		"http://www.golang.org/",
 		"http://www.google.com/",
@@ -45,7 +47,7 @@ func ExampleGroup_justErrors() {
 	for _, url := range urls {
 		// Launch a goroutine to fetch the URL.
 		url := url // https://golang.org/doc/faq#closures_and_goroutines
-		g.Go(url, func(_, ctx context.Context) error {
+		g.Go(url, func(ctx context.Context) error {
 			// Fetch the URL.
 			resp, err := http.Get(url)
 			if err == nil {
@@ -66,13 +68,15 @@ func ExampleGroup_justErrors() {
 // and error-handling.
 func ExampleGroup_parallel() {
 	Google := func(ctx context.Context, query string) ([]Result, error) {
-		g := errgroup.NewGroup(ctx, errgroup.GroupConfig{})
+		g := errgroup.NewGroup(ctx, errgroup.GroupConfig{
+			DisableLogging: true,
+		})
 
 		searches := []Search{Web, Image, Video}
 		results := make([]Result, len(searches))
 		for i, search := range searches {
 			i, search := i, search // https://golang.org/doc/faq#closures_and_goroutines
-			g.Go(fmt.Sprintf("search-%d", i), func(_, ctx context.Context) error {
+			g.Go(fmt.Sprintf("search-%d", i), func(ctx context.Context) error {
 				result, err := search(ctx, query)
 				if err == nil {
 					results[i] = result
@@ -115,16 +119,18 @@ func TestWithContext(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		g := errgroup.NewGroup(context.Background(), errgroup.GroupConfig{})
+		g := errgroup.NewGroup(context.Background(), errgroup.GroupConfig{
+			DisableLogging: true,
+		})
 
 		var ctx context.Context
-		g.Go("escape-hatch", func(_, softCtx context.Context) error {
-			ctx = softCtx
+		g.Go("escape-hatch", func(_ctx context.Context) error {
+			ctx = _ctx
 			return nil
 		})
 		for i, err := range tc.errs {
 			err := err
-			g.Go(fmt.Sprintf("worker-%d", i), func(_, ctx context.Context) error { return err })
+			g.Go(fmt.Sprintf("worker-%d", i), func(ctx context.Context) error { return err })
 		}
 
 		if err := g.Wait(); err != tc.want {
