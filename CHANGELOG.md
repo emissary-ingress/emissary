@@ -55,6 +55,11 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
+(no changes yet)
+
+## [1.7.1-rc.0] September 04, 2020
+[1.7.1-rc.0]: https://github.com/datawire/ambassador/compare/v1.7.0...v1.7.1-rc.0
+
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Bugfix: Support `envoy_validation_timeout` in the Ambassador Module to set the timeout for validating new Envoy configurations
