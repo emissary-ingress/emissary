@@ -14,6 +14,7 @@ import (
 	"github.com/datawire/ambassador/pkg/dcontext"
 	"github.com/datawire/ambassador/pkg/derrgroup"
 	"github.com/datawire/ambassador/pkg/dlog"
+	"github.com/datawire/ambassador/pkg/errutil"
 )
 
 // Group is a wrapper around
@@ -21,6 +22,7 @@ import (
 //  - (optionally) handles SIGINT and SIGTERM
 //  - (configurable) manages Context for you
 //  - (optionally) adds hard/soft cancellation
+//  - (optionally) does panic recovery
 //  - (optionally) does some minimal logging
 type Group struct {
 	cfg     GroupConfig
@@ -72,7 +74,8 @@ type GroupConfig struct {
 	EnableWithSoftness   bool
 	EnableSignalHandling bool // implies EnableWithSoftness
 
-	DisableLogging bool
+	DisablePanicRecovery bool
+	DisableLogging       bool
 
 	WorkerContext func(ctx context.Context, name string) context.Context
 }
@@ -165,21 +168,29 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 // Cancellation of the dcontext.HardContext(ctx) of it should trigger
 // a not-so-graceful shutdown.
 func (g *Group) Go(name string, fn func(ctx context.Context) error) {
-	g.inner.Go(name, func() error {
+	g.inner.Go(name, func() (err error) {
 		ctx := g.baseCtx
 		ctx = WithGoroutineName(ctx, "/"+name)
 		if g.cfg.WorkerContext != nil {
 			ctx = g.cfg.WorkerContext(ctx, name)
 		}
-		err := fn(ctx)
-		if !g.cfg.DisableLogging {
-			if err == nil {
-				dlog.Debugln(ctx, "goroutine exited without error")
-			} else {
-				dlog.Errorln(ctx, "goroutine exited with error:", err)
+
+		defer func() {
+			if !g.cfg.DisablePanicRecovery {
+				if _err := errutil.PanicToError(recover()); _err != nil {
+					err = _err
+				}
 			}
-		}
-		return err
+			if !g.cfg.DisableLogging {
+				if err == nil {
+					dlog.Debugln(ctx, "goroutine exited without error")
+				} else {
+					dlog.Errorln(ctx, "goroutine exited with error:", err)
+				}
+			}
+		}()
+
+		return fn(ctx)
 	})
 }
 
