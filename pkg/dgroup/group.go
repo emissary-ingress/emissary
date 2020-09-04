@@ -26,6 +26,7 @@ import (
 //  - (optionally) does panic recovery
 //  - (optionally) does some minimal logging
 //  - (optionally) adds configurable shutdown timeouts
+//  - adds a way to call to the parent group
 type Group struct {
 	cfg              GroupConfig
 	baseCtx          context.Context
@@ -211,6 +212,7 @@ func (g *Group) Go(name string, fn func(ctx context.Context) error) {
 	g.inner.Go(name, func() (err error) {
 		ctx := g.baseCtx
 		ctx = WithGoroutineName(ctx, "/"+name)
+		ctx = context.WithValue(ctx, groupKey{}, g)
 		if g.cfg.WorkerContext != nil {
 			ctx = g.cfg.WorkerContext(ctx, name)
 		}
@@ -270,4 +272,16 @@ func (g *Group) Wait() error {
 // List wraps derrgroup.Group.List().
 func (g *Group) List() map[string]derrgroup.GoroutineState {
 	return g.inner.List()
+}
+
+type groupKey struct{}
+
+// ParentGroup returns the Group that manages this goroutine/Context.
+// If the Context is not managed by a Group, then nil is returned.
+func ParentGroup(ctx context.Context) *Group {
+	group := ctx.Value(groupKey{})
+	if group == nil {
+		return nil
+	}
+	return group.(*Group)
 }
