@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -24,10 +25,12 @@ import (
 //  - (optionally) adds hard/soft cancellation
 //  - (optionally) does panic recovery
 //  - (optionally) does some minimal logging
+//  - (optionally) adds configurable shutdown timeouts
 type Group struct {
-	cfg     GroupConfig
-	baseCtx context.Context
-	inner   *derrgroup.Group
+	cfg              GroupConfig
+	baseCtx          context.Context
+	shutdownTimedOut chan struct{}
+	inner            *derrgroup.Group
 }
 
 func logGoroutineStatuses(ctx context.Context, printf func(ctx context.Context, format string, args ...interface{}), list map[string]derrgroup.GoroutineState) {
@@ -74,6 +77,20 @@ type GroupConfig struct {
 	EnableWithSoftness   bool
 	EnableSignalHandling bool // implies EnableWithSoftness
 
+	// SoftShutdownTimeout is how long after a soft shutdown is
+	// triggered to wait before triggering a hard shutdown.  A
+	// zero value means to not trigger a hard shutdown after a
+	// soft shutdown.
+	//
+	// SoftShutdownTimeout implies EnableWithSoftness because
+	// otherwise there would be no way of triggering the
+	// subsequent hard shutdown.
+	SoftShutdownTimeout time.Duration
+	// HardShutdownTimeout is how long after a hard shutdown is
+	// triggered to wait before forcing Wait() to return early.  A
+	// zero value means to not force Wait() to return early.
+	HardShutdownTimeout time.Duration
+
 	DisablePanicRecovery bool
 	DisableLogging       bool
 
@@ -82,7 +99,7 @@ type GroupConfig struct {
 
 // NewGroup returns a new Group.
 func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
-	cfg.EnableWithSoftness = cfg.EnableWithSoftness || cfg.EnableSignalHandling
+	cfg.EnableWithSoftness = cfg.EnableWithSoftness || cfg.EnableSignalHandling || (cfg.SoftShutdownTimeout > 0)
 
 	ctx, hardCancel := context.WithCancel(ctx)
 	var softCancel context.CancelFunc
@@ -94,13 +111,14 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 	}
 
 	g := &Group{
-		cfg:     cfg,
-		baseCtx: ctx,
-		inner:   derrgroup.NewGroup(softCancel),
+		cfg:              cfg,
+		baseCtx:          ctx,
+		shutdownTimedOut: make(chan struct{}),
+		inner:            derrgroup.NewGroup(softCancel),
 	}
 
 	if !g.cfg.DisableLogging {
-		g.Go("supervisor", func(ctx context.Context) error {
+		g.Go(":shutdown_logger", func(ctx context.Context) error {
 			<-ctx.Done()
 			// log that a shutdown has been triggered
 			// be as specific with the logging as possible
@@ -120,8 +138,30 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 		})
 	}
 
+	if (g.cfg.SoftShutdownTimeout > 0) || (g.cfg.HardShutdownTimeout > 0) {
+		g.Go(":watchdog", func(ctx context.Context) error {
+			if g.cfg.SoftShutdownTimeout > 0 {
+				<-ctx.Done()
+				select {
+				case <-dcontext.HardContext(ctx).Done():
+					// nothing to do, it finished within the timeout
+				case <-time.After(g.cfg.SoftShutdownTimeout):
+					hardCancel()
+				}
+			}
+			if g.cfg.HardShutdownTimeout > 0 {
+				<-dcontext.HardContext(ctx).Done()
+				go func() {
+					time.Sleep(g.cfg.HardShutdownTimeout)
+					close(g.shutdownTimedOut)
+				}()
+			}
+			return nil
+		})
+	}
+
 	if g.cfg.EnableSignalHandling {
-		g.Go("signal_handler", func(ctx context.Context) error {
+		g.Go(":signal_handler", func(ctx context.Context) error {
 			sigs := make(chan os.Signal, 1)
 			signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
@@ -194,12 +234,35 @@ func (g *Group) Go(name string, fn func(ctx context.Context) error) {
 	})
 }
 
-// Wait wraps derrgroup.Group.Wait().
+// Wait for all goroutines in the group to finish, and return returns
+// an error if any of the workers errored or timed out.
+//
+// Once the group has initiated hard shutdown (either a 2nd shutdown
+// signal was received, or the parent context is <-Done()), Wait will
+// return within the HardShutdownTimeout passed to NewGroup.  If a
+// poorly-behaved goroutine is still running at the end of that time,
+// it is left running, and an error is returned.
 func (g *Group) Wait() error {
-	ret := g.inner.Wait()
+	shutdownCompleted := make(chan error)
+	go func() {
+		shutdownCompleted <- g.inner.Wait()
+		close(shutdownCompleted)
+	}()
+
+	var ret error
+	var timedOut bool
+	select {
+	case <-g.shutdownTimedOut:
+		ret = errors.Errorf("failed to shut down within the %v shutdown timeout; some goroutines are left running", g.cfg.HardShutdownTimeout)
+		timedOut = true
+	case ret = <-shutdownCompleted:
+	}
 	if ret != nil && !g.cfg.DisableLogging {
 		ctx := WithGoroutineName(g.baseCtx, ":shutdown_status")
 		logGoroutineStatuses(ctx, dlog.Infof, g.List())
+		if timedOut {
+			logGoroutineTraces(ctx, dlog.Errorf)
+		}
 	}
 	return ret
 }
