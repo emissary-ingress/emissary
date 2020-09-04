@@ -4,7 +4,9 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"runtime/pprof"
 	"sort"
+	"strings"
 	"syscall"
 
 	"github.com/pkg/errors"
@@ -26,7 +28,7 @@ type Group struct {
 	inner   *derrgroup.Group
 }
 
-func logGoroutines(ctx context.Context, printf func(ctx context.Context, format string, args ...interface{}), list map[string]derrgroup.GoroutineState) {
+func logGoroutineStatuses(ctx context.Context, printf func(ctx context.Context, format string, args ...interface{}), list map[string]derrgroup.GoroutineState) {
 	printf(ctx, "  goroutine shutdown status:")
 	names := make([]string, 0, len(list))
 	nameWidth := 0
@@ -39,6 +41,21 @@ func logGoroutines(ctx context.Context, printf func(ctx context.Context, format 
 	sort.Strings(names)
 	for _, name := range names {
 		printf(ctx, "    %-*s: %s", nameWidth, name, list[name])
+	}
+}
+
+func logGoroutineTraces(ctx context.Context, printf func(ctx context.Context, format string, args ...interface{})) {
+	p := pprof.Lookup("goroutine")
+	if p == nil {
+		return
+	}
+	stacktrace := new(strings.Builder)
+	if err := p.WriteTo(stacktrace, 2); err != nil {
+		return
+	}
+	printf(ctx, "  goroutine stack traces:")
+	for _, line := range strings.Split(strings.TrimSpace(stacktrace.String()), "\n") {
+		printf(ctx, "    %s", line)
 	}
 }
 
@@ -82,7 +99,20 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 	if !g.cfg.DisableLogging {
 		g.Go("supervisor", func(ctx context.Context) error {
 			<-ctx.Done()
-			dlog.Infoln(ctx, "shutting down...")
+			// log that a shutdown has been triggered
+			// be as specific with the logging as possible
+			if dcontext.HardContext(ctx) == ctx {
+				dlog.Infoln(ctx, "shutting down...")
+			} else {
+				select {
+				case <-dcontext.HardContext(ctx).Done():
+					dlog.Infoln(ctx, "shutting down (not-so-gracefully)...")
+				default:
+					dlog.Infoln(ctx, "shutting down (gracefully)...")
+					<-dcontext.HardContext(ctx).Done()
+					dlog.Infoln(ctx, "shutting down (not-so-gracefully)...")
+				}
+			}
 			return nil
 		})
 	}
@@ -97,17 +127,21 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 				// graceful-shutdown, we should trigger a
 				// not-so-graceful shutdown.
 				go func() {
-					sig := <-sigs
-					if !g.cfg.DisableLogging {
-						dlog.Errorln(ctx, errors.Errorf("received signal %v", sig))
-						logGoroutines(ctx, dlog.Errorf, g.List())
+					select {
+					case sig := <-sigs:
+						if !g.cfg.DisableLogging {
+							dlog.Errorln(ctx, errors.Errorf("received signal %v (graceful shutdown already triggered; triggering not-so-graceful shutdown)", sig))
+							logGoroutineStatuses(ctx, dlog.Errorf, g.List())
+						}
+						hardCancel()
+					case <-dcontext.HardContext(ctx).Done():
 					}
-					hardCancel()
 					// keep logging signals and draining 'sigs'--don't let 'sigs' block
 					for sig := range sigs {
 						if !g.cfg.DisableLogging {
-							dlog.Errorln(ctx, errors.Errorf("received signal %v", sig))
-							logGoroutines(ctx, dlog.Errorf, g.List())
+							dlog.Errorln(ctx, errors.Errorf("received signal %v (not-so-graceful shutdown already triggered)", sig))
+							logGoroutineStatuses(ctx, dlog.Errorf, g.List())
+							logGoroutineTraces(ctx, dlog.Errorf)
 						}
 					}
 				}()
@@ -115,7 +149,7 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 
 			select {
 			case sig := <-sigs:
-				return errors.Errorf("received signal %v", sig)
+				return errors.Errorf("received signal %v (first signal; triggering graceful shutdown)", sig)
 			case <-ctx.Done():
 				return nil
 			}
@@ -154,7 +188,7 @@ func (g *Group) Wait() error {
 	ret := g.inner.Wait()
 	if ret != nil && !g.cfg.DisableLogging {
 		ctx := WithGoroutineName(g.baseCtx, ":shutdown_status")
-		logGoroutines(ctx, dlog.Infof, g.List())
+		logGoroutineStatuses(ctx, dlog.Infof, g.List())
 	}
 	return ret
 }
