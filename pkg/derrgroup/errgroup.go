@@ -28,14 +28,14 @@
 // intentionally low-level in order the be a clean primitive for other
 // things to build on top of.
 //
-// Right now, there are at least 3 Go implementations of "group"
-// functionality in use at Datawire (pkg/dgroup, entrypoint/group, and
-// pkg/supervisor), which each offer some subset of the above.
-// derrgroup offers to them a common robust base.  If you're writing
-// new application code, you should use one of those, and not use
-// derrgroup directly.  If you're writing a new "group" abstraction,
-// you should use derrgroup instead of implementing your own
-// locking/synchronization.
+// Right now, there have been at least 3 Go implementations of "group"
+// functionality in use at Datawire at the same time (pkg/dgroup and
+// pkg/supervisor are the two still in use), which each offer some
+// subset of the above.  derrgroup offers to them a common robust
+// base.  If you're writing new application code, you should use one
+// of those, and not use derrgroup directly.  If you're writing a new
+// "group" abstraction, you should use derrgroup instead of
+// implementing your own locking/synchronization.
 package derrgroup
 
 import (
