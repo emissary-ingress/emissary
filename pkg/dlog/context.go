@@ -41,26 +41,54 @@ func StdLogger(ctx context.Context, level LogLevel) *log.Logger {
 	return getLogger(ctx).StdLogger(level)
 }
 
-func Tracef(ctx context.Context, f string, a ...interface{})   { getLogger(ctx).Tracef(f, a...) }
-func Debugf(ctx context.Context, f string, a ...interface{})   { getLogger(ctx).Debugf(f, a...) }
-func Infof(ctx context.Context, f string, a ...interface{})    { getLogger(ctx).Infof(f, a...) }
-func Printf(ctx context.Context, f string, a ...interface{})   { getLogger(ctx).Printf(f, a...) }
-func Warnf(ctx context.Context, f string, a ...interface{})    { getLogger(ctx).Warnf(f, a...) }
-func Warningf(ctx context.Context, f string, a ...interface{}) { getLogger(ctx).Warningf(f, a...) }
-func Errorf(ctx context.Context, f string, a ...interface{})   { getLogger(ctx).Errorf(f, a...) }
+func Tracef(c context.Context, f string, a ...interface{}) {
+	l := getLogger(c)
+	l.Helper()
+	l.Tracef(f, a...)
+}
+func Debugf(c context.Context, f string, a ...interface{}) {
+	l := getLogger(c)
+	l.Helper()
+	l.Debugf(f, a...)
+}
+func Infof(c context.Context, f string, a ...interface{}) {
+	l := getLogger(c)
+	l.Helper()
+	l.Infof(f, a...)
+}
+func Printf(c context.Context, f string, a ...interface{}) {
+	l := getLogger(c)
+	l.Helper()
+	l.Printf(f, a...)
+}
+func Warnf(c context.Context, f string, a ...interface{}) {
+	l := getLogger(c)
+	l.Helper()
+	l.Warnf(f, a...)
+}
+func Warningf(c context.Context, f string, a ...interface{}) {
+	l := getLogger(c)
+	l.Helper()
+	l.Warningf(f, a...)
+}
+func Errorf(c context.Context, f string, a ...interface{}) {
+	l := getLogger(c)
+	l.Helper()
+	l.Errorf(f, a...)
+}
 
-func Trace(ctx context.Context, a ...interface{})   { getLogger(ctx).Trace(a...) }
-func Debug(ctx context.Context, a ...interface{})   { getLogger(ctx).Debug(a...) }
-func Info(ctx context.Context, a ...interface{})    { getLogger(ctx).Info(a...) }
-func Print(ctx context.Context, a ...interface{})   { getLogger(ctx).Print(a...) }
-func Warn(ctx context.Context, a ...interface{})    { getLogger(ctx).Warn(a...) }
-func Warning(ctx context.Context, a ...interface{}) { getLogger(ctx).Warning(a...) }
-func Error(ctx context.Context, a ...interface{})   { getLogger(ctx).Error(a...) }
+func Trace(c context.Context, a ...interface{})   { l := getLogger(c); l.Helper(); l.Trace(a...) }
+func Debug(c context.Context, a ...interface{})   { l := getLogger(c); l.Helper(); l.Debug(a...) }
+func Info(c context.Context, a ...interface{})    { l := getLogger(c); l.Helper(); l.Info(a...) }
+func Print(c context.Context, a ...interface{})   { l := getLogger(c); l.Helper(); l.Print(a...) }
+func Warn(c context.Context, a ...interface{})    { l := getLogger(c); l.Helper(); l.Warn(a...) }
+func Warning(c context.Context, a ...interface{}) { l := getLogger(c); l.Helper(); l.Warning(a...) }
+func Error(c context.Context, a ...interface{})   { l := getLogger(c); l.Helper(); l.Error(a...) }
 
-func Traceln(ctx context.Context, a ...interface{})   { getLogger(ctx).Traceln(a...) }
-func Debugln(ctx context.Context, a ...interface{})   { getLogger(ctx).Debugln(a...) }
-func Infoln(ctx context.Context, a ...interface{})    { getLogger(ctx).Infoln(a...) }
-func Println(ctx context.Context, a ...interface{})   { getLogger(ctx).Println(a...) }
-func Warnln(ctx context.Context, a ...interface{})    { getLogger(ctx).Warnln(a...) }
-func Warningln(ctx context.Context, a ...interface{}) { getLogger(ctx).Warningln(a...) }
-func Errorln(ctx context.Context, a ...interface{})   { getLogger(ctx).Errorln(a...) }
+func Traceln(c context.Context, a ...interface{})   { l := getLogger(c); l.Helper(); l.Traceln(a...) }
+func Debugln(c context.Context, a ...interface{})   { l := getLogger(c); l.Helper(); l.Debugln(a...) }
+func Infoln(c context.Context, a ...interface{})    { l := getLogger(c); l.Helper(); l.Infoln(a...) }
+func Println(c context.Context, a ...interface{})   { l := getLogger(c); l.Helper(); l.Println(a...) }
+func Warnln(c context.Context, a ...interface{})    { l := getLogger(c); l.Helper(); l.Warnln(a...) }
+func Warningln(c context.Context, a ...interface{}) { l := getLogger(c); l.Helper(); l.Warningln(a...) }
+func Errorln(c context.Context, a ...interface{})   { l := getLogger(c); l.Helper(); l.Errorln(a...) }
