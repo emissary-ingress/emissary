@@ -2,28 +2,22 @@ package entrypoint
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"sync/atomic"
-	"time"
+
+	"github.com/datawire/ambassador/pkg/dutil"
 )
 
-func snapshotServer(ctx context.Context, snapshot *atomic.Value) {
+func snapshotServer(ctx context.Context, snapshot *atomic.Value) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/snapshot", func(w http.ResponseWriter, r *http.Request) {
 		w.Write(snapshot.Load().([]byte))
 	})
+
 	s := &http.Server{
 		Addr:    "localhost:9696",
 		Handler: mux,
 	}
-	go func() {
-		log.Println(s.ListenAndServe())
-	}()
-	<-ctx.Done()
-	tctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	err := s.Shutdown(tctx)
-	if err != nil {
-		panic(err)
-	}
+
+	return dutil.ListenAndServeHTTPWithContext(ctx, s)
 }

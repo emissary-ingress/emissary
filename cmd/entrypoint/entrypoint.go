@@ -76,6 +76,7 @@ import (
 // manager (e.g. kubernetes) is expected to take note and restart if
 // appropriate.
 func Main() {
+	ctx := context.Background()
 
 	// TODO:
 	//  - figure out a better way to get the envoy image
@@ -86,7 +87,7 @@ func Main() {
 
 	log.Println("Started Ambassador")
 
-	clusterID := GetClusterID(context.Background())
+	clusterID := GetClusterID(ctx)
 	os.Setenv("AMBASSADOR_CLUSTER_ID", clusterID)
 	log.Printf("AMBASSADOR_CLUSTER_ID=%s", clusterID)
 
@@ -112,7 +113,7 @@ func Main() {
 	// Go ahead and create an AmbassadorWatcher now, since we'll need it later.
 	ambwatch := acp.NewAmbassadorWatcher(acp.NewEnvoyWatcher(), acp.NewDiagdWatcher())
 
-	group := dgroup.NewGroup(context.Background(), dgroup.GroupConfig{
+	group := dgroup.NewGroup(ctx, dgroup.GroupConfig{
 		EnableSignalHandling: true,
 		SoftShutdownTimeout:  10 * time.Second,
 		HardShutdownTimeout:  10 * time.Second,
@@ -143,14 +144,12 @@ func Main() {
 	})
 
 	group.Go("envoy", func(ctx context.Context) error {
-		runEnvoy(ctx, envoyHUP)
-		return nil
+		return runEnvoy(ctx, envoyHUP)
 	})
 
 	snapshot := &atomic.Value{}
 	group.Go("snapshot_server", func(ctx context.Context) error {
-		snapshotServer(ctx, snapshot)
-		return nil
+		return snapshotServer(ctx, snapshot)
 	})
 	group.Go("watcher", func(ctx context.Context) error {
 		// We need to pass the AmbassadorWatcher to this (Kubernetes/Consul) watcher, so
@@ -161,8 +160,7 @@ func Main() {
 
 	// Finally, fire up the health check handler.
 	group.Go("healthchecks", func(ctx context.Context) error {
-		healthCheckHandler(ctx, ambwatch)
-		return nil
+		return healthCheckHandler(ctx, ambwatch)
 	})
 
 	// Launch every file in the sidecar directory. Note that this is "bug compatible" with
