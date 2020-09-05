@@ -28,6 +28,7 @@ import (
 // Panic logging options.  Do proper error handling!  Return those
 // errors!
 type Logger interface {
+	Helper()
 	WithField(key string, value interface{}) Logger
 	StdLogger(LogLevel) *log.Logger
 
