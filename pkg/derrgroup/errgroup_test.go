@@ -67,7 +67,7 @@ func ExampleGroup_justErrors() {
 func ExampleGroup_parallel() {
 	Google := func(ctx context.Context, query string) ([]Result, error) {
 		ctx, cancel := context.WithCancel(ctx)
-		g := errgroup.NewGroup(cancel)
+		g := errgroup.NewGroup(cancel, false)
 
 		searches := []Search{Web, Image, Video}
 		results := make([]Result, len(searches))
@@ -152,7 +152,7 @@ func TestWithContext(t *testing.T) {
 
 	for _, tc := range cases {
 		ctx, cancel := context.WithCancel(context.Background())
-		g := errgroup.NewGroup(cancel)
+		g := errgroup.NewGroup(cancel, false)
 
 		for i, err := range tc.errs {
 			err := err

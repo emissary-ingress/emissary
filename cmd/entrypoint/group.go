@@ -42,7 +42,7 @@ func NewGroup(parent context.Context, grace time.Duration) *Group {
 		ctx:              ctx,
 		grace:            grace,
 		shutdownTimedOut: make(chan struct{}),
-		inner:            derrgroup.NewGroup(cancel),
+		inner:            derrgroup.NewGroup(cancel, true),
 	}
 	go func() {
 		<-ctx.Done()
@@ -56,8 +56,8 @@ func NewGroup(parent context.Context, grace time.Duration) *Group {
 func (g *Group) Go(name string, f func(context.Context)) {
 	g.inner.Go(name, func() (err error) {
 		// exit bookeeping:
-		//  1. Log that we exited.
-		//  2. Cancel the context so others know to exit.
+		//  1. Recover from any panics
+		//  2. Log that we exited.
 		defer func() {
 			err = errutil.PanicToError(recover())
 			if err == nil {
@@ -65,7 +65,6 @@ func (g *Group) Go(name string, f func(context.Context)) {
 			} else {
 				log.Printf("EXIT %s panic: %v", name, err)
 			}
-			g.cancel() // trigger a shutdown whether or not there was an error
 		}()
 		f(g.ctx)
 		return

@@ -78,6 +78,12 @@ type GroupConfig struct {
 	EnableWithSoftness   bool
 	EnableSignalHandling bool // implies EnableWithSoftness
 
+	// Normally a worker exiting with an error triggers other
+	// goroutines to shutdown.  Setting ShutdownOnNonError causes
+	// a shutdown to be triggered whenever a goroutine exits, even
+	// if it exits without error.
+	ShutdownOnNonError bool
+
 	// SoftShutdownTimeout is how long after a soft shutdown is
 	// triggered to wait before triggering a hard shutdown.  A
 	// zero value means to not trigger a hard shutdown after a
@@ -115,7 +121,7 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 		cfg:              cfg,
 		baseCtx:          ctx,
 		shutdownTimedOut: make(chan struct{}),
-		inner:            derrgroup.NewGroup(softCancel),
+		inner:            derrgroup.NewGroup(softCancel, cfg.ShutdownOnNonError),
 	}
 
 	if !g.cfg.DisableLogging {

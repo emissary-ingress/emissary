@@ -70,7 +70,8 @@ func (s GoroutineState) String() string {
 //
 // A zero Group is valid and does not cancel on error.
 type Group struct {
-	cancel func()
+	cancel           func()
+	cancelOnNonError bool
 
 	wg sync.WaitGroup
 
@@ -86,8 +87,11 @@ type Group struct {
 // The provided 'cancel' function is called the first time a function passed to
 // Go returns a non-nil error or the first time Wait returns, whichever occurs
 // first.
-func NewGroup(cancel func()) *Group {
-	return &Group{cancel: cancel}
+func NewGroup(cancel func(), cancelOnNonError bool) *Group {
+	return &Group{
+		cancel:           cancel,
+		cancelOnNonError: cancelOnNonError,
+	}
 }
 
 // Wait blocks until all function calls from the Go method have returned, then
@@ -136,6 +140,8 @@ func (g *Group) Go(name string, f func() error) {
 					g.cancel()
 				}
 			})
+		} else if g.cancelOnNonError {
+			g.cancel()
 		}
 		g.listMu.Lock()
 		if g.list == nil {
