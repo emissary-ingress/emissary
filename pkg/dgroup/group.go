@@ -38,7 +38,7 @@ import (
 	"github.com/datawire/ambassador/pkg/dcontext"
 	"github.com/datawire/ambassador/pkg/derrgroup"
 	"github.com/datawire/ambassador/pkg/dlog"
-	"github.com/datawire/ambassador/pkg/errutil"
+	"github.com/datawire/ambassador/pkg/dutil"
 )
 
 // A Group is a collection of goroutines working on subtasks that are
@@ -363,7 +363,7 @@ func (g *Group) goWorkerCtx(ctx context.Context, fn func(ctx context.Context) er
 	g.workers.Go(getGoroutineName(ctx), func() (err error) {
 		defer func() {
 			if !g.cfg.DisablePanicRecovery {
-				if _err := errutil.PanicToError(recover()); _err != nil {
+				if _err := dutil.PanicToError(recover()); _err != nil {
 					err = _err
 				}
 			}

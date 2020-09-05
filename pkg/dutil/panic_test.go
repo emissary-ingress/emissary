@@ -1,4 +1,4 @@
-package errutil_test
+package dutil_test
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/datawire/ambassador/pkg/errutil"
+	"github.com/datawire/ambassador/pkg/dutil"
 )
 
 var thispackage, thisfile = func() (string, string) {
@@ -93,15 +93,15 @@ func TestPanicToError(t *testing.T) {
 		////////////////////////////////////////////////////////////////
 	}
 	t.Run("nil", func(t *testing.T) {
-		if errutil.PanicToError(nil) != nil {
+		if dutil.PanicToError(nil) != nil {
 			t.Error("error: PanicToError(nil) should be nil")
 		}
 	})
-	t.Run("non-error", func(t *testing.T) { checkErr(t, errutil.PanicToError("foo")) })
-	t.Run("plain-error", func(t *testing.T) { checkErr(t, errutil.PanicToError(errors.New("err"))) })
+	t.Run("non-error", func(t *testing.T) { checkErr(t, dutil.PanicToError("foo")) })
+	t.Run("plain-error", func(t *testing.T) { checkErr(t, dutil.PanicToError(errors.New("err"))) })
 	t.Run("wrapped-error", func(t *testing.T) {
 		root := fmt.Errorf("x")
-		err := errutil.PanicToError(errors.Wrap(root, "wrapped"))
+		err := dutil.PanicToError(errors.Wrap(root, "wrapped"))
 		checkErr(t, err)
 		if errors.Cause(err) != root {
 			t.Error("error: error has the wrong cause")
@@ -109,7 +109,7 @@ func TestPanicToError(t *testing.T) {
 	})
 	t.Run("sigsegv", func(t *testing.T) {
 		defer func() {
-			checkErr(t, errutil.PanicToError(recover()))
+			checkErr(t, dutil.PanicToError(recover()))
 		}()
 		var str *string
 		fmt.Println(*str) //nolint:govet // this will panic
