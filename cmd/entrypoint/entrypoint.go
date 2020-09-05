@@ -2,7 +2,6 @@ package entrypoint
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -75,8 +74,7 @@ import (
 // dies for any reason, the whole process will shutdown and some larger process
 // manager (e.g. kubernetes) is expected to take note and restart if
 // appropriate.
-func Main() {
-	ctx := context.Background()
+func Main(ctx context.Context, Version string, args ...string) error {
 
 	// TODO:
 	//  - figure out a better way to get the envoy image
@@ -135,12 +133,7 @@ func Main() {
 	})
 
 	group.Go("ambex", func(ctx context.Context) error {
-		err := flag.CommandLine.Parse([]string{"--ads-listen-address", "127.0.0.1:8003", GetEnvoyDir()})
-		if err != nil {
-			return err
-		}
-		ambex.MainContext(ctx, usage.PercentUsed)
-		return nil
+		return ambex.Main2(ctx, Version, usage.PercentUsed, "--ads-listen-address", "127.0.0.1:8003", GetEnvoyDir())
 	})
 
 	group.Go("envoy", func(ctx context.Context) error {
@@ -179,10 +172,7 @@ func Main() {
 		})
 	}
 
-	if err := group.Wait(); err != nil {
-		log.Println("shut down with error:", err)
-		os.Exit(1)
-	}
+	return group.Wait()
 }
 
 func GetClusterID(ctx context.Context) string {

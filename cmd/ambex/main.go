@@ -104,11 +104,6 @@ type Args struct {
 	dirs []string
 }
 
-var (
-	// Version is inserted at build using --ldflags -X
-	Version = "-no-version-"
-)
-
 func parseArgs(rawArgs ...string) (*Args, error) {
 	var args Args
 	flagset := flag.NewFlagSet("ambex", flag.ContinueOnError)
@@ -405,18 +400,16 @@ func (l logger) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryRespo
 	l.Infof("Fetch response: %v -> %v", req, res)
 }
 
-func Main() {
-	ctx := context.Background()
+func Main(ctx context.Context, Version string, rawArgs ...string) error {
 	usage := memory.GetMemoryUsage()
 	go usage.Watch(ctx)
-	MainContext(ctx, usage.PercentUsed)
+	return Main2(ctx, Version, usage.PercentUsed, rawArgs...)
 }
 
-func MainContext(parent context.Context, getUsage MemoryGetter) {
-	args, err := parseArgs(os.Args[1:]...)
+func Main2(ctx context.Context, Version string, getUsage MemoryGetter, rawArgs ...string) error {
+	args, err := parseArgs(rawArgs...)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error:", err)
-		os.Exit(2)
+		return err
 	}
 
 	if args.debug {
@@ -442,7 +435,7 @@ func MainContext(parent context.Context, getUsage MemoryGetter) {
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGHUP, os.Interrupt, syscall.SIGTERM)
 
-	ctx, cancel := context.WithCancel(parent)
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	config := cache.NewSnapshotCache(true, Hasher{}, log)
@@ -486,7 +479,7 @@ OUTER:
 			update(ctx, config, &generation, args.dirs, updates)
 		case err := <-watcher.Errors:
 			log.WithError(err).Warn("Watcher error")
-		case <-parent.Done():
+		case <-ctx.Done():
 			break OUTER
 		}
 
@@ -494,4 +487,5 @@ OUTER:
 
 	<-envoyUpdaterDone
 	log.Info("Done")
+	return nil
 }

@@ -14,15 +14,11 @@ import (
 	"github.com/datawire/ambassador/cmd/watt"
 )
 
+// Version is inserted at build-time using --ldflags -X
 var Version = "(unknown version)"
 
 func main() {
-	ambex.Version = Version
-	//entrypoint.Version = Version // Does not exist
-	//kubestatus.Version = Version // Does not exist
-	watt.Version = Version
-
-	busy.Main("busyambassador", "Ambassador", map[string]func(){
+	busy.Main("busyambassador", "Ambassador", Version, map[string]busy.Command{
 		"ambex":      ambex.Main,
 		"watt":       watt.Main,
 		"kubestatus": kubestatus.Main,
