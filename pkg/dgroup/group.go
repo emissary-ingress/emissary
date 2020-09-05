@@ -1,3 +1,11 @@
+// Package dgroup provides tools for managing groups of goroutines.
+//
+// The main part of this is Group, but the naming utilities may be
+// useful outside of that.
+//
+// At this point, the limitation of dgroup when compared to supervisor
+// is that dgroup does not have a notion of readiness, and does not
+// have a notion of dependencies.
 package dgroup
 
 import (
@@ -27,6 +35,8 @@ import (
 //  - (optionally) does some minimal logging
 //  - (optionally) adds configurable shutdown timeouts
 //  - adds a way to call to the parent group
+//
+// A zero Group is NOT valid; a Group must be created with NewGroup.
 type Group struct {
 	cfg              GroupConfig
 	baseCtx          context.Context
@@ -67,6 +77,12 @@ func logGoroutineTraces(ctx context.Context, printf func(ctx context.Context, fo
 
 // GroupConfig is a readable way of setting the configuration options
 // for NewGroup.
+//
+// A zero GroupConfig (`dgroup.GroupConfig{}`) should be sane
+// defaults.  Because signal handling should only be enabled for the
+// outermost group, it is off by default.
+//
+// TODO(lukeshu): Consider enabling timeouts by default?
 type GroupConfig struct {
 	// EnableWithSoftness says whether it should call
 	// dcontext.WithSoftness() on the Context passed to NewGroup.
@@ -214,6 +230,9 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 // Cancellation of the Context should trigger a graceful shutdown.
 // Cancellation of the dcontext.HardContext(ctx) of it should trigger
 // a not-so-graceful shutdown.
+//
+// A worker may access its parent group by calling ParentGroup on its
+// Context.
 func (g *Group) Go(name string, fn func(ctx context.Context) error) {
 	g.inner.Go(name, func() (err error) {
 		ctx := g.baseCtx
