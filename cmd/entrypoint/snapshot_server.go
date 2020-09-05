@@ -9,10 +9,14 @@ import (
 )
 
 func snapshotServer(ctx context.Context, snapshot *atomic.Value) {
-	http.HandleFunc("/snapshot", func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/snapshot", func(w http.ResponseWriter, r *http.Request) {
 		w.Write(snapshot.Load().([]byte))
 	})
-	s := &http.Server{Addr: "localhost:9696"}
+	s := &http.Server{
+		Addr:    "localhost:9696",
+		Handler: mux,
+	}
 	go func() {
 		log.Println(s.ListenAndServe())
 	}()

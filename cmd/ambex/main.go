@@ -94,28 +94,49 @@ const (
 	localhost = "127.0.0.1"
 )
 
-var (
+type Args struct {
 	debug bool
 	watch bool
 
 	adsNetwork string
 	adsAddress string
 
-	legacyAdsPort uint
+	dirs []string
+}
 
+var (
 	// Version is inserted at build using --ldflags -X
 	Version = "-no-version-"
 )
 
-func init() {
-	flag.BoolVar(&debug, "debug", false, "Use debug logging")
-	flag.BoolVar(&watch, "watch", false, "Watch for file changes")
+func parseArgs(rawArgs ...string) (*Args, error) {
+	var args Args
+	flagset := flag.NewFlagSet("ambex", flag.ContinueOnError)
+
+	flagset.BoolVar(&args.debug, "debug", false, "Use debug logging")
+	flagset.BoolVar(&args.watch, "watch", false, "Watch for file changes")
 
 	// TODO(lukeshu): Consider changing the default here so we don't need to put it in entrypoint.sh
-	flag.StringVar(&adsNetwork, "ads-listen-network", "tcp", "network for ADS to listen on")
-	flag.StringVar(&adsAddress, "ads-listen-address", ":18000", "address (on --ads-listen-network) for ADS to listen on")
+	flagset.StringVar(&args.adsNetwork, "ads-listen-network", "tcp", "network for ADS to listen on")
+	flagset.StringVar(&args.adsAddress, "ads-listen-address", ":18000", "address (on --ads-listen-network) for ADS to listen on")
 
-	flag.UintVar(&legacyAdsPort, "ads", 0, "port number for ADS to listen on--deprecated, use --ads-listen-address=:1234 instead")
+	var legacyAdsPort uint
+	flagset.UintVar(&legacyAdsPort, "ads", 0, "port number for ADS to listen on--deprecated, use --ads-listen-address=:1234 instead")
+
+	if err := flagset.Parse(rawArgs); err != nil {
+		return nil, err
+	}
+
+	if legacyAdsPort != 0 {
+		args.adsAddress = fmt.Sprintf(":%v", legacyAdsPort)
+	}
+
+	args.dirs = flagset.Args()
+	if len(args.dirs) == 0 {
+		args.dirs = []string{"."}
+	}
+
+	return &args, nil
 }
 
 // Hasher returns node ID as an ID
@@ -392,14 +413,13 @@ func Main() {
 }
 
 func MainContext(parent context.Context, getUsage MemoryGetter) {
-	if !flag.Parsed() {
-		flag.Parse()
-	}
-	if legacyAdsPort != 0 {
-		adsAddress = fmt.Sprintf(":%v", legacyAdsPort)
+	args, err := parseArgs(os.Args[1:]...)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "error:", err)
+		os.Exit(2)
 	}
 
-	if debug {
+	if args.debug {
 		log.SetLevel(logrus.DebugLevel)
 	} else {
 		log.SetLevel(logrus.WarnLevel)
@@ -413,14 +433,8 @@ func MainContext(parent context.Context, getUsage MemoryGetter) {
 	}
 	defer watcher.Close()
 
-	dirs := flag.Args()
-
-	if len(dirs) == 0 {
-		dirs = []string{"."}
-	}
-
-	if watch {
-		for _, d := range dirs {
+	if args.watch {
+		for _, d := range args.dirs {
 			watcher.Add(d)
 		}
 	}
@@ -434,7 +448,7 @@ func MainContext(parent context.Context, getUsage MemoryGetter) {
 	config := cache.NewSnapshotCache(true, Hasher{}, log)
 	srv := server.NewServer(ctx, config, log)
 
-	runManagementServer(ctx, srv, adsNetwork, adsAddress)
+	runManagementServer(ctx, srv, args.adsNetwork, args.adsAddress)
 
 	pid := os.Getpid()
 	file := "ambex.pid"
@@ -455,7 +469,7 @@ func MainContext(parent context.Context, getUsage MemoryGetter) {
 	}()
 
 	generation := 0
-	update(ctx, config, &generation, dirs, updates)
+	update(ctx, config, &generation, args.dirs, updates)
 
 OUTER:
 	for {
@@ -464,12 +478,12 @@ OUTER:
 		case sig := <-ch:
 			switch sig {
 			case syscall.SIGHUP:
-				update(ctx, config, &generation, dirs, updates)
+				update(ctx, config, &generation, args.dirs, updates)
 			case os.Interrupt, syscall.SIGTERM:
 				break OUTER
 			}
 		case <-watcher.Events:
-			update(ctx, config, &generation, dirs, updates)
+			update(ctx, config, &generation, args.dirs, updates)
 		case err := <-watcher.Errors:
 			log.WithError(err).Warn("Watcher error")
 		case <-parent.Done():
