@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+
+	"github.com/datawire/ambassador/pkg/dlog"
 )
 
 // A supervisor provides an abstraction for managing a group of
@@ -45,7 +47,7 @@ func WithContext(ctx context.Context) *Supervisor {
 		changed: sync.NewCond(mu),
 		context: ctx,
 		workers: make(map[string]*Worker),
-		Logger:  &DefaultLogger{},
+		Logger:  dlog.Printf,
 	}
 }
 
@@ -186,6 +188,7 @@ func (s *Supervisor) launch(worker *Worker) {
 		shutdown:   make(chan struct{}),
 	}
 	worker.process = process
+	worker.ctx = process.Context()
 	go func() {
 		var err error
 		func() {

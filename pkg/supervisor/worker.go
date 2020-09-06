@@ -1,6 +1,7 @@
 package supervisor
 
 import (
+	"context"
 	"fmt"
 	"time"
 )
@@ -16,9 +17,10 @@ type Worker struct {
 	Retry              bool                 // whether or not to retry on error
 	wantsShutdown      bool                 // true if the worker wants to shut down
 	done               bool
-	supervisor         *Supervisor //
-	children           int64       // atomic counter for naming children
-	process            *Process    // nil if the worker is not currently running
+	supervisor         *Supervisor     //
+	children           int64           // atomic counter for naming children
+	process            *Process        // nil if the worker is not currently running
+	ctx                context.Context // ctx is process.Context(), but will stick around after process becomes nil
 	error              error
 	retryDelay         time.Duration // how long to wait to retry
 	lastBlockedWarning time.Time     // last time we warned about being blocked
@@ -80,7 +82,7 @@ func (w *Worker) reconcile() bool {
 					return false
 				}
 			}
-			s.Logger.Printf("%s: signaling shutdown", w.Name)
+			s.Logger(w.ctx, "%s: signaling shutdown", w.Name)
 			close(w.process.shutdown)
 			w.process.shutdownClosed = true
 		}
@@ -96,22 +98,22 @@ func (w *Worker) reconcile() bool {
 			for _, r := range w.Requires {
 				required := s.workers[r]
 				if required == nil {
-					w.maybeWarnBlocked(r, "not created")
+					w.maybeWarnBlocked(w.ctx, r, "not created")
 					return false
 				}
 				process := required.process
 				if process == nil {
-					w.maybeWarnBlocked(r, "not started")
+					w.maybeWarnBlocked(w.ctx, r, "not started")
 					return false
 				}
 				if !process.ready {
-					w.maybeWarnBlocked(r, "not ready")
+					w.maybeWarnBlocked(w.ctx, r, "not ready")
 					return false
 				}
 			}
 			// s.Logger.Debugf doesn't exist
 			if false {
-				s.Logger.Printf("%s: starting", w.Name)
+				s.Logger(w.ctx, "%s: starting", w.Name)
 			}
 			s.launch(w)
 		}
@@ -120,7 +122,7 @@ func (w *Worker) reconcile() bool {
 	return false
 }
 
-func (w *Worker) maybeWarnBlocked(name, cond string) {
+func (w *Worker) maybeWarnBlocked(ctx context.Context, name, cond string) {
 	now := time.Now()
 	if w.lastBlockedWarning == (time.Time{}) {
 		w.lastBlockedWarning = now
@@ -128,7 +130,7 @@ func (w *Worker) maybeWarnBlocked(name, cond string) {
 	}
 
 	if now.Sub(w.lastBlockedWarning) > 3*time.Second {
-		w.supervisor.Logger.Printf("%s: blocked on %s (%s)", w.Name, name, cond)
+		w.supervisor.Logger(ctx, "%s: blocked on %s (%s)", w.Name, name, cond)
 		w.lastBlockedWarning = now
 	}
 }

@@ -54,7 +54,9 @@ func AOSSUpgrade(cmd *cobra.Command, args []string) error {
 		i.scout.Reporter.BaseMetadata["trace_id"])
 
 	sup := supervisor.WithContext(i.ctx)
-	sup.Logger = i.log
+	sup.Logger = func(_ context.Context, format string, args ...interface{}) {
+		i.log.Printf(format, args...)
+	}
 
 	sup.Supervise(&supervisor.Worker{
 		Name: "signal",

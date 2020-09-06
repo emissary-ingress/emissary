@@ -49,12 +49,12 @@ func (p *Process) Shutdown() <-chan struct{} {
 
 // Log is used for logging...
 func (p *Process) Log(obj interface{}) {
-	p.supervisor.Logger.Printf("%s: %v", p.Worker().Name, obj)
+	p.supervisor.Logger(p.Context(), "%s: %v", p.Worker().Name, obj)
 }
 
 // Logf is used for logging...
 func (p *Process) Logf(format string, args ...interface{}) {
-	p.supervisor.Logger.Printf("%s: %v", p.Worker().Name, fmt.Sprintf(format, args...))
+	p.supervisor.Logger(p.Context(), "%s: %v", p.Worker().Name, fmt.Sprintf(format, args...))
 }
 
 // We would _like_ to have Debug and Debugf, but we can't really support that with
@@ -62,14 +62,14 @@ func (p *Process) Logf(format string, args ...interface{}) {
 func (p *Process) Debug(obj interface{}) {
 	// Yes, this is a no-op, see above.
 	if false {
-		p.supervisor.Logger.Printf("%s: %v", p.Worker().Name, obj)
+		p.supervisor.Logger(p.Context(), "%s: %v", p.Worker().Name, obj)
 	}
 }
 
 func (p *Process) Debugf(format string, args ...interface{}) {
 	// Yes, this is a no-op, see above.
 	if false {
-		p.supervisor.Logger.Printf("%s: %v", p.Worker().Name, fmt.Sprintf(format, args...))
+		p.supervisor.Logger(p.Context(), "%s: %v", p.Worker().Name, fmt.Sprintf(format, args...))
 	}
 }
 
