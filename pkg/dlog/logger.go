@@ -28,33 +28,26 @@ import (
 // Panic logging options.  Do proper error handling!  Return those
 // errors!
 type Logger interface {
+	// Helper marks the calling function as a logging helper
+	// function.  This way loggers can report the line that the
+	// log came from, while excluding functions that are part of
+	// dlog itself.
+	//
+	// See also: testing.T.Helper
 	Helper()
+
+	// WithField returns a copy of the logger with the
+	// structured-logging field key=value associated with it, for
+	// future calls to .Log().
 	WithField(key string, value interface{}) Logger
+
+	// StdLogger returns a stdlib *log.Logger that writes to this
+	// Logger at the specified loglevel; for use with external
+	// libraries that demand a stdlib *log.Logger.  Since
 	StdLogger(LogLevel) *log.Logger
 
-	Tracef(format string, args ...interface{})
-	Debugf(format string, args ...interface{})
-	Infof(format string, args ...interface{})
-	Printf(format string, args ...interface{})
-	Warnf(format string, args ...interface{})
-	Warningf(format string, args ...interface{})
-	Errorf(format string, args ...interface{})
-
-	Trace(args ...interface{})
-	Debug(args ...interface{})
-	Info(args ...interface{})
-	Print(args ...interface{})
-	Warn(args ...interface{})
-	Warning(args ...interface{})
-	Error(args ...interface{})
-
-	Traceln(args ...interface{})
-	Debugln(args ...interface{})
-	Infoln(args ...interface{})
-	Println(args ...interface{})
-	Warnln(args ...interface{})
-	Warningln(args ...interface{})
-	Errorln(args ...interface{})
+	// Log actually logs a message.
+	Log(level LogLevel, msg string)
 }
 
 // LogLevel is an abstracted common log-level type for for
