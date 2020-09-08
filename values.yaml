@@ -333,6 +333,10 @@ redisURL:
 # Ambassador ships with a basic redis instance. Configure the deployment with the options below.
 redis:
   create: true
+  image:
+    repository: redis
+    tag: 5.0.1
+    pullPolicy: IfNotPresent
   # Annotations for Ambassador Pro's redis instance.
   annotations:
     deployment:
