@@ -176,22 +176,67 @@ $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto:
 	  curl --fail -L "$$url"; \
 	} > $@
 
-# proto_path is a list of where to look for .proto files.
-_proto_path += $(OSS_HOME)/api # input files must be within the path
-_proto_path += $(OSS_HOME)/vendor # for "k8s.io/..."
-proto_path = $(call lazyonce,proto_path,$(_proto_path))
-
 # Usage: $(call protoc,output_module,output_basedir[,plugin_files])
+#
+# Using the $(call protoc,...) macro will execute the `protoc` program
+# to generate the single output file $@ from $< using the
+# 'output_module' argument.
+#
+# Nomenclature:
+#   The `protoc` program uses "plugins" that add support for new "output
+#   modules" to the protoc.
+#
+# Arguments:
+#   - output_module: The protoc module to run.
+#   - output_basedir: Where the protobuf "namespace" starts; such that
+#     $@ is "{output_basedir}/{protobuf_packagename}/{filename}"
+#   - plugin_files: A whitespace-separated list of plugin files to
+#     load (necessary if output_module isn't built-in to protoc)
+#
+# Configuration:
+#   This macro takes most of its configuration from global variables:
+#
+#    - proto_path: A whitespace-separated list of directories to look
+#      for .proto files in.  Input files must be within this path.
+#    - proto_options/$(output_module): A whitespace-separated list of
+#      configuration options specific to this output module.
+#
+#   Having these as global variables instead of arguments makes it a
+#   lot easier to wrangle having large tables of options that some
+#   modules require.
+#
+# Example:
+#
+#    The Make snippet
+#
+#        proto_path  = $(CURDIR)/input_dir
+#        proto_path += $(CURDIR)/vendor/lib
+#        proto_options/example  = key1=val1
+#        proto_options/example += key2=val2
+#
+#        $(CURDIR)/output_dir/mypkg/myfile.pb.example: $(CURDIR)/input_dir/mypkg/myfile.proto /usr/bin/protoc-gen-example
+#                $(call protoc,example,$(CURDIR)/output_dir,\
+#                    /usr/bin/protoc-gen-example)
+#
+#    would run the command
+#
+#        $(tools/protoc) \
+#            --proto_path=$(CURDIR)/input_dir,$(CURDIR)/vendor/lib \
+#            --plugin=/usr/bin/protoc-gen-example \
+#            --example_out=key1=val1,key2=val2:$(CURDIR)/output_dir
 protoc = @echo PROTOC --$1_out=$2 $<; mkdir -p $2 && $(tools/protoc) \
   $(addprefix --proto_path=,$(proto_path)) \
   $(addprefix --plugin=,$3) \
   --$1_out=$(if $(proto_options/$(strip $1)),$(call joinlist,$(comma),$(proto_options/$(strip $1))):)$2 \
   $<
 
+# proto_path is a list of where to look for .proto files.
+proto_path += $(OSS_HOME)/api # input files must be within the path
+proto_path += $(OSS_HOME)/vendor # for "k8s.io/..."
+
 # The "M{FOO}={BAR}" options map from .proto files to Go package names.
-_proto_options/go += plugins=grpc
-#_proto_options/go += Mgoogle/protobuf/duration.proto=github.com/golang/protobuf/ptypes/duration
-proto_options/go = $(call lazyonce,proto_options/go,$(_proto_options/go))
+proto_options/go += plugins=grpc
+#proto_options/go += Mgoogle/protobuf/duration.proto=github.com/golang/protobuf/ptypes/duration
 $(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-go) | $(OSS_HOME)/vendor
 	$(call protoc,go,$(OSS_HOME)/pkg/api,\
 	    $(tools/protoc-gen-go))
@@ -270,8 +315,8 @@ _generate_controller_gen: $(tools/controller-gen) $(tools/fix-crds) update-yaml-
 	@printf '  $(CYN)Running controller-gen$(END)\n'
 	rm -f $(crds_yaml_dir)/getambassador.io_*
 	cd $(OSS_HOME) && $(tools/controller-gen) \
-	  $(foreach varname,$(filter controller-gen/options/%,$(.VARIABLES)), $(patsubst controller-gen/options/%,%,$(varname))$(if $(strip $($(varname))),:$(call joinlist,$(comma),$($(varname)))) ) \
-	  $(foreach varname,$(filter controller-gen/output/%,$(.VARIABLES)), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
+	  $(foreach varname,$(sort $(filter controller-gen/options/%,$(.VARIABLES))), $(patsubst controller-gen/options/%,%,$(varname))$(if $(strip $($(varname))),:$(call joinlist,$(comma),$($(varname)))) ) \
+	  $(foreach varname,$(sort $(filter controller-gen/output/%,$(.VARIABLES))), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
 	  paths="./pkg/api/getambassador.io/..."
 	@PS4=; set -ex; for file in $(crds_yaml_dir)/getambassador.io_*.yaml; do $(tools/fix-crds) helm 1.11 "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
 .PHONY: _generate_controller_gen
