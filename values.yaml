@@ -111,7 +111,7 @@ security:
 
 image:
   repository: docker.io/datawire/aes
-  tag: 1.7.0
+  tag: 1.7.1
   pullPolicy: IfNotPresent
 
 dnsPolicy: "ClusterFirst"
