@@ -11,10 +11,10 @@ import (
 )
 
 func ExampleWithSoftCancel(t *testing.T) {
-	ctx := context.Background()                       // context is hard by default
-	ctx, timeToDie := context.WithCancel(ctx)         // hard context => hard cancel
+	ctx := context.Background()                       // Context is hard by default
+	ctx, timeToDie := context.WithCancel(ctx)         // hard Context => hard cancel
 	ctx = dcontext.WithSoftness(ctx)                  // make it soft
-	ctx, startShuttingDown := context.WithCancel(ctx) // soft context => soft cancel
+	ctx, startShuttingDown := context.WithCancel(ctx) // soft Context => soft cancel
 
 	go ListenAndServeHTTPWithContext(ctx, &http.Server{
 		// ...

@@ -9,7 +9,7 @@ import (
 
 type parentHardContextKey struct{}
 
-// WithSoftness returns a copy of the parent "hard" context with a way
+// WithSoftness returns a copy of the parent "hard" Context with a way
 // of getting the parent's Done channel.  This allows the child to
 // have an earlier cancellation, triggering a "soft" shutdown, while
 // allowing hard/soft-aware functions to use HardContext() to get the
