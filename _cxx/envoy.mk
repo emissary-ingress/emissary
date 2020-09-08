@@ -1,5 +1,3 @@
-srcdir := $(OSS_HOME)/_cxx
-
 include $(OSS_HOME)/build-aux/prelude.mk
 
 YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
@@ -28,7 +26,7 @@ export ENVOY_DOCKER_TAG
 #
 # Envoy build
 
-$(srcdir)/envoy: FORCE
+$(OSS_HOME)/_cxx/envoy: FORCE
 	@echo "Getting Envoy sources..."
 # Migrate from old layouts
 	@set -e; { \
@@ -65,7 +63,7 @@ $(srcdir)/envoy: FORCE
 	    fi; \
 	}
 
-$(srcdir)/go-control-plane: FORCE
+$(OSS_HOME)/_cxx/go-control-plane: FORCE
 	@echo "Getting Envoy go-control-plane sources..."
 # Migrate from old layouts
 	@set -e; { \
@@ -95,7 +93,7 @@ $(srcdir)/go-control-plane: FORCE
 	    git checkout $(ENVOY_GO_CONTROL_PLANE_COMMIT); \
 	}
 
-$(srcdir)/envoy-build-image.txt: $(srcdir)/envoy $(WRITE_IFCHANGED) FORCE
+$(OSS_HOME)/_cxx/envoy-build-image.txt: $(OSS_HOME)/_cxx/envoy $(WRITE_IFCHANGED) FORCE
 	@PS4=; set -ex -o pipefail; { \
 	    pushd $</ci; \
 	    echo "$$(pwd)"; \
@@ -104,7 +102,7 @@ $(srcdir)/envoy-build-image.txt: $(srcdir)/envoy $(WRITE_IFCHANGED) FORCE
 	    echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA | $(WRITE_IFCHANGED) $@; \
 	}
 
-$(srcdir)/envoy-build-container.txt: $(srcdir)/envoy-build-image.txt FORCE
+$(OSS_HOME)/_cxx/envoy-build-container.txt: $(OSS_HOME)/_cxx/envoy-build-image.txt FORCE
 	@PS4=; set -ex; { \
 	    if [ $@ -nt $< ] && docker exec $$(cat $@) true; then \
 	        exit 0; \
@@ -130,17 +128,17 @@ $(srcdir)/envoy-build-container.txt: $(srcdir)/envoy-build-image.txt FORCE
 #     macOS users.
 #  2. Volumes mounts just straight-up don't work for people who use
 #     Minikube's dockerd.
-ENVOY_SYNC_HOST_TO_DOCKER = rsync -Pav --delete --blocking-io -e "docker exec -i" $(srcdir)/envoy/ $$(cat $(srcdir)/envoy-build-container.txt):/root/envoy
-ENVOY_SYNC_DOCKER_TO_HOST = rsync -Pav --delete --blocking-io -e "docker exec -i" $$(cat $(srcdir)/envoy-build-container.txt):/root/envoy/ $(srcdir)/envoy/
+ENVOY_SYNC_HOST_TO_DOCKER = rsync -Pav --delete --blocking-io -e "docker exec -i" $(OSS_HOME)/_cxx/envoy/ $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/root/envoy
+ENVOY_SYNC_DOCKER_TO_HOST = rsync -Pav --delete --blocking-io -e "docker exec -i" $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/root/envoy/ $(OSS_HOME)/_cxx/envoy/
 
 ENVOY_BASH.cmd = bash -c 'PS4=; set -ex; $(ENVOY_SYNC_HOST_TO_DOCKER); trap '\''$(ENVOY_SYNC_DOCKER_TO_HOST)'\'' EXIT; '$(call quote.shell,$1)
-ENVOY_BASH.deps = $(srcdir)/envoy-build-container.txt
+ENVOY_BASH.deps = $(OSS_HOME)/_cxx/envoy-build-container.txt
 
 ENVOY_DOCKER.env += PATH=/opt/llvm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 ENVOY_DOCKER.env += CC=clang
 ENVOY_DOCKER.env += CXX=clang++
 ENVOY_DOCKER.env += CLANG_FORMAT=/opt/llvm/bin/clang-format
-ENVOY_DOCKER_EXEC = docker exec --workdir=/root/envoy $(foreach e,$(ENVOY_DOCKER.env), --env=$e ) $$(cat $(srcdir)/envoy-build-container.txt)
+ENVOY_DOCKER_EXEC = docker exec --workdir=/root/envoy $(foreach e,$(ENVOY_DOCKER.env), --env=$e ) $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt)
 
 $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	mkdir -p $(@D)
@@ -162,15 +160,15 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	        fi; \
 	        $(call ENVOY_BASH.cmd, \
 	            $(ENVOY_DOCKER_EXEC) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) --config=clang //source/exe:envoy-static; \
-	            rsync -Pav --blocking-io -e 'docker exec -i' $$(cat $(srcdir)/envoy-build-container.txt):/root/envoy/bazel-bin/source/exe/envoy-static $@; \
+	            rsync -Pav --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/root/envoy/bazel-bin/source/exe/envoy-static $@; \
 	        ); \
 	    fi; \
 	}
-%-stripped: % $(srcdir)/envoy-build-container.txt
+%-stripped: % $(OSS_HOME)/_cxx/envoy-build-container.txt
 	@PS4=; set -ex; { \
-	    rsync -Pav --blocking-io -e 'docker exec -i' $< $$(cat $(srcdir)/envoy-build-container.txt):/tmp/$(<F); \
-	    docker exec $$(cat $(srcdir)/envoy-build-container.txt) strip /tmp/$(<F) -o /tmp/$(@F); \
-	    rsync -Pav --blocking-io -e 'docker exec -i' $$(cat $(srcdir)/envoy-build-container.txt):/tmp/$(@F) $@; \
+	    rsync -Pav --blocking-io -e 'docker exec -i' $< $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/tmp/$(<F); \
+	    docker exec $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt) strip /tmp/$(<F) -o /tmp/$(@F); \
+	    rsync -Pav --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/tmp/$(@F) $@; \
 	}
 
 check-envoy: ## Run the Envoy test suite
@@ -184,22 +182,22 @@ check-envoy: $(ENVOY_BASH.deps)
 envoy-shell: ## Run a shell in the Envoy build container
 envoy-shell: $(ENVOY_BASH.deps)
 	$(call ENVOY_BASH.cmd, \
-	    docker exec -it --workdir=/root/envoy $(foreach e,$(ENVOY_DOCKER.env), --env=$e ) $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash || true; \
+	    docker exec -it --workdir=/root/envoy $(foreach e,$(ENVOY_DOCKER.env), --env=$e ) $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt) /bin/bash || true; \
 	)
 .PHONY: envoy-shell
 
 #
 # Envoy generate
 
-$(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb: $(OSS_HOME)/api/%: $(srcdir)/envoy
+$(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb: $(OSS_HOME)/api/%: $(OSS_HOME)/_cxx/envoy
 	rsync --recursive --delete --delete-excluded --prune-empty-dirs --include='*/' --include='*.proto' --exclude='*' $</api/$*/ $@
 
-$(srcdir)/envoy/build_go: $(ENVOY_BASH.deps) FORCE
+$(OSS_HOME)/_cxx/envoy/build_go: $(ENVOY_BASH.deps) FORCE
 	$(call ENVOY_BASH.cmd, \
 	    $(ENVOY_DOCKER_EXEC) python3 -c 'from tools.api.generate_go_protobuf import generateProtobufs; generateProtobufs("/root/envoy/build_go")'; \
 	)
 	test -d $@ && touch $@
-$(OSS_HOME)/pkg/api/pb $(OSS_HOME)/pkg/api/envoy: $(OSS_HOME)/pkg/api/%: $(srcdir)/envoy/build_go
+$(OSS_HOME)/pkg/api/pb $(OSS_HOME)/pkg/api/envoy: $(OSS_HOME)/pkg/api/%: $(OSS_HOME)/_cxx/envoy/build_go
 	rm -rf $@
 	@PS4=; set -ex; { \
 	  unset GIT_DIR GIT_WORK_TREE; \
@@ -216,8 +214,8 @@ $(OSS_HOME)/pkg/api/pb $(OSS_HOME)/pkg/api/envoy: $(OSS_HOME)/pkg/api/%: $(srcdi
 	  mv "$$tmpdir/$*" $@; \
 	}
 
-update-base: $(srcdir)/envoy-build-image.txt $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-envoy/envoy-static-stripped
-	docker build --build-arg=base=$$(cat $(srcdir)/envoy-build-image.txt) -t $(ENVOY_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy
+update-base: $(OSS_HOME)/_cxx/envoy-build-image.txt $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-envoy/envoy-static-stripped
+	docker build --build-arg=base=$$(cat $(OSS_HOME)/_cxx/envoy-build-image.txt) -t $(ENVOY_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy
 	$(MAKE) generate
 	if [ '$(ENVOY_COMMIT)' != '-' ]; then docker push $(ENVOY_DOCKER_TAG); fi
 .PHONY: update-base
@@ -229,12 +227,12 @@ clean: _clean-envoy
 clobber: _clobber-envoy
 
 _clean-envoy: _clean-envoy-old
-_clean-envoy: $(srcdir)/envoy-build-container.txt.clean
-	rm -f $(srcdir)/envoy-build-image.txt
+_clean-envoy: $(OSS_HOME)/_cxx/envoy-build-container.txt.clean
+	rm -f $(OSS_HOME)/_cxx/envoy-build-image.txt
 _clobber-envoy: _clean-envoy
 	rm -f $(OSS_HOME)/docker/base-envoy/envoy-static
 	rm -f $(OSS_HOME)/docker/base-envoy/envoy-static-stripped
-	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(srcdir)/envoy)
+	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(OSS_HOME)/_cxx/envoy)
 .PHONY: _clean-envoy _clobber-envoy
 
 # Files made by older versions.  Remove the tail of this list when the
