@@ -69,7 +69,7 @@ This sets up Graphite access at `http://localhost:8080/`.
 > endpoint][] directly, instead of instead of going through StatsD and
 > a translator.
 
-[the `:8877/metrics` endpoint]: ../8877-metrics)
+[the `:8877/metrics` endpoint]: ../8877-metrics
 
 [Prometheus][] is an open-source monitoring and alerting system.
 Prometheus does not natively understand the StatsD protocol, but you
@@ -136,7 +136,7 @@ In the [`ambassador-rbac-prometheus.yaml`][] example template there is
 a `ConfigMap` that should be updated.  Add your mapping to the
 `configuration` property.
 
-[`ambassador-rbac-prometheus.yaml`]: ../../../../../yaml/ambassador/ambassador-rbac-prometheus.yaml
+[`ambassador-rbac-prometheus.yaml`]: ../../../../../../yaml/ambassador/ambassador-rbac-prometheus.yaml
 
 ```yaml
 ---

@@ -57,6 +57,18 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 - Bugfix: The container no longer exits "successfully" when the Deployment specifies an invalid `command`.
 
+## [1.7.1] September 08, 2020
+[1.7.1]: https://github.com/datawire/ambassador/compare/v1.7.0...v1.7.1
+
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Support `envoy_validation_timeout` in the Ambassador Module to set the timeout for validating new Envoy configurations
+
+### Ambassador Edge Stack only
+
+- Bugfix: `consul_connect_integration` is now built correctly.
+- Bugfix: The developer portal again supports requests for API documentation
+
 ## [1.7.0] August 27, 2020
 [1.7.0]: https://github.com/datawire/ambassador/compare/v1.6.2...v1.7.0
 
