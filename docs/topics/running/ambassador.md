@@ -33,8 +33,9 @@ spec:
 | `envoy_log_format` | Defines the envoy log line format. See [this page](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log/access_log) for a complete list of operators | See [this page](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log/usage#default-format-string) for the standard log format. |
 | `envoy_log_path` | Defines the path of log envoy will use. By default this is standard output | `envoy_log_path: /dev/fd/1` |
 | `envoy_log_type` | Defines the type of log envoy will use, currently only support json or text | `envoy_log_type: text` |
+| `envoy_validation_timeout` | Defines the timeout, in seconds, for validating a new Envoy configuration. The default is 10; a value of 0 disables Envoy configuration validation. Most installations will not need to use this setting. | `envoy_validation_timeout: 30` |
 | `listener_idle_timeout_ms` | Controls how Envoy configures the tcp idle timeout on the http listener. Default is 1 hour. | `listener_idle_timeout_ms: 30000` |
-| `lua_scripts` | Run a custom lua script on every request. see below for more details. |  |
+| `lua_scripts` | Run a custom lua script on every request. See below for more details. |  |
 | `proper_case` | Should we enable upper casing for response headers? For more information, see [the Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/core/protocol.proto#envoy-api-msg-core-http1protocoloptions-headerkeyformat) | `proper_case: false` |
 | `regex_max_size` | This field controls the RE2 "program size" which is a rough estimate of how complex a compiled regex is to evaluate. A regex that has a program size greater than the configured value will fail to compile    | `regex_max_size: 200` |
 | `regex_type` | Set which regular expression engine to use. See the "Regular Expressions" section below. | `regex_type: safe` |
