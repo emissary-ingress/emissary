@@ -152,7 +152,7 @@ How do I run ambassador for local development using the new entrypoint?
 The new entrypoint is written in go. It strives to be as compatible as possible
 with the normal go toolchain. You should be able to run it with:
 
-    go run ./cmd/ambassador entrypoint
+    go run ./cmd/busyambassador entrypoint
 
 Of course just because you can run it this way does not mean it will succeed.
 The entrypoint needs to launch `diagd` and `envoy` in order to function, and it
@@ -178,7 +178,7 @@ instructions depend on the virtualenvwrapper
 You should now be able to launch ambassador if you set the
 `ambassador_root` environment variable to a writeable location:
 
-   ambassador_root=/tmp go run ./cmd/ambassador entrypoint
+   ambassador_root=/tmp go run ./cmd/busyambassador entrypoint
 
 ### Getting envoy
 

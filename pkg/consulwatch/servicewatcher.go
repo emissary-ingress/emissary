@@ -1,22 +1,22 @@
 package consulwatch
 
 import (
+	"context"
 	"fmt"
-	"log"
-	"os"
 
 	consulapi "github.com/hashicorp/consul/api"
 	"github.com/hashicorp/consul/api/watch"
+
+	"github.com/datawire/ambassador/pkg/dlog"
 )
 
 type ServiceWatcher struct {
 	ServiceName string
 	consul      *consulapi.Client
-	logger      *log.Logger
 	plan        *watch.Plan
 }
 
-func New(client *consulapi.Client, logger *log.Logger, datacenter string, service string, onlyHealthy bool) (*ServiceWatcher, error) {
+func New(client *consulapi.Client, datacenter string, service string, onlyHealthy bool) (*ServiceWatcher, error) {
 	// NOTE plombardi@datawire.io, 2019-03-04
 	// ======================================
 	//
@@ -36,11 +36,7 @@ func New(client *consulapi.Client, logger *log.Logger, datacenter string, servic
 		return nil, err
 	}
 
-	if logger == nil {
-		logger = log.New(os.Stdout, "", log.LstdFlags)
-	}
-
-	return &ServiceWatcher{consul: client, logger: logger, ServiceName: service, plan: plan}, nil
+	return &ServiceWatcher{consul: client, ServiceName: service, plan: plan}, nil
 }
 
 func (w *ServiceWatcher) Watch(handler func(endpoints Endpoints, err error)) {
@@ -79,8 +75,8 @@ func (w *ServiceWatcher) Watch(handler func(endpoints Endpoints, err error)) {
 	}
 }
 
-func (w *ServiceWatcher) Start() error {
-	return w.plan.RunWithClientAndLogger(w.consul, w.logger)
+func (w *ServiceWatcher) Start(ctx context.Context) error {
+	return w.plan.RunWithClientAndLogger(w.consul, dlog.StdLogger(ctx, dlog.LogLevelInfo))
 }
 
 func (w *ServiceWatcher) Stop() {

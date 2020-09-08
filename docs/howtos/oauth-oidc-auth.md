@@ -11,7 +11,7 @@ First, configure an OAuth2 filter for your identity provider. For information on
 apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
-  name: auth_filter
+  name: auth-filter
   namespace: default
 spec:
   OAuth2:
@@ -57,7 +57,7 @@ spec:
     - host: "*"
       path: /httpbin/ip
       filters:
-        - name: auth_filter ## Enter the Filter name from above
+        - name: auth-filter ## Enter the Filter name from above
           arguments:
             scopes:
             - "scope1"

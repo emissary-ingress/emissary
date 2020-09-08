@@ -37,16 +37,16 @@ Update the Keycloak `Filter` and `FilterPolicy` with the following:
    apiVersion: getambassador.io/v2
    kind: Filter
    metadata:
-     name: keycloak_filter
+     name: keycloak-filter
      namespace: default
    spec:
      OAuth2:
        authorizationURL: https://{KEYCLOAK_URL}/auth/realms/{KEYCLOAK_REALM}
        audience: ambassador
        clientID: ambassador
-       secret: CLIENT_SECRET
+       secret: {CLIENT_SECRET}
        protectedOrigins:
-       - origin: https://datawire-ambassador.com
+       - origin: https://{PROTECTED_URL}
    ```
 
    ```yaml
@@ -61,7 +61,7 @@ Update the Keycloak `Filter` and `FilterPolicy` with the following:
        - host: "*"
          path: /httpbin/ip
          filters:
-           - name: keycloak_filter ## Enter the Filter name from above
+           - name: keycloak-filter ## Enter the Filter name from above
              arguments:
                scopes:
                - "offline_access"
