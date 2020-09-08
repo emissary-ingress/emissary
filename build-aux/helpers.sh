@@ -9,8 +9,8 @@ export BLU='\033[1;34m'
 export CYN='\033[1;36m'
 export END='\033[0m'
 
-# Check to see that an environment variable has been provided exit with an error message if it is
-# not available.
+# Check to see that an environment variable has been provided and exit with an error message if it
+# is not available.
 #
 # Usage: require <varname>
 require() {
