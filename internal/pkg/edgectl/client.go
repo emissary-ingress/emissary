@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"os"
@@ -52,15 +53,24 @@ func IsServerRunning() bool {
 }
 
 func MainViaDaemon() error {
-	conn, err := net.Dial("unix", socketName)
+	err, exitCode := CommandViaDaemon(os.Args, os.Stdout)
 	if err != nil {
 		return err
+	}
+	os.Exit(exitCode)
+	return nil // not reached
+}
+
+func CommandViaDaemon(args []string, out io.Writer) (error, int) {
+	conn, err := net.Dial("unix", socketName)
+	if err != nil {
+		return err, 1
 	}
 	defer conn.Close()
 
 	rai, err := GetRunAsInfo()
 	if err != nil {
-		return errors.Wrap(err, "failed to get local info")
+		return errors.Wrap(err, "failed to get local info"), 1
 	}
 
 	// Create or read the install ID here, as the user, and pass it to the
@@ -68,7 +78,7 @@ func MainViaDaemon() error {
 	installID := NewScout("unused").Reporter.InstallID()
 
 	data := ClientMessage{
-		Args:          os.Args,
+		Args:          args,
 		RAI:           rai,
 		APIVersion:    apiVersion,
 		ClientVersion: DisplayVersion(),
@@ -76,7 +86,7 @@ func MainViaDaemon() error {
 	}
 	encoder := json.NewEncoder(conn)
 	if err := encoder.Encode(&data); err != nil {
-		return errors.Wrap(err, "encode/send")
+		return errors.Wrap(err, "encode/send"), 1
 	}
 
 	scanner := bufio.NewScanner(conn)
@@ -86,18 +96,13 @@ func MainViaDaemon() error {
 			codeStr := line[len(ExitPrefix):]
 			code, err := strconv.Atoi(codeStr)
 			if err != nil {
-				fmt.Println()
-				fmt.Printf("Bad exit code from daemon: %q", codeStr)
+				fmt.Fprintln(out)
+				fmt.Fprintf(out, "Bad exit code from daemon: %q", codeStr)
 				code = 1
 			}
-			os.Exit(code)
+			return nil, code
 		}
-		fmt.Println(scanner.Text())
+		fmt.Fprintln(out, line)
 	}
-	if err := scanner.Err(); err != nil {
-		return err
-	}
-
-	os.Exit(0)
-	return nil // not reached
+	return scanner.Err(), 0
 }
