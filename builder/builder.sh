@@ -55,7 +55,7 @@ declare -a dsynced
 dsync() {
     printf "${GRN}Synchronizing... $*${END}\n"
     TIMEFORMAT="(sync took %1R seconds)"
-    time IFS='|' read -ra dsynced <<<"$(rsync --info=name -aO -e 'docker exec -i' $@ 2> >(fgrep -v 'rsync: failed to set permissions on' >&2) | tr '\n' '|')"
+    time IFS='|' read -ra dsynced <<<"$(rsync --info=name -aO --blocking-io -e 'docker exec -i' $@ 2> >(fgrep -v 'rsync: failed to set permissions on' >&2) | tr '\n' '|')"
 }
 
 dcopy() {
