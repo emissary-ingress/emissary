@@ -41,6 +41,7 @@ spec:
 | `ip_deny`        | Defines HTTP source IP address ranges to deny; all others will be allowed. `ip_allow` and `ip_deny` may not both be specified. See below for more details. | None |
 | `listener_idle_timeout_ms` | Controls how Envoy configures the tcp idle timeout on the http listener. Default is 1 hour. | `listener_idle_timeout_ms: 30000` |
 | `lua_scripts` | Run a custom lua script on every request. see below for more details. | None |
+| `grpc_stats` | Enables telemetry of gRPC calls using the "gRPC Statistics" Envoy filter. see below for more details. |  |
 | `proper_case` | Should we enable upper casing for response headers? For more information, see [the Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/core/protocol.proto#envoy-api-msg-core-http1protocoloptions-headerkeyformat). | `proper_case: false` |
 | `regex_max_size` | This field controls the RE2 "program size" which is a rough estimate of how complex a compiled regex is to evaluate. A regex that has a program size greater than the configured value will fail to compile.    | `regex_max_size: 200` |
 | `regex_type` | Set which regular expression engine to use. See the "Regular Expressions" section below. | `regex_type: safe` |
@@ -239,6 +240,27 @@ For more details on the Lua API, see the [Envoy Lua filter documentation](https:
 * They're run on every request/response to every URL
 
 If you need more flexible and configurable options, Ambassador Edge Stack supports a [pluggable Filter system](../../using/filters/).
+
+### gRPC Statistics (`grpc_stats`)
+
+Use the Envoy filter to enable telemetry of gRPC calls. [gRPC Statistics Filter](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_stats_filter)
+For configuration parameters, see the [Envoy gRPC Statistics filter documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/grpc_stats/v3/config.proto)
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind:  Module
+metadata:
+  name: ambassador
+spec:
+  config:
+    grpc_stats:
+      enable_upstream_stats: true
+      individual_method_stats_allowlist:
+        services:
+          - name: EchoService
+            method_names: [Echo]
+```
 
 ### Header Case (`proper_case`)
 
