@@ -55,7 +55,9 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
-(no changes yet)
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Incorporate the Envoy 1.14.4 security update.
 
 ## [1.7.2] September 16, 2020
 [1.7.2]: https://github.com/datawire/ambassador/compare/v1.7.1...v1.7.2
