@@ -196,7 +196,7 @@ readiness_probe:
   rewrite: /backend/health
 ```
 
-The liveness and readiness probe both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](../../using/mappings). Additionally, the `enabled` boolean may be set to `false` to disable support for the probe entirely.
+The liveness and readiness probes both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](../../using/mappings). Additionally, the `enabled` boolean may be set to `false` to disable API support for the probe.  It will, however, remain accessible on port 8877.
 
 ### Lua Scripts (`lua_scripts`)
 
