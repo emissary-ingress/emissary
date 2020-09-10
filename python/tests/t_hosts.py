@@ -16,7 +16,6 @@ class HostCRDSingle(AmbassadorTest):
 
     def init(self):
         self.edge_stack_cleartext_host = False
-        self.allow_edge_stack_redirect = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -79,7 +78,6 @@ class HostCRDNo8080(AmbassadorTest):
 
     def init(self):
         self.edge_stack_cleartext_host = False
-        self.allow_edge_stack_redirect = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -150,7 +148,7 @@ class HostCRDManualContext(AmbassadorTest):
 
     def init(self):
         self.edge_stack_cleartext_host = False
-        self.allow_edge_stack_redirect = False
+
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -234,7 +232,6 @@ class HostCRDSeparateTLSContext(AmbassadorTest):
 
     def init(self):
         self.edge_stack_cleartext_host = False
-        self.allow_edge_stack_redirect = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -313,7 +310,6 @@ class HostCRDTLSConfig(AmbassadorTest):
 
     def init(self):
         self.edge_stack_cleartext_host = False
-        self.allow_edge_stack_redirect = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -385,7 +381,6 @@ class HostCRDClearText(AmbassadorTest):
 
     def init(self):
         self.edge_stack_cleartext_host = False
-        self.allow_edge_stack_redirect = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -438,7 +433,6 @@ class HostCRDMultipleInsecure(AmbassadorTest):
 
     def init(self):
         self.edge_stack_cleartext_host = False
-        self.allow_edge_stack_redirect = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -567,7 +561,6 @@ class HostCRDDouble(AmbassadorTest):
 
     def init(self):
         self.edge_stack_cleartext_host = False
-        self.allow_edge_stack_redirect = False
         self.target1 = HTTP(name="target1")
         self.target2 = HTTP(name="target2")
 
