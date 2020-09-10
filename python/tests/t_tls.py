@@ -228,6 +228,7 @@ service: {self.target.path.fqdn}
                     error=["tls: alert(116)", "tls: certificate required", "read: connection reset"])
 
     def check(self):
+        raise Exception(self.results[0].backend.request.headers)
         assert self.results[0].backend.request.headers["X-Forwarded-Client-Cert"] == \
             ["Hash=c2d41a5977dcd28a3ba21f59ed5508cc6538defa810843d8a593e668306c8c4f;Subject=\"C=IN, ST=KA, L=Bangalore2, O=Presto, OU=Engineering, CN=presto.example.com\""]
 
