@@ -23,42 +23,45 @@ class IRAmbassador (IRResource):
 
     # All the AModTransparentKeys are copied from the incoming Ambassador resource
     # into the IRAmbassador object partway through IRAmbassador.finalize().
+    #
+    # PLEASE KEEP THIS LIST SORTED.
+    
     AModTransparentKeys: ClassVar = [
         'add_linkerd_headers',
         'admin_port',
         'auth_enabled',
         'circuit_breakers',
+        'cluster_idle_timeout_ms',
+        'debug_mode',
+        # Do not include defaults, that's handled manually in setup.
         'default_label_domain',
         'default_labels',
-        # Do not include defaults, that's handled manually in setup.
         'diagnostics',
         'enable_http10',
-        'enable_ipv6',
-        'envoy_log_type',
-        'envoy_log_path',
-        'envoy_log_format',
-        # Do not include envoy_validation_timeout; we let finalize() type-check it.
         'enable_ipv4',
-        'cluster_idle_timeout_ms',
+        'enable_ipv6',
+        'envoy_log_format',
+        'envoy_log_path',
+        'envoy_log_type',
+        # Do not include envoy_validation_timeout; we let finalize() type-check it.
+        'keepalive',
         'listener_idle_timeout_ms',
         'liveness_probe',
         'load_balancer',
-        'keepalive',
+        'preserve_external_request_id'
         'proper_case',
         'readiness_probe',
         'regex_max_size',
         'regex_type',
         'resolver',
-        'debug_mode',
         'server_name',
         'service_port',
         'statsd',
+        'use_ambassador_namespace_for_service_resolution',
         'use_proxy_proto',
         'use_remote_address',
         'x_forwarded_proto_redirect',
         'xff_num_trusted_hops',
-        'use_ambassador_namespace_for_service_resolution',
-        'preserve_external_request_id'
     ]
 
     service_port: int
