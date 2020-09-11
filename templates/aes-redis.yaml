@@ -58,7 +58,8 @@ spec:
     spec:
       containers:
       - name: redis
-        image: redis:5.0.1
+        image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
+        imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
         resources:
         {{- toYaml .Values.redis.resources | nindent 10 }}
       restartPolicy: Always
