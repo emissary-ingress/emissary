@@ -321,8 +321,6 @@ ambassador dump --help
 How do I type check my python code?
 -----------------------------------
 
-XXX: the `make mypy` target does not exist yet, a future commit will fix this!
-
 Ambassador uses Python 3 type hinting and the `mypy` static type checker to
 help find bugs before runtime. If you haven't worked with hinting before, a
 good place to start is

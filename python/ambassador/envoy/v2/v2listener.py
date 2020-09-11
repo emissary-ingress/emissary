@@ -39,6 +39,8 @@ from .v2tls import V2TLSContext
 if TYPE_CHECKING:
     from . import V2Config
 
+DictifiedV2Route = Dict[str,Any]
+
 EnvoyCTXInfo = Tuple[str, Optional[List[str]], V2TLSContext]
 
 # Static header keys normally used in the context of an authorization request.
@@ -91,7 +93,7 @@ def jsonify(x) -> str:
     return json.dumps(x, sort_keys=True, indent=4)
 
 
-def prettyroute(route: V2Route) -> str:
+def prettyroute(route: DictifiedV2Route) -> str:
     match = route["match"]
 
     key = "PFX"
@@ -321,7 +323,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
         allowed_authorization_headers = []
         headers_to_add = []
 
-        for k, v in auth.get('add_auth_headers').items():
+        for k, v in auth.get('add_auth_headers', {}).items():
             headers_to_add.append({
                 'key': k,
                 'value': v,
@@ -530,10 +532,10 @@ class V2TCPListener(dict):
         self['filter_chains'].append(chain_entry)
 
 
-class V2VirtualHost(dict):
+class V2VirtualHost:
     def __init__(self, config: 'V2Config', listener: 'V2Listener',
-                 name: str, hostname: Optional[str], ctx: Optional[IRTLSContext],
-                 secure: bool, action: str, insecure_action: Optional[str]) -> None:
+                 name: str, hostname: str, ctx: Optional[IRTLSContext],
+                 secure: bool, action: Optional[str], insecure_action: Optional[str]) -> None:
         super().__init__()
 
         self._config = config
@@ -547,18 +549,15 @@ class V2VirtualHost(dict):
         self._needs_redirect = False
         # vhost._domains gets populated by self.maybe_add_route()
         # (after self.__init__() but before self.finalize())
-        self._domains: Dict[str, List[V2Route]] = {}
+        self._domains: Dict[str, List[DictifiedV2Route]] = {}
 
-        self["tls_context"] = V2TLSContext(ctx)
-        self["routes"]: List['V2Route'] = []
+        self._tls_context = V2TLSContext(ctx)
+        self.routes: List[DictifiedV2Route] = []
 
     def needs_redirect(self) -> None:
         self._needs_redirect = True
 
-    def append_route(self, route: V2Route):
-        self["routes"].append(route)
-
-    def punch_acme_in_routes(self, route_list: List[V2Route]):
+    def punch_acme_in_routes(self, route_list: List[DictifiedV2Route]):
         for route in route_list:
             if route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
                 # Nothing to do here if ACME prefix already exists
@@ -657,7 +656,7 @@ class V2VirtualHost(dict):
                         candidate: Tuple[bool, V2Route, str],
                         domain: Optional[str]=None):
 
-        final_route = None
+        final_route: Optional[DictifiedV2Route] = None
 
         logger.debug(f"V2VirtualHost {self._name}: considering route candidate={candidate} where domain={domain} and edge_stack_allowed={edge_stack_allowed}")
         vhostname = self._hostname
@@ -729,11 +728,11 @@ class V2VirtualHost(dict):
 
             # Populate the domains for insecure routes
             if not secure:
+                assert domain
                 logger.debug(f"V2VirtualHost {self._name}: secure={secure}: adding route={dict(final_route)} to domain={domain}")
-                self._domains.setdefault(domain, [])
-                self._domains[domain].append(final_route)
+                self._domains.setdefault(domain, []).append(final_route)
 
-            self.append_route(final_route)
+            self.routes.append(final_route)
         else:
             logger.debug(f"V2VirtualHost {self._name}: secure={secure}: Drop")
 
@@ -749,7 +748,7 @@ class V2VirtualHost(dict):
         # change later, of course...
         self._config.ir.logger.debug(f"V2VirtualHost finalize {jsonify(self.pretty())}")
 
-        match = {}
+        match: Dict[str,Any] = {}
 
         if self._ctx:
             match["transport_protocol"] = "tls"
@@ -759,28 +758,28 @@ class V2VirtualHost(dict):
             if self._hostname and (self._hostname != '*'):
                     match["server_names"] = [ self._hostname ]
 
-        self["filter_chain_match"] = match
+        self.filter_chain_match = match
 
         # If we're on Edge Stack and we're not an intercept agent, punch a hole for ACME
         # challenges, for every listener.
         if self._config.ir.edge_stack_allowed and not self._config.ir.agent_active:
             # Punch ACME hole in routes
-            self.punch_acme_in_routes(self["routes"])
+            self.punch_acme_in_routes(self.routes)
 
             # Punch ACME hole in domains
             for domain in self._domains:
                 self.punch_acme_in_routes(self._domains[domain])
 
-        for route in self["routes"]:
+        for route in self.routes:
             self._config.ir.logger.debug(f"V2VirtualHost Host Route {prettyroute(route)}")
 
     def pretty(self) -> str:
         ctx_name = "-none-"
 
-        if self["tls_context"]:
-            ctx_name = self["tls_context"].pretty()
+        if self._tls_context:
+            ctx_name = self._tls_context.pretty()
 
-        route_count = len(self["routes"])
+        route_count = len(self.routes)
         route_plural = "" if (route_count == 1) else "s"
 
         return "<VHost %s ctx %s redir %s a %s ia %s %d route%s>" % \
@@ -795,8 +794,8 @@ class V2VirtualHost(dict):
             "_action": self._action,
             "_insecure_action": self._insecure_action,
             "_needs_redirect": self._needs_redirect,
-            "tls_context": self["tls_context"],
-            "routes": self["routes"],
+            "tls_context": self._tls_context,
+            "routes": self.routes,
         }
 
 
@@ -829,7 +828,7 @@ class V2ListenerCollection:
             v2listener.use_proxy_proto = use_proxy_proto
         elif v2listener.use_proxy_proto != use_proxy_proto:
             raise Exception("listener for port %d has use_proxy_proto %s, requester wants upp %s" %
-                            (v2listener.use_proxy_proto, use_proxy_proto))
+                            (v2listener.service_port, v2listener.use_proxy_proto, use_proxy_proto))
 
         return v2listener
 
@@ -861,7 +860,7 @@ class V2Listener(dict):
 
         # Get Access Log Rules
         for al in self.config.ir.log_services.values():
-            access_log_obj = { "common_config": al.get_common_config() }
+            access_log_obj: Dict[str,Any] = { "common_config": al.get_common_config() }
             req_headers = []
             resp_headers = []
             trailer_headers = []
@@ -1007,7 +1006,7 @@ class V2Listener(dict):
         proper_case = self.config.ir.ambassador_module['proper_case']
 
         if proper_case:
-            proper_case_header = {'header_key_format': {'proper_case_words': {}}}
+            proper_case_header: Dict[str,Dict[str,dict]] = {'header_key_format': {'proper_case_words': {}}}
             if 'http_protocol_options' in self.base_http_config:
                 self.base_http_config["http_protocol_options"].update(proper_case_header)
             else:
@@ -1026,7 +1025,7 @@ class V2Listener(dict):
 
     # Weirdly, the action is optional but the insecure_action is not. This is not a typo.
     def make_vhost(self, name: str, hostname: str, context: Optional[IRTLSContext], secure: bool,
-                   action: Optional[str], insecure_action: str) -> None:
+                   action: Optional[str], insecure_action: str) -> V2VirtualHost:
         self.config.ir.logger.debug("V2Listener %s: adding VHost %s for host %s, secure %s, insecure %s)" %
                                    (self.name, name, hostname, action, insecure_action))
 
@@ -1041,7 +1040,7 @@ class V2Listener(dict):
                 raise Exception("V2Listener %s: trying to make vhost %s for %s but one already exists" %
                                 (self.name, name, hostname))
             else:
-                return
+                return vhost
 
         vhost = V2VirtualHost(config=self.config, listener=self,
                               name=name, hostname=hostname, ctx=context,
@@ -1050,6 +1049,8 @@ class V2Listener(dict):
 
         if not self.first_vhost:
             self.first_vhost = vhost
+
+        return vhost
 
 
     def finalize(self) -> None:
@@ -1078,7 +1079,7 @@ class V2Listener(dict):
             vhost.finalize()
 
             if vhost._hostname == "*":
-                domains = [vhost._hostname]
+                domains: List[str] = [vhost._hostname]
             else:
                 if vhost._ctx is not None and vhost._ctx.hosts is not None and len(vhost._ctx.hosts) > 0:
                     domains = vhost._ctx.hosts
@@ -1086,12 +1087,12 @@ class V2Listener(dict):
                     domains = [vhost._hostname]
 
             # ...then build up the Envoy structures around it.
-            filter_chain = {
-                "filter_chain_match": vhost["filter_chain_match"],
+            filter_chain: Dict[str, Any] = {
+                "filter_chain_match": vhost.filter_chain_match,
             }
 
-            if vhost["tls_context"]:
-                filter_chain["tls_context"] = vhost["tls_context"]
+            if vhost._tls_context:
+                filter_chain["tls_context"] = vhost._tls_context
                 need_tcp_inspector = True
 
             http_config = dict(self.base_http_config)
@@ -1103,7 +1104,7 @@ class V2Listener(dict):
                 http_config["route_config"]["virtual_hosts"].append({
                     "name": f"{self.name}-{vhost._name}",
                     "domains": domains,
-                    "routes": vhost["routes"]
+                    "routes": vhost.routes
                     })
             else:
                 # vhost._hostname will *not* be used here because
@@ -1239,17 +1240,13 @@ class V2Listener(dict):
 
             # Keep in mind that this insecure_vhost_name will *not* be used, it will be overridden by
             # `vhost._domains`. We are only using this for identification purposes.
-            if insecure_vhost_name not in listener.vhosts:
-                logger.debug(f"V2Listeners: could not find vhost {insecure_vhost_name}. Creating insecure vhost"
-                             f"{insecure_vhost_name} with no secure action for listener {listener.pretty()}")
-                listener.make_vhost(name=insecure_vhost_name,
-                                    hostname=insecure_vhost_name,
-                                    context=None,
-                                    secure=False,
-                                    action=None,
-                                    insecure_action=irlistener.insecure_action)
+            vhost = listener.make_vhost(name=insecure_vhost_name,
+                                        hostname=insecure_vhost_name,
+                                        context=None,
+                                        secure=False,
+                                        action=None,
+                                        insecure_action=irlistener.insecure_action)
 
-            vhost = listener.vhosts.get(insecure_vhost_name)
             logger.debug(f"V2Listeners: proceeding to add routes to vhost {vhost.pretty()} for listener {listener.pretty()}")
 
             # Go through all the routes and add them based on the indirect action.
@@ -1268,6 +1265,7 @@ class V2Listener(dict):
             if not '*' in listener.vhosts:
                 # Force the first VHost to '*'. I know, this is a little weird, but it's arguably
                 # the least surprising thing to do in most situations.
+                assert listener.first_vhost
                 first_vhost = listener.first_vhost
                 first_vhost._hostname = '*'
                 first_vhost._name = f"{first_vhost._name}-fstar"
@@ -1289,15 +1287,14 @@ class V2Listener(dict):
 
                 # Remember, it is not a bug to have action=None. There is no secure action
                 # for this vhost.
-                listener.make_vhost(name="forced-8080",
-                                    hostname="*",
-                                    context=None,
-                                    secure=False,
-                                    action=None,
-                                    insecure_action='Reject')
+                vhost = listener.make_vhost(name="forced-8080",
+                                            hostname="*",
+                                            context=None,
+                                            secure=False,
+                                            action=None,
+                                            insecure_action='Reject')
 
                 for route in config.routes:
-                    vhost = listener.vhosts.get('*')
                     vhost.maybe_add_route(logger, config.ir.edge_stack_allowed,
                                           (False, route, 'Reject'))
 
@@ -1337,16 +1334,17 @@ class V2Listener(dict):
 
             # OK, good to go. Do we already have a TCP listener binding where this one does?
             group_key = irgroup.bind_to()
-            listener = tcplisteners.get(group_key, None)
+            tcplistener = tcplisteners.get(group_key, None)
 
             config.ir.logger.debug("V2TCPListener: group at %s found %s listener" %
-                                   (group_key, "extant" if listener else "no"))
+                                   (group_key, "extant" if tcplistener else "no"))
 
-            if not listener:
+            if not tcplistener:
                 # Nope. Make a new one and save it.
-                listener = config.save_element('listener', irgroup, V2TCPListener(config, irgroup))
-                config.listeners.append(listener)
-                tcplisteners[group_key] = listener
+                tcplistener = config.save_element('listener', irgroup, V2TCPListener(config, irgroup))
+                assert tcplistener
+                config.listeners.append(tcplistener)
+                tcplisteners[group_key] = tcplistener
 
             # Whether we just created this listener or not, add this irgroup to it.
-            listener.add_group(config, irgroup)
+            tcplistener.add_group(config, irgroup)
