@@ -426,180 +426,27 @@ spec:
                     error=[ "EOF", "connection refused" ])
 
 
-class HostCRDMultipleInsecure(AmbassadorTest):
-    """
-    Multiple hosts specifying insecure behavior.
-    """
-    target: ServiceType
-
-    def init(self):
-        self.edge_stack_cleartext_host = False
-        self.target = HTTP()
-
-    def manifests(self) -> str:
-        return self.format('''
----
-apiVersion: getambassador.io/v2
-kind: Host
-metadata:
-  name: {self.path.k8s}-insecure-host-a
-  labels:
-    kat-ambassador-id: {self.ambassador_id}
-spec:
-  ambassador_id: [ {self.ambassador_id} ]
-  hostname: {self.path.fqdn}-a
-  acmeProvider:
-    authority: none
-  selector:
-    matchLabels:
-      hostname: {self.path.fqdn}-a
-  requestPolicy:
-    insecure:
-      action: Route
----
-apiVersion: getambassador.io/v2
-kind: Host
-metadata:
-  name: {self.path.k8s}-insecure-host-b
-  labels:
-    kat-ambassador-id: {self.ambassador_id}
-spec:
-  ambassador_id: [ {self.ambassador_id} ]
-  hostname: {self.path.fqdn}-b
-  acmeProvider:
-    authority: none
-  selector:
-    matchLabels:
-      hostname: {self.path.fqdn}-b
-  requestPolicy:
-    insecure:
-      action: Redirect
----
-apiVersion: getambassador.io/v2
-kind: Host
-metadata:
-  name: {self.path.k8s}-insecure-host-c
-  labels:
-    kat-ambassador-id: {self.ambassador_id}
-spec:
-  ambassador_id: [ {self.ambassador_id} ]
-  hostname: {self.path.fqdn}-c
-  acmeProvider:
-    authority: none
-  selector:
-    matchLabels:
-      hostname: {self.path.fqdn}-c
-  requestPolicy:
-    insecure:
-      action: Route
----
-apiVersion: getambassador.io/v2
-kind: Host
-metadata:
-  name: {self.path.k8s}-insecure-host-d
-  labels:
-    kat-ambassador-id: {self.ambassador_id}
-spec:
-  ambassador_id: [ {self.ambassador_id} ]
-  hostname: {self.path.fqdn}-d
-  acmeProvider:
-    authority: none
-  selector:
-    matchLabels:
-      hostname: {self.path.fqdn}-d
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
-  name: {self.path.k8s}-cleartext-target-mapping
-  labels:
-    hostname: {self.path.k8s}-host-cleartext
-spec:
-  ambassador_id: [ {self.ambassador_id} ]
-  prefix: /target/
-  service: {self.target.path.fqdn}
-''') + super().manifests()
-
-    def scheme(self) -> str:
-        return "http"
-
-    def queries(self):
-        # 404 for a request that does not match any host. No forced-star behavior here.
-        yield Query(self.url("target/"),
-                    insecure=True)
-
-        yield Query(self.url("target/", scheme="https"),
-                    error=[ "EOF", "connection refused" ])
-
-        yield Query(self.url("target/", scheme="http"),
-                    headers={"Host": self.path.k8s + "-a"},
-                    expected=200,
-                    insecure=True)
-        yield Query(self.url("target/", scheme="http"),
-                    headers={"Host": self.path.k8s + "-b"},
-                    expected=301,
-                    insecure=True)
-        yield Query(self.url("target/", scheme="http"),
-                    headers={"Host": self.path.k8s + "-c"},
-                    expected=200,
-                    insecure=True)
-        yield Query(self.url("target/", scheme="http"),
-                    headers={"Host": self.path.k8s + "-d"},
-                    expected=301,
-                    insecure=True)
-
-
 class HostCRDDouble(AmbassadorTest):
     """
     HostCRDDouble: two Hosts with manually-configured TLS secrets, and Mappings specifying host matches.
     Since the Hosts are handling TLSContexts, we expect both OSS and Edge Stack to redirect cleartext
     from 8080 to 8443 here.
 
-    XXX In the future, the hostname matches should be unnecessary.
+    XXX In the future, the hostname matches should be unnecessary, as it should use
+    metadata.labels.hostname.
     """
     target1: ServiceType
     target2: ServiceType
+    targetshared: ServiceType
 
     def init(self):
         self.edge_stack_cleartext_host = False
         self.target1 = HTTP(name="target1")
         self.target2 = HTTP(name="target2")
+        self.targetshared = HTTP(name="targetshared")
 
     def manifests(self) -> str:
         return self.format('''
----
-apiVersion: v1
-data:
-  tls.crt: '''+TLSCerts["localhost"].k8s_crt+'''
-  tls.key: '''+TLSCerts["localhost"].k8s_key+'''
-kind: Secret
-metadata:
-  name: {self.path.k8s}-test-tlscontext-secret-0
-  labels:
-    kat-ambassador-id: {self.ambassador_id}
-type: kubernetes.io/tls
----
-apiVersion: v1
-data:
-  tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
-  tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
-kind: Secret
-metadata:
-  name: {self.path.k8s}-test-tlscontext-secret-1
-  labels:
-    kat-ambassador-id: {self.ambassador_id}
-type: kubernetes.io/tls
----
-apiVersion: v1
-data:
-  tls.crt: '''+TLSCerts["tls-context-host-2"].k8s_crt+'''
-  tls.key: '''+TLSCerts["tls-context-host-2"].k8s_key+'''
-kind: Secret
-metadata:
-  name: {self.path.k8s}-test-tlscontext-secret-2
-  labels:
-    kat-ambassador-id: {self.ambassador_id}
-type: kubernetes.io/tls
 ---
 apiVersion: getambassador.io/v2
 kind: Host
@@ -617,6 +464,34 @@ spec:
       hostname: tls-context-host-1
   tlsSecret:
     name: {self.path.k8s}-test-tlscontext-secret-1
+  requestPolicy:
+    insecure:
+      action: Route
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-test-tlscontext-secret-1
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
+  tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-host-1-mapping
+  labels:
+    hostname: tls-context-host-1
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  host: "tls-context-host-1"
+  prefix: /target-1/
+  service: {self.target1.path.fqdn}
+
 ---
 apiVersion: getambassador.io/v2
 kind: Host
@@ -634,19 +509,20 @@ spec:
       hostname: tls-context-host-2
   tlsSecret:
     name: {self.path.k8s}-test-tlscontext-secret-2
+  requestPolicy:
+    insecure:
+      action: Redirect
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: v1
+kind: Secret
 metadata:
-  name: {self.path.k8s}-host-1-mapping
+  name: {self.path.k8s}-test-tlscontext-secret-2
   labels:
-    hostname: tls-context-host-1
     kat-ambassador-id: {self.ambassador_id}
-spec:
-  ambassador_id: [ {self.ambassador_id} ]
-  host: "tls-context-host-1"
-  prefix: /target/
-  service: {self.target1.path.fqdn}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["tls-context-host-2"].k8s_crt+'''
+  tls.key: '''+TLSCerts["tls-context-host-2"].k8s_key+'''
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
@@ -658,40 +534,69 @@ metadata:
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   host: "tls-context-host-2"
-  prefix: /target/
+  prefix: /target-2/
   service: {self.target2.path.fqdn}
+
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-host-shared-mapping
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  prefix: /target-shared/
+  service: {self.targetshared.path.fqdn}
 ''') + super().manifests()
 
     def scheme(self) -> str:
         return "https"
 
     def queries(self):
-        # 0
+        # 0: Get some info from diagd for self.check() to inspect
         yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"),
                     headers={"Host": "tls-context-host-1" },
                     insecure=True,
                     sni=True)
 
-        # 1 - Correct host #1
-        yield Query(self.url("target/"),
-                    headers={"Host": "tls-context-host-1" },
-                    expected=200,
-                    insecure=True,
-                    sni=True)
-        # 2 - Correct host #2
-        yield Query(self.url("target/"),
-                    headers={"Host": "tls-context-host-2" },
-                    expected=200,
-                    insecure=True,
-                    sni=True)
+        # 1-4: Host #1 - TLS
+        yield Query(self.url("target-1/", scheme="https"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True,
+                    expected=200)
+        yield Query(self.url("target-2/", scheme="https"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True,
+                    expected=404)
+        yield Query(self.url("target-shared/", scheme="https"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True,
+                    expected=200)
+        yield Query(self.url(".well-known/acme-challenge/foo", scheme="https"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True,
+                    expected=404)
+        # 5-8: Host #1 - cleartext (action: Route)
+        yield Query(self.url("target-1/", scheme="http"), headers={"Host": "tls-context-host-1"},
+                    expected=200)
+        yield Query(self.url("target-2/", scheme="http"), headers={"Host": "tls-context-host-1"},
+                    expected=404)
+        yield Query(self.url("target-shared/", scheme="http"), headers={"Host": "tls-context-host-1"},
+                    expected=200)
+        yield Query(self.url(".well-known/acme-challenge/foo", scheme="http"), headers={"Host": "tls-context-host-1"},
+                    expected=404)
 
-        # Setting the Host header really shouldn't be necessary here.
-        yield Query(self.url("target/", scheme="http"),
-                    headers={ "Host": "tls-context-host-1" },
+        # 9-12: Host #2 - TLS
+        yield Query(self.url("target-1/", scheme="https"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True,
+                    expected=404)
+        yield Query(self.url("target-2/", scheme="https"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True,
+                    expected=200)
+        yield Query(self.url("target-shared/", scheme="https"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True,
+                    expected=200)
+        yield Query(self.url(".well-known/acme-challenge/foo", scheme="https"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True,
+                    expected=404)
+        # 13-16: Host #2 - cleartext (action: Redirect)
+        yield Query(self.url("target-1/", scheme="http"), headers={"Host": "tls-context-host-2"},
                     expected=301)
-        yield Query(self.url("target/", scheme="http"),
-                    headers={ "Host": "tls-context-host-2" },
+        yield Query(self.url("target-2/", scheme="http"), headers={"Host": "tls-context-host-2"},
                     expected=301)
+        yield Query(self.url("target-shared/", scheme="http"), headers={"Host": "tls-context-host-2"},
+                    expected=301)
+        yield Query(self.url(".well-known/acme-challenge/foo", scheme="http"), headers={"Host": "tls-context-host-2"},
+                    expected=404)
 
     def check(self):
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
@@ -702,7 +607,7 @@ spec:
         idx = 0
 
         for result in self.results:
-            if result.status == 200 and result.query.headers:
+            if result.status == 200 and result.query.headers and result.tls:
                 host_header = result.query.headers['Host']
                 tls_common_name = result.tls[0]['Issuer']['CommonName']
 
