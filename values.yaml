@@ -113,7 +113,7 @@ security:
 
 image:
   repository: docker.io/datawire/aes
-  tag: 1.7.0
+  tag: 1.7.1
   pullPolicy: IfNotPresent
 
 dnsPolicy: "ClusterFirst"
@@ -335,6 +335,10 @@ redisURL:
 # Ambassador ships with a basic redis instance. Configure the deployment with the options below.
 redis:
   create: true
+  image:
+    repository: redis
+    tag: 5.0.1
+    pullPolicy: IfNotPresent
   # Annotations for Ambassador Pro's redis instance.
   annotations:
     deployment:
