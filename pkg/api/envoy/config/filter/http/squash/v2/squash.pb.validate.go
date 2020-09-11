@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -50,62 +50,42 @@ func (m *Squash) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetAttachmentTemplate()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return SquashValidationError{
-					field:  "AttachmentTemplate",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetAttachmentTemplate()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SquashValidationError{
+				field:  "AttachmentTemplate",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetRequestTimeout()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return SquashValidationError{
-					field:  "RequestTimeout",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetRequestTimeout()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SquashValidationError{
+				field:  "RequestTimeout",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetAttachmentTimeout()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return SquashValidationError{
-					field:  "AttachmentTimeout",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetAttachmentTimeout()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SquashValidationError{
+				field:  "AttachmentTimeout",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetAttachmentPollPeriod()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return SquashValidationError{
-					field:  "AttachmentPollPeriod",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetAttachmentPollPeriod()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SquashValidationError{
+				field:  "AttachmentPollPeriod",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

@@ -2,7 +2,7 @@
 
 from ambassador.utils import ParsedService as Service
 
-from typing import Dict, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 import sys
 
@@ -98,8 +98,8 @@ class WatchHook:
 
         self.logger = logger
 
-        self.consul_watches = []
-        self.kube_watches = []
+        self.consul_watches: List[Dict[str, str]] = []
+        self.kube_watches: List[Dict[str, str]] = []
 
         self.load_yaml(yaml_stream)
 

@@ -26,8 +26,12 @@ tier of our core features as part of the Ambassador Edge Stack, designed for sta
 
 ### UPCOMING CHANGES
 
-*In Ambassador 1.7*, TLS secrets in `Ingress` resources will not be able to use `.namespace`
-suffixes to cross namespaces.
+#### Ingress resources and Namespaces
+
+In a future version of Ambassador, *no sooner than Ambassador 1.8.0*, TLS secrets
+in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
+
+#### gRPC names
 
 *In a future version*, Ambassador will change the version of the gRPC service name used to
 communicate with `AuthService`s and `RateLimitService`s:
@@ -39,9 +43,9 @@ communicate with `AuthService`s and `RateLimitService`s:
 
 - In some future version of Ambassador, there will be settings to control which name is
   used; with the default being the current name; it will be opt-in to the new names.
-- In some future version of Ambassador after that, *no sooner than Ambassador 1.7.0*, the
-  default values of those settings will change; making them opt-out from the new names.
 - In some future version of Ambassador after that, *no sooner than Ambassador 1.8.0*, the
+  default values of those settings will change; making them opt-out from the new names.
+- In some future version of Ambassador after that, *no sooner than Ambassador 1.9.0*, the
   settings will go away, and Ambassador will always use the new names.
 
 Note that Ambassador Edge Stack `External` Filters already unconditionally use the newer
@@ -52,6 +56,49 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 ## Next Release
 
 (no changes yet)
+
+## [1.7.1] September 08, 2020
+[1.7.1]: https://github.com/datawire/ambassador/compare/v1.7.0...v1.7.1
+
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Support `envoy_validation_timeout` in the Ambassador Module to set the timeout for validating new Envoy configurations
+
+### Ambassador Edge Stack only
+
+- Bugfix: `consul_connect_integration` is now built correctly.
+- Bugfix: The developer portal again supports requests for API documentation
+
+## [1.7.0] August 27, 2020
+[1.7.0]: https://github.com/datawire/ambassador/compare/v1.6.2...v1.7.0
+
+### Ambassador API Gateway + Ambassador Edge Stack
+
+- Feature: Upgrade from Envoy 1.14.4 to 1.15.0.
+- Bugfix: Correctly handle a `Host` object with incompatible manually-specified `TLSContext`
+- Feature: The Ambassador control-plane now publishes Prometheus metrics alongside the existing Envoy data-plane metrics under the `/metrics` endpoint on port 8877.
+- Default-off early access: Experimental changes to allow Ambassador to more quickly process configuration changes (especially with larger configurations) have been added. The `AMBASSADOR_FAST_RECONFIGURE` env var must be set to enable this. `AMBASSADOR_FAST_VALIDATION` should also be set for maximum benefit.
+
+### Ambassador API Gateway only
+
+- Bugfix: Fixes regression in 1.5.1 that caused it to not correctly know its own version number, leading to notifications about an available upgrade despite being on the most recent version.
+
+### Ambassador Edge Stack only
+
+- Feature: DevPortal can now discover openapi documentation from `Mapping`s that set `host` and `headers`
+- Feature: `edgectl install` will automatically enable Service Preview with a Preview URL on the Host resource it creates.
+- Feature: Service Preview will inject an `x-service-preview-path` header in filtered requests with the original request prefix to allow for context propagation.
+- Feature: Service Preview can intercept gRPC requests using the `--grpc` flag on the `edgectl intercept add` command and the `getambassador.io/inject-traffic-agent-grpc: "true"` annotation when using automatic Traffic-Agent injection.
+- Feature: The `TracingService` Zipkin config now supports setting `collector_endpoint_version` to tell Envoy to use Zipkin v2.
+- Feature: You can now inject request and/or response headers from a `RateLimit`.
+- Bugfix: Don't crash during startup if Redis is down.
+- Bugfix: Service Preview correctly uses the Host default `Path` value for the `spec.previewUrl.type` field.
+- Bugfix: The `JWT`, `OAuth2`, and other Filters are now better about reusing connections for outgoing HTTP requests.
+- Bugfix: Fixed a potential deadlock in the HTTP cache used for fetching JWKS and such for `Filters`.
+- Bugfix: Fixed insecure route action behavior. Host security policies no longer affect other Hosts.
+- Bugfix: Internal Ambassador data is no longer exposed to the `/.ambassador-internal/` endpoints used by the DevPortal.
+- Bugfix: Problems with license key limits will no longer trigger spurious HTTP 429 errors.  Using the `RateLimit` resource beyond 5rps without any form of license key will still trigger 429 responses, but now with a `X-Ambassador-Message` header indicating that's what happned.
+- Bugfix: When multiple `RateLimit`s overlap, it is supposed to enforce the strictest limit; but the strictness comparison didn't correctly handle comparing limits with different units.
 
 ## [1.6.2] July 30, 2020
 [1.6.2]: https://github.com/datawire/ambassador/compare/v1.6.1...v1.6.2

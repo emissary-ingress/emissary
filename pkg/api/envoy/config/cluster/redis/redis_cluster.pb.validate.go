@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -45,7 +45,7 @@ func (m *RedisClusterConfig) Validate() error {
 	}
 
 	if d := m.GetClusterRefreshRate(); d != nil {
-		dur, err := types.DurationFromProto(d)
+		dur, err := ptypes.Duration(d)
 		if err != nil {
 			return RedisClusterConfigValidationError{
 				field:  "ClusterRefreshRate",
@@ -66,7 +66,7 @@ func (m *RedisClusterConfig) Validate() error {
 	}
 
 	if d := m.GetClusterRefreshTimeout(); d != nil {
-		dur, err := types.DurationFromProto(d)
+		dur, err := ptypes.Duration(d)
 		if err != nil {
 			return RedisClusterConfigValidationError{
 				field:  "ClusterRefreshTimeout",
@@ -86,32 +86,22 @@ func (m *RedisClusterConfig) Validate() error {
 
 	}
 
-	{
-		tmp := m.GetRedirectRefreshInterval()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RedisClusterConfigValidationError{
-					field:  "RedirectRefreshInterval",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetRedirectRefreshInterval()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RedisClusterConfigValidationError{
+				field:  "RedirectRefreshInterval",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetRedirectRefreshThreshold()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RedisClusterConfigValidationError{
-					field:  "RedirectRefreshThreshold",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetRedirectRefreshThreshold()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RedisClusterConfigValidationError{
+				field:  "RedirectRefreshThreshold",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

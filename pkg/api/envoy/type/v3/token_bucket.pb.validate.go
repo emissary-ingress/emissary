@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -70,7 +70,7 @@ func (m *TokenBucket) Validate() error {
 	}
 
 	if d := m.GetFillInterval(); d != nil {
-		dur, err := types.DurationFromProto(d)
+		dur, err := ptypes.Duration(d)
 		if err != nil {
 			return TokenBucketValidationError{
 				field:  "FillInterval",

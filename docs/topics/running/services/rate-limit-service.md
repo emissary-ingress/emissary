@@ -13,23 +13,9 @@ built-in rate limit service.**
 
 ## Request Labels
 
-Ambassador lets users add one or more labels to a given request.  These labels
-are added as part of a `Mapping` object.  For example:
-
-```yaml
----
-apiVersion: getambassador.io/v2
-kind:  Mapping
-metadata:
-  name:  catalog
-spec:
-  prefix: /catalog/
-  service: catalog
-  request_labels:
-    - service: catalog
-```
-
-For more information on request labels, see the [Rate Limit reference](../../../using/rate-limits/).
+See [Attaching labels to
+requests](../../../using/rate-limits/rate-limits/#attaching-labels-to-requests)
+for how to configure the labels that are attached to a request.
 
 ## Domains
 
@@ -38,25 +24,9 @@ domain is a separate namespace for labels.  By creating individual domains, each
 team can assign their own labels to a given request, and independently set the
 rate limits based on their own labels.
 
-## Default labels
-
-Ambassador allows setting a default label on every request.  A default label is
-set on the `ambassador Module`.  For example:
-
-```yaml
----
-apiVersion: getambassador.io/v2
-kind:  Module
-metadata:
-  name:  ambassador
-spec:
-  config:
-    default_label_domain: ambassador
-    default_labels:
-      ambassador:
-        defaults:
-        - remote_address
-```
+See [Attaching labels to
+requests](../../../using/rate-limits/rate-limits/#attaching-labels-to-requests)
+for how to labels under different domains.
 
 ## External Rate Limit Service
 
@@ -91,7 +61,7 @@ limiting service.
 >
 > ```diff
 >  import (
->  	envoy_ratelimit_v1 "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v1"
+>  	envoy_ratelimit_v1 "github.com/datawire/ambassador/pkg/api/pb/lyft/ratelimit"
 > +	envoy_ratelimit_v2 "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v2"
 >  )
 > ...
@@ -99,8 +69,8 @@ limiting service.
 > +	envoy_ratelimit_v2.RegisterRateLimitServiceServer(myGRPCServer, myRateLimitImplementation)
 > ```
 
-[`v1/rls.proto`]: https://github.com/datawire/ambassador/tree/master/api/envoy/service/ratelimit/v1/rls.proto
-[`v2/rls.proto`]: https://github.com/datawire/ambassador/tree/master/api/envoy/service/ratelimit/v2/rls.proto
+[`v1/rls.proto`]: https://github.com/datawire/ambassador/tree/$branch$/api/pb/lyft/ratelimit/rls.proto
+[`v2/rls.proto`]: https://github.com/datawire/ambassador/tree/$branch$/api/envoy/service/ratelimit/v2/rls.proto
 
 The Ambassador API Gateway generates a gRPC request to the external rate limit
 service and provides a list of labels on which the rate limit service can base

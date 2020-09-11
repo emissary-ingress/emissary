@@ -12,8 +12,6 @@ from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
 class TracingTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
-        # self.with_tracing = AmbassadorTest(name="ambassador-with-tracing")
-        # self.no_tracing = AmbassadorTest(name="ambassador-no-tracing")
 
     def manifests(self) -> str:
         return """
@@ -58,7 +56,7 @@ spec:
     def config(self):
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
-        # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
+
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
@@ -68,7 +66,7 @@ prefix: /target/
 service: {self.target.path.fqdn}
 """)
 
-        # For self.with_tracing, we want to configure the TracingService.
+        # Configure the TracingService.
         yield self, self.format("""
 ---
 apiVersion: ambassador/v0
@@ -84,8 +82,6 @@ driver: zipkin
 
     def queries(self):
         # Speak through each Ambassador to the traced service...
-        # yield Query(self.with_tracing.url("target/"))
-        # yield Query(self.no_tracing.url("target/"))
 
         for i in range(100):
               yield Query(self.url("target/"), phase=1)
@@ -166,7 +162,7 @@ spec:
     def config(self):
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
-        # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
+
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
@@ -176,7 +172,7 @@ prefix: /target-64/
 service: {self.target.path.fqdn}
 """)
 
-        # For self.with_tracing, we want to configure the TracingService.
+        # Configure the TracingService.
         yield self, """
 ---
 apiVersion: getambassador.io/v2
@@ -356,7 +352,7 @@ spec:
     def config(self):
         # Use self.target here, because we want this mapping to be annotated
         # on the service, not the Ambassador.
-        # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
+
         yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
@@ -366,7 +362,7 @@ prefix: /target-65/
 service: {self.target.path.fqdn}
 """)
 
-        # For self.with_tracing, we want to configure the TracingService.
+        # Configure the TracingService.
         yield self, """
 ---
 apiVersion: getambassador.io/v2
@@ -401,5 +397,230 @@ sampling:
 
         # We constantly find that Envoy's RNG isn't exactly predictable with small sample
         # sizes, so even though 10% of 100 is 10, we'll make this pass as long as we don't
-        # go over 50.
-        assert 5 < len(traces) < 50
+        # go over 50 or under 1.
+        assert 1 <= len(traces) <= 50
+
+class TracingTestZipkinV2(AmbassadorTest):
+    """
+    Test for the "collector_endpoint_version" Zipkin config in TracingServices
+    """
+
+    def init(self):
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return """
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin-v2
+spec:
+  selector:
+    app: zipkin-v2
+  ports:
+  - port: 9411
+    name: http
+    targetPort: http
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zipkin-v2
+spec:
+  selector:
+    matchLabels:
+      app: zipkin-v2
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: zipkin-v2
+    spec:
+      containers:
+      - name: zipkin
+        image: openzipkin/zipkin:2.17
+        ports:
+        - name: http
+          containerPort: 9411
+""" + super().manifests()
+
+    def config(self):
+        # Use self.target here, because we want this mapping to be annotated
+        # on the service, not the Ambassador.
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  tracing_target_mapping
+prefix: /target/
+service: {self.target.path.fqdn}
+""")
+
+        # Configure the TracingService.
+        yield self, self.format("""
+---
+apiVersion: ambassador/v2
+kind: TracingService
+name: tracing
+service: zipkin-v2:9411
+driver: zipkin
+config:
+  collector_endpoint: /api/v2/spans
+  collector_endpoint_version: HTTP_JSON
+""")
+
+    def requirements(self):
+        yield from super().requirements()
+        yield ("url", Query("http://zipkin-v2:9411/api/v2/services"))
+
+    def queries(self):
+        # Speak through each Ambassador to the traced service...
+
+        for i in range(100):
+              yield Query(self.url("target/"), phase=1)
+
+
+        # ...then ask the Zipkin for services and spans. Including debug=True in these queries
+        # is particularly helpful.
+        yield Query("http://zipkin-v2:9411/api/v2/services", phase=2)
+        yield Query("http://zipkin-v2:9411/api/v2/spans?serviceName=tracingtestzipkinv2-default", phase=2)
+        yield Query("http://zipkin-v2:9411/api/v2/traces?serviceName=tracingtestzipkinv2-default", phase=2)
+
+    def check(self):
+        for i in range(100):
+            assert self.results[i].backend.name == self.target.path.k8s
+
+        assert self.results[100].backend.name == "raw"
+        assert len(self.results[100].backend.response) == 1
+        assert self.results[100].backend.response[0] == 'tracingtestzipkinv2-default'
+
+        assert self.results[101].backend.name == "raw"
+
+        tracelist = { x: True for x in self.results[101].backend.response }
+
+        assert 'router cluster_tracingtestzipkinv2_http_default egress' in tracelist
+
+        # Look for the host that we actually queried, since that's what appears in the spans.
+        assert self.results[0].backend.request.host in tracelist
+
+        # Ensure we generate 128-bit traceids by default
+        trace = self.results[102].json[0][0]
+        traceId = trace['traceId']
+        assert len(traceId) == 32
+
+class TracingTestZipkinV1(AmbassadorTest):
+    """
+    Test for the "collector_endpoint_version" Zipkin config in TracingServices
+    """
+
+    def init(self):
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return """
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin-v1
+spec:
+  selector:
+    app: zipkin-v1
+  ports:
+  - port: 9411
+    name: http
+    targetPort: http
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zipkin-v1
+spec:
+  selector:
+    matchLabels:
+      app: zipkin-v1
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: zipkin-v1
+    spec:
+      containers:
+      - name: zipkin
+        image: openzipkin/zipkin:2.17
+        ports:
+        - name: http
+          containerPort: 9411
+""" + super().manifests()
+
+    def config(self):
+        # Use self.target here, because we want this mapping to be annotated
+        # on the service, not the Ambassador.
+
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  tracing_target_mapping
+prefix: /target/
+service: {self.target.path.fqdn}
+""")
+
+        # Configure the TracingService.
+        yield self, self.format("""
+---
+apiVersion: ambassador/v2
+kind: TracingService
+name: tracing
+service: zipkin-v1:9411
+driver: zipkin
+config:
+  collector_endpoint: /api/v1/spans
+  collector_endpoint_version: HTTP_JSON_V1
+""")
+
+    def requirements(self):
+        yield from super().requirements()
+        yield ("url", Query("http://zipkin-v1:9411/api/v2/services"))
+
+    def queries(self):
+        # Speak through each Ambassador to the traced service...
+
+        for i in range(100):
+              yield Query(self.url("target/"), phase=1)
+
+
+        # ...then ask the Zipkin for services and spans. Including debug=True in these queries
+        # is particularly helpful.
+        yield Query("http://zipkin-v1:9411/api/v2/services", phase=2)
+        yield Query("http://zipkin-v1:9411/api/v2/spans?serviceName=tracingtestzipkinv1-default", phase=2)
+        yield Query("http://zipkin-v1:9411/api/v2/traces?serviceName=tracingtestzipkinv1-default", phase=2)
+
+    def check(self):
+        for i in range(100):
+            assert self.results[i].backend.name == self.target.path.k8s
+
+        assert self.results[100].backend.name == "raw"
+        assert len(self.results[100].backend.response) == 1
+        assert self.results[100].backend.response[0] == 'tracingtestzipkinv1-default'
+
+        assert self.results[101].backend.name == "raw"
+
+        tracelist = { x: True for x in self.results[101].backend.response }
+
+        assert 'router cluster_tracingtestzipkinv1_http_default egress' in tracelist
+
+        # Look for the host that we actually queried, since that's what appears in the spans.
+        assert self.results[0].backend.request.host in tracelist
+
+        # Ensure we generate 128-bit traceids by default
+        trace = self.results[102].json[0][0]
+        traceId = trace['traceId']
+        assert len(traceId) == 32

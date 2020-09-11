@@ -157,8 +157,13 @@
               link: /docs/pre-release/topics/running/load-balancer
             - title: Service Discovery and Resolvers
               link: /docs/pre-release/topics/running/resolvers
-        - title: Monitoring
+        - title: Statistics and Monitoring
           link: /docs/pre-release/topics/running/statistics
+          items:
+            - title: Envoy statistics with StatsD
+              link: /docs/pre-release/topics/running/statistics/envoy-statsd
+            - title: The `:8877/metrics` endpoint
+              link: /docs/pre-release/topics/running/statistics/8877-metrics
         - title: Plug-in Services
           items:
             - title: Authentication Service

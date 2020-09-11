@@ -631,6 +631,12 @@ Key points include:
 - **Note 9**: The `AMBASSADOR_SINGLE_NAMESPACE` environment variable tells the Traffic Agent to watch resources only in its current namespace. This allows the `traffic-agent` `ServiceAccount` to only have `Role` permissions instead of a cluster-wide `ClusterRole`.
 - **Note 10**: The `AGENT_LISTEN_PORT` environment variable tells the Traffic Agent the port on which to listen for incoming connections. The `Service` must point to this port (see Note 1). If not present, it defaults to port 9900.
 
+#### gRPC Support
+
+The Traffic-Agent can inspect and intercept gRPC traffic for deployments exposing gRPC endpoints instead of plain HTTP:
+- Set the `getambassador.io/inject-traffic-agent-grpc: "true"` pod annotation, or the `AGENT_ENABLE_GRPC: "true"` environment variable if injecting the sidecar manually.
+- The Traffic Agent will instruct Envoy to use HTTP/2 on its listen port (named `grpc` instead of `http`; 9900 by default)
+
 #### TLS Support
 
 If other microservices in the cluster expect to speak TLS to this microservice, tell the Traffic Agent to terminate TLS:

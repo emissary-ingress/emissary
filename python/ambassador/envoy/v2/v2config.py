@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import json
 
+from ...cache import Cache, NullCache
 from ...ir import IR
 
 from ..common import EnvoyConfig, sanitize_pre_json
@@ -43,8 +44,13 @@ class V2Config (EnvoyConfig):
     clusters: List[V2Cluster]
     static_resources: V2StaticResources
 
-    def __init__(self, ir: IR) -> None:
+    def __init__(self, ir: IR, cache: Optional[Cache]=None) -> None:
+        # Init our superclass...
         super().__init__(ir)
+
+        # ...then make sure we have a cache (which might be a NullCache).
+        self.cache = cache or NullCache(self.ir.logger)
+
         V2Admin.generate(self)
         V2Tracing.generate(self)
 

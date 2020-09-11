@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -44,17 +44,12 @@ func (m *UpstreamLocalityStats) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetLocality()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return UpstreamLocalityStatsValidationError{
-					field:  "Locality",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetLocality()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpstreamLocalityStatsValidationError{
+				field:  "Locality",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -70,17 +65,12 @@ func (m *UpstreamLocalityStats) Validate() error {
 	for idx, item := range m.GetLoadMetricStats() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return UpstreamLocalityStatsValidationError{
-						field:  fmt.Sprintf("LoadMetricStats[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return UpstreamLocalityStatsValidationError{
+					field:  fmt.Sprintf("LoadMetricStats[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -90,17 +80,12 @@ func (m *UpstreamLocalityStats) Validate() error {
 	for idx, item := range m.GetUpstreamEndpointStats() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return UpstreamLocalityStatsValidationError{
-						field:  fmt.Sprintf("UpstreamEndpointStats[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return UpstreamLocalityStatsValidationError{
+					field:  fmt.Sprintf("UpstreamEndpointStats[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -176,32 +161,22 @@ func (m *UpstreamEndpointStats) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetAddress()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return UpstreamEndpointStatsValidationError{
-					field:  "Address",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetAddress()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpstreamEndpointStatsValidationError{
+				field:  "Address",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
 
-	{
-		tmp := m.GetMetadata()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return UpstreamEndpointStatsValidationError{
-					field:  "Metadata",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpstreamEndpointStatsValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -217,17 +192,12 @@ func (m *UpstreamEndpointStats) Validate() error {
 	for idx, item := range m.GetLoadMetricStats() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return UpstreamEndpointStatsValidationError{
-						field:  fmt.Sprintf("LoadMetricStats[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return UpstreamEndpointStatsValidationError{
+					field:  fmt.Sprintf("LoadMetricStats[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -393,17 +363,12 @@ func (m *ClusterStats) Validate() error {
 	for idx, item := range m.GetUpstreamLocalityStats() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return ClusterStatsValidationError{
-						field:  fmt.Sprintf("UpstreamLocalityStats[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ClusterStatsValidationError{
+					field:  fmt.Sprintf("UpstreamLocalityStats[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -415,34 +380,24 @@ func (m *ClusterStats) Validate() error {
 	for idx, item := range m.GetDroppedRequests() {
 		_, _ = idx, item
 
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return ClusterStatsValidationError{
-						field:  fmt.Sprintf("DroppedRequests[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ClusterStatsValidationError{
+					field:  fmt.Sprintf("DroppedRequests[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
 
 	}
 
-	{
-		tmp := m.GetLoadReportInterval()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return ClusterStatsValidationError{
-					field:  "LoadReportInterval",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetLoadReportInterval()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterStatsValidationError{
+				field:  "LoadReportInterval",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

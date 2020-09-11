@@ -60,9 +60,8 @@ require (
 	github.com/Masterminds/squirrel v1.4.0 // indirect
 	github.com/aokoli/goutils v1.1.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
-	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
-	github.com/cncf/udpa v0.0.0-20200324003616-bae28a880fdb // indirect
-	github.com/cncf/udpa/go v0.0.0-20200324003616-bae28a880fdb
+	github.com/census-instrumentation/opencensus-proto v0.2.1
+	github.com/cncf/udpa/go v0.0.0-20200629203442-efcf912fb354
 	github.com/containerd/containerd v1.3.4 // indirect
 	github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -70,7 +69,6 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v0.3.0-java.0.20200609174644-bd816e4522c1
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-openapi/validate v0.19.5
-	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.4.2
 	github.com/google/go-cmp v0.4.0
 	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf
@@ -78,18 +76,16 @@ require (
 	github.com/gookit/color v1.2.3
 	github.com/gorilla/websocket v1.4.1
 	github.com/hashicorp/consul/api v1.3.0
-	github.com/iancoleman/strcase v0.0.0-20180726023541-3605ed457bf7
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lib/pq v1.7.0 // indirect
-	github.com/lyft/protoc-gen-star v0.4.10
 	github.com/mholt/archiver/v3 v3.3.0
 	github.com/miekg/dns v1.1.6
 	github.com/mitchellh/mapstructure v1.1.2
-	github.com/mitchellh/protoc-gen-go-json v0.0.0-20190813154521-ece073100ced
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.6.0 // indirect
+	github.com/prometheus/client_model v0.2.0
 	github.com/rubenv/sql-migrate v0.0.0-20200616145509-8d140a17f351 // indirect
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/cobra v1.0.0
@@ -98,19 +94,21 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7
-	golang.org/x/sys v0.0.0-20200420163511-1957bb5e6d1f
-	google.golang.org/genproto v0.0.0-20200115191322-ca5a22157cba // indirect
+	golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1
+	google.golang.org/genproto v0.0.0-20200115191322-ca5a22157cba
 	google.golang.org/grpc v1.27.0
+	google.golang.org/protobuf v1.23.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.3.0
 	helm.sh/helm/v3 v3.2.4
-	istio.io/gogo-genproto v0.0.0-20190904133402-ee07f2785480
 	k8s.io/api v0.18.4
 	k8s.io/apiextensions-apiserver v0.18.4
 	k8s.io/apimachinery v0.18.4
 	k8s.io/cli-runtime v0.18.4
 	k8s.io/client-go v0.18.4
 	k8s.io/helm v2.16.9+incompatible
+	k8s.io/kubectl v0.18.4
+	k8s.io/metrics v0.18.4
 	rsc.io/letsencrypt v0.0.3 // indirect
 	sigs.k8s.io/controller-runtime v0.6.1
 	sigs.k8s.io/controller-tools v0.3.1-0.20200517180335-820a4a27ea84

@@ -21,6 +21,6 @@ metadata:
 spec:
   containers:
   - name: httptest
-    image: {{image "../../k8s/Dockerfile"}}
+    image: {{image "../../cmd/httptest/Dockerfile"}}
     ports:
     - containerPort: 80

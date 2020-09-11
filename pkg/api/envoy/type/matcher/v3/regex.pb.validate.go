@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = types.DynamicAny{}
+	_ = ptypes.DynamicAny{}
 )
 
 // define the regex for a UUID once up-front
@@ -62,17 +62,12 @@ func (m *RegexMatcher) Validate() error {
 			}
 		}
 
-		{
-			tmp := m.GetGoogleRe2()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return RegexMatcherValidationError{
-						field:  "GoogleRe2",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
+		if v, ok := interface{}(m.GetGoogleRe2()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RegexMatcherValidationError{
+					field:  "GoogleRe2",
+					reason: "embedded message failed validation",
+					cause:  err,
 				}
 			}
 		}
@@ -150,17 +145,19 @@ func (m *RegexMatchAndSubstitute) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetPattern()
+	if m.GetPattern() == nil {
+		return RegexMatchAndSubstituteValidationError{
+			field:  "Pattern",
+			reason: "value is required",
+		}
+	}
 
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RegexMatchAndSubstituteValidationError{
-					field:  "Pattern",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetPattern()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RegexMatchAndSubstituteValidationError{
+				field:  "Pattern",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}
@@ -234,17 +231,12 @@ func (m *RegexMatcher_GoogleRE2) Validate() error {
 		return nil
 	}
 
-	{
-		tmp := m.GetMaxProgramSize()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RegexMatcher_GoogleRE2ValidationError{
-					field:  "MaxProgramSize",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetMaxProgramSize()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RegexMatcher_GoogleRE2ValidationError{
+				field:  "MaxProgramSize",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
 	}

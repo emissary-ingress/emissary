@@ -1,34 +1,41 @@
 crds_yaml_dir = $(OSS_HOME)/../ambassador-chart/crds
 
 generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
-generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/envoy/            -name '*.proto'))
-generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.validate.go                , $(shell find $(OSS_HOME)/api/envoy/            -name '*.proto'))
-generate/files += $(patsubst $(OSS_HOME)/api/getambassador.io/%.proto,  $(OSS_HOME)/python/ambassador/proto/%_pb2.py        , $(shell find $(OSS_HOME)/api/getambassador.io/ -name '*.proto' -not -name '*_nojson.proto'))
+generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto'))
+generate/files += $(patsubst $(OSS_HOME)/api/getambassador.io/%.proto,  $(OSS_HOME)/python/ambassador/proto/%_pb2.py        , $(shell find $(OSS_HOME)/api/getambassador.io/ -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_pb.js          , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_grpc_web_pb.js , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
+generate/files += $(OSS_HOME)/pkg/api/envoy
+generate/files += $(OSS_HOME)/pkg/api/pb
 generate/files += $(OSS_HOME)/pkg/envoy-control-plane
+generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
+generate/files += $(OSS_HOME)/OPENSOURCE.md
+generate/files += $(OSS_HOME)/builder/requirements.txt
 generate: ## Update generated sources that get committed to git
 generate:
 	$(MAKE) generate-clean
-	$(MAKE) $(OSS_HOME)/api/envoy
+	$(MAKE) $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb
 	$(MAKE) _generate
 _generate:
 	@echo '$(MAKE) $$(generate/files)'; $(MAKE) $(generate/files)
 generate-clean: ## Delete generated sources that get committed to git
 generate-clean:
-	rm -rf $(OSS_HOME)/api/envoy
-	rm -rf $(OSS_HOME)/pkg/api/envoy
+	rm -rf $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb
+	rm -rf $(OSS_HOME)/pkg/api/envoy $(OSS_HOME)/pkg/api/pb
+	rm -rf $(OSS_HOME)/_cxx/envoy/build_go
 	rm -rf $(OSS_HOME)/pkg/api/kat
+	rm -f $(OSS_HOME)/pkg/api/agent/*.pb.go
 	rm -rf $(OSS_HOME)/python/ambassador/proto
 	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js
 	rm -rf $(OSS_HOME)/pkg/envoy-control-plane
+	rm -f $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
+	rm -f $(OSS_HOME)/OPENSOURCE.md
 .PHONY: generate _generate generate-clean
 
 go-mod-tidy/oss:
 	rm -f $(OSS_HOME)/go.sum
 	cd $(OSS_HOME) && go mod tidy
-	cd $(OSS_HOME) && go mod edit -require=$$(go list -m github.com/cncf/udpa/go | sed 's,/go ,@,')
-	cd $(OSS_HOME) && go mod vendor # adds "// indirect" to the udpa line
+	cd $(OSS_HOME) && go mod vendor # make sure go.mod's complete, re-gen go.sum
 	$(MAKE) go-mod-tidy/oss-evaluate
 go-mod-tidy/oss-evaluate:
 	@echo '# evaluate $$(proto_path)'; # $(proto_path) # cause Make to call `go list STUFF`, which will maybe edit go.mod or go.sum
@@ -63,55 +70,31 @@ _makefile_clobber:
 GOHOSTOS=$(call lazyonce,GOHOSTOS,$(shell go env GOHOSTOS))
 GOHOSTARCH=$(call lazyonce,GOHOSTARCH,$(shell go env GOHOSTARCH))
 
-# PROTOC_VERSION is based on
-# https://github.com/envoyproxy/go-control-plane/blob/0e75602d5e36e96eafbe053999c0569edec9fe07/Dockerfile.ci
-# (since that commit most closely corresponds to our ENVOY_COMMIT).  That file says 3.6.1, so we're
-# going to try to be as close as that to possible; but go ahead and upgrade to 3.8.0, which is the
-# closest version that contains the fix so that it doesn't generate invalid Python if you name an
-# Enum member the same as a Python keyword.
+# PROTOC_VERSION must be at least 3.8.0 in order to contain the fix so that it doesn't generate
+# invalid Python if you name an Enum member the same as a Python keyword.
 PROTOC_VERSION            = 3.8.0
 PROTOC_PLATFORM           = $(patsubst darwin,osx,$(GOHOSTOS))-$(patsubst amd64,x86_64,$(patsubst 386,x86_32,$(GOHOSTARCH)))
-tools/protoc              = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc
-$(tools/protoc):
-	mkdir -p $(@D)
-	set -o pipefail; curl --fail -L https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip | bsdtar -x -f - -O bin/protoc > $@
+tools/protoc              = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/bin/protoc
+$(tools/protoc): $(OSS_HOME)/build-aux-local/generate.mk
+	mkdir -p $(dir $(@D))
+	set -o pipefail; curl --fail -L https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip | bsdtar -C $(dir $(@D)) -xf -
 	chmod 755 $@
 
-# The version number of protoc-gen-gogofast is controlled by `./go.mod`, and is based on
-# https://github.com/envoyproxy/go-control-plane/blob/0e75602d5e36e96eafbe053999c0569edec9fe07/Dockerfile.ci
-# (since that commit most closely corresponds to our ENVOY_COMMIT).  Additionally, the package name
-# is mentioned in `./pkg/ignore/pin.go`, so that `go mod tidy` won't make the `go.mod` file forget
-# about it.
-tools/protoc-gen-gogofast = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-gogofast
-$(tools/protoc-gen-gogofast): $(OSS_HOME)/go.mod
+# The version number of protoc-gen-go is controlled by `./go.mod`.  Additionally, the package name is
+# mentioned in `./pkg/ignore/pin.go`, so that `go mod tidy` won't make the `go.mod` file forget about
+# it.
+tools/protoc-gen-go = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-go
+$(tools/protoc-gen-go): $(OSS_HOME)/go.mod
 	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/gogo/protobuf/protoc-gen-gogofast
-
-# The version number of protoc-gen-validate is controlled by `./go.mod`, and is based on
-# https://github.com/envoyproxy/go-control-plane/blob/0e75602d5e36e96eafbe053999c0569edec9fe07/Dockerfile.ci
-# (since that commit most closely corresponds to our ENVOY_COMMIT).  Additionally, the package name
-# is mentioned in `./pkg/ignore/pin.go`, so that `go mod tidy` won't make the `go.mod` file forget
-# about it.
-tools/protoc-gen-validate = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-validate
-$(tools/protoc-gen-validate): $(OSS_HOME)/go.mod
-	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/envoyproxy/protoc-gen-validate
+	cd $(OSS_HOME) && go build -o $@ github.com/golang/protobuf/protoc-gen-go
 
 GRPC_WEB_VERSION          = 1.0.3
 GRPC_WEB_PLATFORM         = $(GOHOSTOS)-x86_64
 tools/protoc-gen-grpc-web = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-grpc-web
-$(tools/protoc-gen-grpc-web):
+$(tools/protoc-gen-grpc-web): $(OSS_HOME)/build-aux-local/generate.mk
 	mkdir -p $(@D)
 	curl -o $@ -L --fail https://github.com/grpc/grpc-web/releases/download/$(GRPC_WEB_VERSION)/protoc-gen-grpc-web-$(GRPC_WEB_VERSION)-$(GRPC_WEB_PLATFORM)
 	chmod 755 $@
-
-# The version number of protoc-gen-validate is controlled by `./go.mod`.  Additionally, the package
-# name is mentioned in `./pkg/ignore/pin.go`, so that `go mod tidy` won't make the `go.mod` file
-# forget about it.
-tools/protoc-gen-go-json = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-go-json
-$(tools/protoc-gen-go-json): $(OSS_HOME)/go.mod
-	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/mitchellh/protoc-gen-go-json
 
 # The version number of protoc-gen-validate is controlled by `./go.mod`.  Additionally, the package
 # name is mentioned in `./pkg/ignore/pin.go`, so that `go mod tidy` won't make the `go.mod` file
@@ -121,163 +104,142 @@ $(tools/controller-gen): $(OSS_HOME)/go.mod
 	mkdir -p $(@D)
 	cd $(OSS_HOME) && go build -o $@ sigs.k8s.io/controller-tools/cmd/controller-gen
 
-# A python script... normally we might want to shove this in the
-# builder image, but (1) that'd be a pain, and (2) the requirements
-# here are python3, python3-yaml, and python3-packaging... now, if you
-# have 'awscli', which we already require, then you'll have those.
-tools/fix-crds = $(OSS_HOME)/build-aux-local/fix-crds
+tools/fix-crds = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/fix-crds
+$(tools/fix-crds): FORCE
+	mkdir -p $(@D)
+	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/cmd/fix-crds
+
+tools/go-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/go-mkopensource
+$(tools/go-mkopensource): FORCE
+	mkdir -p $(@D)
+	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/cmd/go-mkopensource
+
+tools/py-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/py-mkopensource
+$(tools/py-mkopensource): FORCE
+	mkdir -p $(@D)
+	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/cmd/py-mkopensource
 
 #
 # `make generate` vendor rules
 
-# TODO(lukeshu): Figure out a sane way of selecting an appropriate ENVOY_GO_CONTROL_PLANE_COMMIT for
-# our version of Envoy.
-#
-# I was tempted to use "v0.9.0^" because it's the last version that used gogo/protobuf instead of
-# golang/protobuf.  However, because the Envoy 1.11 -> 1.12 upgrade included
-# https://github.com/envoyproxy/envoy/pull/8163 continuing to use the gogo/protobuf-based version is
-# very difficult.  To the point that using the golang/protobuf version and editing it to work with
-# gogo/protobuf is easier than getting the gogo/protobuf version to work with the newer proto files.
-#
-# Also, note that we disable all calls to SetDeterministic since it's totally broken in gogo/protobuf
-# 1.3.0 and 1.3.1 (the latest version at the time of this writing), because gogo cherry-picked
-# https://github.com/golang/protobuf/pull/650 and https://github.com/golang/protobuf/pull/656 but
-# not https://github.com/golang/protobuf/pull/658 ; and is even more broken than it was in pre-#658
-# golang/protobuf because protoc-gen-gogofast always generates a `Marshal` method, meaning that it
-# is 100% impossible to use SetDeterministic with gogofast.
+# How to set ENVOY_GO_CONTROL_PLANE_COMMIT: In envoyproxy/go-control-plane.git, the majority of
+# commits have a commit message of the form "Mirrored from envoyproxy/envoy @ ${envoy.git_commit}".
+# Look for the most recent one that names a commit that is an ancestor of our ENVOY_COMMIT.  If there
+# are commits not of that form immediately following that commit, you can take them in too (but that's
+# pretty uncommon).  Since that's a simple sentence, can be tedious to go through and check which
+# commits are ancestors, I added `make guess-envoy-go-control-plane-commit` to do that in an automated
+# way!  Still look at the commit yourself to make sure it seems sane; blindly trusting machines is
+# bad, mmkay?
+ENVOY_GO_CONTROL_PLANE_COMMIT = v0.9.6
 
-ENVOY_GO_CONTROL_PLANE_COMMIT = 3a8210324ccf55ef9fd7eeeed6fd24d59d6aefd9
-$(OSS_HOME)/pkg/envoy-control-plane: FORCE
+guess-envoy-go-control-plane-commit: $(OSS_HOME)/_cxx/envoy $(OSS_HOME)/_cxx/go-control-plane
+	@echo
+	@echo '######################################################################'
+	@echo
+	@set -e; { \
+	  (cd $(OSS_HOME)/_cxx/go-control-plane && git log --format='%H %s' origin/master) | sed -n 's, Mirrored from envoyproxy/envoy @ , ,p' | \
+	  while read -r go_commit cxx_commit; do \
+	    if (cd $(OSS_HOME)/_cxx/envoy && git merge-base --is-ancestor "$$cxx_commit" $(ENVOY_COMMIT) 2>/dev/null); then \
+	      echo "ENVOY_GO_CONTROL_PLANE_COMMIT = $$go_commit"; \
+	      break; \
+	    fi; \
+	  done; \
+	}
+.PHONY: guess-envoy-go-control-plane-commit
+
+$(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
 	rm -rf $@
 	@PS4=; set -ex; { \
 	  unset GIT_DIR GIT_WORK_TREE; \
 	  tmpdir=$$(mktemp -d); \
 	  trap 'rm -rf "$$tmpdir"' EXIT; \
 	  cd "$$tmpdir"; \
-	  git init .; \
-	  git remote add origin https://github.com/envoyproxy/go-control-plane; \
-	  git fetch --tags --all; \
-	  git checkout $(ENVOY_GO_CONTROL_PLANE_COMMIT); \
-	  find pkg -name '*.go' -exec sed -E -i.bak \
+	  cd $(OSS_HOME)/_cxx/go-control-plane; \
+	  cp -r $$(git ls-files ':[A-Z]*' ':!Dockerfile*' ':!Makefile') pkg/* "$$tmpdir"; \
+	  find "$$tmpdir" -name '*.go' -exec sed -E -i.bak \
 	    -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/datawire/ambassador/pkg/envoy-control-plane,g' \
 	    -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/datawire/ambassador/pkg/api/envoy,g' \
-	    -e 's,^[[:space:]]*"github.com/datawire/ambassador/pkg/api/[^"]*/([^/"]*)",\1 &,' \
-	    \
-	    -e 's,^[[:space:]]*"github\.com/golang/protobuf/ptypes",ptypes "github.com/gogo/protobuf/types",g' \
-	    -e 's,^[[:space:]]*"github\.com/golang/protobuf/ptypes/any",any "github.com/gogo/protobuf/types",g' \
-	    -e 's,^[[:space:]]*"github\.com/golang/protobuf/ptypes/struct",struct "github.com/gogo/protobuf/types",g' \
-	    -e 's,"github\.com/golang/protobuf/ptypes(/any|/struct)?","github.com/gogo/protobuf/types",g' \
-	    -e 's,github\.com/golang/protobuf/,github.com/gogo/protobuf/,g' \
-	    -e '/SetDeterministic/d' \
 	    -- {} +; \
-	  find pkg -name '*.bak' -delete; \
-	  mv $$(git ls-files ':[A-Z]*' ':!Dockerfile*' ':!Makefile') pkg; \
-	  mv pkg $(abspath $@); \
+	  find "$$tmpdir" -name '*.bak' -delete; \
+	  mv "$$tmpdir" $(abspath $@); \
 	}
 	cd $(OSS_HOME) && go fmt ./pkg/envoy-control-plane/...
 
 #
 # `make generate` protobuf rules
 
-# TODO(lukeshu): Bring this in-line with
-#   https://github.com/envoyproxy/envoy/pull/8155 /
-#   https://github.com/envoyproxy/go-control-plane/pull/226
-# instead of the old
-#   https://github.com/envoyproxy/go-control-plane/blob/v0.9.0%5E/build/generate_protos.sh
-
-# This proto_path list is largely based on 'imports=()' in
-# https://github.com/envoyproxy/go-control-plane/blob/0e75602d5e36e96eafbe053999c0569edec9fe07/build/generate_protos.sh
-# (since that commit most closely corresponds to our ENVOY_COMMIT).
-#
-# However, we make the following edits:
-#  - "github.com/gogo/protobuf/protobuf" instead of "github.com/gogo/protobuf" (we add an
-#    extra "/protobuf" at the end).  I have no idea why.  I have no idea how the
-#    go-control-plane version works without the extra "/protobuf" at the end; it looks to
-#    me like they would need it too.  It makes no sense.
-#  - Mess with the paths under "istio.io/gogo-genproto", since in 929161c and ee07f27 they
-#    moved the .proto files all around.  The reason this affects us and not
-#    go-control-plane is that our newer Envoy needs googleapis'
-#    "google/api/expr/v1alpha1/", which was added in 32e3935 (.pb.go files) and ee07f27
-#    (.proto files).
-#  - We use the $(call gomoddir) trick instead of the `go mod vendor` trick, because (1) the vendor
-#    trick only works if the `.proto` and the `.go` live in the same directory together.  This is no
-#    longer true of istio.io/gogo-genproto, and because (2) the vendor trick assumes that everything
-#    we need vendored is mentioned in non-generates sources, which doesn't seem to be true for us.
-#
-# ... except now all that info lives in various Bazel BUILD files in envoy.git.  IDK what to tell
-# you; if `make generate && go build ./pkg/api/...` breaks, blindly grub about in envoy.git/api/ and
-# hope you figure out something that seems reasonable.
-_proto_path += $(OSS_HOME)/api
-_proto_path += $(OSS_HOME)/vendor
-_proto_path += $(call gomoddir,github.com/envoyproxy/protoc-gen-validate)
-_proto_path += $(call gomoddir,github.com/gogo/protobuf)/protobuf
-_proto_path += $(call gomoddir,istio.io/gogo-genproto)/common-protos
-_proto_path += $(call gomoddir,istio.io/gogo-genproto)/common-protos/github.com/prometheus/client_model
-_proto_path += $(call gomoddir,istio.io/gogo-genproto)/common-protos/github.com/census-instrumentation/opencensus-proto/src
-_proto_path += $(call gomoddir,github.com/cncf/udpa)
-proto_path = $(call lazyonce,proto_path,$(_proto_path))
+$(OSS_HOME)/docker/test-ratelimit/ratelimit.proto:
+	set -e; { \
+	  url=https://raw.githubusercontent.com/envoyproxy/ratelimit/v1.3.0/proto/ratelimit/ratelimit.proto; \
+	  echo "// Downloaded from $$url"; \
+	  echo; \
+	  curl --fail -L "$$url"; \
+	} > $@
 
 # Usage: $(call protoc,output_module,output_basedir[,plugin_files])
+#
+# Using the $(call protoc,...) macro will execute the `protoc` program
+# to generate the single output file $@ from $< using the
+# 'output_module' argument.
+#
+# Nomenclature:
+#   The `protoc` program uses "plugins" that add support for new "output
+#   modules" to the protoc.
+#
+# Arguments:
+#   - output_module: The protoc module to run.
+#   - output_basedir: Where the protobuf "namespace" starts; such that
+#     $@ is "{output_basedir}/{protobuf_packagename}/{filename}"
+#   - plugin_files: A whitespace-separated list of plugin files to
+#     load (necessary if output_module isn't built-in to protoc)
+#
+# Configuration:
+#   This macro takes most of its configuration from global variables:
+#
+#    - proto_path: A whitespace-separated list of directories to look
+#      for .proto files in.  Input files must be within this path.
+#    - proto_options/$(output_module): A whitespace-separated list of
+#      configuration options specific to this output module.
+#
+#   Having these as global variables instead of arguments makes it a
+#   lot easier to wrangle having large tables of options that some
+#   modules require.
+#
+# Example:
+#
+#    The Make snippet
+#
+#        proto_path  = $(CURDIR)/input_dir
+#        proto_path += $(CURDIR)/vendor/lib
+#        proto_options/example  = key1=val1
+#        proto_options/example += key2=val2
+#
+#        $(CURDIR)/output_dir/mypkg/myfile.pb.example: $(CURDIR)/input_dir/mypkg/myfile.proto /usr/bin/protoc-gen-example
+#                $(call protoc,example,$(CURDIR)/output_dir,\
+#                    /usr/bin/protoc-gen-example)
+#
+#    would run the command
+#
+#        $(tools/protoc) \
+#            --proto_path=$(CURDIR)/input_dir,$(CURDIR)/vendor/lib \
+#            --plugin=/usr/bin/protoc-gen-example \
+#            --example_out=key1=val1,key2=val2:$(CURDIR)/output_dir
 protoc = @echo PROTOC --$1_out=$2 $<; mkdir -p $2 && $(tools/protoc) \
   $(addprefix --proto_path=,$(proto_path)) \
   $(addprefix --plugin=,$3) \
   --$1_out=$(if $(proto_options/$(strip $1)),$(call joinlist,$(comma),$(proto_options/$(strip $1))):)$2 \
   $<
 
-# The "M{FOO}={BAR}" options map from .proto files to Go package names.  This list of mappings is
-# largely based on 'mappings=()' in
-# https://github.com/envoyproxy/go-control-plane/blob/0e75602d5e36e96eafbe053999c0569edec9fe07/build/generate_protos.sh
-# (since that commit most closely corresponds to our ENVOY_COMMIT).
-#
-# However, we make the following edits:
-#  - Add an entry for "google/api/expr/v1alpha1/syntax.proto", which didn't exist yet in the version
-#    that go-control-plane uses (see the comment around "proto_path" above).
-#
-# ... except now all that info lives in various Bazel BUILD files in envoy.git.  IDK what to tell
-# you; if `make generate && go build ./pkg/api/...` breaks, blindly grub about in envoy.git/api/ and
-# hope you figure out something that seems reasonable.
-_proto_options/gogofast += plugins=grpc
-_proto_options/gogofast += Mgogoproto/gogo.proto=github.com/gogo/protobuf/gogoproto
-_proto_options/gogofast += Mgoogle/api/annotations.proto=istio.io/gogo-genproto/googleapis/google/api
-_proto_options/gogofast += Mgoogle/api/expr/v1alpha1/syntax.proto=istio.io/gogo-genproto/googleapis/google/api/expr/v1alpha1
-_proto_options/gogofast += Mgoogle/api/http.proto=istio.io/gogo-genproto/googleapis/google/api
-_proto_options/gogofast += Mgoogle/protobuf/any.proto=github.com/gogo/protobuf/types
-_proto_options/gogofast += Mgoogle/protobuf/descriptor.proto=github.com/gogo/protobuf/protoc-gen-gogo/descriptor
-_proto_options/gogofast += Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types
-_proto_options/gogofast += Mgoogle/protobuf/empty.proto=github.com/gogo/protobuf/types
-_proto_options/gogofast += Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types
-_proto_options/gogofast += Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types
-_proto_options/gogofast += Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types
-_proto_options/gogofast += Mgoogle/rpc/code.proto=istio.io/gogo-genproto/googleapis/google/rpc
-_proto_options/gogofast += Mgoogle/rpc/error_details.proto=istio.io/gogo-genproto/googleapis/google/rpc
-_proto_options/gogofast += Mgoogle/rpc/status.proto=istio.io/gogo-genproto/googleapis/google/rpc
-_proto_options/gogofast += Mmetrics.proto=istio.io/gogo-genproto/prometheus
-_proto_options/gogofast += Mopencensus/proto/trace/v1/trace.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
-_proto_options/gogofast += Mopencensus/proto/trace/v1/trace_config.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
-_proto_options/gogofast += Mvalidate/validate.proto=github.com/envoyproxy/protoc-gen-validate/validate
-_proto_options/gogofast += Mudpa/annotations/migrate.proto=github.com/cncf/udpa/go/udpa/annotations
-_proto_options/gogofast += Mudpa/annotations/sensitive.proto=github.com/cncf/udpa/go/udpa/annotations
-_proto_options/gogofast += Mudpa/annotations/status.proto=github.com/cncf/udpa/go/udpa/annotations
-_proto_options/gogofast += Mudpa/annotations/versioning.proto=github.com/cncf/udpa/go/udpa/annotations
-_proto_options/gogofast += $(shell find $(OSS_HOME)/api/envoy -type f -name '*.proto' | sed -E 's,^$(OSS_HOME)/api/((.*)/[^/]*),M\1=github.com/datawire/ambassador/pkg/api/\2,')
-proto_options/gogofast = $(call lazyonce,proto_options/gogofast,$(_proto_options/gogofast))
-$(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-gogofast) | $(OSS_HOME)/vendor
-	$(call protoc,gogofast,$(OSS_HOME)/pkg/api,\
-	    $(tools/protoc-gen-gogofast))
+# proto_path is a list of where to look for .proto files.
+proto_path += $(OSS_HOME)/api # input files must be within the path
+proto_path += $(OSS_HOME)/vendor # for "k8s.io/..."
 
-proto_options/validate += lang=gogo
-$(OSS_HOME)/pkg/api/%.pb.validate.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-validate) | $(OSS_HOME)/vendor
-	$(call protoc,validate,$(OSS_HOME)/pkg/api,\
-	    $(tools/protoc-gen-validate))
-	sed -E -i.bak 's,"(envoy/.*)"$$,"github.com/datawire/ambassador/pkg/api/\1",' $@
-	rm -f $@.bak
-
-proto_options/go-json +=
-$(OSS_HOME)/pkg/api/%.pb.json.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-go-json) | $(OSS_HOME)/vendor
-	$(call protoc,go-json,$(OSS_HOME)/pkg/api,\
-	    $(tools/protoc-gen-go-json))
-	sed -E -i.bak 's,golang/protobuf,gogo/protobuf,g' $@
-	rm -f $@.bak
+# The "M{FOO}={BAR}" options map from .proto files to Go package names.
+proto_options/go += plugins=grpc
+#proto_options/go += Mgoogle/protobuf/duration.proto=github.com/golang/protobuf/ptypes/duration
+$(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-go) | $(OSS_HOME)/vendor
+	$(call protoc,go,$(OSS_HOME)/pkg/api,\
+	    $(tools/protoc-gen-go))
 
 proto_options/python +=
 $(OSS_HOME)/generate.tmp/%_pb2.py: $(OSS_HOME)/api/%.proto $(tools/protoc) | $(OSS_HOME)/vendor
@@ -296,17 +258,9 @@ $(OSS_HOME)/generate.tmp/%_grpc_web_pb.js: $(OSS_HOME)/api/%.proto $(tools/proto
 	$(call protoc,grpc-web,$(OSS_HOME)/generate.tmp,\
 	    $(tools/protoc-gen-grpc-web))
 
-# This madness with sed is because protoc likes to insert broken imports when generating
-# Python code, and my attempts to sort out how to fix the protoc invocation are taking 
-# longer than I have right now.
-# (Previous we just did cp $< $@ instead of the sed call.)
-
 $(OSS_HOME)/python/ambassador/proto/%.py: $(OSS_HOME)/generate.tmp/getambassador.io/%.py
 	mkdir -p $(@D)
-	sed \
-		-e 's/github_dot_com_dot_gogo_dot_protobuf_dot_gogoproto_dot_gogo__pb2.DESCRIPTOR,//' \
-		-e '/from github.com.gogo.protobuf.gogoproto import/d' \
-		< $< > $@
+	cp $< $@
 
 $(OSS_HOME)/tools/sandbox/grpc_web/%.js: $(OSS_HOME)/generate.tmp/kat/%.js
 	cp $< $@
@@ -314,7 +268,7 @@ $(OSS_HOME)/tools/sandbox/grpc_web/%.js: $(OSS_HOME)/generate.tmp/kat/%.js
 $(OSS_HOME)/vendor: FORCE
 	set -e; { \
 	  cd $(@D); \
-	  GO111MODULE=off go list -f='{{ range .Imports }}{{ . }}{{ "\n" }}{{ end }}' ./... | \
+	  GOPATH=/bogus GO111MODULE=off go list -f='{{ range .Imports }}{{ . }}{{ "\n" }}{{ end }}' ./... | \
 	    sort -u | \
 	    sed -E -n 's,^github\.com/datawire/ambassador/pkg/(api|envoy-control-plane),pkg/\1,p' | \
 	      while read -r dir; do \
@@ -361,8 +315,8 @@ _generate_controller_gen: $(tools/controller-gen) $(tools/fix-crds) update-yaml-
 	@printf '  $(CYN)Running controller-gen$(END)\n'
 	rm -f $(crds_yaml_dir)/getambassador.io_*
 	cd $(OSS_HOME) && $(tools/controller-gen) \
-	  $(foreach varname,$(filter controller-gen/options/%,$(.VARIABLES)), $(patsubst controller-gen/options/%,%,$(varname))$(if $(strip $($(varname))),:$(call joinlist,$(comma),$($(varname)))) ) \
-	  $(foreach varname,$(filter controller-gen/output/%,$(.VARIABLES)), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
+	  $(foreach varname,$(sort $(filter controller-gen/options/%,$(.VARIABLES))), $(patsubst controller-gen/options/%,%,$(varname))$(if $(strip $($(varname))),:$(call joinlist,$(comma),$($(varname)))) ) \
+	  $(foreach varname,$(sort $(filter controller-gen/output/%,$(.VARIABLES))), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
 	  paths="./pkg/api/getambassador.io/..."
 	@PS4=; set -ex; for file in $(crds_yaml_dir)/getambassador.io_*.yaml; do $(tools/fix-crds) helm 1.11 "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
 .PHONY: _generate_controller_gen
@@ -394,3 +348,28 @@ update-yaml-clean:
 	rm -f $(update-yaml/files)
 generate-clean: update-yaml-clean
 .PHONY: update-yaml-clean
+
+#
+# Generate report on dependencies
+
+$(OSS_HOME)/build-aux-local/pip-show.txt: sync
+	docker exec $$($(BUILDER)) sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
+
+$(OSS_HOME)/builder/requirements.txt: %.txt: %.in FORCE
+	$(BUILDER) pip-compile
+.PRECIOUS: $(OSS_HOME)/builder/requirements.txt
+
+$(OSS_HOME)/build-aux-local/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base
+	sed -En 's,.*https://dl\.google\.com/go/go([0-9a-z.-]*)\.linux-amd64\.tar\.gz.*,\1,p' < $< > $@
+
+$(OSS_HOME)/build-aux/go1%.src.tar.gz:
+	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
+
+$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux-local/go-version.txt $(OSS_HOME)/build-aux-local/pip-show.txt $(OSS_HOME)/vendor
+	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz
+	set -e; { \
+		cd $(OSS_HOME); \
+		$(tools/go-mkopensource) --output-format=txt --package=mod --gotar=build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz; \
+		echo; \
+		{ sed 's/^---$$//' $(OSS_HOME)/build-aux-local/pip-show.txt; echo; } | $(tools/py-mkopensource); \
+	} > $@

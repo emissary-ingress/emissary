@@ -190,6 +190,36 @@ func (o *BoolOrString) UnmarshalJSON(data []byte) error {
 	return err
 }
 
-// UntypedDict is non-functional as a Go type, but it gets
-// controller-gen to spit out the correct schema.
-type UntypedDict struct{}
+// UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable
+// way.
+// +kubebuilder:validation:Type="object"
+type UntypedDict struct {
+	Values map[string]UntypedValue
+}
+
+func (u UntypedDict) MarshalJSON() ([]byte, error) {
+	return json.Marshal(u.Values)
+}
+
+func (u *UntypedDict) UnmarshalJSON(data []byte) error {
+	var values map[string]UntypedValue
+	err := json.Unmarshal(data, &values)
+	if err != nil {
+		return err
+	}
+	*u = UntypedDict{Values: values}
+	return nil
+}
+
+type UntypedValue struct {
+	raw json.RawMessage
+}
+
+func (u UntypedValue) MarshalJSON() ([]byte, error) {
+	return json.Marshal(u.raw)
+}
+
+func (u *UntypedValue) UnmarshalJSON(data []byte) error {
+	*u = UntypedValue{raw: json.RawMessage(data)}
+	return nil
+}

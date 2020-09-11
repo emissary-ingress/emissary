@@ -74,7 +74,7 @@ type ResponseWatch struct {
 	// Request is the original request for the watch.
 	Request Request
 
-	// Response is the channel to push response to.
+	// Response is the channel to push responses to.
 	Response chan Response
 }
 

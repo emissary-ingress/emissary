@@ -1,7 +1,7 @@
 package resource
 
 import (
-	ptypes "github.com/gogo/protobuf/types"
+	"github.com/golang/protobuf/ptypes"
 
 	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
 	listener "github.com/datawire/ambassador/pkg/api/envoy/api/v2/listener"
