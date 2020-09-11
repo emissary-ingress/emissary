@@ -547,8 +547,7 @@ class V2VirtualHost:
         self._action = action
         self._insecure_action = insecure_action
         self._needs_redirect = False
-        # vhost._domains gets populated by self.maybe_add_route()
-        # (after self.__init__() but before self.finalize())
+        # vhost._domains gets populated after self.__init__() but before self.finalize()
         self._domains: Dict[str, List[DictifiedV2Route]] = {}
 
         self._tls_context = V2TLSContext(ctx)
@@ -653,12 +652,11 @@ class V2VirtualHost:
     def maybe_add_route(self,
                         logger,
                         edge_stack_allowed: bool,
-                        candidate: Tuple[bool, V2Route, str],
-                        domain: Optional[str]=None):
+                        candidate: Tuple[bool, V2Route, str]):
 
         final_route: Optional[DictifiedV2Route] = None
 
-        logger.debug(f"V2VirtualHost {self.name}: considering route candidate={candidate} where domain={domain} and edge_stack_allowed={edge_stack_allowed}")
+        logger.debug(f"V2VirtualHost {self.name}: considering route candidate={candidate} where edge_stack_allowed={edge_stack_allowed}")
         vhostname = self._hostname
 
         secure, c_route, action = candidate
@@ -728,9 +726,9 @@ class V2VirtualHost:
 
             # Populate the domains for insecure routes
             if not secure:
-                assert domain
-                logger.debug(f"V2VirtualHost {self.name}: secure={secure}: adding route={dict(final_route)} to domain={domain}")
-                self._domains.setdefault(domain, []).append(final_route)
+                for domain in self._domains:
+                    logger.debug(f"V2VirtualHost {self.name}: secure={secure}: adding route={dict(final_route)} to domain={domain}")
+                    self._domains[domain].append(final_route)
 
             self.routes.append(final_route)
         else:
@@ -1239,16 +1237,9 @@ class V2Listener(dict):
                                         secure=False,
                                         action=None,
                                         insecure_action=irlistener.insecure_action)
+            vhost._domains.setdefault(vhostname, [])
 
-            logger.debug(f"V2Listener {listener.name}: proceeding to add routes to vhost {vhost._hostname} for listener {listener.name}")
-
-            # Go through all the routes and add them based on the indirect action.
-            for route in config.routes:
-                if irlistener.insecure_action is not None:
-                    vhost.maybe_add_route(logger, config.ir.edge_stack_allowed,
-                                          (False, route, irlistener.insecure_action), vhostname)
-
-            logger.debug(f"V2Listener {listener.name}: final vhosts: {listener.vhosts.keys()}")
+            logger.debug(f"V2Listener {listener.name}: final vhosts: {[k.hostname for k in listener.vhosts.keys()]}")
 
         logger.debug(f"V2Listener.generate: after IRListeners")
         cls.dump_listeners(logger, listeners_by_port)
@@ -1288,10 +1279,6 @@ class V2Listener(dict):
                                             action=None,
                                             insecure_action='Reject')
 
-                for route in config.routes:
-                    vhost.maybe_add_route(logger, config.ir.edge_stack_allowed,
-                                          (False, route, 'Reject'))
-
         # OK. We have all the listeners. Time to walk the routes (note that they are already ordered).
         for route in config.routes:
             logger.debug(f"V2Listener.generate: route {prettyroute(route)}...")
@@ -1300,9 +1287,13 @@ class V2Listener(dict):
             for port, listener in listeners_by_port.items():
 
                 for vhostkey, vhost in listener.vhosts.items():
-                    # For each vhost, we need to look at things for the secure world. The insecure world has been taken
-                    # care of.
+                    if vhost._insecure_action is not None:
+                        # insecure
+                        logger.debug(f"V2Listener {listener.name}: generating insecure route for vhost {vhost._hostname}: action: {vhost._insecure_action}")
+                        vhost.maybe_add_route(logger, config.ir.edge_stack_allowed,
+                                              (False, route, vhost._insecure_action))
                     if vhost._action is not None:
+                        # secure
                         logger.debug(f"V2Listener {listener.name}: generating secure route for vhost {vhost._hostname}: action: {vhost._action}")
                         vhost.maybe_add_route(logger, config.ir.edge_stack_allowed,
                                               (True, route, vhost._action))
