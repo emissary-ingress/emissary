@@ -456,6 +456,12 @@ def v2filter_lua(irfilter: IRFilter, v2config: 'V2Config'):
 
 
 class V2TCPListener(dict):
+    """V2TCPListener is the Python type for a gRPC `envoy.api.v2.Listener`
+    that happens to NOT contain an HttpConnectionManager in its filter
+    chain; therefore serving `TCPMappings` rather than HTTP
+    `Mappings`.
+
+    """
     def __init__(self, config: 'V2Config', group: IRTCPMappingGroup) -> None:
         super().__init__()
 
@@ -551,7 +557,12 @@ class V2VirtualHost:
         self._tls_context = V2TLSContext(ctx)
         self.routes: List[DictifiedV2Route] = []
 
-    def punch_acme_in_routes(self, route_list: List[DictifiedV2Route]):
+    def ensure_acme_route(self, route_list: List[DictifiedV2Route]):
+        """ensure_acme_route adjusts route_list to ensure that there's a route
+        for `/.well-known/acme-challenge/` such that Envoy won't 404
+        it before calling to ext_authz.
+
+        """
         for route in route_list:
             if route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
                 # Nothing to do here if ACME prefix already exists
@@ -560,7 +571,6 @@ class V2VirtualHost:
         # The target cluster doesn't actually matter -- the auth service grabs the
         # challenge and does the right thing. But we do need a cluster that actually
         # exists, so use the sidecar cluster.
-
         if not self._config.ir.sidecar_cluster_name:
             # Uh whut? how is Edge Stack running exactly?
             raise Exception("Edge Stack claims to be running, but we have no sidecar cluster??")
@@ -742,15 +752,15 @@ class V2VirtualHost:
 
         self.filter_chain_match = match
 
-        # If we're on Edge Stack and we're not an intercept agent, punch a hole for ACME
-        # challenges, for every listener.
+        # If we're on Edge Stack and we're not an intercept agent, then make sure that Envoy won't 404 ACME
+        # challenges before they ever get to the AuthService.
         if self._config.ir.edge_stack_allowed and not self._config.ir.agent_active:
             # Punch ACME hole in routes
-            self.punch_acme_in_routes(self.routes)
+            self.ensure_acme_route(self.routes)
 
             # Punch ACME hole in domains
             for domain in self._domains:
-                self.punch_acme_in_routes(self._domains[domain])
+                self.ensure_acme_route(self._domains[domain])
 
         for route in self.routes:
             self._config.ir.logger.debug(f"V2VirtualHost {self.name}: finalize: Route {prettyroute(route)}")
@@ -795,11 +805,11 @@ class V2ListenerCollection:
         return self.listeners.items()
 
     def get(self, port: int, use_proxy_proto: bool) -> 'V2Listener':
-        set_upp = (not port in self)
+        already_existed = (port in self)
 
         v2listener = self[port]
 
-        if set_upp:
+        if not already_existed:
             v2listener.use_proxy_proto = use_proxy_proto
         elif v2listener.use_proxy_proto != use_proxy_proto:
             raise Exception("listener for port %d has use_proxy_proto %s, requester wants upp %s" %
@@ -812,6 +822,12 @@ class VHostKey(NamedTuple):
     hostname: str
 
 class V2Listener(dict):
+    """V2Listener is the Python type for a gRPC `envoy.api.v2.Listener`
+    that happens to contain an HttpConnectionManager in its filter
+    chain; therefore serving HTTP `Mappings` rather than
+    `TCPMappings`.
+
+    """
     def __init__(self, config: 'V2Config', service_port: int) -> None:
         super().__init__()
 
@@ -1137,26 +1153,36 @@ class V2Listener(dict):
                  "vhosts": { k.hostname: v.pretty() for k, v in self.vhosts.items() } }
 
     @classmethod
-    def dump_listeners(cls, logger, listeners_by_port) -> None:
+    def log_listeners(cls, logger, listeners_by_port) -> None:
         pretty = { k: v.pretty() for k, v in listeners_by_port.items() }
 
-        logger.debug(f"V2Listener.dump_listeners: {json.dumps(pretty, sort_keys=True, indent=4)}")
+        logger.debug(f"V2Listener.log_listeners: {json.dumps(pretty, sort_keys=True, indent=4)}")
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:
+        """Inspect `config.ir` and `config.routes` in order to populate
+        populate `config.listeners`.
+
+        """
         config.listeners = []
         logger = config.ir.logger
+
+        # Step 1.  Handle the listeners that handle HTTP
+
+        # Step 1.1.  Instantiate all V2Listeners and their child V2VirtualHosts
 
         # OK, so we need to construct one or more V2Listeners, based on our IRListeners.
         # The highest-level thing that defines an Envoy listener is a port, so start
         # with that.
-
+        #
+        # This line itself does nothing; the Collection lazily creates V2Listeners on-demand with
+        # `V2Listener(config, port_number)`.  As for accessing it, you can think of it as a
+        # `Dict[int, V2Listener]`.
         listeners_by_port = V2ListenerCollection(config)
 
-        # Also, in Edge Stack, the magic extremely-low-precedence / Mapping is always routed,
+        # Also, in Edge Stack, the magic extremely-low-precedence "/" Mapping is always routed,
         # rather than being redirected. If a user doesn't want this behavior, they can override
         # the Mapping.
-
         first_irlistener_by_port: Dict[int, IRListener] = {}
 
         for irlistener in config.ir.listeners:
@@ -1165,6 +1191,8 @@ class V2Listener(dict):
 
             logger.debug(f"V2Listener.generate: working on {irlistener.pretty()}")
 
+            # secure action #######################################################################################
+
             # Grab a new V2Listener for this IRListener...
             listener = listeners_by_port.get(irlistener.service_port, irlistener.use_proxy_proto)
             listener.add_irlistener(irlistener)
@@ -1172,8 +1200,8 @@ class V2Listener(dict):
             # What VirtualHost hostname are we trying to work with here?
             vhostname = irlistener.hostname or "*"
 
-            # Well, we only want a secure vhost if this irlistener has a context! If it has no context, the listener
-            # won't set transport_protocol to tls anyway.
+            # Well, we only want a secure vhost if this irlistener has a TLS context! If it has no context, the
+            # listener won't set transport_protocol to tls anyway.
             if irlistener.get('context') is not None:
                 listener.make_vhost(name=vhostname,
                                     hostname=vhostname,
@@ -1181,7 +1209,9 @@ class V2Listener(dict):
                                     action=irlistener.secure_action,
                                     insecure_action=irlistener.insecure_action)
 
-            # An irlistener will always have an insecure action, either Route or Redirect
+            # insecure action #####################################################################################
+
+            # An IRListener will always have an insecure action, either "Route, "Redirect", or "Reject".
             assert irlistener.insecure_action is not None
 
             # There are going to be times when an insecure action will NOT have a port associated with it. If there
@@ -1198,19 +1228,14 @@ class V2Listener(dict):
             # Multiple vhosts roughly (very, very roughly) translates to multiple fitler chains, and we don't
             # need that. We don't need separate filter chains with separate "server_names" for "insecure" hosts
             # because server_names is applicable only to SNI for TLS.
-            # What we need here instead is ONE insecure vhost which header matches for these insecure domains.
-            # Which header? ":authority" i.e. the "Host" header.
             #
-            # We have one insecure vhost for every port. All insecure routes (route or redirect or xxx) will be
-            # appended to this vhost. If this vhost exists, then make_vhost will get it - else it will create one.
+            # What we need here instead is ONE insecure vhost (for each port) which has Routes that have
+            # HeaderMatchers for these insecure domains.  Which header? ":authority" i.e. the "Host" header.
             #
-            # We're going to populate all the hostnames in vhost._domains which going to put all of these in
+            # We're going to populate all the hostnames in vhost._domains which is going to put all of these in
             # virtual_hosts.domains matches on the Host header of the incoming request. Even though it also takes
-            # wildcard entries, exact matches are preferred over wildcard matches. This means that
-            # www.foo.com > *.foo.com > *.com > *
-            #
-            # Keep in mind that this name= will *not* be used, it will be overridden by
-            # `vhost._domains`. We are only using this for identification purposes.
+            # wildcard entries, exact matches are preferred over wildcard matches. This means that www.foo.com >
+            # *.foo.com > *.com > *
             vhost = listener.make_vhost(name=f"_insecure-{listener.service_port}",
                                         hostname="*",
                                         context=None,
@@ -1221,7 +1246,7 @@ class V2Listener(dict):
             logger.debug(f"V2Listener {listener.name}: final vhosts: {[k.hostname for k in listener.vhosts.keys()]}")
 
         logger.debug(f"V2Listener.generate: after IRListeners")
-        cls.dump_listeners(logger, listeners_by_port)
+        cls.log_listeners(logger, listeners_by_port)
 
         if config.ir.edge_stack_allowed and not config.ir.agent_active:
             # If we're running Edge Stack, and we're not an intercept agent, make sure we have
@@ -1257,6 +1282,8 @@ class V2Listener(dict):
                     first_vhost._hostname = '*'
                     first_vhost.name += "_fstar"
 
+        # Step 1.2.  Populate the V2VirtualHosts with Routes
+
         # OK. We have all the listeners. Time to walk the routes (note that they are already ordered).
         for route in config.routes:
             logger.debug(f"V2Listener.generate: route {prettyroute(route)}...")
@@ -1274,17 +1301,21 @@ class V2Listener(dict):
                         logger.debug(f"V2Listener {listener.name}: generating secure route for vhost {vhost._hostname}: action: {vhost._action}")
                         vhost.maybe_add_route(route, vhost._action)
 
+        # Step 1.3.  Finalize the V2Listeners and V2VirtualHosts
+
         # OK. Finalize the world.
         for port, listener in listeners_by_port.items():
             listener.finalize()
 
         logger.debug("V2Listener.generate: after finalize")
-        cls.dump_listeners(logger, listeners_by_port)
+        cls.log_listeners(logger, listeners_by_port)
 
         for k, v in listeners_by_port.items():
             config.listeners.append(v.as_dict())
 
         # logger.info(f"==== ENVOY LISTENERS ====: {json.dumps(config.listeners, sort_keys=True, indent=4)}")
+
+        # Step 2.  Handle the non-HTTP listeners
 
         # We need listeners for the TCPMappingGroups too.
         tcplisteners: Dict[str, V2TCPListener] = {}

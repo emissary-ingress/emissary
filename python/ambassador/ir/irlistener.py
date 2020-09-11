@@ -67,6 +67,8 @@ class ListenerFactory:
         # An IRListener roughly corresponds to something partway between an Envoy
         # FilterChain and an Envoy VirtualHost -- it's a single domain entry (which
         # could be a wildcard) that can have routes and such associated with it.
+        # Or rather, an IRListener more likely corresponds to a *pair* of Envoy
+        # VirtualHosts; one for cleartext and one for TLS.
         #
         # A single IRListener can require TLS, or not. If TLS is around, it can
         # require a specific SNI host. Since it contains VirtualHosts, it can also
