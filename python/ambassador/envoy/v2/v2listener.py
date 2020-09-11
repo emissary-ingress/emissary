@@ -535,7 +535,7 @@ class V2TCPListener(dict):
 class V2VirtualHost:
     def __init__(self, config: 'V2Config', listener: 'V2Listener',
                  name: str, hostname: str, ctx: Optional[IRTLSContext],
-                 secure: bool, action: Optional[str], insecure_action: Optional[str]) -> None:
+                 action: Optional[str], insecure_action: Optional[str]) -> None:
         super().__init__()
 
         self._config = config
@@ -543,18 +543,13 @@ class V2VirtualHost:
         self.name = name
         self._hostname = hostname
         self._ctx = ctx
-        self._secure = secure
         self._action = action
         self._insecure_action = insecure_action
-        self._needs_redirect = False
         # vhost._domains gets populated after self.__init__() but before self.finalize()
         self._domains: Dict[str, List[DictifiedV2Route]] = {}
 
         self._tls_context = V2TLSContext(ctx)
         self.routes: List[DictifiedV2Route] = []
-
-    def needs_redirect(self) -> None:
-        self._needs_redirect = True
 
     def punch_acme_in_routes(self, route_list: List[DictifiedV2Route]):
         for route in route_list:
@@ -649,22 +644,16 @@ class V2VirtualHost:
     # fits in the supplied vhost (if at all).  Depending on the route
     # being insecure, secure, redirect, etc it configures and adds it
     # to the vhost.
-    def maybe_add_route(self,
-                        logger,
-                        edge_stack_allowed: bool,
-                        candidate: Tuple[bool, V2Route, str]):
+    def maybe_add_route(self, c_route: V2Route, action: str):
 
+        logger = self._config.ir.logger
+        edge_stack_allowed = self._config.ir.edge_stack_allowed
         final_route: Optional[DictifiedV2Route] = None
 
-        logger.debug(f"V2VirtualHost {self.name}: considering route candidate={candidate} where edge_stack_allowed={edge_stack_allowed}")
-        vhostname = self._hostname
-
-        secure, c_route, action = candidate
+        logger.debug(f"V2VirtualHost {self.name}: considering route={c_route} action={action} where edge_stack_allowed={edge_stack_allowed}")
 
         # If this an SNI route, remember the host[s] to which it pertains.
-        route_sni = c_route.get('_sni', {})
-        route_hostlist = route_sni.get('hosts', [])
-        route_hosts = set(route_hostlist)
+        route_hosts = set(c_route.get('_sni', {}).get('hosts', []))
 
         # Remember, also, if a precedence was set.
         route_precedence = c_route.get('_precedence', None)
@@ -683,17 +672,17 @@ class V2VirtualHost:
             # per-Mapping, well, really, we can't force them to not redirect if they explicitly
             # ask for it, and that'll be OK.)
 
-        elif route_hosts and (vhostname != '*') and (vhostname not in route_hosts):
+        elif route_hosts and (self._hostname != '*') and (self._hostname not in route_hosts):
             # Drop this because the host is mismatched.
             logger.debug(
-                f"V2VirtualHost {self.name}: secure={secure}: force Reject (rhosts {route_hostlist})")
+                f"V2VirtualHost {self.name}: force Reject (rhosts {sorted(route_hosts)})")
             action = "Reject"
 
         elif (edge_stack_allowed and
               (route_precedence == -1000000) and
               (c_route["match"].get("safe_regex", {}).get("regex", None) == "^/$")):
             logger.debug(
-                f"V2VirtualHost {self.name}: secure={secure}: force Route for fallback Mapping")
+                f"V2VirtualHost {self.name}: force Route for fallback Mapping")
             action = "Route"
 
             # Force the actual route entry, instead of using the redirect_route, too.
@@ -703,7 +692,7 @@ class V2VirtualHost:
         # Now that all we have configured the right action for this route,
         # let's generate cleaned up routes for secure/insecure routes based
         # on the action.
-        if secure:
+        if self._action is not None:
             final_route = self.generate_secure_route(c_route)
         else:
             if action == "Redirect":
@@ -722,22 +711,17 @@ class V2VirtualHost:
 
         if action != 'Reject':
             logger.debug(
-                f"V2VirtualHost {self.name}: secure={secure}: Accept as {action}")
+                f"V2VirtualHost {self.name}: Accept as {action}")
 
             # Populate the domains for insecure routes
-            if not secure:
+            if self._action is None:
                 for domain in self._domains:
-                    logger.debug(f"V2VirtualHost {self.name}: secure={secure}: adding route={dict(final_route)} to domain={domain}")
+                    logger.debug(f"V2VirtualHost {self.name}: adding route={dict(final_route)} to domain={domain}")
                     self._domains[domain].append(final_route)
 
             self.routes.append(final_route)
         else:
-            logger.debug(f"V2VirtualHost {self.name}: secure={secure}: Drop")
-
-        # Also, remember if we're redirecting so that the VHost finalizer can DTRT
-        # for ACME.
-        if action == 'Redirect':
-            self.needs_redirect()
+            logger.debug(f"V2VirtualHost {self.name}: Drop")
 
     def finalize(self) -> None:
         # Even though this is called V2VirtualHost, we track the filter_chain_match here,
@@ -783,10 +767,8 @@ class V2VirtualHost:
         return {
             "name": self.name,
             "_hostname": self._hostname,
-            "_secure": self._secure,
             "_action": self._action,
             "_insecure_action": self._insecure_action,
-            "_needs_redirect": self._needs_redirect,
             "tls_context": self._tls_context,
             "routes": self.routes,
         }
@@ -1015,7 +997,7 @@ class V2Listener(dict):
                             (self.name, listener.name, listener.hostname, listener.service_port))
 
     # Weirdly, the action is optional but the insecure_action is not. This is not a typo.
-    def make_vhost(self, name: str, hostname: str, context: Optional[IRTLSContext], secure: bool,
+    def make_vhost(self, name: str, hostname: str, context: Optional[IRTLSContext],
                    action: Optional[str], insecure_action: str) -> V2VirtualHost:
         self.config.ir.logger.debug(f"V2Listener {self.name}: adding VHost {name} for host={hostname}, secure_action={action}, insecure_action={insecure_action}")
 
@@ -1026,7 +1008,6 @@ class V2Listener(dict):
             if ((name != vhost.name) or
                 (hostname != vhost._hostname) or
                 (context != vhost._ctx) or
-                (secure != vhost._secure) or
                 (action != vhost._action) or
                 (insecure_action != vhost._insecure_action)):
                 raise Exception(f"V2Listener {self.name}: trying to make vhost(name={name}, hostname={hostname}, context={context}, action={action}) but conflicting "
@@ -1036,7 +1017,7 @@ class V2Listener(dict):
 
         vhost = V2VirtualHost(config=self.config, listener=self,
                               name=name, hostname=hostname, ctx=context,
-                              secure=secure, action=action, insecure_action=insecure_action)
+                              action=action, insecure_action=insecure_action)
         self.vhosts[key] = vhost
 
         if not self.first_vhost:
@@ -1197,7 +1178,6 @@ class V2Listener(dict):
                 listener.make_vhost(name=vhostname,
                                     hostname=vhostname,
                                     context=irlistener.context,
-                                    secure=True,
                                     action=irlistener.secure_action,
                                     insecure_action=irlistener.insecure_action)
 
@@ -1234,7 +1214,6 @@ class V2Listener(dict):
             vhost = listener.make_vhost(name=f"_insecure-{listener.service_port}",
                                         hostname="*",
                                         context=None,
-                                        secure=False,
                                         action=None,
                                         insecure_action=irlistener.insecure_action)
             vhost._domains.setdefault(vhostname, [])
@@ -1275,7 +1254,6 @@ class V2Listener(dict):
                 vhost = listener.make_vhost(name="_forced-8080",
                                             hostname="*",
                                             context=None,
-                                            secure=False,
                                             action=None,
                                             insecure_action='Reject')
 
@@ -1290,13 +1268,11 @@ class V2Listener(dict):
                     if vhost._insecure_action is not None:
                         # insecure
                         logger.debug(f"V2Listener {listener.name}: generating insecure route for vhost {vhost._hostname}: action: {vhost._insecure_action}")
-                        vhost.maybe_add_route(logger, config.ir.edge_stack_allowed,
-                                              (False, route, vhost._insecure_action))
+                        vhost.maybe_add_route(route, vhost._insecure_action)
                     if vhost._action is not None:
                         # secure
                         logger.debug(f"V2Listener {listener.name}: generating secure route for vhost {vhost._hostname}: action: {vhost._action}")
-                        vhost.maybe_add_route(logger, config.ir.edge_stack_allowed,
-                                              (True, route, vhost._action))
+                        vhost.maybe_add_route(route, vhost._action)
 
         # OK. Finalize the world.
         for port, listener in listeners_by_port.items():
