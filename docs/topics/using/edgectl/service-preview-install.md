@@ -11,21 +11,21 @@ Service Preview is installed as an addon to the Ambassador Edge Stack.
 
 There are three method for installing Service Preview.
 
-### <img src="../../../../images/logo.png"/> [Install with Edgectl](#img-srcimageslogopng-install-with-edgectl-1)
+### <img class="os-logo" src="../../../../images/logo.png"/> [Install with Edgectl](#img-classos-logo-srcimageslogopng-install-with-edgectl-1)
 
 If you are installing Service Preview and Ambassador Edge Stack for the first time, `edgectl` will automatically bootstrap and integrate both tools in your cluster.
 
-### <img src="../../../../images/kubernetes.png"/> [Install with YAML](#img-srcimageskubernetespng-install-with-yaml-1)
+### <img class="os-logo" src="../../../../images/kubernetes.png"/> [Install with YAML](#img-classos-logo-srcimageskubernetespng-install-with-yaml-1)
 
 The YAML installation method will walk you through a step-by-step deployment of all the resources necessary for installing Service Preview alongside the Ambassador Edge Stack. The YAML installation method is the most common approach to install Ambassador Edge Stack, especially in production environments, with our default, customizable manifest.
 
-### <img src="../../../../images/helm.png"/> [Install with Helm](#img-srcimageshelmpng-install-with-helm-1)
+### <img class="os-logo" src="../../../../images/helm.png"/> [Install with Helm](#img-classos-logo-srcimageshelmpng-install-with-helm-1)
 
 Helm is a popular Kubernetes package manager. The Ambassador helm chart allows you to install Service Preview alongside the Ambassador Edge Stack.
 
 ---
 
-## <img src="../../../../images/logo.png"/> Install with Edgectl
+## <img class="os-logo" src="../../../../images/logo.png"/> Install with Edgectl
 
 If you are a new user, or you are looking to start using Ambassador Edge Stack with Service Preview on a fresh installation, the `edgectl install` command will get you up and running in no time with a pre-configured Traffic Manager and Traffic Agent supported by automatic sidecar injection.
 
@@ -194,7 +194,7 @@ Take a look at the [Service Preview Tutorial](../service-preview-tutorial) to ge
 
 ---
 
-## <img src="../../../../images/kubernetes.png"/> Install with YAML
+## <img class="os-logo" src="../../../../images/kubernetes.png"/> Install with YAML
 
 Downloading and installing our published Kubernetes YAML gives you full control over the installation of Service Preview. This is the most popular approach for running Service Preview in production and in CI.
 
@@ -380,7 +380,7 @@ Take a look at the [Service Preview Tutorial](../service-preview-tutorial) to ge
 
 ---
 
-## <img src="../../../../images/helm.png"/> Install with Helm
+## <img class="os-logo" src="../../../../images/helm.png"/> Install with Helm
 
 Helm is a popular package manager for Kubernetes software. The Ambassador helm chart contains a lot of configuration options that make it easy to deploy and upgrade a custom configuration of Ambassador Edge Stack.
 
