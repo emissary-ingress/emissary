@@ -533,7 +533,7 @@ class V2TCPListener(dict):
 class V2VirtualHost(dict):
     def __init__(self, config: 'V2Config', listener: 'V2Listener',
                  name: str, hostname: Optional[str], ctx: Optional[IRTLSContext],
-                 secure: bool, action: str, insecure_action: Optional[str], domains: Dict[str, List[V2Route]] = None) -> None:
+                 secure: bool, action: str, insecure_action: Optional[str]) -> None:
         super().__init__()
 
         self._config = config
@@ -545,7 +545,9 @@ class V2VirtualHost(dict):
         self._action = action
         self._insecure_action = insecure_action
         self._needs_redirect = False
-        self._domains = domains
+        # vhost._domains gets populated by parse_route_candidate()
+        # after self.__init__() but before self.finalize()
+        self._domains: Dict[str, List[V2Route]] = {}
 
         self["tls_context"] = V2TLSContext(ctx)
         self["routes"]: List['V2Route'] = []
@@ -610,9 +612,8 @@ class V2VirtualHost(dict):
             self.punch_acme_in_routes(self["routes"])
 
             # Punch ACME hole in domains
-            if self._domains is not None:
-                for domain in self._domains:
-                    self.punch_acme_in_routes(self._domains[domain])
+            for domain in self._domains:
+                self.punch_acme_in_routes(self._domains[domain])
 
         for route in self["routes"]:
             self._config.ir.logger.debug(f"VHost Route {prettyroute(route)}")
@@ -869,9 +870,9 @@ class V2Listener(dict):
 
     # Weirdly, the action is optional but the insecure_action is not. This is not a typo.
     def make_vhost(self, name: str, hostname: str, context: Optional[IRTLSContext], secure: bool,
-                   action: Optional[str], insecure_action: str, domains: Dict[str, List[V2Route]] = None) -> None:
-        self.config.ir.logger.debug("V2Listener %s: adding VHost %s for host %s, secure %s, insecure %s, domains %s)" %
-                                   (self.name, name, hostname, action, insecure_action, domains))
+                   action: Optional[str], insecure_action: str) -> None:
+        self.config.ir.logger.debug("V2Listener %s: adding VHost %s for host %s, secure %s, insecure %s)" %
+                                   (self.name, name, hostname, action, insecure_action))
 
         vhost = self.vhosts.get(hostname)
 
@@ -880,8 +881,7 @@ class V2Listener(dict):
                 (context != vhost._ctx) or
                 (secure != vhost._secure) or
                 (action != vhost._action) or
-                (insecure_action != vhost._insecure_action) or
-                (domains != vhost._domains)):
+                (insecure_action != vhost._insecure_action)):
                 raise Exception("V2Listener %s: trying to make vhost %s for %s but one already exists" %
                                 (self.name, name, hostname))
             else:
@@ -889,12 +889,10 @@ class V2Listener(dict):
 
         vhost = V2VirtualHost(config=self.config, listener=self,
                               name=name, hostname=hostname, ctx=context,
-                              secure=secure, action=action, insecure_action=insecure_action, domains=domains)
+                              secure=secure, action=action, insecure_action=insecure_action)
         self.vhosts[hostname] = vhost
 
-        # When there are multiple domains, we don't want first_vhost behavior. The forced_star behavior is taken care of
-        # when domains are populated.
-        if (not self.first_vhost) and (domains is None):
+        if not self.first_vhost:
             self.first_vhost = vhost
 
     # Build a cleaned-up version of this route without the '_sni' and '_precedence' elements...
@@ -1046,9 +1044,6 @@ class V2Listener(dict):
 
             # Populate the domains for insecure routes
             if not secure:
-                if vhost._domains is None:
-                    vhost._domains = {}
-
                 logger.debug(f"V2Listeners: {listener_name} - adding route {dict(final_route)} to domain {domain} in"
                              f"vhost {vhostname}. {vhostname} will be not used for field `domains:`")
                 vhost._domains.setdefault(domain, [])
@@ -1112,7 +1107,7 @@ class V2Listener(dict):
                 "virtual_hosts": []
             }
 
-            if vhost._domains is None:
+            if len(vhost._domains) is 0:
                 http_config["route_config"]["virtual_hosts"].append({
                     "name": f"{self.name}-{vhost._name}",
                     "domains": domains,
