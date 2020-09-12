@@ -571,7 +571,7 @@ class V2VirtualHost:
             # Uh whut? how is Edge Stack running exactly?
             raise Exception("Edge Stack claims to be running, but we have no sidecar cluster??")
 
-        self._config.ir.logger.debug(f"V2VirtualHost finalize punching a hole for ACME")
+        self._config.ir.logger.debug(f"V2VirtualHost {self._name}: finalize: punching a hole for ACME")
 
         route_list.insert(0, {
             "match": {
@@ -746,7 +746,7 @@ class V2VirtualHost:
         # because it makes more sense, because this is where we have the domain information.
         # The 1:1 correspondence that this implies between filters and domains may need to
         # change later, of course...
-        self._config.ir.logger.debug(f"V2VirtualHost finalize {jsonify(self.pretty())}")
+        self._config.ir.logger.debug(f"V2VirtualHost {self._name}: finalize: {jsonify(self.pretty())}")
 
         match: Dict[str,Any] = {}
 
@@ -771,7 +771,7 @@ class V2VirtualHost:
                 self.punch_acme_in_routes(self._domains[domain])
 
         for route in self.routes:
-            self._config.ir.logger.debug(f"V2VirtualHost Host Route {prettyroute(route)}")
+            self._config.ir.logger.debug(f"V2VirtualHost {self._name}: finalize: Route {prettyroute(route)}")
 
     def pretty(self) -> str:
         ctx_name = "-none-"
@@ -779,12 +779,7 @@ class V2VirtualHost:
         if self._tls_context:
             ctx_name = self._tls_context.pretty()
 
-        route_count = len(self.routes)
-        route_plural = "" if (route_count == 1) else "s"
-
-        return "<VHost %s ctx %s redir %s a %s ia %s %d route%s>" % \
-               (self._hostname, ctx_name, self._needs_redirect, self._action, self._insecure_action,
-                route_count, route_plural)
+        return f"<VHost {self._hostname} ctx={ctx_name} secure_action={self._action} insecure_action={self._insecure_action} len(routes)={len(self.routes)}>"
 
     def verbose_dict(self) -> dict:
         return {
@@ -849,7 +844,7 @@ class V2Listener(dict):
         self.listener_filters: List[dict] = []
         self.traffic_direction: str = "UNSPECIFIED"
 
-        self.config.ir.logger.debug(f"V2Listener {self.name} created")
+        self.config.ir.logger.debug(f"V2Listener {self.name}: created")
 
         # Assemble filters
         for f in self.config.ir.filters:
@@ -932,7 +927,7 @@ class V2Listener(dict):
             if not log_format:
                 log_format = 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"'
 
-            self.config.ir.logger.debug("V2Listener: Using log_format '%s'" % log_format)
+            self.config.ir.logger.debug(f"V2Listener {self.name}: using log_format {repr(log_format)}")
             self.access_log.append({
                 'name': 'envoy.file_access_log',
                 'typed_config': {
@@ -1026,8 +1021,7 @@ class V2Listener(dict):
     # Weirdly, the action is optional but the insecure_action is not. This is not a typo.
     def make_vhost(self, name: str, hostname: str, context: Optional[IRTLSContext], secure: bool,
                    action: Optional[str], insecure_action: str) -> V2VirtualHost:
-        self.config.ir.logger.debug("V2Listener %s: adding VHost %s for host %s, secure %s, insecure %s)" %
-                                   (self.name, name, hostname, action, insecure_action))
+        self.config.ir.logger.debug(f"V2Listener {self.name}: adding VHost {name} for host={hostname}, secure_action={action}, insecure_action={insecure_action}")
 
         vhost = self.vhosts.get(hostname)
 
@@ -1054,7 +1048,7 @@ class V2Listener(dict):
 
 
     def finalize(self) -> None:
-        self.config.ir.logger.debug(f"V2Listener finalize {self.pretty()}")
+        self.config.ir.logger.debug(f"V2Listener {self.name}:  finalize {self.pretty()}")
 
         # Check if AMBASSADOR_ENVOY_BIND_ADDRESS is set, and if so, bind Envoy to that external address.
         if "AMBASSADOR_ENVOY_BIND_ADDRESS" in environ:
@@ -1166,7 +1160,7 @@ class V2Listener(dict):
     def dump_listeners(cls, logger, listeners_by_port) -> None:
         pretty = { k: v.pretty() for k, v in listeners_by_port.items() }
 
-        logger.debug(f"V2Listeners: {json.dumps(pretty, sort_keys=True, indent=4)}")
+        logger.debug(f"V2Listener.dump_listeners: {json.dumps(pretty, sort_keys=True, indent=4)}")
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:
@@ -1189,7 +1183,7 @@ class V2Listener(dict):
             if irlistener.service_port not in first_irlistener_by_port:
                 first_irlistener_by_port[irlistener.service_port] = irlistener
 
-            logger.debug(f"V2Listeners: working on {irlistener.pretty()}")
+            logger.debug(f"V2Listener.generate: working on {irlistener.pretty()}")
 
             # Grab a new V2Listener for this IRListener...
             listener = listeners_by_port.get(irlistener.service_port, irlistener.use_proxy_proto)
@@ -1247,7 +1241,7 @@ class V2Listener(dict):
                                         action=None,
                                         insecure_action=irlistener.insecure_action)
 
-            logger.debug(f"V2Listeners: proceeding to add routes to vhost {vhost.pretty()} for listener {listener.pretty()}")
+            logger.debug(f"V2Listener {listener.name}: proceeding to add routes to vhost {vhost._hostname} for listener {listener.name}")
 
             # Go through all the routes and add them based on the indirect action.
             for route in config.routes:
@@ -1255,9 +1249,9 @@ class V2Listener(dict):
                     vhost.maybe_add_route(logger, config.ir.edge_stack_allowed,
                                           (False, route, irlistener.insecure_action), vhostname)
 
-            logger.debug(f"V2Listeners: final vhosts: {listener.vhosts.keys()}")
+            logger.debug(f"V2Listener {listener.name}: final vhosts: {listener.vhosts.keys()}")
 
-        logger.debug(f"V2Listeners: after IRListeners")
+        logger.debug(f"V2Listener.generate: after IRListeners")
         cls.dump_listeners(logger, listeners_by_port)
 
         # Make sure that each listener has a '*' vhost.
@@ -1282,7 +1276,7 @@ class V2Listener(dict):
 
                 # Force a listener on 8080 with a VHost for '*' that rejects everything. The ACME
                 # hole-puncher will override the reject for ACME, and nothing else will get through.
-                logger.debug(f"V2Listeners: listeners_by_port has no 8080, forcing Edge Stack listener on 8080")
+                logger.debug(f"V2Listener.generate: listeners_by_port has no 8080, forcing Edge Stack listener on 8080")
                 listener = listeners_by_port.get(8080, use_proxy_proto)
 
                 # Remember, it is not a bug to have action=None. There is no secure action
@@ -1300,7 +1294,7 @@ class V2Listener(dict):
 
         # OK. We have all the listeners. Time to walk the routes (note that they are already ordered).
         for route in config.routes:
-            logger.debug(f"V2Listeners: route {prettyroute(route)}...")
+            logger.debug(f"V2Listener.generate: route {prettyroute(route)}...")
 
             # We need to walk all listeners and all vhosts, and match up the routes with the vhosts.
             for port, listener in listeners_by_port.items():
@@ -1309,7 +1303,7 @@ class V2Listener(dict):
                     # For each vhost, we need to look at things for the secure world. The insecure world has been taken
                     # care of.
                     if vhost._action is not None:
-                        logger.debug(f"V2Listners: generating secure route for vhost {vhost._hostname}: action: {vhost._action}")
+                        logger.debug(f"V2Listener {listener.name}: generating secure route for vhost {vhost._hostname}: action: {vhost._action}")
                         vhost.maybe_add_route(logger, config.ir.edge_stack_allowed,
                                               (True, route, vhost._action))
 
@@ -1317,7 +1311,7 @@ class V2Listener(dict):
         for port, listener in listeners_by_port.items():
             listener.finalize()
 
-        logger.debug("V2Listeners: after finalize")
+        logger.debug("V2Listener.generate: after finalize")
         cls.dump_listeners(logger, listeners_by_port)
 
         for k, v in listeners_by_port.items():

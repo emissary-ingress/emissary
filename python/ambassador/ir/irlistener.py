@@ -54,7 +54,7 @@ class IRListener (IRResource):
         ctx = self.get('context', None)
         ctx_name = '-none-' if not ctx else ctx.name
 
-        return "<Listener %s for %s:%d, ctx %s, secure %s, insecure %s/%s>" % \
+        return "<Listener %s for authority=%s:%d, ctx=%s, secure_action=%s, insecure_action=%s, insecure_port=%s>" % \
                (self.name, self.hostname, self.service_port, ctx_name,
                 self.secure_action, self.insecure_action, self.insecure_addl_port)
 
