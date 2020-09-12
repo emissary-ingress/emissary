@@ -437,12 +437,14 @@ class HostCRDDouble(AmbassadorTest):
     """
     target1: ServiceType
     target2: ServiceType
+    target3: ServiceType
     targetshared: ServiceType
 
     def init(self):
         self.edge_stack_cleartext_host = False
         self.target1 = HTTP(name="target1")
         self.target2 = HTTP(name="target2")
+        self.target3 = HTTP(name="target3")
         self.targetshared = HTTP(name="targetshared")
 
     def manifests(self) -> str:
@@ -539,6 +541,66 @@ spec:
 
 ---
 apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}-host-3
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: ambassador.example.com
+  acmeProvider:
+    authority: none
+  selector:
+    matchLabels:
+      hostname: ambassador.example.com
+  tlsSecret:
+    name: {self.path.k8s}-test-tlscontext-secret-3
+  requestPolicy:
+    insecure:
+      action: Reject
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-test-tlscontext-secret-3
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["ambassador.example.com"].k8s_crt+'''
+  tls.key: '''+TLSCerts["ambassador.example.com"].k8s_key+'''
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-host-3-mapping
+  labels:
+    hostname: ambassador.example.com
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  host: "ambassador.example.com"
+  prefix: /target-3/
+  service: {self.target3.path.fqdn}
+---
+# Add a bogus ACME mapping so that we can distinguish "invalid
+# challenge" from "rejected".
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {self.path.k8s}-host-3-acme
+  labels:
+    hostname: ambassador.example.com
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  host: "ambassador.example.com"
+  prefix: /.well-known/acme-challenge/
+  service: {self.target3.path.fqdn}
+
+---
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: {self.path.k8s}-host-shared-mapping
@@ -560,43 +622,74 @@ spec:
                     insecure=True,
                     sni=True)
 
-        # 1-4: Host #1 - TLS
+        # 1-5: Host #1 - TLS
         yield Query(self.url("target-1/", scheme="https"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True,
                     expected=200)
         yield Query(self.url("target-2/", scheme="https"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True,
+                    expected=404)
+        yield Query(self.url("target-3/", scheme="https"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True,
                     expected=404)
         yield Query(self.url("target-shared/", scheme="https"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True,
                     expected=200)
         yield Query(self.url(".well-known/acme-challenge/foo", scheme="https"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True,
                     expected=404)
-        # 5-8: Host #1 - cleartext (action: Route)
+        # 6-10: Host #1 - cleartext (action: Route)
         yield Query(self.url("target-1/", scheme="http"), headers={"Host": "tls-context-host-1"},
                     expected=200)
         yield Query(self.url("target-2/", scheme="http"), headers={"Host": "tls-context-host-1"},
+                    expected=404)
+        yield Query(self.url("target-3/", scheme="http"), headers={"Host": "tls-context-host-1"},
                     expected=404)
         yield Query(self.url("target-shared/", scheme="http"), headers={"Host": "tls-context-host-1"},
                     expected=200)
         yield Query(self.url(".well-known/acme-challenge/foo", scheme="http"), headers={"Host": "tls-context-host-1"},
                     expected=404)
 
-        # 9-12: Host #2 - TLS
+        # 11-15: Host #2 - TLS
         yield Query(self.url("target-1/", scheme="https"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True,
                     expected=404)
         yield Query(self.url("target-2/", scheme="https"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True,
                     expected=200)
+        yield Query(self.url("target-3/", scheme="https"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True,
+                    expected=404)
         yield Query(self.url("target-shared/", scheme="https"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True,
                     expected=200)
         yield Query(self.url(".well-known/acme-challenge/foo", scheme="https"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True,
                     expected=404)
-        # 13-16: Host #2 - cleartext (action: Redirect)
+        # 16-20: Host #2 - cleartext (action: Redirect)
         yield Query(self.url("target-1/", scheme="http"), headers={"Host": "tls-context-host-2"},
                     expected=301)
         yield Query(self.url("target-2/", scheme="http"), headers={"Host": "tls-context-host-2"},
+                    expected=301)
+        yield Query(self.url("target-3/", scheme="http"), headers={"Host": "tls-context-host-2"},
                     expected=301)
         yield Query(self.url("target-shared/", scheme="http"), headers={"Host": "tls-context-host-2"},
                     expected=301)
         yield Query(self.url(".well-known/acme-challenge/foo", scheme="http"), headers={"Host": "tls-context-host-2"},
                     expected=404)
+
+        # 21-25: Host #3 - TLS
+        yield Query(self.url("target-1/", scheme="https"), headers={"Host": "ambassador.example.com"}, insecure=True, sni=True,
+                    expected=404)
+        yield Query(self.url("target-2/", scheme="https"), headers={"Host": "ambassador.example.com"}, insecure=True, sni=True,
+                    expected=404)
+        yield Query(self.url("target-3/", scheme="https"), headers={"Host": "ambassador.example.com"}, insecure=True, sni=True,
+                    expected=200)
+        yield Query(self.url("target-shared/", scheme="https"), headers={"Host": "ambassador.example.com"}, insecure=True, sni=True,
+                    expected=200)
+        yield Query(self.url(".well-known/acme-challenge/foo", scheme="https"), headers={"Host": "ambassador.example.com"}, insecure=True, sni=True,
+                    expected=200)
+        # 26-30: Host #3 - cleartext (action: Reject)
+        yield Query(self.url("target-1/", scheme="http"), headers={"Host": "ambassador.example.com"},
+                    expected=404)
+        yield Query(self.url("target-2/", scheme="http"), headers={"Host": "ambassador.example.com"},
+                    expected=404)
+        yield Query(self.url("target-3/", scheme="http"), headers={"Host": "ambassador.example.com"},
+                    expected=404)
+        yield Query(self.url("target-shared/", scheme="http"), headers={"Host": "ambassador.example.com"},
+                    expected=404)
+        yield Query(self.url(".well-known/acme-challenge/foo", scheme="http"), headers={"Host": "ambassador.example.com"},
+                    expected=200)
 
     def check(self):
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
@@ -609,7 +702,7 @@ spec:
         for result in self.results:
             if result.status == 200 and result.query.headers and result.tls:
                 host_header = result.query.headers['Host']
-                tls_common_name = result.tls[0]['Issuer']['CommonName']
+                tls_common_name = result.tls[0]['Subject']['CommonName']
 
                 assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (idx, host_header, tls_common_name)
 

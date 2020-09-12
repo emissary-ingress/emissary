@@ -701,10 +701,12 @@ class V2VirtualHost:
                 self._insecure_actions["*"] = "Redirect"
             self._config.ir.logger.debug(f"V2VirtualHost {self.name}: _insecure_actions={repr(self._insecure_actions)}")
 
-            # Holes to poke in the cleartext->TLS redirect
-            holes = [{"prefix_match": "/.well-known/acme-challenge/"}]
+            # Holes to poke in the cleartext->TLS redirect...
+            redirect_holes = [{"prefix_match": "/.well-known/acme-challenge/"}]
             if self._dont_redirect_root:
-                holes.append({"exact_match": "/"})
+                redirect_holes.append({"exact_match": "/"})
+            # ... and holes to poke in the rejecter
+            reject_holes = [{"prefix_match": "/.well-known/acme-challenge/"}]
 
             # For every Host, insert a route to perform its action
             for hostname in self._insecure_actions:
@@ -718,7 +720,7 @@ class V2VirtualHost:
                         "match": {
                             "case_sensitive": True,
                             "prefix": "/",
-                            "headers": [{"name": ":path", "invert_match": True, **hole} for hole in holes],
+                            "headers": [{"name": ":path", "invert_match": True, **hole} for hole in redirect_holes],
                         },
                         "redirect": {
                             "https_redirect": True,
@@ -727,6 +729,7 @@ class V2VirtualHost:
                     "Reject": {
                         "match": {
                             "prefix": "/",
+                            "headers": [{"name": ":path", "invert_match": True, **hole} for hole in reject_holes],
                         },
                         "direct_response": {
                             "status": 404,
@@ -740,7 +743,7 @@ class V2VirtualHost:
 
                 # Don't do the insecure action if XFP says we're actually secure (trusting that Envoy has already
                 # validated XFP).
-                route["match"].setdefault("headers", []).append({
+                route["match"]["headers"].append({
                     "exact_match": "http",
                     "name": "x-forwarded-proto",
                 })
