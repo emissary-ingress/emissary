@@ -258,7 +258,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8443-tls-context-host-1-fstar",
+                                                "name": "ambassador-listener-8443-tls-context-host-1_fstar",
                                                 "routes": [
                                                     {
                                                         "match": {
@@ -395,10 +395,232 @@
                                         "virtual_hosts": [
                                             {
                                                 "domains": [
-                                                    "insecure-8443"
+                                                    "*"
                                                 ],
-                                                "name": "ambassador-listener-8443-insecure-8443",
-                                                "routes": []
+                                                "name": "ambassador-listener-8443-_insecure-8443",
+                                                "routes": [
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "invert_match": true,
+                                                                    "name": ":path",
+                                                                    "prefix_match": "/.well-known/acme-challenge/"
+                                                                },
+                                                                {
+                                                                    "exact_match": "http",
+                                                                    "name": "x-forwarded-proto"
+                                                                },
+                                                                {
+                                                                    "exact_match": "tls-context-host-1",
+                                                                    "invert_match": true,
+                                                                    "name": ":authority"
+                                                                },
+                                                                {
+                                                                    "exact_match": "tls-context-host-2",
+                                                                    "invert_match": true,
+                                                                    "name": ":authority"
+                                                                },
+                                                                {
+                                                                    "exact_match": "tls-context-host-3",
+                                                                    "invert_match": true,
+                                                                    "name": ":authority"
+                                                                }
+                                                            ],
+                                                            "prefix": "/"
+                                                        },
+                                                        "redirect": {
+                                                            "https_redirect": true
+                                                        }
+                                                    },
+                                                    {
+                                                        "direct_response": {
+                                                            "status": 404
+                                                        },
+                                                        "match": {
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "http",
+                                                                    "name": "x-forwarded-proto"
+                                                                },
+                                                                {
+                                                                    "exact_match": "tls-context-host-3",
+                                                                    "name": ":authority"
+                                                                }
+                                                            ],
+                                                            "prefix": "/"
+                                                        }
+                                                    },
+                                                    {
+                                                        "direct_response": {
+                                                            "status": 404
+                                                        },
+                                                        "match": {
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "http",
+                                                                    "name": "x-forwarded-proto"
+                                                                },
+                                                                {
+                                                                    "exact_match": "tls-context-host-2",
+                                                                    "name": ":authority"
+                                                                }
+                                                            ],
+                                                            "prefix": "/"
+                                                        }
+                                                    },
+                                                    {
+                                                        "direct_response": {
+                                                            "status": 404
+                                                        },
+                                                        "match": {
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "http",
+                                                                    "name": "x-forwarded-proto"
+                                                                },
+                                                                {
+                                                                    "exact_match": "tls-context-host-1",
+                                                                    "name": ":authority"
+                                                                }
+                                                            ],
+                                                            "prefix": "/"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/check_ready",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
+                                                            "prefix_rewrite": "/ambassador/v0/check_ready",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "prefix": "/ambassador/v0/check_ready",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
+                                                            "prefix_rewrite": "/ambassador/v0/check_ready",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/check_alive",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
+                                                            "prefix_rewrite": "/ambassador/v0/check_alive",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "prefix": "/ambassador/v0/check_alive",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
+                                                            "prefix_rewrite": "/ambassador/v0/check_alive",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
+                                                            "prefix_rewrite": "/ambassador/v0/",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "prefix": "/ambassador/v0/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
+                                                            "prefix_rewrite": "/ambassador/v0/",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    }
+                                                ]
                                             }
                                         ]
                                     },
