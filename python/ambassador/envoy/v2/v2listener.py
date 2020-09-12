@@ -1223,17 +1223,6 @@ class V2Listener(dict):
         logger.debug(f"V2Listener.generate: after IRListeners")
         cls.dump_listeners(logger, listeners_by_port)
 
-        # Make sure that each listener has a '*' vhost.
-        for port, listener in listeners_by_port.items():
-            for secure in [True, False]:
-                if not VHostKey(secure=secure, hostname='*') in listener.vhosts:
-                    # Force the first VHost to '*'. I know, this is a little weird, but it's arguably
-                    # the least surprising thing to do in most situations.
-                    assert listener.first_vhost
-                    first_vhost = listener.first_vhost
-                    first_vhost._hostname = '*'
-                    first_vhost.name += "_fstar"
-
         if config.ir.edge_stack_allowed and not config.ir.agent_active:
             # If we're running Edge Stack, and we're not an intercept agent, make sure we have
             # a listener on port 8080, so that we have a place to stand for ACME.
@@ -1256,6 +1245,17 @@ class V2Listener(dict):
                                             context=None,
                                             action=None,
                                             insecure_action='Reject')
+
+        # Make sure that each listener has a '*' vhost.
+        for port, listener in listeners_by_port.items():
+            for secure in [True, False]:
+                if not VHostKey(secure=secure, hostname='*') in listener.vhosts:
+                    # Force the first VHost to '*'. I know, this is a little weird, but it's arguably
+                    # the least surprising thing to do in most situations.
+                    assert listener.first_vhost
+                    first_vhost = listener.first_vhost
+                    first_vhost._hostname = '*'
+                    first_vhost.name += "_fstar"
 
         # OK. We have all the listeners. Time to walk the routes (note that they are already ordered).
         for route in config.routes:
