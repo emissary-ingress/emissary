@@ -1248,28 +1248,27 @@ class V2Listener(dict):
         logger.debug(f"V2Listener.generate: after IRListeners")
         cls.log_listeners(logger, listeners_by_port)
 
-        if config.ir.edge_stack_allowed and not config.ir.agent_active:
+        if config.ir.edge_stack_allowed and (not config.ir.agent_active) and (8080 not in listeners_by_port):
             # If we're running Edge Stack, and we're not an intercept agent, make sure we have
             # a listener on port 8080, so that we have a place to stand for ACME.
 
-            if 8080 not in listeners_by_port:
-                # Check for a listener on the main service port to see if the proxy proto
-                # is enabled.
-                main_listener = first_irlistener_by_port.get(config.ir.ambassador_module.service_port, None)
-                use_proxy_proto = main_listener.use_proxy_proto if main_listener else False
+            # Check for a listener on the main service port to see if the proxy proto
+            # is enabled.
+            main_listener = first_irlistener_by_port.get(config.ir.ambassador_module.service_port, None)
+            use_proxy_proto = main_listener.use_proxy_proto if main_listener else False
 
-                # Force a listener on 8080 with a VHost for '*' that rejects everything. The ACME
-                # hole-puncher will override the reject for ACME, and nothing else will get through.
-                logger.debug(f"V2Listener.generate: listeners_by_port has no 8080, forcing Edge Stack listener on 8080")
-                listener = listeners_by_port.get(8080, use_proxy_proto)
+            # Force a listener on 8080 with a VHost for '*' that rejects everything. The ACME
+            # hole-puncher will override the reject for ACME, and nothing else will get through.
+            logger.debug(f"V2Listener.generate: listeners_by_port has no 8080, forcing Edge Stack listener on 8080")
+            listener = listeners_by_port.get(8080, use_proxy_proto)
 
-                # Remember, it is not a bug to have action=None. There is no secure action
-                # for this vhost.
-                vhost = listener.make_vhost(name="_forced-8080",
-                                            hostname="*",
-                                            context=None,
-                                            action=None,
-                                            insecure_action='Reject')
+            # Remember, it is not a bug to have action=None. There is no secure action
+            # for this vhost.
+            vhost = listener.make_vhost(name="_forced-8080",
+                                        hostname="*",
+                                        context=None,
+                                        action=None,
+                                        insecure_action='Reject')
 
         # Make sure that each listener has a '*' vhost.
         for port, listener in listeners_by_port.items():
