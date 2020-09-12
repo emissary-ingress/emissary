@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 import copy
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, TYPE_CHECKING
 from typing import cast as typecast
 
 from os import environ
@@ -827,6 +827,9 @@ class V2ListenerCollection:
 
         return v2listener
 
+class VHostKey(NamedTuple):
+    secure: bool
+    hostname: str
 
 class V2Listener(dict):
     def __init__(self, config: 'V2Config', service_port: int) -> None:
@@ -838,7 +841,7 @@ class V2Listener(dict):
         self.use_proxy_proto = False
         self.access_log: List[dict] = []
         self.upgrade_configs: Optional[List[dict]] = None
-        self.vhosts: Dict[str, V2VirtualHost] = {}
+        self.vhosts: Dict[VHostKey, V2VirtualHost] = {}
         self.first_vhost: Optional[V2VirtualHost] = None
         self.http_filters: List[dict] = []
         self.listener_filters: List[dict] = []
@@ -1013,33 +1016,30 @@ class V2Listener(dict):
             raise Exception("V2Listener %s: trying to add listener %s on %s:%d??" %
                             (self.name, listener.name, listener.hostname, listener.service_port))
 
-        # OK, make sure we don't somehow have a VHost collision.
-        if listener.hostname in self.vhosts:
-            raise Exception("V2Listener %s: listener %s on %s:%d already has a vhost??" %
-                            (self.name, listener.name, listener.hostname, listener.service_port))
-
     # Weirdly, the action is optional but the insecure_action is not. This is not a typo.
     def make_vhost(self, name: str, hostname: str, context: Optional[IRTLSContext], secure: bool,
                    action: Optional[str], insecure_action: str) -> V2VirtualHost:
         self.config.ir.logger.debug(f"V2Listener {self.name}: adding VHost {name} for host={hostname}, secure_action={action}, insecure_action={insecure_action}")
 
-        vhost = self.vhosts.get(hostname)
+        key = VHostKey(secure=action != None, hostname=hostname)
+        vhost = self.vhosts.get(key)
 
         if vhost:
-            if ((hostname != vhost._hostname) or
+            if ((name != vhost.name) or
+                (hostname != vhost._hostname) or
                 (context != vhost._ctx) or
                 (secure != vhost._secure) or
                 (action != vhost._action) or
                 (insecure_action != vhost._insecure_action)):
-                raise Exception("V2Listener %s: trying to make vhost %s for %s but one already exists" %
-                                (self.name, name, hostname))
+                raise Exception(f"V2Listener {self.name}: trying to make vhost(name={name}, hostname={hostname}, context={context}, action={action}) but conflicting "
+                                f"vhost(name={vhost.name}, hostname={vhost._hostname}, context={vhost._ctx}, action={vhost._action}) already exists")
             else:
                 return vhost
 
         vhost = V2VirtualHost(config=self.config, listener=self,
                               name=name, hostname=hostname, ctx=context,
                               secure=secure, action=action, insecure_action=insecure_action)
-        self.vhosts[hostname] = vhost
+        self.vhosts[key] = vhost
 
         if not self.first_vhost:
             self.first_vhost = vhost
@@ -1068,7 +1068,8 @@ class V2Listener(dict):
         self.filter_chains: List[dict] = []
         need_tcp_inspector = False
 
-        for vhostname, vhost in self.vhosts.items():
+        for key, vhost in self.vhosts.items():
+            vhostname = key.hostname
             # Finalize this VirtualHost...
             vhost.finalize()
 
@@ -1154,7 +1155,7 @@ class V2Listener(dict):
         return { "name": self.name,
                  "port": self.service_port,
                  "use_proxy_proto": self.use_proxy_proto,
-                 "vhosts": { k: v.pretty() for k, v in self.vhosts.items() } }
+                 "vhosts": { k.hostname: v.pretty() for k, v in self.vhosts.items() } }
 
     @classmethod
     def dump_listeners(cls, logger, listeners_by_port) -> None:
@@ -1221,21 +1222,19 @@ class V2Listener(dict):
             # because server_names is applicable only to SNI for TLS.
             # What we need here instead is ONE insecure vhost which header matches for these insecure domains.
             # Which header? ":authority" i.e. the "Host" header.
-
+            #
             # We have one insecure vhost for every port. All insecure routes (route or redirect or xxx) will be
-            # appended to this vhost. If this vhost exists, then we get it - else let's create one.
-            insecure_vhost_name = f"insecure-{listener.service_port}"
-
-            # Do we have an existing vhost for this? If not, create one.
+            # appended to this vhost. If this vhost exists, then make_vhost will get it - else it will create one.
+            #
             # We're going to populate all the hostnames in vhost._domains which going to put all of these in
             # virtual_hosts.domains matches on the Host header of the incoming request. Even though it also takes
             # wildcard entries, exact matches are preferred over wildcard matches. This means that
             # www.foo.com > *.foo.com > *.com > *
-
-            # Keep in mind that this insecure_vhost_name will *not* be used, it will be overridden by
+            #
+            # Keep in mind that this name= will *not* be used, it will be overridden by
             # `vhost._domains`. We are only using this for identification purposes.
-            vhost = listener.make_vhost(name=insecure_vhost_name,
-                                        hostname=insecure_vhost_name,
+            vhost = listener.make_vhost(name=f"_insecure-{listener.service_port}",
+                                        hostname="*",
                                         context=None,
                                         secure=False,
                                         action=None,
@@ -1256,13 +1255,14 @@ class V2Listener(dict):
 
         # Make sure that each listener has a '*' vhost.
         for port, listener in listeners_by_port.items():
-            if not '*' in listener.vhosts:
-                # Force the first VHost to '*'. I know, this is a little weird, but it's arguably
-                # the least surprising thing to do in most situations.
-                assert listener.first_vhost
-                first_vhost = listener.first_vhost
-                first_vhost._hostname = '*'
-                first_vhost.name += "-fstar"
+            for secure in [True, False]:
+                if not VHostKey(secure=secure, hostname='*') in listener.vhosts:
+                    # Force the first VHost to '*'. I know, this is a little weird, but it's arguably
+                    # the least surprising thing to do in most situations.
+                    assert listener.first_vhost
+                    first_vhost = listener.first_vhost
+                    first_vhost._hostname = '*'
+                    first_vhost.name += "_fstar"
 
         if config.ir.edge_stack_allowed and not config.ir.agent_active:
             # If we're running Edge Stack, and we're not an intercept agent, make sure we have
@@ -1281,7 +1281,7 @@ class V2Listener(dict):
 
                 # Remember, it is not a bug to have action=None. There is no secure action
                 # for this vhost.
-                vhost = listener.make_vhost(name="forced-8080",
+                vhost = listener.make_vhost(name="_forced-8080",
                                             hostname="*",
                                             context=None,
                                             secure=False,
