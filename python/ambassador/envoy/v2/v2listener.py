@@ -540,7 +540,7 @@ class V2VirtualHost:
 
         self._config = config
         self._listener = listener
-        self._name = name
+        self.name = name
         self._hostname = hostname
         self._ctx = ctx
         self._secure = secure
@@ -571,7 +571,7 @@ class V2VirtualHost:
             # Uh whut? how is Edge Stack running exactly?
             raise Exception("Edge Stack claims to be running, but we have no sidecar cluster??")
 
-        self._config.ir.logger.debug(f"V2VirtualHost {self._name}: finalize: punching a hole for ACME")
+        self._config.ir.logger.debug(f"V2VirtualHost {self.name}: finalize: punching a hole for ACME")
 
         route_list.insert(0, {
             "match": {
@@ -658,7 +658,7 @@ class V2VirtualHost:
 
         final_route: Optional[DictifiedV2Route] = None
 
-        logger.debug(f"V2VirtualHost {self._name}: considering route candidate={candidate} where domain={domain} and edge_stack_allowed={edge_stack_allowed}")
+        logger.debug(f"V2VirtualHost {self.name}: considering route candidate={candidate} where domain={domain} and edge_stack_allowed={edge_stack_allowed}")
         vhostname = self._hostname
 
         secure, c_route, action = candidate
@@ -677,7 +677,7 @@ class V2VirtualHost:
         if c_route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
             # We need to be sure to route ACME challenges, no matter what else is going
             # on (this is the infamous ACME hole-puncher mentioned everywhere).
-            logger.debug(f"V2VirtualHost {self._name}: force Route for ACME challenge")
+            logger.debug(f"V2VirtualHost {self.name}: force Route for ACME challenge")
             action = "Route"
 
             # We have to force the correct route entry, too, just in case. (Note that right now,
@@ -688,14 +688,14 @@ class V2VirtualHost:
         elif route_hosts and (vhostname != '*') and (vhostname not in route_hosts):
             # Drop this because the host is mismatched.
             logger.debug(
-                f"V2VirtualHost {self._name}: secure={secure}: force Reject (rhosts {route_hostlist})")
+                f"V2VirtualHost {self.name}: secure={secure}: force Reject (rhosts {route_hostlist})")
             action = "Reject"
 
         elif (edge_stack_allowed and
               (route_precedence == -1000000) and
               (c_route["match"].get("safe_regex", {}).get("regex", None) == "^/$")):
             logger.debug(
-                f"V2VirtualHost {self._name}: secure={secure}: force Route for fallback Mapping")
+                f"V2VirtualHost {self.name}: secure={secure}: force Route for fallback Mapping")
             action = "Route"
 
             # Force the actual route entry, instead of using the redirect_route, too.
@@ -709,32 +709,32 @@ class V2VirtualHost:
             final_route = self.generate_secure_route(c_route)
         else:
             if action == "Redirect":
-                logger.debug(f"V2VirtualHost {self._name}: generating redirect route for {dict(c_route)}")
+                logger.debug(f"V2VirtualHost {self.name}: generating redirect route for {dict(c_route)}")
                 final_route = self.generate_redirect_route(c_route)
 
             elif action is not None:
-                logger.debug(f"V2VirtualHost {self._name}: generating insecure route for {dict(c_route)}")
+                logger.debug(f"V2VirtualHost {self.name}: generating insecure route for {dict(c_route)}")
                 final_route = self.generate_insecure_route(c_route)
 
             else:
                 # Wait, what? This is an insecure route but with no action? Can't be right!
                 # Anyway, final_route remains None in this case.
-                logger.debug(f"V2VirtualHost {self._name}: no route generated for insecure route "
+                logger.debug(f"V2VirtualHost {self.name}: no route generated for insecure route "
                              f"{dict(c_route)} because no insecure action is specified")
 
         if action != 'Reject':
             logger.debug(
-                f"V2VirtualHost {self._name}: secure={secure}: Accept as {action}")
+                f"V2VirtualHost {self.name}: secure={secure}: Accept as {action}")
 
             # Populate the domains for insecure routes
             if not secure:
                 assert domain
-                logger.debug(f"V2VirtualHost {self._name}: secure={secure}: adding route={dict(final_route)} to domain={domain}")
+                logger.debug(f"V2VirtualHost {self.name}: secure={secure}: adding route={dict(final_route)} to domain={domain}")
                 self._domains.setdefault(domain, []).append(final_route)
 
             self.routes.append(final_route)
         else:
-            logger.debug(f"V2VirtualHost {self._name}: secure={secure}: Drop")
+            logger.debug(f"V2VirtualHost {self.name}: secure={secure}: Drop")
 
         # Also, remember if we're redirecting so that the VHost finalizer can DTRT
         # for ACME.
@@ -746,7 +746,7 @@ class V2VirtualHost:
         # because it makes more sense, because this is where we have the domain information.
         # The 1:1 correspondence that this implies between filters and domains may need to
         # change later, of course...
-        self._config.ir.logger.debug(f"V2VirtualHost {self._name}: finalize: {jsonify(self.pretty())}")
+        self._config.ir.logger.debug(f"V2VirtualHost {self.name}: finalize: {jsonify(self.pretty())}")
 
         match: Dict[str,Any] = {}
 
@@ -771,7 +771,7 @@ class V2VirtualHost:
                 self.punch_acme_in_routes(self._domains[domain])
 
         for route in self.routes:
-            self._config.ir.logger.debug(f"V2VirtualHost {self._name}: finalize: Route {prettyroute(route)}")
+            self._config.ir.logger.debug(f"V2VirtualHost {self.name}: finalize: Route {prettyroute(route)}")
 
     def pretty(self) -> str:
         ctx_name = "-none-"
@@ -783,7 +783,7 @@ class V2VirtualHost:
 
     def verbose_dict(self) -> dict:
         return {
-            "_name": self._name,
+            "name": self.name,
             "_hostname": self._hostname,
             "_secure": self._secure,
             "_action": self._action,
@@ -1096,7 +1096,7 @@ class V2Listener(dict):
 
             if len(vhost._domains) is 0:
                 http_config["route_config"]["virtual_hosts"].append({
-                    "name": f"{self.name}-{vhost._name}",
+                    "name": f"{self.name}-{vhost.name}",
                     "domains": domains,
                     "routes": vhost.routes
                     })
@@ -1106,7 +1106,7 @@ class V2Listener(dict):
                 for domain, routes in vhost._domains.items():
                     http_config["route_config"]["virtual_hosts"].append(
                         {
-                            "name": f"{self.name}-{vhost._name}-{domain}",
+                            "name": f"{self.name}-{vhost.name}-{domain}",
                             "domains": [domain],
                             "routes": routes
                         }
@@ -1262,7 +1262,7 @@ class V2Listener(dict):
                 assert listener.first_vhost
                 first_vhost = listener.first_vhost
                 first_vhost._hostname = '*'
-                first_vhost._name = f"{first_vhost._name}-fstar"
+                first_vhost.name += "-fstar"
 
         if config.ir.edge_stack_allowed and not config.ir.agent_active:
             # If we're running Edge Stack, and we're not an intercept agent, make sure we have
