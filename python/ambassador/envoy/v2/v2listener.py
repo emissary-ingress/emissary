@@ -662,15 +662,13 @@ class V2VirtualHost:
                 f"V2VirtualHost {self.name}: force Route for fallback Mapping")
             self._dont_redirect_root = True
 
+        logger.debug(f"V2VirtualHost {self.name}: Accepting")
+
+        # Always generate a secure route (because we might want it on the insecure listener if we're trusing XFP)
+        self.routes.append(self.generate_secure_route(c_route))
+        # And also generate an insecure route if this is the insecure listener
         if self._action is None:
-            final_route = self.generate_insecure_route(c_route)
-        else:
-            final_route = self.generate_secure_route(c_route)
-
-        logger.debug(
-            f"V2VirtualHost {self.name}: Accepting")
-
-        self.routes.append(final_route)
+            self.routes.append(self.generate_insecure_route(c_route))
 
     def finalize(self) -> None:
         # Even though this is called V2VirtualHost, we track the filter_chain_match here,
@@ -740,16 +738,23 @@ class V2VirtualHost:
                 if not route:
                     continue
 
+                # Don't do the insecure action if XFP says we're actually secure (trusting that Envoy has already
+                # validated XFP).
+                route["match"].setdefault("headers", []).append({
+                    "exact_match": "http",
+                    "name": "x-forwarded-proto",
+                })
+
                 # Use the :authority header to decide whether this route applies.
                 if hostname != "*":
-                    route["match"].setdefault("headers", []).append({
+                    route["match"]["headers"].append({
                         "name": ":authority",
                         "exact_match": hostname,
                     })
                 else:
                     otherhosts = [other for other in self._insecure_actions if other != hostname and self._insecure_actions[other] != hostaction]
                     if len(otherhosts) > 0:
-                        route["match"].setdefault("headers", []).extend([
+                        route["match"]["headers"].extend([
                             {
                                 "name": ":authority",
                                 "exact_match": otherhost,
