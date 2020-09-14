@@ -72,46 +72,46 @@ commands:
           name: "Build"
           command: |
             make push
-      # - run:
-      #     name: "Go Tests"
-      #     command: |
-      #       make gotest
+      - run:
+          name: "Go Tests"
+          command: |
+            make gotest
       # XXX The three KAT runs should really be split out into separate parallel jobs.
       # Circle makes that hard enough that we're not going to do it just yet, though.
-      # - run:
-      #     name: "KAT (normal)"
-      #     command: |
-      #       export DEV_KUBE110=yes
-      #       export DEV_KUBE_NO_PVC=yes
-      #       export KAT_REQ_LIMIT=600
-      #       make pytest-only
-      # - run:
-      #     name: "Cycle cluster"
-      #     command: |
-      #       ./.ci/kubernaut-unclaim
-      #       ./.ci/kubernaut-claim
-      # - run:
-      #     name: "KAT (FAST_VALIDATION)"
-      #     command: |
-      #       export DEV_KUBE110=yes
-      #       export DEV_KUBE_NO_PVC=yes
-      #       export KAT_REQ_LIMIT=600
-      #       export AMBASSADOR_FAST_VALIDATION=true
-      #       make pytest-only
-      # - run:
-      #     name: "Cycle cluster"
-      #     command: |
-      #       ./.ci/kubernaut-unclaim
-      #       ./.ci/kubernaut-claim
-      # - run:
-      #     name: "KAT (FAST_VALIDATION and FAST_RECONFIGURE)"
-      #     command: |
-      #       export DEV_KUBE110=yes
-      #       export DEV_KUBE_NO_PVC=yes
-      #       export KAT_REQ_LIMIT=600
-      #       export AMBASSADOR_FAST_VALIDATION=true
-      #       export AMBASSADOR_FAST_RECONFIGURE=true
-      #       make pytest-only
+      - run:
+          name: "KAT (normal)"
+          command: |
+            export DEV_KUBE110=yes
+            export DEV_KUBE_NO_PVC=yes
+            export KAT_REQ_LIMIT=600
+            make pytest-only
+      - run:
+          name: "Cycle cluster"
+          command: |
+            ./.ci/kubernaut-unclaim
+            ./.ci/kubernaut-claim
+      - run:
+          name: "KAT (FAST_VALIDATION)"
+          command: |
+            export DEV_KUBE110=yes
+            export DEV_KUBE_NO_PVC=yes
+            export KAT_REQ_LIMIT=600
+            export AMBASSADOR_FAST_VALIDATION=true
+            make pytest-only
+      - run:
+          name: "Cycle cluster"
+          command: |
+            ./.ci/kubernaut-unclaim
+            ./.ci/kubernaut-claim
+      - run:
+          name: "KAT (FAST_VALIDATION and FAST_RECONFIGURE)"
+          command: |
+            export DEV_KUBE110=yes
+            export DEV_KUBE_NO_PVC=yes
+            export KAT_REQ_LIMIT=600
+            export AMBASSADOR_FAST_VALIDATION=true
+            export AMBASSADOR_FAST_RECONFIGURE=true
+            make pytest-only
       # We might want to run ingress-conformance tests in AES in the future
       # This would require we install `kind` on circleci and that the test suite
       # supports HTTP to HTTPS redirects (AES enables cleartext redirection by
