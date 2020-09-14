@@ -202,7 +202,7 @@ Downloading and installing our published Kubernetes YAML gives you full control 
 
 Service Preview runs alongside the Ambassador Edge Stack.
 
-[Install Ambassador Edge Stack](https://www.getambassador.io/docs/latest/topics/install/yaml-install/) if you do not already have it running.
+[Install Ambassador Edge Stack](../../../install/yaml-install/) if you do not already have it running.
 
 
 ### 2. Install the Traffic Manager and Ambassador Injector
