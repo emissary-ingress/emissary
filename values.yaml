@@ -13,6 +13,10 @@ fullnameOverride: ""
 replicaCount: 3
 daemonSet: false
 
+test:
+  enabled: true
+  image: busybox
+
 # Enable autoscaling using HorizontalPodAutoscaler
 # daemonSet: true, autoscaling will be disabled
 autoscaling:
