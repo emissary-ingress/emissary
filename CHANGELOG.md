@@ -55,7 +55,6 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
-=======
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Bugfix: A regression introduced in 1.7.0 with the various Host.spec.insecure.action behaviors has been fixed, including handling of X-Forwarded-Proto.
