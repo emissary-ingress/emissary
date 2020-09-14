@@ -107,15 +107,19 @@ func traverseSecretRefs(resource kates.Object, secretNamespacing bool, action fu
 			return
 		}
 
+		// We intentionally ignore secret namespacing for the Host resource. It was originally
+		// written by someone who was not aware of secret namespacing. The way it is used often
+		// results in both domain names and email addresses being embedded in secret names, so the
+		// secret names will often have dots that are not intended to denote a kubernetes namespace.
 		if r.Spec.TLS != nil {
-			secretRef(r.GetNamespace(), r.Spec.TLS.CASecret, secretNamespacing, action)
+			secretRef(r.GetNamespace(), r.Spec.TLS.CASecret, false, action)
 		}
 		if r.Spec.TLSSecret != nil && r.Spec.TLSSecret.Name != "" {
-			secretRef(r.GetNamespace(), r.Spec.TLSSecret.Name, secretNamespacing, action)
+			secretRef(r.GetNamespace(), r.Spec.TLSSecret.Name, false, action)
 		}
 		if r.Spec.AcmeProvider != nil && r.Spec.AcmeProvider.PrivateKeySecret != nil &&
 			r.Spec.AcmeProvider.PrivateKeySecret.Name != "" {
-			secretRef(r.GetNamespace(), r.Spec.AcmeProvider.PrivateKeySecret.Name, secretNamespacing, action)
+			secretRef(r.GetNamespace(), r.Spec.AcmeProvider.PrivateKeySecret.Name, false, action)
 		}
 	case *amb.TLSContext:
 		if r.Spec.Secret != "" {
