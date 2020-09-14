@@ -244,7 +244,38 @@ If you need more flexible and configurable options, Ambassador Edge Stack suppor
 ### gRPC Statistics (`grpc_stats`)
 
 Use the Envoy filter to enable telemetry of gRPC calls. [gRPC Statistics Filter](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_stats_filter)
-For configuration parameters, see the [Envoy gRPC Statistics filter documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/http/grpc_stats/v3/config.proto)
+
+Supported parameters:
+* all_methods
+* services
+* upstream_stats
+
+Available metrics:
+* envoy_cluster_grpc_<service>_<status_code>
+* envoy_cluster_grpc_<service>_request_message_count
+* envoy_cluster_grpc_<service>_response_message_count
+* envoy_cluster_grpc_<service>_success
+* envoy_cluster_grpc_<service>_total
+* envoy_cluster_grpc_upstream_<stats> - **only when `upstream_stats: true`**
+
+Please not that <service> will only be present if `all_methods` is set or the service and the method are present under `services`.
+If all_methods is false or the method is not on the list, the available metrics will be in the format
+`envoy_cluster_grpc_<stats>`.
+
+##### all_methods
+If set to true, emit stats for all service/method names.
+If set to false, emit stats for all service/message types to the same stats without including the service/method in the name.
+**This option is only safe if all clients are trusted. If this option is enabled with untrusted clients, the clients could cause unbounded growth in the number
+of stats in Envoy, using unbounded memory and potentially slowing down stats pipelines.**
+
+##### services
+If set, specifies an allowlist of service/methods that will have individual stats emitted for them. Any call that does not match the allowlist will be
+counted in a stat with no method specifier (generic metric).
+
+**If both `all_methods` and `services` are present, `all_methods` will be ignored.**
+
+##### upstream_stats
+If true, the filter will gather a histogram for the request time of the upstream.
 
 ```yaml
 ---
@@ -255,11 +286,10 @@ metadata:
 spec:
   config:
     grpc_stats:
-      enable_upstream_stats: true
-      individual_method_stats_allowlist:
-        services:
-          - name: EchoService
-            method_names: [Echo]
+      upstream_stats: true
+      services:
+        - name: <package>.<service>
+          method_names: [<method>]
 ```
 
 ### Header Case (`proper_case`)
