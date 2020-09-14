@@ -118,7 +118,7 @@ The ALB is a second generation AWS Elastic Load Balancer. It cannot be ensured b
 
 ## Load Balancer Annotations
 
-Kubernetes on AWS exposes a mechanism to request certain load balancer configurations by annotating the `type: LoadBalancer` `Service`. You can view all of them in the [Kubernetes documentation](https://kubernetes.io/docs/concepts/cluster-administration/cloud-providers/#load-balancers). This document will go over the subset that is most relevant when deploying Ambassador Edge Stack.
+Kubernetes on AWS exposes a mechanism to request certain load balancer configurations by annotating the `type: LoadBalancer` `Service`. The most complete set and explanations of these annotations can be found in this [Kubernetes document](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer). This document will go over the subset that is most relevant when deploying Ambassador Edge Stack.
 
 - `service.beta.kubernetes.io/aws-load-balancer-ssl-cert`: 
 
