@@ -324,6 +324,11 @@
                                                         "match": {
                                                             "headers": [
                                                                 {
+                                                                    "invert_match": true,
+                                                                    "name": ":path",
+                                                                    "prefix_match": "/.well-known/acme-challenge/"
+                                                                },
+                                                                {
                                                                     "exact_match": "http",
                                                                     "name": "x-forwarded-proto"
                                                                 },
