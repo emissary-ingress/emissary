@@ -26,7 +26,7 @@ class IRAmbassador (IRResource):
     # into the IRAmbassador object partway through IRAmbassador.finalize().
     #
     # PLEASE KEEP THIS LIST SORTED.
-    
+
     AModTransparentKeys: ClassVar = [
         'add_linkerd_headers',
         'admin_port',
@@ -91,7 +91,7 @@ class IRAmbassador (IRResource):
     # to function. It is far better to slow down as our configurations grow and give users a
     # leading indicator that there is a scaling issue that needs to be dealt with than to
     # suddenly and mysteriously stop functioning the day their configuration happens to become
-    # large enough to exceed this threshold. 
+    # large enough to exceed this threshold.
     default_validation_timeout: ClassVar[int] = 60
 
     def __init__(self, ir: 'IR', aconf: Config,
@@ -235,10 +235,39 @@ class IRAmbassador (IRResource):
             ir.save_filter(self.grpc_web)
 
         if amod and ('grpc_stats' in amod):
+            grpc_stats = amod.grpc_stats
+
+            # default config with safe values
+            config = {
+                'individual_method_stats_allowlist': {
+                    'services': []
+                },
+                'stats_for_all_methods': False,
+                'enable_upstream_stats': False
+            }
+
+            if ('services' in grpc_stats):
+                config['individual_method_stats_allowlist'] = {
+                    'services': grpc_stats['services']
+                }
+                # remove stats_for_all_methods key from config. only one of individual_method_stats_allowlist or
+                # stats_for_all_methods can be set
+                config.pop('stats_for_all_methods')
+
+            # if 'services' is present, ignore 'all_methods'
+            if ('all_methods' in grpc_stats) and ('services' not in grpc_stats):
+                config['stats_for_all_methods'] = bool(grpc_stats['all_methods'])
+                # remove individual_method_stats_allowlist key from config. only one of individual_method_stats_allowlist or
+                # stats_for_all_methods can be set
+                config.pop('individual_method_stats_allowlist')
+
+            if ('upstream_stats' in grpc_stats):
+                config['enable_upstream_stats'] = bool(grpc_stats['upstream_stats'])
+
             self.grpc_stats = IRFilter(ir=ir, aconf=aconf,
                                        kind='ir.grpc_stats',
                                        name='grpc_stats',
-                                       config=amod.grpc_stats)
+                                       config=config)
             self.grpc_stats.sourced_by(amod)
             ir.save_filter(self.grpc_stats)
 
@@ -289,7 +318,7 @@ class IRAmbassador (IRResource):
         if amod:
             if 'ip_allow' in amod:
                 self.handle_ip_allow_deny(allow=True, principals=amod.ip_allow)
-        
+
             if 'ip_deny' in amod:
                 self.handle_ip_allow_deny(allow=False, principals=amod.ip_deny)
 
@@ -403,9 +432,9 @@ class IRAmbassador (IRResource):
         if self.get('ip_allow_deny') is not None:
             self.post_error("ip_allow and ip_deny may not both be set")
             return
-        
-        ipa = IRIPAllowDeny(self.ir, self.ir.aconf, rkey=self.rkey, 
-                            parent=self, 
+
+        ipa = IRIPAllowDeny(self.ir, self.ir.aconf, rkey=self.rkey,
+                            parent=self,
                             action="ALLOW" if allow else "DENY",
                             principals=principals)
 
