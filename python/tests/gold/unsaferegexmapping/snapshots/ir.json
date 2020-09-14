@@ -22,6 +22,7 @@
         "enable_ipv6": false,
         "envoy_log_path": "/dev/fd/1",
         "envoy_log_type": "text",
+        "envoy_validation_timeout": 60,
         "kind": "IRAmbassador",
         "liveness_probe": {
             "enabled": true,
@@ -52,6 +53,7 @@
     "clusters": {
         "cluster_127_0_0_1_8877_default": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_127_0_0_1_8877_default",
             "_errored": false,
             "_hostname": "127.0.0.1",
             "_is_sidecar": false,
@@ -87,6 +89,7 @@
         },
         "cluster_http___unsaferegexmapping_http_default": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___unsaferegexmapping_http_default",
             "_errored": false,
             "_hostname": "unsaferegexmapping-http",
             "_is_sidecar": false,
@@ -168,6 +171,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_readiness_probe_mapping-default",
                     "_errored": false,
                     "_referenced_by": [
                         "unsaferegexmapping.default.2"
@@ -177,6 +181,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_default",
                         "_errored": false,
                         "_hostname": "127.0.0.1",
                         "_is_sidecar": false,
@@ -210,6 +215,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_default",
                     "default_class": "httpmapping",
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
@@ -268,6 +274,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_liveness_probe_mapping-default",
                     "_errored": false,
                     "_referenced_by": [
                         "unsaferegexmapping.default.2"
@@ -277,6 +284,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_default",
                         "_errored": false,
                         "_hostname": "127.0.0.1",
                         "_is_sidecar": false,
@@ -310,6 +318,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_default",
                     "default_class": "httpmapping",
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
@@ -382,12 +391,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-X-Foo-default",
                     "_errored": false,
                     "_rkey": "unsaferegexmapping.default.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___unsaferegexmapping_http_default",
                         "_errored": false,
                         "_hostname": "unsaferegexmapping-http",
                         "_is_sidecar": false,
@@ -421,6 +432,7 @@
                             "tcp://unsaferegexmapping-http:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___unsaferegexmapping_http_default",
                     "default_class": "httpmapping",
                     "group_id": "59a399c1f02dc607dc4c4ab6d040ab5025224dfb",
                     "headers": [
@@ -506,6 +518,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_diagnostics_probe_mapping-default",
                     "_errored": false,
                     "_referenced_by": [
                         "unsaferegexmapping.default.2"
@@ -515,6 +528,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_default",
                         "_errored": false,
                         "_hostname": "127.0.0.1",
                         "_is_sidecar": false,
@@ -548,6 +562,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_default",
                     "default_class": "httpmapping",
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],

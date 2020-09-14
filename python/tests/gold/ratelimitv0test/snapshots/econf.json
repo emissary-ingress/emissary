@@ -160,8 +160,33 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8080-insecure-8080-fstar-*",
+                                                "name": "ambassador-listener-8080-_insecure-8080_fstar",
                                                 "routes": [
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/check_ready",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
+                                                            "prefix_rewrite": "/ambassador/v0/check_ready",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
@@ -177,6 +202,31 @@
                                                         "route": {
                                                             "cluster": "cluster_127_0_0_1_8877_default",
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/check_alive",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
+                                                            "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "timeout": "10.000s"
                                                         }
@@ -203,6 +253,12 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
                                                             "prefix": "/ambassador/v0/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -217,6 +273,77 @@
                                                             "prefix_rewrite": "/ambassador/v0/",
                                                             "priority": null,
                                                             "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "prefix": "/ambassador/v0/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
+                                                            "prefix_rewrite": "/ambassador/v0/",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/target/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_ratelimitv0test_http_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_ratelimitv0test_http_default",
+                                                            "prefix_rewrite": "/",
+                                                            "priority": null,
+                                                            "rate_limits": [
+                                                                {
+                                                                    "actions": [
+                                                                        {
+                                                                            "source_cluster": {}
+                                                                        },
+                                                                        {
+                                                                            "destination_cluster": {}
+                                                                        },
+                                                                        {
+                                                                            "remote_address": {}
+                                                                        },
+                                                                        {
+                                                                            "generic_key": {
+                                                                                "descriptor_value": "A test case"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "request_headers": {
+                                                                                "descriptor_key": "x-ambassador-test-allow",
+                                                                                "header_name": "x-ambassador-test-allow"
+                                                                            }
+                                                                        }
+                                                                    ],
+                                                                    "stage": 0
+                                                                }
+                                                            ],
+                                                            "timeout": "3.000s"
                                                         }
                                                     },
                                                     {
@@ -256,6 +383,61 @@
                                                                             "request_headers": {
                                                                                 "descriptor_key": "x-ambassador-test-allow",
                                                                                 "header_name": "x-ambassador-test-allow"
+                                                                            }
+                                                                        }
+                                                                    ],
+                                                                    "stage": 0
+                                                                }
+                                                            ],
+                                                            "timeout": "3.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/labels/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_ratelimitv0test_http_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_ratelimitv0test_http_default",
+                                                            "prefix_rewrite": "/",
+                                                            "priority": null,
+                                                            "rate_limits": [
+                                                                {
+                                                                    "actions": [
+                                                                        {
+                                                                            "request_headers": {
+                                                                                "descriptor_key": "custom-label",
+                                                                                "header_name": ":authority"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "request_headers": {
+                                                                                "descriptor_key": "user",
+                                                                                "header_name": "x-user"
+                                                                            }
+                                                                        }
+                                                                    ],
+                                                                    "stage": 0
+                                                                },
+                                                                {
+                                                                    "actions": [
+                                                                        {
+                                                                            "request_headers": {
+                                                                                "descriptor_key": "custom-label",
+                                                                                "header_name": "x-omg"
                                                                             }
                                                                         }
                                                                     ],

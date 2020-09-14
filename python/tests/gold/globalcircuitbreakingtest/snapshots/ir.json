@@ -30,6 +30,7 @@
         "enable_ipv6": false,
         "envoy_log_path": "/dev/fd/1",
         "envoy_log_type": "text",
+        "envoy_validation_timeout": 60,
         "kind": "IRAmbassador",
         "liveness_probe": {
             "enabled": true,
@@ -59,6 +60,7 @@
     "clusters": {
         "cluster_127_0_0_1_8877_default_cbdc1p1": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_127_0_0_1_8877_default_cbdc1p1",
             "_errored": false,
             "_hostname": "127.0.0.1",
             "_is_sidecar": false,
@@ -102,6 +104,7 @@
         },
         "cluster_globalcircuitbreakingtest_http_default_cbdc1024p1024": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_globalcircuitbreakingtest_http_default_cbdc1024p1024",
             "_errored": false,
             "_hostname": "globalcircuitbreakingtest-http",
             "_is_sidecar": false,
@@ -145,6 +148,7 @@
         },
         "cluster_globalcircuitbreakingtest_http_default_cbdc1p1": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_globalcircuitbreakingtest_http_default_cbdc1p1",
             "_errored": false,
             "_hostname": "globalcircuitbreakingtest-http",
             "_is_sidecar": false,
@@ -242,6 +246,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-globalcircuitbreakingtest-http-normal-default",
                     "_errored": false,
                     "_rkey": "globalcircuitbreakingtest.default.2",
                     "add_request_headers": {},
@@ -256,6 +261,7 @@
                     ],
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_globalcircuitbreakingtest_http_default_cbdc1p1",
                         "_errored": false,
                         "_hostname": "globalcircuitbreakingtest-http",
                         "_is_sidecar": false,
@@ -297,6 +303,7 @@
                             "tcp://globalcircuitbreakingtest-http:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_globalcircuitbreakingtest_http_default_cbdc1p1",
                     "default_class": "httpmapping",
                     "group_id": "d9232b8cbb609b0df645ab91d2903c43ddb4a863",
                     "headers": [],
@@ -373,6 +380,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-globalcircuitbreakingtest-http-pr-default",
                     "_errored": false,
                     "_rkey": "globalcircuitbreakingtest.default.1",
                     "add_request_headers": {},
@@ -387,6 +395,7 @@
                     ],
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_globalcircuitbreakingtest_http_default_cbdc1024p1024",
                         "_errored": false,
                         "_hostname": "globalcircuitbreakingtest-http",
                         "_is_sidecar": false,
@@ -428,6 +437,7 @@
                             "tcp://globalcircuitbreakingtest-http:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_globalcircuitbreakingtest_http_default_cbdc1024p1024",
                     "default_class": "httpmapping",
                     "group_id": "1d9809c018079a27a92bfb86ce7e06ce9f1c7aa7",
                     "headers": [],
@@ -504,6 +514,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_readiness_probe_mapping-default",
                     "_errored": false,
                     "_referenced_by": [
                         "globalcircuitbreakingtest.default.3"
@@ -521,6 +532,7 @@
                     ],
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_default_cbdc1p1",
                         "_errored": false,
                         "_hostname": "127.0.0.1",
                         "_is_sidecar": false,
@@ -562,6 +574,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_default_cbdc1p1",
                     "default_class": "httpmapping",
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
@@ -628,6 +641,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_liveness_probe_mapping-default",
                     "_errored": false,
                     "_referenced_by": [
                         "globalcircuitbreakingtest.default.3"
@@ -645,6 +659,7 @@
                     ],
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_default_cbdc1p1",
                         "_errored": false,
                         "_hostname": "127.0.0.1",
                         "_is_sidecar": false,
@@ -686,6 +701,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_default_cbdc1p1",
                     "default_class": "httpmapping",
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
@@ -752,6 +768,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_diagnostics_probe_mapping-default",
                     "_errored": false,
                     "_referenced_by": [
                         "globalcircuitbreakingtest.default.3"
@@ -769,6 +786,7 @@
                     ],
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_default_cbdc1p1",
                         "_errored": false,
                         "_hostname": "127.0.0.1",
                         "_is_sidecar": false,
@@ -810,6 +828,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_default_cbdc1p1",
                     "default_class": "httpmapping",
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],

@@ -55,6 +55,10 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
+=======
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Bugfix: A regression introduced in 1.7.0 with the various Host.spec.insecure.action behaviors has been fixed, including handling of X-Forwarded-Proto.
 - Bugfix: Host resources no longer perform secret namespacing when the AMBASSADOR_FAST_RECONFIGURE flag is enabled. This bug never existed when the flag was not set.
 
 ## [1.7.1] September 08, 2020
