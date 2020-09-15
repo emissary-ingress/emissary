@@ -5,7 +5,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   annotations:
     # Required because Helm creates secrets before ServiceAccount, but service-account-token depends on an existing SA.
     "helm.sh/hook": "pre-install"
@@ -27,7 +27,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   annotations:
     kubernetes.io/service-account.name: traffic-agent
 type: kubernetes.io/service-account-token
@@ -36,7 +36,7 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: Role
 metadata:
   name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     app.kubernetes.io/name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
@@ -60,7 +60,7 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
   name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     app.kubernetes.io/name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
@@ -78,7 +78,7 @@ roleRef:
   name: {{ include "ambassador.rbacName" . }}
 subjects:
   - name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}
-    namespace: {{ .Release.Namespace }}
+    namespace: {{ include "ambassador.namespace" . }}
     kind: ServiceAccount
 {{- else }}
 ## If we install Service Preview cluster-wide, this means we can't use the 'traffic-agent' ServiceAccount
@@ -88,7 +88,7 @@ apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
   name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     app.kubernetes.io/name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}
     app.kubernetes.io/part-of: {{ .Release.Name }}

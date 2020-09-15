@@ -5,6 +5,8 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+- Feature: Allow overriding the namespace for the release using the values file: [ambassador-chart/#122](https://github.com/datawire/ambassador-chart/pull/122)
+
 ## v6.5.5
 
 - Allow hyphens in service annotations: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)

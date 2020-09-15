@@ -3,7 +3,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ include "ambassador.fullname" . }}-crd-cleanup
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   annotations:
     "helm.sh/hook": pre-delete
     "helm.sh/hook-weight": "3"

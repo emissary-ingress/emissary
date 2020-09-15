@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "ambassador.fullname" . }}-injector
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-injector
     app.kubernetes.io/part-of: {{ .Release.Name }}
@@ -43,7 +43,7 @@ spec:
         command: [ "aes-injector" ]
         env:
         - name: AGENT_MANAGER_NAMESPACE
-          value: "{{ .Release.Namespace }}"
+          value: "{{ include "ambassador.namespace" . }}"
         - name: TRAFFIC_AGENT_IMAGE
           value: "{{ .Values.servicePreview.trafficAgent.image.repository | default .Values.image.repository }}:{{ .Values.servicePreview.trafficAgent.image.tag | default .Values.image.tag }}"
         - name: TRAFFIC_AGENT_AGENT_LISTEN_PORT
@@ -73,7 +73,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "ambassador.fullname" . }}-injector
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-injector
     app.kubernetes.io/part-of: {{ .Release.Name }}
@@ -98,7 +98,7 @@ kind: Secret
 apiVersion: v1
 metadata:
   name: {{ include "ambassador.fullname" . }}-injector-tls
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-injector-tls
     app.kubernetes.io/part-of: {{ .Release.Name }}
@@ -112,7 +112,7 @@ metadata:
     product: aes
 type: Opaque
 data:
-  {{ $ca := genCA (printf "%s-injector.%s.svc" (include "ambassador.fullname" .) (.Release.Namespace)) 365 -}}
+  {{ $ca := genCA (printf "%s-injector.%s.svc" (include "ambassador.fullname" .) (include "ambassador.namespace" .)) 365 -}}
   crt.pem: {{ ternary (b64enc $ca.Cert) (b64enc (trim .Values.servicePreview.trafficAgent.injector.crtPEM)) (empty .Values.servicePreview.trafficAgent.injector.crtPEM) }}
   key.pem: {{ ternary (b64enc $ca.Key) (b64enc (trim .Values.servicePreview.trafficAgent.injector.keyPEM)) (empty .Values.servicePreview.trafficAgent.injector.keyPEM) }}
 ---
@@ -136,7 +136,7 @@ webhooks:
   clientConfig:
     service:
       name: {{ include "ambassador.fullname" . }}-injector
-      namespace: {{ .Release.Namespace }}
+      namespace: {{ include "ambassador.namespace" . }}
       path: "/traffic-agent"
     caBundle: {{ ternary (b64enc $ca.Cert) (b64enc (trim .Values.servicePreview.trafficAgent.injector.crtPEM)) (empty .Values.servicePreview.trafficAgent.injector.crtPEM) }}
   failurePolicy: Ignore

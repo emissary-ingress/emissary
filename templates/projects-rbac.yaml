@@ -42,7 +42,7 @@ kind: ClusterRoleBinding
 {{- end }}
 metadata:
   name: {{ include "ambassador.rbacName" . }}-projects
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
@@ -64,6 +64,6 @@ roleRef:
   name: {{ include "ambassador.rbacName" . }}-projects
 subjects:
   - name: {{ include "ambassador.serviceAccountName" . }}
-    namespace: {{ .Release.Namespace }}
+    namespace: {{ include "ambassador.namespace" . }}
     kind: ServiceAccount
 {{- end }}
