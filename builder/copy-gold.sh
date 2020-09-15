@@ -34,7 +34,7 @@ copy_gold authenticationtest
 copy_gold authenticationtestv1
 copy_gold authenticationwebsockettest
 copy_gold circuitbreakingtcptest
-copy_gold circuitbreakingtest
+# copy_gold circuitbreakingtest	# mockery can't quite cope with this -- not sure why
 copy_gold clientcertificateauthentication
 copy_gold clustertagtest
 # copy_gold consultest
