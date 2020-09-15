@@ -208,8 +208,8 @@ name:  ambassador
 config:
   circuit_breakers:
   - priority: default
-    max_pending_requests: 1
-    max_connections: 1
+    max_pending_requests: 5
+    max_connections: 5
 """)
 
     def requirements(self):

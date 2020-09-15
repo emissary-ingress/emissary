@@ -697,7 +697,6 @@ class V2VirtualHost:
 
         if self._action is None:
             if "*" not in self._insecure_actions:
-                # XXX(LukeShu): Is this the proper default?
                 self._insecure_actions["*"] = "Redirect"
             self._config.ir.logger.debug(f"V2VirtualHost {self.name}: _insecure_actions={repr(self._insecure_actions)}")
 
@@ -707,6 +706,14 @@ class V2VirtualHost:
                 redirect_holes.append({"exact_match": "/"})
             # ... and holes to poke in the rejecter
             reject_holes = [{"prefix_match": "/.well-known/acme-challenge/"}]
+
+            # Weirdly, we need to poke a hole in the _rejecter_ for this too.
+            # This is OK because _dont_redirect_root will be set IFF the magic route
+            # for the CONGRATULATIONS page is present, and since we're using an exact
+            # match, it's OK to put it up front.
+
+            if self._dont_redirect_root:
+                reject_holes.append({"exact_match": "/"})
 
             # For every Host, insert a route to perform its action
             for hostname in self._insecure_actions:
@@ -770,6 +777,7 @@ class V2VirtualHost:
 
         for route in self.routes:
             self._config.ir.logger.debug(f"V2VirtualHost {self.name}: finalize: Route {prettyroute(route)}")
+
 
     def pretty(self) -> str:
         ctx_name = "-none-"

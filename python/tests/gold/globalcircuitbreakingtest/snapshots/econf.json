@@ -19,8 +19,8 @@
                 "circuit_breakers": {
                     "thresholds": [
                         {
-                            "max_connections": 1,
-                            "max_pending_requests": 1,
+                            "max_connections": 5,
+                            "max_pending_requests": 5,
                             "priority": "DEFAULT"
                         }
                     ]
@@ -29,7 +29,7 @@
                 "dns_lookup_family": "V4_ONLY",
                 "lb_policy": "ROUND_ROBIN",
                 "load_assignment": {
-                    "cluster_name": "cluster_127_0_0_1_8877_default_cbdc1p1",
+                    "cluster_name": "cluster_127_0_0_1_8877_default_cbdc5p5",
                     "endpoints": [
                         {
                             "lb_endpoints": [
@@ -48,7 +48,7 @@
                         }
                     ]
                 },
-                "name": "cluster_127_0_0_1_8877_default_cbdc1p1",
+                "name": "cluster_127_0_0_1_8877_default_cbdc5p5",
                 "type": "STRICT_DNS"
             },
             {
@@ -91,8 +91,8 @@
                 "circuit_breakers": {
                     "thresholds": [
                         {
-                            "max_connections": 1,
-                            "max_pending_requests": 1,
+                            "max_connections": 5,
+                            "max_pending_requests": 5,
                             "priority": "DEFAULT"
                         }
                     ]
@@ -101,7 +101,7 @@
                 "dns_lookup_family": "V4_ONLY",
                 "lb_policy": "ROUND_ROBIN",
                 "load_assignment": {
-                    "cluster_name": "cluster_globalcircuitbreakingtest_http_default_cbdc1p1",
+                    "cluster_name": "cluster_globalcircuitbreakingtest_http_default_cbdc5p5",
                     "endpoints": [
                         {
                             "lb_endpoints": [
@@ -120,7 +120,7 @@
                         }
                     ]
                 },
-                "name": "cluster_globalcircuitbreakingtest_http_default_cbdc1p1",
+                "name": "cluster_globalcircuitbreakingtest_http_default_cbdc5p5",
                 "type": "STRICT_DNS"
             }
         ],
@@ -187,11 +187,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_globalcircuitbreakingtest_http_default_cbdc1p1"
+                                                                "runtime_key": "routing.traffic_shift.cluster_globalcircuitbreakingtest_http_default_cbdc5p5"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_globalcircuitbreakingtest_http_default_cbdc1p1",
+                                                            "cluster": "cluster_globalcircuitbreakingtest_http_default_cbdc5p5",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
                                                             "timeout": "3.000s"
@@ -206,11 +206,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_globalcircuitbreakingtest_http_default_cbdc1p1"
+                                                                "runtime_key": "routing.traffic_shift.cluster_globalcircuitbreakingtest_http_default_cbdc5p5"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_globalcircuitbreakingtest_http_default_cbdc1p1",
+                                                            "cluster": "cluster_globalcircuitbreakingtest_http_default_cbdc5p5",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
                                                             "timeout": "3.000s"
@@ -275,11 +275,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default_cbdc1p1"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default_cbdc5p5"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_default_cbdc1p1",
+                                                            "cluster": "cluster_127_0_0_1_8877_default_cbdc5p5",
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -294,11 +294,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default_cbdc1p1"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default_cbdc5p5"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_default_cbdc1p1",
+                                                            "cluster": "cluster_127_0_0_1_8877_default_cbdc5p5",
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -319,11 +319,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default_cbdc1p1"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default_cbdc5p5"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_default_cbdc1p1",
+                                                            "cluster": "cluster_127_0_0_1_8877_default_cbdc5p5",
                                                             "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -338,11 +338,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default_cbdc1p1"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default_cbdc5p5"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_default_cbdc1p1",
+                                                            "cluster": "cluster_127_0_0_1_8877_default_cbdc5p5",
                                                             "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -363,11 +363,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default_cbdc1p1"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default_cbdc5p5"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_default_cbdc1p1",
+                                                            "cluster": "cluster_127_0_0_1_8877_default_cbdc5p5",
                                                             "prefix_rewrite": "/ambassador/v0/",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -382,11 +382,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default_cbdc1p1"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default_cbdc5p5"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877_default_cbdc1p1",
+                                                            "cluster": "cluster_127_0_0_1_8877_default_cbdc5p5",
                                                             "prefix_rewrite": "/ambassador/v0/",
                                                             "priority": null,
                                                             "timeout": "10.000s"
