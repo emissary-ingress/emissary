@@ -1,0 +1,223 @@
+{
+    "_errors": {},
+    "_fast_validation_disagreements": {},
+    "_notices": {
+        "tracingtestsampling-http.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "k8s-tracingtestsampling-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtestsampling",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingtestsampling-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestsampling",
+                "scope": "AmbassadorTest",
+                "service": "tracingtestsampling-admin"
+            },
+            "name": "tracingtestsampling-admin",
+            "namespace": "default",
+            "rkey": "k8s-tracingtestsampling-admin-default",
+            "serialization": "ambassador_id: tracingtestsampling\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\n  service: tracingtestsampling-admin\nname: tracingtestsampling-admin\nnamespace: default\n"
+        },
+        "k8s-tracingtestsampling-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtestsampling",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingtestsampling-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tracingtestsampling",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingtestsampling",
+            "namespace": "default",
+            "rkey": "k8s-tracingtestsampling-default",
+            "serialization": "ambassador_id: tracingtestsampling\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\nname: tracingtestsampling\nnamespace: default\n"
+        },
+        "k8s-tracingtestsampling-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtestsampling",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingtestsampling-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestsampling",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingtestsampling-http",
+            "namespace": "default",
+            "rkey": "k8s-tracingtestsampling-http-default",
+            "serialization": "ambassador_id: tracingtestsampling\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\nname: tracingtestsampling-http\nnamespace: default\n"
+        },
+        "k8s-zipkin-65-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtestsampling",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-zipkin-65-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestsampling",
+                "scope": "AmbassadorTest"
+            },
+            "name": "zipkin-65",
+            "namespace": "default",
+            "rkey": "k8s-zipkin-65-default",
+            "serialization": "ambassador_id: tracingtestsampling\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\nname: zipkin-65\nnamespace: default\n"
+        },
+        "tracingtestsampling-http.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtestsampling",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "location": "tracingtestsampling-http.default.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestsampling",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracing_target_mapping_65",
+            "namespace": "default",
+            "prefix": "/target-65/",
+            "rkey": "tracingtestsampling-http.default.1",
+            "serialization": "_force_validation: true\nambassador_id: tracingtestsampling\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\nname: tracing_target_mapping_65\nnamespace: default\nprefix: /target-65/\nservice: tracingtestsampling-http\n",
+            "service": "tracingtestsampling-http"
+        },
+        "zipkin-65.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtestsampling",
+            "apiVersion": "getambassador.io/v2",
+            "driver": "zipkin",
+            "kind": "TracingService",
+            "location": "zipkin-65.default.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestsampling",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracing-65",
+            "namespace": "default",
+            "rkey": "zipkin-65.default.1",
+            "sampling": {
+                "overall": 10
+            },
+            "serialization": "_force_validation: true\nambassador_id: tracingtestsampling\napiVersion: getambassador.io/v2\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\nname: tracing-65\nnamespace: default\nsampling:\n  overall: 10\nservice: zipkin-65:9411\n",
+            "service": "zipkin-65:9411"
+        }
+    },
+    "mappings": {
+        "tracing_target_mapping_65": {
+            "ambassador_id": "tracingtestsampling",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestsampling",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracing_target_mapping_65",
+            "namespace": "default",
+            "prefix": "/target-65/",
+            "service": "tracingtestsampling-http"
+        }
+    },
+    "service": {
+        "k8s-tracingtestsampling-admin-default": {
+            "ambassador_id": "tracingtestsampling",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestsampling",
+                "scope": "AmbassadorTest",
+                "service": "tracingtestsampling-admin"
+            },
+            "name": "tracingtestsampling-admin",
+            "namespace": "default"
+        },
+        "k8s-tracingtestsampling-default": {
+            "ambassador_id": "tracingtestsampling",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tracingtestsampling",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingtestsampling",
+            "namespace": "default"
+        },
+        "k8s-tracingtestsampling-http-default": {
+            "ambassador_id": "tracingtestsampling",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestsampling",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingtestsampling-http",
+            "namespace": "default"
+        },
+        "k8s-zipkin-65-default": {
+            "ambassador_id": "tracingtestsampling",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestsampling",
+                "scope": "AmbassadorTest"
+            },
+            "name": "zipkin-65",
+            "namespace": "default"
+        }
+    },
+    "tracing_configs": {
+        "tracing-65": {
+            "ambassador_id": "tracingtestsampling",
+            "apiVersion": "getambassador.io/v2",
+            "driver": "zipkin",
+            "kind": "TracingService",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestsampling",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracing-65",
+            "namespace": "default",
+            "sampling": {
+                "overall": 10
+            },
+            "service": "zipkin-65:9411"
+        }
+    }
+}

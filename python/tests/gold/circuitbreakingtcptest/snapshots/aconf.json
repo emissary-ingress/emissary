@@ -1,0 +1,225 @@
+{
+    "_errors": {},
+    "_fast_validation_disagreements": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "circuitbreakingtcptest-http-target1.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "circuitbreakingtcptest",
+            "apiVersion": "getambassador.io/v2",
+            "kind": "TCPMapping",
+            "location": "circuitbreakingtcptest-http-target1.default.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "circuitbreakingtcptest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "CircuitBreakingTCPTest-1",
+            "namespace": "default",
+            "port": 6789,
+            "rkey": "circuitbreakingtcptest-http-target1.default.1",
+            "serialization": "_force_validation: true\nambassador_id: circuitbreakingtcptest\napiVersion: ambassador/v2\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: circuitbreakingtcptest\n  scope: AmbassadorTest\nname: CircuitBreakingTCPTest-1\nnamespace: default\nport: 6789\nservice: circuitbreakingtcptest-http-target1:80\n",
+            "service": "circuitbreakingtcptest-http-target1:80"
+        },
+        "circuitbreakingtcptest-http-target2.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "circuitbreakingtcptest",
+            "apiVersion": "getambassador.io/v2",
+            "circuit_breakers": [
+                {
+                    "max_connections": 1,
+                    "max_pending_requests": 1,
+                    "priority": "default"
+                }
+            ],
+            "kind": "TCPMapping",
+            "location": "circuitbreakingtcptest-http-target2.default.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "circuitbreakingtcptest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "CircuitBreakingTCPTest-2",
+            "namespace": "default",
+            "port": 6790,
+            "rkey": "circuitbreakingtcptest-http-target2.default.1",
+            "serialization": "_force_validation: true\nambassador_id: circuitbreakingtcptest\napiVersion: ambassador/v2\ncircuit_breakers:\n- max_connections: 1\n  max_pending_requests: 1\n  priority: default\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: circuitbreakingtcptest\n  scope: AmbassadorTest\nname: CircuitBreakingTCPTest-2\nnamespace: default\nport: 6790\nservice: circuitbreakingtcptest-http-target2:80\n",
+            "service": "circuitbreakingtcptest-http-target2:80"
+        },
+        "k8s-circuitbreakingtcptest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "circuitbreakingtcptest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-circuitbreakingtcptest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "circuitbreakingtcptest",
+                "scope": "AmbassadorTest",
+                "service": "circuitbreakingtcptest-admin"
+            },
+            "name": "circuitbreakingtcptest-admin",
+            "namespace": "default",
+            "rkey": "k8s-circuitbreakingtcptest-admin-default",
+            "serialization": "ambassador_id: circuitbreakingtcptest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: circuitbreakingtcptest\n  scope: AmbassadorTest\n  service: circuitbreakingtcptest-admin\nname: circuitbreakingtcptest-admin\nnamespace: default\n"
+        },
+        "k8s-circuitbreakingtcptest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "circuitbreakingtcptest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-circuitbreakingtcptest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "circuitbreakingtcptest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "circuitbreakingtcptest",
+            "namespace": "default",
+            "rkey": "k8s-circuitbreakingtcptest-default",
+            "serialization": "ambassador_id: circuitbreakingtcptest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: circuitbreakingtcptest\n  scope: AmbassadorTest\nname: circuitbreakingtcptest\nnamespace: default\n"
+        },
+        "k8s-circuitbreakingtcptest-http-target1-default": {
+            "_referenced_by": {},
+            "ambassador_id": "circuitbreakingtcptest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-circuitbreakingtcptest-http-target1-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "circuitbreakingtcptest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "circuitbreakingtcptest-http-target1",
+            "namespace": "default",
+            "rkey": "k8s-circuitbreakingtcptest-http-target1-default",
+            "serialization": "ambassador_id: circuitbreakingtcptest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: circuitbreakingtcptest\n  scope: AmbassadorTest\nname: circuitbreakingtcptest-http-target1\nnamespace: default\n"
+        },
+        "k8s-circuitbreakingtcptest-http-target2-default": {
+            "_referenced_by": {},
+            "ambassador_id": "circuitbreakingtcptest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-circuitbreakingtcptest-http-target2-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "circuitbreakingtcptest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "circuitbreakingtcptest-http-target2",
+            "namespace": "default",
+            "rkey": "k8s-circuitbreakingtcptest-http-target2-default",
+            "serialization": "ambassador_id: circuitbreakingtcptest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: circuitbreakingtcptest\n  scope: AmbassadorTest\nname: circuitbreakingtcptest-http-target2\nnamespace: default\n"
+        }
+    },
+    "service": {
+        "k8s-circuitbreakingtcptest-admin-default": {
+            "ambassador_id": "circuitbreakingtcptest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "circuitbreakingtcptest",
+                "scope": "AmbassadorTest",
+                "service": "circuitbreakingtcptest-admin"
+            },
+            "name": "circuitbreakingtcptest-admin",
+            "namespace": "default"
+        },
+        "k8s-circuitbreakingtcptest-default": {
+            "ambassador_id": "circuitbreakingtcptest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "circuitbreakingtcptest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "circuitbreakingtcptest",
+            "namespace": "default"
+        },
+        "k8s-circuitbreakingtcptest-http-target1-default": {
+            "ambassador_id": "circuitbreakingtcptest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "circuitbreakingtcptest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "circuitbreakingtcptest-http-target1",
+            "namespace": "default"
+        },
+        "k8s-circuitbreakingtcptest-http-target2-default": {
+            "ambassador_id": "circuitbreakingtcptest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "circuitbreakingtcptest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "circuitbreakingtcptest-http-target2",
+            "namespace": "default"
+        }
+    },
+    "tcpmappings": {
+        "CircuitBreakingTCPTest-1": {
+            "ambassador_id": "circuitbreakingtcptest",
+            "apiVersion": "getambassador.io/v2",
+            "kind": "TCPMapping",
+            "metadata_labels": {
+                "kat-ambassador-id": "circuitbreakingtcptest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "CircuitBreakingTCPTest-1",
+            "namespace": "default",
+            "port": 6789,
+            "service": "circuitbreakingtcptest-http-target1:80"
+        },
+        "CircuitBreakingTCPTest-2": {
+            "ambassador_id": "circuitbreakingtcptest",
+            "apiVersion": "getambassador.io/v2",
+            "circuit_breakers": [
+                {
+                    "max_connections": 1,
+                    "max_pending_requests": 1,
+                    "priority": "default"
+                }
+            ],
+            "kind": "TCPMapping",
+            "metadata_labels": {
+                "kat-ambassador-id": "circuitbreakingtcptest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "CircuitBreakingTCPTest-2",
+            "namespace": "default",
+            "port": 6790,
+            "service": "circuitbreakingtcptest-http-target2:80"
+        }
+    }
+}

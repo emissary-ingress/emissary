@@ -33,12 +33,15 @@ copy_gold authenticationhttppartialbuffertest
 copy_gold authenticationtest
 copy_gold authenticationtestv1
 copy_gold authenticationwebsockettest
-copy_gold circuitbreakingtestcanflake
+copy_gold circuitbreakingtcptest
+copy_gold circuitbreakingtest
 copy_gold clientcertificateauthentication
+copy_gold clustertagtest
 # copy_gold consultest
 copy_gold dogstatsdtest
 # copy_gold endpointgrpctest
 copy_gold envoylogtest
+copy_gold envoylogjsontest
 copy_gold globalcircuitbreakingtest
 copy_gold globalcorstest
 # copy_gold globalloadbalancing
@@ -56,6 +59,7 @@ copy_gold gziptest
 # copy_gold ingressstatustestwithannotations
 # copy_gold knative0110test
 copy_gold linkerdheadermapping
+copy_gold listeneridletimeout
 # copy_gold loadbalancertest
 copy_gold logservicetest
 # copy_gold luatest
@@ -81,7 +85,10 @@ copy_gold tlsinvalidsecret
 copy_gold tlsoriginationsecret
 copy_gold tracingexternalauthtest
 copy_gold tracingtest
+copy_gold tracingtestsampling
 copy_gold tracingtestshorttraceid
+copy_gold tracingtestzipkinv1
+copy_gold tracingtestzipkinv2
 copy_gold unsaferegexmapping
 copy_gold xfpredirect
 copy_gold empty empty-namespace
