@@ -1,0 +1,365 @@
+{
+    "_errors": {},
+    "_fast_validation_disagreements": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "cluster-tag-1.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "cluster-tag-1.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-1.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cluster-tag-1",
+            "namespace": "default",
+            "prefix": "/mapping-1/",
+            "rkey": "cluster-tag-1.default.1",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-1.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-1\nnamespace: default\nprefix: /mapping-1/\nservice: clustertagtest-http-target1\n",
+            "service": "clustertagtest-http-target1"
+        },
+        "cluster-tag-2.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "cluster_tag": "tag-1",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "cluster-tag-2.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-2.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cluster-tag-2",
+            "namespace": "default",
+            "prefix": "/mapping-2/",
+            "rkey": "cluster-tag-2.default.1",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ncluster_tag: tag-1\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-2.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-2\nnamespace: default\nprefix: /mapping-2/\nservice: clustertagtest-http-target1\n",
+            "service": "clustertagtest-http-target1"
+        },
+        "cluster-tag-3.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "cluster_tag": "tag-2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "cluster-tag-3.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-3.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cluster-tag-3",
+            "namespace": "default",
+            "prefix": "/mapping-3/",
+            "rkey": "cluster-tag-3.default.1",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ncluster_tag: tag-2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-3.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-3\nnamespace: default\nprefix: /mapping-3/\nservice: clustertagtest-http-target1\n",
+            "service": "clustertagtest-http-target1"
+        },
+        "cluster-tag-4.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "cluster_tag": "tag-2",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "cluster-tag-4.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-4.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cluster-tag-4",
+            "namespace": "default",
+            "prefix": "/mapping-4/",
+            "rkey": "cluster-tag-4.default.1",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ncluster_tag: tag-2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-4.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-4\nnamespace: default\nprefix: /mapping-4/\nservice: clustertagtest-http-target2\n",
+            "service": "clustertagtest-http-target2"
+        },
+        "cluster-tag-5.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "cluster_tag": "some-really-long-tag-that-is-really-long",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "cluster-tag-5.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-5.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cluster-tag-5",
+            "namespace": "default",
+            "prefix": "/mapping-5/",
+            "rkey": "cluster-tag-5.default.1",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ncluster_tag: some-really-long-tag-that-is-really-long\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-5.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-5\nnamespace: default\nprefix: /mapping-5/\nservice: clustertagtest-http-target1\n",
+            "service": "clustertagtest-http-target1"
+        },
+        "cluster-tag-6.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "cluster_tag": "some-really-long-tag-that-is-really-long",
+            "generation": 1,
+            "kind": "Mapping",
+            "location": "cluster-tag-6.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-6.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cluster-tag-6",
+            "namespace": "default",
+            "prefix": "/mapping-6/",
+            "rkey": "cluster-tag-6.default.1",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ncluster_tag: some-really-long-tag-that-is-really-long\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-6.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-6\nnamespace: default\nprefix: /mapping-6/\nservice: clustertagtest-http-target2\n",
+            "service": "clustertagtest-http-target2"
+        },
+        "k8s-clustertagtest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-clustertagtest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest",
+                "service": "clustertagtest-admin"
+            },
+            "name": "clustertagtest-admin",
+            "namespace": "default",
+            "rkey": "k8s-clustertagtest-admin-default",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\n  service: clustertagtest-admin\nname: clustertagtest-admin\nnamespace: default\n"
+        },
+        "k8s-clustertagtest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-clustertagtest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "clustertagtest",
+            "namespace": "default",
+            "rkey": "k8s-clustertagtest-default",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: clustertagtest\nnamespace: default\n"
+        },
+        "k8s-clustertagtest-http-target1-default": {
+            "_referenced_by": {},
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-clustertagtest-http-target1-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "clustertagtest-http-target1",
+            "namespace": "default",
+            "rkey": "k8s-clustertagtest-http-target1-default",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: clustertagtest-http-target1\nnamespace: default\n"
+        },
+        "k8s-clustertagtest-http-target2-default": {
+            "_referenced_by": {},
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-clustertagtest-http-target2-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "clustertagtest-http-target2",
+            "namespace": "default",
+            "rkey": "k8s-clustertagtest-http-target2-default",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: clustertagtest-http-target2\nnamespace: default\n"
+        }
+    },
+    "mappings": {
+        "cluster-tag-1": {
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-1.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cluster-tag-1",
+            "namespace": "default",
+            "prefix": "/mapping-1/",
+            "service": "clustertagtest-http-target1"
+        },
+        "cluster-tag-2": {
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "cluster_tag": "tag-1",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-2.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cluster-tag-2",
+            "namespace": "default",
+            "prefix": "/mapping-2/",
+            "service": "clustertagtest-http-target1"
+        },
+        "cluster-tag-3": {
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "cluster_tag": "tag-2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-3.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cluster-tag-3",
+            "namespace": "default",
+            "prefix": "/mapping-3/",
+            "service": "clustertagtest-http-target1"
+        },
+        "cluster-tag-4": {
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "cluster_tag": "tag-2",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-4.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cluster-tag-4",
+            "namespace": "default",
+            "prefix": "/mapping-4/",
+            "service": "clustertagtest-http-target2"
+        },
+        "cluster-tag-5": {
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "cluster_tag": "some-really-long-tag-that-is-really-long",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-5.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cluster-tag-5",
+            "namespace": "default",
+            "prefix": "/mapping-5/",
+            "service": "clustertagtest-http-target1"
+        },
+        "cluster-tag-6": {
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "cluster_tag": "some-really-long-tag-that-is-really-long",
+            "generation": 1,
+            "kind": "Mapping",
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-6.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cluster-tag-6",
+            "namespace": "default",
+            "prefix": "/mapping-6/",
+            "service": "clustertagtest-http-target2"
+        }
+    },
+    "service": {
+        "k8s-clustertagtest-admin-default": {
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest",
+                "service": "clustertagtest-admin"
+            },
+            "name": "clustertagtest-admin",
+            "namespace": "default"
+        },
+        "k8s-clustertagtest-default": {
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "clustertagtest",
+            "namespace": "default"
+        },
+        "k8s-clustertagtest-http-target1-default": {
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "clustertagtest-http-target1",
+            "namespace": "default"
+        },
+        "k8s-clustertagtest-http-target2-default": {
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "clustertagtest-http-target2",
+            "namespace": "default"
+        }
+    }
+}

@@ -54,7 +54,7 @@ class IRListener (IRResource):
         ctx = self.get('context', None)
         ctx_name = '-none-' if not ctx else ctx.name
 
-        return "<Listener %s for %s:%d, ctx %s, secure %s, insecure %s/%s>" % \
+        return "<Listener %s for authority=%s:%d, ctx=%s, secure_action=%s, insecure_action=%s, insecure_port=%s>" % \
                (self.name, self.hostname, self.service_port, ctx_name,
                 self.secure_action, self.insecure_action, self.insecure_addl_port)
 
@@ -67,6 +67,8 @@ class ListenerFactory:
         # An IRListener roughly corresponds to something partway between an Envoy
         # FilterChain and an Envoy VirtualHost -- it's a single domain entry (which
         # could be a wildcard) that can have routes and such associated with it.
+        # Or rather, an IRListener more likely corresponds to a *pair* of Envoy
+        # VirtualHosts; one for cleartext and one for TLS.
         #
         # A single IRListener can require TLS, or not. If TLS is around, it can
         # require a specific SNI host. Since it contains VirtualHosts, it can also

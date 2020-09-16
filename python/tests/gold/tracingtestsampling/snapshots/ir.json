@@ -1,0 +1,753 @@
+{
+    "ambassador": {
+        "_active": true,
+        "_errored": false,
+        "_finalized": true,
+        "_rkey": "ir.ambassador",
+        "admin_port": 8001,
+        "debug_mode": false,
+        "default_label_domain": "ambassador",
+        "default_labels": {},
+        "diagnostics": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "service": "127.0.0.1:8877"
+        },
+        "enable_http10": false,
+        "enable_ipv4": true,
+        "enable_ipv6": false,
+        "envoy_log_path": "/dev/fd/1",
+        "envoy_log_type": "text",
+        "envoy_validation_timeout": 60,
+        "kind": "IRAmbassador",
+        "liveness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "service": "127.0.0.1:8877"
+        },
+        "location": "--internal--",
+        "name": "ir.ambassador",
+        "namespace": "default",
+        "preserve_external_request_id": false,
+        "proper_case": false,
+        "readiness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "service": "127.0.0.1:8877"
+        },
+        "server_name": "envoy",
+        "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
+        "use_proxy_proto": false,
+        "use_remote_address": true,
+        "x_forwarded_proto_redirect": false,
+        "xff_num_trusted_hops": 0
+    },
+    "clusters": {
+        "cluster_127_0_0_1_8877_default": {
+            "_active": true,
+            "_cache_key": "Cluster-cluster_127_0_0_1_8877_default",
+            "_errored": false,
+            "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 8877,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_127_0_0_1_8877_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "--internal--",
+            "name": "cluster_127_0_0_1_8877_default",
+            "namespace": "default",
+            "service": "127.0.0.1:8877",
+            "targets": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8877,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8877"
+            ]
+        },
+        "cluster_tracing_zipkin_65_9411_default": {
+            "_active": true,
+            "_cache_key": "Cluster-cluster_tracing_zipkin_65_9411_default",
+            "_errored": false,
+            "_hostname": "zipkin-65",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 9411,
+            "_referenced_by": [
+                "zipkin-65.default.1"
+            ],
+            "_rkey": "cluster_tracing_zipkin_65_9411_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "zipkin-65.default.1",
+            "name": "cluster_tracing_zipkin_65_9411_default",
+            "namespace": "default",
+            "service": "zipkin-65:9411",
+            "targets": [
+                {
+                    "ip": "zipkin-65",
+                    "port": 9411,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://zipkin-65:9411"
+            ]
+        },
+        "cluster_tracingtestsampling_http_default": {
+            "_active": true,
+            "_cache_key": "Cluster-cluster_tracingtestsampling_http_default",
+            "_errored": false,
+            "_hostname": "tracingtestsampling-http",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "tracingtestsampling-http.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_tracingtestsampling_http_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "tracingtestsampling-http.default.1",
+            "name": "cluster_tracingtestsampling_http_default",
+            "namespace": "default",
+            "service": "tracingtestsampling-http",
+            "targets": [
+                {
+                    "ip": "tracingtestsampling-http",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://tracingtestsampling-http:80"
+            ]
+        }
+    },
+    "filters": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.cors",
+            "config": {},
+            "kind": "ir.cors",
+            "location": "--internal--",
+            "name": "cors",
+            "namespace": "default"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.router",
+            "config": {
+                "start_child_span": true
+            },
+            "kind": "ir.router",
+            "location": "--internal--",
+            "name": "router",
+            "namespace": "default",
+            "type": "decoder"
+        }
+    ],
+    "groups": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
+            "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+            "group_weight": [
+                0,
+                26,
+                0,
+                0,
+                "/ambassador/v0/check_ready",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_readiness_probe_mapping-default",
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "add_response_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_default",
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_default",
+                    "default_class": "httpmapping",
+                    "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_readiness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_ready",
+                    "query_parameters": [],
+                    "regex_rewrite": {},
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_ready",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        0,
+                        "/ambassador/v0/check_ready",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_readiness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_ready",
+            "query_parameters": [],
+            "regex_rewrite": {},
+            "rewrite": "/ambassador/v0/check_ready",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
+            "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+            "group_weight": [
+                0,
+                26,
+                0,
+                0,
+                "/ambassador/v0/check_alive",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_liveness_probe_mapping-default",
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "add_response_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_default",
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_default",
+                    "default_class": "httpmapping",
+                    "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_liveness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_alive",
+                    "query_parameters": [],
+                    "regex_rewrite": {},
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_alive",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        0,
+                        "/ambassador/v0/check_alive",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_liveness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_alive",
+            "query_parameters": [],
+            "regex_rewrite": {},
+            "rewrite": "/ambassador/v0/check_alive",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
+            "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+            "group_weight": [
+                0,
+                15,
+                0,
+                0,
+                "/ambassador/v0/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_diagnostics_probe_mapping-default",
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "add_response_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_default",
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_default",
+                    "default_class": "httpmapping",
+                    "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_diagnostics_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/",
+                    "query_parameters": [],
+                    "regex_rewrite": {},
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/",
+                    "route_weight": [
+                        0,
+                        15,
+                        0,
+                        0,
+                        "/ambassador/v0/",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_diagnostics_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/",
+            "query_parameters": [],
+            "regex_rewrite": {},
+            "rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "tracingtestsampling-http.default.1"
+            ],
+            "_rkey": "tracingtestsampling-http.default.1",
+            "default_class": "httpmapping",
+            "group_id": "0bc2714cef8ef8dce0df1e56c2ef860398fcdb2d",
+            "group_weight": [
+                0,
+                11,
+                0,
+                0,
+                "/target-65/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "tracingtestsampling-http.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_cache_key": "Mapping-v2-tracing_target_mapping_65-default",
+                    "_errored": false,
+                    "_rkey": "tracingtestsampling-http.default.1",
+                    "add_request_headers": {},
+                    "add_response_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_cache_key": "Cluster-cluster_tracingtestsampling_http_default",
+                        "_errored": false,
+                        "_hostname": "tracingtestsampling-http",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "tracingtestsampling-http.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_tracingtestsampling_http_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "tracingtestsampling-http.default.1",
+                        "name": "cluster_tracingtestsampling_http_default",
+                        "namespace": "default",
+                        "service": "tracingtestsampling-http",
+                        "targets": [
+                            {
+                                "ip": "tracingtestsampling-http",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://tracingtestsampling-http:80"
+                        ]
+                    },
+                    "cluster_key": "Cluster-cluster_tracingtestsampling_http_default",
+                    "default_class": "httpmapping",
+                    "group_id": "0bc2714cef8ef8dce0df1e56c2ef860398fcdb2d",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "tracingtestsampling-http.default.1",
+                    "metadata_labels": {
+                        "kat-ambassador-id": "tracingtestsampling",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "tracing_target_mapping_65",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/target-65/",
+                    "query_parameters": [],
+                    "regex_rewrite": {},
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        11,
+                        0,
+                        0,
+                        "/target-65/",
+                        "GET"
+                    ],
+                    "serialization": "_force_validation: true\nambassador_id: tracingtestsampling\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\nname: tracing_target_mapping_65\nnamespace: default\nprefix: /target-65/\nservice: tracingtestsampling-http\n",
+                    "service": "tracingtestsampling-http",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestsampling",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: tracing_target_mapping_65",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/target-65/",
+            "query_parameters": [],
+            "regex_rewrite": {},
+            "rewrite": "/",
+            "serialization": "_force_validation: true\nambassador_id: tracingtestsampling\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\nname: tracing_target_mapping_65\nnamespace: default\nprefix: /target-65/\nservice: tracingtestsampling-http\n"
+        }
+    ],
+    "grpc_services": {},
+    "hosts": [],
+    "identity": {
+        "ambassador_id": "tracingtestsampling",
+        "ambassador_namespace": "default",
+        "ambassador_nodename": "tracingtestsampling-default"
+    },
+    "k8s_status_updates": {},
+    "listeners": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
+            "kind": "IRListener",
+            "location": "--internal--",
+            "name": "ir.listener",
+            "namespace": "default",
+            "redirect_listener": false,
+            "secure_action": "Route",
+            "service_port": 8080,
+            "use_proxy_proto": false
+        }
+    ],
+    "services": {
+        "k8s-tracingtestsampling-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtestsampling",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingtestsampling-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestsampling",
+                "scope": "AmbassadorTest",
+                "service": "tracingtestsampling-admin"
+            },
+            "name": "tracingtestsampling-admin",
+            "namespace": "default",
+            "rkey": "k8s-tracingtestsampling-admin-default",
+            "serialization": "ambassador_id: tracingtestsampling\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\n  service: tracingtestsampling-admin\nname: tracingtestsampling-admin\nnamespace: default\n"
+        },
+        "k8s-tracingtestsampling-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtestsampling",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingtestsampling-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tracingtestsampling",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingtestsampling",
+            "namespace": "default",
+            "rkey": "k8s-tracingtestsampling-default",
+            "serialization": "ambassador_id: tracingtestsampling\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\nname: tracingtestsampling\nnamespace: default\n"
+        },
+        "k8s-tracingtestsampling-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtestsampling",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingtestsampling-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestsampling",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingtestsampling-http",
+            "namespace": "default",
+            "rkey": "k8s-tracingtestsampling-http-default",
+            "serialization": "ambassador_id: tracingtestsampling\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\nname: tracingtestsampling-http\nnamespace: default\n"
+        },
+        "k8s-zipkin-65-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtestsampling",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-zipkin-65-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestsampling",
+                "scope": "AmbassadorTest"
+            },
+            "name": "zipkin-65",
+            "namespace": "default",
+            "rkey": "k8s-zipkin-65-default",
+            "serialization": "ambassador_id: tracingtestsampling\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\nname: zipkin-65\nnamespace: default\n"
+        }
+    },
+    "tls_contexts": [],
+    "tracing": {
+        "_active": true,
+        "_errored": false,
+        "_referenced_by": [
+            "zipkin-65.default.1"
+        ],
+        "_rkey": "zipkin-65.default.1",
+        "cluster": {
+            "_active": true,
+            "_cache_key": "Cluster-cluster_tracing_zipkin_65_9411_default",
+            "_errored": false,
+            "_hostname": "zipkin-65",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 9411,
+            "_referenced_by": [
+                "zipkin-65.default.1"
+            ],
+            "_rkey": "cluster_tracing_zipkin_65_9411_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "zipkin-65.default.1",
+            "name": "cluster_tracing_zipkin_65_9411_default",
+            "namespace": "default",
+            "service": "zipkin-65:9411",
+            "targets": [
+                {
+                    "ip": "zipkin-65",
+                    "port": 9411,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://zipkin-65:9411"
+            ]
+        },
+        "driver": "zipkin",
+        "driver_config": {
+            "collector_cluster": "cluster_tracing_zipkin_65_9411_default"
+        },
+        "grpc": false,
+        "kind": "ir.tracing",
+        "location": "zipkin-65.default.1",
+        "name": "tracing",
+        "namespace": "default",
+        "sampling": {
+            "overall": 10
+        },
+        "service": "zipkin-65:9411",
+        "tag_headers": []
+    }
+}
