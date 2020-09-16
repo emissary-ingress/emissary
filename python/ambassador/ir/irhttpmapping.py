@@ -73,6 +73,7 @@ class IRHTTPMapping (IRBaseMapping):
     AllowedKeys: ClassVar[Dict[str, bool]] = {
         "add_linkerd_headers": False,
         # Do not include add_request_headers and add_response_headers
+        "auth_context_extensions": False,
         "auto_host_rewrite": False,
         "bypass_auth": False,
         "case_sensitive": False,

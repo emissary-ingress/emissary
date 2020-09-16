@@ -31,6 +31,15 @@ kind:  Mapping
 name:  {self.target.path.k8s}
 prefix: /target/
 service: {self.target.path.fqdn}
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.target.path.k8s}-with-extensions
+prefix: /with-extensions/
+service: {self.target.path.fqdn}
+auth_context_extensions:
+  five: "5"
+  hello: "there"
 """)
 
     def queries(self):
@@ -53,12 +62,18 @@ service: {self.target.path.fqdn}
                                                   "x-grpc-auth-append": "foo=bar;baz=bar",
                                                   "requested-header": "Authorization"}, expected=200)
 
+        # [4]
+        yield Query(self.url("with-extensions/"), headers={"requested-status": "200",
+                                                  "authorization": "foo-22222",
+                                                  "requested-header": "Authorization"}, expected=200)
+
     def check(self):
-        # [0] Verifies all request headers sent to the authorization server.
+        # [0] Verifies all request headers sent to the authorization server, with no context extensions
         assert self.results[0].backend.name == self.auth.path.k8s
         assert self.results[0].backend.request.url.path == "/target/"
         assert self.results[0].backend.request.headers["x-envoy-internal"]== ["true"]
         assert self.results[0].backend.request.headers["x-forwarded-proto"]== ["http"]
+        assert "x-request-context-extensions" not in self.results[0].backend.request.headers
         assert "user-agent" in self.results[0].backend.request.headers
         assert "baz" in self.results[0].backend.request.headers
         assert self.results[0].status == 401
@@ -89,6 +104,14 @@ service: {self.target.path.fqdn}
         assert self.results[3].status == 200
         assert self.results[3].headers["Server"] == ["envoy"]
         assert self.results[3].headers["Authorization"] == ["foo-11111"]
+
+        # [4] Verifies that context extensions are forwarded to the Auth Service
+        assert self.results[4].status == 200
+        assert self.results[4].headers["Server"] == ["envoy"]
+        assert self.results[4].headers["Authorization"] == ["foo-22222"]
+        authexts = json.loads(self.results[4].backend.request.headers["x-request-context-extensions"][0])
+        assert authexts["five"] == "5"
+        assert authexts["hello"] == "there"
 
 
 class AuthenticationHTTPPartialBufferTest(AmbassadorTest):

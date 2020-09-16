@@ -126,6 +126,11 @@ class V2Route(Cacheable):
 
         if mapping.get('bypass_auth', False):
             per_filter_config['envoy.ext_authz'] = {'disabled': True}
+        else:
+            # Additional ext_auth configuration only makes sense when not bypassing auth.
+            auth_context_extensions = mapping.get('auth_context_extensions', False)
+            if auth_context_extensions:
+                per_filter_config['envoy.ext_authz'] = {'check_settings': {'context_extensions': auth_context_extensions}}
 
         if per_filter_config:
             self['per_filter_config'] = per_filter_config

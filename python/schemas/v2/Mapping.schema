@@ -132,6 +132,7 @@
         },
         "weight": { "type": "integer" },
         "bypass_auth": { "type": "boolean" },
+        "auth_context_extensions": { "$ref": "#/definitions/mapStrStrStrict" },
 
         "modules": {
             "type": "array",
@@ -179,6 +180,10 @@
         "mapStrStr": {
             "type": "object",
             "additionalProperties": { "type": [ "string", "boolean" ] }
+        },
+        "mapStrStrStrict": {
+            "type": "object",
+            "additionalProperties": { "type": [ "string" ] }
         },
         "mapStrObj": {
             "type": "object",
