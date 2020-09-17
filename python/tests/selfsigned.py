@@ -48,6 +48,62 @@ _TLSCerts: List[Cert] = [
     ),
 
     Cert(
+        names=["presto.example.com"],
+        pubcert=strip("""
+            -----BEGIN CERTIFICATE-----
+            MIIDYTCCAkkCCQCrK74a3GFhijANBgkqhkiG9w0BAQsFADBxMQswCQYDVQQGEwJV
+            UzELMAkGA1UECAwCTUExDzANBgNVBAcMBkJvc3RvbjERMA8GA1UECgwIRGF0YXdp
+            cmUxFDASBgNVBAsMC0VuZ2luZWVyaW5nMRswGQYDVQQDDBJtYXN0ZXIuZGF0YXdp
+            cmUuaW8wIBcNMTkwMTEwMTkxOTUyWhgPMjExODEyMTcxOTE5NTJaMHIxCzAJBgNV
+            BAYTAklOMQswCQYDVQQIDAJLQTESMBAGA1UEBwwJQmFuZ2Fsb3JlMQ8wDQYDVQQK
+            DAZQcmVzdG8xFDASBgNVBAsMC0VuZ2luZWVyaW5nMRswGQYDVQQDDBJwcmVzdG8u
+            ZXhhbXBsZS5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCvPcFp
+            hw5Ja67z23L4YCYTgNdw4eVh7EHyzOpmf3VGhvx/UtNMVOH7Dcf+I7QEyxtQeBiZ
+            HOcThgr/k/wrAbMjdThRS8yJxRZgj79Li92pKkJbhLGsBeTuw8lBhtwyn85vEZrt
+            TOWEjlXHHLlz1OHiSAfYChIGjenPu5sT++O1AAs15b/0STBxkrZHGVimCU6qEWqB
+            PYVcGYqXdb90mbsuY5GAdAzUBCGQH/RLZAl8ledT+uzkcgHcF30gUT5Ik5Ks4l/V
+            t+C6I52Y0S4aCkT38XMYKMiBh7XzpjJUnR0pW5TYS37wq6nnVFsNReaMKmbOWp1X
+            5wEjoRJqDrHtVvjDAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAI3LR5fS6D6yFa6b
+            yl6+U/i44R3VYJP1rkee0s4C4WbyXHURTqQ/0z9wLU+0Hk57HI+7f5HO/Sr0q3B3
+            wuZih+TUbbsx5jZW5e++FKydFWpx7KY4MUJmePydEMoUaSQjHWnlAuv9PGp5ZZ30
+            t0lP/mVGNAeiXsILV8gRHnP6aV5XywK8c+828BQDRfizJ+uKYvnAJmqpn4aOOJh9
+            csjrK52+RNebMT0VxZF4JYGd0k00au9CaciWpPk69C+A/7K/xtV4ZFtddVP9SldF
+            ahmIu2g3fI5G+/2Oz8J+qX2B+QqT21/pOPKnMQU54BQ6bmI3fBM9B+2zm92FfgYH
+            9wgA5+Y=
+            -----END CERTIFICATE-----
+            """),
+        privkey=strip("""
+            -----BEGIN RSA PRIVATE KEY-----
+            MIIEoQIBAAKCAQEArz3BaYcOSWuu89ty+GAmE4DXcOHlYexB8szqZn91Rob8f1LT
+            TFTh+w3H/iO0BMsbUHgYmRznE4YK/5P8KwGzI3U4UUvMicUWYI+/S4vdqSpCW4Sx
+            rAXk7sPJQYbcMp/ObxGa7UzlhI5Vxxy5c9Th4kgH2AoSBo3pz7ubE/vjtQALNeW/
+            9EkwcZK2RxlYpglOqhFqgT2FXBmKl3W/dJm7LmORgHQM1AQhkB/0S2QJfJXnU/rs
+            5HIB3Bd9IFE+SJOSrOJf1bfguiOdmNEuGgpE9/FzGCjIgYe186YyVJ0dKVuU2Et+
+            8Kup51RbDUXmjCpmzlqdV+cBI6ESag6x7Vb4wwIDAQABAoIBAHfXwPS9Mw0NAoms
+            kzS+9Gs0GqINKoTMQNGeR9Mu6XIBEJ62cuBp0F2TsCjiG9OHXzep2hCkDndwnQbq
+            GnMC55KhMJGQR+IUEdiZldZBYaa1ysmxtpwRL94FsRYJ9377gP6+SHhutSvw90KD
+            J2TKumu4nPym7mrjFHpHL6f8BF6b9dJftE2o27TX04+39kPiX4d+4CLfG7YFteYR
+            98qYHwAk58+s3jJxk7gaDehb0PvOIma02eLF7dNA7h0BtB2h2rfPLNlgKv2MN7k3
+            NxRHwXEzSCfK8rL8yxQLo4gOy3up+LU7LRERBIkpOyS5tkKcIGoG1w5zEB4sqJZC
+            Me2ZbUkCgYEA4RGHtfYkecTIBwSCgdCqJYa1zEr35xbgqxOWF7DfjjMwfxeitdh+
+            U487SpDpoH68Rl/pnqQcHToQWRfLGXv0NZxsQDH5UulK2dLy2JfQSlFMWc0rQ210
+            v8F35GXohB3vi4Tfrl8wrkEBbCBoZDmp7MPZEGVGb0KVl+gU2u19CwUCgYEAx1Mt
+            w6M8+bj3ZQ9Va9tcHSk9IVRKx0fklWY0/cmoGw5P2q/Yudd3CGupINGEA/lHqqW3
+            boxfdneYijOmTQO9/od3/NQRDdTrCRKOautts5zeJw7fUvls5/Iip5ZryR5mYqEz
+            Q/yMffzZPYVPXR0E/HEnCjf8Vs+0dDa2QwAhDycCf0j4ZgeYxjq0kiW0UJvGC2Qf
+            SNHzfGxv/md48jC8J77y2cZa42YRyuNMjOygDx75+BDZB+VnT7YqHSLFlBOvHH5F
+            ONOXYD6BZMM6oYGXtvBha1+yJVS3KCMDltt2LuymyAN0ERF3y1CzwsJLv4y/JVie
+            JsIqE6v+6oFVvW09kk0CgYEAuazRL7ILJfDYfAqJnxxLNVrp9/cmZXaiB02bRWIp
+            N3Lgji1KbOu6lVx8wvaIzI7U5LDUK6WVc6y6qtqsKoe237hf3GPLsx/JBb2EbzL6
+            ENuq0aV4AToZ6gLTp1tm8oVgCLZzI/zI/r+fukBJispyj5n0LP+0D0YSqkMhC06+
+            fPcCgYB85vDLHorvbb8CYcIOvJxogMjXVasOfSLqtCkzICg4i6qCmLkXbs0qmDIz
+            bIpIFzUdXu3tu+gPV6ab9dPmpj1M77yu7+QLL7zRy/1/EJaY/tFjWzcuF5tP7jKT
+            UZCMWuBXFwTbeSQHESs5IWpSDxBGJbSNFmCeyo52Dw/fSYxUEg==
+            -----END RSA PRIVATE KEY-----
+        """)
+    ),
+
+    Cert(
         names=["ratelimit.datawire.io"],
         pubcert=strip("""
             -----BEGIN CERTIFICATE-----
