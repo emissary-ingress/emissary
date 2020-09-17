@@ -163,7 +163,7 @@ $(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
 	  find "$$tmpdir" -name '*.bak' -delete; \
 	  mv "$$tmpdir" $(abspath $@); \
 	}
-	cd $(OSS_HOME) && go fmt ./pkg/envoy-control-plane/...
+	cd $(OSS_HOME) && gofmt -w -s ./pkg/envoy-control-plane/
 
 #
 # `make generate` protobuf rules

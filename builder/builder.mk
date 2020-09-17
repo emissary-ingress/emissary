@@ -616,4 +616,9 @@ define _help.targets
   $(BLD)$(MAKE) $(BLU)go-mod-tidy$(END) -- 'go mod tidy', but plays nice with 'make generate'
 
   $(BLD)$(MAKE) $(BLU)guess-envoy-go-control-plane-commit$(END) -- Make a suggestion for setting ENVOY_GO_CONTROL_PLANE_COMMIT= in generate.mk
+
+  $(BLD)$(MAKE) $(BLU)lint$(END)        -- runs golangci-lint.
+
+  $(BLD)$(MAKE) $(BLU)format$(END)      -- runs golangci-lint with --fix.
+
 endef
