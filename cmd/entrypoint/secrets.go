@@ -114,6 +114,11 @@ func traverseSecretRefs(resource kates.Object, secretNamespacing bool, action fu
 		if r.Spec.TLS != nil {
 			secretRef(r.GetNamespace(), r.Spec.TLS.CASecret, false, action)
 		}
+		// Host.spec.tlsSecret and Host.spec.acmeProvider.privateKeySecret are native-Kubernetes-style
+		// `core.v1.LocalObjectReference`s, not Ambassador-style `{name}.{namespace}` strings.  If we
+		// ever decide that they should support cross-namespace references, we would do it by adding a
+		// `namespace:` field (i.e. changing them to `core.v1.SecretReference`s) rather than by
+		// adopting the `{name}.{namespace}` notation.
 		if r.Spec.TLSSecret != nil && r.Spec.TLSSecret.Name != "" {
 			secretRef(r.GetNamespace(), r.Spec.TLSSecret.Name, false, action)
 		}
