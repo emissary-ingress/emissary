@@ -57,6 +57,14 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 (no changes yet)
 
+## [1.7.2] September 16, 2020
+[1.7.2]: https://github.com/datawire/ambassador/compare/v1.7.1...v1.7.2
+
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Bugfix: A regression introduced in 1.7.0 with the various Host.spec.insecure.action behaviors, including handling of X-Forwarded-Proto, has been fixed.
+- Bugfix: Host resources no longer perform secret namespacing when the AMBASSADOR_FAST_RECONFIGURE flag is enabled.
+
 ## [1.7.1] September 08, 2020
 [1.7.1]: https://github.com/datawire/ambassador/compare/v1.7.0...v1.7.1
 

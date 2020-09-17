@@ -19,6 +19,7 @@
         "enable_ipv6": false,
         "envoy_log_path": "/dev/fd/1",
         "envoy_log_type": "text",
+        "envoy_validation_timeout": 60,
         "kind": "IRAmbassador",
         "liveness_probe": {
             "enabled": true,
@@ -48,6 +49,7 @@
     "clusters": {
         "cluster_127_0_0_1_8877_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_127_0_0_1_8877_plain_namespace",
             "_errored": false,
             "_hostname": "127.0.0.1",
             "_is_sidecar": false,
@@ -83,6 +85,7 @@
         },
         "cluster_echo_websocket_org_80_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_echo_websocket_org_80_plain_namespace",
             "_errored": false,
             "_hostname": "echo.websocket.org",
             "_is_sidecar": false,
@@ -120,6 +123,7 @@
         },
         "cluster_http___httpbin_org_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___httpbin_org_plain_namespace",
             "_errored": false,
             "_hostname": "httpbin.org",
             "_is_sidecar": false,
@@ -158,6 +162,7 @@
         },
         "cluster_http___plain_addreqheadersmapping_grpc_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_addreqheadersmapping_grpc_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-addreqheadersmapping-grpc-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -193,6 +198,7 @@
         },
         "cluster_http___plain_addreqheadersmapping_http_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_addreqheadersmapping_http_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-addreqheadersmapping-http-http.plain-namespace",
             "_is_sidecar": false,
@@ -228,6 +234,7 @@
         },
         "cluster_http___plain_canarydiffmapping_grpc_0_grpc_canary_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_0_grpc_canary_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace",
             "_is_sidecar": false,
@@ -264,6 +271,7 @@
         },
         "cluster_http___plain_canarydiffmapping_grpc_0_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_0_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-grpc-0-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -300,6 +308,7 @@
         },
         "cluster_http___plain_canarydiffmapping_grpc_100_grpc_canary_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_100_grpc_canary_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-grpc-100-grpc-canary.plain-namespace",
             "_is_sidecar": false,
@@ -336,6 +345,7 @@
         },
         "cluster_http___plain_canarydiffmapping_grpc_100_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_100_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-grpc-100-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -372,6 +382,7 @@
         },
         "cluster_http___plain_canarydiffmapping_grpc_10_grpc_canary_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_10_grpc_canary_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-grpc-10-grpc-canary.plain-namespace",
             "_is_sidecar": false,
@@ -408,6 +419,7 @@
         },
         "cluster_http___plain_canarydiffmapping_grpc_10_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_10_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-grpc-10-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -444,6 +456,7 @@
         },
         "cluster_http___plain_canarydiffmapping_grpc_50_grpc_canary_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_50_grpc_canary_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-grpc-50-grpc-canary.plain-namespace",
             "_is_sidecar": false,
@@ -480,6 +493,7 @@
         },
         "cluster_http___plain_canarydiffmapping_grpc_50_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_50_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-grpc-50-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -516,6 +530,7 @@
         },
         "cluster_http___plain_canarydiffmapping_http_0_http_canary_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_http_0_http_canary_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-http-0-http-canary.plain-namespace",
             "_is_sidecar": false,
@@ -552,6 +567,7 @@
         },
         "cluster_http___plain_canarydiffmapping_http_0_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_http_0_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-http-0-http.plain-namespace",
             "_is_sidecar": false,
@@ -588,6 +604,7 @@
         },
         "cluster_http___plain_canarydiffmapping_http_100_http_canary_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_http_100_http_canary_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-http-100-http-canary.plain-namespace",
             "_is_sidecar": false,
@@ -624,6 +641,7 @@
         },
         "cluster_http___plain_canarydiffmapping_http_100_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_http_100_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-http-100-http.plain-namespace",
             "_is_sidecar": false,
@@ -660,6 +678,7 @@
         },
         "cluster_http___plain_canarydiffmapping_http_10_http_canary_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_http_10_http_canary_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-http-10-http-canary.plain-namespace",
             "_is_sidecar": false,
@@ -696,6 +715,7 @@
         },
         "cluster_http___plain_canarydiffmapping_http_10_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_http_10_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-http-10-http.plain-namespace",
             "_is_sidecar": false,
@@ -732,6 +752,7 @@
         },
         "cluster_http___plain_canarydiffmapping_http_50_http_canary_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_http_50_http_canary_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-http-50-http-canary.plain-namespace",
             "_is_sidecar": false,
@@ -768,6 +789,7 @@
         },
         "cluster_http___plain_canarydiffmapping_http_50_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_http_50_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarydiffmapping-http-50-http.plain-namespace",
             "_is_sidecar": false,
@@ -804,6 +826,7 @@
         },
         "cluster_http___plain_canarymapping_grpc_0_grpc_canary_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarymapping_grpc_0_grpc_canary_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarymapping-grpc-0-grpc-canary.plain-namespace",
             "_is_sidecar": false,
@@ -839,6 +862,7 @@
         },
         "cluster_http___plain_canarymapping_grpc_0_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarymapping_grpc_0_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarymapping-grpc-0-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -874,6 +898,7 @@
         },
         "cluster_http___plain_canarymapping_grpc_100_grpc_canary_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarymapping_grpc_100_grpc_canary_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarymapping-grpc-100-grpc-canary.plain-namespace",
             "_is_sidecar": false,
@@ -909,6 +934,7 @@
         },
         "cluster_http___plain_canarymapping_grpc_100_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarymapping_grpc_100_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarymapping-grpc-100-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -944,6 +970,7 @@
         },
         "cluster_http___plain_canarymapping_grpc_10_grpc_canary_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarymapping_grpc_10_grpc_canary_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarymapping-grpc-10-grpc-canary.plain-namespace",
             "_is_sidecar": false,
@@ -979,6 +1006,7 @@
         },
         "cluster_http___plain_canarymapping_grpc_10_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarymapping_grpc_10_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarymapping-grpc-10-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -1014,6 +1042,7 @@
         },
         "cluster_http___plain_canarymapping_grpc_50_grpc_canary_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarymapping_grpc_50_grpc_canary_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarymapping-grpc-50-grpc-canary.plain-namespace",
             "_is_sidecar": false,
@@ -1049,6 +1078,7 @@
         },
         "cluster_http___plain_canarymapping_grpc_50_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarymapping_grpc_50_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarymapping-grpc-50-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -1084,6 +1114,7 @@
         },
         "cluster_http___plain_canarymapping_http_0_http_canary_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarymapping_http_0_http_canary_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarymapping-http-0-http-canary.plain-namespace",
             "_is_sidecar": false,
@@ -1119,6 +1150,7 @@
         },
         "cluster_http___plain_canarymapping_http_0_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarymapping_http_0_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarymapping-http-0-http.plain-namespace",
             "_is_sidecar": false,
@@ -1154,6 +1186,7 @@
         },
         "cluster_http___plain_canarymapping_http_100_http_canary_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarymapping_http_100_http_canary_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarymapping-http-100-http-canary.plain-namespace",
             "_is_sidecar": false,
@@ -1189,6 +1222,7 @@
         },
         "cluster_http___plain_canarymapping_http_100_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarymapping_http_100_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarymapping-http-100-http.plain-namespace",
             "_is_sidecar": false,
@@ -1224,6 +1258,7 @@
         },
         "cluster_http___plain_canarymapping_http_10_http_canary_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarymapping_http_10_http_canary_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarymapping-http-10-http-canary.plain-namespace",
             "_is_sidecar": false,
@@ -1259,6 +1294,7 @@
         },
         "cluster_http___plain_canarymapping_http_10_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarymapping_http_10_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarymapping-http-10-http.plain-namespace",
             "_is_sidecar": false,
@@ -1294,6 +1330,7 @@
         },
         "cluster_http___plain_canarymapping_http_50_http_canary_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarymapping_http_50_http_canary_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarymapping-http-50-http-canary.plain-namespace",
             "_is_sidecar": false,
@@ -1329,6 +1366,7 @@
         },
         "cluster_http___plain_canarymapping_http_50_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_canarymapping_http_50_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-canarymapping-http-50-http.plain-namespace",
             "_is_sidecar": false,
@@ -1364,6 +1402,7 @@
         },
         "cluster_http___plain_headerroutingtest_grpc_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_headerroutingtest_grpc_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-headerroutingtest-grpc-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -1399,6 +1438,7 @@
         },
         "cluster_http___plain_headerroutingtest_grpc_grpc_target2_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_headerroutingtest_grpc_grpc_target2_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-headerroutingtest-grpc-grpc-target2.plain-namespace",
             "_is_sidecar": false,
@@ -1434,6 +1474,7 @@
         },
         "cluster_http___plain_headerroutingtest_http_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_headerroutingtest_http_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-headerroutingtest-http-http.plain-namespace",
             "_is_sidecar": false,
@@ -1469,6 +1510,7 @@
         },
         "cluster_http___plain_headerroutingtest_http_http_target2_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_headerroutingtest_http_http_target2_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-headerroutingtest-http-http-target2.plain-namespace",
             "_is_sidecar": false,
@@ -1504,6 +1546,7 @@
         },
         "cluster_http___plain_hostheadermapping_grpc_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_hostheadermapping_grpc_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-hostheadermapping-grpc-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -1539,6 +1582,7 @@
         },
         "cluster_http___plain_hostheadermapping_http_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_hostheadermapping_http_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-hostheadermapping-http-http.plain-namespace",
             "_is_sidecar": false,
@@ -1574,6 +1618,7 @@
         },
         "cluster_http___plain_invalidportmapping_grpc_grpc_plain_namespace_80_invalid_plain_namespace": {
             "_active": false,
+            "_cache_key": "Cluster-cluster_http___plain_invalidportmapping_grpc_grpc_plain_namespace_80_invalid_plain_namespace",
             "_errored": false,
             "_hostname": "plain-invalidportmapping-grpc-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -1602,6 +1647,7 @@
         },
         "cluster_http___plain_invalidportmapping_http_http_plain_namespace_80_invalid_plain_namespace": {
             "_active": false,
+            "_cache_key": "Cluster-cluster_http___plain_invalidportmapping_http_http_plain_namespace_80_invalid_plain_namespace",
             "_errored": false,
             "_hostname": "plain-invalidportmapping-http-http.plain-namespace",
             "_is_sidecar": false,
@@ -1630,6 +1676,7 @@
         },
         "cluster_http___plain_simpleingresswithannotations_grpc_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simpleingresswithannotations_grpc_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simpleingresswithannotations-grpc-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -1665,6 +1712,7 @@
         },
         "cluster_http___plain_simpleingresswithannotations_http_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simpleingresswithannotations_http_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simpleingresswithannotations-http-http.plain-namespace",
             "_is_sidecar": false,
@@ -1700,6 +1748,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_addrequestheaders_aoo_tyu_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addrequestheaders_aoo_tyu_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -1735,6 +1784,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_addrequestheaders_foo_bar_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addrequestheaders_foo_bar_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -1770,6 +1820,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_addrequestheaders_moo_arf_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addrequestheaders_moo_arf_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -1805,6 +1856,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_addrequestheaders_xoo_dwe_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addrequestheaders_xoo_dwe_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -1840,6 +1892,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_addrequestheaders_zoo_bar_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addrequestheaders_zoo_bar_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -1875,6 +1928,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_addresponseheaders_aoo_tyu_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addresponseheaders_aoo_tyu_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -1910,6 +1964,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_addresponseheaders_foo_bar_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addresponseheaders_foo_bar_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -1945,6 +2000,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_addresponseheaders_moo_arf_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addresponseheaders_moo_arf_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -1980,6 +2036,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_addresponseheaders_xoo_dwe_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addresponseheaders_xoo_dwe_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -2015,6 +2072,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_addresponseheaders_zoo_bar_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addresponseheaders_zoo_bar_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -2050,6 +2108,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_all_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_all_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-all-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -2085,6 +2144,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_autohostrewrite_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_autohostrewrite_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -2120,6 +2180,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_casesensitive_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_casesensitive_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-casesensitive-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -2155,6 +2216,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_cors_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_cors_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-cors-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -2190,6 +2252,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -2225,6 +2288,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_removeresponseheaders_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_removeresponseheaders_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -2260,6 +2324,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_rewrite_foo_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_rewrite_foo_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -2295,6 +2360,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_rewrite_slash_foo_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_rewrite_slash_foo_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -2330,6 +2396,7 @@
         },
         "cluster_http___plain_simplemapping_grpc_usewebsocket_grpc_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_usewebsocket_grpc_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -2365,6 +2432,7 @@
         },
         "cluster_http___plain_simplemapping_http_addrequestheaders_aoo_tyu_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addrequestheaders_aoo_tyu_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace",
             "_is_sidecar": false,
@@ -2400,6 +2468,7 @@
         },
         "cluster_http___plain_simplemapping_http_addrequestheaders_foo_bar_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addrequestheaders_foo_bar_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace",
             "_is_sidecar": false,
@@ -2435,6 +2504,7 @@
         },
         "cluster_http___plain_simplemapping_http_addrequestheaders_moo_arf_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addrequestheaders_moo_arf_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace",
             "_is_sidecar": false,
@@ -2470,6 +2540,7 @@
         },
         "cluster_http___plain_simplemapping_http_addrequestheaders_xoo_dwe_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addrequestheaders_xoo_dwe_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace",
             "_is_sidecar": false,
@@ -2505,6 +2576,7 @@
         },
         "cluster_http___plain_simplemapping_http_addrequestheaders_zoo_bar_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addrequestheaders_zoo_bar_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace",
             "_is_sidecar": false,
@@ -2540,6 +2612,7 @@
         },
         "cluster_http___plain_simplemapping_http_addresponseheaders_aoo_tyu_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addresponseheaders_aoo_tyu_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace",
             "_is_sidecar": false,
@@ -2575,6 +2648,7 @@
         },
         "cluster_http___plain_simplemapping_http_addresponseheaders_foo_bar_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addresponseheaders_foo_bar_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace",
             "_is_sidecar": false,
@@ -2610,6 +2684,7 @@
         },
         "cluster_http___plain_simplemapping_http_addresponseheaders_moo_arf_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addresponseheaders_moo_arf_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace",
             "_is_sidecar": false,
@@ -2645,6 +2720,7 @@
         },
         "cluster_http___plain_simplemapping_http_addresponseheaders_xoo_dwe_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addresponseheaders_xoo_dwe_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace",
             "_is_sidecar": false,
@@ -2680,6 +2756,7 @@
         },
         "cluster_http___plain_simplemapping_http_addresponseheaders_zoo_bar_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addresponseheaders_zoo_bar_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace",
             "_is_sidecar": false,
@@ -2715,6 +2792,7 @@
         },
         "cluster_http___plain_simplemapping_http_all_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_all_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-all-http.plain-namespace",
             "_is_sidecar": false,
@@ -2750,6 +2828,7 @@
         },
         "cluster_http___plain_simplemapping_http_autohostrewrite_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_autohostrewrite_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-autohostrewrite-http.plain-namespace",
             "_is_sidecar": false,
@@ -2785,6 +2864,7 @@
         },
         "cluster_http___plain_simplemapping_http_casesensitive_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_casesensitive_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-casesensitive-http.plain-namespace",
             "_is_sidecar": false,
@@ -2820,6 +2900,7 @@
         },
         "cluster_http___plain_simplemapping_http_cors_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_cors_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-cors-http.plain-namespace",
             "_is_sidecar": false,
@@ -2855,6 +2936,7 @@
         },
         "cluster_http___plain_simplemapping_http_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-http.plain-namespace",
             "_is_sidecar": false,
@@ -2890,6 +2972,7 @@
         },
         "cluster_http___plain_simplemapping_http_removeresponseheaders_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_removeresponseheaders_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-removeresponseheaders-http.plain-namespace",
             "_is_sidecar": false,
@@ -2925,6 +3008,7 @@
         },
         "cluster_http___plain_simplemapping_http_rewrite_foo_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_rewrite_foo_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-rewrite-foo-http.plain-namespace",
             "_is_sidecar": false,
@@ -2960,6 +3044,7 @@
         },
         "cluster_http___plain_simplemapping_http_rewrite_slash_foo_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_rewrite_slash_foo_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace",
             "_is_sidecar": false,
@@ -2995,6 +3080,7 @@
         },
         "cluster_http___plain_simplemapping_http_usewebsocket_http_plain_namespace_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_usewebsocket_http_plain_namespace_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemapping-http-usewebsocket-http.plain-namespace",
             "_is_sidecar": false,
@@ -3030,6 +3116,7 @@
         },
         "cluster_https___plain_tlsorigination_grpc_implicit_grpc_plain_namespace_otls_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_https___plain_tlsorigination_grpc_implicit_grpc_plain_namespace_otls_plain_namespace",
             "_errored": false,
             "_hostname": "plain-tlsorigination-grpc-implicit-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -3081,6 +3168,7 @@
         },
         "cluster_https___plain_tlsorigination_http_implicit_http_plain_namespace_otls_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_https___plain_tlsorigination_http_implicit_http_plain_namespace_otls_plain_namespace",
             "_errored": false,
             "_hostname": "plain-tlsorigination-http-implicit-http.plain-namespace",
             "_is_sidecar": false,
@@ -3132,6 +3220,7 @@
         },
         "cluster_plain_hostheadermappingingress_grpc_grpc_plain_namespace_80_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_plain_hostheadermappingingress_grpc_grpc_plain_namespace_80_plain_namespace",
             "_errored": false,
             "_hostname": "plain-hostheadermappingingress-grpc-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -3167,6 +3256,7 @@
         },
         "cluster_plain_hostheadermappingingress_http_http_plain_namespace_80_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_plain_hostheadermappingingress_http_http_plain_namespace_80_plain_namespace",
             "_errored": false,
             "_hostname": "plain-hostheadermappingingress-http-http.plain-namespace",
             "_is_sidecar": false,
@@ -3202,6 +3292,7 @@
         },
         "cluster_plain_simpleingresswithannotations_grpc_grpc_plain_namespace_80_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_plain_simpleingresswithannotations_grpc_grpc_plain_namespace_80_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simpleingresswithannotations-grpc-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -3237,6 +3328,7 @@
         },
         "cluster_plain_simpleingresswithannotations_http_http_plain_namespace_80_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_plain_simpleingresswithannotations_http_http_plain_namespace_80_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simpleingresswithannotations-http-http.plain-namespace",
             "_is_sidecar": false,
@@ -3272,6 +3364,7 @@
         },
         "cluster_plain_simplemappingingress_grpc_grpc_plain_namespace_80_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_plain_simplemappingingress_grpc_grpc_plain_namespace_80_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemappingingress-grpc-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -3307,6 +3400,7 @@
         },
         "cluster_plain_simplemappingingress_http_http_plain_namespace_80_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_plain_simplemappingingress_http_http_plain_namespace_80_plain_namespace",
             "_errored": false,
             "_hostname": "plain-simplemappingingress-http-http.plain-namespace",
             "_is_sidecar": false,
@@ -3342,6 +3436,7 @@
         },
         "cluster_plain_tlsorigination_grpc_explicit_grpc_plain_namespace_otls_no_cert_upstream_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_plain_tlsorigination_grpc_explicit_grpc_plain_namespace_otls_no_cert_upstream_plain_namespace",
             "_errored": false,
             "_hostname": "plain-tlsorigination-grpc-explicit-grpc.plain-namespace",
             "_is_sidecar": false,
@@ -3393,6 +3488,7 @@
         },
         "cluster_plain_tlsorigination_http_explicit_http_plain_namespace_otls_no_cert_upstream_plain_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_plain_tlsorigination_http_explicit_http_plain_namespace_otls_no_cert_upstream_plain_namespace",
             "_errored": false,
             "_hostname": "plain-tlsorigination-http-explicit-http.plain-namespace",
             "_is_sidecar": false,
@@ -3496,6 +3592,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-AddResponseHeaders-zoo-bar-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace.1",
                     "add_request_headers": {},
@@ -3507,6 +3604,7 @@
                     },
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addresponseheaders_zoo_bar_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace",
                         "_is_sidecar": false,
@@ -3540,6 +3638,7 @@
                             "tcp://plain-simplemapping-http-addresponseheaders-zoo-bar-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_addresponseheaders_zoo_bar_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "49126e9740c2df8876c6a8ae04e6e5dfef9db870",
                     "headers": [],
@@ -3612,6 +3711,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-AddResponseHeaders-xoo-dwe-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace.1",
                     "add_request_headers": {},
@@ -3623,6 +3723,7 @@
                     },
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addresponseheaders_xoo_dwe_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace",
                         "_is_sidecar": false,
@@ -3656,6 +3757,7 @@
                             "tcp://plain-simplemapping-http-addresponseheaders-xoo-dwe-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_addresponseheaders_xoo_dwe_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "4aae2585cb03b25b4fe7a5caf91014a4469c698a",
                     "headers": [],
@@ -3725,6 +3827,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-AddResponseHeaders-moo-arf-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace.1",
                     "add_request_headers": {},
@@ -3733,6 +3836,7 @@
                     },
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addresponseheaders_moo_arf_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace",
                         "_is_sidecar": false,
@@ -3766,6 +3870,7 @@
                             "tcp://plain-simplemapping-http-addresponseheaders-moo-arf-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_addresponseheaders_moo_arf_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "b2eff4d89afaca913787879312ebebe063a5bbe4",
                     "headers": [],
@@ -3835,6 +3940,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-AddResponseHeaders-foo-bar-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace.1",
                     "add_request_headers": {},
@@ -3843,6 +3949,7 @@
                     },
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addresponseheaders_foo_bar_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace",
                         "_is_sidecar": false,
@@ -3876,6 +3983,7 @@
                             "tcp://plain-simplemapping-http-addresponseheaders-foo-bar-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_addresponseheaders_foo_bar_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "119984eba681273308def88ca539a745b4889d2c",
                     "headers": [],
@@ -3947,6 +4055,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-AddResponseHeaders-aoo-tyu-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace.1",
                     "add_request_headers": {},
@@ -3957,6 +4066,7 @@
                     },
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addresponseheaders_aoo_tyu_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace",
                         "_is_sidecar": false,
@@ -3990,6 +4100,7 @@
                             "tcp://plain-simplemapping-http-addresponseheaders-aoo-tyu-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_addresponseheaders_aoo_tyu_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "4d316b8e9e28ff7bb44f05e5c55338d45d8ab313",
                     "headers": [],
@@ -4062,6 +4173,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-AddResponseHeaders-zoo-bar-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace.1",
                     "add_request_headers": {},
@@ -4073,6 +4185,7 @@
                     },
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addresponseheaders_zoo_bar_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -4106,6 +4219,7 @@
                             "tcp://plain-simplemapping-grpc-addresponseheaders-zoo-bar-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_addresponseheaders_zoo_bar_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "2ec15adbb9ea7de92174e47a4e9cf36c6c052271",
                     "headers": [],
@@ -4178,6 +4292,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-AddResponseHeaders-xoo-dwe-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace.1",
                     "add_request_headers": {},
@@ -4189,6 +4304,7 @@
                     },
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addresponseheaders_xoo_dwe_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -4222,6 +4338,7 @@
                             "tcp://plain-simplemapping-grpc-addresponseheaders-xoo-dwe-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_addresponseheaders_xoo_dwe_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "199f64a3222e0e4114bb21d357502c1d249e63ca",
                     "headers": [],
@@ -4291,6 +4408,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-AddResponseHeaders-moo-arf-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace.1",
                     "add_request_headers": {},
@@ -4299,6 +4417,7 @@
                     },
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addresponseheaders_moo_arf_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -4332,6 +4451,7 @@
                             "tcp://plain-simplemapping-grpc-addresponseheaders-moo-arf-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_addresponseheaders_moo_arf_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "ca38bf3841ee7cfb451cb1f5c89de1ba618f0a3e",
                     "headers": [],
@@ -4401,6 +4521,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-AddResponseHeaders-foo-bar-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace.1",
                     "add_request_headers": {},
@@ -4409,6 +4530,7 @@
                     },
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addresponseheaders_foo_bar_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -4442,6 +4564,7 @@
                             "tcp://plain-simplemapping-grpc-addresponseheaders-foo-bar-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_addresponseheaders_foo_bar_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "d0d3cdc3ff8a1de173380bbb312d5e2b544ba022",
                     "headers": [],
@@ -4513,6 +4636,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-AddResponseHeaders-aoo-tyu-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace.1",
                     "add_request_headers": {},
@@ -4523,6 +4647,7 @@
                     },
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addresponseheaders_aoo_tyu_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -4556,6 +4681,7 @@
                             "tcp://plain-simplemapping-grpc-addresponseheaders-aoo-tyu-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_addresponseheaders_aoo_tyu_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "94b115a2d87697f9722a39318584c284adaf0611",
                     "headers": [],
@@ -4628,6 +4754,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-AddRequestHeaders-zoo-bar-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace.1",
                     "add_request_headers": {
@@ -4639,6 +4766,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addrequestheaders_zoo_bar_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace",
                         "_is_sidecar": false,
@@ -4672,6 +4800,7 @@
                             "tcp://plain-simplemapping-http-addrequestheaders-zoo-bar-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_addrequestheaders_zoo_bar_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "1d03608b1f043160f7ee4cf2e393d5c5d318ba9e",
                     "headers": [],
@@ -4744,6 +4873,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-AddRequestHeaders-xoo-dwe-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace.1",
                     "add_request_headers": {
@@ -4755,6 +4885,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addrequestheaders_xoo_dwe_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace",
                         "_is_sidecar": false,
@@ -4788,6 +4919,7 @@
                             "tcp://plain-simplemapping-http-addrequestheaders-xoo-dwe-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_addrequestheaders_xoo_dwe_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "8dd60d9aa5dee1f36c89156bc93118146bfdc3d7",
                     "headers": [],
@@ -4857,6 +4989,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-AddRequestHeaders-moo-arf-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace.1",
                     "add_request_headers": {
@@ -4865,6 +4998,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addrequestheaders_moo_arf_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace",
                         "_is_sidecar": false,
@@ -4898,6 +5032,7 @@
                             "tcp://plain-simplemapping-http-addrequestheaders-moo-arf-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_addrequestheaders_moo_arf_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "0098ecc126cfece06377359ae9862b0240d4e8c7",
                     "headers": [],
@@ -4967,6 +5102,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-AddRequestHeaders-foo-bar-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace.1",
                     "add_request_headers": {
@@ -4975,6 +5111,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addrequestheaders_foo_bar_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace",
                         "_is_sidecar": false,
@@ -5008,6 +5145,7 @@
                             "tcp://plain-simplemapping-http-addrequestheaders-foo-bar-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_addrequestheaders_foo_bar_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "4979b35e4c7de2c696d579dd42eada70fe4c8be0",
                     "headers": [],
@@ -5079,6 +5217,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-AddRequestHeaders-aoo-tyu-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace.1",
                     "add_request_headers": {
@@ -5089,6 +5228,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_addrequestheaders_aoo_tyu_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace",
                         "_is_sidecar": false,
@@ -5122,6 +5262,7 @@
                             "tcp://plain-simplemapping-http-addrequestheaders-aoo-tyu-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_addrequestheaders_aoo_tyu_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "c6023bc4e22f35ae098eb1320c393cbc4047f03b",
                     "headers": [],
@@ -5194,6 +5335,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-AddRequestHeaders-zoo-bar-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace.1",
                     "add_request_headers": {
@@ -5205,6 +5347,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addrequestheaders_zoo_bar_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -5238,6 +5381,7 @@
                             "tcp://plain-simplemapping-grpc-addrequestheaders-zoo-bar-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_addrequestheaders_zoo_bar_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "c487e4e6b9b85c21389691855eebf0dfb1188a3f",
                     "headers": [],
@@ -5310,6 +5454,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-AddRequestHeaders-xoo-dwe-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace.1",
                     "add_request_headers": {
@@ -5321,6 +5466,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addrequestheaders_xoo_dwe_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -5354,6 +5500,7 @@
                             "tcp://plain-simplemapping-grpc-addrequestheaders-xoo-dwe-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_addrequestheaders_xoo_dwe_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "487bad87e928b589a8580a601a1fe26e61cd87fd",
                     "headers": [],
@@ -5423,6 +5570,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-AddRequestHeaders-moo-arf-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace.1",
                     "add_request_headers": {
@@ -5431,6 +5579,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addrequestheaders_moo_arf_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -5464,6 +5613,7 @@
                             "tcp://plain-simplemapping-grpc-addrequestheaders-moo-arf-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_addrequestheaders_moo_arf_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "c9042937a997268f1f046fa9797cd269c7f87415",
                     "headers": [],
@@ -5533,6 +5683,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-AddRequestHeaders-foo-bar-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace.1",
                     "add_request_headers": {
@@ -5541,6 +5692,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addrequestheaders_foo_bar_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -5574,6 +5726,7 @@
                             "tcp://plain-simplemapping-grpc-addrequestheaders-foo-bar-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_addrequestheaders_foo_bar_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "ceb529cd12150bc8400d3413ae8799fc4dd91b4b",
                     "headers": [],
@@ -5645,6 +5798,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-AddRequestHeaders-aoo-tyu-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace.1",
                     "add_request_headers": {
@@ -5655,6 +5809,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_addrequestheaders_aoo_tyu_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -5688,6 +5843,7 @@
                             "tcp://plain-simplemapping-grpc-addrequestheaders-aoo-tyu-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_addrequestheaders_aoo_tyu_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "20300692fe7aad221e63395ec638cfda9cc6ae7b",
                     "headers": [],
@@ -5754,12 +5910,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-RemoveResponseHeaders-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-removeresponseheaders-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_removeresponseheaders_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-removeresponseheaders-http.plain-namespace",
                         "_is_sidecar": false,
@@ -5793,6 +5951,7 @@
                             "tcp://plain-simplemapping-http-removeresponseheaders-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_removeresponseheaders_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "c8dfbdb289f47a0998eaaa2f797fa3a3dd685cee",
                     "headers": [],
@@ -5861,12 +6020,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-RemoveResponseHeaders-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_removeresponseheaders_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -5900,6 +6061,7 @@
                             "tcp://plain-simplemapping-grpc-removeresponseheaders-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_removeresponseheaders_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "26d605908ea8a0834fd11391e5f1bd0ffb344c29",
                     "headers": [],
@@ -5968,12 +6130,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleIngressWithAnnotations-HTTP-nested-plain-namespace",
                     "_errored": false,
                     "_rkey": "simpleingresswithannotations-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simpleingresswithannotations_http_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simpleingresswithannotations-http-http.plain-namespace",
                         "_is_sidecar": false,
@@ -6007,6 +6171,7 @@
                             "tcp://plain-simpleingresswithannotations-http-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simpleingresswithannotations_http_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "e4c9f7dd5c71216d2eb35dadb1dad2ed398223e8",
                     "headers": [],
@@ -6073,12 +6238,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleIngressWithAnnotations-GRPC-nested-plain-namespace",
                     "_errored": false,
                     "_rkey": "simpleingresswithannotations-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simpleingresswithannotations_grpc_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simpleingresswithannotations-grpc-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -6112,6 +6279,7 @@
                             "tcp://plain-simpleingresswithannotations-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simpleingresswithannotations_grpc_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "13720e7b8969add2713610b8099ef8059a6ae87a",
                     "headers": [],
@@ -6178,12 +6346,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-Rewrite-SLASH-foo-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_rewrite_slash_foo_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace",
                         "_is_sidecar": false,
@@ -6217,6 +6387,7 @@
                             "tcp://plain-simplemapping-http-rewrite-slash-foo-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_rewrite_slash_foo_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "abe6dbd46ef461050fd5eaac17836f38bf290d31",
                     "headers": [],
@@ -6283,12 +6454,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-Rewrite-SLASH-foo-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_rewrite_slash_foo_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -6322,6 +6495,7 @@
                             "tcp://plain-simplemapping-grpc-rewrite-slash-foo-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_rewrite_slash_foo_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "ff99456b01c7391f21987d1758acd53e6cafe857",
                     "headers": [],
@@ -6389,6 +6563,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-AutoHostRewrite-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-autohostrewrite-http.plain-namespace.1",
                     "add_request_headers": {},
@@ -6396,6 +6571,7 @@
                     "auto_host_rewrite": true,
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_autohostrewrite_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-autohostrewrite-http.plain-namespace",
                         "_is_sidecar": false,
@@ -6429,6 +6605,7 @@
                             "tcp://plain-simplemapping-http-autohostrewrite-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_autohostrewrite_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "d2f92ac6600e0d794afc9a71774689a20494d502",
                     "headers": [],
@@ -6496,6 +6673,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-AutoHostRewrite-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace.1",
                     "add_request_headers": {},
@@ -6503,6 +6681,7 @@
                     "auto_host_rewrite": true,
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_autohostrewrite_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -6536,6 +6715,7 @@
                             "tcp://plain-simplemapping-grpc-autohostrewrite-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_autohostrewrite_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "4d095cff288cd3b680c2a1a5bac5bdad7bb6bb9c",
                     "headers": [],
@@ -6602,12 +6782,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-simpleingresswithannotations-http-0-0-plain-namespace",
                     "_errored": false,
                     "_rkey": "simpleingresswithannotations-http-0-0.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_plain_simpleingresswithannotations_http_http_plain_namespace_80_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simpleingresswithannotations-http-http.plain-namespace",
                         "_is_sidecar": false,
@@ -6641,6 +6823,7 @@
                             "tcp://plain-simpleingresswithannotations-http-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_plain_simpleingresswithannotations_http_http_plain_namespace_80_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "71782c5185ccc675b71f9e3d8439f4221609dd29",
                     "headers": [],
@@ -6711,12 +6894,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-simpleingresswithannotations-grpc-0-0-plain-namespace",
                     "_errored": false,
                     "_rkey": "simpleingresswithannotations-grpc-0-0.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_plain_simpleingresswithannotations_grpc_grpc_plain_namespace_80_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simpleingresswithannotations-grpc-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -6750,6 +6935,7 @@
                             "tcp://plain-simpleingresswithannotations-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_plain_simpleingresswithannotations_grpc_grpc_plain_namespace_80_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "a0b97c69f0802ddc2a0738ca04a84c12028c6021",
                     "headers": [],
@@ -6821,6 +7007,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-CaseSensitive-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-casesensitive-http.plain-namespace.1",
                     "add_request_headers": {},
@@ -6828,6 +7015,7 @@
                     "case_sensitive": false,
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_casesensitive_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-casesensitive-http.plain-namespace",
                         "_is_sidecar": false,
@@ -6861,6 +7049,7 @@
                             "tcp://plain-simplemapping-http-casesensitive-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_casesensitive_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "f00b2f3fe42e6ace4cd13123d2f98f08440bf93c",
                     "headers": [],
@@ -6928,6 +7117,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-CaseSensitive-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-casesensitive-grpc.plain-namespace.1",
                     "add_request_headers": {},
@@ -6935,6 +7125,7 @@
                     "case_sensitive": false,
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_casesensitive_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-casesensitive-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -6968,6 +7159,7 @@
                             "tcp://plain-simplemapping-grpc-casesensitive-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_casesensitive_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "c3684f2f815f3d691ce00382d4e2022c2f28a419",
                     "headers": [],
@@ -7037,6 +7229,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-UseWebsocket-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-usewebsocket-http.plain-namespace.1",
                     "add_request_headers": {},
@@ -7046,6 +7239,7 @@
                     ],
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_usewebsocket_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-usewebsocket-http.plain-namespace",
                         "_is_sidecar": false,
@@ -7079,6 +7273,7 @@
                             "tcp://plain-simplemapping-http-usewebsocket-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_usewebsocket_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "d9ad870bfa328cb4d050228bd28eacd5852c5d62",
                     "headers": [],
@@ -7148,6 +7343,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-UseWebsocket-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace.1",
                     "add_request_headers": {},
@@ -7157,6 +7353,7 @@
                     ],
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_usewebsocket_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -7190,6 +7387,7 @@
                             "tcp://plain-simplemapping-grpc-usewebsocket-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_usewebsocket_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "513210530131791f3e75df96a3efd189a8100301",
                     "headers": [],
@@ -7256,12 +7454,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-Rewrite-foo-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-rewrite-foo-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_rewrite_foo_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-rewrite-foo-http.plain-namespace",
                         "_is_sidecar": false,
@@ -7295,6 +7495,7 @@
                             "tcp://plain-simplemapping-http-rewrite-foo-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_rewrite_foo_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "cda7ce1edcdfe733d14578a2723d0532103fb0d1",
                     "headers": [],
@@ -7361,12 +7562,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-Rewrite-foo-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_rewrite_foo_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -7400,6 +7603,7 @@
                             "tcp://plain-simplemapping-grpc-rewrite-foo-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_rewrite_foo_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "1bdf073bc47620e8823e6ad9dfe5d70fbcc95a0f",
                     "headers": [],
@@ -7473,12 +7677,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-hostheadermappingingress-http-0-0-plain-namespace",
                     "_errored": false,
                     "_rkey": "hostheadermappingingress-http-0-0.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_plain_hostheadermappingingress_http_http_plain_namespace_80_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-hostheadermappingingress-http-http.plain-namespace",
                         "_is_sidecar": false,
@@ -7512,6 +7718,7 @@
                             "tcp://plain-hostheadermappingingress-http-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_plain_hostheadermappingingress_http_http_plain_namespace_80_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "783f0943d0a29cbdcb0e225048845fb76533df37",
                     "headers": [
@@ -7597,12 +7804,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-hostheadermappingingress-grpc-0-0-plain-namespace",
                     "_errored": false,
                     "_rkey": "hostheadermappingingress-grpc-0-0.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_plain_hostheadermappingingress_grpc_grpc_plain_namespace_80_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-hostheadermappingingress-grpc-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -7636,6 +7845,7 @@
                             "tcp://plain-hostheadermappingingress-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_plain_hostheadermappingingress_grpc_grpc_plain_namespace_80_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "e0e1b27f04ab21e176b12c47ed54ee1385ff1b14",
                     "headers": [
@@ -7714,12 +7924,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-TLSOrigination-HTTP-IMPLICIT-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-tlsorigination-http-implicit-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_https___plain_tlsorigination_http_implicit_http_plain_namespace_otls_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-tlsorigination-http-implicit-http.plain-namespace",
                         "_is_sidecar": false,
@@ -7769,6 +7981,7 @@
                             "tcp://plain-tlsorigination-http-implicit-http.plain-namespace:443"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_https___plain_tlsorigination_http_implicit_http_plain_namespace_otls_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "c2d90dbca739f73557893dbd83407cbaaa327a60",
                     "headers": [],
@@ -7835,12 +8048,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-TLSOrigination-HTTP-EXPLICIT-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-tlsorigination-http-explicit-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_plain_tlsorigination_http_explicit_http_plain_namespace_otls_no_cert_upstream_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-tlsorigination-http-explicit-http.plain-namespace",
                         "_is_sidecar": false,
@@ -7890,6 +8105,7 @@
                             "tcp://plain-tlsorigination-http-explicit-http.plain-namespace:443"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_plain_tlsorigination_http_explicit_http_plain_namespace_otls_no_cert_upstream_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "8a4b42e0193d64a2b5f0a2d453fb0b70fe4667a5",
                     "headers": [],
@@ -7958,12 +8174,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-TLSOrigination-GRPC-IMPLICIT-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-tlsorigination-grpc-implicit-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_https___plain_tlsorigination_grpc_implicit_grpc_plain_namespace_otls_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-tlsorigination-grpc-implicit-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -8013,6 +8231,7 @@
                             "tcp://plain-tlsorigination-grpc-implicit-grpc.plain-namespace:443"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_https___plain_tlsorigination_grpc_implicit_grpc_plain_namespace_otls_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "ee9cfcb459ade70db150c32ce39ff12a59788890",
                     "headers": [],
@@ -8079,12 +8298,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-TLSOrigination-GRPC-EXPLICIT-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-tlsorigination-grpc-explicit-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_plain_tlsorigination_grpc_explicit_grpc_plain_namespace_otls_no_cert_upstream_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-tlsorigination-grpc-explicit-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -8134,6 +8355,7 @@
                             "tcp://plain-tlsorigination-grpc-explicit-grpc.plain-namespace:443"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_plain_tlsorigination_grpc_explicit_grpc_plain_namespace_otls_no_cert_upstream_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "2d5713371e99aff43f6b26458948277f173a23d6",
                     "headers": [],
@@ -8202,12 +8424,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-RemoveReqHeadersMapping-HTTP-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-removereqheadersmapping-http-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___httpbin_org_plain_namespace",
                         "_errored": false,
                         "_hostname": "httpbin.org",
                         "_is_sidecar": false,
@@ -8244,6 +8468,7 @@
                             "tcp://httpbin.org:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___httpbin_org_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "cd5c7de237d0b20f1c2ec16b3ac99bbd0703b5e2",
                     "headers": [],
@@ -8318,12 +8543,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-RemoveReqHeadersMapping-GRPC-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-removereqheadersmapping-grpc-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___httpbin_org_plain_namespace",
                         "_errored": false,
                         "_hostname": "httpbin.org",
                         "_is_sidecar": false,
@@ -8360,6 +8587,7 @@
                             "tcp://httpbin.org:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___httpbin_org_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "36dc0ac1ec071f75f3c3955bdb583d42275e7b17",
                     "headers": [],
@@ -8436,12 +8664,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryDiffMapping-HTTP-100-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-http-100-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_http_100_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-http-100-http.plain-namespace",
                         "_is_sidecar": false,
@@ -8476,6 +8706,7 @@
                             "tcp://plain-canarydiffmapping-http-100-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarydiffmapping_http_100_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "856673a71f2bedb89decb235ef32f56e3f54ca65",
                     "headers": [],
@@ -8508,12 +8739,14 @@
                 },
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryDiffMapping-HTTP-100-canary-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-http-100-http-canary.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_http_100_http_canary_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-http-100-http-canary.plain-namespace",
                         "_is_sidecar": false,
@@ -8548,6 +8781,7 @@
                             "tcp://plain-canarydiffmapping-http-100-http-canary.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarydiffmapping_http_100_http_canary_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "856673a71f2bedb89decb235ef32f56e3f54ca65",
                     "headers": [],
@@ -8617,12 +8851,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryDiffMapping-GRPC-100-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-grpc-100-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_100_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-grpc-100-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -8657,6 +8893,7 @@
                             "tcp://plain-canarydiffmapping-grpc-100-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_100_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "f1f18d5e4e41278d965dbae3277e38081b3de69b",
                     "headers": [],
@@ -8689,12 +8926,14 @@
                 },
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryDiffMapping-GRPC-100-canary-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-grpc-100-grpc-canary.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_100_grpc_canary_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-grpc-100-grpc-canary.plain-namespace",
                         "_is_sidecar": false,
@@ -8729,6 +8968,7 @@
                             "tcp://plain-canarydiffmapping-grpc-100-grpc-canary.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_100_grpc_canary_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "f1f18d5e4e41278d965dbae3277e38081b3de69b",
                     "headers": [],
@@ -8810,6 +9050,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-AddRespHeadersMapping-HTTP-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-addrespheadersmapping-http-http.plain-namespace.1",
                     "add_request_headers": {},
@@ -8829,6 +9070,7 @@
                     },
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___httpbin_org_plain_namespace",
                         "_errored": false,
                         "_hostname": "httpbin.org",
                         "_is_sidecar": false,
@@ -8865,6 +9107,7 @@
                             "tcp://httpbin.org:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___httpbin_org_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "5ad5758cd8ecec30abc7114b58e83f5927901b48",
                     "headers": [],
@@ -8945,6 +9188,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-AddRespHeadersMapping-GRPC-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-addrespheadersmapping-grpc-grpc.plain-namespace.1",
                     "add_request_headers": {},
@@ -8964,6 +9208,7 @@
                     },
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___httpbin_org_plain_namespace",
                         "_errored": false,
                         "_hostname": "httpbin.org",
                         "_is_sidecar": false,
@@ -9000,6 +9245,7 @@
                             "tcp://httpbin.org:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___httpbin_org_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "e099c005911a3bb1bed408cf114fc44d58e2a928",
                     "headers": [],
@@ -9066,12 +9312,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-simplemappingingress-http-0-0-plain-namespace",
                     "_errored": false,
                     "_rkey": "simplemappingingress-http-0-0.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_plain_simplemappingingress_http_http_plain_namespace_80_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemappingingress-http-http.plain-namespace",
                         "_is_sidecar": false,
@@ -9105,6 +9353,7 @@
                             "tcp://plain-simplemappingingress-http-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_plain_simplemappingingress_http_http_plain_namespace_80_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "13b7423aafb5036c301fcc0e5e2a27b468bb8d2f",
                     "headers": [],
@@ -9175,12 +9424,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-simplemappingingress-grpc-0-0-plain-namespace",
                     "_errored": false,
                     "_rkey": "simplemappingingress-grpc-0-0.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_plain_simplemappingingress_grpc_grpc_plain_namespace_80_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemappingingress-grpc-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -9214,6 +9465,7 @@
                             "tcp://plain-simplemappingingress-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_plain_simplemappingingress_grpc_grpc_plain_namespace_80_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "0cd81aff9a8f436c841f2b1b0d49d04cd87788e0",
                     "headers": [],
@@ -9286,12 +9538,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryDiffMapping-HTTP-50-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-http-50-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_http_50_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-http-50-http.plain-namespace",
                         "_is_sidecar": false,
@@ -9326,6 +9580,7 @@
                             "tcp://plain-canarydiffmapping-http-50-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarydiffmapping_http_50_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "85d30692fa132340124410a707acb8b1e87872b6",
                     "headers": [],
@@ -9358,12 +9613,14 @@
                 },
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryDiffMapping-HTTP-50-canary-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-http-50-http-canary.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_http_50_http_canary_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-http-50-http-canary.plain-namespace",
                         "_is_sidecar": false,
@@ -9398,6 +9655,7 @@
                             "tcp://plain-canarydiffmapping-http-50-http-canary.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarydiffmapping_http_50_http_canary_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "85d30692fa132340124410a707acb8b1e87872b6",
                     "headers": [],
@@ -9467,12 +9725,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryDiffMapping-HTTP-10-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-http-10-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_http_10_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-http-10-http.plain-namespace",
                         "_is_sidecar": false,
@@ -9507,6 +9767,7 @@
                             "tcp://plain-canarydiffmapping-http-10-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarydiffmapping_http_10_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "604928860e111f828bea1f1945219978fd2e51a5",
                     "headers": [],
@@ -9539,12 +9800,14 @@
                 },
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryDiffMapping-HTTP-10-canary-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-http-10-http-canary.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_http_10_http_canary_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-http-10-http-canary.plain-namespace",
                         "_is_sidecar": false,
@@ -9579,6 +9842,7 @@
                             "tcp://plain-canarydiffmapping-http-10-http-canary.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarydiffmapping_http_10_http_canary_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "604928860e111f828bea1f1945219978fd2e51a5",
                     "headers": [],
@@ -9648,12 +9912,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryDiffMapping-GRPC-50-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-grpc-50-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_50_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-grpc-50-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -9688,6 +9954,7 @@
                             "tcp://plain-canarydiffmapping-grpc-50-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_50_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "eb3f26105dd93aeb3a2ab5d295140198c54e513a",
                     "headers": [],
@@ -9720,12 +9987,14 @@
                 },
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryDiffMapping-GRPC-50-canary-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-grpc-50-grpc-canary.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_50_grpc_canary_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-grpc-50-grpc-canary.plain-namespace",
                         "_is_sidecar": false,
@@ -9760,6 +10029,7 @@
                             "tcp://plain-canarydiffmapping-grpc-50-grpc-canary.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_50_grpc_canary_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "eb3f26105dd93aeb3a2ab5d295140198c54e513a",
                     "headers": [],
@@ -9829,12 +10099,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryDiffMapping-GRPC-10-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-grpc-10-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_10_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-grpc-10-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -9869,6 +10141,7 @@
                             "tcp://plain-canarydiffmapping-grpc-10-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_10_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "82db7319f7f2a5299df11394e1cee265b172af43",
                     "headers": [],
@@ -9901,12 +10174,14 @@
                 },
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryDiffMapping-GRPC-10-canary-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-grpc-10-grpc-canary.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_10_grpc_canary_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-grpc-10-grpc-canary.plain-namespace",
                         "_is_sidecar": false,
@@ -9941,6 +10216,7 @@
                             "tcp://plain-canarydiffmapping-grpc-10-grpc-canary.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_10_grpc_canary_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "82db7319f7f2a5299df11394e1cee265b172af43",
                     "headers": [],
@@ -10022,6 +10298,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-AddReqHeadersMapping-HTTP-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-addreqheadersmapping-http-http.plain-namespace.1",
                     "add_request_headers": {
@@ -10041,6 +10318,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_addreqheadersmapping_http_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-addreqheadersmapping-http-http.plain-namespace",
                         "_is_sidecar": false,
@@ -10074,6 +10352,7 @@
                             "tcp://plain-addreqheadersmapping-http-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_addreqheadersmapping_http_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "1cf9a291ecf6b1e2e9bd2ab118109e8860950344",
                     "headers": [],
@@ -10154,6 +10433,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-AddReqHeadersMapping-GRPC-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-addreqheadersmapping-grpc-grpc.plain-namespace.1",
                     "add_request_headers": {
@@ -10173,6 +10453,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_addreqheadersmapping_grpc_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-addreqheadersmapping-grpc-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -10206,6 +10487,7 @@
                             "tcp://plain-addreqheadersmapping-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_addreqheadersmapping_grpc_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "80c004bc8f2ade322c574ee8ff1003bcdb0ae030",
                     "headers": [],
@@ -10272,6 +10554,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_readiness_probe_mapping-plain-namespace",
                     "_errored": false,
                     "_referenced_by": [
                         "--internal--"
@@ -10281,6 +10564,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_plain_namespace",
                         "_errored": false,
                         "_hostname": "127.0.0.1",
                         "_is_sidecar": false,
@@ -10314,6 +10598,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
@@ -10372,6 +10657,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_liveness_probe_mapping-plain-namespace",
                     "_errored": false,
                     "_referenced_by": [
                         "--internal--"
@@ -10381,6 +10667,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_plain_namespace",
                         "_errored": false,
                         "_hostname": "127.0.0.1",
                         "_is_sidecar": false,
@@ -10414,6 +10701,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
@@ -10474,12 +10762,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryDiffMapping-HTTP-0-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-http-0-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_http_0_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-http-0-http.plain-namespace",
                         "_is_sidecar": false,
@@ -10514,6 +10804,7 @@
                             "tcp://plain-canarydiffmapping-http-0-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarydiffmapping_http_0_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "71ac6b8a342fc515ae67568320f820290aa9ad00",
                     "headers": [],
@@ -10546,12 +10837,14 @@
                 },
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryDiffMapping-HTTP-0-canary-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-http-0-http-canary.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_http_0_http_canary_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-http-0-http-canary.plain-namespace",
                         "_is_sidecar": false,
@@ -10586,6 +10879,7 @@
                             "tcp://plain-canarydiffmapping-http-0-http-canary.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarydiffmapping_http_0_http_canary_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "71ac6b8a342fc515ae67568320f820290aa9ad00",
                     "headers": [],
@@ -10655,12 +10949,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryDiffMapping-GRPC-0-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-grpc-0-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_0_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-grpc-0-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -10695,6 +10991,7 @@
                             "tcp://plain-canarydiffmapping-grpc-0-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_0_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "184265711109e9f1725ec92a73e7b6c2bebe80f3",
                     "headers": [],
@@ -10727,12 +11024,14 @@
                 },
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryDiffMapping-GRPC-0-canary-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_0_grpc_canary_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace",
                         "_is_sidecar": false,
@@ -10767,6 +11066,7 @@
                             "tcp://plain-canarydiffmapping-grpc-0-grpc-canary.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarydiffmapping_grpc_0_grpc_canary_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "184265711109e9f1725ec92a73e7b6c2bebe80f3",
                     "headers": [],
@@ -10848,12 +11148,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-CORS-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-cors-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_cors_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-cors-http.plain-namespace",
                         "_is_sidecar": false,
@@ -10887,6 +11189,7 @@
                             "tcp://plain-simplemapping-http-cors-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_cors_http_plain_namespace_plain_namespace",
                     "cors": {
                         "allow_origin_string_match": [
                             {
@@ -10981,12 +11284,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-CORS-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-cors-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_cors_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-cors-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -11020,6 +11325,7 @@
                             "tcp://plain-simplemapping-grpc-cors-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_cors_grpc_plain_namespace_plain_namespace",
                     "cors": {
                         "allow_origin_string_match": [
                             {
@@ -11100,12 +11406,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-InvalidPortMapping-HTTP-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-invalidportmapping-http-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": false,
+                        "_cache_key": "Cluster-cluster_http___plain_invalidportmapping_http_http_plain_namespace_80_invalid_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-invalidportmapping-http-http.plain-namespace",
                         "_is_sidecar": false,
@@ -11132,6 +11440,7 @@
                             "tcp://plain-invalidportmapping-http-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_invalidportmapping_http_http_plain_namespace_80_invalid_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "8b04e14fdf699a871a1b0b4f77fb1129ed58e907",
                     "headers": [],
@@ -11198,12 +11507,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-InvalidPortMapping-GRPC-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-invalidportmapping-grpc-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": false,
+                        "_cache_key": "Cluster-cluster_http___plain_invalidportmapping_grpc_grpc_plain_namespace_80_invalid_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-invalidportmapping-grpc-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -11230,6 +11541,7 @@
                             "tcp://plain-invalidportmapping-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_invalidportmapping_grpc_grpc_plain_namespace_80_invalid_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "f4935be08f5eac70695a2c35181a4b95a547383b",
                     "headers": [],
@@ -11303,12 +11615,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-HostHeaderMapping-HTTP-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-hostheadermapping-http-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_hostheadermapping_http_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-hostheadermapping-http-http.plain-namespace",
                         "_is_sidecar": false,
@@ -11342,6 +11656,7 @@
                             "tcp://plain-hostheadermapping-http-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_hostheadermapping_http_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "343d702707bcdb0f317f7e570a91a4c3fa91d395",
                     "headers": [
@@ -11423,12 +11738,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-HostHeaderMapping-GRPC-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-hostheadermapping-grpc-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_hostheadermapping_grpc_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-hostheadermapping-grpc-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -11462,6 +11779,7 @@
                             "tcp://plain-hostheadermapping-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_hostheadermapping_grpc_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "96c5e8c5c00f7e47627c072c9720e99cd9cc0fb8",
                     "headers": [
@@ -11543,12 +11861,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-X-Route-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-headerroutingtest-http-http-target2.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_headerroutingtest_http_http_target2_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-headerroutingtest-http-http-target2.plain-namespace",
                         "_is_sidecar": false,
@@ -11582,6 +11902,7 @@
                             "tcp://plain-headerroutingtest-http-http-target2.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_headerroutingtest_http_http_target2_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "9ef8804ca9aace8729f7008d1fd8d838196b23df",
                     "headers": [
@@ -11662,12 +11983,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-X-Route-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-headerroutingtest-grpc-grpc-target2.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_headerroutingtest_grpc_grpc_target2_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-headerroutingtest-grpc-grpc-target2.plain-namespace",
                         "_is_sidecar": false,
@@ -11701,6 +12024,7 @@
                             "tcp://plain-headerroutingtest-grpc-grpc-target2.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_headerroutingtest_grpc_grpc_target2_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "0ed31846e2f18abf8fc108d99f8671391588ef72",
                     "headers": [
@@ -11799,6 +12123,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-all-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-all-http.plain-namespace.1",
                     "add_request_headers": {
@@ -11814,6 +12139,7 @@
                     "case_sensitive": false,
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_all_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-all-http.plain-namespace",
                         "_is_sidecar": false,
@@ -11847,6 +12173,7 @@
                             "tcp://plain-simplemapping-http-all-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_all_http_plain_namespace_plain_namespace",
                     "cors": {
                         "allow_origin_string_match": [
                             {
@@ -11954,6 +12281,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-all-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-all-grpc.plain-namespace.1",
                     "add_request_headers": {
@@ -11969,6 +12297,7 @@
                     "case_sensitive": false,
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_all_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-all-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -12002,6 +12331,7 @@
                             "tcp://plain-simplemapping-grpc-all-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_all_grpc_plain_namespace_plain_namespace",
                     "cors": {
                         "allow_origin_string_match": [
                             {
@@ -12084,12 +12414,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-HeaderRoutingTest-HTTP-target1-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-headerroutingtest-http-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_headerroutingtest_http_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-headerroutingtest-http-http.plain-namespace",
                         "_is_sidecar": false,
@@ -12123,6 +12455,7 @@
                             "tcp://plain-headerroutingtest-http-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_headerroutingtest_http_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "dbbba9aca7faebac338d47cae687895d7b89b38f",
                     "headers": [],
@@ -12189,12 +12522,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-HeaderRoutingTest-GRPC-target1-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-headerroutingtest-grpc-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_headerroutingtest_grpc_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-headerroutingtest-grpc-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -12228,6 +12563,7 @@
                             "tcp://plain-headerroutingtest-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_headerroutingtest_grpc_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "713a73b77a48993a68901c1dc5a13cb3754f88b1",
                     "headers": [],
@@ -12295,12 +12631,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryMapping-HTTP-100-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarymapping-http-100-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarymapping_http_100_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarymapping-http-100-http.plain-namespace",
                         "_is_sidecar": false,
@@ -12334,6 +12672,7 @@
                             "tcp://plain-canarymapping-http-100-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarymapping_http_100_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "d303defb9e587302d1a31e6490030946fac431ac",
                     "headers": [],
@@ -12365,12 +12704,14 @@
                 },
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryMapping-HTTP-100-canary-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarymapping-http-100-http-canary.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarymapping_http_100_http_canary_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarymapping-http-100-http-canary.plain-namespace",
                         "_is_sidecar": false,
@@ -12404,6 +12745,7 @@
                             "tcp://plain-canarymapping-http-100-http-canary.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarymapping_http_100_http_canary_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "d303defb9e587302d1a31e6490030946fac431ac",
                     "headers": [],
@@ -12471,12 +12813,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryMapping-GRPC-100-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarymapping-grpc-100-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarymapping_grpc_100_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarymapping-grpc-100-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -12510,6 +12854,7 @@
                             "tcp://plain-canarymapping-grpc-100-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarymapping_grpc_100_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "e78e0a9a72ff2371c93167e6c216c9d2a84e447a",
                     "headers": [],
@@ -12541,12 +12886,14 @@
                 },
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryMapping-GRPC-100-canary-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarymapping-grpc-100-grpc-canary.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarymapping_grpc_100_grpc_canary_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarymapping-grpc-100-grpc-canary.plain-namespace",
                         "_is_sidecar": false,
@@ -12580,6 +12927,7 @@
                             "tcp://plain-canarymapping-grpc-100-grpc-canary.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarymapping_grpc_100_grpc_canary_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "e78e0a9a72ff2371c93167e6c216c9d2a84e447a",
                     "headers": [],
@@ -12650,6 +12998,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-WebSocketMapping-HTTP-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-websocketmapping-http-http.plain-namespace.1",
                     "add_request_headers": {},
@@ -12659,6 +13008,7 @@
                     ],
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_echo_websocket_org_80_plain_namespace",
                         "_errored": false,
                         "_hostname": "echo.websocket.org",
                         "_is_sidecar": false,
@@ -12694,6 +13044,7 @@
                             "tcp://echo.websocket.org:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_echo_websocket_org_80_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "07ff6553e1b8a02e499d1be15a0cdb4b07043ced",
                     "headers": [],
@@ -12765,6 +13116,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-WebSocketMapping-GRPC-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-websocketmapping-grpc-grpc.plain-namespace.1",
                     "add_request_headers": {},
@@ -12774,6 +13126,7 @@
                     ],
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_echo_websocket_org_80_plain_namespace",
                         "_errored": false,
                         "_hostname": "echo.websocket.org",
                         "_is_sidecar": false,
@@ -12809,6 +13162,7 @@
                             "tcp://echo.websocket.org:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_echo_websocket_org_80_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "3b375e2e8ef79269ef6398c32d7d7474157ededd",
                     "headers": [],
@@ -12873,6 +13227,7 @@
             "headers": [],
             "host_redirect": {
                 "_active": true,
+                "_cache_key": "Mapping-v2-HostRedirectMapping-2-plain-namespace",
                 "_errored": false,
                 "_rkey": "plain-hostredirectmapping-http.plain-namespace.2",
                 "add_request_headers": {},
@@ -12938,12 +13293,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryMapping-HTTP-50-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarymapping-http-50-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarymapping_http_50_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarymapping-http-50-http.plain-namespace",
                         "_is_sidecar": false,
@@ -12977,6 +13334,7 @@
                             "tcp://plain-canarymapping-http-50-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarymapping_http_50_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "be9c155befc0175aa8da07c25dd19519ab55f7de",
                     "headers": [],
@@ -13008,12 +13366,14 @@
                 },
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryMapping-HTTP-50-canary-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarymapping-http-50-http-canary.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarymapping_http_50_http_canary_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarymapping-http-50-http-canary.plain-namespace",
                         "_is_sidecar": false,
@@ -13047,6 +13407,7 @@
                             "tcp://plain-canarymapping-http-50-http-canary.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarymapping_http_50_http_canary_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "be9c155befc0175aa8da07c25dd19519ab55f7de",
                     "headers": [],
@@ -13114,12 +13475,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryMapping-HTTP-10-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarymapping-http-10-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarymapping_http_10_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarymapping-http-10-http.plain-namespace",
                         "_is_sidecar": false,
@@ -13153,6 +13516,7 @@
                             "tcp://plain-canarymapping-http-10-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarymapping_http_10_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "c40ad3f5b1605f1c163478a404da7d109179eefe",
                     "headers": [],
@@ -13184,12 +13548,14 @@
                 },
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryMapping-HTTP-10-canary-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarymapping-http-10-http-canary.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarymapping_http_10_http_canary_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarymapping-http-10-http-canary.plain-namespace",
                         "_is_sidecar": false,
@@ -13223,6 +13589,7 @@
                             "tcp://plain-canarymapping-http-10-http-canary.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarymapping_http_10_http_canary_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "c40ad3f5b1605f1c163478a404da7d109179eefe",
                     "headers": [],
@@ -13290,12 +13657,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryMapping-GRPC-50-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarymapping-grpc-50-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarymapping_grpc_50_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarymapping-grpc-50-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -13329,6 +13698,7 @@
                             "tcp://plain-canarymapping-grpc-50-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarymapping_grpc_50_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "4d4a7b2192e9aa4839e1a5d365ea730093d45517",
                     "headers": [],
@@ -13360,12 +13730,14 @@
                 },
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryMapping-GRPC-50-canary-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarymapping-grpc-50-grpc-canary.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarymapping_grpc_50_grpc_canary_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarymapping-grpc-50-grpc-canary.plain-namespace",
                         "_is_sidecar": false,
@@ -13399,6 +13771,7 @@
                             "tcp://plain-canarymapping-grpc-50-grpc-canary.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarymapping_grpc_50_grpc_canary_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "4d4a7b2192e9aa4839e1a5d365ea730093d45517",
                     "headers": [],
@@ -13466,12 +13839,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryMapping-GRPC-10-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarymapping-grpc-10-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarymapping_grpc_10_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarymapping-grpc-10-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -13505,6 +13880,7 @@
                             "tcp://plain-canarymapping-grpc-10-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarymapping_grpc_10_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "6910bf0dbf9f4732effa69811adf477bb8c41cd7",
                     "headers": [],
@@ -13536,12 +13912,14 @@
                 },
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryMapping-GRPC-10-canary-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarymapping-grpc-10-grpc-canary.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarymapping_grpc_10_grpc_canary_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarymapping-grpc-10-grpc-canary.plain-namespace",
                         "_is_sidecar": false,
@@ -13575,6 +13953,7 @@
                             "tcp://plain-canarymapping-grpc-10-grpc-canary.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarymapping_grpc_10_grpc_canary_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "6910bf0dbf9f4732effa69811adf477bb8c41cd7",
                     "headers": [],
@@ -13642,12 +14021,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryMapping-HTTP-0-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarymapping-http-0-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarymapping_http_0_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarymapping-http-0-http.plain-namespace",
                         "_is_sidecar": false,
@@ -13681,6 +14062,7 @@
                             "tcp://plain-canarymapping-http-0-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarymapping_http_0_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "b57179e798f24bfec2749180adbbcff203155fac",
                     "headers": [],
@@ -13712,12 +14094,14 @@
                 },
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryMapping-HTTP-0-canary-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarymapping-http-0-http-canary.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarymapping_http_0_http_canary_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarymapping-http-0-http-canary.plain-namespace",
                         "_is_sidecar": false,
@@ -13751,6 +14135,7 @@
                             "tcp://plain-canarymapping-http-0-http-canary.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarymapping_http_0_http_canary_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "b57179e798f24bfec2749180adbbcff203155fac",
                     "headers": [],
@@ -13818,12 +14203,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryMapping-GRPC-0-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarymapping-grpc-0-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarymapping_grpc_0_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarymapping-grpc-0-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -13857,6 +14244,7 @@
                             "tcp://plain-canarymapping-grpc-0-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarymapping_grpc_0_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "2da466e68225bc6b2e777b35554356bd136ed2a4",
                     "headers": [],
@@ -13888,12 +14276,14 @@
                 },
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-CanaryMapping-GRPC-0-canary-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-canarymapping-grpc-0-grpc-canary.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_canarymapping_grpc_0_grpc_canary_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-canarymapping-grpc-0-grpc-canary.plain-namespace",
                         "_is_sidecar": false,
@@ -13927,6 +14317,7 @@
                             "tcp://plain-canarymapping-grpc-0-grpc-canary.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_canarymapping_grpc_0_grpc_canary_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "2da466e68225bc6b2e777b35554356bd136ed2a4",
                     "headers": [],
@@ -13989,6 +14380,7 @@
             "headers": [],
             "host_redirect": {
                 "_active": true,
+                "_cache_key": "Mapping-v2-HostRedirectMapping-plain-namespace",
                 "_errored": false,
                 "_rkey": "plain-hostredirectmapping-http.plain-namespace.1",
                 "add_request_headers": {},
@@ -14052,12 +14444,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-HTTP-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-http-http.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_http_http_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-http-http.plain-namespace",
                         "_is_sidecar": false,
@@ -14091,6 +14485,7 @@
                             "tcp://plain-simplemapping-http-http.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_http_http_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "33904bb8c0eca30124056fb33b3150743976a896",
                     "headers": [],
@@ -14157,12 +14552,14 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-SimpleMapping-GRPC-plain-namespace",
                     "_errored": false,
                     "_rkey": "plain-simplemapping-grpc-grpc.plain-namespace.1",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_http___plain_simplemapping_grpc_grpc_plain_namespace_plain_namespace",
                         "_errored": false,
                         "_hostname": "plain-simplemapping-grpc-grpc.plain-namespace",
                         "_is_sidecar": false,
@@ -14196,6 +14593,7 @@
                             "tcp://plain-simplemapping-grpc-grpc.plain-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_http___plain_simplemapping_grpc_grpc_plain_namespace_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "5a8ee5e9c9350cae91a0dc6555dfd699a5260aee",
                     "headers": [],
@@ -14262,6 +14660,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_diagnostics_probe_mapping-plain-namespace",
                     "_errored": false,
                     "_referenced_by": [
                         "--internal--"
@@ -14271,6 +14670,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_plain_namespace",
                         "_errored": false,
                         "_hostname": "127.0.0.1",
                         "_is_sidecar": false,
@@ -14304,6 +14704,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_plain_namespace",
                     "default_class": "httpmapping",
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],

@@ -1,0 +1,1444 @@
+{
+    "ambassador": {
+        "_active": true,
+        "_errored": false,
+        "_finalized": true,
+        "_rkey": "ir.ambassador",
+        "admin_port": 8001,
+        "debug_mode": false,
+        "default_label_domain": "ambassador",
+        "default_labels": {},
+        "diagnostics": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/",
+            "rewrite": "/ambassador/v0/",
+            "service": "127.0.0.1:8877"
+        },
+        "enable_http10": false,
+        "enable_ipv4": true,
+        "enable_ipv6": false,
+        "envoy_log_path": "/dev/fd/1",
+        "envoy_log_type": "text",
+        "envoy_validation_timeout": 60,
+        "kind": "IRAmbassador",
+        "liveness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_alive",
+            "rewrite": "/ambassador/v0/check_alive",
+            "service": "127.0.0.1:8877"
+        },
+        "location": "--internal--",
+        "name": "ir.ambassador",
+        "namespace": "default",
+        "preserve_external_request_id": false,
+        "proper_case": false,
+        "readiness_probe": {
+            "enabled": true,
+            "prefix": "/ambassador/v0/check_ready",
+            "rewrite": "/ambassador/v0/check_ready",
+            "service": "127.0.0.1:8877"
+        },
+        "server_name": "envoy",
+        "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
+        "use_proxy_proto": false,
+        "use_remote_address": true,
+        "x_forwarded_proto_redirect": false,
+        "xff_num_trusted_hops": 0
+    },
+    "clusters": {
+        "cluster_127_0_0_1_8877_default": {
+            "_active": true,
+            "_cache_key": "Cluster-cluster_127_0_0_1_8877_default",
+            "_errored": false,
+            "_hostname": "127.0.0.1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 8877,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_127_0_0_1_8877_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "--internal--",
+            "name": "cluster_127_0_0_1_8877_default",
+            "namespace": "default",
+            "service": "127.0.0.1:8877",
+            "targets": [
+                {
+                    "ip": "127.0.0.1",
+                    "port": 8877,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8877"
+            ]
+        },
+        "cluster_clustertagtest_http_target1_default": {
+            "_active": true,
+            "_cache_key": "Cluster-cluster_clustertagtest_http_target1_default",
+            "_errored": false,
+            "_hostname": "clustertagtest-http-target1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "cluster-tag-1.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_clustertagtest_http_target1_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "cluster-tag-1.default.1",
+            "name": "cluster_clustertagtest_http_target1_default",
+            "namespace": "default",
+            "service": "clustertagtest-http-target1",
+            "targets": [
+                {
+                    "ip": "clustertagtest-http-target1",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://clustertagtest-http-target1:80"
+            ]
+        },
+        "cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target1_default": {
+            "_active": true,
+            "_cache_key": "Cluster-cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target1_default",
+            "_errored": false,
+            "_hostname": "clustertagtest-http-target1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "cluster-tag-5.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target1_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "cluster-tag-5.default.1",
+            "name": "cluster_some_really_long_tag_that_is_rea-0",
+            "namespace": "default",
+            "service": "clustertagtest-http-target1",
+            "targets": [
+                {
+                    "ip": "clustertagtest-http-target1",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://clustertagtest-http-target1:80"
+            ]
+        },
+        "cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target2_default": {
+            "_active": true,
+            "_cache_key": "Cluster-cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target2_default",
+            "_errored": false,
+            "_hostname": "clustertagtest-http-target2",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "cluster-tag-6.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target2_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "cluster-tag-6.default.1",
+            "name": "cluster_some_really_long_tag_that_is_rea-1",
+            "namespace": "default",
+            "service": "clustertagtest-http-target2",
+            "targets": [
+                {
+                    "ip": "clustertagtest-http-target2",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://clustertagtest-http-target2:80"
+            ]
+        },
+        "cluster_tag_1_clustertagtest_http_target1_default": {
+            "_active": true,
+            "_cache_key": "Cluster-cluster_tag_1_clustertagtest_http_target1_default",
+            "_errored": false,
+            "_hostname": "clustertagtest-http-target1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "cluster-tag-2.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_tag_1_clustertagtest_http_target1_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "cluster-tag-2.default.1",
+            "name": "cluster_tag_1_clustertagtest_http_target1_default",
+            "namespace": "default",
+            "service": "clustertagtest-http-target1",
+            "targets": [
+                {
+                    "ip": "clustertagtest-http-target1",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://clustertagtest-http-target1:80"
+            ]
+        },
+        "cluster_tag_2_clustertagtest_http_target1_default": {
+            "_active": true,
+            "_cache_key": "Cluster-cluster_tag_2_clustertagtest_http_target1_default",
+            "_errored": false,
+            "_hostname": "clustertagtest-http-target1",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "cluster-tag-3.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_tag_2_clustertagtest_http_target1_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "cluster-tag-3.default.1",
+            "name": "cluster_tag_2_clustertagtest_http_target1_default",
+            "namespace": "default",
+            "service": "clustertagtest-http-target1",
+            "targets": [
+                {
+                    "ip": "clustertagtest-http-target1",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://clustertagtest-http-target1:80"
+            ]
+        },
+        "cluster_tag_2_clustertagtest_http_target2_default": {
+            "_active": true,
+            "_cache_key": "Cluster-cluster_tag_2_clustertagtest_http_target2_default",
+            "_errored": false,
+            "_hostname": "clustertagtest-http-target2",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "cluster-tag-4.default.1"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_tag_2_clustertagtest_http_target2_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "cluster-tag-4.default.1",
+            "name": "cluster_tag_2_clustertagtest_http_target2_default",
+            "namespace": "default",
+            "service": "clustertagtest-http-target2",
+            "targets": [
+                {
+                    "ip": "clustertagtest-http-target2",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://clustertagtest-http-target2:80"
+            ]
+        }
+    },
+    "filters": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.cors",
+            "config": {},
+            "kind": "ir.cors",
+            "location": "--internal--",
+            "name": "cors",
+            "namespace": "default"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.router",
+            "config": {},
+            "kind": "ir.router",
+            "location": "--internal--",
+            "name": "router",
+            "namespace": "default",
+            "type": "decoder"
+        }
+    ],
+    "groups": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
+            "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+            "group_weight": [
+                0,
+                26,
+                0,
+                0,
+                "/ambassador/v0/check_ready",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_readiness_probe_mapping-default",
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "add_response_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_default",
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_default",
+                    "default_class": "httpmapping",
+                    "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_readiness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_ready",
+                    "query_parameters": [],
+                    "regex_rewrite": {},
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_ready",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        0,
+                        "/ambassador/v0/check_ready",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_readiness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_ready",
+            "query_parameters": [],
+            "regex_rewrite": {},
+            "rewrite": "/ambassador/v0/check_ready",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
+            "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+            "group_weight": [
+                0,
+                26,
+                0,
+                0,
+                "/ambassador/v0/check_alive",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_liveness_probe_mapping-default",
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "add_response_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_default",
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_default",
+                    "default_class": "httpmapping",
+                    "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_liveness_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/check_alive",
+                    "query_parameters": [],
+                    "regex_rewrite": {},
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/check_alive",
+                    "route_weight": [
+                        0,
+                        26,
+                        0,
+                        0,
+                        "/ambassador/v0/check_alive",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_liveness_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/check_alive",
+            "query_parameters": [],
+            "regex_rewrite": {},
+            "rewrite": "/ambassador/v0/check_alive",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "--internal--"
+            ],
+            "_rkey": "ir.ambassador",
+            "default_class": "httpmapping",
+            "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+            "group_weight": [
+                0,
+                15,
+                0,
+                0,
+                "/ambassador/v0/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "--internal--",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_diagnostics_probe_mapping-default",
+                    "_errored": false,
+                    "_referenced_by": [
+                        "--internal--"
+                    ],
+                    "_rkey": "ir.ambassador",
+                    "add_request_headers": {},
+                    "add_response_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_default",
+                        "_errored": false,
+                        "_hostname": "127.0.0.1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 8877,
+                        "_referenced_by": [
+                            "--internal--"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "--internal--",
+                        "name": "cluster_127_0_0_1_8877_default",
+                        "namespace": "default",
+                        "service": "127.0.0.1:8877",
+                        "targets": [
+                            {
+                                "ip": "127.0.0.1",
+                                "port": 8877,
+                                "target_kind": "IPaddr"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://127.0.0.1:8877"
+                        ]
+                    },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_default",
+                    "default_class": "httpmapping",
+                    "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
+                    "headers": [],
+                    "kind": "IRHTTPMapping",
+                    "location": "--internal--",
+                    "name": "internal_diagnostics_probe_mapping",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/ambassador/v0/",
+                    "query_parameters": [],
+                    "regex_rewrite": {},
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/ambassador/v0/",
+                    "route_weight": [
+                        0,
+                        15,
+                        0,
+                        0,
+                        "/ambassador/v0/",
+                        "GET"
+                    ],
+                    "service": "127.0.0.1:8877",
+                    "timeout_ms": 10000,
+                    "weight": 100
+                }
+            ],
+            "name": "GROUP: internal_diagnostics_probe_mapping",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/ambassador/v0/",
+            "query_parameters": [],
+            "regex_rewrite": {},
+            "rewrite": "/ambassador/v0/",
+            "timeout_ms": 10000
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "cluster-tag-6.default.1"
+            ],
+            "_rkey": "cluster-tag-6.default.1",
+            "cluster_tag": "some-really-long-tag-that-is-really-long",
+            "default_class": "httpmapping",
+            "group_id": "3c59c71af8337492a7131a42c396d00192c8b224",
+            "group_weight": [
+                0,
+                11,
+                0,
+                0,
+                "/mapping-6/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "cluster-tag-6.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_cache_key": "Mapping-v2-cluster-tag-6-default",
+                    "_errored": false,
+                    "_rkey": "cluster-tag-6.default.1",
+                    "add_request_headers": {},
+                    "add_response_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_cache_key": "Cluster-cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target2_default",
+                        "_errored": false,
+                        "_hostname": "clustertagtest-http-target2",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "cluster-tag-6.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target2_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "cluster-tag-6.default.1",
+                        "name": "cluster_some_really_long_tag_that_is_rea-1",
+                        "namespace": "default",
+                        "service": "clustertagtest-http-target2",
+                        "targets": [
+                            {
+                                "ip": "clustertagtest-http-target2",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://clustertagtest-http-target2:80"
+                        ]
+                    },
+                    "cluster_key": "Cluster-cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target2_default",
+                    "cluster_tag": "some-really-long-tag-that-is-really-long",
+                    "default_class": "httpmapping",
+                    "group_id": "3c59c71af8337492a7131a42c396d00192c8b224",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "cluster-tag-6.default.1",
+                    "metadata_labels": {
+                        "ambassador_crd": "cluster-tag-6.default",
+                        "kat-ambassador-id": "clustertagtest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "cluster-tag-6",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/mapping-6/",
+                    "query_parameters": [],
+                    "regex_rewrite": {},
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        11,
+                        0,
+                        0,
+                        "/mapping-6/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ncluster_tag: some-really-long-tag-that-is-really-long\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-6.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-6\nnamespace: default\nprefix: /mapping-6/\nservice: clustertagtest-http-target2\n",
+                    "service": "clustertagtest-http-target2",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-6.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: cluster-tag-6",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/mapping-6/",
+            "query_parameters": [],
+            "regex_rewrite": {},
+            "rewrite": "/",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ncluster_tag: some-really-long-tag-that-is-really-long\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-6.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-6\nnamespace: default\nprefix: /mapping-6/\nservice: clustertagtest-http-target2\n"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "cluster-tag-5.default.1"
+            ],
+            "_rkey": "cluster-tag-5.default.1",
+            "cluster_tag": "some-really-long-tag-that-is-really-long",
+            "default_class": "httpmapping",
+            "group_id": "08cbc5a1776f2ea7f9b1eb147e17ec5a0f3815d4",
+            "group_weight": [
+                0,
+                11,
+                0,
+                0,
+                "/mapping-5/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "cluster-tag-5.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_cache_key": "Mapping-v2-cluster-tag-5-default",
+                    "_errored": false,
+                    "_rkey": "cluster-tag-5.default.1",
+                    "add_request_headers": {},
+                    "add_response_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_cache_key": "Cluster-cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target1_default",
+                        "_errored": false,
+                        "_hostname": "clustertagtest-http-target1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "cluster-tag-5.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target1_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "cluster-tag-5.default.1",
+                        "name": "cluster_some_really_long_tag_that_is_rea-0",
+                        "namespace": "default",
+                        "service": "clustertagtest-http-target1",
+                        "targets": [
+                            {
+                                "ip": "clustertagtest-http-target1",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://clustertagtest-http-target1:80"
+                        ]
+                    },
+                    "cluster_key": "Cluster-cluster_some_really_long_tag_that_is_really_long_clustertagtest_http_target1_default",
+                    "cluster_tag": "some-really-long-tag-that-is-really-long",
+                    "default_class": "httpmapping",
+                    "group_id": "08cbc5a1776f2ea7f9b1eb147e17ec5a0f3815d4",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "cluster-tag-5.default.1",
+                    "metadata_labels": {
+                        "ambassador_crd": "cluster-tag-5.default",
+                        "kat-ambassador-id": "clustertagtest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "cluster-tag-5",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/mapping-5/",
+                    "query_parameters": [],
+                    "regex_rewrite": {},
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        11,
+                        0,
+                        0,
+                        "/mapping-5/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ncluster_tag: some-really-long-tag-that-is-really-long\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-5.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-5\nnamespace: default\nprefix: /mapping-5/\nservice: clustertagtest-http-target1\n",
+                    "service": "clustertagtest-http-target1",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-5.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: cluster-tag-5",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/mapping-5/",
+            "query_parameters": [],
+            "regex_rewrite": {},
+            "rewrite": "/",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ncluster_tag: some-really-long-tag-that-is-really-long\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-5.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-5\nnamespace: default\nprefix: /mapping-5/\nservice: clustertagtest-http-target1\n"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "cluster-tag-4.default.1"
+            ],
+            "_rkey": "cluster-tag-4.default.1",
+            "cluster_tag": "tag-2",
+            "default_class": "httpmapping",
+            "group_id": "a53e48609ac678274ec6f7b0b78b2aba1abef643",
+            "group_weight": [
+                0,
+                11,
+                0,
+                0,
+                "/mapping-4/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "cluster-tag-4.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_cache_key": "Mapping-v2-cluster-tag-4-default",
+                    "_errored": false,
+                    "_rkey": "cluster-tag-4.default.1",
+                    "add_request_headers": {},
+                    "add_response_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_cache_key": "Cluster-cluster_tag_2_clustertagtest_http_target2_default",
+                        "_errored": false,
+                        "_hostname": "clustertagtest-http-target2",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "cluster-tag-4.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_tag_2_clustertagtest_http_target2_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "cluster-tag-4.default.1",
+                        "name": "cluster_tag_2_clustertagtest_http_target2_default",
+                        "namespace": "default",
+                        "service": "clustertagtest-http-target2",
+                        "targets": [
+                            {
+                                "ip": "clustertagtest-http-target2",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://clustertagtest-http-target2:80"
+                        ]
+                    },
+                    "cluster_key": "Cluster-cluster_tag_2_clustertagtest_http_target2_default",
+                    "cluster_tag": "tag-2",
+                    "default_class": "httpmapping",
+                    "group_id": "a53e48609ac678274ec6f7b0b78b2aba1abef643",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "cluster-tag-4.default.1",
+                    "metadata_labels": {
+                        "ambassador_crd": "cluster-tag-4.default",
+                        "kat-ambassador-id": "clustertagtest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "cluster-tag-4",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/mapping-4/",
+                    "query_parameters": [],
+                    "regex_rewrite": {},
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        11,
+                        0,
+                        0,
+                        "/mapping-4/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ncluster_tag: tag-2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-4.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-4\nnamespace: default\nprefix: /mapping-4/\nservice: clustertagtest-http-target2\n",
+                    "service": "clustertagtest-http-target2",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-4.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: cluster-tag-4",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/mapping-4/",
+            "query_parameters": [],
+            "regex_rewrite": {},
+            "rewrite": "/",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ncluster_tag: tag-2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-4.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-4\nnamespace: default\nprefix: /mapping-4/\nservice: clustertagtest-http-target2\n"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "cluster-tag-3.default.1"
+            ],
+            "_rkey": "cluster-tag-3.default.1",
+            "cluster_tag": "tag-2",
+            "default_class": "httpmapping",
+            "group_id": "4d37f1fd08f07bbb7fd5e503b4b5d8926a90a218",
+            "group_weight": [
+                0,
+                11,
+                0,
+                0,
+                "/mapping-3/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "cluster-tag-3.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_cache_key": "Mapping-v2-cluster-tag-3-default",
+                    "_errored": false,
+                    "_rkey": "cluster-tag-3.default.1",
+                    "add_request_headers": {},
+                    "add_response_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_cache_key": "Cluster-cluster_tag_2_clustertagtest_http_target1_default",
+                        "_errored": false,
+                        "_hostname": "clustertagtest-http-target1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "cluster-tag-3.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_tag_2_clustertagtest_http_target1_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "cluster-tag-3.default.1",
+                        "name": "cluster_tag_2_clustertagtest_http_target1_default",
+                        "namespace": "default",
+                        "service": "clustertagtest-http-target1",
+                        "targets": [
+                            {
+                                "ip": "clustertagtest-http-target1",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://clustertagtest-http-target1:80"
+                        ]
+                    },
+                    "cluster_key": "Cluster-cluster_tag_2_clustertagtest_http_target1_default",
+                    "cluster_tag": "tag-2",
+                    "default_class": "httpmapping",
+                    "group_id": "4d37f1fd08f07bbb7fd5e503b4b5d8926a90a218",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "cluster-tag-3.default.1",
+                    "metadata_labels": {
+                        "ambassador_crd": "cluster-tag-3.default",
+                        "kat-ambassador-id": "clustertagtest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "cluster-tag-3",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/mapping-3/",
+                    "query_parameters": [],
+                    "regex_rewrite": {},
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        11,
+                        0,
+                        0,
+                        "/mapping-3/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ncluster_tag: tag-2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-3.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-3\nnamespace: default\nprefix: /mapping-3/\nservice: clustertagtest-http-target1\n",
+                    "service": "clustertagtest-http-target1",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-3.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: cluster-tag-3",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/mapping-3/",
+            "query_parameters": [],
+            "regex_rewrite": {},
+            "rewrite": "/",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ncluster_tag: tag-2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-3.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-3\nnamespace: default\nprefix: /mapping-3/\nservice: clustertagtest-http-target1\n"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "cluster-tag-2.default.1"
+            ],
+            "_rkey": "cluster-tag-2.default.1",
+            "cluster_tag": "tag-1",
+            "default_class": "httpmapping",
+            "group_id": "4f9a8568a628aba1d4b5e8f382e92f9edf2b8cec",
+            "group_weight": [
+                0,
+                11,
+                0,
+                0,
+                "/mapping-2/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "cluster-tag-2.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_cache_key": "Mapping-v2-cluster-tag-2-default",
+                    "_errored": false,
+                    "_rkey": "cluster-tag-2.default.1",
+                    "add_request_headers": {},
+                    "add_response_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_cache_key": "Cluster-cluster_tag_1_clustertagtest_http_target1_default",
+                        "_errored": false,
+                        "_hostname": "clustertagtest-http-target1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "cluster-tag-2.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_tag_1_clustertagtest_http_target1_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "cluster-tag-2.default.1",
+                        "name": "cluster_tag_1_clustertagtest_http_target1_default",
+                        "namespace": "default",
+                        "service": "clustertagtest-http-target1",
+                        "targets": [
+                            {
+                                "ip": "clustertagtest-http-target1",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://clustertagtest-http-target1:80"
+                        ]
+                    },
+                    "cluster_key": "Cluster-cluster_tag_1_clustertagtest_http_target1_default",
+                    "cluster_tag": "tag-1",
+                    "default_class": "httpmapping",
+                    "group_id": "4f9a8568a628aba1d4b5e8f382e92f9edf2b8cec",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "cluster-tag-2.default.1",
+                    "metadata_labels": {
+                        "ambassador_crd": "cluster-tag-2.default",
+                        "kat-ambassador-id": "clustertagtest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "cluster-tag-2",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/mapping-2/",
+                    "query_parameters": [],
+                    "regex_rewrite": {},
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        11,
+                        0,
+                        0,
+                        "/mapping-2/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ncluster_tag: tag-1\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-2.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-2\nnamespace: default\nprefix: /mapping-2/\nservice: clustertagtest-http-target1\n",
+                    "service": "clustertagtest-http-target1",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-2.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: cluster-tag-2",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/mapping-2/",
+            "query_parameters": [],
+            "regex_rewrite": {},
+            "rewrite": "/",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ncluster_tag: tag-1\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-2.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-2\nnamespace: default\nprefix: /mapping-2/\nservice: clustertagtest-http-target1\n"
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "cluster-tag-1.default.1"
+            ],
+            "_rkey": "cluster-tag-1.default.1",
+            "default_class": "httpmapping",
+            "group_id": "64d1d5b767c507b2e9cb0fa812703116323a32a8",
+            "group_weight": [
+                0,
+                11,
+                0,
+                0,
+                "/mapping-1/",
+                "GET"
+            ],
+            "headers": [],
+            "kind": "IRHTTPMappingGroup",
+            "location": "cluster-tag-1.default.1",
+            "mappings": [
+                {
+                    "_active": true,
+                    "_cache_key": "Mapping-v2-cluster-tag-1-default",
+                    "_errored": false,
+                    "_rkey": "cluster-tag-1.default.1",
+                    "add_request_headers": {},
+                    "add_response_headers": {},
+                    "cluster": {
+                        "_active": true,
+                        "_cache_key": "Cluster-cluster_clustertagtest_http_target1_default",
+                        "_errored": false,
+                        "_hostname": "clustertagtest-http-target1",
+                        "_is_sidecar": false,
+                        "_namespace": "default",
+                        "_port": 80,
+                        "_referenced_by": [
+                            "cluster-tag-1.default.1"
+                        ],
+                        "_resolver": "kubernetes-service",
+                        "_rkey": "cluster_clustertagtest_http_target1_default",
+                        "connect_timeout_ms": 3000,
+                        "enable_endpoints": false,
+                        "enable_ipv4": true,
+                        "enable_ipv6": false,
+                        "ignore_cluster": false,
+                        "kind": "IRCluster",
+                        "lb_type": "round_robin",
+                        "location": "cluster-tag-1.default.1",
+                        "name": "cluster_clustertagtest_http_target1_default",
+                        "namespace": "default",
+                        "service": "clustertagtest-http-target1",
+                        "targets": [
+                            {
+                                "ip": "clustertagtest-http-target1",
+                                "port": 80,
+                                "target_kind": "DNSname"
+                            }
+                        ],
+                        "type": "strict_dns",
+                        "urls": [
+                            "tcp://clustertagtest-http-target1:80"
+                        ]
+                    },
+                    "cluster_key": "Cluster-cluster_clustertagtest_http_target1_default",
+                    "default_class": "httpmapping",
+                    "group_id": "64d1d5b767c507b2e9cb0fa812703116323a32a8",
+                    "headers": [],
+                    "kind": "Mapping",
+                    "location": "cluster-tag-1.default.1",
+                    "metadata_labels": {
+                        "ambassador_crd": "cluster-tag-1.default",
+                        "kat-ambassador-id": "clustertagtest",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "cluster-tag-1",
+                    "namespace": "default",
+                    "precedence": 0,
+                    "prefix": "/mapping-1/",
+                    "query_parameters": [],
+                    "regex_rewrite": {},
+                    "resolver": "kubernetes-service",
+                    "rewrite": "/",
+                    "route_weight": [
+                        0,
+                        11,
+                        0,
+                        0,
+                        "/mapping-1/",
+                        "GET"
+                    ],
+                    "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-1.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-1\nnamespace: default\nprefix: /mapping-1/\nservice: clustertagtest-http-target1\n",
+                    "service": "clustertagtest-http-target1",
+                    "weight": 100
+                }
+            ],
+            "metadata_labels": {
+                "ambassador_crd": "cluster-tag-1.default",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "GROUP: cluster-tag-1",
+            "namespace": "default",
+            "precedence": 0,
+            "prefix": "/mapping-1/",
+            "query_parameters": [],
+            "regex_rewrite": {},
+            "rewrite": "/",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\ngeneration: 1\nkind: Mapping\nmetadata_labels:\n  ambassador_crd: cluster-tag-1.default\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: cluster-tag-1\nnamespace: default\nprefix: /mapping-1/\nservice: clustertagtest-http-target1\n"
+        }
+    ],
+    "grpc_services": {},
+    "hosts": [],
+    "identity": {
+        "ambassador_id": "clustertagtest",
+        "ambassador_namespace": "default",
+        "ambassador_nodename": "clustertagtest-default"
+    },
+    "k8s_status_updates": {
+        "cluster-tag-1.default": [
+            "Mapping",
+            "default",
+            {
+                "state": "Running"
+            }
+        ],
+        "cluster-tag-2.default": [
+            "Mapping",
+            "default",
+            {
+                "state": "Running"
+            }
+        ],
+        "cluster-tag-3.default": [
+            "Mapping",
+            "default",
+            {
+                "state": "Running"
+            }
+        ],
+        "cluster-tag-4.default": [
+            "Mapping",
+            "default",
+            {
+                "state": "Running"
+            }
+        ],
+        "cluster-tag-5.default": [
+            "Mapping",
+            "default",
+            {
+                "state": "Running"
+            }
+        ],
+        "cluster-tag-6.default": [
+            "Mapping",
+            "default",
+            {
+                "state": "Running"
+            }
+        ]
+    },
+    "listeners": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
+            "kind": "IRListener",
+            "location": "--internal--",
+            "name": "ir.listener",
+            "namespace": "default",
+            "redirect_listener": false,
+            "secure_action": "Route",
+            "service_port": 8080,
+            "use_proxy_proto": false
+        }
+    ],
+    "services": {
+        "k8s-clustertagtest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-clustertagtest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest",
+                "service": "clustertagtest-admin"
+            },
+            "name": "clustertagtest-admin",
+            "namespace": "default",
+            "rkey": "k8s-clustertagtest-admin-default",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\n  service: clustertagtest-admin\nname: clustertagtest-admin\nnamespace: default\n"
+        },
+        "k8s-clustertagtest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-clustertagtest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "clustertagtest",
+            "namespace": "default",
+            "rkey": "k8s-clustertagtest-default",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: clustertagtest\nnamespace: default\n"
+        },
+        "k8s-clustertagtest-http-target1-default": {
+            "_referenced_by": {},
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-clustertagtest-http-target1-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "clustertagtest-http-target1",
+            "namespace": "default",
+            "rkey": "k8s-clustertagtest-http-target1-default",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: clustertagtest-http-target1\nnamespace: default\n"
+        },
+        "k8s-clustertagtest-http-target2-default": {
+            "_referenced_by": {},
+            "ambassador_id": "clustertagtest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-clustertagtest-http-target2-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "clustertagtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "clustertagtest-http-target2",
+            "namespace": "default",
+            "rkey": "k8s-clustertagtest-http-target2-default",
+            "serialization": "ambassador_id: clustertagtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: clustertagtest\n  scope: AmbassadorTest\nname: clustertagtest-http-target2\nnamespace: default\n"
+        }
+    },
+    "tls_contexts": []
+}

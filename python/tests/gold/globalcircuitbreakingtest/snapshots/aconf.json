@@ -77,8 +77,8 @@
             "config": {
                 "circuit_breakers": [
                     {
-                        "max_connections": 1,
-                        "max_pending_requests": 1,
+                        "max_connections": 5,
+                        "max_pending_requests": 5,
                         "priority": "default"
                     }
                 ]
@@ -93,7 +93,7 @@
             "name": "ambassador",
             "namespace": "default",
             "rkey": "globalcircuitbreakingtest.default.3",
-            "serialization": "_force_validation: true\nambassador_id: globalcircuitbreakingtest\napiVersion: ambassador/v1\nconfig:\n  circuit_breakers:\n  - max_connections: 1\n    max_pending_requests: 1\n    priority: default\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: globalcircuitbreakingtest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
+            "serialization": "_force_validation: true\nambassador_id: globalcircuitbreakingtest\napiVersion: ambassador/v1\nconfig:\n  circuit_breakers:\n  - max_connections: 5\n    max_pending_requests: 5\n    priority: default\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: globalcircuitbreakingtest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
         },
         "k8s-globalcircuitbreakingtest-admin-default": {
             "_referenced_by": {},
@@ -188,8 +188,8 @@
             "apiVersion": "getambassador.io/v1",
             "circuit_breakers": [
                 {
-                    "max_connections": 1,
-                    "max_pending_requests": 1,
+                    "max_connections": 5,
+                    "max_pending_requests": 5,
                     "priority": "default"
                 }
             ],
