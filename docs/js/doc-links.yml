@@ -113,7 +113,6 @@
               link: /docs/pre-release/topics/using/filters/external
             - title: Plugin Filter
               link: /docs/pre-release/topics/using/filters/plugin
-
         - title: Developer Portal
           link: /docs/pre-release/topics/using/dev-portal
         - title: Edge Policy Console
@@ -272,7 +271,6 @@
     link: /docs/pre-release/topics/using/edgectl/edge-control
   - title: Using Edge Control in CI
     link: /docs/pre-release/topics/using/edgectl/edge-control-in-ci
-
 - title: Frequently Asked Questions
   link: /docs/pre-release/about/faq
 - title: Community

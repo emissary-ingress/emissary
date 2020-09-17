@@ -4,7 +4,6 @@
 # - /reference
 # 
 
-
 - /docs/pre-release/topics/using/filters/
 - /docs/pre-release/topics/using/filters/oauth2
 - /docs/pre-release/topics/using/filters/jwt
@@ -20,4 +19,3 @@
 - /docs/pre-release/topics/using/edge-policy-console
 - /docs/pre-release/topics/using/rate-limits/rate-limits/
 - /docs/pre-release/topics/using/rate-limit-speedometers
-
