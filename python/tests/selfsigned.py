@@ -20,6 +20,8 @@ def strip(s: str) -> str:
 _TLSCerts: List[Cert] = [
     Cert(
         names=["master.datawire.io"],
+        # Note: This cert is also used to sign several other certs in
+        # this file (as the issuer).
         pubcert=strip("""
             -----BEGIN CERTIFICATE-----
             MIIDuDCCAqCgAwIBAgIJAJ0X57eypBNTMA0GCSqGSIb3DQEBCwUAMHExCzAJBgNV
@@ -49,6 +51,8 @@ _TLSCerts: List[Cert] = [
 
     Cert(
         names=["presto.example.com"],
+        # Note: This cert is signed by the "master.datawire.io" cert
+        # (rather than being self-signed).
         pubcert=strip("""
             -----BEGIN CERTIFICATE-----
             MIIDYTCCAkkCCQCrK74a3GFhijANBgkqhkiG9w0BAQsFADBxMQswCQYDVQQGEwJV
@@ -160,6 +164,8 @@ _TLSCerts: List[Cert] = [
 
     Cert(
         names=["ambassador.example.com"],
+        # Note: This cert is signed by the "master.datawire.io" cert
+        # (rather than being self-signed).
         pubcert=strip("""
             -----BEGIN CERTIFICATE-----
             MIIDZzCCAk8CCQCrK74a3GFhiTANBgkqhkiG9w0BAQsFADBxMQswCQYDVQQGEwJV
@@ -395,6 +401,8 @@ _TLSCerts: List[Cert] = [
             "127.0.0.1",
             "0:0:0:0:0:0:0:1"
         ],
+        # Note: This cert is signed by a cert not present in this file
+        # (rather than being self-signed).
         pubcert=strip("""
             -----BEGIN CERTIFICATE-----
             MIIEgzCCAuugAwIBAgIRANoyJlZOx3sXGkasn+NQ1GwwDQYJKoZIhvcNAQELBQAw
