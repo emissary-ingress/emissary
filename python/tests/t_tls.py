@@ -138,17 +138,7 @@ service: {self.target.path.fqdn}
         yield Query(self.url(self.name + "/"), insecure=True, maxTLSv="v1.2", error="tls: handshake failure")
 
         # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario.
-        #
-        # Now, even though Go 1.13 supports TLS 1.3, Go 1.13's crypto/tls/alert.go doesn't have all of the TLS
-        # 1.3 alert codes, so we expect the user-unfriendly error message "alert(116)".  I expect this to be
-        # fixed in some future Go 1.13.x, and that kat-client will eventually be built with that Go.
-        #
-        # Since RFC 8446 §6 calls alert=116 "certificate_required", I'm assuming that this (s/_/ /) is the
-        # error message that the Go authors will use, so I'm going ahead and including "certificate required"
-        # in the list of allowed error messages below.  If that assumption ends up being wrong: Yes, future
-        # person, it's OK to replace the string "certificate required" with the correct one for alert=116.
-        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3",
-                    error=["tls: alert(116)", "tls: certificate required", "read: connection reset"])
+        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3", error="tls: certificate required")
 
     def requirements(self):
         for r in super().requirements():
