@@ -1,4 +1,5 @@
 from kat.harness import Query, EDGE_STACK
+from kat.utils import namespace_manifest
 
 from abstract_tests import AmbassadorTest, ServiceType, HTTP
 from selfsigned import TLSCerts
@@ -723,7 +724,7 @@ class HostCRDClientCert(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return self.format('''
+        return namespace_manifest("alt-namespace") + self.format('''
 ---
 apiVersion: getambassador.io/v2
 kind: Host
@@ -739,13 +740,15 @@ spec:
   tlsSecret:
     name: {self.path.k8s}-server
   tls:
-    ca_secret: {self.path.k8s}-ca
+    # ca_secret supports cross-namespace references, so test it
+    ca_secret: {self.path.k8s}-ca.alt-namespace
     cert_required: true
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   name: {self.path.k8s}-ca
+  namespace: alt-namespace
   labels:
     kat-ambassador-id: {self.ambassador_id}
 type: kubernetes.io/tls
