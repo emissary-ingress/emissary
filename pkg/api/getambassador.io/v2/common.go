@@ -53,11 +53,31 @@
 //   * Notes: For things that don't support cross-namespace references
 //     (see above), use LocalObjectReference; if you really must
 //     support cross-namespace references, then use SecretReference.
+//
 // - Prefer to use `metav1.Duration` fields instead of "_s" or "_ms"
 //   numeric fields.
 //
-// - Don't have Ambassador populate anything in the `.spec`, only let
-//   Ambassador set things in the `.status`.
+// - Don't have Ambassador populate anything in the `.spec` or
+//   `.metadata` of something a user might edit, only let Ambassador
+//   set things in the `.status`.
+//   * Exception: If Ambassador 100% owns the resource and a user will
+//     never edit it.
+//   * Notes: I didn't write "Prefer" on this one.  Don't violate it.
+//     Just don't do it.  Ever.  Designing the Host resource in
+//     violation of this was a HUGE mistake and one that I regret very
+//     much.  Learn from my mistakes.
+//   * Justification: Having Ambassador-set things in a subresource
+//     from user-set things:
+//     1. avoids races between the user updating the spec and us
+//        updating the status
+//     2. allows watt/whatever to only pay attention to
+//        .metadata.generation instead of .metadata.resourceVersion;
+//        avoiding pointless reconfigures.
+//     3. allows the RBAC to be simpler
+//     4. avoids the whole class of bugs where we need to make sure
+//        that everything round-trips correctly
+//     5. provides clarity on which things a user is expected to know
+//        how to fill in
 
 package v2
 
