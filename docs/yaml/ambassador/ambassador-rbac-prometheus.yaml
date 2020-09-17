@@ -1,3 +1,4 @@
+
 ---
 apiVersion: v1
 kind: Service
@@ -368,7 +369,7 @@ spec:
                   type: object
               type: object
             tls:
-              description: TLS configuration.  It is not valid to specify both tlsContext` and `tls`.
+              description: TLS configuration.  It is not valid to specify both `tlsContext` and `tls`.
               properties:
                 alpn_protocols:
                   type: string
@@ -492,7 +493,7 @@ spec:
           description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
@@ -945,7 +946,7 @@ spec:
               - type: string
               - type: boolean
             use_websocket:
-              description: 'use_websocket is deprecated, and is equivlaent to setting allow_upgrade: ["websocket"]`'
+              description: 'use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: ["websocket"]`'
               type: boolean
             weight:
               type: integer
@@ -996,7 +997,7 @@ spec:
       description: "A Module defines system-wide configuration.  The type of module is controlled by the .metadata.name; valid names are \"ambassador\" or \"tls\". \n https://www.getambassador.io/docs/latest/topics/running/ambassador/#the-ambassador-module https://www.getambassador.io/docs/latest/topics/running/tls/#tls-module-deprecated"
       properties:
         apiVersion:
-          description: APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
           description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
