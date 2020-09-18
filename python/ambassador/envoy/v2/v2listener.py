@@ -148,6 +148,20 @@ def header_pattern_key(x: Dict[str, str]) -> List[Tuple[str, str]]:
     return sorted([ (k, v) for k, v in x.items() ])
 
 
+def invert_headermatchers(matchers: List[Dict[str,Any]]) -> List[Dict[str,Any]]:
+    """Given a list of "envoy.api.v2.route.VirtualHost.HeaderMatcher"s,
+    return a copy of it with "invert_match" field fliped on each
+    member.
+
+    """
+    matchers = copy.deepcopy(matchers)
+    for matcher in matchers:
+        invert_match = matcher.pop("invert_match", False)
+        if not invert_match:
+            matcher["invert_match"] = True
+    return matchers
+
+
 @multi
 def v2filter(irfilter: IRFilter, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
@@ -701,9 +715,9 @@ class V2VirtualHost:
             self._config.ir.logger.debug(f"V2VirtualHost {self.name}: _insecure_actions={repr(self._insecure_actions)}")
 
             # Holes to poke in the Redirect and Reject actions...
-            holes = [{"prefix_match": "/.well-known/acme-challenge/"}]
+            holes = [{"name": ":path", "prefix_match": "/.well-known/acme-challenge/"}]
             if self._hole_for_root:
-                holes.append({"exact_match": "/"})
+                holes.append({"name": ":path", "exact_match": "/"})
 
             # For every Host, insert a route to perform its action
             for hostname in self._insecure_actions:
@@ -739,7 +753,7 @@ class V2VirtualHost:
                 route["match"].setdefault("headers", [])
 
                 # Poke necessary holes in the action.
-                route["match"]["headers"].extend({"name": ":path", "invert_match": True, **hole} for hole in holes)
+                route["match"]["headers"].extend(invert_headermatchers(holes))
 
                 # Don't do the insecure action if XFP says we're actually secure (trusting that Envoy has already
                 # validated XFP).
