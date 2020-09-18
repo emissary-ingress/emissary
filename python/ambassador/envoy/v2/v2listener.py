@@ -550,7 +550,7 @@ class V2VirtualHost:
         self._hostname = hostname
         self._ctx = ctx
         self._action = action
-        self._dont_redirect_root = False
+        self._hole_for_root = False
         self._insecure_actions: Dict[str,str] = {}  # hostname -> action
         self.routes: List[DictifiedV2Route] = []
         self._tls_context = V2TLSContext(ctx)
@@ -660,7 +660,7 @@ class V2VirtualHost:
             # uh.... y'know what, on their own head be it.)
             logger.debug(
                 f"V2VirtualHost {self.name}: force Route for fallback Mapping")
-            self._dont_redirect_root = True
+            self._hole_for_root = True
 
         logger.debug(f"V2VirtualHost {self.name}: Accepting")
 
@@ -700,20 +700,10 @@ class V2VirtualHost:
                 self._insecure_actions["*"] = "Redirect"
             self._config.ir.logger.debug(f"V2VirtualHost {self.name}: _insecure_actions={repr(self._insecure_actions)}")
 
-            # Holes to poke in the cleartext->TLS redirect...
-            redirect_holes = [{"prefix_match": "/.well-known/acme-challenge/"}]
-            if self._dont_redirect_root:
-                redirect_holes.append({"exact_match": "/"})
-            # ... and holes to poke in the rejecter
-            reject_holes = [{"prefix_match": "/.well-known/acme-challenge/"}]
-
-            # Weirdly, we need to poke a hole in the _rejecter_ for this too.
-            # This is OK because _dont_redirect_root will be set IFF the magic route
-            # for the CONGRATULATIONS page is present, and since we're using an exact
-            # match, it's OK to put it up front.
-
-            if self._dont_redirect_root:
-                reject_holes.append({"exact_match": "/"})
+            # Holes to poke in the Redirect and Reject actions...
+            holes = [{"prefix_match": "/.well-known/acme-challenge/"}]
+            if self._hole_for_root:
+                holes.append({"exact_match": "/"})
 
             # For every Host, insert a route to perform its action
             for hostname in self._insecure_actions:
@@ -727,7 +717,6 @@ class V2VirtualHost:
                         "match": {
                             "case_sensitive": True,
                             "prefix": "/",
-                            "headers": [{"name": ":path", "invert_match": True, **hole} for hole in redirect_holes],
                         },
                         "redirect": {
                             "https_redirect": True,
@@ -736,7 +725,6 @@ class V2VirtualHost:
                     "Reject": {
                         "match": {
                             "prefix": "/",
-                            "headers": [{"name": ":path", "invert_match": True, **hole} for hole in reject_holes],
                         },
                         "direct_response": {
                             "status": 404,
@@ -747,6 +735,11 @@ class V2VirtualHost:
 
                 if not route:
                     continue
+
+                route["match"].setdefault("headers", [])
+
+                # Poke necessary holes in the action.
+                route["match"]["headers"].extend({"name": ":path", "invert_match": True, **hole} for hole in holes)
 
                 # Don't do the insecure action if XFP says we're actually secure (trusting that Envoy has already
                 # validated XFP).
