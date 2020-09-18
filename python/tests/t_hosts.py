@@ -724,6 +724,14 @@ class HostCRDClientCertCrossNamespace(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
+        # All of the things referenced from a Host have a '.' in their
+        # name, to make sure that Ambassador is correctly interpreting
+        # the '.' as a namespace-separator (or not).  Because most of
+        # the references are core.v1.LocalObjectReferences, the '.' is
+        # not taken as a namespace-separator, but it is for the
+        # tls.ca_secret.  And for ca_secret we still put the '.' in
+        # the name so that we check that it's choosing the correct '.'
+        # as the separator.
         return namespace_manifest("alt-namespace") + self.format('''
 ---
 apiVersion: getambassador.io/v2
@@ -825,12 +833,18 @@ class HostCRDClientCertSameNamespace(AmbassadorTest):
         self.target = HTTP()
 
     def manifests(self) -> str:
-        return self.format('''
+        # Same as HostCRDClientCertCrossNamespace, all of the things
+        # referenced by a Host have a '.' in their name; except
+        # (unlike HostCRDClientCertCrossNamespace) the ca_secret
+        # doesn't, so that we can check that it chooses the correct
+        # namespace when a ".{namespace}" suffix isn't specified.
+        return namespace_manifest("alt-namespace") + self.format('''
 ---
 apiVersion: getambassador.io/v2
 kind: Host
 metadata:
   name: {self.path.k8s}
+  namespace: alt-namespace
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
@@ -849,6 +863,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {self.path.k8s}-ca
+  namespace: alt-namespace
   labels:
     kat-ambassador-id: {self.ambassador_id}
 type: kubernetes.io/tls
@@ -860,6 +875,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {self.path.k8s}.server
+  namespace: alt-namespace
   labels:
     kat-ambassador-id: {self.ambassador_id}
 type: kubernetes.io/tls
