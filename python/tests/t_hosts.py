@@ -717,7 +717,7 @@ spec:
         yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
 
 
-class HostCRDClientCert(AmbassadorTest):
+class HostCRDClientCertCrossNamespace(AmbassadorTest):
     target: ServiceType
 
     def init(self):
@@ -738,16 +738,16 @@ spec:
   acmeProvider:
     authority: none
   tlsSecret:
-    name: {self.path.k8s}-server
+    name: {self.path.k8s}.server
   tls:
     # ca_secret supports cross-namespace references, so test it
-    ca_secret: {self.path.k8s}-ca.alt-namespace
+    ca_secret: {self.path.k8s}.ca.alt-namespace
     cert_required: true
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.path.k8s}-ca
+  name: {self.path.k8s}.ca
   namespace: alt-namespace
   labels:
     kat-ambassador-id: {self.ambassador_id}
@@ -759,7 +759,107 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {self.path.k8s}-server
+  name: {self.path.k8s}.server
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["ambassador.example.com"].k8s_crt+'''
+  tls.key: '''+TLSCerts["ambassador.example.com"].k8s_key+'''
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {self.path.k8s}
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  prefix: /
+  service: {self.target.path.fqdn}
+''') +  super().manifests()
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        base = {
+            'url': self.url(""),
+            'ca_cert': TLSCerts["master.datawire.io"].pubcert,
+            'headers': {"Host": "ambassador.example.com"},
+            'sni': True,  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+        }
+
+        yield Query(**base,
+                    client_crt=TLSCerts["presto.example.com"].pubcert,
+                    client_key=TLSCerts["presto.example.com"].privkey)
+
+        # Check that it requires the client cert.
+        #
+        # In TLS < 1.3, there's not a dedicated alert code for "the client forgot to include a certificate",
+        # so we get a generic alert=40 ("handshake_failure").
+        yield Query(**base, maxTLSv="v1.2", error="tls: handshake failure")
+        # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario.
+        yield Query(**base, minTLSv="v1.3", error="tls: certificate required")
+
+        # Check that it's validating the client cert against the CA cert.
+        yield Query(**base,
+                    client_crt=TLSCerts["localhost"].pubcert,
+                    client_key=TLSCerts["localhost"].privkey,
+                    maxTLSv="v1.2", error="tls: handshake failure")
+
+    def requirements(self):
+        for r in super().requirements():
+            query = r[1]
+            query.headers={"Host": "ambassador.example.com"}
+            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.ca_cert = TLSCerts["master.datawire.io"].pubcert
+            query.client_cert = TLSCerts["presto.example.com"].pubcert
+            query.client_key = TLSCerts["presto.example.com"].privkey
+            yield (r[0], query)
+
+class HostCRDClientCertSameNamespace(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return self.format('''
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: ambassador.example.com
+  acmeProvider:
+    authority: none
+  tlsSecret:
+    name: {self.path.k8s}.server
+  tls:
+    # ca_secret supports cross-namespace references, so test it
+    ca_secret: {self.path.k8s}-ca
+    cert_required: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-ca
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["master.datawire.io"].k8s_crt+'''
+  tls.key: ""
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}.server
   labels:
     kat-ambassador-id: {self.ambassador_id}
 type: kubernetes.io/tls
