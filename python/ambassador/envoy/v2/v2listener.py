@@ -726,60 +726,61 @@ class V2VirtualHost:
                     # If the hostaction is the default action, no need to insert a route for it.
                     continue
 
-                route: Optional[Dict[str,Any]] = {
-                    "Redirect": {
-                        "match": {
-                            "case_sensitive": True,
-                            "prefix": "/",
+                if True:
+                    route: Optional[Dict[str,Any]] = {
+                        "Redirect": {
+                            "match": {
+                                "case_sensitive": True,
+                                "prefix": "/",
+                            },
+                            "redirect": {
+                                "https_redirect": True,
+                            },
                         },
-                        "redirect": {
-                            "https_redirect": True,
+                        "Reject": {
+                            "match": {
+                                "prefix": "/",
+                            },
+                            "direct_response": {
+                                "status": 404,
+                            },
                         },
-                    },
-                    "Reject": {
-                        "match": {
-                            "prefix": "/",
-                        },
-                        "direct_response": {
-                            "status": 404,
-                        },
-                    },
-                    "Route": None,  # fall through to the normal Route list
-                }[hostaction]
+                        "Route": None,  # fall through to the normal Route list
+                    }[hostaction]
 
-                if not route:
-                    continue
+                    if not route:
+                        continue
 
-                route["match"].setdefault("headers", [])
+                    route["match"].setdefault("headers", [])
 
-                # Poke necessary holes in the action.
-                route["match"]["headers"].extend(invert_headermatchers(holes))
+                    # Poke necessary holes in the action.
+                    route["match"]["headers"].extend(invert_headermatchers(holes))
 
-                # Don't do the insecure action if XFP says we're actually secure (trusting that Envoy has already
-                # validated XFP).
-                route["match"]["headers"].append({
-                    "exact_match": "http",
-                    "name": "x-forwarded-proto",
-                })
-
-                # Use the :authority header to decide whether this route applies.
-                if hostname != "*":
+                    # Don't do the insecure action if XFP says we're actually secure (trusting that Envoy has already
+                    # validated XFP).
                     route["match"]["headers"].append({
-                        "name": ":authority",
-                        "exact_match": hostname,
+                        "exact_match": "http",
+                        "name": "x-forwarded-proto",
                     })
-                else:
-                    otherhosts = [other for other in self._insecure_actions if other != hostname and self._insecure_actions[other] != hostaction]
-                    if len(otherhosts) > 0:
-                        route["match"]["headers"].extend([
-                            {
-                                "name": ":authority",
-                                "exact_match": otherhost,
-                                "invert_match": True,
-                            } for otherhost in otherhosts
-                        ])
 
-                self.routes.insert(0, route)
+                    # Use the :authority header to decide whether this route applies.
+                    if hostname != "*":
+                        route["match"]["headers"].append({
+                            "name": ":authority",
+                            "exact_match": hostname,
+                        })
+                    else:
+                        otherhosts = [other for other in self._insecure_actions if other != hostname and self._insecure_actions[other] != hostaction]
+                        if len(otherhosts) > 0:
+                            route["match"]["headers"].extend([
+                                {
+                                    "name": ":authority",
+                                    "exact_match": otherhost,
+                                    "invert_match": True,
+                                } for otherhost in otherhosts
+                            ])
+
+                    self.routes.insert(0, route)
 
 
         for route in self.routes:
@@ -1272,12 +1273,13 @@ class V2Listener(dict):
         for port, listener in listeners_by_port.items():
             for secure in [True, False]:
                 if not VHostKey(secure=secure, hostname='*') in listener.vhosts:
-                    # Force the first VHost to '*'. I know, this is a little weird, but it's arguably
-                    # the least surprising thing to do in most situations.
-                    assert listener.first_vhost
-                    first_vhost = listener.first_vhost
-                    first_vhost._hostname = '*'
-                    first_vhost.name += "_fstar"
+                    if True:
+                        # Force the first VHost to '*'. I know, this is a little weird, but it's arguably
+                        # the least surprising thing to do in most situations.
+                        assert listener.first_vhost
+                        first_vhost = listener.first_vhost
+                        first_vhost._hostname = '*'
+                        first_vhost.name += "_fstar"
 
         # Step 1.2.  Populate the V2VirtualHosts with Routes
 
