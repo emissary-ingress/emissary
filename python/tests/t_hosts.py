@@ -717,6 +717,127 @@ spec:
         yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
 
 
+class HostCRDWildcards(AmbassadorTest):
+    """This test could be expanded to include more scenarios, like testing
+    handling of precedence between suffix-match host globs and
+    prefix-match host-globs.  But this is a solid start.
+
+    """
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return self.format('''
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}-wc
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*"
+  acmeProvider:
+    authority: none
+  selector:
+    matchLabels:
+      hostname: "wc"
+  tlsSecret:
+    name: {self.path.k8s}-tls
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}-wc.domain.com
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*.domain.com"
+  acmeProvider:
+    authority: none
+  selector:
+    matchLabels:
+      hostname: "wc.domain.com"
+  tlsSecret:
+    name: {self.path.k8s}-tls
+  requestPolicy:
+    insecure:
+      action: Route
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}-a.domain.com
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: "a.domain.com"
+  acmeProvider:
+    authority: none
+  selector:
+    matchLabels:
+      hostname: "a.domain.com"
+  tlsSecret:
+    name: {self.path.k8s}-tls
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-tls
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["a.domain.com"].k8s_crt+'''
+  tls.key: '''+TLSCerts["a.domain.com"].k8s_key+'''
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {self.path.k8s}
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  prefix: /foo
+  service: {self.target.path.fqdn}
+''') + super().manifests()
+
+    def queries(self):
+        insecure_base = {
+            'url': self.url('foo', scheme='http'),
+        }
+        secure_base = {
+            'url': self.url('foo', scheme='https'),
+            'ca_cert': TLSCerts["*.domain.com"].pubcert,
+            'sni': True,
+        }
+
+        yield Query(**secure_base, headers={'Host': 'a.domain.com'}, expected=200)  # Host=a.domain.com
+        yield Query(**secure_base, headers={'Host': 'wc.domain.com'}, expected=200) # Host=*.domain.com
+        yield Query(**secure_base, headers={'Host': '127.0.0.1'}, expected=200)     # Host=*
+
+        yield Query(**insecure_base, headers={'Host': 'a.domain.com'}, expected=301)  # Host=a.domain.com
+        yield Query(**insecure_base, headers={'Host': 'wc.domain.com'}, expected=200) # Host=*.domain.com
+        yield Query(**insecure_base, headers={'Host': '127.0.0.1'}, expected=301)     # Host=*
+
+    def scheme(self) -> str:
+        return "https"
+
+    def requirements(self):
+        for r in super().requirements():
+            query = r[1]
+            query.headers={"Host": "127.0.0.1"}
+            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.ca_cert = TLSCerts["*.domain.com"].pubcert
+            yield (r[0], query)
+
+
 class HostCRDClientCertCrossNamespace(AmbassadorTest):
     target: ServiceType
 

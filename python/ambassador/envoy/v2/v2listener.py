@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 import copy
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Sequence, Set, Tuple, TYPE_CHECKING
 from typing import cast as typecast
 
 from os import environ
@@ -159,6 +159,118 @@ def invert_headermatchers(matchers: List[Dict[str,Any]]) -> List[Dict[str,Any]]:
         invert_match = matcher.pop("invert_match", False)
         if not invert_match:
             matcher["invert_match"] = True
+    return matchers
+
+
+def reduce_hostglobs(inglobs: Iterable[str]) -> Set[str]:
+    """Given a list of hostglobs, reduce it to a minimal set that matches those hosts; the trivial example is that
+    if the input list contains "*", then the result is just ["*"].
+
+    This matches the semantics of `envoy.api.v2.route.VirtualHost.domains`.
+
+    """
+    outglobs: Set[str] = set()
+    for a in inglobs:
+        subsumed = False
+        for b in inglobs:
+            if a == b:
+                continue
+
+            if b == "*": # special wildcard
+                subsumed = True
+                break
+            elif b.endswith("*"): # prefix match
+                if a.startswith(b[:-1]):
+                    subsumed = True
+                    break
+            elif b.startswith("*"): # suffix match
+                if a.endswith(b[1:]):
+                    subsumed = True
+                    break
+            else: # exact match
+                pass
+
+        if not subsumed:
+            outglobs.add(a)
+    return outglobs
+
+
+def sorted_hostglobs(inglobs: Iterable[str]) -> Sequence[str]:
+    """Given a list of hostglobs, sort the list according to `envoy.api.v2.route.VirtualHost.domains` precedence;
+    highest precedence first.
+
+    """
+    def key(hostglob: str) -> Tuple:
+        # higher numbers = higher precedence
+        if hostglob == "*": # special wildcard
+            return (0, len(hostglob))
+        elif hostglob.endswith("*"): # prefix match
+            return (1, len(hostglob))
+        elif hostglob.startswith("*"): # suffix match
+            return (2, len(hostglob))
+        else: # exact match
+            return (3, len(hostglob))
+    return sorted(inglobs, key=key, reverse=True)
+
+
+def hostglob_to_headermatchers(hostglob: str, other_hostglobs: Iterable[str]=[]) -> List[Dict[str,Any]]:
+    """Given a hostglob to match, and a list of hostglobs to _not_ match, return a list of HeaderMatchers that
+    replicate the behavior of `envoy.api.v2.route.VirtualHost.domains`.
+
+    """
+
+    matchers: List[Dict[str,Any]] = []
+    exceptions: Set[str] = set()
+
+    # Check each type of domain matcher from lowest precedence to highest
+    if hostglob == "*": # special wildcard
+        # Start by matching everything (don't add anything to 'matchers' yet).
+
+        # OK, now we need to go through all of the other hostglobs and add exceptions for the ones that are
+        # higher-precedence than us (hint: everything is higher-precedence than "*").
+        for other in other_hostglobs:
+            if other == hostglob:
+                continue
+            # Everything is higher-precedence than "*".
+            exceptions.add(other)
+    elif hostglob.endswith("*"): # prefix match
+        matchers.append({
+            "name": ":authority",
+            "prefix_match": hostglob[:-1],
+        })
+        # OK, now we need to go through all of the other hostglobs and add exceptions for the ones that are
+        # higher-precedence than us.
+        for other in other_hostglobs:
+            if other == hostglob:
+                continue
+            if other.startswith("*") and other != "*":
+                # suffix matches are higher priority
+                exceptions.add(other)
+            elif other.startswith(hostglob[:-1]):
+                # more specific matches (including exact matches) are higher priority
+                exceptions.add(other)
+    elif hostglob.startswith("*"): # suffix match
+        matchers.append({
+            "name": ":authority",
+            "suffix_match": hostglob[1:],
+        })
+        # OK, now we need to go through all of the other hostglobs and add exceptions for the ones that are
+        # higher-precedence than us.
+        for other in other_hostglobs:
+            if other == hostglob:
+                continue
+            if other.endswith(hostglob[1:]):
+                # more specific matches (including exact matches) are higher priority
+                exceptions.add(other)
+    else: # exact match
+        matchers.append({
+            "name": ":authority",
+            "exact_match": hostglob,
+        })
+
+    for exception in reduce_hostglobs(exceptions):
+        matchers.extend(invert_headermatchers(hostglob_to_headermatchers(exception)))
+
     return matchers
 
 
@@ -719,14 +831,26 @@ class V2VirtualHost:
             if self._hole_for_root:
                 holes.append({"name": ":path", "exact_match": "/"})
 
-            # For every Host, insert a route to perform its action
-            for hostname in self._insecure_actions:
-                hostaction = self._insecure_actions[hostname]
-                if hostname != "*" and hostaction == self._insecure_actions["*"]:
-                    # If the hostaction is the default action, no need to insert a route for it.
-                    continue
+            # For every Host, insert a route to perform its insecure.action.
+            #
+            # But first, to do that we need to sort them by precedence
+            # and figure out which ones are redundant.
+            hostglob_groups: List[List[str]] = []
+            prev_hostaction = ""
+            for hostglob in sorted_hostglobs(self._insecure_actions.keys()):
+                hostaction = self._insecure_actions[hostglob]
+                if hostaction != prev_hostaction:
+                    hostglob_groups.append([])
+                hostglob_groups[-1].append(hostglob)
+                prev_hostaction = hostaction
 
-                if True:
+            # OK, now insert a route to perform each insecure.action.
+            insecure_action_routes: List[DictifiedV2Route] = []
+            exceptions: List[str] = []
+            for hostglob_group in hostglob_groups:
+                hostaction = self._insecure_actions[hostglob_group[0]]
+                other_hostglobs = [e for e in exceptions if self._insecure_actions[e] != hostaction]
+                for hostglob in reduce_hostglobs(hostglob_group):
                     route: Optional[Dict[str,Any]] = {
                         "Redirect": {
                             "match": {
@@ -749,6 +873,7 @@ class V2VirtualHost:
                     }[hostaction]
 
                     if not route:
+                        exceptions.append(hostglob)
                         continue
 
                     route["match"].setdefault("headers", [])
@@ -764,24 +889,12 @@ class V2VirtualHost:
                     })
 
                     # Use the :authority header to decide whether this route applies.
-                    if hostname != "*":
-                        route["match"]["headers"].append({
-                            "name": ":authority",
-                            "exact_match": hostname,
-                        })
-                    else:
-                        otherhosts = [other for other in self._insecure_actions if other != hostname and self._insecure_actions[other] != hostaction]
-                        if len(otherhosts) > 0:
-                            route["match"]["headers"].extend([
-                                {
-                                    "name": ":authority",
-                                    "exact_match": otherhost,
-                                    "invert_match": True,
-                                } for otherhost in otherhosts
-                            ])
+                    route["match"]["headers"].extend(hostglob_to_headermatchers(hostglob, other_hostglobs))
 
-                    self.routes.insert(0, route)
+                    insecure_action_routes.append(route)
 
+            # Now insert those routes in to the main route list
+            self.routes = insecure_action_routes + self.routes
 
         for route in self.routes:
             self._config.ir.logger.debug(f"V2VirtualHost {self.name}: finalize: Route {prettyroute(route)}")
@@ -870,7 +983,7 @@ class V2Listener(dict):
         self.access_log: List[dict] = []
         self.upgrade_configs: Optional[List[dict]] = None
         self.vhosts: Dict[VHostKey, V2VirtualHost] = {}
-        self.first_vhost: Optional[V2VirtualHost] = None
+        self.first_vhost: Dict[bool, V2VirtualHost] = {}
         self.http_filters: List[dict] = []
         self.listener_filters: List[dict] = []
         self.traffic_direction: str = "UNSPECIFIED"
@@ -1049,7 +1162,8 @@ class V2Listener(dict):
                    action: Optional[str]) -> V2VirtualHost:
         self.config.ir.logger.debug(f"V2Listener {self.name}: adding VHost {name} for host={hostname}, secure_action={action}")
 
-        key = VHostKey(secure=action != None, hostname=hostname)
+        secure = action != None
+        key = VHostKey(secure=secure, hostname=hostname)
         vhost = self.vhosts.get(key)
 
         if vhost:
@@ -1067,8 +1181,7 @@ class V2Listener(dict):
                               action=action)
         self.vhosts[key] = vhost
 
-        if not self.first_vhost:
-            self.first_vhost = vhost
+        self.first_vhost.setdefault(secure, vhost)
 
         return vhost
 
@@ -1236,6 +1349,12 @@ class V2Listener(dict):
             #
             # What we need here instead is ONE insecure vhost (for each port) which has Routes that have
             # HeaderMatchers for these insecure domains.  Which header? ":authority" i.e. the "Host" header.
+            #
+            # Why, though? Even if we don't need it, it adds a decent chunk of complexity, so why not just
+            # create multiple insecure vhosts?  Flynn says that envoy.api.v2.route.VirtualHost.domains only
+            # works if you're using TLS, but secretly I suspect that he's mixing it up with
+            # envoy.api.v2.listener.FilterChainMatch.server_names.  And checking that doesn't seem to be worth
+            # it right now, and would be a rather larger overhaul than I want to include in 1.7.3 anyway.
             vhost = listener.make_vhost(name=f"_insecure-{listener.service_port}",
                                         hostname="*",
                                         context=None,
@@ -1269,15 +1388,15 @@ class V2Listener(dict):
                                         action=None)
             vhost._insecure_actions["*"] = "Reject"
 
-        # Make sure that each listener has a '*' vhost.
+        # Make sure that each listener has a '*' vhost for every transport protocol that it listens on.
         for port, listener in listeners_by_port.items():
+            logger.warning(f"V2Listener.generate ({port}) {listener.name}: LUKESHU: listener.vhosts.keys(): {listener.vhosts.keys()}")
             for secure in [True, False]:
                 if not VHostKey(secure=secure, hostname='*') in listener.vhosts:
-                    if True:
+                    if secure in listener.first_vhost:
                         # Force the first VHost to '*'. I know, this is a little weird, but it's arguably
                         # the least surprising thing to do in most situations.
-                        assert listener.first_vhost
-                        first_vhost = listener.first_vhost
+                        first_vhost = listener.first_vhost[secure]
                         first_vhost._hostname = '*'
                         first_vhost.name += "_fstar"
 
