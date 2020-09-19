@@ -59,13 +59,14 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 - Bugfix: A regression introduced in 1.7.2 when `AMBASSADOR_FAST_RECONFIGURE=true` has been fixed where Host resources `tls.ca_secret` didn't work correctly.
 - Bugfix: `TLSContext` resources and `spec.tls` in `Host` now correctly handle namespaces with `.` in them.
+- Bugfix: Fix `spec.requestPolicy.insecure.action` for `Host` resources with a `*` wildcard in the hostname.
 
 ## [1.7.2] September 16, 2020
 [1.7.2]: https://github.com/datawire/ambassador/compare/v1.7.1...v1.7.2
 
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
-- Bugfix: A regression introduced in 1.7.0 with the various Host.spec.insecure.action behaviors, including handling of X-Forwarded-Proto, has been fixed.
+- Bugfix: A regression introduced in 1.7.0 with the various `Host` resource `spec.requestPolicy.insecure.action` behaviors, including handling of X-Forwarded-Proto, has been fixed.
 - Bugfix: Host resources no longer perform secret namespacing when the `AMBASSADOR_FAST_RECONFIGURE` flag is enabled.
 
 ## [1.7.1] September 08, 2020
