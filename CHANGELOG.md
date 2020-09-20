@@ -55,6 +55,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
+- Feature: HTTP IP Allow/Deny ranges are supported.
 - Bugfix: The container no longer exits "successfully" when the Deployment specifies an invalid `command`.
 
 ## [1.7.2] September 16, 2020
