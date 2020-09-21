@@ -5,6 +5,7 @@ from ..constants import Constants
 from ..config import Config
 
 from .irresource import IRResource
+from .iripallowdeny import IRIPAllowDeny
 from .irbasemapping import IRBaseMapping
 from .irhttpmapping import IRHTTPMapping
 from .irtls import IRAmbassadorTLS
@@ -44,6 +45,7 @@ class IRAmbassador (IRResource):
         'envoy_log_path',
         'envoy_log_type',
         # Do not include envoy_validation_timeout; we let finalize() type-check it.
+        # Do not include ip_allow or ip_deny; we let finalize() type-check them.
         'keepalive',
         'listener_idle_timeout_ms',
         'liveness_probe',
@@ -129,6 +131,7 @@ class IRAmbassador (IRResource):
             **kwargs
         )
 
+        self.ip_allow_deny: Optional[IRIPAllowDeny] = None
         self._finalized = False
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
@@ -273,6 +276,20 @@ class IRAmbassador (IRResource):
             else:
                 return False
 
+        if amod:
+            if 'ip_allow' in amod:
+                self.handle_ip_allow_deny(allow=True, principals=amod.ip_allow)
+        
+            if 'ip_deny' in amod:
+                self.handle_ip_allow_deny(allow=False, principals=amod.ip_deny)
+
+            if self.ip_allow_deny is not None:
+                ir.save_filter(self.ip_allow_deny)
+
+                # Clear this so it doesn't get duplicated when we dump the
+                # Ambassador module.
+                self.ip_allow_deny = None
+
         if self.get('load_balancer', None) is not None:
             if not IRHTTPMapping.validate_load_balancer(self['load_balancer']):
                 self.post_error("Invalid load_balancer specified: {}".format(self['load_balancer']))
@@ -359,3 +376,29 @@ class IRAmbassador (IRResource):
         self.logger.debug("default_labels info for %s: %s" % (domain, domain_info))
 
         return domain_info.get('defaults')
+
+    def handle_ip_allow_deny(self, allow: bool, principals: List[str]) -> None:
+        """
+        Handle IP Allow/Deny. "allow" here states whether this is an
+        allow rule (True) or a deny rule (False); "principals" is a list
+        of IP addresses or CIDR ranges to allow or deny.
+
+        Only one of ip_allow or ip_deny can be set, so it's an error to
+        call this twice (even if "allow" is the same for both calls).
+
+        :param allow: True for an ALLOW rule, False for a DENY rule
+        :param principals: list of IP addresses or CIDR ranges to match
+        """
+
+        if self.get('ip_allow_deny') is not None:
+            self.post_error("ip_allow and ip_deny may not both be set")
+            return
+        
+        ipa = IRIPAllowDeny(self.ir, self.ir.aconf, rkey=self.rkey, 
+                            parent=self, 
+                            action="ALLOW" if allow else "DENY",
+                            principals=principals)
+
+        if ipa:
+            self['ip_allow_deny'] = ipa
+
