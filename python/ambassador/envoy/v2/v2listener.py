@@ -850,7 +850,7 @@ class V2VirtualHost:
             for hostglob_group in hostglob_groups:
                 hostaction = self._insecure_actions[hostglob_group[0]]
                 other_hostglobs = [e for e in exceptions if self._insecure_actions[e] != hostaction]
-                for hostglob in reduce_hostglobs(hostglob_group):
+                for hostglob in sorted(reduce_hostglobs(hostglob_group)):
                     route: Optional[Dict[str,Any]] = {
                         "Redirect": {
                             "match": {
