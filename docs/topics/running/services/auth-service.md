@@ -4,7 +4,7 @@ The Ambassador API Gateway provides a highly flexible mechanism for authenticati
 
 All requests are validated by the `AuthService` (unless the `Mapping` applied to the request sets `bypass_auth`).  It is not possible to combine multiple `AuthService`s.  While it is possible to create multiple `AuthService` resources, they will be load-balanced between each resource in a round-robin fashion. This is useful for canarying an `AuthService` change, but is not useful for deploying multiple distinct `AuthService`s.  In order to combine multiple external services (either having multiple services apply to the same request, or selecting between different services for the different requests), instead of using an `AuthService`, use [Ambassador Edge Stack `External Filter`](../../../using/filters/).
 
-Because of the limitations described above, **the Ambassador Edge Stack does not support `AuthService` resources, and you should instead use an [`External` `Filter`](../../../using/filters/external),** which is mostly a drop-in replacement for an `AuthService`.
+Because of the limitations described above, **the Ambassador Edge Stack does not support `AuthService` resources, and you should instead use an [`External` `Filter`](../../../using/filters/external),** which is mostly a drop-in replacement for an `AuthService`. Note at AES deploys its own AuthService, which External Filter relies on. You must be sure the AES AuthService exists before External Filters will work.
 
 ## Configure an External AuthService
 
