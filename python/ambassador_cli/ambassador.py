@@ -24,9 +24,11 @@ from typing import cast as typecast
 
 import sys
 
+import cProfile
 import json
 import logging
 import os
+import pstats
 import signal
 import traceback
 
@@ -130,7 +132,7 @@ class CLISecretHandler(SecretHandler):
 
 def dump(config_dir_path: Parameter.REQUIRED, *,
          secret_dir_path=None, watt=False, debug=False, debug_scout=False, k8s=False, recurse=False,
-         aconf=False, ir=False, v2=False, diag=False, features=False):
+         aconf=False, ir=False, v2=False, diag=False, features=False, profile=False):
     """
     Dump various forms of an Ambassador configuration for debugging
 
@@ -149,6 +151,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     :param v2: If set, dump the Envoy V2 config
     :param diag: If set, dump the Diagnostics overview
     :param features: If set, dump the feature set
+    :param profile: If set, profile with the cProfile module
     """
 
     if not secret_dir_path:
@@ -178,6 +181,13 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
 
     od = {}
     diagconfig: Optional[EnvoyConfig] = None
+
+    _profile: Optional[cProfile.Profile] = None
+    _rc = 0
+
+    if profile:
+        _profile = cProfile.Profile()
+        _profile.enable()
 
     try:
         aconf = Config()
@@ -234,9 +244,13 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     except Exception as e:
         handle_exception("EXCEPTION from dump", e,
                          config_dir_path=config_dir_path)
+        _rc = 1
 
-        # This is fatal.
-        sys.exit(1)
+    if _profile:
+        _profile.disable()
+        _profile.dump_stats("ambassador.profile")
+
+    sys.exit(_rc)
 
 
 def validate(config_dir_path: Parameter.REQUIRED, **kwargs):
