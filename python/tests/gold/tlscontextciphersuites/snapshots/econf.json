@@ -305,31 +305,6 @@
                                                 "name": "ambassador-listener-8443-_insecure-8443",
                                                 "routes": [
                                                     {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "invert_match": true,
-                                                                    "name": ":path",
-                                                                    "prefix_match": "/.well-known/acme-challenge/"
-                                                                },
-                                                                {
-                                                                    "exact_match": "http",
-                                                                    "name": "x-forwarded-proto"
-                                                                },
-                                                                {
-                                                                    "exact_match": "tls-context-host-1",
-                                                                    "invert_match": true,
-                                                                    "name": ":authority"
-                                                                }
-                                                            ],
-                                                            "prefix": "/"
-                                                        },
-                                                        "redirect": {
-                                                            "https_redirect": true
-                                                        }
-                                                    },
-                                                    {
                                                         "direct_response": {
                                                             "status": 404
                                                         },
@@ -350,6 +325,26 @@
                                                                 }
                                                             ],
                                                             "prefix": "/"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "invert_match": true,
+                                                                    "name": ":path",
+                                                                    "prefix_match": "/.well-known/acme-challenge/"
+                                                                },
+                                                                {
+                                                                    "exact_match": "http",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/"
+                                                        },
+                                                        "redirect": {
+                                                            "https_redirect": true
                                                         }
                                                     },
                                                     {
