@@ -57,6 +57,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 - Feature: HTTP IP Allow/Deny ranges are supported.
 - Bugfix: The container no longer exits "successfully" when the Deployment specifies an invalid `command`.
+- Bugfix: The `edgectl connect` command now works properly when using zsh on a Linux platform.
 
 ## [1.7.2] September 16, 2020
 [1.7.2]: https://github.com/datawire/ambassador/compare/v1.7.1...v1.7.2
