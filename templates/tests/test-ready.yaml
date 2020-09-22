@@ -1,4 +1,4 @@
-{{- if not .Values.daemonSet }}
+{{- if and (.Values.test.enabled) (not .Values.daemonSet) }}
 apiVersion: v1
 kind: Pod
 metadata:
@@ -17,7 +17,7 @@ metadata:
 spec:
   containers:
     - name: wget
-      image: busybox
+      image: {{ .Values.test.image | default "busybox" }}
       command: ['wget']
       args:  ['{{ include "ambassador.fullname" . }}:{{ include "ambassador.servicePort" . }}/ambassador/v0/check_ready']
   restartPolicy: Never
