@@ -959,13 +959,13 @@ class HostCRDClientCertSameNamespace(AmbassadorTest):
         # (unlike HostCRDClientCertCrossNamespace) the ca_secret
         # doesn't, so that we can check that it chooses the correct
         # namespace when a ".{namespace}" suffix isn't specified.
-        return namespace_manifest("alt-namespace") + self.format('''
+        return namespace_manifest("alt2-namespace") + self.format('''
 ---
 apiVersion: getambassador.io/v2
 kind: Host
 metadata:
   name: {self.path.k8s}
-  namespace: alt-namespace
+  namespace: alt2-namespace
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
@@ -984,7 +984,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {self.path.k8s}-ca
-  namespace: alt-namespace
+  namespace: alt2-namespace
   labels:
     kat-ambassador-id: {self.ambassador_id}
 type: kubernetes.io/tls
@@ -996,7 +996,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: {self.path.k8s}.server
-  namespace: alt-namespace
+  namespace: alt2-namespace
   labels:
     kat-ambassador-id: {self.ambassador_id}
 type: kubernetes.io/tls
