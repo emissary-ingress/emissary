@@ -19,7 +19,7 @@
 # etc.
 ########
 
-from typing import Optional
+from typing import ClassVar, Optional, Set
 from typing import cast as typecast
 
 import sys
@@ -37,7 +37,7 @@ from ambassador import Scout, Config, IR, Diagnostics, Version
 from ambassador.fetch import ResourceFetcher
 from ambassador.envoy import EnvoyConfig, V2Config
 
-from ambassador.utils import RichStatus, NullSecretHandler
+from ambassador.utils import RichStatus, SecretHandler, SecretInfo, NullSecretHandler
 
 __version__ = Version
 
@@ -111,6 +111,23 @@ def file_checker(path: str) -> bool:
     return True
 
 
+class CLISecretHandler(SecretHandler):
+    LoadableSecrets: ClassVar[Set[str]] = {}
+
+    def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
+        # Only allow a secret to be _loaded_ if it's marked Loadable.
+
+        key = f"{secret_name}.{namespace}"
+
+        if key in CLISecretHandler.LoadableSecrets:
+            self.logger.info(f"CLISecretHandler: loading {key}")
+            return SecretInfo(secret_name, namespace, "mocked-loadable-secret",
+                              "-mocked-cert-", "-mocked-key-", decode_b64=False)
+
+        self.logger.debug(f"CLISecretHandler: cannot load {key}")
+        return None
+
+
 def dump(config_dir_path: Parameter.REQUIRED, *,
          secret_dir_path=None, watt=False, debug=False, debug_scout=False, k8s=False, recurse=False,
          aconf=False, ir=False, v2=False, diag=False, features=False):
@@ -179,7 +196,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         if dump_aconf:
             od['aconf'] = aconf.as_dict()
 
-        secret_handler = NullSecretHandler(logger, config_dir_path, secret_dir_path, "0")
+        secret_handler = CLISecretHandler(logger, config_dir_path, secret_dir_path, "0")
 
         ir = IR(aconf, file_checker=file_checker, secret_handler=secret_handler)
 
