@@ -92,6 +92,8 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `crds.create`                      | If `true`, Creates CRD resources                                                | `true`                            |
 | `crds.keep`                        | If `true`, if the ambassador CRDs should be kept when the chart is deleted      | `true`                            |
 | `daemonSet`                        | If `true`, Create a DaemonSet. By default Deployment controller will be created | `false`                           |
+| `test.enabled`                     | If `true`, Create test Pod to verify the Ambassador service works correctly     | `true`                            |
+| `test.image`                       | Image to use for the test Pod                                                   | `busybox`                         |
 | `hostNetwork`                      | If `true`, uses the host network, useful for on-premise setups                  | `false`                           |
 | `dnsPolicy`                        | Dns policy, when hostNetwork set to ClusterFirstWithHostNet                     | `ClusterFirst`                    |
 | `env`                              | Any additional environment variables for ambassador pods                        | `{}`                              |
