@@ -709,7 +709,7 @@ kubectl annotation po teleproxy sidecar.istio.io/inject='false'
 
 The `traffic-agent` is powered by Envoy proxy. Envoy, by default, does not like to run on the same host as other Envoy proxies. Since Istio is also powered by Envoy, you need to ensure that the `traffic-agent` knows how to run in the same pod as the `istio-proxy`.
 
-This is easily done by setting `AMBASSADOR_ENVOY_BASE_ID: 1` in the `traffic-agent` environment. Make sure this is set when injecting the `traffic-agent`.
+This is easily done by setting `AMBASSADOR_ENVOY_BASE_ID: "1"` in the `traffic-agent` environment. Make sure this is set when injecting the `traffic-agent`.
 
 > **IMPORTANT**
 > At the moment, the Ambassador Injector does not automatically set `AMBASSADOR_ENVOY_BASE_ID`. You will need to manually inject the `traffic-agent` when intercepting a service in your Istio mesh.
