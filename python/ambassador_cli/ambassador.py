@@ -114,7 +114,14 @@ def file_checker(path: str) -> bool:
 
 
 class CLISecretHandler(SecretHandler):
-    LoadableSecrets: ClassVar[Set[str]] = {}
+    # HOOK: if you're using dump and you need it to pretend that certain missing secrets
+    # are present, add them to LoadableSecrets. At Some Point(tm) there will be a switch
+    # to add these from the command line, but Flynn didn't actually need that for the
+    # debugging he was doing...
+
+    LoadableSecrets: ClassVar[Set[str]] = {
+        # "ssl-certificate.mynamespace"
+    }
 
     def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
         # Only allow a secret to be _loaded_ if it's marked Loadable.
