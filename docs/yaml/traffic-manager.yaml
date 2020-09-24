@@ -62,6 +62,9 @@ spec:
     metadata:
       labels:
         app: telepresence-proxy
+      annotations:
+        consul.hashicorp.com/connect-inject: 'false'
+        sidecar.istio.io/inject: 'false'
     spec:
       containers:
       - name: telepresence-proxy
