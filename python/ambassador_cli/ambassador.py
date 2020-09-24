@@ -152,7 +152,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     """
 
     if not secret_dir_path:
-        secret_dir_path = config_dir_path
+        secret_dir_path = "/tmp/cli-secrets"
 
         if not os.path.isdir(secret_dir_path):
             secret_dir_path = os.path.dirname(secret_dir_path)
