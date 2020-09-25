@@ -19,7 +19,7 @@
 # etc.
 ########
 
-from typing import ClassVar, Optional, Set
+from typing import ClassVar, Optional, Set, TYPE_CHECKING
 from typing import cast as typecast
 
 import sys
@@ -40,6 +40,9 @@ from ambassador.fetch import ResourceFetcher
 from ambassador.envoy import EnvoyConfig, V2Config
 
 from ambassador.utils import RichStatus, SecretHandler, SecretInfo, NullSecretHandler
+
+if TYPE_CHECKING:
+    from ambassador.ir import IRResource
 
 __version__ = Version
 
@@ -119,9 +122,9 @@ class CLISecretHandler(SecretHandler):
     # to add these from the command line, but Flynn didn't actually need that for the
     # debugging he was doing...
 
-    LoadableSecrets: ClassVar[Set[str]] = {
+    LoadableSecrets: ClassVar[Set[str]] = set(
         # "ssl-certificate.mynamespace"
-    }
+    )
 
     def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
         # Only allow a secret to be _loaded_ if it's marked Loadable.
