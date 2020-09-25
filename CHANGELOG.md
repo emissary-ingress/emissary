@@ -5,6 +5,7 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+- The BusyBox image image used by `test-ready` is now configurable (thanks, [Alan Silva](https://github.com/OmegaVVeapon)!)
 
 ## v6.5.6
 
