@@ -316,7 +316,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8080-_insecure-8080_fstar",
+                                                "name": "ambassador-listener-8080-_insecure-8080",
                                                 "routes": [
                                                     {
                                                         "match": {

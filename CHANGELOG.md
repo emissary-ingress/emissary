@@ -57,15 +57,18 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
-- Incorporate the Envoy 1.14.4 security update.
+- Incorporate the Envoy 1.15.1 security update.
+- Bugfix: A regression introduced in 1.7.2 when `AMBASSADOR_FAST_RECONFIGURE=true` has been fixed where Host resources `tls.ca_secret` didn't work correctly.
+- Bugfix: `TLSContext` resources and `spec.tls` in `Host` now correctly handle namespaces with `.` in them.
+- Bugfix: Fix `spec.requestPolicy.insecure.action` for `Host` resources with a `*` wildcard in the hostname.
 
 ## [1.7.2] September 16, 2020
 [1.7.2]: https://github.com/datawire/ambassador/compare/v1.7.1...v1.7.2
 
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
-- Bugfix: A regression introduced in 1.7.0 with the various Host.spec.insecure.action behaviors, including handling of X-Forwarded-Proto, has been fixed.
-- Bugfix: Host resources no longer perform secret namespacing when the AMBASSADOR_FAST_RECONFIGURE flag is enabled.
+- Bugfix: A regression introduced in 1.7.0 with the various `Host` resource `spec.requestPolicy.insecure.action` behaviors, including handling of X-Forwarded-Proto, has been fixed.
+- Bugfix: Host resources no longer perform secret namespacing when the `AMBASSADOR_FAST_RECONFIGURE` flag is enabled.
 
 ## [1.7.1] September 08, 2020
 [1.7.1]: https://github.com/datawire/ambassador/compare/v1.7.0...v1.7.1
@@ -92,6 +95,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 ### Ambassador API Gateway only
 
 - Bugfix: Fixes regression in 1.5.1 that caused it to not correctly know its own version number, leading to notifications about an available upgrade despite being on the most recent version.
+- Bugfix: Fixed insecure route action behavior. Host security policies no longer affect other Hosts.
 
 ### Ambassador Edge Stack only
 
@@ -105,7 +109,6 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Bugfix: Service Preview correctly uses the Host default `Path` value for the `spec.previewUrl.type` field.
 - Bugfix: The `JWT`, `OAuth2`, and other Filters are now better about reusing connections for outgoing HTTP requests.
 - Bugfix: Fixed a potential deadlock in the HTTP cache used for fetching JWKS and such for `Filters`.
-- Bugfix: Fixed insecure route action behavior. Host security policies no longer affect other Hosts.
 - Bugfix: Internal Ambassador data is no longer exposed to the `/.ambassador-internal/` endpoints used by the DevPortal.
 - Bugfix: Problems with license key limits will no longer trigger spurious HTTP 429 errors.  Using the `RateLimit` resource beyond 5rps without any form of license key will still trigger 429 responses, but now with a `X-Ambassador-Message` header indicating that's what happned.
 - Bugfix: When multiple `RateLimit`s overlap, it is supposed to enforce the strictest limit; but the strictness comparison didn't correctly handle comparing limits with different units.
