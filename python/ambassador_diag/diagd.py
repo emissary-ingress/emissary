@@ -1231,6 +1231,8 @@ class AmbassadorEventWatcher(threading.Thread):
         'T-T-T': ( 'update',        False ),
     }
 
+    reCompressed = re.compile(r'-\d+$')
+
     def __init__(self, app: DiagApp) -> None:
         super().__init__(name="AEW", daemon=True)
         self.app = app
@@ -1876,8 +1878,63 @@ class AmbassadorEventWatcher(threading.Thread):
 
         # We want to keep the original config untouched
         validation_config = copy.deepcopy(config)
+
         # Envoy fails to validate with @type field in envoy config, so removing that
         validation_config.pop('@type')
+
+        vconf_clusters = validation_config['static_resources']['clusters']
+
+        if len(vconf_clusters) > 10:
+            vconf_clusters.append(copy.deepcopy(vconf_clusters[10]))
+
+        # Check for cluster-name weirdness.
+        _v2_clusters = {}
+        _problems = []
+
+        for name in sorted(ir.clusters.keys()):
+            if AmbassadorEventWatcher.reCompressed.search(name):
+                _problems.append(f"IR pre-compressed cluster {name}")
+
+        for cluster in validation_config['static_resources']['clusters']:
+            name = cluster['name']
+
+            if name in _v2_clusters:
+                _problems.append(f"V2 dup cluster {name}")
+            _v2_clusters[name] = True
+
+        if _problems:
+            self.logger.error("ENVOY CONFIG PROBLEMS:\n%s", "\n".join(_problems))
+            stamp = datetime.datetime.now().isoformat()
+
+            bad_snapshot = open(os.path.join(app.snapshot_path, "snapshot-tmp.yaml"), "r").read()
+
+            cache_dict: Dict[str, Any] = {}
+            cache_links: Dict[str, Any] = {}
+
+            if self.app.cache:
+                for k, c in self.app.cache.cache.items():
+                    v: Any = c[0]
+
+                    if getattr(v, 'as_dict', None):
+                        v = v.as_dict()
+                        
+                    cache_dict[k] = v
+
+                cache_links = { k: list(v) for k, v in self.app.cache.links.items() }
+
+            bad_dict = {
+                "ir": ir.as_dict(),
+                "v2": config,
+                "validation": validation_config,
+                "problems": _problems,
+                "snapshot": bad_snapshot,
+                "cache": cache_dict,
+                "links": cache_links
+            }
+
+            with open(os.path.join(app.snapshot_path, f"problems-{stamp}.json"), "w") as output:
+                json.dump(bad_dict, output, sort_keys=True, indent=4)
+
         config_json = json.dumps(validation_config, sort_keys=True, indent=4)
 
         econf_validation_path = os.path.join(app.snapshot_path, "econf-tmp.json")
