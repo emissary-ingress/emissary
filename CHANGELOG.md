@@ -5,6 +5,9 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+## v6.5.7
+
+- Update Ambassador to version 1.7.3: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
 - The BusyBox image image used by `test-ready` is now configurable (thanks, [Alan Silva](https://github.com/OmegaVVeapon)!)
 
 ## v6.5.6
