@@ -322,6 +322,7 @@ jobs:
     steps:
     - website-setup
     - run: ./.ci/website-preview-build
+    - run: "test -d /tmp/getambassador.io/public || circleci step halt"
     - persist_to_workspace:
         root: /tmp/getambassador.io
         paths:
