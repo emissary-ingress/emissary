@@ -59,7 +59,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 - Incorporate the Envoy 1.15.1 security update.
 - Bugfix: A regression introduced in 1.7.2 when `AMBASSADOR_FAST_RECONFIGURE=true` has been fixed where Host resources `tls.ca_secret` didn't work correctly.
-- Bugfix: `TLSContext` resources and `spec.tls` in `Host` now correctly handle namespaces with `.` in them.
+- Bugfix: `TLSContext` resources and `spec.tls` in `Host` resources now correctly handle namespaces with `.` in them.
 - Bugfix: Fix `spec.requestPolicy.insecure.action` for `Host` resources with a `*` wildcard in the hostname.
 
 ## [1.7.2] September 16, 2020
