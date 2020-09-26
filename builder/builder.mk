@@ -1,17 +1,18 @@
 BUILDER_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-#DEV_REGISTRY=localhost:5000
-#DEV_KUBECONFIG=/tmp/k3s.yaml
+BUILDER_NAME ?= $(NAME)
 
 .DEFAULT_GOAL = all
 include $(OSS_HOME)/build-aux/prelude.mk
 include $(OSS_HOME)/build-aux/colors.mk
 
+docker.tag.local = $(BUILDER_NAME).local/$(*F)
+docker.tag.remote = $(if $(DEV_REGISTRY),,$(error $(REGISTRY_ERR)))$(DEV_REGISTRY)/$(*F):$(shell docker image inspect --format='{{slice (index (split .Id ":") 1) 0 12}}' $$(cat $<))
+include $(OSS_HOME)/build-aux/docker.mk
+
 MODULES :=
 
 module = $(eval MODULES += $(1))$(eval SOURCE_$(1)=$(abspath $(2)))
-
-BUILDER_NAME ?= $(NAME)
 
 BUILDER = BUILDER_NAME=$(BUILDER_NAME) $(abspath $(BUILDER_HOME)/builder.sh)
 DBUILD = $(abspath $(BUILDER_HOME)/dbuild.sh)
@@ -74,17 +75,23 @@ noop:
 .PHONY: noop
 
 RSYNC_ERR  = $(RED)ERROR: please update to a version of rsync with the --info option$(END)
-DOCKER_ERR = $(RED)ERROR: please install docker$(END)
+GO_ERR     = $(RED)ERROR: please update to go 1.13 or newer$(END)
+DOCKER_ERR = $(RED)ERROR: please update to a version of docker built with Go 1.13 or newer$(END)
 
 preflight:
-ifeq ($(strip $(shell $(BUILDER))),)
 	@printf "$(CYN)==> $(GRN)Preflight checks$(END)\n"
 
 	@echo "Checking that 'rsync' is installed and is new enough to support '--info'"
 	@$(if $(shell rsync --help 2>/dev/null | grep -F -- --info),,printf '%s\n' $(call quote.shell,$(RSYNC_ERR)))
 
-	@echo "Checking that 'docker' is installed"
-	@$(if $(shell which docker 2>/dev/null),,printf '%s\n' $(call quote.shell,$(DOCKER_ERR)))
+	@echo "Checking that 'go' is installed and is 1.13 or later"
+	@$(if $(call _prelude.go.VERSION.HAVE,1.13),,printf '%s\n' $(call quote.shell,$(GO_ERR)))
+
+	@echo "Checking that 'docker' is installed and supports the 'slice' function for '--format'"
+	@$(if $(and $(shell which docker 2>/dev/null),\
+	            $(call _prelude.go.VERSION.ge,$(patsubst go%,%,$(lastword $(shell go version $$(which docker)))),1.13)),\
+	      ,\
+	      printf '%s\n' $(call quote.shell,$(DOCKER_ERR)))
 .PHONY: preflight
 
 preflight-cluster:
@@ -97,17 +104,18 @@ preflight-cluster:
 	fi
 .PHONY: preflight-cluster
 
-sync: preflight
+sync: docker/container.txt
+	@printf "${CYN}==> ${GRN}Syncing sources in to builder container${END}\n"
 	@$(foreach MODULE,$(MODULES),$(BUILDER) sync $(MODULE) $(SOURCE_$(MODULE)) &&) true
 	@if [ -n "$(DEV_KUBECONFIG)" ] && [ "$(DEV_KUBECONFIG)" != '-skip-for-release-' ]; then \
-		kubectl --kubeconfig $(DEV_KUBECONFIG) config view --flatten | docker exec -i $$($(BUILDER)) sh -c "cat > /buildroot/kubeconfig.yaml" ;\
+		kubectl --kubeconfig $(DEV_KUBECONFIG) config view --flatten | docker exec -i $$(cat $<) sh -c "cat > /buildroot/kubeconfig.yaml" ;\
 	fi
 	@if [ -e ~/.docker/config.json ]; then \
-		cat ~/.docker/config.json | docker exec -i $$($(BUILDER)) sh -c "mkdir -p /home/dw/.docker && cat > /home/dw/.docker/config.json" ; \
+		cat ~/.docker/config.json | docker exec -i $$(cat $<) sh -c "mkdir -p /home/dw/.docker && cat > /home/dw/.docker/config.json" ; \
 	fi
 	@if [ -n "$(GCLOUD_CONFIG)" ]; then \
 		printf "Copying gcloud config to builder container\n"; \
-		docker cp $(GCLOUD_CONFIG) $$($(BUILDER)):/home/dw/.config/; \
+		docker cp $(GCLOUD_CONFIG) $$(cat $<):/home/dw/.config/; \
 	fi
 .PHONY: sync
 
@@ -119,33 +127,81 @@ version:
 	@$(BUILDER) version
 .PHONY: version
 
-compile:
-	@$(MAKE) --no-print-directory sync
+compile: sync
 	@$(BUILDER) compile
 .PHONY: compile
 
-SNAPSHOT=snapshot-$(BUILDER_NAME)
+# For files that should only-maybe update when the rule runs, put ".stamp" on
+# the left-side of the ":", and just go ahead and update it within the rule.
+#
+# ".stamp" should NEVER appear on the right-side of the ":".
+%: %.stamp $(COPY_IFCHANGED)
+	@$(COPY_IFCHANGED) $< $@
 
-commit:
-	@$(BUILDER) commit $(SNAPSHOT)
-.PHONY: commit
+# Give Make a hint about which pattern rules to apply.  Honestly, I'm
+# not sure why Make isn't figuring it out on its own, but it isn't.
+_images = builder-base snapshot base-envoy $(NAME) kat-client kat-server
+$(foreach i,$(_images), docker/$i.docker.tag.local  ): docker/%.docker.tag.local : docker/%.docker
+$(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remote: docker/%.docker
+
+docker/builder-base.docker.stamp: FORCE preflight
+	@printf "${CYN}==> ${GRN}Bootstrapping builder base image${END}\n"
+	@$(BUILDER) build-builder-base >$@
+docker/container.txt.stamp: %/container.txt.stamp: %/builder-base.docker.tag.local FORCE
+	@printf "${CYN}==> ${GRN}Bootstrapping builder container${END}\n"
+	@$(BUILDER) bootstrap > $@
+docker/snapshot.docker.stamp: %/snapshot.docker.stamp: %/container.txt FORCE compile
+	@set -e; { \
+	  if test -e $@ && ! docker exec $$(cat $<) test -e /buildroot/image.dirty; then \
+	    printf "${CYN}==> ${GRN}Snapshot of ${BLU}$$(cat $<)${GRN} container is already up-to-date${END}\n"; \
+	  else \
+	    printf "${CYN}==> ${GRN}Snapshotting ${BLU}$$(cat $<)${GRN} container${END}\n"; \
+	    docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $$(cat $<) > $@; \
+	    docker exec $$(cat $<) rm -f /buildroot/image.dirty; \
+	  fi; \
+	}
+docker/base-envoy.docker.stamp: FORCE
+	@echo $(ENVOY_DOCKER_TAG) > $@
+docker/$(NAME).docker.stamp: %/$(NAME).docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile
+	@printf "${CYN}==> ${GRN}Building ${BLU}$(NAME)${END}\n"
+	@${DBUILD} ${BUILDER_HOME} \
+	  --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
+	  --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
+	  --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	  --target=ambassador \
+	  --iidfile=$@
+docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile
+	@printf "${CYN}==> ${GRN}Building ${BLU}kat-client${END}\n"
+	@${DBUILD} ${BUILDER_HOME} \
+	  --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
+	  --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
+	  --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	  --target=kat-client \
+	  --iidfile=$@
+docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile
+	@printf "${CYN}==> ${GRN}Building ${BLU}kat-server${END}\n"
+	@${DBUILD} ${BUILDER_HOME} \
+	  --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
+	  --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
+	  --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	  --target=kat-server \
+	  --iidfile=$@
 
 REPO=$(BUILDER_NAME)
 
-images:
-	@$(MAKE) --no-print-directory compile
-	@$(MAKE) --no-print-directory commit
+images: docker/$(NAME).docker.tag.local
+images: docker/kat-client.docker.tag.local
+images: docker/kat-server.docker.tag.local
 .PHONY: images
 
-AMB_IMAGE=$(DEV_REGISTRY)/$(REPO):$(shell docker images -q $(REPO):latest)
-KAT_CLI_IMAGE=$(DEV_REGISTRY)/kat-client:$(shell docker images -q kat-client:latest)
-KAT_SRV_IMAGE=$(DEV_REGISTRY)/kat-server:$(shell docker images -q kat-server:latest)
+REGISTRY_ERR  = $(RED)
+REGISTRY_ERR += $(NL)ERROR: please set the DEV_REGISTRY make/env variable to the docker registry
+REGISTRY_ERR += $(NL)       you would like to use for development
+REGISTRY_ERR += $(END)
 
-export REGISTRY_ERR=$(RED)ERROR: please set the DEV_REGISTRY make/env variable to the docker registry\n       you would like to use for development$(END)
-
-push: images
-	@test -n "$(DEV_REGISTRY)" || (printf "$${REGISTRY_ERR}\n"; exit 1)
-	@$(BUILDER) push $(AMB_IMAGE) $(KAT_CLI_IMAGE) $(KAT_SRV_IMAGE)
+push: docker/$(NAME).docker.push.remote
+push: docker/kat-client.docker.push.remote
+push: docker/kat-server.docker.push.remote
 .PHONY: push
 
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
@@ -161,18 +217,18 @@ test-ready: push preflight-cluster
 PYTEST_ARGS ?=
 export PYTEST_ARGS
 
-PYTEST_GOLD_DIR ?= $(abspath $(CURDIR)/python/tests/gold)
+PYTEST_GOLD_DIR ?= $(abspath python/tests/gold)
 
 pytest: test-ready
 	$(MAKE) pytest-only
 .PHONY: pytest
 
-pytest-only: sync preflight-cluster
+pytest-only: sync preflight-cluster | docker/$(NAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	docker exec \
-		-e AMBASSADOR_DOCKER_IMAGE=$(AMB_IMAGE) \
-		-e KAT_CLIENT_DOCKER_IMAGE=$(KAT_CLI_IMAGE) \
-		-e KAT_SERVER_DOCKER_IMAGE=$(KAT_SRV_IMAGE) \
+		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p docker/$(NAME).docker.push.remote) \
+		-e KAT_CLIENT_DOCKER_IMAGE=$$(sed -n 2p docker/kat-client.docker.push.remote) \
+		-e KAT_SERVER_DOCKER_IMAGE=$$(sed -n 2p docker/kat-server.docker.push.remote) \
 		-e KAT_IMAGE_PULL_POLICY=Always \
 		-e DOCKER_NETWORK=$(DOCKER_NETWORK) \
 		-e KAT_REQ_LIMIT \
@@ -227,9 +283,8 @@ gotest: test-ready
 .PHONY: gotest
 
 # Ingress v1 conformance tests, using KIND and the Ingress Conformance Tests suite.
-ingresstest:
+ingresstest: | docker/$(NAME).docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)Ingress v1$(GRN) tests$(END)\n"
-	@[ -n "$(AMB_IMAGE)" ] || { printf "$(RED)ERROR: no AMB_IMAGE defined$(END)\n"; exit 1; }
 	@[ -n "$(INGRESS_TEST_IMAGE)" ] || { printf "$(RED)ERROR: no INGRESS_TEST_IMAGE defined$(END)\n"; exit 1; }
 	@[ -n "$(INGRESS_TEST_MANIF_DIR)" ] || { printf "$(RED)ERROR: no INGRESS_TEST_MANIF_DIR defined$(END)\n"; exit 1; }
 	@[ -d "$(INGRESS_TEST_MANIF_DIR)" ] || { printf "$(RED)ERROR: $(INGRESS_TEST_MANIF_DIR) does not seem a valid directory$(END)\n"; exit 1; }
@@ -254,10 +309,10 @@ ingresstest:
 	@kubectl --kubeconfig=$(KIND_KUBECONFIG) cluster-info || { printf "$(RED)ERROR: kubernetes cluster not ready $(END)\n"; exit 1 ; }
 	@kubectl --kubeconfig=$(KIND_KUBECONFIG) version || { printf "$(RED)ERROR: kubernetes cluster not ready $(END)\n"; exit 1 ; }
 
-	@printf "$(CYN)==> $(GRN)Loading Ambassador (from the Ingress conformance tests) with image=$(AMB_IMAGE)$(END)\n"
+	@printf "$(CYN)==> $(GRN)Loading Ambassador (from the Ingress conformance tests) with image=$$(sed -n 2p docker/$(NAME).docker.push.remote)$(END)\n"
 	@for f in $(INGRESS_TEST_MANIFS) ; do \
 		printf "$(CYN)==> $(GRN)... $$f $(END)\n" ; \
-		cat $(INGRESS_TEST_MANIF_DIR)/$$f | sed -e "s|image:.*ambassador\:.*|image: $(AMB_IMAGE)|g" | tee /dev/tty | kubectl apply -f - ; \
+		cat $(INGRESS_TEST_MANIF_DIR)/$$f | sed -e "s|image:.*ambassador\:.*|image: $$(sed -n 2p docker/$(NAME).docker.push.remote)|g" | tee /dev/tty | kubectl apply -f - ; \
 	done
 
 	@printf "$(CYN)==> $(GRN)Waiting for Ambassador to be ready$(END)\n"
@@ -311,7 +366,8 @@ ingresstest:
 test: ingresstest gotest pytest
 .PHONY: test
 
-shell:
+shell: docker/container.txt
+	@printf "$(CYN)==> $(GRN)Launching interactive shell...$(END)\n"
 	@$(BUILDER) shell
 .PHONY: shell
 
@@ -417,9 +473,9 @@ clobber:
 CURRENT_CONTEXT=$(shell kubectl --kubeconfig=$(DEV_KUBECONFIG) config current-context)
 CURRENT_NAMESPACE=$(shell kubectl config view -o=jsonpath="{.contexts[?(@.name==\"$(CURRENT_CONTEXT)\")].context.namespace}")
 
-AMBASSADOR_DOCKER_IMAGE = $(AMB_IMAGE)
-KAT_CLIENT_DOCKER_IMAGE = $(KAT_CLI_IMAGE)
-KAT_SERVER_DOCKER_IMAGE = $(KAT_SRV_IMAGE)
+AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(NAME).docker.push.remote 2>/dev/null)
+KAT_CLIENT_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-client.docker.push.remote 2>/dev/null)
+KAT_SERVER_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-server.docker.push.remote 2>/dev/null)
 
 _user-vars  = BUILDER_NAME
 _user-vars += DEV_KUBECONFIG
