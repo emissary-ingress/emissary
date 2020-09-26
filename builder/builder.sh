@@ -359,7 +359,7 @@ find-modules () {
     find /buildroot -type d -mindepth 1 -maxdepth 1 \! -name bin | sort
 }
 
-cmd="$1"
+cmd="${1:-builder}"
 
 case "${cmd}" in
     clean)
@@ -379,7 +379,7 @@ case "${cmd}" in
         bootstrap
         echo $(builder)
         ;;
-    builder|"")
+    builder)
         echo $(builder)
         ;;
     sync)

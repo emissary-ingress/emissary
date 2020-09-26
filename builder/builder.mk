@@ -52,9 +52,6 @@ all: help
 
 .NOTPARALLEL:
 
-export RSYNC_ERR=$(RED)ERROR: please update to a version of rsync with the --info option$(END)
-export DOCKER_ERR=$(RED)ERROR: cannot find docker, please make sure docker is installed$(END)
-
 # the name of the Docker network
 # note: use your local k3d/microk8s/kind network for running tests
 DOCKER_NETWORK ?= $(BUILDER_NAME)
@@ -76,14 +73,18 @@ noop:
 	@true
 .PHONY: noop
 
+RSYNC_ERR  = $(RED)ERROR: please update to a version of rsync with the --info option$(END)
+DOCKER_ERR = $(RED)ERROR: please install docker$(END)
+
 preflight:
 ifeq ($(strip $(shell $(BUILDER))),)
 	@printf "$(CYN)==> $(GRN)Preflight checks$(END)\n"
-# Checking for rsync --info
-	test -n "$$(rsync --help | fgrep -- --info)" || (printf "$${RSYNC_ERR}\n"; exit 1)
-# Checking for docker
-	which docker > /dev/null || (printf "$${DOCKER_ERR}\n"; exit 1)
-endif
+
+	@echo "Checking that 'rsync' is installed and is new enough to support '--info'"
+	@$(if $(shell rsync --help 2>/dev/null | grep -F -- --info),,printf '%s\n' $(call quote.shell,$(RSYNC_ERR)))
+
+	@echo "Checking that 'docker' is installed"
+	@$(if $(shell which docker 2>/dev/null),,printf '%s\n' $(call quote.shell,$(DOCKER_ERR)))
 .PHONY: preflight
 
 preflight-cluster:
@@ -108,7 +109,6 @@ sync: preflight
 		printf "Copying gcloud config to builder container\n"; \
 		docker cp $(GCLOUD_CONFIG) $$($(BUILDER)):/home/dw/.config/; \
 	fi
-
 .PHONY: sync
 
 builder:
@@ -417,25 +417,23 @@ clobber:
 CURRENT_CONTEXT=$(shell kubectl --kubeconfig=$(DEV_KUBECONFIG) config current-context)
 CURRENT_NAMESPACE=$(shell kubectl config view -o=jsonpath="{.contexts[?(@.name==\"$(CURRENT_CONTEXT)\")].context.namespace}")
 
+AMBASSADOR_DOCKER_IMAGE = $(AMB_IMAGE)
+KAT_CLIENT_DOCKER_IMAGE = $(KAT_CLI_IMAGE)
+KAT_SERVER_DOCKER_IMAGE = $(KAT_SRV_IMAGE)
+
+_user-vars  = BUILDER_NAME
+_user-vars += DEV_KUBECONFIG
+_user-vars += DEV_REGISTRY
+_user-vars += RELEASE_REGISTRY
+_user-vars += AMBASSADOR_DOCKER_IMAGE
+_user-vars += KAT_CLIENT_DOCKER_IMAGE
+_user-vars += KAT_SERVER_DOCKER_IMAGE
 env:
-	@printf "$(BLD)BUILDER_NAME$(END)=$(BLU)\"$(BUILDER_NAME)\"$(END)\n"
-	@printf "$(BLD)DEV_KUBECONFIG$(END)=$(BLU)\"$(DEV_KUBECONFIG)\"$(END)"
-	@printf " # Context: $(BLU)$(CURRENT_CONTEXT)$(END), Namespace: $(BLU)$(CURRENT_NAMESPACE)$(END)\n"
-	@printf "$(BLD)DEV_REGISTRY$(END)=$(BLU)\"$(DEV_REGISTRY)\"$(END)\n"
-	@printf "$(BLD)RELEASE_REGISTRY$(END)=$(BLU)\"$(RELEASE_REGISTRY)\"$(END)\n"
-	@printf "$(BLD)AMBASSADOR_DOCKER_IMAGE$(END)=$(BLU)\"$(AMB_IMAGE)\"$(END)\n"
-	@printf "$(BLD)KAT_CLIENT_DOCKER_IMAGE$(END)=$(BLU)\"$(KAT_CLI_IMAGE)\"$(END)\n"
-	@printf "$(BLD)KAT_SERVER_DOCKER_IMAGE$(END)=$(BLU)\"$(KAT_SRV_IMAGE)\"$(END)\n"
+	@printf '$(BLD)%s$(END)=$(BLU)%s$(END)\n' $(foreach v,$(_user-vars), $v $(call quote.shell,$(call quote.shell,$($v))) )
 .PHONY: env
 
 export:
-	@printf "export BUILDER_NAME=\"$(BUILDER_NAME)\"\n"
-	@printf "export DEV_KUBECONFIG=\"$(DEV_KUBECONFIG)\"\n"
-	@printf "export DEV_REGISTRY=\"$(DEV_REGISTRY)\"\n"
-	@printf "export RELEASE_REGISTRY=\"$(RELEASE_REGISTRY)\"\n"
-	@printf "export AMBASSADOR_DOCKER_IMAGE=\"$(AMB_IMAGE)\"\n"
-	@printf "export KAT_CLIENT_DOCKER_IMAGE=\"$(KAT_CLI_IMAGE)\"\n"
-	@printf "export KAT_SERVER_DOCKER_IMAGE=\"$(KAT_SRV_IMAGE)\"\n"
+	@printf 'export %s=%s\n' $(foreach v,$(_user-vars), $v $(call quote.shell,$(call quote.shell,$($v))) )
 .PHONY: export
 
 help:

@@ -41,9 +41,9 @@ do
     esac
 done
 
-outfile=$(mktemp /tmp/docker-build.XXXXXX)
+outfile=$(mktemp -t docker-build.XXXXXX)
 if [ -z "$iidfile" ]; then
-    tmpiidfile=$(mktemp /tmp/docker-build-iid.XXXXXX)
+    tmpiidfile=$(mktemp -t docker-build-iid.XXXXXX)
     extra_args="--iidfile $tmpiidfile"
     iidfile=$tmpiidfile
 fi
