@@ -9,7 +9,7 @@ _anchors:
     machine:
       # If you bump this, be sure to bump "install-python.executor-key"
       # in the "website-setup" command below.
-      image: "ubuntu-1604:201903-01"
+      image: "ubuntu-2004:202008-01"
     working_directory: ~/project/ambassador
 
 commands:
@@ -20,7 +20,7 @@ commands:
           version: "11"
       - install-yarn
       - install-python:
-          executor-key: "201903-01"
+          executor-key: "202008-01"
           version: "3.7.0"
       - run:
           name: "Show environment"

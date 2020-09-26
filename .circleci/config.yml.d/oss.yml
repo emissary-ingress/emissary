@@ -18,7 +18,7 @@ _anchors:
     machine:
       # If you bump this, be sure to bump "install-python.executor-key"
       # in the "oss-linux-setup" command below.
-      image: "ubuntu-1604:201903-01"
+      image: "ubuntu-2004:202008-01"
     working_directory: ~/project/ambassador
 
 commands:
@@ -26,7 +26,7 @@ commands:
   "oss-linux-setup":
     steps:
       - install-python:
-          executor-key: "201903-01"
+          executor-key: "202008-01"
       - pip-install:
           packages: awscli packaging
       - install-go

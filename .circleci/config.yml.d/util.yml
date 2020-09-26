@@ -99,7 +99,7 @@ commands:
             set -x
             pyenv versions
             pyenv install --skip-existing << parameters.version >>
-            pyenv global 2.7.12 << parameters.version >>
+            pyenv global 2.7.18 << parameters.version >>
             pyenv versions
             pip3 install pip==<< parameters.pip-version>>
       - save_cache:

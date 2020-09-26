@@ -9,11 +9,11 @@ _anchors:
     machine:
       # If you bump this, be sure to bump "install-python.executor-key"
       # in the "website-setup" command below.
-      image: "ubuntu-1604:201903-01"
+      image: "ubuntu-2004:202008-01"
     working_directory: ~/project/ambassador
   oss-linux-job:
     machine:
-      image: "ubuntu-1604:201903-01"
+      image: "ubuntu-2004:202008-01"
     working_directory: ~/project/ambassador
 commands:
   "website-setup":
@@ -22,7 +22,7 @@ commands:
         version: "11"
     - install-yarn
     - install-python:
-        executor-key: "201903-01"
+        executor-key: "202008-01"
         version: "3.7.0"
     - run:
         name: "Show environment"
@@ -34,7 +34,7 @@ commands:
   oss-linux-setup:
     steps:
     - install-python:
-        executor-key: "201903-01"
+        executor-key: "202008-01"
     - pip-install:
         packages: awscli packaging
     - install-go
@@ -212,7 +212,7 @@ commands:
           set -x
           pyenv versions
           pyenv install --skip-existing << parameters.version >>
-          pyenv global 2.7.12 << parameters.version >>
+          pyenv global 2.7.18 << parameters.version >>
           pyenv versions
           pip3 install pip==<< parameters.pip-version>>
     - save_cache:
@@ -367,14 +367,14 @@ jobs:
     - run: make generate
     - dirty-check
     machine:
-      image: "ubuntu-1604:201903-01"
+      image: "ubuntu-2004:202008-01"
     working_directory: ~/project/ambassador
   oss-dev-lint:
     steps:
     - oss-linux-setup
     - run: make lint
     machine:
-      image: "ubuntu-1604:201903-01"
+      image: "ubuntu-2004:202008-01"
     working_directory: ~/project/ambassador
   oss-dev-images:
     steps:
@@ -383,7 +383,7 @@ jobs:
         to: docs/
     - oss-images-build-and-test
     machine:
-      image: "ubuntu-1604:201903-01"
+      image: "ubuntu-2004:202008-01"
     working_directory: ~/project/ambassador
   oss-release-images:
     steps:
@@ -395,7 +395,7 @@ jobs:
           docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
           DEV_KUBECONFIG="-skip-for-release-" make release/bits
     machine:
-      image: "ubuntu-1604:201903-01"
+      image: "ubuntu-2004:202008-01"
     working_directory: ~/project/ambassador
   oss-release-promote-to-rc-latest:
     steps:
@@ -412,7 +412,7 @@ jobs:
               docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
               DEV_KUBECONFIG="-skip-for-release-" make release/promote-oss/to-rc-latest
     machine:
-      image: "ubuntu-1604:201903-01"
+      image: "ubuntu-2004:202008-01"
     working_directory: ~/project/ambassador
   oss-release-promote-to-ga:
     steps:
@@ -423,7 +423,7 @@ jobs:
           docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
           DEV_KUBECONFIG="-skip-for-release-" make release/promote-oss/to-ga
     machine:
-      image: "ubuntu-1604:201903-01"
+      image: "ubuntu-2004:202008-01"
     working_directory: ~/project/ambassador
 workflows:
   # All of these filters assume that "Only build pull requests" is turned on at
