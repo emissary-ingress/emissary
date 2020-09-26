@@ -1,4 +1,4 @@
-package edgectl
+package client
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
+	"github.com/datawire/ambassador/internal/pkg/edgectl"
 	"github.com/datawire/ambassador/pkg/metriton"
 )
 
@@ -24,7 +25,7 @@ func NewScout(mode string) (s *Scout) {
 	return &Scout{
 		Reporter: &metriton.Reporter{
 			Application: "edgectl",
-			Version:     Version,
+			Version:     edgectl.Version,
 			GetInstallID: func(r *metriton.Reporter) (string, error) {
 				id, err := metriton.InstallIDFromFilesystem(r)
 				if err != nil {
