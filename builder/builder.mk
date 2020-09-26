@@ -1,22 +1,15 @@
+BUILDER_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 #DEV_REGISTRY=localhost:5000
 #DEV_KUBECONFIG=/tmp/k3s.yaml
 
-# Choose colors carefully. If they don't work on both a black 
-# background and a white background, pick other colors (so white,
-# yellow, and black are poor choices).
-RED=\033[1;31m
-GRN=\033[1;32m
-BLU=\033[1;34m
-CYN=\033[1;36m
-BLD=\033[1m
-END=\033[0m
+.DEFAULT_GOAL = all
+include $(OSS_HOME)/build-aux/prelude.mk
+include $(OSS_HOME)/build-aux/colors.mk
 
 MODULES :=
 
 module = $(eval MODULES += $(1))$(eval SOURCE_$(1)=$(abspath $(2)))
-
-BUILDER_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 BUILDER_NAME ?= $(NAME)
 
@@ -446,29 +439,12 @@ export:
 .PHONY: export
 
 help:
-	@printf "$(subst $(NL),\n,$(HELP_INTRO))\n"
+	@printf '%s\n' $(call quote.shell,$(_help.intro))
 .PHONY: help
 
 targets:
-	@printf "$(subst $(NL),\n,$(HELP_TARGETS))\n"
+	@printf '%s\n' $(call quote.shell,$(HELP_TARGETS))
 .PHONY: help
-
-# NOTE: this is not a typo, this is actually how you spell newline in Make
-define NL
-
-
-endef
-
-# NOTE: this is not a typo, this is actually how you spell space in Make
-define SPACE
- 
-endef
-
-COMMA = ,
-
-define HELP_INTRO
-$(_help.intro)
-endef
 
 define HELP_TARGETS
 $(BLD)Targets:$(END)
@@ -476,7 +452,7 @@ $(BLD)Targets:$(END)
 $(_help.targets)
 
 $(BLD)Codebases:$(END)
-  $(foreach MODULE,$(MODULES),\n  $(BLD)$(SOURCE_$(MODULE)) ==> $(BLU)$(MODULE)$(END))
+  $(foreach MODULE,$(MODULES),$(NL)  $(BLD)$(SOURCE_$(MODULE)) ==> $(BLU)$(MODULE)$(END))
 
 endef
 
@@ -495,9 +471,9 @@ for producing builds with extended functionality. Each external codebase
 is synced into the container at the $(BLD)/buildroot/<name>$(END) path.
 
 You can control the name of the container and the images it builds by
-setting $(BLU)\$$BUILDER_NAME$(END), which defaults to $(BLU)$(NAME)$(END). $(BLD)Note well$(END) that if you
+setting $(BLU)$$BUILDER_NAME$(END), which defaults to $(BLU)$(NAME)$(END). $(BLD)Note well$(END) that if you
 want to make multiple clones of this repo and build in more than one of them
-at the same time, you $(BLD)must$(END) set $(BLU)\$$BUILDER_NAME$(END) so that each clone has its own
+at the same time, you $(BLD)must$(END) set $(BLU)$$BUILDER_NAME$(END) so that each clone has its own
 builder! If you do not do this, your builds will collide with confusing 
 results.
 
@@ -509,11 +485,11 @@ $(BLD)setup.py$(END), then you will need to do a clean build to see the effects.
 Assuming you didn't $(BLD)$(MAKE) clobber$(END), this shouldn't take long due to the
 cache in the Docker volume.
 
-All targets that deploy to a cluster by way of $(BLD)\$$DEV_REGISTRY$(END) can be made to
-have the cluster use an imagePullSecret to pull from $(BLD)\$$DEV_REGISTRY$(END), by
-setting $(BLD)\$$DEV_USE_IMAGEPULLSECRET$(END) to a non-empty value.  The imagePullSecret
-will be constructed from $(BLD)\$$DEV_REGISTRY$(END), $(BLD)\$$DOCKER_BUILD_USERNAME$(END), and
-$(BLD)\$$DOCKER_BUILD_PASSWORD$(END).
+All targets that deploy to a cluster by way of $(BLD)$$DEV_REGISTRY$(END) can be made to
+have the cluster use an imagePullSecret to pull from $(BLD)$$DEV_REGISTRY$(END), by
+setting $(BLD)$$DEV_USE_IMAGEPULLSECRET$(END) to a non-empty value.  The imagePullSecret
+will be constructed from $(BLD)$$DEV_REGISTRY$(END), $(BLD)$$DOCKER_BUILD_USERNAME$(END), and
+$(BLD)$$DOCKER_BUILD_PASSWORD$(END).
 
 Use $(BLD)$(MAKE) $(BLU)targets$(END) for help about available $(BLD)make$(END) targets.
 endef
@@ -537,31 +513,31 @@ define _help.targets
 
   $(BLD)$(MAKE) $(BLU)images$(END)       -- creates images from the build container.
 
-  $(BLD)$(MAKE) $(BLU)push$(END)         -- pushes images to $(BLD)\$$DEV_REGISTRY$(END). ($(DEV_REGISTRY))
+  $(BLD)$(MAKE) $(BLU)push$(END)         -- pushes images to $(BLD)$$DEV_REGISTRY$(END). ($(DEV_REGISTRY))
 
   $(BLD)$(MAKE) $(BLU)test$(END)         -- runs Go and Python tests inside the build container.
 
     The tests require a Kubernetes cluster and a Docker registry in order to
-    function. These must be supplied via the $(BLD)$(MAKE)$(END)/$(BLD)env$(END) variables $(BLD)\$$DEV_KUBECONFIG$(END)
-    and $(BLD)\$$DEV_REGISTRY$(END).
+    function. These must be supplied via the $(BLD)$(MAKE)$(END)/$(BLD)env$(END) variables $(BLD)$$DEV_KUBECONFIG$(END)
+    and $(BLD)$$DEV_REGISTRY$(END).
 
   $(BLD)$(MAKE) $(BLU)gotest$(END)       -- runs just the Go tests inside the build container.
 
-    Use $(BLD)\$$GOTEST_PKGS$(END) to control which packages are passed to $(BLD)gotest$(END). ($(GOTEST_PKGS))
-    Use $(BLD)\$$GOTEST_ARGS$(END) to supply additional non-package arguments. ($(GOTEST_ARGS))
+    Use $(BLD)$$GOTEST_PKGS$(END) to control which packages are passed to $(BLD)gotest$(END). ($(GOTEST_PKGS))
+    Use $(BLD)$$GOTEST_ARGS$(END) to supply additional non-package arguments. ($(GOTEST_ARGS))
     Example: $(BLD)$(MAKE) gotest GOTEST_PKGS=./cmd/edgectl GOTEST_ARGS=-v$(END)  # run edgectl tests verbosely
 
   $(BLD)$(MAKE) $(BLU)pytest$(END)       -- runs just the Python tests inside the build container.
 
-    Use $(BLD)\$$KAT_RUN_MODE=envoy$(END) to force the Python tests to ignore local caches, and run everything
+    Use $(BLD)$$KAT_RUN_MODE=envoy$(END) to force the Python tests to ignore local caches, and run everything
     in the cluster.
 
-    Use $(BLD)\$$KAT_RUN_MODE=local$(END) to force the Python tests to ignore the cluster, and only run tests
+    Use $(BLD)$$KAT_RUN_MODE=local$(END) to force the Python tests to ignore the cluster, and only run tests
     with a local cache.
 
-    Use $(BLD)\$$PYTEST_ARGS$(END) to pass args to $(BLD)pytest$(END). ($(PYTEST_ARGS))
+    Use $(BLD)$$PYTEST_ARGS$(END) to pass args to $(BLD)pytest$(END). ($(PYTEST_ARGS))
 
-    Example: $(BLD)$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS=\"-k Lua\"$(END)  # run only the Lua test, with a real Envoy
+    Example: $(BLD)$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="-k Lua"$(END)  # run only the Lua test, with a real Envoy
 
   $(BLD)$(MAKE) $(BLU)pytest-gold$(END)  -- update the gold files for the pytest cache
 
@@ -603,10 +579,10 @@ define _help.targets
 
   $(BLD)$(MAKE) $(BLU)generate$(END)  -- update generated files that get checked in to Git.
 
-    1. Use $(BLD)\$$ENVOY_COMMIT$(END) to update the vendored gRPC protobuf files ('api/envoy').
+    1. Use $(BLD)$$ENVOY_COMMIT$(END) to update the vendored gRPC protobuf files ('api/envoy').
     2. Run 'protoc' to generate things from the protobuf files (both those from
        Envoy, and those from 'api/kat').
-    3. Use $(BLD)\$$ENVOY_GO_CONTROL_PLANE_COMMIT$(END) to update the vendored+patched copy of
+    3. Use $(BLD)$$ENVOY_GO_CONTROL_PLANE_COMMIT$(END) to update the vendored+patched copy of
        envoyproxy/go-control-plane ('pkg/envoy-control-plane/').
     4. Use the Go CRD definitions in 'pkg/api/getambassador.io/' to generate YAML
        (and a few 'zz_generated.*.go' files).
