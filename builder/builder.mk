@@ -363,8 +363,12 @@ ingresstest: | docker/$(NAME).docker.push.remote
 		printf "$(CYN)==> $(GRN)We are done. You should destroy the cluster with 'kind delete cluster'.$(END)\n"; \
 	fi
 
-test: ingresstest gotest pytest
+test: ingresstest gotest pytest e2etest
 .PHONY: test
+
+# Empty stub; 'e2etest' is AES-only
+e2etest:
+.PHONY: e2etest
 
 shell: docker/container.txt
 	@printf "$(CYN)==> $(GRN)Launching interactive shell...$(END)\n"

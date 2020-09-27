@@ -18,19 +18,31 @@ jobs:
         default: false
     executor: oss-linux
     steps:
-      - amb-linux-install
-      - amb-checkout
-      - skip-if-only-changes:
-          to: docs/
-      - oss-images-build-and-test
-      - when:
-          condition: << parameters.release >>
-          steps:
-            - run:
-                name: "Release"
-                command: |
-                  docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
-                  DEV_KUBECONFIG="-skip-for-release-" make release/bits
+      - job-images:
+          release: << parameters.release >>
+
+  "oss-test":
+    executor: oss-linux
+    parameters:
+      "test":
+        type: enum
+        enum:
+          - "test" # everything
+          - "ingresstest"
+          - "gotest"
+          - "pytest"
+        default: "test"
+      "fast-validation":
+        type: boolean
+        default: false
+      "fast-reconfigure":
+        type: boolean
+        default: false
+    steps:
+      - job-test:
+          test: << parameters.test >>
+          fast-validation: << parameters.fast-validation >>
+          fast-reconfigure: << parameters.fast-reconfigure >>
 
   "oss-promote-to-rc-latest":
     executor: oss-linux
@@ -44,53 +56,162 @@ jobs:
       - job-promote-to-ga:
           channel: oss
 
-workflows:
+_anchors:
   # All of these filters assume that "Only build pull requests" is turned on at
-  # https://app.circleci.com/settings/project/github/datawire/apro/advanced
-  #
-  # It is important that the same job name not appear in multiple
-  # workflows; otherwise their GitHub statuses will stomp on
-  # eachother.
+  # https://app.circleci.com/settings/project/github/datawire/ambassador/advanced
+
+  "filter-prerelease-only": &filter-prerelease-only
+    filters:
+      tags:
+        only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+      branches:
+        ignore: /.*/
+
+  "filter-rc-only": &filter-rc-only
+    filters:
+      tags:
+        only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
+      branches:
+        ignore: /.*/
+
+  "filter-ga-only": &filter-ga-only
+    filters:
+      tags:
+        only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+      branches:
+        ignore: /.*/
+
+workflows:
   "OSS: Dev":
     # Run this workflow on just 'master' and PRs.
     jobs:
+      # build+push
       - "oss-images":
           name: "oss-dev-images"
+      # test (tertiary)
       - "oss-generate":
           name: "oss-dev-generate"
       - "oss-lint":
           name: "oss-dev-lint"
+      # test (main)
+      - "oss-test":
+          requires: ["oss-dev-images"]
+          name: "oss-dev-gotest"
+          test: gotest
+      - "oss-test":
+          requires: ["oss-dev-images"]
+          name: "oss-dev-pytest"
+          test: pytest
+      # test (main, fastvalidation)
+      - "oss-test":
+          requires: ["oss-dev-images"]
+          name: "oss-dev-gotest-fastvalidation"
+          test: gotest
+          fast-validation: true
+      - "oss-test":
+          requires: ["oss-dev-images"]
+          name: "oss-dev-pytest-fastvalidation"
+          test: pytest
+          fast-validation: true
+      # test (main, fastreconfigure)
+      - "oss-test":
+          requires: ["oss-dev-images"]
+          name: "oss-dev-gotest-fastreconfigure"
+          test: gotest
+          fast-validation: true
+          fast-reconfigure: true
+      - "oss-test":
+          requires: ["oss-dev-images"]
+          name: "oss-dev-pytest-fastreconfigure"
+          test: pytest
+          fast-validation: true
+          fast-reconfigure: true
+
   "OSS: Release":
-    when:
+    when: # Don't run this workflow in apro.git
       or:
       - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
       - equal: [ "https://github.com/datawire/ambassador-private", << pipeline.project.git_url >> ]
     # Run this workflow on tags, not branches or PRs.
     jobs:
+      # build+push
       - "oss-images":
+          <<: *filter-prerelease-only
           name: "oss-release-images"
           release: true
-          # Run this on just prerelease tags
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-            branches:
-              ignore: /.*/
+      # test (tertiary)
+      - "oss-generate":
+          <<: *filter-prerelease-only
+          name: "oss-release-generate"
+      - "oss-lint":
+          <<: *filter-prerelease-only
+          name: "oss-release-lint"
+      # test (main)
+      - "oss-test":
+          <<: *filter-prerelease-only
+          requires: ["oss-release-images"]
+          name: "oss-release-gotest"
+          test: gotest
+      - "oss-test":
+          <<: *filter-prerelease-only
+          requires: ["oss-release-images"]
+          name: "oss-release-pytest"
+          test: pytest
+      # Running the ingresstests would require we install `kind` and
+      # that the test suite supports HTTP to HTTPS redirects (AES
+      # enables cleartext redirection by default, even for fallback
+      # hosts, contrary to A/OSS)
+      #
+      #- "oss-test":
+      #    <<: *filter-prerelease-only
+      #    requires: ["oss-release-images"]
+      #    name: "oss-release-ingresstest"
+      #    test: ingresstest
+
+      # test (main, fastvalidation)
+      - "oss-test":
+          <<: *filter-prerelease-only
+          requires: ["oss-release-images"]
+          name: "oss-release-gotest-fastvalidation"
+          test: gotest
+          fast-validation: true
+      - "oss-test":
+          <<: *filter-prerelease-only
+          requires: ["oss-release-images"]
+          name: "oss-release-pytest-fastvalidation"
+          test: pytest
+          fast-validation: true
+      # test (main, fastreconfigure)
+      - "oss-test":
+          <<: *filter-prerelease-only
+          requires: ["oss-release-images"]
+          name: "oss-release-gotest-fastreconfigure"
+          test: gotest
+          fast-validation: true
+          fast-reconfigure: true
+      - "oss-test":
+          <<: *filter-prerelease-only
+          requires: ["oss-release-images"]
+          name: "oss-release-pytest-fastreconfigure"
+          test: pytest
+          fast-validation: true
+          fast-reconfigure: true
+      # promote
       - "oss-promote-to-rc-latest":
+          <<: *filter-rc-only
           name: "oss-release-promote-to-rc-latest"
           requires:
+          # build
           - "oss-release-images"
-          # Run this on just RC tags
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
-            branches:
-              ignore: /.*/
+          # test
+          - "oss-release-generate"
+          - "oss-release-lint"
+          - "oss-release-gotest"
+          - "oss-release-pytest"
+          - "oss-release-gotest-fastvalidation"
+          - "oss-release-pytest-fastvalidation"
+          - "oss-release-gotest-fastreconfigure"
+          - "oss-release-pytest-fastreconfigure"
       - "oss-promote-to-ga":
+          <<: *filter-ga-only
           name: "oss-release-promote-to-ga"
-          # Run this on just GA tags
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
-            branches:
-              ignore: /.*/
