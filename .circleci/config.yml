@@ -2,45 +2,21 @@
 
 version: 2.1
 # Secure environment variables set from the Web UI:
-# - NETLIFY_AUTH_TOKEN (Netlify)
-# - GH_TOKEN (GitHub)
-_anchors:
-  "website-job": &website-job
-    machine:
-      # If you bump this, be sure to bump "install-python.executor-key"
-      # in the "website-setup" command below.
-      image: "ubuntu-2004:202008-01"
-    working_directory: ~/project/ambassador
-  oss-linux-job:
-    machine:
-      image: "ubuntu-2004:202008-01"
-    working_directory: ~/project/ambassador
+#
+# - AWS_ACCESS_KEY_ID (AWS S3)
+# - AWS_SECRET_ACCESS_KEY (AWS S3)
+#
+# - DEV_REGISTRY (DockerHub)
+# - DOCKER_BUILD_USERNAME (DockerHub)
+# - DOCKER_BUILD_PASSWORD (DockerHub)
+#
+# - RELEASE_REGISTRY (DockerHub)
+# - DOCKER_RELEASE_USERNAME (DockerHub)
+# - DOCKER_RELEASE_PASSWORD (DockerHub)
+#
+# - KUBECEPTION_TOKEN
 commands:
-  "website-setup":
-    steps:
-    - install-node:
-        version: "11"
-    - install-yarn
-    - install-python:
-        executor-key: "202008-01"
-        version: "3.7.0"
-    - run:
-        name: "Show environment"
-        command: |
-          env | grep -e GIT -e TRAVIS -e CIRCLE | sort
-    - oss-checkout
-    - skip-if-no-changes:
-        to: docs/
-  oss-linux-setup:
-    steps:
-    - install-python:
-        executor-key: "202008-01"
-    - pip-install:
-        packages: awscli packaging
-    - install-go
-    - install-kubectl
-    - oss-checkout
-  oss-images-build-and-test:
+  "oss-images-build-and-test":
     steps:
     - run:
         name: "Ensure CI configuration is up-to-date"
@@ -83,7 +59,9 @@ commands:
         name: "Go Tests"
         command: |
           make gotest
-    - run:
+    - # XXX The three KAT runs should really be split out into separate parallel jobs.
+      # Circle makes that hard enough that we're not going to do it just yet, though.
+      run:
         name: "KAT (normal)"
         command: |
           export DEV_KUBE110=yes
@@ -117,11 +95,180 @@ commands:
           export AMBASSADOR_FAST_VALIDATION=true
           export AMBASSADOR_FAST_RECONFIGURE=true
           make pytest-only
-    - run:
+    - # We might want to run ingress-conformance tests in AES in the future
+      # This would require we install `kind` on circleci and that the test suite
+      # supports HTTP to HTTPS redirects (AES enables cleartext redirection by
+      # default, even for fallback hosts, contrary to AOSS)
+      # - run:
+      #     name: "Ingress Conformance Tests"
+      #     command: |
+      #       export DEV_KUBE110=yes
+      #       make ingresstest
+      run:
         command: "./.ci/kubernaut-unclaim"
         when: "always"
     - dirty-check
     #- oss-save-logs
+  "aes-images-build-and-test":
+    parameters:
+      fast:
+        default: "false"
+        type: string
+      go_tests:
+        default: true
+        type: boolean
+      kat_tests:
+        default: true
+        type: boolean
+      e2e_tests:
+        default: true
+        type: boolean
+    steps:
+    - run:
+        name: "Ensure CI configuration is up-to-date"
+        command: |
+          set -x
+          test_targets=$(make -n noop --print-data-base 2>/dev/null | sed -n 's/^test: *//p' | xargs printf '%s\n' | LC_COLLATE=C sort -u | xargs echo)
+          if [ "$test_targets" != "e2etest gotest ingresstest pytest" ]; then
+            echo "Makefile 'test' target has changed to $test_targets, you need to update '.circleci/config.yml.d/aes.yml'" >&2
+            exit 1
+          fi
+
+          (cd .circleci && ./generate --always-make)
+          if test -n "$(git status --porcelain)"; then
+            echo "The file '.circleci/config.yml' is out of date." >&2
+            echo "Run '(cd .circleci && ./generate)' to update it." >&2
+            exit 1
+          fi
+    - run:
+        name: "Build"
+        command: |
+          docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
+          ./ambassador/.ci/kubernaut-claim
+          export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+          make push
+    - when:
+        condition: <<parameters.go_tests>>
+        steps:
+        - run:
+            name: "Go Tests"
+            command: |
+              export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+              make gotest
+    - when:
+        condition: <<parameters.kat_tests>>
+        steps:
+        - run:
+            name: "KAT (fast=<<parameters.fast>>)"
+            command: |
+              export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+              export DEV_KUBE110=yes
+              export DEV_KUBE_NO_PVC=yes
+              export KAT_REQ_LIMIT=600
+              export AMBASSADOR_FAST_RECONFIGURE=<<parameters.fast>>
+              export AMBASSADOR_FAST_VALIDATION=<<parameters.fast>>
+              make pytest-only
+    - # We might want to run ingress-conformance tests in AES in the future
+      # This would require we install `kind` on circleci and that the test suite
+      # supports HTTP to HTTPS redirects (AES enables cleartext redirection by
+      # default, even for fallback hosts, contrary to AOSS)
+      # - run:
+      #     name: "Ingress Conformance Tests"
+      #     command: |
+      #       export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+      #       export DEV_KUBE110=yes
+      #       make ingresstest
+      when:
+        condition: <<parameters.e2e_tests>>
+        steps:
+        - run:
+            name: "E2E Tests (fast=<<parameters.fast>>)"
+            command: |
+              export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
+              export DEV_KUBE110=yes
+              export DEV_KUBE_NO_PVC=yes
+              export AMBASSADOR_FAST_RECONFIGURE=<<parameters.fast>>
+              export AMBASSADOR_FAST_VALIDATION=<<parameters.fast>>
+              make e2etest
+    - run:
+        command: "./ambassador/.ci/kubernaut-unclaim"
+        when: "always"
+    - dirty-check
+    - aes-save-logs
+  oss-linux-setup:
+    steps:
+    - install-python:
+        executor-key: "202008-01"
+    - pip-install:
+        packages: awscli packaging
+    - install-go
+    - install-kubectl
+    - oss-checkout
+  aes-linux-setup:
+    steps:
+    - install-python:
+        executor-key: "202008-01"
+    - pip-install:
+        packages: awscli packaging
+    - install-go
+    - install-kubectl
+    - install-node
+    - checkout
+  oss-checkout:
+    steps:
+    - when:
+        condition:
+          or:
+          - equal:
+            - "https://github.com/datawire/ambassador"
+            - << pipeline.project.git_url >>
+          - equal:
+            - "https://github.com/datawire/ambassador-private"
+            - << pipeline.project.git_url >>
+        steps:
+        - checkout:
+            path: ~/project/ambassador
+    - when:
+        condition:
+          or:
+          - equal:
+            - "https://github.com/datawire/apro"
+            - << pipeline.project.git_url >>
+          - equal:
+            - "https://github.com/datawire/apro-private"
+            - << pipeline.project.git_url >>
+        steps:
+        - run:
+            working_directory: ~/project
+            command: rmdir ~/project/ambassador
+        - checkout:
+            path: ~/project
+  aes-save-logs:
+    steps:
+    - run:
+        name: "Gather logs"
+        when: always
+        command: |
+          rsync -ma --include='*/' --include='*.tap' --include='*.log' --include='Test*.webm' --exclude='*' . /tmp/test-logs
+    - store_artifacts:
+        name: "Store logs"
+        path: /tmp/test-logs
+        destination: test-logs
+  website-setup:
+    steps:
+    - install-node:
+        version: "11"
+    - install-yarn
+    - install-python:
+        executor-key: "202008-01"
+        version: "3.7.0"
+    - run:
+        name: "Show environment"
+        command: |
+          env | grep -e GIT -e TRAVIS -e CIRCLE | sort
+    - oss-checkout
+    - skip-if-no-changes:
+        to: docs/
   pip-install:
     parameters:
       packages:
@@ -221,35 +368,6 @@ commands:
           >>"
         paths:
         - "/opt/circleci/.pyenv"
-  oss-checkout:
-    steps:
-    - when:
-        condition:
-          or:
-          - equal:
-            - "https://github.com/datawire/ambassador"
-            - << pipeline.project.git_url >>
-          - equal:
-            - "https://github.com/datawire/ambassador-private"
-            - << pipeline.project.git_url >>
-        steps:
-        - checkout:
-            path: ~/project/ambassador
-    - when:
-        condition:
-          or:
-          - equal:
-            - "https://github.com/datawire/apro"
-            - << pipeline.project.git_url >>
-          - equal:
-            - "https://github.com/datawire/apro-private"
-            - << pipeline.project.git_url >>
-        steps:
-        - run:
-            working_directory: ~/project
-            command: rmdir ~/project/ambassador
-        - checkout:
-            path: ~/project
   dirty-check:
     steps:
     - run:
@@ -317,75 +435,28 @@ commands:
             circleci step halt
           fi
 jobs:
-  "website-preview-build":
-    !!merge <<: *website-job
-    steps:
-    - website-setup
-    - run: ./.ci/website-preview-build
-    - persist_to_workspace:
-        root: /tmp/getambassador.io
-        paths:
-        - public
-  "website-preview-publish":
-    !!merge <<: *website-job
-    steps:
-    - website-setup
-    - attach_workspace:
-        at: /tmp/getambassador.io
-    - run: ./.ci/website-preview-publish
-  "website-preview-blc":
-    !!merge <<: *website-job
-    steps:
-    - website-setup
-    - attach_workspace:
-        at: /tmp/getambassador.io
-    - run: ./.ci/website-preview-blc
-    - store_artifacts:
-        path: /tmp/blc.txt
-        destination: blc.txt
-  "website-preview-for-smoketest":
-    !!merge <<: *website-job
-    steps:
-    - website-setup
-    - run: ./.ci/website-preview-build
-    - run: ./.ci/website-preview-publish
-  "website-prod-publish":
-    !!merge <<: *website-job
-    steps:
-    - website-setup
-    - run:
-        name: "Configure Git user"
-        command: |
-          git config --global user.name 'ambassador.git CircleCI user'
-          git config --global user.email dev@datawire.io
-    - run: ./.ci/website-prod-publish
   oss-dev-generate:
+    executor: oss-linux
     steps:
     - oss-linux-setup
     - run: make generate
     - dirty-check
     - run: make generate
     - dirty-check
-    machine:
-      image: "ubuntu-2004:202008-01"
-    working_directory: ~/project/ambassador
   oss-dev-lint:
+    executor: oss-linux
     steps:
     - oss-linux-setup
     - run: make lint
-    machine:
-      image: "ubuntu-2004:202008-01"
-    working_directory: ~/project/ambassador
   oss-dev-images:
+    executor: oss-linux
     steps:
     - oss-linux-setup
     - skip-if-only-changes:
         to: docs/
     - oss-images-build-and-test
-    machine:
-      image: "ubuntu-2004:202008-01"
-    working_directory: ~/project/ambassador
   oss-release-images:
+    executor: oss-linux
     steps:
     - oss-linux-setup
     - oss-images-build-and-test
@@ -394,10 +465,8 @@ jobs:
         command: |
           docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
           DEV_KUBECONFIG="-skip-for-release-" make release/bits
-    machine:
-      image: "ubuntu-2004:202008-01"
-    working_directory: ~/project/ambassador
   oss-release-promote-to-rc-latest:
+    executor: oss-linux
     steps:
     - oss-linux-setup
     - when:
@@ -411,10 +480,8 @@ jobs:
             command: |
               docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
               DEV_KUBECONFIG="-skip-for-release-" make release/promote-oss/to-rc-latest
-    machine:
-      image: "ubuntu-2004:202008-01"
-    working_directory: ~/project/ambassador
   oss-release-promote-to-ga:
+    executor: oss-linux
     steps:
     - oss-linux-setup
     - run:
@@ -422,76 +489,59 @@ jobs:
         command: |
           docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
           DEV_KUBECONFIG="-skip-for-release-" make release/promote-oss/to-ga
+  website-preview-build:
+    steps:
+    - website-setup
+    - run: ./.ci/website-preview-build
+    - persist_to_workspace:
+        root: /tmp/getambassador.io
+        paths:
+        - public
+    machine:
+      image: "ubuntu-2004:202008-01"
+    working_directory: ~/project/ambassador
+  website-preview-publish:
+    steps:
+    - website-setup
+    - attach_workspace:
+        at: /tmp/getambassador.io
+    - run: ./.ci/website-preview-publish
+    machine:
+      image: "ubuntu-2004:202008-01"
+    working_directory: ~/project/ambassador
+  website-preview-blc:
+    steps:
+    - website-setup
+    - attach_workspace:
+        at: /tmp/getambassador.io
+    - run: ./.ci/website-preview-blc
+    - store_artifacts:
+        path: /tmp/blc.txt
+        destination: blc.txt
+    machine:
+      image: "ubuntu-2004:202008-01"
+    working_directory: ~/project/ambassador
+  website-preview-for-smoketest:
+    steps:
+    - website-setup
+    - run: ./.ci/website-preview-build
+    - run: ./.ci/website-preview-publish
+    machine:
+      image: "ubuntu-2004:202008-01"
+    working_directory: ~/project/ambassador
+  website-prod-publish:
+    steps:
+    - website-setup
+    - run:
+        name: "Configure Git user"
+        command: |
+          git config --global user.name 'ambassador.git CircleCI user'
+          git config --global user.email dev@datawire.io
+    - run: ./.ci/website-prod-publish
     machine:
       image: "ubuntu-2004:202008-01"
     working_directory: ~/project/ambassador
 workflows:
-  # All of these filters assume that "Only build pull requests" is turned on at
-  # https://app.circleci.com/settings/project/github/datawire/apro/advanced
-  # and that any non-'master' branches that we wish to run on are set up to be
-  # triggered by GitHub actions (see ".github/workflows/circleci-branches.yml").
-  "Docs: Dev":
-    jobs:
-    - "website-preview-build":
-        filters:
-          branches:
-            ignore:
-            # Don't bother running on forked PRs (which CircleCI
-            # shows as branch="pull/${number}"); they won't have
-            # GH_TOKEN set to be able to pull getambassador.io.git
-            - /^pull\/[0-9]+$/
-    - "website-preview-publish":
-        requires: ["website-preview-build"]
-        filters:
-          branches:
-            ignore:
-            # Don't bother running on 'master' or the other
-            # branches that we do the "Release" workflow for.
-            - master
-            - /^release\/v1\.[0-9]+$/
-            # Don't bother running on forked PRs (which CircleCI
-            # shows as branch="pull/${number}"); they won't have
-            # GH_TOKEN set to be able to pull getambassador.io.git
-            - /^pull\/[0-9]+$/
-            # Don't bother running the BLC until we've taught it to ignore
-            # broken links from the CMS that the PR author can't do anything
-            # about.  Count on Kenn watching it in getambassador.io.git, and
-            # mocking any devs that write broken links.
-            #
-            #- "website-preview-blc":
-            #    requires: ["website-preview-build"]
-            #    filters:
-            #      branches:
-            #        ignore:
-            #          # Don't bother running on forked PRs (which CircleCI
-            #          # shows as branch="pull/${number}"); they won't have
-            #          # GH_TOKEN set to be able to pull getambassador.io.git
-            #          - /^pull\/[0-9]+$/
-  "Docs: Prerelease":
-    # Run preview-build+preview-publish on prerelease tags so that we
-    # have a preview for the smoke-testers to use.  Do this in a
-    # separate job from the "Dev" workflow so that people looking at
-    # the PR vs the tag don't get different preview URLs.
-    when:
-      equal: ["https://github.com/datawire/apro", << pipeline.project.git_url >>]
-    jobs:
-    - "website-preview-for-smoketest":
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-  "Docs: Release":
-    when:
-      equal: ["https://github.com/datawire/ambassador", << pipeline.project.git_url
-          >>]
-    jobs:
-    - "website-prod-publish":
-        filters:
-          branches:
-            only:
-            - master
-            - /^release\/v1\.[0-9]+$/
   'OSS: Dev':
     jobs:
     - "oss-dev-images"
@@ -527,3 +577,79 @@ workflows:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
           branches:
             ignore: /.*/
+  'Docs: Dev':
+    jobs:
+    - website-preview-build:
+        filters:
+          branches:
+            ignore:
+            # Don't bother running on forked PRs (which CircleCI
+            # shows as branch="pull/${number}"); they won't have
+            # GH_TOKEN set to be able to pull getambassador.io.git
+            - /^pull\/[0-9]+$/
+    - website-preview-publish:
+        requires:
+        - "website-preview-build"
+        filters:
+          branches:
+            ignore:
+            # Don't bother running on 'master' or the other
+            # branches that we do the "Release" workflow for.
+            - master
+            - /^release\/v1\.[0-9]+$/
+            # Don't bother running on forked PRs (which CircleCI
+            # shows as branch="pull/${number}"); they won't have
+            # GH_TOKEN set to be able to pull getambassador.io.git
+            - /^pull\/[0-9]+$/
+            # Don't bother running the BLC until we've taught it to ignore
+            # broken links from the CMS that the PR author can't do anything
+            # about.  Count on Kenn watching it in getambassador.io.git, and
+            # mocking any devs that write broken links.
+            #
+            #- "website-preview-blc":
+            #    requires: ["website-preview-build"]
+            #    filters:
+            #      branches:
+            #        ignore:
+            #          # Don't bother running on forked PRs (which CircleCI
+            #          # shows as branch="pull/${number}"); they won't have
+            #          # GH_TOKEN set to be able to pull getambassador.io.git
+            #          - /^pull\/[0-9]+$/
+  'Docs: Prerelease':
+    when:
+      equal:
+      - "https://github.com/datawire/apro"
+      - << pipeline.project.git_url >>
+    jobs:
+    - website-preview-for-smoketest:
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
+  'Docs: Release':
+    when:
+      equal:
+      - "https://github.com/datawire/ambassador"
+      - << pipeline.project.git_url >>
+    jobs:
+    - website-prod-publish:
+        filters:
+          branches:
+            only:
+            - master
+            - /^release\/v1\.[0-9]+$/
+executors:
+  oss-linux:
+    machine:
+      image: "ubuntu-2004:202008-01"
+    working_directory: ~/project/ambassador
+  aes-linux:
+    machine:
+      image: "ubuntu-2004:202008-01"
+    working_directory: ~/project
+_anchors:
+  website-job:
+    machine:
+      image: "ubuntu-2004:202008-01"
+    working_directory: ~/project/ambassador

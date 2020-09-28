@@ -1,0 +1,102 @@
+version: 2.1
+
+jobs:
+  "oss-dev-generate":
+    executor: oss-linux
+    steps:
+      - oss-linux-setup
+      - run: make generate
+      - dirty-check
+      # Run it again to make sure that it is possible to run it twice
+      # in a row.
+      - run: make generate
+      - dirty-check
+
+  "oss-dev-lint":
+    executor: oss-linux
+    steps:
+      - oss-linux-setup
+      - run: make lint
+
+  "oss-dev-images":
+    executor: oss-linux
+    steps:
+      - oss-linux-setup
+      - skip-if-only-changes:
+          to: docs/
+      - oss-images-build-and-test
+
+  "oss-release-images":
+    executor: oss-linux
+    steps:
+      - oss-linux-setup
+      - oss-images-build-and-test
+      - run:
+          name: "Release"
+          command: |
+            docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+            DEV_KUBECONFIG="-skip-for-release-" make release/bits
+
+  "oss-release-promote-to-rc-latest":
+    executor: oss-linux
+    steps:
+      - oss-linux-setup
+      - when:
+          condition:
+            equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+          steps:
+            - run:
+                name: "Promote to -rc-latest"
+                command: |
+                  docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+                  DEV_KUBECONFIG="-skip-for-release-" make release/promote-oss/to-rc-latest
+
+  "oss-release-promote-to-ga":
+    executor: oss-linux
+    steps:
+      - oss-linux-setup
+      - run:
+          name: "Promote to GA"
+          command: |
+            docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+            DEV_KUBECONFIG="-skip-for-release-" make release/promote-oss/to-ga
+
+workflows:
+  # All of these filters assume that "Only build pull requests" is turned on at
+  # https://app.circleci.com/settings/project/github/datawire/apro/advanced
+  "OSS: Dev":
+    # Run this workflow on just 'master' and PRs.
+    jobs:
+      - "oss-dev-images"
+      - "oss-dev-generate"
+      - "oss-dev-lint"
+  "OSS: Release":
+    when:
+      or:
+      - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+      - equal: [ "https://github.com/datawire/ambassador-private", << pipeline.project.git_url >> ]
+    # Run this workflow on tags, not branches or PRs.
+    jobs:
+      - "oss-release-images":
+          # Run this on just prerelease tags
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+            branches:
+              ignore: /.*/
+      - "oss-release-promote-to-rc-latest":
+          requires:
+          - "oss-release-images"
+          # Run this on just RC tags
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
+            branches:
+              ignore: /.*/
+      - "oss-release-promote-to-ga":
+          # Run this on just GA tags
+          filters:
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+            branches:
+              ignore: /.*/
