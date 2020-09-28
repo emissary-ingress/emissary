@@ -17,6 +17,30 @@ version: 2.1
 
 commands:
 
+  ######################################################################
+  # Commands that are complete jobs                                    #
+  #                                                                    #
+  # (factored out to be commands so that they can be shared between    #
+  # "oss-linux" and "aes-linux" executors)                             #
+  ######################################################################
+
+  "job-generate":
+    steps:
+      - amb-linux-install
+      - amb-checkout
+      - run: make generate
+      - dirty-check
+      # Run it again to make sure that it is possible to run it twice
+      # in a row.
+      - run: make generate
+      - dirty-check
+
+  "job-lint":
+    steps:
+      - amb-linux-install
+      - amb-checkout
+      - run: make lint
+
   "oss-images-build-and-test":
     steps:
       - run:
@@ -197,3 +221,37 @@ commands:
           when: "always"
       - dirty-check
       - amb-save-logs
+
+  "job-promote-to-rc-latest":
+    parameters:
+      "channel":
+        type: enum
+        enum: ["oss", "aes"]
+    steps:
+      - amb-linux-install
+      - amb-checkout
+      - when:
+          condition: # Don't do this in the -private repos
+            or:
+            - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+            - equal: [ "https://github.com/datawire/apro", << pipeline.project.git_url >> ]
+          steps:
+            - run:
+                name: "Promote to -rc-latest"
+                command: |
+                  docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+                  DEV_KUBECONFIG="-skip-for-release-" make release/promote-<< parameters.channel >>/to-rc-latest
+
+  "job-promote-to-ga":
+    parameters:
+      "channel":
+        type: enum
+        enum: ["oss", "aes"]
+    steps:
+      - amb-linux-install
+      - amb-checkout
+      - run:
+          name: "Promote to GA"
+          command: |
+            docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+            DEV_KUBECONFIG="-skip-for-release-" make release/promote-<< parameters.channel >>/to-ga
