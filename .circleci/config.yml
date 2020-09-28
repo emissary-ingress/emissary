@@ -108,7 +108,7 @@ commands:
         command: "./.ci/kubernaut-unclaim"
         when: "always"
     - dirty-check
-    #- oss-save-logs
+    - amb-save-logs
   "aes-images-build-and-test":
     parameters:
       fast:
@@ -194,17 +194,8 @@ commands:
         command: "./ambassador/.ci/kubernaut-unclaim"
         when: "always"
     - dirty-check
-    - aes-save-logs
-  oss-linux-setup:
-    steps:
-    - install-python:
-        executor-key: "202008-01"
-    - pip-install:
-        packages: awscli packaging
-    - install-go
-    - install-kubectl
-    - oss-checkout
-  aes-linux-setup:
+    - amb-save-logs
+  amb-linux-install:
     steps:
     - install-python:
         executor-key: "202008-01"
@@ -213,8 +204,7 @@ commands:
     - install-go
     - install-kubectl
     - install-node
-    - checkout
-  oss-checkout:
+  amb-checkout:
     steps:
     - when:
         condition:
@@ -240,10 +230,10 @@ commands:
         steps:
         - run:
             working_directory: ~/project
-            command: rmdir ~/project/ambassador
+            command: "rmdir ~/project/ambassador || true"
         - checkout:
             path: ~/project
-  aes-save-logs:
+  amb-save-logs:
     steps:
     - run:
         name: "Gather logs"
@@ -266,7 +256,7 @@ commands:
         name: "Show environment"
         command: |
           env | grep -e GIT -e TRAVIS -e CIRCLE | sort
-    - oss-checkout
+    - amb-checkout
     - skip-if-no-changes:
         to: docs/
   pip-install:
@@ -438,7 +428,8 @@ jobs:
   oss-dev-generate:
     executor: oss-linux
     steps:
-    - oss-linux-setup
+    - amb-linux-install
+    - amb-checkout
     - run: make generate
     - dirty-check
     - run: make generate
@@ -446,19 +437,22 @@ jobs:
   oss-dev-lint:
     executor: oss-linux
     steps:
-    - oss-linux-setup
+    - amb-linux-install
+    - amb-checkout
     - run: make lint
   oss-dev-images:
     executor: oss-linux
     steps:
-    - oss-linux-setup
+    - amb-linux-install
+    - amb-checkout
     - skip-if-only-changes:
         to: docs/
     - oss-images-build-and-test
   oss-release-images:
     executor: oss-linux
     steps:
-    - oss-linux-setup
+    - amb-linux-install
+    - amb-checkout
     - oss-images-build-and-test
     - run:
         name: "Release"
@@ -468,7 +462,8 @@ jobs:
   oss-release-promote-to-rc-latest:
     executor: oss-linux
     steps:
-    - oss-linux-setup
+    - amb-linux-install
+    - amb-checkout
     - when:
         condition:
           equal:
@@ -483,13 +478,15 @@ jobs:
   oss-release-promote-to-ga:
     executor: oss-linux
     steps:
-    - oss-linux-setup
+    - amb-linux-install
+    - amb-checkout
     - run:
         name: "Promote to GA"
         command: |
           docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
           DEV_KUBECONFIG="-skip-for-release-" make release/promote-oss/to-ga
   website-preview-build:
+    executor: oss-linux
     steps:
     - website-setup
     - run: ./.ci/website-preview-build
@@ -497,19 +494,15 @@ jobs:
         root: /tmp/getambassador.io
         paths:
         - public
-    machine:
-      image: "ubuntu-2004:202008-01"
-    working_directory: ~/project/ambassador
   website-preview-publish:
+    executor: oss-linux
     steps:
     - website-setup
     - attach_workspace:
         at: /tmp/getambassador.io
     - run: ./.ci/website-preview-publish
-    machine:
-      image: "ubuntu-2004:202008-01"
-    working_directory: ~/project/ambassador
   website-preview-blc:
+    executor: oss-linux
     steps:
     - website-setup
     - attach_workspace:
@@ -518,18 +511,14 @@ jobs:
     - store_artifacts:
         path: /tmp/blc.txt
         destination: blc.txt
-    machine:
-      image: "ubuntu-2004:202008-01"
-    working_directory: ~/project/ambassador
   website-preview-for-smoketest:
+    executor: oss-linux
     steps:
     - website-setup
     - run: ./.ci/website-preview-build
     - run: ./.ci/website-preview-publish
-    machine:
-      image: "ubuntu-2004:202008-01"
-    working_directory: ~/project/ambassador
   website-prod-publish:
+    executor: oss-linux
     steps:
     - website-setup
     - run:
@@ -538,9 +527,6 @@ jobs:
           git config --global user.name 'ambassador.git CircleCI user'
           git config --global user.email dev@datawire.io
     - run: ./.ci/website-prod-publish
-    machine:
-      image: "ubuntu-2004:202008-01"
-    working_directory: ~/project/ambassador
 workflows:
   'OSS: Dev':
     jobs:
@@ -648,8 +634,3 @@ executors:
     machine:
       image: "ubuntu-2004:202008-01"
     working_directory: ~/project
-_anchors:
-  website-job:
-    machine:
-      image: "ubuntu-2004:202008-01"
-    working_directory: ~/project/ambassador

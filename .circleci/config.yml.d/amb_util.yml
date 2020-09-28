@@ -10,7 +10,7 @@ executors:
     machine:
       # If you bump this, be sure to bump it in the "aes-linux"
       # executor below, and to bump "install-python.executor-key" in
-      # the "oss-linux-setup" and "aes-linux-setup" commands below.
+      # the "amb-linux-install" command below.
       image: "ubuntu-2004:202008-01"
     working_directory: ~/project/ambassador
 
@@ -18,23 +18,13 @@ executors:
     machine:
       # If you bump this, be sure to bump it in the "oss-linux"
       # executor above, and to bump "install-python.executor-key" in
-      # the "oss-linux-setup" and "aes-linux-setup" commands below.
+      # the "amb-linux-install" command below.
       image: "ubuntu-2004:202008-01"
     working_directory: ~/project
 
 commands:
 
-  "oss-linux-setup":
-    steps:
-      - install-python:
-          executor-key: "202008-01"
-      - pip-install:
-          packages: awscli packaging
-      - install-go
-      - install-kubectl
-      - oss-checkout
-
-  "aes-linux-setup":
+  "amb-linux-install":
     steps:
       - install-python:
           executor-key: "202008-01"
@@ -43,9 +33,8 @@ commands:
       - install-go
       - install-kubectl
       - install-node
-      - checkout
 
-  "oss-checkout":
+  "amb-checkout":
     steps:
       - when:
           condition:
@@ -63,11 +52,11 @@ commands:
           steps:
             - run:
                 working_directory: ~/project
-                command: rmdir ~/project/ambassador
+                command: "rmdir ~/project/ambassador || true"
             - checkout:
                 path: ~/project
 
-  "aes-save-logs":
+  "amb-save-logs":
     steps:
       - run:
           name: "Gather logs"

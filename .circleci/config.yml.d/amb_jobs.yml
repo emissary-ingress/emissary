@@ -109,7 +109,7 @@ commands:
           command: "./.ci/kubernaut-unclaim"
           when: "always"
       - dirty-check
-      #- oss-save-logs
+      - amb-save-logs
 
   "aes-images-build-and-test":
     parameters:
@@ -196,4 +196,4 @@ commands:
           command: "./ambassador/.ci/kubernaut-unclaim"
           when: "always"
       - dirty-check
-      - aes-save-logs
+      - amb-save-logs
