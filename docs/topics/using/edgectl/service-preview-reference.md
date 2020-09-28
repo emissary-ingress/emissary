@@ -685,7 +685,7 @@ spec:
 
 ## Service Mesh Support
 
-Much like a service mesh, the Service Preview `traffic-agent` runs as a sidecar to the container running your application. Luckily, due to the magic of service mesh Pod networking, Service Preview will run alongside a service mesh without any changes needed to be made on your part.
+The Service Preview `traffic-agent` runs as a sidecar to the container running your application. Luckily, due to the magic of service mesh Pod networking, Service Preview will run alongside a service mesh without any changes needed to be made on your part.
 
 Below is some information on how Service Preview runs alongside different service mesh implementations.
 
