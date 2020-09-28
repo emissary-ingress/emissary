@@ -440,7 +440,11 @@ jobs:
     - amb-linux-install
     - amb-checkout
     - run: make lint
-  oss-dev-images:
+  oss-images:
+    parameters:
+      release:
+        type: boolean
+        default: false
     executor: oss-linux
     steps:
     - amb-linux-install
@@ -448,17 +452,14 @@ jobs:
     - skip-if-only-changes:
         to: docs/
     - oss-images-build-and-test
-  oss-release-images:
-    executor: oss-linux
-    steps:
-    - amb-linux-install
-    - amb-checkout
-    - oss-images-build-and-test
-    - run:
-        name: "Release"
-        command: |
-          docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
-          DEV_KUBECONFIG="-skip-for-release-" make release/bits
+    - when:
+        condition: << parameters.release >>
+        steps:
+        - run:
+            name: "Release"
+            command: |
+              docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+              DEV_KUBECONFIG="-skip-for-release-" make release/bits
   oss-release-promote-to-rc-latest:
     executor: oss-linux
     steps:
@@ -530,7 +531,8 @@ jobs:
 workflows:
   'OSS: Dev':
     jobs:
-    - "oss-dev-images"
+    - oss-images:
+        name: "oss-dev-images"
     - "oss-dev-generate"
     - "oss-dev-lint"
   'OSS: Release':
@@ -543,7 +545,9 @@ workflows:
         - "https://github.com/datawire/ambassador-private"
         - << pipeline.project.git_url >>
     jobs:
-    - oss-release-images:
+    - oss-images:
+        name: "oss-release-images"
+        release: true
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/

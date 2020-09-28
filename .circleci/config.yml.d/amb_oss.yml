@@ -20,7 +20,11 @@ jobs:
       - amb-checkout
       - run: make lint
 
-  "oss-dev-images":
+  "oss-images":
+    parameters:
+      "release":
+        type: boolean
+        default: false
     executor: oss-linux
     steps:
       - amb-linux-install
@@ -28,18 +32,14 @@ jobs:
       - skip-if-only-changes:
           to: docs/
       - oss-images-build-and-test
-
-  "oss-release-images":
-    executor: oss-linux
-    steps:
-      - amb-linux-install
-      - amb-checkout
-      - oss-images-build-and-test
-      - run:
-          name: "Release"
-          command: |
-            docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
-            DEV_KUBECONFIG="-skip-for-release-" make release/bits
+      - when:
+          condition: << parameters.release >>
+          steps:
+            - run:
+                name: "Release"
+                command: |
+                  docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+                  DEV_KUBECONFIG="-skip-for-release-" make release/bits
 
   "oss-release-promote-to-rc-latest":
     executor: oss-linux
@@ -70,10 +70,15 @@ jobs:
 workflows:
   # All of these filters assume that "Only build pull requests" is turned on at
   # https://app.circleci.com/settings/project/github/datawire/apro/advanced
+  #
+  # It is important that the same job name not appear in multiple
+  # workflows; otherwise their GitHub statuses will stomp on
+  # eachother.
   "OSS: Dev":
     # Run this workflow on just 'master' and PRs.
     jobs:
-      - "oss-dev-images"
+      - "oss-images":
+          name: "oss-dev-images"
       - "oss-dev-generate"
       - "oss-dev-lint"
   "OSS: Release":
@@ -83,7 +88,9 @@ workflows:
       - equal: [ "https://github.com/datawire/ambassador-private", << pipeline.project.git_url >> ]
     # Run this workflow on tags, not branches or PRs.
     jobs:
-      - "oss-release-images":
+      - "oss-images":
+          name: "oss-release-images"
+          release: true
           # Run this on just prerelease tags
           filters:
             tags:
