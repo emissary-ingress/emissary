@@ -119,6 +119,10 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
         - name: STATSD_ENABLED
           value: "true"
         - name: STATSD_HOST
