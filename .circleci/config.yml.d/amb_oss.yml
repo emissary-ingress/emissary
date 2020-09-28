@@ -1,12 +1,12 @@
 version: 2.1
 
 jobs:
-  "oss-dev-generate":
+  "oss-generate":
     executor: oss-linux
     steps:
       - job-generate
 
-  "oss-dev-lint":
+  "oss-lint":
     executor: oss-linux
     steps:
       - job-lint
@@ -32,13 +32,13 @@ jobs:
                   docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
                   DEV_KUBECONFIG="-skip-for-release-" make release/bits
 
-  "oss-release-promote-to-rc-latest":
+  "oss-promote-to-rc-latest":
     executor: oss-linux
     steps:
       - job-promote-to-rc-latest:
           channel: oss
 
-  "oss-release-promote-to-ga":
+  "oss-promote-to-ga":
     executor: oss-linux
     steps:
       - job-promote-to-ga:
@@ -56,8 +56,10 @@ workflows:
     jobs:
       - "oss-images":
           name: "oss-dev-images"
-      - "oss-dev-generate"
-      - "oss-dev-lint"
+      - "oss-generate":
+          name: "oss-dev-generate"
+      - "oss-lint":
+          name: "oss-dev-lint"
   "OSS: Release":
     when:
       or:
@@ -74,7 +76,8 @@ workflows:
               only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
             branches:
               ignore: /.*/
-      - "oss-release-promote-to-rc-latest":
+      - "oss-promote-to-rc-latest":
+          name: "oss-release-promote-to-rc-latest"
           requires:
           - "oss-release-images"
           # Run this on just RC tags
@@ -83,7 +86,8 @@ workflows:
               only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
             branches:
               ignore: /.*/
-      - "oss-release-promote-to-ga":
+      - "oss-promote-to-ga":
+          name: "oss-release-promote-to-ga"
           # Run this on just GA tags
           filters:
             tags:
