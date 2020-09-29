@@ -190,6 +190,7 @@ pytest-only: sync preflight-cluster
 		-e DEV_REGISTRY \
 		-e DOCKER_BUILD_USERNAME \
 		-e DOCKER_BUILD_PASSWORD \
+		-e AMBASSADOR_FAST_VALIDATION \
 		-e AMBASSADOR_FAST_RECONFIGURE \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal
 .PHONY: pytest-only

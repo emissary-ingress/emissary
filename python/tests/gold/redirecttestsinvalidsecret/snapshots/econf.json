@@ -116,7 +116,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8443-*_fstar",
+                                                "name": "ambassador-listener-8443-*",
                                                 "routes": [
                                                     {
                                                         "match": {
@@ -280,7 +280,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8080-_insecure-8080_fstar",
+                                                "name": "ambassador-listener-8080-_insecure-8080",
                                                 "routes": [
                                                     {
                                                         "match": {
