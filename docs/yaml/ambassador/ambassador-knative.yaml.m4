@@ -102,6 +102,10 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
         - name: AMBASSADOR_KNATIVE_SUPPORT
           value: "true"
         ports:
