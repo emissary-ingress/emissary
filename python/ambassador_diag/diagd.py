@@ -148,7 +148,6 @@ class DiagApp (Flask):
               metrics_endpoint: Optional[str], k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False,
               verbose=False, notices=None, validation_retries=5, allow_fs_commands=False, local_scout=False,
               report_action_keys=False):
-        self.estats = EnvoyStats()
         self.health_checks = do_checks
         self.no_envoy = no_envoy
         self.debugging = reload
@@ -165,16 +164,19 @@ class DiagApp (Flask):
         self.metrics_endpoint = metrics_endpoint
         self.metrics_registry = CollectorRegistry(auto_describe=True)
 
-        # Initialize the incremental-reconfigure stats.
+        # This feels like overkill.
+        self.logger = logging.getLogger("ambassador.diagd")
+        self.logger.setLevel(logging.INFO)
+
+        # Initialize the Envoy stats...
+        self.estats = EnvoyStats(self.logger)
+
+        # ...and the incremental-reconfigure stats.
         self.reconf_stats = ReconfigStats(self.logger)
 
         # This will raise an exception and crash if you pass it a string. That's intentional.
         self.ambex_pid = int(ambex_pid)
         self.kick = kick
-
-        # This feels like overkill.
-        self.logger = logging.getLogger("ambassador.diagd")
-        self.logger.setLevel(logging.INFO)
 
         # Initialize the cache if we're allowed to.
         if os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "false").lower() == "true":

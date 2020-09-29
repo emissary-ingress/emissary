@@ -25,7 +25,8 @@ def percentage(x, y):
         return int(((x * 100) / y) + 0.5)
 
 class EnvoyStats (object):
-    def __init__(self, max_live_age=20, max_ready_age=20):
+    def __init__(self, logger: logging.Logger, max_live_age=20, max_ready_age=20):
+        self.logger = logger
         self.update_errors = 0
         self.max_live_age = max_live_age
         self.max_ready_age = max_ready_age
@@ -142,7 +143,7 @@ class EnvoyStats (object):
         return cstat
 
     def update_log_levels(self, last_attempt, level=None):
-        # logging.info("updating levels")
+        # self.logger.info("updating levels")
 
         try:
             url = "http://127.0.0.1:8001/logging"
@@ -152,13 +153,13 @@ class EnvoyStats (object):
 
             r = requests.post(url)
         except OSError as e:
-            logging.warning("EnvoyStats.update_log_levels failed: %s" % e)
+            self.logger.warning("EnvoyStats.update_log_levels failed: %s" % e)
             self.stats['update_errors'] += 1
             return False
 
         # OMFG. Querying log levels returns with a 404 code.
         if (r.status_code != 200) and (r.status_code != 404):
-            logging.warning("EnvoyStats.update_log_levels failed: %s" % r.text)
+            self.logger.warning("EnvoyStats.update_log_levels failed: %s" % r.text)
             self.stats['update_errors'] += 1
             return False   
 
@@ -174,40 +175,40 @@ class EnvoyStats (object):
                 x = levels.setdefault(level, {})
                 x[logtype] = True
 
-        # logging.info("levels: %s" % levels)
+        # self.logger.info("levels: %s" % levels)
 
         if len(levels.keys()) == 1:
             self.loginfo = { 'all': list(levels.keys())[0] }
         else:
             self.loginfo = { x: levels[x] for x in sorted(levels.keys()) }
 
-        # logging.info("loginfo: %s" % self.loginfo)
+        # self.logger.info("loginfo: %s" % self.loginfo)
         return True
 
     def get_prometheus_stats(self):
         try:
             r = requests.get("http://127.0.0.1:8001/stats/prometheus")
         except OSError as e:
-            logging.warning("EnvoyStats.get_prometheus_state failed: %s" % e)
+            self.logger.warning("EnvoyStats.get_prometheus_state failed: %s" % e)
             return ''
 
         if r.status_code != 200:
-            logging.warning("EnvoyStats.get_prometheus_state failed: %s" % r.text)
+            self.logger.warning("EnvoyStats.get_prometheus_state failed: %s" % r.text)
             return ''
         return r.text
         
     def update_envoy_stats(self, last_attempt):
-        # logging.info("updating stats")
+        # self.logger.info("updating stats")
 
         try:
             r = requests.get("http://127.0.0.1:8001/stats")
         except OSError as e:
-            logging.warning("EnvoyStats.update failed: %s" % e)
+            self.logger.warning("EnvoyStats.update failed: %s" % e)
             self.stats['update_errors'] += 1
             return
 
         if r.status_code != 200:
-            logging.warning("EnvoyStats.update failed: %s" % r.text)
+            self.logger.warning("EnvoyStats.update failed: %s" % r.text)
             self.stats['update_errors'] += 1
             return
 
@@ -219,7 +220,7 @@ class EnvoyStats (object):
             if not line:
                 continue
 
-            # logging.info('line: %s' % line)
+            # self.logger.info('line: %s' % line)
             key, value = line.split(":")
             keypath = key.split('.')
 
@@ -279,7 +280,7 @@ class EnvoyStats (object):
                 # mapping_name = active_cluster_map[cluster_name]
                 # active_mappings[mapping_name] = {}
 
-                # logging.info("cluster %s stats: %s" % (cluster_name, cluster))
+                # self.logger.info("cluster %s stats: %s" % (cluster_name, cluster))
 
                 healthy_members = cluster['membership_healthy']
                 total_members = cluster['membership_total']
@@ -300,14 +301,14 @@ class EnvoyStats (object):
 
                 upstream_ok = upstream_total - upstream_bad
 
-                # logging.info("%s total %s bad %s ok %s" % (cluster_name, upstream_total, upstream_bad, upstream_ok))
+                # self.logger.info("%s total %s bad %s ok %s" % (cluster_name, upstream_total, upstream_bad, upstream_ok))
 
                 if upstream_total > 0:
                     healthy_percent = percentage(upstream_ok, upstream_total)
-                    # logging.debug("cluster %s is %d%% healthy" % (cluster_name, healthy_percent))
+                    # self.logger.debug("cluster %s is %d%% healthy" % (cluster_name, healthy_percent))
                 else:
                     healthy_percent = None
-                    # logging.debug("cluster %s has had no requests" % cluster_name)
+                    # self.logger.debug("cluster %s has had no requests" % cluster_name)
 
                 active_clusters[cluster_name] = {
                     'healthy_members': healthy_members,
@@ -335,7 +336,7 @@ class EnvoyStats (object):
             "envoy": envoy_stats
         })
 
-        # logging.info("stats updated")
+        # self.logger.info("stats updated")
 
     # def update(self, active_mapping_names):
     def update(self):
@@ -346,4 +347,4 @@ class EnvoyStats (object):
             self.update_log_levels(last_attempt)
             self.update_envoy_stats(last_attempt)
         except Exception as e:
-            logging.error("could not update Envoy stats: %s" % e)
+            self.logger.error("could not update Envoy stats: %s" % e)
