@@ -57,7 +57,7 @@ from ambassador.utils import SystemInfo, Timer, PeriodicTrigger, SavedSecret, lo
 from ambassador.utils import SecretHandler, KubewatchSecretHandler, FSSecretHandler
 from ambassador.fetch import ResourceFetcher
 
-from ambassador.diagnostics import EnvoyStats
+from ambassador.diagnostics import EnvoyStatsMgr, EnvoyStats
 
 from ambassador.constants import Constants
 
@@ -103,7 +103,7 @@ class DiagApp (Flask):
     cache: Optional[Cache]
     ambex_pid: int
     kick: Optional[str]
-    estats: EnvoyStats
+    estatsmgr: EnvoyStatsMgr
     config_path: Optional[str]
     snapshot_path: str
     bootstrap_path: str
@@ -168,8 +168,8 @@ class DiagApp (Flask):
         self.logger = logging.getLogger("ambassador.diagd")
         self.logger.setLevel(logging.INFO)
 
-        # Initialize the Envoy stats...
-        self.estats = EnvoyStats(self.logger)
+        # Initialize the Envoy stats manager...
+        self.estatsmgr = EnvoyStatsMgr(self.logger)
 
         # ...and the incremental-reconfigure stats.
         self.reconf_stats = ReconfigStats(self.logger)
@@ -724,7 +724,7 @@ def system_info(app):
     }
 
 
-def envoy_status(estats):
+def envoy_status(estats: EnvoyStats):
     since_boot = interval_format(estats.time_since_boot(), "%s", "less than a second")
 
     since_update = "Never updated"
@@ -830,7 +830,7 @@ def favicon():
 
 @app.route('/ambassador/v0/check_alive', methods=[ 'GET' ])
 def check_alive():
-    status = envoy_status(app.estats)
+    status = envoy_status(app.estatsmgr.get_stats())
 
     if status['alive']:
         return "ambassador liveness check OK (%s)\n" % status['uptime'], 200
@@ -843,7 +843,7 @@ def check_ready():
     if not app.ir:
         return "ambassador waiting for config\n", 503
 
-    status = envoy_status(app.estats)
+    status = envoy_status(app.estatsmgr.get_stats())
 
     if status['ready']:
         return "ambassador readiness check OK (%s)\n" % status['since_update'], 200
@@ -879,7 +879,8 @@ def show_overview(reqid=None):
         app.logger.debug("OV %s: DIAG" % reqid)
         app.logger.debug("%s" % json.dumps(diag.as_dict(), sort_keys=True, indent=4))
 
-    ov = diag.overview(request, app.estats)
+    estats = app.estatsmgr.get_stats()
+    ov = diag.overview(request, estats)
 
     if app.verbose:
         app.logger.debug("OV %s: OV" % reqid)
@@ -898,8 +899,8 @@ def show_overview(reqid=None):
             app.logger.error("could not get banner_content: %s" % e)
 
     tvars = dict(system=system_info(app),
-                 envoy_status=envoy_status(app.estats),
-                 loginfo=app.estats.loginfo,
+                 envoy_status=envoy_status(estats),
+                 loginfo=app.estatsmgr.loginfo,
                  notices=app.notices.notices,
                  banner_content=banner_content,
                  **ov, **ddict)
@@ -945,7 +946,7 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
     if loglevel:
         app.logger.debug("%s %s -- requesting loglevel %s" % (what, reqid, loglevel))
 
-        if not app.estats.update_log_levels(time.time(), level=loglevel):
+        if not app.estatsmgr.update_log_levels(time.time(), level=loglevel):
             notice = { 'level': 'WARNING', 'message': "Could not update log level!" }
         # else:
         #     return redirect("/ambassador/v0/diag/", code=302)
@@ -1011,7 +1012,8 @@ def show_intermediate(source=None, reqid=None):
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
 
-    result = diag.lookup(request, source, app.estats)
+    estats = app.estatsmgr.get_stats()
+    result = diag.lookup(request, source, estats)
 
     if app.verbose:
         app.logger.debug("RESULT %s" % json.dumps(result, sort_keys=True, indent=4))
@@ -1019,8 +1021,8 @@ def show_intermediate(source=None, reqid=None):
     ddict = collect_errors_and_notices(request, reqid, "detail %s" % source, diag)
 
     tvars = dict(system=system_info(app),
-                 envoy_status=envoy_status(app.estats),
-                 loginfo=app.estats.loginfo,
+                 envoy_status=envoy_status(estats),
+                 loginfo=app.estatsmgr.loginfo,
                  notices=app.notices.notices,
                  method=method, resource=resource,
                  **result, **ddict)
@@ -1076,7 +1078,7 @@ def source_lookup(name, sources):
 @standard_handler
 def get_prometheus_metrics(*args, **kwargs):
     # Envoy metrics
-    envoy_metrics = app.estats.get_prometheus_stats()
+    envoy_metrics = app.estatsmgr.get_prometheus_stats()
 
     # Ambassador OSS metrics
     ambassador_metrics = generate_latest(registry=app.metrics_registry).decode('utf-8')
@@ -1271,7 +1273,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 # self.logger.info("updating estats")
                 try:
                     self._respond(rqueue, 200, 'updating')
-                    self.app.estats.update()
+                    self.app.estatsmgr.update()
                 except Exception as e:
                     self.logger.error("could not update estats: %s" % e)
                     self.logger.exception(e)
@@ -1829,7 +1831,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 feat['frc_check_count'] = self.app.reconf_stats.checks
                 feat['frc_check_errors'] = self.app.reconf_stats.errors
 
-                request_data = app.estats.stats.get('requests', None)
+                request_data = app.estatsmgr.get_stats().requests
 
                 if request_data:
                     self.app.logger.debug("check_scout: including requests")
