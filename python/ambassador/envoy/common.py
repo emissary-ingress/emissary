@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING
 
 import json
 
@@ -20,8 +20,9 @@ from abc import abstractmethod
 
 from ..cache import Cache
 
-from ..ir import IR, IRResource
-from ..ir.irhttpmappinggroup import IRHTTPMappingGroup
+if TYPE_CHECKING:
+    from ..ir import IR, IRResource
+    from ..ir.irhttpmappinggroup import IRHTTPMappingGroup
 
 def sanitize_pre_json(input):
     # Removes all potential null values
@@ -42,10 +43,10 @@ class EnvoyConfig:
     for various elements to show in diagnostics.
     """
 
-    ir: IR
+    ir: 'IR'
     elements: Dict[str, Dict[str, Any]]
 
-    def __init__(self, ir: IR) -> None:
+    def __init__(self, ir: 'IR') -> None:
         self.ir = ir
         self.elements = {}
 
@@ -61,7 +62,7 @@ class EnvoyConfig:
         eldict = self.elements.get(kind, {})
         return eldict.pop(key, default)
 
-    def save_element(self, kind: str, resource: IRResource, obj: Any):
+    def save_element(self, kind: str, resource: 'IRResource', obj: Any):
         self.add_element(kind, resource.rkey, obj)
         self.add_element(kind, resource.location, obj)
         return obj
@@ -78,7 +79,7 @@ class EnvoyConfig:
         return json.dumps(sanitize_pre_json(self.as_dict()), sort_keys=True, indent=4)
 
     @classmethod
-    def generate(cls, ir: IR, version: str="V2", cache: Optional[Cache]=None) -> 'EnvoyConfig':
+    def generate(cls, ir: 'IR', version: str="V2", cache: Optional[Cache]=None) -> 'EnvoyConfig':
         assert version == "V2"
 
         from . import V2Config
@@ -86,13 +87,13 @@ class EnvoyConfig:
 
 
 class EnvoyRoute:
-    def __init__(self, group: IRHTTPMappingGroup):
+    def __init__(self, group: 'IRHTTPMappingGroup'):
         self.prefix = 'prefix'
         self.path = 'path'
         self.regex = 'regex'
         self.envoy_route = self._get_envoy_route(group)
 
-    def _get_envoy_route(self, group: IRHTTPMappingGroup) -> str:
+    def _get_envoy_route(self, group: 'IRHTTPMappingGroup') -> str:
         if group.get('prefix_regex', False):
             return self.regex
         if group.get('prefix_exact', False):
