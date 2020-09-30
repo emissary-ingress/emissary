@@ -289,7 +289,7 @@ func (cw *consulWatcher) Watch(resolver *amb.ConsulResolver, mapping *amb.Mappin
 
 	// this part is per service
 	svc := mapping.Spec.Service
-	w, err := consulwatch.New(consul, nil, resolver.Spec.Datacenter, svc, true)
+	w, err := consulwatch.New(consul, resolver.Spec.Datacenter, svc, true)
 	if err != nil {
 		panic(err)
 	}
@@ -298,7 +298,7 @@ func (cw *consulWatcher) Watch(resolver *amb.ConsulResolver, mapping *amb.Mappin
 	})
 
 	go func() {
-		err = w.Start()
+		err = w.Start(context.TODO())
 		if err != nil {
 			panic(err)
 		}

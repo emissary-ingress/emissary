@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
 import json
 
 from ...cache import Cache, NullCache
-from ...ir import IR
 
 from ..common import EnvoyConfig, sanitize_pre_json
 from .v2admin import V2Admin
@@ -28,6 +27,9 @@ from .v2cluster import V2Cluster
 from .v2_static_resources import V2StaticResources
 from .v2tracing import V2Tracing
 from .v2ratelimit import V2RateLimit
+
+if TYPE_CHECKING:
+    from ...ir import IR
 
 
 # #############################################################################
@@ -44,7 +46,7 @@ class V2Config (EnvoyConfig):
     clusters: List[V2Cluster]
     static_resources: V2StaticResources
 
-    def __init__(self, ir: IR, cache: Optional[Cache]=None) -> None:
+    def __init__(self, ir: 'IR', cache: Optional[Cache]=None) -> None:
         # Init our superclass...
         super().__init__(ir)
 

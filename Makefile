@@ -21,6 +21,7 @@ include $(OSS_HOME)/_cxx/envoy.mk
 $(call module,ambassador,$(OSS_HOME))
 
 include $(OSS_HOME)/build-aux-local/generate.mk
+include $(OSS_HOME)/build-aux-local/lint.mk
 
 # Configure GNU Make itself
 SHELL = bash

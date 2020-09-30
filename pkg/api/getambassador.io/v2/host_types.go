@@ -28,8 +28,8 @@ type ACMEProviderSpec struct {
 	// Specifies who to talk ACME with to get certs. Defaults to Let's
 	// Encrypt; if "none" (case-insensitive), do not try to do ACME for
 	// this Host.
-	Authority        string                       `json:"authority,omitempty"`
-	Email            string                       `json:"email,omitempty"`
+	Authority string `json:"authority,omitempty"`
+	Email     string `json:"email,omitempty"`
 
 	// Specifies the Kubernetes Secret to use to store the private key of the ACME
 	// account (essentially, where to store the auto-generated password for the

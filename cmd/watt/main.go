@@ -83,7 +83,7 @@ func Main() {
 	})
 
 	if err := rootCmd.Execute(); err != nil {
-		dlog.GetLogger(ctx).Errorln(err)
+		dlog.Errorln(ctx, err)
 		os.Exit(1)
 	}
 }
@@ -112,7 +112,7 @@ func runWatt(ctx context.Context, flags wattFlags, args []string) error {
 		initialSources[idx] = kubeAPIWatcher.Canonical(initialSources[idx])
 	}*/
 
-	dlog.GetLogger(ctx).Printf("starting watt...")
+	dlog.Printf(ctx, "starting watt...")
 
 	// The aggregator sends the current consul resolver set to the
 	// consul watch manager.

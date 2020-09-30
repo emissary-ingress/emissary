@@ -29,7 +29,7 @@ Configure your OAuth `Filter` and `FilterPolicy` with the following:
    apiVersion: getambassador.io/v2
    kind: Filter
    metadata:
-     name: okta_filter
+     name: okta-filter
      namespace: default
    spec:
      OAuth2:
@@ -53,7 +53,7 @@ Configure your OAuth `Filter` and `FilterPolicy` with the following:
        - host: "*"
          path: /httpbin/ip
          filters:
-           - name: okta_filter ## Enter the Filter name from above
+           - name: okta-filter ## Enter the Filter name from above
              arguments:
                scopes:
                - "openid"
