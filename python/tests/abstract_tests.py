@@ -29,6 +29,7 @@ BACKEND = load_manifest("backend")
 GRPC_ECHO_BACKEND = load_manifest("grpc_echo_backend")
 AUTH_BACKEND = load_manifest("auth_backend")
 GRPC_AUTH_BACKEND = load_manifest("grpc_auth_backend")
+GRPC_RLS_BACKEND = load_manifest("grpc_rls_backend")
 
 AMBASSADOR_LOCAL = """
 ---
@@ -433,6 +434,15 @@ class AGRPC(ServiceType):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, service_manifests=GRPC_AUTH_BACKEND, **kwargs)
+
+    def requirements(self):
+        yield ("pod", self.path.k8s)
+
+class RLSGRPC(ServiceType):
+    skip_variant: ClassVar[bool] = True
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, service_manifests=GRPC_RLS_BACKEND, **kwargs)
 
     def requirements(self):
         yield ("pod", self.path.k8s)

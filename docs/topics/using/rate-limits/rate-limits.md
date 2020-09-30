@@ -155,6 +155,11 @@ spec:
     injectResponseHeaders:         # optional
     - name "header-name-string-1"    # required
       value: "go-template-string"    # required
+    errorResponse:                    # optional
+      headers:                          # optional; default is [{name: "Content-Type", value: "application/json"}]
+      - name: "header-name-string"        # required
+        value: "go-template-string"       # required
+      bodyTemplate: "string"            # optional; default is "", returning no response body
   - pattern:
     - "my_key4": ""   # check the key but not the value
     - "my_key5": "*"  # check the key but not the value
@@ -269,6 +274,32 @@ and/or `lib/rltypes/rls.go:Config.Add()` -->
       useful for only conditionally setting a header field; rather
       than setting it to an empty string or `"<no value>"`.  Note that
       this does _not_ unset an existing header field of the same name.
+
+ - `errorResponse` allows templating the error response, overriding the default json error format.  Make sure you validate and test your template, not to generate server-side errors on top of client errors.
+    * `headers` sets extra HTTP header fields in the error response. The value is specified as a [Go `text/template`][] string, with the same data made available to it as `bodyTemplate` (below). It does not have access to the `json` function.
+    * `bodyTemplate` specifies body of the error; specified as a [Go `text/template`][] string, with the following data made available to it:
+
+       * `.status_code` → `integer` the HTTP status code to be returned
+       * `.message` → `string` the error message string
+       * `.request_id` → `string` the Envoy request ID, for correlation (hidden from `{{ . | json "" }}` unless `.status_code` is in the 5XX range)
+       * `.RateLimitResponse.OverallCode` → `int` : `1` for OK, `2` for
+         OVER_LIMIT.
+       * `.RateLimitResponse.Statuses` →
+         [`[]*RateLimitResponse_DescriptorStatus]`][`v2.RateLimitResponse_DescriptorStatus`]
+         The itemized status codes for each limit that was selected for
+         this request.
+       * `.RetryAfter` → `time.Duration` the amount of time until all of
+         the limits would allow access again (0 if they all currently
+         allow access).
+
+      Also availabe to the template are the [standard functions
+      available to Go `text/template`s][Go `text/template` functions],
+      as well as:
+
+       * a `json` function that formats arg2 as JSON, using the arg1
+         string as the starting indentation.  For example, the
+         template `{{ json "indent>" "value" }}` would yield the
+         string `indent>"value"`.
 
 [`JWT` Filter]: ../../filters/jwt
 [Go `text/template`]: https://golang.org/pkg/text/template/

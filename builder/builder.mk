@@ -176,6 +176,7 @@ pytest: test-ready
 
 pytest-envoy:
 	$(MAKE) pytest KAT_RUN_MODE=envoy
+.PHONY: pytest-envoy
 
 pytest-only: sync preflight-cluster
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
