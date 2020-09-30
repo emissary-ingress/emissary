@@ -141,6 +141,7 @@ class DiagApp (Flask):
     metrics_registry: CollectorRegistry
 
     config_lock: threading.Lock
+    diag_lock: threading.Lock
 
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
               config_path: Optional[str], ambex_pid: int, kick: Optional[str], banner_endpoint: Optional[str],
@@ -220,6 +221,10 @@ class DiagApp (Flask):
         # You must hold config_lock when updating config elements (including diag!).
         self.config_lock = threading.Lock()
 
+        # When generating new diagnostics, there's a dance around config_lock and
+        # diag_lock -- see the diag() property.
+        self.diag_lock = threading.Lock()
+
         # Why are we doing this? Aren't we sure we're singlethreaded here?
         # Well, yes. But self.diag is actually a property, and it will raise an
         # assertion failure if we're not holding self.config_lock... and once
@@ -258,35 +263,46 @@ class DiagApp (Flask):
         app.diag is a property that does it on demand, handling Timers and
         the config lock for you.
 
-        You MUST NOT already hold the config_lock when trying to read app.diag.
+        You MUST NOT already hold the config_lock or the diag_lock when
+        trying to read app.diag. 
+
         You MUST already have loaded an IR.
         """
 
         # The config_lock is meant to make sure that we don't ever update
         # self.diag in two places at once, so grab that first.
         with self.config_lock:
-            # OK. If we haven't already generated the Diagnostics...
-            if not app._diag:
-                # ...then we need to fix that, assuming that we have an 
-                # IR and econf to fix it with.
-                if not app.ir or not app.econf:
-                    return None
+            # If we've already generated diagnostics...
+            if app._diag:
+                # ...then we're good to go.
+                return app._diag
 
-                # Good to go. Use the diag_timer to time this.
-                with self.diag_timer:
-                    app._diag = Diagnostics(app.ir, app.econf)
+        # If here, we have _not_ generated diagnostics, and we've dropped the
+        # config lock so as not to block anyone else. Next up: grab the diag 
+        # lock, because we'd rather not have two diag generations happening at 
+        # once.
+        with self.diag_lock:
+            # Did someone else sneak in between releasing the config lock and
+            # grabbing the diag lock?
+            if app._diag:
+                # Yup. Use their work.
+                return app._diag
 
-                    # Update some metrics data points given the new generated Diagnostics
-                    diag_dict = app._diag.as_dict()
-                    self.diag_errors.set(len(diag_dict.get("errors", [])))
-                    self.diag_notices.set(len(diag_dict.get("notices", [])))
+            # OK, go generate diagnostics.
+            _diag = self._generate_diagnostics()
 
-                    # Note that we've updated diagnostics, since that might trigger a 
-                    # timer log.
-                    self.reconf_stats.mark("diag")
+            # If that didn't work, no point in messing with the config lock.
+            if not _diag:
+                return None
 
-            # Either we had a Diagnostics to start with, or we just generated
-            # it, so we should be good to go.
+            # Once here, we need to - once again - grab the config lock to update
+            # app._diag. This is safe because this is the only place we ever mess
+            # with the diag lock, so nowhere else will try to grab the diag lock 
+            # while holding the config lock.
+            with app.config_lock:
+                app._diag = _diag
+
+            # Finally, we can return app._diag to our caller.
             return app._diag
 
     @diag.setter
@@ -297,8 +313,43 @@ class DiagApp (Flask):
         the config lock for you.
 
         You MUST already hold the config_lock when trying to update app.diag.
+        You MUST NOT hold the diag_lock.
         """
         self._diag = diag
+
+    def _generate_diagnostics(self) -> Optional[Diagnostics]:
+        """
+        Do the heavy lifting of generating Diagnostics for our current configuration.
+        Really, only the diag() property should be calling this method, but if you
+        are convinced that you need to call it from elsewhere:
+
+        1. You're almost certainly wrong about needing to call it from elsewhere.
+        2. You MUST hold the diag_lock when calling this method.
+        3. You MUST NOT hold the config_lock when calling this method.
+        4. No, really, you're wrong. Don't call this method from anywhere but the 
+           diag() property.
+        """
+
+        # Make sure we have an IR and econf to work with.
+        if not app.ir or not app.econf:
+            # Nope, bail.
+            return None
+
+        # OK, go ahead and generate diagnostics. Use the diag_timer to time
+        # this.
+        with self.diag_timer:
+            _diag = Diagnostics(app.ir, app.econf)
+
+            # Update some metrics data points given the new generated Diagnostics
+            diag_dict = _diag.as_dict()
+            self.diag_errors.set(len(diag_dict.get("errors", [])))
+            self.diag_notices.set(len(diag_dict.get("notices", [])))
+
+            # Note that we've updated diagnostics, since that might trigger a 
+            # timer log.
+            self.reconf_stats.mark("diag")
+
+            return _diag
 
     def check_scout(self, what: str) -> None:
         self.watcher.post("SCOUT", (what, self.ir))

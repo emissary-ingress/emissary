@@ -159,7 +159,7 @@ class IRTLSContext(IRResource):
         self.ir.logger.debug(f"TLSContext.resolve_secret {secret_name}, namespace {namespace}: namespacing is {secret_namespacing}")
 
         if "." in secret_name and secret_namespacing:
-            secret_name, namespace = secret_name.split('.', 1)
+            secret_name, namespace = secret_name.rsplit('.', 1)
 
         return self.ir.resolve_secret(self, secret_name, namespace)
 

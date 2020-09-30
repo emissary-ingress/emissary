@@ -322,6 +322,7 @@ jobs:
     steps:
     - website-setup
     - run: ./.ci/website-preview-build
+    - run: "test -d /tmp/getambassador.io/public || circleci step halt"
     - persist_to_workspace:
         root: /tmp/getambassador.io
         paths:
@@ -362,6 +363,13 @@ jobs:
   oss-dev-generate:
     steps:
     - oss-linux-setup
+    - run:
+        name: "docker login"
+        command: |
+          # We might need to be logged in to pull the Envoy image
+          if [[ -n "$DEV_REGISTRY" && -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
+            docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
+          fi
     - run: make generate
     - dirty-check
     - run: make generate
