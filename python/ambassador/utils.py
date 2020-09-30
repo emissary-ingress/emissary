@@ -471,22 +471,29 @@ class SecretInfo:
         self.secret_type = secret_type
 
         if decode_b64:
-            if tls_crt and not tls_crt.startswith('-----BEGIN'):
+            if self.is_decodable(tls_crt):
                 tls_crt = self.decode(tls_crt)
 
-            if tls_key and not tls_key.startswith('-----BEGIN'):
+            if self.is_decodable(tls_key):
                 tls_key = self.decode(tls_key)
 
-            if user_key and not user_key.startswith('-----BEGIN'):
+            if self.is_decodable(user_key):
                 user_key = self.decode(user_key)
 
-            if root_crt and not root_crt.startswith('-----BEGIN'):
+            if self.is_decodable(root_crt):
                 root_crt = self.decode(root_crt)
 
         self.tls_crt = tls_crt
         self.tls_key = tls_key
         self.user_key = user_key
         self.root_crt = root_crt
+
+    @staticmethod
+    def is_decodable(b64_pem: str) -> bool:
+        return (b64_pem 
+                and (not b64_pem.startswith('-----BEGIN'))
+                and (not b64_pem.startswith('-sanitized-'))
+               )
 
     @staticmethod
     def decode(b64_pem: str) -> Optional[str]:

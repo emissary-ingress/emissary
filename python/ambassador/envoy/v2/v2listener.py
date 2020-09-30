@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 import copy
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union, TYPE_CHECKING
 from typing import cast as typecast
 
 from os import environ
@@ -425,6 +425,58 @@ def v2filter_ratelimit(ratelimit: IRRateLimit, v2config: 'V2Config'):
     }
 
 
+@v2filter.when("IRIPAllowDeny")
+def v2filter_ipallowdeny(irfilter: IRFilter, v2config: 'V2Config'):
+    del v2config  # silence unused-variable warning
+
+    # Go ahead and convert the irfilter to its dictionary form; it's
+    # just simpler to do that once up front.
+
+    fdict = irfilter.as_dict()
+
+    # How many principals do we have?
+    num_principals = len(fdict["principals"])
+    assert num_principals > 0
+
+    # Ew.
+    SinglePrincipal = Dict[str, Dict[str, str]]
+    MultiplePrincipals = Dict[str, Dict[str, List[SinglePrincipal]]]
+
+    principals: Union[SinglePrincipal, MultiplePrincipals]
+
+    if num_principals == 1:
+        # Just one principal, so we can stuff it directly into the
+        # Envoy-config principals "list".
+        principals = fdict["principals"][0]
+    else:
+        # Multiple principals, so we have to set up an or_ids set.
+        principals = {
+            "or_ids": {
+                "ids": fdict["principals"]
+            }
+        }    
+
+    return {
+        "name": "envoy.filters.http.rbac",  
+        "typed_config": {
+            "@type": "type.googleapis.com/envoy.config.filter.http.rbac.v2.RBAC",
+            "rules": {
+                "action": irfilter.action.upper(),
+                "policies": {
+                    f"ambassador-ip-{irfilter.action.lower()}": {
+                        "permissions": [
+                            {
+                                "any": True
+                            }
+                        ],
+                        "principals": [ principals ]
+                    }
+                }
+            }
+        }
+    }
+
+
 @v2filter.when("ir.cors")
 def v2filter_cors(cors: IRCORS, v2config: 'V2Config'):
     del cors    # silence unused-variable warning
@@ -569,6 +621,7 @@ class V2VirtualHost:
         # The target cluster doesn't actually matter -- the auth service grabs the
         # challenge and does the right thing. But we do need a cluster that actually
         # exists, so use the sidecar cluster.
+
         if not self._config.ir.sidecar_cluster_name:
             # Uh whut? how is Edge Stack running exactly?
             raise Exception("Edge Stack claims to be running, but we have no sidecar cluster??")
