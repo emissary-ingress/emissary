@@ -135,18 +135,7 @@ func Main() {
 	group.Go("watcher", func(ctx context.Context) {
 		watcher(ctx, snapshot)
 	})
-	group.Go("memory", func(ctx context.Context) {
-		ticker := time.Tick(10 * time.Second)
-		for {
-			select {
-			case <-ticker:
-				LogMemoryUsage(50)
-			case <-ctx.Done():
-				LogMemoryUsage(0)
-				return
-			}
-		}
-	})
+	group.Go("memory", watchMemory)
 
 	// Launch every file in the sidecar directory. Note that this is "bug compatible" with
 	// entrypoint.sh for now, e.g. we don't check execute bits or anything like that.
