@@ -55,7 +55,9 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
-(no changes yet)
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Several regressions in the 1.7.x series are resolved by removing the ability to set `insecure.action` on a per-`Host`-resource basis, which was an ability added in 1.7.0.  This reverts to the pre-1.7.0 behavior of having one `Host`'s insecure action "win" and be used for all `Host`s.
 
 ## [1.7.3] September 29, 2020
 [1.7.3]: https://github.com/datawire/ambassador/compare/v1.7.2...v1.7.3
