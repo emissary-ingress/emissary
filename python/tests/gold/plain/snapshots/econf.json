@@ -2655,7 +2655,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8080-_insecure-8080",
+                                                "name": "ambassador-listener-8080-*",
                                                 "routes": [
                                                     {
                                                         "match": {

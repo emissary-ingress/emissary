@@ -9,6 +9,8 @@ from selfsigned import TLSCerts
 # Mappings without host attributes (infer via Host resource)
 # Host where a TLSContext with the inferred name already exists
 
+supports_per_host_insecure_action = False
+
 class HostCRDSingle(AmbassadorTest):
     """
     HostCRDSingle: a single Host with a manually-configured TLS. Since the Host is handling the
@@ -659,13 +661,13 @@ spec:
                     expected=404)
         # 16-20: Host #2 - cleartext (action: Redirect)
         yield Query(self.url("target-1/", scheme="http"), headers={"Host": "tls-context-host-2"},
-                    expected=301)
+                    expected=(301 if supports_per_host_insecure_action else 404))
         yield Query(self.url("target-2/", scheme="http"), headers={"Host": "tls-context-host-2"},
-                    expected=301)
+                    expected=(301 if supports_per_host_insecure_action else 200))
         yield Query(self.url("target-3/", scheme="http"), headers={"Host": "tls-context-host-2"},
-                    expected=301)
+                    expected=(301 if supports_per_host_insecure_action else 404))
         yield Query(self.url("target-shared/", scheme="http"), headers={"Host": "tls-context-host-2"},
-                    expected=301)
+                    expected=(301 if supports_per_host_insecure_action else 200))
         yield Query(self.url(".well-known/acme-challenge/foo", scheme="http"), headers={"Host": "tls-context-host-2"},
                     expected=404)
 
@@ -686,9 +688,9 @@ spec:
         yield Query(self.url("target-2/", scheme="http"), headers={"Host": "ambassador.example.com"},
                     expected=404)
         yield Query(self.url("target-3/", scheme="http"), headers={"Host": "ambassador.example.com"},
-                    expected=404)
+                    expected=(404 if supports_per_host_insecure_action else 200))
         yield Query(self.url("target-shared/", scheme="http"), headers={"Host": "ambassador.example.com"},
-                    expected=404)
+                    expected=(404 if supports_per_host_insecure_action else 200))
         yield Query(self.url(".well-known/acme-challenge/foo", scheme="http"), headers={"Host": "ambassador.example.com"},
                     expected=200)
 
@@ -823,7 +825,8 @@ spec:
         yield Query(**secure_base, headers={'Host': '127.0.0.1'}, expected=200)     # Host=*
 
         yield Query(**insecure_base, headers={'Host': 'a.domain.com'}, expected=301)  # Host=a.domain.com
-        yield Query(**insecure_base, headers={'Host': 'wc.domain.com'}, expected=200) # Host=*.domain.com
+        yield Query(**insecure_base, headers={'Host': 'wc.domain.com'},               # Host=*.domain.com
+                    expected=(200 if supports_per_host_insecure_action else 301))
         yield Query(**insecure_base, headers={'Host': '127.0.0.1'}, expected=301)     # Host=*
 
     def scheme(self) -> str:
