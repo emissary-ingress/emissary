@@ -261,7 +261,7 @@ def v2filter_authv0(auth: IRAuth, v2config: 'V2Config'):
             'http_service': {
                 'server_uri': {
                     'uri': auth_cluster_uri(auth, cluster),
-                    'cluster': cluster.name,
+                    'cluster': cluster.envoy_name,
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
                 'path_prefix': auth.path_prefix,
@@ -347,7 +347,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
                 'http_service': {
                     'server_uri': {
                         'uri': auth_cluster_uri(auth, cluster),
-                        'cluster': cluster.name,
+                        'cluster': cluster.envoy_name,
                         'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                     },
                     'path_prefix': auth.path_prefix,
@@ -375,7 +375,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
             'config': {
                 'grpc_service': {
                     'envoy_grpc': {
-                        'cluster_name': cluster.name
+                        'cluster_name': cluster.envoy_name
                     },
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
@@ -489,7 +489,7 @@ class V2TCPListener(dict):
     def add_group(self, config: 'V2Config', group: IRTCPMappingGroup) -> None:
         # First up, which clusters do we need to talk to?
         clusters = [{
-            'name': mapping.cluster.name,
+            'name': mapping.cluster.envoy_name,
             'weight': mapping.weight
         } for mapping in group.mappings]
 
