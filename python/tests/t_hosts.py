@@ -9,7 +9,10 @@ from selfsigned import TLSCerts
 # Mappings without host attributes (infer via Host resource)
 # Host where a TLSContext with the inferred name already exists
 
-supports_per_host_insecure_action = True
+bug_single_insecure_action = False # Do all Hosts have to have the same insecure.action?
+bug_forced_star = False            # Do we erroneously send replies in cleartext instead of TLS for unknown hosts?
+bug_404_routes = False             # Do we erroneously send 404 responses directly instead of redirect-to-tls first?
+
 
 class HostCRDSingle(AmbassadorTest):
     """
@@ -661,13 +664,13 @@ spec:
                     expected=404)
         # 16-20: Host #2 - cleartext (action: Redirect)
         yield Query(self.url("target-1/", scheme="http"), headers={"Host": "tls-context-host-2"},
-                    expected=(301 if supports_per_host_insecure_action else 404))
+                    expected=(404 if bug_single_insecure_action else 301))
         yield Query(self.url("target-2/", scheme="http"), headers={"Host": "tls-context-host-2"},
-                    expected=(301 if supports_per_host_insecure_action else 200))
+                    expected=(200 if bug_single_insecure_action else 301))
         yield Query(self.url("target-3/", scheme="http"), headers={"Host": "tls-context-host-2"},
-                    expected=(301 if supports_per_host_insecure_action else 404))
+                    expected=(404 if bug_single_insecure_action else 301))
         yield Query(self.url("target-shared/", scheme="http"), headers={"Host": "tls-context-host-2"},
-                    expected=(301 if supports_per_host_insecure_action else 200))
+                    expected=(200 if bug_single_insecure_action else 301))
         yield Query(self.url(".well-known/acme-challenge/foo", scheme="http"), headers={"Host": "tls-context-host-2"},
                     expected=404)
 
@@ -688,9 +691,9 @@ spec:
         yield Query(self.url("target-2/", scheme="http"), headers={"Host": "ambassador.example.com"},
                     expected=404)
         yield Query(self.url("target-3/", scheme="http"), headers={"Host": "ambassador.example.com"},
-                    expected=(404 if supports_per_host_insecure_action else 200))
+                    expected=(200 if bug_single_insecure_action else 404))
         yield Query(self.url("target-shared/", scheme="http"), headers={"Host": "ambassador.example.com"},
-                    expected=(404 if supports_per_host_insecure_action else 200))
+                    expected=(200 if bug_single_insecure_action else 404))
         yield Query(self.url(".well-known/acme-challenge/foo", scheme="http"), headers={"Host": "ambassador.example.com"},
                     expected=200)
 
@@ -826,7 +829,7 @@ spec:
 
         yield Query(**insecure_base, headers={'Host': 'a.domain.com'}, expected=301)  # Host=a.domain.com
         yield Query(**insecure_base, headers={'Host': 'wc.domain.com'},               # Host=*.domain.com
-                    expected=(200 if supports_per_host_insecure_action else 301))
+                    expected=(301 if bug_single_insecure_action else 200))
         yield Query(**insecure_base, headers={'Host': '127.0.0.1'}, expected=301)     # Host=*
 
     def scheme(self) -> str:
@@ -1056,4 +1059,404 @@ spec:
             query.ca_cert = TLSCerts["master.datawire.io"].pubcert
             query.client_cert = TLSCerts["presto.example.com"].pubcert
             query.client_key = TLSCerts["presto.example.com"].privkey
+            yield (r[0], query)
+
+
+class HostCRDRootRedirectCongratulations(AmbassadorTest):
+
+    def manifests(self) -> str:
+        return self.format('''
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  acmeProvider:
+    authority: none
+  selector:
+    matchLabels:
+      hostname: tls-context-host-1
+  tlsSecret:
+    name: {self.path.k8s}-test-tlscontext-secret-1
+  requestPolicy:
+    insecure:
+      action: Redirect
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-test-tlscontext-secret-1
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
+  tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
+''') + super().manifests()
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        yield Query(self.url("", scheme="http"), headers={"Host": "tls-context-host-1"},
+                    expected=(404 if EDGE_STACK else 301))
+        yield Query(self.url("other", scheme="http"), headers={"Host": "tls-context-host-1"},
+                    expected=(404 if bug_404_routes else 301))
+
+        yield Query(self.url("", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+                    expected=404)
+        yield Query(self.url("other", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+                    expected=404)
+
+    def requirements(self):
+        for r in super().requirements():
+            query = r[1]
+            query.headers={"Host": "tls-context-host-1"}
+            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.ca_cert = TLSCerts["tls-context-host-1"].pubcert
+            yield (r[0], query)
+
+
+class HostCRDRootRedirectSlashMapping(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return self.format('''
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  acmeProvider:
+    authority: none
+  selector:
+    matchLabels:
+      hostname: {self.path.fqdn}
+  tlsSecret:
+    name: {self.path.k8s}-test-tlscontext-secret-1
+  requestPolicy:
+    insecure:
+      action: Redirect
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-test-tlscontext-secret-1
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
+  tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {self.name.k8s}-target-mapping
+  labels:
+    hostname: {self.path.fqdn}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  prefix: /
+  service: {self.target.path.fqdn}
+''') + super().manifests()
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        yield Query(self.url("", scheme="http"), headers={"Host": "tls-context-host-1"},
+                    expected=301)
+        yield Query(self.url("other", scheme="http"), headers={"Host": "tls-context-host-1"},
+                    expected=301)
+
+        yield Query(self.url("", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+                    expected=200)
+        yield Query(self.url("other", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+                    expected=200)
+
+    def requirements(self):
+        for r in super().requirements():
+            query = r[1]
+            query.headers={"Host": "tls-context-host-1"}
+            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.ca_cert = TLSCerts["tls-context-host-1"].pubcert
+            yield (r[0], query)
+
+
+class HostCRDRootRedirectRE2Mapping(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return self.format('''
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  acmeProvider:
+    authority: none
+  selector:
+    matchLabels:
+      hostname: {self.path.fqdn}
+  tlsSecret:
+    name: {self.path.k8s}-test-tlscontext-secret-1
+  requestPolicy:
+    insecure:
+      action: Redirect
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-test-tlscontext-secret-1
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
+  tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {self.name.k8s}-target-mapping
+  labels:
+    hostname: {self.path.fqdn}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  prefix: "/[[:word:]]*" # :word: is in RE2 but not ECMAScript RegExp or Python 're'
+  prefix_regex: true
+  service: {self.target.path.fqdn}
+''') + super().manifests()
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        yield Query(self.url("", scheme="http"), headers={"Host": "tls-context-host-1"},
+                    expected=301)
+        yield Query(self.url("other", scheme="http"), headers={"Host": "tls-context-host-1"},
+                    expected=301)
+        yield Query(self.url("-other", scheme="http"), headers={"Host": "tls-context-host-1"},
+                    expected=(404 if bug_404_routes else 301))
+
+        yield Query(self.url("", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+                    expected=200)
+        yield Query(self.url("other", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+                    expected=200)
+        yield Query(self.url("-other", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+                    expected=404)
+
+    def requirements(self):
+        for r in super().requirements():
+            query = r[1]
+            query.headers={"Host": "tls-context-host-1"}
+            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.ca_cert = TLSCerts["tls-context-host-1"].pubcert
+            yield (r[0], query)
+
+
+class HostCRDRootRedirectECMARegexMapping(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v2
+kind: Module
+name: ambassador
+config:
+  regex_type: unsafe
+""")
+
+    def manifests(self) -> str:
+        return self.format('''
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  acmeProvider:
+    authority: none
+  selector:
+    matchLabels:
+      hostname: {self.path.fqdn}
+  tlsSecret:
+    name: {self.path.k8s}-test-tlscontext-secret-1
+  requestPolicy:
+    insecure:
+      action: Redirect
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-test-tlscontext-secret-1
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
+  tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {self.name.k8s}-target-mapping
+  labels:
+    hostname: {self.path.fqdn}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  prefix: "/(?!-).*" # (?!re) is valid ECMAScript RegExp but not RE2... unfortunately it's also valid Python 're'
+  prefix_regex: true
+  service: {self.target.path.fqdn}
+''') + super().manifests()
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        yield Query(self.url("", scheme="http"), headers={"Host": "tls-context-host-1"},
+                    expected=301)
+        yield Query(self.url("other", scheme="http"), headers={"Host": "tls-context-host-1"},
+                    expected=301)
+        yield Query(self.url("-other", scheme="http"), headers={"Host": "tls-context-host-1"},
+                    expected=(404 if bug_404_routes else 301))
+
+        yield Query(self.url("", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+                    expected=200)
+        yield Query(self.url("other", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+                    expected=200)
+        yield Query(self.url("-other", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+                    expected=404)
+
+    def requirements(self):
+        for r in super().requirements():
+            query = r[1]
+            query.headers={"Host": "tls-context-host-1"}
+            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.ca_cert = TLSCerts["tls-context-host-1"].pubcert
+            yield (r[0], query)
+
+
+class HostCRDForcedStar(AmbassadorTest):
+    """This test verifies that Ambassador responds properly if we try
+    talking to it on a hostname that it doesn't recognize.
+
+    """
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return self.format('''
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  hostname: tls-context-host-1
+  acmeProvider:
+    authority: none
+  selector:
+    matchLabels:
+      hostname: tls-context-host-1
+  tlsSecret:
+    name: {self.path.k8s}-test-tlscontext-secret-1
+  requestPolicy:
+    insecure:
+      action: Route
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.path.k8s}-test-tlscontext-secret-1
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
+  tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {self.name.k8s}-target-mapping
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  prefix: /foo
+  service: {self.target.path.fqdn}
+''') + super().manifests()
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        # For each of these, we'll first try it on a recognized hostname ("tls-context-host-1") as a
+        # sanity check, and then we'll try the same query for an unrecongized hostname
+        # ("nonmatching-host") to make sure that it is handled the same way.
+
+        # 0-1: cleartext 200
+        yield Query(self.url("foo", scheme="http"), headers={"Host": "tls-context-host-1"},
+                    expected=200)
+        yield Query(self.url("foo", scheme="http"), headers={"Host": "nonmatching-hostname"},
+                    expected=(200 if bug_single_insecure_action else 301))
+
+        # 2-3: cleartext 404
+        yield Query(self.url("bar", scheme="http"), headers={"Host": "tls-context-host-1"},
+                    expected=404)
+        yield Query(self.url("bar", scheme="http"), headers={"Host": "nonmatching-hostname"},
+                    expected=(404 if bug_single_insecure_action else 301))
+
+        # 4-5: TLS 200
+        yield Query(self.url("foo", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+                    expected=200)
+        yield Query(self.url("foo", scheme="https"), headers={"Host": "nonmatching-hostname"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True, insecure=True,
+                    expected=200, error=("http: server gave HTTP response to HTTPS client" if bug_forced_star else None))
+
+        # 6-7: TLS 404
+        yield Query(self.url("bar", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+                    expected=404)
+        yield Query(self.url("bar", scheme="https"), headers={"Host": "nonmatching-hostname"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True, insecure=True,
+                    expected=404, error=("http: server gave HTTP response to HTTPS client" if bug_forced_star else None))
+
+    def requirements(self):
+        for r in super().requirements():
+            query = r[1]
+            query.headers={"Host": "tls-context-host-1"}
+            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.ca_cert = TLSCerts["tls-context-host-1"].pubcert
             yield (r[0], query)

@@ -9,6 +9,9 @@ from selfsigned import TLSCerts
 from kat.utils import namespace_manifest
 
 
+bug_404_routes = False             # Do we erroneously send 404 responses directly instead of redirect-to-tls first?
+
+
 class TLSContextsTest(AmbassadorTest):
     """
     This test makes sure that TLS is not turned on when it's not intended to. For example, when an 'upstream'
@@ -1281,3 +1284,81 @@ hosts:
 
     def requirements(self):
         yield ("url", Query(self.url("ambassador/v0/check_ready"), insecure=True, sni=True))
+
+
+class TLSInheritFromModule(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        self.edge_stack_cleartext_host = False
+        self.target = HTTP()
+
+    def config(self):
+        # These are annotations instead of resources because the name matters.
+        yield self, self.format('''
+---
+apiVersion: getambassador.io/v2
+kind: Module
+name: tls
+ambassador_id: {self.ambassador_id}
+config:
+  server:
+    enabled: True
+    redirect_cleartext_from: 8080
+''')
+
+    def manifests(self) -> str:
+        return self.format('''
+---
+apiVersion: getambassador.io/v2
+kind: TLSContext
+metadata:
+  name: {self.name.k8s}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  alpn_protocols: "h2,http/1.1"
+  hosts:
+  - a.domain.com
+  secret: {self.name.k8s}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {self.name.k8s}
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: '''+TLSCerts["a.domain.com"].k8s_crt+'''
+  tls.key: '''+TLSCerts["a.domain.com"].k8s_key+'''
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {self.name.k8s}-target-mapping
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  prefix: /foo
+  service: {self.target.path.fqdn}
+''') + super().manifests()
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        yield Query(self.url("foo", scheme="http"), headers={"Host": "a.domain.com"},
+                    expected=301)
+        yield Query(self.url("bar", scheme="http"), headers={"Host": "a.domain.com"},
+                    expected=(404 if bug_404_routes else 301))
+        yield Query(self.url("foo", scheme="https"), headers={"Host": "a.domain.com"}, ca_cert=TLSCerts["a.domain.com"].pubcert, sni=True,
+                    expected=200)
+        yield Query(self.url("bar", scheme="https"), headers={"Host": "a.domain.com"}, ca_cert=TLSCerts["a.domain.com"].pubcert, sni=True,
+                    expected=404)
+
+    def requirements(self):
+        for r in super().requirements():
+            query = r[1]
+            query.headers={"Host": "a.domain.com"}
+            query.sni = True  # Use query.headers["Host"] instead of urlparse(query.url).hostname for SNI
+            query.ca_cert = TLSCerts["a.domain.com"].pubcert
+            yield (r[0], query)
