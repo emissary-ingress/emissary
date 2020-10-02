@@ -55,7 +55,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
-(no changes yet)
+- Bugfix: Ambassador will no longer generate invalid Envoy configuration with duplicate clusters in certain scenarios when `AMBASSADOR_FAST_RECONFIGURE=true`.
 
 ## [1.7.3] September 29, 2020
 [1.7.3]: https://github.com/datawire/ambassador/compare/v1.7.2...v1.7.3

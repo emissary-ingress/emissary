@@ -115,7 +115,7 @@ class DiagResult:
 
         # Go ahead and grab Envoy cluster stats for all possible clusters.
         # XXX This might be a bit silly.
-        self.cluster_names = list(self.diag.clusters.keys())
+        self.cluster_names = [ cluster.envoy_name for cluster in self.diag.clusters.values() ]
         self.cstats = { name: self.estat.cluster_stats(name) for name in self.cluster_names }
 
         # Save the request host and scheme. We'll need them later.
@@ -605,7 +605,7 @@ class Diagnostics:
                 "location": m['location'],
                 "name": m['name'],
                 "cluster_service": m.get('cluster', {}).get("service"),
-                "cluster_name": m.get('cluster', {}).get("name"),
+                "cluster_name": m.get('cluster', {}).get("envoy_name"),
             }
 
             if flattened['kind'] == 'IRHTTPMappingGroup':
