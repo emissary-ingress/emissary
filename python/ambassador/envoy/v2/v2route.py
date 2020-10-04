@@ -263,6 +263,18 @@ class V2Route(Cacheable):
 
         self['route'] = route
 
+    def host_constraints(self):
+        """
+        Yield all the exact_match host constraints for this route.
+        """
+        match = self.get("match", {})
+        match_headers = match.get("headers", [])
+        for header in match_headers:
+            if header.get("name") == ":authority":
+                value = header.get("exact_match", None)
+                if value != None:
+                    yield value
+
     @classmethod
     def get_route(cls, config: 'V2Config', cache_key: str,
                   irgroup: IRHTTPMappingGroup, mapping: IRBaseMapping) -> 'V2Route':

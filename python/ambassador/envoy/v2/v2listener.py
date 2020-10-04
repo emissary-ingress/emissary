@@ -1158,6 +1158,7 @@ class V2Listener(dict):
             route_sni = route.get('_sni', {})
             route_hostlist = route_sni.get('hosts', [])
             route_hosts = set(route_hostlist)
+            route_hosts.update(route.host_constraints())
 
             # Remember, also, if a precedence was set.
             route_precedence = route.get('_precedence', None)
