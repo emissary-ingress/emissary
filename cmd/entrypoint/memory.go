@@ -68,7 +68,7 @@ func (m *MemoryUsage) maybeDo(now time.Time, f func()) {
 // The GetMemoryUsage function returns MemoryUsage info for the entire cgroup.
 func GetMemoryUsage() *MemoryUsage {
 	usage, limit := readUsage()
-	return &MemoryUsage{usage, limit, perProcess(), 0, time.Time{}}
+	return &MemoryUsage{usage, limit, perProcess(), 0, time.Time{}, readUsage, perProcess}
 }
 
 // The MemoryUsage struct to holds memory usage and memory limit information about a cgroup.
@@ -78,6 +78,10 @@ type MemoryUsage struct {
 	PerProcess map[int]*ProcessUsage
 	previous   memory
 	lastAction time.Time
+
+	// these allow mocking for tests
+	readUsage  func() (memory, memory)
+	perProcess func() map[int]*ProcessUsage
 }
 
 // The ProcessUsage struct holds per process memory usage information.
@@ -85,7 +89,10 @@ type ProcessUsage struct {
 	Pid     int
 	Cmdline []string
 	Usage   memory
-	Running bool
+
+	// This is zero if the process is still running. If the process has exited, this counts how many
+	// refreshes have happened. We GC after 10 refreshes.
+	RefreshesSinceExit int
 }
 
 type memory int64
@@ -98,15 +105,26 @@ func (m memory) String() string {
 
 // The MemoryUsage.Refresh method updates memory usage information.
 func (m *MemoryUsage) Refresh() {
-	usage, limit := readUsage()
+	usage, limit := m.readUsage()
 	m.Usage = usage
 	m.Limit = limit
 
-	for _, usage := range m.PerProcess {
-		usage.Running = false
+	// GC process memory info that has been around for more than 10 refreshes.
+	for pid, usage := range m.PerProcess {
+		if usage.RefreshesSinceExit > 10 {
+			// It's old, let's delete it.
+			delete(m.PerProcess, pid)
+		} else {
+
+			// Increment the count in case the process has exited. If the process is still running,
+			// this whole entry will get overwritted with a new one in the loop that follows this
+			// one.
+			usage.RefreshesSinceExit += 1
+		}
 	}
 
-	for pid, usage := range perProcess() {
+	for pid, usage := range m.perProcess() {
+		// Overwrite any old process info with new/updated process info.
 		m.PerProcess[pid] = usage
 	}
 }
@@ -144,7 +162,7 @@ func (m MemoryUsage) String() string {
 // Pretty print a summary of process memory usage.
 func (pu ProcessUsage) String() string {
 	status := ""
-	if !pu.Running {
+	if pu.RefreshesSinceExit > 0 {
 		status = " (exited)"
 	}
 	return fmt.Sprintf("  PID %d, %s%s: %s", pu.Pid, pu.Usage.String(), status, strings.Join(pu.Cmdline, " "))
@@ -253,7 +271,7 @@ func perProcess() map[int]*ProcessUsage {
 			continue
 		}
 		rss = rss * 1024
-		result[pid] = &ProcessUsage{pid, GetCmdline(pid), memory(rss), true}
+		result[pid] = &ProcessUsage{pid, GetCmdline(pid), memory(rss), 0}
 	}
 
 	return result

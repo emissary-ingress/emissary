@@ -62,3 +62,88 @@ func TestMemoryUsage(t *testing.T) {
 	})
 	assert.True(t, did)
 }
+
+// Make sure we clear out exited processes after 10 refreshes.
+func TestMemoryUsageGCExited(t *testing.T) {
+	count := 0
+	m := &MemoryUsage{
+		PerProcess: map[int]*ProcessUsage{},
+		readUsage: func() (memory, memory) {
+			return 0, 0
+		},
+		perProcess: func() map[int]*ProcessUsage {
+			defer func() {
+				count = count + 1
+			}()
+			switch count {
+			case 0:
+				return map[int]*ProcessUsage{
+					1: &ProcessUsage{1, []string{"one"}, 1024, 0},
+					2: &ProcessUsage{2, []string{"two"}, 1024, 0},
+					3: &ProcessUsage{3, []string{"three"}, 1024, 0},
+					4: &ProcessUsage{4, []string{"four"}, 1024, 0},
+					5: &ProcessUsage{5, []string{"five"}, 1024, 0},
+				}
+			case 1:
+				return map[int]*ProcessUsage{
+					1: &ProcessUsage{1, []string{"one"}, 1024, 0},
+					2: &ProcessUsage{2, []string{"two"}, 1024, 0},
+					4: &ProcessUsage{4, []string{"four"}, 1024, 0},
+					5: &ProcessUsage{5, []string{"five"}, 1024, 0},
+				}
+			case 2:
+				return map[int]*ProcessUsage{
+					1: &ProcessUsage{1, []string{"one"}, 1024, 0},
+					2: &ProcessUsage{2, []string{"two"}, 1024, 0},
+					5: &ProcessUsage{5, []string{"five"}, 1024, 0},
+				}
+			case 3:
+				return map[int]*ProcessUsage{
+					1: &ProcessUsage{1, []string{"one"}, 1024, 0},
+					5: &ProcessUsage{5, []string{"five"}, 1024, 0},
+				}
+			default:
+				return map[int]*ProcessUsage{
+					1: &ProcessUsage{1, []string{"one"}, 1024, 0},
+					5: &ProcessUsage{5, []string{"five"}, 1024, 0},
+				}
+			}
+		},
+	}
+
+	t.Log(m.String())
+
+	assert.Equal(t, 0, len(m.PerProcess))
+	m.Refresh()
+	t.Log(m.String())
+	assert.Equal(t, 5, len(m.PerProcess))
+	m.Refresh()
+	t.Log(m.String())
+	for i := 0; i < 10; i++ {
+		assert.Equal(t, 5, len(m.PerProcess))
+		m.Refresh()
+		t.Log(m.String())
+	}
+
+	m.Refresh()
+	assert.Equal(t, 4, len(m.PerProcess))
+	t.Log(m.String())
+	assert.NotContains(t, m.PerProcess, 3)
+
+	m.Refresh()
+	assert.Equal(t, 3, len(m.PerProcess))
+	t.Log(m.String())
+	assert.NotContains(t, m.PerProcess, 4)
+
+	m.Refresh()
+	assert.Equal(t, 2, len(m.PerProcess))
+	t.Log(m.String())
+	assert.NotContains(t, m.PerProcess, 2)
+
+	m.Refresh()
+	assert.Equal(t, 2, len(m.PerProcess))
+	t.Log(m.String())
+	assert.Contains(t, m.PerProcess, 1)
+	assert.Contains(t, m.PerProcess, 5)
+
+}
