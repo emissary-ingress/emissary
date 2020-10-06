@@ -1256,7 +1256,7 @@ class AmbassadorEventWatcher(threading.Thread):
         return rqueue.get()
 
     def update_estats(self) -> None:
-        self.post('ESTATS', '')
+        self.app.estatsmgr.update()
 
     def run(self):
         self.logger.info("starting Scout checker and timer logger")
@@ -1269,16 +1269,7 @@ class AmbassadorEventWatcher(threading.Thread):
             cmd, arg, rqueue = self.events.get()
             # self.logger.info("EVENT: %s" % cmd)
 
-            if cmd == 'ESTATS':
-                # self.logger.info("updating estats")
-                try:
-                    self._respond(rqueue, 200, 'updating')
-                    self.app.estatsmgr.update()
-                except Exception as e:
-                    self.logger.error("could not update estats: %s" % e)
-                    self.logger.exception(e)
-                    self._respond(rqueue, 500, 'Envoy stats update failed')
-            elif cmd == 'CONFIG_FS':
+            if cmd == 'CONFIG_FS':
                 try:
                     self.load_config_fs(rqueue, arg)
                 except Exception as e:
