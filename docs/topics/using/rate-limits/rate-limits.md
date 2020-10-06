@@ -156,7 +156,7 @@ spec:
     - name "header-name-string-1"    # required
       value: "go-template-string"    # required
     errorResponse:                    # optional
-      headers:                          # optional; default is [{name: "Content-Type", value: "application/json"}]
+      headers:                          # optional; default is [], adding no additional headers
       - name: "header-name-string"        # required
         value: "go-template-string"       # required
       bodyTemplate: "string"            # optional; default is "", returning no response body
