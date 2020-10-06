@@ -37,7 +37,7 @@ class EnvoyStats:
     last_attempt: Optional[float] = None
     update_errors: int = 0
 
-    # Yes yes yes I know -- the contents of these dicts are not immutable. 
+    # Yes yes yes I know -- the contents of these dicts are not immutable.
     # That's OK for now, but realize that you mustn't go munging around altering
     # things in here once they're assigned!
     requests: Dict[str, Any] = dc_field(default_factory=dict)
@@ -46,7 +46,7 @@ class EnvoyStats:
 
     def is_alive(self) -> bool:
         """
-        Make sure we've heard from Envoy within max_live_age seconds. 
+        Make sure we've heard from Envoy within max_live_age seconds.
 
         If we haven't yet heard from Envoy at all (we've just booted),
         consider Envoy alive if we haven't yet been running for max_live_age
@@ -63,7 +63,7 @@ class EnvoyStats:
 
     def is_ready(self) -> bool:
         """
-        Make sure we've heard from Envoy within max_ready_age seconds. 
+        Make sure we've heard from Envoy within max_ready_age seconds.
 
         If we haven't yet heard from Envoy at all (we've just booted),
         then Envoy is not yet ready, and is_ready() returns False.
@@ -85,7 +85,7 @@ class EnvoyStats:
         Return the number of seconds since we last heard from Envoy, or None if
         we've never heard from Envoy.
         """
-        
+
         if not self.last_update:
             return None
         else:
@@ -94,7 +94,7 @@ class EnvoyStats:
     def cluster_stats(self, name: str) -> Dict[str, Union[str, bool]]:
         if not self.last_update:
             # No updates.
-            return { 
+            return {
                 'valid': False,
                 'reason': "No stats updates have succeeded",
                 'health': "no stats yet",
@@ -151,13 +151,27 @@ class EnvoyStatsMgr:
         self.logger = logger
         self.loginfo: Dict[str, Union[str, List[str]]] = {}
 
+        self.update_lock = threading.Lock()
+        self.access_lock = threading.Lock()
+
         self.stats = EnvoyStats(
-            created=time.time(), 
-            max_live_age=max_live_age, 
+            created=time.time(),
+            max_live_age=max_live_age,
             max_ready_age=max_ready_age
         )
 
     def update_log_levels(self, last_attempt, level=None):
+        """
+        Heavy lifting around updating the Envoy log levels.
+
+        You MUST hold the update lock when calling this method.
+        You MUST NOT hold the access lock when calling this method.
+
+        update_log_levels does all the work of talking to Envoy and computing
+        new stats, then grabs the access_lock just long enough to update the data
+        structures for others to look at.
+        """
+
         # self.logger.info("updating levels")
 
         failed = False
@@ -179,22 +193,24 @@ class EnvoyStatsMgr:
             failed = True
         
         if failed:
-            # EnvoyStats is immutable, so...
-            new_stats = EnvoyStats(
-                max_live_age=self.stats.max_live_age,
-                max_ready_age=self.stats.max_ready_age,
-                created=self.stats.created,
-                last_update=self.stats.last_update,
-                last_attempt=last_attempt,                      # THIS IS A CHANGE
-                update_errors=self.stats.update_errors + 1,     # THIS IS A CHANGE
-                requests=self.stats.requests,
-                clusters=self.stats.clusters,
-                envoy=self.stats.envoy
-            )
+            # Ew.
+            with self.access_lock:
+                # EnvoyStats is immutable, so...
+                new_stats = EnvoyStats(
+                    max_live_age=self.stats.max_live_age,
+                    max_ready_age=self.stats.max_ready_age,
+                    created=self.stats.created,
+                    last_update=self.stats.last_update,
+                    last_attempt=last_attempt,                      # THIS IS A CHANGE
+                    update_errors=self.stats.update_errors + 1,     # THIS IS A CHANGE
+                    requests=self.stats.requests,
+                    clusters=self.stats.clusters,
+                    envoy=self.stats.envoy
+                )
 
-            self.stats = new_stats
+                self.stats = new_stats
 
-            return False
+                return False
 
         levels: Dict[str, Dict[str, bool]] = {}
 
@@ -217,13 +233,21 @@ class EnvoyStatsMgr:
         else:
             loginfo = { x: list(levels[x].keys()) for x in levels.keys() }
 
-        self.loginfo = loginfo
+        with self.access_lock:
+            self.loginfo = loginfo
 
-        # self.logger.info("loginfo: %s" % self.loginfo)
-        return True
+            # self.logger.info("loginfo: %s" % self.loginfo)
+            return True
 
     def get_stats(self) -> EnvoyStats:
-        return self.stats
+        """
+        Get the current Envoy stats object, safely.
+
+        You MUST NOT hold the access_lock when calling this method.
+        """
+
+        with self.access_lock:
+            return self.stats
 
     def get_prometheus_stats(self) -> str:
         try:
@@ -236,8 +260,18 @@ class EnvoyStatsMgr:
             self.logger.warning("EnvoyStats.get_prometheus_state failed: %s" % r.text)
             return ''
         return r.text
-        
+
     def update_envoy_stats(self, last_attempt: float) -> None:
+        """
+        Heavy lifting around updating the Envoy stats.
+
+        You MUST hold the update lock when calling this method.
+        You MUST NOT hold the access lock when calling this method.
+
+        update_envoy_stats does all the work of talking to Envoy and computing
+        new stats, then grabs the access_lock just long enough to update the data
+        structures for others to look at.
+        """
         failed = False
 
         try:
@@ -264,8 +298,9 @@ class EnvoyStatsMgr:
                 envoy=self.stats.envoy
             )
 
-            self.stats = new_stats
-            return
+            with self.access_lock:
+                self.stats = new_stats
+                return
 
         # Parse stats into a hierarchy.
         envoy_stats: Dict[str, Any] = {}    # Ew.
@@ -398,13 +433,36 @@ class EnvoyStatsMgr:
         )
 
         # Make sure we hold the access_lock while messing with self.stats!
-        self.stats = new_stats
+        with self.access_lock:
+            self.stats = new_stats
 
-        # self.logger.info("stats updated")
+            # self.logger.info("stats updated")
 
     def update(self) -> None:
+        """
+        Update the Envoy stats object, including our take on Envoy's loglevel and
+        lower-level statistics.
+
+        You MUST NOT hold the update lock when calling this method.
+        You MUST NOT hold the access lock when calling this method.
+
+        The first thing that update_envoy_stats does is to acquire the update_lock.
+        If it cannot do so immediately, it assumes that another update is already
+        running, and returns without doing anything further.
+
+        update_envoy_stats uses update_log_levels and update_envoy_stats to do all
+        the heavy lifting around talking to Envoy, managing the access_lock, and
+        actually writing new data into the Envoy stats object.
+        """
+
         # self.logger.info("updating estats")
 
+        # First up, try bailing early.
+        if not self.update_lock.acquire(blocking=False):
+            self.logger.warning("EStats update: skipping due to lock contention")
+            return
+
+        # If here, we have the lock. Make sure it gets released!
         try:
             # Remember when we started.
             last_attempt = time.time()
@@ -412,4 +470,6 @@ class EnvoyStatsMgr:
             self.update_log_levels(last_attempt)
             self.update_envoy_stats(last_attempt)
         except Exception as e:
-            self.logger.error("could not update Envoy stats: %s" % e)
+            self.logger.exception("could not update Envoy stats: %s" % e)
+        finally:
+            self.update_lock.release()
