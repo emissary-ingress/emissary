@@ -1,22 +1,22 @@
 package consulwatch
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"log"
-	"os"
 
 	"github.com/hashicorp/consul/api"
 	"github.com/hashicorp/consul/api/watch"
+
+	"github.com/datawire/ambassador/pkg/dlog"
 )
 
 type ConnectLeafWatcher struct {
 	consul *api.Client
 	plan   *watch.Plan
-	logger *log.Logger
 }
 
-func NewConnectLeafWatcher(consul *api.Client, logger *log.Logger, service string) (*ConnectLeafWatcher, error) {
+func NewConnectLeafWatcher(consul *api.Client, service string) (*ConnectLeafWatcher, error) {
 	if service == "" {
 		err := errors.New("service name is empty")
 		return nil, err
@@ -27,12 +27,6 @@ func NewConnectLeafWatcher(consul *api.Client, logger *log.Logger, service strin
 	plan, err := watch.Parse(map[string]interface{}{"type": "connect_leaf", "service": service})
 	if err != nil {
 		return nil, err
-	}
-
-	if logger != nil {
-		watcher.logger = logger
-	} else {
-		watcher.logger = log.New(os.Stdout, "", log.LstdFlags)
 	}
 
 	watcher.plan = plan
@@ -67,8 +61,8 @@ func (w *ConnectLeafWatcher) Watch(handler func(*Certificate, error)) {
 	}
 }
 
-func (w *ConnectLeafWatcher) Start() error {
-	return w.plan.RunWithClientAndLogger(w.consul, w.logger)
+func (w *ConnectLeafWatcher) Start(ctx context.Context) error {
+	return w.plan.RunWithClientAndLogger(w.consul, dlog.StdLogger(ctx, dlog.LogLevelInfo))
 }
 
 func (w *ConnectLeafWatcher) Stop() {
@@ -80,21 +74,14 @@ func (w *ConnectLeafWatcher) Stop() {
 type ConnectCARootsWatcher struct {
 	consul *api.Client
 	plan   *watch.Plan
-	logger *log.Logger
 }
 
-func NewConnectCARootsWatcher(consul *api.Client, logger *log.Logger) (*ConnectCARootsWatcher, error) {
+func NewConnectCARootsWatcher(consul *api.Client) (*ConnectCARootsWatcher, error) {
 	watcher := &ConnectCARootsWatcher{consul: consul}
 
 	plan, err := watch.Parse(map[string]interface{}{"type": "connect_roots"})
 	if err != nil {
 		return nil, err
-	}
-
-	if logger != nil {
-		watcher.logger = logger
-	} else {
-		watcher.logger = log.New(os.Stdout, "", log.LstdFlags)
 	}
 
 	watcher.plan = plan
@@ -135,8 +122,8 @@ func (w *ConnectCARootsWatcher) Watch(handler func(*CARoots, error)) {
 	}
 }
 
-func (w *ConnectCARootsWatcher) Start() error {
-	return w.plan.RunWithClientAndLogger(w.consul, w.logger)
+func (w *ConnectCARootsWatcher) Start(ctx context.Context) error {
+	return w.plan.RunWithClientAndLogger(w.consul, dlog.StdLogger(ctx, dlog.LogLevelInfo))
 }
 
 func (w *ConnectCARootsWatcher) Stop() {

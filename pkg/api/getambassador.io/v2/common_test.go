@@ -29,21 +29,21 @@ func TestBoolOrString(t *testing.T) {
 		expectedJSON   string
 	}
 	subtests := map[string]subtest{
-		"empty":         subtest{`{}`, TestResource{}, `{"field":null}`},
-		"explicitEmpty": subtest{`field:`, TestResource{}, `{"field":null}`},
-		"explicitnull":  subtest{`field: null`, TestResource{}, `{"field":null}`},
-		"explicitNull":  subtest{`field: Null`, TestResource{}, `{"field":null}`},
-		"explicitNULL":  subtest{`field: NULL`, TestResource{}, `{"field":null}`},
-		"explicitTilde": subtest{`field: ~`, TestResource{}, `{"field":null}`},
-		"true":          subtest{`field: true`, TestResource{ambV2.BoolOrString{Bool: boolPtr(true)}}, `{"field":true}`},
-		"True":          subtest{`field: True`, TestResource{ambV2.BoolOrString{Bool: boolPtr(true)}}, `{"field":true}`},
-		"TRUE":          subtest{`field: TRUE`, TestResource{ambV2.BoolOrString{Bool: boolPtr(true)}}, `{"field":true}`},
-		"false":         subtest{`field: false`, TestResource{ambV2.BoolOrString{Bool: boolPtr(false)}}, `{"field":false}`},
-		"False":         subtest{`field: False`, TestResource{ambV2.BoolOrString{Bool: boolPtr(false)}}, `{"field":false}`},
-		"FALSE":         subtest{`field: FALSE`, TestResource{ambV2.BoolOrString{Bool: boolPtr(false)}}, `{"field":false}`},
-		"strTrue":       subtest{`field: "true"`, TestResource{ambV2.BoolOrString{String: stringPtr("true")}}, `{"field":"true"}`}, // quoted
-		"strTRue":       subtest{`field: TRue`, TestResource{ambV2.BoolOrString{String: stringPtr("TRue")}}, `{"field":"TRue"}`}, // capitalized wrong
-		"strBare":       subtest{`field: bare`, TestResource{ambV2.BoolOrString{String: stringPtr("bare")}}, `{"field":"bare"}`},
+		"empty":         {`{}`, TestResource{}, `{"field":null}`},
+		"explicitEmpty": {`field:`, TestResource{}, `{"field":null}`},
+		"explicitnull":  {`field: null`, TestResource{}, `{"field":null}`},
+		"explicitNull":  {`field: Null`, TestResource{}, `{"field":null}`},
+		"explicitNULL":  {`field: NULL`, TestResource{}, `{"field":null}`},
+		"explicitTilde": {`field: ~`, TestResource{}, `{"field":null}`},
+		"true":          {`field: true`, TestResource{ambV2.BoolOrString{Bool: boolPtr(true)}}, `{"field":true}`},
+		"True":          {`field: True`, TestResource{ambV2.BoolOrString{Bool: boolPtr(true)}}, `{"field":true}`},
+		"TRUE":          {`field: TRUE`, TestResource{ambV2.BoolOrString{Bool: boolPtr(true)}}, `{"field":true}`},
+		"false":         {`field: false`, TestResource{ambV2.BoolOrString{Bool: boolPtr(false)}}, `{"field":false}`},
+		"False":         {`field: False`, TestResource{ambV2.BoolOrString{Bool: boolPtr(false)}}, `{"field":false}`},
+		"FALSE":         {`field: FALSE`, TestResource{ambV2.BoolOrString{Bool: boolPtr(false)}}, `{"field":false}`},
+		"strTrue":       {`field: "true"`, TestResource{ambV2.BoolOrString{String: stringPtr("true")}}, `{"field":"true"}`}, // quoted
+		"strTRue":       {`field: TRue`, TestResource{ambV2.BoolOrString{String: stringPtr("TRue")}}, `{"field":"TRue"}`},   // capitalized wrong
+		"strBare":       {`field: bare`, TestResource{ambV2.BoolOrString{String: stringPtr("bare")}}, `{"field":"bare"}`},
 	}
 	for name, info := range subtests {
 		info := info // capture loop variable

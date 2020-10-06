@@ -279,10 +279,10 @@ func MakeRuntime(runtimeName string) *runtime.Runtime {
 		Name: runtimeName,
 		Layer: &pstruct.Struct{
 			Fields: map[string]*pstruct.Value{
-				"field-0": &pstruct.Value{
+				"field-0": {
 					Kind: &pstruct.Value_NumberValue{NumberValue: 100},
 				},
-				"field-1": &pstruct.Value{
+				"field-1": {
 					Kind: &pstruct.Value_StringValue{StringValue: "foobar"},
 				},
 			},

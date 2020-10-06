@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 from typing import cast as typecast
 
 from os import environ
@@ -419,6 +419,58 @@ def v2filter_ratelimit(ratelimit: IRRateLimit, v2config: 'V2Config'):
     return {
         'name': 'envoy.rate_limit',
         'config': config,
+    }
+
+
+@v2filter.when("IRIPAllowDeny")
+def v2filter_ipallowdeny(irfilter: IRFilter, v2config: 'V2Config'):
+    del v2config  # silence unused-variable warning
+
+    # Go ahead and convert the irfilter to its dictionary form; it's
+    # just simpler to do that once up front.
+
+    fdict = irfilter.as_dict()
+
+    # How many principals do we have?
+    num_principals = len(fdict["principals"])
+    assert num_principals > 0
+
+    # Ew.
+    SinglePrincipal = Dict[str, Dict[str, str]]
+    MultiplePrincipals = Dict[str, Dict[str, List[SinglePrincipal]]]
+
+    principals: Union[SinglePrincipal, MultiplePrincipals]
+
+    if num_principals == 1:
+        # Just one principal, so we can stuff it directly into the
+        # Envoy-config principals "list".
+        principals = fdict["principals"][0]
+    else:
+        # Multiple principals, so we have to set up an or_ids set.
+        principals = {
+            "or_ids": {
+                "ids": fdict["principals"]
+            }
+        }    
+
+    return {
+        "name": "envoy.filters.http.rbac",  
+        "typed_config": {
+            "@type": "type.googleapis.com/envoy.config.filter.http.rbac.v2.RBAC",
+            "rules": {
+                "action": irfilter.action.upper(),
+                "policies": {
+                    f"ambassador-ip-{irfilter.action.lower()}": {
+                        "permissions": [
+                            {
+                                "any": True
+                            }
+                        ],
+                        "principals": [ principals ]
+                    }
+                }
+            }
+        }
     }
 
 

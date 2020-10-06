@@ -78,34 +78,34 @@ func TestMemoryUsageGCExited(t *testing.T) {
 			switch count {
 			case 0:
 				return map[int]*ProcessUsage{
-					1: &ProcessUsage{1, []string{"one"}, 1024, 0},
-					2: &ProcessUsage{2, []string{"two"}, 1024, 0},
-					3: &ProcessUsage{3, []string{"three"}, 1024, 0},
-					4: &ProcessUsage{4, []string{"four"}, 1024, 0},
-					5: &ProcessUsage{5, []string{"five"}, 1024, 0},
+					1: {1, []string{"one"}, 1024, 0},
+					2: {2, []string{"two"}, 1024, 0},
+					3: {3, []string{"three"}, 1024, 0},
+					4: {4, []string{"four"}, 1024, 0},
+					5: {5, []string{"five"}, 1024, 0},
 				}
 			case 1:
 				return map[int]*ProcessUsage{
-					1: &ProcessUsage{1, []string{"one"}, 1024, 0},
-					2: &ProcessUsage{2, []string{"two"}, 1024, 0},
-					4: &ProcessUsage{4, []string{"four"}, 1024, 0},
-					5: &ProcessUsage{5, []string{"five"}, 1024, 0},
+					1: {1, []string{"one"}, 1024, 0},
+					2: {2, []string{"two"}, 1024, 0},
+					4: {4, []string{"four"}, 1024, 0},
+					5: {5, []string{"five"}, 1024, 0},
 				}
 			case 2:
 				return map[int]*ProcessUsage{
-					1: &ProcessUsage{1, []string{"one"}, 1024, 0},
-					2: &ProcessUsage{2, []string{"two"}, 1024, 0},
-					5: &ProcessUsage{5, []string{"five"}, 1024, 0},
+					1: {1, []string{"one"}, 1024, 0},
+					2: {2, []string{"two"}, 1024, 0},
+					5: {5, []string{"five"}, 1024, 0},
 				}
 			case 3:
 				return map[int]*ProcessUsage{
-					1: &ProcessUsage{1, []string{"one"}, 1024, 0},
-					5: &ProcessUsage{5, []string{"five"}, 1024, 0},
+					1: {1, []string{"one"}, 1024, 0},
+					5: {5, []string{"five"}, 1024, 0},
 				}
 			default:
 				return map[int]*ProcessUsage{
-					1: &ProcessUsage{1, []string{"one"}, 1024, 0},
-					5: &ProcessUsage{5, []string{"five"}, 1024, 0},
+					1: {1, []string{"one"}, 1024, 0},
+					5: {5, []string{"five"}, 1024, 0},
 				}
 			}
 		},

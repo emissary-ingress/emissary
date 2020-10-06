@@ -19,14 +19,16 @@
 # etc.
 ########
 
-from typing import Optional
+from typing import ClassVar, Optional, Set
 from typing import cast as typecast
 
 import sys
 
+import cProfile
 import json
 import logging
 import os
+import pstats
 import signal
 import traceback
 
@@ -37,7 +39,7 @@ from ambassador import Scout, Config, IR, Diagnostics, Version
 from ambassador.fetch import ResourceFetcher
 from ambassador.envoy import EnvoyConfig, V2Config
 
-from ambassador.utils import RichStatus, NullSecretHandler
+from ambassador.utils import RichStatus, SecretHandler, SecretInfo, NullSecretHandler
 
 __version__ = Version
 
@@ -111,9 +113,33 @@ def file_checker(path: str) -> bool:
     return True
 
 
+class CLISecretHandler(SecretHandler):
+    # HOOK: if you're using dump and you need it to pretend that certain missing secrets
+    # are present, add them to LoadableSecrets. At Some Point(tm) there will be a switch
+    # to add these from the command line, but Flynn didn't actually need that for the
+    # debugging he was doing...
+
+    LoadableSecrets: ClassVar[Set[str]] = {
+        # "ssl-certificate.mynamespace"
+    }
+
+    def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
+        # Only allow a secret to be _loaded_ if it's marked Loadable.
+
+        key = f"{secret_name}.{namespace}"
+
+        if key in CLISecretHandler.LoadableSecrets:
+            self.logger.info(f"CLISecretHandler: loading {key}")
+            return SecretInfo(secret_name, namespace, "mocked-loadable-secret",
+                              "-mocked-cert-", "-mocked-key-", decode_b64=False)
+
+        self.logger.debug(f"CLISecretHandler: cannot load {key}")
+        return None
+
+
 def dump(config_dir_path: Parameter.REQUIRED, *,
          secret_dir_path=None, watt=False, debug=False, debug_scout=False, k8s=False, recurse=False,
-         aconf=False, ir=False, v2=False, diag=False, features=False):
+         aconf=False, ir=False, v2=False, diag=False, features=False, profile=False):
     """
     Dump various forms of an Ambassador configuration for debugging
 
@@ -132,10 +158,11 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     :param v2: If set, dump the Envoy V2 config
     :param diag: If set, dump the Diagnostics overview
     :param features: If set, dump the feature set
+    :param profile: If set, profile with the cProfile module
     """
 
     if not secret_dir_path:
-        secret_dir_path = config_dir_path
+        secret_dir_path = "/tmp/cli-secrets"
 
         if not os.path.isdir(secret_dir_path):
             secret_dir_path = os.path.dirname(secret_dir_path)
@@ -162,6 +189,13 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     od = {}
     diagconfig: Optional[EnvoyConfig] = None
 
+    _profile: Optional[cProfile.Profile] = None
+    _rc = 0
+
+    if profile:
+        _profile = cProfile.Profile()
+        _profile.enable()
+
     try:
         aconf = Config()
         fetcher = ResourceFetcher(logger, aconf)
@@ -179,7 +213,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         if dump_aconf:
             od['aconf'] = aconf.as_dict()
 
-        secret_handler = NullSecretHandler(logger, config_dir_path, secret_dir_path, "0")
+        secret_handler = CLISecretHandler(logger, config_dir_path, secret_dir_path, "0")
 
         ir = IR(aconf, file_checker=file_checker, secret_handler=secret_handler)
 
@@ -217,9 +251,13 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     except Exception as e:
         handle_exception("EXCEPTION from dump", e,
                          config_dir_path=config_dir_path)
+        _rc = 1
 
-        # This is fatal.
-        sys.exit(1)
+    if _profile:
+        _profile.disable()
+        _profile.dump_stats("ambassador.profile")
+
+    sys.exit(_rc)
 
 
 def validate(config_dir_path: Parameter.REQUIRED, **kwargs):
