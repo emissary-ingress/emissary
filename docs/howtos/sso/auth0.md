@@ -38,7 +38,7 @@ Update the Auth0 `Filter` and `FilterPolicy`. You can get the `ClientID` and `se
    apiVersion: getambassador.io/v2
    kind: Filter
    metadata:
-     name: auth0_filter
+     name: auth0-filter
      namespace: default
    spec:
      OAuth2:
@@ -63,7 +63,7 @@ Update the Auth0 `Filter` and `FilterPolicy`. You can get the `ClientID` and `se
        - host: "*"
          path: /httpbin/ip
          filters:
-           - name: auth0_filter ## Enter the Filter name from above
+           - name: auth0-filter ## Enter the Filter name from above
              arguments:
                scopes:
                - "openid"

@@ -62,6 +62,14 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
+- Feature: HTTP IP Allow/Deny ranges are supported.
+- Bugfix: The container no longer exits "successfully" when the Deployment specifies an invalid `command`.
+- Bugfix: The `edgectl connect` command now works properly when using zsh on a Linux platform.
+
+## Next Release
+
+### Ambasssador API Gateway + Ambassador Edge Stack
+
 - Bugfix: Several regressions in the 1.7.x series are resolved by removing the ability to set `insecure.action` on a per-`Host`-resource basis, which was an ability added in 1.7.0.  This reverts to the pre-1.7.0 behavior of having one `Host`'s insecure action "win" and be used for all `Host`s.
 - Bugfix: Ambassador will no longer generate invalid Envoy configuration with duplicate clusters in certain scenarios when `AMBASSADOR_FAST_RECONFIGURE=true`.
 - Enhancement: When `AMBASSADOR_FAST_RECONFIGURE=true` is set, Ambassador now logs information about memory usage.
