@@ -3,6 +3,8 @@ package dlog
 import (
 	"io"
 	"log"
+	"runtime"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -41,6 +43,9 @@ type logrusWrapper struct {
 	logrusLogger
 }
 
+// Helper does nothing--we use a Logrus Hook instead (see below).
+func (l logrusWrapper) Helper() {}
+
 func (l logrusWrapper) WithField(key string, value interface{}) Logger {
 	return logrusWrapper{l.logrusLogger.WithField(key, value)}
 }
@@ -59,12 +64,57 @@ func (l logrusWrapper) StdLogger(level LogLevel) *log.Logger {
 	return log.New(l.logrusLogger.WriterLevel(logrusLevel), "", 0)
 }
 
-// WrapLogrus converts a logrus *Logger (or *Entry) into a generic
-// Logger.
+// WrapLogrus converts a logrus *Logger into a generic Logger.
 //
 // You should only really ever call WrapLogrus from the initial
 // process set up (i.e. directly inside your 'main()' function), and
 // you should pass the result directly to WithLogger.
-func WrapLogrus(in logrusLogger) Logger {
+func WrapLogrus(in *logrus.Logger) Logger {
+	in.AddHook(logrusFixCallerHook{})
 	return logrusWrapper{in}
+}
+
+type logrusFixCallerHook struct{}
+
+func (logrusFixCallerHook) Levels() []logrus.Level {
+	return logrus.AllLevels
+}
+
+func (logrusFixCallerHook) Fire(entry *logrus.Entry) error {
+	if entry.Caller != nil && strings.HasPrefix(entry.Caller.Function, dlogPackage+".") {
+		entry.Caller = getCaller()
+	}
+	return nil
+}
+
+const (
+	dlogPackage            = "github.com/datawire/ambassador/pkg/dlog"
+	logrusPackage          = "github.com/sirupsen/logrus"
+	maximumCallerDepth int = 25
+	minimumCallerDepth int = 2 // runtime.Callers + getCaller
+)
+
+// Duplicate of logrus.getCaller() because Logrus doesn't have the
+// kind if skip/.Helper() functionality that testing.TB has.
+//
+// https://github.com/sirupsen/logrus/issues/972
+func getCaller() *runtime.Frame {
+	// Restrict the lookback frames to avoid runaway lookups
+	pcs := make([]uintptr, maximumCallerDepth)
+	depth := runtime.Callers(minimumCallerDepth, pcs)
+	frames := runtime.CallersFrames(pcs[:depth])
+
+	for f, again := frames.Next(); again; f, again = frames.Next() {
+		// If the caller isn't part of this package, we're done
+		if strings.HasPrefix(f.Function, logrusPackage+".") {
+			continue
+		}
+		if strings.HasPrefix(f.Function, dlogPackage+".") {
+			continue
+		}
+		return &f //nolint:scopelint
+	}
+
+	// if we got here, we failed to find the caller's context
+	return nil
 }

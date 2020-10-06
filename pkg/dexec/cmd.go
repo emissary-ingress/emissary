@@ -77,7 +77,7 @@ var LookPath = exec.LookPath
 // must be created with CommandContext.
 type Cmd struct {
 	*exec.Cmd
-	logger dlog.Logger
+	ctx context.Context
 
 	pidlock sync.RWMutex
 }
@@ -89,15 +89,14 @@ type Cmd struct {
 //
 //  1. To kill the process (by calling os.Process.Kill) if the context
 //     becomes done before the command completes on its own.
-//  2. To get the logger (by calling
-//     github.com/datawire/ambassador/pkg/dlog.GetLogger on it).
+//  2. For logging (see github.com/datawire/ambassador/pkg/dlog).
 //
 // See the os/exec.Command and os/exec.CommandContext documentation
 // for more information.
 func CommandContext(ctx context.Context, name string, arg ...string) *Cmd {
 	ret := &Cmd{
-		Cmd:    exec.CommandContext(ctx, name, arg...),
-		logger: dlog.GetLogger(ctx),
+		Cmd: exec.CommandContext(ctx, name, arg...),
+		ctx: ctx,
 	}
 	ret.pidlock.Lock()
 	return ret
@@ -111,7 +110,7 @@ func (c *Cmd) logiofn(prefix string) func(string) {
 		if c.Process != nil {
 			pid = c.Process.Pid
 		}
-		c.logger.Printf("[pid:%v] %s %s", pid, prefix, msg)
+		dlog.Printf(c.ctx, "[pid:%v] %s %s", pid, prefix, msg)
 	}
 }
 
@@ -130,15 +129,15 @@ func (c *Cmd) Start() error {
 
 	err := c.Cmd.Start()
 	if err == nil {
-		c.logger.Printf("[pid:%v] started command %#v", c.Process.Pid, c.Args)
+		dlog.Printf(c.ctx, "[pid:%v] started command %#v", c.Process.Pid, c.Args)
 		if stdin, isFile := c.Stdin.(*os.File); isFile {
-			c.logger.Printf("[pid:%v] stdin  < not logging input read from file %s", c.Process.Pid, stdin.Name())
+			dlog.Printf(c.ctx, "[pid:%v] stdin  < not logging input read from file %s", c.Process.Pid, stdin.Name())
 		}
 		if stdout, isFile := c.Stdout.(*os.File); isFile {
-			c.logger.Printf("[pid:%v] stdout > not logging output written to file %s", c.Process.Pid, stdout.Name())
+			dlog.Printf(c.ctx, "[pid:%v] stdout > not logging output written to file %s", c.Process.Pid, stdout.Name())
 		}
 		if stderr, isFile := c.Stderr.(*os.File); isFile {
-			c.logger.Printf("[pid:%v] stderr > not logging output written to file %s", c.Process.Pid, stderr.Name())
+			dlog.Printf(c.ctx, "[pid:%v] stderr > not logging output written to file %s", c.Process.Pid, stderr.Name())
 		}
 	}
 	c.pidlock.Unlock()
@@ -158,9 +157,9 @@ func (c *Cmd) Wait() error {
 	}
 
 	if err == nil {
-		c.logger.Printf("[pid:%v] finished successfully: %v", pid, c.ProcessState)
+		dlog.Printf(c.ctx, "[pid:%v] finished successfully: %v", pid, c.ProcessState)
 	} else {
-		c.logger.Printf("[pid:%v] finished with error: %v", pid, err)
+		dlog.Printf(c.ctx, "[pid:%v] finished with error: %v", pid, err)
 	}
 
 	return err
