@@ -806,3 +806,34 @@ spec:
     def queries(self):
         yield Query(self.url(self.name + "-1/"))
         yield Query(self.url(self.name + "-2/"))
+
+
+class LongClusterNameMapping(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return self.format('''
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: thisisaverylongservicenameoverwithsixythreecharacters123456789
+spec:
+  type: ExternalName
+  externalName: httpbin.org
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {self.target.path.k8s}
+spec:
+  ambassador_id: {self.ambassador_id}
+  prefix: /{self.name}-1/
+  service: thisisaverylongservicenameoverwithsixythreecharacters123456789
+''') + super().manifests()
+
+    def queries(self):
+        yield Query(self.url(self.name + "-1/"))

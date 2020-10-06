@@ -299,17 +299,30 @@ class IR:
         ListenerFactory.finalize(self, aconf)
         MappingFactory.finalize(self, aconf)
 
-        # At this point we should know the full set of clusters, so we can normalize
-        # any long cluster names.
+        # At this point we should know the full set of clusters, so we can generate
+        # appropriate envoy names.
+        #
+        # Envoy cluster name generation happens in two steps. First, we check every
+        # cluster and set the envoy name to the cluster name if it is short enough.
+        # If it isn't, we group all of the long cluster names by a common prefix
+        # and normalize them later.
+        #
+        # This ensures that:
+        # - All IRCluster objects have an envoy_name
+        # - All envoy_name fields are valid cluster names, ie: they are short enough
         collisions: Dict[str, List[str]] = {}
 
         for name in sorted(self.clusters.keys()):
             if len(name) > 60:
-                # Too long.
+                # Too long. Gather this cluster by name prefix and normalize
+                # its name below.
                 short_name = name[0:40]
 
                 collision_list = collisions.setdefault(short_name, [])
                 collision_list.append(name)
+            else:
+                # Short enough, set the envoy name to the cluster name.
+                self.clusters[name]['envoy_name'] = name
 
         for short_name in sorted(collisions.keys()):
             name_list = collisions[short_name]
@@ -321,7 +334,21 @@ class IR:
                 i += 1
 
                 self.logger.debug("%s => %s" % (name, mangled_name))
-                self.clusters[name]['name'] = mangled_name
+
+                # We must not modify a cluster's name (nor its rkey, for that matter)
+                # because our object caching implementation depends on stable object
+                # names and keys. If we were to update it, we could lose track of an
+                # existing object and accidentally create a duplicate (datawire/apro#1895)
+                #
+                # Instead, the resulting IR must set envoy_name to the mangled name, which
+                # is guaranteed to be valid in envoy configuration.
+                #
+                # An important consequence of this choice is that we must never read back
+                # envoy config to create IRCluster config, since the cluster names are
+                # not necessarily the same. This is currently fine, since we never use
+                # envoy config as a source of truth - we leave that to the cluster annotations
+                # and CRDs.
+                self.clusters[name]['envoy_name'] = mangled_name
 
         # After we have the cluster names fixed up, go finalize filters.
         if self.tracing:
