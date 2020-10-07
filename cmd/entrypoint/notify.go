@@ -2,11 +2,13 @@ package entrypoint
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+	"syscall"
 	"time"
 )
 
@@ -45,18 +47,26 @@ func notifyReconfigWebhooks(ctx context.Context) {
 }
 
 // posts to a webhook style url, logging any errors, and returning false if a retry is needed
-func notifyWebhookUrl(ctx context.Context, name, url string) bool {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
+func notifyWebhookUrl(ctx context.Context, name, xurl string) bool {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, xurl, nil)
 	if err != nil {
 		panic(err)
 	}
 	req.Header.Set("content-type", "application/json")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		// We couldn't succesfully connect to the sidecar, probably because it hasn't
-		// started up yet, so we log the error and return false to retry.
-		log.Println(err)
-		return false
+		if errors.Is(err, syscall.ECONNREFUSED) {
+			// We couldn't succesfully connect to the sidecar, probably because it hasn't
+			// started up yet, so we log the error and return false to signal retry.
+			log.Println(err)
+			return false
+		} else {
+			// If either of the sidecars cannot successfully handle a webhook request, we
+			// deliberately consider it a fatal error so that we can ensure shared fate between all
+			// ambassador processes. The only known case where this occurs so far is when the diagd
+			// gunicorn worker gets OOMKilled. This results in an EOF and we end up here.
+			panic(err)
+		}
 	}
 	defer resp.Body.Close()
 

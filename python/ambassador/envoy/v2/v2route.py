@@ -85,7 +85,7 @@ class V2Route(Cacheable):
         }
 
         if len(mapping) > 0:
-            runtime_fraction['runtime_key'] = f'routing.traffic_shift.{mapping.cluster.name}'
+            runtime_fraction['runtime_key'] = f'routing.traffic_shift.{mapping.cluster.envoy_name}'
 
         match = {
             'case_sensitive': case_sensitive,
@@ -168,7 +168,7 @@ class V2Route(Cacheable):
         route = {
             'priority': group.get('priority'),
             'timeout': "%0.3fs" % (mapping.get('timeout_ms', 3000) / 1000.0),
-            'cluster': mapping.cluster.name
+            'cluster': mapping.cluster.envoy_name
         }
 
         idle_timeout_ms = mapping.get('idle_timeout_ms', None)
@@ -225,7 +225,7 @@ class V2Route(Cacheable):
             weight = shadow.get('weight', 100)
 
             route['request_mirror_policy'] = {
-                'cluster': shadow.cluster.name,
+                'cluster': shadow.cluster.envoy_name,
                 'runtime_fraction': {
                     'default_value': {
                         'numerator': weight,
