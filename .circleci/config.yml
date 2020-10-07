@@ -27,6 +27,8 @@ commands:
     # setup
     - amb-linux-install
     - amb-checkout
+    # We might need to be logged in the registry to pull the Envoy image
+    - amb-config-registry
     - # main
       run: make generate
     - dirty-check
@@ -530,6 +532,7 @@ jobs:
     steps:
     - website-setup
     - run: ./.ci/website-preview-build
+    - run: "test -d /tmp/getambassador.io/public || circleci step halt"
     - persist_to_workspace:
         root: /tmp/getambassador.io
         paths:

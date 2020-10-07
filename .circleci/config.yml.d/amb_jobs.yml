@@ -29,6 +29,8 @@ commands:
       # setup
       - amb-linux-install
       - amb-checkout
+      # We might need to be logged in the registry to pull the Envoy image
+      - amb-config-registry
 
       # main
       - run: make generate

@@ -426,7 +426,7 @@ it as:
 > with the following entry in its `/etc/fstab`:
 >
 > ```
-> tmpfs:docker  /var/lib/docker tmpfs size=450G 0 0
+> tmpfs:docker  /var/lib/docker  tmpfs  size=450G  0  0
 > ```
 
 If you have the RAM, we've seen huge speed gains from doing the builds
@@ -438,7 +438,7 @@ and tests on a RAM disk (see the `/etc/fstab` line above).
    version of the Envoy sources, and create a branch from that:
 
    ```shell
-   make $(pwd)/_cxx/envoy
+   make $PWD/_cxx/envoy
    git -C _cxx/envoy checkout -b YOUR_BRANCHNAME
    ```
 
@@ -602,6 +602,31 @@ I'd put this in in the pull request template, but so few PRs change Envoy...
    * [ ] `make check-envoy`
    * [ ] `make pytest KAT_RUN_MODE=envoy` for OSS
    * [ ] `make pytest KAT_RUN_MODE=envoy` for AES
+
+How do I test Ambassador when using a private Docker repository?
+----------------------------------------------------------------
+
+If you are pushing your development images to a private Docker repo,
+then
+
+```sh
+export DEV_USE_IMAGEPULLSECRET=true
+export DOCKER_BUILD_USERNAME=...
+export DOCKER_BUILD_PASSWORD=...
+```
+
+and the test machinery should create an imagePullSecret from those
+Docker credentials such that it can pull the images.
+
+How do I change the loglevel at runtime?
+----------------------------------------
+
+```console
+$ curl localhost:8877/ambassador/v0/diag/?loglevel=debug
+```
+
+Note: This affects diagd and Envoy, but NOT the AES `amb-sidecar`.
+See the AES `DEVELOPING.md` for how to do that.
 
 Developing Ambassador (Datawire-only advice)
 ============================================

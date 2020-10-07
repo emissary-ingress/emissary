@@ -747,11 +747,13 @@ func ExecuteQuery(query Query) {
 	if caCert := query.CACert(); len(caCert) > 0 {
 		caCertPool := x509.NewCertPool()
 		caCertPool.AppendCertsFromPEM([]byte(caCert))
+		transport.TLSClientConfig.RootCAs = caCertPool
+	}
+	if query.ClientCert() != "" || query.ClientKey() != "" {
 		clientCert, err := tls.X509KeyPair([]byte(query.ClientCert()), []byte(query.ClientKey()))
 		if err != nil {
 			log.Fatal(err)
 		}
-		transport.TLSClientConfig.RootCAs = caCertPool
 		transport.TLSClientConfig.Certificates = []tls.Certificate{clientCert}
 	}
 	if query.MinTLSVersion() != 0 {
