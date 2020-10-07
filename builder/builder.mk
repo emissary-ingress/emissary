@@ -223,6 +223,10 @@ pytest: test-ready
 	$(MAKE) pytest-only
 .PHONY: pytest
 
+pytest-envoy:
+	$(MAKE) pytest KAT_RUN_MODE=envoy
+.PHONY: pytest-envoy
+
 pytest-only: sync preflight-cluster | docker/$(NAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	docker exec \
@@ -235,6 +239,8 @@ pytest-only: sync preflight-cluster | docker/$(NAME).docker.push.remote docker/k
 		-e KAT_RUN_MODE \
 		-e KAT_VERBOSE \
 		-e PYTEST_ARGS \
+		-e TEST_SERVICE_REGISTRY \
+		-e TEST_SERVICE_VERSION \
 		-e DEV_USE_IMAGEPULLSECRET \
 		-e DEV_REGISTRY \
 		-e DOCKER_BUILD_USERNAME \

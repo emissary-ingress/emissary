@@ -354,5 +354,29 @@ def test_delete_4():
 
     builder3.check("final", b3, b1)
 
+def test_long_cluster_1():
+    # Create a cache for Mappings whose cluster names are too long
+    # to be envoy cluster names and must be truncated.
+    builder1 = Builder(logger, "cache_test_3.yaml")
+    builder2 = Builder(logger, "cache_test_3.yaml", enable_cache=False)
+
+    b1 = builder1.build()
+    b2 = builder2.build()
+
+    print("checking baseline...")
+    builder1.check("baseline", b1, b2, strip_cache_keys=True)
+
+    # Apply the second Mapping, make sure we use the same cached cluster
+    builder1.apply_yaml("cache_delta_3.yaml")
+    builder2.apply_yaml("cache_delta_3.yaml")
+
+    b1 = builder1.build()
+    b2 = builder2.build()
+
+    print("checking after apply...")
+    builder1.check("after apply", b1, b2, strip_cache_keys=True)
+
+    print("test_long_cluster_1 done")
+
 if __name__ == '__main__':
     pytest.main(sys.argv)

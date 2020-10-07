@@ -45,55 +45,6 @@
             {
                 "connect_timeout": "3.000s",
                 "dns_lookup_family": "V4_ONLY",
-                "http2_protocol_options": {},
-                "lb_policy": "ROUND_ROBIN",
-                "load_assignment": {
-                    "cluster_name": "cluster_rate_limit_tls_5000_otls_ratelim-0",
-                    "endpoints": [
-                        {
-                            "lb_endpoints": [
-                                {
-                                    "endpoint": {
-                                        "address": {
-                                            "socket_address": {
-                                                "address": "rate-limit-tls",
-                                                "port_value": 5000,
-                                                "protocol": "TCP"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    ]
-                },
-                "name": "cluster_rate_limit_tls_5000_otls_ratelim-0",
-                "transport_socket": {
-                    "name": "envoy.transport_sockets.tls",
-                    "typed_config": {
-                        "@type": "type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext",
-                        "common_tls_context": {
-                            "alpn_protocols": [
-                                "h2"
-                            ],
-                            "tls_certificates": [
-                                {
-                                    "certificate_chain": {
-                                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/ratelimit-tls-secret/1DD5A6E63A26C002E05F2A82F1E950AAF0850900.crt"
-                                    },
-                                    "private_key": {
-                                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/ratelimit-tls-secret/1DD5A6E63A26C002E05F2A82F1E950AAF0850900.key"
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                },
-                "type": "STRICT_DNS"
-            },
-            {
-                "connect_timeout": "3.000s",
-                "dns_lookup_family": "V4_ONLY",
                 "lb_policy": "ROUND_ROBIN",
                 "load_assignment": {
                     "cluster_name": "cluster_ratelimitv1withtlstest_http_default",
@@ -116,6 +67,55 @@
                     ]
                 },
                 "name": "cluster_ratelimitv1withtlstest_http_default",
+                "type": "STRICT_DNS"
+            },
+            {
+                "connect_timeout": "3.000s",
+                "dns_lookup_family": "V4_ONLY",
+                "http2_protocol_options": {},
+                "lb_policy": "ROUND_ROBIN",
+                "load_assignment": {
+                    "cluster_name": "cluster_ratelimitv1withtlstest_rlsgrpc_o-0",
+                    "endpoints": [
+                        {
+                            "lb_endpoints": [
+                                {
+                                    "endpoint": {
+                                        "address": {
+                                            "socket_address": {
+                                                "address": "ratelimitv1withtlstest-rlsgrpc",
+                                                "port_value": 443,
+                                                "protocol": "TCP"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "name": "cluster_ratelimitv1withtlstest_rlsgrpc_o-0",
+                "transport_socket": {
+                    "name": "envoy.transport_sockets.tls",
+                    "typed_config": {
+                        "@type": "type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext",
+                        "common_tls_context": {
+                            "alpn_protocols": [
+                                "h2"
+                            ],
+                            "tls_certificates": [
+                                {
+                                    "certificate_chain": {
+                                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/ratelimit-tls-secret/1DD5A6E63A26C002E05F2A82F1E950AAF0850900.crt"
+                                    },
+                                    "private_key": {
+                                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/ratelimit-tls-secret/1DD5A6E63A26C002E05F2A82F1E950AAF0850900.key"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
                 "type": "STRICT_DNS"
             }
         ],
@@ -156,7 +156,7 @@
                                                 "rate_limit_service": {
                                                     "grpc_service": {
                                                         "envoy_grpc": {
-                                                            "cluster_name": "cluster_rate_limit_tls_5000_otls_ratelim-0"
+                                                            "cluster_name": "cluster_ratelimitv1withtlstest_rlsgrpc_o-0"
                                                         }
                                                     },
                                                     "use_alpha": true
@@ -345,6 +345,12 @@
                                                                                 "descriptor_key": "x-ambassador-test-allow",
                                                                                 "header_name": "x-ambassador-test-allow"
                                                                             }
+                                                                        },
+                                                                        {
+                                                                            "request_headers": {
+                                                                                "descriptor_key": "x-ambassador-test-headers-append",
+                                                                                "header_name": "x-ambassador-test-headers-append"
+                                                                            }
                                                                         }
                                                                     ],
                                                                     "stage": 0
@@ -376,6 +382,12 @@
                                                                             "request_headers": {
                                                                                 "descriptor_key": "x-ambassador-test-allow",
                                                                                 "header_name": "x-ambassador-test-allow"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "request_headers": {
+                                                                                "descriptor_key": "x-ambassador-test-headers-append",
+                                                                                "header_name": "x-ambassador-test-headers-append"
                                                                             }
                                                                         }
                                                                     ],
