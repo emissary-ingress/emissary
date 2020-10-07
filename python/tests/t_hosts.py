@@ -12,6 +12,7 @@ from selfsigned import TLSCerts
 bug_single_insecure_action = True  # Do all Hosts have to have the same insecure.action?
 bug_forced_star = True             # Do we erroneously send replies in cleartext instead of TLS for unknown hosts?
 bug_404_routes = True              # Do we erroneously send 404 responses directly instead of redirect-to-tls first?
+bug_clientcert_reset = True        # Do we sometimes just close the connection instead of sending back tls certificate_required?
 
 
 class HostCRDSingle(AmbassadorTest):
@@ -935,7 +936,7 @@ spec:
         # so we get a generic alert=40 ("handshake_failure").
         yield Query(**base, maxTLSv="v1.2", error="tls: handshake failure")
         # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario.
-        yield Query(**base, minTLSv="v1.3", error="tls: certificate required")
+        yield Query(**base, minTLSv="v1.3", error=(["tls: certificate required"] + (["write: connection reset by peer"] if bug_clientcert_reset else [])))
 
         # Check that it's validating the client cert against the CA cert.
         yield Query(**base,
@@ -1043,7 +1044,7 @@ spec:
         # so we get a generic alert=40 ("handshake_failure").
         yield Query(**base, maxTLSv="v1.2", error="tls: handshake failure")
         # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario.
-        yield Query(**base, minTLSv="v1.3", error="tls: certificate required")
+        yield Query(**base, minTLSv="v1.3", error=(["tls: certificate required"] + (["write: connection reset by peer"] if bug_clientcert_reset else [])))
 
         # Check that it's validating the client cert against the CA cert.
         yield Query(**base,
