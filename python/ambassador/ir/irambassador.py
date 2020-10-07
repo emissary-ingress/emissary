@@ -52,6 +52,7 @@ class IRAmbassador (IRResource):
         'load_balancer',
         'preserve_external_request_id'
         'proper_case',
+        'prune_unreachable_routes',
         'readiness_probe',
         'regex_max_size',
         'regex_type',
@@ -119,6 +120,7 @@ class IRAmbassador (IRResource):
             use_proxy_proto=False,
             enable_http10=False,
             proper_case=False,
+            prune_unreachable_routes=False,
             use_remote_address=use_remote_address,
             x_forwarded_proto_redirect=False,
             load_balancer=None,

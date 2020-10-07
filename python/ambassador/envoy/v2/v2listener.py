@@ -1152,10 +1152,12 @@ class V2Listener(dict):
                                     action=None,
                                     insecure_action='Reject')
 
+        prune_unreachable_routes = config.ir.ambassador_module['prune_unreachable_routes']
+
         # OK. We have all the listeners. Time to walk the routes (note that they are already ordered).
         for route in config.routes:
             # Remember which hosts this can apply to
-            route_hosts = route.host_constraints()
+            route_hosts = route.host_constraints(prune_unreachable_routes)
 
             # Remember, also, if a precedence was set.
             route_precedence = route.get('_precedence', None)

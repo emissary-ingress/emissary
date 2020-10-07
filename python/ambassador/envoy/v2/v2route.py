@@ -277,7 +277,7 @@ class V2Route(Cacheable):
         self['route'] = route
 
 
-    def host_constraints(self) -> Set[str]:
+    def host_constraints(self, prune_unreachable_routes: bool) -> Set[str]:
         """Return a set of hostglobs that match (a superset of) all
         hostnames that this route can apply to.
 
@@ -294,14 +294,15 @@ class V2Route(Cacheable):
         """
         ret = set(self.get('_sni', {}).get('hosts', ['*']))
 
-        match = self.get("match", {})
-        match_headers = match.get("headers", [])
-        for header in match_headers:
-            if header.get("name") == ":authority" and "exact_match" in header:
-                if any(hostglob_matches(glob, header["exact_match"]) for glob in ret):
-                    return set([header["exact_match"]])
-                else:
-                    return set()
+        if prune_unreachable_routes:
+            match = self.get("match", {})
+            match_headers = match.get("headers", [])
+            for header in match_headers:
+                if header.get("name") == ":authority" and "exact_match" in header:
+                    if any(hostglob_matches(glob, header["exact_match"]) for glob in ret):
+                        return set([header["exact_match"]])
+                    else:
+                        return set()
 
         return ret
 
