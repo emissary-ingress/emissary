@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import logging
 import requests
@@ -22,7 +22,7 @@ import time
 from dataclasses import dataclass
 from dataclasses import field as dc_field
 
-def percentage(x, y):
+def percentage(x: float, y: float) -> int:
     if y == 0:
         return 0
     else:
@@ -44,7 +44,7 @@ class EnvoyStats:
     clusters: Dict[str, Any] = dc_field(default_factory=dict)
     envoy: Dict[str, Any] = dc_field(default_factory=dict)
 
-    def is_alive(self):
+    def is_alive(self) -> bool:
         """
         Make sure we've heard from Envoy within max_live_age seconds. 
 
@@ -61,7 +61,7 @@ class EnvoyStats:
 
         return (time.time() - epoch) <= self.max_live_age
 
-    def is_ready(self):
+    def is_ready(self) -> bool:
         """
         Make sure we've heard from Envoy within max_ready_age seconds. 
 
@@ -76,11 +76,11 @@ class EnvoyStats:
 
         return (time.time() - epoch) <= self.max_ready_age
 
-    def time_since_boot(self):
+    def time_since_boot(self) -> float:
         """ Return the number of seconds since Envoy booted. """
         return time.time() - self.created
 
-    def time_since_update(self):
+    def time_since_update(self) -> Optional[float]:
         """
         Return the number of seconds since we last heard from Envoy, or None if
         we've never heard from Envoy.
@@ -91,7 +91,7 @@ class EnvoyStats:
         else:
             return time.time() - self.last_update
 
-    def cluster_stats(self, name):
+    def cluster_stats(self, name: str) -> Dict[str, Union[str, bool]]:
         if not self.last_update:
             # No updates.
             return { 
@@ -147,9 +147,9 @@ class EnvoyStats:
 
 
 class EnvoyStatsMgr:
-    def __init__(self, logger: logging.Logger, max_live_age=120, max_ready_age=120):
+    def __init__(self, logger: logging.Logger, max_live_age: int=120, max_ready_age: int=120,
         self.logger = logger
-        self.loginfo: Dict[str, str] = {}
+        self.loginfo: Dict[str, Union[str, List[str]]] = {}
 
         self.stats = EnvoyStats(
             created=time.time(), 
@@ -196,7 +196,7 @@ class EnvoyStatsMgr:
 
             return False
 
-        levels = {}
+        levels: Dict[str, Dict[str, bool]] = {}
 
         for line in r.text.split("\n"):
             if not line:
@@ -209,6 +209,8 @@ class EnvoyStatsMgr:
                 x[logtype] = True
 
         # self.logger.info("levels: %s" % levels)
+
+        loginfo: Dict[str, Union[str, List[str]]]
 
         if len(levels.keys()) == 1:
             loginfo = { 'all': list(levels.keys())[0] }
@@ -223,7 +225,7 @@ class EnvoyStatsMgr:
     def get_stats(self) -> EnvoyStats:
         return self.stats
 
-    def get_prometheus_stats(self):
+    def get_prometheus_stats(self) -> str:
         try:
             r = requests.get("http://127.0.0.1:8001/stats/prometheus")
         except OSError as e:
@@ -235,7 +237,7 @@ class EnvoyStatsMgr:
             return ''
         return r.text
         
-    def update_envoy_stats(self, last_attempt):
+    def update_envoy_stats(self, last_attempt: float) -> None:
         failed = False
 
         try:
@@ -266,8 +268,7 @@ class EnvoyStatsMgr:
             return
 
         # Parse stats into a hierarchy.
-
-        envoy_stats = {}
+        envoy_stats: Dict[str, Any] = {}    # Ew.
 
         for line in r.text.split("\n"):
             if not line:
@@ -335,6 +336,8 @@ class EnvoyStatsMgr:
 
                 # self.logger.info("cluster %s stats: %s" % (cluster_name, cluster))
 
+                healthy_percent: Optional[int]
+                
                 healthy_members = cluster['membership_healthy']
                 total_members = cluster['membership_total']
                 healthy_percent = percentage(healthy_members, total_members)
@@ -399,7 +402,7 @@ class EnvoyStatsMgr:
 
         # self.logger.info("stats updated")
 
-    def update(self):
+    def update(self) -> None:
         # self.logger.info("updating estats")
 
         try:
