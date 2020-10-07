@@ -5,6 +5,8 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+- Bugfix: The RBAC for AES now grants permission to "patch" Events.v1.core.  Previously it granted "create" but not "patch".
+
 ## v6.5.8
 
 - Update Ambassador to version 1.7.4: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
