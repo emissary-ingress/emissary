@@ -1104,7 +1104,7 @@ data:
 
     def queries(self):
         yield Query(self.url("", scheme="http"), headers={"Host": "tls-context-host-1"},
-                    expected=(404 if EDGE_STACK else 301))
+                    expected=(404 if (EDGE_STACK or bug_404_routes) else 301))
         yield Query(self.url("other", scheme="http"), headers={"Host": "tls-context-host-1"},
                     expected=(404 if bug_404_routes else 301))
 
@@ -1375,6 +1375,14 @@ class HostCRDForcedStar(AmbassadorTest):
     target: ServiceType
 
     def init(self):
+        # We turn off edge_stack_cleartext_host, and manually
+        # duplicate the edge_stack_cleartext_host YAML in manifests(),
+        # since we want that even when testing a non-edge-stack build.
+        #
+        # The reason for that is that we're testing that it doesn't
+        # accidentally consider a cleartext hostname="*" to be a TLS
+        # hostname="*".
+        self.edge_stack_cleartext_host = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -1383,7 +1391,25 @@ class HostCRDForcedStar(AmbassadorTest):
 apiVersion: getambassador.io/v2
 kind: Host
 metadata:
-  name: {self.path.k8s}
+  name: {self.path.k8s}-cleartext-host
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ "{self.ambassador_id}" ]
+  hostname: "*"
+  selector:
+    matchLabels:
+      hostname: {self.path.k8s}
+  acmeProvider:
+    authority: none
+  requestPolicy:
+    insecure:
+      action: Route
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}-tls-host
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
