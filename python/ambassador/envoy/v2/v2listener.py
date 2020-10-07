@@ -1154,11 +1154,8 @@ class V2Listener(dict):
 
         # OK. We have all the listeners. Time to walk the routes (note that they are already ordered).
         for route in config.routes:
-            # If this an SNI route, remember the host[s] to which it pertains.
-            route_sni = route.get('_sni', {})
-            route_hostlist = route_sni.get('hosts', [])
-            route_hosts = set(route_hostlist)
-            route_hosts.update(route.host_constraints())
+            # Remember which hosts this can apply to
+            route_hosts = route.host_constraints()
 
             # Remember, also, if a precedence was set.
             route_precedence = route.get('_precedence', None)
@@ -1247,11 +1244,11 @@ class V2Listener(dict):
                                 route = secure_route
                             else:
                                 route = insecure_route
-                        elif route_hosts and (vhostname != '*') and (vhostname not in route_hosts):
+                        elif ('*' not in route_hosts) and (vhostname != '*') and (vhostname not in route_hosts):
                             # Drop this because the host is mismatched.
                             if log_debug:
                                 logger.debug(
-                                    f"V2Listeners: {listener.name} {vhostname} {variant}: force Reject (rhosts {route_hostlist}, vhost {vhostname})")
+                                    f"V2Listeners: {listener.name} {vhostname} {variant}: force Reject (rhosts {sorted(route_hosts)}, vhost {vhostname})")
                             action = "Reject"
                         elif (config.ir.edge_stack_allowed and
                               (route_precedence == -1000000) and

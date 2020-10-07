@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Set, Union, TYPE_CHECKING
 from typing import cast as typecast
 
 from ..common import EnvoyRoute
@@ -53,6 +53,19 @@ def regex_matcher(config: 'V2Config', regex: str, key="regex", safe_key=None, re
             return {
                 key: regex
             }
+
+
+def hostglob_matches(glob: str, value: str) -> bool:
+    if glob == "*": # special wildcard
+        return True
+    elif glob.endswith("*"): # prefix match
+        if value.startswith(glob[:-1]):
+            return True
+    elif glob.startswith("*"): # suffix match
+        if value.endswith(glob[1:]):
+            return True
+    else: # exact match
+        return value == glob
 
 
 class V2Route(Cacheable):
@@ -263,17 +276,35 @@ class V2Route(Cacheable):
 
         self['route'] = route
 
-    def host_constraints(self):
+
+    def host_constraints(self) -> Set[str]:
+        """Return a set of hostglobs that match (a superset of) all
+        hostnames that this route can apply to.
+
+        An emtpy set means that this route cannot possibly apply to
+        any hostnames.
+
+        This considers SNI information and HeaderMatchers that
+        `exact_match` on the `:authority` header.  There are other
+        things that could narrow the set down more, but that this
+        function doesn't consider (like regex matches on
+        `:authority`), leading to it possibly returning a set that is
+        too broad.  That's OK for correctness, it just means that
+        we'll emit an Envoy config that contains extra work for Envoy.
         """
-        Yield all the exact_match host constraints for this route.
-        """
+        ret = set(self.get('_sni', {}).get('hosts', ['*']))
+
         match = self.get("match", {})
         match_headers = match.get("headers", [])
         for header in match_headers:
-            if header.get("name") == ":authority":
-                value = header.get("exact_match", None)
-                if value != None:
-                    yield value
+            if header.get("name") == ":authority" and "exact_match" in header:
+                if any(hostglob_matches(glob, header["exact_match"]) for glob in ret):
+                    return set([header["exact_match"]])
+                else:
+                    return set()
+
+        return ret
+
 
     @classmethod
     def get_route(cls, config: 'V2Config', cache_key: str,
