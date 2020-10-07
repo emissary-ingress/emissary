@@ -64,7 +64,6 @@ class ResourceFetcher:
 
         self.k8s_processor = DeduplicatingKubernetesProcessor(AggregateKubernetesProcessor([
             CountingKubernetesProcessor(self.aconf, KubernetesGVK.for_knative_networking('Ingress'), 'knative_ingress'),
-            CountingKubernetesProcessor(self.aconf, KubernetesGVK.for_knative_networking('ClusterIngress'), 'knative_cluster_ingress'),
             AmbassadorProcessor(self.manager),
             ServiceProcessor(self.manager, watch_only=watch_only),
             KnativeIngressProcessor(self.manager),

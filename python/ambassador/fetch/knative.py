@@ -21,12 +21,7 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
     INGRESS_CLASS: ClassVar[str] = 'ambassador.ingress.networking.knative.dev'
 
     def kinds(self) -> FrozenSet[KubernetesGVK]:
-        kinds = [
-            'Ingress',
-            'ClusterIngress',
-        ]
-
-        return frozenset([KubernetesGVK.for_knative_networking(kind) for kind in kinds])
+        return frozenset([KubernetesGVK.for_knative_networking('Ingress')])
 
     def _has_required_annotations(self, obj: KubernetesObject) -> bool:
         annotations = obj.annotations
