@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import logging
 import requests
@@ -146,13 +146,22 @@ class EnvoyStats:
         return cstat
 
 
+LogLevelFetcher = Callable[[Optional[str]], Optional[str]]
+EnvoyStatsFetcher = Callable[[], Optional[str]]
+
 class EnvoyStatsMgr:
+    # fetch_log_levels and fetch_envoy_stats are debugging hooks
     def __init__(self, logger: logging.Logger, max_live_age: int=120, max_ready_age: int=120,
+                 fetch_log_levels: Optional[LogLevelFetcher] = None,
+                 fetch_envoy_stats: Optional[EnvoyStatsFetcher] = None) -> None:
         self.logger = logger
         self.loginfo: Dict[str, Union[str, List[str]]] = {}
 
         self.update_lock = threading.Lock()
         self.access_lock = threading.Lock()
+
+        self.fetch_log_levels = fetch_log_levels or self._fetch_log_levels
+        self.fetch_envoy_stats = fetch_envoy_stats or self._fetch_envoy_stats
 
         self.stats = EnvoyStats(
             created=time.time(),
@@ -160,7 +169,39 @@ class EnvoyStatsMgr:
             max_ready_age=max_ready_age
         )
 
-    def update_log_levels(self, last_attempt, level=None):
+    def _fetch_log_levels(self, level: Optional[str]) -> Optional[str]:
+        try:
+            url = "http://127.0.0.1:8001/logging"
+
+            if level:
+                url += "?level=%s" % level
+
+            r = requests.post(url)
+
+            # OMFG. Querying log levels returns with a 404 code.
+            if (r.status_code != 200) and (r.status_code != 404):
+                self.logger.warning("EnvoyStats.update_log_levels failed: %s" % r.text)
+                return None
+
+            return r.text
+        except Exception as e:
+            self.logger.warning("EnvoyStats.update_log_levels failed: %s" % e)
+            return None
+
+    def _fetch_envoy_stats(self) -> Optional[str]:
+        try:
+            r = requests.get("http://127.0.0.1:8001/stats")
+
+            if r.status_code != 200:
+                self.logger.warning("EnvoyStats.update failed: %s" % r.text)
+                return None
+
+            return r.text
+        except OSError as e:
+            self.logger.warning("EnvoyStats.update failed: %s" % e)
+            return None
+
+    def update_log_levels(self, last_attempt: float, level: Optional[str]=None) -> bool:
         """
         Heavy lifting around updating the Envoy log levels.
 
@@ -173,26 +214,9 @@ class EnvoyStatsMgr:
         """
 
         # self.logger.info("updating levels")
+        text = self.fetch_log_levels(level)
 
-        failed = False
-
-        try:
-            url = "http://127.0.0.1:8001/logging"
-
-            if level:
-                url += "?level=%s" % level
-
-            r = requests.post(url)
-
-            # OMFG. Querying log levels returns with a 404 code.
-            if (r.status_code != 200) and (r.status_code != 404):
-                self.logger.warning("EnvoyStats.update_log_levels failed: %s" % r.text)
-                failed = True
-        except OSError as e:
-            self.logger.warning("EnvoyStats.update_log_levels failed: %s" % e)
-            failed = True
-        
-        if failed:
+        if not text:
             # Ew.
             with self.access_lock:
                 # EnvoyStats is immutable, so...
@@ -214,7 +238,7 @@ class EnvoyStatsMgr:
 
         levels: Dict[str, Dict[str, bool]] = {}
 
-        for line in r.text.split("\n"):
+        for line in text.split("\n"):
             if not line:
                 continue
 
@@ -272,19 +296,10 @@ class EnvoyStatsMgr:
         new stats, then grabs the access_lock just long enough to update the data
         structures for others to look at.
         """
-        failed = False
 
-        try:
-            r = requests.get("http://127.0.0.1:8001/stats")
+        text = self.fetch_envoy_stats()
 
-            if r.status_code != 200:
-                self.logger.warning("EnvoyStats.update failed: %s" % r.text)
-                failed = True
-        except OSError as e:
-            self.logger.warning("EnvoyStats.update failed: %s" % e)
-            failed = True
-
-        if failed:
+        if not text:
             # EnvoyStats is immutable, so...
             new_stats = EnvoyStats(
                 max_live_age=self.stats.max_live_age,
@@ -305,7 +320,7 @@ class EnvoyStatsMgr:
         # Parse stats into a hierarchy.
         envoy_stats: Dict[str, Any] = {}    # Ew.
 
-        for line in r.text.split("\n"):
+        for line in text.split("\n"):
             if not line:
                 continue
 
