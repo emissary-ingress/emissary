@@ -81,9 +81,6 @@ commands:
         - "pytest"
         - "e2etest"
         default: "test"
-      "fast-validation":
-        type: boolean
-        default: false
       "fast-reconfigure":
         type: boolean
         default: false
@@ -113,7 +110,7 @@ commands:
           fi
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=600
-          if << parameters.fast-validation >>; then
+          if << parameters.fast-reconfigure >>; then
             export AMBASSADOR_FAST_VALIDATION=yes # empty/nonempty
           fi
           export AMBASSADOR_FAST_RECONFIGURE=<< parameters.fast-reconfigure >> # ParseBool
@@ -471,16 +468,12 @@ jobs:
         - "gotest"
         - "pytest"
         default: "test"
-      fast-validation:
-        type: boolean
-        default: false
       fast-reconfigure:
         type: boolean
         default: false
     steps:
     - job-test:
         test: << parameters.test >>
-        fast-validation: << parameters.fast-validation >>
         fast-reconfigure: << parameters.fast-reconfigure >>
   oss-promote-to-rc-latest:
     executor: oss-linux
@@ -566,39 +559,23 @@ workflows:
     - oss-test:
         requires:
         - "oss-dev-images"
-        name: "oss-dev-gotest"
-        test: gotest
-    - oss-test:
-        requires:
-        - "oss-dev-images"
-        name: "oss-dev-pytest"
-        test: pytest
-    - oss-test:
-        requires:
-        - "oss-dev-images"
-        name: "oss-dev-gotest-fastvalidation"
-        test: gotest
-        fast-validation: true
-    - oss-test:
-        requires:
-        - "oss-dev-images"
-        name: "oss-dev-pytest-fastvalidation"
-        test: pytest
-        fast-validation: true
-    - oss-test:
-        requires:
-        - "oss-dev-images"
-        name: "oss-dev-gotest-fastreconfigure"
-        test: gotest
-        fast-validation: true
-        fast-reconfigure: true
-    - oss-test:
-        requires:
-        - "oss-dev-images"
-        name: "oss-dev-pytest-fastreconfigure"
-        test: pytest
-        fast-validation: true
-        fast-reconfigure: true
+        name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >>"
+        matrix:
+          alias: "oss-dev-test"
+          parameters:
+            test:
+            - "gotest"
+            - "pytest"
+            # Running the ingresstests would require we install `kind` and
+            # that the test suite supports HTTP to HTTPS redirects (AES
+            # enables cleartext redirection by default, even for fallback
+            # hosts, contrary to A/OSS)
+            #- "ingresstest"
+
+            fast-reconfigure:
+            - true
+            - false
   'OSS: Release':
     when:
       or:
@@ -634,64 +611,23 @@ workflows:
     - oss-test:
         requires:
         - "oss-release-images"
-        name: "oss-release-gotest"
-        test: gotest
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-test:
-        requires:
-        - "oss-release-images"
-        name: "oss-release-pytest"
-        test: pytest
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-test:
-        requires:
-        - "oss-release-images"
-        name: "oss-release-gotest-fastvalidation"
-        test: gotest
-        fast-validation: true
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-test:
-        requires:
-        - "oss-release-images"
-        name: "oss-release-pytest-fastvalidation"
-        test: pytest
-        fast-validation: true
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-test:
-        requires:
-        - "oss-release-images"
-        name: "oss-release-gotest-fastreconfigure"
-        test: gotest
-        fast-validation: true
-        fast-reconfigure: true
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-test:
-        requires:
-        - "oss-release-images"
-        name: "oss-release-pytest-fastreconfigure"
-        test: pytest
-        fast-validation: true
-        fast-reconfigure: true
+        name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >>"
+        matrix:
+          alias: "oss-release-test"
+          parameters:
+            test:
+            - "gotest"
+            - "pytest"
+            # Running the ingresstests would require we install `kind` and
+            # that the test suite supports HTTP to HTTPS redirects (AES
+            # enables cleartext redirection by default, even for fallback
+            # hosts, contrary to A/OSS)
+            #- "ingresstest"
+
+            fast-reconfigure:
+            - true
+            - false
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
@@ -705,12 +641,7 @@ workflows:
         # test
         - "oss-release-generate"
         - "oss-release-lint"
-        - "oss-release-gotest"
-        - "oss-release-pytest"
-        - "oss-release-gotest-fastvalidation"
-        - "oss-release-pytest-fastvalidation"
-        - "oss-release-gotest-fastreconfigure"
-        - "oss-release-pytest-fastreconfigure"
+        - "oss-release-test"
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
