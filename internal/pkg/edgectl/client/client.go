@@ -23,14 +23,20 @@ func IsServerRunning() bool {
 	return err == nil
 }
 
+var daemonIsNotRunning = errors.New("Daemon is not running (see \"edgectl help daemon\")")
+
 // Version requests version info from the daemon and prints both client and daemon version.
 func Version(cmd *cobra.Command, _ []string) error {
 	av, dv, err := daemonVersion()
 	if err == nil {
 		fmt.Fprintf(cmd.OutOrStdout(), "Client %s\nDaemon v%s (api v%d)\n", edgectl.DisplayVersion(), dv, av)
-		os.Exit(0)
+		return nil
 	}
-	return err
+	if err == daemonIsNotRunning {
+		return fmt.Errorf("Client %s\n%s", edgectl.DisplayVersion(), err.Error())
+	}
+	// Socket exists but connection failed anyway.
+	return fmt.Errorf("Client %s\nUnable to connect to daemon: %s", edgectl.DisplayVersion(), err.Error())
 }
 
 // A ConnectInfo contains all information needed to connect to a cluster.
@@ -431,6 +437,13 @@ func withDaemon(f func(rpc.DaemonClient) error) error {
 	// TODO: Revise use of passthrough once this is fixed in grpc-go.
 	//  see: https://github.com/grpc/grpc-go/issues/1741
 	//  and https://github.com/grpc/grpc-go/issues/1911
+	_, err := os.Stat(edgectl.DaemonSocketName)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = daemonIsNotRunning
+		}
+		return err
+	}
 	conn, err := grpc.Dial("passthrough:///unix://"+edgectl.DaemonSocketName, grpc.WithInsecure())
 	if err == nil {
 		defer conn.Close()
