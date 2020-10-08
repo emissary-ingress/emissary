@@ -55,6 +55,11 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
+(no changes yet)
+
+## [1.8.0-rc.0] October 07, 2020
+[1.8.0-rc.0]: https://github.com/datawire/ambassador/compare/v1.7.4...v1.8.0-rc.0
+
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Feature: HTTP IP Allow/Deny ranges are supported.
