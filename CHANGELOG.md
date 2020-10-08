@@ -55,7 +55,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
-(no changes yet)
+- Bugfix: The `edgectl version` command now reports client version and help info when daemon is not running.
 
 ## [1.7.4] October 06, 2020
 [1.7.4]: https://github.com/datawire/ambassador/compare/v1.7.3...v1.7.4
