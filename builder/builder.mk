@@ -400,7 +400,7 @@ rc: release/bits
 release/bits: images
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
 	@printf "$(CYN)==> $(GRN)Pushing $(BLU)$(REPO)$(GRN) Docker image$(END)\n"
-	docker tag $(REPO) $(AMB_IMAGE_RC)
+	docker tag $$(cat docker/$(NAME).docker) $(AMB_IMAGE_RC)
 	docker push $(AMB_IMAGE_RC)
 .PHONY: release/bits
 
