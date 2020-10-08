@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -x
+
 # Save the images
-docker image ls --filter=dangling=false --format='{{ .Repository }}:{{ .Tag }}' | xargs docker image save > docker/images.tar
+go run "${0%-workspace}-images.go"
+
 # Save the cache volume
 docker run \
   --rm \

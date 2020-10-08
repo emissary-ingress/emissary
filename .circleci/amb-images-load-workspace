@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 set -x
+
 # Load the images
 docker image load < docker/images.tar
 rm docker/images.tar
+./docker/images.sh
+rm docker/images.sh
+
 # Resume the build container
 rm -f docker/container.txt docker/container.txt.stamp
 make docker/container.txt
