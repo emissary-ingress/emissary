@@ -251,9 +251,16 @@ define _docker.tag.rule
   #   line 2: tag 1
   #   line 3: tag 2
   #   ...
-  %.docker.push.$(_docker.tag.group): %.docker.tag.$(_docker.tag.group)
-	sed 1d $$< | xargs -n1 docker push
-	cat $$< > $$@
+  %.docker.push.$(_docker.tag.group): %.docker.tag.$(_docker.tag.group) FORCE
+	@set -e; { \
+	  if cmp -s $$< $$@; then \
+	    printf "$${CYN}==> $${GRN}Already pushed $${BLU}$$$$(sed -n 2p $$@)$${END}\n"; \
+	  else \
+	    printf "$${CYN}==> $${GRN}Pushing $${BLU}$$$$(sed -n 2p $$<)$${GRN}...$${END}\n"; \
+	    sed 1d $$< | xargs -n1 docker push; \
+	    cat $$< > $$@; \
+	  fi; \
+	}
 
   %.docker.clean.$(_docker.tag.group):
 	if [ -e $$*.docker.tag.$(_docker.tag.group) ]; then docker image rm -- $$$$(sed 1d $$*.docker.tag.$(_docker.tag.group)) || true; fi

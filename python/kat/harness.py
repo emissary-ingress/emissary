@@ -1144,8 +1144,15 @@ class Runner:
 
                 if not t.handle_local_result():
                     # XXX: should aggregate the result of url checks
+                    i = 0
                     for r in t.results:
-                        r.check()
+                        try:
+                            r.check()
+                        except AssertionError as e:
+                            # Add some context so that you can tell which query is failing.
+                            e.args = (f"query[{i}]: {e.args[0]}", *e.args[1:])
+                            raise
+                        i += 1
 
                     t.check()
 

@@ -17,6 +17,7 @@ generate:
 	$(MAKE) generate-clean
 	$(MAKE) $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb
 	$(MAKE) _generate
+	cd .circleci && ./generate --always-make
 _generate:
 	@echo '$(MAKE) $$(generate/files)'; $(MAKE) $(generate/files)
 generate-clean: ## Delete generated sources that get committed to git

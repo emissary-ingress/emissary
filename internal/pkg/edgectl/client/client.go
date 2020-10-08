@@ -23,12 +23,19 @@ func IsServerRunning() bool {
 	return err == nil
 }
 
+var daemonIsNotRunning = errors.New("Daemon is not running (see \"edgectl help daemon\")")
+
 // Version requests version info from the daemon and prints both client and daemon version.
 func Version(cmd *cobra.Command, _ []string) error {
 	av, dv, err := daemonVersion()
 	if err == nil {
 		fmt.Fprintf(cmd.OutOrStdout(), "Client %s\nDaemon v%s (api v%d)\n", edgectl.DisplayVersion(), dv, av)
-		os.Exit(0)
+		return nil
+	}
+	fmt.Fprintf(cmd.OutOrStdout(), "Client %s\n", edgectl.DisplayVersion())
+	if err != daemonIsNotRunning {
+		// Socket exists but connection failed anyway.
+		err = fmt.Errorf("Unable to connect to daemon: %s", err)
 	}
 	return err
 }
@@ -142,6 +149,9 @@ func Status(cmd *cobra.Command, _ []string) error {
 			if ic.Connected {
 				fmt.Fprintf(out, "  Interceptable: %d deployments\n", ic.InterceptableCount)
 				fmt.Fprintf(out, "  Intercepts:    %d total, %d local\n", ic.ClusterIntercepts, ic.LocalIntercepts)
+				if ic.LicenseInfo != "" {
+					fmt.Fprintln(out, ic.LicenseInfo)
+				}
 				break
 			}
 			if s.ErrorText != "" {
@@ -431,6 +441,13 @@ func withDaemon(f func(rpc.DaemonClient) error) error {
 	// TODO: Revise use of passthrough once this is fixed in grpc-go.
 	//  see: https://github.com/grpc/grpc-go/issues/1741
 	//  and https://github.com/grpc/grpc-go/issues/1911
+	_, err := os.Stat(edgectl.DaemonSocketName)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = daemonIsNotRunning
+		}
+		return err
+	}
 	conn, err := grpc.Dial("passthrough:///unix://"+edgectl.DaemonSocketName, grpc.WithInsecure())
 	if err == nil {
 		defer conn.Close()

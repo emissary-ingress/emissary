@@ -27,22 +27,6 @@
             "serialization": null,
             "version": "getambassador.io/v0"
         },
-        "k8s-rate-limit-v1-default": {
-            "_referenced_by": {},
-            "ambassador_id": "ratelimitv1test",
-            "apiVersion": "getambassador.io/v2",
-            "endpoints": {},
-            "kind": "Service",
-            "location": "k8s-rate-limit-v1-default",
-            "metadata_labels": {
-                "kat-ambassador-id": "ratelimitv1test",
-                "scope": "AmbassadorTest"
-            },
-            "name": "rate-limit-v1",
-            "namespace": "default",
-            "rkey": "k8s-rate-limit-v1-default",
-            "serialization": "ambassador_id: ratelimitv1test\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1test\n  scope: AmbassadorTest\nname: rate-limit-v1\nnamespace: default\n"
-        },
         "k8s-ratelimitv1test-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "ratelimitv1test",
@@ -93,22 +77,21 @@
             "rkey": "k8s-ratelimitv1test-http-default",
             "serialization": "ambassador_id: ratelimitv1test\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1test\n  scope: AmbassadorTest\nname: ratelimitv1test-http\nnamespace: default\n"
         },
-        "rate-limit-v1.default.1": {
+        "k8s-ratelimitv1test-rlsgrpc-default": {
             "_referenced_by": {},
             "ambassador_id": "ratelimitv1test",
-            "apiVersion": "getambassador.io/v1",
-            "kind": "RateLimitService",
-            "location": "rate-limit-v1.default.1",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-ratelimitv1test-rlsgrpc-default",
             "metadata_labels": {
                 "kat-ambassador-id": "ratelimitv1test",
                 "scope": "AmbassadorTest"
             },
-            "name": "ratelimit-v1",
+            "name": "ratelimitv1test-rlsgrpc",
             "namespace": "default",
-            "rkey": "rate-limit-v1.default.1",
-            "serialization": "_force_validation: true\nambassador_id: ratelimitv1test\napiVersion: ambassador/v1\nkind: RateLimitService\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1test\n  scope: AmbassadorTest\nname: ratelimit-v1\nnamespace: default\nservice: rate-limit-v1:5000\ntimeout_ms: 500\n",
-            "service": "rate-limit-v1:5000",
-            "timeout_ms": 500
+            "rkey": "k8s-ratelimitv1test-rlsgrpc-default",
+            "serialization": "ambassador_id: ratelimitv1test\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1test\n  scope: AmbassadorTest\nname: ratelimitv1test-rlsgrpc\nnamespace: default\n"
         },
         "ratelimitv1test-http.default.1": {
             "_referenced_by": {},
@@ -122,6 +105,12 @@
                             {
                                 "x-ambassador-test-allow": {
                                     "header": "x-ambassador-test-allow",
+                                    "omit_if_not_present": true
+                                }
+                            },
+                            {
+                                "x-ambassador-test-headers-append": {
+                                    "header": "x-ambassador-test-headers-append",
                                     "omit_if_not_present": true
                                 }
                             }
@@ -138,8 +127,26 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "ratelimitv1test-http.default.1",
-            "serialization": "_force_validation: true\nambassador_id: ratelimitv1test\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - request_label_group:\n    - x-ambassador-test-allow:\n        header: x-ambassador-test-allow\n        omit_if_not_present: true\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1test\n  scope: AmbassadorTest\nname: ratelimit_target_mapping\nnamespace: default\nprefix: /target/\nservice: ratelimitv1test-http\n",
+            "serialization": "_force_validation: true\nambassador_id: ratelimitv1test\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - request_label_group:\n    - x-ambassador-test-allow:\n        header: x-ambassador-test-allow\n        omit_if_not_present: true\n    - x-ambassador-test-headers-append:\n        header: x-ambassador-test-headers-append\n        omit_if_not_present: true\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1test\n  scope: AmbassadorTest\nname: ratelimit_target_mapping\nnamespace: default\nprefix: /target/\nservice: ratelimitv1test-http\n",
             "service": "ratelimitv1test-http"
+        },
+        "ratelimitv1test.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv1test",
+            "apiVersion": "getambassador.io/v1",
+            "kind": "RateLimitService",
+            "location": "ratelimitv1test.default.1",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "ratelimitv1test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ratelimitv1test-rlsgrpc",
+            "namespace": "default",
+            "rkey": "ratelimitv1test.default.1",
+            "serialization": "_force_validation: true\nambassador_id: ratelimitv1test\napiVersion: ambassador/v1\nkind: RateLimitService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: ratelimitv1test\n  scope: AmbassadorTest\nname: ratelimitv1test-rlsgrpc\nnamespace: default\nservice: ratelimitv1test-rlsgrpc\ntimeout_ms: 500\n",
+            "service": "ratelimitv1test-rlsgrpc",
+            "timeout_ms": 500
         }
     },
     "mappings": {
@@ -154,6 +161,12 @@
                             {
                                 "x-ambassador-test-allow": {
                                     "header": "x-ambassador-test-allow",
+                                    "omit_if_not_present": true
+                                }
+                            },
+                            {
+                                "x-ambassador-test-headers-append": {
+                                    "header": "x-ambassador-test-headers-append",
                                     "omit_if_not_present": true
                                 }
                             }
@@ -172,33 +185,22 @@
         }
     },
     "ratelimit_configs": {
-        "ratelimit-v1": {
+        "ratelimitv1test-rlsgrpc": {
             "ambassador_id": "ratelimitv1test",
             "apiVersion": "getambassador.io/v1",
             "kind": "RateLimitService",
             "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
                 "kat-ambassador-id": "ratelimitv1test",
                 "scope": "AmbassadorTest"
             },
-            "name": "ratelimit-v1",
+            "name": "ratelimitv1test-rlsgrpc",
             "namespace": "default",
-            "service": "rate-limit-v1:5000",
+            "service": "ratelimitv1test-rlsgrpc",
             "timeout_ms": 500
         }
     },
     "service": {
-        "k8s-rate-limit-v1-default": {
-            "ambassador_id": "ratelimitv1test",
-            "apiVersion": "getambassador.io/v2",
-            "endpoints": {},
-            "kind": "Service",
-            "metadata_labels": {
-                "kat-ambassador-id": "ratelimitv1test",
-                "scope": "AmbassadorTest"
-            },
-            "name": "rate-limit-v1",
-            "namespace": "default"
-        },
         "k8s-ratelimitv1test-admin-default": {
             "ambassador_id": "ratelimitv1test",
             "apiVersion": "getambassador.io/v2",
@@ -235,6 +237,18 @@
                 "scope": "AmbassadorTest"
             },
             "name": "ratelimitv1test-http",
+            "namespace": "default"
+        },
+        "k8s-ratelimitv1test-rlsgrpc-default": {
+            "ambassador_id": "ratelimitv1test",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv1test",
+                "scope": "AmbassadorTest"
+            },
+            "name": "ratelimitv1test-rlsgrpc",
             "namespace": "default"
         }
     }

@@ -12,37 +12,41 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+from typing import Any, Callable, Dict, List, Optional, Union
+
 import logging
+import requests
+import threading
 import time
 
-import requests
-from flask import Response
+from dataclasses import dataclass
+from dataclasses import field as dc_field
 
-def percentage(x, y):
+def percentage(x: float, y: float) -> int:
     if y == 0:
         return 0
     else:
         return int(((x * 100) / y) + 0.5)
 
-class EnvoyStats (object):
-    def __init__(self, max_live_age=20, max_ready_age=20):
-        self.update_errors = 0
-        self.max_live_age = max_live_age
-        self.max_ready_age = max_ready_age
-        self.loginfo = None
+@dataclass(frozen=True)
+class EnvoyStats:
+    max_live_age: int = 120
+    max_ready_age: int = 120
+    created: float = 0.0
+    last_update: Optional[float] = None
+    last_attempt: Optional[float] = None
+    update_errors: int = 0
 
-        self.stats = {
-            "created": time.time(),
-            "last_update": 0,
-            "last_attempt": 0,
-            "update_errors": 0,
-            "services": {},
-            "envoy": {}
-        }
+    # Yes yes yes I know -- the contents of these dicts are not immutable.
+    # That's OK for now, but realize that you mustn't go munging around altering
+    # things in here once they're assigned!
+    requests: Dict[str, Any] = dc_field(default_factory=dict)
+    clusters: Dict[str, Any] = dc_field(default_factory=dict)
+    envoy: Dict[str, Any] = dc_field(default_factory=dict)
 
-    def is_alive(self):
+    def is_alive(self) -> bool:
         """
-        Make sure we've heard from Envoy within max_live_age seconds. 
+        Make sure we've heard from Envoy within max_live_age seconds.
 
         If we haven't yet heard from Envoy at all (we've just booted),
         consider Envoy alive if we haven't yet been running for max_live_age
@@ -50,47 +54,47 @@ class EnvoyStats (object):
         boot time.
         """
 
-        epoch = self.stats["last_update"]
+        epoch = self.last_update
 
         if not epoch:
-            epoch = self.stats["created"]
+            epoch = self.created
 
         return (time.time() - epoch) <= self.max_live_age
 
-    def is_ready(self):
+    def is_ready(self) -> bool:
         """
-        Make sure we've heard from Envoy within max_ready_age seconds. 
+        Make sure we've heard from Envoy within max_ready_age seconds.
 
         If we haven't yet heard from Envoy at all (we've just booted),
         then Envoy is not yet ready, and is_ready() returns False.
         """
 
-        epoch = self.stats["last_update"]
+        epoch = self.last_update
 
         if not epoch:
             return False
 
         return (time.time() - epoch) <= self.max_ready_age
 
-    def time_since_boot(self):
+    def time_since_boot(self) -> float:
         """ Return the number of seconds since Envoy booted. """
-        return time.time() - self.stats["created"]
+        return time.time() - self.created
 
-    def time_since_update(self):
+    def time_since_update(self) -> Optional[float]:
         """
         Return the number of seconds since we last heard from Envoy, or None if
         we've never heard from Envoy.
         """
-        
-        if self.stats["last_update"] == 0:
+
+        if not self.last_update:
             return None
         else:
-            return time.time() - self.stats["last_update"]
+            return time.time() - self.last_update
 
-    def cluster_stats(self, name):
-        if not self.stats['last_update']:
+    def cluster_stats(self, name: str) -> Dict[str, Union[str, bool]]:
+        if not self.last_update:
             # No updates.
-            return { 
+            return {
                 'valid': False,
                 'reason': "No stats updates have succeeded",
                 'health': "no stats yet",
@@ -99,8 +103,8 @@ class EnvoyStats (object):
             }
 
         # OK, we should be OK.
-        when = self.stats['last_update']
-        cstat = self.stats['clusters']
+        when = self.last_update
+        cstat = self.clusters
 
         if name not in cstat:
             return {
@@ -141,9 +145,31 @@ class EnvoyStats (object):
 
         return cstat
 
-    def update_log_levels(self, last_attempt, level=None):
-        # logging.info("updating levels")
 
+LogLevelFetcher = Callable[[Optional[str]], Optional[str]]
+EnvoyStatsFetcher = Callable[[], Optional[str]]
+
+class EnvoyStatsMgr:
+    # fetch_log_levels and fetch_envoy_stats are debugging hooks
+    def __init__(self, logger: logging.Logger, max_live_age: int=120, max_ready_age: int=120,
+                 fetch_log_levels: Optional[LogLevelFetcher] = None,
+                 fetch_envoy_stats: Optional[EnvoyStatsFetcher] = None) -> None:
+        self.logger = logger
+        self.loginfo: Dict[str, Union[str, List[str]]] = {}
+
+        self.update_lock = threading.Lock()
+        self.access_lock = threading.Lock()
+
+        self.fetch_log_levels = fetch_log_levels or self._fetch_log_levels
+        self.fetch_envoy_stats = fetch_envoy_stats or self._fetch_envoy_stats
+
+        self.stats = EnvoyStats(
+            created=time.time(),
+            max_live_age=max_live_age,
+            max_ready_age=max_ready_age
+        )
+
+    def _fetch_log_levels(self, level: Optional[str]) -> Optional[str]:
         try:
             url = "http://127.0.0.1:8001/logging"
 
@@ -151,20 +177,68 @@ class EnvoyStats (object):
                 url += "?level=%s" % level
 
             r = requests.post(url)
+
+            # OMFG. Querying log levels returns with a 404 code.
+            if (r.status_code != 200) and (r.status_code != 404):
+                self.logger.warning("EnvoyStats.update_log_levels failed: %s" % r.text)
+                return None
+
+            return r.text
+        except Exception as e:
+            self.logger.warning("EnvoyStats.update_log_levels failed: %s" % e)
+            return None
+
+    def _fetch_envoy_stats(self) -> Optional[str]:
+        try:
+            r = requests.get("http://127.0.0.1:8001/stats")
+
+            if r.status_code != 200:
+                self.logger.warning("EnvoyStats.update failed: %s" % r.text)
+                return None
+
+            return r.text
         except OSError as e:
-            logging.warning("EnvoyStats.update_log_levels failed: %s" % e)
-            self.stats['update_errors'] += 1
-            return False
+            self.logger.warning("EnvoyStats.update failed: %s" % e)
+            return None
 
-        # OMFG. Querying log levels returns with a 404 code.
-        if (r.status_code != 200) and (r.status_code != 404):
-            logging.warning("EnvoyStats.update_log_levels failed: %s" % r.text)
-            self.stats['update_errors'] += 1
-            return False   
+    def update_log_levels(self, last_attempt: float, level: Optional[str]=None) -> bool:
+        """
+        Heavy lifting around updating the Envoy log levels.
 
-        levels = {}
+        You MUST hold the update lock when calling this method.
+        You MUST NOT hold the access lock when calling this method.
 
-        for line in r.text.split("\n"):
+        update_log_levels does all the work of talking to Envoy and computing
+        new stats, then grabs the access_lock just long enough to update the data
+        structures for others to look at.
+        """
+
+        # self.logger.info("updating levels")
+        text = self.fetch_log_levels(level)
+
+        if not text:
+            # Ew.
+            with self.access_lock:
+                # EnvoyStats is immutable, so...
+                new_stats = EnvoyStats(
+                    max_live_age=self.stats.max_live_age,
+                    max_ready_age=self.stats.max_ready_age,
+                    created=self.stats.created,
+                    last_update=self.stats.last_update,
+                    last_attempt=last_attempt,                      # THIS IS A CHANGE
+                    update_errors=self.stats.update_errors + 1,     # THIS IS A CHANGE
+                    requests=self.stats.requests,
+                    clusters=self.stats.clusters,
+                    envoy=self.stats.envoy
+                )
+
+                self.stats = new_stats
+
+                return False
+
+        levels: Dict[str, Dict[str, bool]] = {}
+
+        for line in text.split("\n"):
             if not line:
                 continue
 
@@ -174,52 +248,83 @@ class EnvoyStats (object):
                 x = levels.setdefault(level, {})
                 x[logtype] = True
 
-        # logging.info("levels: %s" % levels)
+        # self.logger.info("levels: %s" % levels)
+
+        loginfo: Dict[str, Union[str, List[str]]]
 
         if len(levels.keys()) == 1:
-            self.loginfo = { 'all': list(levels.keys())[0] }
+            loginfo = { 'all': list(levels.keys())[0] }
         else:
-            self.loginfo = { x: levels[x] for x in sorted(levels.keys()) }
+            loginfo = { x: list(levels[x].keys()) for x in levels.keys() }
 
-        # logging.info("loginfo: %s" % self.loginfo)
-        return True
+        with self.access_lock:
+            self.loginfo = loginfo
 
-    def get_prometheus_stats(self):
+            # self.logger.info("loginfo: %s" % self.loginfo)
+            return True
+
+    def get_stats(self) -> EnvoyStats:
+        """
+        Get the current Envoy stats object, safely.
+
+        You MUST NOT hold the access_lock when calling this method.
+        """
+
+        with self.access_lock:
+            return self.stats
+
+    def get_prometheus_stats(self) -> str:
         try:
             r = requests.get("http://127.0.0.1:8001/stats/prometheus")
         except OSError as e:
-            logging.warning("EnvoyStats.get_prometheus_state failed: %s" % e)
+            self.logger.warning("EnvoyStats.get_prometheus_state failed: %s" % e)
             return ''
 
         if r.status_code != 200:
-            logging.warning("EnvoyStats.get_prometheus_state failed: %s" % r.text)
+            self.logger.warning("EnvoyStats.get_prometheus_state failed: %s" % r.text)
             return ''
         return r.text
-        
-    def update_envoy_stats(self, last_attempt):
-        # logging.info("updating stats")
 
-        try:
-            r = requests.get("http://127.0.0.1:8001/stats")
-        except OSError as e:
-            logging.warning("EnvoyStats.update failed: %s" % e)
-            self.stats['update_errors'] += 1
-            return
+    def update_envoy_stats(self, last_attempt: float) -> None:
+        """
+        Heavy lifting around updating the Envoy stats.
 
-        if r.status_code != 200:
-            logging.warning("EnvoyStats.update failed: %s" % r.text)
-            self.stats['update_errors'] += 1
-            return
+        You MUST hold the update lock when calling this method.
+        You MUST NOT hold the access lock when calling this method.
+
+        update_envoy_stats does all the work of talking to Envoy and computing
+        new stats, then grabs the access_lock just long enough to update the data
+        structures for others to look at.
+        """
+
+        text = self.fetch_envoy_stats()
+
+        if not text:
+            # EnvoyStats is immutable, so...
+            new_stats = EnvoyStats(
+                max_live_age=self.stats.max_live_age,
+                max_ready_age=self.stats.max_ready_age,
+                created=self.stats.created,
+                last_update=self.stats.last_update,
+                last_attempt=last_attempt,                    # THIS IS A CHANGE
+                update_errors=self.stats.update_errors + 1,   # THIS IS A CHANGE
+                requests=self.stats.requests,
+                clusters=self.stats.clusters,
+                envoy=self.stats.envoy
+            )
+
+            with self.access_lock:
+                self.stats = new_stats
+                return
 
         # Parse stats into a hierarchy.
+        envoy_stats: Dict[str, Any] = {}    # Ew.
 
-        envoy_stats = {}
-
-        for line in r.text.split("\n"):
+        for line in text.split("\n"):
             if not line:
                 continue
 
-            # logging.info('line: %s' % line)
+            # self.logger.info('line: %s' % line)
             key, value = line.split(":")
             keypath = key.split('.')
 
@@ -279,8 +384,10 @@ class EnvoyStats (object):
                 # mapping_name = active_cluster_map[cluster_name]
                 # active_mappings[mapping_name] = {}
 
-                # logging.info("cluster %s stats: %s" % (cluster_name, cluster))
+                # self.logger.info("cluster %s stats: %s" % (cluster_name, cluster))
 
+                healthy_percent: Optional[int]
+                
                 healthy_members = cluster['membership_healthy']
                 total_members = cluster['membership_total']
                 healthy_percent = percentage(healthy_members, total_members)
@@ -300,14 +407,14 @@ class EnvoyStats (object):
 
                 upstream_ok = upstream_total - upstream_bad
 
-                # logging.info("%s total %s bad %s ok %s" % (cluster_name, upstream_total, upstream_bad, upstream_ok))
+                # self.logger.info("%s total %s bad %s ok %s" % (cluster_name, upstream_total, upstream_bad, upstream_ok))
 
                 if upstream_total > 0:
                     healthy_percent = percentage(upstream_ok, upstream_total)
-                    # logging.debug("cluster %s is %d%% healthy" % (cluster_name, healthy_percent))
+                    # self.logger.debug("cluster %s is %d%% healthy" % (cluster_name, healthy_percent))
                 else:
                     healthy_percent = None
-                    # logging.debug("cluster %s has had no requests" % cluster_name)
+                    # self.logger.debug("cluster %s has had no requests" % cluster_name)
 
                 active_clusters[cluster_name] = {
                     'healthy_members': healthy_members,
@@ -327,18 +434,50 @@ class EnvoyStats (object):
         # OK, we're now officially finished with all the hard stuff.
         last_update = time.time()
 
-        self.stats.update({
-            "last_update": last_update,
-            "last_attempt": last_attempt,
-            "requests": requests_info,
-            "clusters": active_clusters,
-            "envoy": envoy_stats
-        })
+        # Finally, set up the new EnvoyStats.
+        new_stats = EnvoyStats(
+            max_live_age=self.stats.max_live_age,
+            max_ready_age=self.stats.max_ready_age,
+            created=self.stats.created,
+            last_update=last_update,                    # THIS IS A CHANGE
+            last_attempt=last_attempt,                  # THIS IS A CHANGE
+            update_errors=self.stats.update_errors,
+            requests=requests_info,                     # THIS IS A CHANGE
+            clusters=active_clusters,                   # THIS IS A CHANGE
+            envoy=envoy_stats                           # THIS IS A CHANGE
+        )
 
-        # logging.info("stats updated")
+        # Make sure we hold the access_lock while messing with self.stats!
+        with self.access_lock:
+            self.stats = new_stats
 
-    # def update(self, active_mapping_names):
-    def update(self):
+            # self.logger.info("stats updated")
+
+    def update(self) -> None:
+        """
+        Update the Envoy stats object, including our take on Envoy's loglevel and
+        lower-level statistics.
+
+        You MUST NOT hold the update lock when calling this method.
+        You MUST NOT hold the access lock when calling this method.
+
+        The first thing that update_envoy_stats does is to acquire the update_lock.
+        If it cannot do so immediately, it assumes that another update is already
+        running, and returns without doing anything further.
+
+        update_envoy_stats uses update_log_levels and update_envoy_stats to do all
+        the heavy lifting around talking to Envoy, managing the access_lock, and
+        actually writing new data into the Envoy stats object.
+        """
+
+        # self.logger.info("updating estats")
+
+        # First up, try bailing early.
+        if not self.update_lock.acquire(blocking=False):
+            self.logger.warning("EStats update: skipping due to lock contention")
+            return
+
+        # If here, we have the lock. Make sure it gets released!
         try:
             # Remember when we started.
             last_attempt = time.time()
@@ -346,4 +485,6 @@ class EnvoyStats (object):
             self.update_log_levels(last_attempt)
             self.update_envoy_stats(last_attempt)
         except Exception as e:
-            logging.error("could not update Envoy stats: %s" % e)
+            self.logger.exception("could not update Envoy stats: %s" % e)
+        finally:
+            self.update_lock.release()
