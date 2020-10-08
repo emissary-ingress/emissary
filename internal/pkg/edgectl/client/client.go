@@ -32,11 +32,12 @@ func Version(cmd *cobra.Command, _ []string) error {
 		fmt.Fprintf(cmd.OutOrStdout(), "Client %s\nDaemon v%s (api v%d)\n", edgectl.DisplayVersion(), dv, av)
 		return nil
 	}
-	if err == daemonIsNotRunning {
-		return fmt.Errorf("Client %s\n%s", edgectl.DisplayVersion(), err.Error())
+	fmt.Fprintf(cmd.OutOrStdout(), "Client %s\n", edgectl.DisplayVersion())
+	if err != daemonIsNotRunning {
+		// Socket exists but connection failed anyway.
+		err = fmt.Errorf("Unable to connect to daemon: %s", err)
 	}
-	// Socket exists but connection failed anyway.
-	return fmt.Errorf("Client %s\nUnable to connect to daemon: %s", edgectl.DisplayVersion(), err.Error())
+	return err
 }
 
 // A ConnectInfo contains all information needed to connect to a cluster.
@@ -148,6 +149,9 @@ func Status(cmd *cobra.Command, _ []string) error {
 			if ic.Connected {
 				fmt.Fprintf(out, "  Interceptable: %d deployments\n", ic.InterceptableCount)
 				fmt.Fprintf(out, "  Intercepts:    %d total, %d local\n", ic.ClusterIntercepts, ic.LocalIntercepts)
+				if ic.LicenseInfo != "" {
+					fmt.Fprintln(out, ic.LicenseInfo)
+				}
 				break
 			}
 			if s.ErrorText != "" {
