@@ -29,6 +29,7 @@ BACKEND = load_manifest("backend")
 GRPC_ECHO_BACKEND = load_manifest("grpc_echo_backend")
 AUTH_BACKEND = load_manifest("auth_backend")
 GRPC_AUTH_BACKEND = load_manifest("grpc_auth_backend")
+GRPC_RLS_BACKEND = load_manifest("grpc_rls_backend")
 
 AMBASSADOR_LOCAL = """
 ---
@@ -90,7 +91,7 @@ class AmbassadorTest(Test):
     name: Name
     path: Name
     extra_ports: Optional[List[int]] = None
-    debug_diagd: bool = False
+    debug_diagd: bool = True
     manifest_envs = ""
     is_ambassador = True
     allow_edge_stack_redirect = False
@@ -433,6 +434,15 @@ class AGRPC(ServiceType):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, service_manifests=GRPC_AUTH_BACKEND, **kwargs)
+
+    def requirements(self):
+        yield ("pod", self.path.k8s)
+
+class RLSGRPC(ServiceType):
+    skip_variant: ClassVar[bool] = True
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, service_manifests=GRPC_RLS_BACKEND, **kwargs)
 
     def requirements(self):
         yield ("pod", self.path.k8s)

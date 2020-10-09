@@ -1,58 +1,16 @@
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, HTTP, ServiceType
+from abstract_tests import AmbassadorTest, HTTP, ServiceType, RLSGRPC
 from selfsigned import TLSCerts
 
 class RateLimitV0Test(AmbassadorTest):
     # debug = True
     target: ServiceType
+    rls: ServiceType
 
     def init(self):
         self.target = HTTP()
-
-    def manifests(self) -> str:
-        return """
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: rate-limit-v0
-spec:
-  selector:
-    app: rate-limit-v0
-  ports:
-  - port: 5000
-    name: grpc
-    targetPort: grpc
-  type: ClusterIP
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: rate-limit-v0
-spec:
-  selector:
-    matchLabels:
-      app: rate-limit-v0
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: rate-limit-v0
-    spec:
-      containers:
-      - name: rate-limit
-        image: {self.test_image[ratelimit]}
-        ports:
-        - name: grpc
-          containerPort: 5000
-        resources:
-          limits:
-            cpu: "0.1"
-            memory: 100Mi
-""" + super().manifests()
+        self.rls = RLSGRPC()
 
     def config(self):
         # Use self.target here, because we want this mapping to be annotated
@@ -69,6 +27,7 @@ rate_limits:
 - descriptor: A test case
   headers:
   - "x-ambassador-test-allow"
+  - "x-ambassador-test-headers-append"
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
@@ -96,8 +55,8 @@ labels:
 ---
 apiVersion: ambassador/v0
 kind: RateLimitService
-name: ratelimit-v0
-service: rate-limit-v0:5000
+name: {self.rls.path.k8s}
+service: "{self.rls.path.fqdn}"
 timeout_ms: 500
 """)
 
@@ -106,18 +65,33 @@ timeout_ms: 500
         # yield Query(self.with_tracing.url("target/"))
         # yield Query(self.no_tracing.url("target/"))
 
+        # [0]
         # No matching headers, won't even go through ratelimit-service filter
         yield Query(self.url("target/"))
 
+        # [1]
         # Header instructing dummy ratelimit-service to allow request
         yield Query(self.url("target/"), expected=200, headers={
-            'x-ambassador-test-allow': 'true'
+            'x-ambassador-test-allow': 'true',
+            'x-ambassador-test-headers-append': 'no header',
         })
 
-        # Header instructing dummy ratelimit-service to reject request
+        # [2]
+        # Header instructing dummy ratelimit-service to reject request with
+        # a custom response body
         yield Query(self.url("target/"), expected=429, headers={
-            'x-ambassador-test-allow': 'over my dead body'
+            'x-ambassador-test-allow': 'over my dead body',
+            'x-ambassador-test-headers-append': 'Hello=Foo; Hi=Baz',
         })
+
+    def check(self):
+        # [2] Verifies the 429 response and the proper content-type.
+        # The kat-server gRPC ratelimit implementation explicitly overrides
+        # the content-type to json, because the response is in fact json
+        # and we need to verify that this override is possible/correct.
+        assert self.results[2].headers["Hello"] == [ "Foo" ]
+        assert self.results[2].headers["Hi"] == [ "Baz" ]
+        assert self.results[2].headers["Content-Type"] == [ "application/json" ]
 
 class RateLimitV1Test(AmbassadorTest):
     # debug = True
@@ -125,50 +99,7 @@ class RateLimitV1Test(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
-
-    def manifests(self) -> str:
-        return """
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: rate-limit-v1
-spec:
-  selector:
-    app: rate-limit-v1
-  ports:
-  - port: 5000
-    name: grpc
-    targetPort: grpc
-  type: ClusterIP
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: rate-limit-v1
-spec:
-  selector:
-    matchLabels:
-      app: rate-limit-v1
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: rate-limit-v1
-    spec:
-      containers:
-      - name: rate-limit
-        image: {self.test_image[ratelimit]}
-        ports:
-        - name: grpc
-          containerPort: 5000
-        resources:
-          limits:
-            cpu: "0.1"
-            memory: 100Mi
-""" + super().manifests()
+        self.rls = RLSGRPC()
 
     def config(self):
         # Use self.target here, because we want this mapping to be annotated
@@ -186,30 +117,47 @@ labels:
       - x-ambassador-test-allow:
           header: "x-ambassador-test-allow"
           omit_if_not_present: true
+      - x-ambassador-test-headers-append:
+          header: "x-ambassador-test-headers-append"
+          omit_if_not_present: true
 """)
 
         yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind: RateLimitService
-name: ratelimit-v1
-service: rate-limit-v1:5000
+name: {self.rls.path.k8s}
+service: "{self.rls.path.fqdn}"
 timeout_ms: 500
 """)
 
     def queries(self):
+        # [0]
         # No matching headers, won't even go through ratelimit-service filter
         yield Query(self.url("target/"))
 
+        # [1]
         # Header instructing dummy ratelimit-service to allow request
         yield Query(self.url("target/"), expected=200, headers={
-            'x-ambassador-test-allow': 'true'
+            'x-ambassador-test-allow': 'true',
+            'x-ambassador-test-headers-append': 'no header',
         })
 
+        # [2]
         # Header instructing dummy ratelimit-service to reject request
         yield Query(self.url("target/"), expected=429, headers={
-            'x-ambassador-test-allow': 'over my dead body'
+            'x-ambassador-test-allow': 'over my dead body',
+            'x-ambassador-test-headers-append': 'Hello=Foo; Hi=Baz',
         })
+
+    def check(self):
+        # [2] Verifies the 429 response and the proper content-type.
+        # The kat-server gRPC ratelimit implementation explicitly overrides
+        # the content-type to json, because the response is in fact json
+        # and we need to verify that this override is possible/correct.
+        assert self.results[2].headers["Hello"] == [ "Foo" ]
+        assert self.results[2].headers["Hi"] == [ "Baz" ]
+        assert self.results[2].headers["Content-Type"] == [ "application/json" ]
 
 class RateLimitV1WithTLSTest(AmbassadorTest):
     # debug = True
@@ -217,53 +165,10 @@ class RateLimitV1WithTLSTest(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
+        self.rls = RLSGRPC()
 
     def manifests(self) -> str:
-        return """
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: rate-limit-tls
-spec:
-  selector:
-    app: rate-limit-tls
-  ports:
-  - port: 5000
-    name: grpc
-    targetPort: grpc
-  type: ClusterIP
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: rate-limit-tls
-spec:
-  selector:
-    matchLabels:
-      app: rate-limit-tls
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: rate-limit-tls
-    spec:
-      containers:
-      - name: rate-limit
-        image: {self.test_image[ratelimit]}
-        env:
-        - name: "USE_TLS"
-          value: "true"
-        ports:
-        - name: grpc
-          containerPort: 5000
-        resources:
-          limits:
-            cpu: "0.1"
-            memory: 100Mi
-""" + f"""
+        return f"""
 ---
 apiVersion: v1
 data:
@@ -297,14 +202,17 @@ labels:
       - x-ambassador-test-allow:
           header: "x-ambassador-test-allow"
           omit_if_not_present: true
+      - x-ambassador-test-headers-append:
+          header: "x-ambassador-test-headers-append"
+          omit_if_not_present: true
 """)
 
         yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind: RateLimitService
-name: ratelimit-tls
-service: rate-limit-tls:5000
+name: {self.rls.path.k8s}
+service: "{self.rls.path.fqdn}"
 timeout_ms: 500
 tls: ratelimit-tls-context
 """)
@@ -320,5 +228,16 @@ tls: ratelimit-tls-context
 
         # Header instructing dummy ratelimit-service to reject request
         yield Query(self.url("target/"), expected=429, headers={
-            'x-ambassador-test-allow': 'nope'
+            'x-ambassador-test-allow': 'nope',
+            'x-ambassador-test-headers-append': 'Hello=Foo; Hi=Baz'
         })
+
+    def check(self):
+        # [2] Verifies the 429 response and the proper content-type.
+        # The kat-server gRPC ratelimit implementation explicitly overrides
+        # the content-type to json, because the response is in fact json
+        # and we need to verify that this override is possible/correct.
+        assert self.results[2].headers["Hello"] == [ "Foo" ]
+        assert self.results[2].headers["Hi"] == [ "Baz" ]
+        assert self.results[2].headers["Content-Type"] == [ "application/json" ]
+

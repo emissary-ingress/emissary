@@ -56,6 +56,18 @@ func main() {
 
 		listeners = append(listeners, s)
 
+	case "grpc_rls":
+		s = &srv.GRPCRLS{
+			Port:          Port,
+			Backend:       os.Getenv("BACKEND"),
+			SecurePort:    SSLPort,
+			SecureBackend: os.Getenv("BACKEND"),
+			Cert:          Crt,
+			Key:           Key,
+		}
+
+		listeners = append(listeners, s)
+
 	default:
 		port := Port
 		securePort := SSLPort

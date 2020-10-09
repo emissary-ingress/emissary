@@ -472,15 +472,19 @@ class SecretInfo:
 
         if decode_b64:
             if self.is_decodable(tls_crt):
+                assert tls_crt
                 tls_crt = self.decode(tls_crt)
 
             if self.is_decodable(tls_key):
+                assert tls_key
                 tls_key = self.decode(tls_key)
 
             if self.is_decodable(user_key):
+                assert user_key
                 user_key = self.decode(user_key)
 
             if self.is_decodable(root_crt):
+                assert root_crt
                 root_crt = self.decode(root_crt)
 
         self.tls_crt = tls_crt
@@ -489,11 +493,12 @@ class SecretInfo:
         self.root_crt = root_crt
 
     @staticmethod
-    def is_decodable(b64_pem: str) -> bool:
-        return (b64_pem 
-                and (not b64_pem.startswith('-----BEGIN'))
-                and (not b64_pem.startswith('-sanitized-'))
-               )
+    def is_decodable(b64_pem: Optional[str]) -> bool:
+        if not b64_pem:
+            return False
+
+        return not (b64_pem.startswith('-----BEGIN') or
+                    b64_pem.startswith('-sanitized-'))
 
     @staticmethod
     def decode(b64_pem: str) -> Optional[str]:

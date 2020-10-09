@@ -55,9 +55,23 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
+(no changes yet)
+
+## [1.8.0] October 08, 2020
+[1.8.0]: https://github.com/datawire/ambassador/compare/v1.7.4...v1.8.0
+
+### Ambasssador API Gateway + Ambassador Edge Stack
+
 - Feature: HTTP IP Allow/Deny ranges are supported.
-- Bugfix: The container no longer exits "successfully" when the Deployment specifies an invalid `command`.
+- Bugfix: Ambassador's health checks don't claim that Envoy has failed when reconfiguration taking a long time (thanks, [Fabrice](https://github.com/jfrabaute), for contributions here!).
 - Bugfix: The `edgectl connect` command now works properly when using zsh on a Linux platform.
+- Bugfix: The container no longer exits "successfully" when the Deployment specifies an invalid `command`.
+
+### Ambassador Edge Stack Only
+
+- Feature: `RateLimit` CRDs now support setting a response body, configurable with the `errorResponse` setting.
+- Bugfix: `External` `Filter` can now properly proxy the body to the configured `auth_service`
+- BugFix: The RBAC for AES now grants permission to "patch" `Events.v1.core` (previously it granted "create" but not "patch")
 
 ## [1.7.4] October 06, 2020
 [1.7.4]: https://github.com/datawire/ambassador/compare/v1.7.3...v1.7.4

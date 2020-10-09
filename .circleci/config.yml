@@ -2,126 +2,316 @@
 
 version: 2.1
 # Secure environment variables set from the Web UI:
-# - NETLIFY_AUTH_TOKEN (Netlify)
-# - GH_TOKEN (GitHub)
-_anchors:
-  "website-job": &website-job
-    machine:
-      # If you bump this, be sure to bump "install-python.executor-key"
-      # in the "website-setup" command below.
-      image: "ubuntu-1604:201903-01"
-    working_directory: ~/project/ambassador
-  oss-linux-job:
-    machine:
-      image: "ubuntu-1604:201903-01"
-    working_directory: ~/project/ambassador
+#
+# - AWS_ACCESS_KEY_ID (AWS S3)
+# - AWS_SECRET_ACCESS_KEY (AWS S3)
+#
+# - DEV_REGISTRY (DockerHub)
+# - DOCKER_BUILD_USERNAME (DockerHub)
+# - DOCKER_BUILD_PASSWORD (DockerHub)
+#
+# - RELEASE_REGISTRY (DockerHub)
+# - DOCKER_RELEASE_USERNAME (DockerHub)
+# - DOCKER_RELEASE_PASSWORD (DockerHub)
+#
+# - KUBECEPTION_TOKEN
 commands:
-  "website-setup":
+  ######################################################################
+  # Commands that are complete jobs                                    #
+  #                                                                    #
+  # (factored out to be commands so that they can be shared between    #
+  # "oss-linux" and "aes-linux" executors)                             #
+  ######################################################################
+  "job-generate":
+    steps:
+    # setup
+    - amb-linux-install
+    - amb-checkout
+    # We might need to be logged in the registry to pull the Envoy image
+    - amb-config-registry
+    - # main
+      run: make generate
+    - dirty-check
+    - # Run it again to make sure that it is possible to run it twice
+      # in a row.
+      run: make generate
+    - dirty-check
+  "job-lint":
+    steps:
+    # setup
+    - amb-linux-install
+    - amb-checkout
+    - # main
+      run: make lint
+  "job-images":
+    parameters:
+      "release":
+        type: boolean
+        default: false
+    steps:
+    # setup
+    - amb-linux-install
+    - amb-checkout
+    - skip-if-only-changes:
+        to: docs/
+    - amb-config-registry
+    - # main
+      run: make images
+    - run: |
+        [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push
+    - when:
+        condition: << parameters.release >>
+        steps:
+        - run:
+            name: "Release"
+            command: |
+              docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+              DEV_KUBECONFIG="-skip-for-release-" make release/bits
+    # teardown
+    - dirty-check
+    - amb-images-save-workspace
+  "job-test":
+    parameters:
+      "test":
+        type: enum
+        enum:
+        - "test" # everything
+        - "ingresstest"
+        - "gotest"
+        - "pytest"
+        - "e2etest"
+        default: "test"
+      "fast-validation":
+        type: boolean
+        default: false
+      "fast-reconfigure":
+        type: boolean
+        default: false
+    steps:
+    # setup
+    - amb-linux-install
+    - amb-images-load-workspace
+    - skip-if-only-changes:
+        to: docs/
+    - amb-config-cluster-and-registry
+    - # main
+      run:
+        name: "Ensure CI configuration is up-to-date"
+        command: |
+          set -x
+          expected=$(printf '%s\n' ingresstest gotest pytest e2etest | LC_COLLATE=C sort -u | xargs echo)
+          actual=$(make -n noop --print-data-base 2>/dev/null | sed -n 's/^test://p' | xargs printf '%s\n' | LC_COLLATE=C sort -u | xargs echo)
+          if [[ "$actual" != "$expected" ]]; then
+            echo "Makefile 'test' target has changed to $actual, you need to update '.circleci/config.yml.d/amb_jobs.yml'" >&2
+            exit 1
+          fi
+    - run:
+        name: "Test"
+        command: |
+          if [[ -z "$KUBECEPTION_TOKEN" ]]; then
+            export DEV_KUBE110=yes
+          fi
+          export DEV_KUBE_NO_PVC=yes
+          export KAT_REQ_LIMIT=600
+          if << parameters.fast-validation >>; then
+            export AMBASSADOR_FAST_VALIDATION=yes # empty/nonempty
+          fi
+          export AMBASSADOR_FAST_RECONFIGURE=<< parameters.fast-reconfigure >> # ParseBool
+          make << parameters.test >>
+    # teardown
+    - amb-save-logs
+    - dirty-check
+    - amb-teardown-cluster
+  "job-promote-to-rc-latest":
+    parameters:
+      "channel":
+        type: enum
+        enum: ["oss", "aes"]
+    steps:
+    - when:
+        condition: # Don't do this in the -private repos
+          or:
+          - equal: ["https://github.com/datawire/ambassador", << pipeline.project.git_url
+                >>]
+          - equal: ["https://github.com/datawire/apro", << pipeline.project.git_url
+                >>]
+        steps:
+        - amb-linux-install
+        - amb-checkout
+        - run:
+            name: "Promote to -rc-latest"
+            command: |
+              docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+              DEV_KUBECONFIG="-skip-for-release-" make release/promote-<< parameters.channel >>/to-rc-latest
+  "job-promote-to-ga":
+    parameters:
+      "channel":
+        type: enum
+        enum: ["oss", "aes"]
+    steps:
+    - amb-linux-install
+    - amb-checkout
+    - run:
+        name: "Promote to GA"
+        command: |
+          docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+          DEV_KUBECONFIG="-skip-for-release-" make release/promote-<< parameters.channel >>/to-ga
+  amb-linux-install:
+    steps:
+    - install-python:
+        executor-key: "202008-01"
+    - pip-install:
+        packages: awscli packaging
+    - install-go
+    - install-kubectl
+    - install-node
+  amb-images-save-workspace:
+    steps:
+    - run:
+        name: "Saving Docker data to workspace"
+        command: |
+          set -x
+          # Save the images
+          docker image ls --filter=dangling=false --format='{{ .Repository }}:{{ .Tag }}' | xargs docker image save > docker/images.tar
+          # Save the cache volume
+          docker run \
+            --rm \
+            --volumes-from=$(cat docker/container.txt) \
+            --volume="$PWD/docker":/mnt \
+            --user=root \
+            --workdir=/home/dw \
+            --entrypoint=tar $(cat docker/snapshot.docker) -cf /mnt/volume.tar .
+    - persist_to_workspace:
+        root: /home/circleci/project
+        paths:
+        - "."
+  amb-images-load-workspace:
+    steps:
+    - attach_workspace:
+        at: /home/circleci/project
+    - run:
+        name: "Loading Docker data from workspace"
+        command: |
+          set -x
+          # Load the images
+          docker image load < docker/images.tar
+          rm docker/images.tar
+          # Resume the build container
+          rm -f docker/container.txt docker/container.txt.stamp
+          make docker/container.txt
+          docker run \
+            --rm \
+            --volume=/var/run/docker.sock:/var/run/docker.sock \
+            --user=root \
+            --entrypoint=rsync $(cat docker/snapshot.docker) \
+              -a -xx --exclude=/etc/{resolv.conf,hostname,hosts} --delete \
+              --blocking-io -e 'docker exec -i --user=root' / "$(cat docker/container.txt):/"
+          docker exec "$(cat docker/container.txt)" rm -f /buildroot/image.dirty
+          # Load the cache volume
+          docker run \
+            --rm \
+            --volumes-from=$(cat docker/container.txt) \
+            --volume="$PWD/docker":/mnt \
+            --user=root \
+            --workdir=/home/dw \
+            --entrypoint=tar $(cat docker/snapshot.docker) -xf /mnt/volume.tar
+          rm -f docker/volume.tar
+  amb-checkout:
+    steps:
+    - when:
+        condition:
+          or:
+          - equal:
+            - "https://github.com/datawire/ambassador"
+            - << pipeline.project.git_url >>
+          - equal:
+            - "https://github.com/datawire/ambassador-private"
+            - << pipeline.project.git_url >>
+        steps:
+        - checkout:
+            path: ~/project/ambassador
+    - when:
+        condition:
+          or:
+          - equal:
+            - "https://github.com/datawire/apro"
+            - << pipeline.project.git_url >>
+          - equal:
+            - "https://github.com/datawire/apro-private"
+            - << pipeline.project.git_url >>
+        steps:
+        - run:
+            working_directory: ~/project
+            command: "rmdir ~/project/ambassador || true"
+        - checkout:
+            path: ~/project
+  amb-config-registry:
+    steps:
+    - run:
+        name: "Configure Docker registry"
+        command: |
+          if [[ -z "$DEV_REGISTRY" ]]; then
+            echo >>"$BASH_ENV" 'export DEV_REGISTRY=127.0.0.1:31000'
+          fi
+          if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
+            docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
+          fi
+
+          echo >>"$BASH_ENV" 'unset BASH_ENV'
+  amb-config-cluster-and-registry:
+    steps:
+    - run:
+        name: "Configure Kubernetes cluster and Docker registry"
+        working_directory: ~/project/ambassador
+        command: |
+          if [[ -z "$DEV_REGISTRY" ]]; then
+            echo >>"$BASH_ENV" 'export DEV_REGISTRY=127.0.0.1:31000'
+          fi
+          if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
+            docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
+          fi
+
+          ./.ci/kubernaut-claim
+          echo >>"$BASH_ENV" 'if test -e ~/kubernaut-claim.txt; then'
+          echo >>"$BASH_ENV" '  export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml'
+          echo >>"$BASH_ENV" '  if [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]]; then'
+          echo >>"$BASH_ENV" '    KUBECONFIG=$DEV_KUBECONFIG go run ./cmd/k8sregistryctl up --storage=hostPath'
+          echo >>"$BASH_ENV" '  fi'
+          echo >>"$BASH_ENV" 'fi'
+
+          echo >>"$BASH_ENV" 'unset BASH_ENV'
+  amb-teardown-cluster:
+    steps:
+    - run:
+        working_directory: ~/project/ambassador
+        command: "./.ci/kubernaut-unclaim"
+        when: "always"
+  amb-save-logs:
+    steps:
+    - run:
+        name: "Gather logs"
+        when: always
+        command: |
+          rsync -ma --include='*/' --include='*.tap' --include='*.log' --include='Test*.webm' --exclude='*' . /tmp/test-logs
+    - store_artifacts:
+        name: "Store logs"
+        path: /tmp/test-logs
+        destination: test-logs
+  website-setup:
     steps:
     - install-node:
         version: "11"
     - install-yarn
     - install-python:
-        executor-key: "201903-01"
+        executor-key: "202008-01"
         version: "3.7.0"
     - run:
         name: "Show environment"
         command: |
           env | grep -e GIT -e TRAVIS -e CIRCLE | sort
-    - oss-checkout
+    - amb-checkout
     - skip-if-no-changes:
         to: docs/
-  oss-linux-setup:
-    steps:
-    - install-python:
-        executor-key: "201903-01"
-    - pip-install:
-        packages: awscli packaging
-    - install-go
-    - install-kubectl
-    - oss-checkout
-  oss-images-build-and-test:
-    steps:
-    - run:
-        name: "Ensure CI configuration is up-to-date"
-        command: |
-          set -x
-          test_targets=$(make -n noop --print-data-base 2>/dev/null | sed -n 's/^test: *//p' | xargs printf '%s\n' | LC_COLLATE=C sort -u | xargs echo)
-          if [ "$test_targets" != "gotest ingresstest pytest" ]; then
-            echo "Makefile 'test' target has changed to $test_targets, you need to update '.circleci/config.yml.d/oss.yml'" >&2
-            exit 1
-          fi
-
-          (cd .circleci && ./generate --always-make)
-          if test -n "$(git status --porcelain)"; then
-            echo "The file '.circleci/config.yml' is out of date." >&2
-            echo "Run '(cd .circleci && ./generate)' to update it." >&2
-            exit 1
-          fi
-    - run:
-        name: "Set up cluster and registry"
-        command: |
-          ./.ci/kubernaut-claim
-          echo >>"$BASH_ENV" 'if test -e ~/kubernaut-claim.txt; then'
-          echo >>"$BASH_ENV" '  export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml'
-          echo >>"$BASH_ENV" 'fi'
-
-          if [[ -n "$DEV_REGISTRY" && -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
-            docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
-          else
-            echo >>"$BASH_ENV" 'if test -e ~/kubernaut-claim.txt; then'
-            echo >>"$BASH_ENV" '  KUBECONFIG=$DEV_KUBECONFIG go run ./cmd/k8sregistryctl up --storage=hostPath'
-            echo >>"$BASH_ENV" '  export DEV_REGISTRY=127.0.0.1:31000'
-            echo >>"$BASH_ENV" 'fi'
-          fi
-          echo >>"$BASH_ENV" unset BASH_ENV
-    - run:
-        name: "Build"
-        command: |
-          make push
-    - run:
-        name: "Go Tests"
-        command: |
-          make gotest
-    - run:
-        name: "KAT (normal)"
-        command: |
-          export DEV_KUBE110=yes
-          export DEV_KUBE_NO_PVC=yes
-          export KAT_REQ_LIMIT=600
-          make pytest-only
-    - run:
-        name: "Cycle cluster"
-        command: |
-          ./.ci/kubernaut-unclaim
-          ./.ci/kubernaut-claim
-    - run:
-        name: "KAT (FAST_VALIDATION)"
-        command: |
-          export DEV_KUBE110=yes
-          export DEV_KUBE_NO_PVC=yes
-          export KAT_REQ_LIMIT=600
-          export AMBASSADOR_FAST_VALIDATION=true
-          make pytest-only
-    - run:
-        name: "Cycle cluster"
-        command: |
-          ./.ci/kubernaut-unclaim
-          ./.ci/kubernaut-claim
-    - run:
-        name: "KAT (FAST_VALIDATION and FAST_RECONFIGURE)"
-        command: |
-          export DEV_KUBE110=yes
-          export DEV_KUBE_NO_PVC=yes
-          export KAT_REQ_LIMIT=600
-          export AMBASSADOR_FAST_VALIDATION=true
-          export AMBASSADOR_FAST_RECONFIGURE=true
-          make pytest-only
-    - run:
-        command: "./.ci/kubernaut-unclaim"
-        when: "always"
-    - dirty-check
-    #- oss-save-logs
   pip-install:
     parameters:
       packages:
@@ -212,7 +402,7 @@ commands:
           set -x
           pyenv versions
           pyenv install --skip-existing << parameters.version >>
-          pyenv global 2.7.12 << parameters.version >>
+          pyenv global 2.7.18 << parameters.version >>
           pyenv versions
           pip3 install pip==<< parameters.pip-version>>
     - save_cache:
@@ -221,35 +411,6 @@ commands:
           >>"
         paths:
         - "/opt/circleci/.pyenv"
-  oss-checkout:
-    steps:
-    - when:
-        condition:
-          or:
-          - equal:
-            - "https://github.com/datawire/ambassador"
-            - << pipeline.project.git_url >>
-          - equal:
-            - "https://github.com/datawire/ambassador-private"
-            - << pipeline.project.git_url >>
-        steps:
-        - checkout:
-            path: ~/project/ambassador
-    - when:
-        condition:
-          or:
-          - equal:
-            - "https://github.com/datawire/apro"
-            - << pipeline.project.git_url >>
-          - equal:
-            - "https://github.com/datawire/apro-private"
-            - << pipeline.project.git_url >>
-        steps:
-        - run:
-            working_directory: ~/project
-            command: rmdir ~/project/ambassador
-        - checkout:
-            path: ~/project
   dirty-check:
     steps:
     - run:
@@ -317,8 +478,57 @@ commands:
             circleci step halt
           fi
 jobs:
-  "website-preview-build":
-    !!merge <<: *website-job
+  oss-generate:
+    executor: oss-linux
+    steps:
+    - job-generate
+  oss-lint:
+    executor: oss-linux
+    steps:
+    - job-lint
+  oss-images:
+    parameters:
+      release:
+        type: boolean
+        default: false
+    executor: oss-linux
+    steps:
+    - job-images:
+        release: << parameters.release >>
+  oss-test:
+    executor: oss-linux
+    parameters:
+      test:
+        type: enum
+        enum:
+        - "test" # everything
+        - "ingresstest"
+        - "gotest"
+        - "pytest"
+        default: "test"
+      fast-validation:
+        type: boolean
+        default: false
+      fast-reconfigure:
+        type: boolean
+        default: false
+    steps:
+    - job-test:
+        test: << parameters.test >>
+        fast-validation: << parameters.fast-validation >>
+        fast-reconfigure: << parameters.fast-reconfigure >>
+  oss-promote-to-rc-latest:
+    executor: oss-linux
+    steps:
+    - job-promote-to-rc-latest:
+        channel: oss
+  oss-promote-to-ga:
+    executor: oss-linux
+    steps:
+    - job-promote-to-ga:
+        channel: oss
+  website-preview-build:
+    executor: oss-linux
     steps:
     - website-setup
     - run: ./.ci/website-preview-build
@@ -327,15 +537,15 @@ jobs:
         root: /tmp/getambassador.io
         paths:
         - public
-  "website-preview-publish":
-    !!merge <<: *website-job
+  website-preview-publish:
+    executor: oss-linux
     steps:
     - website-setup
     - attach_workspace:
         at: /tmp/getambassador.io
     - run: ./.ci/website-preview-publish
-  "website-preview-blc":
-    !!merge <<: *website-job
+  website-preview-blc:
+    executor: oss-linux
     steps:
     - website-setup
     - attach_workspace:
@@ -344,14 +554,14 @@ jobs:
     - store_artifacts:
         path: /tmp/blc.txt
         destination: blc.txt
-  "website-preview-for-smoketest":
-    !!merge <<: *website-job
+  website-preview-for-smoketest:
+    executor: oss-linux
     steps:
     - website-setup
     - run: ./.ci/website-preview-build
     - run: ./.ci/website-preview-publish
-  "website-prod-publish":
-    !!merge <<: *website-job
+  website-prod-publish:
+    executor: oss-linux
     steps:
     - website-setup
     - run:
@@ -360,87 +570,197 @@ jobs:
           git config --global user.name 'ambassador.git CircleCI user'
           git config --global user.email dev@datawire.io
     - run: ./.ci/website-prod-publish
-  oss-dev-generate:
-    steps:
-    - oss-linux-setup
-    - run:
-        name: "docker login"
-        command: |
-          # We might need to be logged in to pull the Envoy image
-          if [[ -n "$DEV_REGISTRY" && -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
-            docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
-          fi
-    - run: make generate
-    - dirty-check
-    - run: make generate
-    - dirty-check
-    machine:
-      image: "ubuntu-1604:201903-01"
-    working_directory: ~/project/ambassador
-  oss-dev-lint:
-    steps:
-    - oss-linux-setup
-    - run: make lint
-    machine:
-      image: "ubuntu-1604:201903-01"
-    working_directory: ~/project/ambassador
-  oss-dev-images:
-    steps:
-    - oss-linux-setup
-    - skip-if-only-changes:
-        to: docs/
-    - oss-images-build-and-test
-    machine:
-      image: "ubuntu-1604:201903-01"
-    working_directory: ~/project/ambassador
-  oss-release-images:
-    steps:
-    - oss-linux-setup
-    - oss-images-build-and-test
-    - run:
-        name: "Release"
-        command: |
-          docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
-          DEV_KUBECONFIG="-skip-for-release-" make release/bits
-    machine:
-      image: "ubuntu-1604:201903-01"
-    working_directory: ~/project/ambassador
-  oss-release-promote-to-rc-latest:
-    steps:
-    - oss-linux-setup
-    - when:
-        condition:
-          equal:
-          - "https://github.com/datawire/ambassador"
-          - << pipeline.project.git_url >>
-        steps:
-        - run:
-            name: "Promote to -rc-latest"
-            command: |
-              docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
-              DEV_KUBECONFIG="-skip-for-release-" make release/promote-oss/to-rc-latest
-    machine:
-      image: "ubuntu-1604:201903-01"
-    working_directory: ~/project/ambassador
-  oss-release-promote-to-ga:
-    steps:
-    - oss-linux-setup
-    - run:
-        name: "Promote to GA"
-        command: |
-          docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
-          DEV_KUBECONFIG="-skip-for-release-" make release/promote-oss/to-ga
-    machine:
-      image: "ubuntu-1604:201903-01"
-    working_directory: ~/project/ambassador
+_anchors:
+  filter-prerelease-only:
+    filters:
+      tags:
+        only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+      branches:
+        ignore: /.*/
+  filter-rc-only:
+    filters:
+      tags:
+        only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
+      branches:
+        ignore: /.*/
+  filter-ga-only:
+    filters:
+      tags:
+        only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+      branches:
+        ignore: /.*/
 workflows:
-  # All of these filters assume that "Only build pull requests" is turned on at
-  # https://app.circleci.com/settings/project/github/datawire/apro/advanced
-  # and that any non-'master' branches that we wish to run on are set up to be
-  # triggered by GitHub actions (see ".github/workflows/circleci-branches.yml").
-  "Docs: Dev":
+  'OSS: Dev':
     jobs:
-    - "website-preview-build":
+    - oss-images:
+        name: "oss-dev-images"
+    - oss-generate:
+        name: "oss-dev-generate"
+    - oss-lint:
+        name: "oss-dev-lint"
+    - oss-test:
+        requires:
+        - "oss-dev-images"
+        name: "oss-dev-gotest"
+        test: gotest
+    - oss-test:
+        requires:
+        - "oss-dev-images"
+        name: "oss-dev-pytest"
+        test: pytest
+    - oss-test:
+        requires:
+        - "oss-dev-images"
+        name: "oss-dev-gotest-fastvalidation"
+        test: gotest
+        fast-validation: true
+    - oss-test:
+        requires:
+        - "oss-dev-images"
+        name: "oss-dev-pytest-fastvalidation"
+        test: pytest
+        fast-validation: true
+    - oss-test:
+        requires:
+        - "oss-dev-images"
+        name: "oss-dev-gotest-fastreconfigure"
+        test: gotest
+        fast-validation: true
+        fast-reconfigure: true
+    - oss-test:
+        requires:
+        - "oss-dev-images"
+        name: "oss-dev-pytest-fastreconfigure"
+        test: pytest
+        fast-validation: true
+        fast-reconfigure: true
+  'OSS: Release':
+    when:
+      or:
+      - equal:
+        - "https://github.com/datawire/ambassador"
+        - << pipeline.project.git_url >>
+      - equal:
+        - "https://github.com/datawire/ambassador-private"
+        - << pipeline.project.git_url >>
+    jobs:
+    - oss-images:
+        name: "oss-release-images"
+        release: true
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-generate:
+        name: "oss-release-generate"
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-lint:
+        name: "oss-release-lint"
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-test:
+        requires:
+        - "oss-release-images"
+        name: "oss-release-gotest"
+        test: gotest
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-test:
+        requires:
+        - "oss-release-images"
+        name: "oss-release-pytest"
+        test: pytest
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-test:
+        requires:
+        - "oss-release-images"
+        name: "oss-release-gotest-fastvalidation"
+        test: gotest
+        fast-validation: true
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-test:
+        requires:
+        - "oss-release-images"
+        name: "oss-release-pytest-fastvalidation"
+        test: pytest
+        fast-validation: true
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-test:
+        requires:
+        - "oss-release-images"
+        name: "oss-release-gotest-fastreconfigure"
+        test: gotest
+        fast-validation: true
+        fast-reconfigure: true
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-test:
+        requires:
+        - "oss-release-images"
+        name: "oss-release-pytest-fastreconfigure"
+        test: pytest
+        fast-validation: true
+        fast-reconfigure: true
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-promote-to-rc-latest:
+        name: "oss-release-promote-to-rc-latest"
+        requires:
+        # build
+        - "oss-release-images"
+        # test
+        - "oss-release-generate"
+        - "oss-release-lint"
+        - "oss-release-gotest"
+        - "oss-release-pytest"
+        - "oss-release-gotest-fastvalidation"
+        - "oss-release-pytest-fastvalidation"
+        - "oss-release-gotest-fastreconfigure"
+        - "oss-release-pytest-fastreconfigure"
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-promote-to-ga:
+        name: "oss-release-promote-to-ga"
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+          branches:
+            ignore: /.*/
+  'Docs: Dev':
+    jobs:
+    - website-preview-build:
         filters:
           branches:
             ignore:
@@ -448,8 +768,9 @@ workflows:
             # shows as branch="pull/${number}"); they won't have
             # GH_TOKEN set to be able to pull getambassador.io.git
             - /^pull\/[0-9]+$/
-    - "website-preview-publish":
-        requires: ["website-preview-build"]
+    - website-preview-publish:
+        requires:
+        - "website-preview-build"
         filters:
           branches:
             ignore:
@@ -475,63 +796,36 @@ workflows:
             #          # shows as branch="pull/${number}"); they won't have
             #          # GH_TOKEN set to be able to pull getambassador.io.git
             #          - /^pull\/[0-9]+$/
-  "Docs: Prerelease":
-    # Run preview-build+preview-publish on prerelease tags so that we
-    # have a preview for the smoke-testers to use.  Do this in a
-    # separate job from the "Dev" workflow so that people looking at
-    # the PR vs the tag don't get different preview URLs.
+  'Docs: Prerelease':
     when:
-      equal: ["https://github.com/datawire/apro", << pipeline.project.git_url >>]
+      equal:
+      - "https://github.com/datawire/apro"
+      - << pipeline.project.git_url >>
     jobs:
-    - "website-preview-for-smoketest":
+    - website-preview-for-smoketest:
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
           branches:
             ignore: /.*/
-  "Docs: Release":
+  'Docs: Release':
     when:
-      equal: ["https://github.com/datawire/ambassador", << pipeline.project.git_url
-          >>]
+      equal:
+      - "https://github.com/datawire/ambassador"
+      - << pipeline.project.git_url >>
     jobs:
-    - "website-prod-publish":
+    - website-prod-publish:
         filters:
           branches:
             only:
             - master
             - /^release\/v1\.[0-9]+$/
-  'OSS: Dev':
-    jobs:
-    - "oss-dev-images"
-    - "oss-dev-generate"
-    - "oss-dev-lint"
-  'OSS: Release':
-    when:
-      or:
-      - equal:
-        - "https://github.com/datawire/ambassador"
-        - << pipeline.project.git_url >>
-      - equal:
-        - "https://github.com/datawire/ambassador-private"
-        - << pipeline.project.git_url >>
-    jobs:
-    - oss-release-images:
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-release-promote-to-rc-latest:
-        requires:
-        - "oss-release-images"
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-release-promote-to-ga:
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
-          branches:
-            ignore: /.*/
+executors:
+  oss-linux:
+    machine:
+      image: "ubuntu-2004:202008-01"
+    working_directory: ~/project/ambassador
+  aes-linux:
+    machine:
+      image: "ubuntu-2004:202008-01"
+    working_directory: ~/project

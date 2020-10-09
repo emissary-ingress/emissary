@@ -1,10 +1,10 @@
+##############################################################################
+# Generic reusable commands                                                  #
+##############################################################################
+
 version: 2.1
 
 commands:
-
-  ##############################################################################
-  # Generic reusable commands                                                  #
-  ##############################################################################
 
   "pip-install":
     parameters:
@@ -79,6 +79,7 @@ commands:
           command: |
             curl -o- -L https://yarnpkg.com/install.sh | bash
             echo 'PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> "$BASH_ENV"
+
   "install-python":
     parameters:
       "version":
@@ -99,7 +100,7 @@ commands:
             set -x
             pyenv versions
             pyenv install --skip-existing << parameters.version >>
-            pyenv global 2.7.12 << parameters.version >>
+            pyenv global 2.7.18 << parameters.version >>
             pyenv versions
             pip3 install pip==<< parameters.pip-version>>
       - save_cache:
@@ -107,32 +108,6 @@ commands:
           key: "pyenv-<< parameters.executor-key >>-<< parameters.version >>-<< parameters.pip-version >>"
           paths:
             - "/opt/circleci/.pyenv"
-
-  ##############################################################################
-  # Ambassador-specific granular commands                                      #
-  ##############################################################################
-
-  "oss-checkout":
-    steps:
-      - when:
-          condition:
-            or:
-            - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
-            - equal: [ "https://github.com/datawire/ambassador-private", << pipeline.project.git_url >> ]
-          steps:
-            - checkout:
-                path: ~/project/ambassador
-      - when:
-          condition:
-            or:
-            - equal: [ "https://github.com/datawire/apro", << pipeline.project.git_url >> ]
-            - equal: [ "https://github.com/datawire/apro-private", << pipeline.project.git_url >> ]
-          steps:
-            - run:
-                working_directory: ~/project
-                command: rmdir ~/project/ambassador
-            - checkout:
-                path: ~/project
 
   "dirty-check":
     steps:

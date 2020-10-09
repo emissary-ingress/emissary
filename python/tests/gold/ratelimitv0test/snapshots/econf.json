@@ -45,34 +45,6 @@
             {
                 "connect_timeout": "3.000s",
                 "dns_lookup_family": "V4_ONLY",
-                "http2_protocol_options": {},
-                "lb_policy": "ROUND_ROBIN",
-                "load_assignment": {
-                    "cluster_name": "cluster_rate_limit_v0_5000_default",
-                    "endpoints": [
-                        {
-                            "lb_endpoints": [
-                                {
-                                    "endpoint": {
-                                        "address": {
-                                            "socket_address": {
-                                                "address": "rate-limit-v0",
-                                                "port_value": 5000,
-                                                "protocol": "TCP"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    ]
-                },
-                "name": "cluster_rate_limit_v0_5000_default",
-                "type": "STRICT_DNS"
-            },
-            {
-                "connect_timeout": "3.000s",
-                "dns_lookup_family": "V4_ONLY",
                 "lb_policy": "ROUND_ROBIN",
                 "load_assignment": {
                     "cluster_name": "cluster_ratelimitv0test_http_default",
@@ -95,6 +67,34 @@
                     ]
                 },
                 "name": "cluster_ratelimitv0test_http_default",
+                "type": "STRICT_DNS"
+            },
+            {
+                "connect_timeout": "3.000s",
+                "dns_lookup_family": "V4_ONLY",
+                "http2_protocol_options": {},
+                "lb_policy": "ROUND_ROBIN",
+                "load_assignment": {
+                    "cluster_name": "cluster_ratelimitv0test_rlsgrpc_default",
+                    "endpoints": [
+                        {
+                            "lb_endpoints": [
+                                {
+                                    "endpoint": {
+                                        "address": {
+                                            "socket_address": {
+                                                "address": "ratelimitv0test-rlsgrpc",
+                                                "port_value": 80,
+                                                "protocol": "TCP"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "name": "cluster_ratelimitv0test_rlsgrpc_default",
                 "type": "STRICT_DNS"
             }
         ],
@@ -135,7 +135,7 @@
                                                 "rate_limit_service": {
                                                     "grpc_service": {
                                                         "envoy_grpc": {
-                                                            "cluster_name": "cluster_rate_limit_v0_5000_default"
+                                                            "cluster_name": "cluster_ratelimitv0test_rlsgrpc_default"
                                                         }
                                                     },
                                                     "use_alpha": true
@@ -338,6 +338,12 @@
                                                                                 "descriptor_key": "x-ambassador-test-allow",
                                                                                 "header_name": "x-ambassador-test-allow"
                                                                             }
+                                                                        },
+                                                                        {
+                                                                            "request_headers": {
+                                                                                "descriptor_key": "x-ambassador-test-headers-append",
+                                                                                "header_name": "x-ambassador-test-headers-append"
+                                                                            }
                                                                         }
                                                                     ],
                                                                     "stage": 0
@@ -383,6 +389,12 @@
                                                                             "request_headers": {
                                                                                 "descriptor_key": "x-ambassador-test-allow",
                                                                                 "header_name": "x-ambassador-test-allow"
+                                                                            }
+                                                                        },
+                                                                        {
+                                                                            "request_headers": {
+                                                                                "descriptor_key": "x-ambassador-test-headers-append",
+                                                                                "header_name": "x-ambassador-test-headers-append"
                                                                             }
                                                                         }
                                                                     ],

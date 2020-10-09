@@ -24,6 +24,7 @@ venv/
 /_cxx/envoy/
 /vendor/
 /docker/
+/build-aux/*.mk
 
 # absolute names (apro.git)
 /aes-example-plugins/

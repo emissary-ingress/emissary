@@ -175,6 +175,8 @@ func (m *RateLimitResponse) Validate() error {
 
 	}
 
+	// no validation rules for Body
+
 	return nil
 }
 

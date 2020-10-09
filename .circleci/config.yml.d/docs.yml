@@ -4,14 +4,6 @@ version: 2.1
 # - NETLIFY_AUTH_TOKEN (Netlify)
 # - GH_TOKEN (GitHub)
 
-_anchors:
-  "website-job": &website-job
-    machine:
-      # If you bump this, be sure to bump "install-python.executor-key"
-      # in the "website-setup" command below.
-      image: "ubuntu-1604:201903-01"
-    working_directory: ~/project/ambassador
-
 commands:
 
   "website-setup":
@@ -20,20 +12,20 @@ commands:
           version: "11"
       - install-yarn
       - install-python:
-          executor-key: "201903-01"
+          executor-key: "202008-01"
           version: "3.7.0"
       - run:
           name: "Show environment"
           command: |
             env | grep -e GIT -e TRAVIS -e CIRCLE | sort
-      - oss-checkout
+      - amb-checkout
       - skip-if-no-changes:
           to: docs/
 
 jobs:
 
   "website-preview-build":
-    <<: *website-job
+    executor: oss-linux
     steps:
       - website-setup
       - run: ./.ci/website-preview-build
@@ -44,7 +36,7 @@ jobs:
             - public
 
   "website-preview-publish":
-    <<: *website-job
+    executor: oss-linux
     steps:
       - website-setup
       - attach_workspace:
@@ -52,7 +44,7 @@ jobs:
       - run: ./.ci/website-preview-publish
 
   "website-preview-blc":
-    <<: *website-job
+    executor: oss-linux
     steps:
       - website-setup
       - attach_workspace:
@@ -63,14 +55,14 @@ jobs:
           destination: blc.txt
 
   "website-preview-for-smoketest":
-    <<: *website-job
+    executor: oss-linux
     steps:
       - website-setup
       - run: ./.ci/website-preview-build
       - run: ./.ci/website-preview-publish
 
   "website-prod-publish":
-    <<: *website-job
+    executor: oss-linux
     steps:
       - website-setup
       - run:
