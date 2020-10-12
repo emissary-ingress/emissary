@@ -29,6 +29,8 @@ indent_size = 2
 [*.py]
 indent_style = space
 indent_size = 4
+; Flynn's style is to wrap things at 100 columns, so mimic that.
+max_line_length = 100
 
 ; Go ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
