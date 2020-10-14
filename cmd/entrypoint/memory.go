@@ -130,7 +130,7 @@ func (m *MemoryUsage) Refresh() {
 }
 
 // If there is no cgroups memory limit then the value in
-// /proc/%d/root/sys/fs/cgroup/memory/memory.limit_in_bytes will be math.MaxInt64 rounded down to
+// /sys/fs/cgroup/memory/memory.limit_in_bytes will be math.MaxInt64 rounded down to
 // the nearest pagesize. We calculate this number so we can detect if there is no memory limit.
 var unlimited memory = (memory(math.MaxInt64) / memory(os.Getpagesize())) * memory(os.Getpagesize())
 
@@ -190,24 +190,22 @@ func GetCmdline(pid int) []string {
 
 // Helper to read the usage and limit for the cgroup.
 func readUsage() (memory, memory) {
-	pid := os.Getpid()
-
-	limit, err := readMemory(fmt.Sprintf("/proc/%d/root/sys/fs/cgroup/memory/memory.limit_in_bytes", pid))
+	limit, err := readMemory("/sys/fs/cgroup/memory/memory.limit_in_bytes")
 	if err != nil {
 		if errors.Is(err, os.ErrPermission) || errors.Is(err, os.ErrNotExist) {
 			// Don't complain if we don't have permission or the info doesn't exist.
 			return 0, unlimited
 		}
-		log.Printf("couldn't access limit for %d: %v", pid, err)
+		log.Printf("couldn't access memory limit: %v", err)
 		return 0, unlimited
 	}
-	usage, err := readMemory(fmt.Sprintf("/proc/%d/root/sys/fs/cgroup/memory/memory.usage_in_bytes", pid))
+	usage, err := readMemory("/sys/fs/cgroup/memory/memory.usage_in_bytes")
 	if err != nil {
 		if errors.Is(err, os.ErrPermission) || errors.Is(err, os.ErrNotExist) {
 			// Don't complain if we don't have permission or the info doesn't exist.
 			return 0, limit
 		}
-		log.Printf("couldn't access usage for %d: %v", pid, err)
+		log.Printf("couldn't access memory usage: %v", err)
 		return 0, limit
 	}
 
