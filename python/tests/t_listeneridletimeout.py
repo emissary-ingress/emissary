@@ -45,7 +45,9 @@ service: http://127.0.0.1:8001
               for filters in filter_chains:
                 for filter in filters.get('filters'):
                   if filter.get('name') == 'envoy.http_connection_manager':
-                    filter_config = filter.get('typed_config')
+                    # Get the 'config' field instead of 'typed_config' so long as we're
+                    # using an untyped HttpConnectionManager
+                    filter_config = filter.get('config')
                     common_http_protocol_options = filter_config.get('common_http_protocol_options')
                     if common_http_protocol_options:
                       actual_val = common_http_protocol_options.get('idle_timeout', '')

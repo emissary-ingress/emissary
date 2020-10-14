@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Any, Dict, Optional, TYPE_CHECKING
 
 from ..config import Config
 
@@ -15,7 +15,7 @@ class IRFilter(IRResource):
                  name: str = "ir.filter",
                  location: str = "--internal--",
                  type: Optional[str] = None,
-                 config: Optional[dict] = None,
+                 config: Optional[Dict[str, Any]] = None,
                  **kwargs) -> None:
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
@@ -24,7 +24,7 @@ class IRFilter(IRResource):
             config=config,
             **kwargs)
 
-    def config_dict(self) -> Optional[dict]:
+    def config_dict(self) -> Optional[Dict[str, Any]]:
         return self.config
 
     def finalize(self) -> None:

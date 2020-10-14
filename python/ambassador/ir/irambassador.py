@@ -26,7 +26,7 @@ class IRAmbassador (IRResource):
     # into the IRAmbassador object partway through IRAmbassador.finalize().
     #
     # PLEASE KEEP THIS LIST SORTED.
-    
+
     AModTransparentKeys: ClassVar = [
         'add_linkerd_headers',
         'admin_port',
@@ -91,7 +91,7 @@ class IRAmbassador (IRResource):
     # to function. It is far better to slow down as our configurations grow and give users a
     # leading indicator that there is a scaling issue that needs to be dealt with than to
     # suddenly and mysteriously stop functioning the day their configuration happens to become
-    # large enough to exceed this threshold. 
+    # large enough to exceed this threshold.
     default_validation_timeout: ClassVar[int] = 60
 
     def __init__(self, ir: 'IR', aconf: Config,
@@ -281,7 +281,7 @@ class IRAmbassador (IRResource):
         if amod:
             if 'ip_allow' in amod:
                 self.handle_ip_allow_deny(allow=True, principals=amod.ip_allow)
-        
+
             if 'ip_deny' in amod:
                 self.handle_ip_allow_deny(allow=False, principals=amod.ip_deny)
 
@@ -395,9 +395,9 @@ class IRAmbassador (IRResource):
         if self.get('ip_allow_deny') is not None:
             self.post_error("ip_allow and ip_deny may not both be set")
             return
-        
-        ipa = IRIPAllowDeny(self.ir, self.ir.aconf, rkey=self.rkey, 
-                            parent=self, 
+
+        ipa = IRIPAllowDeny(self.ir, self.ir.aconf, rkey=self.rkey,
+                            parent=self,
                             action="ALLOW" if allow else "DENY",
                             principals=principals)
 

@@ -74,10 +74,15 @@ import (
 	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/accesslog/v2"
 	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/buffer/v2"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/ext_authz/v2"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/gzip/v2"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/lua/v2"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/rate_limit/v2"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/rbac/v2"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/router/v2"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/network/tcp_proxy/v2"
 	discovery "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v2"
 )
 
