@@ -521,40 +521,48 @@ $(BLD)Codebases:$(END)
 
 endef
 
+# Style note: _help.intro
+# - is wrapped to 72 columns (after stripping the ANSI color codes)
+# - has sentences separated with 2 spaces
+# - uses bold blue ("$(BLU)") when introducing a new variable
+# - uses bold ("$(BLD)") for variables that have already been introduced
+# - uses bold ("$(BLD)") when you would use `backticks` in markdown
 define _help.intro
-This Makefile builds Ambassador using a standard build environment inside
-a Docker container. The $(BLD)$(REPO)$(END), $(BLD)kat-server$(END), and $(BLD)kat-client$(END) images are
-created from this container after the build stage is finished.
+This Makefile builds Ambassador using a standard build environment
+inside a Docker container.  The $(BLD)$(REPO)$(END), $(BLD)kat-server$(END), and $(BLD)kat-client$(END)
+images are created from this container after the build stage is
+finished.
 
-The build works by maintaining a running build container in the background.
-It gets source code into that container via $(BLD)rsync$(END). The $(BLD)/home/dw$(END) directory in
-this container is a Docker volume, which allows files (e.g. the Go build
-cache and $(BLD)pip$(END) downloads) to be cached across builds.
+The build works by maintaining a running build container in the
+background.  It gets source code into that container via $(BLD)rsync$(END).  The
+$(BLD)/home/dw$(END) directory in this container is a Docker volume, which allows
+files (e.g. the Go build cache and $(BLD)pip$(END) downloads) to be cached across
+builds.
 
-This arrangement also permits building multiple codebases. This is useful
-for producing builds with extended functionality. Each external codebase
-is synced into the container at the $(BLD)/buildroot/<name>$(END) path.
+This arrangement also permits building multiple codebases.  This is
+useful for producing builds with extended functionality.  Each external
+codebase is synced into the container at the $(BLD)/buildroot/<name>$(END) path.
 
 You can control the name of the container and the images it builds by
-setting $(BLU)$$BUILDER_NAME$(END), which defaults to $(BLU)$(NAME)$(END). $(BLD)Note well$(END) that if you
-want to make multiple clones of this repo and build in more than one of them
-at the same time, you $(BLD)must$(END) set $(BLU)$$BUILDER_NAME$(END) so that each clone has its own
-builder! If you do not do this, your builds will collide with confusing 
-results.
+setting $(BLU)$$BUILDER_NAME$(END), which defaults to $(BLD)$(NAME)$(END).  Note well that if
+you want to make multiple clones of this repo and build in more than one
+of them at the same time, you $(BLD)must$(END) set $(BLD)$$BUILDER_NAME$(END) so that each clone
+has its own builder!  If you do not do this, your builds will collide
+with confusing results.
 
-The build system doesn't try to magically handle all dependencies. In
+The build system doesn't try to magically handle all dependencies.  In
 general, if you change something that is not pure source code, you will
-likely need to do a $(BLD)$(MAKE) clean$(END) in order to see the effect. For example,
+likely need to do a $(BLD)$(MAKE) clean$(END) in order to see the effect.  For example,
 Python code only gets set up once, so if you change $(BLD)requirements.txt$(END) or
 $(BLD)setup.py$(END), then you will need to do a clean build to see the effects.
 Assuming you didn't $(BLD)$(MAKE) clobber$(END), this shouldn't take long due to the
 cache in the Docker volume.
 
-All targets that deploy to a cluster by way of $(BLD)$$DEV_REGISTRY$(END) can be made to
-have the cluster use an imagePullSecret to pull from $(BLD)$$DEV_REGISTRY$(END), by
-setting $(BLD)$$DEV_USE_IMAGEPULLSECRET$(END) to a non-empty value.  The imagePullSecret
-will be constructed from $(BLD)$$DEV_REGISTRY$(END), $(BLD)$$DOCKER_BUILD_USERNAME$(END), and
-$(BLD)$$DOCKER_BUILD_PASSWORD$(END).
+All targets that deploy to a cluster by way of $(BLU)$$DEV_REGISTRY$(END) can be made
+to have the cluster use an imagePullSecret to pull from $(BLD)$$DEV_REGISTRY$(END),
+by setting $(BLU)$$DEV_USE_IMAGEPULLSECRET$(END) to a non-empty value.  The
+imagePullSecret will be constructed from $(BLD)$$DEV_REGISTRY$(END),
+$(BLU)$$DOCKER_BUILD_USERNAME$(END), and $(BLU)$$DOCKER_BUILD_PASSWORD$(END).
 
 Use $(BLD)$(MAKE) $(BLU)targets$(END) for help about available $(BLD)make$(END) targets.
 endef
