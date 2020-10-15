@@ -57,6 +57,10 @@ spec:
     # are "AuthorizationCode", "Password", and "ClientCredentials".
     grantType:              "enum"     # optional; default is "AuthorizationCode"
 
+    # How should Ambassador authenticate itself to the identity provider?
+    clientAuthentication:              # optional
+      method: "enum"                     # optional; default is "HeaderPassword"
+
     ## OAuth Client settings: grantType=="AuthorizationCode" ###################
     clientURL:              "string"   # deprecated; use 'protectedOrigins' instead
     protectedOrigins:                  # required; must have at least 1 item
@@ -123,12 +127,27 @@ These settings configure the OAuth Client part of the filter.
    * `"Password"`: Authenticate by requiring `X-Ambassador-Username` and `X-Ambassador-Password` on all
      incoming requests, and use them to authenticate with the identity provider using the OAuth2
      `Resource Owner Password Credentials` grant type.
+
  - `expirationSafetyMargin`: Check that access tokens not expire for
    at least this much longer; otherwise consider them to be already
    expired.  This provides a safety margin of time for your
    application to send it to an upstream Resource Server that grants
    insufficient leeway to account for clock skew and
    network/application latency.
+
+ - `clientAuthentication`: Configures how Ambassador uses the
+   `clientID` and `secret` to authenticate itself to the identity
+   provider:
+   * `method`: Which method Ambassador should use to authenticate
+     itself to the identity provider.  Currently supported are:
+     + `"HeaderPassword"`: Treat the client secret (below) as a
+       password, and pack that in to an HTTP header for HTTP Basic
+       authentication.
+     + `"BodyPassword"`: Treat the client secret (below) as a
+       password, and put that in the HTTP request bodies submitted to
+       the identity provider.  This is NOT RECOMMENDED by RFC 6749,
+       and should only be used when using HeaderPassword isn't
+       possible.
 
 Depending on which `grantType` is used, different settings exist.
 
