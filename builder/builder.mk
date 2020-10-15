@@ -162,30 +162,48 @@ docker/snapshot.docker.stamp: %/snapshot.docker.stamp: %/container.txt FORCE com
 	}
 docker/base-envoy.docker.stamp: FORCE
 	@echo $(ENVOY_DOCKER_TAG) > $@
-docker/$(NAME).docker.stamp: %/$(NAME).docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile
-	@printf "${CYN}==> ${GRN}Building ${BLU}$(NAME)${END}\n"
-	@${DBUILD} ${BUILDER_HOME} \
-	  --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
-	  --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	  --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	  --target=ambassador \
-	  --iidfile=$@
-docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile
-	@printf "${CYN}==> ${GRN}Building ${BLU}kat-client${END}\n"
-	@${DBUILD} ${BUILDER_HOME} \
-	  --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
-	  --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	  --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	  --target=kat-client \
-	  --iidfile=$@
-docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile
-	@printf "${CYN}==> ${GRN}Building ${BLU}kat-server${END}\n"
-	@${DBUILD} ${BUILDER_HOME} \
-	  --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
-	  --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	  --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	  --target=kat-server \
-	  --iidfile=$@
+docker/$(NAME).docker.stamp: %/$(NAME).docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
+	@set -e; { \
+	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
+	    printf "${CYN}==> ${GRN}Image ${BLU}$(NAME)${GRN} is already up-to-date${END}\n"; \
+	  else \
+	    printf "${CYN}==> ${GRN}Building image ${BLU}$(NAME)${END}\n"; \
+	    ${DBUILD} ${BUILDER_HOME} \
+	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
+	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
+	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	      --target=ambassador \
+	      --iidfile=$@; \
+	  fi; \
+	}
+docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
+	@set -e; { \
+	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
+	    printf "${CYN}==> ${GRN}Image ${BLU}kat-client${GRN} is already up-to-date${END}\n"; \
+	  else \
+	    printf "${CYN}==> ${GRN}Building image ${BLU}kat-client${END}\n"; \
+	    ${DBUILD} ${BUILDER_HOME} \
+	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
+	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
+	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	      --target=kat-client \
+	      --iidfile=$@; \
+	  fi; \
+	}
+docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
+	@set -e; { \
+	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
+	    printf "${CYN}==> ${GRN}Image ${BLU}kat-server${GRN} is already up-to-date${END}\n"; \
+	  else \
+	    printf "${CYN}==> ${GRN}Building image ${BLU}kat-server${END}\n"; \
+	    ${DBUILD} ${BUILDER_HOME} \
+	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
+	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
+	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	      --target=kat-server \
+	      --iidfile=$@; \
+	  fi; \
+	}
 
 REPO=$(BUILDER_NAME)
 
