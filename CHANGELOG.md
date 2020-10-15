@@ -55,7 +55,9 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
-(no changes yet)
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Internal: Knative serving tests were bumped from version 0.11.0 to version 0.18.0
 
 ## [1.8.0] October 08, 2020
 [1.8.0]: https://github.com/datawire/ambassador/compare/v1.7.4...v1.8.0

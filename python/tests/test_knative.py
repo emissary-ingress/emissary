@@ -71,7 +71,7 @@ class KnativeTesting:
 
         # Install Knative
         apply_kube_artifacts(namespace=None, artifacts=load_manifest("knative_serving_crds"))
-        apply_kube_artifacts(namespace=None, artifacts=load_manifest("knative_serving_0.11.0"))
+        apply_kube_artifacts(namespace=None, artifacts=load_manifest("knative_serving_0.18.0"))
         run_and_assert(['kubectl', 'patch', 'configmap/config-network', '--type', 'merge', '--patch', r'{"data": {"ingress.class": "ambassador.ingress.networking.knative.dev"}}', '-n', 'knative-serving'])
 
         # Wait for Knative to become ready
