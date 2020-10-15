@@ -76,7 +76,6 @@ class KnativeTesting:
 
         # Wait for Knative to become ready
         run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=activator', '-n', 'knative-serving'])
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=autoscaler-hpa', '-n', 'knative-serving'])
         run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=controller', '-n', 'knative-serving'])
         run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=webhook', '-n', 'knative-serving'])
         run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=autoscaler', '-n', 'knative-serving'])
