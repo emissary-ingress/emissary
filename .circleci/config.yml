@@ -81,9 +81,6 @@ commands:
         - "pytest"
         - "e2etest"
         default: "test"
-      "fast-validation":
-        type: boolean
-        default: false
       "fast-reconfigure":
         type: boolean
         default: false
@@ -113,7 +110,7 @@ commands:
           fi
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=600
-          if << parameters.fast-validation >>; then
+          if << parameters.fast-reconfigure >>; then
             export AMBASSADOR_FAST_VALIDATION=yes # empty/nonempty
           fi
           export AMBASSADOR_FAST_RECONFIGURE=<< parameters.fast-reconfigure >> # ParseBool
@@ -169,18 +166,7 @@ commands:
     steps:
     - run:
         name: "Saving Docker data to workspace"
-        command: |
-          set -x
-          # Save the images
-          docker image ls --filter=dangling=false --format='{{ .Repository }}:{{ .Tag }}' | xargs docker image save > docker/images.tar
-          # Save the cache volume
-          docker run \
-            --rm \
-            --volumes-from=$(cat docker/container.txt) \
-            --volume="$PWD/docker":/mnt \
-            --user=root \
-            --workdir=/home/dw \
-            --entrypoint=tar $(cat docker/snapshot.docker) -cf /mnt/volume.tar .
+        command: "~/project/ambassador/.circleci/amb-images-save-workspace"
     - persist_to_workspace:
         root: /home/circleci/project
         paths:
@@ -191,31 +177,7 @@ commands:
         at: /home/circleci/project
     - run:
         name: "Loading Docker data from workspace"
-        command: |
-          set -x
-          # Load the images
-          docker image load < docker/images.tar
-          rm docker/images.tar
-          # Resume the build container
-          rm -f docker/container.txt docker/container.txt.stamp
-          make docker/container.txt
-          docker run \
-            --rm \
-            --volume=/var/run/docker.sock:/var/run/docker.sock \
-            --user=root \
-            --entrypoint=rsync $(cat docker/snapshot.docker) \
-              -a -xx --exclude=/etc/{resolv.conf,hostname,hosts} --delete \
-              --blocking-io -e 'docker exec -i --user=root' / "$(cat docker/container.txt):/"
-          docker exec "$(cat docker/container.txt)" rm -f /buildroot/image.dirty
-          # Load the cache volume
-          docker run \
-            --rm \
-            --volumes-from=$(cat docker/container.txt) \
-            --volume="$PWD/docker":/mnt \
-            --user=root \
-            --workdir=/home/dw \
-            --entrypoint=tar $(cat docker/snapshot.docker) -xf /mnt/volume.tar
-          rm -f docker/volume.tar
+        command: "~/project/ambassador/.circleci/amb-images-load-workspace"
   amb-checkout:
     steps:
     - when:
@@ -252,6 +214,7 @@ commands:
         command: |
           if [[ -z "$DEV_REGISTRY" ]]; then
             echo >>"$BASH_ENV" 'export DEV_REGISTRY=127.0.0.1:31000'
+            echo >>"$BASH_ENV" 'export BASE_REGISTRY=docker.io/datawiredev'
           fi
           if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
             docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
@@ -266,6 +229,7 @@ commands:
         command: |
           if [[ -z "$DEV_REGISTRY" ]]; then
             echo >>"$BASH_ENV" 'export DEV_REGISTRY=127.0.0.1:31000'
+            echo >>"$BASH_ENV" 'export BASE_REGISTRY=docker.io/datawiredev'
           fi
           if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
             docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
@@ -506,16 +470,12 @@ jobs:
         - "gotest"
         - "pytest"
         default: "test"
-      fast-validation:
-        type: boolean
-        default: false
       fast-reconfigure:
         type: boolean
         default: false
     steps:
     - job-test:
         test: << parameters.test >>
-        fast-validation: << parameters.fast-validation >>
         fast-reconfigure: << parameters.fast-reconfigure >>
   oss-promote-to-rc-latest:
     executor: oss-linux
@@ -601,39 +561,23 @@ workflows:
     - oss-test:
         requires:
         - "oss-dev-images"
-        name: "oss-dev-gotest"
-        test: gotest
-    - oss-test:
-        requires:
-        - "oss-dev-images"
-        name: "oss-dev-pytest"
-        test: pytest
-    - oss-test:
-        requires:
-        - "oss-dev-images"
-        name: "oss-dev-gotest-fastvalidation"
-        test: gotest
-        fast-validation: true
-    - oss-test:
-        requires:
-        - "oss-dev-images"
-        name: "oss-dev-pytest-fastvalidation"
-        test: pytest
-        fast-validation: true
-    - oss-test:
-        requires:
-        - "oss-dev-images"
-        name: "oss-dev-gotest-fastreconfigure"
-        test: gotest
-        fast-validation: true
-        fast-reconfigure: true
-    - oss-test:
-        requires:
-        - "oss-dev-images"
-        name: "oss-dev-pytest-fastreconfigure"
-        test: pytest
-        fast-validation: true
-        fast-reconfigure: true
+        name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >>"
+        matrix:
+          alias: "oss-dev-test"
+          parameters:
+            test:
+            - "gotest"
+            - "pytest"
+            # Running the ingresstests would require we install `kind` and
+            # that the test suite supports HTTP to HTTPS redirects (AES
+            # enables cleartext redirection by default, even for fallback
+            # hosts, contrary to A/OSS)
+            #- "ingresstest"
+
+            fast-reconfigure:
+            - true
+            - false
   'OSS: Release':
     when:
       or:
@@ -669,64 +613,23 @@ workflows:
     - oss-test:
         requires:
         - "oss-release-images"
-        name: "oss-release-gotest"
-        test: gotest
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-test:
-        requires:
-        - "oss-release-images"
-        name: "oss-release-pytest"
-        test: pytest
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-test:
-        requires:
-        - "oss-release-images"
-        name: "oss-release-gotest-fastvalidation"
-        test: gotest
-        fast-validation: true
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-test:
-        requires:
-        - "oss-release-images"
-        name: "oss-release-pytest-fastvalidation"
-        test: pytest
-        fast-validation: true
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-test:
-        requires:
-        - "oss-release-images"
-        name: "oss-release-gotest-fastreconfigure"
-        test: gotest
-        fast-validation: true
-        fast-reconfigure: true
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-test:
-        requires:
-        - "oss-release-images"
-        name: "oss-release-pytest-fastreconfigure"
-        test: pytest
-        fast-validation: true
-        fast-reconfigure: true
+        name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >>"
+        matrix:
+          alias: "oss-release-test"
+          parameters:
+            test:
+            - "gotest"
+            - "pytest"
+            # Running the ingresstests would require we install `kind` and
+            # that the test suite supports HTTP to HTTPS redirects (AES
+            # enables cleartext redirection by default, even for fallback
+            # hosts, contrary to A/OSS)
+            #- "ingresstest"
+
+            fast-reconfigure:
+            - true
+            - false
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
@@ -740,12 +643,7 @@ workflows:
         # test
         - "oss-release-generate"
         - "oss-release-lint"
-        - "oss-release-gotest"
-        - "oss-release-pytest"
-        - "oss-release-gotest-fastvalidation"
-        - "oss-release-pytest-fastvalidation"
-        - "oss-release-gotest-fastreconfigure"
-        - "oss-release-pytest-fastreconfigure"
+        - "oss-release-test"
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/

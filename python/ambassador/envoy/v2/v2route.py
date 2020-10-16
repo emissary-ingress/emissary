@@ -59,11 +59,9 @@ def hostglob_matches(glob: str, value: str) -> bool:
     if glob == "*": # special wildcard
         return True
     elif glob.endswith("*"): # prefix match
-        if value.startswith(glob[:-1]):
-            return True
+        return value.startswith(glob[:-1])
     elif glob.startswith("*"): # suffix match
-        if value.endswith(glob[1:]):
-            return True
+        return value.endswith(glob[1:])
     else: # exact match
         return value == glob
 
