@@ -38,6 +38,7 @@ type MappingSpec struct {
 	AddLinkerdHeaders     bool                    `json:"add_linkerd_headers,omitempty"`
 	AutoHostRewrite       bool                    `json:"auto_host_rewrite,omitempty"`
 	CaseSensitive         bool                    `json:"case_sensitive,omitempty"`
+	Docs                  *DocsInfo               `json:"docs,omitempty"`
 	EnableIPv4            bool                    `json:"enable_ipv4,omitempty"`
 	EnableIPv6            bool                    `json:"enable_ipv6,omitempty"`
 	CircuitBreakers       []*CircuitBreaker       `json:"circuit_breakers,omitempty"`
@@ -110,6 +111,14 @@ type MappingSpec struct {
 	LoadBalancer           *LoadBalancer           `json:"load_balancer,omitempty"`
 	QueryParameters        map[string]BoolOrString `json:"query_parameters,omitempty"`
 	RegexQueryParameters   map[string]BoolOrString `json:"regex_query_parameters,omitempty"`
+}
+
+// DocsInfo provides some extra information about the docs for the Mapping
+// (used by the Dev Portal)
+type DocsInfo struct {
+	Path    string `json:"path,omitempty"`
+	URL     string `json:"url,omitempty"`
+	Ignored bool   `json:"ignored,omitempty"`
 }
 
 type DomainMap map[string]MappingLabelsArray

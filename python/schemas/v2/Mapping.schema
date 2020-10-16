@@ -80,6 +80,15 @@
             },
             "additionalProperties": false
         },
+        "docs": {
+            "type": "object",
+            "properties": {
+                "path": { "type": "string" },
+                "url": { "type": "string" },
+                "ignored": { "type": "boolean" }
+            },
+            "additionalProperties": false
+        },
         "retry_policy": {
             "type": "object",
             "properties": {

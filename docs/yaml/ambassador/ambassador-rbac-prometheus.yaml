@@ -797,6 +797,16 @@ spec:
                   - type: string
                   - type: array
               type: object
+            docs:
+              description: DocsInfo provides some extra information about the docs for the Mapping (used by the Dev Portal)
+              properties:
+                ignored:
+                  type: boolean
+                path:
+                  type: string
+                url:
+                  type: string
+              type: object
             enable_ipv4:
               type: boolean
             enable_ipv6:

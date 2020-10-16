@@ -84,6 +84,7 @@ class IRHTTPMapping (IRBaseMapping):
         # Do not include cluster_tag
         "connect_timeout_ms": False,
         "cors": False,
+        "docs": False,
         "enable_ipv4": False,
         "enable_ipv6": False,
         "error_response_overrides": False,
