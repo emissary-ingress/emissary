@@ -18,6 +18,7 @@ from .k8sprocessor import (
     CountingKubernetesProcessor,
 )
 from .ambassador import AmbassadorProcessor
+from .secret import SecretProcessor
 from .service import ServiceProcessor
 from .knative import KnativeIngressProcessor
 
@@ -65,6 +66,7 @@ class ResourceFetcher:
         self.k8s_processor = DeduplicatingKubernetesProcessor(AggregateKubernetesProcessor([
             CountingKubernetesProcessor(self.aconf, KubernetesGVK.for_knative_networking('Ingress'), 'knative_ingress'),
             AmbassadorProcessor(self.manager),
+            SecretProcessor(self.manager),
             ServiceProcessor(self.manager, watch_only=watch_only),
             KnativeIngressProcessor(self.manager),
         ]))
@@ -627,78 +629,6 @@ class ResourceFetcher:
 
         return None
 
-    # Handler for K8s Secret resources.
-    def handle_k8s_secret(self, k8s_object: AnyDict) -> HandlerResult:
-        # XXX Another one where we shouldn't be saving everything.
-
-        secret_type = k8s_object.get('type', None)
-        metadata = k8s_object.get('metadata', None)
-        metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
-        resource_name = metadata.get('name') if metadata else None
-        resource_namespace = metadata.get('namespace', 'default') if metadata else None
-        data = k8s_object.get('data', None)
-
-        skip = False
-
-        if (secret_type != 'kubernetes.io/tls') and (secret_type != 'Opaque') and (secret_type != 'istio.io/key-and-cert'):
-            self.logger.debug("ignoring K8s Secret with unknown type %s" % secret_type)
-            skip = True
-
-        if not data:
-            self.logger.debug("ignoring K8s Secret with no data")
-            skip = True
-
-        if not metadata:
-            self.logger.debug("ignoring K8s Secret with no metadata")
-            skip = True
-
-        if not resource_name:
-            self.logger.debug("ignoring K8s Secret with no name")
-            skip = True
-
-        if not skip and (Config.single_namespace and (resource_namespace != Config.ambassador_namespace) and Config.certs_single_namespace):
-            # This should never happen in actual usage, since we shouldn't be given things
-            # in the wrong namespace. However, in development, this can happen a lot.
-            self.logger.debug("ignoring K8s Secret in wrong namespace")
-            skip = True
-
-        if skip:
-            return None
-
-        # This resource identifier is useful for log output since filenames can be duplicated (multiple subdirectories)
-        resource_identifier = f'{resource_name}.{resource_namespace}'
-
-        found_any = False
-
-        for key in [ 'tls.crt', 'tls.key', 'user.key', 'cert-chain.pem', 'key.pem', 'root-cert.pem' ]:
-            if data.get(key, None):
-                found_any = True
-                break
-
-        if not found_any:
-            # Uh. WTFO?
-            self.logger.debug(f'ignoring K8s Secret {resource_identifier} with no keys')
-            return None
-
-        # No need to muck about with resolution later, just immediately turn this
-        # into an Ambassador Secret resource.
-        secret_info = {
-            'apiVersion': 'getambassador.io/v2',
-            'ambassador_id': Config.ambassador_id,
-            'kind': 'Secret',
-            'name': resource_name,
-            'namespace': resource_namespace,
-            'secret_type': secret_type
-        }
-
-        if metadata_labels:
-            secret_info['metadata_labels'] = metadata_labels
-
-        for key, value in data.items():
-            secret_info[key.replace('.', '_')] = value
-
-        return resource_identifier, [ secret_info ]
-
     # Handler for Consul services
     def handle_consul_service(self,
                               consul_rkey: str, consul_object: AnyDict) -> HandlerResult:
@@ -744,8 +674,8 @@ class ResourceFetcher:
         }
 
         self.manager.emit(NormalizedResource.from_data(
-            kind='Service',
-            name=name,
+            'Service',
+            name,
             spec=spec,
             rkey=f"consul-{name}-{spec['datacenter']}",
         ))
