@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -x
+
+# Save the images
+go run "${0%-workspace}-images.go"
+
+# Save the cache volume
+docker run \
+  --rm \
+  --volumes-from=$(cat docker/container.txt) \
+  --volume="$PWD/docker":/mnt \
+  --user=root \
+  --workdir=/home/dw \
+  --entrypoint=tar $(cat docker/snapshot.docker) -cf /mnt/volume.tar .

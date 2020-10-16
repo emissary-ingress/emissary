@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -x
+
+# Load the images
+docker image load < docker/images.tar
+rm docker/images.tar
+./docker/images.sh
+rm docker/images.sh
+
+# Resume the build container
+rm -f docker/container.txt docker/container.txt.stamp
+make docker/container.txt
+docker run \
+  --rm \
+  --volume=/var/run/docker.sock:/var/run/docker.sock \
+  --user=root \
+  --entrypoint=rsync $(cat docker/snapshot.docker) \
+    -a -xx --exclude=/etc/{resolv.conf,hostname,hosts} --delete \
+    --blocking-io -e 'docker exec -i --user=root' / "$(cat docker/container.txt):/"
+docker exec "$(cat docker/container.txt)" rm -f /buildroot/image.dirty
+# Load the cache volume
+docker run \
+  --rm \
+  --volumes-from=$(cat docker/container.txt) \
+  --volume="$PWD/docker":/mnt \
+  --user=root \
+  --workdir=/home/dw \
+  --entrypoint=tar $(cat docker/snapshot.docker) -xf /mnt/volume.tar
+rm -f docker/volume.tar

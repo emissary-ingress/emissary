@@ -33,8 +33,8 @@ if [ -n "${KUBECEPTION_TOKEN}" ]; then
     echo ${CLAIM_NAME} > ~/kubernaut-claim.txt
     mkdir -p ~/.kube
     export DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
-    # get a kluster with a 1 timeout that is size "medium"
-    get_cluster ${DEV_KUBECONFIG} 28800 medium
+    # get a kluster with a 1-hour timeout (by default) that is size "medium" (by default)
+    get_cluster ${DEV_KUBECONFIG} ${KUBECEPTION_TIMEOUT:-3600} ${KUBECEPTION_PROFILE:-medium}
     kubectl --kubeconfig ${DEV_KUBECONFIG} -n default get service kubernetes
     exit
 fi

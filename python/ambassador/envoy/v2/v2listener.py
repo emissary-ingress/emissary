@@ -39,6 +39,8 @@ from .v2tls import V2TLSContext
 if TYPE_CHECKING:
     from . import V2Config
 
+DictifiedV2Route = Dict[str, Any]
+
 EnvoyCTXInfo = Tuple[str, Optional[List[str]], V2TLSContext]
 
 # Static header keys normally used in the context of an authorization request.
@@ -91,7 +93,7 @@ def jsonify(x) -> str:
     return json.dumps(x, sort_keys=True, indent=4)
 
 
-def prettyroute(route: V2Route) -> str:
+def prettyroute(route: DictifiedV2Route) -> str:
     match = route["match"]
 
     key = "PFX"
@@ -322,7 +324,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
         allowed_authorization_headers = []
         headers_to_add = []
 
-        for k, v in auth.get('add_auth_headers').items():
+        for k, v in auth.get('add_auth_headers', {}).items():
             headers_to_add.append({
                 'key': k,
                 'value': v,
@@ -583,10 +585,10 @@ class V2TCPListener(dict):
         self['filter_chains'].append(chain_entry)
 
 
-class V2VirtualHost(dict):
+class V2VirtualHost:
     def __init__(self, config: 'V2Config', listener: 'V2Listener',
-                 name: str, hostname: Optional[str], ctx: Optional[IRTLSContext],
-                 secure: bool, action: str, insecure_action: Optional[str]) -> None:
+                 name: str, hostname: str, ctx: Optional[IRTLSContext],
+                 secure: bool, action: Optional[str], insecure_action: Optional[str]) -> None:
         super().__init__()
 
         self._config = config
@@ -599,14 +601,11 @@ class V2VirtualHost(dict):
         self._insecure_action = insecure_action
         self._needs_redirect = False
 
-        self["tls_context"] = V2TLSContext(ctx)
-        self["routes"]: List['V2Route'] = []
+        self.tls_context = V2TLSContext(ctx)
+        self.routes: List[DictifiedV2Route] = []
 
     def needs_redirect(self) -> None:
         self._needs_redirect = True
-
-    def append_route(self, route: V2Route):
-        self["routes"].append(route)
 
     def finalize(self) -> None:
         # It's important from a performance perspective to wrap debug log statements
@@ -621,7 +620,7 @@ class V2VirtualHost(dict):
         if log_debug:
             self._config.ir.logger.debug(f"V2VirtualHost finalize {jsonify(self.pretty())}")
 
-        match = {}
+        match: Dict[str, Any] = {}
 
         if self._ctx:
             match["transport_protocol"] = "tls"
@@ -630,14 +629,14 @@ class V2VirtualHost(dict):
         if self._hostname and (self._hostname != '*'):
                 match["server_names"] = [ self._hostname ]
 
-        self["filter_chain_match"] = match
+        self.filter_chain_match = match
 
         # If we're on Edge Stack and we're not an intercept agent, punch a hole for ACME
         # challenges, for every listener.
         if self._config.ir.edge_stack_allowed and not self._config.ir.agent_active:
             found_acme = False
 
-            for route in self["routes"]:
+            for route in self.routes:
                 if route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
                     found_acme = True
                     break
@@ -654,7 +653,7 @@ class V2VirtualHost(dict):
                 if log_debug:
                     self._config.ir.logger.debug(f"V2VirtualHost finalize punching a hole for ACME")
 
-                self["routes"].insert(0, {
+                self.routes.insert(0, {
                     "match": {
                         "case_sensitive": True,
                         "prefix": "/.well-known/acme-challenge/"
@@ -667,16 +666,16 @@ class V2VirtualHost(dict):
                 })
 
         if log_debug:
-            for route in self["routes"]:
+            for route in self.routes:
                 self._config.ir.logger.debug(f"VHost Route {prettyroute(route)}")
 
     def pretty(self) -> str:
         ctx_name = "-none-"
 
-        if self["tls_context"]:
-            ctx_name = self["tls_context"].pretty()
+        if self.tls_context:
+            ctx_name = self.tls_context.pretty()
 
-        route_count = len(self["routes"])
+        route_count = len(self.routes)
         route_plural = "" if (route_count == 1) else "s"
 
         return "<VHost %s ctx %s redir %s a %s ia %s %d route%s>" % \
@@ -691,8 +690,8 @@ class V2VirtualHost(dict):
             "_action": self._action,
             "_insecure_action": self._insecure_action,
             "_needs_redirect": self._needs_redirect,
-            "tls_context": self["tls_context"],
-            "routes": self["routes"],
+            "tls_context": self.tls_context,
+            "routes": self.routes,
         }
 
 
@@ -725,7 +724,7 @@ class V2ListenerCollection:
             v2listener.use_proxy_proto = use_proxy_proto
         elif v2listener.use_proxy_proto != use_proxy_proto:
             raise Exception("listener for port %d has use_proxy_proto %s, requester wants upp %s" %
-                            (v2listener.use_proxy_proto, use_proxy_proto))
+                            (v2listener.service_port, v2listener.use_proxy_proto, use_proxy_proto))
 
         return v2listener
 
@@ -762,7 +761,7 @@ class V2Listener(dict):
 
         # Get Access Log Rules
         for al in self.config.ir.log_services.values():
-            access_log_obj = { "common_config": al.get_common_config() }
+            access_log_obj: Dict[str, Any] = { "common_config": al.get_common_config() }
             req_headers = []
             resp_headers = []
             trailer_headers = []
@@ -909,7 +908,7 @@ class V2Listener(dict):
         proper_case = self.config.ir.ambassador_module['proper_case']
 
         if proper_case:
-            proper_case_header = {'header_key_format': {'proper_case_words': {}}}
+            proper_case_header: Dict[str, Dict[str, dict]] = {'header_key_format': {'proper_case_words': {}}}
             if 'http_protocol_options' in self.base_http_config:
                 self.base_http_config["http_protocol_options"].update(proper_case_header)
             else:
@@ -989,12 +988,12 @@ class V2Listener(dict):
                     domains = [vhost._hostname]
 
             # ...then build up the Envoy structures around it.
-            filter_chain = {
-                "filter_chain_match": vhost["filter_chain_match"],
+            filter_chain: Dict[str, Any] = {
+                "filter_chain_match": vhost.filter_chain_match,
             }
 
-            if vhost["tls_context"]:
-                filter_chain["tls_context"] = vhost["tls_context"]
+            if vhost.tls_context:
+                filter_chain["tls_context"] = vhost.tls_context
                 need_tcp_inspector = True
 
             http_config = dict(self.base_http_config)
@@ -1003,7 +1002,7 @@ class V2Listener(dict):
                     {
                         "name": f"{self.name}-{vhost._name}",
                         "domains": domains,
-                        "routes": vhost["routes"]
+                        "routes": vhost.routes
                     }
                 ]
             }
@@ -1123,6 +1122,7 @@ class V2Listener(dict):
             if not '*' in listener.vhosts:
                 # Force the first VHost to '*'. I know, this is a little weird, but it's arguably
                 # the least surprising thing to do in most situations.
+                assert listener.first_vhost
                 first_vhost = listener.first_vhost
                 first_vhost._hostname = '*'
                 first_vhost._name = f"{first_vhost._name}-forced-star"
@@ -1155,18 +1155,18 @@ class V2Listener(dict):
         prune_unreachable_routes = config.ir.ambassador_module['prune_unreachable_routes']
 
         # OK. We have all the listeners. Time to walk the routes (note that they are already ordered).
-        for route in config.routes:
+        for c_route in config.routes:
             # Remember which hosts this can apply to
-            route_hosts = route.host_constraints(prune_unreachable_routes)
+            route_hosts = c_route.host_constraints(prune_unreachable_routes)
 
             # Remember, also, if a precedence was set.
-            route_precedence = route.get('_precedence', None)
+            route_precedence = c_route.get('_precedence', None)
 
             if log_debug:
-                logger.debug(f"V2Listeners: route {prettyroute(route)}...")
+                logger.debug(f"V2Listeners: route {prettyroute(c_route)}...")
 
             # Build a cleaned-up version of this route without the '_sni' and '_precedence' elements...
-            insecure_route = dict(route)
+            insecure_route: DictifiedV2Route = dict(c_route)
             insecure_route.pop('_sni', None)
             insecure_route.pop('_precedence', None)
 
@@ -1216,7 +1216,7 @@ class V2Listener(dict):
                     # that we can have an action of None if we're looking at a vhost created
                     # by an insecure_addl_port).
 
-                    candidates = []
+                    candidates: List[Tuple[bool, DictifiedV2Route, str]] = []
                     vhostname = vhost._hostname
 
                     if vhost._action is not None:
@@ -1269,7 +1269,7 @@ class V2Listener(dict):
                             if log_debug:
                                 logger.debug(
                                     f"V2Listeners: {listener.name} {vhostname} {variant}: Accept as {action}")
-                            vhost.append_route(route)
+                            vhost.routes.append(route)
                         else:
                             if log_debug:
                                 logger.debug(
@@ -1302,17 +1302,18 @@ class V2Listener(dict):
 
             # OK, good to go. Do we already have a TCP listener binding where this one does?
             group_key = irgroup.bind_to()
-            listener = tcplisteners.get(group_key, None)
+            tcplistener = tcplisteners.get(group_key, None)
 
             if log_debug:
                 config.ir.logger.debug("V2TCPListener: group at %s found %s listener" %
-                                       (group_key, "extant" if listener else "no"))
+                                       (group_key, "extant" if tcplistener else "no"))
 
-            if not listener:
+            if not tcplistener:
                 # Nope. Make a new one and save it.
-                listener = config.save_element('listener', irgroup, V2TCPListener(config, irgroup))
-                config.listeners.append(listener)
-                tcplisteners[group_key] = listener
+                tcplistener = config.save_element('listener', irgroup, V2TCPListener(config, irgroup))
+                assert tcplistener
+                config.listeners.append(tcplistener)
+                tcplisteners[group_key] = tcplistener
 
             # Whether we just created this listener or not, add this irgroup to it.
-            listener.add_group(config, irgroup)
+            tcplistener.add_group(config, irgroup)
