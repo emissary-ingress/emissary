@@ -127,7 +127,7 @@ class KubernetesObject (collections.abc.Mapping):
     @property
     def key(self) -> KubernetesObjectKey:
         try:
-            namespace = self.namespace
+            namespace: Optional[str] = self.namespace
         except AttributeError:
             namespace = None
 
