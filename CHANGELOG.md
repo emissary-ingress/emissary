@@ -5,6 +5,10 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+## v6.5.10
+
+- Update Ambassador to version 1.8.1: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+
 ## v6.5.9
 
 - Update Ambassador to version 1.8.0: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
