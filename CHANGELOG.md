@@ -55,6 +55,11 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
+(no changes yet)
+
+## [1.8.1-rc.0] October 16, 2020
+[1.8.1-rc.0]: https://github.com/datawire/ambassador/compare/v1.8.0...v1.8.1-rc.0
+
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Bugfix: Ambassador no longer fails to configure Envoy listeners when a TracingService or LogService has a service name whose underlying cluster name has over 40 charcters.
