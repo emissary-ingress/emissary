@@ -81,7 +81,7 @@ func Main() error {
 
 		lines = append([]string{
 			"#!/usr/bin/env bash\n",
-			"set -x\n",
+			"set -ex\n",
 		}, lines...)
 
 		restoreSh, err := os.OpenFile("docker/images.sh", os.O_CREATE|os.O_WRONLY, 0777)
