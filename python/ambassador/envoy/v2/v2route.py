@@ -276,33 +276,59 @@ class V2Route(Cacheable):
 
 
     def host_constraints(self, prune_unreachable_routes: bool) -> Set[str]:
-        """Return a set of hostglobs that match (a superset of) all
-        hostnames that this route can apply to.
+        """Return a set of hostglobs that match (a superset of) all hostnames that this route can
+        apply to.
 
-        An emtpy set means that this route cannot possibly apply to
-        any hostnames.
+        An emtpy set means that this route cannot possibly apply to any hostnames.
 
-        This considers SNI information and HeaderMatchers that
-        `exact_match` on the `:authority` header.  There are other
-        things that could narrow the set down more, but that this
-        function doesn't consider (like regex matches on
-        `:authority`), leading to it possibly returning a set that is
-        too broad.  That's OK for correctness, it just means that
+        This considers SNI information and (if prune_unreachable_routes) HeaderMatchers that
+        `exact_match` on the `:authority` header.  There are other things that could narrow the set
+        down more, but that we don't consider (like regex matches on `:authority`), leading to it
+        possibly returning a set that is too broad.  That's OK for correctness, it just means that
         we'll emit an Envoy config that contains extra work for Envoy.
+
         """
-        ret = set(self.get('_sni', {}).get('hosts', ['*']))
+        # Start by grabbing a list of all the SNI host globs for this route. If there aren't any,
+        # default to "*".
+        hostglobs = set(self.get('_sni', {}).get('hosts', ['*']))
 
+        # If we're going to do any aggressive pruning here...
         if prune_unreachable_routes:
-            match = self.get("match", {})
-            match_headers = match.get("headers", [])
-            for header in match_headers:
-                if header.get("name") == ":authority" and "exact_match" in header:
-                    if any(hostglob_matches(glob, header["exact_match"]) for glob in ret):
-                        return set([header["exact_match"]])
-                    else:
-                        return set()
+            # Note: We're *pruning*; the hostglobs set will only ever get *smaller*, it will never
+            # grow.  If it gets down to the empty set, then we can safely bail early.
 
-        return ret
+            # Take all the HeaderMatchers...
+            header_matchers = self.get("match", {}).get("headers", [])
+            for header in header_matchers:
+                # ... and look for ones that exact_match on :authority.
+                if header.get("name") == ":authority" and "exact_match" in header:
+                    exact_match = header["exact_match"]
+
+                    if "*" in exact_match:
+                        # A real :authority header will never contain a "*", so if this route has an
+                        # exact_match looking for one, then this route is unreachable.
+                        hostglobs = set()
+                        break # hostglobs is empty, no point in doing more work
+
+                    elif any(hostglob_matches(glob, exact_match) for glob in hostglobs):
+                        # The exact_match that this route is looking for is matched by one or more
+                        # of the hostglobs; so this route is reachable (so far).  Set hostglobs to
+                        # just match that route.  Because we already checked if the exact_match
+                        # contains a "*", we don't need to worry about it possibly being interpreted
+                        # incorrectly as a glob.
+                        hostglobs = set([exact_match])
+                        # Don't "break" here--if somehow this route has multiple disagreeing
+                        # HeaderMatchers on :authority, then it's unreachable and we want the next
+                        # iteration of the loop to trigger the "else" clause and prune hostglobs
+                        # down to the empty set.
+
+                    else:
+                        # The exact_match that this route is looking for isn't matched by any of the
+                        # hostglobs; so this route is unreachable.
+                        hostglobs = set()
+                        break # hostglobs is empty, no point in doing more work
+
+        return hostglobs
 
 
     @classmethod
