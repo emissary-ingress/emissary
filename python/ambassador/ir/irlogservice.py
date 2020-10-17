@@ -89,7 +89,7 @@ class IRLogService(IRResource):
             "log_name": self.name,
             "grpc_service": {
                 "envoy_grpc": {
-                    "cluster_name": self.cluster.name
+                    "cluster_name": self.cluster.envoy_name
                 }
             },
             "buffer_flush_interval": "%ds" % self.flush_interval_time,
