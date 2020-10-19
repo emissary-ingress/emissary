@@ -21,7 +21,7 @@ The Ambassador API Gateway enables its users to:
 * Leverage observability with integrations with [Grafana](https://www.getambassador.io/docs/latest/topics/running/statistics/#grafana), [Prometheus](https://www.getambassador.io/docs/latest/topics/running/statistics/#prometheus), and [Datadog](https://www.getambassador.io/docs/latest/topics/running/statistics/#datadog), and comprehensive [metrics](https://www.getambassador.io/docs/latest/topics/running/statistics/) support
 * Set up shared development enviornments with [Service Preview](https://www.getambassador.io/docs/latest/topics/using/edgectl/)
 * Onboard developers with a [Developer Portal](https://www.getambassador.io/docs/latest/topics/using/dev-portal/)
-* Enable progressive delviery with [canary releases](https://www.getambassador.io/docs/latest/topics/using/canary/)
+* Enable progressive delivery with [canary releases](https://www.getambassador.io/docs/latest/topics/using/canary/)
 * Connect service meshes including [Consul](https://www.getambassador.io/docs/latest/howtos/consul/), [Linkerd](https://www.getambassador.io/docs/latest/howtos/linkerd2/), and [Istio](https://www.getambassador.io/docs/latest/howtos/istio/)
 * [Knative serverless integration](https://www.getambassador.io/docs/latest/howtos/knative/)
 
