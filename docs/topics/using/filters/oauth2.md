@@ -64,7 +64,7 @@ spec:
       internalOrigin: "url"              # optional; default is to just use the 'origin' field
       includeSubdomains: bool            # optional; default is false
     useSessionCookies:                 # optional; default is { value: false }
-      value: bool                        # optional: default is true
+      value: bool                        # optional; default is true
       ifRequestHeader:                   # optional; default to apply "useSessionCookies.value" to all requests
         name: "string"                     # required
         negate: bool                       # optional; default is false
@@ -156,7 +156,7 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
    <!-- If you're looking at the above sentence and thinking "that's
    not correct!" (as I was): Yes, it's a lie that you need to register
    each one; you only need to register the first one, but support has
-   he strong opinion that it's much simpler to just tell people
+   the strong opinion that it's much simpler to just tell people
    register all of them.  Plus that gives us more flexibility for
    future changes.  So leave the lie.  -->
 
