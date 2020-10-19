@@ -31,6 +31,40 @@
             "serialization": null,
             "version": "getambassador.io/v0"
         },
+        "cleartext-host-tracingtestshorttraceid.default.1": {
+            "_referenced_by": {},
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "tracingtestshorttraceid"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 2,
+            "hostname": "*",
+            "kind": "Host",
+            "location": "cleartext-host-tracingtestshorttraceid.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-tracingtestshorttraceid.default",
+                "kat-ambassador-id": "tracingtestshorttraceid",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-tracingtestshorttraceid",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "rkey": "cleartext-host-tracingtestshorttraceid.default.1",
+            "selector": {
+                "matchLabels": {
+                    "hostname": "tracingtestshorttraceid"
+                }
+            },
+            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- tracingtestshorttraceid\napiVersion: getambassador.io/v2\ngeneration: 2\nhostname: '*'\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host-tracingtestshorttraceid.default\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: cleartext-host-tracingtestshorttraceid\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: tracingtestshorttraceid\ntlsSecret: {}\n",
+            "tlsSecret": {}
+        },
         "k8s-tracingtestshorttraceid-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "tracingtestshorttraceid",
@@ -133,6 +167,38 @@
             "rkey": "zipkin-64.default.1",
             "serialization": "_force_validation: true\nambassador_id: tracingtestshorttraceid\napiVersion: getambassador.io/v2\nconfig:\n  trace_id_128bit: false\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing-64\nnamespace: default\nservice: zipkin-64:9411\n",
             "service": "zipkin-64:9411"
+        }
+    },
+    "hosts": {
+        "cleartext-host-tracingtestshorttraceid": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "tracingtestshorttraceid"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 2,
+            "hostname": "*",
+            "kind": "Host",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-tracingtestshorttraceid.default",
+                "kat-ambassador-id": "tracingtestshorttraceid",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-tracingtestshorttraceid",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "selector": {
+                "matchLabels": {
+                    "hostname": "tracingtestshorttraceid"
+                }
+            },
+            "tlsSecret": {}
         }
     },
     "mappings": {

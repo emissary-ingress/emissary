@@ -83,6 +83,9 @@ copy_gold tlscontexttest
 # copy_gold tlsingresstest
 copy_gold tlsinvalidsecret
 copy_gold tlsoriginationsecret
+copy_gold tracingdriverdatadog
+copy_gold tracingdriverlightstep
+copy_gold tracingdriverzipkin
 copy_gold tracingexternalauthtest
 copy_gold tracingtest
 copy_gold tracingtestsampling
