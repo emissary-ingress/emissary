@@ -3,10 +3,155 @@ import pytest
 
 from typing import ClassVar, Dict, List, Sequence, Tuple, Union
 
-from kat.harness import sanitize, variants, Query, Runner
+from kat.harness import abstract_test, sanitize, variants, Query, Runner
 
 from abstract_tests import AmbassadorTest, HTTP, AHTTP
 from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
+
+@abstract_test
+class TracingConfigAbstractTest(AmbassadorTest):
+    def init(self):
+        self.target = HTTP()
+
+    @property
+    def driver(self) -> str:
+        raise "Must override driver property"
+
+    @property
+    def config_str(self) -> str:
+        return ""
+
+    def manifests(self) -> str:
+        # Create a service so that the TracingService has something
+        # to point at, even though the label selector will not match
+        # any pods. That's OK - we're only testing config generation
+        # here, not actual tracing behavior. Those tests are below.
+        return """
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {self.driver}-config-test
+spec:
+  selector:
+    app: {self.driver}-config-test
+  ports:
+  - port: 9411
+    name: http
+    targetPort: http
+  type: NodePort
+""" + super().manifests()
+
+    def config(self):
+        # Configure the TracingService.
+        yield self, self.format("""
+---
+apiVersion: ambassador/v2
+kind: TracingService
+name: {self.driver}-config-test
+service: {self.driver}-config-test:9411
+driver: {self.driver}
+{self.config_str}
+""")
+
+        # Configure a mapping that we can use to dump Envoy config
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.driver}-config_dump
+prefix: /config_dump
+rewrite: /config_dump
+service: http://127.0.0.1:8001
+""")
+
+    def requirements(self):
+        yield from super().requirements()
+        yield ("url", Query(self.url("config_dump")))
+
+    def queries(self):
+        yield Query(self.url("config_dump"), phase=2)
+
+    def check(self):
+        found_listeners_dump = False
+        found_clusters_dump = False
+        found_bootstrap_dump = False
+        body = json.loads(self.results[0].body)
+        for config_obj in body.get('configs'):
+            if config_obj.get('@type') == 'type.googleapis.com/envoy.admin.v3.BootstrapConfigDump':
+                found_bootstrap_dump = True
+                http_tracing = config_obj['bootstrap']['tracing']['http']
+                assert http_tracing['name'] == self.format("{self.envoy_driver}")
+
+            if config_obj.get('@type') == 'type.googleapis.com/envoy.admin.v3.ClustersConfigDump':
+                found_clusters_dump = True
+                found_tracing_cluster = False
+                clusters = config_obj.get('static_clusters')
+                for cluster in clusters:
+                    if cluster['cluster']['name'] == self.format("cluster_tracing_{self.driver}_config_test_9411_default"):
+                        found_tracing_cluster = True
+                        break
+                assert found_tracing_cluster, "Did not find tracing cluster"
+
+            if config_obj.get('@type') == 'type.googleapis.com/envoy.admin.v3.ListenersConfigDump':
+                found_listeners_dump = True
+                found_tracing_config = False
+                all_filters_have_tracing_config = True
+                listeners = config_obj['dynamic_listeners']
+                assert len(listeners) > 0, "Could not find any listeners"
+                for listener in listeners:
+                    chains = listener['active_state']['listener']['filter_chains']
+                    assert len(chains) > 0, "Could not find any filter chains"
+                    for fc in chains:
+                        filters = fc['filters']
+                        assert len(filters) > 0, "Could not find any filters"
+                        for f in filters:
+                            typed_config = f['typed_config']
+                            if 'tracing' not in typed_config:
+                                all_filters_have_tracing_config = False
+                                print(f"Typed config {typed_config} is missing tracing config")
+                                break
+                assert all_filters_have_tracing_config, "Not all filters have a tracing config"
+
+        assert found_bootstrap_dump, "Did not find bootstrap dump"
+        assert found_clusters_dump, "Did not find clusters dump"
+        assert found_listeners_dump, "Did not find listeners dump "
+
+
+class TracingDriverZipkin(TracingConfigAbstractTest):
+    @property
+    def driver(self):
+        return "zipkin"
+
+    @property
+    def envoy_driver(self):
+        return "envoy.zipkin"
+
+
+class TracingDriverDatadog(TracingConfigAbstractTest):
+    @property
+    def driver(self):
+        return "datadog"
+
+    @property
+    def envoy_driver(self):
+        return "envoy.tracers.datadog"
+
+
+class TracingDriverLightstep(TracingConfigAbstractTest):
+    @property
+    def driver(self):
+        return "lightstep"
+
+    @property
+    def envoy_driver(self):
+        return "envoy.lightstep"
+
+    @property
+    def config_str(self):
+        # Something that exists, but not actually a token file.
+        # The proto spec validation should only care that it exists.
+        return "config:\n\n  access_token_file: /etc/issue"
 
 
 class TracingTest(AmbassadorTest):
@@ -316,11 +461,11 @@ config:
 # This test asserts that the external authorization server receives the proper tracing
 # headers when Ambassador is configured with an HTTP AuthService.
 class TracingExternalAuthTest(AmbassadorTest):
-    
+
     def init(self):
         self.target = HTTP()
         self.auth = AHTTP(name="auth")
-        
+
     def manifests(self) -> str:
         return """
 ---

@@ -34,6 +34,40 @@
             "serialization": null,
             "version": "getambassador.io/v0"
         },
+        "cleartext-host-tracingtest.default.1": {
+            "_referenced_by": {},
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "tracingtest"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 2,
+            "hostname": "*",
+            "kind": "Host",
+            "location": "cleartext-host-tracingtest.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-tracingtest.default",
+                "kat-ambassador-id": "tracingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-tracingtest",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "rkey": "cleartext-host-tracingtest.default.1",
+            "selector": {
+                "matchLabels": {
+                    "hostname": "tracingtest"
+                }
+            },
+            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- tracingtest\napiVersion: getambassador.io/v2\ngeneration: 2\nhostname: '*'\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host-tracingtest.default\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: cleartext-host-tracingtest\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: tracingtest\ntlsSecret: {}\n",
+            "tlsSecret": {}
+        },
         "k8s-tracingtest-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "tracingtest",
@@ -133,6 +167,38 @@
             "rkey": "zipkin.default.1",
             "serialization": "_force_validation: true\nambassador_id: tracingtest\napiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracing\nnamespace: default\nservice: zipkin:9411\n",
             "service": "zipkin:9411"
+        }
+    },
+    "hosts": {
+        "cleartext-host-tracingtest": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "tracingtest"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 2,
+            "hostname": "*",
+            "kind": "Host",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-tracingtest.default",
+                "kat-ambassador-id": "tracingtest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-tracingtest",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "selector": {
+                "matchLabels": {
+                    "hostname": "tracingtest"
+                }
+            },
+            "tlsSecret": {}
         }
     },
     "mappings": {

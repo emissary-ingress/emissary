@@ -85,77 +85,78 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_tracing_zipkin_65_9411_default": {
+        "cluster_http___127_0_0_1_8001_default": {
             "_active": true,
-            "_cache_key": "Cluster-cluster_tracing_zipkin_65_9411_default",
+            "_cache_key": "Cluster-cluster_http___127_0_0_1_8001_default",
             "_errored": false,
-            "_hostname": "zipkin-65",
+            "_hostname": "127.0.0.1",
             "_is_sidecar": false,
             "_namespace": "default",
-            "_port": 9411,
+            "_port": 8001,
             "_referenced_by": [
-                "zipkin-65.default.1"
+                "lightstep-config-test.default.2"
             ],
-            "_rkey": "cluster_tracing_zipkin_65_9411_default",
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_http___127_0_0_1_8001_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
             "enable_ipv6": false,
-            "envoy_name": "cluster_tracing_zipkin_65_9411_default",
+            "envoy_name": "cluster_http___127_0_0_1_8001_default",
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "zipkin-65.default.1",
-            "name": "cluster_tracing_zipkin_65_9411_default",
+            "location": "lightstep-config-test.default.2",
+            "name": "cluster_http___127_0_0_1_8001_default",
             "namespace": "default",
-            "service": "zipkin-65:9411",
+            "service": "127.0.0.1:8001",
             "targets": [
                 {
-                    "ip": "zipkin-65",
+                    "ip": "127.0.0.1",
+                    "port": 8001,
+                    "target_kind": "IPaddr"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://127.0.0.1:8001"
+            ]
+        },
+        "cluster_tracing_lightstep_config_test_9411_default": {
+            "_active": true,
+            "_cache_key": "Cluster-cluster_tracing_lightstep_config_test_9411_default",
+            "_errored": false,
+            "_hostname": "lightstep-config-test",
+            "_is_sidecar": false,
+            "_namespace": "default",
+            "_port": 9411,
+            "_referenced_by": [
+                "lightstep-config-test.default.1"
+            ],
+            "_rkey": "cluster_tracing_lightstep_config_test_9411_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "envoy_name": "cluster_tracing_lightstep_config_test_9411_default",
+            "grpc": true,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "lightstep-config-test.default.1",
+            "name": "cluster_tracing_lightstep_config_test_9411_default",
+            "namespace": "default",
+            "service": "lightstep-config-test:9411",
+            "targets": [
+                {
+                    "ip": "lightstep-config-test",
                     "port": 9411,
                     "target_kind": "DNSname"
                 }
             ],
             "type": "strict_dns",
             "urls": [
-                "tcp://zipkin-65:9411"
-            ]
-        },
-        "cluster_tracingtestsampling_http_default": {
-            "_active": true,
-            "_cache_key": "Cluster-cluster_tracingtestsampling_http_default",
-            "_errored": false,
-            "_hostname": "tracingtestsampling-http",
-            "_is_sidecar": false,
-            "_namespace": "default",
-            "_port": 80,
-            "_referenced_by": [
-                "tracingtestsampling-http.default.1"
-            ],
-            "_resolver": "kubernetes-service",
-            "_rkey": "cluster_tracingtestsampling_http_default",
-            "connect_timeout_ms": 3000,
-            "enable_endpoints": false,
-            "enable_ipv4": true,
-            "enable_ipv6": false,
-            "envoy_name": "cluster_tracingtestsampling_http_default",
-            "ignore_cluster": false,
-            "kind": "IRCluster",
-            "lb_type": "round_robin",
-            "location": "tracingtestsampling-http.default.1",
-            "name": "cluster_tracingtestsampling_http_default",
-            "namespace": "default",
-            "service": "tracingtestsampling-http",
-            "targets": [
-                {
-                    "ip": "tracingtestsampling-http",
-                    "port": 80,
-                    "target_kind": "DNSname"
-                }
-            ],
-            "type": "strict_dns",
-            "urls": [
-                "tcp://tracingtestsampling-http:80"
+                "tcp://lightstep-config-test:9411"
             ]
         }
     },
@@ -501,110 +502,110 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "tracingtestsampling-http.default.1"
+                "lightstep-config-test.default.2"
             ],
-            "_rkey": "tracingtestsampling-http.default.1",
+            "_rkey": "lightstep-config-test.default.2",
             "default_class": "httpmapping",
-            "group_id": "0bc2714cef8ef8dce0df1e56c2ef860398fcdb2d",
+            "group_id": "2cc88963a98f4f1bd9ddf846f8fe7bf145757e1c",
             "group_weight": [
                 0,
-                11,
+                12,
                 0,
                 0,
-                "/target-65/",
+                "/config_dump",
                 "GET"
             ],
             "headers": [],
             "kind": "IRHTTPMappingGroup",
-            "location": "tracingtestsampling-http.default.1",
+            "location": "lightstep-config-test.default.2",
             "mappings": [
                 {
                     "_active": true,
-                    "_cache_key": "Mapping-v2-tracing_target_mapping_65-default",
+                    "_cache_key": "Mapping-v2-lightstep-config_dump-default",
                     "_errored": false,
-                    "_rkey": "tracingtestsampling-http.default.1",
+                    "_rkey": "lightstep-config-test.default.2",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
-                        "_cache_key": "Cluster-cluster_tracingtestsampling_http_default",
+                        "_cache_key": "Cluster-cluster_http___127_0_0_1_8001_default",
                         "_errored": false,
-                        "_hostname": "tracingtestsampling-http",
+                        "_hostname": "127.0.0.1",
                         "_is_sidecar": false,
                         "_namespace": "default",
-                        "_port": 80,
+                        "_port": 8001,
                         "_referenced_by": [
-                            "tracingtestsampling-http.default.1"
+                            "lightstep-config-test.default.2"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_tracingtestsampling_http_default",
+                        "_rkey": "cluster_http___127_0_0_1_8001_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
-                        "envoy_name": "cluster_tracingtestsampling_http_default",
+                        "envoy_name": "cluster_http___127_0_0_1_8001_default",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
-                        "location": "tracingtestsampling-http.default.1",
-                        "name": "cluster_tracingtestsampling_http_default",
+                        "location": "lightstep-config-test.default.2",
+                        "name": "cluster_http___127_0_0_1_8001_default",
                         "namespace": "default",
-                        "service": "tracingtestsampling-http",
+                        "service": "127.0.0.1:8001",
                         "targets": [
                             {
-                                "ip": "tracingtestsampling-http",
-                                "port": 80,
-                                "target_kind": "DNSname"
+                                "ip": "127.0.0.1",
+                                "port": 8001,
+                                "target_kind": "IPaddr"
                             }
                         ],
                         "type": "strict_dns",
                         "urls": [
-                            "tcp://tracingtestsampling-http:80"
+                            "tcp://127.0.0.1:8001"
                         ]
                     },
-                    "cluster_key": "Cluster-cluster_tracingtestsampling_http_default",
+                    "cluster_key": "Cluster-cluster_http___127_0_0_1_8001_default",
                     "default_class": "httpmapping",
-                    "group_id": "0bc2714cef8ef8dce0df1e56c2ef860398fcdb2d",
+                    "group_id": "2cc88963a98f4f1bd9ddf846f8fe7bf145757e1c",
                     "headers": [],
                     "kind": "Mapping",
-                    "location": "tracingtestsampling-http.default.1",
+                    "location": "lightstep-config-test.default.2",
                     "metadata_labels": {
-                        "kat-ambassador-id": "tracingtestsampling",
+                        "kat-ambassador-id": "tracingdriverlightstep",
                         "scope": "AmbassadorTest"
                     },
-                    "name": "tracing_target_mapping_65",
+                    "name": "lightstep-config_dump",
                     "namespace": "default",
                     "precedence": 0,
-                    "prefix": "/target-65/",
+                    "prefix": "/config_dump",
                     "query_parameters": [],
                     "regex_rewrite": {},
                     "resolver": "kubernetes-service",
-                    "rewrite": "/",
+                    "rewrite": "/config_dump",
                     "route_weight": [
                         0,
-                        11,
+                        12,
                         0,
                         0,
-                        "/target-65/",
+                        "/config_dump",
                         "GET"
                     ],
-                    "serialization": "_force_validation: true\nambassador_id: tracingtestsampling\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\nname: tracing_target_mapping_65\nnamespace: default\nprefix: /target-65/\nservice: tracingtestsampling-http\n",
-                    "service": "tracingtestsampling-http",
+                    "serialization": "_force_validation: true\nambassador_id: tracingdriverlightstep\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingdriverlightstep\n  scope: AmbassadorTest\nname: lightstep-config_dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
+                    "service": "http://127.0.0.1:8001",
                     "weight": 100
                 }
             ],
             "metadata_labels": {
-                "kat-ambassador-id": "tracingtestsampling",
+                "kat-ambassador-id": "tracingdriverlightstep",
                 "scope": "AmbassadorTest"
             },
-            "name": "GROUP: tracing_target_mapping_65",
+            "name": "GROUP: lightstep-config_dump",
             "namespace": "default",
             "precedence": 0,
-            "prefix": "/target-65/",
+            "prefix": "/config_dump",
             "query_parameters": [],
             "regex_rewrite": {},
-            "rewrite": "/",
-            "serialization": "_force_validation: true\nambassador_id: tracingtestsampling\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\nname: tracing_target_mapping_65\nnamespace: default\nprefix: /target-65/\nservice: tracingtestsampling-http\n"
+            "rewrite": "/config_dump",
+            "serialization": "_force_validation: true\nambassador_id: tracingdriverlightstep\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingdriverlightstep\n  scope: AmbassadorTest\nname: lightstep-config_dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n"
         }
     ],
     "grpc_services": {},
@@ -613,16 +614,16 @@
             "_active": true,
             "_errored": false,
             "_referenced_by": [
-                "cleartext-host-tracingtestsampling.default.1"
+                "cleartext-host-tracingdriverlightstep.default.1"
             ],
-            "_rkey": "cleartext-host-tracingtestsampling.default.1",
+            "_rkey": "cleartext-host-tracingdriverlightstep.default.1",
             "acmeProvider": {
                 "authority": "none"
             },
             "hostname": "*",
             "kind": "Host",
-            "location": "cleartext-host-tracingtestsampling.default.1",
-            "name": "cleartext-host-tracingtestsampling",
+            "location": "cleartext-host-tracingdriverlightstep.default.1",
+            "name": "cleartext-host-tracingdriverlightstep",
             "namespace": "default",
             "requestPolicy": {
                 "insecure": {
@@ -631,16 +632,16 @@
             },
             "selector": {
                 "matchLabels": {
-                    "hostname": "tracingtestsampling"
+                    "hostname": "tracingdriverlightstep"
                 }
             },
             "tlsSecret": {}
         }
     ],
     "identity": {
-        "ambassador_id": "tracingtestsampling",
+        "ambassador_id": "tracingdriverlightstep",
         "ambassador_namespace": "default",
-        "ambassador_nodename": "tracingtestsampling-default"
+        "ambassador_nodename": "tracingdriverlightstep-default"
     },
     "k8s_status_updates": {},
     "listeners": [
@@ -651,7 +652,7 @@
             "hostname": "*",
             "insecure_action": "Route",
             "kind": "IRListener",
-            "location": "cleartext-host-tracingtestsampling.default.1",
+            "location": "cleartext-host-tracingdriverlightstep.default.1",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
@@ -661,71 +662,71 @@
         }
     ],
     "services": {
-        "k8s-tracingtestsampling-admin-default": {
+        "k8s-lightstep-config-test-default": {
             "_referenced_by": {},
-            "ambassador_id": "tracingtestsampling",
+            "ambassador_id": "tracingdriverlightstep",
             "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
-            "location": "k8s-tracingtestsampling-admin-default",
+            "location": "k8s-lightstep-config-test-default",
             "metadata_labels": {
-                "kat-ambassador-id": "tracingtestsampling",
-                "scope": "AmbassadorTest",
-                "service": "tracingtestsampling-admin"
+                "kat-ambassador-id": "tracingdriverlightstep",
+                "scope": "AmbassadorTest"
             },
-            "name": "tracingtestsampling-admin",
+            "name": "lightstep-config-test",
             "namespace": "default",
-            "rkey": "k8s-tracingtestsampling-admin-default",
-            "serialization": "ambassador_id: tracingtestsampling\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\n  service: tracingtestsampling-admin\nname: tracingtestsampling-admin\nnamespace: default\n"
+            "rkey": "k8s-lightstep-config-test-default",
+            "serialization": "ambassador_id: tracingdriverlightstep\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingdriverlightstep\n  scope: AmbassadorTest\nname: lightstep-config-test\nnamespace: default\n"
         },
-        "k8s-tracingtestsampling-default": {
+        "k8s-tracingdriverlightstep-admin-default": {
             "_referenced_by": {},
-            "ambassador_id": "tracingtestsampling",
+            "ambassador_id": "tracingdriverlightstep",
             "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
-            "location": "k8s-tracingtestsampling-default",
+            "location": "k8s-tracingdriverlightstep-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverlightstep",
+                "scope": "AmbassadorTest",
+                "service": "tracingdriverlightstep-admin"
+            },
+            "name": "tracingdriverlightstep-admin",
+            "namespace": "default",
+            "rkey": "k8s-tracingdriverlightstep-admin-default",
+            "serialization": "ambassador_id: tracingdriverlightstep\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingdriverlightstep\n  scope: AmbassadorTest\n  service: tracingdriverlightstep-admin\nname: tracingdriverlightstep-admin\nnamespace: default\n"
+        },
+        "k8s-tracingdriverlightstep-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingdriverlightstep",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingdriverlightstep-default",
             "metadata_labels": {
                 "app.kubernetes.io/component": "ambassador-service",
-                "kat-ambassador-id": "tracingtestsampling",
+                "kat-ambassador-id": "tracingdriverlightstep",
                 "scope": "AmbassadorTest"
             },
-            "name": "tracingtestsampling",
+            "name": "tracingdriverlightstep",
             "namespace": "default",
-            "rkey": "k8s-tracingtestsampling-default",
-            "serialization": "ambassador_id: tracingtestsampling\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\nname: tracingtestsampling\nnamespace: default\n"
+            "rkey": "k8s-tracingdriverlightstep-default",
+            "serialization": "ambassador_id: tracingdriverlightstep\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tracingdriverlightstep\n  scope: AmbassadorTest\nname: tracingdriverlightstep\nnamespace: default\n"
         },
-        "k8s-tracingtestsampling-http-default": {
+        "k8s-tracingdriverlightstep-http-default": {
             "_referenced_by": {},
-            "ambassador_id": "tracingtestsampling",
+            "ambassador_id": "tracingdriverlightstep",
             "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
-            "location": "k8s-tracingtestsampling-http-default",
+            "location": "k8s-tracingdriverlightstep-http-default",
             "metadata_labels": {
-                "kat-ambassador-id": "tracingtestsampling",
+                "kat-ambassador-id": "tracingdriverlightstep",
                 "scope": "AmbassadorTest"
             },
-            "name": "tracingtestsampling-http",
+            "name": "tracingdriverlightstep-http",
             "namespace": "default",
-            "rkey": "k8s-tracingtestsampling-http-default",
-            "serialization": "ambassador_id: tracingtestsampling\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\nname: tracingtestsampling-http\nnamespace: default\n"
-        },
-        "k8s-zipkin-65-default": {
-            "_referenced_by": {},
-            "ambassador_id": "tracingtestsampling",
-            "apiVersion": "getambassador.io/v2",
-            "endpoints": {},
-            "kind": "Service",
-            "location": "k8s-zipkin-65-default",
-            "metadata_labels": {
-                "kat-ambassador-id": "tracingtestsampling",
-                "scope": "AmbassadorTest"
-            },
-            "name": "zipkin-65",
-            "namespace": "default",
-            "rkey": "k8s-zipkin-65-default",
-            "serialization": "ambassador_id: tracingtestsampling\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingtestsampling\n  scope: AmbassadorTest\nname: zipkin-65\nnamespace: default\n"
+            "rkey": "k8s-tracingdriverlightstep-http-default",
+            "serialization": "ambassador_id: tracingdriverlightstep\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingdriverlightstep\n  scope: AmbassadorTest\nname: tracingdriverlightstep-http\nnamespace: default\n"
         }
     },
     "tls_contexts": [],
@@ -733,58 +734,58 @@
         "_active": true,
         "_errored": false,
         "_referenced_by": [
-            "zipkin-65.default.1"
+            "lightstep-config-test.default.1"
         ],
-        "_rkey": "zipkin-65.default.1",
+        "_rkey": "lightstep-config-test.default.1",
         "cluster": {
             "_active": true,
-            "_cache_key": "Cluster-cluster_tracing_zipkin_65_9411_default",
+            "_cache_key": "Cluster-cluster_tracing_lightstep_config_test_9411_default",
             "_errored": false,
-            "_hostname": "zipkin-65",
+            "_hostname": "lightstep-config-test",
             "_is_sidecar": false,
             "_namespace": "default",
             "_port": 9411,
             "_referenced_by": [
-                "zipkin-65.default.1"
+                "lightstep-config-test.default.1"
             ],
-            "_rkey": "cluster_tracing_zipkin_65_9411_default",
+            "_rkey": "cluster_tracing_lightstep_config_test_9411_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
             "enable_ipv6": false,
-            "envoy_name": "cluster_tracing_zipkin_65_9411_default",
+            "envoy_name": "cluster_tracing_lightstep_config_test_9411_default",
+            "grpc": true,
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
-            "location": "zipkin-65.default.1",
-            "name": "cluster_tracing_zipkin_65_9411_default",
+            "location": "lightstep-config-test.default.1",
+            "name": "cluster_tracing_lightstep_config_test_9411_default",
             "namespace": "default",
-            "service": "zipkin-65:9411",
+            "service": "lightstep-config-test:9411",
             "targets": [
                 {
-                    "ip": "zipkin-65",
+                    "ip": "lightstep-config-test",
                     "port": 9411,
                     "target_kind": "DNSname"
                 }
             ],
             "type": "strict_dns",
             "urls": [
-                "tcp://zipkin-65:9411"
+                "tcp://lightstep-config-test:9411"
             ]
         },
-        "driver": "zipkin",
+        "driver": "lightstep",
         "driver_config": {
-            "collector_cluster": "cluster_tracing_zipkin_65_9411_default"
+            "access_token_file": "/etc/issue",
+            "collector_cluster": "cluster_tracing_lightstep_config_test_9411_default"
         },
-        "grpc": false,
+        "grpc": true,
         "kind": "ir.tracing",
-        "location": "zipkin-65.default.1",
+        "location": "lightstep-config-test.default.1",
         "name": "tracing",
         "namespace": "default",
-        "sampling": {
-            "overall": 10
-        },
-        "service": "zipkin-65:9411",
+        "sampling": {},
+        "service": "lightstep-config-test:9411",
         "tag_headers": []
     }
 }

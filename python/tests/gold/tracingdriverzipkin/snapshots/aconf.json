@@ -1,0 +1,285 @@
+{
+    "_errors": {},
+    "_fast_validation_disagreements": {},
+    "_notices": {
+        "zipkin-config-test.default.2": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "cleartext-host-tracingdriverzipkin.default.1": {
+            "_referenced_by": {},
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "tracingdriverzipkin"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 2,
+            "hostname": "*",
+            "kind": "Host",
+            "location": "cleartext-host-tracingdriverzipkin.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-tracingdriverzipkin.default",
+                "kat-ambassador-id": "tracingdriverzipkin",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-tracingdriverzipkin",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "rkey": "cleartext-host-tracingdriverzipkin.default.1",
+            "selector": {
+                "matchLabels": {
+                    "hostname": "tracingdriverzipkin"
+                }
+            },
+            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- tracingdriverzipkin\napiVersion: getambassador.io/v2\ngeneration: 2\nhostname: '*'\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host-tracingdriverzipkin.default\n  kat-ambassador-id: tracingdriverzipkin\n  scope: AmbassadorTest\nname: cleartext-host-tracingdriverzipkin\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: tracingdriverzipkin\ntlsSecret: {}\n",
+            "tlsSecret": {}
+        },
+        "k8s-tracingdriverzipkin-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingdriverzipkin",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingdriverzipkin-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverzipkin",
+                "scope": "AmbassadorTest",
+                "service": "tracingdriverzipkin-admin"
+            },
+            "name": "tracingdriverzipkin-admin",
+            "namespace": "default",
+            "rkey": "k8s-tracingdriverzipkin-admin-default",
+            "serialization": "ambassador_id: tracingdriverzipkin\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingdriverzipkin\n  scope: AmbassadorTest\n  service: tracingdriverzipkin-admin\nname: tracingdriverzipkin-admin\nnamespace: default\n"
+        },
+        "k8s-tracingdriverzipkin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingdriverzipkin",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingdriverzipkin-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tracingdriverzipkin",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingdriverzipkin",
+            "namespace": "default",
+            "rkey": "k8s-tracingdriverzipkin-default",
+            "serialization": "ambassador_id: tracingdriverzipkin\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tracingdriverzipkin\n  scope: AmbassadorTest\nname: tracingdriverzipkin\nnamespace: default\n"
+        },
+        "k8s-tracingdriverzipkin-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingdriverzipkin",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingdriverzipkin-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverzipkin",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingdriverzipkin-http",
+            "namespace": "default",
+            "rkey": "k8s-tracingdriverzipkin-http-default",
+            "serialization": "ambassador_id: tracingdriverzipkin\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingdriverzipkin\n  scope: AmbassadorTest\nname: tracingdriverzipkin-http\nnamespace: default\n"
+        },
+        "k8s-zipkin-config-test-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingdriverzipkin",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-zipkin-config-test-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverzipkin",
+                "scope": "AmbassadorTest"
+            },
+            "name": "zipkin-config-test",
+            "namespace": "default",
+            "rkey": "k8s-zipkin-config-test-default",
+            "serialization": "ambassador_id: tracingdriverzipkin\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingdriverzipkin\n  scope: AmbassadorTest\nname: zipkin-config-test\nnamespace: default\n"
+        },
+        "zipkin-config-test.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingdriverzipkin",
+            "apiVersion": "getambassador.io/v2",
+            "driver": "zipkin",
+            "kind": "TracingService",
+            "location": "zipkin-config-test.default.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverzipkin",
+                "scope": "AmbassadorTest"
+            },
+            "name": "zipkin-config-test",
+            "namespace": "default",
+            "rkey": "zipkin-config-test.default.1",
+            "serialization": "_force_validation: true\nambassador_id: tracingdriverzipkin\napiVersion: ambassador/v2\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingdriverzipkin\n  scope: AmbassadorTest\nname: zipkin-config-test\nnamespace: default\nservice: zipkin-config-test:9411\n",
+            "service": "zipkin-config-test:9411"
+        },
+        "zipkin-config-test.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingdriverzipkin",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "location": "zipkin-config-test.default.2",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverzipkin",
+                "scope": "AmbassadorTest"
+            },
+            "name": "zipkin-config_dump",
+            "namespace": "default",
+            "prefix": "/config_dump",
+            "rewrite": "/config_dump",
+            "rkey": "zipkin-config-test.default.2",
+            "serialization": "_force_validation: true\nambassador_id: tracingdriverzipkin\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingdriverzipkin\n  scope: AmbassadorTest\nname: zipkin-config_dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
+            "service": "http://127.0.0.1:8001"
+        }
+    },
+    "hosts": {
+        "cleartext-host-tracingdriverzipkin": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "tracingdriverzipkin"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 2,
+            "hostname": "*",
+            "kind": "Host",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-tracingdriverzipkin.default",
+                "kat-ambassador-id": "tracingdriverzipkin",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-tracingdriverzipkin",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "selector": {
+                "matchLabels": {
+                    "hostname": "tracingdriverzipkin"
+                }
+            },
+            "tlsSecret": {}
+        }
+    },
+    "mappings": {
+        "zipkin-config_dump": {
+            "ambassador_id": "tracingdriverzipkin",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverzipkin",
+                "scope": "AmbassadorTest"
+            },
+            "name": "zipkin-config_dump",
+            "namespace": "default",
+            "prefix": "/config_dump",
+            "rewrite": "/config_dump",
+            "service": "http://127.0.0.1:8001"
+        }
+    },
+    "service": {
+        "k8s-tracingdriverzipkin-admin-default": {
+            "ambassador_id": "tracingdriverzipkin",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverzipkin",
+                "scope": "AmbassadorTest",
+                "service": "tracingdriverzipkin-admin"
+            },
+            "name": "tracingdriverzipkin-admin",
+            "namespace": "default"
+        },
+        "k8s-tracingdriverzipkin-default": {
+            "ambassador_id": "tracingdriverzipkin",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tracingdriverzipkin",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingdriverzipkin",
+            "namespace": "default"
+        },
+        "k8s-tracingdriverzipkin-http-default": {
+            "ambassador_id": "tracingdriverzipkin",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverzipkin",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingdriverzipkin-http",
+            "namespace": "default"
+        },
+        "k8s-zipkin-config-test-default": {
+            "ambassador_id": "tracingdriverzipkin",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverzipkin",
+                "scope": "AmbassadorTest"
+            },
+            "name": "zipkin-config-test",
+            "namespace": "default"
+        }
+    },
+    "tracing_configs": {
+        "zipkin-config-test": {
+            "ambassador_id": "tracingdriverzipkin",
+            "apiVersion": "getambassador.io/v2",
+            "driver": "zipkin",
+            "kind": "TracingService",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverzipkin",
+                "scope": "AmbassadorTest"
+            },
+            "name": "zipkin-config-test",
+            "namespace": "default",
+            "service": "zipkin-config-test:9411"
+        }
+    }
+}
