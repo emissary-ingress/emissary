@@ -55,7 +55,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
-(no changes yet)
+- Bugfix: Ambassador will no longer mistakenly post notices regarding `regex_rewrite` and `rewrite` directive conflicts in `Mapping`s due to the latter's implicit default value (`/`).
 
 ## [1.8.1] October 16, 2020
 [1.8.1]: https://github.com/datawire/ambassador/compare/v1.8.0...v1.8.1
