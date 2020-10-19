@@ -57,12 +57,12 @@
                         "filter_chain_match": {},
                         "filters": [
                             {
-                                "name": "envoy.http_connection_manager",
+                                "name": "envoy.filters.network.http_connection_manager",
                                 "typed_config": {
                                     "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
                                     "access_log": [
                                         {
-                                            "name": "envoy.file_access_log",
+                                            "name": "envoy.access_loggers.file",
                                             "typed_config": {
                                                 "@type": "type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog",
                                                 "format": "MY_REQUEST %RESPONSE_CODE% \"%REQ(:AUTHORITY)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%UPSTREAM_HOST%\"\n",
@@ -72,10 +72,10 @@
                                     ],
                                     "http_filters": [
                                         {
-                                            "name": "envoy.cors"
+                                            "name": "envoy.filters.http.cors"
                                         },
                                         {
-                                            "name": "envoy.router"
+                                            "name": "envoy.filters.http.router"
                                         }
                                     ],
                                     "http_protocol_options": {
