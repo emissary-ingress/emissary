@@ -70,7 +70,7 @@ The command removes all the Kubernetes components associated with the chart and 
 
 ## Changelog
 
-Notable chart changes are listed in the [CHANGELOG](https://github.com/datawire/ambassador-chart/CHANGELOG.md)
+Notable chart changes are listed in the [CHANGELOG](./CHANGELOG.md)
 
 ## Configuration
 
