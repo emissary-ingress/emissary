@@ -59,6 +59,14 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 - Internal: Knative serving tests were bumped from version 0.11.0 to version 0.18.0
 
+## [1.8.1] October 16, 2020
+[1.8.1]: https://github.com/datawire/ambassador/compare/v1.8.0...v1.8.1
+
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Ambassador no longer fails to configure Envoy listeners when a TracingService or LogService has a service name whose underlying cluster name has over 40 charcters.
+- Bugfix: The Ambassador diagnostics page no longer returns HTTP 500 when a TracingService or LogService has a service name whose underlying cluster name has over 40 characters.
+
 ## [1.8.0] October 08, 2020
 [1.8.0]: https://github.com/datawire/ambassador/compare/v1.7.4...v1.8.0
 

@@ -338,7 +338,8 @@ class IR:
                 # We must not modify a cluster's name (nor its rkey, for that matter)
                 # because our object caching implementation depends on stable object
                 # names and keys. If we were to update it, we could lose track of an
-                # existing object and accidentally create a duplicate (datawire/apro#1895)
+                # existing object and accidentally create a duplicate (tested in
+                # python/tests/test_cache.py test_long_cluster_1).
                 #
                 # Instead, the resulting IR must set envoy_name to the mangled name, which
                 # is guaranteed to be valid in envoy configuration.

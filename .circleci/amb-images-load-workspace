@@ -8,6 +8,10 @@ rm docker/images.tar
 rm docker/images.sh
 
 # Resume the build container
+if [[ -z "$DEV_REGISTRY" ]]; then
+    export DEV_REGISTRY=127.0.0.1:31000
+    export BASE_REGISTRY=docker.io/datawiredev
+fi
 rm -f docker/container.txt docker/container.txt.stamp
 make docker/container.txt
 docker run \

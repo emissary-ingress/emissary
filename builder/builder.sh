@@ -150,13 +150,15 @@ print("stage2_tag=%s" % stage2)
     local stage1_tag stage2_tag
     eval "$(cd "$DIR" && python -c "$builder_base_tag_py")" # sets 'stage1_tag' and 'stage2_tag'
 
-    local name1="${DEV_REGISTRY:-${BUILDER_NAME}.local}/builder-base:stage1-${stage1_tag}"
-    local name2="${DEV_REGISTRY:-${BUILDER_NAME}.local}/builder-base:stage2-${stage2_tag}"
+    local BASE_REGISTRY="${BASE_REGISTRY:-${DEV_REGISTRY:-${BUILDER_NAME}.local}}"
+
+    local name1="${BASE_REGISTRY}/builder-base:stage1-${stage1_tag}"
+    local name2="${BASE_REGISTRY}/builder-base:stage2-${stage2_tag}"
 
     msg2 "Using stage-1 base ${BLU}${name1}${GRN}"
     if ! docker run --rm --entrypoint=true "$name1"; then # skip building if the "$name1" already exists
         ${DBUILD} -f "${DIR}/Dockerfile.base" -t "${name1}" --target builderbase-stage1 "${DIR}"
-        if [ -n "$DEV_REGISTRY" ]; then
+        if [[ "$BASE_REGISTRY" == "$DEV_REGISTRY" ]]; then
             docker push "$name1"
         fi
     fi
@@ -168,7 +170,7 @@ print("stage2_tag=%s" % stage2)
     msg2 "Using stage-2 base ${BLU}${name2}${GRN}"
     if ! docker run --rm --entrypoint=true "$name2"; then # skip building if the "$name2" already exists
         ${DBUILD} --build-arg=builderbase_stage1="$name1" -f "${DIR}/Dockerfile.base" -t "${name2}" --target builderbase-stage2 "${DIR}"
-        if [ -n "$DEV_REGISTRY" ]; then
+        if [[ "$BASE_REGISTRY" == "$DEV_REGISTRY" ]]; then
             docker push "$name2"
         fi
     fi

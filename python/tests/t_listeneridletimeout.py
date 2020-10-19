@@ -36,11 +36,11 @@ service: http://127.0.0.1:8001
         actual_val = ''
         body = json.loads(self.results[0].body)
         for config_obj in body.get('configs'):
-          if config_obj.get('@type') == 'type.googleapis.com/envoy.admin.v2alpha.ListenersConfigDump':
-            listeners = config_obj.get('dynamic_active_listeners')
+          if config_obj.get('@type') == 'type.googleapis.com/envoy.admin.v3.ListenersConfigDump':
+            listeners = config_obj.get('dynamic_listeners')
             found_idle_timeout = False
             for listener_obj in listeners:
-              listener = listener_obj.get('listener')
+              listener = listener_obj.get('active_state').get('listener')
               filter_chains = listener.get('filter_chains')
               for filters in filter_chains:
                 for filter in filters.get('filters'):
