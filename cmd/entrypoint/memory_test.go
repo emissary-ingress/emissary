@@ -67,9 +67,10 @@ func TestMemoryUsage(t *testing.T) {
 func TestMemoryUsageGCExited(t *testing.T) {
 	count := 0
 	m := &MemoryUsage{
+		Limit:      unlimited,
 		PerProcess: map[int]*ProcessUsage{},
 		readUsage: func() (memory, memory) {
-			return 0, 0
+			return 0, unlimited
 		},
 		perProcess: func() map[int]*ProcessUsage {
 			defer func() {
