@@ -995,7 +995,7 @@ class IR:
         od['endpoint_routing_envoy_maglev_count'] = endpoint_routing_envoy_maglev_count
         od['endpoint_routing_envoy_lr_count'] = endpoint_routing_envoy_lr_count
 
-        od['cluster_ingress_count'] = self.aconf.get_count('knative_cluster_ingress')
+        od['cluster_ingress_count'] = 0  # Provided for backward compatibility only.
         od['knative_ingress_count'] = self.aconf.get_count('knative_ingress')
 
         od['k8s_ingress_count'] = len(self.aconf.k8s_ingresses)
