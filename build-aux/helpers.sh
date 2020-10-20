@@ -40,6 +40,7 @@ wait_for_url() ( # use a subshell so the set +x is local to the function
             echo "Got $status, waiting for 200..." 1>&2
             sleep 10
         else
+            echo "Ready!" 1>&2
             break
         fi
     done
@@ -98,6 +99,7 @@ await_cluster() {
     kconfurl="https://sw.bakerstreet.io/kubeception/api/klusters/${name}"
     wait_for_url "$kconfurl" -H "Authorization: bearer ${KUBECEPTION_TOKEN}"
     curl -s -H "Authorization: bearer ${KUBECEPTION_TOKEN}" "$kconfurl" -o "${kubeconfig}"
+    printf "${BLU}Cluster ${name} acquired${END}\n" 1>&2
 }
 
 get_cluster() {
