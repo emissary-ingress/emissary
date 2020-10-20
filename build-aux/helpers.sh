@@ -71,6 +71,24 @@ wait_for_deployment() ( # use a subshell so the set +x is local to the function
     done
 )
 
+wait_for_kubeconfig() ( # use a subshell so the set +x is local to the function
+    { set +x; } 2>/dev/null # make the set +x be quiet
+    local attempts=0
+    local kubeconfig="${1}"
+    while true; do
+        if kubectl --kubeconfig ${kubeconfig} -n default get service kubernetes; then
+            break
+        fi
+
+        if [ $attempts -eq 60 ]; then
+            echo "kubeconfig ${kubeconfig} timed out" 1>&2
+            return 1
+        fi
+        attempts=$((attempts + 1))
+        sleep 10
+    done
+)
+
 crashLoops() ( # use a subshell so the set +x is local to the function
     { set +x; } 2>/dev/null # make the set +x be quiet
     # shellcheck disable=SC2016
