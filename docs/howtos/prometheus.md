@@ -184,7 +184,7 @@ Helm.  Alternatively, you can install it with [kubectl
 YAML](#prometheus-operator-with-standard-yaml) if you prefer.
 
 The default [Helm
-Chart](https://github.com/prometheus-community/helm-charts)
+Chart](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack)
 will install Prometheus and configure it to monitor your Kubernetes
 cluster.
 
