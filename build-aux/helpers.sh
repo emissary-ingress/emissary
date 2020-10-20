@@ -35,7 +35,7 @@ wait_for_url() ( # use a subshell so the set +x is local to the function
     { set +x; } 2>/dev/null # make the set +x be quiet
     local status=""
     while true; do
-        status=$(curl -k -sL -w "%{http_code}" -o /dev/null "$@")
+        status=$(curl --retry 100 -k -sL -w "%{http_code}" -o /dev/null "$@")
         if [ "$status" != "200" ]; then
             echo "Got $status, waiting for 200..." 1>&2
             sleep 10
