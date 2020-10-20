@@ -112,10 +112,10 @@ class V2Bootstrap(dict):
 
         if config.ir.statsd['enabled']:
             if config.ir.statsd['dogstatsd']:
-                name = 'envoy.dog_statsd'
+                name = 'envoy.stat_sinks.dog_statsd'
                 typename = 'type.googleapis.com/envoy.config.metrics.v2.DogStatsdSink'
             else:
-                name = 'envoy.statsd'
+                name = 'envoy.stats_sinks.statsd'
                 typename = 'type.googleapis.com/envoy.config.metrics.v2.StatsdSink'
 
             self['stats_sinks'] = [

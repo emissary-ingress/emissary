@@ -168,7 +168,7 @@ def v2filter_buffer(buffer: IRBuffer, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
     return {
-        'name': 'envoy.buffer',
+        'name': 'envoy.filters.http.buffer',
         'typed_config': {
             '@type': 'type.googleapis.com/envoy.config.filter.http.buffer.v2.Buffer',
             "max_request_bytes": buffer.max_request_bytes
@@ -180,7 +180,7 @@ def v2filter_gzip(gzip: IRGzip, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
     return {
-        'name': 'envoy.gzip',
+        'name': 'envoy.filters.http.gzip',
         'typed_config': {
             '@type': 'type.googleapis.com/envoy.config.filter.http.gzip.v2.Gzip',
             'memory_level': gzip.memory_level,
@@ -200,7 +200,7 @@ def v2filter_grpc_http1_bridge(irfilter: IRFilter, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
     return {
-        'name': 'envoy.grpc_http1_bridge'
+        'name': 'envoy.filters.http.grpc_http1_bridge'
     }
 
 @v2filter.when("ir.grpc_web")
@@ -209,7 +209,7 @@ def v2filter_grpc_web(irfilter: IRFilter, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
     return {
-        'name': 'envoy.grpc_web'
+        'name': 'envoy.filters.http.grpc_web'
     }
 
 def auth_cluster_uri(auth: IRAuth, cluster: IRCluster) -> str:
@@ -260,7 +260,7 @@ def v2filter_authv0(auth: IRAuth, v2config: 'V2Config'):
         allowed_request_headers.append({"exact": key})
 
     return {
-        'name': 'envoy.ext_authz',
+        'name': 'envoy.filters.http.ext_authz',
         'typed_config': {
             '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthz',
             'http_service': {
@@ -347,7 +347,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
             })
 
         auth_info = {
-            'name': 'envoy.ext_authz',
+            'name': 'envoy.filters.http.ext_authz',
             'typed_config': {
                 '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthz',
                 'http_service': {
@@ -377,7 +377,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
 
     if auth.proto == "grpc":
         auth_info = {
-            'name': 'envoy.ext_authz',
+            'name': 'envoy.filters.http.ext_authz',
             'typed_config': {
                 '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthz',
                 'grpc_service': {
@@ -425,7 +425,7 @@ def v2filter_ratelimit(ratelimit: IRRateLimit, v2config: 'V2Config'):
     config['@type'] = 'type.googleapis.com/envoy.config.filter.http.rate_limit.v2.RateLimit'
 
     return {
-        'name': 'envoy.rate_limit',
+        'name': 'envoy.filters.http.ratelimit',
         'typed_config': config,
     }
 
@@ -487,14 +487,14 @@ def v2filter_cors(cors: IRCORS, v2config: 'V2Config'):
     del cors    # silence unused-variable warning
     del v2config  # silence unused-variable warning
 
-    return { 'name': 'envoy.cors' }
+    return { 'name': 'envoy.filters.http.cors' }
 
 
 @v2filter.when("ir.router")
 def v2filter_router(router: IRFilter, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
-    od: Dict[str, Any] = { 'name': 'envoy.router' }
+    od: Dict[str, Any] = { 'name': 'envoy.filters.http.router' }
 
     if router.ir.tracing:
         od['typed_config'] = {
@@ -512,7 +512,7 @@ def v2filter_lua(irfilter: IRFilter, v2config: 'V2Config'):
     config_dict = irfilter.config_dict()
     config: Dict[str, Any]
     config = {
-        'name': 'envoy.lua'
+        'name': 'envoy.filters.http.lua'
     }
 
     if config_dict:
@@ -549,7 +549,7 @@ class V2TCPListener(dict):
         if group.get('tls_context', None):
             # Yup. We need the TLS inspector here...
             self['listener_filters'] = [ {
-                'name': 'envoy.listener.tls_inspector'
+                'name': 'envoy.filters.listener.tls_inspector'
             } ]
 
             # ...and we need to save the TLS context we'll be using.
@@ -564,7 +564,7 @@ class V2TCPListener(dict):
 
         # From that, we can sort out a basic tcp_proxy filter config.
         tcp_filter = {
-            'name': 'envoy.tcp_proxy',
+            'name': 'envoy.filters.network.tcp_proxy',
             'typed_config': {
                 '@type': 'type.googleapis.com/envoy.config.filter.network.tcp_proxy.v2.TcpProxy',
                 'stat_prefix': 'ingress_tcp_%d' % group.port,
@@ -794,7 +794,7 @@ class V2Listener(dict):
                 access_log_obj['additional_response_trailers_to_log'] = trailer_headers
                 access_log_obj['@type'] = 'type.googleapis.com/envoy.config.accesslog.v2.HttpGrpcAccessLogConfig'
                 self.access_log.append({
-                    "name": "envoy.http_grpc_access_log",
+                    "name": "envoy.access_loggers.http_grpc",
                     "typed_config": access_log_obj
                 })
             else:
@@ -802,7 +802,7 @@ class V2Listener(dict):
                 # tcp loggers do not support additional headers
                 access_log_obj['@type'] = 'type.googleapis.com/envoy.config.accesslog.v2.TcpGrpcAccessLogConfig'
                 self.access_log.append({
-                    "name": "envoy.tcp_grpc_access_log",
+                    "name": "envoy.access_loggers.tcp_grpc",
                     "typed_config": access_log_obj
                 })
 
@@ -841,7 +841,7 @@ class V2Listener(dict):
                     log_format['dd.span_id'] = '%REQ(X-DATADOG-PARENT-ID)%'
 
             self.access_log.append({
-                'name': 'envoy.file_access_log',
+                'name': 'envoy.access_loggers.file',
                 'typed_config': {
                     '@type': 'type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog',
                     'path': self.config.ir.ambassador_module.envoy_log_path,
@@ -858,7 +858,7 @@ class V2Listener(dict):
             if log_debug:
                 self.config.ir.logger.debug("V2Listener: Using log_format '%s'" % log_format)
             self.access_log.append({
-                'name': 'envoy.file_access_log',
+                'name': 'envoy.access_loggers.file',
                 'typed_config': {
                     '@type': 'type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog',
                     'path': self.config.ir.ambassador_module.envoy_log_path,
@@ -1036,8 +1036,7 @@ class V2Listener(dict):
                     # it first as v2, only upgrading it to v3 if it fails to do so. This has the
                     # benefit of allowing us to use only a subset of v3 functionality before we are
                     # ready to fully  migrate.
-                    # XXX Add it back, does this make performance happier?
-                    "name": "envoy.http_connection_manager",
+                    "name": "envoy.filters.network.http_connection_manager",
                     "typed_config": {
                         "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
                         **http_config
@@ -1049,12 +1048,12 @@ class V2Listener(dict):
 
         if self.use_proxy_proto:
             self.listener_filters.append({
-                'name': 'envoy.listener.proxy_protocol'
+                'name': 'envoy.filters.listener.proxy_protocol'
             })
 
         if need_tcp_inspector:
             self.listener_filters.append({
-                'name': 'envoy.listener.tls_inspector'
+                'name': 'envoy.filters.listener.tls_inspector'
             })
 
     def as_dict(self) -> dict:

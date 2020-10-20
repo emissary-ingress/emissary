@@ -316,11 +316,11 @@ config:
 # This test asserts that the external authorization server receives the proper tracing
 # headers when Ambassador is configured with an HTTP AuthService.
 class TracingExternalAuthTest(AmbassadorTest):
-    
+
     def init(self):
         self.target = HTTP()
         self.auth = AHTTP(name="auth")
-        
+
     def manifests(self) -> str:
         return """
 ---

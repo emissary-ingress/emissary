@@ -132,14 +132,14 @@ class V2Route(Cacheable):
 
         self['match'] = match
 
-        # `per_filter_config` is used for customization of an Envoy filter
-        per_filter_config = {}
-
         if mapping.get('bypass_auth', False):
-            per_filter_config['envoy.ext_authz'] = {'disabled': True}
-
-        if per_filter_config:
-            self['per_filter_config'] = per_filter_config
+            # `typed_per_filter_config` is used to pass typed configuration to Envoy filters
+            self['typed_per_filter_config'] = {
+                'envoy.filters.http.ext_authz': {
+                    '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthzPerRoute',
+                    'disabled': True,
+                }
+            }
 
         request_headers_to_add = group.get('add_request_headers', None)
         if request_headers_to_add:
@@ -341,7 +341,7 @@ class V2Route(Cacheable):
         if cached_route is None:
             # Cache miss.
             # config.ir.logger.info(f"V2Route: cache miss for {cache_key}, synthesizing route")
-            
+
             route = V2Route(config, irgroup, mapping)
 
             # Cheat a bit and force the route's cache_key.
@@ -370,7 +370,7 @@ class V2Route(Cacheable):
                 continue
 
             if irgroup.get('host_redirect') is not None and len(irgroup.get('mappings', [])) == 0:
-                # This is a host-redirect-only group, which is weird, but can happen. Do we 
+                # This is a host-redirect-only group, which is weird, but can happen. Do we
                 # have a cached route for it?
                 key = f"Route-{irgroup.group_id}-hostredirect"
 
@@ -502,7 +502,7 @@ class V2Route(Cacheable):
         regex_rewrite = {}
         group_regex_rewrite = mapping_group.get('regex_rewrite', None)
         if group_regex_rewrite is not None:
-            pattern = group_regex_rewrite.get('pattern', None)            
+            pattern = group_regex_rewrite.get('pattern', None)
             if (pattern is not None):
                 regex_rewrite.update(regex_matcher(config, pattern, key='regex',safe_key='pattern', re_type='safe')) # regex_rewrite should never ever be unsafe
         substitution = group_regex_rewrite.get('substitution', None)
