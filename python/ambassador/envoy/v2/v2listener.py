@@ -1031,11 +1031,6 @@ class V2Listener(dict):
 
             filter_chain["filters"] = [
                 {
-                    # Do not use a typed_config for http_connection_manager until we're ready to
-                    # migrate fully to Envoy v3. By not having a type, we let Envoy attempt to parse
-                    # it first as v2, only upgrading it to v3 if it fails to do so. This has the
-                    # benefit of allowing us to use only a subset of v3 functionality before we are
-                    # ready to fully  migrate.
                     "name": "envoy.filters.network.http_connection_manager",
                     "typed_config": {
                         "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
