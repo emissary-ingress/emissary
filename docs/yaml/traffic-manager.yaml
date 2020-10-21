@@ -68,7 +68,7 @@ spec:
     spec:
       containers:
       - name: telepresence-proxy
-        image: docker.io/datawire/aes:$version$
+        image: gcr.io/datawire/aes:$version$
         command: [ "traffic-manager" ]
         ports:
           - name: sshd

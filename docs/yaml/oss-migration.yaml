@@ -160,7 +160,7 @@ spec:
               value: '60'
             - name: AMBASSADOR_INTERNAL_URL
               value: https://127.0.0.1:8443
-          image: docker.io/datawire/aes:$version$
+          image: gcr.io/datawire/aes:$version$
           livenessProbe:
             httpGet:
               path: /ambassador/v0/check_alive

@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
       - name: example-auth
-        image: docker.io/datawire/ambassador-auth-service:2.0.0
+        image: gcr.io/datawire/ambassador-auth-service:2.0.0
         livenessProbe:
           httpGet:
             path: /ready

@@ -40,7 +40,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: docker.io/datawire/quote:$quoteVersion$
+        image: gcr.io/datawire/quote:$quoteVersion$
         ports:
         - name: http
           containerPort: 8000

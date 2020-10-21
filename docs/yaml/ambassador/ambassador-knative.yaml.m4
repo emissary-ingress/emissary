@@ -90,7 +90,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: docker.io/datawire/ambassador:$version$
+        image: gcr.io/ambassador:$version$
         resources:
           limits:
             cpu: 1

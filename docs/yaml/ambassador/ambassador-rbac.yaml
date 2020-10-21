@@ -100,7 +100,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
-        image: docker.io/datawire/ambassador:$version$
+        image: gcr.io/datawire/ambassador:$version$
         livenessProbe:
           httpGet:
             path: /ambassador/v0/check_alive

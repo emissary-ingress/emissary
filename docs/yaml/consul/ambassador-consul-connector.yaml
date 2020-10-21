@@ -73,7 +73,7 @@ spec:
       terminationGracePeriodSeconds: 0
       containers:
         - name: consul-connect-integration
-          image: docker.io/datawire/aes:$version$
+          image: gcr.io/datawire/aes:$version$
           command: [ "consul_connect_integration" ]
           resources:
             limits:

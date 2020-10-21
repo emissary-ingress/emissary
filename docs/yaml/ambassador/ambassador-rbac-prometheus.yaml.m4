@@ -107,7 +107,7 @@ spec:
             path: mapping-config.yaml
       containers:
       - name: ambassador
-        image: docker.io/datawire/ambassador:$version$
+        image: gcr.io/ambassador:$version$
         resources:
           limits:
             cpu: 1
