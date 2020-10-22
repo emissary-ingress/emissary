@@ -246,20 +246,20 @@ If you need more flexible and configurable options, Ambassador Edge Stack suppor
 Use the Envoy filter to enable telemetry of gRPC calls. [gRPC Statistics Filter](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_stats_filter)
 
 Supported parameters:
-* all_methods
-* services
-* upstream_stats
+* `all_methods`
+* `services`
+* `upstream_stats`
 
 Available metrics:
-* envoy_cluster_grpc_<service>_<status_code>
-* envoy_cluster_grpc_<service>_request_message_count
-* envoy_cluster_grpc_<service>_response_message_count
-* envoy_cluster_grpc_<service>_success
-* envoy_cluster_grpc_<service>_total
-* envoy_cluster_grpc_upstream_<stats> - **only when `upstream_stats: true`**
+* `envoy_cluster_grpc_<service>_<status_code>`
+* `envoy_cluster_grpc_<service>_request_message_count`
+* `envoy_cluster_grpc_<service>_response_message_count`
+* `envoy_cluster_grpc_<service>_success`
+* `envoy_cluster_grpc_<service>_total`
+* `envoy_cluster_grpc_upstream_<stats>` - **only when `upstream_stats: true`**
 
-Please note that <service> will only be present if `all_methods` is set or the service and the method are present under `services`.
-If all_methods is false or the method is not on the list, the available metrics will be in the format
+Please note that `<service>` will only be present if `all_methods` is set or the service and the method are present under `services`.
+If `all_methods` is false or the method is not on the list, the available metrics will be in the format
 `envoy_cluster_grpc_<stats>`.
 
 ##### all_methods
