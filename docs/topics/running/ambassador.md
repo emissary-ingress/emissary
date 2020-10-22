@@ -258,7 +258,7 @@ Available metrics:
 * envoy_cluster_grpc_<service>_total
 * envoy_cluster_grpc_upstream_<stats> - **only when `upstream_stats: true`**
 
-Please not that <service> will only be present if `all_methods` is set or the service and the method are present under `services`.
+Please note that <service> will only be present if `all_methods` is set or the service and the method are present under `services`.
 If all_methods is false or the method is not on the list, the available metrics will be in the format
 `envoy_cluster_grpc_<stats>`.
 
