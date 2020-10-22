@@ -191,6 +191,8 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.namespace
+        - name: ISTIO_META_CLUSTER_ID
+          value: Kubernetes
         imagePullPolicy: IfNotPresent
         readinessProbe:
           failureThreshold: 30
