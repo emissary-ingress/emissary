@@ -58,6 +58,7 @@ commands:
       # setup
       - amb-linux-install
       - amb-checkout
+      - amb-images-save-workspace # in case skip-if-only-changes
       - skip-if-only-changes:
           to: docs/
       - amb-config-registry
