@@ -212,6 +212,15 @@ def v2filter_grpc_web(irfilter: IRFilter, v2config: 'V2Config'):
         'config': {},
     }
 
+@v2filter.when("ir.grpc_stats")
+def v2filter_grpc_stats(irfilter: IRFilter, v2config: 'V2Config'):
+    del v2config  # silence unused-variable warning
+
+    return {
+        'name': 'envoy.filters.http.grpc_stats',
+        'config': irfilter.config_dict(),
+    }
+
 def auth_cluster_uri(auth: IRAuth, cluster: IRCluster) -> str:
     cluster_context = cluster.get('tls_context')
     scheme = 'https' if cluster_context else 'http'
