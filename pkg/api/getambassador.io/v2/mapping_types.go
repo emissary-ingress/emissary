@@ -92,18 +92,20 @@ type MappingSpec struct {
 	//    - spdy/3.1
 	AllowUpgrade []string `json:"allow_upgrade,omitempty"`
 
-	Weight               int                     `json:"weight,omitempty"`
-	BypassAuth           bool                    `json:"bypass_auth,omitempty"`
-	Modules              []UntypedDict           `json:"modules,omitempty"`
-	Host                 string                  `json:"host,omitempty"`
-	HostRegex            bool                    `json:"host_regex,omitempty"`
-	Headers              map[string]BoolOrString `json:"headers,omitempty"`
-	RegexHeaders         map[string]BoolOrString `json:"regex_headers,omitempty"`
-	Labels               DomainMap               `json:"labels,omitempty"`
-	EnvoyOverride        *UntypedDict            `json:"envoy_override,omitempty"`
-	LoadBalancer         *LoadBalancer           `json:"load_balancer,omitempty"`
-	QueryParameters      map[string]BoolOrString `json:"query_parameters,omitempty"`
-	RegexQueryParameters map[string]BoolOrString `json:"regex_query_parameters,omitempty"`
+	Weight     int  `json:"weight,omitempty"`
+	BypassAuth bool `json:"bypass_auth,omitempty"`
+	// If true, bypasses any `error_response_overrides` set on the Ambassador module.
+	BypassErrorResponseOverrides bool                    `json:"bypass_error_response_overrides,omitempty"`
+	Modules                      []UntypedDict           `json:"modules,omitempty"`
+	Host                         string                  `json:"host,omitempty"`
+	HostRegex                    bool                    `json:"host_regex,omitempty"`
+	Headers                      map[string]BoolOrString `json:"headers,omitempty"`
+	RegexHeaders                 map[string]BoolOrString `json:"regex_headers,omitempty"`
+	Labels                       DomainMap               `json:"labels,omitempty"`
+	EnvoyOverride                *UntypedDict            `json:"envoy_override,omitempty"`
+	LoadBalancer                 *LoadBalancer           `json:"load_balancer,omitempty"`
+	QueryParameters              map[string]BoolOrString `json:"query_parameters,omitempty"`
+	RegexQueryParameters         map[string]BoolOrString `json:"regex_query_parameters,omitempty"`
 }
 
 type DomainMap map[string]MappingLabelsArray

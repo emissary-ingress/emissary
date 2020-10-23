@@ -44,6 +44,8 @@ func (m *SubstitutionFormatString) Validate() error {
 		return nil
 	}
 
+	// no validation rules for ContentType
+
 	switch m.Format.(type) {
 
 	case *SubstitutionFormatString_TextFormat:
@@ -68,6 +70,18 @@ func (m *SubstitutionFormatString) Validate() error {
 			if err := v.Validate(); err != nil {
 				return SubstitutionFormatStringValidationError{
 					field:  "JsonFormat",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *SubstitutionFormatString_TextFormatSource:
+
+		if v, ok := interface{}(m.GetTextFormatSource()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SubstitutionFormatStringValidationError{
+					field:  "TextFormatSource",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}

@@ -732,6 +732,9 @@ spec:
               type: boolean
             bypass_auth:
               type: boolean
+            bypass_error_response_overrides:
+              description: If true, bypasses any `error_response_overrides` set on the Ambassador module.
+              type: boolean
             case_sensitive:
               type: boolean
             circuit_breakers:

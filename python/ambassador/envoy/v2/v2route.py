@@ -132,14 +132,23 @@ class V2Route(Cacheable):
 
         self['match'] = match
 
-        if mapping.get('bypass_auth', False):
-            # `typed_per_filter_config` is used to pass typed configuration to Envoy filters
-            self['typed_per_filter_config'] = {
-                'envoy.filters.http.ext_authz': {
-                    '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthzPerRoute',
-                    'disabled': True,
-                }
+        # `typed_per_filter_config` is used to pass typed configuration to Envoy filters
+        typed_per_filter_config = {}
+
+        if mapping.get('bypass_error_response_overrides', False):
+            typed_per_filter_config['envoy.filters.http.response_map'] = {
+                '@type': 'type.googleapis.com/envoy.extensions.filters.http.response_map.v3.ResponseMapPerRoute',
+                'disabled': True,
             }
+
+        if mapping.get('bypass_auth', False):
+            typed_per_filter_config['envoy.filters.http.ext_authz'] = {
+                '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthzPerRoute',
+                'disabled': True,
+            }
+
+        if len(typed_per_filter_config) > 0:
+            self['typed_per_filter_config'] = typed_per_filter_config
 
         request_headers_to_add = group.get('add_request_headers', None)
         if request_headers_to_add:
