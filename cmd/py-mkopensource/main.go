@@ -47,11 +47,13 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		// of the BSD license is it?).  We pin the exact versions so
 		// that a human has to go make sure that the license didn't
 		// change when upgrading.
+		{"CacheControl", "0.12.6", "UNKNOWN"}:          {Apache2},
 		{"Click", "7.0", "BSD"}:                        {BSD3},
 		{"Flask", "1.0.2", "BSD"}:                      {BSD3},
 		{"GitPython", "3.1.7", "UNKNOWN"}:              {BSD3},
 		{"Jinja2", "2.10.1", "BSD"}:                    {BSD3},
 		{"chardet", "3.0.4", "LGPL"}:                   {LGPL21},
+		{"colorama", "0.4.3", "BSD"}:                   {BSD3},
 		{"decorator", "4.4.2", "new BSD License"}:      {BSD2},
 		{"gitdb", "4.0.5", "BSD License"}:              {BSD3},
 		{"idna", "2.7", "BSD-like"}:                    {BSD3, PSF, Unicode2015},
@@ -61,7 +63,9 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"jsonpointer", "2.0", "Modified BSD License"}: {BSD3},
 		{"jsonschema", "3.2.0", "UNKNOWN"}:             {MIT},
 		{"jwt", "1.0.0", "UNKNOWN"}:                    {Apache2},
+		{"lockfile", "0.12.2", "UNKNOWN"}:              {MIT},
 		{"oauthlib", "3.1.0", "BSD"}:                   {BSD3},
+		{"pep517", "0.8.2", "UNKNOWN"}:                 {MIT},
 		{"pip-tools", "5.3.1", "BSD"}:                  {BSD3},
 		{"ptyprocess", "0.6.0", "UNKNOWN"}:             {ISC},
 		{"pyasn1", "0.4.8", "BSD"}:                     {BSD2},
@@ -70,6 +74,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"scout.py", "0.5.0", "UNKNOWN"}:               {Apache2},
 		{"semantic-version", "2.8.5", "BSD"}:           {BSD2},
 		{"smmap", "3.0.4", "BSD"}:                      {BSD3},
+		{"webencodings", "0.5.1", "BSD"}:               {BSD3},
 		{"websocket-client", "0.57.0", "BSD"}:          {BSD3},
 		{"zipp", "3.1.0", "UNKNOWN"}:                   {MIT},
 
@@ -95,6 +100,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		"Apache License":              {Apache2},
 		"Apache License 2.0":          {Apache2},
 		"Apache License Version 2.0":  {Apache2},
+		"Apache License, Version 2.0": {Apache2},
 		"Apache Software License":     {Apache2},
 		"Apache Software License 2.0": {Apache2},
 
@@ -104,11 +110,17 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 
 		"ISC license": {ISC},
 		"ISC":         {ISC},
+
 		"MIT License": {MIT},
 		"MIT license": {MIT},
 		"MIT":         {MIT},
-		"MPL-2.0":     {MPL2},
-		"PSF":         {PSF},
+		"MIT-LICENSE": {MIT},
+
+		"MPL-2.0": {MPL2},
+
+		"PSF License":    {PSF},
+		"PSF":            {PSF},
+		"Python license": {PSF},
 	}[license]
 	if ok {
 		ret := make(map[License]struct{}, len(static))
