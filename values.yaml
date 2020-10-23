@@ -362,6 +362,8 @@ redis:
   #     cpu: 50m
   #     memory: 128Mi
   nodeSelector: {}
+  affinity: {}
+  tolerations: {}
 
 
 # Configures the AuthService that ships with the Ambassador Edge Stack.
