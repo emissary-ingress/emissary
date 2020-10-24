@@ -123,7 +123,16 @@ These settings configure the OAuth Client part of the filter.
 
  - `grantType`: Which type of OAuth 2.0 authorization grant to request from the identity provider.  Currently supported are:
    * `"AuthorizationCode"`: Authenticate by redirecting to a login page served by the identity provider.
-   * `"ClientCredentials"`: Authenticate by requiring `X-Ambassador-Client-ID` and `X-Ambassador-Client-Secret` HTTP headers on incoming requests, and using them to authenticate to the identity provider.  Support for the `ClientCredentials` is currently preliminary, and only goes through limited testing.
+
+   * `"ClientCredentials"`: Authenticate by requiring that the
+     incoming HTTP request include as headers the credentials for
+     Ambassador to use to authenticate to the identity provider.
+
+     The type of credentials needing to be submitted depends on the
+     `clientAuthentication.method` (below):
+     + For `"HeaderPassword"` and `"BodyPassword"`, the headers
+       `X-Ambassador-Client-ID` and `X-Ambassador-Client-Secret` must
+       be set.
    * `"Password"`: Authenticate by requiring `X-Ambassador-Username` and `X-Ambassador-Password` on all
      incoming requests, and use them to authenticate with the identity provider using the OAuth2
      `Resource Owner Password Credentials` grant type.
