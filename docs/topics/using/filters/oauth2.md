@@ -60,6 +60,20 @@ spec:
     # How should Ambassador authenticate itself to the identity provider?
     clientAuthentication:              # optional
       method: "enum"                     # optional; default is "HeaderPassword"
+      jwtAssertion:                      # optional if method method=="JWTAssertion"; forbidden otherwise
+        setClientID:     bool              # optional; default is false
+        # the following members of jwtAssertion only apply when the
+        # grantType is NOT "ClientCredentials".
+        audience:        "string"          # optional; default is to use the token endpoint from the authorization URL
+        signingMethod:   "enum"            # optional; default is "RS256"
+        lifetime:        "duration"        # optional; default is "1m"
+        setNBF:          bool              # optional; default is false
+        nbfSafetyMargin: "duration"        # optional; default is 0s
+        setIAT:          bool              # optional; default is false
+        otherClaims:                       # optional; default is {}
+          "string": anything
+        otherHeaderParameters:             # optional; default is {}
+          "string": anything
 
     ## OAuth Client settings: grantType=="AuthorizationCode" ###################
     clientURL:              "string"   # deprecated; use 'protectedOrigins' instead
@@ -133,6 +147,12 @@ These settings configure the OAuth Client part of the filter.
      + For `"HeaderPassword"` and `"BodyPassword"`, the headers
        `X-Ambassador-Client-ID` and `X-Ambassador-Client-Secret` must
        be set.
+     + For `"JWTAssertion"`, the `X-Ambassador-Client-Assertion`
+       header must be set to a JWT that is signed by your client
+       secret, and conforms with the requirements in RFC 7521 section
+       5.2 and RFC 7523 section 3, as well as any additional specified
+       by your identity provider.
+
    * `"Password"`: Authenticate by requiring `X-Ambassador-Username` and `X-Ambassador-Password` on all
      incoming requests, and use them to authenticate with the identity provider using the OAuth2
      `Resource Owner Password Credentials` grant type.
@@ -157,6 +177,52 @@ These settings configure the OAuth Client part of the filter.
        the identity provider.  This is NOT RECOMMENDED by RFC 6749,
        and should only be used when using HeaderPassword isn't
        possible.
+     + `"JWTAssertion"`: Treat the client secret (below) as a
+       password, and put that in the HTTP request bodies submitted to
+       the identity provider.  This is NOT RECOMMENDED by RFC 6749,
+       and should only be used when using HeaderPassword isn't
+       possible.
+   * `jwtAssertion`: Settings to use when `method: "JWTAssertion"`.
+     + `setClientID`: Whether to set the Client ID as an HTTP
+       parameter; setting it as an HTTP parameter is optional (per RFC
+       7521 §4.2) because the Client ID is also contained in the JWT
+       itself, but some identity providers document that they require
+       it to also be set as an HTTP parameter anyway.
+     + `audience` (only when `grantType` is not
+       `"ClientCredentials"`): The audience value that your identity
+       provider requires.
+     + `signingMethod` (only when `grantType` is not
+       `"ClientCredentials"`): The method to use to sign the JWT; how
+       to interpret the `secret` (below).  Supported values are:
+       - RSA: `"RS256"`, `"RS384"`, `"RS512"`: The secret must be a
+         PEM-encoded RSA private key.
+       - RSA-PSS: `"PS256"`, `"PS384"`, `"PS512"`: The secret must be
+         a PEM-encoded RSA private key.
+       - ECDSA: `"ES256"`, `"ES384"`, `"ES512"`: The secret must be a
+         PEM-encoded Eliptic Curve private key.
+       - HMAC-SHA: `"HS256"`, `"HS384"`, `"HS512"`: The secret is a
+         raw string of bytes; it can contain anything.
+     + `lifetime` (only when `grantType` is not
+       `"ClientCredentials"`): The lifetime of the generated JWT; just
+       enough time for the request to the identity provider to
+       complete (plus possibly an extra allowance for clock skew).
+     + `setNBF` (only when `grantType` is not `"ClientCredentials"`):
+       Whether to set the optional "nbf" ("Not Before") claim in the
+       generated JWT.
+     + `nbfSafetyMargin` (only `setNBF` is true): The safety margin to
+       build-in to the "nbf" claim, to allow for clock skew between
+       ambassador and the identity provider.
+     + `setIAT` (only when `grantType` is not `"ClientCredentials"`):
+       Whether to set the optional "iat" ("Issued At") claim in the
+       generated JWT.
+     + `otherClaims` (only when `grantType` is not
+       `"ClientCredentials"`): Any extra non-standard claims to
+       include in the generated JWT.
+     + `otherHeaderParameters` (only when `grantType` is not
+       `"ClientCredentials"`): Any extra JWT header parameters to
+       include in the generated JWT non-standard claims to include in
+       the generated JWT; only the "typ" and "alg" header parameters
+       are set by default.
 
 Depending on which `grantType` is used, different settings exist.
 
