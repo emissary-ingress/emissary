@@ -10,6 +10,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/pkg/errors"
+
 	. "github.com/datawire/ambassador/pkg/mkopensource/detectlicense"
 )
 
@@ -163,7 +165,16 @@ func Main() error {
 		fmt.Fprintf(table, "\t%s\t%s\t%s\n", distribName, distribVersion, distribLicense)
 	}
 	if len(errs) > 0 {
-		return errs
+		err := errs
+		return errors.Errorf(`%v
+    This probably means that you added or upgraded a dependency, and the
+    automated opensource-license-checker can't confidently detect what
+    the license is.  (This is a good thing, because it is reminding you
+    to check the license of libraries before using them.)
+
+    You need to update the "github.com/datawire/ambassador/cmd/py-mkopensource/main.go"
+    file to correctly detect the license.`,
+			err)
 	}
 	fmt.Printf("The Ambassador Python code makes use of the following Free and Open Source\nlibraries:\n\n")
 	table.Flush()
