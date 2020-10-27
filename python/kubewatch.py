@@ -267,7 +267,8 @@ def main(debug):
                     'ratelimitservices.getambassador.io',
                     'tcpmappings.getambassador.io',
                     'tlscontexts.getambassador.io',
-                    'tracingservices.getambassador.io'
+                    'tracingservices.getambassador.io',
+                    'devportals.getambassador.io'
                 ]
             ),
             (

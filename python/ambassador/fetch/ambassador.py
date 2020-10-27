@@ -23,6 +23,7 @@ class AmbassadorProcessor (ManagedKubernetesProcessor):
             'Mapping',
             'Module',
             'RateLimitService',
+            'DevPortal',
             'TCPMapping',
             'TLSContext',
             'TracingService',
