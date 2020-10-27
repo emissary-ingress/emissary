@@ -1085,7 +1085,7 @@ def get_prometheus_metrics(*args, **kwargs):
 
     # Extra metrics endpoint
     extra_metrics_content = ''
-    if app.metrics_endpoint and app.ir.edge_stack_allowed:
+    if app.metrics_endpoint and app.ir and app.ir.edge_stack_allowed:
         try:
             response = requests.get(app.metrics_endpoint)
             if response.status_code == 200:
