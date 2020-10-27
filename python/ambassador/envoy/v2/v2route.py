@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Set, Union, TYPE_CHECKING
 from typing import cast as typecast
 
 from ..common import EnvoyRoute
@@ -55,6 +55,17 @@ def regex_matcher(config: 'V2Config', regex: str, key="regex", safe_key=None, re
             }
 
 
+def hostglob_matches(glob: str, value: str) -> bool:
+    if glob == "*": # special wildcard
+        return True
+    elif glob.endswith("*"): # prefix match
+        return value.startswith(glob[:-1])
+    elif glob.startswith("*"): # suffix match
+        return value.endswith(glob[1:])
+    else: # exact match
+        return value == glob
+
+
 class V2Route(Cacheable):
     def __init__(self, config: 'V2Config', group: IRHTTPMappingGroup, mapping: IRBaseMapping) -> None:
         super().__init__()
@@ -85,7 +96,7 @@ class V2Route(Cacheable):
         }
 
         if len(mapping) > 0:
-            runtime_fraction['runtime_key'] = f'routing.traffic_shift.{mapping.cluster.name}'
+            runtime_fraction['runtime_key'] = f'routing.traffic_shift.{mapping.cluster.envoy_name}'
 
         match = {
             'case_sensitive': case_sensitive,
@@ -121,14 +132,14 @@ class V2Route(Cacheable):
 
         self['match'] = match
 
-        # `per_filter_config` is used for customization of an Envoy filter
-        per_filter_config = {}
-
         if mapping.get('bypass_auth', False):
-            per_filter_config['envoy.ext_authz'] = {'disabled': True}
-
-        if per_filter_config:
-            self['per_filter_config'] = per_filter_config
+            # `typed_per_filter_config` is used to pass typed configuration to Envoy filters
+            self['typed_per_filter_config'] = {
+                'envoy.filters.http.ext_authz': {
+                    '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthzPerRoute',
+                    'disabled': True,
+                }
+            }
 
         request_headers_to_add = group.get('add_request_headers', None)
         if request_headers_to_add:
@@ -168,7 +179,7 @@ class V2Route(Cacheable):
         route = {
             'priority': group.get('priority'),
             'timeout': "%0.3fs" % (mapping.get('timeout_ms', 3000) / 1000.0),
-            'cluster': mapping.cluster.name
+            'cluster': mapping.cluster.envoy_name
         }
 
         idle_timeout_ms = mapping.get('idle_timeout_ms', None)
@@ -225,7 +236,7 @@ class V2Route(Cacheable):
             weight = shadow.get('weight', 100)
 
             route['request_mirror_policy'] = {
-                'cluster': shadow.cluster.name,
+                'cluster': shadow.cluster.envoy_name,
                 'runtime_fraction': {
                     'default_value': {
                         'numerator': weight,
@@ -263,6 +274,63 @@ class V2Route(Cacheable):
 
         self['route'] = route
 
+
+    def host_constraints(self, prune_unreachable_routes: bool) -> Set[str]:
+        """Return a set of hostglobs that match (a superset of) all hostnames that this route can
+        apply to.
+
+        An emtpy set means that this route cannot possibly apply to any hostnames.
+
+        This considers SNI information and (if prune_unreachable_routes) HeaderMatchers that
+        `exact_match` on the `:authority` header.  There are other things that could narrow the set
+        down more, but that we don't consider (like regex matches on `:authority`), leading to it
+        possibly returning a set that is too broad.  That's OK for correctness, it just means that
+        we'll emit an Envoy config that contains extra work for Envoy.
+
+        """
+        # Start by grabbing a list of all the SNI host globs for this route. If there aren't any,
+        # default to "*".
+        hostglobs = set(self.get('_sni', {}).get('hosts', ['*']))
+
+        # If we're going to do any aggressive pruning here...
+        if prune_unreachable_routes:
+            # Note: We're *pruning*; the hostglobs set will only ever get *smaller*, it will never
+            # grow.  If it gets down to the empty set, then we can safely bail early.
+
+            # Take all the HeaderMatchers...
+            header_matchers = self.get("match", {}).get("headers", [])
+            for header in header_matchers:
+                # ... and look for ones that exact_match on :authority.
+                if header.get("name") == ":authority" and "exact_match" in header:
+                    exact_match = header["exact_match"]
+
+                    if "*" in exact_match:
+                        # A real :authority header will never contain a "*", so if this route has an
+                        # exact_match looking for one, then this route is unreachable.
+                        hostglobs = set()
+                        break # hostglobs is empty, no point in doing more work
+
+                    elif any(hostglob_matches(glob, exact_match) for glob in hostglobs):
+                        # The exact_match that this route is looking for is matched by one or more
+                        # of the hostglobs; so this route is reachable (so far).  Set hostglobs to
+                        # just match that route.  Because we already checked if the exact_match
+                        # contains a "*", we don't need to worry about it possibly being interpreted
+                        # incorrectly as a glob.
+                        hostglobs = set([exact_match])
+                        # Don't "break" here--if somehow this route has multiple disagreeing
+                        # HeaderMatchers on :authority, then it's unreachable and we want the next
+                        # iteration of the loop to trigger the "else" clause and prune hostglobs
+                        # down to the empty set.
+
+                    else:
+                        # The exact_match that this route is looking for isn't matched by any of the
+                        # hostglobs; so this route is unreachable.
+                        hostglobs = set()
+                        break # hostglobs is empty, no point in doing more work
+
+        return hostglobs
+
+
     @classmethod
     def get_route(cls, config: 'V2Config', cache_key: str,
                   irgroup: IRHTTPMappingGroup, mapping: IRBaseMapping) -> 'V2Route':
@@ -273,7 +341,7 @@ class V2Route(Cacheable):
         if cached_route is None:
             # Cache miss.
             # config.ir.logger.info(f"V2Route: cache miss for {cache_key}, synthesizing route")
-            
+
             route = V2Route(config, irgroup, mapping)
 
             # Cheat a bit and force the route's cache_key.
@@ -302,7 +370,7 @@ class V2Route(Cacheable):
                 continue
 
             if irgroup.get('host_redirect') is not None and len(irgroup.get('mappings', [])) == 0:
-                # This is a host-redirect-only group, which is weird, but can happen. Do we 
+                # This is a host-redirect-only group, which is weird, but can happen. Do we
                 # have a cached route for it?
                 key = f"Route-{irgroup.group_id}-hostredirect"
 
@@ -434,7 +502,7 @@ class V2Route(Cacheable):
         regex_rewrite = {}
         group_regex_rewrite = mapping_group.get('regex_rewrite', None)
         if group_regex_rewrite is not None:
-            pattern = group_regex_rewrite.get('pattern', None)            
+            pattern = group_regex_rewrite.get('pattern', None)
             if (pattern is not None):
                 regex_rewrite.update(regex_matcher(config, pattern, key='regex',safe_key='pattern', re_type='safe')) # regex_rewrite should never ever be unsafe
         substitution = group_regex_rewrite.get('substitution', None)

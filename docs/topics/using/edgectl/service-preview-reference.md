@@ -73,6 +73,9 @@ spec:
       app: telepresence-proxy
   template:
     metadata:
+      annotations:
+        consul.hashicorp.com/connect-inject: 'false'
+        sidecar.istio.io/inject: 'false'
       labels:
         app: telepresence-proxy
     spec:
@@ -200,6 +203,9 @@ It also requires the ability to read your Ambassador Edge Stack license key from
          app: telepresence-proxy
      template:
        metadata:
+         annotations:
+           consul.hashicorp.com/connect-inject: 'false'
+           sidecar.istio.io/inject: 'false'
          labels:
            app: telepresence-proxy
        spec:
@@ -428,6 +434,9 @@ spec:
       app.kubernetes.io/instance: ambassador
   template:
     metadata:
+      annotations:
+        consul.hashicorp.com/connect-inject: 'false'
+        sidecar.istio.io/inject: 'false'
       labels:
         app.kubernetes.io/name: ambassador-injector
         app.kubernetes.io/instance: ambassador
@@ -587,6 +596,9 @@ spec:
       app: hello
   template:
     metadata:
+      annotations:
+        consul.hashicorp.com/connect-inject: 'false'
+        sidecar.istio.io/inject: 'false'
       labels:
         app: hello
     spec:
@@ -613,6 +625,8 @@ spec:
                 fieldPath: metadata.namespace
           - name: AMBASSADOR_SINGLE_NAMESPACE # Traffic Agent container can run in a single-namespace (note 9)
             value: "true"
+          - name: AMBASSADOR_ENVOY_BASE_ID  # Allows Traffic Agent to run alongside other Envoy proxies
+            value: "1"
           - name: AGENT_LISTEN_PORT # Port on which to listen for connections (note 10)
             value: "9900"
       serviceAccountName: traffic-agent # The pod runs with traffic-agent RBAC

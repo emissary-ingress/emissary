@@ -30,10 +30,12 @@ class V2RateLimit(dict):
 
         ratelimit = typecast(IRRateLimit, config.ir.ratelimit)
 
+        assert(ratelimit.cluster.envoy_name)
+
         self['use_alpha'] = True
         self['grpc_service'] = {
             'envoy_grpc': {
-                'cluster_name': ratelimit.cluster.name
+                'cluster_name': ratelimit.cluster.envoy_name
             }
         }
 

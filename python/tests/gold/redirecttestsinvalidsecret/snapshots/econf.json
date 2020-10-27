@@ -84,12 +84,12 @@
                         "filter_chain_match": {},
                         "filters": [
                             {
-                                "name": "envoy.http_connection_manager",
+                                "name": "envoy.filters.network.http_connection_manager",
                                 "typed_config": {
                                     "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
                                     "access_log": [
                                         {
-                                            "name": "envoy.file_access_log",
+                                            "name": "envoy.access_loggers.file",
                                             "typed_config": {
                                                 "@type": "type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog",
                                                 "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
@@ -99,10 +99,10 @@
                                     ],
                                     "http_filters": [
                                         {
-                                            "name": "envoy.cors"
+                                            "name": "envoy.filters.http.cors"
                                         },
                                         {
-                                            "name": "envoy.router"
+                                            "name": "envoy.filters.http.router"
                                         }
                                     ],
                                     "http_protocol_options": {
@@ -146,6 +146,22 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
+                                                            "prefix": "/ambassador/v0/check_ready",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "redirect": {
+                                                            "https_redirect": true
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
                                                             "headers": [
                                                                 {
                                                                     "exact_match": "https",
@@ -166,6 +182,22 @@
                                                             "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "prefix": "/ambassador/v0/check_alive",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "redirect": {
+                                                            "https_redirect": true
                                                         }
                                                     },
                                                     {
@@ -196,6 +228,22 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
+                                                            "prefix": "/ambassador/v0/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "redirect": {
+                                                            "https_redirect": true
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
                                                             "headers": [
                                                                 {
                                                                     "exact_match": "https",
@@ -216,6 +264,22 @@
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
                                                             "timeout": "3.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "prefix": "/tls-target/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_redirecttestsinvalidsecret_http_default"
+                                                            }
+                                                        },
+                                                        "redirect": {
+                                                            "https_redirect": true
                                                         }
                                                     }
                                                 ]
@@ -248,12 +312,12 @@
                         "filter_chain_match": {},
                         "filters": [
                             {
-                                "name": "envoy.http_connection_manager",
+                                "name": "envoy.filters.network.http_connection_manager",
                                 "typed_config": {
                                     "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
                                     "access_log": [
                                         {
-                                            "name": "envoy.file_access_log",
+                                            "name": "envoy.access_loggers.file",
                                             "typed_config": {
                                                 "@type": "type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog",
                                                 "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
@@ -263,10 +327,10 @@
                                     ],
                                     "http_filters": [
                                         {
-                                            "name": "envoy.cors"
+                                            "name": "envoy.filters.http.cors"
                                         },
                                         {
-                                            "name": "envoy.router"
+                                            "name": "envoy.filters.http.router"
                                         }
                                     ],
                                     "http_protocol_options": {
@@ -280,7 +344,7 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8080-insecure-8080-fstar-*",
+                                                "name": "ambassador-listener-8080-*",
                                                 "routes": [
                                                     {
                                                         "match": {

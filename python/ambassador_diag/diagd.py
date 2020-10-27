@@ -57,7 +57,7 @@ from ambassador.utils import SystemInfo, Timer, PeriodicTrigger, SavedSecret, lo
 from ambassador.utils import SecretHandler, KubewatchSecretHandler, FSSecretHandler
 from ambassador.fetch import ResourceFetcher
 
-from ambassador.diagnostics import EnvoyStats
+from ambassador.diagnostics import EnvoyStatsMgr, EnvoyStats
 
 from ambassador.constants import Constants
 
@@ -103,7 +103,7 @@ class DiagApp (Flask):
     cache: Optional[Cache]
     ambex_pid: int
     kick: Optional[str]
-    estats: EnvoyStats
+    estatsmgr: EnvoyStatsMgr
     config_path: Optional[str]
     snapshot_path: str
     bootstrap_path: str
@@ -141,13 +141,13 @@ class DiagApp (Flask):
     metrics_registry: CollectorRegistry
 
     config_lock: threading.Lock
+    diag_lock: threading.Lock
 
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
               config_path: Optional[str], ambex_pid: int, kick: Optional[str], banner_endpoint: Optional[str],
               metrics_endpoint: Optional[str], k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False,
               verbose=False, notices=None, validation_retries=5, allow_fs_commands=False, local_scout=False,
               report_action_keys=False):
-        self.estats = EnvoyStats()
         self.health_checks = do_checks
         self.no_envoy = no_envoy
         self.debugging = reload
@@ -164,16 +164,19 @@ class DiagApp (Flask):
         self.metrics_endpoint = metrics_endpoint
         self.metrics_registry = CollectorRegistry(auto_describe=True)
 
-        # Initialize the incremental-reconfigure stats.
+        # This feels like overkill.
+        self.logger = logging.getLogger("ambassador.diagd")
+        self.logger.setLevel(logging.INFO)
+
+        # Initialize the Envoy stats manager...
+        self.estatsmgr = EnvoyStatsMgr(self.logger)
+
+        # ...and the incremental-reconfigure stats.
         self.reconf_stats = ReconfigStats(self.logger)
 
         # This will raise an exception and crash if you pass it a string. That's intentional.
         self.ambex_pid = int(ambex_pid)
         self.kick = kick
-
-        # This feels like overkill.
-        self.logger = logging.getLogger("ambassador.diagd")
-        self.logger.setLevel(logging.INFO)
 
         # Initialize the cache if we're allowed to.
         if os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "false").lower() == "true":
@@ -220,6 +223,10 @@ class DiagApp (Flask):
         # You must hold config_lock when updating config elements (including diag!).
         self.config_lock = threading.Lock()
 
+        # When generating new diagnostics, there's a dance around config_lock and
+        # diag_lock -- see the diag() property.
+        self.diag_lock = threading.Lock()
+
         # Why are we doing this? Aren't we sure we're singlethreaded here?
         # Well, yes. But self.diag is actually a property, and it will raise an
         # assertion failure if we're not holding self.config_lock... and once
@@ -258,35 +265,46 @@ class DiagApp (Flask):
         app.diag is a property that does it on demand, handling Timers and
         the config lock for you.
 
-        You MUST NOT already hold the config_lock when trying to read app.diag.
+        You MUST NOT already hold the config_lock or the diag_lock when
+        trying to read app.diag. 
+
         You MUST already have loaded an IR.
         """
 
         # The config_lock is meant to make sure that we don't ever update
         # self.diag in two places at once, so grab that first.
         with self.config_lock:
-            # OK. If we haven't already generated the Diagnostics...
-            if not app._diag:
-                # ...then we need to fix that, assuming that we have an 
-                # IR and econf to fix it with.
-                if not app.ir or not app.econf:
-                    return None
+            # If we've already generated diagnostics...
+            if app._diag:
+                # ...then we're good to go.
+                return app._diag
 
-                # Good to go. Use the diag_timer to time this.
-                with self.diag_timer:
-                    app._diag = Diagnostics(app.ir, app.econf)
+        # If here, we have _not_ generated diagnostics, and we've dropped the
+        # config lock so as not to block anyone else. Next up: grab the diag 
+        # lock, because we'd rather not have two diag generations happening at 
+        # once.
+        with self.diag_lock:
+            # Did someone else sneak in between releasing the config lock and
+            # grabbing the diag lock?
+            if app._diag:
+                # Yup. Use their work.
+                return app._diag
 
-                    # Update some metrics data points given the new generated Diagnostics
-                    diag_dict = app._diag.as_dict()
-                    self.diag_errors.set(len(diag_dict.get("errors", [])))
-                    self.diag_notices.set(len(diag_dict.get("notices", [])))
+            # OK, go generate diagnostics.
+            _diag = self._generate_diagnostics()
 
-                    # Note that we've updated diagnostics, since that might trigger a 
-                    # timer log.
-                    self.reconf_stats.mark("diag")
+            # If that didn't work, no point in messing with the config lock.
+            if not _diag:
+                return None
 
-            # Either we had a Diagnostics to start with, or we just generated
-            # it, so we should be good to go.
+            # Once here, we need to - once again - grab the config lock to update
+            # app._diag. This is safe because this is the only place we ever mess
+            # with the diag lock, so nowhere else will try to grab the diag lock 
+            # while holding the config lock.
+            with app.config_lock:
+                app._diag = _diag
+
+            # Finally, we can return app._diag to our caller.
             return app._diag
 
     @diag.setter
@@ -297,8 +315,43 @@ class DiagApp (Flask):
         the config lock for you.
 
         You MUST already hold the config_lock when trying to update app.diag.
+        You MUST NOT hold the diag_lock.
         """
         self._diag = diag
+
+    def _generate_diagnostics(self) -> Optional[Diagnostics]:
+        """
+        Do the heavy lifting of generating Diagnostics for our current configuration.
+        Really, only the diag() property should be calling this method, but if you
+        are convinced that you need to call it from elsewhere:
+
+        1. You're almost certainly wrong about needing to call it from elsewhere.
+        2. You MUST hold the diag_lock when calling this method.
+        3. You MUST NOT hold the config_lock when calling this method.
+        4. No, really, you're wrong. Don't call this method from anywhere but the 
+           diag() property.
+        """
+
+        # Make sure we have an IR and econf to work with.
+        if not app.ir or not app.econf:
+            # Nope, bail.
+            return None
+
+        # OK, go ahead and generate diagnostics. Use the diag_timer to time
+        # this.
+        with self.diag_timer:
+            _diag = Diagnostics(app.ir, app.econf)
+
+            # Update some metrics data points given the new generated Diagnostics
+            diag_dict = _diag.as_dict()
+            self.diag_errors.set(len(diag_dict.get("errors", [])))
+            self.diag_notices.set(len(diag_dict.get("notices", [])))
+
+            # Note that we've updated diagnostics, since that might trigger a 
+            # timer log.
+            self.reconf_stats.mark("diag")
+
+            return _diag
 
     def check_scout(self, what: str) -> None:
         self.watcher.post("SCOUT", (what, self.ir))
@@ -671,7 +724,7 @@ def system_info(app):
     }
 
 
-def envoy_status(estats):
+def envoy_status(estats: EnvoyStats):
     since_boot = interval_format(estats.time_since_boot(), "%s", "less than a second")
 
     since_update = "Never updated"
@@ -777,7 +830,7 @@ def favicon():
 
 @app.route('/ambassador/v0/check_alive', methods=[ 'GET' ])
 def check_alive():
-    status = envoy_status(app.estats)
+    status = envoy_status(app.estatsmgr.get_stats())
 
     if status['alive']:
         return "ambassador liveness check OK (%s)\n" % status['uptime'], 200
@@ -790,7 +843,7 @@ def check_ready():
     if not app.ir:
         return "ambassador waiting for config\n", 503
 
-    status = envoy_status(app.estats)
+    status = envoy_status(app.estatsmgr.get_stats())
 
     if status['ready']:
         return "ambassador readiness check OK (%s)\n" % status['since_update'], 200
@@ -826,7 +879,8 @@ def show_overview(reqid=None):
         app.logger.debug("OV %s: DIAG" % reqid)
         app.logger.debug("%s" % json.dumps(diag.as_dict(), sort_keys=True, indent=4))
 
-    ov = diag.overview(request, app.estats)
+    estats = app.estatsmgr.get_stats()
+    ov = diag.overview(request, estats)
 
     if app.verbose:
         app.logger.debug("OV %s: OV" % reqid)
@@ -845,8 +899,8 @@ def show_overview(reqid=None):
             app.logger.error("could not get banner_content: %s" % e)
 
     tvars = dict(system=system_info(app),
-                 envoy_status=envoy_status(app.estats),
-                 loginfo=app.estats.loginfo,
+                 envoy_status=envoy_status(estats),
+                 loginfo=app.estatsmgr.loginfo,
                  notices=app.notices.notices,
                  banner_content=banner_content,
                  **ov, **ddict)
@@ -892,7 +946,7 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
     if loglevel:
         app.logger.debug("%s %s -- requesting loglevel %s" % (what, reqid, loglevel))
 
-        if not app.estats.update_log_levels(time.time(), level=loglevel):
+        if not app.estatsmgr.update_log_levels(time.time(), level=loglevel):
             notice = { 'level': 'WARNING', 'message': "Could not update log level!" }
         # else:
         #     return redirect("/ambassador/v0/diag/", code=302)
@@ -958,7 +1012,8 @@ def show_intermediate(source=None, reqid=None):
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
 
-    result = diag.lookup(request, source, app.estats)
+    estats = app.estatsmgr.get_stats()
+    result = diag.lookup(request, source, estats)
 
     if app.verbose:
         app.logger.debug("RESULT %s" % json.dumps(result, sort_keys=True, indent=4))
@@ -966,8 +1021,8 @@ def show_intermediate(source=None, reqid=None):
     ddict = collect_errors_and_notices(request, reqid, "detail %s" % source, diag)
 
     tvars = dict(system=system_info(app),
-                 envoy_status=envoy_status(app.estats),
-                 loginfo=app.estats.loginfo,
+                 envoy_status=envoy_status(estats),
+                 loginfo=app.estatsmgr.loginfo,
                  notices=app.notices.notices,
                  method=method, resource=resource,
                  **result, **ddict)
@@ -1023,7 +1078,7 @@ def source_lookup(name, sources):
 @standard_handler
 def get_prometheus_metrics(*args, **kwargs):
     # Envoy metrics
-    envoy_metrics = app.estats.get_prometheus_stats()
+    envoy_metrics = app.estatsmgr.get_prometheus_stats()
 
     # Ambassador OSS metrics
     ambassador_metrics = generate_latest(registry=app.metrics_registry).decode('utf-8')
@@ -1180,6 +1235,8 @@ class AmbassadorEventWatcher(threading.Thread):
         'T-T-T': ( 'update',        False ),
     }
 
+    reCompressed = re.compile(r'-\d+$')
+
     def __init__(self, app: DiagApp) -> None:
         super().__init__(name="AEW", daemon=True)
         self.app = app
@@ -1199,7 +1256,7 @@ class AmbassadorEventWatcher(threading.Thread):
         return rqueue.get()
 
     def update_estats(self) -> None:
-        self.post('ESTATS', '')
+        self.app.estatsmgr.update()
 
     def run(self):
         self.logger.info("starting Scout checker and timer logger")
@@ -1212,16 +1269,7 @@ class AmbassadorEventWatcher(threading.Thread):
             cmd, arg, rqueue = self.events.get()
             # self.logger.info("EVENT: %s" % cmd)
 
-            if cmd == 'ESTATS':
-                # self.logger.info("updating estats")
-                try:
-                    self._respond(rqueue, 200, 'updating')
-                    self.app.estats.update()
-                except Exception as e:
-                    self.logger.error("could not update estats: %s" % e)
-                    self.logger.exception(e)
-                    self._respond(rqueue, 500, 'Envoy stats update failed')
-            elif cmd == 'CONFIG_FS':
+            if cmd == 'CONFIG_FS':
                 try:
                     self.load_config_fs(rqueue, arg)
                 except Exception as e:
@@ -1774,7 +1822,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 feat['frc_check_count'] = self.app.reconf_stats.checks
                 feat['frc_check_errors'] = self.app.reconf_stats.errors
 
-                request_data = app.estats.stats.get('requests', None)
+                request_data = app.estatsmgr.get_stats().requests
 
                 if request_data:
                     self.app.logger.debug("check_scout: including requests")
@@ -1825,8 +1873,64 @@ class AmbassadorEventWatcher(threading.Thread):
 
         # We want to keep the original config untouched
         validation_config = copy.deepcopy(config)
+
         # Envoy fails to validate with @type field in envoy config, so removing that
         validation_config.pop('@type')
+
+        if os.environ.get("AMBASSADOR_DEBUG_CLUSTER_CONFIG", "false").lower() == "true":
+            vconf_clusters = validation_config['static_resources']['clusters']
+
+            if len(vconf_clusters) > 10:
+                vconf_clusters.append(copy.deepcopy(vconf_clusters[10]))
+
+            # Check for cluster-name weirdness.
+            _v2_clusters = {}
+            _problems = []
+
+            for name in sorted(ir.clusters.keys()):
+                if AmbassadorEventWatcher.reCompressed.search(name):
+                    _problems.append(f"IR pre-compressed cluster {name}")
+
+            for cluster in validation_config['static_resources']['clusters']:
+                name = cluster['name']
+
+                if name in _v2_clusters:
+                    _problems.append(f"V2 dup cluster {name}")
+                _v2_clusters[name] = True
+
+            if _problems:
+                self.logger.error("ENVOY CONFIG PROBLEMS:\n%s", "\n".join(_problems))
+                stamp = datetime.datetime.now().isoformat()
+
+                bad_snapshot = open(os.path.join(app.snapshot_path, "snapshot-tmp.yaml"), "r").read()
+
+                cache_dict: Dict[str, Any] = {}
+                cache_links: Dict[str, Any] = {}
+
+                if self.app.cache:
+                    for k, c in self.app.cache.cache.items():
+                        v: Any = c[0]
+
+                        if getattr(v, 'as_dict', None):
+                            v = v.as_dict()
+                            
+                        cache_dict[k] = v
+
+                    cache_links = { k: list(v) for k, v in self.app.cache.links.items() }
+
+                bad_dict = {
+                    "ir": ir.as_dict(),
+                    "v2": config,
+                    "validation": validation_config,
+                    "problems": _problems,
+                    "snapshot": bad_snapshot,
+                    "cache": cache_dict,
+                    "links": cache_links
+                }
+
+                with open(os.path.join(app.snapshot_path, f"problems-{stamp}.json"), "w") as output:
+                    json.dump(bad_dict, output, sort_keys=True, indent=4)
+
         config_json = json.dumps(validation_config, sort_keys=True, indent=4)
 
         econf_validation_path = os.path.join(app.snapshot_path, "econf-tmp.json")

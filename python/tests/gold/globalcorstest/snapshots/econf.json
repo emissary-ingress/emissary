@@ -84,12 +84,12 @@
                         "filter_chain_match": {},
                         "filters": [
                             {
-                                "name": "envoy.http_connection_manager",
+                                "name": "envoy.filters.network.http_connection_manager",
                                 "typed_config": {
                                     "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
                                     "access_log": [
                                         {
-                                            "name": "envoy.file_access_log",
+                                            "name": "envoy.access_loggers.file",
                                             "typed_config": {
                                                 "@type": "type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog",
                                                 "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
@@ -99,10 +99,10 @@
                                     ],
                                     "http_filters": [
                                         {
-                                            "name": "envoy.cors"
+                                            "name": "envoy.filters.http.cors"
                                         },
                                         {
-                                            "name": "envoy.router"
+                                            "name": "envoy.filters.http.router"
                                         }
                                     ],
                                     "http_protocol_options": {
@@ -116,8 +116,48 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8080-insecure-8080-fstar-*",
+                                                "name": "ambassador-listener-8080-*",
                                                 "routes": [
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/check_ready",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
+                                                            "cors": {
+                                                                "allow_methods": "POST, GET, OPTIONS",
+                                                                "allow_origin_string_match": [
+                                                                    {
+                                                                        "exact": "http://foo.example.com"
+                                                                    }
+                                                                ],
+                                                                "filter_enabled": {
+                                                                    "default_value": {
+                                                                        "denominator": "HUNDRED",
+                                                                        "numerator": 100
+                                                                    },
+                                                                    "runtime_key": "routing.cors_enabled.b4db12f5b638f1750062dd4220911c4f6f44fc57"
+                                                                }
+                                                            },
+                                                            "prefix_rewrite": "/ambassador/v0/check_ready",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
@@ -148,6 +188,46 @@
                                                                 }
                                                             },
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/check_alive",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
+                                                            "cors": {
+                                                                "allow_methods": "POST, GET, OPTIONS",
+                                                                "allow_origin_string_match": [
+                                                                    {
+                                                                        "exact": "http://foo.example.com"
+                                                                    }
+                                                                ],
+                                                                "filter_enabled": {
+                                                                    "default_value": {
+                                                                        "denominator": "HUNDRED",
+                                                                        "numerator": 100
+                                                                    },
+                                                                    "runtime_key": "routing.cors_enabled.7df546235997704c909d473af2cbcb5e606d20de"
+                                                                }
+                                                            },
+                                                            "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "timeout": "10.000s"
                                                         }
@@ -189,6 +269,12 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
                                                             "prefix": "/ambassador/v0/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -223,6 +309,46 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
+                                                            "prefix": "/ambassador/v0/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
+                                                            "cors": {
+                                                                "allow_methods": "POST, GET, OPTIONS",
+                                                                "allow_origin_string_match": [
+                                                                    {
+                                                                        "exact": "http://foo.example.com"
+                                                                    }
+                                                                ],
+                                                                "filter_enabled": {
+                                                                    "default_value": {
+                                                                        "denominator": "HUNDRED",
+                                                                        "numerator": 100
+                                                                    },
+                                                                    "runtime_key": "routing.cors_enabled.8de18501d2044fe30db225289b318d5fda913b64"
+                                                                }
+                                                            },
+                                                            "prefix_rewrite": "/ambassador/v0/",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
                                                             "prefix": "/foo/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -247,6 +373,80 @@
                                                                         "numerator": 100
                                                                     },
                                                                     "runtime_key": "routing.cors_enabled.3644d75eb336f323bec43e48d4cfd8a950157607"
+                                                                }
+                                                            },
+                                                            "prefix_rewrite": "/",
+                                                            "priority": null,
+                                                            "timeout": "3.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "prefix": "/foo/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_globalcorstest_http_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_globalcorstest_http_default",
+                                                            "cors": {
+                                                                "allow_methods": "POST, GET, OPTIONS",
+                                                                "allow_origin_string_match": [
+                                                                    {
+                                                                        "exact": "http://foo.example.com"
+                                                                    }
+                                                                ],
+                                                                "filter_enabled": {
+                                                                    "default_value": {
+                                                                        "denominator": "HUNDRED",
+                                                                        "numerator": 100
+                                                                    },
+                                                                    "runtime_key": "routing.cors_enabled.3644d75eb336f323bec43e48d4cfd8a950157607"
+                                                                }
+                                                            },
+                                                            "prefix_rewrite": "/",
+                                                            "priority": null,
+                                                            "timeout": "3.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/bar/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_globalcorstest_http_default"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_globalcorstest_http_default",
+                                                            "cors": {
+                                                                "allow_methods": "POST, GET, OPTIONS",
+                                                                "allow_origin_string_match": [
+                                                                    {
+                                                                        "exact": "http://bar.example.com"
+                                                                    }
+                                                                ],
+                                                                "filter_enabled": {
+                                                                    "default_value": {
+                                                                        "denominator": "HUNDRED",
+                                                                        "numerator": 100
+                                                                    },
+                                                                    "runtime_key": "routing.cors_enabled.921ecb432880c4633171b07054553f9f567839ad"
                                                                 }
                                                             },
                                                             "prefix_rewrite": "/",

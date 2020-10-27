@@ -55,7 +55,61 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Internal: Knative serving tests were bumped from version 0.11.0 to version 0.18.0
+
+## [1.8.1] October 16, 2020
+[1.8.1]: https://github.com/datawire/ambassador/compare/v1.8.0...v1.8.1
+
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Ambassador no longer fails to configure Envoy listeners when a TracingService or LogService has a service name whose underlying cluster name has over 40 charcters.
+- Bugfix: The Ambassador diagnostics page no longer returns HTTP 500 when a TracingService or LogService has a service name whose underlying cluster name has over 40 characters.
+
+## [1.8.0] October 08, 2020
+[1.8.0]: https://github.com/datawire/ambassador/compare/v1.7.4...v1.8.0
+
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Feature: HTTP IP Allow/Deny ranges are supported.
+- Bugfix: Ambassador's health checks don't claim that Envoy has failed when reconfiguration taking a long time (thanks, [Fabrice](https://github.com/jfrabaute), for contributions here!).
+- Bugfix: The `edgectl connect` command now works properly when using zsh on a Linux platform.
 - Bugfix: The container no longer exits "successfully" when the Deployment specifies an invalid `command`.
+
+### Ambassador Edge Stack Only
+
+- Feature: `RateLimit` CRDs now support setting a response body, configurable with the `errorResponse` setting.
+- Bugfix: `External` `Filter` can now properly proxy the body to the configured `auth_service`
+- BugFix: The RBAC for AES now grants permission to "patch" `Events.v1.core` (previously it granted "create" but not "patch")
+
+## [1.7.4] October 06, 2020
+[1.7.4]: https://github.com/datawire/ambassador/compare/v1.7.3...v1.7.4
+
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Several regressions in the 1.7.x series are resolved by removing the ability to set `insecure.action` on a per-`Host`-resource basis, which was an ability added in 1.7.0.  This reverts to the pre-1.7.0 behavior of having one `Host`'s insecure action "win" and be used for all `Host`s.
+- Bugfix: Ambassador will no longer generate invalid Envoy configuration with duplicate clusters in certain scenarios when `AMBASSADOR_FAST_RECONFIGURE=true`.
+- Enhancement: When `AMBASSADOR_FAST_RECONFIGURE=true` is set, Ambassador now logs information about memory usage.
+
+## [1.7.3] September 29, 2020
+[1.7.3]: https://github.com/datawire/ambassador/compare/v1.7.2...v1.7.3
+
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Incorporate the Envoy 1.15.1 security update.
+- Bugfix: A regression introduced in 1.7.2 when `AMBASSADOR_FAST_RECONFIGURE=true` has been fixed where Host resources `tls.ca_secret` didn't work correctly.
+- Bugfix: `TLSContext` resources and `spec.tls` in `Host` resources now correctly handle namespaces with `.` in them.
+- Bugfix: Fix `spec.requestPolicy.insecure.action` for `Host` resources with a `*` wildcard in the hostname.
+- Bugfix: Reduce lock contention while generating diagnostics.
+
+## [1.7.2] September 16, 2020
+[1.7.2]: https://github.com/datawire/ambassador/compare/v1.7.1...v1.7.2
+
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Bugfix: A regression introduced in 1.7.0 with the various `Host` resource `spec.requestPolicy.insecure.action` behaviors, including handling of X-Forwarded-Proto, has been fixed.
+- Bugfix: Host resources no longer perform secret namespacing when the `AMBASSADOR_FAST_RECONFIGURE` flag is enabled.
 
 ## [1.7.1] September 08, 2020
 [1.7.1]: https://github.com/datawire/ambassador/compare/v1.7.0...v1.7.1
@@ -82,6 +136,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 ### Ambassador API Gateway only
 
 - Bugfix: Fixes regression in 1.5.1 that caused it to not correctly know its own version number, leading to notifications about an available upgrade despite being on the most recent version.
+- Bugfix: Fixed insecure route action behavior. Host security policies no longer affect other Hosts.
 
 ### Ambassador Edge Stack only
 
@@ -95,7 +150,6 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Bugfix: Service Preview correctly uses the Host default `Path` value for the `spec.previewUrl.type` field.
 - Bugfix: The `JWT`, `OAuth2`, and other Filters are now better about reusing connections for outgoing HTTP requests.
 - Bugfix: Fixed a potential deadlock in the HTTP cache used for fetching JWKS and such for `Filters`.
-- Bugfix: Fixed insecure route action behavior. Host security policies no longer affect other Hosts.
 - Bugfix: Internal Ambassador data is no longer exposed to the `/.ambassador-internal/` endpoints used by the DevPortal.
 - Bugfix: Problems with license key limits will no longer trigger spurious HTTP 429 errors.  Using the `RateLimit` resource beyond 5rps without any form of license key will still trigger 429 responses, but now with a `X-Ambassador-Message` header indicating that's what happned.
 - Bugfix: When multiple `RateLimit`s overlap, it is supposed to enforce the strictest limit; but the strictness comparison didn't correctly handle comparing limits with different units.

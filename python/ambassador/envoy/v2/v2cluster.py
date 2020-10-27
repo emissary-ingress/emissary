@@ -36,13 +36,23 @@ class V2Cluster(Cacheable):
             else:
                 dns_lookup_family = 'V6_ONLY'
 
+        # We must not use cluster.name in the envoy config, since it may be too long
+        # to pass envoy's cluster name length constraint, currently 60 characters.
+        #
+        # Instead, we must have generated an appropriate envoy_name during IR finalize.
+        # In practice, the envoy_name is a short-form of cluster.name with the first
+        # 40 characters followed by `-n` where `n` is an incremental value, one for
+        # every cluster whose name contains the same first 40 characters.
+        assert(cluster.envoy_name)
+        assert(len(cluster.envoy_name) <= 60)
+
         fields = {
-            'name': cluster.name,
+            'name': cluster.envoy_name,
             'type': cluster.type.upper(),
             'lb_policy': cluster.lb_type.upper(),
             'connect_timeout':"%0.3fs" % (float(cluster.connect_timeout_ms) / 1000.0),
             'load_assignment': {
-                'cluster_name': cluster.name,
+                'cluster_name': cluster.envoy_name,
                 'endpoints': [
                     {
                         'lb_endpoints': self.get_endpoints(cluster)
@@ -176,7 +186,8 @@ class V2Cluster(Cacheable):
 
         config.clusters = []
 
-        for ircluster in sorted(config.ir.clusters.values(), key=lambda x: x.name):
+        # Sort by the envoy cluster name (x.envoy_name), not the symbolic IR cluster name (x.name)
+        for ircluster in sorted(config.ir.clusters.values(), key=lambda x: x.envoy_name):
             cache_key = f"V2-{ircluster.cache_key}"
             cached_cluster = config.cache[cache_key]
 

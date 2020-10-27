@@ -8,11 +8,11 @@ alias echo_off="{ set +x; } 2>/dev/null"
 # Choose colors carefully. If they don't work on both a black
 # background and a white background, pick other colors (so white,
 # yellow, and black are poor choices).
-RED='\033[1;31m'
-GRN='\033[1;32m'
-BLU='\033[1;34m'
-CYN='\033[1;36m'
-END='\033[0m'
+RED=$'\033[1;31m'
+GRN=$'\033[1;32m'
+BLU=$'\033[1;34m'
+CYN=$'\033[1;36m'
+END=$'\033[0m'
 
 set -e
 
@@ -41,6 +41,19 @@ BUILDER_DOCKER_NETWORK=${BUILDER_DOCKER_NETWORK:-${BUILDER_NAME}}
 # Do this with `eval` so that we properly interpret quotes.
 eval "pytest_args=(${PYTEST_ARGS:-})"
 
+msg() {
+    printf "${CYN}==> ${GRN}%s${END}\n" "$*" >&2
+}
+
+msg2() {
+    printf "${BLU}  -> ${GRN}%s${END}\n" "$*" >&2
+}
+
+panic() {
+    printf 'panic: %s\n' "$*" >&2
+    exit 1
+}
+
 builder() {
     docker ps --quiet \
            --filter=label=builder \
@@ -53,14 +66,14 @@ builder_volume() { docker volume ls -q -f label=builder; }
 declare -a dsynced
 
 dsync() {
-    printf "${GRN}Synchronizing... $*${END}\n"
-    TIMEFORMAT="(sync took %1R seconds)"
+    msg2 "Synchronizing... $*"
+    TIMEFORMAT="     (sync took %1R seconds)"
     time IFS='|' read -ra dsynced <<<"$(rsync --info=name -aO --blocking-io -e 'docker exec -i' $@ 2> >(fgrep -v 'rsync: failed to set permissions on' >&2) | tr '\n' '|')"
 }
 
 dcopy() {
-    printf "${GRN}Copying... $*${END}\n"
-    TIMEFORMAT="(copy took %1R seconds)"
+    msg2 "Copying... $*"
+    local TIMEFORMAT="     (copy took %1R seconds)"
     time docker cp $@
 }
 
@@ -137,13 +150,15 @@ print("stage2_tag=%s" % stage2)
     local stage1_tag stage2_tag
     eval "$(cd "$DIR" && python -c "$builder_base_tag_py")" # sets 'stage1_tag' and 'stage2_tag'
 
-    local name1="${DEV_REGISTRY:+$DEV_REGISTRY/}builder-base:stage1-${stage1_tag}"
-    local name2="${DEV_REGISTRY:+$DEV_REGISTRY/}builder-base:stage2-${stage2_tag}"
+    local BASE_REGISTRY="${BASE_REGISTRY:-${DEV_REGISTRY:-${BUILDER_NAME}.local}}"
 
-    printf "${GRN}Using stage-1 base ${BLU}${name1}${END}\n"
+    local name1="${BASE_REGISTRY}/builder-base:stage1-${stage1_tag}"
+    local name2="${BASE_REGISTRY}/builder-base:stage2-${stage2_tag}"
+
+    msg2 "Using stage-1 base ${BLU}${name1}${GRN}"
     if ! docker run --rm --entrypoint=true "$name1"; then # skip building if the "$name1" already exists
         ${DBUILD} -f "${DIR}/Dockerfile.base" -t "${name1}" --target builderbase-stage1 "${DIR}"
-        if [ -n "$DEV_REGISTRY" ]; then
+        if [[ "$BASE_REGISTRY" == "$DEV_REGISTRY" ]]; then
             docker push "$name1"
         fi
     fi
@@ -152,10 +167,10 @@ print("stage2_tag=%s" % stage2)
         return
     fi
 
-    printf "${GRN}Using stage-2 base ${BLU}${name2}${END}\n"
+    msg2 "Using stage-2 base ${BLU}${name2}${GRN}"
     if ! docker run --rm --entrypoint=true "$name2"; then # skip building if the "$name2" already exists
         ${DBUILD} --build-arg=builderbase_stage1="$name1" -f "${DIR}/Dockerfile.base" -t "${name2}" --target builderbase-stage2 "${DIR}"
-        if [ -n "$DEV_REGISTRY" ]; then
+        if [[ "$BASE_REGISTRY" == "$DEV_REGISTRY" ]]; then
             docker push "$name2"
         fi
     fi
@@ -166,30 +181,37 @@ print("stage2_tag=%s" % stage2)
 bootstrap() {
     if [ -z "$(builder_volume)" ] ; then
         docker volume create --label builder
-        printf "${GRN}Created docker volume ${BLU}$(builder_volume)${GRN} for caching${END}\n"
+        msg2 "Created docker volume ${BLU}$(builder_volume)${GRN} for caching"
     fi
 
     if [ -z "$(builder_network)" ]; then
+        msg2 "Creating docker network ${BLU}${BUILDER_DOCKER_NETWORK}${GRN}"
         docker network create "${BUILDER_DOCKER_NETWORK}" > /dev/null
-        printf "${GRN}Created docker network ${BLU}${BUILDER_DOCKER_NETWORK}${END}\n"
     else
-        printf "${GRN}Connecting to existing network ${BLU}${BUILDER_DOCKER_NETWORK}${GRN}${END}\n"
+        msg2 "Connecting to existing network ${BLU}${BUILDER_DOCKER_NETWORK}${GRN}"
     fi
 
     if [ -z "$(builder)" ] ; then
-        printf "${CYN}==> ${GRN}Bootstrapping builder base image${END}\n"
-        build_builder_base
-        printf "${CYN}==> ${GRN}Bootstrapping build image${END}\n"
-        ${DBUILD} --build-arg envoy="${ENVOY_DOCKER_TAG}" --build-arg builderbase="${builder_base_image}" --target builder ${DIR} -t builder
+        if ! [ -e docker/builder-base.docker ]; then
+            panic "This should not happen"
+        fi
+        builder_base_image=$(cat docker/builder-base.docker)
+        msg2 'Bootstrapping build image'
+        ${DBUILD} \
+            --build-arg=envoy="${ENVOY_DOCKER_TAG}" \
+            --build-arg=builderbase="${builder_base_image}" \
+            --target=builder \
+            ${DIR} -t ${BUILDER_NAME}.local/builder
         if [ "$(uname -s)" == Darwin ]; then
             DOCKER_GID=$(stat -f "%g" /var/run/docker.sock)
         else
             DOCKER_GID=$(stat -c "%g" /var/run/docker.sock)
         fi
         if [ -z "${DOCKER_GID}" ]; then
-            echo "Unable to determine docker group-id"
-            exit 1
+            panic "Unable to determine docker group-id"
         fi
+
+        msg2 'Starting build container...'
 
         echo_on
         $BUILDER_DOCKER_RUN \
@@ -209,10 +231,10 @@ bootstrap() {
             ${BUILDER_PORTMAPS} \
             ${BUILDER_DOCKER_EXTRA} \
             --env=BUILDER_NAME="${BUILDER_NAME}" \
-            --entrypoint=tail builder -f /dev/null > /dev/null
+            --entrypoint=tail ${BUILDER_NAME}.local/builder -f /dev/null > /dev/null
         echo_off
 
-        printf "${GRN}Started build container ${BLU}$(builder)${END}\n"
+        msg2 "Started build container ${BLU}$(builder)${GRN}"
     fi
 
     dcopy ${DIR}/builder.sh $(builder):/buildroot
@@ -311,7 +333,7 @@ summarize-sync() {
             break
         fi
     done
-    printf "${GRN}Synced ${#lines[@]} ${BLU}${name}${GRN} source files${END}\n"
+    printf "     ${GRN}Synced ${#lines[@]} ${BLU}${name}${GRN} source files${END}\n"
     PARTIAL="yes"
     for i in {0..9}; do
         if [ "$i" = "${#lines[@]}" ]; then
@@ -319,10 +341,10 @@ summarize-sync() {
             break
         fi
         line="${lines[$i]}"
-        printf "  ${CYN}%s${END}\n" "$line"
+        printf "       ${CYN}%s${END}\n" "$line"
     done
     if [ -n "${PARTIAL}" ]; then
-        printf "  ${CYN}...${END}\n"
+        printf "       ${CYN}...${END}\n"
     fi
 }
 
@@ -341,25 +363,11 @@ clean() {
     fi
 }
 
-push-image() {
-    LOCAL="$1"
-    REMOTE="$2"
-
-    if ! ( dexec test -e /buildroot/pushed.log && dexec fgrep -q "${REMOTE}" /buildroot/pushed.log ); then
-        printf "${CYN}==> ${GRN}Pushing ${BLU}${LOCAL}${GRN}->${BLU}${REMOTE}${END}\n"
-        docker tag ${LOCAL} ${REMOTE}
-        docker push ${REMOTE}
-        echo ${REMOTE} | dexec sh -c "cat >> /buildroot/pushed.log"
-    else
-        printf "${CYN}==> ${GRN}Already pushed ${BLU}${LOCAL}${GRN}->${BLU}${REMOTE}${END}\n"
-    fi
-}
-
 find-modules () {
     find /buildroot -type d -mindepth 1 -maxdepth 1 \! -name bin | sort
 }
 
-cmd="$1"
+cmd="${1:-builder}"
 
 case "${cmd}" in
     clean)
@@ -376,15 +384,14 @@ case "${cmd}" in
         fi
         ;;
     bootstrap)
-        bootstrap
+        bootstrap >&2
         echo $(builder)
         ;;
-    builder|"")
+    builder)
         echo $(builder)
         ;;
     sync)
         shift
-        bootstrap
         sync $1 $2 $(builder)
         ;;
     release-type)
@@ -415,7 +422,6 @@ case "${cmd}" in
         ;;
     compile)
         shift
-        bootstrap
         dexec /buildroot/builder.sh compile-internal
         ;;
     compile-internal)
@@ -544,40 +550,16 @@ case "${cmd}" in
             exit 1
         fi
         ;;
-    commit)
-        shift
-        name=$1
-        if [ -z "${name}" ]; then
-            echo "usage: ./builder.sh commit <image-name>"
-            exit 1
-        fi
-        if dexec test -e /buildroot/image.dirty; then
-            printf "${CYN}==> ${GRN}Snapshotting ${BLU}builder${GRN} image${END}\n"
-            build_builder_base
-            docker rmi -f "${name}" &> /dev/null
-            docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $(builder) "${name}"
-            printf "${CYN}==> ${GRN}Building ${BLU}${BUILDER_NAME}${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --build-arg builderbase="${builder_base_image}" --target ambassador -t ${BUILDER_NAME}
-            printf "${CYN}==> ${GRN}Building ${BLU}kat-client${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --build-arg builderbase="${builder_base_image}" --target kat-client -t kat-client
-            printf "${CYN}==> ${GRN}Building ${BLU}kat-server${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --build-arg builderbase="${builder_base_image}" --target kat-server -t kat-server
-        fi
-        dexec rm -f /buildroot/image.dirty
-        ;;
-    push)
-        shift
-        push-image ${BUILDER_NAME} "$1"
-        push-image kat-client "$2"
-        push-image kat-server "$3"
+    build-builder-base)
+        build_builder_base >&2
+        echo "${builder_base_image}"
         ;;
     shell)
-        bootstrap
-        printf "\n"
+        echo
         docker exec -it "$(builder)" /bin/bash
         ;;
     *)
-        echo "usage: builder.sh [bootstrap|builder|clean|clobber|compile|commit|shell]"
+        echo "usage: builder.sh [bootstrap|builder|clean|clobber|compile|build-builder-base|shell]"
         exit 1
         ;;
 esac

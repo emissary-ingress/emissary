@@ -10,9 +10,9 @@
         "admin_port": 8001,
         "circuit_breakers": [
             {
-                "_name": "cbdc1p1",
-                "max_connections": 1,
-                "max_pending_requests": 1,
+                "_name": "cbdc5p5",
+                "max_connections": 5,
+                "max_pending_requests": 5,
                 "priority": "default"
             }
         ],
@@ -30,6 +30,7 @@
         "enable_ipv6": false,
         "envoy_log_path": "/dev/fd/1",
         "envoy_log_type": "text",
+        "envoy_validation_timeout": 60,
         "kind": "IRAmbassador",
         "liveness_probe": {
             "enabled": true,
@@ -42,6 +43,7 @@
         "namespace": "default",
         "preserve_external_request_id": false,
         "proper_case": false,
+        "prune_unreachable_routes": false,
         "readiness_probe": {
             "enabled": true,
             "prefix": "/ambassador/v0/check_ready",
@@ -57,8 +59,9 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877_default_cbdc1p1": {
+        "cluster_127_0_0_1_8877_default_cbdc5p5": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_127_0_0_1_8877_default_cbdc5p5",
             "_errored": false,
             "_hostname": "127.0.0.1",
             "_is_sidecar": false,
@@ -68,12 +71,12 @@
                 "globalcircuitbreakingtest.default.3"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877_default_cbdc1p1",
+            "_rkey": "cluster_127_0_0_1_8877_default_cbdc5p5",
             "circuit_breakers": [
                 {
-                    "_name": "cbdc1p1",
-                    "max_connections": 1,
-                    "max_pending_requests": 1,
+                    "_name": "cbdc5p5",
+                    "max_connections": 5,
+                    "max_pending_requests": 5,
                     "priority": "default"
                 }
             ],
@@ -81,11 +84,12 @@
             "enable_endpoints": false,
             "enable_ipv4": true,
             "enable_ipv6": false,
+            "envoy_name": "cluster_127_0_0_1_8877_default_cbdc5p5",
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "globalcircuitbreakingtest.default.3",
-            "name": "cluster_127_0_0_1_8877_default_cbdc1p1",
+            "name": "cluster_127_0_0_1_8877_default_cbdc5p5",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -102,6 +106,7 @@
         },
         "cluster_globalcircuitbreakingtest_http_default_cbdc1024p1024": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_globalcircuitbreakingtest_http_default_cbdc1024p1024",
             "_errored": false,
             "_hostname": "globalcircuitbreakingtest-http",
             "_is_sidecar": false,
@@ -124,6 +129,7 @@
             "enable_endpoints": false,
             "enable_ipv4": true,
             "enable_ipv6": false,
+            "envoy_name": "cluster_globalcircuitbreakingtest_http_default_cbdc1024p1024",
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
@@ -143,8 +149,9 @@
                 "tcp://globalcircuitbreakingtest-http:80"
             ]
         },
-        "cluster_globalcircuitbreakingtest_http_default_cbdc1p1": {
+        "cluster_globalcircuitbreakingtest_http_default_cbdc5p5": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_globalcircuitbreakingtest_http_default_cbdc5p5",
             "_errored": false,
             "_hostname": "globalcircuitbreakingtest-http",
             "_is_sidecar": false,
@@ -154,12 +161,12 @@
                 "globalcircuitbreakingtest.default.2"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_globalcircuitbreakingtest_http_default_cbdc1p1",
+            "_rkey": "cluster_globalcircuitbreakingtest_http_default_cbdc5p5",
             "circuit_breakers": [
                 {
-                    "_name": "cbdc1p1",
-                    "max_connections": 1,
-                    "max_pending_requests": 1,
+                    "_name": "cbdc5p5",
+                    "max_connections": 5,
+                    "max_pending_requests": 5,
                     "priority": "default"
                 }
             ],
@@ -167,11 +174,12 @@
             "enable_endpoints": false,
             "enable_ipv4": true,
             "enable_ipv6": false,
+            "envoy_name": "cluster_globalcircuitbreakingtest_http_default_cbdc5p5",
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "globalcircuitbreakingtest.default.2",
-            "name": "cluster_globalcircuitbreakingtest_http_default_cbdc1p1",
+            "name": "cluster_globalcircuitbreakingtest_http_default_cbdc5p5",
             "namespace": "default",
             "service": "globalcircuitbreakingtest-http",
             "targets": [
@@ -220,9 +228,9 @@
             "_rkey": "globalcircuitbreakingtest.default.2",
             "circuit_breakers": [
                 {
-                    "_name": "cbdc1p1",
-                    "max_connections": 1,
-                    "max_pending_requests": 1,
+                    "_name": "cbdc5p5",
+                    "max_connections": 5,
+                    "max_pending_requests": 5,
                     "priority": "default"
                 }
             ],
@@ -242,20 +250,22 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-globalcircuitbreakingtest-http-normal-default",
                     "_errored": false,
                     "_rkey": "globalcircuitbreakingtest.default.2",
                     "add_request_headers": {},
                     "add_response_headers": {},
                     "circuit_breakers": [
                         {
-                            "_name": "cbdc1p1",
-                            "max_connections": 1,
-                            "max_pending_requests": 1,
+                            "_name": "cbdc5p5",
+                            "max_connections": 5,
+                            "max_pending_requests": 5,
                             "priority": "default"
                         }
                     ],
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_globalcircuitbreakingtest_http_default_cbdc5p5",
                         "_errored": false,
                         "_hostname": "globalcircuitbreakingtest-http",
                         "_is_sidecar": false,
@@ -265,12 +275,12 @@
                             "globalcircuitbreakingtest.default.2"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_globalcircuitbreakingtest_http_default_cbdc1p1",
+                        "_rkey": "cluster_globalcircuitbreakingtest_http_default_cbdc5p5",
                         "circuit_breakers": [
                             {
-                                "_name": "cbdc1p1",
-                                "max_connections": 1,
-                                "max_pending_requests": 1,
+                                "_name": "cbdc5p5",
+                                "max_connections": 5,
+                                "max_pending_requests": 5,
                                 "priority": "default"
                             }
                         ],
@@ -278,11 +288,12 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_globalcircuitbreakingtest_http_default_cbdc5p5",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "globalcircuitbreakingtest.default.2",
-                        "name": "cluster_globalcircuitbreakingtest_http_default_cbdc1p1",
+                        "name": "cluster_globalcircuitbreakingtest_http_default_cbdc5p5",
                         "namespace": "default",
                         "service": "globalcircuitbreakingtest-http",
                         "targets": [
@@ -297,6 +308,7 @@
                             "tcp://globalcircuitbreakingtest-http:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_globalcircuitbreakingtest_http_default_cbdc5p5",
                     "default_class": "httpmapping",
                     "group_id": "d9232b8cbb609b0df645ab91d2903c43ddb4a863",
                     "headers": [],
@@ -373,6 +385,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "Mapping-v2-globalcircuitbreakingtest-http-pr-default",
                     "_errored": false,
                     "_rkey": "globalcircuitbreakingtest.default.1",
                     "add_request_headers": {},
@@ -387,6 +400,7 @@
                     ],
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_globalcircuitbreakingtest_http_default_cbdc1024p1024",
                         "_errored": false,
                         "_hostname": "globalcircuitbreakingtest-http",
                         "_is_sidecar": false,
@@ -409,6 +423,7 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_globalcircuitbreakingtest_http_default_cbdc1024p1024",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
@@ -428,6 +443,7 @@
                             "tcp://globalcircuitbreakingtest-http:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_globalcircuitbreakingtest_http_default_cbdc1024p1024",
                     "default_class": "httpmapping",
                     "group_id": "1d9809c018079a27a92bfb86ce7e06ce9f1c7aa7",
                     "headers": [],
@@ -482,9 +498,9 @@
             "_rkey": "globalcircuitbreakingtest.default.3",
             "circuit_breakers": [
                 {
-                    "_name": "cbdc1p1",
-                    "max_connections": 1,
-                    "max_pending_requests": 1,
+                    "_name": "cbdc5p5",
+                    "max_connections": 5,
+                    "max_pending_requests": 5,
                     "priority": "default"
                 }
             ],
@@ -504,6 +520,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_readiness_probe_mapping-default",
                     "_errored": false,
                     "_referenced_by": [
                         "globalcircuitbreakingtest.default.3"
@@ -513,14 +530,15 @@
                     "add_response_headers": {},
                     "circuit_breakers": [
                         {
-                            "_name": "cbdc1p1",
-                            "max_connections": 1,
-                            "max_pending_requests": 1,
+                            "_name": "cbdc5p5",
+                            "max_connections": 5,
+                            "max_pending_requests": 5,
                             "priority": "default"
                         }
                     ],
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_default_cbdc5p5",
                         "_errored": false,
                         "_hostname": "127.0.0.1",
                         "_is_sidecar": false,
@@ -530,12 +548,12 @@
                             "globalcircuitbreakingtest.default.3"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877_default_cbdc1p1",
+                        "_rkey": "cluster_127_0_0_1_8877_default_cbdc5p5",
                         "circuit_breakers": [
                             {
-                                "_name": "cbdc1p1",
-                                "max_connections": 1,
-                                "max_pending_requests": 1,
+                                "_name": "cbdc5p5",
+                                "max_connections": 5,
+                                "max_pending_requests": 5,
                                 "priority": "default"
                             }
                         ],
@@ -543,11 +561,12 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_127_0_0_1_8877_default_cbdc5p5",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "globalcircuitbreakingtest.default.3",
-                        "name": "cluster_127_0_0_1_8877_default_cbdc1p1",
+                        "name": "cluster_127_0_0_1_8877_default_cbdc5p5",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -562,6 +581,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_default_cbdc5p5",
                     "default_class": "httpmapping",
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
@@ -606,9 +626,9 @@
             "_rkey": "globalcircuitbreakingtest.default.3",
             "circuit_breakers": [
                 {
-                    "_name": "cbdc1p1",
-                    "max_connections": 1,
-                    "max_pending_requests": 1,
+                    "_name": "cbdc5p5",
+                    "max_connections": 5,
+                    "max_pending_requests": 5,
                     "priority": "default"
                 }
             ],
@@ -628,6 +648,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_liveness_probe_mapping-default",
                     "_errored": false,
                     "_referenced_by": [
                         "globalcircuitbreakingtest.default.3"
@@ -637,14 +658,15 @@
                     "add_response_headers": {},
                     "circuit_breakers": [
                         {
-                            "_name": "cbdc1p1",
-                            "max_connections": 1,
-                            "max_pending_requests": 1,
+                            "_name": "cbdc5p5",
+                            "max_connections": 5,
+                            "max_pending_requests": 5,
                             "priority": "default"
                         }
                     ],
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_default_cbdc5p5",
                         "_errored": false,
                         "_hostname": "127.0.0.1",
                         "_is_sidecar": false,
@@ -654,12 +676,12 @@
                             "globalcircuitbreakingtest.default.3"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877_default_cbdc1p1",
+                        "_rkey": "cluster_127_0_0_1_8877_default_cbdc5p5",
                         "circuit_breakers": [
                             {
-                                "_name": "cbdc1p1",
-                                "max_connections": 1,
-                                "max_pending_requests": 1,
+                                "_name": "cbdc5p5",
+                                "max_connections": 5,
+                                "max_pending_requests": 5,
                                 "priority": "default"
                             }
                         ],
@@ -667,11 +689,12 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_127_0_0_1_8877_default_cbdc5p5",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "globalcircuitbreakingtest.default.3",
-                        "name": "cluster_127_0_0_1_8877_default_cbdc1p1",
+                        "name": "cluster_127_0_0_1_8877_default_cbdc5p5",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -686,6 +709,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_default_cbdc5p5",
                     "default_class": "httpmapping",
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
@@ -730,9 +754,9 @@
             "_rkey": "globalcircuitbreakingtest.default.3",
             "circuit_breakers": [
                 {
-                    "_name": "cbdc1p1",
-                    "max_connections": 1,
-                    "max_pending_requests": 1,
+                    "_name": "cbdc5p5",
+                    "max_connections": 5,
+                    "max_pending_requests": 5,
                     "priority": "default"
                 }
             ],
@@ -752,6 +776,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_diagnostics_probe_mapping-default",
                     "_errored": false,
                     "_referenced_by": [
                         "globalcircuitbreakingtest.default.3"
@@ -761,14 +786,15 @@
                     "add_response_headers": {},
                     "circuit_breakers": [
                         {
-                            "_name": "cbdc1p1",
-                            "max_connections": 1,
-                            "max_pending_requests": 1,
+                            "_name": "cbdc5p5",
+                            "max_connections": 5,
+                            "max_pending_requests": 5,
                             "priority": "default"
                         }
                     ],
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_default_cbdc5p5",
                         "_errored": false,
                         "_hostname": "127.0.0.1",
                         "_is_sidecar": false,
@@ -778,12 +804,12 @@
                             "globalcircuitbreakingtest.default.3"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877_default_cbdc1p1",
+                        "_rkey": "cluster_127_0_0_1_8877_default_cbdc5p5",
                         "circuit_breakers": [
                             {
-                                "_name": "cbdc1p1",
-                                "max_connections": 1,
-                                "max_pending_requests": 1,
+                                "_name": "cbdc5p5",
+                                "max_connections": 5,
+                                "max_pending_requests": 5,
                                 "priority": "default"
                             }
                         ],
@@ -791,11 +817,12 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_127_0_0_1_8877_default_cbdc5p5",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "globalcircuitbreakingtest.default.3",
-                        "name": "cluster_127_0_0_1_8877_default_cbdc1p1",
+                        "name": "cluster_127_0_0_1_8877_default_cbdc5p5",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -810,6 +837,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_default_cbdc5p5",
                     "default_class": "httpmapping",
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],

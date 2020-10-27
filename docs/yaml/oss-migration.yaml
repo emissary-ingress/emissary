@@ -148,6 +148,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
             - name: REDIS_URL
               value: ambassador-redis:6379
             - name: AMBASSADOR_URL

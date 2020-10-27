@@ -129,12 +129,12 @@
                         "filter_chain_match": {},
                         "filters": [
                             {
-                                "name": "envoy.http_connection_manager",
+                                "name": "envoy.filters.network.http_connection_manager",
                                 "typed_config": {
                                     "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
                                     "access_log": [
                                         {
-                                            "name": "envoy.file_access_log",
+                                            "name": "envoy.access_loggers.file",
                                             "typed_config": {
                                                 "@type": "type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog",
                                                 "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
@@ -144,13 +144,16 @@
                                     ],
                                     "http_filters": [
                                         {
-                                            "config": {
+                                            "name": "envoy.filters.http.buffer",
+                                            "typed_config": {
+                                                "@type": "type.googleapis.com/envoy.config.filter.http.buffer.v2.Buffer",
                                                 "max_request_bytes": 16384
-                                            },
-                                            "name": "envoy.buffer"
+                                            }
                                         },
                                         {
-                                            "config": {
+                                            "name": "envoy.filters.http.ext_authz",
+                                            "typed_config": {
+                                                "@type": "type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthz",
                                                 "clear_route_cache": true,
                                                 "http_service": {
                                                     "authorization_request": {
@@ -264,14 +267,13 @@
                                                     "allow_partial_message": true,
                                                     "max_request_bytes": 4096
                                                 }
-                                            },
-                                            "name": "envoy.ext_authz"
+                                            }
                                         },
                                         {
-                                            "name": "envoy.cors"
+                                            "name": "envoy.filters.http.cors"
                                         },
                                         {
-                                            "name": "envoy.router"
+                                            "name": "envoy.filters.http.router"
                                         }
                                     ],
                                     "http_protocol_options": {
@@ -285,8 +287,42 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "ambassador-listener-8080-insecure-8080-fstar-*",
+                                                "name": "ambassador-listener-8080-*",
                                                 "routes": [
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/check_ready",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "request_headers_to_add": [
+                                                            {
+                                                                "append": true,
+                                                                "header": {
+                                                                    "key": "l5d-dst-override",
+                                                                    "value": "127.0.0.1:8877"
+                                                                }
+                                                            }
+                                                        ],
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
+                                                            "prefix_rewrite": "/ambassador/v0/check_ready",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
@@ -311,6 +347,40 @@
                                                         "route": {
                                                             "cluster": "cluster_127_0_0_1_8877_default",
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/check_alive",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "request_headers_to_add": [
+                                                            {
+                                                                "append": true,
+                                                                "header": {
+                                                                    "key": "l5d-dst-override",
+                                                                    "value": "127.0.0.1:8877"
+                                                                }
+                                                            }
+                                                        ],
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
+                                                            "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "timeout": "10.000s"
                                                         }
@@ -346,6 +416,12 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
                                                             "prefix": "/ambassador/v0/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -369,6 +445,68 @@
                                                             "prefix_rewrite": "/ambassador/v0/",
                                                             "priority": null,
                                                             "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "prefix": "/ambassador/v0/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
+                                                            }
+                                                        },
+                                                        "request_headers_to_add": [
+                                                            {
+                                                                "append": true,
+                                                                "header": {
+                                                                    "key": "l5d-dst-override",
+                                                                    "value": "127.0.0.1:8877"
+                                                                }
+                                                            }
+                                                        ],
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
+                                                            "prefix_rewrite": "/ambassador/v0/",
+                                                            "priority": null,
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/target/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_authenticationhttpbufferedtest_http_default"
+                                                            }
+                                                        },
+                                                        "request_headers_to_add": [
+                                                            {
+                                                                "append": true,
+                                                                "header": {
+                                                                    "key": "l5d-dst-override",
+                                                                    "value": "authenticationhttpbufferedtest-http:80"
+                                                                }
+                                                            }
+                                                        ],
+                                                        "route": {
+                                                            "cluster": "cluster_authenticationhttpbufferedtest_http_default",
+                                                            "prefix_rewrite": "/",
+                                                            "priority": null,
+                                                            "timeout": "3.000s"
                                                         }
                                                     },
                                                     {

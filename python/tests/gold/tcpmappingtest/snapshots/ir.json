@@ -19,6 +19,7 @@
         "enable_ipv6": false,
         "envoy_log_path": "/dev/fd/1",
         "envoy_log_type": "text",
+        "envoy_validation_timeout": 60,
         "kind": "IRAmbassador",
         "liveness_probe": {
             "enabled": true,
@@ -31,6 +32,7 @@
         "namespace": "tcp-namespace",
         "preserve_external_request_id": false,
         "proper_case": false,
+        "prune_unreachable_routes": false,
         "readiness_probe": {
             "enabled": true,
             "prefix": "/ambassador/v0/check_ready",
@@ -48,6 +50,7 @@
     "clusters": {
         "cluster_127_0_0_1_8877_tcp_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_127_0_0_1_8877_tcp_namespace",
             "_errored": false,
             "_hostname": "127.0.0.1",
             "_is_sidecar": false,
@@ -62,6 +65,7 @@
             "enable_endpoints": false,
             "enable_ipv4": true,
             "enable_ipv6": false,
+            "envoy_name": "cluster_127_0_0_1_8877_tcp_namespace",
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
@@ -83,6 +87,7 @@
         },
         "cluster_tcpmappingtest_http_target1_tcp_namespace_443_tcp_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_tcpmappingtest_http_target1_tcp_namespace_443_tcp_namespace",
             "_errored": false,
             "_hostname": "tcpmappingtest-http-target1.tcp-namespace",
             "_is_sidecar": false,
@@ -98,11 +103,12 @@
             "enable_endpoints": false,
             "enable_ipv4": true,
             "enable_ipv6": false,
+            "envoy_name": "cluster_tcpmappingtest_http_target1_tcp_-0",
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tcpmappingtest-http-target1.tcp-namespace.1",
-            "name": "cluster_tcpmappingtest_http_target1_tcp_-0",
+            "name": "cluster_tcpmappingtest_http_target1_tcp_namespace_443_tcp_namespace",
             "namespace": "tcp-namespace",
             "service": "tcpmappingtest-http-target1.tcp-namespace:443",
             "targets": [
@@ -119,6 +125,7 @@
         },
         "cluster_tcpmappingtest_http_target1_tcp_namespace_80_tcp_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_tcpmappingtest_http_target1_tcp_namespace_80_tcp_namespace",
             "_errored": false,
             "_hostname": "tcpmappingtest-http-target1.tcp-namespace",
             "_is_sidecar": false,
@@ -133,11 +140,12 @@
             "enable_endpoints": false,
             "enable_ipv4": true,
             "enable_ipv6": false,
+            "envoy_name": "cluster_tcpmappingtest_http_target1_tcp_-1",
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tcpmappingtest-http-target1.tcp-namespace.4",
-            "name": "cluster_tcpmappingtest_http_target1_tcp_-1",
+            "name": "cluster_tcpmappingtest_http_target1_tcp_namespace_80_tcp_namespace",
             "namespace": "tcp-namespace",
             "service": "tcpmappingtest-http-target1.tcp-namespace:80",
             "targets": [
@@ -154,6 +162,7 @@
         },
         "cluster_tcpmappingtest_http_target2_other_namespace_443_otls_no_cert_upstream_tcp_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_tcpmappingtest_http_target2_other_namespace_443_otls_no_cert_upstream_tcp_namespace",
             "_errored": false,
             "_hostname": "tcpmappingtest-http-target2.other-namespace",
             "_is_sidecar": false,
@@ -168,11 +177,12 @@
             "enable_endpoints": false,
             "enable_ipv4": true,
             "enable_ipv6": false,
+            "envoy_name": "cluster_tcpmappingtest_http_target2_othe-0",
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tcpmappingtest-http-target1.tcp-namespace.3",
-            "name": "cluster_tcpmappingtest_http_target2_othe-0",
+            "name": "cluster_tcpmappingtest_http_target2_other_namespace_443_otls_no_cert_upstream_tcp_namespace",
             "namespace": "tcp-namespace",
             "service": "tcpmappingtest-http-target2.other-namespace:443",
             "targets": [
@@ -205,6 +215,7 @@
         },
         "cluster_tcpmappingtest_http_target2_other_namespace_otls_TCPMappingTest_tlscontext_other_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_tcpmappingtest_http_target2_other_namespace_otls_TCPMappingTest_tlscontext_other_namespace",
             "_errored": false,
             "_hostname": "tcpmappingtest-http-target2.other-namespace",
             "_is_sidecar": false,
@@ -219,11 +230,12 @@
             "enable_endpoints": false,
             "enable_ipv4": true,
             "enable_ipv6": false,
+            "envoy_name": "cluster_tcpmappingtest_http_target2_othe-1",
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tcpmappingtest-http-target2.other-namespace.1",
-            "name": "cluster_tcpmappingtest_http_target2_othe-1",
+            "name": "cluster_tcpmappingtest_http_target2_other_namespace_otls_TCPMappingTest_tlscontext_other_namespace",
             "namespace": "tcp-namespace",
             "service": "tcpmappingtest-http-target2.other-namespace",
             "targets": [
@@ -269,6 +281,7 @@
         },
         "cluster_tcpmappingtest_http_target3_tcp_namespace_otls_no_cert_upstream_tcp_namespace": {
             "_active": true,
+            "_cache_key": "Cluster-cluster_tcpmappingtest_http_target3_tcp_namespace_otls_no_cert_upstream_tcp_namespace",
             "_errored": false,
             "_hostname": "tcpmappingtest-http-target3.tcp-namespace",
             "_is_sidecar": false,
@@ -283,11 +296,12 @@
             "enable_endpoints": false,
             "enable_ipv4": true,
             "enable_ipv6": false,
+            "envoy_name": "cluster_tcpmappingtest_http_target3_tcp_-0",
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tcpmappingtest-http-target3.tcp-namespace.1",
-            "name": "cluster_tcpmappingtest_http_target3_tcp_-0",
+            "name": "cluster_tcpmappingtest_http_target3_tcp_namespace_otls_no_cert_upstream_tcp_namespace",
             "namespace": "tcp-namespace",
             "service": "tcpmappingtest-http-target3.tcp-namespace",
             "targets": [
@@ -366,6 +380,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_readiness_probe_mapping-tcp-namespace",
                     "_errored": false,
                     "_referenced_by": [
                         "--internal--"
@@ -375,6 +390,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_tcp_namespace",
                         "_errored": false,
                         "_hostname": "127.0.0.1",
                         "_is_sidecar": false,
@@ -389,6 +405,7 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_127_0_0_1_8877_tcp_namespace",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
@@ -408,6 +425,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_tcp_namespace",
                     "default_class": "httpmapping",
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
@@ -466,6 +484,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_liveness_probe_mapping-tcp-namespace",
                     "_errored": false,
                     "_referenced_by": [
                         "--internal--"
@@ -475,6 +494,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_tcp_namespace",
                         "_errored": false,
                         "_hostname": "127.0.0.1",
                         "_is_sidecar": false,
@@ -489,6 +509,7 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_127_0_0_1_8877_tcp_namespace",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
@@ -508,6 +529,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_tcp_namespace",
                     "default_class": "httpmapping",
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
@@ -566,6 +588,7 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "IRHTTPMapping-v2-internal_diagnostics_probe_mapping-tcp-namespace",
                     "_errored": false,
                     "_referenced_by": [
                         "--internal--"
@@ -575,6 +598,7 @@
                     "add_response_headers": {},
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_127_0_0_1_8877_tcp_namespace",
                         "_errored": false,
                         "_hostname": "127.0.0.1",
                         "_is_sidecar": false,
@@ -589,6 +613,7 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_127_0_0_1_8877_tcp_namespace",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
@@ -608,6 +633,7 @@
                             "tcp://127.0.0.1:8877"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_127_0_0_1_8877_tcp_namespace",
                     "default_class": "httpmapping",
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
@@ -660,10 +686,12 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "TCPMapping-v2-TCPMappingTest-3-tcp-namespace",
                     "_errored": false,
                     "_rkey": "tcpmappingtest-http-target3.tcp-namespace.1",
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_tcpmappingtest_http_target3_tcp_namespace_otls_no_cert_upstream_tcp_namespace",
                         "_errored": false,
                         "_hostname": "tcpmappingtest-http-target3.tcp-namespace",
                         "_is_sidecar": false,
@@ -678,11 +706,12 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_tcpmappingtest_http_target3_tcp_-0",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tcpmappingtest-http-target3.tcp-namespace.1",
-                        "name": "cluster_tcpmappingtest_http_target3_tcp_-0",
+                        "name": "cluster_tcpmappingtest_http_target3_tcp_namespace_otls_no_cert_upstream_tcp_namespace",
                         "namespace": "tcp-namespace",
                         "service": "tcpmappingtest-http-target3.tcp-namespace",
                         "targets": [
@@ -713,6 +742,7 @@
                             "tcp://tcpmappingtest-http-target3.tcp-namespace:443"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_tcpmappingtest_http_target3_tcp_namespace_otls_no_cert_upstream_tcp_namespace",
                     "group_id": "f97a8da09db5881b0d03cbeb3a05a4842d977bec",
                     "host": "tls-context-host-3",
                     "kind": "TCPMapping",
@@ -824,10 +854,12 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "TCPMapping-v2-TCPMappingTest-2-other-namespace",
                     "_errored": false,
                     "_rkey": "tcpmappingtest-http-target2.other-namespace.1",
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_tcpmappingtest_http_target2_other_namespace_otls_TCPMappingTest_tlscontext_other_namespace",
                         "_errored": false,
                         "_hostname": "tcpmappingtest-http-target2.other-namespace",
                         "_is_sidecar": false,
@@ -842,11 +874,12 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_tcpmappingtest_http_target2_othe-1",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tcpmappingtest-http-target2.other-namespace.1",
-                        "name": "cluster_tcpmappingtest_http_target2_othe-1",
+                        "name": "cluster_tcpmappingtest_http_target2_other_namespace_otls_TCPMappingTest_tlscontext_other_namespace",
                         "namespace": "tcp-namespace",
                         "service": "tcpmappingtest-http-target2.other-namespace",
                         "targets": [
@@ -890,6 +923,7 @@
                             "tcp://tcpmappingtest-http-target2.other-namespace:443"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_tcpmappingtest_http_target2_other_namespace_otls_TCPMappingTest_tlscontext_other_namespace",
                     "group_id": "a7d9048181b252d4c9c8a56857c83f9ea374f7be",
                     "host": "tls-context-host-2",
                     "kind": "TCPMapping",
@@ -1001,10 +1035,12 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "TCPMapping-v2-TCPMappingTest-1-tcp-namespace",
                     "_errored": false,
                     "_rkey": "tcpmappingtest-http-target1.tcp-namespace.4",
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_tcpmappingtest_http_target1_tcp_namespace_80_tcp_namespace",
                         "_errored": false,
                         "_hostname": "tcpmappingtest-http-target1.tcp-namespace",
                         "_is_sidecar": false,
@@ -1019,11 +1055,12 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_tcpmappingtest_http_target1_tcp_-1",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tcpmappingtest-http-target1.tcp-namespace.4",
-                        "name": "cluster_tcpmappingtest_http_target1_tcp_-1",
+                        "name": "cluster_tcpmappingtest_http_target1_tcp_namespace_80_tcp_namespace",
                         "namespace": "tcp-namespace",
                         "service": "tcpmappingtest-http-target1.tcp-namespace:80",
                         "targets": [
@@ -1038,6 +1075,7 @@
                             "tcp://tcpmappingtest-http-target1.tcp-namespace:80"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_tcpmappingtest_http_target1_tcp_namespace_80_tcp_namespace",
                     "group_id": "6cee3964a088898d30013597819708358639c52e",
                     "host": "tls-context-host-1",
                     "kind": "TCPMapping",
@@ -1146,10 +1184,12 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "TCPMapping-v2-TCPMappingTest-clear-to-tls-tcp-namespace",
                     "_errored": false,
                     "_rkey": "tcpmappingtest-http-target1.tcp-namespace.3",
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_tcpmappingtest_http_target2_other_namespace_443_otls_no_cert_upstream_tcp_namespace",
                         "_errored": false,
                         "_hostname": "tcpmappingtest-http-target2.other-namespace",
                         "_is_sidecar": false,
@@ -1164,11 +1204,12 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_tcpmappingtest_http_target2_othe-0",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tcpmappingtest-http-target1.tcp-namespace.3",
-                        "name": "cluster_tcpmappingtest_http_target2_othe-0",
+                        "name": "cluster_tcpmappingtest_http_target2_other_namespace_443_otls_no_cert_upstream_tcp_namespace",
                         "namespace": "tcp-namespace",
                         "service": "tcpmappingtest-http-target2.other-namespace:443",
                         "targets": [
@@ -1199,6 +1240,7 @@
                             "tcp://tcpmappingtest-http-target2.other-namespace:443"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_tcpmappingtest_http_target2_other_namespace_443_otls_no_cert_upstream_tcp_namespace",
                     "group_id": "58d3492feb9baea632e6bdbaf6635949ea7d638c",
                     "kind": "TCPMapping",
                     "location": "tcpmappingtest-http-target1.tcp-namespace.3",
@@ -1249,11 +1291,13 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "TCPMapping-v2-TCPMappingTest-local-only-tcp-namespace",
                     "_errored": false,
                     "_rkey": "tcpmappingtest-http-target1.tcp-namespace.2",
                     "address": "127.0.0.1",
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_tcpmappingtest_http_target1_tcp_namespace_443_tcp_namespace",
                         "_errored": false,
                         "_hostname": "tcpmappingtest-http-target1.tcp-namespace",
                         "_is_sidecar": false,
@@ -1269,11 +1313,12 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_tcpmappingtest_http_target1_tcp_-0",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tcpmappingtest-http-target1.tcp-namespace.1",
-                        "name": "cluster_tcpmappingtest_http_target1_tcp_-0",
+                        "name": "cluster_tcpmappingtest_http_target1_tcp_namespace_443_tcp_namespace",
                         "namespace": "tcp-namespace",
                         "service": "tcpmappingtest-http-target1.tcp-namespace:443",
                         "targets": [
@@ -1288,6 +1333,7 @@
                             "tcp://tcpmappingtest-http-target1.tcp-namespace:443"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_tcpmappingtest_http_target1_tcp_namespace_443_tcp_namespace",
                     "group_id": "f855af008599f65f02d82178cc346662fa08759f",
                     "kind": "TCPMapping",
                     "location": "tcpmappingtest-http-target1.tcp-namespace.2",
@@ -1335,10 +1381,12 @@
             "mappings": [
                 {
                     "_active": true,
+                    "_cache_key": "TCPMapping-v2-TCPMappingTest-tcp-namespace",
                     "_errored": false,
                     "_rkey": "tcpmappingtest-http-target1.tcp-namespace.1",
                     "cluster": {
                         "_active": true,
+                        "_cache_key": "Cluster-cluster_tcpmappingtest_http_target1_tcp_namespace_443_tcp_namespace",
                         "_errored": false,
                         "_hostname": "tcpmappingtest-http-target1.tcp-namespace",
                         "_is_sidecar": false,
@@ -1354,11 +1402,12 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_tcpmappingtest_http_target1_tcp_-0",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tcpmappingtest-http-target1.tcp-namespace.1",
-                        "name": "cluster_tcpmappingtest_http_target1_tcp_-0",
+                        "name": "cluster_tcpmappingtest_http_target1_tcp_namespace_443_tcp_namespace",
                         "namespace": "tcp-namespace",
                         "service": "tcpmappingtest-http-target1.tcp-namespace:443",
                         "targets": [
@@ -1373,6 +1422,7 @@
                             "tcp://tcpmappingtest-http-target1.tcp-namespace:443"
                         ]
                     },
+                    "cluster_key": "Cluster-cluster_tcpmappingtest_http_target1_tcp_namespace_443_tcp_namespace",
                     "group_id": "23dd3a5b4626d63ea4cedcdc26ede407850496a6",
                     "kind": "TCPMapping",
                     "location": "tcpmappingtest-http-target1.tcp-namespace.1",

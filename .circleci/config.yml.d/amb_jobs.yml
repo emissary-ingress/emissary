@@ -1,0 +1,166 @@
+version: 2.1
+
+# Secure environment variables set from the Web UI:
+#
+# - AWS_ACCESS_KEY_ID (AWS S3)
+# - AWS_SECRET_ACCESS_KEY (AWS S3)
+#
+# - DEV_REGISTRY (DockerHub)
+# - DOCKER_BUILD_USERNAME (DockerHub)
+# - DOCKER_BUILD_PASSWORD (DockerHub)
+#
+# - RELEASE_REGISTRY (DockerHub)
+# - DOCKER_RELEASE_USERNAME (DockerHub)
+# - DOCKER_RELEASE_PASSWORD (DockerHub)
+#
+# - KUBECEPTION_TOKEN
+
+commands:
+
+  ######################################################################
+  # Commands that are complete jobs                                    #
+  #                                                                    #
+  # (factored out to be commands so that they can be shared between    #
+  # "oss-linux" and "aes-linux" executors)                             #
+  ######################################################################
+
+  "job-generate":
+    steps:
+      # setup
+      - amb-linux-install
+      - amb-checkout
+      # We might need to be logged in the registry to pull the Envoy image
+      - amb-config-registry
+
+      # main
+      - run: make generate
+      - dirty-check
+      # Run it again to make sure that it is possible to run it twice
+      # in a row.
+      - run: make generate
+      - dirty-check
+
+  "job-lint":
+    steps:
+      # setup
+      - amb-linux-install
+      - amb-checkout
+
+      # main
+      - run: make lint
+
+  "job-images":
+    parameters:
+      "release":
+        type: boolean
+        default: false
+    steps:
+      # setup
+      - amb-linux-install
+      - amb-checkout
+      - skip-if-only-changes:
+          to: docs/
+      - amb-config-registry
+
+      # main
+      - run: make images
+      - run: |
+          [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push
+      - when:
+          condition: << parameters.release >>
+          steps:
+            - run:
+                name: "Release"
+                command: |
+                  docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+                  DEV_KUBECONFIG="-skip-for-release-" make release/bits
+
+      # teardown
+      - dirty-check
+      - amb-images-save-workspace
+
+  "job-test":
+    parameters:
+      "test":
+        type: enum
+        enum:
+          - "test" # everything
+          - "ingresstest"
+          - "gotest"
+          - "pytest"
+          - "e2etest"
+        default: "test"
+      "fast-reconfigure":
+        type: boolean
+        default: false
+    steps:
+      # setup
+      - amb-linux-install
+      - amb-images-load-workspace
+      - skip-if-only-changes:
+          to: docs/
+      - amb-config-cluster-and-registry
+
+      # main
+      - run:
+          name: "Ensure CI configuration is up-to-date"
+          command: |
+            set -x
+            expected=$(printf '%s\n' ingresstest gotest pytest e2etest | LC_COLLATE=C sort -u | xargs echo)
+            actual=$(make -n noop --print-data-base 2>/dev/null | sed -n 's/^test://p' | xargs printf '%s\n' | LC_COLLATE=C sort -u | xargs echo)
+            if [[ "$actual" != "$expected" ]]; then
+              echo "Makefile 'test' target has changed to $actual, you need to update '.circleci/config.yml.d/amb_jobs.yml'" >&2
+              exit 1
+            fi
+      - run:
+          name: "Test"
+          command: |
+            if [[ -z "$KUBECEPTION_TOKEN" ]]; then
+              export DEV_KUBE110=yes
+            fi
+            export DEV_KUBE_NO_PVC=yes
+            export KAT_REQ_LIMIT=600
+            if << parameters.fast-reconfigure >>; then
+              export AMBASSADOR_FAST_VALIDATION=yes # empty/nonempty
+            fi
+            export AMBASSADOR_FAST_RECONFIGURE=<< parameters.fast-reconfigure >> # ParseBool
+            make << parameters.test >>
+
+      # teardown
+      - amb-save-logs
+      - dirty-check
+      - amb-teardown-cluster
+
+  "job-promote-to-rc-latest":
+    parameters:
+      "channel":
+        type: enum
+        enum: ["oss", "aes"]
+    steps:
+      - when:
+          condition: # Don't do this in the -private repos
+            or:
+            - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+            - equal: [ "https://github.com/datawire/apro", << pipeline.project.git_url >> ]
+          steps:
+            - amb-linux-install
+            - amb-checkout
+            - run:
+                name: "Promote to -rc-latest"
+                command: |
+                  docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+                  DEV_KUBECONFIG="-skip-for-release-" make release/promote-<< parameters.channel >>/to-rc-latest
+
+  "job-promote-to-ga":
+    parameters:
+      "channel":
+        type: enum
+        enum: ["oss", "aes"]
+    steps:
+      - amb-linux-install
+      - amb-checkout
+      - run:
+          name: "Promote to GA"
+          command: |
+            docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+            DEV_KUBECONFIG="-skip-for-release-" make release/promote-<< parameters.channel >>/to-ga

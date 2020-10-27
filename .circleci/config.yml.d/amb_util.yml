@@ -1,0 +1,133 @@
+##############################################################################
+# Ambassador-specific granular commands and utilities                        #
+##############################################################################
+
+version: 2.1
+
+executors:
+
+  "oss-linux":
+    machine:
+      # If you bump this, be sure to bump it in the "aes-linux"
+      # executor below, and to bump "install-python.executor-key" in
+      # the "amb-linux-install" command below.
+      image: "ubuntu-2004:202008-01"
+    working_directory: ~/project/ambassador
+
+  "aes-linux":
+    machine:
+      # If you bump this, be sure to bump it in the "oss-linux"
+      # executor above, and to bump "install-python.executor-key" in
+      # the "amb-linux-install" command below.
+      image: "ubuntu-2004:202008-01"
+    working_directory: ~/project
+
+commands:
+
+  "amb-linux-install":
+    steps:
+      - install-python:
+          executor-key: "202008-01"
+      - pip-install:
+          packages: awscli packaging
+      - install-go
+      - install-kubectl
+      - install-node
+
+  "amb-images-save-workspace":
+    steps:
+      - run:
+          name: "Saving Docker data to workspace"
+          command: "~/project/ambassador/.circleci/amb-images-save-workspace"
+      - persist_to_workspace:
+          root: /home/circleci/project
+          paths:
+            - "."
+
+  "amb-images-load-workspace":
+    steps:
+      - attach_workspace:
+          at: /home/circleci/project
+      - run:
+          name: "Loading Docker data from workspace"
+          command: "~/project/ambassador/.circleci/amb-images-load-workspace"
+
+  "amb-checkout":
+    steps:
+      - when:
+          condition:
+            or:
+            - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+            - equal: [ "https://github.com/datawire/ambassador-private", << pipeline.project.git_url >> ]
+          steps:
+            - checkout:
+                path: ~/project/ambassador
+      - when:
+          condition:
+            or:
+            - equal: [ "https://github.com/datawire/apro", << pipeline.project.git_url >> ]
+            - equal: [ "https://github.com/datawire/apro-private", << pipeline.project.git_url >> ]
+          steps:
+            - run:
+                working_directory: ~/project
+                command: "rmdir ~/project/ambassador || true"
+            - checkout:
+                path: ~/project
+
+  "amb-config-registry":
+    steps:
+      - run:
+          name: "Configure Docker registry"
+          command: |
+            if [[ -z "$DEV_REGISTRY" ]]; then
+              echo >>"$BASH_ENV" 'export DEV_REGISTRY=127.0.0.1:31000'
+              echo >>"$BASH_ENV" 'export BASE_REGISTRY=docker.io/datawiredev'
+            fi
+            if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
+              docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
+            fi
+
+            echo >>"$BASH_ENV" 'unset BASH_ENV'
+
+  "amb-config-cluster-and-registry":
+    steps:
+      - run:
+          name: "Configure Kubernetes cluster and Docker registry"
+          working_directory: ~/project/ambassador
+          command: |
+            if [[ -z "$DEV_REGISTRY" ]]; then
+              echo >>"$BASH_ENV" 'export DEV_REGISTRY=127.0.0.1:31000'
+              echo >>"$BASH_ENV" 'export BASE_REGISTRY=docker.io/datawiredev'
+            fi
+            if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
+              docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
+            fi
+
+            ./.ci/kubernaut-claim
+            echo >>"$BASH_ENV" 'if test -e ~/kubernaut-claim.txt; then'
+            echo >>"$BASH_ENV" '  export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml'
+            echo >>"$BASH_ENV" '  if [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]]; then'
+            echo >>"$BASH_ENV" '    KUBECONFIG=$DEV_KUBECONFIG go run ./cmd/k8sregistryctl up --storage=hostPath'
+            echo >>"$BASH_ENV" '  fi'
+            echo >>"$BASH_ENV" 'fi'
+
+            echo >>"$BASH_ENV" 'unset BASH_ENV'
+
+  "amb-teardown-cluster":
+    steps:
+      - run:
+          working_directory: ~/project/ambassador
+          command: "./.ci/kubernaut-unclaim"
+          when: "always"
+
+  "amb-save-logs":
+    steps:
+      - run:
+          name: "Gather logs"
+          when: always
+          command: |
+            rsync -ma --include='*/' --include='*.tap' --include='*.log' --include='Test*.webm' --exclude='*' . /tmp/test-logs
+      - store_artifacts:
+          name: "Store logs"
+          path: /tmp/test-logs
+          destination: test-logs

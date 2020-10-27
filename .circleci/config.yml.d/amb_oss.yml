@@ -1,0 +1,160 @@
+version: 2.1
+
+jobs:
+  "oss-generate":
+    executor: oss-linux
+    steps:
+      - job-generate
+
+  "oss-lint":
+    executor: oss-linux
+    steps:
+      - job-lint
+
+  "oss-images":
+    parameters:
+      "release":
+        type: boolean
+        default: false
+    executor: oss-linux
+    steps:
+      - job-images:
+          release: << parameters.release >>
+
+  "oss-test":
+    executor: oss-linux
+    parameters:
+      "test":
+        type: enum
+        enum:
+          - "test" # everything
+          - "ingresstest"
+          - "gotest"
+          - "pytest"
+        default: "test"
+      "fast-reconfigure":
+        type: boolean
+        default: false
+    steps:
+      - job-test:
+          test: << parameters.test >>
+          fast-reconfigure: << parameters.fast-reconfigure >>
+
+  "oss-promote-to-rc-latest":
+    executor: oss-linux
+    steps:
+      - job-promote-to-rc-latest:
+          channel: oss
+
+  "oss-promote-to-ga":
+    executor: oss-linux
+    steps:
+      - job-promote-to-ga:
+          channel: oss
+
+_anchors:
+  # All of these filters assume that "Only build pull requests" is turned on at
+  # https://app.circleci.com/settings/project/github/datawire/ambassador/advanced
+
+  "filter-prerelease-only": &filter-prerelease-only
+    filters:
+      tags:
+        only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+      branches:
+        ignore: /.*/
+
+  "filter-rc-only": &filter-rc-only
+    filters:
+      tags:
+        only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
+      branches:
+        ignore: /.*/
+
+  "filter-ga-only": &filter-ga-only
+    filters:
+      tags:
+        only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+      branches:
+        ignore: /.*/
+
+workflows:
+  "OSS: Dev":
+    # Run this workflow on just 'master' and PRs.
+    jobs:
+      # build+push
+      - "oss-images":
+          name: "oss-dev-images"
+      # test
+      - "oss-generate":
+          name: "oss-dev-generate"
+      - "oss-lint":
+          name: "oss-dev-lint"
+      - "oss-test":
+          requires: ["oss-dev-images"]
+          name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >>"
+          matrix:
+            alias: "oss-dev-test"
+            parameters:
+              test:
+                - "gotest"
+                - "pytest"
+                # Running the ingresstests would require we install `kind` and
+                # that the test suite supports HTTP to HTTPS redirects (AES
+                # enables cleartext redirection by default, even for fallback
+                # hosts, contrary to A/OSS)
+                #- "ingresstest"
+              fast-reconfigure:
+                - true
+                - false
+
+  "OSS: Release":
+    when: # Don't run this workflow in apro.git
+      or:
+      - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+      - equal: [ "https://github.com/datawire/ambassador-private", << pipeline.project.git_url >> ]
+    # Run this workflow on tags, not branches or PRs.
+    jobs:
+      # build+push
+      - "oss-images":
+          <<: *filter-prerelease-only
+          name: "oss-release-images"
+          release: true
+      # test
+      - "oss-generate":
+          <<: *filter-prerelease-only
+          name: "oss-release-generate"
+      - "oss-lint":
+          <<: *filter-prerelease-only
+          name: "oss-release-lint"
+      - "oss-test":
+          <<: *filter-prerelease-only
+          requires: ["oss-release-images"]
+          name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >>"
+          matrix:
+            alias: "oss-release-test"
+            parameters:
+              test:
+                - "gotest"
+                - "pytest"
+                # Running the ingresstests would require we install `kind` and
+                # that the test suite supports HTTP to HTTPS redirects (AES
+                # enables cleartext redirection by default, even for fallback
+                # hosts, contrary to A/OSS)
+                #- "ingresstest"
+              fast-reconfigure:
+                - true
+                - false
+      # promote
+      - "oss-promote-to-rc-latest":
+          <<: *filter-rc-only
+          name: "oss-release-promote-to-rc-latest"
+          requires:
+          # build
+          - "oss-release-images"
+          # test
+          - "oss-release-generate"
+          - "oss-release-lint"
+          - "oss-release-test"
+      - "oss-promote-to-ga":
+          <<: *filter-ga-only
+          name: "oss-release-promote-to-ga"

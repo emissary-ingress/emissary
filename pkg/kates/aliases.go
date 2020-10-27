@@ -63,6 +63,7 @@ type ServicePort = corev1.ServicePort
 type Endpoints = corev1.Endpoints
 
 var ServiceTypeLoadBalancer = corev1.ServiceTypeLoadBalancer
+var ServiceTypeClusterIP = corev1.ServiceTypeClusterIP
 
 type Pod = corev1.Pod
 type PodSpec = corev1.PodSpec
@@ -140,6 +141,8 @@ type DeleteOptions = metav1.DeleteOptions
 
 var NamespaceAll = metav1.NamespaceAll
 var NamespaceNone = metav1.NamespaceNone
+
+type LabelSelector = metav1.LabelSelector
 
 type Selector = labels.Selector
 type LabelSet = labels.Set

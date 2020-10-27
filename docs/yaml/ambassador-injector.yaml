@@ -45,6 +45,9 @@ spec:
       labels:
         app.kubernetes.io/name: ambassador-injector
         app.kubernetes.io/instance: ambassador
+      annotations:
+        consul.hashicorp.com/connect-inject: 'false'
+        sidecar.istio.io/inject: 'false'
     spec:
       containers:
         - name: webhook

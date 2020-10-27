@@ -70,6 +70,9 @@ class IRTracing(IRResource):
         if driver == "datadog":
             driver = "envoy.tracers.datadog"
 
+        # This "config" is a field on the aconf for the TracingService, not to be confused with the
+        # envoyv2 untyped "config" field. We actually use a "typed_config" in the final Envoy
+        # config, see envoy/v2/v2tracer.py.
         driver_config = config.get("config", {})
         if driver_config:
             if 'collector_endpoint_version' in driver_config:
@@ -114,5 +117,5 @@ class IRTracing(IRResource):
         self.cluster = cluster
 
     def finalize(self):
-        self.ir.logger.debug("tracing cluster name: %s" % self.cluster.name)
-        self.driver_config['collector_cluster'] = self.cluster.name
+        self.ir.logger.debug("tracing cluster envoy name: %s" % self.cluster.envoy_name)
+        self.driver_config['collector_cluster'] = self.cluster.envoy_name

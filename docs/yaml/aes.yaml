@@ -68,7 +68,7 @@ rules:
   verbs: ["get", "list", "watch", "create", "update"]
 - apiGroups: [""]
   resources: [ "events" ]
-  verbs: ["get", "list", "watch", "create"]
+  verbs: ["get", "list", "watch", "create", "patch"]
 - apiGroups: ["coordination.k8s.io"]
   resources: [ "leases" ]
   verbs: ["get", "create", "update"]
@@ -316,6 +316,10 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
         - name: REDIS_URL
           value: ambassador-redis:6379
         - name: AMBASSADOR_URL

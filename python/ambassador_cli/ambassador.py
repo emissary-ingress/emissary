@@ -19,14 +19,16 @@
 # etc.
 ########
 
-from typing import Optional
+from typing import ClassVar, Optional, Set, TYPE_CHECKING
 from typing import cast as typecast
 
 import sys
 
+import cProfile
 import json
 import logging
 import os
+import pstats
 import signal
 import traceback
 
@@ -37,7 +39,10 @@ from ambassador import Scout, Config, IR, Diagnostics, Version
 from ambassador.fetch import ResourceFetcher
 from ambassador.envoy import EnvoyConfig, V2Config
 
-from ambassador.utils import RichStatus, NullSecretHandler
+from ambassador.utils import RichStatus, SecretHandler, SecretInfo, NullSecretHandler, Timer
+
+if TYPE_CHECKING:
+    from ambassador.ir import IRResource
 
 __version__ = Version
 
@@ -111,9 +116,34 @@ def file_checker(path: str) -> bool:
     return True
 
 
+class CLISecretHandler(SecretHandler):
+    # HOOK: if you're using dump and you need it to pretend that certain missing secrets
+    # are present, add them to LoadableSecrets. At Some Point(tm) there will be a switch
+    # to add these from the command line, but Flynn didn't actually need that for the
+    # debugging he was doing...
+
+    LoadableSecrets: ClassVar[Set[str]] = set(
+        # "ssl-certificate.mynamespace"
+    )
+
+    def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
+        # Only allow a secret to be _loaded_ if it's marked Loadable.
+
+        key = f"{secret_name}.{namespace}"
+
+        if key in CLISecretHandler.LoadableSecrets:
+            self.logger.info(f"CLISecretHandler: loading {key}")
+            return SecretInfo(secret_name, namespace, "mocked-loadable-secret",
+                              "-mocked-cert-", "-mocked-key-", decode_b64=False)
+
+        self.logger.debug(f"CLISecretHandler: cannot load {key}")
+        return None
+
+
 def dump(config_dir_path: Parameter.REQUIRED, *,
          secret_dir_path=None, watt=False, debug=False, debug_scout=False, k8s=False, recurse=False,
-         aconf=False, ir=False, v2=False, diag=False, features=False):
+         stats=False, nopretty=False, everything=False, aconf=False, ir=False, v2=False, diag=False,
+         features=False, profile=False):
     """
     Dump various forms of an Ambassador configuration for debugging
 
@@ -127,15 +157,19 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     :param debug_scout: If set, generate debugging output
     :param k8s: If set, assume configuration files are annotated K8s manifests
     :param recurse: If set, recurse into directories below config_dir_path
+    :param stats: If set, dump statistics to stderr
+    :param nopretty: If set, do not pretty print the dumped JSON
     :param aconf: If set, dump the Ambassador config
     :param ir: If set, dump the IR
     :param v2: If set, dump the Envoy V2 config
     :param diag: If set, dump the Diagnostics overview
+    :param everything: If set, dump everything
     :param features: If set, dump the feature set
+    :param profile: If set, profile with the cProfile module
     """
 
     if not secret_dir_path:
-        secret_dir_path = config_dir_path
+        secret_dir_path = "/tmp/cli-secrets"
 
         if not os.path.isdir(secret_dir_path):
             secret_dir_path = os.path.dirname(secret_dir_path)
@@ -146,7 +180,13 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     if debug_scout:
         logging.getLogger('ambassador.scout').setLevel(logging.DEBUG)
 
-    if not (aconf or ir or v2 or diag or features):
+    if everything:
+        aconf = True
+        ir = True
+        v2 = True
+        diag = True
+        features = True
+    elif not (aconf or ir or v2 or diag or features):
         aconf = True
         ir = True
         v2 = True
@@ -162,46 +202,72 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     od = {}
     diagconfig: Optional[EnvoyConfig] = None
 
+    _profile: Optional[cProfile.Profile] = None
+    _rc = 0
+
+    if profile:
+        _profile = cProfile.Profile()
+        _profile.enable()
+
     try:
-        aconf = Config()
-        fetcher = ResourceFetcher(logger, aconf)
+        total_timer = Timer("total")
+        total_timer.start()
 
-        if watt:
-            fetcher.parse_watt(open(config_dir_path, "r").read())
-        else:
-            fetcher.load_from_filesystem(config_dir_path, k8s=k8s, recurse=True)
+        fetch_timer = Timer("fetch resources")
+        with fetch_timer:
+            aconf = Config()
 
-        aconf.load_all(fetcher.sorted())
+            fetcher = ResourceFetcher(logger, aconf)
+
+            if watt:
+                fetcher.parse_watt(open(config_dir_path, "r").read())
+            else:
+                fetcher.load_from_filesystem(config_dir_path, k8s=k8s, recurse=True)
+
+        load_timer = Timer("load fetched resources")
+        with load_timer:
+            aconf.load_all(fetcher.sorted())
 
         # aconf.post_error("Error from string, boo yah")
         # aconf.post_error(RichStatus.fromError("Error from RichStatus"))
 
-        if dump_aconf:
-            od['aconf'] = aconf.as_dict()
+        irgen_timer = Timer("ir generation")
+        with irgen_timer:
+            secret_handler = NullSecretHandler(logger, config_dir_path, secret_dir_path, "0")
 
-        secret_handler = NullSecretHandler(logger, config_dir_path, secret_dir_path, "0")
+            ir = IR(aconf, file_checker=file_checker, secret_handler=secret_handler)
 
-        ir = IR(aconf, file_checker=file_checker, secret_handler=secret_handler)
+        aconf_timer = Timer("aconf")
+        with aconf_timer:
+            if dump_aconf:
+                od['aconf'] = aconf.as_dict()
 
-        if dump_ir:
-            od['ir'] = ir.as_dict()
+        ir_timer = Timer("ir")
+        with ir_timer:
+            if dump_ir:
+                od['ir'] = ir.as_dict()
 
-        if dump_v2:
-            v2config = V2Config(ir)
-            diagconfig = v2config
-            od['v2'] = v2config.as_dict()
+        v2_timer = Timer("v2")
+        with v2_timer:
+            if dump_v2:
+                v2config = V2Config(ir)
+                diagconfig = v2config
+                od['v2'] = v2config.as_dict()
 
-        if dump_diag:
-            if not diagconfig:
-                diagconfig = V2Config(ir)
+        diag_timer = Timer("diag")
+        with diag_timer:
+            if dump_diag:
+                if not diagconfig:
+                    diagconfig = V2Config(ir)
+                econf = typecast(EnvoyConfig, diagconfig)
+                diag = Diagnostics(ir, econf)
+                od['diag'] = diag.as_dict()
+                od['elements'] = econf.elements
 
-            econf = typecast(EnvoyConfig, diagconfig)
-            diag = Diagnostics(ir, econf)
-            od['diag'] = diag.as_dict()
-            od['elements'] = econf.elements
-
-        if dump_features:
-            od['features'] = ir.features()
+        features_timer = Timer("features")
+        with features_timer:
+            if dump_features:
+                od['features'] = ir.features()
 
         # scout = Scout()
         # scout_args = {}
@@ -212,14 +278,64 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         # result = scout.report(action="dump", mode="cli", **scout_args)
         # show_notices(result)
 
-        json.dump(od, sys.stdout, sort_keys=True, indent=4)
-        sys.stdout.write("\n")
+        dump_timer = Timer("dump JSON")
+        with dump_timer:
+            if nopretty:
+                js = json.dumps(od)
+            else:
+                js = json.dumps(od, sort_keys=True, indent=4)
+            jslen = len(js)
+
+        write_timer = Timer("write JSON")
+        with write_timer:
+            sys.stdout.write(js)
+            sys.stdout.write("\n")
+
+        total_timer.stop()
+
+        route_count = 0
+        vhost_count = 0
+        filter_chain_count = 0
+        filter_count = 0
+        for listener in od['v2']['static_resources']['listeners']:
+            for fc in listener['filter_chains']:
+                filter_chain_count += 1
+                for f in fc['filters']:
+                    filter_count += 1
+                    for vh in f['typed_config']['route_config']['virtual_hosts']:
+                        vhost_count += 1
+                        route_count += len(vh['routes'])
+
+        if stats:
+            sys.stderr.write("STATS:\n")
+            sys.stderr.write("  config bytes:  %d\n" % jslen)
+            sys.stderr.write("  vhosts:        %d\n" % vhost_count)
+            sys.stderr.write("  filter chains: %d\n" % filter_chain_count)
+            sys.stderr.write("  filters:       %d\n" % filter_count)
+            sys.stderr.write("  routes:        %d\n" % route_count)
+            sys.stderr.write("  routes/vhosts: %.3f\n" % float(float(route_count)/float(vhost_count)))
+            sys.stderr.write("TIMERS:\n")
+            sys.stderr.write("  fetch resources:  %.3fs\n" % fetch_timer.average)
+            sys.stderr.write("  load resources:   %.3fs\n" % load_timer.average)
+            sys.stderr.write("  ir generation:    %.3fs\n" % irgen_timer.average)
+            sys.stderr.write("  aconf:            %.3fs\n" % aconf_timer.average)
+            sys.stderr.write("  envoy v2:         %.3fs\n" % v2_timer.average)
+            sys.stderr.write("  diag:             %.3fs\n" % diag_timer.average)
+            sys.stderr.write("  features:         %.3fs\n" % features_timer.average)
+            sys.stderr.write("  dump json:        %.3fs\n" % dump_timer.average)
+            sys.stderr.write("  write json:       %.3fs\n" % write_timer.average)
+            sys.stderr.write("  ----------------------\n")
+            sys.stderr.write("  total: %.3fs\n" % total_timer.average)
     except Exception as e:
         handle_exception("EXCEPTION from dump", e,
                          config_dir_path=config_dir_path)
+        _rc = 1
 
-        # This is fatal.
-        sys.exit(1)
+    if _profile:
+        _profile.disable()
+        _profile.dump_stats("ambassador.profile")
+
+    sys.exit(_rc)
 
 
 def validate(config_dir_path: Parameter.REQUIRED, **kwargs):

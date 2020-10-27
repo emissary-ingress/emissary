@@ -16,7 +16,7 @@ Ambassador Edge Stack enables you to control timeouts in several different ways.
 
 ## Connect Timeout: `connect_timeout_ms`
 
-`connect_timeout_ms` sets the connection-level timeout for Ambassador Edge Stack to an upstream service at the network layer.  This timeout runs until Ambassador can verify that a TCP connection has been established.  This timeout cannot be disabled. The default is 3000ms.
+`connect_timeout_ms` sets the connection-level timeout for Ambassador Edge Stack to an upstream service at the network layer.  This timeout runs until Ambassador can verify that a TCP connection has been established, including the TLS handshake.  This timeout cannot be disabled. The default is 3000ms.
 
 ## Module Only
 
