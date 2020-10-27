@@ -2,19 +2,16 @@ package dcontext_test
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/datawire/ambassador/pkg/dcontext"
 )
 
+// This should be a very simple example of a parent caller function, showing how
+// to manage a hard/soft Context and how to call code that is dcontext-aware.
 func Example_caller() error {
-	// This should be a very simple example of how to manage a hard/soft Context,
-	// and how to call code that is dcontext-aware.
-
 	ctx := context.Background()                       // Context is hard by default
 	ctx, timeToDie := context.WithCancel(ctx)         // hard Context => hard cancel
 	ctx = dcontext.WithSoftness(ctx)                  // make it soft
@@ -34,10 +31,9 @@ func Example_caller() error {
 	startShuttingDown() // Soft shutdown; start draining connections.
 	select {
 	case err := <-retCh:
-		// It shut down fine with just the soft shutdown;
-		// everything was well-behaved.  It isn't necessary to
-		// cut shutdown short by triggering a hard shutdown
-		// with timeToDie() in this case.
+		// It shut down fine with just the soft shutdown; everything was
+		// well-behaved.  It isn't necessary to cut shutdown short by
+		// triggering a hard shutdown with timeToDie() in this case.
 		return err
 	case <-time.After(5 * time.Second): // shutdown grace period
 		// It's taking too long to shut down--it seems that some clients
@@ -49,15 +45,14 @@ func Example_caller() error {
 	}
 }
 
-// ListenAndServeHTTPWithContext runs server.ListenAndServe() on an
-// http.Server, but properly calls server.Shutdown when the Context is
-// canceled.
+// ListenAndServeHTTPWithContext runs server.ListenAndServe() on an http.Server,
+// but properly calls server.Shutdown when the Context is canceled.
 //
-// It obeys hard/soft cancellation as implemented by
-// dcontext.WithSoftness; it calls server.Shutdown() when the soft
-// Context is canceled, and the hard Context being canceled causes the
-// .Shutdown() to hurry along and kill any live requests and return,
-// instead of waiting for them to be completed gracefully.
+// It obeys hard/soft cancellation as implemented by dcontext.WithSoftness; it
+// calls server.Shutdown() when the soft Context is canceled, and the hard
+// Context being canceled causes the .Shutdown() to hurry along and kill any
+// live requests and return, instead of waiting for them to be completed
+// gracefully.
 func ListenAndServeHTTPWithContext(ctx context.Context, server *http.Server) error {
 	// An HTTP server is a bit of a complex example; for two reasons:
 	//
