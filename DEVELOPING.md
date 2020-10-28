@@ -685,3 +685,14 @@ bash ambassador/scripts/doc-publish --prod
 ```
 
 to update the live `getambassador-preview` Netlify site.
+
+How do I build ambassador on Windows using WSL?
+-----------------------------------------------
+As the ambassador build sequence requires docker communication via a UNIX socket, using WSL 1 is not possible.
+Not even with a `DOCKER_HOST` environment variable set. As a result, you have to use WSL 2, including using the
+WSL 2 version of docker-for-windows.
+
+Additionally, if your hostname contains an upper-case character, the build script will break. This is based on the
+`NAME` environment variable, which should contain your hostname. You can solve this issue by doing `export NAME=my-lowercase-host-name`.
+If you do this *after* you've already run `make images` once, you will manually have to clean up the docker images
+that have been created using your upper-case host name.
