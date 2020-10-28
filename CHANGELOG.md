@@ -55,6 +55,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
+- Bugfix: The /metrics endpoint will no longer break if invoked before configuration is complete
 - Bugfix: Ambassador will no longer mistakenly post notices regarding `regex_rewrite` and `rewrite` directive conflicts in `Mapping`s due to the latter's implicit default value (`/`).
 - Feature: Support configuring the gRPC Statistics Envoy filter to enable telemetry of gRPC calls (see the `grpc_stats` configuration flag)
 
