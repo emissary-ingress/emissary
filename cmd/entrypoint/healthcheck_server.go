@@ -53,7 +53,7 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) {
 	// For everything else, use a ReverseProxy to forward it to diagd.
 	//
 	// diagdOrigin is where diagd is listening.
-	diagdOrigin, _ := url.Parse("http://127.0.0.1:8877/")
+	diagdOrigin, _ := url.Parse("http://127.0.0.1:8004/")
 
 	// This reverseProxy is dirt simple: use a director function to
 	// swap the scheme and host of our request for the ones from the
@@ -71,7 +71,7 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) {
 	sm.HandleFunc("/", reverseProxy.ServeHTTP)
 
 	s := &http.Server{
-		Addr:    "0.0.0.0:8345",
+		Addr:    "0.0.0.0:8877",
 		Handler: sm,
 	}
 

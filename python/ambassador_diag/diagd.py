@@ -2028,7 +2028,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
           *, dev_magic=False, config_path=None, ambex_pid=0, kick=None,
           banner_endpoint="http://127.0.0.1:8500/banner", metrics_endpoint="http://127.0.0.1:8500/metrics", k8s=False,
           no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
-          workers=None, port=Constants.DIAG_PORT, host='0.0.0.0', notices=None,
+          workers=None, port=-1, host='0.0.0.0', notices=None,
           validation_retries=5, allow_fs_commands=False, local_scout=False,
           report_action_keys=False):
     """
@@ -2060,6 +2060,10 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     """
 
     enable_fast_reconfigure = (os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "false").lower() == "true")
+
+    if port < 0:
+        port = Constants.DIAG_PORT if not enable_fast_reconfigure else Constants.DIAG_PORT_ALT
+        # port = Constants.DIAG_PORT
 
     if dev_magic:
         # Override the world.
