@@ -19,13 +19,13 @@ func TestMemoryUsage(t *testing.T) {
 	})
 
 	// memory jumped, but not enough to qualify as interesting
-	usage.Usage = 1024 * 1024
+	usage.usage = 1024 * 1024
 	usage.maybeDo(start, func() {
 		assert.Fail(t, "no action")
 	})
 
 	// memory jumped enough to qualify as interesting
-	usage.Usage = 1024 * 1024 * 1024
+	usage.usage = 1024 * 1024 * 1024
 	did := false
 	usage.maybeDo(start, func() {
 		did = true
@@ -43,7 +43,7 @@ func TestMemoryUsage(t *testing.T) {
 	})
 
 	// we are now over 50% capacity and one minute has passed, so this qualifies as interesting
-	usage.Limit = usage.Usage + 1
+	usage.limit = usage.usage + 1
 	did = false
 	usage.maybeDo(start.Add(60*time.Second), func() {
 		did = true
@@ -67,12 +67,12 @@ func TestMemoryUsage(t *testing.T) {
 func TestMemoryUsageGCExited(t *testing.T) {
 	count := 0
 	m := &MemoryUsage{
-		Limit:      unlimited,
-		PerProcess: map[int]*ProcessUsage{},
+		limit:      unlimited,
+		perProcess: map[int]*ProcessUsage{},
 		readUsage: func() (memory, memory) {
 			return 0, unlimited
 		},
-		perProcess: func() map[int]*ProcessUsage {
+		readPerProcess: func() map[int]*ProcessUsage {
 			defer func() {
 				count = count + 1
 			}()
@@ -114,37 +114,37 @@ func TestMemoryUsageGCExited(t *testing.T) {
 
 	t.Log(m.String())
 
-	assert.Equal(t, 0, len(m.PerProcess))
+	assert.Equal(t, 0, len(m.perProcess))
 	m.Refresh()
 	t.Log(m.String())
-	assert.Equal(t, 5, len(m.PerProcess))
+	assert.Equal(t, 5, len(m.perProcess))
 	m.Refresh()
 	t.Log(m.String())
 	for i := 0; i < 10; i++ {
-		assert.Equal(t, 5, len(m.PerProcess))
+		assert.Equal(t, 5, len(m.perProcess))
 		m.Refresh()
 		t.Log(m.String())
 	}
 
 	m.Refresh()
-	assert.Equal(t, 4, len(m.PerProcess))
+	assert.Equal(t, 4, len(m.perProcess))
 	t.Log(m.String())
-	assert.NotContains(t, m.PerProcess, 3)
+	assert.NotContains(t, m.perProcess, 3)
 
 	m.Refresh()
-	assert.Equal(t, 3, len(m.PerProcess))
+	assert.Equal(t, 3, len(m.perProcess))
 	t.Log(m.String())
-	assert.NotContains(t, m.PerProcess, 4)
+	assert.NotContains(t, m.perProcess, 4)
 
 	m.Refresh()
-	assert.Equal(t, 2, len(m.PerProcess))
+	assert.Equal(t, 2, len(m.perProcess))
 	t.Log(m.String())
-	assert.NotContains(t, m.PerProcess, 2)
+	assert.NotContains(t, m.perProcess, 2)
 
 	m.Refresh()
-	assert.Equal(t, 2, len(m.PerProcess))
+	assert.Equal(t, 2, len(m.perProcess))
 	t.Log(m.String())
-	assert.Contains(t, m.PerProcess, 1)
-	assert.Contains(t, m.PerProcess, 5)
+	assert.Contains(t, m.perProcess, 1)
+	assert.Contains(t, m.perProcess, 5)
 
 }

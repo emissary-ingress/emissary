@@ -11,19 +11,19 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 )
 
-// The watchMemory function will check memory usage every 10 seconds and log it if it jumps more
-// than 10Gi up or down. Additionally if memory usage exceeds 50% of the cgroup limit, it will log
-// usage every minute. Usage is also unconditionally logged before returning. This function only
-// returns if the context is canceled.
-func watchMemory(ctx context.Context) {
+// The Watch method will check memory usage every 10 seconds and log it if it jumps more than 10Gi
+// up or down. Additionally if memory usage exceeds 50% of the cgroup limit, it will log usage every
+// minute. Usage is also unconditionally logged before returning. This function only returns if the
+// context is canceled.
+func (usage *MemoryUsage) Watch(ctx context.Context) {
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
 
-	usage := GetMemoryUsage()
 	for {
 		select {
 		case now := <-ticker.C:
@@ -44,12 +44,12 @@ func watchMemory(ctx context.Context) {
 // than 50% of our limit.
 func (m *MemoryUsage) shouldDo(now time.Time) bool {
 	const jump = 10 * 1024 * 1024
-	delta := m.previous - m.Usage
+	delta := m.previous - m.usage
 	if delta >= jump || delta <= -jump {
 		return true
 	}
 
-	if m.PercentUsed() > 50 && now.Sub(m.lastAction) >= 60*time.Second {
+	if m.percentUsed() > 50 && now.Sub(m.lastAction) >= 60*time.Second {
 		return true
 	}
 
@@ -58,30 +58,37 @@ func (m *MemoryUsage) shouldDo(now time.Time) bool {
 
 // Do something if warranted.
 func (m *MemoryUsage) maybeDo(now time.Time, f func()) {
+	m.mutex.Lock()
 	if m.shouldDo(now) {
-		m.previous = m.Usage
+		m.previous = m.usage
 		m.lastAction = now
+		m.mutex.Unlock()
 		f()
+	} else {
+		m.mutex.Unlock()
 	}
 }
 
 // The GetMemoryUsage function returns MemoryUsage info for the entire cgroup.
 func GetMemoryUsage() *MemoryUsage {
 	usage, limit := readUsage()
-	return &MemoryUsage{usage, limit, perProcess(), 0, time.Time{}, readUsage, perProcess}
+	return &MemoryUsage{usage, limit, readPerProcess(), 0, time.Time{}, readUsage, readPerProcess, sync.Mutex{}}
 }
 
 // The MemoryUsage struct to holds memory usage and memory limit information about a cgroup.
 type MemoryUsage struct {
-	Usage      memory
-	Limit      memory
-	PerProcess map[int]*ProcessUsage
+	usage      memory
+	limit      memory
+	perProcess map[int]*ProcessUsage
 	previous   memory
 	lastAction time.Time
 
 	// these allow mocking for tests
-	readUsage  func() (memory, memory)
-	perProcess func() map[int]*ProcessUsage
+	readUsage      func() (memory, memory)
+	readPerProcess func() map[int]*ProcessUsage
+
+	// Protects the whole structure
+	mutex sync.Mutex
 }
 
 // The ProcessUsage struct holds per process memory usage information.
@@ -105,15 +112,18 @@ func (m memory) String() string {
 
 // The MemoryUsage.Refresh method updates memory usage information.
 func (m *MemoryUsage) Refresh() {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
 	usage, limit := m.readUsage()
-	m.Usage = usage
-	m.Limit = limit
+	m.usage = usage
+	m.limit = limit
 
 	// GC process memory info that has been around for more than 10 refreshes.
-	for pid, usage := range m.PerProcess {
+	for pid, usage := range m.perProcess {
 		if usage.RefreshesSinceExit > 10 {
 			// It's old, let's delete it.
-			delete(m.PerProcess, pid)
+			delete(m.perProcess, pid)
 		} else {
 
 			// Increment the count in case the process has exited. If the process is still running,
@@ -123,9 +133,9 @@ func (m *MemoryUsage) Refresh() {
 		}
 	}
 
-	for pid, usage := range m.perProcess() {
+	for pid, usage := range m.readPerProcess() {
 		// Overwrite any old process info with new/updated process info.
-		m.PerProcess[pid] = usage
+		m.perProcess[pid] = usage
 	}
 }
 
@@ -136,22 +146,25 @@ var unlimited memory = (memory(math.MaxInt64) / memory(os.Getpagesize())) * memo
 
 // Pretty print a summary of memory usage suitable for logging.
 func (m MemoryUsage) String() string {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
 	var msg strings.Builder
-	if m.Limit == unlimited {
-		msg.WriteString(fmt.Sprintf("Memory Usage %s", m.Usage.String()))
+	if m.limit == unlimited {
+		msg.WriteString(fmt.Sprintf("Memory Usage %s", m.usage.String()))
 	} else {
-		msg.WriteString(fmt.Sprintf("Memory Usage %s (%d%%)", m.Usage.String(), m.PercentUsed()))
+		msg.WriteString(fmt.Sprintf("Memory Usage %s (%d%%)", m.usage.String(), m.percentUsed()))
 	}
 
-	pids := make([]int, 0, len(m.PerProcess))
-	for pid := range m.PerProcess {
+	pids := make([]int, 0, len(m.perProcess))
+	for pid := range m.perProcess {
 		pids = append(pids, pid)
 	}
 
 	sort.Ints(pids)
 
 	for _, pid := range pids {
-		usage := m.PerProcess[pid]
+		usage := m.perProcess[pid]
 		msg.WriteString("\n  ")
 		msg.WriteString(usage.String())
 	}
@@ -170,7 +183,13 @@ func (pu ProcessUsage) String() string {
 
 // The MemoryUsage.PercentUsed method returns memory usage as a percentage of memory limit.
 func (m MemoryUsage) PercentUsed() int {
-	return int(float64(m.Usage) / float64(m.Limit) * 100)
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	return m.percentUsed()
+}
+
+func (m MemoryUsage) percentUsed() int {
+	return int(float64(m.usage) / float64(m.limit) * 100)
 }
 
 // The GetCmdline helper returns the command line for a pid. If the pid does not exist or we don't
@@ -223,8 +242,8 @@ func readMemory(fpath string) (memory, error) {
 	return memory(m), err
 }
 
-// The perProcess helper returns a map containing memory usage used for each process in the cgroup.
-func perProcess() map[int]*ProcessUsage {
+// The readPerProcess helper returns a map containing memory usage used for each process in the cgroup.
+func readPerProcess() map[int]*ProcessUsage {
 	result := map[int]*ProcessUsage{}
 
 	files, err := ioutil.ReadDir("/proc")
