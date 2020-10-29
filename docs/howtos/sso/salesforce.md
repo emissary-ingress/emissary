@@ -14,7 +14,9 @@ To use Salesforce as your IdP, you will first need to register an OAuth applicat
 
 4. Under `API (Enable OAuth Settings)` check the box next to `Enable OAuth Settings`.
 5. Fill in the `Callback URL` section with `https://{{AMBASSADOR_HOST}}/.ambassador/oauth2/redirection-endpoint`.
-6. Under `Selected OAuth Scopes` you must select the `openid` scope at the minimum. Select any other scopes you want to include in the response as well.
+6. Under `Selected OAuth Scopes` you must select the `openid` scope
+   value at the minimum.  Select any other scope values you want to
+   include in the response as well.
 7. Click `Save` and `Continue` to create the application.
 8. Record the `Consumer Key` and `Consumer Secret` values from the `API (Enable OAuth Settings)` section in the newly created application's description page.
 
@@ -60,11 +62,11 @@ After configuring an OAuth application in Salesforce, configuring Ambassador Edg
           # Identifies which Filter to use for the path and hose above
           filters:
             - name: salesforce
-            # Any additional scopes granted in step 6 above can be requested with the arguments field
+            # Any additional scope values granted in step 6 above can be requested with the arguments field
             #  arguments:
-            #    scopes:
+            #    scope:
             #    - refresh_token
-                
+
     ```
 
 3. Apply both the `Filter` and `FilterPolicy` above with `kubectl`

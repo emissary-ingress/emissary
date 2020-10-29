@@ -10,14 +10,17 @@ With Auth0 as your IdP, you will need to create an `Application` to handle authe
 
   ![](../../../images/machine-machine.png)
 
-3. Select the Auth0 Management API. Grant any scopes you may require. (You may grant none.) The API is required so that an `audience` can be specified which will result in a JWT being returned rather than opaque token. A custom API can also be used.
+3. Select the Auth0 Management API. Grant any scope values you may
+   require.  (You may grant none.)  The API is required so that an
+   `audience` can be specified which will result in a JWT being
+   returned rather than opaque token.  A custom API can also be used.
 
   ![](../../../images/scopes.png)
-  
+
 4. In your newly created application, click on the Settings tab, add the Domain and Callback URLs for your service and ensure the "Token Endpoint Authentication Method" is set to `Post`. The default YAML installation of Ambassador Edge Stack uses `/.ambassador/oauth2/redirection-endpoint` for the URL, so the values should be the domain name that points to Ambassador, e.g., `example.com/.ambassador/oauth2/redirection-endpoint` and `example.com`.
 
   ![](../../../images/Auth0_none.png)
-  
+
   Click Advanced Settings > Grant Types and check "Authorization Code"
 
 ## Configure Filter and FilterPolicy
@@ -65,9 +68,8 @@ Update the Auth0 `Filter` and `FilterPolicy`. You can get the `ClientID` and `se
          filters:
            - name: auth0-filter ## Enter the Filter name from above
              arguments:
-               scopes:
+               scope:
                - "openid"
    ```
 
   **Note:** By default, Auth0 requires the `openid` scope.
-  
