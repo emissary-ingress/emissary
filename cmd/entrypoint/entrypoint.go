@@ -16,6 +16,7 @@ import (
 
 	"github.com/datawire/ambassador/cmd/ambex"
 	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/pkg/memory"
 
 	"github.com/google/uuid"
 )
@@ -118,7 +119,7 @@ func Main() {
 		logExecError("diagd", err)
 	})
 
-	usage := GetMemoryUsage()
+	usage := memory.GetMemoryUsage()
 	group.Go("memory", usage.Watch)
 
 	group.Go("ambex", func(ctx context.Context) {
