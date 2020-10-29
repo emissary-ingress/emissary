@@ -147,7 +147,7 @@ class DiagApp (Flask):
               config_path: Optional[str], ambex_pid: int, kick: Optional[str], banner_endpoint: Optional[str],
               metrics_endpoint: Optional[str], k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False,
               verbose=False, notices=None, validation_retries=5, allow_fs_commands=False, local_scout=False,
-              report_action_keys=False):
+              report_action_keys=False, enable_fast_reconfigure=False):
         self.health_checks = do_checks
         self.no_envoy = no_envoy
         self.debugging = reload
@@ -179,7 +179,7 @@ class DiagApp (Flask):
         self.kick = kick
 
         # Initialize the cache if we're allowed to.
-        if os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "false").lower() == "true":
+        if enable_fast_reconfigure:
             self.logger.info("AMBASSADOR_FAST_RECONFIGURE enabled, initializing cache")
             self.cache = Cache(self.logger)
         else:
@@ -2059,6 +2059,8 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     :param report_action_keys: Report action keys when chiming
     """
 
+    enable_fast_reconfigure = (os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "false").lower() == "true")
+
     if dev_magic:
         # Override the world.
         os.environ['SCOUT_HOST'] = '127.0.0.1:9999'
@@ -2085,7 +2087,8 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     # Create the application itself.
     app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick, banner_endpoint,
               metrics_endpoint, k8s, not no_checks, no_envoy, reload, debug, verbose, notices,
-              validation_retries, allow_fs_commands, local_scout, report_action_keys)
+              validation_retries, allow_fs_commands, local_scout, report_action_keys, 
+              enable_fast_reconfigure)
 
     if not workers:
         workers = number_of_workers()
