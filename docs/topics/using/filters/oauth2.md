@@ -117,6 +117,7 @@ spec:
       name:                "string"       # required
       namespace:           "string"       # optional; default is the same namespace as the Filter
       inheritScopeArgument: bool          # optional; default is false
+      stripInheritedScope:  bool          # optional; default is false
       arguments: JWT-Filter-Arguments     # optional
 
     ############################################################################
@@ -375,6 +376,15 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
          Filter (similarly special-casing the `offline_access` scope
          value); if the `arguments` field also specifies a `scope`
          argument, then the union of the two is used.
+       - `stripInheritedScope` modifies the behavior of
+         `inheritScopeArgument`.  Some identity providers use scope
+         values that are URIs when speaking OAuth, but when encoding
+         those scope values in to a JWT the provider strips the
+         leading path of the value; removing everything up to and
+         including the last "/" in the value.  Setting
+         `stripInheritedScope` mimics this when passing the required
+         scope to the JWT Filter.  It is meaningless to set
+         `stripInheritedScope` if `inheritScopeArgument` is not set.
    * `"userinfo"`: Validates the access token by polling the OIDC UserInfo Endpoint. This means that the Ambassador Edge Stack must initiate an HTTP request to the identity provider for each authorized request to a protected resource.  This performs poorly, but functions properly with a wider range of identity providers.  It is not valid to set `accessTokenJWTFilter` if `accessTokenValidation: userinfo`.
    * `"auto"` attempts to do `"jwt"` validation if any of these
      conditions are true:
