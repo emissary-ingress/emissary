@@ -114,9 +114,10 @@ spec:
     allowMalformedAccessToken: bool     # optional; default is false
     accessTokenValidation:     "enum"   # optional; default is "auto"
     accessTokenJWTFilter:               # optional; default is null
-      name: "string"                     # required
-      namespace: "string"                # optional; default is the same namespace as the Filter
-      arguments: JWT-Filter-Arguments    # optional
+      name:                "string"       # required
+      namespace:           "string"       # optional; default is the same namespace as the Filter
+      inheritScopeArgument: bool          # optional; default is false
+      arguments: JWT-Filter-Arguments     # optional
 
     ############################################################################
     # HTTP client settings for talking with the identity provider              #
@@ -362,7 +363,18 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
        present.  This relies on the identity provider using
        non-encrypted signed JWTs as Access Tokens, and configuring the
        signing appropriately
-     + This behavior can be modified by delegating to [`JWT` Filter](#filter-type-jwt) with `accessTokenJWTFilter`. The arguments are the same as the arguments when referring to a JWT Filter from a FilterPolicy.
+     + This behavior can be modified by delegating to [`JWT`
+       Filter](#filter-type-jwt) with `accessTokenJWTFilter`:
+       - `name` and `namespace` are used identify which JWT Filter to
+         use.  It is an error to point at a Filter that is not a JWT
+         filter.
+       - `arguments` is is the same as the `arguments` field when
+         referring to a JWT Filter from a FilterPolicy.
+       - `inheritScopeArgument` sets whether to inherit the `scope`
+         argument from the FilterPolicy rule that triggered the OAuth2
+         Filter (similarly special-casing the `offline_access` scope
+         value); if the `arguments` field also specifies a `scope`
+         argument, then the union of the two is used.
    * `"userinfo"`: Validates the access token by polling the OIDC UserInfo Endpoint. This means that the Ambassador Edge Stack must initiate an HTTP request to the identity provider for each authorized request to a protected resource.  This performs poorly, but functions properly with a wider range of identity providers.  It is not valid to set `accessTokenJWTFilter` if `accessTokenValidation: userinfo`.
    * `"auto"` attempts to do `"jwt"` validation if any of these
      conditions are true:
