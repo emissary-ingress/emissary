@@ -10,9 +10,11 @@ import (
 	"net/url"
 	"syscall"
 	"time"
+
+	"github.com/datawire/ambassador/pkg/acp"
 )
 
-func notifyReconfigWebhooks(ctx context.Context) {
+func notifyReconfigWebhooks(ctx context.Context, ambwatch *acp.AmbassadorWatcher) {
 	// XXX: last N snapshots?
 	snapshotUrl := url.QueryEscape("http://localhost:9696/snapshot")
 
@@ -20,10 +22,22 @@ func notifyReconfigWebhooks(ctx context.Context) {
 	needSidecarNotify := true
 
 	for {
+		// We're about to send a new snapshot to diagd. The webhook we're using for this
+		// won't return, by design, until the snapshot has been processed, so first note
+		// that we're sending the snapshot...
+		ambwatch.NoteSnapshotSent()
+
+		// ...then send it and wait for the webhook to return...
 		if notifyWebhookUrl(ctx, "diagd", fmt.Sprintf("%s?url=%s", GetEventUrl(), snapshotUrl)) {
 			needDiagdNotify = false
 		}
 
+		// ...then note that it's been processed. This DOES NOT imply that the processing
+		// was successful: it's just about whether or not diagd is making progress instead
+		// of getting stuck.
+		ambwatch.NoteSnapshotProcessed()
+
+		// Then go deal with the Edge Stack sidecar.
 		if IsEdgeStack() {
 			if notifyWebhookUrl(ctx, "edgestack sidecar", fmt.Sprintf("%s?url=%s", GetSidecarUrl(), snapshotUrl)) {
 				needSidecarNotify = false
