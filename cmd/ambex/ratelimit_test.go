@@ -137,7 +137,8 @@ func TestConstrained(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		h.update(0)
 	}
-	// Above 50% memory usage we only allow for 120 stale configs in memory at a time.
+	// Above 50% memory usage we only allow for 120 stale configs in memory at a time. Our harness
+	// versions start counting at 1, so we should get up to version 120 before getting throttled.
 	h.expectUntil(120)
 	// Fast forward by drainTime and check that the most recent update made it eventually.
 	h.tick(drainTime)

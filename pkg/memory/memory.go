@@ -188,6 +188,8 @@ func (m *MemoryUsage) PercentUsed() int {
 	return m.percentUsed()
 }
 
+// This the same as PercentUsed() but not protected by a lock so we can use it form places where we
+// already have the lock.
 func (m *MemoryUsage) percentUsed() int {
 	return int(float64(m.usage) / float64(m.limit) * 100)
 }

@@ -31,12 +31,25 @@ func Updater(ctx context.Context, updates <-chan Update, getUsage MemoryGetter) 
 
 func updaterWithTicker(ctx context.Context, updates <-chan Update, getUsage MemoryGetter,
 	drainTime time.Duration, ticker *time.Ticker, clock func() time.Time) error {
-	// Holds the times of any updates between now - drain-time and now.
+
+	// This slice holds the times of any updates we have made. This lets us compute how many stale
+	// configs are being held in memory since we can filter this list down to just those times that
+	// are between now - drain-time and now, i.e. we keep only the events that are more recent than
+	// drain-time ago.
 	updateTimes := []time.Time{}
+
+	// This variable holds the most recent desired configuration.
 	var latest Update
 	gotFirst := false
 	pushed := false
 	for {
+		// The basic idea here is that we wakeup whenever we either a) get a new snapshot to update,
+		// or b) the timer ticks. In case a) we update the "latest" variable so that it always holds
+		// the most recent desired Ufpdate. In either case, we filter the list of updateTimes so we
+		// know exactly how many updates are in memory, and then based on that we decide whether we
+		// can do another reconfig or whether we should wait until the next (tick|update) whichever
+		// happens first.
+
 		var now time.Time
 		tick := false
 		select {
@@ -66,15 +79,15 @@ func updaterWithTicker(ctx context.Context, updates <-chan Update, getUsage Memo
 			// configs.
 			maxStaleReconfigs = 1
 		case usagePercent >= 80:
-			// With the default 10 minute drain time this works out to one reconfigs every 40
+			// With the default 10 minute drain time this works out to one reconfig every 40
 			// seconds on average within the window. (They could all happen in one burst.)
 			maxStaleReconfigs = 15
 		case usagePercent >= 70:
-			// With the default 10 minute drain time this works out to one reconfigs every 20
+			// With the default 10 minute drain time this works out to one reconfig every 20
 			// seconds on average within the window. (They could all happen in one burst.)
 			maxStaleReconfigs = 30
 		case usagePercent >= 60:
-			// With the default 10 minute drain time this works out to one reconfigs every 10
+			// With the default 10 minute drain time this works out to one reconfig every 10
 			// seconds on average within the window. (They could all happen in one burst.)
 			maxStaleReconfigs = 60
 		case usagePercent >= 50:
@@ -89,6 +102,7 @@ func updaterWithTicker(ctx context.Context, updates <-chan Update, getUsage Memo
 
 		staleReconfigs := len(updateTimes)
 
+		// Decide if we have enough capacity left to perform a reconfig.
 		if maxStaleReconfigs > 0 && staleReconfigs >= maxStaleReconfigs {
 			if !tick {
 				log.Warnf("Memory Usage: throttling reconfig %+v due to constrained memory with %d stale reconfigs (%d max)",
@@ -97,14 +111,18 @@ func updaterWithTicker(ctx context.Context, updates <-chan Update, getUsage Memo
 			continue
 		}
 
+		// This is just in case we get a timer tick before the first update actually arrives.
 		if !gotFirst {
 			continue
 		}
 
+		// This is going to do the actual work of pushing an update.
 		err := latest.Update()
 		if err != nil {
 			return err
 		}
+
+		// Since we just pushed an update, we add the current time to the set of update times.
 		updateTimes = append(updateTimes, now)
 		log.Infof("Pushing snapshot %+v", latest.Version)
 		pushed = true
