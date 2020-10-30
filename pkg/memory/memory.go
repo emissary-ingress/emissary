@@ -145,7 +145,7 @@ func (m *MemoryUsage) Refresh() {
 var unlimited memory = (memory(math.MaxInt64) / memory(os.Getpagesize())) * memory(os.Getpagesize())
 
 // Pretty print a summary of memory usage suitable for logging.
-func (m MemoryUsage) String() string {
+func (m *MemoryUsage) String() string {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
@@ -182,13 +182,13 @@ func (pu ProcessUsage) String() string {
 }
 
 // The MemoryUsage.PercentUsed method returns memory usage as a percentage of memory limit.
-func (m MemoryUsage) PercentUsed() int {
+func (m *MemoryUsage) PercentUsed() int {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	return m.percentUsed()
 }
 
-func (m MemoryUsage) percentUsed() int {
+func (m *MemoryUsage) percentUsed() int {
 	return int(float64(m.usage) / float64(m.limit) * 100)
 }
 
