@@ -66,11 +66,11 @@ func updaterWithTicker(ctx context.Context, updates <-chan Update, getUsage Memo
 			// configs.
 			maxStaleReconfigs = 1
 		case usagePercent >= 80:
-			// With the default 10 minute drain time this works out to one reconfigs every 10
+			// With the default 10 minute drain time this works out to one reconfigs every 40
 			// seconds on average within the window. (They could all happen in one burst.)
 			maxStaleReconfigs = 15
 		case usagePercent >= 70:
-			// With the default 10 minute drain time this works out to one reconfigs every 10
+			// With the default 10 minute drain time this works out to one reconfigs every 20
 			// seconds on average within the window. (They could all happen in one burst.)
 			maxStaleReconfigs = 30
 		case usagePercent >= 60:
