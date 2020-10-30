@@ -2,7 +2,9 @@ package entrypoint
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -75,15 +77,34 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) {
 	// the magic catchall path.
 	sm.HandleFunc("/", reverseProxy.ServeHTTP)
 
+	// Create a listener by hand, so that we can listen on TCP v4. If we don't
+	// explicitly say "tcp4" here, we seem to listen _only_ on v6, and Bad Things
+	// Happen.
+	//
+	// XXX Why, exactly, is this? That's a lovely question -- we _should_ be OK
+	// here on a proper dualstack system, but apparently we don't have a proper
+	// dualstack system? It's quite bizarre, but Kubernetes won't become ready
+	// without this.
+	//
+	// XXX In fact, should we set up another Listener for v6??
+	listener, err := net.Listen("tcp4", ":8877")
+
+	if err != nil {
+		// Uh whut. This REALLY should not be possible -- we should be cranking
+		// up at boot time and nothing, but nothing, should already be bound on
+		// port 8877.
+		panic(fmt.Errorf("could not listen on TCP port 8877: %v", err))
+	}
+
 	s := &http.Server{
-		Addr:    "0.0.0.0:8877",
+		Addr:    ":8877",
 		Handler: sm,
 	}
 
 	// Given that, all that's left is to fire up a server using our
 	// router.
 	go func() {
-		log.Println(s.ListenAndServe())
+		log.Fatal(s.Serve(listener))
 	}()
 
 	// ...then wait for a shutdown signal.
@@ -92,7 +113,7 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) {
 	tctx, tcancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer tcancel()
 
-	err := s.Shutdown(tctx)
+	err = s.Shutdown(tctx)
 
 	if err != nil {
 		panic(err)
