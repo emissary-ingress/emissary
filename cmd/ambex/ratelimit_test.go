@@ -3,6 +3,7 @@ package ambex
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -15,32 +16,56 @@ type harness struct {
 	version         int         // for generating versions
 	updates         chan Update // we push versions here
 	pushed          chan int    // versions that are pushed end up here
-	usage           int         // simulated memory usage
-	clock           time.Time   // current simulated time
 	expectedVersion int
+
+	mutex sync.Mutex // to proect the clock and usage
+	usage int        // simulated memory usage
+	clock time.Time  // current simulated time
 }
 
 var drainTime = 10 * time.Minute
 
 func newHarness(t *testing.T) *harness {
 	C := make(chan time.Time)
-	h := &harness{t, C, 0, make(chan Update), make(chan int, 10000), 0, time.Now(), 1}
-	go updaterWithTicker(context.Background(), h.updates, func() int { return h.usage }, drainTime,
-		&time.Ticker{C: C}, func() time.Time { return h.clock })
+	h := &harness{t, C, 0, make(chan Update), make(chan int, 10000), 1, sync.Mutex{}, 0, time.Now()}
+	go updaterWithTicker(context.Background(), h.updates, h.getUsage, drainTime, &time.Ticker{C: C}, h.time)
 	return h
+}
+
+func (h *harness) advance(d time.Duration) time.Time {
+	h.mutex.Lock()
+	result := h.clock.Add(d)
+	h.clock = result
+	h.mutex.Unlock()
+	return result
+}
+
+func (h *harness) time() time.Time {
+	return h.advance(0)
+}
+
+func (h *harness) getUsage() int {
+	h.mutex.Lock()
+	defer h.mutex.Unlock()
+	return h.usage
+}
+
+func (h *harness) setUsage(u int) {
+	h.mutex.Lock()
+	defer h.mutex.Unlock()
+	h.usage = u
 }
 
 // Simulate a timer tick after the given duration.
 func (h *harness) tick(d time.Duration) {
-	h.clock = h.clock.Add(d)
-	h.C <- h.clock
+	h.C <- h.advance(d)
 }
 
 // Simulate an update with the specified version after the specified duration.
 func (h *harness) update(d time.Duration) int {
 	h.version++
 	version := h.version
-	h.clock = h.clock.Add(d)
+	h.advance(d)
 	h.updates <- Update{fmt.Sprintf("%d", version), func() error {
 		h.pushed <- version
 		return nil
@@ -108,7 +133,7 @@ func TestHappyPath(t *testing.T) {
 func TestConstrained(t *testing.T) {
 	h := newHarness(t)
 
-	h.usage = 50
+	h.setUsage(50)
 	for i := 0; i < 1000; i++ {
 		h.update(0)
 	}
@@ -118,7 +143,7 @@ func TestConstrained(t *testing.T) {
 	h.tick(drainTime)
 	h.expectExact(1000)
 
-	h.usage = 60
+	h.setUsage(60)
 	for i := 0; i < 1000; i++ {
 		h.update(0)
 	}
@@ -128,7 +153,7 @@ func TestConstrained(t *testing.T) {
 	h.tick(drainTime)
 	h.expectExact(2000)
 
-	h.usage = 70
+	h.setUsage(70)
 	for i := 0; i < 1000; i++ {
 		h.update(0)
 	}
@@ -138,7 +163,7 @@ func TestConstrained(t *testing.T) {
 	h.tick(drainTime)
 	h.expectExact(3000)
 
-	h.usage = 80
+	h.setUsage(80)
 	for i := 0; i < 1000; i++ {
 		h.update(0)
 	}
@@ -148,7 +173,7 @@ func TestConstrained(t *testing.T) {
 	h.tick(drainTime)
 	h.expectExact(4000)
 
-	h.usage = 90
+	h.setUsage(90)
 	for i := 0; i < 1000; i++ {
 		h.update(0)
 	}
@@ -159,7 +184,7 @@ func TestConstrained(t *testing.T) {
 	h.expectExact(5000)
 
 	// Check that we go back to passing through everything when usage drops again.
-	h.usage = 25
+	h.setUsage(25)
 	for i := 0; i < 1000; i++ {
 		h.update(0)
 	}
