@@ -26,7 +26,6 @@ gitpython==3.1.7          # via -r requirements.in
 google-auth==1.20.0       # via kubernetes
 gunicorn==20.0.4          # via -r requirements.in
 idna==2.7                 # via requests
-importlib-metadata==1.7.0  # via jsonschema, pluggy, pytest
 iniconfig==1.0.1          # via pytest
 itsdangerous==1.1.0       # via flask
 jinja2==2.11.2            # via -r requirements.in, flask
@@ -74,7 +73,6 @@ typing-extensions==3.7.4.2  # via mypy
 urllib3==1.24.3           # via kubernetes, requests
 websocket-client==0.57.0  # via kubernetes
 werkzeug==1.0.1           # via flask
-zipp==3.1.0               # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 setuptools==49.2.1        # via google-auth, gunicorn, jsonschema, kubernetes, protobuf

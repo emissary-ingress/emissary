@@ -27,7 +27,8 @@ commands:
     # setup
     - amb-linux-install
     - amb-checkout
-    # We might need to be logged in the registry to pull the Envoy image
+    # We might need to be logged in the registry to pull the Envoy
+    # image or the builder-base image.
     - amb-config-registry
     - # main
       run: make generate
@@ -41,6 +42,9 @@ commands:
     # setup
     - amb-linux-install
     - amb-checkout
+    # We might need to be logged in the registry to pull the
+    # builder-base image.
+    - amb-config-registry
     - # main
       run: make lint
   "job-images":
