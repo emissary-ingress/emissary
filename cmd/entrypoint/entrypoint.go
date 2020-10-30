@@ -127,7 +127,7 @@ func Main() {
 		if err != nil {
 			panic(err)
 		}
-		ambex.MainContext(ctx)
+		ambex.MainContext(ctx, usage.PercentUsed)
 	})
 
 	group.Go("envoy", func(ctx context.Context) { runEnvoy(ctx, envoyHUP) })

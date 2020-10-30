@@ -65,6 +65,7 @@ import (
 	ctypes "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v2"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/server/v2"
+	"github.com/datawire/ambassador/pkg/memory"
 
 	// envoy protobuf -- Be sure to import the package of any types that the Python
 	// emits a "@type" of in the generated config, even if that package is otherwise
@@ -239,7 +240,7 @@ func Clone(src proto.Message) proto.Message {
 	return dst
 }
 
-func update(config cache.SnapshotCache, generation *int, dirs []string) {
+func update(ctx context.Context, config cache.SnapshotCache, generation *int, dirs []string, updates chan<- Update) {
 	clusters := []ctypes.Resource{}  // v2.Cluster
 	endpoints := []ctypes.Resource{} // v2.ClusterLoadAssignment
 	routes := []ctypes.Resource{}    // v2.RouteConfiguration
@@ -312,14 +313,17 @@ func update(config cache.SnapshotCache, generation *int, dirs []string) {
 	if err != nil {
 		log.Errorf("Snapshot inconsistency: %+v", snapshot)
 	} else {
-		err = config.SetSnapshot("test-id", snapshot)
-	}
-
-	if err != nil {
-		log.Panicf("Snapshot error %q for %+v", err, snapshot)
-	} else {
-		// log.Infof("Snapshot %+v", snapshot)
-		log.Infof("Pushing snapshot %+v", version)
+		select {
+		case updates <- Update{version, func() error {
+			err := config.SetSnapshot("test-id", snapshot)
+			if err != nil {
+				return fmt.Errorf("Snapshot error %q for %+v", err, snapshot)
+			} else {
+				return nil
+			}
+		}}:
+		case <-ctx.Done():
+		}
 	}
 }
 
@@ -366,10 +370,13 @@ func (l logger) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryRespo
 }
 
 func Main() {
-	MainContext(context.Background())
+	ctx := context.Background()
+	usage := memory.GetMemoryUsage()
+	go usage.Watch(ctx)
+	MainContext(ctx, usage.PercentUsed)
 }
 
-func MainContext(parent context.Context) {
+func MainContext(parent context.Context, getUsage MemoryGetter) {
 	if !flag.Parsed() {
 		flag.Parse()
 	}
@@ -420,8 +427,20 @@ func MainContext(parent context.Context) {
 		log.WithFields(logrus.Fields{"pid": pid, "file": file}).Info("Wrote PID")
 	}
 
+	updates := make(chan Update)
+	envoyUpdaterDone := make(chan struct{})
+	go func() {
+		defer close(envoyUpdaterDone)
+		err := Updater(ctx, updates, getUsage)
+		if err != nil {
+			// Panic will get reported more usefully by entrypoint.go's exit code than logging the
+			// error.
+			panic(err)
+		}
+	}()
+
 	generation := 0
-	update(config, &generation, dirs)
+	update(ctx, config, &generation, dirs, updates)
 
 OUTER:
 	for {
@@ -430,12 +449,12 @@ OUTER:
 		case sig := <-ch:
 			switch sig {
 			case syscall.SIGHUP:
-				update(config, &generation, dirs)
+				update(ctx, config, &generation, dirs, updates)
 			case os.Interrupt, syscall.SIGTERM:
 				break OUTER
 			}
 		case <-watcher.Events:
-			update(config, &generation, dirs)
+			update(ctx, config, &generation, dirs, updates)
 		case err := <-watcher.Errors:
 			log.WithError(err).Warn("Watcher error")
 		case <-parent.Done():
@@ -444,5 +463,6 @@ OUTER:
 
 	}
 
+	<-envoyUpdaterDone
 	log.Info("Done")
 }
