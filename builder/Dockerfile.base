@@ -16,7 +16,7 @@
 
 # This argument controls the base image that is used for our build
 # container.
-ARG builderbase_stage0="frolvlad/alpine-glibc:alpine-3.10"
+ARG builderbase_stage0="docker.io/frolvlad/alpine-glibc:alpine-3.12_glibc-2.32"
 ARG builderbase_stage1="builderbase-stage1"
 
 ########################################
@@ -47,6 +47,8 @@ RUN apk --no-cache add \
     npm \
     openssh-client \
     openssl-dev \
+    py3-pip \
+    py3-pip-bash-completion \
     python3 \
     python3-dev \
     rsync \

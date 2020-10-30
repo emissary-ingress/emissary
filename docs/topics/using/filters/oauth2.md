@@ -57,6 +57,24 @@ spec:
     # are "AuthorizationCode", "Password", and "ClientCredentials".
     grantType:              "enum"     # optional; default is "AuthorizationCode"
 
+    # How should Ambassador authenticate itself to the identity provider?
+    clientAuthentication:              # optional
+      method: "enum"                     # optional; default is "HeaderPassword"
+      jwtAssertion:                      # optional if method method=="JWTAssertion"; forbidden otherwise
+        setClientID:     bool              # optional; default is false
+        # the following members of jwtAssertion only apply when the
+        # grantType is NOT "ClientCredentials".
+        audience:        "string"          # optional; default is to use the token endpoint from the authorization URL
+        signingMethod:   "enum"            # optional; default is "RS256"
+        lifetime:        "duration"        # optional; default is "1m"
+        setNBF:          bool              # optional; default is false
+        nbfSafetyMargin: "duration"        # optional; default is 0s
+        setIAT:          bool              # optional; default is false
+        otherClaims:                       # optional; default is {}
+          "string": anything
+        otherHeaderParameters:             # optional; default is {}
+          "string": anything
+
     ## OAuth Client settings: grantType=="AuthorizationCode" ###################
     clientURL:              "string"   # deprecated; use 'protectedOrigins' instead
     protectedOrigins:                  # required; must have at least 1 item
@@ -64,7 +82,7 @@ spec:
       internalOrigin: "url"              # optional; default is to just use the 'origin' field
       includeSubdomains: bool            # optional; default is false
     useSessionCookies:                 # optional; default is { value: false }
-      value: bool                        # optional: default is true
+      value: bool                        # optional; default is true
       ifRequestHeader:                   # optional; default to apply "useSessionCookies.value" to all requests
         name: "string"                     # required
         negate: bool                       # optional; default is false
@@ -119,16 +137,92 @@ These settings configure the OAuth Client part of the filter.
 
  - `grantType`: Which type of OAuth 2.0 authorization grant to request from the identity provider.  Currently supported are:
    * `"AuthorizationCode"`: Authenticate by redirecting to a login page served by the identity provider.
-   * `"ClientCredentials"`: Authenticate by requiring `X-Ambassador-Client-ID` and `X-Ambassador-Client-Secret` HTTP headers on incoming requests, and using them to authenticate to the identity provider.  Support for the `ClientCredentials` is currently preliminary, and only goes through limited testing.
+
+   * `"ClientCredentials"`: Authenticate by requiring that the
+     incoming HTTP request include as headers the credentials for
+     Ambassador to use to authenticate to the identity provider.
+
+     The type of credentials needing to be submitted depends on the
+     `clientAuthentication.method` (below):
+     + For `"HeaderPassword"` and `"BodyPassword"`, the headers
+       `X-Ambassador-Client-ID` and `X-Ambassador-Client-Secret` must
+       be set.
+     + For `"JWTAssertion"`, the `X-Ambassador-Client-Assertion`
+       header must be set to a JWT that is signed by your client
+       secret, and conforms with the requirements in RFC 7521 section
+       5.2 and RFC 7523 section 3, as well as any additional specified
+       by your identity provider.
+
    * `"Password"`: Authenticate by requiring `X-Ambassador-Username` and `X-Ambassador-Password` on all
      incoming requests, and use them to authenticate with the identity provider using the OAuth2
      `Resource Owner Password Credentials` grant type.
+
  - `expirationSafetyMargin`: Check that access tokens not expire for
    at least this much longer; otherwise consider them to be already
    expired.  This provides a safety margin of time for your
    application to send it to an upstream Resource Server that grants
    insufficient leeway to account for clock skew and
    network/application latency.
+
+ - `clientAuthentication`: Configures how Ambassador uses the
+   `clientID` and `secret` to authenticate itself to the identity
+   provider:
+   * `method`: Which method Ambassador should use to authenticate
+     itself to the identity provider.  Currently supported are:
+     + `"HeaderPassword"`: Treat the client secret (below) as a
+       password, and pack that in to an HTTP header for HTTP Basic
+       authentication.
+     + `"BodyPassword"`: Treat the client secret (below) as a
+       password, and put that in the HTTP request bodies submitted to
+       the identity provider.  This is NOT RECOMMENDED by RFC 6749,
+       and should only be used when using HeaderPassword isn't
+       possible.
+     + `"JWTAssertion"`: Treat the client secret (below) as a
+       password, and put that in the HTTP request bodies submitted to
+       the identity provider.  This is NOT RECOMMENDED by RFC 6749,
+       and should only be used when using HeaderPassword isn't
+       possible.
+   * `jwtAssertion`: Settings to use when `method: "JWTAssertion"`.
+     + `setClientID`: Whether to set the Client ID as an HTTP
+       parameter; setting it as an HTTP parameter is optional (per RFC
+       7521 §4.2) because the Client ID is also contained in the JWT
+       itself, but some identity providers document that they require
+       it to also be set as an HTTP parameter anyway.
+     + `audience` (only when `grantType` is not
+       `"ClientCredentials"`): The audience value that your identity
+       provider requires.
+     + `signingMethod` (only when `grantType` is not
+       `"ClientCredentials"`): The method to use to sign the JWT; how
+       to interpret the `secret` (below).  Supported values are:
+       - RSA: `"RS256"`, `"RS384"`, `"RS512"`: The secret must be a
+         PEM-encoded RSA private key.
+       - RSA-PSS: `"PS256"`, `"PS384"`, `"PS512"`: The secret must be
+         a PEM-encoded RSA private key.
+       - ECDSA: `"ES256"`, `"ES384"`, `"ES512"`: The secret must be a
+         PEM-encoded Eliptic Curve private key.
+       - HMAC-SHA: `"HS256"`, `"HS384"`, `"HS512"`: The secret is a
+         raw string of bytes; it can contain anything.
+     + `lifetime` (only when `grantType` is not
+       `"ClientCredentials"`): The lifetime of the generated JWT; just
+       enough time for the request to the identity provider to
+       complete (plus possibly an extra allowance for clock skew).
+     + `setNBF` (only when `grantType` is not `"ClientCredentials"`):
+       Whether to set the optional "nbf" ("Not Before") claim in the
+       generated JWT.
+     + `nbfSafetyMargin` (only `setNBF` is true): The safety margin to
+       build-in to the "nbf" claim, to allow for clock skew between
+       ambassador and the identity provider.
+     + `setIAT` (only when `grantType` is not `"ClientCredentials"`):
+       Whether to set the optional "iat" ("Issued At") claim in the
+       generated JWT.
+     + `otherClaims` (only when `grantType` is not
+       `"ClientCredentials"`): Any extra non-standard claims to
+       include in the generated JWT.
+     + `otherHeaderParameters` (only when `grantType` is not
+       `"ClientCredentials"`): Any extra JWT header parameters to
+       include in the generated JWT non-standard claims to include in
+       the generated JWT; only the "typ" and "alg" header parameters
+       are set by default.
 
 Depending on which `grantType` is used, different settings exist.
 
@@ -156,7 +250,7 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
    <!-- If you're looking at the above sentence and thinking "that's
    not correct!" (as I was): Yes, it's a lie that you need to register
    each one; you only need to register the first one, but support has
-   he strong opinion that it's much simpler to just tell people
+   the strong opinion that it's much simpler to just tell people
    register all of them.  Plus that gives us more flexibility for
    future changes.  So leave the lie.  -->
 
@@ -263,7 +357,14 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
      + By default: It accepts the RS256, RS384, or RS512 signature algorithms, and validates the signature against the JWKS from OIDC Discovery.  It then validates the `exp`, `iat`, `nbf`, `iss` (with the Issuer from OIDC Discovery), and `scope` claims: if present, none of the scopes are required to be present.  This relies on the identity provider using non-encrypted signed JWTs as Access Tokens, and configuring the signing appropriately
      + This behavior can be modified by delegating to [`JWT` Filter](#filter-type-jwt) with `accessTokenJWTFilter`. The arguments are the same as the arguments when referring to a JWT Filter from a FilterPolicy.
    * `"userinfo"`: Validates the access token by polling the OIDC UserInfo Endpoint. This means that the Ambassador Edge Stack must initiate an HTTP request to the identity provider for each authorized request to a protected resource.  This performs poorly, but functions properly with a wider range of identity providers.  It is not valid to set `accessTokenJWTFilter` if `accessTokenValidation: userinfo`.
-   * `"auto"` attempts to do `"jwt"` validation if `accessTokenJWTFilter` is set or if the Access Token parses as a JWT and the signature is valid, and otherwise falls back to `"userinfo"` validation.
+   * `"auto"` attempts to do `"jwt"` validation if any of these
+     conditions are true:
+
+     + `accessTokenJWTFilter` is set, or
+     + `grantType` is `"ClientCredentials"`, or
+     + the Access Token parses as a JWT and the signature is valid,
+
+     and otherwise falls back to `"userinfo"` validation.
 
 [RE2]: https://github.com/google/re2/wiki/Syntax
 [`regex_type` in the `ambassador Module`]: ../../../running/ambassador/#regular-expressions-regex_type
