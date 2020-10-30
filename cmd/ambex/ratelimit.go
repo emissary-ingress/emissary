@@ -8,7 +8,7 @@ import (
 )
 
 // An Update encapsulates everything needed to perform an update (of envoy configuration). The
-// version string is for logging purposes, the Updator thunk does the actual work of updating.
+// version string is for logging purposes, the Updator func does the actual work of updating.
 type Update struct {
 	Version string
 	Update  func() error
