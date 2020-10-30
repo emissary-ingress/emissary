@@ -63,6 +63,11 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) {
 		Director: func(req *http.Request) {
 			req.URL.Scheme = diagdOrigin.Scheme
 			req.URL.Host = diagdOrigin.Host
+
+			// If this request is coming from localhost, tell diagd about that.
+			if acp.HostPortIsLocal(req.RemoteAddr) {
+				req.Header.Set("X-Ambassador-Diag-IP", "127.0.0.1")
+			}
 		},
 	}
 

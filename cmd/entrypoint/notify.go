@@ -66,6 +66,27 @@ func notifyWebhookUrl(ctx context.Context, name, xurl string) bool {
 	if err != nil {
 		panic(err)
 	}
+
+	// As long as this notification is going to localhost, set the X-Ambassador-Diag-IP
+	// header for it. This is only used by diagd right now, but this is the easy way
+	// to deal with it.
+	parsedURL, err := url.Parse(xurl)
+
+	if err != nil {
+		// This is "impossible" in that it's a blatant programming error, not
+		// an error caused by the user. Panic.
+		panic(fmt.Errorf("bad URL passed to notifyWebhookUrl: '%s', %v", xurl, err))
+	}
+
+	// OK, the URL parsed clean (as it *!&@*#& well should have!) so we can find
+	// out if it's going to localhost. We'll do this the strict way, since these
+	// URLs should be hardcoded.
+
+	if acp.HostPortIsLocal(fmt.Sprintf("%s:%s", parsedURL.Hostname(), parsedURL.Port())) {
+		// If we're speaking to localhost, we're speaking from localhost. Hit it.
+		req.Header.Set("X-Ambassador-Diag-IP", "127.0.0.1")
+	}
+
 	req.Header.Set("content-type", "application/json")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
