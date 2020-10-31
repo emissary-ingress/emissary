@@ -27,7 +27,14 @@ func handleCheckAlive(ctx context.Context, w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func handleCheckReady(_ context.Context, w http.ResponseWriter, r *http.Request, ambwatch *acp.AmbassadorWatcher) {
+func handleCheckReady(ctx context.Context, w http.ResponseWriter, r *http.Request, ambwatch *acp.AmbassadorWatcher) {
+	// The readiness check needs to explicitly try to talk to Envoy, too. Why?
+	// Because if you have a pod configured with only the readiness check but
+	// not the liveness check, and we don't try to talk to Envoy here, then we
+	// will never ever attempt to talk to Envoy at all, Envoy will never be
+	// declared alive, and we'll never consider Ambassador ready.
+	ambwatch.FetchEnvoyStats(ctx)
+
 	ok := ambwatch.IsReady()
 
 	if ok {
