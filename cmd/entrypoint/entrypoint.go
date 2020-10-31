@@ -16,6 +16,7 @@ import (
 
 	"github.com/datawire/ambassador/cmd/ambex"
 	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/pkg/memory"
 
 	"github.com/google/uuid"
 )
@@ -118,12 +119,15 @@ func Main() {
 		logExecError("diagd", err)
 	})
 
+	usage := memory.GetMemoryUsage()
+	group.Go("memory", usage.Watch)
+
 	group.Go("ambex", func(ctx context.Context) {
 		err := flag.CommandLine.Parse([]string{"--ads-listen-address", "127.0.0.1:8003", GetEnvoyDir()})
 		if err != nil {
 			panic(err)
 		}
-		ambex.MainContext(ctx)
+		ambex.MainContext(ctx, usage.PercentUsed)
 	})
 
 	group.Go("envoy", func(ctx context.Context) { runEnvoy(ctx, envoyHUP) })
@@ -135,7 +139,6 @@ func Main() {
 	group.Go("watcher", func(ctx context.Context) {
 		watcher(ctx, snapshot)
 	})
-	group.Go("memory", watchMemory)
 
 	// Launch every file in the sidecar directory. Note that this is "bug compatible" with
 	// entrypoint.sh for now, e.g. we don't check execute bits or anything like that.
