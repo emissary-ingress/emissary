@@ -85,6 +85,9 @@ import (
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/network/tcp_proxy/v2"
 	discovery "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v2"
+
+	// envoy protobuf v3
+	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/response_map/v3"
 )
 
 const (

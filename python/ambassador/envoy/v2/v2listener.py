@@ -22,6 +22,7 @@ import logging
 from multi import multi
 from ...ir.irlistener import IRListener
 from ...ir.irauth import IRAuth
+from ...ir.irerrorresponse import IRErrorResponse
 from ...ir.irbuffer import IRBuffer
 from ...ir.irgzip import IRGzip
 from ...ir.irfilter import IRFilter
@@ -408,6 +409,32 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
     # If here, something's gone horribly wrong.
     auth.post_error("Protocol '%s' is not supported, auth not enabled" % auth.proto)
     return None
+
+
+@v2filter.when("IRErrorResponse")
+def v2filter_error_response(error_response: IRErrorResponse, v2config: 'V2Config'):
+    del v2config  # silence unused-variable warning
+
+    config = error_response.config
+    if not config or 'mappers' not in config or len(config['mappers']) == 0:
+        # Mappers are required, otherwise this error response config has nothing to do.
+        error_response.post_error('ErrorResponse config has no mappers, cannot configure.')
+        return None
+
+    filter_config = {
+        # The IRErrorResponse filter builds on the 'envoy.filters.http.response_map' filter.
+        'name': 'envoy.filters.http.response_map',
+        'typed_config': {
+            '@type': 'type.googleapis.com/envoy.extensions.filters.http.response_map.v3.ResponseMap',
+            # The response map filter supports an array of mappers for matching as well
+            # as default actions to take if there are no overrides on a mapper. We do
+            # not take advantage of any default actions, and instead ensure that all of
+            # the mappers we generate contain some action (eg: body_format_override).
+            'mappers': config['mappers']
+        }
+    }
+
+    return filter_config
 
 
 @v2filter.when("IRRateLimit")

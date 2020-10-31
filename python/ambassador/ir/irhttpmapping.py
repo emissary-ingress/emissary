@@ -58,11 +58,11 @@ class IRHTTPMapping (IRBaseMapping):
 
     # Keys that are present in AllowedKeys are allowed to be set from kwargs.
     # If the value is True, we'll look for a default in the Ambassador module
-    # if the key is missing. If the value is False, a missing key will simply 
+    # if the key is missing. If the value is False, a missing key will simply
     # be unset.
     #
     # Do not include any named parameters (like 'precedence' or 'rewrite').
-    #  
+    #
     # Any key here will be copied into the mapping. Keys where the only
     # processing is to set something else (like 'host' and 'method', whose
     # which only need to set the ':authority' and ':method' headers) must
@@ -75,6 +75,7 @@ class IRHTTPMapping (IRBaseMapping):
         # Do not include add_request_headers and add_response_headers
         "auto_host_rewrite": False,
         "bypass_auth": False,
+        "bypass_error_response_overrides": False,
         "case_sensitive": False,
         "circuit_breakers": False,
         "cluster_idle_timeout_ms": False,
@@ -141,7 +142,7 @@ class IRHTTPMapping (IRBaseMapping):
         # AllowedKeys. The point of AllowedKeys is this loop below.
 
         new_args = {}
-        
+
         # When we look up defaults, use lookup class "httpmapping"... and yeah, we need the
         # IR, too.
         self.default_class = "httpmapping"
@@ -154,7 +155,7 @@ class IRHTTPMapping (IRBaseMapping):
                 value = kwargs[key]
                 new_args[key] = value
             elif check_defaults:
-                # No value in kwargs, but we're allowed to check defaults for it. 
+                # No value in kwargs, but we're allowed to check defaults for it.
                 value = self.lookup_default(key)
 
                 if value is not None:
