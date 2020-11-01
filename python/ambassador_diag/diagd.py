@@ -147,7 +147,7 @@ class DiagApp (Flask):
               config_path: Optional[str], ambex_pid: int, kick: Optional[str], banner_endpoint: Optional[str],
               metrics_endpoint: Optional[str], k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False,
               verbose=False, notices=None, validation_retries=5, allow_fs_commands=False, local_scout=False,
-              report_action_keys=False):
+              report_action_keys=False, enable_fast_reconfigure=False):
         self.health_checks = do_checks
         self.no_envoy = no_envoy
         self.debugging = reload
@@ -163,6 +163,7 @@ class DiagApp (Flask):
         self.banner_endpoint = banner_endpoint
         self.metrics_endpoint = metrics_endpoint
         self.metrics_registry = CollectorRegistry(auto_describe=True)
+        self.enable_fast_reconfigure = enable_fast_reconfigure
 
         # This feels like overkill.
         self.logger = logging.getLogger("ambassador.diagd")
@@ -179,7 +180,7 @@ class DiagApp (Flask):
         self.kick = kick
 
         # Initialize the cache if we're allowed to.
-        if os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "false").lower() == "true":
+        if self.enable_fast_reconfigure:
             self.logger.info("AMBASSADOR_FAST_RECONFIGURE enabled, initializing cache")
             self.cache = Cache(self.logger)
         else:
@@ -580,19 +581,8 @@ def standard_handler(f):
 
 def internal_handler(f):
     """
-    Reject requests where the remote address is not localhost.
-
-    This works because of an implementation detail of Flask (Werkzeug), the
-    existence of the REMOTE_ADDR environment variable. This may not work as
-    intended on other WSGI implementations, though if the environment variable
-    is missing entirely, the effect is to fail closed, i.e. all requests will
-    be rejected, in which case the problem will become apparent very quickly.
-
-    For a somewhat more portable implementation, consider using the environment
-    variables SERVER_NAME and SERVER_PORT instead, as those are required by
-    WSGI. It's not clear (to me, ark3) what they mean, and relying on what they
-    do in Flask/Werkzeug yielded a worse implementation that was still not
-    portable.
+    Reject requests where the remote address is not localhost. See the docstring
+    for _is_local_request() for important caveats!
     """
     func_name = getattr(f, '__name__', '<anonymous>')
 
@@ -610,9 +600,33 @@ def internal_handler(f):
 
 def _is_local_request() -> bool:
     """
-    See the docstring for internal_handler(...) for important caveats.
+    Determine if this request originated with localhost.
+
+    When FAST_RECONFIGURE is enabled, we rely on healthcheck_server.go setting the
+    X-Ambassador-Diag-IP header for us (and we rely on it overwriting anything that's
+    already there!).
+
+    When FAST_RECONFIGURE is not enabled, we rely on an implementation detail of
+    Flask (or maybe of GUnicorn?): the existence of the REMOTE_ADDR environment 
+    variable. This may not work as intended on other WSGI implementations, though if
+    the environment variable is missing entirely, the effect is to fail closed, i.e.
+    all requests will be rejected, in which case the problem will become apparent
+    very quickly.
+
+    It might be possible to consider the environment variables SERVER_NAME and 
+    SERVER_PORT instead, as those are allegedly required by WSGI... but attempting 
+    to do so in Flask/GUnicorn yielded a worse implementation that was still not
+    portable.
     """
-    return request.environ.get("REMOTE_ADDR") == "127.0.0.1"
+
+    remote_addr: Optional[str] = ""
+
+    if app.enable_fast_reconfigure:
+        remote_addr = request.headers.get("X-Ambassador-Diag-IP")
+    else:
+        remote_addr = request.environ.get("REMOTE_ADDR")
+        
+    return remote_addr == "127.0.0.1"
 
 
 class Notices:
@@ -2028,7 +2042,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
           *, dev_magic=False, config_path=None, ambex_pid=0, kick=None,
           banner_endpoint="http://127.0.0.1:8500/banner", metrics_endpoint="http://127.0.0.1:8500/metrics", k8s=False,
           no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
-          workers=None, port=Constants.DIAG_PORT, host='0.0.0.0', notices=None,
+          workers=None, port=-1, host="", notices=None,
           validation_retries=5, allow_fs_commands=False, local_scout=False,
           report_action_keys=False):
     """
@@ -2059,6 +2073,15 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     :param report_action_keys: Report action keys when chiming
     """
 
+    enable_fast_reconfigure = (os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "false").lower() == "true")
+
+    if port < 0:
+        port = Constants.DIAG_PORT if not enable_fast_reconfigure else Constants.DIAG_PORT_ALT
+        # port = Constants.DIAG_PORT
+
+    if not host:
+        host = '0.0.0.0' if not enable_fast_reconfigure else '127.0.0.1'
+
     if dev_magic:
         # Override the world.
         os.environ['SCOUT_HOST'] = '127.0.0.1:9999'
@@ -2085,7 +2108,8 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     # Create the application itself.
     app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick, banner_endpoint,
               metrics_endpoint, k8s, not no_checks, no_envoy, reload, debug, verbose, notices,
-              validation_retries, allow_fs_commands, local_scout, report_action_keys)
+              validation_retries, allow_fs_commands, local_scout, report_action_keys, 
+              enable_fast_reconfigure)
 
     if not workers:
         workers = number_of_workers()

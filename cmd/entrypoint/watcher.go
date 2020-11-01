@@ -9,11 +9,12 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"github.com/datawire/ambassador/pkg/acp"
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/watt"
 )
 
-func watcher(ctx context.Context, encoded *atomic.Value) {
+func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atomic.Value) {
 	crdYAML, err := ioutil.ReadFile(findCRDFilename())
 	if err != nil {
 		panic(err)
@@ -187,7 +188,7 @@ func watcher(ctx context.Context, encoded *atomic.Value) {
 			log.Println("Bootstrapped! Computing initial configuration...")
 			firstReconfig = false
 		}
-		notifyReconfigWebhooks(ctx)
+		notifyReconfigWebhooks(ctx, ambwatch)
 
 		// we really only need to be incremental for a subset of things:
 		//  - Mappings & Endpoints are the biggies
