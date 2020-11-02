@@ -366,9 +366,9 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
        signing appropriately
      + This behavior can be modified by delegating to [`JWT`
        Filter](#filter-type-jwt) with `accessTokenJWTFilter`:
-       - `name` and `namespace` are used identify which JWT Filter to
-         use.  It is an error to point at a Filter that is not a JWT
-         filter.
+       - `name` and `namespace` are used to identify which JWT Filter
+         to use.  It is an error to point at a Filter that is not a
+         JWT filter.
        - `arguments` is is the same as the `arguments` field when
          referring to a JWT Filter from a FilterPolicy.
        - `inheritScopeArgument` sets whether to inherit the `scope`
