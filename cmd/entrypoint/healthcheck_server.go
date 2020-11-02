@@ -13,9 +13,9 @@ import (
 	"github.com/datawire/ambassador/pkg/acp"
 )
 
-func handleCheckAlive(ctx context.Context, w http.ResponseWriter, r *http.Request, ambwatch *acp.AmbassadorWatcher) {
+func handleCheckAlive(w http.ResponseWriter, r *http.Request, ambwatch *acp.AmbassadorWatcher) {
 	// The liveness check needs to explicitly try to talk to Envoy...
-	ambwatch.FetchEnvoyStats(ctx)
+	ambwatch.FetchEnvoyStats(r.Context())
 
 	// ...then check if the watcher says we're alive.
 	ok := ambwatch.IsAlive()
@@ -27,13 +27,13 @@ func handleCheckAlive(ctx context.Context, w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func handleCheckReady(ctx context.Context, w http.ResponseWriter, r *http.Request, ambwatch *acp.AmbassadorWatcher) {
+func handleCheckReady(w http.ResponseWriter, r *http.Request, ambwatch *acp.AmbassadorWatcher) {
 	// The readiness check needs to explicitly try to talk to Envoy, too. Why?
 	// Because if you have a pod configured with only the readiness check but
 	// not the liveness check, and we don't try to talk to Envoy here, then we
 	// will never ever attempt to talk to Envoy at all, Envoy will never be
 	// declared alive, and we'll never consider Ambassador ready.
-	ambwatch.FetchEnvoyStats(ctx)
+	ambwatch.FetchEnvoyStats(r.Context())
 
 	ok := ambwatch.IsReady()
 
@@ -52,11 +52,11 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) {
 	// Handle the liveness check and the readiness check directly, by handing them
 	// off to our functions.
 	sm.HandleFunc("/ambassador/v0/check_alive", func(w http.ResponseWriter, r *http.Request) {
-		handleCheckAlive(ctx, w, r, ambwatch)
+		handleCheckAlive(w, r, ambwatch)
 	})
 
 	sm.HandleFunc("/ambassador/v0/check_ready", func(w http.ResponseWriter, r *http.Request) {
-		handleCheckReady(ctx, w, r, ambwatch)
+		handleCheckReady(w, r, ambwatch)
 	})
 
 	// For everything else, use a ReverseProxy to forward it to diagd.
