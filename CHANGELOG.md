@@ -59,6 +59,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 - Internal: Knative serving tests were bumped from version 0.11.0 to version 0.18.0
 - Upgrade Alpine 3.10→3.12, GNU libc 2.30→2.32, and Python 3.7→3.8
+- Feature: The `TracingService` Zipkin config now supports setting `collector_hostname` to tell Envoy which host header to set when sending spans to the collector.
 
 ## [1.8.1] October 16, 2020
 [1.8.1]: https://github.com/datawire/ambassador/compare/v1.8.0...v1.8.1
