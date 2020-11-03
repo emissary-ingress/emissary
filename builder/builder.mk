@@ -256,7 +256,15 @@ docker/snapshot.docker.stamp: %/snapshot.docker.stamp: %/container.txt FORCE com
 	  fi; \
 	}
 docker/base-envoy.docker.stamp: FORCE
-	@echo $(ENVOY_DOCKER_TAG) > $@
+	@set -e; { \
+	  if docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@ 2>/dev/null; then \
+	    printf "${CYN}==> ${GRN}Base Envoy image is already pulled${END}\n"; \
+	  else \
+	    printf "${CYN}==> ${GRN}Pulling base Envoy image${END}\n"; \
+	    docker pull $(ENVOY_DOCKER_TAG); \
+	    docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@; \
+	  fi; \
+	}
 docker/$(NAME).docker.stamp: %/$(NAME).docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
 	@set -e; { \
 	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
