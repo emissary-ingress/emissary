@@ -661,6 +661,18 @@ func (m *Http1ProtocolOptions_HeaderKeyFormat) Validate() error {
 			}
 		}
 
+	case *Http1ProtocolOptions_HeaderKeyFormat_Custom_:
+
+		if v, ok := interface{}(m.GetCustom()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return Http1ProtocolOptions_HeaderKeyFormatValidationError{
+					field:  "Custom",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		return Http1ProtocolOptions_HeaderKeyFormatValidationError{
 			field:  "HeaderFormat",
@@ -804,6 +816,76 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWordsValidationError{}
+
+// Validate checks the field values on
+// Http1ProtocolOptions_HeaderKeyFormat_Custom with the rules defined in the
+// proto definition for this message. If any rules are violated, an error is returned.
+func (m *Http1ProtocolOptions_HeaderKeyFormat_Custom) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Rules
+
+	return nil
+}
+
+// Http1ProtocolOptions_HeaderKeyFormat_CustomValidationError is the validation
+// error returned by Http1ProtocolOptions_HeaderKeyFormat_Custom.Validate if
+// the designated constraints aren't met.
+type Http1ProtocolOptions_HeaderKeyFormat_CustomValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e Http1ProtocolOptions_HeaderKeyFormat_CustomValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e Http1ProtocolOptions_HeaderKeyFormat_CustomValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e Http1ProtocolOptions_HeaderKeyFormat_CustomValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e Http1ProtocolOptions_HeaderKeyFormat_CustomValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e Http1ProtocolOptions_HeaderKeyFormat_CustomValidationError) ErrorName() string {
+	return "Http1ProtocolOptions_HeaderKeyFormat_CustomValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e Http1ProtocolOptions_HeaderKeyFormat_CustomValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sHttp1ProtocolOptions_HeaderKeyFormat_Custom.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = Http1ProtocolOptions_HeaderKeyFormat_CustomValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = Http1ProtocolOptions_HeaderKeyFormat_CustomValidationError{}
 
 // Validate checks the field values on Http2ProtocolOptions_SettingsParameter
 // with the rules defined in the proto definition for this message. If any
