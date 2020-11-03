@@ -3,7 +3,7 @@
 1. Create an OIDC application
 
    **Note:** If you have a [standard Okta account](https://www.okta.com) you must first navigate to your Okta Org's admin portal (step 1). [Developer accounts](https://developer.okta.com) can skip to Step 2.
-   
+
    - Go to your org and click `Admin` in the top right corner to access the admin portal
    - Select `Applications`
    - Select `Add Application`
@@ -55,9 +55,10 @@ Configure your OAuth `Filter` and `FilterPolicy` with the following:
          filters:
            - name: okta-filter ## Enter the Filter name from above
              arguments:
-               scopes:
+               scope:
                - "openid"
                - "profile"
    ```
 
-**Note:** Scopes `openid` and `profile` are required at a minimum. Other scopes can be added to the `Authorization Server`
+**Note:** Scope values `openid` and `profile` are required at a
+minimum. Other scope values can be added to the `Authorization Server`.

@@ -59,9 +59,9 @@ spec:
       filters:
         - name: auth-filter ## Enter the Filter name from above
           arguments:
-            scopes:
-            - "scope1"
-            - "scope2"
+            scope:
+            - "scopevalue1"
+            - "scopevalue2"
 ```
 
 Save the configuration to a file and apply it to the cluster: `kubectl apply -f httpbin-filter-policy.yaml`. For more information about filters and filter policies, consult the [filter reference](../../topics/using/filters/).
