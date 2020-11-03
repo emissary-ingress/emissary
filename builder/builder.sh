@@ -196,9 +196,11 @@ bootstrap() {
             panic "This should not happen"
         fi
         builder_base_image=$(cat docker/builder-base.docker)
+        local envoy_base_image
+        envoy_base_image=$(cat docker/base-envoy.docker)
         msg2 'Bootstrapping build image'
         ${DBUILD} \
-            --build-arg=envoy="${ENVOY_DOCKER_TAG}" \
+            --build-arg=envoy="${envoy_base_image}" \
             --build-arg=builderbase="${builder_base_image}" \
             --target=builder \
             ${DIR} -t ${BUILDER_NAME}.local/builder
