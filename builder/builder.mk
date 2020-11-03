@@ -242,7 +242,7 @@ $(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remot
 docker/builder-base.docker.stamp: FORCE preflight
 	@printf "${CYN}==> ${GRN}Bootstrapping builder base image${END}\n"
 	@$(BUILDER) build-builder-base >$@
-docker/container.txt.stamp: %/container.txt.stamp: %/builder-base.docker.tag.local FORCE
+docker/container.txt.stamp: %/container.txt.stamp: %/builder-base.docker.tag.local %/base-envoy.docker.tag.local FORCE
 	@printf "${CYN}==> ${GRN}Bootstrapping builder container${END}\n"
 	@$(BUILDER) bootstrap > $@
 docker/snapshot.docker.stamp: %/snapshot.docker.stamp: %/container.txt FORCE compile
