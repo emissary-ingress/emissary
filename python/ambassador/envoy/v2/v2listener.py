@@ -377,6 +377,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
         }
 
     if auth.proto == "grpc":
+        protocol_version = auth.get('protocol_version', 'v2alpha')
         auth_info = {
             'name': 'envoy.filters.http.ext_authz',
             'typed_config': {
@@ -387,7 +388,10 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
                     },
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
-                'use_alpha': True
+                # currently, use alpha service name by default
+                'use_alpha': (protocol_version == 'v2alpha'),
+                # only a valid field in envoy v3 schema
+                # 'transport_api_version': protocol_version.replace("alpha", "").upper(),
             }
         }
 

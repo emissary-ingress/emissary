@@ -46,24 +46,26 @@ func main() {
 
 	case "grpc_auth":
 		s = &srv.GRPCAUTH{
-			Port:          Port,
-			Backend:       os.Getenv("BACKEND"),
-			SecurePort:    SSLPort,
-			SecureBackend: os.Getenv("BACKEND"),
-			Cert:          Crt,
-			Key:           Key,
+			Port:            Port,
+			Backend:         os.Getenv("BACKEND"),
+			SecurePort:      SSLPort,
+			SecureBackend:   os.Getenv("BACKEND"),
+			Cert:            Crt,
+			Key:             Key,
+			ProtocolVersion: os.Getenv("GRCP_AUTH_PROTOCOL_VERSION"),
 		}
 
 		listeners = append(listeners, s)
 
 	case "grpc_rls":
 		s = &srv.GRPCRLS{
-			Port:          Port,
-			Backend:       os.Getenv("BACKEND"),
-			SecurePort:    SSLPort,
-			SecureBackend: os.Getenv("BACKEND"),
-			Cert:          Crt,
-			Key:           Key,
+			Port:            Port,
+			Backend:         os.Getenv("BACKEND"),
+			SecurePort:      SSLPort,
+			SecureBackend:   os.Getenv("BACKEND"),
+			Cert:            Crt,
+			Key:             Key,
+			ProtocolVersion: os.Getenv("GRCP_RLS_PROTOCOL_VERSION"),
 		}
 
 		listeners = append(listeners, s)

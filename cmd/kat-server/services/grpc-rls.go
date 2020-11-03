@@ -21,12 +21,13 @@ import (
 
 // GRPCRLS server object (all fields are required).
 type GRPCRLS struct {
-	Port          int16
-	Backend       string
-	SecurePort    int16
-	SecureBackend string
-	Cert          string
-	Key           string
+	Port            int16
+	Backend         string
+	SecurePort      int16
+	SecureBackend   string
+	Cert            string
+	Key             string
+	ProtocolVersion string
 }
 
 // Start initializes the HTTP server.
@@ -45,7 +46,13 @@ func (g *GRPCRLS) Start() <-chan bool {
 		}
 
 		s := grpc.NewServer()
-		pb_legacy.RegisterRateLimitServiceServer(s, g)
+		if g.ProtocolVersion != "v2" {
+			log.Printf("registering v2alpha service")
+			pb_legacy.RegisterRateLimitServiceServer(s, g)
+		} else {
+			log.Printf("registering v2 service")
+			pb.RegisterRateLimitServiceServer(s, g)
+		}
 		s.Serve(ln)
 
 		defer ln.Close()
@@ -68,7 +75,13 @@ func (g *GRPCRLS) Start() <-chan bool {
 		}
 
 		s := grpc.NewServer()
-		pb_legacy.RegisterRateLimitServiceServer(s, g)
+		if g.ProtocolVersion != "v2" {
+			log.Printf("registering v2alpha service")
+			pb_legacy.RegisterRateLimitServiceServer(s, g)
+		} else {
+			log.Printf("registering v2 service")
+			pb.RegisterRateLimitServiceServer(s, g)
+		}
 		s.Serve(ln)
 
 		defer ln.Close()
@@ -113,6 +126,7 @@ func (g *GRPCRLS) ShouldRateLimit(ctx context.Context, r *pb.RateLimitRequest) (
 
 		// Set the content-type header, since we're returning json
 		rs.AddHeader(true, "content-type", "application/json")
+		rs.AddHeader(true, "x-grpc-service-protocol-version", g.ProtocolVersion)
 
 		// Sets results body.
 		results := make(map[string]interface{})
