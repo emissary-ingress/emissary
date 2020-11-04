@@ -20,6 +20,8 @@
 package v2
 
 import (
+	"encoding/json"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -112,6 +114,45 @@ type Features struct {
 	XForwardedProtoRedirect bool `json:"x_forwarded_proto_redirect,omitempty"`
 }
 
+// ErrorResponseTextFormatSource specifies a source for an error response body
+type ErrorResponseTextFormatSource struct {
+	// The name of a file on the Ambassador pod that contains a format text string.
+	Filename string `json:"filename"`
+}
+
+// +kubebuilder:validation:Type=object
+type JsonFormat json.RawMessage
+
+// ErorrResponseOverrideBody specifies the body of an error response
+type ErrorResponseOverrideBody struct {
+	// A format string representing a text response body.
+	// Content-Type can be set using the `content-type` field below.
+	ErrorResponseTextFormat string `json:"text_format,omitempty"`
+
+	// A JSON response with content-type: application/json. The values can
+	// contain format text like in text_format.
+	ErrorResponseJsonFormat JsonFormat `json:"json_format,omitempty"`
+
+	// A format string sourced from a file on the Ambassador container.
+	// Useful for larger response bodies that should not be placed inline
+	// in configuration.
+	ErrorResponseTextFormatSource string `json:"text_format_source,omitempty"`
+
+	// The content type to set on the error response body when
+	// using text_format or text_format_source. Defaults to 'text/plain'.
+	ContentType string `json:"content-type,omitempty"`
+}
+
+// A condition and a list of actions for error responses
+// https://github.com/datawire/envoy/pull/5
+type ErrorResponseOverride struct {
+	// Filter on status code
+	OnStatusCode int `json:"on_status_code,omitempty"`
+
+	// Body to return
+	Body ErrorResponseOverrideBody `json:"body,omitempty"`
+}
+
 // AmbassadorConfigSpec defines the desired state of AmbassadorConfig
 type AmbassadorConfigSpec struct {
 	// Common to all Ambassador objects (and optional).
@@ -149,6 +190,9 @@ type AmbassadorConfigSpec struct {
 	LoadBalancer *LoadBalancer `json:"load_balancer,omitempty"`
 
 	CircuitBreakers *CircuitBreaker `json:"circuit_breakers,omitempty"`
+
+	// List of HTTP error response overrides
+	ErrorResponseOverrides []ErrorResponseOverride `json:"error_response_overrides,omitempty"`
 
 	RetryPolicy *RetryPolicy `json:"retry_policy,omitempty"`
 

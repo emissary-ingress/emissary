@@ -132,6 +132,7 @@
         },
         "weight": { "type": "integer" },
         "bypass_auth": { "type": "boolean" },
+        "bypass_error_response_overrides": { "type": "boolean" },
 
         "modules": {
             "type": "array",

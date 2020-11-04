@@ -117,7 +117,7 @@ class IRAuth (IRFilter):
                     self[key] = value
 
             self.referenced_by(module)
-        
+
         if module.get("add_linkerd_headers"):
             self["add_linkerd_headers"] = module.get("add_linkerd_headers")
         else:
@@ -140,7 +140,7 @@ class IRAuth (IRFilter):
         status_on_error = module.get('status_on_error', None)
         if status_on_error:
             self['status_on_error'] = status_on_error
-        
+
         failure_mode_allow = module.get('failure_mode_allow', None)
         if failure_mode_allow:
             self['failure_mode_allow'] = failure_mode_allow

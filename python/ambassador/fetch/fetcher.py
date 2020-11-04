@@ -217,7 +217,7 @@ class ResourceFetcher:
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_ingress')):
             self.aconf.post_error("Ambassador is not permitted to read Ingress resources. Please visit https://www.getambassador.io/user-guide/ingress-controller/ for more information. You can continue using Ambassador, but Ingress resources will be ignored...")
-        
+
         # Expand environment variables allowing interpolation in manifests.
         serialization = os.path.expandvars(serialization)
 
@@ -623,7 +623,7 @@ class ResourceFetcher:
                 for p in parsed_ambassador_annotations:
                     if p.get('metadata_labels') is None:
                         p['metadata_labels'] = metadata_labels
-            
+
             # Force validation for all of these objects.
             for p in parsed_ambassador_annotations:
                 p['_force_validation'] = True

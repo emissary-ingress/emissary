@@ -114,9 +114,11 @@ spec:
     allowMalformedAccessToken: bool     # optional; default is false
     accessTokenValidation:     "enum"   # optional; default is "auto"
     accessTokenJWTFilter:               # optional; default is null
-      name: "string"                     # required
-      namespace: "string"                # optional; default is the same namespace as the Filter
-      arguments: JWT-Filter-Arguments    # optional
+      name:                "string"       # required
+      namespace:           "string"       # optional; default is the same namespace as the Filter
+      inheritScopeArgument: bool          # optional; default is false
+      stripInheritedScope:  bool          # optional; default is false
+      arguments: JWT-Filter-Arguments     # optional
 
     ############################################################################
     # HTTP client settings for talking with the identity provider              #
@@ -354,8 +356,35 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
  - `allowMalformedAccessToken`: Allow any access token, even if they are not RFC 6750-compliant.
  - `accessTokenValidation`: How to verify the liveness and scope of Access Tokens issued by the identity provider.  Valid values are either `"auto"`, `"jwt"`, or `"userinfo"`.  Empty or unset is equivalent to `"auto"`.
    * `"jwt"`: Validates the Access Token as a JWT.
-     + By default: It accepts the RS256, RS384, or RS512 signature algorithms, and validates the signature against the JWKS from OIDC Discovery.  It then validates the `exp`, `iat`, `nbf`, `iss` (with the Issuer from OIDC Discovery), and `scope` claims: if present, none of the scopes are required to be present.  This relies on the identity provider using non-encrypted signed JWTs as Access Tokens, and configuring the signing appropriately
-     + This behavior can be modified by delegating to [`JWT` Filter](#filter-type-jwt) with `accessTokenJWTFilter`. The arguments are the same as the arguments when referring to a JWT Filter from a FilterPolicy.
+     + By default: It accepts the RS256, RS384, or RS512 signature
+       algorithms, and validates the signature against the JWKS from
+       OIDC Discovery.  It then validates the `exp`, `iat`, `nbf`,
+       `iss` (with the Issuer from OIDC Discovery), and `scope`
+       claims: if present, none of the scope values are required to be
+       present.  This relies on the identity provider using
+       non-encrypted signed JWTs as Access Tokens, and configuring the
+       signing appropriately
+     + This behavior can be modified by delegating to [`JWT`
+       Filter](#filter-type-jwt) with `accessTokenJWTFilter`:
+       - `name` and `namespace` are used to identify which JWT Filter
+         to use.  It is an error to point at a Filter that is not a
+         JWT filter.
+       - `arguments` is is the same as the `arguments` field when
+         referring to a JWT Filter from a FilterPolicy.
+       - `inheritScopeArgument` sets whether to inherit the `scope`
+         argument from the FilterPolicy rule that triggered the OAuth2
+         Filter (similarly special-casing the `offline_access` scope
+         value); if the `arguments` field also specifies a `scope`
+         argument, then the union of the two is used.
+       - `stripInheritedScope` modifies the behavior of
+         `inheritScopeArgument`.  Some identity providers use scope
+         values that are URIs when speaking OAuth, but when encoding
+         those scope values in to a JWT the provider strips the
+         leading path of the value; removing everything up to and
+         including the last "/" in the value.  Setting
+         `stripInheritedScope` mimics this when passing the required
+         scope to the JWT Filter.  It is meaningless to set
+         `stripInheritedScope` if `inheritScopeArgument` is not set.
    * `"userinfo"`: Validates the access token by polling the OIDC UserInfo Endpoint. This means that the Ambassador Edge Stack must initiate an HTTP request to the identity provider for each authorized request to a protected resource.  This performs poorly, but functions properly with a wider range of identity providers.  It is not valid to set `accessTokenJWTFilter` if `accessTokenValidation: userinfo`.
    * `"auto"` attempts to do `"jwt"` validation if any of these
      conditions are true:
@@ -396,9 +425,10 @@ spec:
     filters:
     - name: "example-oauth2-filter"
       arguments:
-        scopes:                     # optional; default is ["openid"] for `grantType=="AuthorizationCode"`; [] for `grantType=="ClientCredentials"` and `grantType=="Password"`
-        - "scope1"
-        - "scope2"
+        scope:                      # optional; default is ["openid"] for `grantType=="AuthorizationCode"`; [] for `grantType=="ClientCredentials"` and `grantType=="Password"`
+        - "scopevalue1"
+        - "scopevalue2"
+        scopes:                     # deprecated; use 'scope' instead
         insteadOfRedirect:          # optional for "AuthorizationCode"; default is to do a redirect to the identity provider
           ifRequestHeader:            # optional; default is to return httpStatusCode for all requests that would redirect-to-identity-provider
             name: "string"              # required
@@ -423,7 +453,7 @@ spec:
             arguments: DEPENDS          # optional
 ```
 
- - `scopes`: A list of OAuth scope values to include in the scope of the authorization request.  If one of the scope values for a path is not granted, then access to that resource is forbidden; if the `scopes` argument lists `foo`, but the authorization response from the provider does not include `foo` in the scope, then it will be taken to mean that the authorization server forbade access to this path, as the authenticated user does not have the `foo` resource scope.
+ - `scope`: A list of OAuth scope values to include in the scope of the authorization request.  If one of the scope values for a path is not granted, then access to that resource is forbidden; if the `scope` argument lists `foo`, but the authorization response from the provider does not include `foo` in the scope, then it will be taken to mean that the authorization server forbade access to this path, as the authenticated user does not have the `foo` resource scope.
 
    If `grantType: "AuthorizationCode"`, then the `openid` scope value is always included in the requested scope, even if it is not listed in the `FilterPolicy` argument.
 
@@ -432,6 +462,8 @@ spec:
    As a special case, if the `offline_access` scope value is requested, but not included in the response then access is not forbidden. With many identity providers, requesting the `offline_access` scope is necessary to receive a Refresh Token.
 
    The ordering of scope values does not matter, and is ignored.
+
+ - `scopes` is deprecated, and is equivalent to setting `scope`.
 
  - `insteadOfRedirect`: An action to perform instead of redirecting
    the User-Agent to the identity provider, when using `grantType: "AuthorizationCode"`.

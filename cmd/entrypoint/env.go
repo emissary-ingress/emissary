@@ -105,7 +105,7 @@ func IsDiagdOnly() bool {
 }
 
 func GetDiagdBindPort() string {
-	return env("AMBASSADOR_DIAGD_BIND_PORT", "8877")
+	return env("AMBASSADOR_DIAGD_BIND_PORT", "8004")
 }
 
 func IsEnvoyAvailable() bool {

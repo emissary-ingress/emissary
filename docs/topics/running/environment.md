@@ -180,8 +180,10 @@ The Ambassador Edge Stack uses the following ports to listen for HTTP/HTTPS traf
 | 8001 | envoy   | Internal stats, logging, etc.; not exposed outside pod  |
 | 8002 | watt    | Internal watt snapshot access; not exposed outside pod  |
 | 8003 | ambex   | Internal ambex snapshot access; not exposed outside pod |
+| 8004 | diagd   | Internal `diagd` access when `AMBASSADOR_FAST_RECONFIGURE` is set; not exposed outside pod |
 | 8080 | envoy   | Default HTTP service port                               |
 | 8443 | envoy   | Default HTTPS service port                              |
+| 8877 | diagd   | Direct access to diagnostics UI; provided by `busyambassador entrypoint` when `AMBASSADOR_FAST_RECONFIGURE` is set |
 
 [^1]: This may change in a future release to reflect the Pods's
       namespace if deployed to a namespace other than `default`.
