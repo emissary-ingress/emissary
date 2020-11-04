@@ -411,30 +411,62 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
     return None
 
 
+# Careful: this function returns None to indicate that no Envoy response_map
+# filter needs to be instantiated, because either no Module nor Mapping
+# has error_response_overrides, or the ones that exist are not valid.
+#
+# By not instantiating the filter in those cases, we prevent adding a useless
+# filter onto the chain.
 @v2filter.when("IRErrorResponse")
 def v2filter_error_response(error_response: IRErrorResponse, v2config: 'V2Config'):
-    del v2config  # silence unused-variable warning
+    # Error response configuration can come from the Ambassador module, on a
+    # a Mapping, or both. We need to use the response_map filter if either one
+    # of these sources defines error responses. First, check if any route
+    # has per-filter config for error responses. If so, we know a Mapping has
+    # defined error responses.
+    route_has_error_responses = False
+    for route in v2config.routes:
+        typed_per_filter_config = route.get('typed_per_filter_config', {})
+        if 'envoy.filters.http.response_map' in typed_per_filter_config:
+            route_has_error_responses = True
+            break
 
-    config = error_response.config
-    if not config or 'mappers' not in config or len(config['mappers']) == 0:
-        # Mappers are required, otherwise this error response config has nothing to do.
-        error_response.post_error('ErrorResponse config has no mappers, cannot configure.')
-        return None
-
-    filter_config = {
+    filter_config: Dict[str, Any] = {
         # The IRErrorResponse filter builds on the 'envoy.filters.http.response_map' filter.
-        'name': 'envoy.filters.http.response_map',
-        'typed_config': {
+        'name': 'envoy.filters.http.response_map'
+    }
+
+    module_config = error_response.config()
+    if module_config:
+        # Mappers are required, otherwise this the response map has nothing to do. We really
+        # shouldn't have a config with nothing in it, but we defend against this case anyway.
+        if 'mappers' not in module_config or len(module_config['mappers']) == 0:
+            error_response.post_error('ErrorResponse Module config has no mappers, cannot configure.')
+            return None
+
+        # If there's module config for error responses, create config for that here.
+        # If not, there must be some Mapping config for it, so we'll just return
+        # a filter with no global config and let the Mapping's per-route config
+        # take action instead.
+        filter_config['typed_config'] = {
             '@type': 'type.googleapis.com/envoy.extensions.filters.http.response_map.v3.ResponseMap',
             # The response map filter supports an array of mappers for matching as well
             # as default actions to take if there are no overrides on a mapper. We do
             # not take advantage of any default actions, and instead ensure that all of
             # the mappers we generate contain some action (eg: body_format_override).
-            'mappers': config['mappers']
+            'mappers': module_config['mappers']
         }
-    }
+        return filter_config
+    elif route_has_error_responses:
+        # Return the filter config as-is without global configuration. The mapping config
+        # has its own per-route config and simply needs this filter to exist.
+        return filter_config
 
-    return filter_config
+    # There is no module config nor mapping config that requires the response map filter,
+    # so we omit it. By returning None, the caller will omit this filter from the
+    # filter chain entirely, which is not the usual way of handling filter config,
+    # but it's valid.
+    return None
 
 
 @v2filter.when("IRRateLimit")
@@ -797,6 +829,11 @@ class V2Listener(dict):
         for f in self.config.ir.filters:
             v2f: dict = v2filter(f, self.config)
 
+            # v2filter can return None to indicate that the filter config
+            # should be omitted from the final envoy config. This is the
+            # uncommon case, but it can happen if a filter waits utnil the
+            # v2config is generated before deciding if it needs to be
+            # instantiated. See IRErrorResponse for an example.
             if v2f:
                 self.http_filters.append(v2f)
 

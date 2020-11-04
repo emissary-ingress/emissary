@@ -105,16 +105,18 @@ def _test_errorresponse(yaml, expectations, expect_fail=False):
 
     ir = IR(aconf, file_checker=lambda path: True, secret_handler=secret_handler)
 
-    error_response = IRErrorResponse(ir, aconf)
+    error_response = IRErrorResponse(ir, aconf,
+                                     ir.ambassador_module.get('error_response_overrides', None),
+                                     ir.ambassador_module)
 
-    ok = error_response.setup(ir, aconf)
+    error_response.setup(ir, aconf)
+    if aconf.errors:
+        print("errors: %s" % repr(aconf.errors))
+
+    ir_conf = error_response.config()
     if expect_fail:
-        assert not ok
+        assert ir_conf is None
         return
-
-    assert ok
-
-    ir_conf = error_response.config
     assert ir_conf
 
     # There should be no default body format override
@@ -175,11 +177,24 @@ def _test_errorresponse_onemapper_onstatuscode_textformat_datasource(
     )
 
 
+def sanitize_json(json_format):
+    sanitized = {}
+    for k, v in json_format.items():
+        if isinstance(v, bool):
+            sanitized[k] = str(v).lower()
+        else:
+            sanitized[k] = str(v)
+    return sanitized
+
+
 def _test_errorresponse_onemapper_onstatuscode_jsonformat(status_code, json_format):
     _test_errorresponse_onemapper(
         _ambassador_module_onemapper(status_code, 'json_format', json_format),
         _status_code_filter_eq_obj(status_code),
-        _json_format_obj(json_format),
+        # We expect the output json to be sanitized and contain the string representation
+        # of every value. We provide a basic implementation of string sanitizatino in this
+        # test, `sanitize_json`.
+        _json_format_obj(sanitize_json(json_format)),
     )
 
 
@@ -244,20 +259,24 @@ def test_errorresponse_onemapper_onstatuscode_jsonformat():
             'badness': 'yup'
         }
     )
+    # Test both a JSON object whose Python type has non-string primitives...
     _test_errorresponse_onemapper_onstatuscode_jsonformat('401',
         {
             'unauthorized': 'yeah',
             'your_address': '%DOWNSTREAM_REMOTE_ADDRESS%',
-            'attempted_route': {
-                'name': '%ROUTE_NAME%',
-                'protected': 'indeed',
-                'security_level': 9000,
-                'extrajson': {
-                    'very': {
-                        'muchjson': 1
-                    }
-                }
-            }
+            'security_level': 9000,
+            'awesome': True,
+            'floaty': 0.75
+        }
+    )
+    # ...and a JSON object where the Python type already has strings
+    _test_errorresponse_onemapper_onstatuscode_jsonformat('403',
+        {
+            'whoareyou': 'dunno',
+            'your_address': '%DOWNSTREAM_REMOTE_ADDRESS%',
+            'security_level': '11000',
+            'awesome': 'false',
+            'floaty': '0.95'
         }
     )
 
@@ -382,6 +401,26 @@ def test_errorresponse_invalid_configs():
   - on_status_code: 401
     body:
       json_format: "this also cannot be a string"
+''')
+    # json_format cannot have values that do not cast to string trivially
+    _test_errorresponse_invalid_configs(
+        _ambassador_module_config() + f'''
+  error_response_overrides:
+  - on_status_code: 401
+    body:
+      json_format:
+        "x":
+          "yo": 1
+        "field": "good"
+''')
+    _test_errorresponse_invalid_configs(
+        _ambassador_module_config() + f'''
+  error_response_overrides:
+  - on_status_code: 401
+    body:
+      json_format:
+        "a": []
+        "x": true
 ''')
     # content type, if it exists, must be a string
     _test_errorresponse_invalid_configs(

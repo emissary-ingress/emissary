@@ -140,6 +140,36 @@ class V2Route(Cacheable):
                 '@type': 'type.googleapis.com/envoy.extensions.filters.http.response_map.v3.ResponseMapPerRoute',
                 'disabled': True,
             }
+        else:
+            # The error_response_overrides field is set on the Mapping as input config
+            # via kwargs in irhttpmapping.py. Later, in setup(), we replace it with an
+            # IRErrorResponse object, which itself returns None if setup failed. This
+            # is a similar pattern to IRCors and IRRetrYPolicy.
+            #
+            # Therefore, if the field is present at this point, it means it's a valid
+            # IRErrorResponse with a 'config' field, since setup must have succeded.
+            error_response_overrides = mapping.get('error_response_overrides', None)
+            if error_response_overrides:
+                # The error reponse IR only has optional response map config to use.
+                # On this particular code path, we're protected by both Mapping schema
+                # and CRD validation so we're reasonable confident there is going to
+                # be a valid config here. However the source of this config is theoretically
+                # not guaranteed and we need to use the config() method safely, so check
+                # first before using it.
+                filter_config = error_response_overrides.config()
+                if filter_config:
+                    # The error response IR itself guarantees that any resulting config() has
+                    # at least one mapper in 'mappers', so assert on that here.
+                    assert 'mappers' in filter_config
+                    assert len(filter_config['mappers']) > 0
+                    typed_per_filter_config['envoy.filters.http.response_map'] = {
+                        '@type': 'type.googleapis.com/envoy.extensions.filters.http.response_map.v3.ResponseMapPerRoute',
+                        # The ResponseMapPerRoute Envoy config is similar to the ResponseMap filter
+                        # config, except that it is wrapped in another object with key 'response_map'.
+                        'response_map': {
+                            'mappers': filter_config['mappers']
+                        }
+                    }
 
         if mapping.get('bypass_auth', False):
             typed_per_filter_config['envoy.filters.http.ext_authz'] = {

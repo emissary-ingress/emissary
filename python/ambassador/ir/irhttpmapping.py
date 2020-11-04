@@ -8,6 +8,7 @@ from ..config import Config
 from .irbasemapping import IRBaseMapping, normalize_service_name
 from .irbasemappinggroup import IRBaseMappingGroup
 from .irhttpmappinggroup import IRHTTPMappingGroup
+from .irerrorresponse import IRErrorResponse
 from .ircors import IRCORS
 from .irretrypolicy import IRRetryPolicy
 
@@ -52,6 +53,7 @@ class IRHTTPMapping (IRBaseMapping):
     route_weight: List[Union[str, int]]
     cors: IRCORS
     retry_policy: IRRetryPolicy
+    error_response_overrides: Optional[IRErrorResponse]
     sni: bool
     query_parameters: List[KeyValueDecorator]
     regex_rewrite: Dict[str,str]
@@ -84,6 +86,7 @@ class IRHTTPMapping (IRBaseMapping):
         "cors": False,
         "enable_ipv4": False,
         "enable_ipv6": False,
+        "error_response_overrides": False,
         "grpc": False,
         # Do not include headers
         "host": False,          # See notes above
@@ -308,6 +311,17 @@ class IRHTTPMapping (IRBaseMapping):
 
             if self.retry_policy:
                 self.retry_policy.referenced_by(self)
+            else:
+                return False
+
+        # If we have error response overrides, generate an IR for that too.
+        if 'error_response_overrides' in self:
+            self.error_response_overrides = IRErrorResponse(self.ir, aconf,
+                                                            self.get('error_response_overrides', None),
+                                                            location=self.location)
+            #if self.error_response_overrides.setup(self.ir, aconf):
+            if self.error_response_overrides:
+                self.error_response_overrides.referenced_by(self)
             else:
                 return False
 

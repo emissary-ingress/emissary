@@ -107,7 +107,7 @@ class KnativeTesting:
 
         # Assert 200 OK at /qotm/ endpoint
         qotm_url = f'http://localhost:{port_forward_port}/qotm/'
-        qotm_http_code = self.get_code_with_retry(qotm_url)
+        qotm_http_code = get_code_with_retry(qotm_url)
         assert qotm_http_code == 200, f"Expected 200 OK, got {qotm_http_code}"
         print(f"{qotm_url} is ready")
 
@@ -115,13 +115,13 @@ class KnativeTesting:
         kservice_url = f'http://localhost:{port_forward_port}/'
 
         req_simple = request.Request(kservice_url)
-        connection_simple_code = self.get_code_with_retry(req_simple)
+        connection_simple_code = get_code_with_retry(req_simple)
         assert connection_simple_code == 404, f"Expected 404, got {connection_simple_code}"
         print(f"{kservice_url} returns 404 with no host")
 
         req_random = request.Request(kservice_url)
         req_random.add_header('Host', 'random.host.whatever')
-        connection_random_code = self.get_code_with_retry(req_random)
+        connection_random_code = get_code_with_retry(req_random)
         assert connection_random_code == 404, f"Expected 404, got {connection_random_code}"
         print(f"{kservice_url} returns 404 with a random host")
 
@@ -134,7 +134,7 @@ class KnativeTesting:
         # kservice pod takes some time to spin up, so let's try a few times
         connection_correct_code = 000
         for _ in range(5):
-            connection_correct_code = self.get_code_with_retry(req_correct)
+            connection_correct_code = get_code_with_retry(req_correct)
             if connection_correct_code == 200:
                 break
 

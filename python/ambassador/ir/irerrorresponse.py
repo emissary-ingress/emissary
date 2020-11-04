@@ -1,69 +1,98 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Any, ClassVar, Dict, List, Optional, TYPE_CHECKING
 from typing import cast as typecast
 
 from ..config import Config
-from ..utils import RichStatus
-from ..resource import Resource
 
 from .irfilter import IRFilter
 
 if TYPE_CHECKING:
     from .ir import IR
+    from .ir.irresource import IRResource
 
 # IRErrorResponse implements custom error response bodies using Envoy's HTTP response_map filter.
 #
 # Error responses are configured as an array of rules on the Ambassador module. Rules can be
 # bypassed on a Mapping using `bypass_error_response_overrides`. In a future implementation,
 # rules will be supported at both the Module level and at the Mapping level, allowing a flexible
-# configuration where certain default behaviors apply and Mappings can specify have their own.
+# configuration where certain behaviors apply globally and Mappings can override them.
 #
 # The Ambassador module config isn't subject to strict typing at higher layers, so this IR has
 # to pay special attention to the types and format of the incoming config.
 class IRErrorResponse (IRFilter):
-    def __init__(self, ir: 'IR', aconf: Config,
+
+    # The list of mappers that will make up the final error response config
+    _mappers: Optional[List[Dict[str, Any]]]
+
+    # The IR config, used as input, typically from an `error_response_overrides` field
+    # on a Resource (eg: the Ambassador module or a Mapping)
+    _ir_config: List[Dict[str, Any]]
+
+    # The object that references this IRErrorResource.
+    # Use by diagnostics to report the exact source of configuration errors.
+    _referenced_by_obj: Optional['IRResource']
+
+    def __init__(self, ir: 'IR', aconf: Config, error_response_config: List[Dict[str, Any]],
+                 referenced_by_obj: Optional['IRResource']=None,
                  rkey: str="ir.error_response",
                  kind: str="IRErrorResponse",
                  name: str="error_response",
                  type: Optional[str] = "decoder",
                  **kwargs) -> None:
+        self._ir_config = error_response_config
+        self._referenced_by_obj = referenced_by_obj
+        self._mappers = None
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, **kwargs)
 
-    # Configure global behavior using the `error_response_overrides` module config.
+    # Return the final config, or None if there isn't any, either because
+    # there was no input config, or none of the input config was valid.
+    #
+    # Callers shoulh always check for None to mean that this IRErrorResponse
+    # has no config to generate, and so the underlying envoy.http.filter.response_map
+    # (or per-route config) does not need to be configured.
+    def config(self) -> Optional[Dict[str, Any]]:
+        if not self._mappers:
+            return None
+        return {
+            'mappers': self._mappers
+        }
+
+    # Runs setup and always returns true to indicate success. This is safe because
+    # _setup is tolerant of missing or invalid config. At the end of setup, the caller
+    # should retain this object and use `config()` get the final, good config, if any.
     def setup(self, ir: 'IR', aconf: Config) -> bool:
-        error_response_config = ir.ambassador_module.get('error_response_overrides', [])
-
-        # Do nothing (and post no errors) if there's no error_response_overrides configured.
-        if not error_response_config:
-            return False
-
-        # If we have some configuration to deal with, try to load it, and post an errors
-        # we find along the way. Internally, _load_error_response_config will skip any
-        # error response rules that are invalid, preserving other rules. This prevents
-        # one bad rule from eliminating the others. In practice this isn't as useful as
-        # it sounds because module config is only loaded once on startup, but ideally
-        # we'll move away from that limitation.
-        self.config = self._load_error_response_config(error_response_config)
-        if not self.config:
-            return False
-
-        ir.logger.debug("IRErrorResponse: loaded config %s" % repr(self.config))
-        self.referenced_by(ir.ambassador_module)
+        self._setup(ir, aconf)
         return True
 
-    def _load_error_response_config(self, error_response_config):
-        # The error_response_overrides field must be an array
-        if not isinstance(error_response_config, list):
-            self.post_error(f"IRErrorResponse: error_response_overrides: field must be an array")
-            return False
+    def _setup(self, ir: 'IR', aconf: Config):
+        # Do nothing (and post no errors) if there's no config.
+        if not self._ir_config:
+            return
 
-        # The error_response_overrides field must contain at least one entry
-        if len(error_response_config) == 0:
-            self.post_error(f"IRErrorResponse: error_response_overrides: no mappers, nothing to do")
-            return False
+        # The error_response_overrides config must be an array
+        if not isinstance(self._ir_config, list):
+            self.post_error(f"IRErrorResponse: error_response_overrides: field must be an array, got {type(self._ir_config)}")
+            return
 
-        all_mappers = []
-        for error_response in error_response_config:
+        # Do nothing (and post no errors) if there's config, but it's empty.
+        if len(self._ir_config) == 0:
+            return
+
+        # If we have some configuration to deal with, try to load it, and post any errors
+        # that we find along the way. Internally, _load_config will skip any error response rules
+        # that are invalid, preserving other rules. This prevents one bad rule from eliminating
+        # the others. In practice this isn't as useful as it sounds because module config is only
+        # loaded once on startup, but ideally we'll move away from that limitation.
+        self._mappers = self._generate_mappers()
+        if self._mappers is not None:
+            ir.logger.debug("IRErrorResponse: loaded mappers %s" % repr(self._mappers))
+            if self._referenced_by_obj is not None:
+                self.referenced_by(self._referenced_by_obj)
+
+
+    def _generate_mappers(self) -> Optional[List[Dict[str, Any]]]:
+        all_mappers: List[Dict[str, Any]] = []
+        for error_response in self._ir_config:
             # Try to parse `on_status_code` (a required field) as an integer
             # in the interval [400, 600). We don't support matching on 3XX
             # (or 1xx/2xx for that matter) codes yet. If there's appetite for
@@ -75,11 +104,11 @@ class IRErrorResponse (IRFilter):
                 if ir_on_status_code is None:
                     raise ValueError("field must exist")
 
-                ir_on_status_code = int(ir_on_status_code)
-                if ir_on_status_code < 400 or ir_on_status_code >= 600:
+                code = int(ir_on_status_code)
+                if code < 400 or code >= 600:
                     raise ValueError("field must be an integer >= 400 and < 600")
 
-                ir_on_status_code = str(ir_on_status_code)
+                status_code_str: str=str(code)
             except ValueError as e:
                 self.post_error(f"IRErrorResponse: on_status_code: %s" % e)
                 continue
@@ -97,13 +126,13 @@ class IRErrorResponse (IRFilter):
             # We currently only support filtering using an equality match on status codes.
             # The underlying response_map filter in Envoy supports a larger set of filters,
             # however, and adding support for them should be relatively straight-forward.
-            mapper = {
+            mapper: Dict[str, Any] = {
                 "filter": {
                     "status_code_filter": {
                         "comparison": {
                             "op": "EQ",
                             "value": {
-                                "default_value": ir_on_status_code,
+                                "default_value": status_code_str,
                                 # Envoy _requires_ that the status code comparison value
                                 # has an associated "runtime_key". This is used as a key
                                 # in the runtime config system for changing config values
@@ -129,7 +158,7 @@ class IRErrorResponse (IRFilter):
 
             # Only one of text_format, json_format, or text_format_source may be set.
             # Post an error if we found more than one these fields set.
-            formats_set = 0
+            formats_set: int = 0
             for f in [ ir_text_format_source, ir_text_format, ir_json_format ]:
                 if f is not None:
                     formats_set += 1
@@ -140,7 +169,7 @@ class IRErrorResponse (IRFilter):
                         formats_set)
                 continue
 
-            body_format_override = dict()
+            body_format_override: Dict[str, Any] = {}
 
             if ir_text_format_source is not None:
                 # Verify that the text_format_source field is an object with a string filename.
@@ -163,7 +192,33 @@ class IRErrorResponse (IRFilter):
                     self.post_error(f"IRErrorResponse: json_format field must be an object, found \"{ir_json_format}\"")
                     continue
 
-                body_format_override["json_format"] = ir_json_format
+                # Envoy requires string values for json_format. Validate that every field in the
+                # json_format can be trivially converted to a string, error otherwise.
+                #
+                # The mapping CRD validates that json_format maps strings to strings, but our
+                # module config doesn't have the same validation, so we do it here.
+                error: str = ""
+                sanitized: Dict[str, str] = {}
+                try:
+                    for k, v in ir_json_format.items():
+                        k = str(k)
+                        if isinstance(v, bool):
+                            sanitized[k] = str(v).lower()
+                        elif isinstance(v, (int, float, str)):
+                            sanitized[k] = str(v)
+                        else:
+                            error = f"IRErrorResponse: json_format only supports string values, and type \"{type(v)}\" for key \"{k}\" cannot be implicitly converted to string"
+                            break
+                except ValueError as e:
+                    # This really shouldn't be possible, because the string casts we do above
+                    # are "safely" done on types where casting is always valid (eg: bool, int).
+                    error = f"IRErrorResponse: unexpected ValueError while sanitizing ir_json_format {ir_json_format}: {e}"
+
+                if error:
+                    self.post_error(error)
+                    continue
+
+                body_format_override["json_format"] = sanitized
             else:
                 self.post_error(
                         f"IRErrorResponse: could not find a valid format field in body \"{ir_body}\"")
@@ -182,12 +237,8 @@ class IRErrorResponse (IRFilter):
             all_mappers.append(mapper)
 
         # If nothing could be parsed successfully, post an error.
-        if len(all_mappers) < 1:
+        if len(all_mappers) == 0:
             self.post_error(f"IRErrorResponse: no valid error response mappers could be parsed")
-            return False
+            return None
 
-        # We only use the mappers field of the response map config.
-        config = {
-            'mappers': all_mappers
-        }
-        return config
+        return all_mappers

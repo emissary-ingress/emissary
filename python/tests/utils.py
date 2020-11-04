@@ -173,7 +173,7 @@ spec:
     apply_kube_artifacts(namespace=namespace, artifacts=qotm_mapping)
 
 @retry(URLError, tries=5, delay=2)
-def get_code_with_retry(self, req):
+def get_code_with_retry(req):
     for attempts in range(10):
         try:
             conn = request.urlopen(req, timeout=10)
