@@ -2,13 +2,13 @@
 
 ## Rendering API Documentation
 
-The _Dev Portal_ uses the `Mapping` resource to automatically discover services know by
+The _Dev Portal_ uses the `Mapping` resource to automatically discover services known by
 the Ambassador Edge Stack.
 
-For each `Mapping`, the _Dev Portal_ will attempt to fetch an OpenAPI V3 document from the
-upstream service.
+For each `Mapping`, the _Dev Portal_ will attempt to fetch an OpenAPI V3 document
+when a `docs` attribute is specified.
 
-### `docs` settings in Mappings
+### `docs` attribute in Mappings
 
 This documentation endpoint is defined by the optional `docs` attribute in the `Mapping`.
 
@@ -24,24 +24,26 @@ where:
 * `path`: path for the OpenAPI V3 document.
 The Ambassador Edge Stack will append the value of `docs.path` to the `prefix`
 in the `Mapping` so it will be able to use Envoy's routing capabilities for
-fetching the documentation. You will need to update your microservice to return
-a Swagger or OAPI document at this URL.
-* `url`:  absolute URL to a OpenAPI V3 document.
-* `ignored`: ignore this Mapping for documenting services. Note that the service
-will appear in the Dev Portal anyway if another, non-ignored `Mapping` exists.
+fetching the documentation from the upstream service . You will need to update
+your microservice to return a Swagger or OAPI document at this URL.
+* `url`:  absolute URL to an OpenAPI V3 document.
+* `ignored`: ignore this `Mapping` for documenting services. Note that the service
+will appear in the _Dev Portal_ anyway if another, non-ignored `Mapping` exists
+for the same service.
 
 > Note:
 >
-> Previous versions of the _Dev Portal_ tried to obtain documentation from
-> `/.ambassador-internal/openapi` by default. Users can set `docs.path` to
-> `/.ambassador-internal/openapi` in their `Mapping`s for keeping this
-> behavior.
+> Previous versions of the _Dev Portal_ tried to obtain documentation automatically
+> from `/.ambassador-internal/openapi` by default, while the current version
+> will not try to obtain documentation unless a `docs` attribute is specified.
+> Users should set `docs.path` to `/.ambassador-internal/openapi` in their `Mapping`s
+> in order to keep the previous behavior.
 
 Example:
 
 With the `Mapping`s below, the _Dev Portal_ would fetch OpenAPI documentation
 from `service-a:5000` at the path `/srv/openapi/` and from `httpbin` from an
-external URL. `service-b` will have no documentation.
+external URL. `service-b` would have no documentation.
 
 ```yaml
 ---
@@ -54,7 +56,7 @@ spec:
   rewrite: /srv/
   service: service-a:5000
   docs:
-    path: /openapi/
+    path: /openapi/            ## docs will be obtained from `/srv/openapi/`
 ---
 apiVersion: getambassador.io/v2
 kind:  Mapping
@@ -62,7 +64,7 @@ metadata:
   name:  service-b
 spec:
   prefix: /service-b/
-  service: service-b
+  service: service-b           ## no `docs` attribute, so service-b will not be documented
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
@@ -78,33 +80,46 @@ spec:
 
 > Notes on access to documentation `path`s:
 >
-> By default, all the `path`s where documentation has been found will NOT be publicly
+> By default, all the `path`s where documentation has been found will **NOT** be publicly
 > exposed by the Ambassador Edge Stack. This is controlled by a special
 > `FilterPolicy` installed internally.
 
 ### Publishing the documentation
 
-All rendered API documentation is published at the `/docs/` URL by default. However,
-users can achieve a higher level of customization by creating
-`DevPortal` resources. These resources allow the customization of:
+All rendered API documentation is published at the `/docs/` URL by default. Users can
+achieve a higher level of customization by creating a `DevPortal` resource.
+`DevPortal` resources allow the customization of:
 
 - _what_ documentation is published
 - _how_ it looks
 
-defined with the following syntax:
+Users can create a `DevPortal` resource for specifying the default configuration for
+the _Dev Portal_, filtering `Mappings` and namespaces and specifying the content.
+
+> Note: when several `DevPortal` resources exist, the Dev Portal will pick a random
+> one and ignore the rest. A specific `DevPortal` can be used as the default configuration
+> by setting the `default` attribute to `true`. Future versions will
+> use other `DevPortals` for configuring alternative _views_ of the Dev Portal.
+
+`DevPortal` resources have the following syntax:
 
 ```yaml
 apiVersion: getambassador.io/v2
 kind:  DevPortal
 metadata:
   name:  "string"
+  namespace: "string"
 spec:
-  content:
+  default: bool           ## optional; default false
+  docs:                   ## optional; default is []
+    - service: "string"   ## required
+      url: "string"       ## required
+  content:                ## optional
     url: "string"         ## optional; see below
     branch: "string"      ## optional; see below
     dir: "string"         ## optional; see below
-  selector:
-    matchnamespaces:      ## optional; default is []
+  selector:               ## optional
+    matchNamespaces:      ## optional; default is []
       - "string"
     matchLabels:          ## optional; default is {}
       "string": "string"
@@ -112,154 +127,67 @@ spec:
 
 where:
 
+* `default`: `true` when this is the default Dev Portal configuration.
 * `content`: see [section below](#styling).
-* `matchNamespaces`: list of namespaces, used for filtering the `Mapping`s that
-will be shown in the `DevPortal`. When multiple namespaces are provided, the `DevPortal`
-will consider `Mapping`s in **any** of those namespaces.
-* `matchLabels`: dictionary of labels, filtering the `Mapping`s that will
-be shown in the `DevPortal`. When multiple labels are provided, the `DevPortal`
-will consider `Mapping`s that match **all** the labels.
+* `selector`: rules for filtering `Mapping`s:
+  * `matchNamespaces`: list of namespaces, used for filtering the `Mapping`s that
+  will be shown in the `DevPortal`. When multiple namespaces are provided, the `DevPortal`
+  will consider `Mapping`s in **any** of those namespaces.
+  * `matchLabels`: dictionary of labels, filtering the `Mapping`s that will
+  be shown in the `DevPortal`. When multiple labels are provided, the `DevPortal`
+  will onbly consider the `Mapping`s that match **all** the labels.
+* `docs`: static list of _service_/_documentation_ pairs that will be shown
+  in the _Dev Portal_. Only the documentation from this list will be shown in the _Dev Portal_
+  (unless additional docs are included with a `selector`).
+  * `service`: service name used for listing user-provided documentation.
+  * `url`: a full URL to a OpenAPI document for this service. This document will be
+  served _as it is_, with no extra processing from the _Dev Portal_ (besides replacing
+  the _hostname_).
 
 Example:
 
-The scope of the default documentation can be restricted to
-`Mappings` with the `private-api: true` label by creating a `DevPortal` resource
-like this:
+The scope of the default _Dev Portal_ can be restricted to
+`Mappings` with the `public-api: true` and `documented: true` labels by creating
+a `DevPortal` `ambassador` resource like this:
 
 ```yaml
 ---
 apiVersion: getambassador.io/v2
 kind:  DevPortal
 metadata:
-  name:  dev-portal-private
+  name:  ambassador
 spec:
+  default: true
   content:
-    url: https://github.com/datawire/devportal-content
+    url: https://github.com/datawire/devportal-content.git
   selector:
     matchLabels:
-      private-api: true    ## label for matching only some Mappings
+      public-api: "true"    ## labels for matching only some Mappings
+      documented: "true"    ## (note that "true" must be quoted)
 ```
 
-Then we must edit the current `ambassador-devportal` `Mapping` with
+Example:
 
-```console
-kubectl get mappings -n ambassador ambassador-devportal -o yaml
-```
-
-and specify the `dev-portal-external` in the `rewrite`:
-
-```yaml
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
-  name: ambassador-devportal
-spec:
-  prefix: /docs/
-  rewrite: /docs/dev-portal-external   ## name of the DevPortal resource
-  service: 127.0.0.1:8500
-```
-
-#### Customizing DevPortals for different audiences
-
-The same documentation could be published in a different _host_ and
-with a different _content_ with a second `DevPortal` and `Mapping`,
-with something like:
+The _Dev Portal_ can show a static list OpenAPI docs. In this example, a `eks.aws-demo`
+_service_ is shown with the documentation obtained from a URL. In addition,
+the _Dev Portal_ will show documentation for all the services discovered in the
+`aws-demo` namespace:
 
 ```yaml
 ---
 apiVersion: getambassador.io/v2
 kind:  DevPortal
 metadata:
-  name:  dev-portal-quickstart
+  name:  ambassador
 spec:
-  content:
-    url: https://git-repo.intranet/docserver/quickstart  ## customized contents
+  default: true
+  docs:
+    - service: eks.aws-demo
+      url: https://api.swaggerhub.com/apis/kkrlogistics/amazon-elastic_kubernetes_service/2017-11-01/swagger.json
   selector:
-    matchLabels:
-      public-api: true              ## matches only public-api `Mapping`s
----
-apiVersion: getambassador.io/v2
-kind:  Mapping
-metadata:
-  name:  dev-portal-quickstart
-spec:
-  host: public.my-company.com       ## match public.my-company.com/quickstart/
-  prefix: /quickstart/
-  rewrite: "/docs/dev-portal-quickstart"
-  service: localhost:8500
-```
-
-This would show the documentation for all the `public-api` Mapings at
-`public.my-company.com/quickstart/`, rendered with the `quickstart` templates located
-in `https://git-repo.intranet/docserver/quickstart`.
-
-You can create as many `DevPortal`s as you want as long as the `rewrite` uses the
-`/docs/<devportal-name>`. For example, intranet users could access all the
-documentation (both public and private) at `docserver.intranet/apis/` with:
-
-```yaml
----
-apiVersion: getambassador.io/v2
-kind:  DevPortal
-metadata:
-  name:  dev-portal-intranet
-spec:
-  content:
-    url: https://git-repo.intranet/docserver/content
-  selector:
-    matchLabels:
-      public-api: true     ## will match any `Mappings` with the `public-api`
-      private-api: true    ## >... AND `private-api` labels
----
-apiVersion: getambassador.io/v2
-kind:  Mapping
-metadata:
-  name:  dev-portal-intranet
-spec:
-  host: docserver.intranet               ## an internal host for publishing docs
-  prefix: /apis/
-  rewrite: "/docs/dev-portal-intranet"   ## ref to the dev-portal-quickstart DevPortal
-  service: localhost:8500
-```
-
-> Note that intranet users could still access the "public view" of your docs at
-> `public.my-company.com/quickstart/`, unless prohibitted by the network policies in
-> the cluster.
-
-#### Adding authentication
-
-You could also add authentication for accessing your documentation by leveraging
-the Ambassador Edge Stack
-[filters and filter policies](https://www.getambassador.io/docs/latest/topics/using/filters/).
-For example, you can protect with _OAuth2_ the intranet docs we previously published at
-`docserver.intranet/apis/`  with something like:
-
-```yaml
----
-apiVersion: getambassador.io/v2
-kind: Filter
-metadata:
-  name: auth-filter
-  namespace: default
-spec:
-  OAuth2:
-    authorizationURL: PROVIDER_URL   ## the URL of the OAuth2 descriptor
-    clientID: CLIENT_ID              ## OAuth2 client from your IdP
-    secret: CLIENT_SECRET            ## Secret used to access OAuth2 client
-    protectedOrigins:
-    - origin: docserver.intranet
----
-apiVersion: getambassador.io/v2
-kind: FilterPolicy
-metadata:
-  name: intranet-docs-policy
-spec:
-  rules:
-  - host: docserver.intranet
-    path: /apis
-    filters:
-    - name: auth-filter
+    matchNamespaces:
+      - aws-demo            ## matches all the services in the `aws-demo` namespace
+                            ## (note that Mappings must contain a `docs` attribute)
 ```
 
 #### <a href="#styling"></a>Styling the `DevPortal`
@@ -272,25 +200,25 @@ usage tips, etc.) depending on where it has been published.
 
 The default _Dev Portal_ content is loaded in order from:
 
-- the Git repo specified in the optional `DEVPORTAL_CONTENT_URL` environment variable
+- the `ambassador` `DevPortal` resource.
+- the Git repo specified in the optional `DEVPORTAL_CONTENT_URL` environment variable.
 - the default repository at [GitHub](https://github.com/datawire/devportal-content.git).
 
-To use your own styling, clone or copy the repository, and update the
-`content` attribute to point to the repository. If you wish to use a private GitHub
-repository, create a [personal access token](https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line)
-and include the _PAT_ in the `content` following the example below:
+To use your own styling, clone or copy the repository, create an `ambassado` `DevPortal`
+and update the `content` attribute to point to the repository. If you wish to use a
+private GitHub repository, create a [Personal Access Token](https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line)
+and include it in the `content` following the example below:
 
 ```yaml
 ---
 apiVersion: getambassador.io/v2
 kind:  DevPortal
 metadata:
-  name:  dev-portal
+  name:  ambassador
 spec:
-  host: mycompany.com
-  path: /external-docs
+  default: true
   content:
-    url: https://9cb034008ddfs819da268d9z13b7ecd26@github.com/datawire/private-devportal-repo
+    url: https://9cb034008ddfs819da268d9z13b7ecd26@github.com/datawire/private-devportal-repo.git
   selector:
     matchLabels:
       public-api: true
@@ -300,9 +228,9 @@ The `content` can be have the following attributes:
 
 ```yaml
   content:
-    url: "string"      ## optional; defaults is the default repo
-    branch: "string"   ## optional; defaults is "master"
-    dir: "string"      ## optional; defaults is  "/"
+    url: "string"      ## optional; default is the default repo
+    branch: "string"   ## optional; default is "master"
+    dir: "string"      ## optional; default is  "/"
 ```
 
 where:
@@ -321,48 +249,19 @@ docker run -it --rm --volume $PWD:/content --publish 8877:8877 \
 ```
 
 and open `http://localhost:8877` in your browser. Any changes made locally to
-devportal content will be reflected immediately on page refresh
+devportal content will be reflected immediately on page refresh.
 
 ## <a href="#global-config"></a>Default Configuration
 
-The _Dev Portal_ supports some default configuration in the `devportal` section in the
-[ambassador `Module`](https://www.getambassador.io/docs/latest/topics/running/ambassador/)
-as well as with some environment variables (for backwards compatibility).
-
-### `ambassador` `Module`
-
-The same configuration can be provided in the `ambassador` `Module`:
-
-```yaml
----
-apiVersion: getambassador.io/v2
-kind:  Module
-metadata:
-  name:  ambassador
-spec:
-  config:
-    devportal:
-      poll: integer      ## optional; default is 60
-      content:
-        url: "string"    ## optional; default is ""
-        dir: "string"    ## optional; default is ""
-        branch: "string" ## optional; default is ""
-```
-
-where
-
-* `poll`: default poll interval (in seconds)
-* `content.url`: default URL to the repository hosting the content for the Portal
-* `content.dir`: default content subdir
-* `content.branch`: default content branch
-
+The _Dev Portal_ supports some default configuration in some environment variables
+(for backwards compatibility).
 
 ### Environment variables
 
-The _Dev Portal_ can also obtain the default configuration from environment variables
+The _Dev Portal_ can also obtain some default configuration from environment variables
 defined in the AES `Deployment`. This configuration method is considered deprecated and
 kept only for backwards compatibility: users should configure the default values with
-the `ambassador` Module.
+the `ambassador` `DevPortal`.
 
 | Setting                          |   Description       |
 | -------------------------------- | ------------------- |
