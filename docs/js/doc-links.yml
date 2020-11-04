@@ -145,6 +145,8 @@
               link: /docs/pre-release/topics/running/running
             - title: The Ambassador Container
               link: /docs/pre-release/topics/running/environment
+        - title: Error Response Overrides
+          link: /docs/pre-release/topics/running/error-response-overrides
         - title: Gzip Compression
           link: /docs/pre-release/topics/running/gzip
         - title: Host CRD, ACME Support, and External Load Balancer Configuration
