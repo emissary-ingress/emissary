@@ -526,6 +526,7 @@ type Http1ProtocolOptions_HeaderKeyFormat struct {
 
 	// Types that are assignable to HeaderFormat:
 	//	*Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords_
+	//	*Http1ProtocolOptions_HeaderKeyFormat_Custom_
 	HeaderFormat isHttp1ProtocolOptions_HeaderKeyFormat_HeaderFormat `protobuf_oneof:"header_format"`
 }
 
@@ -575,6 +576,13 @@ func (x *Http1ProtocolOptions_HeaderKeyFormat) GetProperCaseWords() *Http1Protoc
 	return nil
 }
 
+func (x *Http1ProtocolOptions_HeaderKeyFormat) GetCustom() *Http1ProtocolOptions_HeaderKeyFormat_Custom {
+	if x, ok := x.GetHeaderFormat().(*Http1ProtocolOptions_HeaderKeyFormat_Custom_); ok {
+		return x.Custom
+	}
+	return nil
+}
+
 type isHttp1ProtocolOptions_HeaderKeyFormat_HeaderFormat interface {
 	isHttp1ProtocolOptions_HeaderKeyFormat_HeaderFormat()
 }
@@ -583,7 +591,14 @@ type Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords_ struct {
 	ProperCaseWords *Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords `protobuf:"bytes,1,opt,name=proper_case_words,json=properCaseWords,proto3,oneof"`
 }
 
+type Http1ProtocolOptions_HeaderKeyFormat_Custom_ struct {
+	Custom *Http1ProtocolOptions_HeaderKeyFormat_Custom `protobuf:"bytes,2,opt,name=custom,proto3,oneof"`
+}
+
 func (*Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords_) isHttp1ProtocolOptions_HeaderKeyFormat_HeaderFormat() {
+}
+
+func (*Http1ProtocolOptions_HeaderKeyFormat_Custom_) isHttp1ProtocolOptions_HeaderKeyFormat_HeaderFormat() {
 }
 
 type Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords struct {
@@ -624,6 +639,53 @@ func (*Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords) Descriptor() ([]byt
 	return file_envoy_api_v2_core_protocol_proto_rawDescGZIP(), []int{3, 0, 0}
 }
 
+type Http1ProtocolOptions_HeaderKeyFormat_Custom struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Rules map[string]string `protobuf:"bytes,1,rep,name=rules,proto3" json:"rules,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (x *Http1ProtocolOptions_HeaderKeyFormat_Custom) Reset() {
+	*x = Http1ProtocolOptions_HeaderKeyFormat_Custom{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_envoy_api_v2_core_protocol_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Http1ProtocolOptions_HeaderKeyFormat_Custom) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Http1ProtocolOptions_HeaderKeyFormat_Custom) ProtoMessage() {}
+
+func (x *Http1ProtocolOptions_HeaderKeyFormat_Custom) ProtoReflect() protoreflect.Message {
+	mi := &file_envoy_api_v2_core_protocol_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Http1ProtocolOptions_HeaderKeyFormat_Custom.ProtoReflect.Descriptor instead.
+func (*Http1ProtocolOptions_HeaderKeyFormat_Custom) Descriptor() ([]byte, []int) {
+	return file_envoy_api_v2_core_protocol_proto_rawDescGZIP(), []int{3, 0, 1}
+}
+
+func (x *Http1ProtocolOptions_HeaderKeyFormat_Custom) GetRules() map[string]string {
+	if x != nil {
+		return x.Rules
+	}
+	return nil
+}
+
 type Http2ProtocolOptions_SettingsParameter struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -636,7 +698,7 @@ type Http2ProtocolOptions_SettingsParameter struct {
 func (x *Http2ProtocolOptions_SettingsParameter) Reset() {
 	*x = Http2ProtocolOptions_SettingsParameter{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_envoy_api_v2_core_protocol_proto_msgTypes[8]
+		mi := &file_envoy_api_v2_core_protocol_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -649,7 +711,7 @@ func (x *Http2ProtocolOptions_SettingsParameter) String() string {
 func (*Http2ProtocolOptions_SettingsParameter) ProtoMessage() {}
 
 func (x *Http2ProtocolOptions_SettingsParameter) ProtoReflect() protoreflect.Message {
-	mi := &file_envoy_api_v2_core_protocol_proto_msgTypes[8]
+	mi := &file_envoy_api_v2_core_protocol_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -737,7 +799,7 @@ var file_envoy_api_v2_core_protocol_proto_rawDesc = []byte{
 	0x6e, 0x12, 0x09, 0x0a, 0x05, 0x41, 0x4c, 0x4c, 0x4f, 0x57, 0x10, 0x00, 0x12, 0x12, 0x0a, 0x0e,
 	0x52, 0x45, 0x4a, 0x45, 0x43, 0x54, 0x5f, 0x52, 0x45, 0x51, 0x55, 0x45, 0x53, 0x54, 0x10, 0x01,
 	0x12, 0x0f, 0x0a, 0x0b, 0x44, 0x52, 0x4f, 0x50, 0x5f, 0x48, 0x45, 0x41, 0x44, 0x45, 0x52, 0x10,
-	0x02, 0x22, 0x80, 0x04, 0x0a, 0x14, 0x48, 0x74, 0x74, 0x70, 0x31, 0x50, 0x72, 0x6f, 0x74, 0x6f,
+	0x02, 0x22, 0x80, 0x06, 0x0a, 0x14, 0x48, 0x74, 0x74, 0x70, 0x31, 0x50, 0x72, 0x6f, 0x74, 0x6f,
 	0x63, 0x6f, 0x6c, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x48, 0x0a, 0x12, 0x61, 0x6c,
 	0x6c, 0x6f, 0x77, 0x5f, 0x61, 0x62, 0x73, 0x6f, 0x6c, 0x75, 0x74, 0x65, 0x5f, 0x75, 0x72, 0x6c,
 	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
@@ -758,7 +820,7 @@ var file_envoy_api_v2_core_protocol_proto_rawDesc = []byte{
 	0x79, 0x46, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x12, 0x27, 0x0a, 0x0f, 0x65, 0x6e, 0x61, 0x62, 0x6c,
 	0x65, 0x5f, 0x74, 0x72, 0x61, 0x69, 0x6c, 0x65, 0x72, 0x73, 0x18, 0x05, 0x20, 0x01, 0x28, 0x08,
 	0x52, 0x0e, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x54, 0x72, 0x61, 0x69, 0x6c, 0x65, 0x72, 0x73,
-	0x1a, 0xb1, 0x01, 0x0a, 0x0f, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x4b, 0x65, 0x79, 0x46, 0x6f,
+	0x1a, 0xb1, 0x03, 0x0a, 0x0f, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x4b, 0x65, 0x79, 0x46, 0x6f,
 	0x72, 0x6d, 0x61, 0x74, 0x12, 0x75, 0x0a, 0x11, 0x70, 0x72, 0x6f, 0x70, 0x65, 0x72, 0x5f, 0x63,
 	0x61, 0x73, 0x65, 0x5f, 0x77, 0x6f, 0x72, 0x64, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32,
 	0x47, 0x2e, 0x65, 0x6e, 0x76, 0x6f, 0x79, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x76, 0x32, 0x2e, 0x63,
@@ -766,8 +828,24 @@ var file_envoy_api_v2_core_protocol_proto_rawDesc = []byte{
 	0x6c, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x4b,
 	0x65, 0x79, 0x46, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x2e, 0x50, 0x72, 0x6f, 0x70, 0x65, 0x72, 0x43,
 	0x61, 0x73, 0x65, 0x57, 0x6f, 0x72, 0x64, 0x73, 0x48, 0x00, 0x52, 0x0f, 0x70, 0x72, 0x6f, 0x70,
-	0x65, 0x72, 0x43, 0x61, 0x73, 0x65, 0x57, 0x6f, 0x72, 0x64, 0x73, 0x1a, 0x11, 0x0a, 0x0f, 0x50,
-	0x72, 0x6f, 0x70, 0x65, 0x72, 0x43, 0x61, 0x73, 0x65, 0x57, 0x6f, 0x72, 0x64, 0x73, 0x42, 0x14,
+	0x65, 0x72, 0x43, 0x61, 0x73, 0x65, 0x57, 0x6f, 0x72, 0x64, 0x73, 0x12, 0x58, 0x0a, 0x06, 0x63,
+	0x75, 0x73, 0x74, 0x6f, 0x6d, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x3e, 0x2e, 0x65, 0x6e,
+	0x76, 0x6f, 0x79, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x76, 0x32, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e,
+	0x48, 0x74, 0x74, 0x70, 0x31, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x4f, 0x70, 0x74,
+	0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x4b, 0x65, 0x79, 0x46, 0x6f,
+	0x72, 0x6d, 0x61, 0x74, 0x2e, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x48, 0x00, 0x52, 0x06, 0x63,
+	0x75, 0x73, 0x74, 0x6f, 0x6d, 0x1a, 0x11, 0x0a, 0x0f, 0x50, 0x72, 0x6f, 0x70, 0x65, 0x72, 0x43,
+	0x61, 0x73, 0x65, 0x57, 0x6f, 0x72, 0x64, 0x73, 0x1a, 0xa3, 0x01, 0x0a, 0x06, 0x43, 0x75, 0x73,
+	0x74, 0x6f, 0x6d, 0x12, 0x5f, 0x0a, 0x05, 0x72, 0x75, 0x6c, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03,
+	0x28, 0x0b, 0x32, 0x49, 0x2e, 0x65, 0x6e, 0x76, 0x6f, 0x79, 0x2e, 0x61, 0x70, 0x69, 0x2e, 0x76,
+	0x32, 0x2e, 0x63, 0x6f, 0x72, 0x65, 0x2e, 0x48, 0x74, 0x74, 0x70, 0x31, 0x50, 0x72, 0x6f, 0x74,
+	0x6f, 0x63, 0x6f, 0x6c, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x2e, 0x48, 0x65, 0x61, 0x64,
+	0x65, 0x72, 0x4b, 0x65, 0x79, 0x46, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x2e, 0x43, 0x75, 0x73, 0x74,
+	0x6f, 0x6d, 0x2e, 0x52, 0x75, 0x6c, 0x65, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x05, 0x72,
+	0x75, 0x6c, 0x65, 0x73, 0x1a, 0x38, 0x0a, 0x0a, 0x52, 0x75, 0x6c, 0x65, 0x73, 0x45, 0x6e, 0x74,
+	0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x42, 0x14,
 	0x0a, 0x0d, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x5f, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x12,
 	0x03, 0xf8, 0x42, 0x01, 0x22, 0xa9, 0x0b, 0x0a, 0x14, 0x48, 0x74, 0x74, 0x70, 0x32, 0x50, 0x72,
 	0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x46, 0x0a,
@@ -889,7 +967,7 @@ func file_envoy_api_v2_core_protocol_proto_rawDescGZIP() []byte {
 }
 
 var file_envoy_api_v2_core_protocol_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_envoy_api_v2_core_protocol_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_envoy_api_v2_core_protocol_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_envoy_api_v2_core_protocol_proto_goTypes = []interface{}{
 	(HttpProtocolOptions_HeadersWithUnderscoresAction)(0),        // 0: envoy.api.v2.core.HttpProtocolOptions.HeadersWithUnderscoresAction
 	(*TcpProtocolOptions)(nil),                                   // 1: envoy.api.v2.core.TcpProtocolOptions
@@ -900,38 +978,42 @@ var file_envoy_api_v2_core_protocol_proto_goTypes = []interface{}{
 	(*GrpcProtocolOptions)(nil),                                  // 6: envoy.api.v2.core.GrpcProtocolOptions
 	(*Http1ProtocolOptions_HeaderKeyFormat)(nil),                 // 7: envoy.api.v2.core.Http1ProtocolOptions.HeaderKeyFormat
 	(*Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords)(nil), // 8: envoy.api.v2.core.Http1ProtocolOptions.HeaderKeyFormat.ProperCaseWords
-	(*Http2ProtocolOptions_SettingsParameter)(nil),               // 9: envoy.api.v2.core.Http2ProtocolOptions.SettingsParameter
-	(*duration.Duration)(nil),                                    // 10: google.protobuf.Duration
-	(*wrappers.UInt32Value)(nil),                                 // 11: google.protobuf.UInt32Value
-	(*wrappers.BoolValue)(nil),                                   // 12: google.protobuf.BoolValue
+	(*Http1ProtocolOptions_HeaderKeyFormat_Custom)(nil),          // 9: envoy.api.v2.core.Http1ProtocolOptions.HeaderKeyFormat.Custom
+	nil, // 10: envoy.api.v2.core.Http1ProtocolOptions.HeaderKeyFormat.Custom.RulesEntry
+	(*Http2ProtocolOptions_SettingsParameter)(nil), // 11: envoy.api.v2.core.Http2ProtocolOptions.SettingsParameter
+	(*duration.Duration)(nil),                      // 12: google.protobuf.Duration
+	(*wrappers.UInt32Value)(nil),                   // 13: google.protobuf.UInt32Value
+	(*wrappers.BoolValue)(nil),                     // 14: google.protobuf.BoolValue
 }
 var file_envoy_api_v2_core_protocol_proto_depIdxs = []int32{
-	10, // 0: envoy.api.v2.core.HttpProtocolOptions.idle_timeout:type_name -> google.protobuf.Duration
-	10, // 1: envoy.api.v2.core.HttpProtocolOptions.max_connection_duration:type_name -> google.protobuf.Duration
-	11, // 2: envoy.api.v2.core.HttpProtocolOptions.max_headers_count:type_name -> google.protobuf.UInt32Value
-	10, // 3: envoy.api.v2.core.HttpProtocolOptions.max_stream_duration:type_name -> google.protobuf.Duration
+	12, // 0: envoy.api.v2.core.HttpProtocolOptions.idle_timeout:type_name -> google.protobuf.Duration
+	12, // 1: envoy.api.v2.core.HttpProtocolOptions.max_connection_duration:type_name -> google.protobuf.Duration
+	13, // 2: envoy.api.v2.core.HttpProtocolOptions.max_headers_count:type_name -> google.protobuf.UInt32Value
+	12, // 3: envoy.api.v2.core.HttpProtocolOptions.max_stream_duration:type_name -> google.protobuf.Duration
 	0,  // 4: envoy.api.v2.core.HttpProtocolOptions.headers_with_underscores_action:type_name -> envoy.api.v2.core.HttpProtocolOptions.HeadersWithUnderscoresAction
-	12, // 5: envoy.api.v2.core.Http1ProtocolOptions.allow_absolute_url:type_name -> google.protobuf.BoolValue
+	14, // 5: envoy.api.v2.core.Http1ProtocolOptions.allow_absolute_url:type_name -> google.protobuf.BoolValue
 	7,  // 6: envoy.api.v2.core.Http1ProtocolOptions.header_key_format:type_name -> envoy.api.v2.core.Http1ProtocolOptions.HeaderKeyFormat
-	11, // 7: envoy.api.v2.core.Http2ProtocolOptions.hpack_table_size:type_name -> google.protobuf.UInt32Value
-	11, // 8: envoy.api.v2.core.Http2ProtocolOptions.max_concurrent_streams:type_name -> google.protobuf.UInt32Value
-	11, // 9: envoy.api.v2.core.Http2ProtocolOptions.initial_stream_window_size:type_name -> google.protobuf.UInt32Value
-	11, // 10: envoy.api.v2.core.Http2ProtocolOptions.initial_connection_window_size:type_name -> google.protobuf.UInt32Value
-	11, // 11: envoy.api.v2.core.Http2ProtocolOptions.max_outbound_frames:type_name -> google.protobuf.UInt32Value
-	11, // 12: envoy.api.v2.core.Http2ProtocolOptions.max_outbound_control_frames:type_name -> google.protobuf.UInt32Value
-	11, // 13: envoy.api.v2.core.Http2ProtocolOptions.max_consecutive_inbound_frames_with_empty_payload:type_name -> google.protobuf.UInt32Value
-	11, // 14: envoy.api.v2.core.Http2ProtocolOptions.max_inbound_priority_frames_per_stream:type_name -> google.protobuf.UInt32Value
-	11, // 15: envoy.api.v2.core.Http2ProtocolOptions.max_inbound_window_update_frames_per_data_frame_sent:type_name -> google.protobuf.UInt32Value
-	9,  // 16: envoy.api.v2.core.Http2ProtocolOptions.custom_settings_parameters:type_name -> envoy.api.v2.core.Http2ProtocolOptions.SettingsParameter
+	13, // 7: envoy.api.v2.core.Http2ProtocolOptions.hpack_table_size:type_name -> google.protobuf.UInt32Value
+	13, // 8: envoy.api.v2.core.Http2ProtocolOptions.max_concurrent_streams:type_name -> google.protobuf.UInt32Value
+	13, // 9: envoy.api.v2.core.Http2ProtocolOptions.initial_stream_window_size:type_name -> google.protobuf.UInt32Value
+	13, // 10: envoy.api.v2.core.Http2ProtocolOptions.initial_connection_window_size:type_name -> google.protobuf.UInt32Value
+	13, // 11: envoy.api.v2.core.Http2ProtocolOptions.max_outbound_frames:type_name -> google.protobuf.UInt32Value
+	13, // 12: envoy.api.v2.core.Http2ProtocolOptions.max_outbound_control_frames:type_name -> google.protobuf.UInt32Value
+	13, // 13: envoy.api.v2.core.Http2ProtocolOptions.max_consecutive_inbound_frames_with_empty_payload:type_name -> google.protobuf.UInt32Value
+	13, // 14: envoy.api.v2.core.Http2ProtocolOptions.max_inbound_priority_frames_per_stream:type_name -> google.protobuf.UInt32Value
+	13, // 15: envoy.api.v2.core.Http2ProtocolOptions.max_inbound_window_update_frames_per_data_frame_sent:type_name -> google.protobuf.UInt32Value
+	11, // 16: envoy.api.v2.core.Http2ProtocolOptions.custom_settings_parameters:type_name -> envoy.api.v2.core.Http2ProtocolOptions.SettingsParameter
 	5,  // 17: envoy.api.v2.core.GrpcProtocolOptions.http2_protocol_options:type_name -> envoy.api.v2.core.Http2ProtocolOptions
 	8,  // 18: envoy.api.v2.core.Http1ProtocolOptions.HeaderKeyFormat.proper_case_words:type_name -> envoy.api.v2.core.Http1ProtocolOptions.HeaderKeyFormat.ProperCaseWords
-	11, // 19: envoy.api.v2.core.Http2ProtocolOptions.SettingsParameter.identifier:type_name -> google.protobuf.UInt32Value
-	11, // 20: envoy.api.v2.core.Http2ProtocolOptions.SettingsParameter.value:type_name -> google.protobuf.UInt32Value
-	21, // [21:21] is the sub-list for method output_type
-	21, // [21:21] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	9,  // 19: envoy.api.v2.core.Http1ProtocolOptions.HeaderKeyFormat.custom:type_name -> envoy.api.v2.core.Http1ProtocolOptions.HeaderKeyFormat.Custom
+	10, // 20: envoy.api.v2.core.Http1ProtocolOptions.HeaderKeyFormat.Custom.rules:type_name -> envoy.api.v2.core.Http1ProtocolOptions.HeaderKeyFormat.Custom.RulesEntry
+	13, // 21: envoy.api.v2.core.Http2ProtocolOptions.SettingsParameter.identifier:type_name -> google.protobuf.UInt32Value
+	13, // 22: envoy.api.v2.core.Http2ProtocolOptions.SettingsParameter.value:type_name -> google.protobuf.UInt32Value
+	23, // [23:23] is the sub-list for method output_type
+	23, // [23:23] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_envoy_api_v2_core_protocol_proto_init() }
@@ -1037,6 +1119,18 @@ func file_envoy_api_v2_core_protocol_proto_init() {
 			}
 		}
 		file_envoy_api_v2_core_protocol_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Http1ProtocolOptions_HeaderKeyFormat_Custom); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_envoy_api_v2_core_protocol_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Http2ProtocolOptions_SettingsParameter); i {
 			case 0:
 				return &v.state
@@ -1051,6 +1145,7 @@ func file_envoy_api_v2_core_protocol_proto_init() {
 	}
 	file_envoy_api_v2_core_protocol_proto_msgTypes[6].OneofWrappers = []interface{}{
 		(*Http1ProtocolOptions_HeaderKeyFormat_ProperCaseWords_)(nil),
+		(*Http1ProtocolOptions_HeaderKeyFormat_Custom_)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1058,7 +1153,7 @@ func file_envoy_api_v2_core_protocol_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_envoy_api_v2_core_protocol_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

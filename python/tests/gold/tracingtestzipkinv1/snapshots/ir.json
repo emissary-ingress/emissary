@@ -748,7 +748,8 @@
         "driver_config": {
             "collector_cluster": "cluster_tracing_zipkin_v1_9411_default",
             "collector_endpoint": "/api/v1/spans",
-            "collector_endpoint_version": "HTTP_JSON_V1"
+            "collector_endpoint_version": "HTTP_JSON_V1",
+            "collector_hostname": "zipkin-v1"
         },
         "grpc": false,
         "kind": "ir.tracing",

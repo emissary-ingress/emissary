@@ -258,6 +258,25 @@ func (m *ResponseMapPerRoute) Validate() error {
 			}
 		}
 
+	case *ResponseMapPerRoute_ResponseMap:
+
+		if m.GetResponseMap() == nil {
+			return ResponseMapPerRouteValidationError{
+				field:  "ResponseMap",
+				reason: "value is required",
+			}
+		}
+
+		if v, ok := interface{}(m.GetResponseMap()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ResponseMapPerRouteValidationError{
+					field:  "ResponseMap",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		return ResponseMapPerRouteValidationError{
 			field:  "Override",
