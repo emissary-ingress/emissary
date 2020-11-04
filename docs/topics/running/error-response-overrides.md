@@ -4,10 +4,10 @@ Custom error responses set overrides for HTTP response statuses generated either
 by Ambassador or upstream services. 
 
 They are configured either on the Ambassador
-[`module`](ambassador).
-or on a [`mapping`](../../using/intro-mappings/), the schema is identical. In
-the case of responses configured on both the `module` and a `mapping`, the
-`mapping` will take precedence.
+[`Module`](ambassador).
+or on a [`Mapping`](../../using/intro-mappings/), the schema is identical. In
+the case of responses configured on both the `Module` and a `Mapping`, the
+`Mapping` will take precedence.
 
  ID | Definition
 --- | ---
@@ -22,7 +22,7 @@ the case of responses configured on both the `module` and a `mapping`, the
 Only one of `text_format`, `json_format`, or `text_format_source` may be provided.
 
 Custom response bodies are subject to Envoy's AccessLog substitution syntax
-and variables, see [this document](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log/usage#config-access-log-format-strings) for more information.
+and variables, see [Envoy's documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log/usage#config-access-log-format-strings) for more information.
 
 ## Simple Response Bodies
 
@@ -113,7 +113,7 @@ spec:
 
 ## Known Limitations
 
-- `Text_format`, `text_format_source`, and `json_format` perform no string
+- `text_format`, `text_format_source`, and `json_format` perform no string
 escaping on expanded variables. This may break the structural integrity of your
 response body if, for example, the variable contains HTML data and the response
 content type is `text/html`. Be careful when using variables in this way, and
@@ -125,7 +125,7 @@ consider using `text_format_source` with a JSON file and `content_type` set to
 
 ## Disabling Responses on Individual Mappings
 
-If error response overrides are set on the `module`, they can be disabled on 
+If error response overrides are set on the `Module`, they can be disabled on 
 individual mappings by setting 
 `bypass_error_response_overrides: true` on those mappings:
 
