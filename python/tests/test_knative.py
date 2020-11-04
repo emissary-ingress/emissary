@@ -2,7 +2,9 @@ import logging
 from urllib import request
 from urllib.error import URLError, HTTPError
 from retry import retry
+import socket
 import sys
+import time
 
 import pytest
 
@@ -59,12 +61,18 @@ spec:
 class KnativeTesting:
     @retry(URLError, tries=5, delay=2)
     def get_code_with_retry(self, req):
-        try:
-            conn = request.urlopen(req, timeout=5)
-            conn.close()
-            return 200
-        except HTTPError as e:
-            return e.code
+        for attempts in range(10):
+            try:
+                conn = request.urlopen(req, timeout=10)
+                conn.close()
+                return 200
+            except HTTPError as e:
+                return e.code
+            except socket.timeout as e:
+                print(f"get_code_with_retry: socket.timeout {e}, attempt {attempts+1}")
+                pass
+            time.sleep(5)
+        return 503
 
     def test_knative(self):
         namespace = 'knative-testing'
@@ -107,6 +115,10 @@ class KnativeTesting:
         port_forward_port = 7000
         port_forward_command = ['kubectl', 'port-forward', '--namespace', namespace, 'service/ambassador', f'{port_forward_port}:80']
         run_and_assert(port_forward_command, communicate=False)
+
+        # Port forwarding is not instant. Make a best effort to avoid a race by sleeping for
+        # a... while. The `get_code_with_retry` function will also do some retrying.
+        time.sleep(60)
 
         # Assert 200 OK at /qotm/ endpoint
         qotm_url = f'http://localhost:{port_forward_port}/qotm/'

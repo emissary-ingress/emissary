@@ -110,6 +110,7 @@
                 "collector_cluster": "cluster_tracing_zipkin_v2_9411_default",
                 "collector_endpoint": "/api/v2/spans",
                 "collector_endpoint_version": "HTTP_JSON",
+                "collector_hostname": "zipkin-v2",
                 "trace_id_128bit": true
             }
         }

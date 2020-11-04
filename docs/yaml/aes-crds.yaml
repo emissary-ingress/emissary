@@ -1275,6 +1275,8 @@ spec:
                   - HTTP_JSON
                   - HTTP_PROTO
                   type: string
+                collector_hostname:
+                  type: string
                 service_name:
                   type: string
                 shared_span_context:
