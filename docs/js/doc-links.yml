@@ -226,6 +226,8 @@
           link: /docs/pre-release/howtos/tracing-datadog
         - title: Zipkin
           link: /docs/pre-release/howtos/tracing-zipkin
+    - title: External Filters
+      link: /docs/pre-release/howtos/ext-filters
     - title: Knative Serverless Framework
       link: /docs/pre-release/howtos/knative
     - title: Protocols

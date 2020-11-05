@@ -1,14 +1,12 @@
-# Authentication
+# External Filters
 
->**IMPORTANT:** This guide applies to Ambassador API Gateway, use of this guide on the Ambassador Edge Stack is not fully supported.  Use the [External Filter](../../topics/using/filters) instead.
+> **IMPORTANT:** This guide applies to Ambassador Edge Stack, use of this guide
+ on the Ambassador API Gateway is not recommended.  Use 
+ [Authentication](../basic-auth) instead.
 
-Ambassador can authenticate incoming requests before routing them to a backing service. In this tutorial, we'll configure Ambassador to use an external third party authentication service.
-
-## Before You Get Started
-
-This tutorial assumes you have already followed the Ambassador API Gateway [Installation](../../topics/install/install-ambassador-oss) guide. If you haven't done that already, you should do so now.
-
-Once complete, you'll have a Kubernetes cluster running Ambassador. Let's walk through adding authentication to this setup.
+Ambassador can authenticate incoming requests before routing them to a backing 
+service. In this tutorial, we'll configure Ambassador to use an external third 
+party authentication service.
 
 ## 1. Deploy the Authentication Service
 
@@ -94,31 +92,22 @@ Once the auth service is running, we need to tell Ambassador about it. The easie
 ```yaml
 ---
 apiVersion: getambassador.io/v2
-kind: AuthService
+kind: Filter
 metadata:
   name: authentication
 spec:
-  auth_service: "example-auth:3000"
-  path_prefix: "/extauth"
-  allowed_request_headers:
-  - "x-qotm-session"
-  allowed_authorization_headers:
-  - "x-qotm-session"
+  External:
+    auth_service: "example-auth:3000"
+    path_prefix: "/extauth"
+    allowed_request_headers:
+    - "x-qotm-session"
+    allowed_authorization_headers:
+    - "x-qotm-session"
 ```
 
-This configuration tells Ambassador about the auth service, notably that it needs the `/extauth` prefix, and that it's OK for it to pass back the `x-qotm-session` header. Note that `path_prefix` and `allowed_headers` are optional.
+This configuration tells Ambassador about the filter, notably that it needs the `/extauth` prefix, and that it's OK for it to pass back the `x-qotm-session` header. Note that `path_prefix` and `allowed_headers` are optional.
 
-If the auth service uses a framework like [Gorilla Toolkit](http://www.gorillatoolkit.org) which enforces strict slashes as HTTP path separators, it is possible to end up with an infinite redirect where the auth service's framework redirects any request with non-conformant slashing. This would arise if the above example had ```path_prefix: "/extauth/"```, the auth service would see a request for ```/extauth//backend/get-quote/``` which would then be redirected to ```/extauth/backend/get-quote/``` rather than actually be handled by the authentication handler. For this reason, remember that the full path of the incoming request including the leading slash, will be appended to ```path_prefix``` regardless of non-conformant slashing.
-
-You can apply this file from getambassador.io with
-
-```shell
-kubectl apply -f https://www.getambassador.io/yaml/demo/demo-auth-enable.yaml
-```
-
-or, again, apply it from a local file if you prefer.
-
-Note that the cluster does not yet contain any Ambassador AuthService definition.
+If the auth service uses a framework like [Gorilla Toolkit](http://www.gorillatoolkit.org) which enforces strict slashes as HTTP path separators, it is possible to end up with an infinite redirect where the filter's framework redirects any request with non-conformant slashing. This would arise if the above example had ```path_prefix: "/extauth/"```, the filter would see a request for ```/extauth//backend/get-quote/``` which would then be redirected to ```/extauth/backend/get-quote/``` rather than actually be handled by the authentication handler. For this reason, remember that the full path of the incoming request including the leading slash, will be appended to ```path_prefix``` regardless of non-conformant slashing.
 
 ## 3. Test Authentication
 
@@ -176,36 +165,6 @@ $ curl -Lv -u username:password $AMBASSADORURL/backend/get-quote/
 }
 ```
 
-## Legacy v0 API
-
-If using Ambassador v0.40.2 or earlier, use the deprecated v0 `AuthService` API
-
-```yaml
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: example-auth
-  mappings:
-    getambassador.io/config: |
-      ---
-      apiVersion: getambassador.io/v2
-      kind:  AuthService
-      name:  authentication
-      auth_service: "example-auth:3000"
-      path_prefix: "/extauth"
-      allowed_headers:
-      - "x-qotm-session"
-spec:
-  type: ClusterIP
-  selector:
-    app: example-auth
-  ports:
-  - port: 3000
-    name: http-example-auth
-    targetPort: http-api
-```
-
 ## More
 
-For more details about configuring authentication, see the [`External` filter](../../topics/using/filters) documentation.
+For more details see the [`External` filter](../../topics/using/filters) documentation.

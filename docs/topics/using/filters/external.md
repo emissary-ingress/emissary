@@ -2,6 +2,9 @@
 
 The `External` filter calls out to an external service speaking the [`ext_authz` protocol](../../../running/services/ext_authz), providing a highly flexible interface to plug in your own authentication, authorization, and filtering logic.
 
+Please see [this HOWTO doc](../../../../howtos/ext-filters/) for an example of 
+using the `External` filter for authentication.
+
 ```yaml
 ---
 apiVersion: getambassador.io/v2
