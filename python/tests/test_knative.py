@@ -13,7 +13,7 @@ from kat.harness import load_manifest
 from ambassador import Config, IR
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
-from utils import run_and_assert, apply_kube_artifacts, install_ambassador, qotm_manifests, create_qotm_mapping
+from utils import run_and_assert, apply_kube_artifacts, install_ambassador, qotm_manifests, create_qotm_mapping, get_code_with_retry
 
 logger = logging.getLogger('ambassador')
 
@@ -59,21 +59,6 @@ spec:
 
 
 class KnativeTesting:
-    @retry(URLError, tries=5, delay=2)
-    def get_code_with_retry(self, req):
-        for attempts in range(10):
-            try:
-                conn = request.urlopen(req, timeout=10)
-                conn.close()
-                return 200
-            except HTTPError as e:
-                return e.code
-            except socket.timeout as e:
-                print(f"get_code_with_retry: socket.timeout {e}, attempt {attempts+1}")
-                pass
-            time.sleep(5)
-        return 503
-
     def test_knative(self):
         namespace = 'knative-testing'
 
