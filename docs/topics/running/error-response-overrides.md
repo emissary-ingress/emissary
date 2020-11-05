@@ -3,11 +3,10 @@
 Custom error responses set overrides for HTTP response statuses generated either
 by Ambassador or upstream services. 
 
-They are configured either on the Ambassador
+They can be configured either on the Ambassador
 [`Module`](ambassador).
-or on a [`Mapping`](../../using/intro-mappings/), the schema is identical. In
-the case of responses configured on both the `Module` and a `Mapping`, the
-`Mapping` will take precedence.
+or on a [`Mapping`](../../using/intro-mappings/), the schema is identical. See
+below for more information on [rule precedence](#rule-precedence).
 
  ID | Definition
 --- | ---
@@ -122,6 +121,39 @@ or response headers.
 - The `json_format` field does not support sourcing from a file. Instead 
 consider using `text_format_source` with a JSON file and `content_type` set to
 `application/json`.
+
+## Rule Precedence
+
+If rules are set on both the `Module` and on a `Mapping`, the rule set on 
+the `Mapping` will take precedence, ignoring any `Module` rules. This is true 
+even if the rules are for different status codes. For example, consider this 
+configuration:
+
+```yaml
+apiVersion: getambassador.io/v1
+kind: module
+spec:
+  config:
+    error_response_overrides:
+      - on_status_code: 404
+        body:
+          text_format: "Global 404"
+---
+apiVersion: getambassador.io/v2
+kind: mapping
+spec:
+  config:
+    prefix: /api/
+    service: quote
+    error_response_overrides:
+      - on_status_code: 429
+        body:
+           text_format: "Per-mapping 429"
+```
+The `Mapping` rule will prevent an override on the 404 rule defined on the
+`Module` for this `Mapping`. The rule on the `Mapping` will cause all rules on 
+the `Module` to be ignored, regardless of the status codes specified. A seperate
+`Mapping` with no override rules defined will follow the 404 rule on the `Module`.
 
 ## Disabling Responses on Individual Mappings
 
