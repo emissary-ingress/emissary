@@ -113,7 +113,7 @@ spec:
 
 ## Known Limitations
 
-- `text_format`, `text_format_source`, and `json_format` perform no string
+- `text_format`and `text_format_source` perform no string
 escaping on expanded variables. This may break the structural integrity of your
 response body if, for example, the variable contains HTML data and the response
 content type is `text/html`. Be careful when using variables in this way, and
