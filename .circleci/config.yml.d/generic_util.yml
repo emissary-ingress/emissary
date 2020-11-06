@@ -84,7 +84,7 @@ commands:
     parameters:
       "version":
         type: string
-        default: "3.6.3"
+        default: "3.8.5"
       "pip-version":
         type: string
         default: "20.1.1"
