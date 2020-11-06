@@ -2,7 +2,6 @@ import logging
 from urllib import request
 from urllib.error import URLError, HTTPError
 from retry import retry
-import socket
 import sys
 import time
 

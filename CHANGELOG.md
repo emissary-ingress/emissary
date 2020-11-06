@@ -61,6 +61,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Upgrade Alpine 3.10→3.12, GNU libc 2.30→2.32, and Python 3.7→3.8
 - Feature: The `TracingService` Zipkin config now supports setting `collector_hostname` to tell Envoy which host header to set when sending spans to the collector.
 - Bugfix: Update Python requirements to address CVE-2020-25659
+- Feature: Ambassador now supports custom case overrides for response headers.
 
 ## [1.8.1] October 16, 2020
 [1.8.1]: https://github.com/datawire/ambassador/compare/v1.8.0...v1.8.1

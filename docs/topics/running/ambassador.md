@@ -43,6 +43,7 @@ spec:
 | `listener_idle_timeout_ms` | Controls how Envoy configures the tcp idle timeout on the http listener. Default is 1 hour. | `listener_idle_timeout_ms: 30000` |
 | `lua_scripts` | Run a custom lua script on every request. see below for more details. | None |
 | `proper_case` | Should we enable upper casing for response headers? For more information, see [the Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/core/protocol.proto#envoy-api-msg-core-http1protocoloptions-headerkeyformat). | `proper_case: false` |
+| `header_case_overrides` | Array of response header names whose casing should be forced. For every response header that matches (case insensitively) to an element in this array, the resulting header name is forced to the provided casing in the array. Cannot be used with 'proper_case'. This feature provides overrides for Envoy's normal [header casing rules](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_conn_man/header_casing). | `header_case_overrides: []` |
 | `regex_max_size` | This field controls the RE2 "program size" which is a rough estimate of how complex a compiled regex is to evaluate. A regex that has a program size greater than the configured value will fail to compile.    | `regex_max_size: 200` |
 | `regex_type` | Set which regular expression engine to use. See the "Regular Expressions" section below. | `regex_type: safe` |
 | `server_name` | By default Envoy sets server_name response header to `envoy`. Override it with this variable. | `server_name: envoy` |
@@ -258,6 +259,20 @@ If you need more flexible and configurable options, Ambassador Edge Stack suppor
 ### Header Case (`proper_case`)
 
 To enable upper casing of response headers by proper casing words: the first character and any character following a special character will be capitalized if it’s an alpha character. For example, “content-type” becomes “Content-Type”. Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/core/protocol.proto#envoy-api-msg-core-http1protocoloptions-headerkeyformat)
+
+### Overriding Header Case (`header_case_overrides`)
+
+Enables overriding the case of response headers returned by Ambassador. The `header_case_overrides` field is an array of header names. When Ambassador handles response headers that match any of these headers, matched case-insensitively, they will be rewritten to use their respective case-sensitive names. For example, the following configuration will force response headers that match `X-MY-Header` and `X-EXPERIMENTAL` to use that exact casing, regardless of the original case in the upstream response.
+
+```yaml
+header_case_overrides:
+- X-MY-Header
+- X-EXPERIMENTAL
+```
+
+If the upstream service responds with `x-my-header: 1`, Ambasasdor will return `X-MY-Header: 1` to the client. Similarly, if the upstream service responds with `X-Experimental: 1`, Ambasasdor will return `X-EXPERIMENTAL: 1` to the client. Finally, if the upstream service responds with a header for which there is no header case override, Ambassador will return the default, lowercase header.
+
+This configuration is helpful when dealing with clients that are sensitive to specific HTTP header casing. In general, this configuration should be avoided, if possible, in favor of updating clients to work correctly with HTTP headers in a case-insensitive way.
 
 ### Regular Expressions (`regex_type`)
 

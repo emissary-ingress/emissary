@@ -1,5 +1,6 @@
 import os
 import subprocess
+import socket
 import tempfile
 from collections import namedtuple
 from urllib import request
@@ -10,6 +11,42 @@ import yaml
 
 from kat.utils import namespace_manifest
 from kat.harness import load_manifest, CLEARTEXT_HOST_YAML
+
+httpbin_manifests ="""
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpbin
+spec:
+  type: ClusterIP
+  selector:
+    service: httpbin
+  ports:
+  - port: 80
+    targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpbin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: httpbin
+  template:
+    metadata:
+      labels:
+        service: httpbin
+    spec:
+      containers:
+      - name: httpbin
+        image: kennethreitz/httpbin
+        ports:
+        - name: http
+          containerPort: 80
+"""
 
 qotm_manifests = """
 ---
@@ -172,7 +209,23 @@ spec:
 
     apply_kube_artifacts(namespace=namespace, artifacts=qotm_mapping)
 
-@retry(URLError, tries=5, delay=2)
+def create_httpbin_mapping(namespace):
+    httpbin_mapping = f"""
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name:  httpbin-mapping
+  namespace: {namespace}
+spec:
+  prefix: /httpbin/
+  rewrite: /
+  service: httpbin
+"""
+
+    apply_kube_artifacts(namespace=namespace, artifacts=httpbin_mapping)
+
+
 def get_code_with_retry(req):
     for attempts in range(10):
         try:

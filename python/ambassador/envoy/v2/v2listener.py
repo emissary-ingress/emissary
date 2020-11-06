@@ -991,7 +991,53 @@ class V2Listener(dict):
                         "value": overall_sampling
                     }
 
-        proper_case = self.config.ir.ambassador_module['proper_case']
+
+        proper_case: bool = self.config.ir.ambassador_module['proper_case']
+
+        # Support a list of response headers whose casing should be overriden.
+        header_case_overrides = self.config.ir.ambassador_module.get('header_case_overrides', None)
+        if header_case_overrides:
+            if proper_case:
+                self.config.ir.post_error(
+                    "Only one of 'proper_case' or 'header_case_overrides' fields may be set on " +\
+                    "the Ambassador module. Honoring proper_case and ignoring " +\
+                    "header_case_overrides.")
+                header_case_overrides = None
+            if not isinstance(header_case_overrides, list):
+                # The header_case_overrides field must be an array.
+                self.config.ir.post_error("Ambassador module config 'header_case_overrides' must be an array")
+                header_case_overrides = None
+            elif len(header_case_overrides) == 0:
+                # Allow an empty list to mean "do nothing".
+                header_case_overrides = None
+
+        if header_case_overrides:
+            # Create custom header rules that map the lowercase version of every element in
+            # `header_case_overrides` to the the respective original casing.
+            #
+            # For example the input array [ X-HELLO-There, X-COOL ] would create rules:
+            # { 'x-hello-there': 'X-HELLO-There', 'x-cool': 'X-COOL' }. In envoy, this effectively
+            # overrides the response header case by remapping the lowercased version (the default
+            # casing in envoy) back to the casing provided in the config.
+            rules = []
+            for hdr in header_case_overrides:
+                if not isinstance(hdr, str):
+                    self.config.ir.post_error("Skipping non-string header in 'header_case_overrides': {hdr}")
+                    continue
+                rules.append(hdr)
+
+            if len(rules) == 0:
+                self.config.ir.post_error(f"Could not parse any valid string headers in 'header_case_overrides': {header_case_overrides}")
+            else:
+                custom_header_rules: Dict[str, Dict[str, dict]] = {
+                    'custom': {
+                        'rules': {
+                            header.lower() : header for header in rules
+                        }
+                    }
+                }
+                http_options = self.base_http_config.setdefault("http_protocol_options", {})
+                http_options["header_key_format"] = custom_header_rules
 
         if proper_case:
             proper_case_header: Dict[str, Dict[str, dict]] = {'header_key_format': {'proper_case_words': {}}}
