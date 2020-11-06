@@ -5,6 +5,8 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+- Feature: Add ability to configure `terminationGracePeriodSeconds` for the Ambassador container
+
 ## v6.5.11
 
 - Feature: add affinity and tolerations support for redis pods
