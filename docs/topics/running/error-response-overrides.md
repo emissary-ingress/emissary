@@ -14,7 +14,7 @@ below for more information on [rule precedence](#rule-precedence).
  `body` | Describes the response body contents and format.
  `content_type`| A string that sets the content type of the response.
  `text_format`| A string whose value will be used as the new response body. `Content-Type` will default to `text/plain` if unspecified.
- `json_format`| A config object whose keys and values will be serialized as JSON and used as the new response body. `Content-Type` will default to `application/json` if unspecified.
+ `json_format`| A config object whose keys and values will be serialized as JSON and used as the new response body.
  `text_format_source` | Describes a file to be used as the response. If used, `filename` must be set and the file must exist on the Ambassador pod.
  `filename`| A file path on the Ambassador pod that will be used as the new response body.
 
@@ -25,7 +25,7 @@ and variables, see [Envoy's documentation](https://www.envoyproxy.io/docs/envoy/
 
 ## Simple Response Bodies
 
-Simple responses can be be added quickly for debugging. They are inserted into
+Simple responses can be be added quickly for convenience. They are inserted into
 the manifest as either text or JSON:
 
 ```yaml
@@ -132,6 +132,9 @@ configuration:
 ```yaml
 apiVersion: getambassador.io/v1
 kind: module
+metadata:
+  name: ambassador
+  namespace: ambassador
 spec:
   config:
     error_response_overrides:
@@ -141,6 +144,9 @@ spec:
 ---
 apiVersion: getambassador.io/v2
 kind: mapping
+metadata:
+  name: ambassador
+  namespace: ambassador
 spec:
   config:
     prefix: /api/
@@ -155,7 +161,7 @@ The `Mapping` rule will prevent an override on the 404 rule defined on the
 the `Module` to be ignored, regardless of the status codes specified. A seperate
 `Mapping` with no override rules defined will follow the 404 rule on the `Module`.
 
-## Disabling Responses on Individual Mappings
+## Disabling Response Overrides
 
 If error response overrides are set on the `Module`, they can be disabled on 
 individual mappings by setting 
