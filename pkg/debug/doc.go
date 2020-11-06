@@ -1,5 +1,5 @@
-// The debug package is intended to aid in live debugging of misbehaving Ambassador's in
-// production. It's role is somewhat akin to a debugger and/or a profiler in that it gives you
+// The debug package is intended to aid in live debugging of misbehaving Ambassadors in
+// production. Its role is somewhat akin to a debugger and/or a profiler in that it gives you
 // visiblity into important internal state and performance charactaristics of Ambassador, however
 // unlike a debugger and/or profiler it is intended to function well in a production context.
 //
@@ -93,7 +93,7 @@
 //
 //   // or
 //
-//   v := StrutThatCanBeJsonMarshalled{...}
+//   v := StructThatCanBeJsonMarshalled{...}
 //   value.Store(v)
 //
 // The debug endpoint will now show the current value for "myValue". The only requirement for the
