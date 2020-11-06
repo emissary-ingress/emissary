@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/pkg/acp"
+	"github.com/datawire/ambassador/pkg/debug"
 )
 
 func notifyReconfigWebhooks(ctx context.Context, ambwatch *acp.AmbassadorWatcher) {
@@ -62,6 +63,8 @@ func notifyReconfigWebhooks(ctx context.Context, ambwatch *acp.AmbassadorWatcher
 
 // posts to a webhook style url, logging any errors, and returning false if a retry is needed
 func notifyWebhookUrl(ctx context.Context, name, xurl string) bool {
+	defer debug.FromContext(ctx).Timer(fmt.Sprintf("notifyWebhook:%s", name)).Start()()
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, xurl, nil)
 	if err != nil {
 		panic(err)
