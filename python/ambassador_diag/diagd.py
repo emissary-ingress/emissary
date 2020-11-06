@@ -1322,7 +1322,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 self._respond(rqueue, 400, f"unknown event type '{cmd}' '{arg}'")
 
     def _respond(self, rqueue: queue.Queue, status: int, info='') -> None:
-        self.logger.debug("responding to query with %s %s" % (status, info))
+        # self.logger.debug("responding to query with %s %s" % (status, info))
         rqueue.put((status, info))
 
     # load_config_fs reconfigures from the filesystem. It's _mostly_ legacy
