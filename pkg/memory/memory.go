@@ -14,6 +14,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/datawire/ambassador/pkg/debug"
 )
 
 // The Watch method will check memory usage every 10 seconds and log it if it jumps more than 10Gi
@@ -21,6 +23,10 @@ import (
 // minute. Usage is also unconditionally logged before returning. This function only returns if the
 // context is canceled.
 func (usage *MemoryUsage) Watch(ctx context.Context) {
+	dbg := debug.FromContext(ctx)
+	memory := dbg.Value("memory")
+	memory.Store(usage.ShortString())
+
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
 
@@ -28,6 +34,7 @@ func (usage *MemoryUsage) Watch(ctx context.Context) {
 		select {
 		case now := <-ticker.C:
 			usage.Refresh()
+			memory.Store(usage.ShortString())
 			usage.maybeDo(now, func() {
 				log.Println(usage.String())
 			})
@@ -37,6 +44,12 @@ func (usage *MemoryUsage) Watch(ctx context.Context) {
 			return
 		}
 	}
+}
+
+func (m *MemoryUsage) ShortString() string {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	return fmt.Sprintf("%s of %s (%d%%)", m.usage.String(), m.limit.String(), m.percentUsed())
 }
 
 // Return true if conditions for action are satisifed. We take action if memory has changed more
@@ -106,8 +119,12 @@ type memory int64
 
 // Pretty print memory in gigabytes.
 func (m memory) String() string {
-	const GiB = 1024 * 1024 * 1024
-	return fmt.Sprintf("%.2fGi", float64(m)/GiB)
+	if m == unlimited {
+		return "Unlimited"
+	} else {
+		const GiB = 1024 * 1024 * 1024
+		return fmt.Sprintf("%.2fGi", float64(m)/GiB)
+	}
 }
 
 // The MemoryUsage.Refresh method updates memory usage information.

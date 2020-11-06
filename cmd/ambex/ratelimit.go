@@ -5,6 +5,8 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	_debug "github.com/datawire/ambassador/pkg/debug"
 )
 
 // An Update encapsulates everything needed to perform an update (of envoy configuration). The
@@ -29,8 +31,18 @@ func Updater(ctx context.Context, updates <-chan Update, getUsage MemoryGetter) 
 	return updaterWithTicker(ctx, updates, getUsage, drainTime, ticker, time.Now)
 }
 
+type debugInfo struct {
+	Times      []time.Time `json:"times"`
+	StaleCount int         `json:"staleCount"`
+	StaleMax   int         `json:"staleMax"`
+	Synced     bool        `json:"synced"`
+}
+
 func updaterWithTicker(ctx context.Context, updates <-chan Update, getUsage MemoryGetter,
 	drainTime time.Duration, ticker *time.Ticker, clock func() time.Time) error {
+
+	dbg := _debug.FromContext(ctx)
+	info := dbg.Value("envoyReconfigs")
 
 	// This slice holds the times of any updates we have made. This lets us compute how many stale
 	// configs are being held in memory since we can filter this list down to just those times that
@@ -102,6 +114,8 @@ func updaterWithTicker(ctx context.Context, updates <-chan Update, getUsage Memo
 
 		staleReconfigs := len(updateTimes)
 
+		info.Store(debugInfo{updateTimes, staleReconfigs, maxStaleReconfigs, pushed})
+
 		// Decide if we have enough capacity left to perform a reconfig.
 		if maxStaleReconfigs > 0 && staleReconfigs >= maxStaleReconfigs {
 			if !tick {
@@ -126,6 +140,8 @@ func updaterWithTicker(ctx context.Context, updates <-chan Update, getUsage Memo
 		updateTimes = append(updateTimes, now)
 		log.Infof("Pushing snapshot %+v", latest.Version)
 		pushed = true
+
+		info.Store(debugInfo{updateTimes, staleReconfigs, maxStaleReconfigs, pushed})
 	}
 }
 

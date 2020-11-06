@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/pkg/acp"
+	"github.com/datawire/ambassador/pkg/debug"
 )
 
 func handleCheckAlive(w http.ResponseWriter, r *http.Request, ambwatch *acp.AmbassadorWatcher) {
@@ -45,19 +46,29 @@ func handleCheckReady(w http.ResponseWriter, r *http.Request, ambwatch *acp.Amba
 }
 
 func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) {
+	dbg := debug.FromContext(ctx)
+
 	// We need to do some HTTP stuff by hand to catch the readiness and liveness
 	// checks here, but forward everything else to diagd.
 	sm := http.NewServeMux()
 
 	// Handle the liveness check and the readiness check directly, by handing them
 	// off to our functions.
-	sm.HandleFunc("/ambassador/v0/check_alive", func(w http.ResponseWriter, r *http.Request) {
-		handleCheckAlive(w, r, ambwatch)
-	})
 
-	sm.HandleFunc("/ambassador/v0/check_ready", func(w http.ResponseWriter, r *http.Request) {
-		handleCheckReady(w, r, ambwatch)
-	})
+	livenessTimer := dbg.Timer("check_alive")
+	sm.HandleFunc("/ambassador/v0/check_alive",
+		livenessTimer.TimedHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handleCheckAlive(w, r, ambwatch)
+		}))
+
+	readinessTimer := dbg.Timer("check_ready")
+	sm.HandleFunc("/ambassador/v0/check_ready",
+		readinessTimer.TimedHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handleCheckReady(w, r, ambwatch)
+		}))
+
+	// Serve any debug info from the golang codebase.
+	sm.Handle("/debug", dbg)
 
 	// For everything else, use a ReverseProxy to forward it to diagd.
 	//
