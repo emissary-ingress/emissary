@@ -16,7 +16,7 @@ import (
 
 func handleCheckAlive(w http.ResponseWriter, r *http.Request, ambwatch *acp.AmbassadorWatcher) {
 	// The liveness check needs to explicitly try to talk to Envoy...
-	ambwatch.FetchEnvoyStats(r.Context())
+	ambwatch.FetchEnvoyReady(r.Context())
 
 	// ...then check if the watcher says we're alive.
 	ok := ambwatch.IsAlive()
@@ -34,7 +34,7 @@ func handleCheckReady(w http.ResponseWriter, r *http.Request, ambwatch *acp.Amba
 	// not the liveness check, and we don't try to talk to Envoy here, then we
 	// will never ever attempt to talk to Envoy at all, Envoy will never be
 	// declared alive, and we'll never consider Ambassador ready.
-	ambwatch.FetchEnvoyStats(r.Context())
+	ambwatch.FetchEnvoyReady(r.Context())
 
 	ok := ambwatch.IsReady()
 

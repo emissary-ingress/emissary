@@ -11,10 +11,10 @@
 // them separately.
 //
 // TESTING HOOKS:
-// Since we try to fetch Envoy stats to see how Envoy is doing, you can use
-// EnvoyWatcher.SetFetchStats to change the function that EnvoyWatcher uses to
-// fetch stats. The default is EnvoyWatcher.defaultFetcher, which tries to pull
-// stats from http://localhost:8001/stats.
+// Since we try to check Envoy readiness to see how Envoy is doing, you can use
+// EnvoyWatcher.SetReadyCheck to change the function that EnvoyWatcher uses to
+// check readiness. The default is EnvoyWatcher.defaultFetcher, which tries to pull
+// readiness from http://localhost:8001/ready.
 //
 // This hook is NOT meant for you to change the fetcher on the fly in a running
 // EnvoyWatcher. Set it at instantiation, then leave it alone. See envoy_test.go
@@ -40,32 +40,32 @@ type EnvoyWatcher struct {
 	// data element at this point...
 	mutex sync.Mutex
 
-	// How shall we fetch Envoy's stats?
-	fetchStats envoyFetcher
+	// How shall we determine Envoy's readiness?
+	readyCheck envoyFetcher
 
-	// Did the last call to fetch Envoy stats succeed?
+	// Did the last ready check succeed?
 	LastSucceeded bool
 }
 
 // NewEnvoyWatcher creates a new EnvoyWatcher, given a fetcher.
 func NewEnvoyWatcher() *EnvoyWatcher {
 	w := &EnvoyWatcher{}
-	w.SetFetchStats(w.defaultFetcher)
+	w.SetReadyCheck(w.defaultFetcher)
 
 	return w
 }
 
 // This the default Fetcher for the EnvoyWatcher -- it actually connects to Envoy
-// and pulls stats.
+// and checks for ready.
 func (w *EnvoyWatcher) defaultFetcher(ctx context.Context) (*EnvoyFetcherResponse, error) {
 	// Set up a context with a deliberate 2-second timeout. Envoy shouldn't ever take more
-	// than 100ms to answer the stats request, and if we don't pick a short timeout here,
+	// than 100ms to answer the ready check, and if we don't pick a short timeout here,
 	// this call can hang for way longer than we would like it to.
 	tctx, tcancel := context.WithTimeout(ctx, 2*time.Second)
 	defer tcancel()
 
 	// Build a request...
-	req, err := http.NewRequestWithContext(tctx, http.MethodGet, "http://localhost:8001/stats", nil)
+	req, err := http.NewRequestWithContext(tctx, http.MethodGet, "http://localhost:8001/ready", nil)
 
 	if err != nil {
 		// ...which should never fail. WTFO?
@@ -78,7 +78,7 @@ func (w *EnvoyWatcher) defaultFetcher(ctx context.Context) (*EnvoyFetcherRespons
 	if err != nil {
 		// Unlike the last error case, this one isn't a weird situation at
 		// all -- e.g. if Envoy isn't running yet, we'll land here.
-		return nil, fmt.Errorf("error fetching stats: %v", err)
+		return nil, fmt.Errorf("error fetching /ready: %v", err)
 	}
 
 	// Don't forget to close the body once done.
@@ -92,32 +92,32 @@ func (w *EnvoyWatcher) defaultFetcher(ctx context.Context) (*EnvoyFetcherRespons
 	if err != nil {
 		// This is a bit strange -- if we can't read the body, it implies
 		// that something has gone wrong with the connection, so we'll
-		// call that an error in fetching the stats.
+		// call that an error in calling ready.
 		return nil, fmt.Errorf("error reading body: %v", err)
 	}
 
 	return &EnvoyFetcherResponse{StatusCode: statusCode, Text: text}, nil
 }
 
-// SetFetchStats will change the function we use to get the current Envoy stats. This is
+// SetReadyCheck will change the function we use to get check if Envoy is ready. This is
 // here for testing; the assumption is that you'll call it at instantiation if you need
 // to, then leave it alone.
-func (w *EnvoyWatcher) SetFetchStats(fetchStats envoyFetcher) {
-	w.fetchStats = fetchStats
+func (w *EnvoyWatcher) SetReadyCheck(readyCheck envoyFetcher) {
+	w.readyCheck = readyCheck
 }
 
-// FetchEnvoyStats will check whether Envoy's statistics are fetchable.
-func (w *EnvoyWatcher) FetchEnvoyStats(ctx context.Context) {
+// FetchEnvoyReady will check whether Envoy's ready endpoint is fetchable.
+func (w *EnvoyWatcher) FetchEnvoyReady(ctx context.Context) {
 	succeeded := false
 
-	// Actually fetch the stats...
-	statsResponse, err := w.fetchStats(ctx)
+	// Actually check if ready...
+	readyResponse, err := w.readyCheck(ctx)
 
 	// ...and see if we were able to.
 	if err == nil {
 		// Well, nothing blatantly failed, so check the status. (For the
 		// moment, we don't care about the text.)
-		if statsResponse.StatusCode == 200 {
+		if readyResponse.StatusCode == 200 {
 			succeeded = true
 		}
 	} else {

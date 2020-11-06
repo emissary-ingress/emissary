@@ -34,7 +34,7 @@ func (m *awMetadata) stepSec(step int) {
 
 func newAWMetadata(t *testing.T) *awMetadata {
 	ft := newFakeTime()
-	f := &fakeStats{mode: Happy}
+	f := &fakeReady{mode: Happy}
 
 	dw := acp.NewDiagdWatcher()
 	dw.SetFetchTime(ft.now)
@@ -44,7 +44,7 @@ func newAWMetadata(t *testing.T) *awMetadata {
 	}
 
 	ew := acp.NewEnvoyWatcher()
-	ew.SetFetchStats(f.fetchStats)
+	ew.SetReadyCheck(f.readyCheck)
 
 	if ew == nil {
 		t.Error("New EnvoyWatcher is nil?")
@@ -74,9 +74,9 @@ func TestAmbassadorHappyPath(t *testing.T) {
 	m.aw.NoteSnapshotProcessed()
 	m.check(3, 30, true, false)
 
-	// Fetch stats.
+	// Fetch readiness.
 	m.stepSec(10)
-	m.aw.FetchEnvoyStats(context.Background())
+	m.aw.FetchEnvoyReady(context.Background())
 	m.check(4, 40, true, true)
 
 	// Make sure it stays happy.
@@ -98,7 +98,7 @@ func TestAmbassadorUnrealisticallyHappy(t *testing.T) {
 	m.stepSec(10)
 	m.aw.NoteSnapshotSent()
 	m.aw.NoteSnapshotProcessed()
-	m.aw.FetchEnvoyStats(context.Background())
+	m.aw.FetchEnvoyReady(context.Background())
 	m.check(2, 20, true, true)
 
 	// Make sure it stays happy.

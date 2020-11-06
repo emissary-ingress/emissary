@@ -99,12 +99,12 @@ func (w *AmbassadorWatcher) SetFetchTime(fetchTime timeFetcher) {
 	w.fetchTime = fetchTime
 }
 
-// FetchEnvoyStats will check whether Envoy's statistics are fetchable.
-func (w *AmbassadorWatcher) FetchEnvoyStats(ctx context.Context) {
+// FetchEnvoyReady will check whether Envoy's statistics are fetchable.
+func (w *AmbassadorWatcher) FetchEnvoyReady(ctx context.Context) {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
 
-	w.ew.FetchEnvoyStats(ctx)
+	w.ew.FetchEnvoyReady(ctx)
 }
 
 // NoteSnapshotSent will note that a snapshot has been sent.
