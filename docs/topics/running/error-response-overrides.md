@@ -13,8 +13,8 @@ below for more information on [rule precedence](#rule-precedence).
 `on_status_code` | HTTP status code to match for this rewrite rule. Only 4xx and 5xx classes are supported.
  `body` | Describes the response body contents and format.
  `content_type`| A string that sets the content type of the response.
- `text_format`| A string whose value will be used as the new response body. `Content-type` will default to `text/plain` if unspecified.
- `json_format`| A config object whose keys and values will be serialized as JSON and used as the new response body. `Content-type` will default to `application/json` if unspecified.
+ `text_format`| A string whose value will be used as the new response body. `Content-Type` will default to `text/plain` if unspecified.
+ `json_format`| A config object whose keys and values will be serialized as JSON and used as the new response body. `Content-Type` will default to `application/json` if unspecified.
  `text_format_source` | Describes a file to be used as the response. If used, `filename` must be set and the file must exist on the Ambassador pod.
  `filename`| A file path on the Ambassador pod that will be used as the new response body.
 
