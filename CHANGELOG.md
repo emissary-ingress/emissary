@@ -55,7 +55,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
-(no changes yet)
+- Bugfix: The gRPC communication between edgectl CLI and its daemon is no longer affected by HTTP_PROXY settings.
 
 ## [1.7.4] October 06, 2020
 [1.7.4]: https://github.com/datawire/ambassador/compare/v1.7.3...v1.7.4
