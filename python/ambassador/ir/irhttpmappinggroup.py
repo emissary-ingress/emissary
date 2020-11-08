@@ -177,11 +177,20 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                 # All good. Save it.
                 self.host_redirect = mapping
         else:
-            # Neither shadow nor host_redirect: save it.
-            self.mappings.append(mapping)
+            # Neither shadow nor host_redirect are set in the Mapping. 
+            # 
+            # XXX At the moment, we do not do the right thing with the case where some Mappings
+            # in a group have host_redirect and some do not, so make sure that that can't happen.
 
-            if mapping.route_weight > self.group_weight:
-                self.group_weight = mapping.route_weight
+            if self.host_redirect:
+                aconf.post_error("cannot accept %s without host_redirect after %s with host_redirect" %
+                                 (mapping.name, typecast(IRBaseMapping, self.host_redirect).name))
+            else:
+                # All good. Save this mapping.
+                self.mappings.append(mapping)
+
+                if mapping.route_weight > self.group_weight:
+                    self.group_weight = mapping.route_weight
 
         self.referenced_by(mapping)
 
