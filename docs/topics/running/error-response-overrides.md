@@ -29,7 +29,7 @@ Simple responses can be be added quickly for convenience. They are inserted into
 the manifest as either text or JSON:
 
 ```yaml
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 metadata:
   name: ambassador
@@ -57,7 +57,7 @@ This could be used for a customer friendly HTML document for example.  Use
 First configure the Ambassador module:
 
 ```yaml
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 metadata:
   name: ambassador
@@ -130,8 +130,8 @@ even if the rules are for different status codes. For example, consider this
 configuration:
 
 ```yaml
-apiVersion: getambassador.io/v1
-kind: module
+apiVersion: getambassador.io/v2
+kind: Module
 metadata:
   name: ambassador
   namespace: ambassador
@@ -143,7 +143,7 @@ spec:
           text_format: "Global 404"
 ---
 apiVersion: getambassador.io/v2
-kind: mapping
+kind: Mapping
 metadata:
   name: ambassador
   namespace: ambassador
