@@ -52,7 +52,7 @@ func main() {
 			SecureBackend:   os.Getenv("BACKEND"),
 			Cert:            Crt,
 			Key:             Key,
-			ProtocolVersion: os.Getenv("GRCP_AUTH_PROTOCOL_VERSION"),
+			ProtocolVersion: os.Getenv("GRPC_AUTH_PROTOCOL_VERSION"),
 		}
 
 		listeners = append(listeners, s)
@@ -65,7 +65,7 @@ func main() {
 			SecureBackend:   os.Getenv("BACKEND"),
 			Cert:            Crt,
 			Key:             Key,
-			ProtocolVersion: os.Getenv("GRCP_RLS_PROTOCOL_VERSION"),
+			ProtocolVersion: os.Getenv("GRPC_RLS_PROTOCOL_VERSION"),
 		}
 
 		listeners = append(listeners, s)

@@ -877,4 +877,4 @@ service: {self.target.path.fqdn}
         assert self.results[3].status == 200
         assert self.results[3].headers["Server"] == ["envoy"]
         assert self.results[3].headers["Authorization"] == ["foo-11111"]
-        assert self.results[3].headers['X-Grpc-Service-Protocol-Version'] == ['v2']
+        assert self.results[3].backend.request.headers['x-grpc-service-protocol-version'] == ['v2']
