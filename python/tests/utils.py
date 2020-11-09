@@ -234,9 +234,10 @@ def get_code_with_retry(req):
             conn.close()
             return 200
         except HTTPError as e:
-            return e.code
+            if int(e.code) < 500:
+                return e.code
+            print(f"get_code_with_retry: HTTPError code {e.code}, attempt {attempts+1}")
         except socket.timeout as e:
             print(f"get_code_with_retry: socket.timeout {e}, attempt {attempts+1}")
-            pass
         time.sleep(5)
     return 503
