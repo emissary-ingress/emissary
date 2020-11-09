@@ -23,6 +23,7 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
     [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+TEST_DATA_DIR=/tmp/test-data/
 
 DBUILD=${DIR}/dbuild.sh
 
@@ -555,9 +556,10 @@ case "${cmd}" in
     pytest-internal)
         # This runs inside the builder image
         fail=""
+        mkdir -p ${TEST_DATA_DIR}
         for MODDIR in $(find-modules); do
             if [ -e "${MODDIR}/python" ]; then
-                if ! (cd ${MODDIR} && pytest --cov=ambassador --tb=short -ra "${pytest_args[@]}") then
+                if ! (cd ${MODDIR} && pytest --cov=ambassador --junitxml=${TEST_DATA_DIR}/pytest.xml --tb=short -ra "${pytest_args[@]}") then
                    fail="yes"
                 fi
             fi
@@ -570,12 +572,13 @@ case "${cmd}" in
     gotest-internal)
         # This runs inside the builder image
         fail=""
+        mkdir -p ${TEST_DATA_DIR}
         for MODDIR in $(find-modules); do
             if [ -e "${MODDIR}/go.mod" ]; then
                 pkgs=$(cd ${MODDIR} && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' ${GOTEST_PKGS})
 
                 if [ -n "${pkgs}" ]; then
-                    if ! (cd ${MODDIR} && go test ${pkgs} ${GOTEST_ARGS}) then
+                    if ! (cd ${MODDIR} && gotestsum --junitfile ${TEST_DATA_DIR}/gotest.xml --packages ${pkgs} -- ${GOTEST_ARGS}) then
                        fail="yes"
                     fi
                 fi

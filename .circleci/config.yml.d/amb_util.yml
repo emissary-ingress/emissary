@@ -126,8 +126,9 @@ commands:
           name: "Gather logs"
           when: always
           command: |
-            rsync -ma --include='*/' --include='*.tap' --include='*.log' --include='Test*.webm' --exclude='*' . /tmp/test-logs
+            rsync -ma --include='*/' --include='*.xml' --include='*.tap' --include='*.log' --include='Test*.webm' --exclude='*' . /tmp/test-logs
       - store_artifacts:
           name: "Store logs"
           path: /tmp/test-logs
           destination: test-logs
+

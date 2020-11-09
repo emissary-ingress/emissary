@@ -129,10 +129,14 @@ commands:
               export AMBASSADOR_FAST_VALIDATION=yes # empty/nonempty
             fi
             export AMBASSADOR_FAST_RECONFIGURE=<< parameters.fast-reconfigure >> # ParseBool
+            export TEST_XML_DIR=/tmp/test-logs/xml/
+            mkdir -p ${TEST_XML_DIR}
             make << parameters.test >>
 
       # teardown
       - amb-save-logs
+      - store_test_results:
+          path: /tmp/test-logs/xml/
       - dirty-check
       - amb-teardown-cluster
 

@@ -119,9 +119,13 @@ commands:
             export AMBASSADOR_FAST_VALIDATION=yes # empty/nonempty
           fi
           export AMBASSADOR_FAST_RECONFIGURE=<< parameters.fast-reconfigure >> # ParseBool
+          export TEST_XML_DIR=/tmp/test-logs/xml/
+          mkdir -p ${TEST_XML_DIR}
           make << parameters.test >>
     # teardown
     - amb-save-logs
+    - store_test_results:
+        path: /tmp/test-logs/xml/
     - dirty-check
     - amb-teardown-cluster
   "job-promote-to-rc-latest":
@@ -261,7 +265,7 @@ commands:
         name: "Gather logs"
         when: always
         command: |
-          rsync -ma --include='*/' --include='*.tap' --include='*.log' --include='Test*.webm' --exclude='*' . /tmp/test-logs
+          rsync -ma --include='*/' --include='*.xml' --include='*.tap' --include='*.log' --include='Test*.webm' --exclude='*' . /tmp/test-logs
     - store_artifacts:
         name: "Store logs"
         path: /tmp/test-logs
