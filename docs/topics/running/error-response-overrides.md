@@ -4,19 +4,25 @@ Custom error responses set overrides for HTTP response statuses generated either
 by Ambassador or upstream services. 
 
 They can be configured either on the Ambassador
-[`Module`](ambassador).
+[`Module`](ambassador)
 or on a [`Mapping`](../../using/intro-mappings/), the schema is identical. See
 below for more information on [rule precedence](#rule-precedence).
 
- ID | Definition
---- | ---
-`on_status_code` | HTTP status code to match for this rewrite rule. Only 4xx and 5xx classes are supported.
- `body` | Describes the response body contents and format.
- `content_type`| A string that sets the content type of the response.
- `text_format`| A string whose value will be used as the new response body. `Content-Type` will default to `text/plain` if unspecified.
- `json_format`| A config object whose keys and values will be serialized as JSON and used as the new response body.
- `text_format_source` | Describes a file to be used as the response. If used, `filename` must be set and the file must exist on the Ambassador pod.
- `filename`| A file path on the Ambassador pod that will be used as the new response body.
+- `on_status_code`: HTTP status code to match for this rewrite
+  rule. Only 4xx and 5xx classes are supported.
+- `body`: Describes the response body contents and format.
+  + `content_type`: A string that sets the content type of the
+    response.
+  + `text_format`: A string whose value will be used as the new
+    response body. `Content-Type` will default to `text/plain` if
+    unspecified.
+  + `json_format`: A config object whose keys and values will be
+    serialized as JSON and used as the new response body.
+  + `text_format_source`: Describes a file to be used as the
+    response. If used, `filename` must be set and the file must exist
+    on the Ambassador pod.
+    * `filename`: A file path on the Ambassador pod that will be used
+      as the new response body.
 
 Only one of `text_format`, `json_format`, or `text_format_source` may be provided.
 
@@ -92,7 +98,7 @@ data:
 
 Finally, mount the configmap to the Ambassador pod:
 
-> **WARNING:** The following YAML is in [patch format](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/) 
+> **NOTE:** The following YAML is in [patch format](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/) 
 and does not represent the entire deployment spec.
 
 ```yaml
