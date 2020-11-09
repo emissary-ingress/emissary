@@ -56,6 +56,7 @@ class ACMapping (ACResource):
                  case_sensitive: bool=False,
                  grpc: bool=False,
                  bypass_auth: bool=False,
+                 bypass_error_response_overrides: bool=False,
 
                  # We don't list "method" or "method_regex" above because if they're
                  # not present, we want them to be _not present_. Having them be always
@@ -83,4 +84,5 @@ class ACMapping (ACResource):
                          case_sensitive=case_sensitive,
                          grpc=grpc,
                          bypass_auth=bypass_auth,
+                         bypass_error_response_overrides=bypass_error_response_overrides,
                          **kwargs)

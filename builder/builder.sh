@@ -55,9 +55,20 @@ panic() {
 }
 
 builder() {
+    if ! [ -e docker/builder-base.docker ]; then
+        panic "This should not happen: 'docker/builder-base.docker' does not exist"
+    fi
+    if ! [ -e docker/base-envoy.docker ]; then
+        panic "This should not happen: 'docker/base-envoy.docker' does not exist"
+    fi
+    local builder_base_image envoy_base_image
+    builder_base_image=$(cat docker/builder-base.docker)
+    envoy_base_image=$(cat docker/base-envoy.docker)
     docker ps --quiet \
            --filter=label=builder \
-           --filter=label="$BUILDER_NAME"
+           --filter=label="$BUILDER_NAME" \
+           --filter=label=builderbase="$builder_base_image" \
+           --filter=label=envoybase="$envoy_base_image"
 }
 builder_network() { docker network ls -q -f name="${BUILDER_DOCKER_NETWORK}"; }
 
@@ -150,13 +161,15 @@ print("stage2_tag=%s" % stage2)
     local stage1_tag stage2_tag
     eval "$(cd "$DIR" && python -c "$builder_base_tag_py")" # sets 'stage1_tag' and 'stage2_tag'
 
-    local name1="${DEV_REGISTRY:-${BUILDER_NAME}.local}/builder-base:stage1-${stage1_tag}"
-    local name2="${DEV_REGISTRY:-${BUILDER_NAME}.local}/builder-base:stage2-${stage2_tag}"
+    local BASE_REGISTRY="${BASE_REGISTRY:-${DEV_REGISTRY:-${BUILDER_NAME}.local}}"
+
+    local name1="${BASE_REGISTRY}/builder-base:stage1-${stage1_tag}"
+    local name2="${BASE_REGISTRY}/builder-base:stage2-${stage2_tag}"
 
     msg2 "Using stage-1 base ${BLU}${name1}${GRN}"
     if ! docker run --rm --entrypoint=true "$name1"; then # skip building if the "$name1" already exists
         ${DBUILD} -f "${DIR}/Dockerfile.base" -t "${name1}" --target builderbase-stage1 "${DIR}"
-        if [ -n "$DEV_REGISTRY" ]; then
+        if [[ "$BASE_REGISTRY" == "$DEV_REGISTRY" ]]; then
             docker push "$name1"
         fi
     fi
@@ -168,7 +181,7 @@ print("stage2_tag=%s" % stage2)
     msg2 "Using stage-2 base ${BLU}${name2}${GRN}"
     if ! docker run --rm --entrypoint=true "$name2"; then # skip building if the "$name2" already exists
         ${DBUILD} --build-arg=builderbase_stage1="$name1" -f "${DIR}/Dockerfile.base" -t "${name2}" --target builderbase-stage2 "${DIR}"
-        if [ -n "$DEV_REGISTRY" ]; then
+        if [[ "$BASE_REGISTRY" == "$DEV_REGISTRY" ]]; then
             docker push "$name2"
         fi
     fi
@@ -191,12 +204,17 @@ bootstrap() {
 
     if [ -z "$(builder)" ] ; then
         if ! [ -e docker/builder-base.docker ]; then
-            panic "This should not happen"
+            panic "This should not happen: 'docker/builder-base.docker' does not exist"
         fi
+        if ! [ -e docker/base-envoy.docker ]; then
+            panic "This should not happen: 'docker/base-envoy.docker' does not exist"
+        fi
+        local builder_base_image envoy_base_image
         builder_base_image=$(cat docker/builder-base.docker)
+        envoy_base_image=$(cat docker/base-envoy.docker)
         msg2 'Bootstrapping build image'
         ${DBUILD} \
-            --build-arg=envoy="${ENVOY_DOCKER_TAG}" \
+            --build-arg=envoy="${envoy_base_image}" \
             --build-arg=builderbase="${builder_base_image}" \
             --target=builder \
             ${DIR} -t ${BUILDER_NAME}.local/builder
@@ -225,7 +243,8 @@ bootstrap() {
             --cap-add=NET_ADMIN \
             --label=builder \
             --label="${BUILDER_NAME}" \
-            --label="${BUILDER_NAME}" \
+            --label=builderbase="$builder_base_image" \
+            --label=envoybase="$envoy_base_image" \
             ${BUILDER_PORTMAPS} \
             ${BUILDER_DOCKER_EXTRA} \
             --env=BUILDER_NAME="${BUILDER_NAME}" \
@@ -347,12 +366,24 @@ summarize-sync() {
 }
 
 clean() {
-    cid=$(builder)
-    if [ -n "${cid}" ] ; then
+    local cid
+    # This command is similar to
+    #
+    #     builder | while read -r cid; do
+    #
+    # except that this command does *not* filter based on the
+    # `builderbase=` and `envoybase=` labels, because we want to
+    # garbage-collect old containers that were orphaned when either
+    # the builderbase or the envoybase image changed.
+    docker ps --quiet \
+           --filter=label=builder \
+           --filter=label="$BUILDER_NAME" \
+    | while read -r cid; do
         printf "${GRN}Killing build container ${BLU}${cid}${END}\n"
         docker kill ${cid} > /dev/null 2>&1
         docker wait ${cid} > /dev/null 2>&1 || true
-    fi
+    done
+    local nid
     nid=$(builder_network)
     if [ -n "${nid}" ] ; then
         printf "${GRN}Removing docker network ${BLU}${BUILDER_DOCKER_NETWORK} (${nid})${END}\n"

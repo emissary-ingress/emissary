@@ -120,7 +120,8 @@
             "apiVersion": "getambassador.io/v2",
             "config": {
                 "collector_endpoint": "/api/v2/spans",
-                "collector_endpoint_version": "HTTP_JSON"
+                "collector_endpoint_version": "HTTP_JSON",
+                "collector_hostname": "zipkin-v2"
             },
             "driver": "zipkin",
             "kind": "TracingService",
@@ -132,7 +133,7 @@
             "name": "tracing",
             "namespace": "default",
             "rkey": "zipkin-v2.default.1",
-            "serialization": "_force_validation: true\nambassador_id: tracingtestzipkinv2\napiVersion: ambassador/v2\nconfig:\n  collector_endpoint: /api/v2/spans\n  collector_endpoint_version: HTTP_JSON\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingtestzipkinv2\n  scope: AmbassadorTest\nname: tracing\nnamespace: default\nservice: zipkin-v2:9411\n",
+            "serialization": "_force_validation: true\nambassador_id: tracingtestzipkinv2\napiVersion: ambassador/v2\nconfig:\n  collector_endpoint: /api/v2/spans\n  collector_endpoint_version: HTTP_JSON\n  collector_hostname: zipkin-v2\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingtestzipkinv2\n  scope: AmbassadorTest\nname: tracing\nnamespace: default\nservice: zipkin-v2:9411\n",
             "service": "zipkin-v2:9411"
         }
     },
@@ -209,7 +210,8 @@
             "apiVersion": "getambassador.io/v2",
             "config": {
                 "collector_endpoint": "/api/v2/spans",
-                "collector_endpoint_version": "HTTP_JSON"
+                "collector_endpoint_version": "HTTP_JSON",
+                "collector_hostname": "zipkin-v2"
             },
             "driver": "zipkin",
             "kind": "TracingService",

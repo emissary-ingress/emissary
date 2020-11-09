@@ -3,6 +3,7 @@ from urllib import request
 from urllib.error import URLError, HTTPError
 from retry import retry
 import sys
+import time
 
 import pytest
 
@@ -11,7 +12,7 @@ from kat.harness import load_manifest
 from ambassador import Config, IR
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
-from utils import run_and_assert, apply_kube_artifacts, install_ambassador, qotm_manifests, create_qotm_mapping
+from utils import run_and_assert, apply_kube_artifacts, install_ambassador, qotm_manifests, create_qotm_mapping, get_code_with_retry
 
 logger = logging.getLogger('ambassador')
 
@@ -57,26 +58,16 @@ spec:
 
 
 class KnativeTesting:
-    @retry(URLError, tries=5, delay=2)
-    def get_code_with_retry(self, req):
-        try:
-            conn = request.urlopen(req, timeout=5)
-            conn.close()
-            return 200
-        except HTTPError as e:
-            return e.code
-
     def test_knative(self):
         namespace = 'knative-testing'
 
         # Install Knative
         apply_kube_artifacts(namespace=None, artifacts=load_manifest("knative_serving_crds"))
-        apply_kube_artifacts(namespace=None, artifacts=load_manifest("knative_serving_0.11.0"))
+        apply_kube_artifacts(namespace=None, artifacts=load_manifest("knative_serving_0.18.0"))
         run_and_assert(['kubectl', 'patch', 'configmap/config-network', '--type', 'merge', '--patch', r'{"data": {"ingress.class": "ambassador.ingress.networking.knative.dev"}}', '-n', 'knative-serving'])
 
         # Wait for Knative to become ready
         run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=activator', '-n', 'knative-serving'])
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=autoscaler-hpa', '-n', 'knative-serving'])
         run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=controller', '-n', 'knative-serving'])
         run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=webhook', '-n', 'knative-serving'])
         run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'app=autoscaler', '-n', 'knative-serving'])
@@ -109,9 +100,13 @@ class KnativeTesting:
         port_forward_command = ['kubectl', 'port-forward', '--namespace', namespace, 'service/ambassador', f'{port_forward_port}:80']
         run_and_assert(port_forward_command, communicate=False)
 
+        # Port forwarding is not instant. Make a best effort to avoid a race by sleeping for
+        # a... while. The `get_code_with_retry` function will also do some retrying.
+        time.sleep(60)
+
         # Assert 200 OK at /qotm/ endpoint
         qotm_url = f'http://localhost:{port_forward_port}/qotm/'
-        qotm_http_code = self.get_code_with_retry(qotm_url)
+        qotm_http_code = get_code_with_retry(qotm_url)
         assert qotm_http_code == 200, f"Expected 200 OK, got {qotm_http_code}"
         print(f"{qotm_url} is ready")
 
@@ -119,13 +114,13 @@ class KnativeTesting:
         kservice_url = f'http://localhost:{port_forward_port}/'
 
         req_simple = request.Request(kservice_url)
-        connection_simple_code = self.get_code_with_retry(req_simple)
+        connection_simple_code = get_code_with_retry(req_simple)
         assert connection_simple_code == 404, f"Expected 404, got {connection_simple_code}"
         print(f"{kservice_url} returns 404 with no host")
 
         req_random = request.Request(kservice_url)
         req_random.add_header('Host', 'random.host.whatever')
-        connection_random_code = self.get_code_with_retry(req_random)
+        connection_random_code = get_code_with_retry(req_random)
         assert connection_random_code == 404, f"Expected 404, got {connection_random_code}"
         print(f"{kservice_url} returns 404 with a random host")
 
@@ -138,7 +133,7 @@ class KnativeTesting:
         # kservice pod takes some time to spin up, so let's try a few times
         connection_correct_code = 000
         for _ in range(5):
-            connection_correct_code = self.get_code_with_retry(req_correct)
+            connection_correct_code = get_code_with_retry(req_correct)
             if connection_correct_code == 200:
                 break
 

@@ -158,7 +158,7 @@ class ReconfigStats:
 
         if len(self.reconfigures) == 0:
             # No reconfigures, so no need to check.
-            self.logger.debug(f"NEEDS_CHECK @ {when}: no reconfigures, skip")
+            # self.logger.debug(f"NEEDS_CHECK @ {when}: no reconfigures, skip")
             return False
         
         # Grab information about our last reconfiguration.
@@ -167,24 +167,24 @@ class ReconfigStats:
         if what == 'complete':
             # Last reconfiguration was a complete reconfiguration, so
             # no need to check.
-            self.logger.debug(f"NEEDS_CHECK @ {when}: last was complete, skip")
+            # self.logger.debug(f"NEEDS_CHECK @ {when}: last was complete, skip")
             return False
 
         if self.incrementals_outstanding == 0:
             # If we have a bunch of incrementals, then we do a check, we can land
             # here with no outstanding incrementals, in which case it's pointless to
             # do a check.
-            self.logger.debug(f"NEEDS_CHECK @ {when}: outstanding 0, skip")
+            # self.logger.debug(f"NEEDS_CHECK @ {when}: outstanding 0, skip")
             return False
 
         # OK, the last one was an incremental, which implies that we must have some
         # outstanding incrementals. Have we hit our maximum between checks?
         if self.incrementals_outstanding >= self.max_incr_between_checks:
             # Yup, time to check.
-            self.logger.debug(f"NEEDS_CHECK @ {when}: outstanding {self.incrementals_outstanding}, check")
+            # self.logger.debug(f"NEEDS_CHECK @ {when}: outstanding {self.incrementals_outstanding}, check")
             return True
 
-        self.logger.debug(f"NEEDS_CHECK @ {when}: outstanding {self.incrementals_outstanding}")
+        # self.logger.debug(f"NEEDS_CHECK @ {when}: outstanding {self.incrementals_outstanding}")
 
         # We're good for outstanding incrementals. How about the max time between checks?
         # (We must have a last check time - which may be the time of the last complete
@@ -195,10 +195,10 @@ class ReconfigStats:
 
         if delta > self.max_time_between_checks:
             # Yup, it's been long enough.
-            self.logger.debug(f"NEEDS_CHECK @ {when}: delta {delta}, check")
+            # self.logger.debug(f"NEEDS_CHECK @ {when}: delta {delta}, check")
             return True
     
-        self.logger.debug(f"NEEDS_CHECK @ {when}: delta {delta}, skip")
+        # self.logger.debug(f"NEEDS_CHECK @ {when}: delta {delta}, skip")
         return False
 
     def needs_timers(self, when: Optional[PerfCounter]=None) -> bool:
@@ -216,21 +216,21 @@ class ReconfigStats:
 
         if len(self.reconfigures) == 0:
             # No reconfigures, so no need to check.
-            self.logger.debug(f"NEEDS_TIMERS @ {when}: no reconfigures, skip")
+            # self.logger.debug(f"NEEDS_TIMERS @ {when}: no reconfigures, skip")
             return False
         
         # If we have no configurations outstanding, we're done.
         if self.configs_outstanding == 0:
-            self.logger.debug(f"NEEDS_TIMERS @ {when}: outstanding 0, skip")
+            # self.logger.debug(f"NEEDS_TIMERS @ {when}: outstanding 0, skip")
             return False
 
         # Have we hit our maximum number of outstanding configurations?
         if self.configs_outstanding >= self.max_config_between_timers:
             # Yup, time to log.
-            self.logger.debug(f"NEEDS_TIMERS @ {when}: outstanding {self.configs_outstanding}, check")
+            # self.logger.debug(f"NEEDS_TIMERS @ {when}: outstanding {self.configs_outstanding}, check")
             return True
 
-        self.logger.debug(f"NEEDS_TIMERS @ {when}: outstanding {self.configs_outstanding}")
+        # self.logger.debug(f"NEEDS_TIMERS @ {when}: outstanding {self.configs_outstanding}")
 
         # We're good for outstanding incrementals. How about the max time between timers?
         # Note that we may _never_ have logged timers before -- if that's the case, use 
@@ -244,10 +244,10 @@ class ReconfigStats:
 
         if delta > self.max_time_between_timers:
             # Yup, it's been long enough.
-            self.logger.debug(f"NEEDS_TIMERS @ {when}: delta {delta}, check")
+            # self.logger.debug(f"NEEDS_TIMERS @ {when}: delta {delta}, check")
             return True
     
-        self.logger.debug(f"NEEDS_TIMERS @ {when}: delta {delta}, skip")
+        # self.logger.debug(f"NEEDS_TIMERS @ {when}: delta {delta}, skip")
         return False
 
     def mark_checked(self, result: bool, when: Optional[PerfCounter]=None) -> None:

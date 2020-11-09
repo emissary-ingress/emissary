@@ -55,19 +55,41 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
-- Bugfix: The gRPC communication between edgectl CLI and its daemon is no longer affected by HTTP_PROXY settings.
+### Ambasssador API Gateway + Ambassador Edge Stack
 
-## [1.7.4] October 06, 2020
-[1.7.4]: https://github.com/datawire/ambassador/compare/v1.7.3...v1.7.4
+- Internal: Knative serving tests were bumped from version 0.11.0 to version 0.18.0
+- Upgrade Alpine 3.10→3.12, GNU libc 2.30→2.32, and Python 3.7→3.8
+- Feature: The `TracingService` Zipkin config now supports setting `collector_hostname` to tell Envoy which host header to set when sending spans to the collector.
+- Bugfix: Update Python requirements to address CVE-2020-25659
+- Bugfix: The gRPC communication between edgectl CLI and its daemon is no longer affected by HTTP_PROXY settings.
+- Feature: Ambassador now supports custom case overrides for response headers.
+
+## [1.8.1] October 16, 2020
+[1.8.1]: https://github.com/datawire/ambassador/compare/v1.8.0...v1.8.1
+
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Ambassador no longer fails to configure Envoy listeners when a TracingService or LogService has a service name whose underlying cluster name has over 40 charcters.
+- Bugfix: The Ambassador diagnostics page no longer returns HTTP 500 when a TracingService or LogService has a service name whose underlying cluster name has over 40 characters.
+
+## [1.8.0] October 08, 2020
+[1.8.0]: https://github.com/datawire/ambassador/compare/v1.7.4...v1.8.0
 
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Feature: HTTP IP Allow/Deny ranges are supported.
-- Bugfix: The container no longer exits "successfully" when the Deployment specifies an invalid `command`.
+- Bugfix: Ambassador's health checks don't claim that Envoy has failed when reconfiguration taking a long time (thanks, [Fabrice](https://github.com/jfrabaute), for contributions here!).
 - Bugfix: The `edgectl connect` command now works properly when using zsh on a Linux platform.
-- Bugfix: Ambassador's health checks are no longer affected by reconfiguration taking a long time (thanks, [Fabrice](https://github.com/jfrabaute), for contributions here!)
+- Bugfix: The container no longer exits "successfully" when the Deployment specifies an invalid `command`.
 
-## Next Release
+### Ambassador Edge Stack Only
+
+- Feature: `RateLimit` CRDs now support setting a response body, configurable with the `errorResponse` setting.
+- Bugfix: `External` `Filter` can now properly proxy the body to the configured `auth_service`
+- BugFix: The RBAC for AES now grants permission to "patch" `Events.v1.core` (previously it granted "create" but not "patch")
+
+## [1.7.4] October 06, 2020
+[1.7.4]: https://github.com/datawire/ambassador/compare/v1.7.3...v1.7.4
 
 ### Ambasssador API Gateway + Ambassador Edge Stack
 

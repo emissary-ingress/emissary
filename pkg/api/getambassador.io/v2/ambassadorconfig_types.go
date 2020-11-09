@@ -150,6 +150,9 @@ type AmbassadorConfigSpec struct {
 
 	CircuitBreakers *CircuitBreaker `json:"circuit_breakers,omitempty"`
 
+	// List of HTTP error response overrides
+	ErrorResponseOverrides []ErrorResponseOverride `json:"error_response_overrides,omitempty"`
+
 	RetryPolicy *RetryPolicy `json:"retry_policy,omitempty"`
 
 	Cors *CORS `json:"cors,omitempty"`

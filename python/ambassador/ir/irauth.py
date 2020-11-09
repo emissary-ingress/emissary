@@ -117,7 +117,7 @@ class IRAuth (IRFilter):
                     self[key] = value
 
             self.referenced_by(module)
-        
+
         if module.get("add_linkerd_headers"):
             self["add_linkerd_headers"] = module.get("add_linkerd_headers")
         else:
@@ -140,7 +140,7 @@ class IRAuth (IRFilter):
         status_on_error = module.get('status_on_error', None)
         if status_on_error:
             self['status_on_error'] = status_on_error
-        
+
         failure_mode_allow = module.get('failure_mode_allow', None)
         if failure_mode_allow:
             self['failure_mode_allow'] = failure_mode_allow
@@ -162,21 +162,6 @@ class IRAuth (IRFilter):
         if auth_service:
             is_grpc = True if self["proto"] == "grpc" else False
             self.hosts[auth_service] = ( weight, is_grpc, module.get('tls', None), module.location)
-
-    # This method is only used by v1listener.
-    def config_dict(self):
-        config = {
-            "cluster": self.cluster.name
-        }
-
-        for key in [ 'allowed_headers', 'path_prefix', 'timeout_ms', 'weight', 'connect_timeout_ms', 'cluster_idle_timeout_ms' ]:
-            if self.get(key, None):
-                config[key] = self[key]
-
-        if self.get('allowed_headers', []):
-            config['allowed_headers'] = self.allowed_headers
-
-        return config
 
     def __to_header_list(self, list_name, module):
         headers = module.get(list_name, None)

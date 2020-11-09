@@ -22,6 +22,7 @@ import logging
 from multi import multi
 from ...ir.irlistener import IRListener
 from ...ir.irauth import IRAuth
+from ...ir.irerrorresponse import IRErrorResponse
 from ...ir.irbuffer import IRBuffer
 from ...ir.irgzip import IRGzip
 from ...ir.irfilter import IRFilter
@@ -38,6 +39,8 @@ from .v2tls import V2TLSContext
 
 if TYPE_CHECKING:
     from . import V2Config
+
+DictifiedV2Route = Dict[str, Any]
 
 EnvoyCTXInfo = Tuple[str, Optional[List[str]], V2TLSContext]
 
@@ -91,7 +94,7 @@ def jsonify(x) -> str:
     return json.dumps(x, sort_keys=True, indent=4)
 
 
-def prettyroute(route: V2Route) -> str:
+def prettyroute(route: DictifiedV2Route) -> str:
     match = route["match"]
 
     key = "PFX"
@@ -166,8 +169,9 @@ def v2filter_buffer(buffer: IRBuffer, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
     return {
-        'name': 'envoy.buffer',
-        'config': {
+        'name': 'envoy.filters.http.buffer',
+        'typed_config': {
+            '@type': 'type.googleapis.com/envoy.config.filter.http.buffer.v2.Buffer',
             "max_request_bytes": buffer.max_request_bytes
         }
     }
@@ -177,8 +181,9 @@ def v2filter_gzip(gzip: IRGzip, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
     return {
-        'name': 'envoy.gzip',
-        'config': {
+        'name': 'envoy.filters.http.gzip',
+        'typed_config': {
+            '@type': 'type.googleapis.com/envoy.config.filter.http.gzip.v2.Gzip',
             'memory_level': gzip.memory_level,
             'content_length': gzip.content_length,
             'compression_level': gzip.compression_level,
@@ -196,8 +201,7 @@ def v2filter_grpc_http1_bridge(irfilter: IRFilter, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
     return {
-        'name': 'envoy.grpc_http1_bridge',
-        'config': {},
+        'name': 'envoy.filters.http.grpc_http1_bridge'
     }
 
 @v2filter.when("ir.grpc_web")
@@ -206,8 +210,7 @@ def v2filter_grpc_web(irfilter: IRFilter, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
     return {
-        'name': 'envoy.grpc_web',
-        'config': {},
+        'name': 'envoy.filters.http.grpc_web'
     }
 
 def auth_cluster_uri(auth: IRAuth, cluster: IRCluster) -> str:
@@ -258,8 +261,9 @@ def v2filter_authv0(auth: IRAuth, v2config: 'V2Config'):
         allowed_request_headers.append({"exact": key})
 
     return {
-        'name': 'envoy.ext_authz',
-        'config': {
+        'name': 'envoy.filters.http.ext_authz',
+        'typed_config': {
+            '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthz',
             'http_service': {
                 'server_uri': {
                     'uri': auth_cluster_uri(auth, cluster),
@@ -322,7 +326,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
         allowed_authorization_headers = []
         headers_to_add = []
 
-        for k, v in auth.get('add_auth_headers').items():
+        for k, v in auth.get('add_auth_headers', {}).items():
             headers_to_add.append({
                 'key': k,
                 'value': v,
@@ -344,8 +348,9 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
             })
 
         auth_info = {
-            'name': 'envoy.ext_authz',
-            'config': {
+            'name': 'envoy.filters.http.ext_authz',
+            'typed_config': {
+                '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthz',
                 'http_service': {
                     'server_uri': {
                         'uri': auth_cluster_uri(auth, cluster),
@@ -373,8 +378,9 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
 
     if auth.proto == "grpc":
         auth_info = {
-            'name': 'envoy.ext_authz',
-            'config': {
+            'name': 'envoy.filters.http.ext_authz',
+            'typed_config': {
+                '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthz',
                 'grpc_service': {
                     'envoy_grpc': {
                         'cluster_name': cluster.envoy_name
@@ -386,22 +392,80 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
         }
 
     if auth_info:
-        auth_info['config']['clear_route_cache'] = True
+        auth_info['typed_config']['clear_route_cache'] = True
 
         if body_info:
-            auth_info['config']['with_request_body'] = body_info
+            auth_info['typed_config']['with_request_body'] = body_info
 
         if 'failure_mode_allow' in auth:
-            auth_info['config']["failure_mode_allow"] = auth.failure_mode_allow
+            auth_info['typed_config']["failure_mode_allow"] = auth.failure_mode_allow
 
         if 'status_on_error' in auth:
             status_on_error: Optional[Dict[str, int]] = auth.get('status_on_error')
-            auth_info['config']["status_on_error"] = status_on_error
+            auth_info['typed_config']["status_on_error"] = status_on_error
 
         return auth_info
 
     # If here, something's gone horribly wrong.
     auth.post_error("Protocol '%s' is not supported, auth not enabled" % auth.proto)
+    return None
+
+
+# Careful: this function returns None to indicate that no Envoy response_map
+# filter needs to be instantiated, because either no Module nor Mapping
+# has error_response_overrides, or the ones that exist are not valid.
+#
+# By not instantiating the filter in those cases, we prevent adding a useless
+# filter onto the chain.
+@v2filter.when("IRErrorResponse")
+def v2filter_error_response(error_response: IRErrorResponse, v2config: 'V2Config'):
+    # Error response configuration can come from the Ambassador module, on a
+    # a Mapping, or both. We need to use the response_map filter if either one
+    # of these sources defines error responses. First, check if any route
+    # has per-filter config for error responses. If so, we know a Mapping has
+    # defined error responses.
+    route_has_error_responses = False
+    for route in v2config.routes:
+        typed_per_filter_config = route.get('typed_per_filter_config', {})
+        if 'envoy.filters.http.response_map' in typed_per_filter_config:
+            route_has_error_responses = True
+            break
+
+    filter_config: Dict[str, Any] = {
+        # The IRErrorResponse filter builds on the 'envoy.filters.http.response_map' filter.
+        'name': 'envoy.filters.http.response_map'
+    }
+
+    module_config = error_response.config()
+    if module_config:
+        # Mappers are required, otherwise this the response map has nothing to do. We really
+        # shouldn't have a config with nothing in it, but we defend against this case anyway.
+        if 'mappers' not in module_config or len(module_config['mappers']) == 0:
+            error_response.post_error('ErrorResponse Module config has no mappers, cannot configure.')
+            return None
+
+        # If there's module config for error responses, create config for that here.
+        # If not, there must be some Mapping config for it, so we'll just return
+        # a filter with no global config and let the Mapping's per-route config
+        # take action instead.
+        filter_config['typed_config'] = {
+            '@type': 'type.googleapis.com/envoy.extensions.filters.http.response_map.v3.ResponseMap',
+            # The response map filter supports an array of mappers for matching as well
+            # as default actions to take if there are no overrides on a mapper. We do
+            # not take advantage of any default actions, and instead ensure that all of
+            # the mappers we generate contain some action (eg: body_format_override).
+            'mappers': module_config['mappers']
+        }
+        return filter_config
+    elif route_has_error_responses:
+        # Return the filter config as-is without global configuration. The mapping config
+        # has its own per-route config and simply needs this filter to exist.
+        return filter_config
+
+    # There is no module config nor mapping config that requires the response map filter,
+    # so we omit it. By returning None, the caller will omit this filter from the
+    # filter chain entirely, which is not the usual way of handling filter config,
+    # but it's valid.
     return None
 
 
@@ -417,10 +481,11 @@ def v2filter_ratelimit(ratelimit: IRRateLimit, v2config: 'V2Config'):
     # If here, we must have a ratelimit service configured.
     assert v2config.ratelimit
     config['rate_limit_service'] = dict(v2config.ratelimit)
+    config['@type'] = 'type.googleapis.com/envoy.config.filter.http.rate_limit.v2.RateLimit'
 
     return {
-        'name': 'envoy.rate_limit',
-        'config': config,
+        'name': 'envoy.filters.http.ratelimit',
+        'typed_config': config,
     }
 
 
@@ -453,10 +518,10 @@ def v2filter_ipallowdeny(irfilter: IRFilter, v2config: 'V2Config'):
             "or_ids": {
                 "ids": fdict["principals"]
             }
-        }    
+        }
 
     return {
-        "name": "envoy.filters.http.rbac",  
+        "name": "envoy.filters.http.rbac",
         "typed_config": {
             "@type": "type.googleapis.com/envoy.config.filter.http.rbac.v2.RBAC",
             "rules": {
@@ -481,17 +546,20 @@ def v2filter_cors(cors: IRCORS, v2config: 'V2Config'):
     del cors    # silence unused-variable warning
     del v2config  # silence unused-variable warning
 
-    return { 'name': 'envoy.cors' }
+    return { 'name': 'envoy.filters.http.cors' }
 
 
 @v2filter.when("ir.router")
 def v2filter_router(router: IRFilter, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
-    od: Dict[str, Any] = { 'name': 'envoy.router' }
+    od: Dict[str, Any] = { 'name': 'envoy.filters.http.router' }
 
     if router.ir.tracing:
-        od['config'] = { 'start_child_span': True }
+        od['typed_config'] = {
+            '@type': 'type.googleapis.com/envoy.config.filter.http.router.v2.Router',
+            'start_child_span': True
+        }
 
     return od
 
@@ -500,10 +568,17 @@ def v2filter_router(router: IRFilter, v2config: 'V2Config'):
 def v2filter_lua(irfilter: IRFilter, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
-    return {
-        'name': 'envoy.lua',
-        'config': irfilter.config_dict(),
+    config_dict = irfilter.config_dict()
+    config: Dict[str, Any]
+    config = {
+        'name': 'envoy.filters.http.lua'
     }
+
+    if config_dict:
+        config['typed_config'] = config_dict
+        config['typed_config']['@type'] = 'type.googleapis.com/envoy.config.filter.http.lua.v2.Lua'
+
+    return config
 
 
 class V2TCPListener(dict):
@@ -533,8 +608,7 @@ class V2TCPListener(dict):
         if group.get('tls_context', None):
             # Yup. We need the TLS inspector here...
             self['listener_filters'] = [ {
-                'name': 'envoy.listener.tls_inspector',
-                'config': {}
+                'name': 'envoy.filters.listener.tls_inspector'
             } ]
 
             # ...and we need to save the TLS context we'll be using.
@@ -549,8 +623,9 @@ class V2TCPListener(dict):
 
         # From that, we can sort out a basic tcp_proxy filter config.
         tcp_filter = {
-            'name': 'envoy.tcp_proxy',
-            'config': {
+            'name': 'envoy.filters.network.tcp_proxy',
+            'typed_config': {
+                '@type': 'type.googleapis.com/envoy.config.filter.network.tcp_proxy.v2.TcpProxy',
                 'stat_prefix': 'ingress_tcp_%d' % group.port,
                 'weighted_clusters': {
                     'clusters': clusters
@@ -583,10 +658,10 @@ class V2TCPListener(dict):
         self['filter_chains'].append(chain_entry)
 
 
-class V2VirtualHost(dict):
+class V2VirtualHost:
     def __init__(self, config: 'V2Config', listener: 'V2Listener',
-                 name: str, hostname: Optional[str], ctx: Optional[IRTLSContext],
-                 secure: bool, action: str, insecure_action: Optional[str]) -> None:
+                 name: str, hostname: str, ctx: Optional[IRTLSContext],
+                 secure: bool, action: Optional[str], insecure_action: Optional[str]) -> None:
         super().__init__()
 
         self._config = config
@@ -599,14 +674,11 @@ class V2VirtualHost(dict):
         self._insecure_action = insecure_action
         self._needs_redirect = False
 
-        self["tls_context"] = V2TLSContext(ctx)
-        self["routes"]: List['V2Route'] = []
+        self.tls_context = V2TLSContext(ctx)
+        self.routes: List[DictifiedV2Route] = []
 
     def needs_redirect(self) -> None:
         self._needs_redirect = True
-
-    def append_route(self, route: V2Route):
-        self["routes"].append(route)
 
     def finalize(self) -> None:
         # It's important from a performance perspective to wrap debug log statements
@@ -621,7 +693,7 @@ class V2VirtualHost(dict):
         if log_debug:
             self._config.ir.logger.debug(f"V2VirtualHost finalize {jsonify(self.pretty())}")
 
-        match = {}
+        match: Dict[str, Any] = {}
 
         if self._ctx:
             match["transport_protocol"] = "tls"
@@ -630,14 +702,14 @@ class V2VirtualHost(dict):
         if self._hostname and (self._hostname != '*'):
                 match["server_names"] = [ self._hostname ]
 
-        self["filter_chain_match"] = match
+        self.filter_chain_match = match
 
         # If we're on Edge Stack and we're not an intercept agent, punch a hole for ACME
         # challenges, for every listener.
         if self._config.ir.edge_stack_allowed and not self._config.ir.agent_active:
             found_acme = False
 
-            for route in self["routes"]:
+            for route in self.routes:
                 if route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
                     found_acme = True
                     break
@@ -654,7 +726,7 @@ class V2VirtualHost(dict):
                 if log_debug:
                     self._config.ir.logger.debug(f"V2VirtualHost finalize punching a hole for ACME")
 
-                self["routes"].insert(0, {
+                self.routes.insert(0, {
                     "match": {
                         "case_sensitive": True,
                         "prefix": "/.well-known/acme-challenge/"
@@ -667,16 +739,16 @@ class V2VirtualHost(dict):
                 })
 
         if log_debug:
-            for route in self["routes"]:
+            for route in self.routes:
                 self._config.ir.logger.debug(f"VHost Route {prettyroute(route)}")
 
     def pretty(self) -> str:
         ctx_name = "-none-"
 
-        if self["tls_context"]:
-            ctx_name = self["tls_context"].pretty()
+        if self.tls_context:
+            ctx_name = self.tls_context.pretty()
 
-        route_count = len(self["routes"])
+        route_count = len(self.routes)
         route_plural = "" if (route_count == 1) else "s"
 
         return "<VHost %s ctx %s redir %s a %s ia %s %d route%s>" % \
@@ -691,8 +763,8 @@ class V2VirtualHost(dict):
             "_action": self._action,
             "_insecure_action": self._insecure_action,
             "_needs_redirect": self._needs_redirect,
-            "tls_context": self["tls_context"],
-            "routes": self["routes"],
+            "tls_context": self.tls_context,
+            "routes": self.routes,
         }
 
 
@@ -725,7 +797,7 @@ class V2ListenerCollection:
             v2listener.use_proxy_proto = use_proxy_proto
         elif v2listener.use_proxy_proto != use_proxy_proto:
             raise Exception("listener for port %d has use_proxy_proto %s, requester wants upp %s" %
-                            (v2listener.use_proxy_proto, use_proxy_proto))
+                            (v2listener.service_port, v2listener.use_proxy_proto, use_proxy_proto))
 
         return v2listener
 
@@ -757,12 +829,17 @@ class V2Listener(dict):
         for f in self.config.ir.filters:
             v2f: dict = v2filter(f, self.config)
 
+            # v2filter can return None to indicate that the filter config
+            # should be omitted from the final envoy config. This is the
+            # uncommon case, but it can happen if a filter waits utnil the
+            # v2config is generated before deciding if it needs to be
+            # instantiated. See IRErrorResponse for an example.
             if v2f:
                 self.http_filters.append(v2f)
 
         # Get Access Log Rules
         for al in self.config.ir.log_services.values():
-            access_log_obj = { "common_config": al.get_common_config() }
+            access_log_obj: Dict[str, Any] = { "common_config": al.get_common_config() }
             req_headers = []
             resp_headers = []
             trailer_headers = []
@@ -779,11 +856,19 @@ class V2Listener(dict):
                 access_log_obj['additional_request_headers_to_log'] = req_headers
                 access_log_obj['additional_response_headers_to_log'] = resp_headers
                 access_log_obj['additional_response_trailers_to_log'] = trailer_headers
-                self.access_log.append({"name": "envoy.http_grpc_access_log", "config": access_log_obj})
+                access_log_obj['@type'] = 'type.googleapis.com/envoy.config.accesslog.v2.HttpGrpcAccessLogConfig'
+                self.access_log.append({
+                    "name": "envoy.access_loggers.http_grpc",
+                    "typed_config": access_log_obj
+                })
             else:
                 # inherently TCP right now
                 # tcp loggers do not support additional headers
-                self.access_log.append({"name": "envoy.tcp_grpc_access_log", "config": access_log_obj})
+                access_log_obj['@type'] = 'type.googleapis.com/envoy.config.accesslog.v2.TcpGrpcAccessLogConfig'
+                self.access_log.append({
+                    "name": "envoy.access_loggers.tcp_grpc",
+                    "typed_config": access_log_obj
+                })
 
         # Use sane access log spec in JSON
         if self.config.ir.ambassador_module.envoy_log_type.lower() == "json":
@@ -820,7 +905,7 @@ class V2Listener(dict):
                     log_format['dd.span_id'] = '%REQ(X-DATADOG-PARENT-ID)%'
 
             self.access_log.append({
-                'name': 'envoy.file_access_log',
+                'name': 'envoy.access_loggers.file',
                 'typed_config': {
                     '@type': 'type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog',
                     'path': self.config.ir.ambassador_module.envoy_log_path,
@@ -837,7 +922,7 @@ class V2Listener(dict):
             if log_debug:
                 self.config.ir.logger.debug("V2Listener: Using log_format '%s'" % log_format)
             self.access_log.append({
-                'name': 'envoy.file_access_log',
+                'name': 'envoy.access_loggers.file',
                 'typed_config': {
                     '@type': 'type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog',
                     'path': self.config.ir.ambassador_module.envoy_log_path,
@@ -906,10 +991,56 @@ class V2Listener(dict):
                         "value": overall_sampling
                     }
 
-        proper_case = self.config.ir.ambassador_module['proper_case']
+
+        proper_case: bool = self.config.ir.ambassador_module['proper_case']
+
+        # Support a list of response headers whose casing should be overriden.
+        header_case_overrides = self.config.ir.ambassador_module.get('header_case_overrides', None)
+        if header_case_overrides:
+            if proper_case:
+                self.config.ir.post_error(
+                    "Only one of 'proper_case' or 'header_case_overrides' fields may be set on " +\
+                    "the Ambassador module. Honoring proper_case and ignoring " +\
+                    "header_case_overrides.")
+                header_case_overrides = None
+            if not isinstance(header_case_overrides, list):
+                # The header_case_overrides field must be an array.
+                self.config.ir.post_error("Ambassador module config 'header_case_overrides' must be an array")
+                header_case_overrides = None
+            elif len(header_case_overrides) == 0:
+                # Allow an empty list to mean "do nothing".
+                header_case_overrides = None
+
+        if header_case_overrides:
+            # Create custom header rules that map the lowercase version of every element in
+            # `header_case_overrides` to the the respective original casing.
+            #
+            # For example the input array [ X-HELLO-There, X-COOL ] would create rules:
+            # { 'x-hello-there': 'X-HELLO-There', 'x-cool': 'X-COOL' }. In envoy, this effectively
+            # overrides the response header case by remapping the lowercased version (the default
+            # casing in envoy) back to the casing provided in the config.
+            rules = []
+            for hdr in header_case_overrides:
+                if not isinstance(hdr, str):
+                    self.config.ir.post_error("Skipping non-string header in 'header_case_overrides': {hdr}")
+                    continue
+                rules.append(hdr)
+
+            if len(rules) == 0:
+                self.config.ir.post_error(f"Could not parse any valid string headers in 'header_case_overrides': {header_case_overrides}")
+            else:
+                custom_header_rules: Dict[str, Dict[str, dict]] = {
+                    'custom': {
+                        'rules': {
+                            header.lower() : header for header in rules
+                        }
+                    }
+                }
+                http_options = self.base_http_config.setdefault("http_protocol_options", {})
+                http_options["header_key_format"] = custom_header_rules
 
         if proper_case:
-            proper_case_header = {'header_key_format': {'proper_case_words': {}}}
+            proper_case_header: Dict[str, Dict[str, dict]] = {'header_key_format': {'proper_case_words': {}}}
             if 'http_protocol_options' in self.base_http_config:
                 self.base_http_config["http_protocol_options"].update(proper_case_header)
             else:
@@ -989,12 +1120,12 @@ class V2Listener(dict):
                     domains = [vhost._hostname]
 
             # ...then build up the Envoy structures around it.
-            filter_chain = {
-                "filter_chain_match": vhost["filter_chain_match"],
+            filter_chain: Dict[str, Any] = {
+                "filter_chain_match": vhost.filter_chain_match,
             }
 
-            if vhost["tls_context"]:
-                filter_chain["tls_context"] = vhost["tls_context"]
+            if vhost.tls_context:
+                filter_chain["tls_context"] = vhost.tls_context
                 need_tcp_inspector = True
 
             http_config = dict(self.base_http_config)
@@ -1003,14 +1134,14 @@ class V2Listener(dict):
                     {
                         "name": f"{self.name}-{vhost._name}",
                         "domains": domains,
-                        "routes": vhost["routes"]
+                        "routes": vhost.routes
                     }
                 ]
             }
 
             filter_chain["filters"] = [
                 {
-                    "name": "envoy.http_connection_manager",
+                    "name": "envoy.filters.network.http_connection_manager",
                     "typed_config": {
                         "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
                         **http_config
@@ -1022,14 +1153,12 @@ class V2Listener(dict):
 
         if self.use_proxy_proto:
             self.listener_filters.append({
-                'name': 'envoy.listener.proxy_protocol',
-                'config': {}
+                'name': 'envoy.filters.listener.proxy_protocol'
             })
 
         if need_tcp_inspector:
             self.listener_filters.append({
-                'name': 'envoy.listener.tls_inspector',
-                'config': {}
+                'name': 'envoy.filters.listener.tls_inspector'
             })
 
     def as_dict(self) -> dict:
@@ -1123,6 +1252,7 @@ class V2Listener(dict):
             if not '*' in listener.vhosts:
                 # Force the first VHost to '*'. I know, this is a little weird, but it's arguably
                 # the least surprising thing to do in most situations.
+                assert listener.first_vhost
                 first_vhost = listener.first_vhost
                 first_vhost._hostname = '*'
                 first_vhost._name = f"{first_vhost._name}-forced-star"
@@ -1155,18 +1285,18 @@ class V2Listener(dict):
         prune_unreachable_routes = config.ir.ambassador_module['prune_unreachable_routes']
 
         # OK. We have all the listeners. Time to walk the routes (note that they are already ordered).
-        for route in config.routes:
+        for c_route in config.routes:
             # Remember which hosts this can apply to
-            route_hosts = route.host_constraints(prune_unreachable_routes)
+            route_hosts = c_route.host_constraints(prune_unreachable_routes)
 
             # Remember, also, if a precedence was set.
-            route_precedence = route.get('_precedence', None)
+            route_precedence = c_route.get('_precedence', None)
 
             if log_debug:
-                logger.debug(f"V2Listeners: route {prettyroute(route)}...")
+                logger.debug(f"V2Listeners: route {prettyroute(c_route)}...")
 
             # Build a cleaned-up version of this route without the '_sni' and '_precedence' elements...
-            insecure_route = dict(route)
+            insecure_route: DictifiedV2Route = dict(c_route)
             insecure_route.pop('_sni', None)
             insecure_route.pop('_precedence', None)
 
@@ -1216,7 +1346,7 @@ class V2Listener(dict):
                     # that we can have an action of None if we're looking at a vhost created
                     # by an insecure_addl_port).
 
-                    candidates = []
+                    candidates: List[Tuple[bool, DictifiedV2Route, str]] = []
                     vhostname = vhost._hostname
 
                     if vhost._action is not None:
@@ -1269,7 +1399,7 @@ class V2Listener(dict):
                             if log_debug:
                                 logger.debug(
                                     f"V2Listeners: {listener.name} {vhostname} {variant}: Accept as {action}")
-                            vhost.append_route(route)
+                            vhost.routes.append(route)
                         else:
                             if log_debug:
                                 logger.debug(
@@ -1302,17 +1432,18 @@ class V2Listener(dict):
 
             # OK, good to go. Do we already have a TCP listener binding where this one does?
             group_key = irgroup.bind_to()
-            listener = tcplisteners.get(group_key, None)
+            tcplistener = tcplisteners.get(group_key, None)
 
             if log_debug:
                 config.ir.logger.debug("V2TCPListener: group at %s found %s listener" %
-                                       (group_key, "extant" if listener else "no"))
+                                       (group_key, "extant" if tcplistener else "no"))
 
-            if not listener:
+            if not tcplistener:
                 # Nope. Make a new one and save it.
-                listener = config.save_element('listener', irgroup, V2TCPListener(config, irgroup))
-                config.listeners.append(listener)
-                tcplisteners[group_key] = listener
+                tcplistener = config.save_element('listener', irgroup, V2TCPListener(config, irgroup))
+                assert tcplistener
+                config.listeners.append(tcplistener)
+                tcplisteners[group_key] = tcplistener
 
             # Whether we just created this listener or not, add this irgroup to it.
-            listener.add_group(config, irgroup)
+            tcplistener.add_group(config, irgroup)

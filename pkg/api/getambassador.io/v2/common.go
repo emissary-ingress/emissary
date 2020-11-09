@@ -163,6 +163,45 @@ type CircuitBreaker struct {
 	MaxRetries         int    `json:"max_retries,omitempty"`
 }
 
+// ErrorResponseTextFormatSource specifies a source for an error response body
+type ErrorResponseTextFormatSource struct {
+	// The name of a file on the Ambassador pod that contains a format text string.
+	Filename string `json:"filename"`
+}
+
+// ErorrResponseOverrideBody specifies the body of an error response
+type ErrorResponseOverrideBody struct {
+	// A format string representing a text response body.
+	// Content-Type can be set using the `content_type` field below.
+	ErrorResponseTextFormat string `json:"text_format,omitempty"`
+
+	// A JSON response with content-type: application/json. The values can
+	// contain format text like in text_format.
+	ErrorResponseJsonFormat map[string]string `json:"json_format,omitempty"`
+
+	// A format string sourced from a file on the Ambassador container.
+	// Useful for larger response bodies that should not be placed inline
+	// in configuration.
+	ErrorResponseTextFormatSource string `json:"text_format_source,omitempty"`
+
+	// The content type to set on the error response body when
+	// using text_format or text_format_source. Defaults to 'text/plain'.
+	ContentType string `json:"content_type,omitempty"`
+}
+
+// A response rewrite for an HTTP error response
+type ErrorResponseOverride struct {
+	// The status code to match on
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Minimum=400
+	// +kubebuilder:validation:Maximum=599
+	OnStatusCode int `json:"on_status_code,omitempty"`
+
+	// The new response body
+	// +kubebuilder:validation:Required
+	Body ErrorResponseOverrideBody `json:"body,omitempty"`
+}
+
 // AmbassadorID declares which Ambassador instances should pay
 // attention to this resource.  May either be a string or a list of
 // strings.  If no value is provided, the default is:

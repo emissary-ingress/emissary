@@ -8,19 +8,23 @@ $(tools/golangci-lint): $(OSS_HOME)/build-aux/bin-go/golangci-lint/go.mod
 
 lint/go-dirs = $(OSS_HOME)
 
-lint: $(tools/golangci-lint)
+lint:
+	$(MAKE) -k golint mypy
+.PHONY: lint
+
+golint: $(tools/golangci-lint)
 	@PS4=; set -x; r=0; { \
 		for dir in $(lint/go-dirs); do \
-			(cd $$dir && $(tools/golangci-lint) run ./...) || r=$?; \
+			(cd $$dir && $(tools/golangci-lint) run ./...) || r=$$?; \
 		done; \
 		exit $$r; \
 	}
-.PHONY: lint
+.PHONY: golint
 
 format: $(tools/golangci-lint)
 	@PS4=; set -x; { \
 		for dir in $(lint/go-dirs); do \
-			(cd $$dir && $(tools/golangci-lint) run ./...) || true; \
-		exit $$r; \
+			(cd $$dir && $(tools/golangci-lint) run --fix ./...) || true; \
+		done; \
 	}
 .PHONY: format

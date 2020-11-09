@@ -1,3 +1,96 @@
+# A quick primer on GNU Make syntax
+# =================================
+#
+# This tries to cover the syntax that is hard to ctrl-f for in
+# <https://www.gnu.org/software/make/manual/make.html> (err, hard to
+# C-s for in `M-: (info "Make")`).
+#
+#   At the core is a "rule":
+#
+#       target: dependency1 dependency2
+#       	command to run
+#
+#   If `target` something that isn't a real file (like 'build', 'lint', or
+#   'test'), then it should be marked as "phony":
+#
+#       target: dependency1 dependency2
+#       	command to run
+#       .PHONY: target
+#
+#   You can write reusable "pattern" rules:
+#
+#       %.o: %.c
+#       	command to run
+#
+#   Of course, if you don't have variables for the inputs and outputs,
+#   it's hard to write a "command to run" for a pattern rule.  The
+#   variables that you should know are:
+#
+#       $@ = the target
+#       $^ = the list of dependencies (space separated)
+#       $< = the first (left-most) dependency
+#       $* = the value of the % glob in a pattern rule
+#
+#       Each of these have $(@D) and $(@F) variants that are the
+#       directory-part and file-part of each value, respectively.
+#
+#       I think those are easy enough to remember mnemonically:
+#         - $@ is where you shoul direct the output at.
+#         - $^ points up at the dependency list
+#         - $< points at the left-most member of the dependency list
+#         - $* is the % glob; "*" is well-known as the glob char in other languages
+#
+#   Make will do its best to guess whether to apply a pattern rule for a
+#   given file.  Or, you can explicitly tell it by using a 3-field
+#   (2-colon) version:
+#
+#       foo.o bar.o: %.o: %.c
+#       	command to run
+#
+#   In a non-pattern rule, if there are multiple targets listed, then it
+#   is as if rule were duplicated for each target:
+#
+#       target1 target2: deps
+#       	command to run
+#
+#       # is the same as
+#
+#       target1: deps
+#       	command to run
+#       target2: deps
+#       	command to run
+#
+#   Because of this, if you have a command that generates multiple,
+#   outputs, it _must_ be a pattern rule:
+#
+#       %.c %.h: %.y
+#       	command to run
+#
+#   Normally, Make crawls the entire tree of dependencies, updating a file
+#   if any of its dependencies have been updated.  There's a really poorly
+#   named feature called "order-only" dependencies:
+#
+#       target: normal-deps | order-only-deps
+#
+#   Dependencies after the "|" are created if they don't exist, but if
+#   they already exist, then don't bother updating them.
+#
+# Tips:
+# -----
+#
+#  - Use absolute filenames.  It's dumb, but it really does result in
+#    fewer headaches.  Use $(OSS_HOME) and $(AES_HOME) to spell the
+#    absolute filenames.
+#
+#  - If you have a multiple-output command where the output files have
+#    dissimilar names, have % be just the directory (the above tip makes
+#    this easier).
+#
+#  - It can be useful to use the 2-colon form of a pattern rule when
+#    writing a rule for just one file; it lets you use % and $* to avoid
+#    repeating yourself, which can be especially useful with long
+#    filenames.
+
 BUILDER_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 BUILDER_NAME ?= $(NAME)
@@ -134,7 +227,9 @@ compile: sync
 # For files that should only-maybe update when the rule runs, put ".stamp" on
 # the left-side of the ":", and just go ahead and update it within the rule.
 #
-# ".stamp" should NEVER appear on the right-side of the ":".
+# ".stamp" should NEVER appear in a dependency list (that is, it
+# should never be on the right-side of the ":"), save for in this rule
+# itself.
 %: %.stamp $(COPY_IFCHANGED)
 	@$(COPY_IFCHANGED) $< $@
 
@@ -147,7 +242,7 @@ $(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remot
 docker/builder-base.docker.stamp: FORCE preflight
 	@printf "${CYN}==> ${GRN}Bootstrapping builder base image${END}\n"
 	@$(BUILDER) build-builder-base >$@
-docker/container.txt.stamp: %/container.txt.stamp: %/builder-base.docker.tag.local FORCE
+docker/container.txt.stamp: %/container.txt.stamp: %/builder-base.docker.tag.local %/base-envoy.docker.tag.local FORCE
 	@printf "${CYN}==> ${GRN}Bootstrapping builder container${END}\n"
 	@$(BUILDER) bootstrap > $@
 docker/snapshot.docker.stamp: %/snapshot.docker.stamp: %/container.txt FORCE compile
@@ -161,31 +256,57 @@ docker/snapshot.docker.stamp: %/snapshot.docker.stamp: %/container.txt FORCE com
 	  fi; \
 	}
 docker/base-envoy.docker.stamp: FORCE
-	@echo $(ENVOY_DOCKER_TAG) > $@
-docker/$(NAME).docker.stamp: %/$(NAME).docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile
-	@printf "${CYN}==> ${GRN}Building ${BLU}$(NAME)${END}\n"
-	@${DBUILD} ${BUILDER_HOME} \
-	  --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
-	  --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	  --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	  --target=ambassador \
-	  --iidfile=$@
-docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile
-	@printf "${CYN}==> ${GRN}Building ${BLU}kat-client${END}\n"
-	@${DBUILD} ${BUILDER_HOME} \
-	  --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
-	  --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	  --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	  --target=kat-client \
-	  --iidfile=$@
-docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile
-	@printf "${CYN}==> ${GRN}Building ${BLU}kat-server${END}\n"
-	@${DBUILD} ${BUILDER_HOME} \
-	  --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
-	  --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	  --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	  --target=kat-server \
-	  --iidfile=$@
+	@set -e; { \
+	  if docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@ 2>/dev/null; then \
+	    printf "${CYN}==> ${GRN}Base Envoy image is already pulled${END}\n"; \
+	  else \
+	    printf "${CYN}==> ${GRN}Pulling base Envoy image${END}\n"; \
+	    docker pull $(ENVOY_DOCKER_TAG); \
+	    docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@; \
+	  fi; \
+	}
+docker/$(NAME).docker.stamp: %/$(NAME).docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
+	@set -e; { \
+	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
+	    printf "${CYN}==> ${GRN}Image ${BLU}$(NAME)${GRN} is already up-to-date${END}\n"; \
+	  else \
+	    printf "${CYN}==> ${GRN}Building image ${BLU}$(NAME)${END}\n"; \
+	    ${DBUILD} ${BUILDER_HOME} \
+	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
+	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
+	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	      --target=ambassador \
+	      --iidfile=$@; \
+	  fi; \
+	}
+docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
+	@set -e; { \
+	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
+	    printf "${CYN}==> ${GRN}Image ${BLU}kat-client${GRN} is already up-to-date${END}\n"; \
+	  else \
+	    printf "${CYN}==> ${GRN}Building image ${BLU}kat-client${END}\n"; \
+	    ${DBUILD} ${BUILDER_HOME} \
+	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
+	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
+	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	      --target=kat-client \
+	      --iidfile=$@; \
+	  fi; \
+	}
+docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
+	@set -e; { \
+	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
+	    printf "${CYN}==> ${GRN}Image ${BLU}kat-server${GRN} is already up-to-date${END}\n"; \
+	  else \
+	    printf "${CYN}==> ${GRN}Building image ${BLU}kat-server${END}\n"; \
+	    ${DBUILD} ${BUILDER_HOME} \
+	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
+	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
+	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	      --target=kat-server \
+	      --iidfile=$@; \
+	  fi; \
+	}
 
 REPO=$(BUILDER_NAME)
 
@@ -400,7 +521,7 @@ rc: release/bits
 release/bits: images
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
 	@printf "$(CYN)==> $(GRN)Pushing $(BLU)$(REPO)$(GRN) Docker image$(END)\n"
-	docker tag $(REPO) $(AMB_IMAGE_RC)
+	docker tag $$(cat docker/$(NAME).docker) $(AMB_IMAGE_RC)
 	docker push $(AMB_IMAGE_RC)
 .PHONY: release/bits
 
@@ -521,40 +642,56 @@ $(BLD)Codebases:$(END)
 
 endef
 
+# Style note: _help.intro
+# - is wrapped to 72 columns (after stripping the ANSI color codes)
+# - has sentences separated with 2 spaces
+# - uses bold blue ("$(BLU)") when introducing a new variable
+# - uses bold ("$(BLD)") for variables that have already been introduced
+# - uses bold ("$(BLD)") when you would use `backticks` in markdown
 define _help.intro
-This Makefile builds Ambassador using a standard build environment inside
-a Docker container. The $(BLD)$(REPO)$(END), $(BLD)kat-server$(END), and $(BLD)kat-client$(END) images are
-created from this container after the build stage is finished.
+This Makefile builds Ambassador using a standard build environment
+inside a Docker container.  The $(BLD)$(REPO)$(END), $(BLD)kat-server$(END), and $(BLD)kat-client$(END)
+images are created from this container after the build stage is
+finished.
 
-The build works by maintaining a running build container in the background.
-It gets source code into that container via $(BLD)rsync$(END). The $(BLD)/home/dw$(END) directory in
-this container is a Docker volume, which allows files (e.g. the Go build
-cache and $(BLD)pip$(END) downloads) to be cached across builds.
+The build works by maintaining a running build container in the
+background.  It gets source code into that container via $(BLD)rsync$(END).  The
+$(BLD)/home/dw$(END) directory in this container is a Docker volume, which allows
+files (e.g. the Go build cache and $(BLD)pip$(END) downloads) to be cached across
+builds.
 
-This arrangement also permits building multiple codebases. This is useful
-for producing builds with extended functionality. Each external codebase
-is synced into the container at the $(BLD)/buildroot/<name>$(END) path.
+This arrangement also permits building multiple codebases.  This is
+useful for producing builds with extended functionality.  Each external
+codebase is synced into the container at the $(BLD)/buildroot/<name>$(END) path.
 
 You can control the name of the container and the images it builds by
-setting $(BLU)$$BUILDER_NAME$(END), which defaults to $(BLU)$(NAME)$(END). $(BLD)Note well$(END) that if you
-want to make multiple clones of this repo and build in more than one of them
-at the same time, you $(BLD)must$(END) set $(BLU)$$BUILDER_NAME$(END) so that each clone has its own
-builder! If you do not do this, your builds will collide with confusing 
-results.
+setting $(BLU)$$BUILDER_NAME$(END), which defaults to $(BLD)$(NAME)$(END).  Note well that if
+you want to make multiple clones of this repo and build in more than one
+of them at the same time, you $(BLD)must$(END) set $(BLD)$$BUILDER_NAME$(END) so that each clone
+has its own builder!  If you do not do this, your builds will collide
+with confusing results.
 
-The build system doesn't try to magically handle all dependencies. In
+The build system doesn't try to magically handle all dependencies.  In
 general, if you change something that is not pure source code, you will
-likely need to do a $(BLD)$(MAKE) clean$(END) in order to see the effect. For example,
-Python code only gets set up once, so if you change $(BLD)requirements.txt$(END) or
-$(BLD)setup.py$(END), then you will need to do a clean build to see the effects.
-Assuming you didn't $(BLD)$(MAKE) clobber$(END), this shouldn't take long due to the
-cache in the Docker volume.
+likely need to do a $(BLD)$(MAKE) clean$(END) in order to see the effect.  For example,
+Python code only gets set up once, so if you change $(BLD)setup.py$(END), then you
+will need to do a clean build to see the effects.  Assuming you didn't
+$(BLD)$(MAKE) clobber$(END), this shouldn't take long due to the cache in the Docker
+volume.
 
-All targets that deploy to a cluster by way of $(BLD)$$DEV_REGISTRY$(END) can be made to
-have the cluster use an imagePullSecret to pull from $(BLD)$$DEV_REGISTRY$(END), by
-setting $(BLD)$$DEV_USE_IMAGEPULLSECRET$(END) to a non-empty value.  The imagePullSecret
-will be constructed from $(BLD)$$DEV_REGISTRY$(END), $(BLD)$$DOCKER_BUILD_USERNAME$(END), and
-$(BLD)$$DOCKER_BUILD_PASSWORD$(END).
+All targets that deploy to a cluster by way of $(BLU)$$DEV_REGISTRY$(END) can be made
+to have the cluster use an imagePullSecret to pull from $(BLD)$$DEV_REGISTRY$(END),
+by setting $(BLU)$$DEV_USE_IMAGEPULLSECRET$(END) to a non-empty value.  The
+imagePullSecret will be constructed from $(BLD)$$DEV_REGISTRY$(END),
+$(BLU)$$DOCKER_BUILD_USERNAME$(END), and $(BLU)$$DOCKER_BUILD_PASSWORD$(END).
+
+By default, the base builder image is (as an optimization) pulled from
+$(BLU)$$BASE_REGISTRY$(END) instead of being built locally; where $(BLD)$$BASE_REGISTRY$(END)
+defaults to $(BLD)$$DEV_REGISTRY$(END) or else $(BLD)$${BUILDER_NAME}.local$(END).  If that pull
+fails (as it will if trying to pull from a $(BLD).local$(END) registry, or if the
+image does not yet exist), then it falls back to building the base image
+locally.  If $(BLD)$$BASE_REGISTRY$(END) is equal to $(BLD)$$DEV_REGISTRY$(END), then it will
+proceed to push the built image back to the $(BLD)$$BASE_REGISTRY$(END).
 
 Use $(BLD)$(MAKE) $(BLU)targets$(END) for help about available $(BLD)make$(END) targets.
 endef

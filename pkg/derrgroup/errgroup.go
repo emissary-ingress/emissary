@@ -29,13 +29,13 @@
 // things to build on top of.
 //
 // Right now, there are at least 3 Go implementations of "group"
-// functionality in use at Datawire (amb-sidecar/group,
-// entrypoint/group, and pkg/supervisor), which each offer some subset
-// of the above.  derrgroup offers to them a common robust base.  If
-// you're writing new application code, you should use one of those,
-// and not use derrgroup directly.  If you're writing a new "group"
-// abstraction, you should use derrgroup instead of implementing your
-// own locking/synchronization.
+// functionality in use at Datawire (pkg/dgroup, entrypoint/group, and
+// pkg/supervisor), which each offer some subset of the above.
+// derrgroup offers to them a common robust base.  If you're writing
+// new application code, you should use one of those, and not use
+// derrgroup directly.  If you're writing a new "group" abstraction,
+// you should use derrgroup instead of implementing your own
+// locking/synchronization.
 package derrgroup
 
 import (

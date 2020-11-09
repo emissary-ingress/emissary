@@ -35,11 +35,12 @@ wait_for_url() ( # use a subshell so the set +x is local to the function
     { set +x; } 2>/dev/null # make the set +x be quiet
     local status=""
     while true; do
-        status=$(curl -k -sL -w "%{http_code}" -o /dev/null "$@")
+        status=$(curl --retry 100 --retry-connrefused -k -sL -w "%{http_code}" -o /dev/null "$@")
         if [ "$status" != "200" ]; then
             echo "Got $status, waiting for 200..." 1>&2
             sleep 10
         else
+            echo "Ready!" 1>&2
             break
         fi
     done
@@ -65,6 +66,24 @@ wait_for_deployment() ( # use a subshell so the set +x is local to the function
             return 1
         fi
 
+        attempts=$((attempts + 1))
+        sleep 10
+    done
+)
+
+wait_for_kubeconfig() ( # use a subshell so the set +x is local to the function
+    { set +x; } 2>/dev/null # make the set +x be quiet
+    local attempts=0
+    local kubeconfig="${1}"
+    while true; do
+        if kubectl --kubeconfig ${kubeconfig} -n default get service kubernetes; then
+            break
+        fi
+
+        if [ $attempts -eq 60 ]; then
+            echo "kubeconfig ${kubeconfig} timed out" 1>&2
+            return 1
+        fi
         attempts=$((attempts + 1))
         sleep 10
     done
@@ -98,6 +117,7 @@ await_cluster() {
     kconfurl="https://sw.bakerstreet.io/kubeception/api/klusters/${name}"
     wait_for_url "$kconfurl" -H "Authorization: bearer ${KUBECEPTION_TOKEN}"
     curl -s -H "Authorization: bearer ${KUBECEPTION_TOKEN}" "$kconfurl" -o "${kubeconfig}"
+    printf "${BLU}Cluster ${name} acquired${END}\n" 1>&2
 }
 
 get_cluster() {

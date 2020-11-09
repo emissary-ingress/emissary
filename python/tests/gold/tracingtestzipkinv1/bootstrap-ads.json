@@ -104,13 +104,15 @@
     },
     "tracing": {
         "http": {
-            "config": {
+            "name": "envoy.zipkin",
+            "typed_config": {
+                "@type": "type.googleapis.com/envoy.config.trace.v2.ZipkinConfig",
                 "collector_cluster": "cluster_tracing_zipkin_v1_9411_default",
                 "collector_endpoint": "/api/v1/spans",
                 "collector_endpoint_version": "HTTP_JSON_V1",
+                "collector_hostname": "zipkin-v1",
                 "trace_id_128bit": true
-            },
-            "name": "envoy.zipkin"
+            }
         }
     }
 }

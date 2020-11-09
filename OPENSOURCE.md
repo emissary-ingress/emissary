@@ -193,78 +193,90 @@ Free and Open Source software:
 The Ambassador Python code makes use of the following Free and Open Source
 libraries:
 
-    Name                Version    License(s)
-    ----                -------    ----------
-    Cython              0.29.10    Apache License 2.0
-    Flask               1.1.2      3-clause BSD license
-    GitPython           3.1.7      3-clause BSD license
-    Jinja2              2.11.2     3-clause BSD license
-    MarkupSafe          1.1.1      3-clause BSD license
-    PyJWT               1.7.1      MIT license
-    PyYAML              5.3.1      MIT license
-    Werkzeug            1.0.1      3-clause BSD license
-    adal                1.2.4      MIT license
-    attrs               19.3.0     MIT license
-    cachetools          4.1.1      MIT license
-    certifi             2020.6.20  Mozilla Public License 2.0
-    cffi                1.14.1     MIT license
-    chardet             3.0.4      GNU Lesser General Public License Version 2.1
-    click               7.1.2      3-clause BSD license
-    clize               4.1.1      MIT license
-    coverage            5.2.1      Apache License 2.0
-    cryptography        2.9.2      Apache License 2.0, Python Software Foundation license
-    decorator           4.4.2      2-clause BSD license
-    docopt              0.6.2      MIT license
-    docutils            0.16       2-clause BSD license, GNU General Public License Version 3, Python Software Foundation license, public domain
-    dpath               2.0.1      MIT license
-    durationpy          0.5        MIT license
-    expiringdict        1.2.1      Apache License 2.0
-    gitdb               4.0.5      3-clause BSD license
-    google-auth         1.20.0     Apache License 2.0
-    gunicorn            20.0.4     MIT license
-    idna                2.7        3-clause BSD license, Python Software Foundation license, Unicode License Agreement for Data Files and Software (2015)
-    importlib-metadata  1.7.0      Apache License 2.0
-    iniconfig           1.0.1      MIT license
-    itsdangerous        1.1.0      3-clause BSD license
-    jsonpatch           1.26       3-clause BSD license
-    jsonpointer         2.0        3-clause BSD license
-    jsonschema          3.2.0      MIT license
-    jwt                 1.0.0      Apache License 2.0
-    k8s-proto           0.0.3      Apache License 2.0
-    kubernetes          8.0.0      Apache License 2.0
-    more-itertools      8.4.0      MIT license
-    mypy                0.782      MIT license
-    mypy-extensions     0.4.3      MIT license
-    oauthlib            3.1.0      3-clause BSD license
-    od                  1.0        MIT license
-    packaging           20.4       2-clause BSD license, Apache License 2.0
-    pexpect             4.8.0      ISC license
-    pip-tools           5.3.1      3-clause BSD license
-    pluggy              0.13.1     MIT license
-    prometheus-client   0.8.0      Apache License 2.0
-    protobuf            3.6.1      3-clause BSD license
-    ptyprocess          0.6.0      ISC license
-    py                  1.9.0      MIT license
-    pyasn1              0.4.8      2-clause BSD license
-    pyasn1-modules      0.2.8      2-clause BSD license
-    pycparser           2.20       3-clause BSD license
-    pyparsing           2.4.7      MIT license
-    pyrsistent          0.16.0     MIT license
-    pytest              6.0.1      MIT license
-    pytest-cov          2.10.0     MIT license
-    python-dateutil     2.8.1      3-clause BSD license, Apache License 2.0
-    requests            2.20.1     Apache License 2.0
-    requests-oauthlib   1.3.0      ISC license
-    retry               0.9.2      Apache License 2.0
-    rsa                 4.6        Apache License 2.0
-    scout.py            0.5.0      Apache License 2.0
-    semantic-version    2.8.5      2-clause BSD license
-    sigtools            2.0.2      MIT license
-    six                 1.15.0     MIT license
-    smmap               3.0.4      3-clause BSD license
-    toml                0.10.1     MIT license
-    typed-ast           1.4.1      Apache License 2.0
-    typing-extensions   3.7.4.2    Python Software Foundation license
-    urllib3             1.24.3     MIT license
-    websocket-client    0.57.0     3-clause BSD license
-    zipp                3.1.0      MIT license
+    Name               Version    License(s)
+    ----               -------    ----------
+    CacheControl       0.12.6     Apache License 2.0
+    Cython             0.29.19    Apache License 2.0
+    Flask              1.1.2      3-clause BSD license
+    GitPython          3.1.11     3-clause BSD license
+    Jinja2             2.11.2     3-clause BSD license
+    MarkupSafe         1.1.1      3-clause BSD license
+    PyJWT              1.7.1      MIT license
+    PyYAML             5.3.1      MIT license
+    Werkzeug           1.0.1      3-clause BSD license
+    adal               1.2.5      MIT license
+    appdirs            1.4.4      MIT license
+    attrs              19.3.0     MIT license
+    cachetools         4.1.1      MIT license
+    certifi            2020.6.20  Mozilla Public License 2.0
+    cffi               1.14.3     MIT license
+    chardet            3.0.4      GNU Lesser General Public License Version 2.1
+    click              7.1.2      3-clause BSD license
+    clize              4.1.1      MIT license
+    colorama           0.4.3      3-clause BSD license
+    contextlib2        0.6.0      Python Software Foundation license
+    coverage           5.3        Apache License 2.0
+    cryptography       3.2        Apache License 2.0
+    decorator          4.4.2      2-clause BSD license
+    distlib            0.3.0      Python Software Foundation license
+    distro             1.5.0      Apache License 2.0
+    docopt             0.6.2      MIT license
+    docutils           0.16       2-clause BSD license, GNU General Public License Version 3, Python Software Foundation license, public domain
+    dpath              2.0.1      MIT license
+    durationpy         0.5        MIT license
+    expiringdict       1.2.1      Apache License 2.0
+    gitdb              4.0.5      3-clause BSD license
+    google-auth        1.23.0     Apache License 2.0
+    gunicorn           20.0.4     MIT license
+    html5lib           1.0.1      MIT license
+    idna               2.7        3-clause BSD license, Python Software Foundation license, Unicode License Agreement for Data Files and Software (2015)
+    iniconfig          1.1.1      MIT license
+    itsdangerous       1.1.0      3-clause BSD license
+    jsonpatch          1.26       3-clause BSD license
+    jsonpointer        2.0        3-clause BSD license
+    jsonschema         3.2.0      MIT license
+    jwt                1.1.0      Apache License 2.0
+    k8s-proto          0.0.3      Apache License 2.0
+    kubernetes         8.0.0      Apache License 2.0
+    lockfile           0.12.2     MIT license
+    msgpack            1.0.0      Apache License 2.0
+    mypy               0.790      MIT license
+    mypy-extensions    0.4.3      MIT license
+    oauthlib           3.1.0      3-clause BSD license
+    od                 1.0        MIT license
+    ordered-set        4.0.1      MIT license
+    packaging          20.4       2-clause BSD license, Apache License 2.0
+    pep517             0.8.2      MIT license
+    pexpect            4.8.0      ISC license
+    pip-tools          5.3.1      3-clause BSD license
+    pluggy             0.13.1     MIT license
+    progress           1.5        ISC license
+    prometheus-client  0.8.0      Apache License 2.0
+    protobuf           3.13.0     3-clause BSD license
+    ptyprocess         0.6.0      ISC license
+    py                 1.9.0      MIT license
+    pyasn1             0.4.8      2-clause BSD license
+    pyasn1-modules     0.2.8      2-clause BSD license
+    pycparser          2.20       3-clause BSD license
+    pyparsing          2.4.7      MIT license
+    pyrsistent         0.17.3     MIT license
+    pytest             6.1.2      MIT license
+    pytest-cov         2.10.1     MIT license
+    python-dateutil    2.8.1      3-clause BSD license, Apache License 2.0
+    pytoml             0.1.21     MIT license
+    requests           2.20.1     Apache License 2.0
+    requests-oauthlib  1.3.0      ISC license
+    retry              0.9.2      Apache License 2.0
+    retrying           1.3.3      Apache License 2.0
+    rsa                4.6        Apache License 2.0
+    scout.py           0.5.0      Apache License 2.0
+    semantic-version   2.8.5      2-clause BSD license
+    sigtools           2.0.2      MIT license
+    six                1.15.0     MIT license
+    smmap              3.0.4      3-clause BSD license
+    toml               0.10.2     MIT license
+    typed-ast          1.4.1      Apache License 2.0
+    typing-extensions  3.7.4.3    Python Software Foundation license
+    urllib3            1.24.3     MIT license
+    webencodings       0.5.1      3-clause BSD license
+    websocket-client   0.57.0     3-clause BSD license

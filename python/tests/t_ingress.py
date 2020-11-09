@@ -46,7 +46,7 @@ spec:
             text = json.dumps(self.status_update)
 
             update_cmd = ['kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
-            subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
+            subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=10)
 
             yield Query(self.url(self.name + "/"))
             yield Query(self.url(f'need-normalization/../{self.name}/'))
@@ -105,7 +105,7 @@ spec:
             text = json.dumps(self.status_update)
 
             update_cmd = ['kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
-            subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
+            subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=10)
 
             yield Query(self.url(self.name + "/"))
             yield Query(self.url(f'need-normalization/../{self.name}/'))
@@ -165,7 +165,7 @@ spec:
             text = json.dumps(self.status_update)
 
             update_cmd = ['kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
-            subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
+            subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=10)
 
             yield Query(self.url(self.name + "/"))
             yield Query(self.url(f'need-normalization/../{self.name}/'))
@@ -231,7 +231,7 @@ spec:
         text = json.dumps(self.status_update)
 
         update_cmd = ['kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
-        subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
+        subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=10)
 
         yield Query(self.url(self.name + "/"))
         yield Query(self.url(self.name + "-nested/"))
@@ -304,7 +304,7 @@ spec:
             text = json.dumps(self.status_update)
 
             update_cmd = ['kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
-            subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
+            subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=10)
 
             yield Query(self.url(self.name + "-target1/"))
             yield Query(self.url(self.name + "-target2/"))

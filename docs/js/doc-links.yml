@@ -267,6 +267,8 @@
     link: /docs/pre-release/topics/using/edgectl/service-preview-tutorial
   - title: Service Preview Reference
     link: /docs/pre-release/topics/using/edgectl/service-preview-reference
+  - title: Service Mesh and Service Preview
+    link: /docs/pre-release/topics/using/edgectl/service-mesh-sp
   - title: Edge Control Reference
     link: /docs/pre-release/topics/using/edgectl/edge-control
   - title: Using Edge Control in CI

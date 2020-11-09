@@ -115,6 +115,117 @@ driver: zipkin
         traceId = trace['traceId']
         assert len(traceId) == 32
 
+
+class TracingTestLongClusterName(AmbassadorTest):
+    def init(self):
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return """
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkinservicenamewithoversixtycharacterstoforcenamecompression
+spec:
+  selector:
+    app: zipkin-longclustername
+  ports:
+  - port: 9411
+    name: http
+    targetPort: http
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zipkin-longclustername
+spec:
+  selector:
+    matchLabels:
+      app: zipkin-longclustername
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: zipkin-longclustername
+    spec:
+      containers:
+      - name: zipkin
+        image: openzipkin/zipkin:2.17
+        ports:
+        - name: http
+          containerPort: 9411
+""" + super().manifests()
+
+    def config(self):
+        # Use self.target here, because we want this mapping to be annotated
+        # on the service, not the Ambassador.
+
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  tracing_target_mapping_longclustername
+prefix: /target/
+service: {self.target.path.fqdn}
+""")
+
+        # Configure the TracingService.
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind: TracingService
+name: tracing-longclustername
+service: zipkinservicenamewithoversixtycharacterstoforcenamecompression:9411
+driver: zipkin
+""")
+
+    def requirements(self):
+        yield from super().requirements()
+        yield ("url", Query("http://zipkinservicenamewithoversixtycharacterstoforcenamecompression:9411/api/v2/services"))
+
+    def queries(self):
+        # Speak through each Ambassador to the traced service...
+
+        for i in range(100):
+              yield Query(self.url("target/"), phase=1)
+
+
+        # ...then ask the Zipkin for services and spans. Including debug=True in these queries
+        # is particularly helpful.
+        yield Query("http://zipkinservicenamewithoversixtycharacterstoforcenamecompression:9411/api/v2/services", phase=2)
+        yield Query("http://zipkinservicenamewithoversixtycharacterstoforcenamecompression:9411/api/v2/spans?serviceName=tracingtestlongclustername-default", phase=2)
+        yield Query("http://zipkinservicenamewithoversixtycharacterstoforcenamecompression:9411/api/v2/traces?serviceName=tracingtestlongclustername-default", phase=2)
+
+        # The diagnostics page should load properly, even though our Tracing Service
+        # has a long cluster name https://github.com/datawire/ambassador/issues/3021
+        yield Query(self.url("ambassador/v0/diag/"), phase=2)
+
+    def check(self):
+        for i in range(100):
+            assert self.results[i].backend.name == self.target.path.k8s
+
+        assert self.results[100].backend.name == "raw"
+        assert len(self.results[100].backend.response) == 1
+        assert self.results[100].backend.response[0] == 'tracingtestlongclustername-default'
+
+        assert self.results[101].backend.name == "raw"
+
+        tracelist = { x: True for x in self.results[101].backend.response }
+
+        assert 'router cluster_tracingtestlongclustername_http_default egress' in tracelist
+
+        # Look for the host that we actually queried, since that's what appears in the spans.
+        assert self.results[0].backend.request.host in tracelist
+
+        # Ensure we generate 128-bit traceids by default
+        trace = self.results[102].json[0][0]
+        traceId = trace['traceId']
+        assert len(traceId) == 32
+
 class TracingTestShortTraceId(AmbassadorTest):
     def init(self):
         self.target = HTTP()
@@ -205,11 +316,11 @@ config:
 # This test asserts that the external authorization server receives the proper tracing
 # headers when Ambassador is configured with an HTTP AuthService.
 class TracingExternalAuthTest(AmbassadorTest):
-    
+
     def init(self):
         self.target = HTTP()
         self.auth = AHTTP(name="auth")
-        
+
     def manifests(self) -> str:
         return """
 ---
@@ -471,6 +582,7 @@ driver: zipkin
 config:
   collector_endpoint: /api/v2/spans
   collector_endpoint_version: HTTP_JSON
+  collector_hostname: zipkin-v2
 """)
 
     def requirements(self):
@@ -584,6 +696,7 @@ driver: zipkin
 config:
   collector_endpoint: /api/v1/spans
   collector_endpoint_version: HTTP_JSON_V1
+  collector_hostname: zipkin-v1
 """)
 
     def requirements(self):

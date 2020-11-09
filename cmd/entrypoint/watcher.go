@@ -9,11 +9,13 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"github.com/datawire/ambassador/pkg/acp"
+	"github.com/datawire/ambassador/pkg/debug"
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/watt"
 )
 
-func watcher(ctx context.Context, encoded *atomic.Value) {
+func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atomic.Value) {
 	crdYAML, err := ioutil.ReadFile(findCRDFilename())
 	if err != nil {
 		panic(err)
@@ -138,28 +140,44 @@ func watcher(ctx context.Context, encoded *atomic.Value) {
 		}
 	}
 
+	dbg := debug.FromContext(ctx)
+
+	katesUpdateTimer := dbg.Timer("katesUpdate")
+	consulUpdateTimer := dbg.Timer("consulUpdate")
+	notifyWebhooksTimer := dbg.Timer("notifyWebhooks")
+	parseAnnotationsTimer := dbg.Timer("parseAnnotations")
+	reconcileSecretsTimer := dbg.Timer("reconcileSecrets")
+	reconcileConsulTimer := dbg.Timer("reconcileConsul")
+
 	firstReconfig := true
 
 	for {
 		select {
 		case <-acc.Changed():
+			stop := katesUpdateTimer.Start()
 			var deltas []*kates.Delta
 			// We could probably get a win in some scenarios by using this filtered update thing to
 			// pre-exclude based on ambassador-id.
 			if !acc.FilteredUpdate(snapshot, &deltas, isValid) {
+				stop()
 				continue
 			}
 			unsentDeltas = append(unsentDeltas, deltas...)
+			stop()
 		case <-consul.changed():
-			consul.update(consulSnapshot)
+			consulUpdateTimer.Time(func() {
+				consul.update(consulSnapshot)
+			})
 		case <-ctx.Done():
 			return
 		}
 
-		snapshot.parseAnnotations()
+		parseAnnotationsTimer.Time(snapshot.parseAnnotations)
 
-		snapshot.ReconcileSecrets()
-		snapshot.ReconcileConsul(ctx, consul)
+		reconcileSecretsTimer.Time(snapshot.ReconcileSecrets)
+		reconcileConsulTimer.Time(func() {
+			snapshot.ReconcileConsul(ctx, consul)
+		})
 
 		if !consul.isBootstrapped() {
 			continue
@@ -187,7 +205,9 @@ func watcher(ctx context.Context, encoded *atomic.Value) {
 			log.Println("Bootstrapped! Computing initial configuration...")
 			firstReconfig = false
 		}
-		notifyReconfigWebhooks(ctx)
+		notifyWebhooksTimer.Time(func() {
+			notifyReconfigWebhooks(ctx, ambwatch)
+		})
 
 		// we really only need to be incremental for a subset of things:
 		//  - Mappings & Endpoints are the biggies
