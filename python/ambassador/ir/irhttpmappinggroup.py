@@ -173,6 +173,10 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                 errstr = "cannot accept %s as second host_redirect after %s" % \
                          (mapping.name, typecast(IRBaseMapping, self.host_redirect).name)
                 aconf.post_error(RichStatus.fromError(errstr), resource=self)
+            elif len(self.mappings) > 0:
+                errstr = "cannot accept %s with host_redirect after mappings without host_redirect (eg %s)" % \
+                         (mapping.name, self.mappings[0].name)
+                aconf.post_error(RichStatus.fromError(errstr), resource=self)
             else:
                 # All good. Save it.
                 self.host_redirect = mapping
