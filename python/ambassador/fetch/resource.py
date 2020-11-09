@@ -6,9 +6,9 @@ import json
 import logging
 
 from ..config import ACResource, Config
-from ..utils import dump_yaml
+from ..utils import dump_yaml, parse_yaml
 
-from .k8sobject import KubernetesObject
+from .k8sobject import KubernetesObjectScope, KubernetesObject
 from .location import LocationManager
 
 
@@ -22,20 +22,28 @@ class NormalizedResource:
     rkey: Optional[str] = None
 
     @classmethod
-    def from_data(cls, kind: str, name: str, namespace: str = 'default', generation: int = 1,
-                  version: str = 'v2', labels: Dict[str, Any] = None, spec: Dict[str, Any] = None,
-                  errors: Optional[str]=None) -> NormalizedResource:
-        rkey = f'{name}.{namespace}'
+    def from_data(cls, kind: str, name: str, namespace: Optional[str] = None,
+                  generation: Optional[int] = None, version: str = 'v2',
+                  labels: Optional[Dict[str, Any]] = None,
+                  spec: Dict[str, Any] = None, errors: Optional[str] = None,
+                  rkey: Optional[str] = None) -> NormalizedResource:
+        if rkey is None:
+            rkey = f'{name}.{namespace}'
 
         ir_obj = {}
         if spec:
             ir_obj.update(spec)
 
         ir_obj['apiVersion'] = f'getambassador.io/{version}'
-        ir_obj['name'] = name
-        ir_obj['namespace'] = namespace
         ir_obj['kind'] = kind
-        ir_obj['generation'] = generation
+        ir_obj['name'] = name
+
+        if namespace is not None:
+            ir_obj['namespace'] = namespace
+
+        if generation is not None:
+            ir_obj['generation'] = generation
+
         ir_obj['metadata_labels'] = labels or {}
 
         if errors:
@@ -68,6 +76,25 @@ class NormalizedResource:
             spec=obj.spec,
         )
 
+    @classmethod
+    def from_kubernetes_object_annotation(cls, obj: KubernetesObject) -> List[NormalizedResource]:
+        config = obj.annotations.get('getambassador.io/config')
+        if not config:
+            return []
+
+        def clean_normalize(r: Dict[str, Any]) -> NormalizedResource:
+            # Annotations should have to pass manual object validation.
+            r['_force_validation'] = True
+
+            if r.get('metadata_labels') is None and obj.labels:
+                r['metadata_labels'] = obj.labels
+            if r.get('namespace') is None and obj.scope == KubernetesObjectScope.NAMESPACE:
+                r['namespace'] = obj.namespace
+
+            return NormalizedResource(r, rkey=f'{obj.name}.{obj.namespace}')
+
+        return [clean_normalize(r) for r in parse_yaml(config) if r]
+
 
 class ResourceManager:
     """
@@ -79,7 +106,6 @@ class ResourceManager:
     locations: LocationManager
     ambassador_service: Optional[KubernetesObject]
     elements: List[ACResource]
-    services: Dict[str, Dict[str, Any]]
 
     def __init__(self, logger: logging.Logger, aconf: Config):
         self.logger = logger
@@ -87,7 +113,6 @@ class ResourceManager:
         self.locations = LocationManager()
         self.ambassador_service = None
         self.elements = []
-        self.services = {}
 
     @property
     def location(self) -> str:
@@ -116,8 +141,6 @@ class ResourceManager:
                                   (self.location, json.dumps(obj, indent=4, sort_keys=True)))
             return True
 
-        # self.logger.debug("%s PROCESS %s initial rkey %s" % (self.location, obj['kind'], rkey))
-
         # Is this a pragma object?
         if obj['kind'] == 'Pragma':
             # Why did I think this was a good idea? [ :) ]
@@ -132,35 +155,30 @@ class ResourceManager:
             return False
 
         if not rkey:
-            rkey = self.locations.current.filename
+            rkey = self.locations.current.filename_default('unknown')
 
-        rkey = "%s.%d" % (rkey, self.locations.current.ocount)
+        if obj['kind'] != 'Service':
+            # Services are unique and don't get an object count appended to
+            # them.
+            rkey = "%s.%d" % (rkey, self.locations.current.ocount)
 
-        # self.logger.debug("%s PROCESS %s updated rkey to %s" % (self.location, obj['kind'], rkey))
+        serialization = dump_yaml(obj, default_flow_style=False)
 
-        # Force the namespace and metadata_labels, if need be.
-        # TODO(impl): Remove this?
-        # if namespace and not obj.get('namespace', None):
-        #     obj['namespace'] = namespace
+        try:
+            r = ACResource.from_dict(rkey, rkey, serialization, obj)
+            self.elements.append(r)
+        except Exception as e:
+            self.aconf.post_error(e.args[0])
 
-        # Brutal hackery.
-        if obj['kind'] == 'Service':
-            self.logger.debug("%s PROCESS saving service %s" % (self.location, obj['name']))
-            self.services[obj['name']] = obj
-        else:
-            # Fine. Fine fine fine.
-            serialization = dump_yaml(obj, default_flow_style=False)
-
-            try:
-                r = ACResource.from_dict(rkey, rkey, serialization, obj)
-                self.elements.append(r)
-            except Exception as e:
-                self.aconf.post_error(e.args[0])
-
-            self.logger.debug("%s PROCESS %s save %s: %s" % (self.location, obj['kind'], rkey, serialization))
+        self.logger.debug("%s PROCESS %s save %s: %s" % (self.location, obj['kind'], rkey, serialization))
 
         return True
 
     def emit(self, resource: NormalizedResource):
         if self._emit(resource):
             self.locations.current.ocount += 1
+
+    def emit_annotated(self, resources: List[NormalizedResource]):
+        with self.locations.mark_annotated():
+            for resource in resources:
+                self.emit(resource)

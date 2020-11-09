@@ -22,6 +22,7 @@ apiVersion: serving.knative.dev/v1alpha1
 kind: Service
 metadata:
  name: helloworld-go
+ namespace: default
 spec:
  template:
    spec:
@@ -37,6 +38,7 @@ apiVersion: networking.internal.knative.dev/v1alpha1
 kind: Ingress
 metadata:
   name: helloworld-go
+  namespace: default
 spec:
   rules:
   - hosts:

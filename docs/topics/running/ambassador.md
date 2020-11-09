@@ -42,6 +42,7 @@ spec:
 | `ip_deny`        | Defines HTTP source IP address ranges to deny; all others will be allowed. `ip_allow` and `ip_deny` may not both be specified. See below for more details. | None |
 | `listener_idle_timeout_ms` | Controls how Envoy configures the tcp idle timeout on the http listener. Default is 1 hour. | `listener_idle_timeout_ms: 30000` |
 | `lua_scripts` | Run a custom lua script on every request. see below for more details. | None |
+| `grpc_stats` | Enables telemetry of gRPC calls using the "gRPC Statistics" Envoy filter. see below for more details. |  |
 | `proper_case` | Should we enable upper casing for response headers? For more information, see [the Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/core/protocol.proto#envoy-api-msg-core-http1protocoloptions-headerkeyformat). | `proper_case: false` |
 | `header_case_overrides` | Array of response header names whose casing should be forced. For every response header that matches (case insensitively) to an element in this array, the resulting header name is forced to the provided casing in the array. Cannot be used with 'proper_case'. This feature provides overrides for Envoy's normal [header casing rules](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_conn_man/header_casing). | `header_case_overrides: []` |
 | `regex_max_size` | This field controls the RE2 "program size" which is a rough estimate of how complex a compiled regex is to evaluate. A regex that has a program size greater than the configured value will fail to compile.    | `regex_max_size: 200` |
@@ -255,6 +256,57 @@ For more details on the Lua API, see the [Envoy Lua filter documentation](https:
 * They're run on every request/response to every URL
 
 If you need more flexible and configurable options, Ambassador Edge Stack supports a [pluggable Filter system](../../using/filters/).
+
+### gRPC Statistics (`grpc_stats`)
+
+Use the Envoy filter to enable telemetry of gRPC calls. [gRPC Statistics Filter](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_stats_filter)
+
+Supported parameters:
+* `all_methods`
+* `services`
+* `upstream_stats`
+
+Available metrics:
+* `envoy_cluster_grpc_<service>_<status_code>`
+* `envoy_cluster_grpc_<service>_request_message_count`
+* `envoy_cluster_grpc_<service>_response_message_count`
+* `envoy_cluster_grpc_<service>_success`
+* `envoy_cluster_grpc_<service>_total`
+* `envoy_cluster_grpc_upstream_<stats>` - **only when `upstream_stats: true`**
+
+Please note that `<service>` will only be present if `all_methods` is set or the service and the method are present under `services`.
+If `all_methods` is false or the method is not on the list, the available metrics will be in the format
+`envoy_cluster_grpc_<stats>`.
+
+##### all_methods
+If set to true, emit stats for all service/method names.
+If set to false, emit stats for all service/message types to the same stats without including the service/method in the name.
+**This option is only safe if all clients are trusted. If this option is enabled with untrusted clients, the clients could cause unbounded growth in the number
+of stats in Envoy, using unbounded memory and potentially slowing down stats pipelines.**
+
+##### services
+If set, specifies an allowlist of service/methods that will have individual stats emitted for them. Any call that does not match the allowlist will be
+counted in a stat with no method specifier (generic metric).
+
+**If both `all_methods` and `services` are present, `all_methods` will be ignored.**
+
+##### upstream_stats
+If true, the filter will gather a histogram for the request time of the upstream.
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind:  Module
+metadata:
+  name: ambassador
+spec:
+  config:
+    grpc_stats:
+      upstream_stats: true
+      services:
+        - name: <package>.<service>
+          method_names: [<method>]
+```
 
 ### Header Case (`proper_case`)
 
