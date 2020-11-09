@@ -432,7 +432,8 @@ class AHTTP(ServiceType):
 class AGRPC(ServiceType):
     skip_variant: ClassVar[bool] = True
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, protocol_version: str="v2alpha", *args, **kwargs) -> None:
+        self.protocol_version = protocol_version
         super().__init__(*args, service_manifests=GRPC_AUTH_BACKEND, **kwargs)
 
     def requirements(self):
@@ -441,7 +442,8 @@ class AGRPC(ServiceType):
 class RLSGRPC(ServiceType):
     skip_variant: ClassVar[bool] = True
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, protocol_version: str="v2alpha", *args, **kwargs) -> None:
+        self.protocol_version = protocol_version
         super().__init__(*args, service_manifests=GRPC_RLS_BACKEND, **kwargs)
 
     def requirements(self):

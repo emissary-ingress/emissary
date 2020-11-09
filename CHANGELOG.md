@@ -33,7 +33,7 @@ in `Ingress` resources will not be able to use `.namespace` suffixes to cross na
 
 #### gRPC names
 
-*In a future version*, Ambassador will change the version of the gRPC service name used to
+*In version 1.10*, Ambassador will change the version of the gRPC service name used to
 communicate with `AuthService`s and `RateLimitService`s:
 
 | Resource           | Current service name                       | Upcoming service name                         |
@@ -41,11 +41,11 @@ communicate with `AuthService`s and `RateLimitService`s:
 | `AuthService`      | `envoy.service.auth.v2alpha.Authorization` | `envoy.service.auth.v2.Authorization`         |
 | `RateLimitService` | `pb.lyft.ratelimit.RateLimitService`       | `envoy.service.ratelimit.v2.RateLimitService` |
 
-- In some future version of Ambassador, there will be settings to control which name is
+- In v1.9.0 of Ambassador, there will be settings to control which name is
   used; with the default being the current name; it will be opt-in to the new names.
-- In some future version of Ambassador after that, *no sooner than Ambassador 1.8.0*, the
+- In v1.10.0 of Ambassador after that, the
   default values of those settings will change; making them opt-out from the new names.
-- In some future version of Ambassador after that, *no sooner than Ambassador 1.9.0*, the
+- In some future version of Ambassador after that, *no sooner than Ambassador 1.11.0*, the
   settings will go away, and Ambassador will always use the new names.
 
 Note that Ambassador Edge Stack `External` Filters already unconditionally use the newer
@@ -62,6 +62,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Feature: The `TracingService` Zipkin config now supports setting `collector_hostname` to tell Envoy which host header to set when sending spans to the collector.
 - Bugfix: Update Python requirements to address CVE-2020-25659
 - Feature: Ambassador now supports custom case overrides for response headers.
+- Feature: The `RateLimitService` and `AuthService` configs now support switching between gRPC service names (see `gRPC names` above) with `protocol_version` setting that can be set to `v2` or `v2alpha`.
 
 ## [1.8.1] October 16, 2020
 [1.8.1]: https://github.com/datawire/ambassador/compare/v1.8.0...v1.8.1

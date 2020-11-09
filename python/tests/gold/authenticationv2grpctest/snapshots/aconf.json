@@ -1,0 +1,225 @@
+{
+    "_errors": {},
+    "_fast_validation_disagreements": {},
+    "_notices": {
+        "authenticationv2grpctest.default.2": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "authenticationv2grpctest.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationv2grpctest",
+            "apiVersion": "getambassador.io/v2",
+            "auth_service": "authenticationv2grpctest-agrpc-auth",
+            "kind": "AuthService",
+            "location": "authenticationv2grpctest.default.1",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationv2grpctest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationv2grpctest-agrpc-auth",
+            "namespace": "default",
+            "proto": "grpc",
+            "protocol_version": "v2",
+            "rkey": "authenticationv2grpctest.default.1",
+            "serialization": "_force_validation: true\nambassador_id: authenticationv2grpctest\napiVersion: ambassador/v2\nauth_service: authenticationv2grpctest-agrpc-auth\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationv2grpctest\n  scope: AmbassadorTest\nname: authenticationv2grpctest-agrpc-auth\nnamespace: default\nproto: grpc\nprotocol_version: v2\ntimeout_ms: 5000\n",
+            "timeout_ms": 5000
+        },
+        "authenticationv2grpctest.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationv2grpctest",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "location": "authenticationv2grpctest.default.2",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationv2grpctest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationv2grpctest-http",
+            "namespace": "default",
+            "prefix": "/target/",
+            "rkey": "authenticationv2grpctest.default.2",
+            "serialization": "_force_validation: true\nambassador_id: authenticationv2grpctest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationv2grpctest\n  scope: AmbassadorTest\nname: authenticationv2grpctest-http\nnamespace: default\nprefix: /target/\nservice: authenticationv2grpctest-http\n",
+            "service": "authenticationv2grpctest-http"
+        },
+        "k8s-authenticationv2grpctest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationv2grpctest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationv2grpctest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationv2grpctest",
+                "scope": "AmbassadorTest",
+                "service": "authenticationv2grpctest-admin"
+            },
+            "name": "authenticationv2grpctest-admin",
+            "namespace": "default",
+            "rkey": "k8s-authenticationv2grpctest-admin-default",
+            "serialization": "ambassador_id: authenticationv2grpctest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationv2grpctest\n  scope: AmbassadorTest\n  service: authenticationv2grpctest-admin\nname: authenticationv2grpctest-admin\nnamespace: default\n"
+        },
+        "k8s-authenticationv2grpctest-agrpc-auth-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationv2grpctest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationv2grpctest-agrpc-auth-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationv2grpctest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationv2grpctest-agrpc-auth",
+            "namespace": "default",
+            "rkey": "k8s-authenticationv2grpctest-agrpc-auth-default",
+            "serialization": "ambassador_id: authenticationv2grpctest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationv2grpctest\n  scope: AmbassadorTest\nname: authenticationv2grpctest-agrpc-auth\nnamespace: default\n"
+        },
+        "k8s-authenticationv2grpctest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationv2grpctest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationv2grpctest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationv2grpctest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationv2grpctest",
+            "namespace": "default",
+            "rkey": "k8s-authenticationv2grpctest-default",
+            "serialization": "ambassador_id: authenticationv2grpctest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationv2grpctest\n  scope: AmbassadorTest\nname: authenticationv2grpctest\nnamespace: default\n"
+        },
+        "k8s-authenticationv2grpctest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationv2grpctest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationv2grpctest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationv2grpctest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationv2grpctest-http",
+            "namespace": "default",
+            "rkey": "k8s-authenticationv2grpctest-http-default",
+            "serialization": "ambassador_id: authenticationv2grpctest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationv2grpctest\n  scope: AmbassadorTest\nname: authenticationv2grpctest-http\nnamespace: default\n"
+        }
+    },
+    "auth_configs": {
+        "authenticationv2grpctest-agrpc-auth": {
+            "ambassador_id": "authenticationv2grpctest",
+            "apiVersion": "getambassador.io/v2",
+            "auth_service": "authenticationv2grpctest-agrpc-auth",
+            "kind": "AuthService",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationv2grpctest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationv2grpctest-agrpc-auth",
+            "namespace": "default",
+            "proto": "grpc",
+            "protocol_version": "v2",
+            "timeout_ms": 5000
+        }
+    },
+    "mappings": {
+        "authenticationv2grpctest-http": {
+            "ambassador_id": "authenticationv2grpctest",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationv2grpctest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationv2grpctest-http",
+            "namespace": "default",
+            "prefix": "/target/",
+            "service": "authenticationv2grpctest-http"
+        }
+    },
+    "service": {
+        "k8s-authenticationv2grpctest-admin-default": {
+            "ambassador_id": "authenticationv2grpctest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationv2grpctest",
+                "scope": "AmbassadorTest",
+                "service": "authenticationv2grpctest-admin"
+            },
+            "name": "authenticationv2grpctest-admin",
+            "namespace": "default"
+        },
+        "k8s-authenticationv2grpctest-agrpc-auth-default": {
+            "ambassador_id": "authenticationv2grpctest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationv2grpctest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationv2grpctest-agrpc-auth",
+            "namespace": "default"
+        },
+        "k8s-authenticationv2grpctest-default": {
+            "ambassador_id": "authenticationv2grpctest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationv2grpctest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationv2grpctest",
+            "namespace": "default"
+        },
+        "k8s-authenticationv2grpctest-http-default": {
+            "ambassador_id": "authenticationv2grpctest",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationv2grpctest",
+                "scope": "AmbassadorTest"
+            },
+            "name": "authenticationv2grpctest-http",
+            "namespace": "default"
+        }
+    }
+}
