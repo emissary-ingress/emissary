@@ -16,13 +16,15 @@ from utils import run_and_assert, apply_kube_artifacts, install_ambassador, qotm
 
 logger = logging.getLogger('ambassador')
 
+# knative_service_example gets applied to the cluster with `kubectl --namespace=knative-testing
+# apply`; we therefore DO NOT explicitly set the 'namespace:' because --namespace will imply it, and
+# explicitly setting anything only adds room for something else to go wrong.
 knative_service_example = """
 ---
 apiVersion: serving.knative.dev/v1alpha1
 kind: Service
 metadata:
  name: helloworld-go
- namespace: default
 spec:
  template:
    spec:
@@ -33,6 +35,9 @@ spec:
          value: "Ambassador is Awesome"
 """
 
+# knative_ingress_example is not applied to the cluster, but is instead fed directly to the
+# ResourceFetcher; so we MUST explicitly set the namespace, because we can't rely on kubectl and/or
+# the apiserver to auto-populate it for us.
 knative_ingress_example = """
 apiVersion: networking.internal.knative.dev/v1alpha1
 kind: Ingress
@@ -51,7 +56,6 @@ spec:
         splits:
         - percent: 100
           serviceName: helloworld-go-qf94m
-          serviceNamespace: default
           servicePort: 80
         timeout: 10m0s
     visibility: ClusterLocal

@@ -116,7 +116,7 @@ class KubernetesObject (collections.abc.Mapping):
         if val == '_automatic_':
             val = Config.ambassador_namespace
         elif val is None:
-            raise AttributeError(f'{self.__class__.__name__} {self.gvk.domain} {self.name} is cluster-scoped and has no namespace')
+            raise AttributeError(f'{self.__class__.__name__} {self.gvk.domain} {self.name} has no namespace (it is cluster-scoped)')
 
         return val
 
