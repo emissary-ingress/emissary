@@ -55,6 +55,11 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
+(no changes yet)
+
+## [1.9.0-rc.0] November 10, 2020
+[1.9.0-rc.0]: https://github.com/datawire/ambassador/compare/v1.8.1...v1.9.0-rc.0
+
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Feature: Support configuring the gRPC Statistics Envoy filter to enable telemetry of gRPC calls (see the `grpc_stats` configuration flag -- thanks, [Felipe Roveran](https://github.com/feliperoveran)!)
