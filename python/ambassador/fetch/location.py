@@ -13,16 +13,11 @@ class Location:
     filename: Optional[str] = None
     ocount: int = 1
 
-    def mark_annotation(self) -> None:
-        if self.filename is None:
-            return
-        elif self.filename.endswith(':annotation'):
-            return
-
-        self.filename += ':annotation'
+    def filename_default(self, default: str = 'anonymous YAML') -> str:
+        return self.filename or default
 
     def __str__(self) -> str:
-        return f"{self.filename or 'anonymous YAML'}.{self.ocount}"
+        return f"{self.filename_default()}.{self.ocount}"
 
 
 class LocationManager:
@@ -63,3 +58,19 @@ class LocationManager:
         current = self.current
         self.current = self.previous.pop()
         return current
+
+    def mark_annotated(self) -> ContextManager[Location]:
+        """
+        Keeps the current stack, adding an annotation flag to the end of the
+        filename.
+        """
+        previous_filename = self.current.filename
+        if self.current.filename and not self.current.filename.endswith(':annotation'):
+            self.current.filename += ':annotation'
+
+        @contextlib.contextmanager
+        def cleaner():
+            yield previous_filename
+            self.current.filename = previous_filename
+
+        return cleaner()

@@ -9,7 +9,7 @@ copy_gold () {
 	local pod="$1"
 	local namespace="${2:-default}"
 
-	if kubectl cp -n $namespace $pod:/tmp/ambassador "$GOLDDIR/${pod}-tmp" >/dev/null 2>&1; then
+	if kubectl cp -n $namespace $pod:/tmp/ambassador "$GOLDDIR/${pod}-tmp" >/dev/null; then
 		rm -rf "$GOLDDIR/$pod"
 		mv "$GOLDDIR/${pod}-tmp" "$GOLDDIR/${pod}"
 		printf "                                                                \r"

@@ -267,9 +267,9 @@ class IRHTTPMapping (IRBaseMapping):
                 query_parameters.append(KeyValueDecorator(name, value, regex=True))
 
         if 'regex_rewrite' in kwargs:
-            if rewrite:
+            if rewrite and rewrite != "/":
                 self.ir.aconf.post_notice("Cannot specify both rewrite and regex_rewrite: using regex_rewrite and ignoring rewrite")
-                rewrite = ""
+            rewrite = ""
             rewrite_items = kwargs.get('regex_rewrite', {})
             regex_rewrite = {'pattern' : rewrite_items.get('pattern',''),
                              'substitution' : rewrite_items.get('substitution','') }

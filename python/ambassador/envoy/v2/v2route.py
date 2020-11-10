@@ -96,7 +96,11 @@ class V2Route(Cacheable):
         }
 
         if len(mapping) > 0:
-            runtime_fraction['runtime_key'] = f'routing.traffic_shift.{mapping.cluster.envoy_name}'
+            if not 'cluster' in mapping:
+                config.ir.logger.error("%s: Mapping %s has no cluster? %s", mapping.rkey, route_prefix, mapping.as_json())
+                self['_failed'] = True
+            else:
+                runtime_fraction['runtime_key'] = f'routing.traffic_shift.{mapping.cluster.envoy_name}'
 
         match = {
             'case_sensitive': case_sensitive,
@@ -426,8 +430,10 @@ class V2Route(Cacheable):
             for mapping in irgroup.mappings:
                 key = f"Route-{irgroup.group_id}-{mapping.cache_key}"
 
-                route = config.save_element('route', irgroup, cls.get_route(config, key, irgroup, mapping))
-                config.routes.append(route)
+                route = cls.get_route(config, key, irgroup, mapping)
+
+                if not route.get('_failed', False):
+                    config.routes.append(config.save_element('route', irgroup, route))
 
     @staticmethod
     def generate_headers(config: 'V2Config', mapping_group: IRHTTPMappingGroup) -> List[dict]:
