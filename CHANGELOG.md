@@ -57,18 +57,27 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
-- Internal: Knative serving tests were bumped from version 0.11.0 to version 0.18.0
-- Upgrade Alpine 3.10→3.12, GNU libc 2.30→2.32, and Python 3.7→3.8
-- Feature: The `TracingService` Zipkin config now supports setting `collector_hostname` to tell Envoy which host header to set when sending spans to the collector.
+- Feature: Support configuring the gRPC Statistics Envoy filter to enable telemetry of gRPC calls (see the `grpc_stats` configuration flag -- thanks, [Felipe Roveran](https://github.com/feliperoveran)!)
+- Feature: The `RateLimitService` and `AuthService` configs now support switching between gRPC protocol versions `v2` and `v2alpha` (see the `protocol_version` setting)
+- Feature: The `TracingService` Zipkin config now supports setting `collector_hostname` to tell Envoy which host header to set when sending spans to the collector
+- Feature: Ambassador now supports custom error response mapping
+- Bugfix: Ambassador will no longer mistakenly post notices regarding `regex_rewrite` and `rewrite` directive conflicts in `Mapping`s due to the latter's implicit default value of `/` (thanks, [obataku](https://github.com/obataku)!)
+- Bugfix: The `/metrics` endpoint will no longer break if invoked before configuration is complete (thanks, [Markus Jevring](https://github.com/markusjevringsesame)!)
 - Bugfix: Update Python requirements to address CVE-2020-25659
-- Bugfix: The gRPC communication between edgectl CLI and its daemon is no longer affected by HTTP_PROXY settings.
-- Feature: Ambassador now supports custom header case overrides.
-- Bugfix: The /metrics endpoint will no longer break if invoked before configuration is complete
-- Bugfix: Ambassador will no longer mistakenly post notices regarding `regex_rewrite` and `rewrite` directive conflicts in `Mapping`s due to the latter's implicit default value (`/`).
-- Feature: Support configuring the gRPC Statistics Envoy filter to enable telemetry of gRPC calls (see the `grpc_stats` configuration flag)
-- Bugfix: Prevent mixing `Mapping`s with `host_redirect` set with `Mapping`s that don't in the same group.
-- Feature: The `RateLimitService` and `AuthService` configs now support switching between gRPC service names (see `gRPC names` above) with `protocol_version` setting that can be set to `v2` or `v2alpha`.
-- Docs: Added instructions for building ambassador from source, within a docker container.
+- Bugfix: Prevent mixing `Mapping`s with `host_redirect` set with `Mapping`s that don't in the same group
+- Bugfix: `ConsulResolver` will now fallback to the `Address` of a Consul service if `Service.Address` is not set.
+- Docs: Added instructions for building ambassador from source, within a docker container (thanks, [Rahul Kumar Saini](https://github.com/rahul-kumar-saini)!)
+- Internal: Upgrade Alpine 3.10→3.12, GNU libc 2.30→2.32, and Python 3.7→3.8
+- Internal: Knative serving tests were bumped from version 0.11.0 to version 0.18.0
+
+### Ambassador Edge Stack Only
+
+- Feature: How the `OAuth2` Filter authenticates itself to the identity provider is now configurable with the `clientAuthentication` setting.
+- Feature: The `OAuth2` Filter can now use RFC 7523 JWT assertions to authenticate itself to the identity provider; this is usable with all grant types.
+- Feature: When validating a JWT's scope, the `JWT` and `OAuth2` Filters now support not just RFC 8693 behavior, but also the behavior of various drafts leading to it, making JWT scope validation usable with more identity providers.
+- Feature: The `OAuth2` Filter now has `inheritScopeArgument` and `stripInheritedScope` settings that can further customize the behavior of `accessTokenJWTFilter`.
+- Change: The `OAuth2` Filter argument `scopes` has been renamed to `scope`, for consistency.  The name `scopes` is deprecated, but will continue to work for backward compatibility.
+- Bugfix: `OAuth2` Filter: Don't have `accessTokenValidation: auto` fall back to "userinfo" validation for a client_credentials grant; it doesn't make sense there and only serves to obscure a more useful error message.
 
 ## [1.8.1] October 16, 2020
 [1.8.1]: https://github.com/datawire/ambassador/compare/v1.8.0...v1.8.1
