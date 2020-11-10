@@ -6,7 +6,7 @@ import json
 import logging
 
 from ..config import ACResource, Config
-from ..utils import dump_yaml, parse_yaml
+from ..utils import dump_yaml, parse_yaml, dump_json
 
 from .k8sobject import KubernetesObjectScope, KubernetesObject
 from .location import LocationManager
@@ -128,7 +128,7 @@ class ResourceManager:
                 self.aconf.post_error("%s is empty" % self.location)
             else:
                 self.aconf.post_error("%s is not a dictionary? %s" %
-                                      (self.location, json.dumps(obj, indent=4, sort_keys=4)))
+                                      (self.location, dump_json(obj, pretty=True)))
             return True
 
         if not self.aconf.good_ambassador_id(obj):
@@ -138,7 +138,7 @@ class ResourceManager:
         if 'kind' not in obj:
             # Bug!!
             self.aconf.post_error("%s is missing 'kind'?? %s" %
-                                  (self.location, json.dumps(obj, indent=4, sort_keys=True)))
+                                  (self.location, dump_json(obj, pretty=True)))
             return True
 
         # Is this a pragma object?

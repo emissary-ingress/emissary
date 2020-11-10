@@ -22,6 +22,7 @@ import datetime
 import difflib
 import functools
 import json
+import orjson
 import logging
 import multiprocessing
 import os
@@ -53,7 +54,7 @@ from ambassador import Cache, Config, IR, EnvoyConfig, Diagnostics, Scout, Versi
 from ambassador.reconfig_stats import ReconfigStats
 from ambassador.ir.irambassador import IRAmbassador
 from ambassador.ir.irbasemapping import IRBaseMapping
-from ambassador.utils import SystemInfo, Timer, PeriodicTrigger, SavedSecret, load_url_contents
+from ambassador.utils import SystemInfo, Timer, PeriodicTrigger, SavedSecret, load_url_contents, parse_json, dump_json
 from ambassador.utils import SecretHandler, KubewatchSecretHandler, FSSecretHandler
 from ambassador.fetch import ResourceFetcher
 
@@ -641,24 +642,24 @@ class Notices:
         try:
             local_stream = open(self.local_path, "r")
             local_data = local_stream.read()
-            local_notices = json.loads(local_data)
+            local_notices = parse_json(local_data)
         except OSError:
             pass
         except:
             local_notices.append({ 'level': 'ERROR', 'message': 'bad local notices: %s' % local_data })
 
         self.notices = local_notices
-        # app.logger.info("Notices: after RESET: %s" % json.dumps(self.notices))
+        # app.logger.info("Notices: after RESET: %s" % dump_json(self.notices))
 
     def post(self, notice):
         # app.logger.debug("Notices: POST %s" % notice)
         self.notices.append(notice)
-        # app.logger.info("Notices: after POST: %s" % json.dumps(self.notices))
+        # app.logger.info("Notices: after POST: %s" % dump_json(self.notices))
 
     def prepend(self, notice):
         # app.logger.debug("Notices: PREPEND %s" % notice)
         self.notices.insert(0, notice)
-        # app.logger.info("Notices: after PREPEND: %s" % json.dumps(self.notices))
+        # app.logger.info("Notices: after PREPEND: %s" % dump_json(self.notices))
 
     def extend(self, notices):
         for notice in notices:
@@ -891,14 +892,14 @@ def show_overview(reqid=None):
 
     if app.verbose:
         app.logger.debug("OV %s: DIAG" % reqid)
-        app.logger.debug("%s" % json.dumps(diag.as_dict(), sort_keys=True, indent=4))
+        app.logger.debug("%s" % dump_json(diag.as_dict(), pretty=True))
 
     estats = app.estatsmgr.get_stats()
     ov = diag.overview(request, estats)
 
     if app.verbose:
         app.logger.debug("OV %s: OV" % reqid)
-        app.logger.debug("%s" % json.dumps(ov, sort_keys=True, indent=4))
+        app.logger.debug("%s" % dump_json(ov, pretty=True))
         app.logger.debug("OV %s: collecting errors" % reqid)
 
     ddict = collect_errors_and_notices(request, reqid, "overview", diag)
@@ -933,7 +934,10 @@ def show_overview(reqid=None):
             # keys. This avoids leaking secrets and generally makes the
             # snapshot a lot smaller without losing information that the Admin
             # UI cares about. We do this below by setting the object_hook
-            # parameter of the json.loads(...) call.
+            # parameter of the json.loads(...) call. We have to use python's
+            # json library instead of orjson, because orjson does not support
+            # the object_hook feature.
+
 
             # Get the previous full representation
             cached_tvars_json = tvars_cache.get(patch_client, dict())
@@ -971,7 +975,7 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 
     ddict = diag.as_dict()
 
-    # app.logger.debug("ddict %s" % json.dumps(ddict, indent=4, sort_keys=True))
+    # app.logger.debug("ddict %s" % dump_json(ddict, pretty=True))
 
     derrors = ddict.pop('errors', {})
 
@@ -1030,7 +1034,7 @@ def show_intermediate(source=None, reqid=None):
     result = diag.lookup(request, source, estats)
 
     if app.verbose:
-        app.logger.debug("RESULT %s" % json.dumps(result, sort_keys=True, indent=4))
+        app.logger.debug("RESULT %s" % dump_json(result, pretty=True))
 
     ddict = collect_errors_and_notices(request, reqid, "detail %s" % source, diag)
 
@@ -1068,7 +1072,7 @@ def pretty_json(obj):
         for key in keys_to_drop:
             del(obj[key])
 
-    return json.dumps(obj, indent=4, sort_keys=True)
+    return dump_json(obj, pretty=True)
 
 
 @app.template_filter('sort_clusters_by_service')
@@ -1595,10 +1599,10 @@ class AmbassadorEventWatcher(threading.Thread):
         self.logger.debug("saving Envoy configuration for snapshot %s" % snapshot)
 
         with open(app.bootstrap_path, "w") as output:
-            output.write(json.dumps(bootstrap_config, sort_keys=True, indent=4))
+            output.write(dump_json(bootstrap_config, pretty=True))
 
         with open(app.ads_path, "w") as output:
-            output.write(json.dumps(ads_config, sort_keys=True, indent=4))
+            output.write(dump_json(ads_config, pretty=True))
 
         with app.config_lock:
             app.aconf = aconf
@@ -1635,7 +1639,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 # Strip off any namespace in the name.
                 resource_name = name.split('.', 1)[0]
                 kind, namespace, update = app.ir.k8s_status_updates[name]
-                text = json.dumps(update)
+                text = dump_json(update)
 
                 # self.logger.debug(f"K8s status update: {kind} {resource_name}.{namespace}, {text}...")
 
@@ -1876,9 +1880,9 @@ class AmbassadorEventWatcher(threading.Thread):
             else:
                 self.app.logger.debug(f'Scout section: skip {notice}')
 
-        self.app.logger.debug("Scout reports %s" % json.dumps(scout_result))
-        self.app.logger.debug("Scout notices: %s" % json.dumps(scout_notices))
-        self.app.logger.debug("App notices after scout: %s" % json.dumps(app.notices.notices))
+        self.app.logger.debug("Scout reports %s" % dump_json(scout_result))
+        self.app.logger.debug("Scout notices: %s" % dump_json(scout_notices))
+        self.app.logger.debug("App notices after scout: %s" % dump_json(app.notices.notices))
 
     def validate_envoy_config(self, ir: IR, config, retries) -> bool:
         if self.app.no_envoy:
@@ -1942,10 +1946,11 @@ class AmbassadorEventWatcher(threading.Thread):
                     "links": cache_links
                 }
 
+                bad_dict_str = dump_json(bad_dict, pretty=True)
                 with open(os.path.join(app.snapshot_path, f"problems-{stamp}.json"), "w") as output:
-                    json.dump(bad_dict, output, sort_keys=True, indent=4)
+                    output.write(bad_dict_str)
 
-        config_json = json.dumps(validation_config, sort_keys=True, indent=4)
+        config_json = dump_json(validation_config, pretty=True)
 
         econf_validation_path = os.path.join(app.snapshot_path, "econf-tmp.json")
 
@@ -2017,7 +2022,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
         # Boot chime. This is basically the earliest point at which we can consider an Ambassador
         # to be "running".
         scout_result = self.application.scout.report(mode="boot", action="boot1", no_cache=True)
-        self.application.logger.debug(f'BOOT: Scout result {json.dumps(scout_result)}')
+        self.application.logger.debug(f'BOOT: Scout result {dump_json(scout_result)}')
         self.application.logger.info(f'Ambassador {__version__} booted')
 
     def load_config(self):

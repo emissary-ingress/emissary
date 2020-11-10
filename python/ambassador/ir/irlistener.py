@@ -4,6 +4,8 @@ import copy
 import json
 
 from ..config import Config
+from ..utils import dump_json
+
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
 
@@ -264,10 +266,10 @@ class ListenerFactory:
         ir.logger.debug(f"ListenerFactory: {what}")
 
         pretty_listeners = {k: v.pretty() for k, v in listeners.items()}
-        ir.logger.debug(f"listeners: {json.dumps(pretty_listeners, sort_keys=True, indent=4)}")
+        ir.logger.debug(f"listeners: {dump_json(pretty_listeners, pretty=True)}")
 
         pretty_contexts = {k: v.pretty() for k, v in unused_contexts.items()}
-        ir.logger.debug(f"unused_contexts: {json.dumps(pretty_contexts, sort_keys=True, indent=4)}")
+        ir.logger.debug(f"unused_contexts: {dump_json(pretty_contexts, pretty=True)}")
 
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:
