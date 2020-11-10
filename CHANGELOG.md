@@ -61,7 +61,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Upgrade Alpine 3.10→3.12, GNU libc 2.30→2.32, and Python 3.7→3.8
 - Feature: The `TracingService` Zipkin config now supports setting `collector_hostname` to tell Envoy which host header to set when sending spans to the collector.
 - Bugfix: Update Python requirements to address CVE-2020-25659
-- Feature: Ambassador now supports custom case overrides for response headers.
+- Feature: Ambassador now supports custom header case overrides.
 - Bugfix: The /metrics endpoint will no longer break if invoked before configuration is complete
 - Bugfix: Ambassador will no longer mistakenly post notices regarding `regex_rewrite` and `rewrite` directive conflicts in `Mapping`s due to the latter's implicit default value (`/`).
 - Feature: Support configuring the gRPC Statistics Envoy filter to enable telemetry of gRPC calls (see the `grpc_stats` configuration flag)
