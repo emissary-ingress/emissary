@@ -251,7 +251,8 @@ docker/snapshot.docker.stamp: %/snapshot.docker.stamp: %/container.txt FORCE com
 	    printf "${CYN}==> ${GRN}Snapshot of ${BLU}$$(cat $<)${GRN} container is already up-to-date${END}\n"; \
 	  else \
 	    printf "${CYN}==> ${GRN}Snapshotting ${BLU}$$(cat $<)${GRN} container${END}\n"; \
-	    docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $$(cat $<) > $@; \
+	    TIMEFORMAT="     (snapshot took %1R seconds)" \
+	    time docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $$(cat $<) > $@; \
 	    docker exec $$(cat $<) rm -f /buildroot/image.dirty; \
 	  fi; \
 	}
@@ -261,7 +262,8 @@ docker/base-envoy.docker.stamp: FORCE
 	    printf "${CYN}==> ${GRN}Base Envoy image is already pulled${END}\n"; \
 	  else \
 	    printf "${CYN}==> ${GRN}Pulling base Envoy image${END}\n"; \
-	    docker pull $(ENVOY_DOCKER_TAG); \
+	    TIMEFORMAT="     (pull took %1R seconds)" \
+	    time docker pull $(ENVOY_DOCKER_TAG); \
 	    docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@; \
 	  fi; \
 	}
