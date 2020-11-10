@@ -59,6 +59,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Bugfix: Ambassador will no longer mistakenly post notices regarding `regex_rewrite` and `rewrite` directive conflicts in `Mapping`s due to the latter's implicit default value (`/`).
 - Feature: Support configuring the gRPC Statistics Envoy filter to enable telemetry of gRPC calls (see the `grpc_stats` configuration flag)
 - Bugfix: Prevent mixing `Mapping`s with `host_redirect` set with `Mapping`s that don't in the same group.
+- Docs: Added instructions for building ambassador from source, within a docker container.
 
 ## [1.8.1] October 16, 2020
 [1.8.1]: https://github.com/datawire/ambassador/compare/v1.8.0...v1.8.1

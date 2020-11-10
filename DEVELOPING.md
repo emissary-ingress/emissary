@@ -75,12 +75,26 @@ available along with documentation for what each target does.
 How do I build an ambassador image from source?
 -----------------------------------------------
 
+### On your machine
+
 0. `git clone https://github.com/datawire/ambassador.git && cd ambassador`
 1. `make images` (this will take a while the first time)
 
 The ambassador image will be tagged as `ambassador:latest`. There will
 also be a `kat-server:latest` and a `kat-client:latest` image. These
 two images are only used for testing.
+
+### Within a docker container
+
+0. `docker pull docker:latest`
+1. `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -it docker:latest sh`
+2. `apk add --update --no-cache bash build-base go curl rsync python3 python2 git`
+3. `git clone https://github.com/datawire/ambassador.git && cd ambassador`
+4. `make images`
+
+Steps 0 and 1 are run on your machine, and 2 - 4 are from within the docker container. The base image is a "Docker in Docker" image, ran with `-v /var/run/docker.sock:/var/run/docker.sock` in order to connect to your local daemon from the docker inside the container. More info on Docker in Docker [here](https://hub.docker.com/_/docker).
+
+The images will be created and tagged as defined above, and will be available in docker on your local machine.
 
 How do I push an ambassador image from source?
 ----------------------------------------------
