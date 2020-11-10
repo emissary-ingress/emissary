@@ -105,6 +105,11 @@ func (in *AmbassadorConfigSpec) DeepCopyInto(out *AmbassadorConfigSpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.HeaderCaseOverrides != nil {
+		in, out := &in.HeaderCaseOverrides, &out.HeaderCaseOverrides
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.RetryPolicy != nil {
 		in, out := &in.RetryPolicy, &out.RetryPolicy
 		*out = new(RetryPolicy)

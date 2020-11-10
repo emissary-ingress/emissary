@@ -75,8 +75,36 @@ class V2Cluster(Cacheable):
         if circuit_breakers is not None:
             fields['circuit_breakers'] = circuit_breakers
 
+        # If this cluster is using http2 for grpc, set http2_protocol_options
+        # Otherwise, check for http1-specific configuration.
         if cluster.get('grpc', False):
             self["http2_protocol_options"] = {}
+        else:
+            proper_case: bool = cluster.ir.ambassador_module['proper_case']
+
+            # Get the list of upstream headers whose casing should be overriden
+            # from the Ambassador module. We configure the downstream side of this
+            # in v2listener.py
+            header_case_overrides = cluster.ir.ambassador_module.get('header_case_overrides', None)
+            if header_case_overrides and not proper_case and isinstance(header_case_overrides, list):
+                # We have this config validation here because the Ambassador module is
+                # still an untyped config. That is, we aren't yet using a CRD or a
+                # python schema to constrain the configuration that can be present.
+                rules = []
+                for hdr in header_case_overrides:
+                    if not isinstance(hdr, str):
+                        continue
+                    rules.append(hdr)
+                if len(rules) > 0:
+                    custom_header_rules: Dict[str, Dict[str, dict]] = {
+                        'custom': {
+                            'rules': {
+                                header.lower() : header for header in rules
+                            }
+                        }
+                    }
+                    http_options = self.setdefault("http_protocol_options", {})
+                    http_options["header_key_format"] = custom_header_rules
 
         ctx = cluster.get('tls_context', None)
 
@@ -113,18 +141,18 @@ class V2Cluster(Cacheable):
                 keepalive = cluster.ir.ambassador_module['keepalive']
 
         if keepalive is not None:
-            keepalive_options = {}    
-            keepalive_time = keepalive.get('time', None) 
-            keepalive_interval = keepalive.get('interval', None) 
-            keepalive_probes = keepalive.get('probes', None) 
-            
+            keepalive_options = {}
+            keepalive_time = keepalive.get('time', None)
+            keepalive_interval = keepalive.get('interval', None)
+            keepalive_probes = keepalive.get('probes', None)
+
             if keepalive_time is not None:
                 keepalive_options['keepalive_time'] = keepalive_time
             if keepalive_interval is not None:
                 keepalive_options['keepalive_interval'] = keepalive_interval
             if keepalive_probes is not None:
                 keepalive_options['keepalive_probes'] = keepalive_probes
-                
+
             fields['upstream_connection_options'] = {'tcp_keepalive' : keepalive_options }
 
         self.update(fields)
