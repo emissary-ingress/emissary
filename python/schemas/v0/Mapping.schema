@@ -19,7 +19,7 @@
                 { "type": "array", "items": { "type": "string" } }
             ]
         },
-        
+
         "prefix": { "type": "string" },
         "prefix_regex": { "type": "boolean" },
         "service": { "type": "string" },
@@ -91,7 +91,7 @@
             "type": "array",
             "items": { "$ref": "#/definitions/rateLimit" }
         },
-        "envoy_override": { 
+        "envoy_override": {
             "type": "object"
         }
     },
@@ -104,7 +104,7 @@
             "type": "object",
             "properties": {
                 "descriptor":  { "type": "string" },
-                "headers": { 
+                "headers": {
                     "type": "array",
                     "items": { "type": "string" }
                 }

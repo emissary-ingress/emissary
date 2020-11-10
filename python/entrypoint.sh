@@ -415,7 +415,7 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
     fi
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds" ]; then
-        watt_query_flags+=(-s AuthService -s Mapping -s Module -s RateLimitService -s TCPMapping -s TLSContext -s TracingService)
+        watt_query_flags+=(-s AuthService -s Mapping -s Module -s RateLimitService -s TCPMapping -s TLSContext -s TracingService -s DevPortal)
     fi
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_2" ]; then
@@ -470,4 +470,3 @@ while true; do
 done
 
 ambassador_exit 2
-

@@ -71,6 +71,7 @@ class Config:
         'kubernetesendpointresolver': "resolvers",
         'kubernetesserviceresolver': "resolvers",
         'ratelimitservice': "ratelimit_configs",
+        'devportal': "devportals",
         'tcpmapping': "tcpmappings",
         'tlscontext': "tls_contexts",
         'tracingservice': "tracing_configs",
