@@ -331,10 +331,10 @@ spec:
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: ''
         - name: AMBASSADOR_DRAIN_TIME
-          value: '{{env "AMBASSADOR_DRAIN_TIME" | default 600}}'
+          value: '600'
         image: docker.io/datawire/aes:$version$
         livenessProbe:
-          failureThreshold: {{env "AMBASSADOR_PROBE_FAILURE_THRESHOLD" | default 3}}
+          failureThreshold: 3
           httpGet:
             path: /ambassador/v0/check_alive
             port: 8877
@@ -348,7 +348,7 @@ spec:
         - containerPort: 8877
           name: admin
         readinessProbe:
-          failureThreshold: {{env "AMBASSADOR_PROBE_FAILURE_THRESHOLD" | default 3}}
+          failureThreshold: 3
           httpGet:
             path: /ambassador/v0/check_ready
             port: 8877
