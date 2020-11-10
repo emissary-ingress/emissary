@@ -37,13 +37,13 @@ spec:
 | `envoy_log_path` | Defines the path of log envoy will use. By default this is standard output. | `envoy_log_path: /dev/fd/1` |
 | `envoy_log_type` | Defines the type of log envoy will use, currently only support json or text. | `envoy_log_type: text` |
 | `envoy_validation_timeout` | Defines the timeout, in seconds, for validating a new Envoy configuration. The default is 10; a value of 0 disables Envoy configuration validation. Most installations will not need to use this setting. | `envoy_validation_timeout: 30` |
-| `error_response_overrides` | Defines error response overrides for 4XX and 5XX response codes. By default, Ambassador will pass through error responses without modification, and errors generated locally will use Envoy's default response body, if any.
+| `error_response_overrides` | Defines error response overrides for 4XX and 5XX response codes. By default, Ambassador will pass through error responses without modification, and errors generated locally will use Envoy's default response body, if any. | See [this page](../../running/error-response-overrides) for usage details.
 | `ip_allow`       | Defines HTTP source IP address ranges to allow; all others will be denied. `ip_allow` and `ip_deny` may not both be specified. See below for more details. | None |
 | `ip_deny`        | Defines HTTP source IP address ranges to deny; all others will be allowed. `ip_allow` and `ip_deny` may not both be specified. See below for more details. | None |
 | `listener_idle_timeout_ms` | Controls how Envoy configures the tcp idle timeout on the http listener. Default is 1 hour. | `listener_idle_timeout_ms: 30000` |
 | `lua_scripts` | Run a custom lua script on every request. see below for more details. | None |
 | `proper_case` | Should we enable upper casing for response headers? For more information, see [the Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/core/protocol.proto#envoy-api-msg-core-http1protocoloptions-headerkeyformat). | `proper_case: false` |
-| `header_case_overrides` | Array of response header names whose casing should be forced. For every response header that matches (case insensitively) to an element in this array, the resulting header name is forced to the provided casing in the array. Cannot be used with 'proper_case'. This feature provides overrides for Envoy's normal [header casing rules](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_conn_man/header_casing). | `header_case_overrides: []` |
+| `header_case_overrides` | Array of header names whose casing should be forced, both when proxied to upstream services and when returned downstream to clients. For every header that matches (case insensitively) to an element in this array, the resulting header name is forced to the provided casing in the array. Cannot be used together with 'proper_case'. This feature provides overrides for Envoy's normal [header casing rules](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_conn_man/header_casing). | `header_case_overrides: []` |
 | `regex_max_size` | This field controls the RE2 "program size" which is a rough estimate of how complex a compiled regex is to evaluate. A regex that has a program size greater than the configured value will fail to compile.    | `regex_max_size: 200` |
 | `regex_type` | Set which regular expression engine to use. See the "Regular Expressions" section below. | `regex_type: safe` |
 | `server_name` | By default Envoy sets server_name response header to `envoy`. Override it with this variable. | `server_name: envoy` |
@@ -80,21 +80,6 @@ cors:
   methods: POST, GET, OPTIONS
   ...
 ```
-
-#### Custom error responses
-
-`error_response_overrides` sets overrides for error responses, both for errors generated locally in Ambassador (eg: 404 for route not found, 503 for upstream service unavailable) and for errors observed as HTTP responses from upstream services. See the [ERROR_RESPONSE_OVERRIDES_syntax](../../using/error-response-overrides).
-
-```
-error_response_overrides:
-- on_status_code: 500
-  text_format: 'An error occurred while processing your request'
-- on_status_code: 504
-  json_format:
-    error: 'gateway timeout'
-    cluster: '%UPSTREAM_CLUSTER%'
-```
-
 #### `ip_allow` and `ip_deny`
 
 `ip_allow` specifies IP source ranges from which HTTP requests will be allowed, with all others being denied. `ip_deny` specifies IP source ranges from which HTTP requests will be denied, with all others being allowed. If both are present, it is an error: `ip_allow` will be honored and `ip_deny` will be ignored.

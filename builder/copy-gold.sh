@@ -26,6 +26,7 @@ copy_gold acceptancegrpctest
 copy_gold acceptancegrpcwebtest
 copy_gold ambassadoridtest
 copy_gold authenticationgrpctest
+copy_gold authenticationv2grpctest
 copy_gold authenticationheaderrouting
 copy_gold authenticationhttpbufferedtest
 copy_gold authenticationhttpfailuremodeallowtest
@@ -67,6 +68,7 @@ copy_gold logservicetest
 copy_gold ratelimitv0test
 copy_gold ratelimitv1test
 copy_gold ratelimitv1withtlstest
+copy_gold ratelimitv2test
 copy_gold redirecttests
 copy_gold redirecttestsinvalidsecret
 copy_gold redirecttestswithproxyproto

@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
+	"net/http/pprof"
 	"net/url"
 	"time"
 
@@ -69,6 +70,9 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) {
 
 	// Serve any debug info from the golang codebase.
 	sm.Handle("/debug", dbg)
+
+	// Serve pprof endpoints to aid in live debugging.
+	sm.HandleFunc("/debug/pprof/", pprof.Index)
 
 	// For everything else, use a ReverseProxy to forward it to diagd.
 	//

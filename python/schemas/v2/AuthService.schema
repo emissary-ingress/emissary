@@ -57,7 +57,11 @@
                 "code": { "type": "integer" }
             }
         },
-        "failure_mode_allow": { "type": "boolean" }
+        "failure_mode_allow": { "type": "boolean" },
+        "protocol_version": {
+            "type": "string",
+            "enum": [ "v2", "v2alpha" ]
+        }
     },
     "required": [ "apiVersion", "kind", "name", "auth_service" ],
     "additionalProperties": false

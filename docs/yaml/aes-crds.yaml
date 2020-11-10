@@ -80,6 +80,11 @@ spec:
               - http
               - grpc
               type: string
+            protocol_version:
+              enum:
+              - v2
+              - v2alpha
+              type: string
             status_on_error:
               description: Why isn't this just an int??
               properties:
@@ -1041,6 +1046,11 @@ spec:
               - type: string
               - type: array
             domain:
+              type: string
+            protocol_version:
+              enum:
+              - v2
+              - v2alpha
               type: string
             service:
               type: string

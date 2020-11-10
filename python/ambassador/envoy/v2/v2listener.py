@@ -377,6 +377,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
         }
 
     if auth.proto == "grpc":
+        protocol_version = auth.get('protocol_version', 'v2alpha')
         auth_info = {
             'name': 'envoy.filters.http.ext_authz',
             'typed_config': {
@@ -387,7 +388,10 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
                     },
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
-                'use_alpha': True
+                # currently, use alpha service name by default
+                'use_alpha': (protocol_version == 'v2alpha'),
+                # only a valid field in envoy v3 schema
+                # 'transport_api_version': protocol_version.replace("alpha", "").upper(),
             }
         }
 
@@ -994,7 +998,9 @@ class V2Listener(dict):
 
         proper_case: bool = self.config.ir.ambassador_module['proper_case']
 
-        # Support a list of response headers whose casing should be overriden.
+        # Get the list of downstream headers whose casing should be overriden
+        # from the Ambassador module. We configure the upstream side of this
+        # in v2cluster.py
         header_case_overrides = self.config.ir.ambassador_module.get('header_case_overrides', None)
         if header_case_overrides:
             if proper_case:
@@ -1012,13 +1018,9 @@ class V2Listener(dict):
                 header_case_overrides = None
 
         if header_case_overrides:
-            # Create custom header rules that map the lowercase version of every element in
-            # `header_case_overrides` to the the respective original casing.
-            #
-            # For example the input array [ X-HELLO-There, X-COOL ] would create rules:
-            # { 'x-hello-there': 'X-HELLO-There', 'x-cool': 'X-COOL' }. In envoy, this effectively
-            # overrides the response header case by remapping the lowercased version (the default
-            # casing in envoy) back to the casing provided in the config.
+            # We have this config validation here because the Ambassador module is
+            # still an untyped config. That is, we aren't yet using a CRD or a
+            # python schema to constrain the configuration that can be present.
             rules = []
             for hdr in header_case_overrides:
                 if not isinstance(hdr, str):
@@ -1029,6 +1031,13 @@ class V2Listener(dict):
             if len(rules) == 0:
                 self.config.ir.post_error(f"Could not parse any valid string headers in 'header_case_overrides': {header_case_overrides}")
             else:
+                # Create custom header rules that map the lowercase version of every element in
+                # `header_case_overrides` to the the respective original casing.
+                #
+                # For example the input array [ X-HELLO-There, X-COOL ] would create rules:
+                # { 'x-hello-there': 'X-HELLO-There', 'x-cool': 'X-COOL' }. In envoy, this effectively
+                # overrides the response header case by remapping the lowercased version (the default
+                # casing in envoy) back to the casing provided in the config.
                 custom_header_rules: Dict[str, Dict[str, dict]] = {
                     'custom': {
                         'rules': {

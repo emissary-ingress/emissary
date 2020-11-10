@@ -16,7 +16,7 @@ spec:
     protocol: TCP
     port: 443
     targetPort: 8443
---- 
+---
 apiVersion: v1
 kind: Pod
 metadata:
@@ -34,3 +34,5 @@ spec:
       value: {self.path.k8s}
     - name: KAT_BACKEND_TYPE
       value: grpc_auth
+    - name: GRPC_AUTH_PROTOCOL_VERSION
+      value: {self.protocol_version}
