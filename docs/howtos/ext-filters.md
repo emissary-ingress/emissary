@@ -87,7 +87,7 @@ Note that the `READY` field says `1/1` which means the pod is up and running.
 
 ## 2. Configure Ambassador Authentication
 
-Once the auth service is running, we need to tell Ambassador about it. The easiest way to do that is to map the `example-auth` service with the following:
+Once the auth service is running, we need to tell Ambassador about it. The easiest way to do that is to first map the `example-auth` service with the following `Filter`:
 
 ```yaml
 ---
@@ -105,7 +105,39 @@ spec:
     - "x-qotm-session"
 ```
 
-This configuration tells Ambassador about the filter, notably that it needs the `/extauth` prefix, and that it's OK for it to pass back the `x-qotm-session` header. Note that `path_prefix` and `allowed_headers` are optional.
+This configuration tells Ambassador about the `Filter`, notably that it needs the `/extauth` prefix, and that it's OK for it to pass back the `x-qotm-session` header. Note that `path_prefix` and `allowed_headers` are optional. 
+
+Next you must apply the `Filter` to your desired hosts and paths using a `FilterPolicy`. The following would enable your `Filter` on requests to all hosts and paths:
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind: FilterPolicy
+metadata:
+  name: authentication
+spec:
+  rules:
+  - host: "*"
+    path: /*
+    filters:
+    - authentication
+```
+
+You can also apply the `Filter` only to specific hosts and/or paths, allowing you to only require authentication on certain routes. The following `FilterPolicy` would only run your `Filter` to requests to the `/backend/get-quote/` path:
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind: FilterPolicy
+metadata:
+  name: authentication
+spec:
+  rules:
+  - host: "*"
+    path: /backend/get-quote/
+    filters:
+    - authentication
+```
 
 If the auth service uses a framework like [Gorilla Toolkit](http://www.gorillatoolkit.org) which enforces strict slashes as HTTP path separators, it is possible to end up with an infinite redirect where the filter's framework redirects any request with non-conformant slashing. This would arise if the above example had ```path_prefix: "/extauth/"```, the filter would see a request for ```/extauth//backend/get-quote/``` which would then be redirected to ```/extauth/backend/get-quote/``` rather than actually be handled by the authentication handler. For this reason, remember that the full path of the incoming request including the leading slash, will be appended to ```path_prefix``` regardless of non-conformant slashing.
 
