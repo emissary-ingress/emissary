@@ -438,13 +438,16 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 - Change: There is no longer a separate traffic-proxy image; that functionality is now part of the main AES image. Set `command: ["traffic-manager"]` to use it.
 
 ## [1.2.2] March 04, 2020
-[1.2.2]: https://github.com/datawire/ambassador/compare/v1.2.0...v1.2.2
+[1.2.2]: https://github.com/datawire/ambassador/compare/v1.2.1...v1.2.2
 
 ### Ambassador Edge Stack only
 
 - Internal: Fix an error in Edge Stack update checks
 
 ## [1.2.1] March 03, 2020
+[1.2.1]: https://github.com/datawire/ambassador/compare/v1.2.0...v1.2.1
+
+Edge Stack users SHOULD NOT use this release, and should instead use 1.2.2.
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
