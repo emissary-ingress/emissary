@@ -10,11 +10,13 @@ package dgroup
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"runtime/pprof"
 	"sort"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -42,9 +44,11 @@ type Group struct {
 	baseCtx context.Context
 
 	shutdownTimedOut chan struct{}
+	waitFinished     chan struct{}
 	hardCancel       context.CancelFunc
 
-	workers *derrgroup.Group
+	workers     *derrgroup.Group
+	supervisors sync.WaitGroup
 }
 
 func logGoroutineStatuses(
@@ -150,9 +154,11 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 		//baseCtx: gets set below,
 
 		shutdownTimedOut: make(chan struct{}),
+		waitFinished:     make(chan struct{}),
 		hardCancel:       hardCancel,
 
 		workers: derrgroup.NewGroup(softCancel, cfg.ShutdownOnNonError),
+		//supervisors: zero value is fine; doesn't need initialize,
 	}
 	g.baseCtx = context.WithValue(ctx, groupKey{}, g)
 
@@ -166,20 +172,29 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 // but are internal to implementing dgroup's various features.
 func (g *Group) launchSupervisors() {
 	if !g.cfg.DisableLogging {
-		g.Go(":shutdown_logger", func(ctx context.Context) error {
-			<-ctx.Done()
-			// log that a shutdown has been triggered
-			// be as specific with the logging as possible
-			if dcontext.HardContext(ctx) == ctx {
-				dlog.Infoln(ctx, "shutting down...")
-			} else {
-				select {
-				case <-dcontext.HardContext(ctx).Done():
-					dlog.Infoln(ctx, "shutting down (not-so-gracefully)...")
-				default:
-					dlog.Infoln(ctx, "shutting down (gracefully)...")
-					<-dcontext.HardContext(ctx).Done()
-					dlog.Infoln(ctx, "shutting down (not-so-gracefully)...")
+		g.goSupervisor("shutdown_logger", func(ctx context.Context) error {
+			select {
+			case <-g.waitFinished:
+				// nothing to do
+			case <-ctx.Done():
+				// log that a shutdown has been triggered
+				// be as specific with the logging as possible
+				if dcontext.HardContext(ctx) == ctx {
+					// no hard/soft distinction
+					dlog.Infoln(ctx, "shutting down...")
+				} else {
+					// there is a hard/soft distinction, check if it's hard or soft
+					if dcontext.HardContext(ctx).Err() != nil {
+						dlog.Infoln(ctx, "shutting down (not-so-gracefully)...")
+					} else {
+						dlog.Infoln(ctx, "shutting down (gracefully)...")
+						select {
+						case <-g.waitFinished:
+							// nothing to do
+						case <-dcontext.HardContext(ctx).Done():
+							dlog.Infoln(ctx, "shutting down (not-so-gracefully)...")
+						}
+					}
 				}
 			}
 			return nil
@@ -187,63 +202,87 @@ func (g *Group) launchSupervisors() {
 	}
 
 	if (g.cfg.SoftShutdownTimeout > 0) || (g.cfg.HardShutdownTimeout > 0) {
-		g.Go(":watchdog", func(ctx context.Context) error {
+		g.goSupervisor("timeout_watchdog", func(ctx context.Context) error {
 			if g.cfg.SoftShutdownTimeout > 0 {
-				<-ctx.Done()
 				select {
-				case <-dcontext.HardContext(ctx).Done():
-					// nothing to do, it finished within the timeout
-				case <-time.After(g.cfg.SoftShutdownTimeout):
-					g.hardCancel()
+				case <-g.waitFinished:
+					// nothing to do
+				case <-ctx.Done():
+					// soft-shutdown initiated, start the soft-shutdown timeout-clock
+					select {
+					case <-g.waitFinished:
+						// nothing to do, it finished within the timeout
+					case <-dcontext.HardContext(ctx).Done():
+						// nothing to do, something else went ahead and upgraded
+						// this to a hard-shutdown
+					case <-time.After(g.cfg.SoftShutdownTimeout):
+						// it didn't finish within the timeout,
+						// upgrade to a hard-shutdown
+						g.hardCancel()
+					}
 				}
 			}
 			if g.cfg.HardShutdownTimeout > 0 {
-				<-dcontext.HardContext(ctx).Done()
-				go func() {
-					time.Sleep(g.cfg.HardShutdownTimeout)
-					close(g.shutdownTimedOut)
-				}()
+				select {
+				case <-g.waitFinished:
+					// nothing to do
+				case <-dcontext.HardContext(ctx).Done():
+					// hard-shutdown initiated, start the hard-shutdown timeout-clock
+					select {
+					case <-g.waitFinished:
+						// nothing to do, it finished within the timeout
+					case <-time.After(g.cfg.HardShutdownTimeout):
+						close(g.shutdownTimedOut)
+					}
+				}
 			}
 			return nil
 		})
 	}
 
 	if g.cfg.EnableSignalHandling {
-		g.Go(":signal_handler", func(ctx context.Context) error {
-			sigs := make(chan os.Signal, 1)
-			signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+		sigs := make(chan os.Signal, 1)
+		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+		g.goSupervisor("signal_handler", func(ctx context.Context) error {
+			<-g.waitFinished
+			signal.Stop(sigs)
+			close(sigs)
+			return nil
+		})
+		g.goSupervisor("signal_handler", func(ctx context.Context) error {
+			i := 0
+			for sig := range sigs {
+				ctx := WithGoroutineName(ctx, fmt.Sprintf(":%d", i))
+				i++
 
-			defer func() {
-				// If we receive another signal after
-				// graceful-shutdown, we should trigger a
-				// not-so-graceful shutdown.
-				go func() {
-					select {
-					case sig := <-sigs:
-						if !g.cfg.DisableLogging {
-							dlog.Errorln(ctx, errors.Errorf("received signal %v (graceful shutdown already triggered; triggering not-so-graceful shutdown)", sig))
-							logGoroutineStatuses(ctx, "goroutine statuses", dlog.Errorf, g.List())
-						}
-						g.hardCancel()
-					case <-dcontext.HardContext(ctx).Done():
-					}
-					// keep logging signals and draining 'sigs'--don't let 'sigs' block
-					for sig := range sigs {
-						if !g.cfg.DisableLogging {
-							dlog.Errorln(ctx, errors.Errorf("received signal %v (not-so-graceful shutdown already triggered)", sig))
-							logGoroutineStatuses(ctx, "goroutine statuses", dlog.Errorf, g.List())
-							logGoroutineTraces(ctx, "goroutine stack traces", dlog.Errorf)
-						}
-					}
-				}()
-			}()
+				if ctx.Err() == nil {
+					err := errors.Errorf("received signal %v (triggering graceful shutdown)", sig)
 
-			select {
-			case sig := <-sigs:
-				return errors.Errorf("received signal %v (first signal; triggering graceful shutdown)", sig)
-			case <-ctx.Done():
-				return nil
+					g.goWorkerCtx(ctx, func(_ context.Context) error {
+						return err
+					})
+					<-ctx.Done()
+
+				} else if dcontext.HardContext(ctx).Err() == nil {
+					err := errors.Errorf("received signal %v (graceful shutdown already triggered; triggering not-so-graceful shutdown)", sig)
+
+					if !g.cfg.DisableLogging {
+						dlog.Errorln(ctx, err)
+						logGoroutineStatuses(ctx, "goroutine statuses", dlog.Errorf, g.List())
+					}
+					g.hardCancel()
+
+				} else {
+					err := errors.Errorf("received signal %v (not-so-graceful shutdown already triggered)", sig)
+
+					if !g.cfg.DisableLogging {
+						dlog.Errorln(ctx, err)
+						logGoroutineStatuses(ctx, "goroutine statuses", dlog.Errorf, g.List())
+						logGoroutineTraces(ctx, "goroutine stack traces", dlog.Errorf)
+					}
+				}
 			}
+			return nil
 		})
 	}
 }
@@ -292,6 +331,48 @@ func (g *Group) goWorkerCtx(ctx context.Context, fn func(ctx context.Context) er
 	})
 }
 
+// goSupervisor launches an "internal" / "supervisor" / "helper"
+// goroutine that isn't of concern to the caller of dgroup, but is
+// internal to implementing one of dgroup's features.  Put another
+// way: they are "systems-logic" goroutines, not "business-logic"
+// goroutines.
+//
+// Compared to normal user-provided "worker" goroutines, these
+// "supervisor" goroutines have a few important differences and
+// additional requirements:
+//
+//  - They MUST monitor the g.waitFinished channel, and MUST finish
+//    quickly after that channel is closed.
+//  - They MUST not panic, as we don't bother to set up panic recovery
+//    for them.
+//  - The cfg.Workercontext() callback is not called.
+//  - Returning 'nil' will not triggr a shutdown, even if
+//    cfg.ShutdownOnNonError is set.
+func (g *Group) goSupervisor(name string, fn func(ctx context.Context) error) {
+	ctx := WithGoroutineName(g.baseCtx, ":"+name)
+	g.goSupervisorCtx(ctx, fn)
+}
+
+// goSupervisorCtx() is like goSupervisor(), except it takes an
+// already-created context.
+func (g *Group) goSupervisorCtx(ctx context.Context, fn func(ctx context.Context) error) {
+	g.supervisors.Add(1)
+	go func() {
+		var err error
+
+		defer func() {
+			if err != nil {
+				g.goWorkerCtx(ctx, func(ctx context.Context) error {
+					return err
+				})
+			}
+			g.supervisors.Done()
+		}()
+
+		err = fn(ctx)
+	}()
+}
+
 // Wait for all goroutines in the group to finish, and return returns
 // an error if any of the workers errored or timed out.
 //
@@ -316,12 +397,16 @@ func (g *Group) Wait() error {
 	case ret = <-shutdownCompleted:
 	}
 
-	// 2. Belt-and-suspenders: Make sure that anything branched
+	// 2. Quit the supervisor goroutines
+	close(g.waitFinished)
+	g.supervisors.Wait()
+
+	// 3. Belt-and-suspenders: Make sure that anything branched
 	// from our Context observes that this group is no longer
 	// running.
 	g.hardCancel()
 
-	// 3. Log the result and return
+	// 4. Log the result and return
 	if ret != nil && !g.cfg.DisableLogging {
 		ctx := WithGoroutineName(g.baseCtx, ":shutdown_status")
 		logGoroutineStatuses(ctx, "final goroutine statuses", dlog.Infof, g.List())
