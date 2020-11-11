@@ -165,13 +165,8 @@ func TestWithContext(t *testing.T) {
 				g, tc.errs, err, tc.want)
 		}
 
-		canceled := false
-		select {
-		case <-ctx.Done():
-			canceled = true
-		default:
-		}
-		if !canceled {
+		canceled := ctx.Err() != nil
+		if canceled != (tc.want != nil) {
 			t.Errorf("after %T.Go(func() error { return err }) for err in %v\n"+
 				"ctx.Done() was not closed",
 				g, tc.errs)

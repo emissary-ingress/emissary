@@ -41,6 +41,7 @@ type Group struct {
 	cfg              GroupConfig
 	baseCtx          context.Context
 	shutdownTimedOut chan struct{}
+	hardCancel       context.CancelFunc
 	inner            *derrgroup.Group
 }
 
@@ -146,6 +147,7 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 		cfg:              cfg,
 		baseCtx:          ctx,
 		shutdownTimedOut: make(chan struct{}),
+		hardCancel:       hardCancel,
 		inner:            derrgroup.NewGroup(softCancel, cfg.ShutdownOnNonError),
 	}
 
@@ -280,12 +282,12 @@ func (g *Group) Go(name string, fn func(ctx context.Context) error) {
 // poorly-behaved goroutine is still running at the end of that time,
 // it is left running, and an error is returned.
 func (g *Group) Wait() error {
+	// 1. Wait for the worker goroutines to finish (or time out)
 	shutdownCompleted := make(chan error)
 	go func() {
 		shutdownCompleted <- g.inner.Wait()
 		close(shutdownCompleted)
 	}()
-
 	var ret error
 	var timedOut bool
 	select {
@@ -294,6 +296,13 @@ func (g *Group) Wait() error {
 		timedOut = true
 	case ret = <-shutdownCompleted:
 	}
+
+	// 2. Belt-and-suspenders: Make sure that anything branched
+	// from our Context observes that this group is no longer
+	// running.
+	g.hardCancel()
+
+	// 3. Log the result and return
 	if ret != nil && !g.cfg.DisableLogging {
 		ctx := WithGoroutineName(g.baseCtx, ":shutdown_status")
 		logGoroutineStatuses(ctx, "final goroutine statuses", dlog.Infof, g.List())

@@ -85,8 +85,7 @@ type Group struct {
 // NewGroup returns a new Group.
 //
 // The provided 'cancel' function is called the first time a function passed to
-// Go returns a non-nil error or the first time Wait returns, whichever occurs
-// first.
+// Go returns a non-nil error.
 func NewGroup(cancel func(), cancelOnNonError bool) *Group {
 	return &Group{
 		cancel:           cancel,
@@ -98,9 +97,6 @@ func NewGroup(cancel func(), cancelOnNonError bool) *Group {
 // returns the first non-nil error (if any) from them.
 func (g *Group) Wait() error {
 	g.wg.Wait()
-	if g.cancel != nil {
-		g.cancel()
-	}
 	return g.err
 }
 
