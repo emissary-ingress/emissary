@@ -415,7 +415,7 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
     fi
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds" ]; then
-        watt_query_flags+=(-s AuthService -s Mapping -s Module -s RateLimitService -s TCPMapping -s TLSContext -s TracingService -s DevPortal)
+        watt_query_flags+=(-s AuthService -s Mapping -s Module -s RateLimitService -s TCPMapping -s TLSContext -s TracingService)
     fi
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_2" ]; then
@@ -428,6 +428,10 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_4" ]; then
         watt_query_flags+=(-s LogService)
+    fi
+
+    if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_5" ]; then
+        watt_query_flags+=(-s DevPortal)
     fi
 
     if [ -n "$AMBASSADOR_FIELD_SELECTOR" ] ; then

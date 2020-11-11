@@ -267,8 +267,7 @@ def main(debug):
                     'ratelimitservices.getambassador.io',
                     'tcpmappings.getambassador.io',
                     'tlscontexts.getambassador.io',
-                    'tracingservices.getambassador.io',
-                    'devportals.getambassador.io'
+                    'tracingservices.getambassador.io'
                 ]
             ),
             (
@@ -289,6 +288,12 @@ def main(debug):
                 '.ambassador_ignore_crds_4', 'LogService CRDs',
                 [
                     'logservices.getambassador.io'
+                ]
+            ),
+            (
+                '.ambassador_ignore_crds_5', 'DevPortal CRDs',
+                [
+                    'devportals.getambassador.io'
                 ]
             )
         ]
