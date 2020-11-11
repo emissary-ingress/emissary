@@ -38,11 +38,13 @@ import (
 //
 // A zero Group is NOT valid; a Group must be created with NewGroup.
 type Group struct {
-	cfg              GroupConfig
-	baseCtx          context.Context
+	cfg     GroupConfig
+	baseCtx context.Context
+
 	shutdownTimedOut chan struct{}
 	hardCancel       context.CancelFunc
-	inner            *derrgroup.Group
+
+	workers *derrgroup.Group
 }
 
 func logGoroutineStatuses(
@@ -144,13 +146,25 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 	}
 
 	g := &Group{
-		cfg:              cfg,
-		baseCtx:          ctx,
+		cfg: cfg,
+		//baseCtx: gets set below,
+
 		shutdownTimedOut: make(chan struct{}),
 		hardCancel:       hardCancel,
-		inner:            derrgroup.NewGroup(softCancel, cfg.ShutdownOnNonError),
-	}
 
+		workers: derrgroup.NewGroup(softCancel, cfg.ShutdownOnNonError),
+	}
+	g.baseCtx = context.WithValue(ctx, groupKey{}, g)
+
+	g.launchSupervisors()
+
+	return g
+}
+
+// launchSupervisors launches the various "internal" / "supervisor" /
+// "helper" goroutines that aren't of concern to the caller of dgroup,
+// but are internal to implementing dgroup's various features.
+func (g *Group) launchSupervisors() {
 	if !g.cfg.DisableLogging {
 		g.Go(":shutdown_logger", func(ctx context.Context) error {
 			<-ctx.Done()
@@ -180,7 +194,7 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 				case <-dcontext.HardContext(ctx).Done():
 					// nothing to do, it finished within the timeout
 				case <-time.After(g.cfg.SoftShutdownTimeout):
-					hardCancel()
+					g.hardCancel()
 				}
 			}
 			if g.cfg.HardShutdownTimeout > 0 {
@@ -210,7 +224,7 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 							dlog.Errorln(ctx, errors.Errorf("received signal %v (graceful shutdown already triggered; triggering not-so-graceful shutdown)", sig))
 							logGoroutineStatuses(ctx, "goroutine statuses", dlog.Errorf, g.List())
 						}
-						hardCancel()
+						g.hardCancel()
 					case <-dcontext.HardContext(ctx).Done():
 					}
 					// keep logging signals and draining 'sigs'--don't let 'sigs' block
@@ -232,8 +246,6 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 			}
 		})
 	}
-
-	return g
 }
 
 // Go wraps derrgroup.Group.Go().
@@ -245,15 +257,22 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 // A worker may access its parent group by calling ParentGroup on its
 // Context.
 func (g *Group) Go(name string, fn func(ctx context.Context) error) {
-	ctx := g.baseCtx
-	ctx = WithGoroutineName(ctx, "/"+name)
-	ctx = context.WithValue(ctx, groupKey{}, g)
+	g.goWorker(name, fn)
+}
+
+// goWorker launches a worker goroutine for the user of dgroup.
+func (g *Group) goWorker(name string, fn func(ctx context.Context) error) {
+	ctx := WithGoroutineName(g.baseCtx, "/"+name)
 	if g.cfg.WorkerContext != nil {
 		ctx = g.cfg.WorkerContext(ctx, name)
 	}
+	g.goWorkerCtx(ctx, fn)
+}
 
-	g.inner.Go(getGoroutineName(ctx), func() (err error) {
-
+// goWorkerCtx() is like goWorker(), except it takes an
+// already-created context.
+func (g *Group) goWorkerCtx(ctx context.Context, fn func(ctx context.Context) error) {
+	g.workers.Go(getGoroutineName(ctx), func() (err error) {
 		defer func() {
 			if !g.cfg.DisablePanicRecovery {
 				if _err := errutil.PanicToError(recover()); _err != nil {
@@ -285,7 +304,7 @@ func (g *Group) Wait() error {
 	// 1. Wait for the worker goroutines to finish (or time out)
 	shutdownCompleted := make(chan error)
 	go func() {
-		shutdownCompleted <- g.inner.Wait()
+		shutdownCompleted <- g.workers.Wait()
 		close(shutdownCompleted)
 	}()
 	var ret error
@@ -315,7 +334,7 @@ func (g *Group) Wait() error {
 
 // List wraps derrgroup.Group.List().
 func (g *Group) List() map[string]derrgroup.GoroutineState {
-	return g.inner.List()
+	return g.workers.List()
 }
 
 type groupKey struct{}
