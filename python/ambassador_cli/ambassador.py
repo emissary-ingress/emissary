@@ -281,9 +281,8 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
 
         dump_timer = Timer("dump JSON")
 
-        pretty = False if nopretty else True
         with dump_timer:
-            js = dump_json(od, pretty=pretty)
+            js = dump_json(od, pretty=not nopretty)
             jslen = len(js)
 
         write_timer = Timer("write JSON")

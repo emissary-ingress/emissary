@@ -268,7 +268,7 @@ class DiagApp (Flask):
         the config lock for you.
 
         You MUST NOT already hold the config_lock or the diag_lock when
-        trying to read app.diag. 
+        trying to read app.diag.
 
         You MUST already have loaded an IR.
         """
@@ -282,8 +282,8 @@ class DiagApp (Flask):
                 return app._diag
 
         # If here, we have _not_ generated diagnostics, and we've dropped the
-        # config lock so as not to block anyone else. Next up: grab the diag 
-        # lock, because we'd rather not have two diag generations happening at 
+        # config lock so as not to block anyone else. Next up: grab the diag
+        # lock, because we'd rather not have two diag generations happening at
         # once.
         with self.diag_lock:
             # Did someone else sneak in between releasing the config lock and
@@ -301,7 +301,7 @@ class DiagApp (Flask):
 
             # Once here, we need to - once again - grab the config lock to update
             # app._diag. This is safe because this is the only place we ever mess
-            # with the diag lock, so nowhere else will try to grab the diag lock 
+            # with the diag lock, so nowhere else will try to grab the diag lock
             # while holding the config lock.
             with app.config_lock:
                 app._diag = _diag
@@ -330,7 +330,7 @@ class DiagApp (Flask):
         1. You're almost certainly wrong about needing to call it from elsewhere.
         2. You MUST hold the diag_lock when calling this method.
         3. You MUST NOT hold the config_lock when calling this method.
-        4. No, really, you're wrong. Don't call this method from anywhere but the 
+        4. No, really, you're wrong. Don't call this method from anywhere but the
            diag() property.
         """
 
@@ -349,7 +349,7 @@ class DiagApp (Flask):
             self.diag_errors.set(len(diag_dict.get("errors", [])))
             self.diag_notices.set(len(diag_dict.get("notices", [])))
 
-            # Note that we've updated diagnostics, since that might trigger a 
+            # Note that we've updated diagnostics, since that might trigger a
             # timer log.
             self.reconf_stats.mark("diag")
 
@@ -364,7 +364,7 @@ class DiagApp (Flask):
 
     def check_timers(self) -> None:
         # Actually do the timer check.
-        
+
         if self.reconf_stats.needs_timers():
             # OK! Log the timers...
 
@@ -423,13 +423,13 @@ class DiagApp (Flask):
     def check_cache(self) -> bool:
         # We're going to build a shiny new IR and econf from our existing aconf, and make
         # sure everything matches. We will _not_ use the existing cache for this.
-        # 
+        #
         # For this, make sure we have an IR already...
         assert(self.aconf)
         assert(self.ir)
         assert(self.econf)
 
-        # Compute this IR/econf with a new empty cache. It saves a lot of trouble with 
+        # Compute this IR/econf with a new empty cache. It saves a lot of trouble with
         # having to delete cache keys from the JSON.
 
         self.logger.debug("CACHE: starting check")
@@ -608,14 +608,14 @@ def _is_local_request() -> bool:
     already there!).
 
     When FAST_RECONFIGURE is not enabled, we rely on an implementation detail of
-    Flask (or maybe of GUnicorn?): the existence of the REMOTE_ADDR environment 
+    Flask (or maybe of GUnicorn?): the existence of the REMOTE_ADDR environment
     variable. This may not work as intended on other WSGI implementations, though if
     the environment variable is missing entirely, the effect is to fail closed, i.e.
     all requests will be rejected, in which case the problem will become apparent
     very quickly.
 
-    It might be possible to consider the environment variables SERVER_NAME and 
-    SERVER_PORT instead, as those are allegedly required by WSGI... but attempting 
+    It might be possible to consider the environment variables SERVER_NAME and
+    SERVER_PORT instead, as those are allegedly required by WSGI... but attempting
     to do so in Flask/GUnicorn yielded a worse implementation that was still not
     portable.
     """
@@ -626,7 +626,7 @@ def _is_local_request() -> bool:
         remote_addr = request.headers.get("X-Ambassador-Diag-IP")
     else:
         remote_addr = request.environ.get("REMOTE_ADDR")
-        
+
     return remote_addr == "127.0.0.1"
 
 
@@ -703,7 +703,7 @@ def interval_format(seconds, normal_format, now_message):
 def system_info(app):
     ir = app.ir
     debug_mode = False
-    
+
     if ir:
         amod = ir.ambassador_module
         debug_mode = amod.get('debug_mode', False)
@@ -937,7 +937,6 @@ def show_overview(reqid=None):
             # parameter of the json.loads(...) call. We have to use python's
             # json library instead of orjson, because orjson does not support
             # the object_hook feature.
-
 
             # Get the previous full representation
             cached_tvars_json = tvars_cache.get(patch_client, dict())
@@ -1408,7 +1407,7 @@ class AmbassadorEventWatcher(threading.Thread):
         if not fetcher.elements:
             self.logger.debug("no configuration resources found at %s" % path)
             # Don't bail from here -- go ahead and reload the IR.
-            # 
+            #
             # XXX This is basically historical logic, honestly. But if you try
             # to respond from here and bail, STOP THE RECONFIGURATION TIMER.
 
@@ -1434,7 +1433,7 @@ class AmbassadorEventWatcher(threading.Thread):
         if not serialization:
             self.logger.debug("no data loaded from snapshot %s" % snapshot)
             # We never used to return here. I'm not sure if that's really correct?
-            # 
+            #
             # IF YOU CHANGE THIS, BE CAREFUL TO STOP THE RECONFIGURATION TIMER.
 
         # Weirdly, we don't need a special WattSecretHandler: parse_watt knows how to handle
@@ -1455,12 +1454,12 @@ class AmbassadorEventWatcher(threading.Thread):
 
             # Don't actually bail here. If they send over a valid config that happens
             # to have nothing for us, it's still a legit config.
-            # 
+            #
             # IF YOU CHANGE THIS, BE CAREFUL TO STOP THE RECONFIGURATION TIMER.
 
         self._load_ir(rqueue, aconf, fetcher, scc, snapshot)
 
-    # _load_ir is where the heavy lifting of a reconfigure happens. 
+    # _load_ir is where the heavy lifting of a reconfigure happens.
     #
     # AT THE POINT OF ENTRY, THE RECONFIGURATION TIMER IS RUNNING. DO NOT LEAVE
     # THIS METHOD WITHOUT STOPPING THE RECONFIGURATION TIMER.
@@ -1485,7 +1484,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 # Yes. We're going to walk over them all and assemble a list
                 # of things to delete and a count of errors while processing our
                 # list.
-    
+
                 delta_errors = 0
                 to_invalidate: List[str] = []
 
@@ -1522,14 +1521,14 @@ class AmbassadorEventWatcher(threading.Thread):
                     for key in to_invalidate:
                         self.logger.debug(f"Delta: invalidating {key}")
                         self.app.cache.invalidate(key)
-                
+
             # When all is said and done, reset the cache if necessary.
             if reset_cache:
                 # This is _not_ an incremental reconfigure. Reset the cache...
                 self.logger.debug("RESETTING CACHE")
                 self.app.cache = Cache(self.logger)
             else:
-                # OK, we're doing an incremental reconfigure. 
+                # OK, we're doing an incremental reconfigure.
                 config_type = "incremental"
 
         with self.app.ir_timer:
@@ -1651,10 +1650,10 @@ class AmbassadorEventWatcher(threading.Thread):
         listener_count = len(app.ir.listeners)
         service_count = len(app.ir.services)
 
-        self._respond(rqueue, 200, 
+        self._respond(rqueue, 200,
                       'configuration updated (%s) from snapshot %s' % (config_type, snapshot))
 
-        self.logger.info("configuration updated (%s) from snapshot %s (S%d L%d G%d C%d)" % 
+        self.logger.info("configuration updated (%s) from snapshot %s (S%d L%d G%d C%d)" %
                          (config_type, snapshot, service_count, listener_count, group_count, cluster_count))
 
         # Remember that we've reconfigured.
@@ -1833,7 +1832,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 else:
                     # Fast reconfigure is off.
                     feat['frc_enabled'] = False
-                
+
                 # Whether the cache is on or off, we can talk about reconfigurations.
                 feat['frc_incr_count'] = self.app.reconf_stats.counts["incremental"]
                 feat['frc_complete_count'] = self.app.reconf_stats.counts["complete"]
@@ -1931,7 +1930,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
                         if getattr(v, 'as_dict', None):
                             v = v.as_dict()
-                            
+
                         cache_dict[k] = v
 
                     cache_links = { k: list(v) for k, v in self.app.cache.links.items() }
@@ -2113,7 +2112,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     # Create the application itself.
     app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick, banner_endpoint,
               metrics_endpoint, k8s, not no_checks, no_envoy, reload, debug, verbose, notices,
-              validation_retries, allow_fs_commands, local_scout, report_action_keys, 
+              validation_retries, allow_fs_commands, local_scout, report_action_keys,
               enable_fast_reconfigure)
 
     if not workers:

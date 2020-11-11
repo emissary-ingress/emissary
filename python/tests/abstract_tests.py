@@ -131,7 +131,6 @@ class AmbassadorTest(Test):
       value: "{os.environ.get('AMBASSADOR_JSON_INDENT')}"
 """
 
-
         if self.debug_diagd:
             self.manifest_envs += """
     - name: AMBASSADOR_DEBUG

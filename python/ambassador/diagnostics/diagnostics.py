@@ -26,6 +26,7 @@ from ..envoy import EnvoyConfig
 from .envoy_stats import EnvoyStats
 from ..utils import dump_json
 
+
 class DiagSource (dict):
     pass
 
@@ -101,6 +102,7 @@ class DiagClusters:
 
     def as_json(self):
         return dump_json(self.clusters, pretty=True)
+
 
 class DiagResult:
     """
