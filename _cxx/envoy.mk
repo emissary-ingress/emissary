@@ -21,7 +21,7 @@ IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
   ENVOY_FULL_DOCKER_TAG ?= $(ENVOY_DOCKER_REPO):envoy-full-$(ENVOY_DOCKER_VERSION)
 # END LIST OF VARIABLES REQUIRING `make update-base`.
 
-# for builder.sh...
+# for builder.mk...
 export ENVOY_DOCKER_TAG
 
 #
@@ -144,12 +144,12 @@ ENVOY_DOCKER_EXEC = docker exec --workdir=/root/envoy $(foreach e,$(ENVOY_DOCKER
 $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	mkdir -p $(@D)
 	@PS4=; set -ex; { \
-	    if [ '$(ENVOY_COMMIT)' != '-' ] && docker run --rm --entrypoint=true $(ENVOY_DOCKER_TAG); then \
-	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy-static $@; \
+	    if [ '$(ENVOY_COMMIT)' != '-' ] && docker run --rm --entrypoint=true $(ENVOY_FULL_DOCKER_TAG); then \
+	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_FULL_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy-static $@; \
 	    else \
 	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
 	            { set +x; } &>/dev/null; \
-	            echo 'error: failed to pull $(ENVOY_DOCKER_TAG), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
+	            echo 'error: failed to pull $(ENVOY_FULL_DOCKER_TAG), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
 	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
 	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
 	            exit 1; \
