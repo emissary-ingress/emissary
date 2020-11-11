@@ -3,9 +3,22 @@
 // The main part of this is Group, but the naming utilities may be
 // useful outside of that.
 //
-// At this point, the limitation of dgroup when compared to supervisor
-// is that dgroup does not have a notion of readiness, and does not
-// have a notion of dependencies.
+// dgroup should be the goroutine-group-management abstraction used by
+// all new code at Ambassador Labs.  The principle remaining
+// limitation (at least when compared to the *other* Ambassador Labs
+// "goroutine group" library that shall-not-be-named) is that dgroup
+// does not have a notion of dependencies.  Not having a notion of
+// dependencies implies a few things:
+//
+//  - it does not have a notion of "readiness", as it doesn't have any
+//    dependents that would block on a goroutine becoming ready
+//  - it launches worker goroutines right away when you call .Go(), as
+//    in doesn't have any dependencies that would block the worker
+//    from starting
+//
+// So, if you need to enforce ordering requirements during goroutine
+// startup and shutdown, then (for now, anyway) you'll need to
+// implement that separately on top of this library.
 package dgroup
 
 import (
@@ -28,17 +41,28 @@ import (
 	"github.com/datawire/ambassador/pkg/errutil"
 )
 
-// Group is a wrapper around
-// github.com/datawire/ambassador/pkg/derrgroup.Group that:
+// A Group is a collection of goroutines working on subtasks that are
+// part of the same overall task.  Compared to a minimum-viable
+// goroutine-group abstraction (such as stdlib "sync.WaitGroup" or the
+// bog-standard "golang.org/x/sync/errgroup.Group"), the things that
+// make dgroup attractive are:
+//
 //  - (optionally) handles SIGINT and SIGTERM
 //  - (configurable) manages Context for you
 //  - (optionally) adds hard/soft cancellation
 //  - (optionally) does panic recovery
 //  - (optionally) does some minimal logging
 //  - (optionally) adds configurable shutdown timeouts
-//  - adds a way to call to the parent group
+//  - a concept of goroutine names
+//  - adds a way to call to the parent group, making it possible to
+//    launch a "sibling" goroutine
 //
 // A zero Group is NOT valid; a Group must be created with NewGroup.
+//
+// A Group is suitable for use at the top-level of a program
+// (especially if signal handling is enabled for the Group), and is
+// also suitable to be nested somewhere deep inside of an application
+// (but signal handling should probably be disabled for that use).
 type Group struct {
 	cfg     GroupConfig
 	baseCtx context.Context
@@ -287,7 +311,7 @@ func (g *Group) launchSupervisors() {
 	}
 }
 
-// Go wraps derrgroup.Group.Go().
+// Go calls the given function in a new named-worker-goroutine.
 //
 // Cancellation of the Context should trigger a graceful shutdown.
 // Cancellation of the dcontext.HardContext(ctx) of it should trigger
@@ -376,11 +400,12 @@ func (g *Group) goSupervisorCtx(ctx context.Context, fn func(ctx context.Context
 // Wait for all goroutines in the group to finish, and return returns
 // an error if any of the workers errored or timed out.
 //
-// Once the group has initiated hard shutdown (either a 2nd shutdown
-// signal was received, or the parent context is <-Done()), Wait will
-// return within the HardShutdownTimeout passed to NewGroup.  If a
-// poorly-behaved goroutine is still running at the end of that time,
-// it is left running, and an error is returned.
+// Once the group has initiated hard-shutdown (either soft-shutdown
+// was initiated then timed out, a 2nd shutdown signal was received,
+// or the parent context is <-Done()), Wait will return within the
+// HardShutdownTimeout passed to NewGroup.  If a poorly-behaved
+// goroutine is still running at the end of that time, it is left
+// running, and an error is returned.
 func (g *Group) Wait() error {
 	// 1. Wait for the worker goroutines to finish (or time out)
 	shutdownCompleted := make(chan error)
@@ -417,7 +442,7 @@ func (g *Group) Wait() error {
 	return ret
 }
 
-// List wraps derrgroup.Group.List().
+// List returns a listing of all goroutines launched with .Go().
 func (g *Group) List() map[string]derrgroup.GoroutineState {
 	return g.workers.List()
 }
@@ -426,6 +451,8 @@ type groupKey struct{}
 
 // ParentGroup returns the Group that manages this goroutine/Context.
 // If the Context is not managed by a Group, then nil is returned.
+// The principle use of ParentGroup is to launch a sibling goroutine
+// in the group.
 func ParentGroup(ctx context.Context) *Group {
 	group := ctx.Value(groupKey{})
 	if group == nil {
