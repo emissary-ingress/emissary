@@ -44,8 +44,13 @@ type Group struct {
 	inner            *derrgroup.Group
 }
 
-func logGoroutineStatuses(ctx context.Context, printf func(ctx context.Context, format string, args ...interface{}), list map[string]derrgroup.GoroutineState) {
-	printf(ctx, "  goroutine shutdown status:")
+func logGoroutineStatuses(
+	ctx context.Context,
+	heading string,
+	printf func(ctx context.Context, format string, args ...interface{}),
+	list map[string]derrgroup.GoroutineState,
+) {
+	printf(ctx, "  %s:", heading)
 	names := make([]string, 0, len(list))
 	nameWidth := 0
 	for name := range list {
@@ -60,7 +65,11 @@ func logGoroutineStatuses(ctx context.Context, printf func(ctx context.Context, 
 	}
 }
 
-func logGoroutineTraces(ctx context.Context, printf func(ctx context.Context, format string, args ...interface{})) {
+func logGoroutineTraces(
+	ctx context.Context,
+	heading string,
+	printf func(ctx context.Context, format string, args ...interface{}),
+) {
 	p := pprof.Lookup("goroutine")
 	if p == nil {
 		return
@@ -69,7 +78,7 @@ func logGoroutineTraces(ctx context.Context, printf func(ctx context.Context, fo
 	if err := p.WriteTo(stacktrace, 2); err != nil {
 		return
 	}
-	printf(ctx, "  goroutine stack traces:")
+	printf(ctx, "  %s:", heading)
 	for _, line := range strings.Split(strings.TrimSpace(stacktrace.String()), "\n") {
 		printf(ctx, "    %s", line)
 	}
@@ -197,7 +206,7 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 					case sig := <-sigs:
 						if !g.cfg.DisableLogging {
 							dlog.Errorln(ctx, errors.Errorf("received signal %v (graceful shutdown already triggered; triggering not-so-graceful shutdown)", sig))
-							logGoroutineStatuses(ctx, dlog.Errorf, g.List())
+							logGoroutineStatuses(ctx, "goroutine statuses", dlog.Errorf, g.List())
 						}
 						hardCancel()
 					case <-dcontext.HardContext(ctx).Done():
@@ -206,8 +215,8 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 					for sig := range sigs {
 						if !g.cfg.DisableLogging {
 							dlog.Errorln(ctx, errors.Errorf("received signal %v (not-so-graceful shutdown already triggered)", sig))
-							logGoroutineStatuses(ctx, dlog.Errorf, g.List())
-							logGoroutineTraces(ctx, dlog.Errorf)
+							logGoroutineStatuses(ctx, "goroutine statuses", dlog.Errorf, g.List())
+							logGoroutineTraces(ctx, "goroutine stack traces", dlog.Errorf)
 						}
 					}
 				}()
@@ -234,13 +243,14 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 // A worker may access its parent group by calling ParentGroup on its
 // Context.
 func (g *Group) Go(name string, fn func(ctx context.Context) error) {
-	g.inner.Go(name, func() (err error) {
-		ctx := g.baseCtx
-		ctx = WithGoroutineName(ctx, "/"+name)
-		ctx = context.WithValue(ctx, groupKey{}, g)
-		if g.cfg.WorkerContext != nil {
-			ctx = g.cfg.WorkerContext(ctx, name)
-		}
+	ctx := g.baseCtx
+	ctx = WithGoroutineName(ctx, "/"+name)
+	ctx = context.WithValue(ctx, groupKey{}, g)
+	if g.cfg.WorkerContext != nil {
+		ctx = g.cfg.WorkerContext(ctx, name)
+	}
+
+	g.inner.Go(getGoroutineName(ctx), func() (err error) {
 
 		defer func() {
 			if !g.cfg.DisablePanicRecovery {
@@ -250,9 +260,9 @@ func (g *Group) Go(name string, fn func(ctx context.Context) error) {
 			}
 			if !g.cfg.DisableLogging {
 				if err == nil {
-					dlog.Debugln(ctx, "goroutine exited without error")
+					dlog.Debugf(ctx, "goroutine %q exited without error", getGoroutineName(ctx))
 				} else {
-					dlog.Errorln(ctx, "goroutine exited with error:", err)
+					dlog.Errorf(ctx, "goroutine %q exited with error:", getGoroutineName(ctx), err)
 				}
 			}
 		}()
@@ -286,9 +296,9 @@ func (g *Group) Wait() error {
 	}
 	if ret != nil && !g.cfg.DisableLogging {
 		ctx := WithGoroutineName(g.baseCtx, ":shutdown_status")
-		logGoroutineStatuses(ctx, dlog.Infof, g.List())
+		logGoroutineStatuses(ctx, "final goroutine statuses", dlog.Infof, g.List())
 		if timedOut {
-			logGoroutineTraces(ctx, dlog.Errorf)
+			logGoroutineTraces(ctx, "final goroutine stack traces", dlog.Errorf)
 		}
 	}
 	return ret
