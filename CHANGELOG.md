@@ -72,8 +72,8 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Bugfix: Prevent mixing `Mapping`s with `host_redirect` set with `Mapping`s that don't in the same group
 - Bugfix: `ConsulResolver` will now fallback to the `Address` of a Consul service if `Service.Address` is not set.
 - Docs: Added instructions for building ambassador from source, within a docker container (thanks, [Rahul Kumar Saini](https://github.com/rahul-kumar-saini)!)
-- Internal: Upgrade Alpine 3.10→3.12, GNU libc 2.30→2.32, and Python 3.7→3.8
-- Internal: Knative serving tests were bumped from version 0.11.0 to version 0.18.0
+- Update: Upgrade Alpine 3.10→3.12, GNU libc 2.30→2.32, and Python 3.7→3.8
+- Update: Knative serving tests were bumped from version 0.11.0 to version 0.18.0 (thanks, [Noah Fontes](https://github.com/impl)!)
 
 ### Ambassador Edge Stack Only
 
