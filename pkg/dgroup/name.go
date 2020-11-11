@@ -17,7 +17,7 @@ func getGoroutineName(ctx context.Context) string {
 }
 
 // WithGoroutineName associates a name with the context, which gets
-// logged by dlog as the "goroutine" field.
+// logged by dlog as the "THREAD" field.
 //
 // If the context already has a name, then the new name is appended to
 // it.  This allows a "tree" to be formed.  There are no delimiters
@@ -32,7 +32,7 @@ func WithGoroutineName(ctx context.Context, newName string) context.Context {
 	if oldName != "" {
 		newName = oldName + newName
 	}
-	ctx = dlog.WithField(ctx, "goroutine", newName)
+	ctx = dlog.WithField(ctx, "THREAD", newName)
 	ctx = context.WithValue(ctx, goroutineNameKey{}, newName)
 	return ctx
 }
