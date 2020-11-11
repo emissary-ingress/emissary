@@ -455,6 +455,8 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 ## [1.2.1] March 03, 2020
 [1.2.1]: https://github.com/datawire/ambassador/compare/v1.2.0...v1.2.1
 
+Edge Stack users SHOULD NOT use this release, and should instead use 1.2.2.
+
 ### Ambassador API Gateway + Ambassador Edge Stack
 
 - Bugfix: re-support PROXY protocol when terminating TLS ([#2348])
