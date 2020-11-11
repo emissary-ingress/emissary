@@ -356,7 +356,7 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 
 ### Ambassador Edge Stack only
 
-- Bugfix: Don't generate spurious 403s in the logs when using Edge Policy Console.
+- Bugfix: Don't generate spurious 403s in the logs when using the Edge Policy Console.
 
 ## [1.4.2] April 22, 2020
 [1.4.2]: https://github.com/datawire/ambassador/compare/v1.4.1...v1.4.2
@@ -369,6 +369,7 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 - Bugfix: The `OAuth2` Filter now supports multiple authentication domains that share the same credentials.
    - For more about using multiple domains, see the [OAuth2 `Filter` documentation](https://www.getambassador.io/docs/1.4/topics/using/filters/oauth2/).
 - Bugfix: The ACME client now obeys `AMBASSADOR_ID`
+- Feature (ALPHA): Added an in-cluster micro CI/CD system to enable building, staging, and publishing of GitHub projects from source.  This is disabled by default.
 
 ## [1.4.1] April 15, 2020
 [1.4.1]: https://github.com/datawire/ambassador/compare/v1.4.0...v1.4.1
@@ -600,6 +601,9 @@ Ambassador Edge Stack incorporates the functionality of the old Ambassador Pro p
 - There is now an `edgectl` program that you can use for interacting with Ambassador from the command line
 - There is a web user-interface for Ambassador
 - BREAKING CHANGE: `APP_LOG_LEVEL` is now `AES_LOG_LEVEL`
+
+See the [`CHANGELOG.old-pro.md`](./CHANGELOG.old-pro.md) file for the changelog of
+the old Ambassador Pro product.
 
 ## [1.0.0-rc6] January 15, 2020
 [1.0.0-rc6]: https://github.com/datawire/ambassador/compare/v1.0.0-rc4...v1.0.0-rc6
