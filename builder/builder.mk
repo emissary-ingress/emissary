@@ -1,3 +1,96 @@
+# A quick primer on GNU Make syntax
+# =================================
+#
+# This tries to cover the syntax that is hard to ctrl-f for in
+# <https://www.gnu.org/software/make/manual/make.html> (err, hard to
+# C-s for in `M-: (info "Make")`).
+#
+#   At the core is a "rule":
+#
+#       target: dependency1 dependency2
+#       	command to run
+#
+#   If `target` something that isn't a real file (like 'build', 'lint', or
+#   'test'), then it should be marked as "phony":
+#
+#       target: dependency1 dependency2
+#       	command to run
+#       .PHONY: target
+#
+#   You can write reusable "pattern" rules:
+#
+#       %.o: %.c
+#       	command to run
+#
+#   Of course, if you don't have variables for the inputs and outputs,
+#   it's hard to write a "command to run" for a pattern rule.  The
+#   variables that you should know are:
+#
+#       $@ = the target
+#       $^ = the list of dependencies (space separated)
+#       $< = the first (left-most) dependency
+#       $* = the value of the % glob in a pattern rule
+#
+#       Each of these have $(@D) and $(@F) variants that are the
+#       directory-part and file-part of each value, respectively.
+#
+#       I think those are easy enough to remember mnemonically:
+#         - $@ is where you shoul direct the output at.
+#         - $^ points up at the dependency list
+#         - $< points at the left-most member of the dependency list
+#         - $* is the % glob; "*" is well-known as the glob char in other languages
+#
+#   Make will do its best to guess whether to apply a pattern rule for a
+#   given file.  Or, you can explicitly tell it by using a 3-field
+#   (2-colon) version:
+#
+#       foo.o bar.o: %.o: %.c
+#       	command to run
+#
+#   In a non-pattern rule, if there are multiple targets listed, then it
+#   is as if rule were duplicated for each target:
+#
+#       target1 target2: deps
+#       	command to run
+#
+#       # is the same as
+#
+#       target1: deps
+#       	command to run
+#       target2: deps
+#       	command to run
+#
+#   Because of this, if you have a command that generates multiple,
+#   outputs, it _must_ be a pattern rule:
+#
+#       %.c %.h: %.y
+#       	command to run
+#
+#   Normally, Make crawls the entire tree of dependencies, updating a file
+#   if any of its dependencies have been updated.  There's a really poorly
+#   named feature called "order-only" dependencies:
+#
+#       target: normal-deps | order-only-deps
+#
+#   Dependencies after the "|" are created if they don't exist, but if
+#   they already exist, then don't bother updating them.
+#
+# Tips:
+# -----
+#
+#  - Use absolute filenames.  It's dumb, but it really does result in
+#    fewer headaches.  Use $(OSS_HOME) and $(AES_HOME) to spell the
+#    absolute filenames.
+#
+#  - If you have a multiple-output command where the output files have
+#    dissimilar names, have % be just the directory (the above tip makes
+#    this easier).
+#
+#  - It can be useful to use the 2-colon form of a pattern rule when
+#    writing a rule for just one file; it lets you use % and $* to avoid
+#    repeating yourself, which can be especially useful with long
+#    filenames.
+
 BUILDER_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 BUILDER_NAME ?= $(NAME)
@@ -134,7 +227,9 @@ compile: sync
 # For files that should only-maybe update when the rule runs, put ".stamp" on
 # the left-side of the ":", and just go ahead and update it within the rule.
 #
-# ".stamp" should NEVER appear on the right-side of the ":".
+# ".stamp" should NEVER appear in a dependency list (that is, it
+# should never be on the right-side of the ":"), save for in this rule
+# itself.
 %: %.stamp $(COPY_IFCHANGED)
 	@$(COPY_IFCHANGED) $< $@
 
@@ -147,7 +242,7 @@ $(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remot
 docker/builder-base.docker.stamp: FORCE preflight
 	@printf "${CYN}==> ${GRN}Bootstrapping builder base image${END}\n"
 	@$(BUILDER) build-builder-base >$@
-docker/container.txt.stamp: %/container.txt.stamp: %/builder-base.docker.tag.local FORCE
+docker/container.txt.stamp: %/container.txt.stamp: %/builder-base.docker.tag.local %/base-envoy.docker.tag.local FORCE
 	@printf "${CYN}==> ${GRN}Bootstrapping builder container${END}\n"
 	@$(BUILDER) bootstrap > $@
 docker/snapshot.docker.stamp: %/snapshot.docker.stamp: %/container.txt FORCE compile
@@ -156,12 +251,22 @@ docker/snapshot.docker.stamp: %/snapshot.docker.stamp: %/container.txt FORCE com
 	    printf "${CYN}==> ${GRN}Snapshot of ${BLU}$$(cat $<)${GRN} container is already up-to-date${END}\n"; \
 	  else \
 	    printf "${CYN}==> ${GRN}Snapshotting ${BLU}$$(cat $<)${GRN} container${END}\n"; \
-	    docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $$(cat $<) > $@; \
+	    TIMEFORMAT="     (snapshot took %1R seconds)" \
+	    time docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $$(cat $<) > $@; \
 	    docker exec $$(cat $<) rm -f /buildroot/image.dirty; \
 	  fi; \
 	}
 docker/base-envoy.docker.stamp: FORCE
-	@echo $(ENVOY_DOCKER_TAG) > $@
+	@set -e; { \
+	  if docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@ 2>/dev/null; then \
+	    printf "${CYN}==> ${GRN}Base Envoy image is already pulled${END}\n"; \
+	  else \
+	    printf "${CYN}==> ${GRN}Pulling base Envoy image${END}\n"; \
+	    TIMEFORMAT="     (pull took %1R seconds)" \
+	    time docker pull $(ENVOY_DOCKER_TAG); \
+	    docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@; \
+	  fi; \
+	}
 docker/$(NAME).docker.stamp: %/$(NAME).docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
 	@set -e; { \
 	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
@@ -571,10 +676,10 @@ with confusing results.
 The build system doesn't try to magically handle all dependencies.  In
 general, if you change something that is not pure source code, you will
 likely need to do a $(BLD)$(MAKE) clean$(END) in order to see the effect.  For example,
-Python code only gets set up once, so if you change $(BLD)requirements.txt$(END) or
-$(BLD)setup.py$(END), then you will need to do a clean build to see the effects.
-Assuming you didn't $(BLD)$(MAKE) clobber$(END), this shouldn't take long due to the
-cache in the Docker volume.
+Python code only gets set up once, so if you change $(BLD)setup.py$(END), then you
+will need to do a clean build to see the effects.  Assuming you didn't
+$(BLD)$(MAKE) clobber$(END), this shouldn't take long due to the cache in the Docker
+volume.
 
 All targets that deploy to a cluster by way of $(BLU)$$DEV_REGISTRY$(END) can be made
 to have the cluster use an imagePullSecret to pull from $(BLD)$$DEV_REGISTRY$(END),

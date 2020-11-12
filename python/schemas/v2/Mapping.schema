@@ -80,6 +80,15 @@
             },
             "additionalProperties": false
         },
+        "docs": {
+            "type": "object",
+            "properties": {
+                "path": { "type": "string" },
+                "url": { "type": "string" },
+                "ignored": { "type": "boolean" }
+            },
+            "additionalProperties": false
+        },
         "retry_policy": {
             "type": "object",
             "properties": {
@@ -132,7 +141,44 @@
         },
         "weight": { "type": "integer" },
         "bypass_auth": { "type": "boolean" },
-
+        "bypass_error_response_overrides": { "type": "boolean" },
+        "error_response_overrides": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "on_status_code": {
+                        "type": "integer",
+                        "minimum": 400,
+                        "maximum": 599
+                    },
+                    "body": {
+                        "text_format": {
+                            "type": "string"
+                        },
+                        "json_format": {
+                            "type": "object"
+                        },
+                        "text_format_source": {
+                            "type": "object",
+                            "properties": {
+                                "filename": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [ "filename" ],
+                            "additionalProperties": false
+                        },
+                        "content_type": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [ "on_status_code", "body" ],
+                "additionalProperties": false
+            }
+        },
         "modules": {
             "type": "array",
             "items": {

@@ -15,7 +15,7 @@ lint:
 golint: $(tools/golangci-lint)
 	@PS4=; set -x; r=0; { \
 		for dir in $(lint/go-dirs); do \
-			(cd $$dir && $(tools/golangci-lint) run ./...) || r=$?; \
+			(cd $$dir && $(tools/golangci-lint) run ./...) || r=$$?; \
 		done; \
 		exit $$r; \
 	}
@@ -24,7 +24,7 @@ golint: $(tools/golangci-lint)
 format: $(tools/golangci-lint)
 	@PS4=; set -x; { \
 		for dir in $(lint/go-dirs); do \
-			(cd $$dir && $(tools/golangci-lint) run ./...) || true; \
-		exit $$r; \
+			(cd $$dir && $(tools/golangci-lint) run --fix ./...) || true; \
+		done; \
 	}
 .PHONY: format

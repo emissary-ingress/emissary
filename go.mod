@@ -96,7 +96,7 @@ require (
 	golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7
 	golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1
 	google.golang.org/genproto v0.0.0-20200115191322-ca5a22157cba
-	google.golang.org/grpc v1.27.0
+	google.golang.org/grpc v1.29.1
 	google.golang.org/protobuf v1.23.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.3.0

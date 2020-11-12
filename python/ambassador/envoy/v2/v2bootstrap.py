@@ -51,7 +51,7 @@ class V2Bootstrap(dict):
                             'envoy.deprecated_features:envoy.api.v2.route.HeaderMatcher.regex_match': True, # HTTP header,
                             # Envoy 1.14.1 disabled the use of lowercase string matcher for headers matching in HTTP-based.
                             # Following setting toggled it to be consistent with old behavior.
-                            # AuthenticationTest (v0) is a good example that expects the old behavior. 
+                            # AuthenticationTest (v0) is a good example that expects the old behavior.
                             'envoy.reloadable_features.ext_authz_http_service_enable_case_sensitive_string_matcher': False
                         }
                     }
@@ -111,11 +111,18 @@ class V2Bootstrap(dict):
         #     clusters.append(V2Cluster(config, ratelimit.cluster))
 
         if config.ir.statsd['enabled']:
-            name = 'envoy.dog_statsd' if config.ir.statsd['dogstatsd'] else 'envoy.statsd'
+            if config.ir.statsd['dogstatsd']:
+                name = 'envoy.stat_sinks.dog_statsd'
+                typename = 'type.googleapis.com/envoy.config.metrics.v2.DogStatsdSink'
+            else:
+                name = 'envoy.stats_sinks.statsd'
+                typename = 'type.googleapis.com/envoy.config.metrics.v2.StatsdSink'
+
             self['stats_sinks'] = [
                 {
                     'name': name,
-                    'config': {
+                    'typed_config': {
+                        '@type': typename,
                         'address': {
                             'socket_address': {
                                 'protocol': 'UDP',

@@ -96,6 +96,16 @@ load_balancer:
   policy: round_robin
 ---
 apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.path.k8s}_consul_node_mapping
+prefix: /{self.path.k8s}_consul_node/ # this is testing that Ambassador correctly falls back to the `Address` if `Service.Address` does not exist
+service: {self.path.k8s}-consul-node
+# tls: {self.path.k8s}-client-context # this doesn't seem to work... ambassador complains with "no private key in secret ..."
+resolver: {self.path.k8s}-resolver
+load_balancer:
+  policy: round_robin
+---
+apiVersion: ambassador/v1
 kind:  TLSContext
 name:  {self.path.k8s}-client-context
 secret: {self.path.k8s}-client-cert-secret
@@ -106,10 +116,11 @@ secret: {self.path.k8s}-client-cert-secret
         yield("url", Query(self.format("http://{self.path.k8s}-consul:8500/ui/")))
 
     def queries(self):
-        # The K8s service should be OK. The Consul service should 503 because it has no upstreams
+        # The K8s service should be OK. The Consul services should 503 because it has no upstreams
         # in phase 1.
         yield Query(self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=1)
         yield Query(self.url(self.format("{self.path.k8s}_consul/")), expected=503, phase=1)
+        yield Query(self.url(self.format("{self.path.k8s}_consul_node/")), expected=503, phase=1)
 
         # Register the Consul service in phase 2.
         yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
@@ -122,10 +133,20 @@ secret: {self.path.k8s}-client-cert-secret
                                     "Address": self.k8s_target.path.k8s,
                                     "Port": 80}},
                     phase=2)
+        yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
+                    method="PUT",
+                    body={
+                        "Datacenter": "dc1",
+                        "Node": self.format("{self.path.k8s}-consul-node"),
+                        "Address": self.k8s_target.path.k8s,
+                        "Service": {"Service": self.format("{self.path.k8s}-consul-node"),
+                                    "Port": 80}},
+                    phase=2)
 
         # Both services should work in phase 3.
         yield Query(self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=3)
         yield Query(self.url(self.format("{self.path.k8s}_consul/")), expected=200, phase=3)
+        yield Query(self.url(self.format("{self.path.k8s}_consul_node/")), expected=200, phase=3)
 
     def check(self):
         pass

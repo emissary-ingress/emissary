@@ -430,6 +430,10 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
         watt_query_flags+=(-s LogService)
     fi
 
+    if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_5" ]; then
+        watt_query_flags+=(-s DevPortal)
+    fi
+
     if [ -n "$AMBASSADOR_FIELD_SELECTOR" ] ; then
 	    watt_query_flags+=(--fields $AMBASSADOR_FIELD_SELECTOR)
     fi
@@ -470,4 +474,3 @@ while true; do
 done
 
 ambassador_exit 2
-

@@ -61,11 +61,18 @@ func (w *ServiceWatcher) Watch(handler func(endpoints Endpoints, err error)) {
 				tags = item.Service.Tags
 			}
 
+			// Some Consul services, especially those outside of Kubernetes, will not be registered with a `ServiceAddress`.
+			// Per Consul HTTP API documentation, this okay and we should fallback to the IP of the node in the `Address` field.
+			endpointAddress := item.Service.Address
+			if endpointAddress == "" {
+				endpointAddress = item.Node.Address
+			}
+
 			endpoints.Endpoints = append(endpoints.Endpoints, Endpoint{
 				Service:  item.Service.Service,
 				SystemID: fmt.Sprintf("consul::%s", item.Node.ID),
 				ID:       item.Service.ID,
-				Address:  item.Service.Address,
+				Address:  endpointAddress,
 				Port:     item.Service.Port,
 				Tags:     tags,
 			})

@@ -27,7 +27,8 @@ commands:
     # setup
     - amb-linux-install
     - amb-checkout
-    # We might need to be logged in the registry to pull the Envoy image
+    # We might need to be logged in the registry to pull the Envoy
+    # image or the builder-base image.
     - amb-config-registry
     - # main
       run: make generate
@@ -41,6 +42,9 @@ commands:
     # setup
     - amb-linux-install
     - amb-checkout
+    # We might need to be logged in the registry to pull the
+    # builder-base image.
+    - amb-config-registry
     - # main
       run: make lint
   "job-images":
@@ -350,7 +354,7 @@ commands:
     parameters:
       version:
         type: string
-        default: "3.6.3"
+        default: "3.8.5"
       pip-version:
         type: string
         default: "20.1.1"

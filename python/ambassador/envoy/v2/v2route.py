@@ -136,14 +136,53 @@ class V2Route(Cacheable):
 
         self['match'] = match
 
-        # `per_filter_config` is used for customization of an Envoy filter
-        per_filter_config = {}
+        # `typed_per_filter_config` is used to pass typed configuration to Envoy filters
+        typed_per_filter_config = {}
+
+        if mapping.get('bypass_error_response_overrides', False):
+            typed_per_filter_config['envoy.filters.http.response_map'] = {
+                '@type': 'type.googleapis.com/envoy.extensions.filters.http.response_map.v3.ResponseMapPerRoute',
+                'disabled': True,
+            }
+        else:
+            # The error_response_overrides field is set on the Mapping as input config
+            # via kwargs in irhttpmapping.py. Later, in setup(), we replace it with an
+            # IRErrorResponse object, which itself returns None if setup failed. This
+            # is a similar pattern to IRCors and IRRetrYPolicy.
+            #
+            # Therefore, if the field is present at this point, it means it's a valid
+            # IRErrorResponse with a 'config' field, since setup must have succeded.
+            error_response_overrides = mapping.get('error_response_overrides', None)
+            if error_response_overrides:
+                # The error reponse IR only has optional response map config to use.
+                # On this particular code path, we're protected by both Mapping schema
+                # and CRD validation so we're reasonable confident there is going to
+                # be a valid config here. However the source of this config is theoretically
+                # not guaranteed and we need to use the config() method safely, so check
+                # first before using it.
+                filter_config = error_response_overrides.config()
+                if filter_config:
+                    # The error response IR itself guarantees that any resulting config() has
+                    # at least one mapper in 'mappers', so assert on that here.
+                    assert 'mappers' in filter_config
+                    assert len(filter_config['mappers']) > 0
+                    typed_per_filter_config['envoy.filters.http.response_map'] = {
+                        '@type': 'type.googleapis.com/envoy.extensions.filters.http.response_map.v3.ResponseMapPerRoute',
+                        # The ResponseMapPerRoute Envoy config is similar to the ResponseMap filter
+                        # config, except that it is wrapped in another object with key 'response_map'.
+                        'response_map': {
+                            'mappers': filter_config['mappers']
+                        }
+                    }
 
         if mapping.get('bypass_auth', False):
-            per_filter_config['envoy.ext_authz'] = {'disabled': True}
+            typed_per_filter_config['envoy.filters.http.ext_authz'] = {
+                '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthzPerRoute',
+                'disabled': True,
+            }
 
-        if per_filter_config:
-            self['per_filter_config'] = per_filter_config
+        if len(typed_per_filter_config) > 0:
+            self['typed_per_filter_config'] = typed_per_filter_config
 
         request_headers_to_add = group.get('add_request_headers', None)
         if request_headers_to_add:
@@ -280,33 +319,59 @@ class V2Route(Cacheable):
 
 
     def host_constraints(self, prune_unreachable_routes: bool) -> Set[str]:
-        """Return a set of hostglobs that match (a superset of) all
-        hostnames that this route can apply to.
+        """Return a set of hostglobs that match (a superset of) all hostnames that this route can
+        apply to.
 
-        An emtpy set means that this route cannot possibly apply to
-        any hostnames.
+        An emtpy set means that this route cannot possibly apply to any hostnames.
 
-        This considers SNI information and HeaderMatchers that
-        `exact_match` on the `:authority` header.  There are other
-        things that could narrow the set down more, but that this
-        function doesn't consider (like regex matches on
-        `:authority`), leading to it possibly returning a set that is
-        too broad.  That's OK for correctness, it just means that
+        This considers SNI information and (if prune_unreachable_routes) HeaderMatchers that
+        `exact_match` on the `:authority` header.  There are other things that could narrow the set
+        down more, but that we don't consider (like regex matches on `:authority`), leading to it
+        possibly returning a set that is too broad.  That's OK for correctness, it just means that
         we'll emit an Envoy config that contains extra work for Envoy.
+
         """
-        ret = set(self.get('_sni', {}).get('hosts', ['*']))
+        # Start by grabbing a list of all the SNI host globs for this route. If there aren't any,
+        # default to "*".
+        hostglobs = set(self.get('_sni', {}).get('hosts', ['*']))
 
+        # If we're going to do any aggressive pruning here...
         if prune_unreachable_routes:
-            match = self.get("match", {})
-            match_headers = match.get("headers", [])
-            for header in match_headers:
-                if header.get("name") == ":authority" and "exact_match" in header:
-                    if any(hostglob_matches(glob, header["exact_match"]) for glob in ret):
-                        return set([header["exact_match"]])
-                    else:
-                        return set()
+            # Note: We're *pruning*; the hostglobs set will only ever get *smaller*, it will never
+            # grow.  If it gets down to the empty set, then we can safely bail early.
 
-        return ret
+            # Take all the HeaderMatchers...
+            header_matchers = self.get("match", {}).get("headers", [])
+            for header in header_matchers:
+                # ... and look for ones that exact_match on :authority.
+                if header.get("name") == ":authority" and "exact_match" in header:
+                    exact_match = header["exact_match"]
+
+                    if "*" in exact_match:
+                        # A real :authority header will never contain a "*", so if this route has an
+                        # exact_match looking for one, then this route is unreachable.
+                        hostglobs = set()
+                        break # hostglobs is empty, no point in doing more work
+
+                    elif any(hostglob_matches(glob, exact_match) for glob in hostglobs):
+                        # The exact_match that this route is looking for is matched by one or more
+                        # of the hostglobs; so this route is reachable (so far).  Set hostglobs to
+                        # just match that route.  Because we already checked if the exact_match
+                        # contains a "*", we don't need to worry about it possibly being interpreted
+                        # incorrectly as a glob.
+                        hostglobs = set([exact_match])
+                        # Don't "break" here--if somehow this route has multiple disagreeing
+                        # HeaderMatchers on :authority, then it's unreachable and we want the next
+                        # iteration of the loop to trigger the "else" clause and prune hostglobs
+                        # down to the empty set.
+
+                    else:
+                        # The exact_match that this route is looking for isn't matched by any of the
+                        # hostglobs; so this route is unreachable.
+                        hostglobs = set()
+                        break # hostglobs is empty, no point in doing more work
+
+        return hostglobs
 
 
     @classmethod
@@ -319,7 +384,7 @@ class V2Route(Cacheable):
         if cached_route is None:
             # Cache miss.
             # config.ir.logger.info(f"V2Route: cache miss for {cache_key}, synthesizing route")
-            
+
             route = V2Route(config, irgroup, mapping)
 
             # Cheat a bit and force the route's cache_key.
@@ -348,7 +413,7 @@ class V2Route(Cacheable):
                 continue
 
             if irgroup.get('host_redirect') is not None and len(irgroup.get('mappings', [])) == 0:
-                # This is a host-redirect-only group, which is weird, but can happen. Do we 
+                # This is a host-redirect-only group, which is weird, but can happen. Do we
                 # have a cached route for it?
                 key = f"Route-{irgroup.group_id}-hostredirect"
 
@@ -482,7 +547,7 @@ class V2Route(Cacheable):
         regex_rewrite = {}
         group_regex_rewrite = mapping_group.get('regex_rewrite', None)
         if group_regex_rewrite is not None:
-            pattern = group_regex_rewrite.get('pattern', None)            
+            pattern = group_regex_rewrite.get('pattern', None)
             if (pattern is not None):
                 regex_rewrite.update(regex_matcher(config, pattern, key='regex',safe_key='pattern', re_type='safe')) # regex_rewrite should never ever be unsafe
         substitution = group_regex_rewrite.get('substitution', None)

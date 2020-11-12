@@ -35,6 +35,7 @@ type TraceConfig struct {
 	CollectorEndpoint string `json:"collector_endpoint,omitempty"`
 	// +kubebuilder:validation:Enum=HTTP_JSON_V1;HTTP_JSON;HTTP_PROTO
 	CollectorEndpointVersion string `json:"collector_endpoint_version,omitempty"`
+	CollectorHostname        string `json:"collector_hostname,omitempty"`
 	TraceID128Bit            bool   `json:"trace_id_128bit,omitempty"`
 	SharedSpanContext        bool   `json:"shared_span_context,omitempty"`
 	ServiceName              string `json:"service_name,omitempty"`

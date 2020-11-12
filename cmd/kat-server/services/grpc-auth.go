@@ -26,12 +26,13 @@ import (
 
 // GRPCAUTH server object (all fields are required).
 type GRPCAUTH struct {
-	Port          int16
-	Backend       string
-	SecurePort    int16
-	SecureBackend string
-	Cert          string
-	Key           string
+	Port            int16
+	Backend         string
+	SecurePort      int16
+	SecureBackend   string
+	Cert            string
+	Key             string
+	ProtocolVersion string
 }
 
 // Start initializes the HTTP server.
@@ -50,7 +51,13 @@ func (g *GRPCAUTH) Start() <-chan bool {
 		}
 
 		s := grpc.NewServer()
-		pb_legacy.RegisterAuthorizationServer(s, g)
+		if g.ProtocolVersion != "v2" {
+			log.Printf("registering v2alpha service")
+			pb_legacy.RegisterAuthorizationServer(s, g)
+		} else {
+			log.Printf("registering v2 service")
+			pb.RegisterAuthorizationServer(s, g)
+		}
 		s.Serve(ln)
 
 		defer ln.Close()
@@ -73,7 +80,13 @@ func (g *GRPCAUTH) Start() <-chan bool {
 		}
 
 		s := grpc.NewServer()
-		pb_legacy.RegisterAuthorizationServer(s, g)
+		if g.ProtocolVersion != "v2" {
+			log.Printf("registering v2alpha service")
+			pb_legacy.RegisterAuthorizationServer(s, g)
+		} else {
+			log.Printf("registering v2 service")
+			pb.RegisterAuthorizationServer(s, g)
+		}
 		s.Serve(ln)
 
 		defer ln.Close()
@@ -96,6 +109,8 @@ func (g *GRPCAUTH) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResp
 
 	// Sets requested HTTP status.
 	rs.SetStatus(rheader["requested-status"])
+
+	rs.AddHeader(false, "x-grpc-service-protocol-version", g.ProtocolVersion)
 
 	// Sets requested headers.
 	for _, key := range strings.Split(rheader["requested-header"], ",") {

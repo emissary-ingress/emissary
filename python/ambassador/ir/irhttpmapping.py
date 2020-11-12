@@ -8,6 +8,7 @@ from ..config import Config
 from .irbasemapping import IRBaseMapping, normalize_service_name
 from .irbasemappinggroup import IRBaseMappingGroup
 from .irhttpmappinggroup import IRHTTPMappingGroup
+from .irerrorresponse import IRErrorResponse
 from .ircors import IRCORS
 from .irretrypolicy import IRRetryPolicy
 
@@ -52,17 +53,18 @@ class IRHTTPMapping (IRBaseMapping):
     route_weight: List[Union[str, int]]
     cors: IRCORS
     retry_policy: IRRetryPolicy
+    error_response_overrides: Optional[IRErrorResponse]
     sni: bool
     query_parameters: List[KeyValueDecorator]
     regex_rewrite: Dict[str,str]
 
     # Keys that are present in AllowedKeys are allowed to be set from kwargs.
     # If the value is True, we'll look for a default in the Ambassador module
-    # if the key is missing. If the value is False, a missing key will simply 
+    # if the key is missing. If the value is False, a missing key will simply
     # be unset.
     #
     # Do not include any named parameters (like 'precedence' or 'rewrite').
-    #  
+    #
     # Any key here will be copied into the mapping. Keys where the only
     # processing is to set something else (like 'host' and 'method', whose
     # which only need to set the ':authority' and ':method' headers) must
@@ -75,14 +77,17 @@ class IRHTTPMapping (IRBaseMapping):
         # Do not include add_request_headers and add_response_headers
         "auto_host_rewrite": False,
         "bypass_auth": False,
+        "bypass_error_response_overrides": False,
         "case_sensitive": False,
         "circuit_breakers": False,
         "cluster_idle_timeout_ms": False,
         # Do not include cluster_tag
         "connect_timeout_ms": False,
         "cors": False,
+        "docs": False,
         "enable_ipv4": False,
         "enable_ipv6": False,
+        "error_response_overrides": False,
         "grpc": False,
         # Do not include headers
         "host": False,          # See notes above
@@ -141,7 +146,7 @@ class IRHTTPMapping (IRBaseMapping):
         # AllowedKeys. The point of AllowedKeys is this loop below.
 
         new_args = {}
-        
+
         # When we look up defaults, use lookup class "httpmapping"... and yeah, we need the
         # IR, too.
         self.default_class = "httpmapping"
@@ -154,7 +159,7 @@ class IRHTTPMapping (IRBaseMapping):
                 value = kwargs[key]
                 new_args[key] = value
             elif check_defaults:
-                # No value in kwargs, but we're allowed to check defaults for it. 
+                # No value in kwargs, but we're allowed to check defaults for it.
                 value = self.lookup_default(key)
 
                 if value is not None:
@@ -307,6 +312,17 @@ class IRHTTPMapping (IRBaseMapping):
 
             if self.retry_policy:
                 self.retry_policy.referenced_by(self)
+            else:
+                return False
+
+        # If we have error response overrides, generate an IR for that too.
+        if 'error_response_overrides' in self:
+            self.error_response_overrides = IRErrorResponse(self.ir, aconf,
+                                                            self.get('error_response_overrides', None),
+                                                            location=self.location)
+            #if self.error_response_overrides.setup(self.ir, aconf):
+            if self.error_response_overrides:
+                self.error_response_overrides.referenced_by(self)
             else:
                 return False
 

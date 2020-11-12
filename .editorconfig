@@ -2,18 +2,66 @@ root = true
 
 [*]
 end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
 insert_final_newline = true
+
+; JSON ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 [*.json]
 insert_final_newline = false
+indent_style = space
+indent_size = 4
+
+[package.json]
+; The various tools (npm, yarn, ...) that edit package.json files all
+; seem to use 2-space indent, not 4.
+indent_size = 2
+
+; YAML ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+[{*.yaml,*.yml}]
+indent_style = space
+indent_size = 2
+
+; Python ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 [*.py]
 indent_style = space
 indent_size = 4
+; Flynn's style is to wrap things at 100 columns, so mimic that.
+max_line_length = 100
+
+; Go ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+[*.go]
+indent_style = tab
+; mimic gofmt's go/printer.printer.funcBody().maxSize
+max_line_length = 100
+; mimic gofmt's cmd/gofmt.tabWidth
+tab_width = 8
+
+[{go.mod,go.sum}]
+indent_style = tab
+
+; Misc ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+[{Makefile,*.mk}]
+; If somehow this gets set to not-tab, then the resulting Makefile
+; won't work.
+indent_style = tab
 
 [*.sh]
 indent_style = space
 indent_size = 4
 
-[*.go]
+[*.el]
+indent_style = space
+
+[*.js]
 indent_style = tab
+
+[*.md]
+; Emacs markdown-mode gets mixed tabs/spaces wrong, and so I have zero
+; faith that any other tool gets it right.
+indent_style = space

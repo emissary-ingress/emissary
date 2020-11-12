@@ -57,6 +57,8 @@ class IRAmbassador (IRResource):
         'regex_max_size',
         'regex_type',
         'resolver',
+        'error_response_overrides',
+        'header_case_overrides',
         'server_name',
         'service_port',
         'statsd',

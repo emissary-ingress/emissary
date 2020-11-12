@@ -135,8 +135,8 @@ service: http://127.0.0.1:8001
                             assert len(
                                 access_logs) > 0, "No access log configurations found in any listeners filter chains"
                             for access_log in access_logs:
-                                if access_log.get('name') == 'envoy.http_grpc_access_log' and access_log.get(
-                                    'config').get('common_config').get('grpc_service').get('envoy_grpc').get(
+                                if access_log.get('name') == 'envoy.access_loggers.http_grpc' and access_log.get(
+                                    'typed_config').get('common_config').get('grpc_service').get('envoy_grpc').get(
                                     'cluster_name') == 'cluster_logging_stenography_25565_default':
                                     found_configured_access_log = True
                                     break
@@ -273,8 +273,8 @@ service: http://127.0.0.1:8001
                             assert len(
                                 access_logs) > 0, "No access log configurations found in any listeners filter chains"
                             for access_log in access_logs:
-                                if access_log.get('name') == 'envoy.http_grpc_access_log' and access_log.get(
-                                    'config').get('common_config').get('grpc_service').get('envoy_grpc').get(
+                                if access_log.get('name') == 'envoy.access_loggers.http_grpc' and access_log.get(
+                                    'typed_config').get('common_config').get('grpc_service').get('envoy_grpc').get(
                                     'cluster_name') == 'cluster_logging_stenographylongservicena-0':
                                     found_configured_access_log = True
                                     break

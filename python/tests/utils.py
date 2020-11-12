@@ -1,12 +1,53 @@
 import os
 import subprocess
+import socket
 import tempfile
+import time
 from collections import namedtuple
+from urllib import request
+from urllib.error import URLError, HTTPError
+from retry import retry
 
 import yaml
 
 from kat.utils import namespace_manifest
 from kat.harness import load_manifest, CLEARTEXT_HOST_YAML
+
+httpbin_manifests ="""
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpbin
+spec:
+  type: ClusterIP
+  selector:
+    service: httpbin
+  ports:
+  - port: 80
+    targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpbin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: httpbin
+  template:
+    metadata:
+      labels:
+        service: httpbin
+    spec:
+      containers:
+      - name: httpbin
+        image: kennethreitz/httpbin
+        ports:
+        - name: http
+          containerPort: 80
+"""
 
 qotm_manifests = """
 ---
@@ -168,3 +209,35 @@ spec:
 """
 
     apply_kube_artifacts(namespace=namespace, artifacts=qotm_mapping)
+
+def create_httpbin_mapping(namespace):
+    httpbin_mapping = f"""
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name:  httpbin-mapping
+  namespace: {namespace}
+spec:
+  prefix: /httpbin/
+  rewrite: /
+  service: httpbin
+"""
+
+    apply_kube_artifacts(namespace=namespace, artifacts=httpbin_mapping)
+
+
+def get_code_with_retry(req):
+    for attempts in range(10):
+        try:
+            conn = request.urlopen(req, timeout=10)
+            conn.close()
+            return 200
+        except HTTPError as e:
+            if int(e.code) < 500:
+                return e.code
+            print(f"get_code_with_retry: HTTPError code {e.code}, attempt {attempts+1}")
+        except socket.timeout as e:
+            print(f"get_code_with_retry: socket.timeout {e}, attempt {attempts+1}")
+        time.sleep(5)
+    return 503
