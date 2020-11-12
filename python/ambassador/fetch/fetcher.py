@@ -193,16 +193,16 @@ class ResourceFetcher:
             self.aconf.post_error("Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_2')):
-            self.aconf.post_error("Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
+            self.aconf.post_error("Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador, but ConsulResolver, KubernetesEndpointResolver, and KubernetesServiceResolver resources will be ignored...")
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_3')):
-            self.aconf.post_error("Ambassador could not find the Host CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
+            self.aconf.post_error("Ambassador could not find the Host CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador, but Host resources will be ignored...")
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_4')):
-            self.aconf.post_error("Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
+            self.aconf.post_error("Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador, but LogService resources will be ignored...")
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_5')):
-            self.aconf.post_error("Ambassador could not find the DevPortal CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
+            self.aconf.post_error("Ambassador could not find the DevPortal CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador, but DevPortal resources will be ignored...")
 
         # We could be posting errors about the missing IngressClass resource, but given it's new in K8s 1.18
         # and we assume most users would be worried about it when running on older clusters, we'll rely on
