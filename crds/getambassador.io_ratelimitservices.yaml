@@ -44,6 +44,11 @@ spec:
               - type: array
             domain:
               type: string
+            protocol_version:
+              enum:
+              - v2
+              - v2alpha
+              type: string
             service:
               type: string
             timeout_ms:
