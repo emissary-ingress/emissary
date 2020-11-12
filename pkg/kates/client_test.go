@@ -17,7 +17,7 @@ import (
 func TestCRUD(t *testing.T) {
 	ctx := context.TODO()
 
-	cli, err := NewClient(ClientOptions{})
+	cli, err := NewClient(ClientConfig{})
 	assert.NoError(t, err)
 
 	cm := &ConfigMap{
@@ -65,7 +65,7 @@ func TestCRUD(t *testing.T) {
 func TestUpsert(t *testing.T) {
 	ctx := context.TODO()
 
-	cli, err := NewClient(ClientOptions{})
+	cli, err := NewClient(ClientConfig{})
 	assert.NoError(t, err)
 
 	cm := &ConfigMap{
@@ -108,7 +108,7 @@ func TestUpsert(t *testing.T) {
 func TestPatch(t *testing.T) {
 	ctx := context.TODO()
 
-	cli, err := NewClient(ClientOptions{})
+	cli, err := NewClient(ClientConfig{})
 	assert.NoError(t, err)
 
 	cm := &ConfigMap{
@@ -138,7 +138,7 @@ func TestPatch(t *testing.T) {
 func TestList(t *testing.T) {
 	ctx := context.TODO()
 
-	cli, err := NewClient(ClientOptions{})
+	cli, err := NewClient(ClientConfig{})
 	assert.NoError(t, err)
 
 	namespaces := make([]*Namespace, 0)
@@ -164,7 +164,7 @@ func TestList(t *testing.T) {
 func TestListSelector(t *testing.T) {
 	ctx := context.TODO()
 
-	cli, err := NewClient(ClientOptions{})
+	cli, err := NewClient(ClientConfig{})
 	assert.NoError(t, err)
 
 	myns := &Namespace{
@@ -200,7 +200,7 @@ func TestListSelector(t *testing.T) {
 func TestShortcut(t *testing.T) {
 	ctx := context.TODO()
 
-	cli, err := NewClient(ClientOptions{})
+	cli, err := NewClient(ClientConfig{})
 	assert.NoError(t, err)
 
 	cm := &ConfigMap{
@@ -232,7 +232,7 @@ type TestSnapshot struct {
 func TestCoherence(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 
-	cli, err := NewClient(ClientOptions{})
+	cli, err := NewClient(ClientConfig{})
 	require.NoError(t, err)
 
 	// This simulates an api server that is very slow at notifying its watch clients of updates to
@@ -424,7 +424,7 @@ func TestDeltasWithRemoteDelay(t *testing.T) {
 func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstructured, *Unstructured)) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 
-	cli, err := NewClient(ClientOptions{})
+	cli, err := NewClient(ClientConfig{})
 	require.NoError(t, err)
 	cli.watchAdded = watchHook
 	cli.watchUpdated = watchHook

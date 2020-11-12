@@ -30,7 +30,7 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 		panic(err)
 	}
 
-	client, err := kates.NewClient(kates.ClientOptions{})
+	client, err := kates.NewClient(kates.ClientConfig{})
 	if err != nil {
 		panic(err)
 	}

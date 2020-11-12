@@ -84,16 +84,16 @@ type Client struct {
 	watchDeleted func(*Unstructured, *Unstructured)
 }
 
-// The ClientOptions struct holds all the parameters and configuration
+// The ClientConfig struct holds all the parameters and configuration
 // that can be passed upon construct of a new Client.
-type ClientOptions struct {
+type ClientConfig struct {
 	Kubeconfig string
 	Context    string
 	Namespace  string
 }
 
-// The NewClient function constructs a new client with the supplied ClientOptions.
-func NewClient(options ClientOptions) (*Client, error) {
+// The NewClient function constructs a new client with the supplied ClientConfig.
+func NewClient(options ClientConfig) (*Client, error) {
 	return NewClientFromConfigFlags(config(options))
 }
 
@@ -944,7 +944,7 @@ func unKey(u *Unstructured) string {
 	return string(u.GetUID())
 }
 
-func config(options ClientOptions) *ConfigFlags {
+func config(options ClientConfig) *ConfigFlags {
 	flags := pflag.NewFlagSet("KubeInfo", pflag.PanicOnError)
 	result := NewConfigFlags(false)
 
