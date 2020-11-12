@@ -23,7 +23,11 @@
         "service": { "type": "string" },
         "timeout_ms": { "type": "integer" },
         "domain": { "type": "string" },
-        "tls": { "type": [ "string", "boolean" ] }
+        "tls": { "type": [ "string", "boolean" ] },
+        "protocol_version": {
+            "type": "string",
+            "enum": [ "v2", "v2alpha" ]
+        }
     },
     "required": [ "apiVersion", "kind", "name", "service" ],
     "additionalProperties": false

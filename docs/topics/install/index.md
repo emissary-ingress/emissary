@@ -96,7 +96,7 @@ Operator, [follow the Ambassador Edge Stack Operator instructions](aes-operator)
 ## Install on Bare Metal
 If you don't have a load balancer in front of your Kubernetes, the Bare Metal 
 installation mechanism can still be used to expose the Ambassador Edge Stack. 
-We've got [instructions for bare metal installations] including exposing 
+We've got [instructions for bare metal installations](bare-metal) including exposing 
 the Ambassador Edge Stack via a NodePort or the host network.
 <p id="index-installUpgrade"></p><br/>
 

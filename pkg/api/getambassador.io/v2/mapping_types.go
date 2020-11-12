@@ -38,6 +38,7 @@ type MappingSpec struct {
 	AddLinkerdHeaders     bool                    `json:"add_linkerd_headers,omitempty"`
 	AutoHostRewrite       bool                    `json:"auto_host_rewrite,omitempty"`
 	CaseSensitive         bool                    `json:"case_sensitive,omitempty"`
+	Docs                  *DocsInfo               `json:"docs,omitempty"`
 	EnableIPv4            bool                    `json:"enable_ipv4,omitempty"`
 	EnableIPv6            bool                    `json:"enable_ipv6,omitempty"`
 	CircuitBreakers       []*CircuitBreaker       `json:"circuit_breakers,omitempty"`
@@ -92,18 +93,32 @@ type MappingSpec struct {
 	//    - spdy/3.1
 	AllowUpgrade []string `json:"allow_upgrade,omitempty"`
 
-	Weight               int                     `json:"weight,omitempty"`
-	BypassAuth           bool                    `json:"bypass_auth,omitempty"`
-	Modules              []UntypedDict           `json:"modules,omitempty"`
-	Host                 string                  `json:"host,omitempty"`
-	HostRegex            bool                    `json:"host_regex,omitempty"`
-	Headers              map[string]BoolOrString `json:"headers,omitempty"`
-	RegexHeaders         map[string]BoolOrString `json:"regex_headers,omitempty"`
-	Labels               DomainMap               `json:"labels,omitempty"`
-	EnvoyOverride        *UntypedDict            `json:"envoy_override,omitempty"`
-	LoadBalancer         *LoadBalancer           `json:"load_balancer,omitempty"`
-	QueryParameters      map[string]BoolOrString `json:"query_parameters,omitempty"`
-	RegexQueryParameters map[string]BoolOrString `json:"regex_query_parameters,omitempty"`
+	Weight     int  `json:"weight,omitempty"`
+	BypassAuth bool `json:"bypass_auth,omitempty"`
+	// If true, bypasses any `error_response_overrides` set on the Ambassador module.
+	BypassErrorResponseOverrides bool `json:"bypass_error_response_overrides,omitempty"`
+	// Error response overrides for this Mapping. Replaces all of the `error_response_overrides`
+	// set on the Ambassador module, if any.
+	// +kubebuilder:validation:MinItems=1
+	ErrorResponseOverrides []ErrorResponseOverride `json:"error_response_overrides,omitempty"`
+	Modules                []UntypedDict           `json:"modules,omitempty"`
+	Host                   string                  `json:"host,omitempty"`
+	HostRegex              bool                    `json:"host_regex,omitempty"`
+	Headers                map[string]BoolOrString `json:"headers,omitempty"`
+	RegexHeaders           map[string]BoolOrString `json:"regex_headers,omitempty"`
+	Labels                 DomainMap               `json:"labels,omitempty"`
+	EnvoyOverride          *UntypedDict            `json:"envoy_override,omitempty"`
+	LoadBalancer           *LoadBalancer           `json:"load_balancer,omitempty"`
+	QueryParameters        map[string]BoolOrString `json:"query_parameters,omitempty"`
+	RegexQueryParameters   map[string]BoolOrString `json:"regex_query_parameters,omitempty"`
+}
+
+// DocsInfo provides some extra information about the docs for the Mapping
+// (used by the Dev Portal)
+type DocsInfo struct {
+	Path    string `json:"path,omitempty"`
+	URL     string `json:"url,omitempty"`
+	Ignored bool   `json:"ignored,omitempty"`
 }
 
 type DomainMap map[string]MappingLabelsArray

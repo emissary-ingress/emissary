@@ -316,11 +316,11 @@ config:
 # This test asserts that the external authorization server receives the proper tracing
 # headers when Ambassador is configured with an HTTP AuthService.
 class TracingExternalAuthTest(AmbassadorTest):
-    
+
     def init(self):
         self.target = HTTP()
         self.auth = AHTTP(name="auth")
-        
+
     def manifests(self) -> str:
         return """
 ---
@@ -582,6 +582,7 @@ driver: zipkin
 config:
   collector_endpoint: /api/v2/spans
   collector_endpoint_version: HTTP_JSON
+  collector_hostname: zipkin-v2
 """)
 
     def requirements(self):
@@ -695,6 +696,7 @@ driver: zipkin
 config:
   collector_endpoint: /api/v1/spans
   collector_endpoint_version: HTTP_JSON_V1
+  collector_hostname: zipkin-v1
 """)
 
     def requirements(self):

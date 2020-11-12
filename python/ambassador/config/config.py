@@ -71,6 +71,7 @@ class Config:
         'kubernetesendpointresolver': "resolvers",
         'kubernetesserviceresolver': "resolvers",
         'ratelimitservice': "ratelimit_configs",
+        'devportal': "devportals",
         'tcpmapping': "tcpmappings",
         'tlscontext': "tls_contexts",
         'tracingservice': "tracing_configs",
@@ -481,7 +482,7 @@ class Config:
         need_validation = True
 
         # Next up: is the AMBASSADOR_FAST_VALIDATION flag set?
-        
+
         if Config.fast_validation:
             # Yes, so we _don't_ need to do validation here.
             need_validation = False
@@ -489,7 +490,7 @@ class Config:
         # Finally, does the object specifically demand validation? (This is presently used
         # for objects coming from annotations, since watt can't currently validate those.)
         if resource.get('_force_validation', False):
-            # Yup, so we'll honor that. 
+            # Yup, so we'll honor that.
             need_validation = True
             del(resource['_force_validation'])
 
@@ -545,7 +546,7 @@ class Config:
                     # We don't like it either. Stick with the watt errors (since we know,
                     # a priori, that fast validation is enabled).
                     rc = RichStatus.fromError(watt_errors)
-            
+
         # One way or the other, we're done here. Finally.
         self.logger.debug(f"validation {rc}")
         return rc

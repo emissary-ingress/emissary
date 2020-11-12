@@ -72,6 +72,8 @@ func (m *ZipkinConfig) Validate() error {
 
 	// no validation rules for CollectorEndpointVersion
 
+	// no validation rules for CollectorHostname
+
 	return nil
 }
 

@@ -15,7 +15,9 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/cmd/ambex"
+	"github.com/datawire/ambassador/pkg/acp"
 	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/pkg/memory"
 
 	"github.com/google/uuid"
 )
@@ -106,6 +108,9 @@ func Main() {
 	envoyHUP := make(chan os.Signal, 1)
 	signal.Notify(envoyHUP, syscall.SIGHUP)
 
+	// Go ahead and create an AmbassadorWatcher now, since we'll need it later.
+	ambwatch := acp.NewAmbassadorWatcher(acp.NewEnvoyWatcher(), acp.NewDiagdWatcher())
+
 	group := NewGroup(context.Background(), 10*time.Second)
 
 	group.Go("diagd", func(ctx context.Context) {
@@ -118,12 +123,15 @@ func Main() {
 		logExecError("diagd", err)
 	})
 
+	usage := memory.GetMemoryUsage()
+	group.Go("memory", usage.Watch)
+
 	group.Go("ambex", func(ctx context.Context) {
 		err := flag.CommandLine.Parse([]string{"--ads-listen-address", "127.0.0.1:8003", GetEnvoyDir()})
 		if err != nil {
 			panic(err)
 		}
-		ambex.MainContext(ctx)
+		ambex.MainContext(ctx, usage.PercentUsed)
 	})
 
 	group.Go("envoy", func(ctx context.Context) { runEnvoy(ctx, envoyHUP) })
@@ -133,9 +141,15 @@ func Main() {
 		snapshotServer(ctx, snapshot)
 	})
 	group.Go("watcher", func(ctx context.Context) {
-		watcher(ctx, snapshot)
+		// We need to pass the AmbassadorWatcher to this (Kubernetes/Consul) watcher, so
+		// that it can tell the AmbassadorWatcher when snapshots are posted.
+		watcher(ctx, ambwatch, snapshot)
 	})
-	group.Go("memory", watchMemory)
+
+	// Finally, fire up the health check handler.
+	group.Go("healthchecks", func(ctx context.Context) {
+		healthCheckHandler(ctx, ambwatch)
+	})
 
 	// Launch every file in the sidecar directory. Note that this is "bug compatible" with
 	// entrypoint.sh for now, e.g. we don't check execute bits or anything like that.

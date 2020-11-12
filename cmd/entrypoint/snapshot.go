@@ -49,6 +49,7 @@ type AmbassadorInputs struct {
 	RateLimitServices []*amb.RateLimitService `json:"RateLimitService"`
 	LogServices       []*amb.LogService       `json:"LogService"`
 	TracingServices   []*amb.TracingService   `json:"TracingService"`
+	DevPortals        []*amb.DevPortal        `json:"DevPortal"`
 
 	// resolvers
 	ConsulResolvers             []*amb.ConsulResolver             `json:"ConsulResolver"`
@@ -107,6 +108,8 @@ func GetAmbId(resource kates.Object) amb.AmbassadorID {
 	case *amb.LogService:
 		return r.Spec.AmbassadorID
 	case *amb.TracingService:
+		return r.Spec.AmbassadorID
+	case *amb.DevPortal:
 		return r.Spec.AmbassadorID
 	case *amb.ConsulResolver:
 		return r.Spec.AmbassadorID

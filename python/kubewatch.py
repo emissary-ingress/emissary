@@ -289,6 +289,12 @@ def main(debug):
                 [
                     'logservices.getambassador.io'
                 ]
+            ),
+            (
+                '.ambassador_ignore_crds_5', 'DevPortal CRDs',
+                [
+                    'devportals.getambassador.io'
+                ]
             )
         ]
 

@@ -16,7 +16,7 @@
 
 # This argument controls the base image that is used for our build
 # container.
-ARG builderbase_stage0="frolvlad/alpine-glibc:alpine-3.10"
+ARG builderbase_stage0="docker.io/frolvlad/alpine-glibc:alpine-3.12_glibc-2.32"
 ARG builderbase_stage1="builderbase-stage1"
 
 ########################################
@@ -32,10 +32,12 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local
 RUN apk --no-cache add \
     bash \
     bash-completion \
-    build-base \
+    gcc \
+    make \
+    musl-dev \
     curl \
     cython \
-    docker \
+    docker-cli \
     git \
     iptables \
     jq \
@@ -47,6 +49,8 @@ RUN apk --no-cache add \
     npm \
     openssh-client \
     openssl-dev \
+    py3-pip \
+    py3-pip-bash-completion \
     python3 \
     python3-dev \
     rsync \
@@ -59,9 +63,6 @@ RUN npm config set user 0 && \
     npm config set unsafe-perm true && \
     npm install -g rollup@2.9.1 rollup-plugin-terser@5.3.0
 RUN curl --fail -L https://dl.google.com/go/go1.15.linux-amd64.tar.gz | tar -C /usr/local -xzf -
-RUN curl https://sdk.cloud.google.com > /tmp/install.sh && \
-    mkdir /usr/lib64/ && \
-    bash /tmp/install.sh --disable-prompts --install-dir=/usr/lib64
 
 RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.16.0/bin/linux/amd64/kubectl -o /usr/bin/kubectl && chmod a+x /usr/bin/kubectl && \
     kubectl completion bash > /usr/share/bash-completion/completions/kubectl

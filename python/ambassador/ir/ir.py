@@ -37,6 +37,7 @@ from .irhttpmapping import IRHTTPMapping
 from .irhost import IRHost, HostFactory
 from .irmappingfactory import MappingFactory
 from .irratelimit import IRRateLimit
+from .irerrorresponse import IRErrorResponse
 from .irtls import TLSModuleFactory, IRAmbassadorTLS
 from .irlistener import ListenerFactory, IRListener
 from .irlogservice import IRLogService, IRLogServiceFactory
@@ -103,10 +104,10 @@ class IR:
     tracing: Optional[IRTracing]
 
     def __init__(self, aconf: Config,
-                 secret_handler: SecretHandler, 
+                 secret_handler: SecretHandler,
                  file_checker: Optional[IRFileChecker]=None,
-                 logger: Optional[logging.Logger]=None, 
-                 cache: Optional[Cache]=None, 
+                 logger: Optional[logging.Logger]=None,
+                 cache: Optional[Cache]=None,
                  watch_only=False) -> None:
         # Initialize the basics...
         self.ambassador_id = Config.ambassador_id
@@ -123,7 +124,7 @@ class IR:
         # We're using setattr since since mypy complains about assigning directly to a method.
         secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
 
-        # This setattr business is because mypy seems to think that, since self.file_checker is 
+        # This setattr business is because mypy seems to think that, since self.file_checker is
         # callable, any mention of self.file_checker must be a function call. Sigh.
         setattr(self, 'file_checker', file_checker if file_checker is not None else os.path.isfile)
 
@@ -276,6 +277,11 @@ class IR:
         # ...then the ratelimit filter...
         if self.ratelimit:
             self.save_filter(self.ratelimit, already_saved=True)
+
+        # ...and the error response filter...
+        self.save_filter(IRErrorResponse(self, aconf,
+                                         self.ambassador_module.get('error_response_overrides', None),
+                                         referenced_by_obj=self.ambassador_module))
 
         # ...and, finally, the barely-configurable router filter.
         router_config = {}
@@ -525,7 +531,7 @@ class IR:
     def cache_fetch(self, key: str) -> Optional[IRResource]:
         """
         Fetch a key from our cache. If we get anything, make sure that its
-        IR pointer is set back to us -- since the cache can easily outlive 
+        IR pointer is set back to us -- since the cache can easily outlive
         the IR, chances are pretty high that the object might've originally
         been part of a different IR.
 

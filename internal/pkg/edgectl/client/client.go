@@ -448,7 +448,8 @@ func withDaemon(f func(rpc.DaemonClient) error) error {
 		}
 		return err
 	}
-	conn, err := grpc.Dial("passthrough:///unix://"+edgectl.DaemonSocketName, grpc.WithInsecure())
+	conn, err := grpc.Dial("passthrough:///unix://"+edgectl.DaemonSocketName,
+		grpc.WithInsecure(), grpc.WithNoProxy())
 	if err == nil {
 		defer conn.Close()
 		return f(rpc.NewDaemonClient(conn))

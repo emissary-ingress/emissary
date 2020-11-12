@@ -54,6 +54,8 @@ type AuthServiceSpec struct {
 	FailureModeAllow            bool                      `json:"failure_mode_allow,omitempty"`
 	IncludeBody                 *AuthServiceIncludeBody   `json:"include_body,omitempty"`
 	StatusOnError               *AuthServiceStatusOnError `json:"status_on_error,omitempty"`
+	// +kubebuilder:validation:Enum={"v2","v2alpha"}
+	ProtocolVersion string `json:"protocol_version,omitempty"`
 }
 
 // AuthService is the Schema for the authservices API

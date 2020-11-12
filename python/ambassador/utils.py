@@ -158,7 +158,7 @@ class RichStatus:
 
     def __nonzero__(self):
         return bool(self)
-        
+
     def __contains__(self, key):
         return key in self.info
 
@@ -205,7 +205,7 @@ class Timer:
 
     t.start()
 
-    ...and the .stop method to stop the timer and update the timer's 
+    ...and the .stop method to stop the timer and update the timer's
     records.
 
     t.stop()
@@ -258,7 +258,7 @@ class Timer:
 
     def __bool__(self) -> bool:
         """
-        Timers test True in a boolean context if they have timed at least one 
+        Timers test True in a boolean context if they have timed at least one
         cycle.
         """
         return self._cycles > 0
@@ -271,9 +271,9 @@ class Timer:
         the current time is used.
         """
 
-        # If we're already running, this method silently discards the 
+        # If we're already running, this method silently discards the
         # currently-running cycle. Why? Because otherwise, it's a little
-        # too easy to forget to stop a Timer, cause an Exception, and 
+        # too easy to forget to stop a Timer, cause an Exception, and
         # crash the world.
         #
         # Not that I ever got bitten by this. Of course. [ :P ]
@@ -336,7 +336,7 @@ class Timer:
         The number of timing cycles this Timer has recorded.
         """
         return self._cycles
-    
+
     @property
     def starttime(self):
         """
@@ -344,28 +344,28 @@ class Timer:
         never been started.
         """
         return self._starttime
-    
+
     @property
     def accumulated(self):
         """
         The amount of time this Timer has accumulated.
         """
         return self._accumulated
-    
+
     @property
     def minimum(self):
         """
         The minimum single-cycle time this Timer has recorded.
         """
         return self._minimum
-    
+
     @property
     def maximum(self):
         """
         The maximum single-cycle time this Timer has recorded.
         """
         return self._maximum
-    
+
     @property
     def average(self):
         """
@@ -382,7 +382,7 @@ class Timer:
         Whether or not this Timer is running.
         """
         return self._running
-    
+
     def __str__(self) -> str:
         s = "Timer %s: " % self.name
 

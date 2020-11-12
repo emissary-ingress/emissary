@@ -117,7 +117,7 @@ class IRAuth (IRFilter):
                     self[key] = value
 
             self.referenced_by(module)
-        
+
         if module.get("add_linkerd_headers"):
             self["add_linkerd_headers"] = module.get("add_linkerd_headers")
         else:
@@ -133,6 +133,7 @@ class IRAuth (IRFilter):
         self["connect_timeout_ms"] = module.get("connect_timeout_ms", 3000)
         self["cluster_idle_timeout_ms"] = module.get("cluster_idle_timeout_ms", None)
         self["add_auth_headers"] = module.get("add_auth_headers", {})
+        self["protocol_version"] = module.get("protocol_version", "v2alpha")
         self.__to_header_list('allowed_headers', module)
         self.__to_header_list('allowed_request_headers', module)
         self.__to_header_list('allowed_authorization_headers', module)
@@ -140,7 +141,7 @@ class IRAuth (IRFilter):
         status_on_error = module.get('status_on_error', None)
         if status_on_error:
             self['status_on_error'] = status_on_error
-        
+
         failure_mode_allow = module.get('failure_mode_allow', None)
         if failure_mode_allow:
             self['failure_mode_allow'] = failure_mode_allow
