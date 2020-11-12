@@ -24,7 +24,7 @@ from ..ir.irbasemappinggroup import IRBaseMappingGroup
 from ..ir.irhttpmappinggroup import IRHTTPMappingGroup
 from ..envoy import EnvoyConfig
 from .envoy_stats import EnvoyStats
-
+from ..utils import dump_json
 
 class DiagSource (dict):
     pass
@@ -100,8 +100,7 @@ class DiagClusters:
         return key in self.clusters
 
     def as_json(self):
-        return json.dumps(self.clusters, sort_keys=True, indent=4)
-
+        return dump_json(self.clusters, pretty=True)
 
 class DiagResult:
     """

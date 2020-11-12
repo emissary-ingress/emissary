@@ -45,7 +45,7 @@ func MD5All(ctx context.Context, root string) (map[string][md5.Size]byte, error)
 	// - even in case of error! - we know that all of the goroutines have finished
 	// and the memory they were using can be garbage-collected.
 	ctx, cancel := context.WithCancel(ctx)
-	g := errgroup.NewGroup(cancel)
+	g := errgroup.NewGroup(cancel, false)
 	paths := make(chan string)
 
 	g.Go("walk", func() error {

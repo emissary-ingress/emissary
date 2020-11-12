@@ -28,7 +28,7 @@ from multi import multi
 from pkg_resources import Requirement, resource_filename
 from google.protobuf import json_format
 
-from ..utils import RichStatus
+from ..utils import RichStatus, dump_json
 
 from ..resource import Resource
 from .acresource import ACResource
@@ -231,7 +231,7 @@ class Config:
         return od
 
     def as_json(self):
-        return json.dumps(self.as_dict(), sort_keys=True, indent=4)
+        return dump_json(self.as_dict(), pretty=True)
 
     # Often good_ambassador_id will be passed an ACResource, but sometimes
     # just a plain old dict.
@@ -620,7 +620,7 @@ class Config:
         metadata_labels = rdict.pop('metadata_labels', None)
         generation = rdict.pop('generation', None)
 
-        serialized = json.dumps(rdict)
+        serialized = dump_json(rdict)
 
         try:
             json_format.Parse(serialized, protoclass())

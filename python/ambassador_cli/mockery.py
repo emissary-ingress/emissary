@@ -45,7 +45,7 @@ click_option_no_default = functools.partial(click.option, show_default=False)
 
 from ambassador import Config, IR, Diagnostics, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
-from ambassador.utils import parse_yaml, SecretHandler, SecretInfo
+from ambassador.utils import parse_yaml, SecretHandler, SecretInfo, dump_json
 from kat.utils import ShellCommand
 
 if TYPE_CHECKING:
@@ -262,7 +262,7 @@ class Mockery:
         for kind in collected.keys():
             watt_k8s[kind] = list(collected[kind].values())
 
-        self.snapshot = json.dumps({ 'Consul': {}, 'Kubernetes': watt_k8s }, sort_keys=True, indent=4)
+        self.snapshot = dump_json({ 'Consul': {}, 'Kubernetes': watt_k8s }, pretty=True)
 
         return watt_k8s
 
@@ -466,15 +466,15 @@ def main(k8s_yaml_paths: List[str], debug: bool, force_pod_labels: bool, update:
 
     ads_config.pop('@type', None)
     with open("/tmp/ambassador/snapshots/econf.json", "w", encoding="utf-8") as outfile:
-        outfile.write(json.dumps(ads_config, sort_keys=True, indent=4))
+        outfile.write(dump_json(ads_config, pretty=True))
 
     with open("/tmp/ambassador/snapshots/bootstrap.json", "w", encoding="utf-8") as outfile:
-        outfile.write(json.dumps(bootstrap_config, sort_keys=True, indent=4))
+        outfile.write(dump_json(bootstrap_config, pretty=True))
 
     diag = Diagnostics(ir, econf)
 
     with open("/tmp/ambassador/snapshots/diag.json", "w", encoding="utf-8") as outfile:
-        outfile.write(json.dumps(diag.as_dict(), sort_keys=True, indent=4))
+        outfile.write(dump_json(diag.as_dict(), pretty=True))
 
     if diff_path:
         diffs = False

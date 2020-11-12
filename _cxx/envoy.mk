@@ -13,14 +13,15 @@ IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
-  BASE_ENVOY_RELVER ?= 1
+  BASE_ENVOY_RELVER ?= 4
 
   ENVOY_DOCKER_REPO ?= $(if $(IS_PRIVATE),quay.io/datawire-private/ambassador-base,docker.io/datawire/ambassador-base)
   ENVOY_DOCKER_VERSION ?= $(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
   ENVOY_DOCKER_TAG ?= $(ENVOY_DOCKER_REPO):envoy-$(ENVOY_DOCKER_VERSION)
+  ENVOY_FULL_DOCKER_TAG ?= $(ENVOY_DOCKER_REPO):envoy-full-$(ENVOY_DOCKER_VERSION)
 # END LIST OF VARIABLES REQUIRING `make update-base`.
 
-# for builder.sh...
+# for builder.mk...
 export ENVOY_DOCKER_TAG
 
 #
@@ -143,12 +144,12 @@ ENVOY_DOCKER_EXEC = docker exec --workdir=/root/envoy $(foreach e,$(ENVOY_DOCKER
 $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	mkdir -p $(@D)
 	@PS4=; set -ex; { \
-	    if [ '$(ENVOY_COMMIT)' != '-' ] && docker run --rm --entrypoint=true $(ENVOY_DOCKER_TAG); then \
-	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy-static $@; \
+	    if [ '$(ENVOY_COMMIT)' != '-' ] && docker run --rm --entrypoint=true $(ENVOY_FULL_DOCKER_TAG); then \
+	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_FULL_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy-static $@; \
 	    else \
 	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
 	            { set +x; } &>/dev/null; \
-	            echo 'error: failed to pull $(ENVOY_DOCKER_TAG), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
+	            echo 'error: failed to pull $(ENVOY_FULL_DOCKER_TAG), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
 	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
 	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
 	            exit 1; \
@@ -215,9 +216,10 @@ $(OSS_HOME)/pkg/api/pb $(OSS_HOME)/pkg/api/envoy: $(OSS_HOME)/pkg/api/%: $(OSS_H
 	}
 
 update-base: $(OSS_HOME)/_cxx/envoy-build-image.txt $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-envoy/envoy-static-stripped
-	docker build --build-arg=base=$$(cat $(OSS_HOME)/_cxx/envoy-build-image.txt) -t $(ENVOY_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy
+	docker build -f $(OSS_HOME)/docker/base-envoy/Dockerfile.stripped -t $(ENVOY_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy
+	docker build --build-arg=base=$$(cat $(OSS_HOME)/_cxx/envoy-build-image.txt) -t $(ENVOY_FULL_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy
 	$(MAKE) generate
-	if [ '$(ENVOY_COMMIT)' != '-' ]; then docker push $(ENVOY_DOCKER_TAG); fi
+	if [ '$(ENVOY_COMMIT)' != '-' ]; then docker push $(ENVOY_DOCKER_TAG) && docker push $(ENVOY_FULL_DOCKER_TAG); fi
 .PHONY: update-base
 
 #

@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Type, TypeVar
 
 import json
 
-from .utils import parse_yaml
+from .utils import parse_yaml, dump_json
 from .cache import Cacheable
 
 
@@ -105,8 +105,8 @@ class Resource (Cacheable):
 
         return ad
 
-    def as_json(self, indent=4, sort_keys=True, **kwargs):
-        return json.dumps(self.as_dict(), indent=indent, sort_keys=sort_keys, **kwargs)
+    def as_json(self):
+        return dump_json(self.as_dict(), pretty=True)
 
     @classmethod
     def from_resource(cls: Type[R], other: R,
