@@ -119,6 +119,19 @@ class AmbassadorTest(Test):
       value: "true"
 """
 
+        if os.environ.get('AMBASSADOR_FAST_JSON', 'false').lower() == 'true':
+            self.manifest_envs += """
+    - name: AMBASSADOR_FAST_JSON
+      value: "true"
+"""
+
+        if os.environ.get('AMBASSADOR_JSON_INDENT', None) is not None:
+            self.manifest_envs += f"""
+    - name: AMBASSADOR_JSON_INDENT
+      value: "{os.environ.get('AMBASSADOR_JSON_INDENT')}"
+"""
+
+
         if self.debug_diagd:
             self.manifest_envs += """
     - name: AMBASSADOR_DEBUG

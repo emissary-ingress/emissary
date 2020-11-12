@@ -7,7 +7,7 @@ import yaml
 import re
 
 from ..config import ACResource, Config
-from ..utils import parse_yaml
+from ..utils import parse_yaml, parse_json, dump_json
 
 from .resource import NormalizedResource, ResourceManager
 from .k8sobject import KubernetesGVK, KubernetesObject
@@ -177,7 +177,8 @@ class ResourceFetcher:
         serialization = os.path.expandvars(serialization)
 
         try:
-            objects = json.loads(serialization)
+            # This parse_json is the one we imported from utils. XXX This (also?) needs to be fixed.
+            objects = parse_json(serialization)
             self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename)
         except json.decoder.JSONDecodeError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
@@ -215,7 +216,7 @@ class ResourceFetcher:
         self.load_pod_labels()
 
         try:
-            watt_dict = json.loads(serialization)
+            watt_dict = parse_json(serialization)
 
             # Grab deltas if they're present.
             self.deltas = watt_dict.get('Deltas', [])
@@ -287,7 +288,7 @@ class ResourceFetcher:
         return True
 
     def handle_k8s(self, raw_obj: dict) -> None:
-        # self.logger.debug("handle_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
+        # self.logger.debug("handle_k8s obj %s" % dump_json(obj, pretty=True))
 
         try:
             obj = KubernetesObject(raw_obj)

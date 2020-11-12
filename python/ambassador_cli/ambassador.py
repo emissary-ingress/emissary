@@ -28,6 +28,7 @@ import cProfile
 import json
 import logging
 import os
+import orjson
 import pstats
 import signal
 import traceback
@@ -39,7 +40,7 @@ from ambassador import Scout, Config, IR, Diagnostics, Version
 from ambassador.fetch import ResourceFetcher
 from ambassador.envoy import EnvoyConfig, V2Config
 
-from ambassador.utils import RichStatus, SecretHandler, SecretInfo, NullSecretHandler, Timer
+from ambassador.utils import RichStatus, SecretHandler, SecretInfo, NullSecretHandler, Timer, parse_json, dump_json
 
 if TYPE_CHECKING:
     from ambassador.ir import IRResource
@@ -279,11 +280,10 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         # show_notices(result)
 
         dump_timer = Timer("dump JSON")
+
+        pretty = False if nopretty else True
         with dump_timer:
-            if nopretty:
-                js = json.dumps(od)
-            else:
-                js = json.dumps(od, sort_keys=True, indent=4)
+            js = dump_json(od, pretty=pretty)
             jslen = len(js)
 
         write_timer = Timer("write JSON")
@@ -389,7 +389,7 @@ def config(config_dir_path: Parameter.REQUIRED, output_json_path: Parameter.REQU
             output_exists = True
 
             try:
-                json.loads(open(output_json_path, "r").read())
+                parse_json(open(output_json_path, "r").read())
             except FileNotFoundError:
                 logger.debug("output file does not exist")
                 output_exists = False

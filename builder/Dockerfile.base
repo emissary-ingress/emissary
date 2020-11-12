@@ -85,6 +85,18 @@ RUN mkdir /tmp/pyyaml && \
   python3 setup.py --with-libyaml install
 
 FROM ${builderbase_stage1} as builderbase-stage2
+
+# orjson is also special. It relies on glibc, so we need to temporarily convince
+# python that our linux is 'manylinux1_compatible' so it will fetch a prebuilt
+# binary instead of unsucessfully attempting to build using a rust toolchain.
+#
+# We can't leave this trick in place for the entire pip install, because other
+# packages we depend on (eg: protobuf) have binary packages that do _not_ work
+# on our linux.
+RUN echo 'manylinux1_compatible = True' > /usr/lib/python3.8/_manylinux.py && \
+	pip3 install orjson==3.3.1 && \
+	rm -f /usr/lib/python3.8/_manylinux.py
+
 # Then we can do the rest of the Python stuff.
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt

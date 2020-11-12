@@ -19,6 +19,7 @@ import json
 from abc import abstractmethod
 
 from ..cache import Cache
+from ..utils import dump_json
 
 if TYPE_CHECKING:
     from ..ir import IR, IRResource
@@ -76,7 +77,7 @@ class EnvoyConfig:
         pass
 
     def as_json(self):
-        return json.dumps(sanitize_pre_json(self.as_dict()), sort_keys=True, indent=4)
+        return dump_json(sanitize_pre_json(self.as_dict()), pretty=True)
 
     @classmethod
     def generate(cls, ir: 'IR', version: str="V2", cache: Optional[Cache]=None) -> 'EnvoyConfig':

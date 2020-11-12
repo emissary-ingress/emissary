@@ -9,6 +9,8 @@ import os
 
 import semantic_version
 
+from .utils import parse_json, dump_json
+
 from scout import Scout
 
 # Import version stuff directly from ambassador.VERSION to avoid a circular import.
@@ -154,7 +156,7 @@ class AmbScout:
             env_result = os.environ.get("AMBASSADOR_SCOUT_RESULT", None)
 
             if env_result:
-                force_result = json.loads(env_result)
+                force_result = parse_json(env_result)
 
         result: Optional[dict] = force_result
         result_was_cached: bool = False
@@ -253,7 +255,7 @@ class AmbScout:
                     if msg:
                         _notices.append({ "level": lvl, "message": msg })
                 else:
-                    _notices.append({ "level": "WARNING", "message": json.dumps(notice) })
+                    _notices.append({ "level": "WARNING", "message": dump_json(notice) })
 
         self._notices = _notices
 

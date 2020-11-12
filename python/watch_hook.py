@@ -12,7 +12,7 @@ import os
 
 from ambassador import Config, IR
 from ambassador.fetch import ResourceFetcher
-from ambassador.utils import SecretInfo, SavedSecret, SecretHandler
+from ambassador.utils import SecretInfo, SavedSecret, SecretHandler, dump_json
 
 if TYPE_CHECKING:
     from ambassador.ir.irresource import IRResource
@@ -262,8 +262,9 @@ class WatchHook:
         save_dir = os.environ.get('AMBASSADOR_WATCH_DIR', '/tmp')
 
         if save_dir:
-            json.dump(self.watchset, open(os.path.join(save_dir, 'watch.json'), "w"))
-
+            watchset = dump_json(self.watchset)
+            with open(os.path.join(save_dir, 'watch.json'), "w") as output:
+                output.write(watchset)
 
 #### Mainline.
 
@@ -298,5 +299,5 @@ if __name__ == "__main__":
 
     wh = WatchHook(logger, yaml_stream)
 
-    json.dump(wh.watchset, sys.stdout)
-
+    watchset = dump_json(wh.watchset)
+    sys.stdout.write(watchset)
