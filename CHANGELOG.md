@@ -62,6 +62,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
+- Change: The DevPortal no longer looks for documentation at `/.ambassador-internal/openapi-docs`.  A new field in `Mappings`, `docs`, must be used for specifying the source for documentation.  This can result in an empty Dev Portal after upgrading if `Mappings` do not include a `docs` attribute.
 - Feature: Support configuring the gRPC Statistics Envoy filter to enable telemetry of gRPC calls (see the `grpc_stats` configuration flag -- thanks, [Felipe Roveran](https://github.com/feliperoveran)!)
 - Feature: The `RateLimitService` and `AuthService` configs now support switching between gRPC protocol versions `v2` and `v2alpha` (see the `protocol_version` setting)
 - Feature: The `TracingService` Zipkin config now supports setting `collector_hostname` to tell Envoy which host header to set when sending spans to the collector
