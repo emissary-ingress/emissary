@@ -203,28 +203,51 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 func (g *Group) launchSupervisors() {
 	if !g.cfg.DisableLogging {
 		g.goSupervisor("shutdown_logger", func(ctx context.Context) {
+			// We should be as specific with logging as possible.
+
+			// Wait for shutdown to be initiated (or for everything to quit on
+			// its own).
 			select {
 			case <-g.waitFinished:
-				// nothing to do
 			case <-ctx.Done():
-				// log that a shutdown has been triggered
-				// be as specific with the logging as possible
-				if dcontext.HardContext(ctx) == ctx {
-					// no hard/soft distinction
-					dlog.Infoln(ctx, "shutting down...")
+			}
+			// Check whether <-ctx.Done() happened; we do this separately
+			// after-the-fact (instead of in the select case) because it's
+			// possible that they both happen, and if they both happen then
+			// `select` will choose one arbitrarily, but we still need to do
+			// this if the `select` chooses <-g.waitFinished.
+			if ctx.Err() == nil {
+				// Only <-g.waitFinished happened;
+				// we won't have anything to log.
+				return
+			}
+			if dcontext.HardContext(ctx) == ctx {
+				// No hard/soft distinction
+				dlog.Infoln(ctx, "shutting down...")
+				return
+			} else {
+				// There is a hard/soft distinction; check whether it was
+				// a hard or soft shutdown that was triggered...
+				if dcontext.HardContext(ctx).Err() != nil {
+					// It was a hard; log that...
+					dlog.Infoln(ctx, "shutting down (not-so-gracefully)...")
+					// ...then we're done
+					return
 				} else {
-					// there is a hard/soft distinction, check if it's hard or soft
-					if dcontext.HardContext(ctx).Err() != nil {
-						dlog.Infoln(ctx, "shutting down (not-so-gracefully)...")
-					} else {
-						dlog.Infoln(ctx, "shutting down (gracefully)...")
-						select {
-						case <-g.waitFinished:
-							// nothing to do
-						case <-dcontext.HardContext(ctx).Done():
-							dlog.Infoln(ctx, "shutting down (not-so-gracefully)...")
-						}
+					// It was soft; log that...
+					dlog.Infoln(ctx, "shutting down (gracefully)...")
+					// ...now we need to do the same thing again to
+					// log when hard-shutdown is initiated.
+					select {
+					case <-g.waitFinished:
+					case <-dcontext.HardContext(ctx).Done():
 					}
+					if dcontext.HardContext(ctx).Err() == nil {
+						// Only <-g.waitFinished happened;
+						// we won't have anything to log.
+						return
+					}
+					dlog.Infoln(ctx, "shutting down (not-so-gracefully)...")
 				}
 			}
 		})
