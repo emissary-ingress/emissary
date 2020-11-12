@@ -977,8 +977,6 @@ class BackendResult:
         self.response = bres
 
         if isinstance(bres, dict):
-            assert "backend" in bres, \
-                    f"unexpected bres without backend: {bres}"
             self.name = bres.get("backend")
             self.request = BackendRequest(bres["request"]) if "request" in bres else None
             self.response = BackendResponse(bres["response"]) if "response" in bres else None
