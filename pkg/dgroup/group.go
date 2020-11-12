@@ -96,18 +96,24 @@ func logGoroutineStatuses(
 	}
 }
 
+var stacktraceForTesting string
+
 func logGoroutineTraces(
 	ctx context.Context,
 	heading string,
 	printf func(ctx context.Context, format string, args ...interface{}),
 ) {
-	p := pprof.Lookup("goroutine")
-	if p == nil {
-		return
-	}
 	stacktrace := new(strings.Builder)
-	if err := p.WriteTo(stacktrace, 2); err != nil {
-		return
+	if stacktraceForTesting != "" {
+		stacktrace.WriteString(stacktraceForTesting)
+	} else {
+		p := pprof.Lookup("goroutine")
+		if p == nil {
+			return
+		}
+		if err := p.WriteTo(stacktrace, 2); err != nil {
+			return
+		}
 	}
 	printf(ctx, "  %s:", heading)
 	for _, line := range strings.Split(strings.TrimSpace(stacktrace.String()), "\n") {
@@ -196,7 +202,7 @@ func NewGroup(ctx context.Context, cfg GroupConfig) *Group {
 // but are internal to implementing dgroup's various features.
 func (g *Group) launchSupervisors() {
 	if !g.cfg.DisableLogging {
-		g.goSupervisor("shutdown_logger", func(ctx context.Context) error {
+		g.goSupervisor("shutdown_logger", func(ctx context.Context) {
 			select {
 			case <-g.waitFinished:
 				// nothing to do
@@ -221,12 +227,11 @@ func (g *Group) launchSupervisors() {
 					}
 				}
 			}
-			return nil
 		})
 	}
 
 	if (g.cfg.SoftShutdownTimeout > 0) || (g.cfg.HardShutdownTimeout > 0) {
-		g.goSupervisor("timeout_watchdog", func(ctx context.Context) error {
+		g.goSupervisor("timeout_watchdog", func(ctx context.Context) {
 			if g.cfg.SoftShutdownTimeout > 0 {
 				select {
 				case <-g.waitFinished:
@@ -260,20 +265,18 @@ func (g *Group) launchSupervisors() {
 					}
 				}
 			}
-			return nil
 		})
 	}
 
 	if g.cfg.EnableSignalHandling {
 		sigs := make(chan os.Signal, 1)
 		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-		g.goSupervisor("signal_handler", func(ctx context.Context) error {
+		g.goSupervisor("signal_handler", func(ctx context.Context) {
 			<-g.waitFinished
 			signal.Stop(sigs)
 			close(sigs)
-			return nil
 		})
-		g.goSupervisor("signal_handler", func(ctx context.Context) error {
+		g.goSupervisor("signal_handler", func(ctx context.Context) {
 			i := 0
 			for sig := range sigs {
 				ctx := WithGoroutineName(ctx, fmt.Sprintf(":%d", i))
@@ -306,7 +309,6 @@ func (g *Group) launchSupervisors() {
 					}
 				}
 			}
-			return nil
 		})
 	}
 }
@@ -346,7 +348,7 @@ func (g *Group) goWorkerCtx(ctx context.Context, fn func(ctx context.Context) er
 				if err == nil {
 					dlog.Debugf(ctx, "goroutine %q exited without error", getGoroutineName(ctx))
 				} else {
-					dlog.Errorf(ctx, "goroutine %q exited with error:", getGoroutineName(ctx), err)
+					dlog.Errorf(ctx, "goroutine %q exited with error: %v", getGoroutineName(ctx), err)
 				}
 			}
 		}()
@@ -370,30 +372,20 @@ func (g *Group) goWorkerCtx(ctx context.Context, fn func(ctx context.Context) er
 //  - They MUST not panic, as we don't bother to set up panic recovery
 //    for them.
 //  - The cfg.Workercontext() callback is not called.
-//  - Returning 'nil' will not triggr a shutdown, even if
-//    cfg.ShutdownOnNonError is set.
-func (g *Group) goSupervisor(name string, fn func(ctx context.Context) error) {
+//  - Being a "systems" thing, they must be robust and CANNOT fail; so
+//    they don't get to return an error.
+func (g *Group) goSupervisor(name string, fn func(ctx context.Context)) {
 	ctx := WithGoroutineName(g.baseCtx, ":"+name)
 	g.goSupervisorCtx(ctx, fn)
 }
 
 // goSupervisorCtx() is like goSupervisor(), except it takes an
 // already-created context.
-func (g *Group) goSupervisorCtx(ctx context.Context, fn func(ctx context.Context) error) {
+func (g *Group) goSupervisorCtx(ctx context.Context, fn func(ctx context.Context)) {
 	g.supervisors.Add(1)
 	go func() {
-		var err error
-
-		defer func() {
-			if err != nil {
-				g.goWorkerCtx(ctx, func(ctx context.Context) error {
-					return err
-				})
-			}
-			g.supervisors.Done()
-		}()
-
-		err = fn(ctx)
+		defer g.supervisors.Done()
+		fn(ctx)
 	}()
 }
 
