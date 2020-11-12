@@ -93,11 +93,16 @@ driver: zipkin
         yield Query("http://zipkin:9411/api/v2/spans?serviceName=tracingtest-default", phase=2)
         yield Query("http://zipkin:9411/api/v2/traces?serviceName=tracingtest-default", phase=2)
 
+        # The diagnostics page should load properly
+        yield Query(self.url("ambassador/v0/diag/"), phase=2)
+
     def check(self):
         for i in range(100):
             assert self.results[i].backend.name == self.target.path.k8s
 
-        assert self.results[100].backend.name == "raw"
+        print(f"self.results[100] = {self.results[100]}")
+        assert self.results[100].backend.name == "raw", \
+                f"unexpected self.results[100] = {self.results[100]}"
         assert len(self.results[100].backend.response) == 1
         assert self.results[100].backend.response[0] == 'tracingtest-default'
 
@@ -208,7 +213,9 @@ driver: zipkin
         for i in range(100):
             assert self.results[i].backend.name == self.target.path.k8s
 
-        assert self.results[100].backend.name == "raw"
+        print(f"self.results[100] = {self.results[100]}")
+        assert self.results[100].backend.name == "raw", \
+                f"unexpected self.results[100] = {self.results[100]}"
         assert len(self.results[100].backend.response) == 1
         assert self.results[100].backend.response[0] == 'tracingtestlongclustername-default'
 
@@ -306,6 +313,9 @@ config:
         # ...then ask the Zipkin for services and spans. Including debug=True in these queries
         # is particularly helpful.
         yield Query("http://zipkin-64:9411/api/v2/traces", phase=2)
+
+        # The diagnostics page should load properly
+        yield Query(self.url("ambassador/v0/diag/"), phase=2)
 
     def check(self):
         # Ensure we generated 64-bit traceids
@@ -498,8 +508,11 @@ sampling:
         # is particularly helpful.
         yield Query("http://zipkin-65:9411/api/v2/traces?limit=10000", phase=2)
 
+        # The diagnostics page should load properly
+        yield Query(self.url("ambassador/v0/diag/"), phase=2)
+
     def check(self):
-        traces = self.results[-1].json
+        traces = self.results[100].json
 
         print("%d traces obtained" % len(traces))
 
@@ -602,11 +615,16 @@ config:
         yield Query("http://zipkin-v2:9411/api/v2/spans?serviceName=tracingtestzipkinv2-default", phase=2)
         yield Query("http://zipkin-v2:9411/api/v2/traces?serviceName=tracingtestzipkinv2-default", phase=2)
 
+        # The diagnostics page should load properly
+        yield Query(self.url("ambassador/v0/diag/"), phase=2)
+
     def check(self):
         for i in range(100):
             assert self.results[i].backend.name == self.target.path.k8s
 
-        assert self.results[100].backend.name == "raw"
+        print(f"self.results[100] = {self.results[100]}")
+        assert self.results[100].backend.name == "raw", \
+                f"unexpected self.results[100] = {self.results[100]}"
         assert len(self.results[100].backend.response) == 1
         assert self.results[100].backend.response[0] == 'tracingtestzipkinv2-default'
 
@@ -716,11 +734,16 @@ config:
         yield Query("http://zipkin-v1:9411/api/v2/spans?serviceName=tracingtestzipkinv1-default", phase=2)
         yield Query("http://zipkin-v1:9411/api/v2/traces?serviceName=tracingtestzipkinv1-default", phase=2)
 
+        # The diagnostics page should load properly
+        yield Query(self.url("ambassador/v0/diag/"), phase=2)
+
     def check(self):
         for i in range(100):
             assert self.results[i].backend.name == self.target.path.k8s
 
-        assert self.results[100].backend.name == "raw"
+        print(f"self.results[100] = {self.results[100]}")
+        assert self.results[100].backend.name == "raw", \
+                f"unexpected self.results[100] = {self.results[100]}"
         assert len(self.results[100].backend.response) == 1
         assert self.results[100].backend.response[0] == 'tracingtestzipkinv1-default'
 
