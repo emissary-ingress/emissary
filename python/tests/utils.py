@@ -107,6 +107,8 @@ def meta_action_kube_artifacts(namespace, artifacts, action):
     temp_file.flush()
 
     command = ['kubectl', action, '-f', temp_file.name]
+    if namespace is None:
+        namespace = 'default'
 
     if namespace is not None:
         command.extend(['-n', namespace])
@@ -139,8 +141,8 @@ def install_ambassador(namespace, envs=None):
     if envs is None:
         envs = []
 
-    if namespace is None:
-        namespace = 'default'
+    # if namespace is None:
+        # namespace = 'default'
 
     # Create namespace to install Ambassador
     create_namespace(namespace)

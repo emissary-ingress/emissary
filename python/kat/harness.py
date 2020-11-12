@@ -1027,7 +1027,7 @@ def run_queries(name: str, queries: Sequence[Query]) -> Sequence[Result]:
         json.dump(jsonified, f)
 
     # run(f"{CLIENT_GO} -input {path_urls} -output {path_results} 2> {path_log}")
-    run(f"kubectl exec -i kat /work/kat_client < '{path_urls}' > '{path_results}' 2> '{path_log}'")
+    run(f"kubectl exec -n default -i kat /work/kat_client < '{path_urls}' > '{path_results}' 2> '{path_log}'")
 
     with open(path_results, 'r') as f:
         json_results = json.load(f)
@@ -1517,14 +1517,14 @@ class Runner:
 
         if changed:
             print(f'KAT pod definition changed ({reason}), applying')
-            run('kubectl apply -f /tmp/k8s-kat-pod.yaml')
+            run('kubectl apply -f /tmp/k8s-kat-pod.yaml -n default')
 
             tries_left = 10
             time.sleep(1)
 
             while True:
                 if ShellCommand.run("check for KAT pod",
-                                    'kubectl', 'exec', 'kat', 'echo', 'hello'):
+                                    'kubectl', 'exec', '-n', 'default', 'kat', 'echo', 'hello'):
                     print("KAT pod ready")
                     break
 
@@ -1539,13 +1539,14 @@ class Runner:
             print(f'KAT pod definition unchanged {reason}, skipping apply.')
 
         # # Clear out old stuff.
-        # print("Clearing cluster...")
-        # ShellCommand.run('clear old Kubernetes namespaces',
-        #                  'kubectl', 'delete', 'namespaces', '-l', 'scope=AmbassadorTest',
-        #                  verbose=True)
-        # ShellCommand.run('clear old Kubernetes pods etc.',
-        #                  'kubectl', 'delete', 'all', '-l', 'scope=AmbassadorTest', '--all-namespaces',
-        #                  verbose=True)
+        if os.environ.get("DEV_CLEAN_K8S_RESOURCES", False):
+            print("Clearing cluster...")
+            ShellCommand.run('clear old Kubernetes namespaces',
+                             'kubectl', 'delete', 'namespaces', '-l', 'scope=AmbassadorTest',
+                             verbose=True)
+            ShellCommand.run('clear old Kubernetes pods etc.',
+                             'kubectl', 'delete', 'all', '-l', 'scope=AmbassadorTest', '--all-namespaces',
+                             verbose=True)
 
         # XXX: better prune selector label
         if manifest_changed:
@@ -1714,7 +1715,7 @@ class Runner:
         label_for_scope = f'-l scope={scope}' if scope else ''
 
         fname = f'/tmp/pods-{scope_for_path}.json'
-        run(f'kubectl get pod {label_for_scope} -o json > {fname}')
+        run(f'kubectl get pod {label_for_scope} --all-namespaces -o json > {fname}')
 
         with open(fname) as f:
             raw_pods = json.load(f)
