@@ -14,12 +14,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/datawire/ambassador/cmd/ambex"
 	"github.com/datawire/ambassador/pkg/acp"
+	"github.com/datawire/ambassador/pkg/dgroup"
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/memory"
-
-	"github.com/google/uuid"
 )
 
 // This is the main ambassador entrypoint. It launches and manages two other
@@ -111,44 +112,57 @@ func Main() {
 	// Go ahead and create an AmbassadorWatcher now, since we'll need it later.
 	ambwatch := acp.NewAmbassadorWatcher(acp.NewEnvoyWatcher(), acp.NewDiagdWatcher())
 
-	group := NewGroup(context.Background(), 10*time.Second)
+	group := dgroup.NewGroup(context.Background(), dgroup.GroupConfig{
+		EnableSignalHandling: true,
+		SoftShutdownTimeout:  10 * time.Second,
+		HardShutdownTimeout:  10 * time.Second,
+	})
 
-	group.Go("diagd", func(ctx context.Context) {
+	group.Go("diagd", func(ctx context.Context) error {
 		cmd := subcommand(ctx, "diagd", GetDiagdArgs()...)
 		if envbool("DEV_SHUTUP_DIAGD") {
 			cmd.Stdout = nil
 			cmd.Stderr = nil
 		}
-		err := cmd.Run()
-		logExecError("diagd", err)
+		return cmd.Run()
 	})
 
 	usage := memory.GetMemoryUsage()
-	group.Go("memory", usage.Watch)
+	group.Go("memory", func(ctx context.Context) error {
+		usage.Watch(ctx)
+		return nil
+	})
 
-	group.Go("ambex", func(ctx context.Context) {
+	group.Go("ambex", func(ctx context.Context) error {
 		err := flag.CommandLine.Parse([]string{"--ads-listen-address", "127.0.0.1:8003", GetEnvoyDir()})
 		if err != nil {
-			panic(err)
+			return err
 		}
 		ambex.MainContext(ctx, usage.PercentUsed)
+		return nil
 	})
 
-	group.Go("envoy", func(ctx context.Context) { runEnvoy(ctx, envoyHUP) })
+	group.Go("envoy", func(ctx context.Context) error {
+		runEnvoy(ctx, envoyHUP)
+		return nil
+	})
 
 	snapshot := &atomic.Value{}
-	group.Go("snapshot_server", func(ctx context.Context) {
+	group.Go("snapshot_server", func(ctx context.Context) error {
 		snapshotServer(ctx, snapshot)
+		return nil
 	})
-	group.Go("watcher", func(ctx context.Context) {
+	group.Go("watcher", func(ctx context.Context) error {
 		// We need to pass the AmbassadorWatcher to this (Kubernetes/Consul) watcher, so
 		// that it can tell the AmbassadorWatcher when snapshots are posted.
 		watcher(ctx, ambwatch, snapshot)
+		return nil
 	})
 
 	// Finally, fire up the health check handler.
-	group.Go("healthchecks", func(ctx context.Context) {
+	group.Go("healthchecks", func(ctx context.Context) error {
 		healthCheckHandler(ctx, ambwatch)
+		return nil
 	})
 
 	// Launch every file in the sidecar directory. Note that this is "bug compatible" with
@@ -161,16 +175,15 @@ func Main() {
 		}
 	}
 	for _, sidecar := range sidecars {
-		group.Go(sidecar.Name(), func(ctx context.Context) {
+		group.Go(sidecar.Name(), func(ctx context.Context) error {
 			cmd := subcommand(ctx, path.Join(sidecarDir, sidecar.Name()))
-			err := cmd.Run()
-			logExecError(sidecar.Name(), err)
+			return cmd.Run()
 		})
 	}
 
-	results := group.Wait()
-	for name, value := range results {
-		log.Printf("%s: %s", name, value)
+	if err := group.Wait(); err != nil {
+		log.Println("shut down with error:", err)
+		os.Exit(1)
 	}
 }
 

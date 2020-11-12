@@ -28,14 +28,14 @@
 // intentionally low-level in order the be a clean primitive for other
 // things to build on top of.
 //
-// Right now, there are at least 3 Go implementations of "group"
-// functionality in use at Datawire (pkg/dgroup, entrypoint/group, and
-// pkg/supervisor), which each offer some subset of the above.
-// derrgroup offers to them a common robust base.  If you're writing
-// new application code, you should use one of those, and not use
-// derrgroup directly.  If you're writing a new "group" abstraction,
-// you should use derrgroup instead of implementing your own
-// locking/synchronization.
+// Right now, there have been at least 3 Go implementations of "group"
+// functionality in use at Datawire at the same time (pkg/dgroup and
+// pkg/supervisor are the two still in use), which each offer some
+// subset of the above.  derrgroup offers to them a common robust
+// base.  If you're writing new application code, you should use one
+// of those, and not use derrgroup directly.  If you're writing a new
+// "group" abstraction, you should use derrgroup instead of
+// implementing your own locking/synchronization.
 package derrgroup
 
 import (
@@ -70,7 +70,8 @@ func (s GoroutineState) String() string {
 //
 // A zero Group is valid and does not cancel on error.
 type Group struct {
-	cancel func()
+	cancel           func()
+	cancelOnNonError bool
 
 	wg sync.WaitGroup
 
@@ -84,19 +85,18 @@ type Group struct {
 // NewGroup returns a new Group.
 //
 // The provided 'cancel' function is called the first time a function passed to
-// Go returns a non-nil error or the first time Wait returns, whichever occurs
-// first.
-func NewGroup(cancel func()) *Group {
-	return &Group{cancel: cancel}
+// Go returns a non-nil error.
+func NewGroup(cancel func(), cancelOnNonError bool) *Group {
+	return &Group{
+		cancel:           cancel,
+		cancelOnNonError: cancelOnNonError,
+	}
 }
 
 // Wait blocks until all function calls from the Go method have returned, then
 // returns the first non-nil error (if any) from them.
 func (g *Group) Wait() error {
 	g.wg.Wait()
-	if g.cancel != nil {
-		g.cancel()
-	}
 	return g.err
 }
 
@@ -136,6 +136,8 @@ func (g *Group) Go(name string, f func() error) {
 					g.cancel()
 				}
 			})
+		} else if g.cancelOnNonError {
+			g.cancel()
 		}
 		g.listMu.Lock()
 		if g.list == nil {
