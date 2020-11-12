@@ -66,6 +66,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Feature: The `RateLimitService` and `AuthService` configs now support switching between gRPC protocol versions `v2` and `v2alpha` (see the `protocol_version` setting)
 - Feature: The `TracingService` Zipkin config now supports setting `collector_hostname` to tell Envoy which host header to set when sending spans to the collector
 - Feature: Ambassador now supports custom error response mapping
+- Feature: DevPortal: default configuration using the `ambassador` `DevPortal` resource.
 - Bugfix: Ambassador will no longer mistakenly post notices regarding `regex_rewrite` and `rewrite` directive conflicts in `Mapping`s due to the latter's implicit default value of `/` (thanks, [obataku](https://github.com/obataku)!)
 - Bugfix: The `/metrics` endpoint will no longer break if invoked before configuration is complete (thanks, [Markus Jevring](https://github.com/markusjevringsesame)!)
 - Bugfix: Update Python requirements to address CVE-2020-25659
