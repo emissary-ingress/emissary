@@ -19,7 +19,7 @@ class ConsulTest(AmbassadorTest):
     enable_endpoints = True
 
     k8s_target: ServiceType
-    
+
 
     def init(self):
         self.k8s_target = HTTP(name="k8s")
@@ -34,7 +34,7 @@ kind: Service
 metadata:
   name: {self.path.k8s}-consul
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
   - name: consul
     protocol: TCP

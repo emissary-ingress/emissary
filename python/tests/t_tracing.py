@@ -27,7 +27,7 @@ spec:
   - port: 9411
     name: http
     targetPort: http
-  type: NodePort
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -134,7 +134,7 @@ spec:
   - port: 9411
     name: http
     targetPort: http
-  type: NodePort
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -244,7 +244,7 @@ spec:
   - port: 9411
     name: http
     targetPort: http
-  type: NodePort
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -335,7 +335,7 @@ spec:
   - port: 9411
     name: http
     targetPort: http
-  type: NodePort
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -434,7 +434,7 @@ spec:
   - port: 9411
     name: http
     targetPort: http
-  type: NodePort
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -533,7 +533,7 @@ spec:
   - port: 9411
     name: http
     targetPort: http
-  type: NodePort
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -646,7 +646,7 @@ spec:
   - port: 9411
     name: http
     targetPort: http
-  type: NodePort
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment

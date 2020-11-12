@@ -7,7 +7,7 @@ metadata:
   labels:
     app.kubernetes.io/component: ambassador-service
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
   - name: http
     protocol: TCP
@@ -28,7 +28,7 @@ metadata:
     service: {self.path.k8s}-admin
   name: {self.path.k8s}-admin
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
   - name: {self.path.k8s}-admin
     port: 8877
@@ -77,7 +77,7 @@ spec:
       value: "/tmp/ambassador"
     securityContext:
       allowPrivilegeEscalation: false
-      readOnlyRootFilesystem: true  
+      readOnlyRootFilesystem: true
       {capabilities_block}
     livenessProbe:
       httpGet:

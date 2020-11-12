@@ -32,7 +32,7 @@ spec:
   - port: 80
     name: http
     targetPort: http
-  type: NodePort
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
