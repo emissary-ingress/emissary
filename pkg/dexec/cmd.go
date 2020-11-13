@@ -79,7 +79,8 @@ type Cmd struct {
 	*exec.Cmd
 	ctx context.Context
 
-	pidlock sync.RWMutex
+	pidlock        sync.RWMutex
+	DisableLogging bool
 }
 
 // CommandContext returns the Cmd struct to execute the named program with
@@ -104,6 +105,10 @@ func CommandContext(ctx context.Context, name string, arg ...string) *Cmd {
 
 func (c *Cmd) logiofn(prefix string) func(string) {
 	return func(msg string) {
+		if c.DisableLogging {
+			return
+		}
+
 		c.pidlock.RLock()
 		defer c.pidlock.RUnlock()
 		pid := -1
@@ -129,15 +134,17 @@ func (c *Cmd) Start() error {
 
 	err := c.Cmd.Start()
 	if err == nil {
-		dlog.Printf(c.ctx, "[pid:%v] started command %#v", c.Process.Pid, c.Args)
-		if stdin, isFile := c.Stdin.(*os.File); isFile {
-			dlog.Printf(c.ctx, "[pid:%v] stdin  < not logging input read from file %s", c.Process.Pid, stdin.Name())
-		}
-		if stdout, isFile := c.Stdout.(*os.File); isFile {
-			dlog.Printf(c.ctx, "[pid:%v] stdout > not logging output written to file %s", c.Process.Pid, stdout.Name())
-		}
-		if stderr, isFile := c.Stderr.(*os.File); isFile {
-			dlog.Printf(c.ctx, "[pid:%v] stderr > not logging output written to file %s", c.Process.Pid, stderr.Name())
+		if !c.DisableLogging {
+			dlog.Printf(c.ctx, "[pid:%v] started command %#v", c.Process.Pid, c.Args)
+			if stdin, isFile := c.Stdin.(*os.File); isFile {
+				dlog.Printf(c.ctx, "[pid:%v] stdin  < not logging input read from file %s", c.Process.Pid, stdin.Name())
+			}
+			if stdout, isFile := c.Stdout.(*os.File); isFile {
+				dlog.Printf(c.ctx, "[pid:%v] stdout > not logging output written to file %s", c.Process.Pid, stdout.Name())
+			}
+			if stderr, isFile := c.Stderr.(*os.File); isFile {
+				dlog.Printf(c.ctx, "[pid:%v] stderr > not logging output written to file %s", c.Process.Pid, stderr.Name())
+			}
 		}
 	}
 	c.pidlock.Unlock()
@@ -156,10 +163,12 @@ func (c *Cmd) Wait() error {
 		pid = c.Process.Pid
 	}
 
-	if err == nil {
-		dlog.Printf(c.ctx, "[pid:%v] finished successfully: %v", pid, c.ProcessState)
-	} else {
-		dlog.Printf(c.ctx, "[pid:%v] finished with error: %v", pid, err)
+	if !c.DisableLogging {
+		if err == nil {
+			dlog.Printf(c.ctx, "[pid:%v] finished successfully: %v", pid, c.ProcessState)
+		} else {
+			dlog.Printf(c.ctx, "[pid:%v] finished with error: %v", pid, err)
+		}
 	}
 
 	return err
