@@ -241,7 +241,7 @@ class ServiceProcessor (ManagedKubernetesProcessor):
         #     'k8s_services': self.services.discovered_services,
         # }
         #
-        # self.logger.debug("==== FINALIZE START\n%s" % dump_json(od))
+        # self.logger.debug("==== FINALIZE START\n%s" % dump_json(od, pretty=True))
 
         for k8s_svc in self.services.discovered_services.values():
             key = f'{k8s_svc.name}.{k8s_svc.namespace}'
@@ -391,4 +391,4 @@ class ServiceProcessor (ManagedKubernetesProcessor):
                 rkey=f'k8s-{k8s_svc.name}-{k8s_svc.namespace}',
             ))
 
-        # self.logger.debug("==== FINALIZE END\n%s" % dump_json(od))
+        # self.logger.debug("==== FINALIZE END\n%s" % dump_json(od, pretty=True))

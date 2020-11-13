@@ -43,8 +43,12 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("utils")
 logger.setLevel(logging.INFO)
+# Global switch for whether we use orjson. Temporary while we safely
+# migrate from python's native json library to orjson.
 global_fast_json = bool(os.environ.get('AMBASSADOR_FAST_JSON'))
-global_json_indent = int(os.environ.get('AMBASSADOR_JSON_INDENT', '4'))
+# Global variable for pretty-printing indentation. Temporary while we safely
+# migrate from python's native json library to orjson.
+global_json_indent = int(os.environ.get('AMBASSADOR_JSON_INDENT', '2'))
 
 # XXX What a hack. There doesn't seem to be a way to convince mypy that SafeLoader
 # and CSafeLoader share a base class, even though they do. Sigh.
@@ -101,6 +105,7 @@ def dump_json(obj: Any, pretty=False) -> str:
     else:
         return _dump_json(obj, pretty=pretty)
 
+
 def _dump_json(obj: Any, pretty=False) -> str:
     # There's a nicer way to do this in python, I'm sure.
     if pretty:
@@ -108,6 +113,7 @@ def _dump_json(obj: Any, pretty=False) -> str:
         return json.dumps(obj, sort_keys=True, indent=global_json_indent)
     else:
         return json.dumps(obj)
+
 
 def _dump_orjson(obj: Any, pretty=False) -> str:
     # There's a nicer way to do this in python, I'm sure.

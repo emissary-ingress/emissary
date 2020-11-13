@@ -1199,7 +1199,7 @@ class V2Listener(dict):
     def dump_listeners(cls, logger, listeners_by_port) -> None:
         pretty = { k: v.pretty() for k, v in listeners_by_port.items() }
 
-        logger.debug(f"V2Listeners: {dump_json(pretty)}")
+        logger.debug(f"V2Listeners: {dump_json(pretty, pretty=True)}")
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:
