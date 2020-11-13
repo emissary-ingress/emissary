@@ -1,4 +1,4 @@
-package dtest
+package dtest_k3s
 
 import (
 	"os"

@@ -257,7 +257,7 @@ func (a *Accumulator) storeUpdate(update rawUpdate) bool {
 			field.deltas[key] = newDelta(ObjectDelete, update.old)
 		}
 	}
-	if update.informer.HasSynced() && !field.synced {
+	if update.synced && !field.synced {
 		field.synced = true
 		a.synced += 1
 	}
