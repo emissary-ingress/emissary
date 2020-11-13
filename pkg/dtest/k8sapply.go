@@ -10,6 +10,8 @@ import (
 	"github.com/datawire/ambassador/pkg/supervisor"
 )
 
+const prefix = "DTEST"
+
 // K8sApply applies the supplied manifests to the cluster indicated by
 // the supplied kubeconfig.
 func K8sApply(files ...string) {

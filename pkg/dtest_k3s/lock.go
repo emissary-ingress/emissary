@@ -1,4 +1,4 @@
-package dtest
+package dtest_k3s
 
 import (
 	"fmt"
@@ -65,6 +65,8 @@ func WithNamedMachineLock(name string, body func()) {
 		file.Close()
 	}()
 
-	log.Printf("Acquiring machine lock %q took %.2f seconds\n", name, time.Since(lockAcquireStart).Seconds())
+	if !disableLogging {
+		log.Printf("Acquiring machine lock %q took %.2f seconds\n", name, time.Since(lockAcquireStart).Seconds())
+	}
 	body()
 }
