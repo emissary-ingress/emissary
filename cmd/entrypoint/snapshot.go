@@ -65,7 +65,7 @@ type AmbassadorInputs struct {
 	AllSecrets []*kates.Secret `json:"-"`
 	Secrets    []*kates.Secret `json:"secret"`
 
-	annotations []kates.Object `json:"-"`
+	annotations []kates.Object
 }
 
 func (a *AmbassadorInputs) Render() string {

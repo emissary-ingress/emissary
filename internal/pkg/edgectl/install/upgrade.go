@@ -64,7 +64,10 @@ func AOSSUpgrade(cmd *cobra.Command, args []string) error {
 			p.Ready()
 			select {
 			case sig := <-sigs:
-				i.Report("user_interrupted", client.ScoutMeta{"signal", fmt.Sprintf("%+v", sig)})
+				i.Report("user_interrupted", client.ScoutMeta{
+					Key:   "signal",
+					Value: fmt.Sprintf("%+v", sig),
+				})
 				i.Quit()
 			case <-p.Shutdown():
 			}
@@ -395,8 +398,10 @@ func (i *Upgrader) Perform(kcontext string) Result {
 
 	// Check to see if AES is ready
 	if err := i.CheckAESHealth(); err != nil {
-		i.Report("aes_health_bad",
-			client.ScoutMeta{"err", err.Error()})
+		i.Report("aes_health_bad", client.ScoutMeta{
+			Key:   "err",
+			Value: err.Error(),
+		})
 	} else {
 		i.Report("aes_health_good")
 	}
