@@ -195,7 +195,7 @@ func GetClusterID(ctx context.Context) string {
 
 	rootID := "00000000-0000-0000-0000-000000000000"
 
-	client, err := kates.NewClient(kates.ClientOptions{})
+	client, err := kates.NewClient(kates.ClientConfig{})
 	if err == nil {
 		nsName := "default"
 		if IsAmbassadorSingleNamespace() {

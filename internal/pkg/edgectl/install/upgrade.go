@@ -260,7 +260,7 @@ func (i *Upgrader) Perform(kcontext string) Result {
 		i.version = it
 	}
 
-	helmDownloaderOptions := helm.HelmDownloaderOptions{
+	helmDownloaderOptions := helm.HelmDownloaderConfig{
 		Version:  chartVersion,
 		Logger:   i.log,
 		KubeInfo: i.kubeinfo,

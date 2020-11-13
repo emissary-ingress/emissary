@@ -95,8 +95,8 @@ type HelmDownloader struct {
 	log *log.Logger
 }
 
-// HelmDownloaderOptions specifies options for creating the Helm manager
-type HelmDownloaderOptions struct {
+// HelmDownloaderConfig specifies options for creating the Helm manager
+type HelmDownloaderConfig struct {
 	URL      string
 	KubeInfo *k8s.KubeInfo
 	Version  ChartVersionRule
@@ -106,7 +106,7 @@ type HelmDownloaderOptions struct {
 // NewHelmDownloader creates a new charts manager
 // The Helm Manager will use the URL provided, and download (lazily) a Chart that
 // obeys the Version Rule.
-func NewHelmDownloader(options HelmDownloaderOptions) (HelmDownloader, error) {
+func NewHelmDownloader(options HelmDownloaderConfig) (HelmDownloader, error) {
 	// process the URL, using the default URL when not provided
 	if options.URL == "" {
 		options.URL = DefaultHelmRepoURL

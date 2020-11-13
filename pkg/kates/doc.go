@@ -17,9 +17,9 @@
 // Constructing a Client
 //
 // The primary entrypoint for the kates library is the Client type. A Client is constructed by
-// passing in the ClientOptions struct with a path to a kubeconfig file:
+// passing in the ClientConfig struct with a path to a kubeconfig file:
 //
-//  client, err := NewClient(ClientOptions{Kubeconfig: "path/to/kubeconfig"}) // or NewClient(ClientOptions{}) for defaults
+//  client, err := NewClient(ClientConfig{Kubeconfig: "path/to/kubeconfig"}) // or NewClient(ClientConfig{}) for defaults
 //
 // Creating, Modifying, and Deleting Resources
 //

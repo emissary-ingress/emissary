@@ -480,7 +480,7 @@ func (i *Installer) Perform(kcontext string) Result {
 		return i.resInternalError(err)
 	}
 
-	helmDownloaderOptions := helm.HelmDownloaderOptions{
+	helmDownloaderOptions := helm.HelmDownloaderConfig{
 		Version:  chartVersion,
 		Logger:   i.log,
 		KubeInfo: i.kubeinfo,

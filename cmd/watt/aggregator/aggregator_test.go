@@ -47,7 +47,7 @@ func newAggIsolator(t *testing.T, requiredKinds []string, watchHook WatchHook) *
 		// for signaling when the isolator is done
 		done: make(chan struct{}),
 	}
-	client, err := kates.NewClient(kates.ClientOptions{})
+	client, err := kates.NewClient(kates.ClientConfig{})
 	require.NoError(t, err)
 	validator, err := kates.NewValidator(client, nil)
 	require.NoError(t, err)
