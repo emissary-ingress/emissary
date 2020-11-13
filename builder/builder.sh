@@ -143,8 +143,12 @@ build_builder_base() {
 
 import datetime, hashlib
 
-build_every_n_days = 5  # Periodic rebuild even if Dockerfile does not change
-epoch = datetime.datetime(2017, 4, 13, 1, 30)
+# Arrange these 2 variables to reduce the likelihood that build_every_n_days
+# passes in the middle of a CI workflow; have it happen weekly during the
+# weekend.
+build_every_n_days = 7  # Periodic rebuild even if Dockerfile does not change
+epoch = datetime.datetime(2020, 11, 8, 5, 0) # 1AM EDT on a Sunday
+
 age = int((datetime.datetime.now() - epoch).days / build_every_n_days)
 age_start = epoch + datetime.timedelta(days=age*build_every_n_days)
 
