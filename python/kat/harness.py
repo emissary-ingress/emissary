@@ -457,7 +457,7 @@ class Node(ABC):
             # print(f"==== {testname} running locally from {gold_path}")
 
             # Yeah, I know, brutal hack.
-            # 
+            #
             # XXX (Flynn) This code isn't used and we don't know if it works. If you try
             # it, bring it up-to-date with the environment created in abstract_tests.py
             envstuff = ["env", f"AMBASSADOR_NAMESPACE={ambassador_namespace}"]
@@ -1518,7 +1518,7 @@ class Runner:
 
             tries_left = 10
             time.sleep(1)
-            
+
             while True:
                 if ShellCommand.run("check for KAT pod",
                                     'kubectl', 'exec', 'kat', 'echo', 'hello'):
@@ -1752,13 +1752,13 @@ class Runner:
             if t.has_local_result():
                 # print(f"{t_name}: SKIP QUERY due to local result")
                 continue
-        
+
             ambassador_id = getattr(t, 'ambassador_id', None)
-            
+
             if ambassador_id and ambassador_id in self.ids_to_strip:
                 # print(f"{t_name}: SKIP QUERY due to ambassador_id {ambassador_id}")
                 continue
-                
+
             # print(f"{t_name}: INCLUDE QUERY")
             for q in t.queries():
                 q.parent = t
