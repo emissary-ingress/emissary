@@ -106,6 +106,10 @@ class V2TLSContext(Dict):
 
     def update_validation_filename(self, key: str, value: str) -> None:
         empty_context: EnvoyValidationContext = {}
+
+        # This looks weirder than you might expect, because self.get_common().setdefault() is a truly
+        # crazy Union type, so we need to cast it to an EnvoyValidationContext to be able to work
+        # with it.
         validation = typecast(EnvoyValidationContext, self.get_common().setdefault('validation_context', empty_context))
 
         src: EnvoyCoreSource = { 'filename': value }
@@ -113,9 +117,16 @@ class V2TLSContext(Dict):
 
     def update_validation_values(self, key: str, value: str) -> None:
         empty_context: EnvoyValidationContext = {}
+
+        # This looks weirder than you might expect, because self.get_common().setdefault() is a truly
+        # crazy Union type, so we need to cast it to an EnvoyValidationContext to be able to work
+        # with it.
         validation = typecast(EnvoyValidationContext, self.get_common().setdefault('validation_context', empty_context))
 
-        validation.setdefault(key, []).extend(value)
+        # Likewise, the cast here is necessary because, again, we have to tell mypy that even though
+        # validation.setdefault() will return a Union type, we mean to be working with the List[str]
+        # variant of it.
+        typecast(List[str], validation.setdefault(key, [])).append(value)
 
     def add_context(self, ctx: IRTLSContext) -> None:
         if TYPE_CHECKING:
