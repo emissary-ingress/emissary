@@ -13,7 +13,7 @@ import (
 )
 
 func TestMustCapture(t *testing.T) {
-	result, err := exec.CommandContext(testContext(t), "echo", "this", "is", "a", "test").Output()
+	result, err := exec.CommandContext(dlog.NewTestContext(t, true), "echo", "this", "is", "a", "test").Output()
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -23,21 +23,21 @@ func TestMustCapture(t *testing.T) {
 }
 
 func TestCaptureError(t *testing.T) {
-	_, err := exec.CommandContext(testContext(t), "nosuchcommand").Output()
+	_, err := exec.CommandContext(dlog.NewTestContext(t, true), "nosuchcommand").Output()
 	if err == nil {
 		t.Errorf("expected an error")
 	}
 }
 
 func TestCaptureExitError(t *testing.T) {
-	_, err := exec.CommandContext(testContext(t), "test", "1", "==", "0").Output()
+	_, err := exec.CommandContext(dlog.NewTestContext(t, true), "test", "1", "==", "0").Output()
 	if err == nil {
 		t.Errorf("expected an error")
 	}
 }
 
 func TestCaptureInput(t *testing.T) {
-	cmd := exec.CommandContext(testContext(t), "cat")
+	cmd := exec.CommandContext(dlog.NewTestContext(t, true), "cat")
 	cmd.Stdin = strings.NewReader("hello")
 	output, err := cmd.Output()
 	if err != nil {
@@ -49,7 +49,7 @@ func TestCaptureInput(t *testing.T) {
 }
 
 func TestCommandRun(t *testing.T) {
-	err := exec.CommandContext(testContext(t), "ls").Run()
+	err := exec.CommandContext(dlog.NewTestContext(t, true), "ls").Run()
 	if err != nil {
 		t.Errorf("unexpted error: %v", err)
 	}
