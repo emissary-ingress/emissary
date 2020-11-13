@@ -13,7 +13,7 @@ metadata:
   name:  ambassador
 spec:
 # Use ambassador_id only if you are using multiple ambassadors in the same cluster.
-# For more information: ../../running#ambassador_id.
+# See below for more information.
   # ambassador_id: "<ambassador_id>"
   config:
 # Use the following table for config fields
@@ -23,7 +23,7 @@ spec:
 | :----- | :----- | :-- |
 | `add_linkerd_headers` | Should we automatically add Linkerd `l5d-dst-override` headers? | `add_linkerd_headers: false` |
 | `admin_port` | The port where Ambassador's Envoy will listen for low-level admin requests. You should almost never need to change this. | `admin_port: 8001` |
-| `ambassador_id` | Use only if you are using multiple ambassadors in the same cluster. [Learn more](#ambassador_id). | `ambassador_id: "<ambassador_id>"` |
+| `ambassador_id` | Use only if you are using multiple ambassadors in the same cluster. See [this page](../running/#ambassador_id) for more information. | `ambassador_id: "<ambassador_id>"` |
 | `cluster_idle_timeout_ms` | Set the default upstream-connection idle timeout. Default is 1 hour. | `cluster_idle_timeout_ms: 30000` |
 | `default_label_domain  and default_labels` | Set a default domain and request labels to every request for use by rate limiting. For more on how to use these, see the [Rate Limit reference](../../using/rate-limits/rate-limits##an-example-with-global-labels-and-groups). | None |
 | `defaults` | The `defaults` element allows setting system-wide defaults that will be applied to various Ambassador resources. See [using defaults](../../using/defaults) for more information. | None |
