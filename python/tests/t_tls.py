@@ -104,10 +104,13 @@ data:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v0
-kind:  Module
+kind: Module
 ambassador_id: {self.ambassador_id}
 name: tls
 config:
+  forward_client_cert_details: SANITIZE_SET
+  set_current_client_cert_details:
+    subject: true
   server:
     enabled: True
     secret: test-clientcert-server-secret
@@ -142,6 +145,11 @@ service: {self.target.path.fqdn}
 
         # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario.
         yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3", error="tls: certificate required")
+
+    def check(self):
+        raise Exception(self.results[0].backend.request.headers)
+        assert self.results[0].backend.request.headers["X-Forwarded-Client-Cert"] == \
+            ["Hash=c2d41a5977dcd28a3ba21f59ed5508cc6538defa810843d8a593e668306c8c4f;Subject=\"C=IN, ST=KA, L=Bangalore2, O=Presto, OU=Engineering, CN=presto.example.com\""]
 
     def requirements(self):
         for r in super().requirements():

@@ -223,7 +223,9 @@ class ListenerFactory:
                 context=ctx,
                 secure_action='Route',
                 insecure_action=insecure_action,
-                insecure_addl_port=insecure_addl_port
+                insecure_addl_port=insecure_addl_port,
+                forward_client_cert_details=amod.get('forward_client_cert_details'),
+                set_current_client_cert_details=amod.get('set_current_client_cert_details')
             )
 
             listeners[hostname] = listener

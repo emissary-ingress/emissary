@@ -146,7 +146,9 @@ class TLSModuleFactory:
                     (legacy_name == 'metadata_labels') or
                     (legacy_name == 'location') or
                     (legacy_name == 'kind') or
-                    (legacy_name == 'enabled')):
+                    (legacy_name == 'enabled') or
+                    (legacy_name == 'forward_client_cert_details') or
+                    (legacy_name == 'set_current_client_cert_details')):
                     continue
 
                 ctx = IRTLSContext.from_legacy(ir, legacy_name, ctx_rkey, ctx_location,
