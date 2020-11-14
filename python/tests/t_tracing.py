@@ -101,7 +101,7 @@ driver: zipkin
             assert self.results[i].backend.name == self.target.path.k8s
 
         print(f"self.results[100] = {self.results[100]}")
-        assert self.results[100].backend.name == "raw", \
+        assert self.results[100].backend is not None and self.results[100].backend.name == "raw", \
                 f"unexpected self.results[100] = {self.results[100]}"
         assert len(self.results[100].backend.response) == 1
         assert self.results[100].backend.response[0] == 'tracingtest-default'
@@ -214,7 +214,7 @@ driver: zipkin
             assert self.results[i].backend.name == self.target.path.k8s
 
         print(f"self.results[100] = {self.results[100]}")
-        assert self.results[100].backend.name == "raw", \
+        assert self.results[100].backend is not None and self.results[100].backend.name == "raw", \
                 f"unexpected self.results[100] = {self.results[100]}"
         assert len(self.results[100].backend.response) == 1
         assert self.results[100].backend.response[0] == 'tracingtestlongclustername-default'
@@ -623,7 +623,7 @@ config:
             assert self.results[i].backend.name == self.target.path.k8s
 
         print(f"self.results[100] = {self.results[100]}")
-        assert self.results[100].backend.name == "raw", \
+        assert self.results[100].backend is not None and self.results[100].backend.name == "raw", \
                 f"unexpected self.results[100] = {self.results[100]}"
         assert len(self.results[100].backend.response) == 1
         assert self.results[100].backend.response[0] == 'tracingtestzipkinv2-default'
@@ -742,7 +742,7 @@ config:
             assert self.results[i].backend.name == self.target.path.k8s
 
         print(f"self.results[100] = {self.results[100]}")
-        assert self.results[100].backend.name == "raw", \
+        assert self.results[100].backend is not None and self.results[100].backend.name == "raw", \
                 f"unexpected self.results[100] = {self.results[100]}"
         assert len(self.results[100].backend.response) == 1
         assert self.results[100].backend.response[0] == 'tracingtestzipkinv1-default'
