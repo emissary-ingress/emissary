@@ -117,7 +117,9 @@ await_cluster() {
     kconfurl="https://sw.bakerstreet.io/kubeception/api/klusters/${name}"
     wait_for_url "$kconfurl" -H "Authorization: bearer ${KUBECEPTION_TOKEN}"
     curl -s -H "Authorization: bearer ${KUBECEPTION_TOKEN}" "$kconfurl" -o "${kubeconfig}"
-    printf "${BLU}Cluster ${name} acquired${END}\n" 1>&2
+    printf "${BLU}Cluster ${name} acquired:\n==${END}\n" 1>&2
+    cat "${kubeconfig}" 1>&2
+    printf "${BLU}==${END}\n" 1>&2
 }
 
 get_cluster() {
