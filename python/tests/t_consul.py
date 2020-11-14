@@ -143,10 +143,15 @@ secret: {self.path.k8s}-client-cert-secret
                                     "Port": 80}},
                     phase=2)
 
-        # Both services should work in phase 3.
+        # The k8s service should still be working in phase 3...
         yield Query(self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=3)
-        yield Query(self.url(self.format("{self.path.k8s}_consul/")), expected=200, phase=3)
-        yield Query(self.url(self.format("{self.path.k8s}_consul_node/")), expected=200, phase=3)
+
+        # ...and both services should work in phase 4. We wait until phase 4 to check
+        # the consul-backed services because it sometimes takes a long time for consul
+        # to do the thing.
+        yield Query(self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=4)
+        yield Query(self.url(self.format("{self.path.k8s}_consul/")), expected=200, phase=4)
+        yield Query(self.url(self.format("{self.path.k8s}_consul_node/")), expected=200, phase=4)
 
     def check(self):
         pass
