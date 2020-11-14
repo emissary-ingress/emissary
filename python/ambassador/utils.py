@@ -43,12 +43,6 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("utils")
 logger.setLevel(logging.INFO)
-# Global switch for whether we use orjson. Temporary while we safely
-# migrate from python's native json library to orjson.
-global_fast_json = bool(os.environ.get('AMBASSADOR_FAST_JSON'))
-# Global variable for pretty-printing indentation. Temporary while we safely
-# migrate from python's native json library to orjson.
-global_json_indent = int(os.environ.get('AMBASSADOR_JSON_INDENT', '2'))
 
 # XXX What a hack. There doesn't seem to be a way to convince mypy that SafeLoader
 # and CSafeLoader share a base class, even though they do. Sigh.
@@ -93,29 +87,10 @@ def dump_yaml(obj: Any, **kwargs) -> str:
 
 
 def parse_json(serialization: str) -> Any:
-    if global_fast_json:
-        return orjson.loads(serialization)
-    else:
-        return json.loads(serialization)
+    return orjson.loads(serialization)
 
 
 def dump_json(obj: Any, pretty=False) -> str:
-    if global_fast_json:
-        return _dump_orjson(obj, pretty=pretty)
-    else:
-        return _dump_json(obj, pretty=pretty)
-
-
-def _dump_json(obj: Any, pretty=False) -> str:
-    # There's a nicer way to do this in python, I'm sure.
-    if pretty:
-        # TODO: Change this indent to 2 before migrating to orjson, for minimal gold file noise.
-        return json.dumps(obj, sort_keys=True, indent=global_json_indent)
-    else:
-        return json.dumps(obj)
-
-
-def _dump_orjson(obj: Any, pretty=False) -> str:
     # There's a nicer way to do this in python, I'm sure.
     if pretty:
         return bytes.decode(orjson.dumps(obj, option=orjson.OPT_NON_STR_KEYS|orjson.OPT_SORT_KEYS|orjson.OPT_INDENT_2))

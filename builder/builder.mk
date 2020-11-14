@@ -368,8 +368,6 @@ pytest-only: sync preflight-cluster | docker/$(NAME).docker.push.remote docker/k
 		-e DOCKER_BUILD_PASSWORD \
 		-e AMBASSADOR_FAST_VALIDATION \
 		-e AMBASSADOR_FAST_RECONFIGURE \
-		-e AMBASSADOR_FAST_JSON  \
-		-e AMBASSADOR_JSON_INDENT  \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal
 .PHONY: pytest-only
 
