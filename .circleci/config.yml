@@ -461,6 +461,7 @@ jobs:
         type: boolean
         default: false
     executor: oss-linux
+    resource_class: large
     steps:
     - job-images:
         release: << parameters.release >>
