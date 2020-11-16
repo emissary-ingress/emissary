@@ -42,7 +42,10 @@ wait_for_url_output() ( # use a subshell so the set +x is local to the function
     shift 1
     while true; do
         status=$(curl --retry 100 --retry-connrefused -k -sL -w "%{http_code}" -o "${output}" "$@")
-        if [ "$status" != "200" ]; then
+        if [ "$status" == "400" ]; then
+            echo "Got $status, aborting" 1>&2
+            exit 1
+        elif [ "$status" != "200" ]; then
             echo "Got $status, waiting for 200..." 1>&2
             sleep 10
         else
