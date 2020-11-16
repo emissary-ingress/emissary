@@ -795,6 +795,9 @@ class Result:
         self.backend = BackendResult(self.json) if self.json else None
         self.error = res.get("error")
 
+    def __repr__(self):
+        return str(self.as_dict())
+
     def check(self):
         if self.query.skip:
             pytest.skip(self.query.skip)
