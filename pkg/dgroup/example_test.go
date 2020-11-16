@@ -379,7 +379,7 @@ func Example_signalHandling3() {
 
 	<-exFinished
 	close(exEvents)
-	// Output:
+	// Unordered output:
 	// level=error msg="goroutine \":signal_handler:0\" exited with error: received signal interrupt (triggering graceful shutdown)" THREAD=":signal_handler:0"
 	// level=info msg="shutting down (gracefully)..." THREAD=":shutdown_logger"
 	// level=error msg="received signal interrupt (graceful shutdown already triggered; triggering not-so-graceful shutdown)" THREAD=":signal_handler:1"
