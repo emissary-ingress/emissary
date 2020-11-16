@@ -38,7 +38,10 @@ function getMainDocsUrl(slug) {
 }
 
 // Used to get a flat array of *all* links with their corresponding parents
-function flattenLinks(links, parent) {
+function flattenLinks(links = [], parent) {
+	if (!Array.isArray(links)) {
+		return []
+	}
   return links.reduce((acc, cur) => {
     let link = cur;
     if (parent) {
