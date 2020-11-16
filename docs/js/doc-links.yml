@@ -134,7 +134,7 @@
         - title: The Ambassador Module
           link: /docs/latest/topics/running/ambassador
         - title: Custom Error Responses
-          items: /docs/latest/topics/running/custom-error-responses
+          link: /docs/latest/topics/running/custom-error-responses
         - title: Deploying Ambassador
           items:
             - title: Deployment Architecture
