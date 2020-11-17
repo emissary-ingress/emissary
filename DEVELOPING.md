@@ -614,8 +614,6 @@ I'd put this in in the pull request template, but so few PRs change Envoy...
    `datawire-*` tags from stacking on eachother).
  - [ ] It's been tested with...
    * [ ] `make check-envoy`
-   * [ ] `make pytest KAT_RUN_MODE=envoy` for OSS
-   * [ ] `make pytest KAT_RUN_MODE=envoy` for AES
 
 How do I test Ambassador when using a private Docker repository?
 ----------------------------------------------------------------

@@ -28,10 +28,11 @@ jobs:
       "test":
         type: enum
         enum:
-          - "test" # everything
+          - "test" # everything but pytest-envoy
           - "ingresstest"
           - "gotest"
           - "pytest"
+          - "pytest-envoy"
         default: "test"
       "fast-reconfigure":
         type: boolean
@@ -99,6 +100,7 @@ workflows:
               test:
                 - "gotest"
                 - "pytest"
+                - "pytest-envoy"
                 # Running the ingresstests would require we install `kind` and
                 # that the test suite supports HTTP to HTTPS redirects (AES
                 # enables cleartext redirection by default, even for fallback
@@ -137,6 +139,7 @@ workflows:
               test:
                 - "gotest"
                 - "pytest"
+                - "pytest-envoy"
                 # Running the ingresstests would require we install `kind` and
                 # that the test suite supports HTTP to HTTPS redirects (AES
                 # enables cleartext redirection by default, even for fallback
