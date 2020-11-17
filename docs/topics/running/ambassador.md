@@ -27,7 +27,6 @@ spec:
 | `cluster_idle_timeout_ms` | Set the default upstream-connection idle timeout. Default is 1 hour. | `cluster_idle_timeout_ms: 30000` |
 | `default_label_domain  and default_labels` | Set a default domain and request labels to every request for use by rate limiting. For more on how to use these, see the [Rate Limit reference](../../using/rate-limits/rate-limits##an-example-with-global-labels-and-groups). | None |
 | `defaults` | The `defaults` element allows setting system-wide defaults that will be applied to various Ambassador resources. See [using defaults](../../using/defaults) for more information. | None |
-| `devportal` | `devportal` global configuration. See [using devportal](../../using/devportal#ambassador-module) for more information. | None |
 | `diagnostics.enabled` | Enable or disable the [Edge Policy Console](../../using/edge-policy-console) and `/ambassador/v0/diag/` endpoints.  See below for more details. | None |
 | `enable_grpc_http11_bridge` | Should we enable the gRPC-http11 bridge? | `enable_grpc_http11_bridge: false` |
 | `enable_grpc_web` | Should we enable the grpc-Web protocol? | `enable_grpc_web: false` |
@@ -38,7 +37,7 @@ spec:
 | `envoy_log_path` | Defines the path of log envoy will use. By default this is standard output. | `envoy_log_path: /dev/fd/1` |
 | `envoy_log_type` | Defines the type of log envoy will use, currently only support json or text. | `envoy_log_type: text` |
 | `envoy_validation_timeout` | Defines the timeout, in seconds, for validating a new Envoy configuration. The default is 10; a value of 0 disables Envoy configuration validation. Most installations will not need to use this setting. | `envoy_validation_timeout: 30` |
-| `error_response_overrides` | Defines error response overrides for 4XX and 5XX response codes. By default, Ambassador will pass through error responses without modification, and errors generated locally will use Envoy's default response body, if any. | See [this page](../../running/error-response-overrides) for usage details.
+| `error_response_overrides` | Defines error response overrides for 4XX and 5XX response codes. By default, Ambassador will pass through error responses without modification, and errors generated locally will use Envoy's default response body, if any. | See [this page](../custom-error-responses) for usage details.
 | `ip_allow`       | Defines HTTP source IP address ranges to allow; all others will be denied. `ip_allow` and `ip_deny` may not both be specified. See below for more details. | None |
 | `ip_deny`        | Defines HTTP source IP address ranges to deny; all others will be allowed. `ip_allow` and `ip_deny` may not both be specified. See below for more details. | None |
 | `listener_idle_timeout_ms` | Controls how Envoy configures the tcp idle timeout on the http listener. Default is 1 hour. | `listener_idle_timeout_ms: 30000` |
