@@ -141,9 +141,6 @@ def install_ambassador(namespace, envs=None):
     if envs is None:
         envs = []
 
-    # if namespace is None:
-        # namespace = 'default'
-
     # Create namespace to install Ambassador
     create_namespace(namespace)
 
