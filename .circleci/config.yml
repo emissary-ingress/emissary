@@ -689,6 +689,19 @@ workflows:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
           branches:
             ignore: /.*/
+  'OSS: Nightly':
+    triggers:
+    - schedule:
+        cron: "0 6 * * 1-5"
+        filters:
+          branches:
+            only:
+            - master
+    jobs:
+    - oss-test:
+        name: "oss-nightly-pytest-envoy"
+        test: pytest-envoy
+        fast-reconfigure: true
   'Docs: Dev':
     jobs:
     - "website-preview-build"

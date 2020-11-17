@@ -162,3 +162,18 @@ workflows:
       - "oss-promote-to-ga":
           <<: *filter-ga-only
           name: "oss-release-promote-to-ga"
+
+  "OSS: Nightly":
+    triggers:
+      - schedule:
+          # Time is in UTC: 2AM EDT on weekdays
+          cron: "0 6 * * 1-5"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - "oss-test":
+          name: "oss-nightly-pytest-envoy"
+          test: pytest-envoy
+          fast-reconfigure: true
