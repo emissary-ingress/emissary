@@ -55,7 +55,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
-(no changes yet)
+- Bugfix: DevPortal: fix a crash when the `host` cannot be parsed as a valid hostname.
 
 ## [1.9.0] November 12, 2020
 [1.9.0]: https://github.com/datawire/ambassador/compare/v1.8.1...v1.9.0
