@@ -4,9 +4,21 @@ linters:
   disable-all: true
   enable:
     - gofmt
+    - govet
 linters-settings:
   gofmt:
     simplify: true
+  govet:
+    disable:
+      - lostcancel
+issues:
+  exclude-rules:
+    - linters: [govet]
+      path: pkg/envoy-control-plane/
+    - linters: [govet]
+      text: "^tests: .* should return nothing$"
+run:
+  timeout: 9m # CircleCI is slow?
 
 # The old configuration, that hasn't been used for many months:
 

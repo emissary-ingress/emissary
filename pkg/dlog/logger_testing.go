@@ -1,6 +1,7 @@
 package dlog
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"sort"
@@ -108,11 +109,15 @@ func (w tbWrapper) Warnln(a ...interface{})    { w.Helper(); w.Logln(LogLevelWar
 func (w tbWrapper) Warningln(a ...interface{}) { w.Helper(); w.Logln(LogLevelWarn, a...) }
 func (w tbWrapper) Errorln(a ...interface{})   { w.Helper(); w.Logln(LogLevelError, a...) }
 
-// WrapTB converts a testing.TB (that is: either a *testing.T or a
-// *testing.B) into a generic Logger.
+// WrapTB converts a testing.TB (that is: either a *testing.T or a *testing.B) into a generic
+// Logger.
 //
-// Naturally, you should only use this from inside of your *_test.go
-// files.
+// Naturally, you should only use this from inside of your *_test.go files.  The failOnError
+// argument controls whether calling any of the dlog.Error{,f,ln} functions should cause the test to
+// fail.
+//
+// This is considered deprecated; you should consider using NewTestContext (which calls this)
+// instead.
 func WrapTB(in testing.TB, failOnError bool) Logger {
 	return tbWrapper{
 		TB:          in,
@@ -134,4 +139,19 @@ func (w tbWriter) Write(data []byte) (n int, err error) {
 
 func (w tbWrapper) StdLogger(l LogLevel) *log.Logger {
 	return log.New(tbWriter{w, l}, "", 0)
+}
+
+// NewTestContext takes a testing.TB (that is: either a *testing.T or a *testing.B) and returns a
+// good default Context to use in unit test.  The Context will have dlog configured to log using the
+// Go test runner's built-in logging facilities.  The context will be canceled when the test
+// terminates.  The failOnError argument controls whether calling any of the dlog.Error{,f,ln}
+// functions should cause the test to fail.
+//
+// Naturally, you should only use this from inside of your *_test.go files.
+func NewTestContext(t testing.TB, failOnError bool) context.Context {
+	ctx := context.Background()
+	ctx = WithLogger(ctx, WrapTB(t, failOnError))
+	ctx, cancel := context.WithCancel(ctx)
+	t.Cleanup(cancel)
+	return ctx
 }

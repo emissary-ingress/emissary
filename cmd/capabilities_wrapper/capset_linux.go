@@ -7,7 +7,10 @@ import (
 )
 
 func capset() error {
-	header := unix.CapUserHeader{unix.LINUX_CAPABILITY_VERSION_3, int32(os.Getpid())}
+	header := unix.CapUserHeader{
+		Version: unix.LINUX_CAPABILITY_VERSION_3,
+		Pid:     int32(os.Getpid()),
+	}
 	data := unix.CapUserData{}
 	if err := unix.Capget(&header, &data); err != nil {
 		return err

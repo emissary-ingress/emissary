@@ -25,6 +25,7 @@ import (
 	"k8s.io/client-go/discovery/cached/disk"
 	"k8s.io/client-go/discovery/cached/memory"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/kubectl/pkg/polymorphichelpers"
@@ -866,7 +867,7 @@ func (c *Client) PodLogs(ctx context.Context, pod *Pod, options *PodLogOptions, 
 
 	podID := string(pod.GetUID())
 	for _, request := range requests {
-		go func() {
+		go func(request rest.ResponseWrapper) {
 			readCloser, err := request.Stream(ctx)
 			if err != nil {
 				events <- LogEvent{PodID: podID, Error: err, Closed: true}
@@ -898,7 +899,7 @@ func (c *Client) PodLogs(ctx context.Context, pod *Pod, options *PodLogOptions, 
 					return
 				}
 			}
-		}()
+		}(request)
 	}
 
 	return nil
