@@ -133,6 +133,8 @@
       items:
         - title: The Ambassador Module
           link: /docs/latest/topics/running/ambassador
+        - title: Custom Error Responses
+          link: /docs/latest/topics/running/custom-error-responses
         - title: Deploying Ambassador
           items:
             - title: Deployment Architecture
@@ -145,8 +147,6 @@
               link: /docs/latest/topics/running/running
             - title: The Ambassador Container
               link: /docs/latest/topics/running/environment
-        - title: Error Response Overrides
-          link: /docs/latest/topics/running/error-response-overrides
         - title: Gzip Compression
           link: /docs/latest/topics/running/gzip
         - title: Host CRD, ACME Support, and External Load Balancer Configuration
