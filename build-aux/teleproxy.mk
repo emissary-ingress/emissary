@@ -15,8 +15,6 @@
 #  - .PHONY Target: status-proxy
 ## common.mk targets ##
 #  - clean
-## kubernaut-ui.mk targets ##
-#  - $(KUBECONFIG).clean
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _teleproxy.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_teleproxy.mk))prelude.mk
@@ -47,7 +45,7 @@ $(tools/teleproxy): $(tools/teleproxy).no-suid
 		fi \
 	}
 
-proxy: ## (Kubernaut) Launch teleproxy in the background
+proxy: ## (teleproxy) Launch teleproxy in the background
 proxy: $(KUBECONFIG) $(TELEPROXY)
 	@if ! curl -sk $(KUBE_URL); then \
 		echo "Starting proxy"; \
@@ -67,12 +65,12 @@ proxy: $(KUBECONFIG) $(TELEPROXY)
 	@printf '\n\nProxy UP!\n'
 .PHONY: proxy
 
-unproxy: ## (Kubernaut) Shut down 'proxy'
+unproxy: ## (teleproxy) Shut down 'proxy'
 	curl -s --connect-timeout 5 127.254.254.254/api/shutdown || true
 	@sleep 1
 .PHONY: unproxy
 
-status-proxy: ## (Kubernaut) Fail if cluster connectivity is broken or Teleproxy is not running
+status-proxy: ## (teleproxy) Fail if cluster connectivity is broken or Teleproxy is not running
 status-proxy: status-cluster
 	@if curl -o /dev/null -s --connect-timeout 1 127.254.254.254; then \
 		if curl -o /dev/null -sk $(KUBE_URL); then \
@@ -86,8 +84,6 @@ status-proxy: status-cluster
 		exit 1; \
 	fi
 .PHONY: status-proxy
-
-$(KUBECONFIG).clean: unproxy
 
 clean: _clean-teleproxy
 _clean-teleproxy: $(if $(wildcard $(TELEPROXY_LOG)),unproxy)
