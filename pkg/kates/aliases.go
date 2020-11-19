@@ -71,6 +71,11 @@ type Container = corev1.Container
 type SecurityContext = corev1.SecurityContext
 type PodCondition = corev1.PodCondition
 type PodLogOptions = corev1.PodLogOptions
+type Toleration = corev1.Toleration
+type TolerationOperator = corev1.TolerationOperator
+
+var TolerationOpExists = corev1.TolerationOpExists
+var TolerationOpEqual = corev1.TolerationOpEqual
 
 var PodSucceeded = corev1.PodSucceeded
 var PodFailed = corev1.PodFailed
