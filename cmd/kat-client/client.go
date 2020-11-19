@@ -826,24 +826,35 @@ func ExecuteQuery(query Query) {
 	query.AddResponse(resp)
 }
 
+type Args struct {
+	input  string
+	output string
+}
+
+func parseArgs(rawArgs ...string) Args {
+	var args Args
+	flagset := flag.NewFlagSet("kat-client", flag.ExitOnError)
+	flagset.StringVar(&args.input, "input", "", "input filename")
+	flagset.StringVar(&args.output, "output", "", "output filename")
+	flagset.Parse(rawArgs)
+	return args
+}
+
 func main() {
 	debug_grpc_web = false
 
 	rlimit()
 
-	var input, output string
-	flag.StringVar(&input, "input", "", "input filename")
-	flag.StringVar(&output, "output", "", "output filename")
-	flag.Parse()
+	args := parseArgs(os.Args[1:]...)
 
 	var data []byte
 	var err error
 
 	// Read input file
-	if input == "" {
+	if args.input == "" {
 		data, err = ioutil.ReadAll(os.Stdin)
 	} else {
-		data, err = ioutil.ReadFile(input)
+		data, err = ioutil.ReadFile(args.input)
 	}
 	if err != nil {
 		panic(err)
@@ -887,10 +898,10 @@ func main() {
 	bytes, err := json.MarshalIndent(specs, "", "  ")
 	if err != nil {
 		log.Print(err)
-	} else if output == "" {
+	} else if args.output == "" {
 		fmt.Print(string(bytes))
 	} else {
-		err = ioutil.WriteFile(output, bytes, 0644)
+		err = ioutil.WriteFile(args.output, bytes, 0644)
 		if err != nil {
 			log.Print(err)
 		}

@@ -2,17 +2,15 @@ package entrypoint
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/http/pprof"
 	"net/url"
-	"time"
 
 	"github.com/datawire/ambassador/pkg/acp"
 	"github.com/datawire/ambassador/pkg/debug"
+	"github.com/datawire/ambassador/pkg/dutil"
 )
 
 func handleCheckAlive(w http.ResponseWriter, r *http.Request, ambwatch *acp.AmbassadorWatcher) {
@@ -46,7 +44,7 @@ func handleCheckReady(w http.ResponseWriter, r *http.Request, ambwatch *acp.Amba
 	}
 }
 
-func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) {
+func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) error {
 	dbg := debug.FromContext(ctx)
 
 	// We need to do some HTTP stuff by hand to catch the readiness and liveness
@@ -110,34 +108,13 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) {
 	//
 	// XXX In fact, should we set up another Listener for v6??
 	listener, err := net.Listen("tcp4", ":8877")
-
 	if err != nil {
-		// Uh whut. This REALLY should not be possible -- we should be cranking
-		// up at boot time and nothing, but nothing, should already be bound on
-		// port 8877.
-		panic(fmt.Errorf("could not listen on TCP port 8877: %v", err))
+		return err
 	}
 
 	s := &http.Server{
-		Addr:    ":8877",
 		Handler: sm,
 	}
 
-	// Given that, all that's left is to fire up a server using our
-	// router.
-	go func() {
-		log.Fatal(s.Serve(listener))
-	}()
-
-	// ...then wait for a shutdown signal.
-	<-ctx.Done()
-
-	tctx, tcancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer tcancel()
-
-	err = s.Shutdown(tctx)
-
-	if err != nil {
-		panic(err)
-	}
+	return dutil.ServeHTTPWithContext(ctx, s, listener)
 }

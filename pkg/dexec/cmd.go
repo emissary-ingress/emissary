@@ -49,6 +49,7 @@ import (
 	"os/exec"
 	"sync"
 
+	"github.com/datawire/ambassador/pkg/dcontext"
 	"github.com/datawire/ambassador/pkg/dlog"
 )
 
@@ -80,6 +81,9 @@ type Cmd struct {
 	ctx context.Context
 
 	pidlock sync.RWMutex
+
+	waitDone chan struct{}
+	waitOnce sync.Once
 }
 
 // CommandContext returns the Cmd struct to execute the named program with
@@ -95,7 +99,7 @@ type Cmd struct {
 // for more information.
 func CommandContext(ctx context.Context, name string, arg ...string) *Cmd {
 	ret := &Cmd{
-		Cmd: exec.CommandContext(ctx, name, arg...),
+		Cmd: exec.CommandContext(dcontext.HardContext(ctx), name, arg...),
 		ctx: ctx,
 	}
 	ret.pidlock.Lock()
@@ -140,6 +144,19 @@ func (c *Cmd) Start() error {
 			dlog.Printf(c.ctx, "[pid:%v] stderr > not logging output written to file %s", c.Process.Pid, stderr.Name())
 		}
 	}
+	if c.ctx != dcontext.HardContext(c.ctx) {
+		c.waitDone = make(chan struct{})
+		go func() {
+			select {
+			case <-dcontext.HardContext(c.ctx).Done(): // hard shutdown
+				// let os/exec send SIGKILL
+			case <-c.ctx.Done(): // soft shutdown
+				c.Cmd.Process.Signal(os.Interrupt) // send SIGINT
+			case <-c.waitDone:
+				// it exited on its own
+			}
+		}()
+	}
 	c.pidlock.Unlock()
 	return err
 }
@@ -150,6 +167,10 @@ func (c *Cmd) Start() error {
 // See the os/exec.Cmd.Wait documenaton for more information.
 func (c *Cmd) Wait() error {
 	err := c.Cmd.Wait()
+
+	if c.waitDone != nil {
+		c.waitOnce.Do(func() { close(c.waitDone) })
+	}
 
 	pid := -1
 	if c.Process != nil {
