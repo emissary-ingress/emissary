@@ -10,7 +10,9 @@ package dexec
 
 import (
 	"bytes"
+	"io"
 	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -123,6 +125,47 @@ func (w *prefixSuffixSaver) Write(p []byte) (n int, err error) {
 		}
 	}
 	return lenp, nil
+}
+
+// Capture runs a command with the supplied input and captures the
+// output as a string.
+func (c *Cmd) Capture(stdin io.Reader) (output string, err error) {
+	c.Stdin = stdin
+	out := strings.Builder{}
+	c.Stdout = &out
+	err = c.Run()
+	output = out.String()
+	return
+}
+
+// MustCapture is like Capture, but panics if there is an error.
+func (c *Cmd) MustCapture(stdin io.Reader) (output string) {
+	output, err := c.Capture(stdin)
+	if err != nil {
+		panic(err)
+	}
+	return output
+}
+
+// CaptureErr runs a command with the supplied input and captures
+// stdout and stderr as a string.
+func (c *Cmd) CaptureErr(stdin io.Reader) (output string, err error) {
+	c.Stdin = stdin
+	out := strings.Builder{}
+	c.Stdout = &out
+	c.Stderr = &out
+	err = c.Run()
+	output = out.String()
+	return
+}
+
+// MustCaptureErr is like CaptureErr, but panics if there is an error.
+func (c *Cmd) MustCaptureErr(stdin io.Reader) (output string) {
+	output, err := c.CaptureErr(stdin)
+	if err != nil {
+		panic(err)
+	}
+	return output
 }
 
 // fill appends up to len(p) bytes of p to *dst, such that *dst does not

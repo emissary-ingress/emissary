@@ -10,15 +10,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/datawire/ambassador/pkg/dtest_k3s"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
+func testClient(t *testing.T) *Client {
+	cli, err := NewClient(ClientOptions{Kubeconfig: dtest_k3s.Kubeconfig()})
+	require.NoError(t, err)
+	return cli
+}
+
 func TestCRUD(t *testing.T) {
 	ctx := context.TODO()
-
-	cli, err := NewClient(ClientOptions{})
-	assert.NoError(t, err)
+	cli := testClient(t)
 
 	cm := &ConfigMap{
 		TypeMeta: TypeMeta{
@@ -31,7 +36,7 @@ func TestCRUD(t *testing.T) {
 
 	assert.Equal(t, cm.GetResourceVersion(), "")
 
-	err = cli.Get(ctx, cm, nil)
+	err := cli.Get(ctx, cm, nil)
 	assert.Error(t, err, "expecting not found error")
 	if !IsNotFound(err) {
 		t.Error(err)
@@ -64,9 +69,7 @@ func TestCRUD(t *testing.T) {
 
 func TestUpsert(t *testing.T) {
 	ctx := context.TODO()
-
-	cli, err := NewClient(ClientOptions{})
-	assert.NoError(t, err)
+	cli := testClient(t)
 
 	cm := &ConfigMap{
 		TypeMeta: TypeMeta{
@@ -84,7 +87,7 @@ func TestUpsert(t *testing.T) {
 		cli.Delete(ctx, cm, nil)
 	}()
 
-	err = cli.Upsert(ctx, cm, cm, cm)
+	err := cli.Upsert(ctx, cm, cm, cm)
 	assert.NoError(t, err)
 	assert.NotEqual(t, "", cm.GetResourceVersion())
 
@@ -107,9 +110,7 @@ func TestUpsert(t *testing.T) {
 
 func TestPatch(t *testing.T) {
 	ctx := context.TODO()
-
-	cli, err := NewClient(ClientOptions{})
-	assert.NoError(t, err)
+	cli := testClient(t)
 
 	cm := &ConfigMap{
 		TypeMeta: TypeMeta{
@@ -123,7 +124,7 @@ func TestPatch(t *testing.T) {
 		},
 	}
 
-	err = cli.Create(ctx, cm, cm)
+	err := cli.Create(ctx, cm, cm)
 	assert.NoError(t, err)
 
 	defer func() {
@@ -137,13 +138,11 @@ func TestPatch(t *testing.T) {
 
 func TestList(t *testing.T) {
 	ctx := context.TODO()
-
-	cli, err := NewClient(ClientOptions{})
-	assert.NoError(t, err)
+	cli := testClient(t)
 
 	namespaces := make([]*Namespace, 0)
 
-	err = cli.List(ctx, Query{Kind: "namespaces"}, &namespaces)
+	err := cli.List(ctx, Query{Kind: "namespaces"}, &namespaces)
 	assert.NoError(t, err)
 
 	// we know there should be at least the default namespace and
@@ -163,9 +162,7 @@ func TestList(t *testing.T) {
 
 func TestListSelector(t *testing.T) {
 	ctx := context.TODO()
-
-	cli, err := NewClient(ClientOptions{})
-	assert.NoError(t, err)
+	cli := testClient(t)
 
 	myns := &Namespace{
 		TypeMeta: TypeMeta{
@@ -179,7 +176,7 @@ func TestListSelector(t *testing.T) {
 		},
 	}
 
-	err = cli.Create(ctx, myns, myns)
+	err := cli.Create(ctx, myns, myns)
 	assert.NoError(t, err)
 
 	namespaces := make([]*Namespace, 0)
@@ -199,9 +196,7 @@ func TestListSelector(t *testing.T) {
 
 func TestShortcut(t *testing.T) {
 	ctx := context.TODO()
-
-	cli, err := NewClient(ClientOptions{})
-	assert.NoError(t, err)
+	cli := testClient(t)
 
 	cm := &ConfigMap{
 		TypeMeta: TypeMeta{
@@ -213,7 +208,7 @@ func TestShortcut(t *testing.T) {
 	}
 
 	created := &ConfigMap{}
-	err = cli.Create(ctx, cm, created)
+	err := cli.Create(ctx, cm, created)
 	assert.NoError(t, err)
 
 	err = cli.Delete(ctx, created, nil)
@@ -231,9 +226,7 @@ type TestSnapshot struct {
 // probabilistic at all.
 func TestCoherence(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-
-	cli, err := NewClient(ClientOptions{})
-	require.NoError(t, err)
+	cli := testClient(t)
 
 	// This simulates an api server that is very slow at notifying its watch clients of updates to
 	// config maps, but notifies of other resources at normal speeds. This can really happen.
@@ -282,7 +275,7 @@ func TestCoherence(t *testing.T) {
 		}
 	}()
 
-	err = cli.Get(ctx, cm, nil)
+	err := cli.Get(ctx, cm, nil)
 	assert.Error(t, err, "expecting not found error")
 	if !IsNotFound(err) {
 		t.Error(err)
@@ -424,8 +417,8 @@ func TestDeltasWithRemoteDelay(t *testing.T) {
 func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstructured, *Unstructured)) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 
-	cli, err := NewClient(ClientOptions{})
-	require.NoError(t, err)
+	cli := testClient(t)
+
 	cli.watchAdded = watchHook
 	cli.watchUpdated = watchHook
 	cli.watchDeleted = watchHook
@@ -464,7 +457,7 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 		}
 	}()
 
-	err = cli.Get(ctx, cm1, nil)
+	err := cli.Get(ctx, cm1, nil)
 	assert.Error(t, err, "expecting not found error")
 	if !IsNotFound(err) {
 		t.Error(err)
