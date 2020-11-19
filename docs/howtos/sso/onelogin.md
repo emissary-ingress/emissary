@@ -23,7 +23,7 @@ To use OneLogin as your IdP, you will first need to create an OIDC custom connec
 7. Click the **Save** button to create the connector. You will see a confirmation message.
 8. In the "More Actions" tab, select **Add App to Connector**.
 9. Select the connector you just created.
-10. Click the **Save** button.  
+10. Click the **Save** button.
 
 You will see a success banner, which also brings you back to the main portal page. OneLogin is now configured to function as an OIDC backend for authentication with Ambassador.
 
@@ -38,12 +38,12 @@ Next, configure Ambassador to require authentication with OneLogin, so you must 
 3. On the left, select the **SSO** tab to see the client information.
 4. Copy the value of Client ID for later use.
 5. Click the **Show Client Secret** link and copy the value for later use.
-  
+
 ## Configure Ambassador
 
 Now you must configure your Ambassador instance to use OneLogin.
 
-1. First, create an [OAuth Filter](../../../topics/using/filters/oauth2) with the credentials you copied earlier.  
+1. First, create an [OAuth Filter](../../../topics/using/filters/oauth2) with the credentials you copied earlier.
 
 Here is an example YAML:
 
@@ -78,7 +78,7 @@ spec:
     - host: "*"
     # Tells Ambassador to apply the Filter only on request to the /backend/get-quote/ endpoint from the quote application
     path: /backend/get-quote/
-    # Identifies which Filter to use for the path and hose above
+    # Identifies which Filter to use for the path and host above
     filters:
       - name: onelogin
 ```
