@@ -5,6 +5,10 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+## v6.5.13
+
+- Update for Ambassador v1.9.1
+
 ## v6.5.12
 
 - Feature: Add ability to configure `terminationGracePeriodSeconds` for the Ambassador container
