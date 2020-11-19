@@ -44,6 +44,7 @@ import (
 
 type TypeMeta = metav1.TypeMeta
 type ObjectMeta = metav1.ObjectMeta
+type APIResource = metav1.APIResource
 
 type Namespace = corev1.Namespace
 
