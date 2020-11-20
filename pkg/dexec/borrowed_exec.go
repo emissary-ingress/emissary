@@ -1,5 +1,5 @@
-// This file contains code copied almost verbatim from Go 1.12.7
-// os/exec/exec.go.  Modified lines are marked "// MODIFIED".
+// This file is a verbatim subset of Go 1.12.7
+// os/exec/exec.go, except for lines marked "// MODIFIED".
 //
 // Copyright 2009 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
