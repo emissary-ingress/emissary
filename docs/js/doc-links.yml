@@ -219,7 +219,11 @@
         - title: Using the OAuth2 filter
           link: /docs/latest/howtos/oauth-oidc-auth
     - title: Custom Filters
-      link: /docs/latest/howtos/filter-dev-guide
+      items:
+        - title: External Filters
+          link: /docs/latest/howtos/ext-filters
+        - title: Plugin Filters
+          link: /docs/latest/howtos/filter-dev-guide
     - title: Deploying to Kubernetes from GitHub
       link: /docs/latest/tutorials/projects
     - title: Distributed Tracing
