@@ -1,13 +1,12 @@
-// This file is verbatim copied from Go 1.12.7
-// os/exec/example_test.go, except that the imports list has been
-// changed.
+// MODIFIED: This file is copied verbatim from Go 1.15.5 os/exec/example_test.go,
+// MODIFIED: except for lines marked "MODIFIED".
 //
 // Copyright 2012 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-//nolint
-package dexec_test
+//nolint // MODIFIED
+package dexec_test // MODIFIED
 
 import (
 	"bytes"
@@ -21,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	exec "github.com/datawire/ambassador/pkg/dexec"
+	exec "github.com/datawire/ambassador/pkg/dexec" // MODIFIED
 )
 
 func ExampleLookPath() {
@@ -32,8 +31,8 @@ func ExampleLookPath() {
 	fmt.Printf("fortune is available at %s\n", path)
 }
 
-func ExampleCommandContext() {
-	cmd := exec.CommandContext(context.Background(), "tr", "a-z", "A-Z")
+func ExampleCommandContext() { // MODIFIED
+	cmd := exec.CommandContext(context.Background(), "tr", "a-z", "A-Z") // MODIFIED
 	cmd.Stdin = strings.NewReader("some input")
 	var out bytes.Buffer
 	cmd.Stdout = &out
@@ -44,8 +43,8 @@ func ExampleCommandContext() {
 	fmt.Printf("in all caps: %q\n", out.String())
 }
 
-func ExampleCommandContext_environment() {
-	cmd := exec.CommandContext(context.Background(), "prog")
+func ExampleCommandContext_environment() { // MODIFIED
+	cmd := exec.CommandContext(context.Background(), "prog") // MODIFIED
 	cmd.Env = append(os.Environ(),
 		"FOO=duplicate_value", // ignored
 		"FOO=actual_value",    // this value is used
@@ -56,7 +55,7 @@ func ExampleCommandContext_environment() {
 }
 
 func ExampleCmd_Output() {
-	out, err := exec.CommandContext(context.Background(), "date").Output()
+	out, err := exec.CommandContext(context.Background(), "date").Output() // MODIFIED
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -64,14 +63,14 @@ func ExampleCmd_Output() {
 }
 
 func ExampleCmd_Run() {
-	cmd := exec.CommandContext(context.Background(), "sleep", "1")
+	cmd := exec.CommandContext(context.Background(), "sleep", "1") // MODIFIED
 	log.Printf("Running command and waiting for it to finish...")
 	err := cmd.Run()
 	log.Printf("Command finished with error: %v", err)
 }
 
 func ExampleCmd_Start() {
-	cmd := exec.CommandContext(context.Background(), "sleep", "5")
+	cmd := exec.CommandContext(context.Background(), "sleep", "5") // MODIFIED
 	err := cmd.Start()
 	if err != nil {
 		log.Fatal(err)
@@ -82,7 +81,7 @@ func ExampleCmd_Start() {
 }
 
 func ExampleCmd_StdoutPipe() {
-	cmd := exec.CommandContext(context.Background(), "echo", "-n", `{"Name": "Bob", "Age": 32}`)
+	cmd := exec.CommandContext(context.Background(), "echo", "-n", `{"Name": "Bob", "Age": 32}`) // MODIFIED
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
@@ -104,7 +103,7 @@ func ExampleCmd_StdoutPipe() {
 }
 
 func ExampleCmd_StdinPipe() {
-	cmd := exec.CommandContext(context.Background(), "cat")
+	cmd := exec.CommandContext(context.Background(), "cat") // MODIFIED"
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		log.Fatal(err)
@@ -124,7 +123,7 @@ func ExampleCmd_StdinPipe() {
 }
 
 func ExampleCmd_StderrPipe() {
-	cmd := exec.CommandContext(context.Background(), "sh", "-c", "echo stdout; echo 1>&2 stderr")
+	cmd := exec.CommandContext(context.Background(), "sh", "-c", "echo stdout; echo 1>&2 stderr") // MODIFIED
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		log.Fatal(err)
@@ -143,7 +142,7 @@ func ExampleCmd_StderrPipe() {
 }
 
 func ExampleCmd_CombinedOutput() {
-	cmd := exec.CommandContext(context.Background(), "sh", "-c", "echo stdout; echo 1>&2 stderr")
+	cmd := exec.CommandContext(context.Background(), "sh", "-c", "echo stdout; echo 1>&2 stderr") // MODIFIED
 	stdoutStderr, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Fatal(err)
@@ -151,7 +150,7 @@ func ExampleCmd_CombinedOutput() {
 	fmt.Printf("%s\n", stdoutStderr)
 }
 
-func ExampleCommandContext_timeout() {
+func ExampleCommandContext_timeout() { // MODIFIED
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 

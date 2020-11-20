@@ -1,19 +1,18 @@
-// This file is a verbatim subset of Go 1.12.7
-// os/exec/exec.go, except for lines marked "// MODIFIED".
+// MODIFIED: This file is a verbatim subset of Go 1.15.5 os/exec/exec.go,
+// MODIFIED: except that the imports list has been changed.
 //
 // Copyright 2009 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-//nolint
+//nolint // MODIFIED
 
-package dexec
+package dexec // MODIFIED
 
 import (
 	"bytes"
+	"errors"
 	"strconv"
-
-	"github.com/pkg/errors"
 )
 
 // interfaceEqual protects against panics from doing equality tests on

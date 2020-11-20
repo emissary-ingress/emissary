@@ -1,5 +1,5 @@
-// This file is verbatim copied from Go 1.12.7
-// os/exec/exec_posix_test.go.
+// MODIFIED: This file is copied verbatim from Go 1.15.5 os/exec/exec_posix_test.go,
+// MODIFIED: except for lines marked "MODIFIED".
 //
 // Copyright 2017 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
@@ -7,11 +7,12 @@
 
 // +build aix darwin dragonfly freebsd linux netbsd openbsd solaris
 
-//nolint
-package dexec_test
+//nolint // MODIFIED
+package dexec_test // MODIFIED
 
 import (
 	"os/user"
+	"runtime"
 	"strconv"
 	"syscall"
 	"testing"
@@ -19,6 +20,10 @@ import (
 )
 
 func TestCredentialNoSetGroups(t *testing.T) {
+	if runtime.GOOS == "android" {
+		t.Skip("unsupported on Android")
+	}
+
 	u, err := user.Current()
 	if err != nil {
 		t.Fatalf("error getting current user: %v", err)
