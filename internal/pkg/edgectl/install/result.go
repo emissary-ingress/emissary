@@ -92,7 +92,7 @@ func (i *Installer) ShowResult(r Result) {
 		i.log.Printf(" Error: %+v", r.Err)
 
 		if r.Report != "" {
-			i.Report(r.Report, client.ScoutMeta{"err", r.Err.Error()})
+			i.Report(r.Report, client.ScoutMeta{Key: "err", Value: r.Err.Error()})
 		}
 
 		if r.ShortMessage != "" {

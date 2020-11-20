@@ -47,7 +47,7 @@ func newAggIsolator(t *testing.T, requiredKinds []string, watchHook WatchHook) *
 		// for signaling when the isolator is done
 		done: make(chan struct{}),
 	}
-	client, err := kates.NewClient(kates.ClientOptions{})
+	client, err := kates.NewClient(kates.ClientConfig{})
 	require.NoError(t, err)
 	validator, err := kates.NewValidator(client, nil)
 	require.NoError(t, err)
@@ -158,7 +158,12 @@ func TestAggregatorBootstrap(t *testing.T) {
 	defer iso.Stop()
 
 	// initial kubernetes state is just services
-	iso.aggregator.KubernetesEvents <- thingkube.K8sEvent{"", "service", SERVICES, nil}
+	iso.aggregator.KubernetesEvents <- thingkube.K8sEvent{
+		WatchID:   "",
+		Kind:      "service",
+		Resources: SERVICES,
+		Errors:    nil,
+	}
 
 	// we should not generate a snapshot or consulWatches yet
 	// because we specified configmaps are required
@@ -167,7 +172,12 @@ func TestAggregatorBootstrap(t *testing.T) {
 
 	// the configmap references a consul service, so we shouldn't
 	// get a snapshot yet, but we should get watches
-	iso.aggregator.KubernetesEvents <- thingkube.K8sEvent{"", "configmap", RESOLVER, nil}
+	iso.aggregator.KubernetesEvents <- thingkube.K8sEvent{
+		WatchID:   "",
+		Kind:      "configmap",
+		Resources: RESOLVER,
+		Errors:    nil,
+	}
 	expect(t, iso.snapshots, Timeout(100*time.Millisecond))
 	expect(t, iso.consulWatches, func(watches []watchapi.ConsulWatchSpec) bool {
 		if len(watches) != 1 {
@@ -185,8 +195,8 @@ func TestAggregatorBootstrap(t *testing.T) {
 	// now lets send in the first endpoints, and we should get a
 	// snapshot
 	iso.aggregator.ConsulEvents <- thingconsul.ConsulEvent{
-		WATCH.WatchId(),
-		consulwatch.Endpoints{
+		WatchId: WATCH.WatchId(),
+		Endpoints: consulwatch.Endpoints{
 			Service: "bar",
 			Endpoints: []consulwatch.Endpoint{
 				{

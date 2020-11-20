@@ -2,9 +2,9 @@
 
 ## BREAKING NEWS
 
-### AMBASSADOR EDGE STACK 1.0.0
+### AMBASSADOR EDGE STACK
 
-Ambassador Edge Stack 1.0.0 is a comprehensive, self-service solution for exposing,
+Ambassador Edge Stack is a comprehensive, self-service solution for exposing,
 securing, and managing the boundary between end users and your Kubernetes services.
 The core of Ambassador Edge Stack is the open-source Ambassador API Gateway, built on
 the Envoy proxy.
@@ -91,6 +91,21 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Change: The `OAuth2` Filter argument `scopes` has been renamed to `scope`, for consistency.  The name `scopes` is deprecated, but will continue to work for backward compatibility.
 - Bugfix: `OAuth2` Filter: Don't have `accessTokenValidation: auto` fall back to "userinfo" validation for a client_credentials grant; it doesn't make sense there and only serves to obscure a more useful error message.
 
+### Ambassador Edge Stack only
+
+- Change: The DevPortal no longer looks for documentation at `/.ambassador-internal/openapi-docs`.
+   - A new field in `Mappings`, `docs`, must be used for specifying the source for
+     documentation.  This can result in an empty Dev Portal after upgrading if
+     `Mappings` do not include a `docs` attribute.
+- Bugfix: `OAuth2` Filter: Don't have `accessTokenValidation: auto` fall back to "userinfo" validation for a client_credentials grant; it doesn't make sense there and only serves to obscure a more useful error message.
+- Feature: How the `OAuth2` Filter authenticates itself to the identity provider is now configurable with the `clientAuthentication` setting.
+- Feature: The `OAuth2` Filter can now use RFC 7523 JWT assertions to authenticate itself to the identity provider; this is usable with all grant types.
+- Bugfix: `ConsulResolver` will now fallback to the `Address` of a Consul service if `Service.Address` is not set.
+- Feature: When validating a JWT's scope, the `JWT` and `OAuth2` Filters now support not just RFC 8693 behavior, but also the behavior of various drafts leading to it, making JWT scope validation usable with more identity providers.
+- Change: The `OAuth2` Filter argument `scopes` has been renamed to `scope`, for consistency.  The name `scopes` is deprecated, but will continue to work for backward compatibility.
+- Feature: The `OAuth2` Filter now has `inheritScopeArgument` and `stripInheritedScope` settings that can further customize the behavior of `accessTokenJWTFilter`.
+- Feature: DevPortal: default configuration using the `ambassador` `DevPortal` resource.
+
 ## [1.8.1] October 16, 2020
 [1.8.1]: https://github.com/datawire/ambassador/compare/v1.8.0...v1.8.1
 
@@ -109,7 +124,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Bugfix: The `edgectl connect` command now works properly when using zsh on a Linux platform.
 - Bugfix: The container no longer exits "successfully" when the Deployment specifies an invalid `command`.
 
-### Ambassador Edge Stack Only
+### Ambassador Edge Stack only
 
 - Feature: `RateLimit` CRDs now support setting a response body, configurable with the `errorResponse` setting.
 - Bugfix: `External` `Filter` can now properly proxy the body to the configured `auth_service`
@@ -164,11 +179,11 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Bugfix: Correctly handle a `Host` object with incompatible manually-specified `TLSContext`
 - Feature: The Ambassador control-plane now publishes Prometheus metrics alongside the existing Envoy data-plane metrics under the `/metrics` endpoint on port 8877.
 - Default-off early access: Experimental changes to allow Ambassador to more quickly process configuration changes (especially with larger configurations) have been added. The `AMBASSADOR_FAST_RECONFIGURE` env var must be set to enable this. `AMBASSADOR_FAST_VALIDATION` should also be set for maximum benefit.
+- Bugfix: Fixed insecure route action behavior. Host security policies no longer affect other Hosts.
 
 ### Ambassador API Gateway only
 
 - Bugfix: Fixes regression in 1.5.1 that caused it to not correctly know its own version number, leading to notifications about an available upgrade despite being on the most recent version.
-- Bugfix: Fixed insecure route action behavior. Host security policies no longer affect other Hosts.
 
 ### Ambassador Edge Stack only
 
@@ -185,6 +200,9 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Bugfix: Internal Ambassador data is no longer exposed to the `/.ambassador-internal/` endpoints used by the DevPortal.
 - Bugfix: Problems with license key limits will no longer trigger spurious HTTP 429 errors.  Using the `RateLimit` resource beyond 5rps without any form of license key will still trigger 429 responses, but now with a `X-Ambassador-Message` header indicating that's what happned.
 - Bugfix: When multiple `RateLimit`s overlap, it is supposed to enforce the strictest limit; but the strictness comparison didn't correctly handle comparing limits with different units.
+- Change: The Redis settings have been adjusted to default to the pre-1.6.0 behavior, and have been adjusted to be easier to understand.
+- Feature: `consul_connect_integration` is now part of the AES image.
+- Bugfix: `consul_connect_integration` now correctly handles certificates from Hashicorp Vault.
 
 ## [1.6.2] July 30, 2020
 [1.6.2]: https://github.com/datawire/ambassador/compare/v1.6.1...v1.6.2
@@ -276,15 +294,12 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 ### Ambassador API Gateway + Ambassador Edge Stack
 
 - Bugfix: Restore Envoy listener drain time to its pre-Ambassador 1.3.0 default of 10 minutes.
+- Bugfix: Read Knative ingress generation from the correct place in the Kubernetes object
 
 ### Ambassador Edge Stack only
 
 - Bugfix: Allow deletion of ProjectControllers.
 - Bugfix: Fix regression introduced in 1.4.2 where the `OAuth2` AuthorizationCode filter no longer works when behind another gateway that rewrites the request hostname.  The behavior here is now controllable via the `internalOrigin` sub-field.
-
-### Ambassador API Gateway + Ambassador Edge Stack
-
-- Bugfix: Read Knative ingress generation from the correct place in the Kubernetes object
 
 ## [1.5.2] June 10, 2020
 [1.5.2]: https://github.com/datawire/ambassador/compare/v1.5.1...v1.5.2
@@ -296,14 +311,14 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 
 ### Ambassador Edge Stack only
 
-- Feature: (BETA) Added an in-cluster micro CI/CD system to enable building, staging, and publishing of GitHub projects from source.  This has been included in previous versions as an alpha, but disabled by default. It is now in BETA.
+- Feature (BETA): Added an in-cluster micro CI/CD system to enable building, staging, and publishing of GitHub projects from source.  This has been included in previous versions as an alpha, but disabled by default. It is now in BETA.
 - Bugfix: The `DEVPORTAL_CONTENT_URL` environment variable now properly handles `file:///` URLs to refer to volume-mounted content.
 - Bugfix: `acmeProvider.authority: none` is no longer case sensitive
 - Bugfix: `edgectl connect` works again on Ubuntu and other Linux setups with old versions of nss-mdns (older than version 0.11)
 - Bugfix: `edgectl` works again on Windows
 - Bugfix: The Edge Policy Console now correctly creates FilterPolicy resources
 
-## [1.5.1] June 5, 2020
+## [1.5.1] June 05, 2020
 [1.5.1]: https://github.com/datawire/ambassador/compare/v1.5.0...v1.5.1
 
 ### Ambassador API Gateway + Ambassador Edge Stack
@@ -353,14 +368,14 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 ## [1.4.3] May 14, 2020
 [1.4.3]: https://github.com/datawire/ambassador/compare/v1.4.2...v1.4.3
 
-### Ambassador Edge Stack Only
+### Ambassador Edge Stack only
 
-- Bugfix: Don't generate spurious 403s in logs when using Edge Policy Console.
+- Bugfix: Don't generate spurious 403s in the logs when using the Edge Policy Console.
 
 ## [1.4.2] April 22, 2020
 [1.4.2]: https://github.com/datawire/ambassador/compare/v1.4.1...v1.4.2
 
-### Ambassador Edge Stack Only
+### Ambassador Edge Stack only
 
 - Bugfix: The Traffic Agent binds to port 9900 by default. That port can be configured in the Agent's Pod spec.
    - For more about using the Traffic Agent, see the [Service Preview documentation](https://www.getambassador.io/docs/latest/topics/using/edgectl/#configuring-service-preview).
@@ -368,15 +383,16 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 - Bugfix: The `OAuth2` Filter now supports multiple authentication domains that share the same credentials.
    - For more about using multiple domains, see the [OAuth2 `Filter` documentation](https://www.getambassador.io/docs/1.4/topics/using/filters/oauth2/).
 - Bugfix: The ACME client now obeys `AMBASSADOR_ID`
+- Feature (ALPHA): Added an in-cluster micro CI/CD system to enable building, staging, and publishing of GitHub projects from source.  This is disabled by default.
 
 ## [1.4.1] April 15, 2020
 [1.4.1]: https://github.com/datawire/ambassador/compare/v1.4.0...v1.4.1
 
-### Ambassador Edge Stack Only
+### Ambassador Edge Stack only
 
 - Internal: `edgectl install` uses Helm under the hood
 
-## [1.4.0] April 8, 2020
+## [1.4.0] April 08, 2020
 [1.4.0]: https://github.com/datawire/ambassador/compare/v1.3.2...v1.4.0
 
 ### Ambassador API Gateway + Ambassador Edge Stack
@@ -391,7 +407,7 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
    - See the [Ambassador Module documentation](https://getambassador.io/docs/1.4/topics/running/ambassador) for more.
 - Bugfix: Correctly ignore Kubernetes services with no metadata (thanks, [Fabrice](https://github.com/jfrabaute)!)
 
-### Ambassador Edge Stack Only
+### Ambassador Edge Stack only
 
 - Feature: `edgectl install` output has clearer formatting
 - Feature: `edgectl install` offers help when installation does not succeed
@@ -402,10 +418,10 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 - Bugfix: `edgectl install` correctly handles more local and cluster environments
    - For more about `edgectl` improvements, see the [Service Preview and Edge Control documentation](https://getambassador.io/docs/1.4/topics/using/edgectl).
 
-## [1.3.2] April 1, 2020
+## [1.3.2] April 01, 2020
 [1.3.2]: https://github.com/datawire/ambassador/compare/v1.3.1...v1.3.2
 
-### Ambassador Edge Stack
+### Ambassador Edge Stack only
 
 - Bugfix: `edgectl install` correctly installs on Amazon EKS and other clusters that provide load balancers with fixed DNS names
 - Bugfix: `edgectl install` when using Helm once again works as documented
@@ -417,7 +433,7 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 ## [1.3.1] March 24, 2020
 [1.3.1]: https://github.com/datawire/ambassador/compare/v1.3.0...v1.3.1
 
-### Ambassador Edge Stack
+### Ambassador Edge Stack only
 
 - Bugfix: `edgectl install` will not install on top of a running Ambassador
 - Bugfix: `edgectl install` can detect and report if `kubectl` is missing
@@ -429,7 +445,7 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 ## [1.3.0] March 17, 2020
 [1.3.0]: https://github.com/datawire/ambassador/compare/v1.2.2...v1.3.0
 
-### Ambassador Edge Stack
+### Ambassador Edge Stack only
 
 - Feature: Support username and password as headers for OAuth2 authentication (`grantType: Password`)
 - Feature: `edgectl install` provides better feedback for clusters that are unreachable from the public Internet
@@ -443,22 +459,29 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 - Bugfix: The `Plugin` Filter now correctly sets `request.TLS` to nil/non-nil based on if the original request was encrypted or not.
 - Change: There is no longer a separate traffic-proxy image; that functionality is now part of the main AES image. Set `command: ["traffic-manager"]` to use it.
 
-## [1.2.2] March 4, 2020
-[1.2.2]: https://github.com/datawire/ambassador/compare/v1.2.0...v1.2.2
+## [1.2.2] March 04, 2020
+[1.2.2]: https://github.com/datawire/ambassador/compare/v1.2.1...v1.2.2
+
+### Ambassador Edge Stack only
+
+- Internal: Fix an error in Edge Stack update checks
+
+## [1.2.1] March 03, 2020
+[1.2.1]: https://github.com/datawire/ambassador/compare/v1.2.0...v1.2.1
+
+Edge Stack users SHOULD NOT use this release, and should instead use 1.2.2.
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
 - Bugfix: re-support PROXY protocol when terminating TLS ([#2348])
 - Bugfix: Incorporate the Envoy 1.12.3 security update
-- Internal: Fix an error in Edge Stack update checks
 
 ### Ambassador Edge Stack only
 
 - Bugfix: The `aes-plugin-runner` binary for GNU/Linux is now statically linked (instead of being linked against musl libc), so it should now work on either musl libc or GNU libc systems
+- Feature (ALPHA): An `aes-plugin-runner` binary for Windows is now produced.  (It is un-tested as of yet.)
 - Bugfix: The `OAuth2` Filter redirection-endpoint now handles various XSRF errors more consistently
 - Change: The `OAuth2` Filter redirection-endpoint now handles XSRF errors by redirecting back to the identity provider
-
-(1.2.1 is superseded by 1.2.2.)
 
 [#2348]: https://github.com/datawire/ambassador/issues/2348
 
@@ -478,7 +501,7 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 
 ### Ambassador Edge Stack only
 
-- Change: The `ambassador` service now uses the default `externalTrafficPolicy` of `Cluster` rather than explicitly setting it to`Local`. This is a safer setting for GKE where the `Local` policy can cause outages when ambassador is updated. See https://stackoverflow.com/questions/60121956/are-hitless-rolling-updates-possible-on-gke-with-externaltrafficpolicy-local for details.
+- Change: The `ambassador` service now uses the default `externalTrafficPolicy` of `Cluster` rather than explicitly setting it to `Local`. This is a safer setting for GKE where the `Local` policy can cause outages when ambassador is updated. See https://stackoverflow.com/questions/60121956/are-hitless-rolling-updates-possible-on-gke-with-externaltrafficpolicy-local for details.
 - Feature: `edgectl install` provides a much cleaner, quicker experience when installing Ambassador Edge Stack
 - Feature: Ambassador Edge Stack supports the Ambassador operator for automated management and upgrade
 - Feature: `ifRequestHeader` can now have `valueRegex` instead of `value`
@@ -585,7 +608,7 @@ behavior before upgrading your CRDs.
 - Fix `ambassador_id` handling for Knative resources
 - Treat `ambassadorId` as a synonym for `ambassador_id` (`ambassadorId` is the Protobuf 3 canonical form of `ambassador_id`)
 
-## Ambassador Edge Stack
+### Ambassador Edge Stack
 
 Ambassador Edge Stack incorporates the functionality of the old Ambassador Pro product.
 
@@ -594,6 +617,9 @@ Ambassador Edge Stack incorporates the functionality of the old Ambassador Pro p
 - There is now an `edgectl` program that you can use for interacting with Ambassador from the command line
 - There is a web user-interface for Ambassador
 - BREAKING CHANGE: `APP_LOG_LEVEL` is now `AES_LOG_LEVEL`
+
+See the [`CHANGELOG.old-pro.md`](./CHANGELOG.old-pro.md) file for the changelog of
+the old Ambassador Pro product.
 
 ## [1.0.0-rc6] January 15, 2020
 [1.0.0-rc6]: https://github.com/datawire/ambassador/compare/v1.0.0-rc4...v1.0.0-rc6
@@ -1034,7 +1060,7 @@ Ambassador 0.61.0 metadata
 - Ambassador will now properly redirect from HTTP to HTTPS based on `x-forwarded-proto` (#1233).
 - The `case_sensitive` field now works when `host_redirect` is set to true (#699). Thanks to Peter Choi and Christopher Coté.
 
-## [0.53.1] April 5, 2019
+## [0.53.1] April 05, 2019
 [0.53.1]: https://github.com/datawire/ambassador/compare/0.52.1...0.53.1
 
 (0.53.0 was immediately supplanted by 0.53.1.)
@@ -1111,7 +1137,7 @@ will try to warn you if your configuration will be affected by this change.
 
 - Ambassador correctly handles services in namespaces other than the one Ambassador is running in.
 
-## [0.51.0] March 8, 2019
+## [0.51.0] March 08, 2019
 [0.51.0]: https://github.com/datawire/ambassador/compare/0.50.3...0.51.0
 
 **0.51.0 is not recommended: upgrade to 0.51.1.**
@@ -1165,7 +1191,7 @@ At present, you cannot mix HTTP and HTTPS upstream `service`s in any Ambassador 
 [#1216]: https://github.com/datawire/ambassador/issues/1216
 [#1226]: https://github.com/datawire/ambassador/issues/1226
 
-## [0.50.1] February 7, 2019
+## [0.50.1] February 07, 2019
 [0.50.1]: https://github.com/datawire/ambassador/compare/0.50.0...0.50.1
 
 **0.50.1 is not recommended: upgrade to 0.52.0.**
@@ -1259,7 +1285,7 @@ section above for more information.**
 [#1096]: https://github.com/datawire/ambassador/issues/1096
 [#1100]: https://github.com/datawire/ambassador/issues/1100
 
-## [0.50.0-rc4] January 9, 2019
+## [0.50.0-rc4] January 09, 2019
 [0.50.0-rc4]: https://github.com/datawire/ambassador/compare/0.50.0-rc3...0.50.0-rc4
 
 **Ambassador 0.50.0-rc4 is a release candidate**, and fully supports running under Microsoft Azure.
@@ -1272,7 +1298,7 @@ section above for more information.**
 
 [#1039]: https://github.com/datawire/ambassador/issues/1039
 
-## [0.50.0-rc3] January 3, 2019
+## [0.50.0-rc3] January 03, 2019
 [0.50.0-rc3]: https://github.com/datawire/ambassador/compare/0.50.0-rc2...0.50.0-rc3
 
 **Ambassador 0.50.0-rc3 is a release candidate**, but see below for an important warning about Azure.
@@ -1378,7 +1404,7 @@ updates after running for a short time. This will be fixed in 0.50.0-GA.
 - The Ambassador CLI no longer requires certificate files to be present when dumping configurations
 - `make mypy` will run full type checks on Ambassador to help developers
 
-## [0.50.0-ea5] November 6, 2018
+## [0.50.0-ea5] November 06, 2018
 [0.50.0-ea5]: https://github.com/datawire/ambassador/compare/0.50.0-ea4...0.50.0-ea5
 
 **Ambassador 0.50.0-ea5 is an EARLY ACCESS release! IT IS NOT SUPPORTED FOR PRODUCTION USE.**
@@ -1576,7 +1602,7 @@ Other changes:
 - Huge revamp to documentation around unit tests
 - Documentation changes
 
-## [0.35.2] July 5, 2018: **READ THE WARNING ABOVE**
+## [0.35.2] July 05, 2018: **READ THE WARNING ABOVE**
 [0.35.2]: https://github.com/datawire/ambassador/compare/0.35.1...0.35.2
 
 ### Changed
@@ -1622,7 +1648,7 @@ Other changes:
 - Ambassador external auth services can now modify existing headers in place, as well as adding new headers.
 - Re-support the `ambassador-cacert` secret for configuring TLS client-certificate authentication. **Note well** that a couple of things have changed in setting this up: you'll use the key `tls.crt`, not `fullchain.pem`. See https://www.getambassador.io/reference/auth-tls-certs for more.
 
-## [0.34.1] June 4, 2018
+## [0.34.1] June 04, 2018
 [0.34.1]: https://github.com/datawire/ambassador/compare/0.34.0...0.34.1
 
 ### Bugfixes
@@ -1653,7 +1679,7 @@ Other changes:
 
 - Fix support for `host_redirect` in a `Mapping`. **See the `Mapping` documentation** for more details: the definition of the `host_redirect` attribute has changed.
 
-## [0.32.2] May 2, 2018
+## [0.32.2] May 02, 2018
 [0.32.2]: https://github.com/datawire/ambassador/compare/v0.32.0...v0.32.2
 
 (Note that 0.32.1 was an internal release.)
@@ -1726,7 +1752,7 @@ You can also use `adminService.type=LoadBalancer`.
 - The `statsd` container is now based on `mhart/alpine-node:9` rather than `:7`.
 - `envoy_override` has been reenabled in `Mapping`s.
 
-## [0.28.1] March 5, 2018 (and [0.28.0] on March 2, 2018)
+## [0.28.1] March 05, 2018 (and [0.28.0] on March 02, 2018)
 [0.28.1]: https://github.com/datawire/ambassador/compare/v0.26.0...v0.28.1
 [0.28.0]: https://github.com/datawire/ambassador/compare/v0.26.0...v0.28.1
 
@@ -1755,7 +1781,7 @@ You can also use `adminService.type=LoadBalancer`.
 - Streamline end-to-end tests and, hopefully, allow them to work well without Kubernaut
 - Clean up some documentation (thanks @lavoiedn!)
 
-## [0.25.0] February 6, 2018
+## [0.25.0] February 06, 2018
 [0.25.0]: https://github.com/datawire/ambassador/compare/v0.23.0...v0.25.0
 
 (Note that 0.24.0 was an internal release.)
@@ -1803,7 +1829,7 @@ You can also use `adminService.type=LoadBalancer`.
 
 - Ambassador will no longer generate cluster names that exceed Envoy's 60-character limit.
 
-## [0.21.0] January 3, 2018
+## [0.21.0] January 03, 2018
 [0.21.0]: https://github.com/datawire/ambassador/compare/v0.20.1...v0.21.0
 
 ### Changed
@@ -1837,7 +1863,7 @@ You can also use `adminService.type=LoadBalancer`.
 - Arrange for logs from the subsystem that watches for Kubernetes service changes (kubewatch) to have timestamps and such.
 - Only do new-version checks every four hours.
 
-## [0.19.1] December 4, 2017
+## [0.19.1] December 04, 2017
 [0.19.1]: https://github.com/datawire/ambassador/compare/v0.19.0...v0.19.1
 
 ### Changed
@@ -1919,7 +1945,7 @@ You can also use `adminService.type=LoadBalancer`.
 
 - Allow the diagnostic service to show configuration errors.
 
-## [0.14.0] October 5, 2017
+## [0.14.0] October 05, 2017
 [0.14.0]: https://github.com/datawire/ambassador/compare/v0.13.0...v0.14.0
 
 ### Changed
@@ -1981,14 +2007,14 @@ You can also use `adminService.type=LoadBalancer`.
 
 - Update `demo-qotm.yaml` with the correct image tag.
 
-## [0.10.13] September 5, 2017
+## [0.10.13] September 05, 2017
 [0.10.13]: https://github.com/datawire/ambassador/compare/v0.10.12...v0.10.13
 
 ### Changed
 
 - Properly support proxying all methods to an external authentication service, with headers intact, rather than moving request headers into the body of an HTTP POST.
 
-## [0.10.12] August 2, 2017
+## [0.10.12] August 02, 2017
 [0.10.12]: https://github.com/datawire/ambassador/compare/v0.10.10...v0.10.12
 
 ### Changed
@@ -2000,7 +2026,7 @@ You can also use `adminService.type=LoadBalancer`.
 - Move Ambassador out from behind Envoy, so that you can use Ambassador to fix things if you completely botch your Envoy config.
 - Let Ambassador keep running if Envoy totally chokes and dies, but make sure the pod dies if Ambassador loses access to its storage.
 
-## [0.10.10] August 1, 2017
+## [0.10.10] August 01, 2017
 [0.10.10]: https://github.com/datawire/ambassador/compare/v0.10.7...v0.10.10
 
 ### Fixed
@@ -2025,7 +2051,7 @@ You can also use `adminService.type=LoadBalancer`.
 ### Changed
 - Many changes to the build process and versioning. In particular, CI no longer has to commit files.
 
-## [0.10.1] July 3, 2017
+## [0.10.1] July 03, 2017
 [0.10.1]: https://github.com/datawire/ambassador/compare/v0.10.0...v0.10.1
 
 ### Added

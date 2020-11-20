@@ -1,6 +1,7 @@
 package dlog
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"sort"
@@ -28,7 +29,7 @@ func (w tbWrapper) WithField(key string, value interface{}) Logger {
 	return ret
 }
 
-func (w tbWrapper) log(level LogLevel, msg string) {
+func (w tbWrapper) Log(level LogLevel, msg string) {
 	w.Helper()
 	fields := make(map[string]interface{}, len(w.fields)+2)
 	for k, v := range w.fields {
@@ -69,50 +70,15 @@ func (w tbWrapper) log(level LogLevel, msg string) {
 	}
 }
 
-func (w tbWrapper) Log(level LogLevel, a ...interface{}) {
-	w.Helper()
-	w.log(level, fmt.Sprint(a...))
-}
-
-func (w tbWrapper) Logln(level LogLevel, a ...interface{}) {
-	w.Helper()
-	w.log(level, fmt.Sprintln(a...))
-}
-
-func (w tbWrapper) Logf(level LogLevel, format string, a ...interface{}) {
-	w.Helper()
-	w.log(level, fmt.Sprintf(format, a...))
-}
-
-func (w tbWrapper) Tracef(f string, a ...interface{})   { w.Helper(); w.Logf(LogLevelTrace, f, a...) }
-func (w tbWrapper) Debugf(f string, a ...interface{})   { w.Helper(); w.Logf(LogLevelDebug, f, a...) }
-func (w tbWrapper) Infof(f string, a ...interface{})    { w.Helper(); w.Logf(LogLevelInfo, f, a...) }
-func (w tbWrapper) Printf(f string, a ...interface{})   { w.Helper(); w.Logf(LogLevelInfo, f, a...) }
-func (w tbWrapper) Warnf(f string, a ...interface{})    { w.Helper(); w.Logf(LogLevelWarn, f, a...) }
-func (w tbWrapper) Warningf(f string, a ...interface{}) { w.Helper(); w.Logf(LogLevelWarn, f, a...) }
-func (w tbWrapper) Errorf(f string, a ...interface{})   { w.Helper(); w.Logf(LogLevelError, f, a...) }
-
-func (w tbWrapper) Trace(a ...interface{})   { w.Helper(); w.Log(LogLevelTrace, a...) }
-func (w tbWrapper) Debug(a ...interface{})   { w.Helper(); w.Log(LogLevelDebug, a...) }
-func (w tbWrapper) Info(a ...interface{})    { w.Helper(); w.Log(LogLevelInfo, a...) }
-func (w tbWrapper) Print(a ...interface{})   { w.Helper(); w.Log(LogLevelInfo, a...) }
-func (w tbWrapper) Warn(a ...interface{})    { w.Helper(); w.Log(LogLevelWarn, a...) }
-func (w tbWrapper) Warning(a ...interface{}) { w.Helper(); w.Log(LogLevelWarn, a...) }
-func (w tbWrapper) Error(a ...interface{})   { w.Helper(); w.Log(LogLevelError, a...) }
-
-func (w tbWrapper) Traceln(a ...interface{})   { w.Helper(); w.Logln(LogLevelTrace, a...) }
-func (w tbWrapper) Debugln(a ...interface{})   { w.Helper(); w.Logln(LogLevelDebug, a...) }
-func (w tbWrapper) Infoln(a ...interface{})    { w.Helper(); w.Logln(LogLevelInfo, a...) }
-func (w tbWrapper) Println(a ...interface{})   { w.Helper(); w.Logln(LogLevelInfo, a...) }
-func (w tbWrapper) Warnln(a ...interface{})    { w.Helper(); w.Logln(LogLevelWarn, a...) }
-func (w tbWrapper) Warningln(a ...interface{}) { w.Helper(); w.Logln(LogLevelWarn, a...) }
-func (w tbWrapper) Errorln(a ...interface{})   { w.Helper(); w.Logln(LogLevelError, a...) }
-
-// WrapTB converts a testing.TB (that is: either a *testing.T or a
-// *testing.B) into a generic Logger.
+// WrapTB converts a testing.TB (that is: either a *testing.T or a *testing.B) into a generic
+// Logger.
 //
-// Naturally, you should only use this from inside of your *_test.go
-// files.
+// Naturally, you should only use this from inside of your *_test.go files.  The failOnError
+// argument controls whether calling any of the dlog.Error{,f,ln} functions should cause the test to
+// fail.
+//
+// This is considered deprecated; you should consider using NewTestContext (which calls this)
+// instead.
 func WrapTB(in testing.TB, failOnError bool) Logger {
 	return tbWrapper{
 		TB:          in,
@@ -128,10 +94,25 @@ type tbWriter struct {
 
 func (w tbWriter) Write(data []byte) (n int, err error) {
 	w.w.Helper()
-	w.w.log(w.l, string(data))
+	w.w.Log(w.l, string(data))
 	return len(data), nil
 }
 
 func (w tbWrapper) StdLogger(l LogLevel) *log.Logger {
 	return log.New(tbWriter{w, l}, "", 0)
+}
+
+// NewTestContext takes a testing.TB (that is: either a *testing.T or a *testing.B) and returns a
+// good default Context to use in unit test.  The Context will have dlog configured to log using the
+// Go test runner's built-in logging facilities.  The context will be canceled when the test
+// terminates.  The failOnError argument controls whether calling any of the dlog.Error{,f,ln}
+// functions should cause the test to fail.
+//
+// Naturally, you should only use this from inside of your *_test.go files.
+func NewTestContext(t testing.TB, failOnError bool) context.Context {
+	ctx := context.Background()
+	ctx = WithLogger(ctx, WrapTB(t, failOnError))
+	ctx, cancel := context.WithCancel(ctx)
+	t.Cleanup(cancel)
+	return ctx
 }

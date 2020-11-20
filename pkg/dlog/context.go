@@ -1,7 +1,10 @@
+//go:generate make
+
 package dlog
 
 import (
 	"context"
+	"fmt"
 	"log"
 )
 
@@ -36,59 +39,36 @@ func WithField(ctx context.Context, key string, value interface{}) context.Conte
 // associated with ctx and logs at the specified loglevel.
 //
 // Avoid using this functions if at all possible; prefer to use the
-// {Trace,Debug,Info,Print,Warn,Error}{f,ln,}() functions.
+// {Trace,Debug,Info,Print,Warn,Error}{f,ln,}() functions.  You should
+// only use this for working with external libraries that demand a
+// stdlib *log.Logger.
 func StdLogger(ctx context.Context, level LogLevel) *log.Logger {
 	return getLogger(ctx).StdLogger(level)
 }
 
-func Tracef(c context.Context, f string, a ...interface{}) {
-	l := getLogger(c)
-	l.Helper()
-	l.Tracef(f, a...)
-}
-func Debugf(c context.Context, f string, a ...interface{}) {
-	l := getLogger(c)
-	l.Helper()
-	l.Debugf(f, a...)
-}
-func Infof(c context.Context, f string, a ...interface{}) {
-	l := getLogger(c)
-	l.Helper()
-	l.Infof(f, a...)
-}
-func Printf(c context.Context, f string, a ...interface{}) {
-	l := getLogger(c)
-	l.Helper()
-	l.Printf(f, a...)
-}
-func Warnf(c context.Context, f string, a ...interface{}) {
-	l := getLogger(c)
-	l.Helper()
-	l.Warnf(f, a...)
-}
-func Warningf(c context.Context, f string, a ...interface{}) {
-	l := getLogger(c)
-	l.Helper()
-	l.Warningf(f, a...)
-}
-func Errorf(c context.Context, f string, a ...interface{}) {
-	l := getLogger(c)
-	l.Helper()
-	l.Errorf(f, a...)
+func sprintln(args ...interface{}) string {
+	// Trim the trailing newline; what we care about is that spaces are added in between
+	// arguments, not that there's a trailing newline.  See also: logrus.Entry.sprintlnn
+	msg := fmt.Sprintln(args...)
+	return msg[:len(msg)-1]
 }
 
-func Trace(c context.Context, a ...interface{})   { l := getLogger(c); l.Helper(); l.Trace(a...) }
-func Debug(c context.Context, a ...interface{})   { l := getLogger(c); l.Helper(); l.Debug(a...) }
-func Info(c context.Context, a ...interface{})    { l := getLogger(c); l.Helper(); l.Info(a...) }
-func Print(c context.Context, a ...interface{})   { l := getLogger(c); l.Helper(); l.Print(a...) }
-func Warn(c context.Context, a ...interface{})    { l := getLogger(c); l.Helper(); l.Warn(a...) }
-func Warning(c context.Context, a ...interface{}) { l := getLogger(c); l.Helper(); l.Warning(a...) }
-func Error(c context.Context, a ...interface{})   { l := getLogger(c); l.Helper(); l.Error(a...) }
+// If you change any of these, you should also change convenience.go.gen and run `make generate`.
 
-func Traceln(c context.Context, a ...interface{})   { l := getLogger(c); l.Helper(); l.Traceln(a...) }
-func Debugln(c context.Context, a ...interface{})   { l := getLogger(c); l.Helper(); l.Debugln(a...) }
-func Infoln(c context.Context, a ...interface{})    { l := getLogger(c); l.Helper(); l.Infoln(a...) }
-func Println(c context.Context, a ...interface{})   { l := getLogger(c); l.Helper(); l.Println(a...) }
-func Warnln(c context.Context, a ...interface{})    { l := getLogger(c); l.Helper(); l.Warnln(a...) }
-func Warningln(c context.Context, a ...interface{}) { l := getLogger(c); l.Helper(); l.Warningln(a...) }
-func Errorln(c context.Context, a ...interface{})   { l := getLogger(c); l.Helper(); l.Errorln(a...) }
+func Log(ctx context.Context, lvl LogLevel, args ...interface{}) {
+	l := getLogger(ctx)
+	l.Helper()
+	l.Log(lvl, fmt.Sprint(args...))
+}
+
+func Logln(ctx context.Context, lvl LogLevel, args ...interface{}) {
+	l := getLogger(ctx)
+	l.Helper()
+	l.Log(lvl, sprintln(args...))
+}
+
+func Logf(ctx context.Context, lvl LogLevel, format string, args ...interface{}) {
+	l := getLogger(ctx)
+	l.Helper()
+	l.Log(lvl, fmt.Sprintf(format, args...))
+}

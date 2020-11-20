@@ -13,30 +13,7 @@ import (
 type logrusLogger interface {
 	WithField(key string, value interface{}) *logrus.Entry
 	WriterLevel(level logrus.Level) *io.PipeWriter
-
-	Tracef(format string, args ...interface{})
-	Debugf(format string, args ...interface{})
-	Infof(format string, args ...interface{})
-	Printf(format string, args ...interface{})
-	Warnf(format string, args ...interface{})
-	Warningf(format string, args ...interface{})
-	Errorf(format string, args ...interface{})
-
-	Trace(args ...interface{})
-	Debug(args ...interface{})
-	Info(args ...interface{})
-	Print(args ...interface{})
-	Warn(args ...interface{})
-	Warning(args ...interface{})
-	Error(args ...interface{})
-
-	Traceln(args ...interface{})
-	Debugln(args ...interface{})
-	Infoln(args ...interface{})
-	Println(args ...interface{})
-	Warnln(args ...interface{})
-	Warningln(args ...interface{})
-	Errorln(args ...interface{})
+	Log(level logrus.Level, args ...interface{})
 }
 
 type logrusWrapper struct {
@@ -50,18 +27,28 @@ func (l logrusWrapper) WithField(key string, value interface{}) Logger {
 	return logrusWrapper{l.logrusLogger.WithField(key, value)}
 }
 
+var dlogLevel2logrusLevel = map[LogLevel]logrus.Level{
+	LogLevelError: logrus.ErrorLevel,
+	LogLevelWarn:  logrus.WarnLevel,
+	LogLevelInfo:  logrus.InfoLevel,
+	LogLevelDebug: logrus.DebugLevel,
+	LogLevelTrace: logrus.TraceLevel,
+}
+
 func (l logrusWrapper) StdLogger(level LogLevel) *log.Logger {
-	logrusLevel, ok := map[LogLevel]logrus.Level{
-		LogLevelError: logrus.ErrorLevel,
-		LogLevelWarn:  logrus.WarnLevel,
-		LogLevelInfo:  logrus.InfoLevel,
-		LogLevelDebug: logrus.DebugLevel,
-		LogLevelTrace: logrus.TraceLevel,
-	}[level]
+	logrusLevel, ok := dlogLevel2logrusLevel[level]
 	if !ok {
 		panic(errors.Errorf("invalid LogLevel: %d", level))
 	}
 	return log.New(l.logrusLogger.WriterLevel(logrusLevel), "", 0)
+}
+
+func (l logrusWrapper) Log(level LogLevel, msg string) {
+	logrusLevel, ok := dlogLevel2logrusLevel[level]
+	if !ok {
+		panic(errors.Errorf("invalid LogLevel: %d", level))
+	}
+	l.logrusLogger.Log(logrusLevel, msg)
 }
 
 // WrapLogrus converts a logrus *Logger into a generic Logger.

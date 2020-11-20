@@ -22,7 +22,7 @@ from ipaddress import ip_address
 
 from ..constants import Constants
 
-from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo
+from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo, dump_json
 from ..cache import Cache, NullCache
 from ..config import Config
 
@@ -839,7 +839,7 @@ class IR:
         return od
 
     def as_json(self) -> str:
-        return json.dumps(self.as_dict(), sort_keys=True, indent=4)
+        return dump_json(self.as_dict(), pretty=True)
 
     def features(self) -> Dict[str, Any]:
         od: Dict[str, Union[bool, int, Optional[str]]] = {}

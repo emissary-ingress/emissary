@@ -198,7 +198,6 @@ func RunTeleproxy(tele *Teleproxy, version string) error {
 					}
 				}
 			}
-			return nil
 		},
 	})
 

@@ -16,7 +16,7 @@ import (
 )
 
 func testClient(t *testing.T) *Client {
-	cli, err := NewClient(ClientOptions{Kubeconfig: dtest_k3s.Kubeconfig()})
+	cli, err := NewClient(ClientConfig{Kubeconfig: dtest_k3s.Kubeconfig()})
 	require.NoError(t, err)
 	return cli
 }

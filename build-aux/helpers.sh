@@ -31,12 +31,21 @@ wait_for_ip() ( # use a subshell so the set +x is local to the function
     echo "$external_ip"
 )
 
-wait_for_url() ( # use a subshell so the set +x is local to the function
+wait_for_url() {
+    wait_for_url_output /dev/null "$@"
+}
+
+wait_for_url_output() ( # use a subshell so the set +x is local to the function
     { set +x; } 2>/dev/null # make the set +x be quiet
     local status=""
+    local output="${1}"
+    shift 1
     while true; do
-        status=$(curl --retry 100 --retry-connrefused -k -sL -w "%{http_code}" -o /dev/null "$@")
-        if [ "$status" != "200" ]; then
+        status=$(curl --retry 100 --retry-connrefused -k -sL -w "%{http_code}" -o "${output}" "$@")
+        if [ "$status" == "400" ]; then
+            echo "Got $status, aborting" 1>&2
+            exit 1
+        elif [ "$status" != "200" ]; then
             echo "Got $status, waiting for 200..." 1>&2
             sleep 10
         else
@@ -115,9 +124,10 @@ await_cluster() {
     kubeconfig=${1}
     name="$(head -1 "${kubeconfig}" | cut -c2-)"
     kconfurl="https://sw.bakerstreet.io/kubeception/api/klusters/${name}"
-    wait_for_url "$kconfurl" -H "Authorization: bearer ${KUBECEPTION_TOKEN}"
-    curl -s -H "Authorization: bearer ${KUBECEPTION_TOKEN}" "$kconfurl" -o "${kubeconfig}"
-    printf "${BLU}Cluster ${name} acquired${END}\n" 1>&2
+    wait_for_url_output "${kubeconfig}" "$kconfurl" -H "Authorization: bearer ${KUBECEPTION_TOKEN}"
+    printf "${BLU}Cluster ${name} acquired:\n==${END}\n" 1>&2
+    cat "${kubeconfig}" 1>&2
+    printf "${BLU}==${END}\n" 1>&2
 }
 
 get_cluster() {

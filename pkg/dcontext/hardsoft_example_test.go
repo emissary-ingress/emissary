@@ -53,6 +53,9 @@ func Example_caller() error {
 // Context being canceled causes the .Shutdown() to hurry along and kill any
 // live requests and return, instead of waiting for them to be completed
 // gracefully.
+//
+// PS: Since this example function is actually useful, it's published as part of
+// the github.com/datawire/ambassador/pkg/dutil package.
 func ListenAndServeHTTPWithContext(ctx context.Context, server *http.Server) error {
 	// An HTTP server is a bit of a complex example; for two reasons:
 	//

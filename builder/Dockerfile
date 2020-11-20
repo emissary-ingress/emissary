@@ -79,7 +79,7 @@ FROM ${base} as ambassador
 RUN adduser ambassador -u 8888 -G root -D -H -s /bin/false
 
 # External stuff that should change infrequently
-RUN apk --no-cache add bash curl python3 libcap
+RUN apk --no-cache add bash curl python3 libcap htop
 RUN ln -s /usr/bin/python3 /usr/bin/python
 COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
 COPY --from=artifacts /usr/lib/libyaml* /usr/lib/

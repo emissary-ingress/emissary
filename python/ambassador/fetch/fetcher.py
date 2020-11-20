@@ -7,7 +7,7 @@ import yaml
 import re
 
 from ..config import ACResource, Config
-from ..utils import parse_yaml
+from ..utils import parse_yaml, parse_json, dump_json
 
 from .resource import NormalizedResource, ResourceManager
 from .k8sobject import KubernetesGVK, KubernetesObject
@@ -177,7 +177,8 @@ class ResourceFetcher:
         serialization = os.path.expandvars(serialization)
 
         try:
-            objects = json.loads(serialization)
+            # This parse_json is the one we imported from utils. XXX This (also?) needs to be fixed.
+            objects = parse_json(serialization)
             self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename)
         except json.decoder.JSONDecodeError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
@@ -192,16 +193,16 @@ class ResourceFetcher:
             self.aconf.post_error("Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_2')):
-            self.aconf.post_error("Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
+            self.aconf.post_error("Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador, but ConsulResolver, KubernetesEndpointResolver, and KubernetesServiceResolver resources will be ignored...")
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_3')):
-            self.aconf.post_error("Ambassador could not find the Host CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
+            self.aconf.post_error("Ambassador could not find the Host CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador, but Host resources will be ignored...")
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_4')):
-            self.aconf.post_error("Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
+            self.aconf.post_error("Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador, but LogService resources will be ignored...")
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_5')):
-            self.aconf.post_error("Ambassador could not find the DevPortal CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
+            self.aconf.post_error("Ambassador could not find the DevPortal CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador, but DevPortal resources will be ignored...")
 
         # We could be posting errors about the missing IngressClass resource, but given it's new in K8s 1.18
         # and we assume most users would be worried about it when running on older clusters, we'll rely on
@@ -218,7 +219,7 @@ class ResourceFetcher:
         self.load_pod_labels()
 
         try:
-            watt_dict = json.loads(serialization)
+            watt_dict = parse_json(serialization)
 
             # Grab deltas if they're present.
             self.deltas = watt_dict.get('Deltas', [])
@@ -290,7 +291,7 @@ class ResourceFetcher:
         return True
 
     def handle_k8s(self, raw_obj: dict) -> None:
-        # self.logger.debug("handle_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
+        # self.logger.debug("handle_k8s obj %s" % dump_json(obj, pretty=True))
 
         try:
             obj = KubernetesObject(raw_obj)

@@ -30,6 +30,8 @@ import tarfile
 
 import click
 
+from .util import dump_json
+
 # Use this instead of click.option
 click_option = functools.partial(click.option, show_default=True)
 click_option_no_default = functools.partial(click.option, show_default=False)
@@ -118,7 +120,7 @@ def main(snapshot_dir: str, debug: bool, output_path: str) -> None:
 
             if sanitized:
                 with open('sanitized.json', 'w') as tmp:
-                    tmp.write(json.dumps(sanitized))
+                    tmp.write(dump_json(sanitized))
 
                 archive.add('sanitized.json', arcname=b)
                 os.unlink('sanitized.json')

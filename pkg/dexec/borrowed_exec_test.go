@@ -32,17 +32,13 @@ import (
 	"github.com/datawire/ambassador/pkg/dlog"
 )
 
-func testContext(t *testing.T) context.Context {
-	return dlog.WithLogger(context.Background(), dlog.WrapTB(t, true))
-}
-
 func helperCommandContext(t *testing.T, ctx context.Context, s ...string) (cmd *exec.Cmd) {
 	cs := []string{"-test.run=TestHelperProcess", "--"}
 	cs = append(cs, s...)
 	if ctx != nil {
 		cmd = exec.CommandContext(ctx, os.Args[0], cs...)
 	} else {
-		cmd = exec.CommandContext(testContext(t), os.Args[0], cs...)
+		cmd = exec.CommandContext(dlog.NewTestContext(t, true), os.Args[0], cs...)
 	}
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
 	return cmd
@@ -76,7 +72,7 @@ func TestCommandRelativeName(t *testing.T) {
 		t.Skipf("skipping; unexpected shallow dir of %q", dir)
 	}
 
-	cmd := exec.CommandContext(testContext(t), filepath.Join(dirBase, base), "-test.run=TestHelperProcess", "--", "echo", "foo")
+	cmd := exec.CommandContext(dlog.NewTestContext(t, true), filepath.Join(dirBase, base), "-test.run=TestHelperProcess", "--", "echo", "foo")
 	cmd.Dir = parentDir
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
 
@@ -146,7 +142,7 @@ func TestCatGoodAndBadFile(t *testing.T) {
 
 func TestNoExistExecutable(t *testing.T) {
 	// Can't run a non-existent executable
-	err := exec.CommandContext(testContext(t), "/no-exist-executable").Run()
+	err := exec.CommandContext(dlog.NewTestContext(t, true), "/no-exist-executable").Run()
 	if err == nil {
 		t.Error("expected error from /no-exist-executable")
 	}
@@ -370,7 +366,7 @@ func TestPipeLookPathLeak(t *testing.T) {
 				n, lsof := numOpenFDsAndroid(t)
 				return n, lsof, nil
 			}
-			lsof, err := exec.CommandContext(testContext(t), "lsof", "-b", "-n", "-p", strconv.Itoa(os.Getpid())).Output()
+			lsof, err := exec.CommandContext(dlog.NewTestContext(t, true), "lsof", "-b", "-n", "-p", strconv.Itoa(os.Getpid())).Output()
 			return bytes.Count(lsof, []byte("\n")), lsof, err
 		}
 
@@ -388,7 +384,7 @@ func TestPipeLookPathLeak(t *testing.T) {
 	}
 
 	for i := 0; i < 6; i++ {
-		cmd := exec.CommandContext(testContext(t), "something-that-does-not-exist-executable")
+		cmd := exec.CommandContext(dlog.NewTestContext(t, true), "something-that-does-not-exist-executable")
 		cmd.StdoutPipe()
 		cmd.StderrPipe()
 		cmd.StdinPipe()
@@ -413,7 +409,7 @@ func TestPipeLookPathLeak(t *testing.T) {
 }
 
 func numOpenFDsAndroid(t *testing.T) (n int, lsof []byte) {
-	raw, err := exec.CommandContext(testContext(t), "lsof").Output()
+	raw, err := exec.CommandContext(dlog.NewTestContext(t, true), "lsof").Output()
 	if err != nil {
 		t.Skip("skipping test; error finding or running lsof")
 	}
@@ -992,7 +988,7 @@ func TestClosePipeOnCopyError(t *testing.T) {
 	if runtime.GOOS == "windows" || runtime.GOOS == "plan9" {
 		t.Skipf("skipping test on %s - no yes command", runtime.GOOS)
 	}
-	cmd := exec.CommandContext(testContext(t), "yes")
+	cmd := exec.CommandContext(dlog.NewTestContext(t, true), "yes")
 	cmd.Stdout = new(badWriter)
 	c := make(chan int, 1)
 	go func() {
@@ -1025,7 +1021,7 @@ func TestOutputStderrCapture(t *testing.T) {
 }
 
 func TestContext(t *testing.T) {
-	ctx, cancel := context.WithCancel(testContext(t))
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, true))
 	c := helperCommandContext(t, ctx, "pipetest")
 	stdin, err := c.StdinPipe()
 	if err != nil {
@@ -1063,7 +1059,7 @@ func TestContext(t *testing.T) {
 }
 
 func TestContextCancel(t *testing.T) {
-	ctx, cancel := context.WithCancel(testContext(t))
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, true))
 	defer cancel()
 	c := helperCommandContext(t, ctx, "cat")
 

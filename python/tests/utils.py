@@ -1,11 +1,10 @@
 import os
 import subprocess
+import requests
 import socket
 import tempfile
 import time
 from collections import namedtuple
-from urllib import request
-from urllib.error import URLError, HTTPError
 from retry import retry
 
 import yaml
@@ -108,6 +107,8 @@ def meta_action_kube_artifacts(namespace, artifacts, action):
     temp_file.flush()
 
     command = ['kubectl', action, '-f', temp_file.name]
+    if namespace is None:
+        namespace = 'default'
 
     if namespace is not None:
         command.extend(['-n', namespace])
@@ -139,9 +140,6 @@ def install_ambassador(namespace, envs=None):
 
     if envs is None:
         envs = []
-
-    if namespace is None:
-        namespace = 'default'
 
     # Create namespace to install Ambassador
     create_namespace(namespace)
@@ -227,17 +225,18 @@ spec:
     apply_kube_artifacts(namespace=namespace, artifacts=httpbin_mapping)
 
 
-def get_code_with_retry(req):
+def get_code_with_retry(req, headers={}):
     for attempts in range(10):
         try:
-            conn = request.urlopen(req, timeout=10)
-            conn.close()
-            return 200
-        except HTTPError as e:
-            if int(e.code) < 500:
-                return e.code
-            print(f"get_code_with_retry: HTTPError code {e.code}, attempt {attempts+1}")
+            resp = requests.get(req, headers=headers, timeout=10)
+            if resp.status_code < 500:
+                return resp.status_code
+            print(f"get_code_with_retry: 5xx code {resp.status_code}, retrying...")
+        except requests.exceptions.ConnectionError as e:
+            print(f"get_code_with_retry: ConnectionError {e}, attempt {attempts+1}")
         except socket.timeout as e:
             print(f"get_code_with_retry: socket.timeout {e}, attempt {attempts+1}")
+        except Exception as e:
+            print(f"get_code_with_retry: generic exception {e}, attempt {attempts+1}")
         time.sleep(5)
     return 503

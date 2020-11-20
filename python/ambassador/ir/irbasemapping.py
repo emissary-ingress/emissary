@@ -5,6 +5,7 @@ from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union, TYPE_CHECK
 from urllib.parse import scheme_chars, urlparse
 
 from ..config import Config
+from ..utils import dump_json
 
 from .irresource import IRResource
 
@@ -166,7 +167,7 @@ class IRBaseMapping (IRResource):
                 ir.logger.debug(f'Breaker validation: good breaker {circuit_breaker["_name"]}')
                 continue
 
-            ir.logger.debug(f'Breaker validation: {json.dumps(circuit_breakers, indent=4, sort_keys=True)}')
+            ir.logger.debug(f'Breaker validation: {dump_json(circuit_breakers, pretty=True)}')
 
             name_fields = [ 'cb' ]
 

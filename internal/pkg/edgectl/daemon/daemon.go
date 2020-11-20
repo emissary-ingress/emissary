@@ -43,8 +43,8 @@ func RunAsDaemon(dns, fallback string) error {
 
 	d := &daemon{dns: dns, fallback: fallback}
 
-	sup := supervisor.WithContext(context.Background())
-	sup.Logger = SetUpLogging()
+	ctx := SetUpLogging(context.Background())
+	sup := supervisor.WithContext(ctx)
 	sup.Supervise(&supervisor.Worker{
 		Name: "daemon",
 		Work: d.runGRPCService,
@@ -66,19 +66,19 @@ func RunAsDaemon(dns, fallback string) error {
 		},
 	})
 
-	sup.Logger.Printf("---")
-	sup.Logger.Printf("Edge Control daemon %s starting...", edgectl.DisplayVersion())
-	sup.Logger.Printf("PID is %d", os.Getpid())
+	sup.Logger(ctx, "---")
+	sup.Logger(ctx, "Edge Control daemon %s starting...", edgectl.DisplayVersion())
+	sup.Logger(ctx, "PID is %d", os.Getpid())
 	runErrors := sup.Run()
 
-	sup.Logger.Printf("")
+	sup.Logger(ctx, "")
 	if len(runErrors) > 0 {
-		sup.Logger.Printf("daemon has exited with %d error(s):", len(runErrors))
+		sup.Logger(ctx, "daemon has exited with %d error(s):", len(runErrors))
 		for _, err := range runErrors {
-			sup.Logger.Printf("- %v", err)
+			sup.Logger(ctx, "- %v", err)
 		}
 	}
-	sup.Logger.Printf("Edge Control daemon %s is done.", edgectl.DisplayVersion())
+	sup.Logger(ctx, "Edge Control daemon %s is done.", edgectl.DisplayVersion())
 	return errors.New("edgectl daemon has exited")
 }
 

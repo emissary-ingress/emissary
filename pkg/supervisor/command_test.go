@@ -60,18 +60,12 @@ func TestCommandRun(t *testing.T) {
 	})
 }
 
-type LogToSlice struct {
-	Lines []string
-}
-
-func (lb *LogToSlice) Printf(format string, v ...interface{}) {
-	lb.Lines = append(lb.Lines, fmt.Sprintf(format, v...))
-}
-
 func TestCommandRunLogging(t *testing.T) {
 	sup := WithContext(context.Background())
-	theLogger := &LogToSlice{}
-	sup.Logger = theLogger
+	var logLines []string
+	sup.Logger = func(_ context.Context, format string, v ...interface{}) {
+		logLines = append(logLines, fmt.Sprintf(format, v...))
+	}
 	sup.Supervise(&Worker{
 		Name: "charles",
 		Work: func(p *Process) error {
@@ -79,9 +73,9 @@ func TestCommandRunLogging(t *testing.T) {
 			if err := cmd.Run(); err != nil {
 				t.Errorf("unexpted error: %v", err)
 			}
-			if len(theLogger.Lines) != 5 {
+			if len(logLines) != 5 {
 				t.Log("Expected 5 lines: cmd start, 1, 2, 3, cmd end")
-				t.Logf("Got (%d lines): %q", len(theLogger.Lines), theLogger.Lines)
+				t.Logf("Got (%d lines): %q", len(logLines), logLines)
 				t.Fail()
 			}
 			return nil

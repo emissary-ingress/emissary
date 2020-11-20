@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+from builtins import bytes
 from typing import Any, Dict, List, Optional, TextIO, TYPE_CHECKING
 
 import binascii
@@ -22,6 +23,8 @@ import io
 import socket
 import threading
 import time
+import json
+import orjson
 import os
 import logging
 import re
@@ -81,6 +84,18 @@ def dump_yaml(obj: Any, **kwargs) -> str:
         # logger.info("YAML: using %s dumper" % ("Python" if (yaml_dumper == yaml.SafeDumper) else "C"))
 
     return yaml.dump(obj, Dumper=yaml_dumper, **kwargs)
+
+
+def parse_json(serialization: str) -> Any:
+    return orjson.loads(serialization)
+
+
+def dump_json(obj: Any, pretty=False) -> str:
+    # There's a nicer way to do this in python, I'm sure.
+    if pretty:
+        return bytes.decode(orjson.dumps(obj, option=orjson.OPT_NON_STR_KEYS|orjson.OPT_SORT_KEYS|orjson.OPT_INDENT_2))
+    else:
+        return bytes.decode(orjson.dumps(obj, option=orjson.OPT_NON_STR_KEYS))
 
 
 def _load_url_contents(logger: logging.Logger, url: str, stream1: TextIO, stream2: Optional[TextIO]=None) -> bool:
