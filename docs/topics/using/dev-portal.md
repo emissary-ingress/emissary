@@ -84,6 +84,11 @@ spec:
 > exposed by the Ambassador Edge Stack. This is controlled by a special
 > `FilterPolicy` installed internally.
 
+> Limitations on Mappings with a `host` attribute
+>
+> The Dev Portal will ignore `Mapping`s that contain `host`s that cannot be
+> parsed as a valid hostname, or use a regular expression (when `host_regex: true`).
+
 ### Publishing the documentation
 
 All rendered API documentation is published at the `/docs/` URL by default. Users can
