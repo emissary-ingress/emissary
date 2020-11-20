@@ -10,9 +10,7 @@ import (
 
 func TestValidation(t *testing.T) {
 	ctx := context.TODO()
-
-	client, err := NewClient(ClientConfig{})
-	require.NoError(t, err)
+	client := testClient(t)
 
 	version, err := client.ServerVersion()
 	require.NoError(t, err)

@@ -264,9 +264,9 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 	// we override Watch to let us signal when our initial List is
 	// complete so we can send an update() even when there are no
 	// resource instances of the kind being watched
-	lw := newListWatcher(ctx, cli, query.FieldSelector, query.LabelSelector, func() {
-		if informer.HasSynced() {
-			target <- rawUpdate{query.Name, informer, nil, nil}
+	lw := newListWatcher(ctx, cli, query.FieldSelector, query.LabelSelector, func(lw *lw) {
+		if lw.hasSynced() {
+			target <- rawUpdate{query.Name, true, nil, nil}
 		}
 	})
 	informer = cache.NewSharedInformer(lw, &Unstructured{}, 5*time.Minute)
@@ -286,7 +286,8 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 				// nicer prettier set of hooks, but for now all we need is this hack for
 				// better/faster tests.
 				c.watchAdded(nil, obj.(*Unstructured))
-				target <- rawUpdate{query.Name, informer, nil, obj.(*Unstructured)}
+				lw.countAddEvent()
+				target <- rawUpdate{query.Name, lw.hasSynced(), nil, obj.(*Unstructured)}
 			},
 			UpdateFunc: func(oldObj, newObj interface{}) {
 				old := oldObj.(*Unstructured)
@@ -297,7 +298,7 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 				// nicer prettier set of hooks, but for now all we need is this hack for
 				// better/faster tests.
 				c.watchUpdated(old, new)
-				target <- rawUpdate{query.Name, informer, old, new}
+				target <- rawUpdate{query.Name, lw.hasSynced(), old, new}
 			},
 			DeleteFunc: func(obj interface{}) {
 				var old *Unstructured
@@ -320,7 +321,7 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 				c.mutex.Lock()
 				delete(c.canonical, key)
 				c.mutex.Unlock()
-				target <- rawUpdate{query.Name, informer, old, nil}
+				target <- rawUpdate{query.Name, lw.hasSynced(), old, nil}
 			},
 		},
 	)
@@ -329,10 +330,10 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 }
 
 type rawUpdate struct {
-	name     string
-	informer cache.SharedInformer
-	old      *unstructured.Unstructured
-	new      *unstructured.Unstructured
+	name   string
+	synced bool
+	old    *unstructured.Unstructured
+	new    *unstructured.Unstructured
 }
 
 func errorHandler(name string, err error) {
@@ -358,26 +359,71 @@ func isExpiredError(err error) bool {
 }
 
 type lw struct {
+	// All these fields are read-only and initialized on construction.
 	ctx           context.Context
 	client        dynamic.ResourceInterface
 	fieldSelector string
 	selector      string
-	synced        func()
+	synced        func(*lw)
 	once          sync.Once
+
+	// The mutex protects all the read-write fields.
+	mutex            sync.Mutex
+	initialListDone  bool
+	initialListCount int
+	addEventCount    int
 }
 
-func newListWatcher(ctx context.Context, client dynamic.ResourceInterface, fieldSelector, selector string, synced func()) cache.ListerWatcher {
+func newListWatcher(ctx context.Context, client dynamic.ResourceInterface, fieldSelector, selector string, synced func(*lw)) *lw {
 	return &lw{ctx: ctx, client: client, fieldSelector: fieldSelector, selector: selector, synced: synced}
+}
+
+func (lw *lw) withMutex(f func()) {
+	lw.mutex.Lock()
+	defer lw.mutex.Unlock()
+	f()
+}
+
+func (lw *lw) countAddEvent() {
+	lw.withMutex(func() {
+		lw.addEventCount++
+	})
+}
+
+// This computes whether we have synced a given watch. We used to use SharedInformer.HasSynced() for
+// this, but that seems to be a blatant lie that always return true. My best guess as to why it lies
+// is that it is actually reporting the synced state of an internal queue, but because the
+// SharedInformer mechanism adds another layer of dispatch on top of that internal queue, the
+// syncedness of that internal queue is irrelevant to whether enough layered events have been
+// dispatched to consider things synced at the dispatch layer.
+//
+// So to track syncedness properly for our users, when we do our first List() we remember how many
+// resourcees there are and we do not consider ourselves synced until we have dispatched at least as
+// many Add events as there are resources.
+func (lw *lw) hasSynced() (result bool) {
+	lw.withMutex(func() {
+		result = lw.initialListDone && lw.addEventCount >= lw.initialListCount
+	})
+	return
 }
 
 func (lw *lw) List(opts ListOptions) (runtime.Object, error) {
 	opts.FieldSelector = lw.fieldSelector
 	opts.LabelSelector = lw.selector
-	return lw.client.List(lw.ctx, opts)
+	result, err := lw.client.List(lw.ctx, opts)
+	if err == nil {
+		lw.withMutex(func() {
+			if !lw.initialListDone {
+				lw.initialListDone = true
+				lw.initialListCount = len(result.Items)
+			}
+		})
+	}
+	return result, err
 }
 
 func (lw *lw) Watch(opts ListOptions) (watch.Interface, error) {
-	lw.once.Do(lw.synced)
+	lw.once.Do(func() { lw.synced(lw) })
 	opts.FieldSelector = lw.fieldSelector
 	opts.LabelSelector = lw.selector
 	return lw.client.Watch(lw.ctx, opts)

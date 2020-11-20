@@ -4,7 +4,7 @@ Custom error responses set overrides for HTTP response statuses generated either
 by Ambassador or upstream services. 
 
 They can be configured either on the Ambassador
-[`Module`](ambassador)
+[`Module`](../ambassador)
 or on a [`Mapping`](../../using/intro-mappings/), the schema is identical. See
 below for more information on [rule precedence](#rule-precedence).
 
