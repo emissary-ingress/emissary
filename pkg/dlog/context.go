@@ -10,6 +10,22 @@ import (
 
 type loggerContextKey struct{}
 
+// getLogger returns the logger associated with the Context, or else the fallback logger.
+//
+// You may be asking "Why isn't this exported?  In some cases there might be debug or trace logging
+// in loops that where it's important to keep the performance impact as low as possible.  As things
+// stand, each log statement will perform a Context lookup!"
+//
+// The reason is: Exporting it introduces the possibility of misuse, and so at this point exporting
+// it "for performance" would be premature optimization.  If we ever do see this causing a
+// performance problem, then we can export it.  But until then, let's make it hard to misuse.
+//
+// You see, it was exported back in the days before https://github.com/datawire/apro/pull/1818 (in
+// fact dlog.GetLogger(ctx).Infoln(…) was the only way to do it for a long time).  What we saw with
+// that was that it's really easy to end up calling `logger = logger.WithField(…)` and ctx =
+// `dlog.WithField(ctx, …)` separately and having the separate logger and the ctx drift from
+// eachother (often, you'll do the former, not updating the ctx, then later someone passes the ctx
+// to another function, so that function's logger doesn't have the updates).  This is a misuse.
 func getLogger(ctx context.Context) Logger {
 	logger := ctx.Value(loggerContextKey{})
 	if logger == nil {
