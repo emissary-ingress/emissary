@@ -121,6 +121,7 @@ func (g *Group) Go(name string, f func() error) {
 			})
 			g.wg.Done()
 		}()
+		return
 	}
 	g.list[name] = GoroutineRunning
 	g.wg.Add(1)
