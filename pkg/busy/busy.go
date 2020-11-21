@@ -10,8 +10,8 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/environment"
+	"github.com/datawire/dlib/dlog"
 )
 
 type Command = func(ctx context.Context, version string, args ...string) error
