@@ -557,7 +557,7 @@ case "${cmd}" in
         fail=""
         for MODDIR in $(find-modules); do
             if [ -e "${MODDIR}/python" ]; then
-                if ! (cd ${MODDIR} && pytest --tb=short -ra "${pytest_args[@]}") then
+                if ! (cd ${MODDIR} && pytest --cov=ambassador --tb=short -ra "${pytest_args[@]}") then
                    fail="yes"
                 fi
             fi
