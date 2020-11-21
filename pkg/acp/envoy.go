@@ -30,7 +30,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/dlog"
+	"github.com/datawire/dlib/dlog"
 )
 
 // EnvoyWatcher encapsulates state and methods for keeping an eye on a running

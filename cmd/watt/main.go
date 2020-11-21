@@ -16,11 +16,11 @@ import (
 	"github.com/datawire/ambassador/cmd/watt/thingconsul"
 	"github.com/datawire/ambassador/cmd/watt/thingkube"
 	"github.com/datawire/ambassador/cmd/watt/watchapi"
-	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/limiter"
 	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/dlib/dlog"
 )
 
 type wattFlags struct {

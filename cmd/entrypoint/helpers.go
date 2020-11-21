@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/datawire/ambassador/pkg/dexec"
+	"github.com/datawire/dlib/dexec"
 )
 
 func envbool(name string) bool {

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	"github.com/datawire/ambassador/pkg/dutil"
+	"github.com/datawire/dlib/dutil"
 )
 
 func snapshotServer(ctx context.Context, snapshot *atomic.Value) error {

@@ -10,7 +10,7 @@ import (
 
 	"github.com/datawire/ambassador/pkg/acp"
 	"github.com/datawire/ambassador/pkg/debug"
-	"github.com/datawire/ambassador/pkg/dutil"
+	"github.com/datawire/dlib/dutil"
 )
 
 func handleCheckAlive(w http.ResponseWriter, r *http.Request, ambwatch *acp.AmbassadorWatcher) {

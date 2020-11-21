@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/dexec"
+	"github.com/datawire/dlib/dexec"
 )
 
 const scope = "dtest"
