@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/debug"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/datawire/ambassador/pkg/debug"
 )
 
 func TestTimer(t *testing.T) {

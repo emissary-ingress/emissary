@@ -14,11 +14,12 @@ import (
 	"strconv"
 	"strings"
 
-	pb "github.com/datawire/ambassador/pkg/api/kat"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	metadata "google.golang.org/grpc/metadata"
 	status "google.golang.org/grpc/status"
+
+	pb "github.com/datawire/ambassador/pkg/api/kat"
 )
 
 // GRPC server object (all fields are required).
