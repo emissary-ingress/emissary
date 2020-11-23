@@ -107,7 +107,7 @@ spec:
 
 This configuration tells Ambassador about the `Filter`, notably that it needs the `/extauth` prefix, and that it's OK for it to pass back the `x-qotm-session` header. Note that `path_prefix` and `allowed_headers` are optional. 
 
-Next you must apply the `Filter` to your desired hosts and paths using a `FilterPolicy`. The following would enable your `Filter` on requests to all hosts and paths:
+Next you must apply the `Filter` to your desired hosts and paths using a `FilterPolicy`. The following would enable your `Filter` on requests to all hosts and paths (just remember that our authentication service is only configured to perform authentication on requests to `/backend/get-quote/`, see the [auth service's repo](https://github.com/datawire/ambassador-auth-service) for more information).
 
 ```yaml
 ---
@@ -120,7 +120,7 @@ spec:
   - host: "*"
     path: /*
     filters:
-    - authentication
+    - name: authentication
 ```
 
 You can also apply the `Filter` only to specific hosts and/or paths, allowing you to only require authentication on certain routes. The following `FilterPolicy` would only run your `Filter` to requests to the `/backend/get-quote/` path:
@@ -136,7 +136,7 @@ spec:
   - host: "*"
     path: /backend/get-quote/
     filters:
-    - authentication
+    - name: authentication
 ```
 
 If the auth service uses a framework like [Gorilla Toolkit](http://www.gorillatoolkit.org) which enforces strict slashes as HTTP path separators, it is possible to end up with an infinite redirect where the filter's framework redirects any request with non-conformant slashing. This would arise if the above example had ```path_prefix: "/extauth/"```, the filter would see a request for ```/extauth//backend/get-quote/``` which would then be redirected to ```/extauth/backend/get-quote/``` rather than actually be handled by the authentication handler. For this reason, remember that the full path of the incoming request including the leading slash, will be appended to ```path_prefix``` regardless of non-conformant slashing.
