@@ -1,8 +1,12 @@
 # Authentication
 
-> **Important:** This guide applies to Ambassador API Gateway, use of this guide on the Ambassador Edge Stack is not fully supported.  Use the [External Filter](../../topics/using/filters) instead.
+> **Important:** This guide applies to Ambassador API Gateway, use of this guide on the Ambassador Edge Stack is not fully supported.  Use the [External Filter](../ext-filters/) instead.
 
-Ambassador can authenticate incoming requests before routing them to a backing service. In this tutorial, we'll configure Ambassador to use an external third party authentication service.
+Ambassador can authenticate incoming requests before routing them to a backing 
+service. In this tutorial, we'll configure Ambassador to use an external third 
+party authentication service. We're assuming also that you are running the
+quote application in your cluster as described in the 
+[Ambassador tutorial](../../tutorials/quickstart-demo/).
 
 ## Before You Get Started
 
