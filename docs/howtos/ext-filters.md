@@ -6,7 +6,9 @@
 
 Ambassador can authenticate incoming requests before routing them to a backing 
 service. In this tutorial, we'll configure Ambassador to use an external third 
-party authentication service.
+party authentication service. We're assuming also that you are running the
+quote application in your cluster as described in the 
+[Ambassador tutorial](../../tutorials/quickstart-demo/).
 
 ## 1. Deploy the Authentication Service
 
