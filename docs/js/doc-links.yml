@@ -39,6 +39,8 @@
   link: /docs/latest/run
 - title:  
   link: /docs/null/
+- title: Metrics
+  link: /docs/latest/metrics
 #- title: Core Concepts
 #  link: /docs/latest/topics/concepts/
 #  items:
@@ -74,21 +76,21 @@
         items:
           - title: Basic Authentication
             link: /docs/latest/howtos/basic-auth
-          - title: Single Sign-On with Auth0
+          - title: SSO with Auth0
             link: /docs/latest/howtos/sso/auth0
-          - title: Single Sign-On with Azure Active Directory
+          - title: SSO with Azure Active Directory
             link: /docs/latest/howtos/sso/azure
-          - title: Single Sign-On with Google
+          - title: SSO with Google
             link: /docs/latest/howtos/sso/google
-          - title: Single Sign-On with Keycloak
+          - title: SSO with Keycloak
             link: /docs/latest/howtos/sso/keycloak
-          - title: Single Sign-On with Okta
+          - title: SSO with Okta
             link: /docs/latest/howtos/sso/okta
-          - title: Single Sign-On with OneLogin
+          - title: SSO with OneLogin
             link: /docs/latest/howtos/sso/onelogin
-          - title: Single Sign-On with Salesforce
+          - title: SSO with Salesforce
             link: /docs/latest/howtos/sso/salesforce
-          - title: Single Sign-On with UAA
+          - title: SSO with UAA
             link: /docs/latest/howtos/sso/uaa
           - title: Using the OAuth2 filter
             link: /docs/latest/howtos/oauth-oidc-auth
