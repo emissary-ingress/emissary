@@ -36,11 +36,11 @@
 - title: Deploy and Release
   link: /docs/latest/deployrelease
 - title: Run
+  link: /docs/latest/run 
+- title: Metrics
   link: /docs/latest/run
 - title:  
   link: /docs/null/
-- title: Metrics
-  link: /docs/latest/metrics
 #- title: Core Concepts
 #  link: /docs/latest/topics/concepts/
 #  items:
