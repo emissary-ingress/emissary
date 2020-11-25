@@ -39,11 +39,11 @@
 }
 
 .ExpandAllContainer {
-    padding: 10px;
+    padding: 0px;
     display: flex;
     justify-content: flex-end;
     background: #fafafa;
-    border-bottom: 1px solid rgb(237, 231, 243);
+    border-bottom: 0px solid rgb(237, 231, 243);
 }
 
 .ExpandAllButton {
@@ -67,17 +67,17 @@
 }
 
 .ItemLink {
-    font-size: 15px;
+    font-size: 13px;
     letter-spacing: 0.2px;
     display: flex;
     align-items: center;
     color: #222;
     transition: all 100ms cubic-bezier(0.4, 0, 0.2, 1);
     padding-right: 40px;
-    min-height: 50px;
-    padding-top: 15px;
-    padding-bottom: 15px;
-    border-top: 1px solid rgb(237, 231, 243);
+    min-height: 30px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    border-top: 0px solid rgb(237, 231, 243);
     margin-top: -1px;
     position: relative;
 }
@@ -85,11 +85,12 @@
 .ItemLink:hover {
     text-decoration: none;
     opacity: 1;
+    font-weight: 600;
 }
 
 .ItemLink:before, .ItemLink:after {
     content: " ";
-    left: -25px;
+    left: -15px;
     height: 8px;
     position: absolute;
     transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1) 0s;
@@ -161,12 +162,12 @@
 }
 
 .ItemWithChildren:last-of-type {
-    border-bottom: 1px solid rgb(237, 231, 243);
+    border-bottom: 0px solid #ede7f3;
 }
 
 .ItemWithChildrenOpen {
-    border-bottom: 1px solid rgb(237, 231, 243);
-    background: white;
+    border-bottom: 0px solid rgb(237, 231, 243);
+    background: transparent;
     margin-bottom: -1px;
 }
 
@@ -178,10 +179,10 @@
     text-align: left;
     display: flex;
     align-items: center;
-    min-height: 50px;
+    min-height: 30px;
     border: none;
     padding: 0;
-    border-top: 1px solid rgb(237, 231, 243);
+    border-top: 0px solid rgb(237, 231, 243);
     outline: none;
 }
 
@@ -192,7 +193,7 @@
 
 .ItemToggleButtonText {
     font-weight: 400;
-    font-size: 15px;
+    font-size: 13px;
     letter-spacing: 0.2px;
     opacity: 0.8;
 }
@@ -221,10 +222,10 @@
     display: flex;
     flex-shrink: 0;
     margin-left: auto;
-    min-height: 50px;
+    min-height: 20px;
     position: relative;
-    width: 45px;
-    border-left: 1px solid rgb(237, 231, 243);
+    width: 40px;
+    border-left: 0px solid rgb(237, 231, 243);
 }
 
 .ChevronSVG {
