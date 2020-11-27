@@ -10,6 +10,7 @@ This section of the documentation is designed for operators and site reliability
 * *TLS/SSL:* [Simultaneously Routing HTTP and HTTPS](tls/cleartext-redirection#cleartext-routing) | [HTTP -> HTTPS Redirection](tls/cleartext-redirection#http---https-redirection) | [Mutual TLS](tls/mtls) | [TLS origination](tls/origination)
 * *Statistics and Monitoring:* [Integrating with Prometheus, DataDog, and other monitoring systems](statistics)
 * *Extending Ambassador* Ambassador can be extended with custom plug-ins that connect via HTTP/gRPC interfaces. [Custom Authentication](services/auth-service) | [The External Auth protocol](services/ext_authz) | [Custom Logging](services/log-service) | [Rate Limiting](services/rate-limit-service) | [Distributed Tracing](services/tracing-service)
-* *Troubleshooting:* [Diagnostics](diagnostics) | [Debugging](debugging))
+* *Troubleshooting:* [Diagnostics](diagnostics) | [Debugging](debugging)
+* *Scaling Ambassador:* [Scaling Ambassador](scaling)
 * *Ingress:* Ambassador can function as an [Ingress Controller](ingress-controller)
 * *Error Response Overrides:* Ambassador can override 4xx and 5xx responses with [custom response bodies](custom-error-responses)
