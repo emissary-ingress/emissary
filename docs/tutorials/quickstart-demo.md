@@ -191,7 +191,7 @@ the edge of your cluster to a Kubernetes service
 Ambassador will be accessed and secured with TLS certificates
 * [Edge Policy Console](../../topics/using/edge-policy-console/): a web-based 
 interface used to configure and monitor Edge Stack
-* [Developer Portal](https://www.getambassador.io/docs/pre-release/topics/using/dev-portal/): 
+* [Developer Portal](../../topics/using/dev-portal/): 
 publishes an API catalog and OpenAPI documentation
 
 The Ambassador Edge Stack has a comprehensive range of [features](/features/) to
