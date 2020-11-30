@@ -153,6 +153,8 @@ service:
 
   sessionAffinity:
 
+  sessionAffinityConfig:
+
   externalIPs: []
 
   annotations: {}
