@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/dcontext"
-	"github.com/datawire/ambassador/pkg/dgroup"
+	"github.com/datawire/dlib/dcontext"
+	"github.com/datawire/dlib/dgroup"
 )
 
 func runEnvoy(ctx context.Context, envoyHUP chan os.Signal) error {

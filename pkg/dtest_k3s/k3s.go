@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/dexec"
+	"github.com/datawire/dlib/dexec"
 )
 
 const scope = "dtest"
@@ -34,7 +34,11 @@ func dockerPs(args ...string) []string {
 	cmd := dexec.CommandContext(context.Background(), "docker", append([]string{"ps", "-q", "-f", fmt.Sprintf("label=scope=%s", scope)},
 		args...)...)
 	cmd.DisableLogging = disableLogging
-	return lines(cmd.MustCapture(nil))
+	out, err := cmd.Output()
+	if err != nil {
+		panic(err)
+	}
+	return lines(string(out))
 }
 
 func tag2id(tag string) string {
@@ -66,8 +70,11 @@ func dockerUp(tag string, args ...string) string {
 			}
 			cmd := dexec.CommandContext(context.Background(), "docker", append(runArgs, args...)...)
 			cmd.DisableLogging = disableLogging
-			out := cmd.MustCapture(nil)
-			id = strings.TrimSpace(out)[:12]
+			out, err := cmd.Output()
+			if err != nil {
+				panic(err)
+			}
+			id = strings.TrimSpace(string(out))[:12]
 		}
 	})
 
@@ -78,7 +85,9 @@ func dockerKill(ids ...string) {
 	if len(ids) > 0 {
 		cmd := dexec.CommandContext(context.Background(), "docker", append([]string{"kill"}, ids...)...)
 		cmd.DisableLogging = disableLogging
-		cmd.MustCapture(nil)
+		if err := cmd.Run(); err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -168,12 +177,12 @@ func isK3sReady() bool {
 
 	cmd := dexec.CommandContext(context.Background(), "kubectl", "--kubeconfig", kubeconfig, "api-resources", "-o", "name")
 	cmd.DisableLogging = disableLogging
-	output, err := cmd.Capture(nil)
+	output, err := cmd.Output()
 	if err != nil {
 		return false
 	}
 	resources := make(map[string]bool)
-	for _, line := range strings.Split(output, "\n") {
+	for _, line := range strings.Split(string(output), "\n") {
 		resources[strings.TrimSpace(line)] = true
 	}
 
@@ -212,8 +221,11 @@ func GetKubeconfig() string {
 
 	cmd := dexec.CommandContext(context.Background(), "docker", "exec", "-i", id, "cat", k3sConfigPath)
 	cmd.DisableLogging = disableLogging
-	kubeconfig := cmd.MustCapture(nil)
-	kubeconfig = strings.ReplaceAll(kubeconfig, "localhost:6443", net.JoinHostPort(dockerIP(), k3sPort))
+	kubeconfigBytes, err := cmd.Output()
+	if err != nil {
+		panic(err)
+	}
+	kubeconfig := strings.ReplaceAll(string(kubeconfigBytes), "localhost:6443", net.JoinHostPort(dockerIP(), k3sPort))
 	return kubeconfig
 }
 

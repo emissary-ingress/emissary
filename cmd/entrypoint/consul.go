@@ -6,10 +6,11 @@ import (
 	"reflect"
 	"sync"
 
+	consulapi "github.com/hashicorp/consul/api"
+
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/pkg/consulwatch"
 	"github.com/datawire/ambassador/pkg/watt"
-	consulapi "github.com/hashicorp/consul/api"
 )
 
 func (s *AmbassadorInputs) ReconcileConsul(ctx context.Context, consul *consul) {

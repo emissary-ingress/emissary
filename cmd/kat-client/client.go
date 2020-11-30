@@ -21,12 +21,13 @@ import (
 	"syscall"
 	"time"
 
-	grpc_echo_pb "github.com/datawire/ambassador/pkg/api/kat"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+
+	grpc_echo_pb "github.com/datawire/ambassador/pkg/api/kat"
 )
 
 // Should we output GRPCWeb debugging?
