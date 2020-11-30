@@ -10,13 +10,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/dtest_k3s"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/datawire/ambassador/pkg/dtest_k3s"
 )
 
 func testClient(t *testing.T) *Client {
-	cli, err := NewClient(ClientOptions{Kubeconfig: dtest_k3s.Kubeconfig()})
+	cli, err := NewClient(ClientConfig{Kubeconfig: dtest_k3s.Kubeconfig()})
 	require.NoError(t, err)
 	return cli
 }

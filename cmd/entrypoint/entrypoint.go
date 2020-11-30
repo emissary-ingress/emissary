@@ -2,7 +2,6 @@ package entrypoint
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -14,12 +13,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/datawire/ambassador/cmd/ambex"
 	"github.com/datawire/ambassador/pkg/acp"
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/memory"
-
-	"github.com/google/uuid"
+	"github.com/datawire/dlib/dgroup"
 )
 
 // This is the main ambassador entrypoint. It launches and manages two other
@@ -74,7 +74,7 @@ import (
 // dies for any reason, the whole process will shutdown and some larger process
 // manager (e.g. kubernetes) is expected to take note and restart if
 // appropriate.
-func Main() {
+func Main(ctx context.Context, Version string, args ...string) error {
 
 	// TODO:
 	//  - figure out a better way to get the envoy image
@@ -85,7 +85,7 @@ func Main() {
 
 	log.Println("Started Ambassador")
 
-	clusterID := GetClusterID(context.Background())
+	clusterID := GetClusterID(ctx)
 	os.Setenv("AMBASSADOR_CLUSTER_ID", clusterID)
 	log.Printf("AMBASSADOR_CLUSTER_ID=%s", clusterID)
 
@@ -111,44 +111,49 @@ func Main() {
 	// Go ahead and create an AmbassadorWatcher now, since we'll need it later.
 	ambwatch := acp.NewAmbassadorWatcher(acp.NewEnvoyWatcher(), acp.NewDiagdWatcher())
 
-	group := NewGroup(context.Background(), 10*time.Second)
+	group := dgroup.NewGroup(ctx, dgroup.GroupConfig{
+		EnableSignalHandling: true,
+		SoftShutdownTimeout:  10 * time.Second,
+		HardShutdownTimeout:  10 * time.Second,
+	})
 
-	group.Go("diagd", func(ctx context.Context) {
+	group.Go("diagd", func(ctx context.Context) error {
 		cmd := subcommand(ctx, "diagd", GetDiagdArgs()...)
 		if envbool("DEV_SHUTUP_DIAGD") {
 			cmd.Stdout = nil
 			cmd.Stderr = nil
 		}
-		err := cmd.Run()
-		logExecError("diagd", err)
+		return cmd.Run()
 	})
 
 	usage := memory.GetMemoryUsage()
-	group.Go("memory", usage.Watch)
-
-	group.Go("ambex", func(ctx context.Context) {
-		err := flag.CommandLine.Parse([]string{"--ads-listen-address", "127.0.0.1:8003", GetEnvoyDir()})
-		if err != nil {
-			panic(err)
-		}
-		ambex.MainContext(ctx, usage.PercentUsed)
+	group.Go("memory", func(ctx context.Context) error {
+		usage.Watch(ctx)
+		return nil
 	})
 
-	group.Go("envoy", func(ctx context.Context) { runEnvoy(ctx, envoyHUP) })
+	group.Go("ambex", func(ctx context.Context) error {
+		return ambex.Main2(ctx, Version, usage.PercentUsed, "--ads-listen-address", "127.0.0.1:8003", GetEnvoyDir())
+	})
+
+	group.Go("envoy", func(ctx context.Context) error {
+		return runEnvoy(ctx, envoyHUP)
+	})
 
 	snapshot := &atomic.Value{}
-	group.Go("snapshot_server", func(ctx context.Context) {
-		snapshotServer(ctx, snapshot)
+	group.Go("snapshot_server", func(ctx context.Context) error {
+		return snapshotServer(ctx, snapshot)
 	})
-	group.Go("watcher", func(ctx context.Context) {
+	group.Go("watcher", func(ctx context.Context) error {
 		// We need to pass the AmbassadorWatcher to this (Kubernetes/Consul) watcher, so
 		// that it can tell the AmbassadorWatcher when snapshots are posted.
 		watcher(ctx, ambwatch, snapshot)
+		return nil
 	})
 
 	// Finally, fire up the health check handler.
-	group.Go("healthchecks", func(ctx context.Context) {
-		healthCheckHandler(ctx, ambwatch)
+	group.Go("healthchecks", func(ctx context.Context) error {
+		return healthCheckHandler(ctx, ambwatch)
 	})
 
 	// Launch every file in the sidecar directory. Note that this is "bug compatible" with
@@ -161,17 +166,13 @@ func Main() {
 		}
 	}
 	for _, sidecar := range sidecars {
-		group.Go(sidecar.Name(), func(ctx context.Context) {
+		group.Go(sidecar.Name(), func(ctx context.Context) error {
 			cmd := subcommand(ctx, path.Join(sidecarDir, sidecar.Name()))
-			err := cmd.Run()
-			logExecError(sidecar.Name(), err)
+			return cmd.Run()
 		})
 	}
 
-	results := group.Wait()
-	for name, value := range results {
-		log.Printf("%s: %s", name, value)
-	}
+	return group.Wait()
 }
 
 func GetClusterID(ctx context.Context) string {
@@ -182,7 +183,7 @@ func GetClusterID(ctx context.Context) string {
 
 	rootID := "00000000-0000-0000-0000-000000000000"
 
-	client, err := kates.NewClient(kates.ClientOptions{})
+	client, err := kates.NewClient(kates.ClientConfig{})
 	if err == nil {
 		nsName := "default"
 		if IsAmbassadorSingleNamespace() {

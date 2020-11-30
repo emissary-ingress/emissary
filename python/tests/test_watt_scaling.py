@@ -2,7 +2,6 @@ import time
 import sys
 
 import pytest
-from urllib import request
 
 from utils import run_and_assert, apply_kube_artifacts, delete_kube_artifacts, install_ambassador, qotm_manifests, get_code_with_retry
 

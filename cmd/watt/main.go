@@ -16,15 +16,12 @@ import (
 	"github.com/datawire/ambassador/cmd/watt/thingconsul"
 	"github.com/datawire/ambassador/cmd/watt/thingkube"
 	"github.com/datawire/ambassador/cmd/watt/watchapi"
-	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/limiter"
 	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/dlib/dlog"
 )
-
-// Version holds the version of the code. This is intended to be overridden at build time.
-var Version = "(unknown version)"
 
 type wattFlags struct {
 	kubernetesNamespace  string
@@ -40,13 +37,13 @@ type wattFlags struct {
 	showVersion          bool
 }
 
-func Main() {
+func Main(ctx context.Context, Version string, args ...string) error {
 	var flags wattFlags
 
 	rootCmd := &cobra.Command{
 		Use:           "watt",
 		Short:         "watt - watch all the things",
-		SilenceErrors: true, // we'll handle it after .Execute() returns
+		SilenceErrors: true, // we'll handle it after .ExecuteContext() returns
 		SilenceUsage:  true, // our FlagErrorFunc will handle it
 	}
 
@@ -67,10 +64,8 @@ func Main() {
 	rootCmd.Flags().IntVarP(&flags.legacyListenPort, "port", "p", 0, "configure the snapshot server port")
 	rootCmd.Flags().MarkHidden("port")
 
-	ctx := context.Background()
-
-	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
-		return runWatt(ctx, flags, args)
+	rootCmd.RunE = func(cmd *cobra.Command, _ []string) error {
+		return runWatt(cmd.Context(), Version, flags)
 	}
 
 	rootCmd.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
@@ -82,13 +77,11 @@ func Main() {
 		return nil
 	})
 
-	if err := rootCmd.Execute(); err != nil {
-		dlog.Errorln(ctx, err)
-		os.Exit(1)
-	}
+	rootCmd.SetArgs(args)
+	return rootCmd.ExecuteContext(ctx)
 }
 
-func runWatt(ctx context.Context, flags wattFlags, args []string) error {
+func runWatt(ctx context.Context, Version string, flags wattFlags) error {
 	if flags.showVersion {
 		fmt.Println("watt", Version)
 		return nil

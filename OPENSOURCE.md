@@ -36,6 +36,7 @@ Free and Open Source software:
     github.com/containerd/cgroups                            v0.0.0-20190919134610-bf292b21730f         Apache License 2.0
     github.com/containerd/containerd                         v1.3.4                                     Apache License 2.0
     github.com/cyphar/filepath-securejoin                    v0.2.2                                     3-clause BSD license
+    github.com/datawire/dlib                                 v0.0.0-20201121071656-6047eebdf853         Apache License 2.0
     github.com/datawire/pf                                   v0.0.0-20180510150411-31a823f9495a         2-clause BSD license
     github.com/davecgh/go-spew                               v1.1.1                                     ISC license
     github.com/deislabs/oras                                 v0.8.1                                     MIT license
@@ -245,6 +246,7 @@ libraries:
     oauthlib           3.1.0      3-clause BSD license
     od                 1.0        MIT license
     ordered-set        4.0.1      MIT license
+    orjson             3.3.1      Apache License 2.0
     packaging          20.4       2-clause BSD license, Apache License 2.0
     pep517             0.8.2      MIT license
     pexpect            4.8.0      ISC license

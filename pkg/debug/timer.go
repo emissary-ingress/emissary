@@ -108,7 +108,7 @@ func (t *Timer) withMutex(f func()) {
 func (t *Timer) Copy() (result *Timer) {
 	t.withMutex(func() {
 		result = &Timer{}
-		*result = *t
+		*result = *t // nolint:govet // silence complaint about copying t.mutex
 		result.mutex = sync.Mutex{}
 	})
 	return

@@ -5,8 +5,9 @@ import (
 	"log"
 	"net"
 
-	"github.com/datawire/ambassador/pkg/tpu"
 	"golang.org/x/net/proxy"
+
+	"github.com/datawire/ambassador/pkg/tpu"
 )
 
 type Proxy struct {

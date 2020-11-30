@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"sort"
@@ -11,7 +12,7 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 
 	"github.com/datawire/ambassador/internal/pkg/edgectl"
-	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/dlib/dlog"
 )
 
 // DaemonFormatter formats log messages for the Edge Control Daemon
@@ -46,7 +47,7 @@ func (f *DaemonFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 }
 
 // SetUpLogging sets up standard Edge Control Daemon logging
-func SetUpLogging() supervisor.Logger {
+func SetUpLogging(ctx context.Context) context.Context {
 	loggingToTerminal := terminal.IsTerminal(int(os.Stdout.Fd()))
 	logger := logrus.StandardLogger()
 	formatter := new(DaemonFormatter)
@@ -63,5 +64,5 @@ func SetUpLogging() supervisor.Logger {
 			LocalTime:  true, // rotated logfiles use local time names
 		})
 	}
-	return logger
+	return dlog.WithLogger(ctx, dlog.WrapLogrus(logger))
 }

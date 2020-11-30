@@ -14,7 +14,7 @@ import (
 	"github.com/datawire/ambassador/pkg/kates"
 )
 
-func Main() {
+func Main(ctx context.Context, version string, args ...string) error {
 	var st = &cobra.Command{
 		Use:           "kubestatus <kind> [<name>]",
 		Short:         "get and set status of kubernetes resources",
@@ -142,9 +142,6 @@ func Main() {
 		return nil
 	}
 
-	err := st.Execute()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
-	}
+	st.SetArgs(args)
+	return st.ExecuteContext(ctx)
 }

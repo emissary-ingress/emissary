@@ -4,9 +4,59 @@ linters:
   disable-all: true
   enable:
     - gofmt
+    - govet
 linters-settings:
   gofmt:
     simplify: true
+  govet:
+    disable:
+      - lostcancel
+issues:
+  exclude-rules:
+    - linters: [govet]
+      path: pkg/envoy-control-plane/
+    - linters: [govet]
+      text: "^tests: .* should return nothing$"
+run:
+  timeout: 9m # CircleCI is slow?
+
+# I don't know of a linter that lets you blacklist specific functions
+# and variables within a package, but if one exists, I would like to
+# blacklist all of the following for the reason "Don't use globals!":
+#
+# - net/http.DefaultServeMux
+#   * net/http.Handle()
+#   * net/http.HandleFunc()
+# - flag.CommandLine
+#   * flag.VisitAll()
+#   * flag.Visit()
+#   * flag.Lookup()
+#   * flag.Set()
+#   * flag.PrintDefaults()
+#   * flag.Usage()
+#   * flag.NFlag()
+#   * flag.Arg()
+#   * flag.NArg()
+#   * flag.Args()
+#   * flag.BoolVar()
+#   * flag.Bool()
+#   * flag.IntVar()
+#   * flag.Int()
+#   * flag.Int64Var()
+#   * flag.Int64()
+#   * flag.UintVar()
+#   * flag.Uint()
+#   * flag.Uint64Var()
+#   * flag.Uint64()
+#   * flag.StringVar()
+#   * flag.String()
+#   * flag.Float64Var()
+#   * flag.Float64()
+#   * flag.DurationVar()
+#   * flag.Duration()
+#   * flag.Var()
+#   * flag.Parse()
+#   * flag.Parsed()
 
 # The old configuration, that hasn't been used for many months:
 

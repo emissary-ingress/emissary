@@ -8,6 +8,8 @@ from .k8sobject import KubernetesGVK, KubernetesObjectKey, KubernetesObject
 from .k8sprocessor import AggregateKubernetesProcessor, ManagedKubernetesProcessor
 from .resource import NormalizedResource, ResourceManager
 
+from ..utils import dump_json
+
 
 @dataclasses.dataclass(frozen=True)
 class EndpointAddress:
@@ -239,7 +241,7 @@ class ServiceProcessor (ManagedKubernetesProcessor):
         #     'k8s_services': self.services.discovered_services,
         # }
         #
-        # self.logger.debug("==== FINALIZE START\n%s" % json.dumps(od, sort_keys=True, indent=4))
+        # self.logger.debug("==== FINALIZE START\n%s" % dump_json(od, pretty=True))
 
         for k8s_svc in self.services.discovered_services.values():
             key = f'{k8s_svc.name}.{k8s_svc.namespace}'
@@ -389,4 +391,4 @@ class ServiceProcessor (ManagedKubernetesProcessor):
                 rkey=f'k8s-{k8s_svc.name}-{k8s_svc.namespace}',
             ))
 
-        # self.logger.debug("==== FINALIZE END\n%s" % json.dumps(od, sort_keys=True, indent=4))
+        # self.logger.debug("==== FINALIZE END\n%s" % dump_json(od, pretty=True))

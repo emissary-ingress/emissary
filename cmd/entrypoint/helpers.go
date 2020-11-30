@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"strings"
+
+	"github.com/datawire/dlib/dexec"
 )
 
 func envbool(name string) bool {
@@ -40,19 +41,19 @@ func fileExists(filename string) bool {
 	return !info.IsDir()
 }
 
-func sh(command string, args ...string) string {
-	cmd := exec.Command(command, args...)
+func sh(ctx context.Context, command string, args ...string) string {
+	cmd := dexec.CommandContext(ctx, command, args...)
 	out, err := cmd.CombinedOutput()
 	panicExecError(fmt.Sprintf("error executing command %s %v", command, args), err)
 	return string(out)
 }
 
-func cidsForLabel(label string) []string {
-	return strings.Fields(sh("docker", "ps", "-q", "-f", fmt.Sprintf("label=%s", label)))
+func cidsForLabel(ctx context.Context, label string) []string {
+	return strings.Fields(sh(ctx, "docker", "ps", "-q", "-f", fmt.Sprintf("label=%s", label)))
 }
 
-func subcommand(ctx context.Context, command string, args ...string) *exec.Cmd {
-	cmd := exec.CommandContext(ctx, command, args...)
+func subcommand(ctx context.Context, command string, args ...string) *dexec.Cmd {
+	cmd := dexec.CommandContext(ctx, command, args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -65,7 +66,7 @@ func panicExecError(prefix string, err error) {
 	}
 
 	msg := fmt.Sprintf("%s: %v", prefix, err)
-	if exerr, ok := err.(*exec.ExitError); ok {
+	if exerr, ok := err.(*dexec.ExitError); ok {
 		if exerr.Success() {
 			return
 		}
@@ -80,7 +81,7 @@ func logExecError(prefix string, err error) {
 	}
 
 	msg := fmt.Sprintf("%s: %v", prefix, err)
-	if exerr, ok := err.(*exec.ExitError); ok {
+	if exerr, ok := err.(*dexec.ExitError); ok {
 		if exerr.Success() {
 			return
 		}

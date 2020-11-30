@@ -1,6 +1,4 @@
 import logging
-from urllib import request
-from urllib.error import URLError, HTTPError
 from retry import retry
 import sys
 import time
@@ -69,7 +67,7 @@ class KnativeTesting:
 
         # Install Knative
         apply_kube_artifacts(namespace=None, artifacts=load_manifest("knative_serving_crds"))
-        apply_kube_artifacts(namespace=None, artifacts=load_manifest("knative_serving_0.18.0"))
+        apply_kube_artifacts(namespace='knative-serving', artifacts=load_manifest("knative_serving_0.18.0"))
         run_and_assert(['kubectl', 'patch', 'configmap/config-network', '--type', 'merge', '--patch', r'{"data": {"ingress.class": "ambassador.ingress.networking.knative.dev"}}', '-n', 'knative-serving'])
 
         # Wait for Knative to become ready
@@ -106,45 +104,38 @@ class KnativeTesting:
         port_forward_command = ['kubectl', 'port-forward', '--namespace', namespace, 'service/ambassador', f'{port_forward_port}:80']
         run_and_assert(port_forward_command, communicate=False)
 
-        # Port forwarding is not instant. Make a best effort to avoid a race by sleeping for
-        # a... while. The `get_code_with_retry` function will also do some retrying.
-        time.sleep(60)
-
         # Assert 200 OK at /qotm/ endpoint
         qotm_url = f'http://localhost:{port_forward_port}/qotm/'
-        qotm_http_code = get_code_with_retry(qotm_url)
-        assert qotm_http_code == 200, f"Expected 200 OK, got {qotm_http_code}"
+        code = get_code_with_retry(qotm_url)
+        assert code == 200, f"Expected 200 OK, got {code}"
         print(f"{qotm_url} is ready")
 
         # Assert 200 OK at / with Knative Host header and 404 with other/no header
         kservice_url = f'http://localhost:{port_forward_port}/'
 
-        req_simple = request.Request(kservice_url)
-        connection_simple_code = get_code_with_retry(req_simple)
-        assert connection_simple_code == 404, f"Expected 404, got {connection_simple_code}"
+        code = get_code_with_retry(kservice_url)
+        assert code == 404, f"Expected 404, got {code}"
         print(f"{kservice_url} returns 404 with no host")
 
-        req_random = request.Request(kservice_url)
-        req_random.add_header('Host', 'random.host.whatever')
-        connection_random_code = get_code_with_retry(req_random)
-        assert connection_random_code == 404, f"Expected 404, got {connection_random_code}"
+        code = get_code_with_retry(kservice_url,
+                headers={'Host': 'random.host.whatever'}
+        )
+        assert code == 404, f"Expected 404, got {code}"
         print(f"{kservice_url} returns 404 with a random host")
 
         # Wait for kservice
         run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'ksvc', 'helloworld-go', '-n', namespace])
 
-        req_correct = request.Request(kservice_url)
-        req_correct.add_header('Host', f'helloworld-go.{namespace}.example.com')
-
         # kservice pod takes some time to spin up, so let's try a few times
-        connection_correct_code = 000
+        code = 000
+        host = f'helloworld-go.{namespace}.example.com'
         for _ in range(5):
-            connection_correct_code = get_code_with_retry(req_correct)
-            if connection_correct_code == 200:
+            code = get_code_with_retry(kservice_url, headers={'Host': host})
+            if code == 200:
                 break
 
-        assert connection_correct_code == 200, f"Expected 200, got {connection_correct_code}"
-        print(f"{kservice_url} returns 200 OK with host helloworld-go.default.example.com")
+        assert code == 200, f"Expected 200, got {code}"
+        print(f"{kservice_url} returns 200 OK with host helloworld-go.{namespace}.example.com")
 
 
 def test_knative_counters():

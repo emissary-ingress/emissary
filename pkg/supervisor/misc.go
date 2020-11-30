@@ -3,24 +3,12 @@ package supervisor
 import (
 	"context"
 	"fmt"
-	"log"
 	"reflect"
 	"time"
 )
 
 // Logger is what Supervisor may use as a logging backend.
-type Logger interface {
-	Printf(format string, v ...interface{})
-}
-
-// DefaultLogger is a logger that uses the stdlib "log" package
-// default logger.
-type DefaultLogger struct{}
-
-// Printf implements the Logger interface.
-func (d *DefaultLogger) Printf(format string, v ...interface{}) {
-	log.Printf(format, v...)
-}
+type Logger func(ctx context.Context, format string, v ...interface{})
 
 // Run creates a single-purpose Supervisor and runs a worker function
 // with it.

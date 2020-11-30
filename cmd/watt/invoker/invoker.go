@@ -185,7 +185,8 @@ func NewAPIServer(net, addr string, invoker *invoker) APIServer {
 }
 
 func (s *apiServer) Work(p *supervisor.Process) error {
-	http.HandleFunc("/snapshots/", func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/snapshots/", func(w http.ResponseWriter, r *http.Request) {
 		relpath := strings.TrimPrefix(r.URL.Path, "/snapshots/")
 
 		if relpath == "" {
@@ -220,7 +221,9 @@ func (s *apiServer) Work(p *supervisor.Process) error {
 	}
 	p.Ready()
 	p.Logf("snapshot server listening on: %s:%s", s.listenNetwork, s.listenAddress)
-	srv := &http.Server{}
+	srv := &http.Server{
+		Handler: mux,
+	}
 	return p.DoClean(func() error {
 		err := srv.Serve(listener)
 		if err == http.ErrServerClosed {

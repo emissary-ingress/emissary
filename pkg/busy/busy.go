@@ -2,15 +2,41 @@
 package busy
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/datawire/ambassador/pkg/environment"
+	"github.com/datawire/dlib/dlog"
 )
 
-func Main(binName, humanName string, cmds map[string]func()) {
+type Command = func(ctx context.Context, version string, args ...string) error
+
+var logrusLogger *logrus.Logger
+
+func init() {
+	logrusLogger = logrus.New()
+	logrusFormatter := &logrus.TextFormatter{
+		TimestampFormat: "2006-01-02 15:04:05",
+		FullTimestamp:   true,
+	}
+	logrusLogger.SetFormatter(logrusFormatter)
+	logrusLogger.SetReportCaller(true)
+}
+
+func SetLogLevel(lvl logrus.Level) {
+	logrusLogger.SetLevel(lvl)
+}
+
+func GetLogLevel() logrus.Level {
+	return logrusLogger.GetLevel()
+}
+
+func Main(binName, humanName string, version string, cmds map[string]Command) {
 	name := filepath.Base(os.Args[0])
 	if name == binName && len(os.Args) > 1 {
 		name = os.Args[1]
@@ -21,8 +47,17 @@ func Main(binName, humanName string, cmds map[string]func()) {
 		environment.EnvironmentSetupEntrypoint()
 	}
 
+	logger := dlog.WrapLogrus(logrusLogger).
+		WithField("PID", os.Getpid()).
+		WithField("CMD", name)
+	ctx := dlog.WithLogger(context.Background(), logger)
+	dlog.SetFallbackLogger(logger.WithField("oops-i-did-not-pass-context-correctly", true))
+
 	if cmdFn, cmdFnOK := cmds[name]; cmdFnOK {
-		cmdFn()
+		if err := cmdFn(ctx, version, os.Args[1:]...); err != nil {
+			dlog.Errorf(ctx, "shut down with error error: %v", err)
+			os.Exit(1)
+		}
 	} else {
 		fmt.Printf("The %s main program is a multi-call binary that combines various\n", humanName)
 		fmt.Println("support programs into one executable.")

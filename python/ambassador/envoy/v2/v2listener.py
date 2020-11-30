@@ -32,6 +32,7 @@ from ...ir.ircluster import IRCluster
 from ...ir.irtcpmappinggroup import IRTCPMappingGroup
 from ...ir.irtlscontext import IRTLSContext
 
+from ...utils import dump_json
 from ...utils import ParsedService as Service
 
 from .v2route import V2Route
@@ -91,7 +92,7 @@ ExtAuthRequestHeaders = {
 
 
 def jsonify(x) -> str:
-    return json.dumps(x, sort_keys=True, indent=4)
+    return dump_json(x, pretty=True)
 
 
 def prettyroute(route: DictifiedV2Route) -> str:
@@ -1198,7 +1199,7 @@ class V2Listener(dict):
     def dump_listeners(cls, logger, listeners_by_port) -> None:
         pretty = { k: v.pretty() for k, v in listeners_by_port.items() }
 
-        logger.debug(f"V2Listeners: {json.dumps(pretty, sort_keys=True, indent=4)}")
+        logger.debug(f"V2Listeners: {dump_json(pretty, pretty=True)}")
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:
@@ -1439,7 +1440,7 @@ class V2Listener(dict):
         for k, v in listeners_by_port.items():
             config.listeners.append(v.as_dict())
 
-        # logger.info(f"==== ENVOY LISTENERS ====: {json.dumps(config.listeners, sort_keys=True, indent=4)}")
+        # logger.info(f"==== ENVOY LISTENERS ====: {dump_json(config.listeners, pretty=True)}")
 
         # We need listeners for the TCPMappingGroups too.
         tcplisteners: Dict[str, V2TCPListener] = {}
