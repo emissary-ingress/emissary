@@ -151,6 +151,10 @@ service:
 
   externalTrafficPolicy:
 
+  sessionAffinity:
+
+  sessionAffinityConfig:
+
   externalIPs: []
 
   annotations: {}
