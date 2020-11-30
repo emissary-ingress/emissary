@@ -73,8 +73,8 @@ https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-read
 
 Kubernetes will restart the Ambassador pod if it fails to get a 200 result from the endpoint. If
 this happens it won't necessarily show up in an easily recognizable way in the pod logs. You can
-look for Kubernetes events to see if this is happening. Use `kubectl get events -n ambassador` or
-equivalent.
+look for Kubernetes events to see if this is happening. Use `kubectl describe pod -n ambassador` or
+`kubectl get events -n ambassador` or equivalent.
 
 The purpose of Liveness probes is to rescue an Ambassador instance that is wedged, however if
 Liveness probes are too sensitive they can take out Ambassador instances that are functioning
