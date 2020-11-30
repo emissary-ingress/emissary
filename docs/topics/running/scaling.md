@@ -106,15 +106,15 @@ probes.
 
 ## The `AMBASSADOR_FAST_RECONFIGURE` & `AMBASSADOR_FAST_VALIDATION` flags.
 
-These environment variables are feature flags that protect a higher performance implementation of
-the code Ambassador uses to validate and generate envoy configuration. These will eventually be
-enabled by default, but if you are experiencing performance problems you should try setting the
-values of both of these flags to `"true"` and seeing if this helps.
+These environment variables are feature flags that enable a higher performance implementation of the
+code Ambassador uses to validate and generate envoy configuration. These will eventually be enabled
+by default, but if you are experiencing performance problems you should try setting the values of
+both of these flags to `"true"` and seeing if this helps.
 
 ## AMBASSADOR_DRAIN_TIME
 
 The `AMBASSADOR_DRAIN_TIME` variable controls how much of a grace period Ambassador provides active
-clients when reconfiguration happen. It's unit is seconds and it defaults to 600 (10 minutes). This
+clients when reconfiguration happen. Its unit is seconds and it defaults to 600 (10 minutes). This
 can impact memory usage because Ambassador needs to keep around old versions of its configuration
 for the duration of the drain time.
 
