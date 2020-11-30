@@ -17,9 +17,9 @@ import (
 
 	"github.com/datawire/ambassador/cmd/ambex"
 	"github.com/datawire/ambassador/pkg/acp"
-	"github.com/datawire/ambassador/pkg/dgroup"
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/memory"
+	"github.com/datawire/dlib/dgroup"
 )
 
 // This is the main ambassador entrypoint. It launches and manages two other

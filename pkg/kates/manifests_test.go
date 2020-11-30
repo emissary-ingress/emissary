@@ -4,10 +4,11 @@ import (
 	"reflect"
 	"testing"
 
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"k8s.io/api/core/v1"
+
+	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 )
 
 var svc = `
