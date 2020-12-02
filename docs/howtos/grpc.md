@@ -40,7 +40,7 @@ EXPOSE 50051
 Create the container and test it:
 
 ```shell
-$ docker build -t <docker_reg>/grpc_example
+$ docker build -t <docker_reg>/grpc_example .
 $ docker run -p 50051:50051 <docker_reg>/grpc_example
 ```
 
