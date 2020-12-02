@@ -153,7 +153,7 @@ spec:
       restartPolicy: Always
 ```
 
-The Host is declared here because we are using gRPC without TLS.  Since Ambassador terminates TLS by default, in the Host we add a `requestPolicy` which allows insecure connections . After adding the Ambassador Edge Stack mapping to the service, the rest of the Kubernetes deployment YAML file is pretty straightforward. We need to identify the container image to use, expose the `containerPort` to listen on the same port the Docker container is listening on, and map the service port (80) to the container port (50051).
+The Host is declared here because we are using gRPC without TLS.  Since Ambassador terminates TLS by default, in the Host we add a `requestPolicy` which allows insecure connections. After adding the Ambassador Edge Stack mapping to the service, the rest of the Kubernetes deployment YAML file is pretty straightforward. We need to identify the container image to use, expose the `containerPort` to listen on the same port the Docker container is listening on, and map the service port (80) to the container port (50051).
 
 Once you have the YAML file and the correct Docker registry, deploy it to your cluster with `kubectl`.
 
