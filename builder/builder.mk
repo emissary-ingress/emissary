@@ -368,7 +368,8 @@ pytest-only: sync preflight-cluster | docker/$(NAME).docker.push.remote docker/k
 		-e DOCKER_BUILD_PASSWORD \
 		-e AMBASSADOR_FAST_VALIDATION \
 		-e AMBASSADOR_FAST_RECONFIGURE \
-		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal
+		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal ; test_exit=$$? ; \
+		[ -n $(TEST_XML_DIR) ] && docker cp $(shell $(BUILDER)):/tmp/test-data/pytest.xml $(TEST_XML_DIR) ; exit $$test_exit
 .PHONY: pytest-only
 
 pytest-gold:
@@ -403,7 +404,8 @@ gotest: test-ready
 		-e DEV_REGISTRY \
 		-e DOCKER_BUILD_USERNAME \
 		-e DOCKER_BUILD_PASSWORD \
-		-it $(shell $(BUILDER)) /buildroot/builder.sh gotest-internal
+		-it $(shell $(BUILDER)) /buildroot/builder.sh gotest-internal ; test_exit=$$? ; \
+		[ -n $(TEST_XML_DIR) ] && docker cp $(shell $(BUILDER)):/tmp/test-data/gotest.xml $(TEST_XML_DIR) ; [ $$test_exit == 0 ] || exit $$test_exit
 	docker exec \
 		-w /buildroot/ambassador \
 		-e GOOS=windows \

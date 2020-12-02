@@ -58,7 +58,12 @@ RUN apk --no-cache add \
     yaml-dev \
     && ln -s /usr/bin/python3 /usr/bin/python \
     && chmod u+s $(which docker)
-RUN pip3 install -U pip pip-tools==5.3.1
+# We _must_ pin pip to a version before 20.3 because orjson appears to only have
+# PEP513 compatible wheels, which are supported before 20.3 but (apparently)
+# not in 20.3. We can only upgrade pip to 20.3 after we verify that orjson has
+# PEP600 compatible wheels for our linux platform, or we start building orjson
+# from source using a rust toolchain.
+RUN pip3 install -U pip==20.2.4 pip-tools==5.3.1
 RUN npm config set user 0 && \
     npm config set unsafe-perm true && \
     npm install -g rollup@2.9.1 rollup-plugin-terser@5.3.0
@@ -70,6 +75,7 @@ RUN curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/kubec
     curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubectx.bash -o /usr/share/bash-completion/completions/kubectx
 RUN curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/kubens -o /usr/local/bin/kubens && chmod a+x /usr/local/bin/kubens && \
     curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubens.bash -o /usr/share/bash-completion/completions/kubens
+RUN curl --fail -L https://github.com/gotestyourself/gotestsum/releases/download/v0.6.0/gotestsum_0.6.0_linux_amd64.tar.gz | tar -C /usr/local/bin -xzf -
 
 RUN curl --fail -L https://raw.githubusercontent.com/jonmosco/kube-ps1/v0.7.0/kube-ps1.sh -o /usr/local/bin/kube-ps1.sh
 
