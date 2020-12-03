@@ -60,6 +60,8 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 ## [1.9.1] November 19, 2020
 [1.9.1]: https://github.com/datawire/ambassador/compare/v1.9.0...v1.9.1
 
+### Ambassador Edge Stack only
+
 - Bugfix: DevPortal: fix a crash when the `host` cannot be parsed as a valid hostname.
 
 ## [1.9.0] November 12, 2020
@@ -67,12 +69,10 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
-- Change: The DevPortal no longer looks for documentation at `/.ambassador-internal/openapi-docs`.  A new field in `Mappings`, `docs`, must be used for specifying the source for documentation.  This can result in an empty Dev Portal after upgrading if `Mappings` do not include a `docs` attribute.
 - Feature: Support configuring the gRPC Statistics Envoy filter to enable telemetry of gRPC calls (see the `grpc_stats` configuration flag -- thanks, [Felipe Roveran](https://github.com/feliperoveran)!)
 - Feature: The `RateLimitService` and `AuthService` configs now support switching between gRPC protocol versions `v2` and `v2alpha` (see the `protocol_version` setting)
 - Feature: The `TracingService` Zipkin config now supports setting `collector_hostname` to tell Envoy which host header to set when sending spans to the collector
 - Feature: Ambassador now supports custom error response mapping
-- Feature: DevPortal: default configuration using the `ambassador` `DevPortal` resource.
 - Bugfix: Ambassador will no longer mistakenly post notices regarding `regex_rewrite` and `rewrite` directive conflicts in `Mapping`s due to the latter's implicit default value of `/` (thanks, [obataku](https://github.com/obataku)!)
 - Bugfix: The `/metrics` endpoint will no longer break if invoked before configuration is complete (thanks, [Markus Jevring](https://github.com/markusjevringsesame)!)
 - Bugfix: Update Python requirements to address CVE-2020-25659
@@ -82,29 +82,16 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Update: Upgrade Alpine 3.10→3.12, GNU libc 2.30→2.32, and Python 3.7→3.8
 - Update: Knative serving tests were bumped from version 0.11.0 to version 0.18.0 (thanks, [Noah Fontes](https://github.com/impl)!)
 
-### Ambassador Edge Stack Only
-
-- Feature: How the `OAuth2` Filter authenticates itself to the identity provider is now configurable with the `clientAuthentication` setting.
-- Feature: The `OAuth2` Filter can now use RFC 7523 JWT assertions to authenticate itself to the identity provider; this is usable with all grant types.
-- Feature: When validating a JWT's scope, the `JWT` and `OAuth2` Filters now support not just RFC 8693 behavior, but also the behavior of various drafts leading to it, making JWT scope validation usable with more identity providers.
-- Feature: The `OAuth2` Filter now has `inheritScopeArgument` and `stripInheritedScope` settings that can further customize the behavior of `accessTokenJWTFilter`.
-- Change: The `OAuth2` Filter argument `scopes` has been renamed to `scope`, for consistency.  The name `scopes` is deprecated, but will continue to work for backward compatibility.
-- Bugfix: `OAuth2` Filter: Don't have `accessTokenValidation: auto` fall back to "userinfo" validation for a client_credentials grant; it doesn't make sense there and only serves to obscure a more useful error message.
-
 ### Ambassador Edge Stack only
 
-- Change: The DevPortal no longer looks for documentation at `/.ambassador-internal/openapi-docs`.
-   - A new field in `Mappings`, `docs`, must be used for specifying the source for
-     documentation.  This can result in an empty Dev Portal after upgrading if
-     `Mappings` do not include a `docs` attribute.
-- Bugfix: `OAuth2` Filter: Don't have `accessTokenValidation: auto` fall back to "userinfo" validation for a client_credentials grant; it doesn't make sense there and only serves to obscure a more useful error message.
+- Change: The DevPortal no longer looks for documentation at `/.ambassador-internal/openapi-docs`.  A new field in `Mappings`, `docs`, must be used for specifying the source for documentation.  This can result in an empty Dev Portal after upgrading if `Mappings` do not include a `docs` attribute.
 - Feature: How the `OAuth2` Filter authenticates itself to the identity provider is now configurable with the `clientAuthentication` setting.
 - Feature: The `OAuth2` Filter can now use RFC 7523 JWT assertions to authenticate itself to the identity provider; this is usable with all grant types.
-- Bugfix: `ConsulResolver` will now fallback to the `Address` of a Consul service if `Service.Address` is not set.
 - Feature: When validating a JWT's scope, the `JWT` and `OAuth2` Filters now support not just RFC 8693 behavior, but also the behavior of various drafts leading to it, making JWT scope validation usable with more identity providers.
-- Change: The `OAuth2` Filter argument `scopes` has been renamed to `scope`, for consistency.  The name `scopes` is deprecated, but will continue to work for backward compatibility.
 - Feature: The `OAuth2` Filter now has `inheritScopeArgument` and `stripInheritedScope` settings that can further customize the behavior of `accessTokenJWTFilter`.
 - Feature: DevPortal: default configuration using the `ambassador` `DevPortal` resource.
+- Change: The `OAuth2` Filter argument `scopes` has been renamed to `scope`, for consistency.  The name `scopes` is deprecated, but will continue to work for backward compatibility.
+- Bugfix: `OAuth2` Filter: Don't have `accessTokenValidation: auto` fall back to "userinfo" validation for a client_credentials grant; it doesn't make sense there and only serves to obscure a more useful error message.
 
 ## [1.8.1] October 16, 2020
 [1.8.1]: https://github.com/datawire/ambassador/compare/v1.8.0...v1.8.1
@@ -128,7 +115,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 - Feature: `RateLimit` CRDs now support setting a response body, configurable with the `errorResponse` setting.
 - Bugfix: `External` `Filter` can now properly proxy the body to the configured `auth_service`
-- BugFix: The RBAC for AES now grants permission to "patch" `Events.v1.core` (previously it granted "create" but not "patch")
+- Bugfix: The RBAC for AES now grants permission to "patch" `Events.v1.core` (previously it granted "create" but not "patch")
 
 ## [1.7.4] October 06, 2020
 [1.7.4]: https://github.com/datawire/ambassador/compare/v1.7.3...v1.7.4
@@ -331,8 +318,7 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
-- Switched from quay.io back to DockerHub as our primary publication point. **If you are using your own Kubernetes manifests, you will have to update them!** Datawire's Helm charts and published YAML have already been updated.
-
+- Change: Switched from quay.io back to DockerHub as our primary publication point. **If you are using your own Kubernetes manifests, you will have to update them!** Datawire's Helm charts and published YAML have already been updated.
 - Feature: switch to Envoy 1.14.1
 - Feature: Allow defaults for `add_request_header`, `remove_request_header`, `add_response_header`, and `remove_response_header`
 - Feature: Inform Knative of the route to the Ambassador service if available (thanks, [Noah Fontes](https://github.com/impl)!)
@@ -452,7 +438,7 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 - Feature: `edgectl install` supports KIND clusters (thanks, [@factorypreset](https://github.com/factorypreset)!)
 - Feature: `edgectl intercept` supports HTTPS
 - Feature: Ambassador Edge Stack Docker image is ~150MB smaller
-- Feature: The Edge Policy Console can be fully disabled with the `diagnostics.enable` element in the `ambassador` Module
+- Feature: The Edge Policy Console can be fully disabled with the `diagnostics.enabled` element in the `ambassador` Module
 - Feature: `aes-plugin-runner` now allows passing in `docker run` flags after the main argument list.
 - Bugfix: Ambassador Edge Stack doesn't crash if the Developer Portal content URL is not accessible
 - Bugfix: `edgectl connect` does a better job handling clusters with many services
@@ -1547,13 +1533,13 @@ updates after running for a short time. This will be fixed in 0.50.0-GA.
 
 ### Major Changes:
 
-- BugFix: The statsd container has been removed by default in order to avoid DoSing Kubernetes DNS. The functionality can be re-enabled by setting the `STATSD_ENABLED` environment variable to `true` in the Ambassador deployment YAML (#568).
+- Bugfix: The statsd container has been removed by default in order to avoid DoSing Kubernetes DNS. The functionality can be re-enabled by setting the `STATSD_ENABLED` environment variable to `true` in the Ambassador deployment YAML (#568).
 - Docs: Added detailed Ambassador + Istio Integration Documentation on monitoring and distributed tracing. - @feitnomore
 
 ### Minor Changes:
 
 - Docs: Added instructions for running Ambassador with Docker Compose. - @bcatcho
-- BugFix: Fix Ambassador to more aggressively reconnect to Kubernetes (#554). - @nmatsui
+- Bugfix: Fix Ambassador to more aggressively reconnect to Kubernetes (#554). - @nmatsui
 - Feature: Diagnostic view displays AuthService, RateLimitService, and TracingService (#730). - @alexgervais
 - Feature: Enable Ambassador to tag tracing spans with request headers via `tag_headers`. - @alexgervais
 
@@ -1562,13 +1548,13 @@ updates after running for a short time. This will be fixed in 0.50.0-GA.
 
 ### Major changes:
 - Feature: Default CORS configuration can now be set - @KowalczykBartek
-- BugFix: Ambassador does not crash with empty YAML config anymore - @rohan47
+- Bugfix: Ambassador does not crash with empty YAML config anymore - @rohan47
 
 ### Minor changes:
 - DevEx: `master` is now latest, `stable` tracks the latest released version
 - DevEx: release-prep target added to Makefile to facilitate releasing process
 - DevEx: all tests now run in parallel, consuming lesser time
-- BugFix: Ambassador SIGCHLD messages are less scary looking now
+- Bugfix: Ambassador SIGCHLD messages are less scary looking now
 
 ## [0.37.0] July 31, 2018:
 [0.37.0]: https://github.com/datawire/ambassador/compare/0.36.0...0.37.0
