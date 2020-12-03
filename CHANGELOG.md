@@ -2,9 +2,9 @@
 
 ## BREAKING NEWS
 
-### AMBASSADOR EDGE STACK 1.0.0
+### AMBASSADOR EDGE STACK
 
-Ambassador Edge Stack 1.0.0 is a comprehensive, self-service solution for exposing,
+Ambassador Edge Stack is a comprehensive, self-service solution for exposing,
 securing, and managing the boundary between end users and your Kubernetes services.
 The core of Ambassador Edge Stack is the open-source Ambassador API Gateway, built on
 the Envoy proxy.
