@@ -537,8 +537,8 @@ Modify the sources in `./_cxx/envoy/`.
   default (to keep the tests fast), the tests avoid running much
   traffic through Envoy, and instead just check that the Envoy
   configuration that Ambassador generates hasn't changed since the
-  previous version (since we generally trust that Enovy works, and
-  doesn't change as aoften).  Since you _are_ changing Envoy, you'll
+  previous version (since we generally trust that Envoy works, and
+  doesn't change as often).  Since you _are_ changing Envoy, you'll
   need to run the tests with `KAT_RUN_MODE=envoy` set in the
   environment in order to actually test against Envoy.
 
