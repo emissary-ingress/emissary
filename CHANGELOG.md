@@ -187,6 +187,9 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Bugfix: Internal Ambassador data is no longer exposed to the `/.ambassador-internal/` endpoints used by the DevPortal.
 - Bugfix: Problems with license key limits will no longer trigger spurious HTTP 429 errors.  Using the `RateLimit` resource beyond 5rps without any form of license key will still trigger 429 responses, but now with a `X-Ambassador-Message` header indicating that's what happned.
 - Bugfix: When multiple `RateLimit`s overlap, it is supposed to enforce the strictest limit; but the strictness comparison didn't correctly handle comparing limits with different units.
+- Change: The Redis settings have been adjusted to default to the pre-1.6.0 behavior, and have been adjusted to be easier to understand.
+- Feature: `consul_connect_integration` is now part of the AES image.
+- Bugfix: `consul_connect_integration` now correctly handles certificates from Hashicorp Vault.
 
 ## [1.6.2] July 30, 2020
 [1.6.2]: https://github.com/datawire/ambassador/compare/v1.6.1...v1.6.2
@@ -434,7 +437,7 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 - Feature: `edgectl install` supports KIND clusters (thanks, [@factorypreset](https://github.com/factorypreset)!)
 - Feature: `edgectl intercept` supports HTTPS
 - Feature: Ambassador Edge Stack Docker image is ~150MB smaller
-- Feature: The Edge Policy Console can be fully disabled with the `diagnostics.enable` element in the `ambassador` Module
+- Feature: The Edge Policy Console can be fully disabled with the `diagnostics.enabled` element in the `ambassador` Module
 - Feature: `aes-plugin-runner` now allows passing in `docker run` flags after the main argument list.
 - Bugfix: Ambassador Edge Stack doesn't crash if the Developer Portal content URL is not accessible
 - Bugfix: `edgectl connect` does a better job handling clusters with many services
@@ -442,7 +445,14 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 - Change: There is no longer a separate traffic-proxy image; that functionality is now part of the main AES image. Set `command: ["traffic-manager"]` to use it.
 
 ## [1.2.2] March 04, 2020
-[1.2.2]: https://github.com/datawire/ambassador/compare/v1.2.0...v1.2.2
+[1.2.2]: https://github.com/datawire/ambassador/compare/v1.2.1...v1.2.2
+
+### Ambassador Edge Stack only
+
+- Internal: Fix an error in Edge Stack update checks
+
+## [1.2.1] March 03, 2020
+[1.2.1]: https://github.com/datawire/ambassador/compare/v1.2.0...v1.2.1
 
 ### Ambassador API Gateway + Ambassador Edge Stack
 
@@ -452,11 +462,9 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 ### Ambassador Edge Stack only
 
 - Bugfix: The `aes-plugin-runner` binary for GNU/Linux is now statically linked (instead of being linked against musl libc), so it should now work on either musl libc or GNU libc systems
+- Feature (ALPHA): An `aes-plugin-runner` binary for Windows is now produced.  (It is un-tested as of yet.)
 - Bugfix: The `OAuth2` Filter redirection-endpoint now handles various XSRF errors more consistently
 - Change: The `OAuth2` Filter redirection-endpoint now handles XSRF errors by redirecting back to the identity provider
-- Internal: Fix an error in Edge Stack update checks
-
-(1.2.1 is superseded by 1.2.2.)
 
 [#2348]: https://github.com/datawire/ambassador/issues/2348
 
