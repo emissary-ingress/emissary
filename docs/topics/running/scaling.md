@@ -100,7 +100,7 @@ bootstrap period it behaves identically to the `check_alive` endpoint.
 Generally Ambassador's readiness probe should be configured with the same settings as it's liveness
 probes.
 
-## The `AMBASSADOR_FAST_RECONFIGURE` & `AMBASSADOR_FAST_VALIDATION` flags.
+## `AMBASSADOR_FAST_RECONFIGURE` and `AMBASSADOR_FAST_VALIDATION` Flags
 
 These environment variables are feature flags that enable a higher performance implementation of the
 code Ambassador uses to validate and generate envoy configuration. These will eventually be enabled
