@@ -192,9 +192,9 @@
             - title: TLS Origination
               link: /docs/latest/topics/running/tls/origination
         - title: Troubleshooting Ambassador
-          link: /docs/pre-release/topics/running/debugging
+          link: /docs/latest/topics/running/debugging
         - title: Scaling Ambassador
-          link: /docs/pre-release/topics/running/scaling
+          link: /docs/latest/topics/running/scaling
 - title: HOWTO Guides
   link: /docs/latest/howtos
   items:
