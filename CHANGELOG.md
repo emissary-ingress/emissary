@@ -57,6 +57,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 - Bugfix: OAuth2 Filter: Fix `insufficient_scope` error when validating Azure access tokens.
 - Change: ambassador-consul-connect resources now get deployed into the `ambassador` namespace instead of the active namespace specified in the user's kubernetes context (usually `default`). Old resource cleanup is documented in the Ambassador Consul integration documentation.
+- Bugfix: Fix a bug in the Mapping CRD where the `text_format_source` field was incorrectly defined as type `string` instead of an object, as documented.
 
 ## [1.9.1] November 19, 2020
 [1.9.1]: https://github.com/datawire/ambassador/compare/v1.9.0...v1.9.1

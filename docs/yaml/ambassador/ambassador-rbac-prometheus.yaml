@@ -923,7 +923,11 @@ spec:
                         type: string
                       text_format_source:
                         description: A format string sourced from a file on the Ambassador container. Useful for larger response bodies that should not be placed inline in configuration.
-                        type: string
+                        properties:
+                          filename:
+                            description: The name of a file on the Ambassador pod that contains a format text string.
+                            type: string
+                        type: object
                     type: object
                   on_status_code:
                     description: The status code to match on
