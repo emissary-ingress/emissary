@@ -26,7 +26,7 @@ As Ambassador Edge Stack approaches the edge if its performance envelope, it wil
 mysterious pod restarts triggered by Kubernetes. This does not always mean there is a problem, it
 could just mean you need to tune some of the resource limits set in your deployment. When it comes
 to scaling, Kubernetes will generally kill an Ambassador pod for one of two reasons: exceeding
-memory limits, and failed liveness/readiness probes. See the [Memory Limits](#memory-limits),
+memory limits or failed liveness/readiness probes. See the [Memory Limits](#memory-limits),
 [Liveness Probes](#liveness-probes), and [Readiness Probes](#readiness-probes)
 sections for more on how to cope with these situations.
 
