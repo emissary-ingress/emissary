@@ -97,7 +97,7 @@ period there is no guarantee Ambassador would know where to send a given request
 endpoint will only return 200 when all routing information has been loaded. After the initial
 bootstrap period it behaves identically to the `check_alive` endpoint.
 
-Generally Ambassador's readiness probe should be configured with the same settings as it's liveness
+Generally Ambassador's readiness probe should be configured with the same settings as its liveness
 probes.
 
 ## `AMBASSADOR_FAST_RECONFIGURE` and `AMBASSADOR_FAST_VALIDATION` Flags
