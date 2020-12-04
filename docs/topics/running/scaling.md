@@ -25,9 +25,9 @@ envelope along any of these dimensions.
 As Ambassador Edge Stack approaches the edge if its performance envelope, it will often manifest as
 mysterious pod restarts triggered by Kubernetes. This does not always mean there is a problem, it
 could just mean you need to tune some of the resource limits set in your deployment. When it comes
-to scaling, Kubernetes will generally kill an Ambassador pod for one of two reasons: Exceeding
-Memory Limits, and failed Liveness/Readiness Probes. See the [Memory Limits](../scaling/#memory-limits),
-[Liveness Probes](../scaling/#liveness-probes), and [Readiness Probes](../scaling/#readiness-probes)
+to scaling, Kubernetes will generally kill an Ambassador pod for one of two reasons: exceeding
+memory limits or failed liveness/readiness probes. See the [Memory Limits](#memory-limits),
+[Liveness Probes](#liveness-probes), and [Readiness Probes](#readiness-probes)
 sections for more on how to cope with these situations.
 
 ## Memory Limits
@@ -58,7 +58,7 @@ In general you should try to keep Ambassador's memory usage below 50% of the pod
 seem like a generous safety margin, but when reconfiguration occurs, Ambassador requires additional
 memory to avoid disrupting active connections. At each reconfiguration, Ambassador keeps around the
 old version for the duration of the configured drain time. See
-[AMBASSADOR_DRAIN_TIME](../scaling/#ambassador_drain_time) for more details on how to tune this
+[AMBASSADOR_DRAIN_TIME](#ambassador_drain_time) for more details on how to tune this
 behavior.
 
 Ambassador Edge Stack's exact memory usage depends on (among other things) how many `Host` and
@@ -68,31 +68,27 @@ increase the memory limit defined in your deployment.
 ## Liveness Probes
 
 Ambassador defines the `/ambassador/v0/check_alive` endpoint on port `8877` for use with Kubernetes
-Liveness probes. (See here for more details on Kubernetes probes
-https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
+liveness probes. See the Kubernetes documentation for more details on [HTTP liveness probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-a-liveness-http-request).
 
 Kubernetes will restart the Ambassador pod if it fails to get a 200 result from the endpoint. If
 this happens it won't necessarily show up in an easily recognizable way in the pod logs. You can
 look for Kubernetes events to see if this is happening. Use `kubectl describe pod -n ambassador` or
 `kubectl get events -n ambassador` or equivalent.
 
-The purpose of Liveness probes is to rescue an Ambassador instance that is wedged, however if
-Liveness probes are too sensitive they can take out Ambassador instances that are functioning
+The purpose of liveness probes is to rescue an Ambassador instance that is wedged, however if
+liveness probes are too sensitive they can take out Ambassador instances that are functioning
 normally. This is more prone to happen as the number of Ambassador inputs increase. The
-`timeoutSeconds` and `failureThreshold` fields of the Ambassador deployment's Liveness Probe
+`timeoutSeconds` and `failureThreshold` fields of the Ambassador deployment's liveness Probe
 determines how tolerant Kubernetes is with its probes. If you observe pod restarts along with
-`Unhealthy` events, try tuning these fields upwards from their default values. See
-https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#probe-v1-core for more details
-on tuning probes.
+`Unhealthy` events, try tuning these fields upwards from their default values. See the Kubernetes documentation for more details on [tuning probes](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#probe-v1-core).
 
-Note that whatever changes you make to Ambassador's Liveness probes should most likely be made to
+Note that whatever changes you make to Ambassador's liveness probes should most likely be made to
 its readiness probes also.
 
 ## Readiness Probes
 
 Ambassador defines the `/ambassador/v0/check_ready` endpoint on port `8877` for use with Kubernetes
-readiness probes. (See here for more details on Kubernetes probes
-https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
+readiness probes. See the Kubernetes documentation for more details on [readiness probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes).
 
 Kubernetes uses readiness checks to prevent traffic from going to pods that are not ready to handle
 requests. The only time Ambassador cannot usefully handle requests is during initial startup when it
@@ -101,24 +97,24 @@ period there is no guarantee Ambassador would know where to send a given request
 endpoint will only return 200 when all routing information has been loaded. After the initial
 bootstrap period it behaves identically to the `check_alive` endpoint.
 
-Generally Ambassador's readiness probe should be configured with the same settings as it's Liveness
+Generally Ambassador's readiness probe should be configured with the same settings as its liveness
 probes.
 
-## The `AMBASSADOR_FAST_RECONFIGURE` & `AMBASSADOR_FAST_VALIDATION` flags.
+## `AMBASSADOR_FAST_RECONFIGURE` and `AMBASSADOR_FAST_VALIDATION` Flags
 
 These environment variables are feature flags that enable a higher performance implementation of the
 code Ambassador uses to validate and generate envoy configuration. These will eventually be enabled
 by default, but if you are experiencing performance problems you should try setting the values of
 both of these flags to `"true"` and seeing if this helps.
 
-## AMBASSADOR_DRAIN_TIME
+## `AMBASSADOR_DRAIN_TIME`
 
 The `AMBASSADOR_DRAIN_TIME` variable controls how much of a grace period Ambassador provides active
 clients when reconfiguration happen. Its unit is seconds and it defaults to 600 (10 minutes). This
 can impact memory usage because Ambassador needs to keep around old versions of its configuration
 for the duration of the drain time.
 
-## Unconstrained Mappings with many Hosts
+## Unconstrained Mappings with Many Hosts
 
 When working with a large number of `Host` resources, it's important to understand the impact of
 unconstrained `Mapping`s. An unconstrained `Mapping` is one that is not restricted to a specific
