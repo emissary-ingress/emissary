@@ -100,7 +100,7 @@ You'll now register a demo application with Consul, and show how Ambassador Edge
 
    Go to `http://localhost:8500/` from a web browser and you should see a service named `qotm-consul`.
 
-3. Create a `Mapping` for the `qotm-consul` service. 
+3. Create a `Mapping` for the `qotm-consul` service.
 
    ```yaml
    ---
@@ -140,12 +140,33 @@ Ambassador Edge Stack can also use certificates stored in Consul to originate en
    ```
    kubectl apply -f https://www.getambassador.io/yaml/consul/ambassador-consul-connector.yaml
    ```
-   
+
 This will install into your cluster:
 
    - RBAC resources.
    - The Consul connector service.
    - A `TLSContext` named `ambassador-consul` to load the `ambassador-consul-connect` secret into Ambassador Edge Stack.
+
+**Note:** If you have previously installed the consul connector in the `default` namespace in your cluster, you'll want to clean up the old (and now unused) resources in the `default` namespace.
+If you are installing the consul connector in your cluster for the first time, you can ignore this and move on to step two.
+
+Having duplicates of the Consul connector resources in the `ambassador` and `default` namespaces should not impact the functionality of the Consul connector, but it's good practice to clean up unused resources.
+
+
+First, delete the service account, Consul connector service and TLSContext resources from the `default` namespace:
+
+    ```
+    kubectl delete -f https://www.getambassador.io/yaml/consul/ambassador-consul-connector-old.yaml
+    ```
+
+Then, delete the secret created by the connector service in the `default` namespace.
+`ambassador-consul-connect` is the default name of the secret,
+but if you have set the `_AMBASSADOR_TLS_SECRET_NAME` environment variable on the `consul-connect-injector-webhook-deployment` deployment,
+you should sub in that secret name value for `ambassador-consul-connect` in the command below.
+
+    ```
+    kubectl delete secret -n default ambassador-consul-connect
+    ```
 
 2. Deploy a new version of the demo application, and configure it to inject the Consul sidecar proxy by setting `"consul.hashicorp.com/connect-inject"` to `true`. Note that in this version of the configuration, you do not have to configure environment variables for the location of the Consul server:
 
