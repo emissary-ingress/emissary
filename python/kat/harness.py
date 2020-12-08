@@ -1029,8 +1029,14 @@ def run_queries(name: str, queries: Sequence[Query]) -> Sequence[Result]:
     # run(f"{CLIENT_GO} -input {path_urls} -output {path_results} 2> {path_log}")
     run(f"kubectl exec -n default -i kat /work/kat_client < '{path_urls}' > '{path_results}' 2> '{path_log}'")
 
+
     with open(path_results, 'r') as f:
-        json_results = json.load(f)
+        content = f.read()
+        try:
+            json_results = json.loads(content)
+        except Exception as e:
+            print("Could not parse JSON content (exception={}):\n", e, content)
+            raise e
 
     results = []
 
