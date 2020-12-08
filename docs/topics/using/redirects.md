@@ -2,7 +2,7 @@
 
 ## Host Redirect
 
-To effect an HTTP 301 `Redirect`, the `Mapping` **must** set `host_redirect` to `true`, with `service` set to the host to which the client should be redirected:
+To effect an HTTP `Redirect`, the `Mapping` **must** set `host_redirect` to `true`, with `service` set to the host to which the client should be redirected:
 
 ```yaml
 apiVersion: getambassador.io/v2
@@ -17,7 +17,9 @@ spec:
 
 Using this `Mapping`, a request to `http://$AMBASSADOR_URL/redirect/` will result in an HTTP 301 `Redirect` to `http://httpbin.org/redirect/`.
 
-The `Mapping` **may** also set `path_redirect` to change the path portion of the URL during the redirect:
+The `Mapping` **may** also set additional properties to customize the behavior of the HTTP redirect response.
+
+To change the path portion of the URL during the redirect, set `path_redirect`:
 
 ```yaml
 apiVersion: getambassador.io/v2
@@ -32,6 +34,39 @@ spec:
 ```
 
 Here, a request to `http://$AMBASSADOR_URL/redirect/` will result in an HTTP 301 `Redirect` to `http://httpbin.org/ip`. As always with Ambassador Edge Stack, attention paid to the trailing `/` on a URL is helpful!
+
+To change only a prefix of the path portion of the URL, set `prefix_redirect`:
+
+```yaml
+apiVersion: getambassador.io/v2
+kind:  Mapping
+metadata:
+  name:  redirect
+spec:
+  prefix: /redirect/ip
+  service: httpbin.org
+  host_redirect: true
+  prefix_redirect: /ip
+```
+
+Now, a request to `http://$AMBASSADOR_URL/redirect/ip` will result in an HTTP 301 `Redirect` to `http://httpbin.org/ip`. The prefix `/redirect/ip` was matched and replaced with `/ip`.
+
+To change the HTTP response code generated during the redirect, set `redirect_reponse_code`. Valid values include `[301, 302, 303, 307, 308]`:
+
+```yaml
+apiVersion: getambassador.io/v2
+kind:  Mapping
+metadata:
+  name:  redirect
+spec:
+  prefix: /redirect/ip
+  service: httpbin.org
+  host_redirect: true
+  prefix_redirect: /ip
+  redirect_response_code: 302
+```
+
+Finally, a request to `http://$AMBASSADOR_URL/redirect/ip` will result in an HTTP 302 `Redirect` to `http://httpbin.org/ip`.
 
 ## X-FORWARDED-PROTO Redirect
 

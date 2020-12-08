@@ -101,6 +101,8 @@ class IRHTTPMapping (IRBaseMapping):
         # Do not include method
         "method_regex": False,
         "path_redirect": False,
+        "prefix_redirect": False,
+        "redirect_response_code": False,
         # Do not include precedence
         "prefix": False,
         "prefix_exact": False,
@@ -382,6 +384,10 @@ class IRHTTPMapping (IRBaseMapping):
             if not self.validate_load_balancer(self['load_balancer']):
                 self.post_error("Invalid load_balancer specified: {}, invalidating mapping".format(self['load_balancer']))
                 return False
+
+        if 'path_redirect' in self and 'prefix_redirect' in self:
+            self.ir.aconf.post_error("Cannot specify both path_redirect and prefix_redirect. Using path_redirect and ignoring prefix_redirect.", resource=self)
+            del self['prefix_redirect']
 
         return True
 

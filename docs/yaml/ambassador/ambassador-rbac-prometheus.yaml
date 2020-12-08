@@ -1013,6 +1013,7 @@ spec:
             outlier_detection:
               type: string
             path_redirect:
+              description: Path replacement to use when generating an HTTP redirect. Used with `host_redirect`.
               type: string
             precedence:
               type: integer
@@ -1020,6 +1021,9 @@ spec:
               type: string
             prefix_exact:
               type: boolean
+            prefix_redirect:
+              description: Prefix rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+              type: string
             prefix_regex:
               type: boolean
             priority:
@@ -1030,6 +1034,15 @@ spec:
                 - type: string
                 - type: boolean
               type: object
+            redirect_response_code:
+              description: The response code to use when generating an HTTP redirect. Defaults to 301. Used with `host_redirect`.
+              enum:
+              - 301
+              - 302
+              - 303
+              - 307
+              - 308
+              type: integer
             regex_headers:
               additionalProperties:
                 oneOf:

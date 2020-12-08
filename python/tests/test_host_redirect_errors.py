@@ -177,3 +177,32 @@ spec:
     require_errors(r2["ir"], [
         ( "mapping-1.default.1", "cannot accept mapping-2 with host_redirect after mappings without host_redirect (eg mapping-1)")
     ])
+
+def test_hr_error_4():
+    yaml = """
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+    name: mapping-1
+    namespace: default
+spec:
+    prefix: /
+    service: svc1
+    host_redirect: true
+    path_redirect: /path/
+    prefix_redirect: /prefix/
+"""
+
+    cache = Cache(logger)
+    r1 = Compile(logger, yaml, k8s=True)
+    r2 = Compile(logger, yaml, k8s=True, cache=cache)
+
+    # XXX Why are these showing up tagged with "mapping-1.default.1" rather than "mapping-2.default.1"?
+    require_errors(r1["ir"], [
+        ( "mapping-1.default.1", "Cannot specify both path_redirect and prefix_redirect. Using path_redirect and ignoring prefix_redirect.")
+    ])
+
+    require_errors(r2["ir"], [
+        ( "mapping-1.default.1", "Cannot specify both path_redirect and prefix_redirect. Using path_redirect and ignoring prefix_redirect.")
+    ])

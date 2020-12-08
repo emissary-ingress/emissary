@@ -56,8 +56,10 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 ## Next Release
 
 - Bugfix: OAuth2 Filter: Fix `insufficient_scope` error when validating Azure access tokens.
-- Change: ambassador-consul-connect resources now get deployed into the `ambassador` namespace instead of the active namespace specified in the user's kubernetes context (usually `default`). Old resource cleanup is documented in the Ambassador Consul integration documentation.
 - Bugfix: Fix a bug in the Mapping CRD where the `text_format_source` field was incorrectly defined as type `string` instead of an object, as documented.
+- Change: ambassador-consul-connect resources now get deployed into the `ambassador` namespace instead of the active namespace specified in the user's kubernetes context (usually `default`). Old resource cleanup is documented in the Ambassador Consul integration documentation.
+- Feature: The redirect response code returned by Ambassador is now configurable using `redirect_reponse_code` on `Mappings` that use `host_redirect`.
+- Feature: The redirect location header returned by Ambassador now supports prefix rewrites using `prefix_redirect` on `Mappings` that use `host_redirect`.
 
 ## [1.9.1] November 19, 2020
 [1.9.1]: https://github.com/datawire/ambassador/compare/v1.9.0...v1.9.1

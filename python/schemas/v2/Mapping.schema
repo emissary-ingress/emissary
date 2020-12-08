@@ -108,6 +108,11 @@
         "method_regex": { "type": "boolean" },
         "outlier_detection": { "type": "string" },
         "path_redirect": { "type": "string" },
+        "prefix_redirect": { "type": "string" },
+        "redirect_response_code": {
+            "type": "integer",
+            "enum": [301, 302, 303, 307, 308]
+        },
         "priority": { "type": "string" },
         "precedence": { "type": "integer" },
         "cluster_tag": { "type": "string" },

@@ -1381,6 +1381,11 @@ func (in *MappingSpec) DeepCopyInto(out *MappingSpec) {
 		*out = new(RetryPolicy)
 		**out = **in
 	}
+	if in.RedirectResponseCode != nil {
+		in, out := &in.RedirectResponseCode, &out.RedirectResponseCode
+		*out = new(int)
+		**out = **in
+	}
 	if in.RemoveRequestHeaders != nil {
 		in, out := &in.RemoveRequestHeaders, &out.RemoveRequestHeaders
 		*out = make(StringOrStringList, len(*in))
