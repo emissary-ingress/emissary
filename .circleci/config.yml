@@ -114,7 +114,7 @@ commands:
             export DEV_KUBE110=yes
           fi
           export DEV_KUBE_NO_PVC=yes
-          export KAT_REQ_LIMIT=600
+          export KAT_REQ_LIMIT=900
           if << parameters.fast-reconfigure >>; then
             export AMBASSADOR_FAST_VALIDATION=yes # empty/nonempty
           fi
