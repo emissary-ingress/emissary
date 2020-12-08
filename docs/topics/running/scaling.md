@@ -26,7 +26,7 @@ As Ambassador Edge Stack approaches the edge if its performance envelope, it wil
 mysterious pod restarts triggered by Kubernetes. This does not always mean there is a problem, it
 could just mean you need to tune some of the resource limits set in your deployment. When it comes
 to scaling, Kubernetes will generally kill an Ambassador pod for one of two reasons: exceeding
-memory limits, and failed liveness/readiness probes. See the [Memory Limits](#memory-limits),
+memory limits or failed liveness/readiness probes. See the [Memory Limits](#memory-limits),
 [Liveness Probes](#liveness-probes), and [Readiness Probes](#readiness-probes)
 sections for more on how to cope with these situations.
 
@@ -97,10 +97,10 @@ period there is no guarantee Ambassador would know where to send a given request
 endpoint will only return 200 when all routing information has been loaded. After the initial
 bootstrap period it behaves identically to the `check_alive` endpoint.
 
-Generally Ambassador's readiness probe should be configured with the same settings as it's liveness
+Generally Ambassador's readiness probe should be configured with the same settings as its liveness
 probes.
 
-## The `AMBASSADOR_FAST_RECONFIGURE` & `AMBASSADOR_FAST_VALIDATION` flags.
+## `AMBASSADOR_FAST_RECONFIGURE` and `AMBASSADOR_FAST_VALIDATION` Flags
 
 These environment variables are feature flags that enable a higher performance implementation of the
 code Ambassador uses to validate and generate envoy configuration. These will eventually be enabled
