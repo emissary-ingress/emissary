@@ -6,17 +6,18 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/pkg/acp"
+	"github.com/datawire/dlib/dtime"
 )
 
 type awMetadata struct {
 	t  *testing.T
-	ft *fakeTime
+	ft *dtime.FakeTime
 	aw *acp.AmbassadorWatcher
 }
 
 func (m *awMetadata) check(seq int, clock int, alive bool, ready bool) {
-	if m.ft.timeSinceBoot() != time.Duration(clock)*time.Second {
-		m.t.Errorf("%d: fakeTime.timeSinceBoot should be %ds, not %v", seq, clock, m.ft.timeSinceBoot())
+	if m.ft.TimeSinceBoot() != time.Duration(clock)*time.Second {
+		m.t.Errorf("%d: FakeTime.TimeSinceBoot should be %ds, not %v", seq, clock, m.ft.TimeSinceBoot())
 	}
 
 	if m.aw.IsAlive() != alive {
@@ -29,15 +30,15 @@ func (m *awMetadata) check(seq int, clock int, alive bool, ready bool) {
 }
 
 func (m *awMetadata) stepSec(step int) {
-	m.ft.stepSec(step)
+	m.ft.StepSec(step)
 }
 
 func newAWMetadata(t *testing.T) *awMetadata {
-	ft := newFakeTime()
+	ft := dtime.NewFakeTime()
 	f := &fakeReady{mode: Happy}
 
 	dw := acp.NewDiagdWatcher()
-	dw.SetFetchTime(ft.now)
+	dw.SetFetchTime(ft.Now)
 
 	if dw == nil {
 		t.Error("New DiagdWatcher is nil?")
@@ -51,7 +52,7 @@ func newAWMetadata(t *testing.T) *awMetadata {
 	}
 
 	aw := acp.NewAmbassadorWatcher(ew, dw)
-	aw.SetFetchTime(ft.now)
+	aw.SetFetchTime(ft.Now)
 
 	return &awMetadata{t: t, ft: ft, aw: aw}
 }
