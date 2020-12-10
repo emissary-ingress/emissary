@@ -95,6 +95,9 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         if 'prefix_redirect' in kwargs:
             raise Exception("IRHTTPMappingGroup cannot accept a prefix_redirect as a keyword argument")
 
+        if 'regex_redirect' in kwargs:
+            raise Exception("IRHTTPMappingGroup cannot accept a regex_redirect as a keyword argument")
+
         if ('shadow' in kwargs) or ('shadows' in kwargs):
             raise Exception("IRHTTPMappingGroup cannot accept shadow or shadows as a keyword argument")
 
@@ -159,6 +162,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
             mapping.pop('host_redirect', None)
             mapping.pop('path_redirect', None)
             mapping.pop('prefix_redirect', None)
+            mapping.pop('regex_redirect', None)
 
         # OK. Is this a shadow Mapping?
         if shadow:

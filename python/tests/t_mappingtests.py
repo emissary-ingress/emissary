@@ -397,6 +397,18 @@ service: foobar.com
 host_redirect: true
 prefix_redirect: /foobar/baz
 redirect_response_code: 307
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.name}-5
+prefix: /{self.name}-5/assets/([a-f0-9]{{12}})/images
+prefix_regex: true
+service: foobar.com
+host_redirect: true
+regex_redirect:
+  pattern: /{self.name}-5/assets/([a-f0-9]{{12}})/images
+  substitution: /images/\\1
+redirect_response_code: 308
 """)
 
     def queries(self):
@@ -416,7 +428,10 @@ redirect_response_code: 307
         yield Query(self.parent.url(self.name + "-3/foo/anything"), expected=302)
 
         # [5]
-        yield Query(self.parent.url(self.name + "-4/foo/bar/baz"), expected=307)
+        yield Query(self.parent.url(self.name + "-4/foo/bar/baz/anything"), expected=307)
+
+        # [6]
+        yield Query(self.parent.url(self.name + "-5/assets/abcd0000f123/images"), expected=308)
 
     def check(self):
         # [0]
@@ -439,8 +454,12 @@ redirect_response_code: 307
             f"Unexpected Location {self.results[4].headers['Location']}"
 
         # [5]
-        assert self.results[5].headers['Location'] == [self.format("http://foobar.com/foobar/baz")], \
+        assert self.results[5].headers['Location'] == [self.format("http://foobar.com/foobar/baz/anything")], \
             f"Unexpected Location {self.results[5].headers['Location']}"
+
+        # [6]
+        assert self.results[6].headers['Location'] == [self.format("http://foobar.com/images/abcd0000f123")], \
+            f"Unexpected Location {self.results[6].headers['Location']}"
 
 
 class CanaryMapping(MappingTest):

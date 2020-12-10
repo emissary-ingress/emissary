@@ -1728,6 +1728,18 @@ func (m *RedirectAction) Validate() error {
 			}
 		}
 
+	case *RedirectAction_RegexRewrite:
+
+		if v, ok := interface{}(m.GetRegexRewrite()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RedirectActionValidationError{
+					field:  "RegexRewrite",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	}
 
 	return nil

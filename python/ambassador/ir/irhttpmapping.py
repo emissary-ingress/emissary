@@ -102,6 +102,7 @@ class IRHTTPMapping (IRBaseMapping):
         "method_regex": False,
         "path_redirect": False,
         "prefix_redirect": False,
+        "regex_redirect": False,
         "redirect_response_code": False,
         # Do not include precedence
         "prefix": False,
@@ -295,6 +296,11 @@ class IRHTTPMapping (IRBaseMapping):
     def group_class() -> Type[IRBaseMappingGroup]:
         return IRHTTPMappingGroup
 
+    def _enforce_mutual_exclusion(self, preferred, other):
+        if preferred in self and other in self:
+            self.ir.aconf.post_error(f"Cannot specify both {preferred} and {other}. Using {preferred} and ignoring {other}.", resource=self)
+            del self[other]
+
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         if not super().setup(ir, aconf):
             return False
@@ -385,10 +391,14 @@ class IRHTTPMapping (IRBaseMapping):
                 self.post_error("Invalid load_balancer specified: {}, invalidating mapping".format(self['load_balancer']))
                 return False
 
-        if 'path_redirect' in self and 'prefix_redirect' in self:
-            self.ir.aconf.post_error("Cannot specify both path_redirect and prefix_redirect. Using path_redirect and ignoring prefix_redirect.", resource=self)
-            del self['prefix_redirect']
-
+        # All three redirect fields are mutually exclusive.
+        #
+        # Prefer path_redirect over the other two. If only prefix_redirect and
+        # regex_redirect are set, prefer prefix_redirect. There's no exact
+        # reason for this, only to arbitrarily prefer "less fancy" features.
+        self._enforce_mutual_exclusion('path_redirect', 'prefix_redirect')
+        self._enforce_mutual_exclusion('path_redirect', 'regex_redirect')
+        self._enforce_mutual_exclusion('prefix_redirect', 'regex_redirect')
         return True
 
     @staticmethod

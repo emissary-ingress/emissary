@@ -906,6 +906,9 @@ spec:
               type: object
             regex_query_parameters:
               type: object
+            regex_redirect:
+              description: Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+              type: object
             regex_rewrite:
               type: object
             remove_request_headers:
