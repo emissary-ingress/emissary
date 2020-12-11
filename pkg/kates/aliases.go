@@ -54,6 +54,8 @@ type ConfigMap = corev1.ConfigMap
 
 type Secret = corev1.Secret
 
+const SecretTypeTLS = corev1.SecretTypeTLS
+
 type Ingress = netv1beta1.Ingress
 type IngressClass = netv1beta1.IngressClass
 
