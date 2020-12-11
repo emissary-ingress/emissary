@@ -9,7 +9,7 @@ IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= bb32e1c4b2c523dadd0413b503f50740307ff0a4
+  ENVOY_COMMIT ?= 4d45267b1f2e3427503d749c1192cba23a234e4f
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.

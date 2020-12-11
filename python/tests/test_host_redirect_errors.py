@@ -204,7 +204,7 @@ spec:
     host_redirect: true
     path_redirect: /path/
     regex_redirect:
-      regex: /regex/
+      pattern: /regex/
       substitution: /substitution/
 ---
 apiVersion: getambassador.io/v2
@@ -218,7 +218,7 @@ spec:
     host_redirect: true
     prefix_redirect: /prefix/
     regex_redirect:
-      regex: /regex/
+      pattern: /regex/
       substitution: /substitution/
 """
 

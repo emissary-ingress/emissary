@@ -433,6 +433,9 @@ redirect_response_code: 308
         # [6]
         yield Query(self.parent.url(self.name + "-5/assets/abcd0000f123/images"), expected=308)
 
+        # [7]
+        yield Query(self.parent.url(self.name + "-5/assets/abcd0000f123/images?itworked=true"), expected=308)
+
     def check(self):
         # [0]
         assert self.results[0].headers['Location'] == [self.format("http://foobar.com/{self.name}/anything?itworked=true")], \
@@ -460,6 +463,10 @@ redirect_response_code: 308
         # [6]
         assert self.results[6].headers['Location'] == [self.format("http://foobar.com/images/abcd0000f123")], \
             f"Unexpected Location {self.results[6].headers['Location']}"
+
+        # [7]
+        assert self.results[7].headers['Location'] == [self.format("http://foobar.com/images/abcd0000f123?itworked=true")], \
+            f"Unexpected Location {self.results[7].headers['Location']}"
 
 
 class CanaryMapping(MappingTest):

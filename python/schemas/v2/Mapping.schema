@@ -112,7 +112,7 @@
         "regex_redirect": {
             "type": "object",
             "properties": {
-                "regex": { "type": "string" },
+                "pattern": { "type": "string" },
                 "substitution": { "type": "string" }
             },
             "additionalProperties": false
