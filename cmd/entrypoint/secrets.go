@@ -8,14 +8,28 @@ import (
 	"github.com/datawire/ambassador/pkg/kates"
 )
 
+// ReconcileSecrets figures out which secrets we're actually using,
+// since we don't want to send secrets to Ambassador unless we're
+// using them, since any secret we send will be saved to disk.
 func (s *AmbassadorInputs) ReconcileSecrets() {
+	// Start by building up a list of all the K8s objects that are
+	// allowed to mention secrets. Note that we vet the ambassador_id
+	// for all of these before putting them on the list.
 	var resources []kates.Object
+
+	// Annotations are straightforward, although honestly we should
+	// be filtering annotations by type here (or, even better, unfold
+	// them earlier so that we can treat them like any other resource
+	// here).
+
 	for _, a := range s.annotations {
 		if include(GetAmbId(a)) {
 			resources = append(resources, a)
 		}
 	}
 
+	// Hosts are a little weird, because we have two ways to find the
+	// ambassador_id. Sorry about that.
 	for _, h := range s.Hosts {
 		var id amb.AmbassadorID
 		if len(h.Spec.AmbassadorID) > 0 {
@@ -27,6 +41,8 @@ func (s *AmbassadorInputs) ReconcileSecrets() {
 			resources = append(resources, h)
 		}
 	}
+
+	// TLSContexts, Modules, and Ingresses are all straightforward.
 	for _, t := range s.TLSContexts {
 		if include(t.Spec.AmbassadorID) {
 			resources = append(resources, t)
@@ -41,11 +57,24 @@ func (s *AmbassadorInputs) ReconcileSecrets() {
 		resources = append(resources, i)
 	}
 
+	// OK. Once that's done, we can check to see if we should be
+	// doing secret namespacing or not -- this requires a look into
+	// the Ambassador Module, if it's present.
+	//
+	// XXX Linear searches suck, but whatever, it's just not gonna
+	// be all that many things. We won't bother optimizing this unless
+	// a profiler shows that it's a problem.
+
 	secretNamespacing := true
 	for _, resource := range resources {
 		mod, ok := resource.(*amb.Module)
-		// XXX: ambassador_id!
+		// We don't need to recheck ambassador_id on this Module because
+		// the Module can't have made it into the resources list without
+		// its ambassador_id being checked.
+
 		if ok && mod.GetName() == "ambassador" {
+			// XXX ModuleSecrets is a _godawful_ hack. See the comment on
+			// ModuleSecrets itself for more.
 			secs := ModuleSecrets{}
 			err := convert(mod.Spec.Config, &secs)
 			if err != nil {
@@ -57,20 +86,34 @@ func (s *AmbassadorInputs) ReconcileSecrets() {
 		}
 	}
 
+	// Once we have our list of secrets, go figure out the names of all
+	// the secrets we need. We'll use this "refs" map to hold all the names...
 	refs := map[Ref]bool{}
+
+	// ...and, uh, this "action" function is really just a closure to avoid
+	// needing to pass "refs" to traverseSecretRefs. Shrug. Arguably more
+	// complex than needed, but meh.
 	action := func(ref Ref) {
 		refs[ref] = true
 	}
 
+	// So. Walk the list of resources...
 	for _, resource := range resources {
+		// ...and for each resource, dig out any secrets being referenced.
+		//
+		// XXX There's no traversing here, actually. Really should rename this.
 		traverseSecretRefs(resource, secretNamespacing, action)
 	}
 
 	if IsEdgeStack() {
+		// For Edge Stack, we _always_ have implicit references to the fallback
+		// cert secret and the license secret.
 		secretRef(GetAmbassadorNamespace(), "fallback-self-signed-cert", false, action)
 		secretRef(GetLicenseSecretNamespace(), GetLicenseSecretName(), false, action)
 	}
 
+	// OK! After all that, go copy all the matching secrets from AllSecrets
+	// to Secrets.
 	s.Secrets = make([]*kates.Secret, 0, len(refs))
 	for _, secret := range s.AllSecrets {
 		if refs[Ref{secret.GetNamespace(), secret.GetName()}] {
@@ -81,17 +124,27 @@ func (s *AmbassadorInputs) ReconcileSecrets() {
 	return
 }
 
+// Should we pay attention to a given AmbassadorID set?
+//
+// XXX Yes, amb.AmbassadorID is a singular name for a plural type. Sigh.
 func include(id amb.AmbassadorID) bool {
+	// We always pay attention to the "_automatic_" ID -- it gives us a
+	// to easily always include certain configuration resources for Edge
+	// Stack.
 	if len(id) == 1 && id[0] == "_automatic_" {
 		return true
 	}
 
+	// It's not "_automatic_", so we have to actually do the work. Grab
+	// our AmbassadorID...
 	me := GetAmbassadorId()
 
+	// ...force an empty AmbassadorID to "default", per the documentation...
 	if len(id) == 0 {
 		id = amb.AmbassadorID{"default"}
 	}
 
+	// ...and then see if our AmbassadorID is in the list.
 	for _, name := range id {
 		if me == name {
 			return true
@@ -100,16 +153,21 @@ func include(id amb.AmbassadorID) bool {
 	return false
 }
 
+// Check to see if an Ambassador resource includes a reference to a secret.
 func traverseSecretRefs(resource kates.Object, secretNamespacing bool, action func(Ref)) {
 	switch r := resource.(type) {
 	case *amb.Host:
+		// The Host resource is a little odd. Host.spec.tls, Host.spec.tlsSecret, and
+		// host.spec.acmeProvider.privateKeySecret can all refer to secrets.
 		if r.Spec == nil {
 			return
 		}
 
 		if r.Spec.TLS != nil {
+			// Host.spec.tls.caSecret is the thing to worry about here.
 			secretRef(r.GetNamespace(), r.Spec.TLS.CASecret, secretNamespacing, action)
 		}
+
 		// Host.spec.tlsSecret and Host.spec.acmeProvider.privateKeySecret are native-Kubernetes-style
 		// `core.v1.LocalObjectReference`s, not Ambassador-style `{name}.{namespace}` strings.  If we
 		// ever decide that they should support cross-namespace references, we would do it by adding a
@@ -118,18 +176,28 @@ func traverseSecretRefs(resource kates.Object, secretNamespacing bool, action fu
 		if r.Spec.TLSSecret != nil && r.Spec.TLSSecret.Name != "" {
 			secretRef(r.GetNamespace(), r.Spec.TLSSecret.Name, false, action)
 		}
+
 		if r.Spec.AcmeProvider != nil && r.Spec.AcmeProvider.PrivateKeySecret != nil &&
 			r.Spec.AcmeProvider.PrivateKeySecret.Name != "" {
 			secretRef(r.GetNamespace(), r.Spec.AcmeProvider.PrivateKeySecret.Name, false, action)
 		}
+
 	case *amb.TLSContext:
+		// TLSContext.spec.secret is the only thing to worry about -- but note well
+		// that TLSContexts can override the global secretNamespacing setting.
 		if r.Spec.Secret != "" {
 			if r.Spec.SecretNamespacing != nil {
 				secretNamespacing = *r.Spec.SecretNamespacing
 			}
 			secretRef(r.GetNamespace(), r.Spec.Secret, secretNamespacing, action)
 		}
+
 	case *amb.Module:
+		// This whole thing is a hack. We probably _should_ check to make sure that
+		// this is an Ambassador Module or a TLS Module, but, well, those're the only
+		// supported kinds now, anyway...
+		//
+		// XXX ModuleSecrets is a godawful hack. See its comment for more.
 		secs := ModuleSecrets{}
 		err := convert(r.Spec.Config, &secs)
 		if err != nil {
@@ -137,6 +205,9 @@ func traverseSecretRefs(resource kates.Object, secretNamespacing bool, action fu
 			log.Printf("error extracting secrets from module: %v", err)
 			return
 		}
+
+		// XXX Technically, this is wrong -- _any_ element named in the module can
+		// refer to a secret. Hmmm.
 		if secs.Upstream.Secret != "" {
 			secretRef(r.GetNamespace(), secs.Upstream.Secret, secretNamespacing, action)
 		}
@@ -146,7 +217,9 @@ func traverseSecretRefs(resource kates.Object, secretNamespacing bool, action fu
 		if secs.Client.Secret != "" {
 			secretRef(r.GetNamespace(), secs.Client.Secret, secretNamespacing, action)
 		}
+
 	case *kates.Ingress:
+		// Ingress is pretty straightforward, too, just look in spec.tls.
 		for _, itls := range r.Spec.TLS {
 			if itls.SecretName != "" {
 				secretRef(r.GetNamespace(), itls.SecretName, secretNamespacing, action)
@@ -157,6 +230,7 @@ func traverseSecretRefs(resource kates.Object, secretNamespacing bool, action fu
 	return
 }
 
+// Mark a secret as one we reference, handling secretNamespacing correctly.
 func secretRef(namespace, name string, secretNamespacing bool, action func(Ref)) {
 	if secretNamespacing {
 		parts := strings.Split(name, ".")
@@ -169,11 +243,21 @@ func secretRef(namespace, name string, secretNamespacing bool, action func(Ref))
 	action(Ref{namespace, name})
 }
 
+// Ref is a secret reference -- basically, a namespace/name pair.
 type Ref struct {
 	Namespace string
 	Name      string
 }
 
+// ModuleSecrets is... a hack. It's sort of a mashup of the chunk of the Ambassador
+// Module and the chunk of the TLS Module that are common, because they're able to
+// specify secrets. However... first, I don't think the TLS Module actually supported
+// tls_secret_namespacing. Second, the Ambassador Module at least supports arbitrary
+// origination context names -- _any_ key in the TLS dictionary will get turned into
+// an origination context.
+//
+// I seriously doubt that either of these will actually affect anyone at this remove,
+// but... yeah.
 type ModuleSecrets struct {
 	Defaults struct {
 		TLSSecretNamespacing bool `json:"tls_secret_namespacing"`
