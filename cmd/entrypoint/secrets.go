@@ -116,10 +116,10 @@ func (s *AmbassadorInputs) ReconcileSecrets() {
 		secretRef(GetLicenseSecretNamespace(), GetLicenseSecretName(), false, action)
 	}
 
-	// OK! After all that, go copy all the matching secrets from AllSecrets
+	// OK! After all that, go copy all the matching secrets from K8sSecrets
 	// to Secrets.
 	s.Secrets = make([]*kates.Secret, 0, len(refs))
-	for _, secret := range s.AllSecrets {
+	for _, secret := range s.K8sSecrets {
 		if refs[SecretRef{secret.GetNamespace(), secret.GetName()}] {
 			s.Secrets = append(s.Secrets, secret)
 		}

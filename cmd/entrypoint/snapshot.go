@@ -62,8 +62,8 @@ type AmbassadorInputs struct {
 	KNativeClusterIngresses []*kates.Unstructured `json:"clusteringresses.networking.internal.knative.dev,omitempty"`
 	KNativeIngresses        []*kates.Unstructured `json:"ingresses.networking.internal.knative.dev,omitempty"`
 
-	AllSecrets []*kates.Secret `json:"-"`
-	Secrets    []*kates.Secret `json:"secret"`
+	K8sSecrets []*kates.Secret `json:"-"`      // Secrets from Kubernetes
+	Secrets    []*kates.Secret `json:"secret"` // Secrets we'll feed to Ambassador
 
 	annotations []kates.Object
 }

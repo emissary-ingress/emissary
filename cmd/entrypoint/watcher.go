@@ -70,7 +70,7 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 			FieldSelector: fs, LabelSelector: ls},
 		{Namespace: ns, Name: "Services", Kind: "Service",
 			FieldSelector: fs, LabelSelector: ls},
-		{Namespace: ns, Name: "AllSecrets", Kind: "Secret",
+		{Namespace: ns, Name: "K8sSecrets", Kind: "Secret",
 			FieldSelector: fs, LabelSelector: ls},
 		{Namespace: ns, Name: "Hosts", Kind: "Host",
 			FieldSelector: fs, LabelSelector: ls},
