@@ -55,6 +55,8 @@ type MappingSpec struct {
 	PathRedirect string `json:"path_redirect,omitempty"`
 	// Prefix rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
 	PrefixRedirect string `json:"prefix_redirect,omitempty"`
+	// Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+	RegexRedirect map[string]BoolOrString `json:"regex_redirect,omitempty"`
 	// The response code to use when generating an HTTP redirect. Defaults to 301. Used with
 	// `host_redirect`.
 	// +kubebuilder:validation:Enum={301,302,303,307,308}

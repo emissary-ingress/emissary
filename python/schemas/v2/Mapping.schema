@@ -109,6 +109,14 @@
         "outlier_detection": { "type": "string" },
         "path_redirect": { "type": "string" },
         "prefix_redirect": { "type": "string" },
+        "regex_redirect": {
+            "type": "object",
+            "properties": {
+                "regex": { "type": "string" },
+                "substitution": { "type": "string" }
+            },
+            "additionalProperties": false
+        },
         "redirect_response_code": {
             "type": "integer",
             "enum": [301, 302, 303, 307, 308]

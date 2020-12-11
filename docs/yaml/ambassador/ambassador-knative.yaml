@@ -1052,6 +1052,13 @@ spec:
                 - type: string
                 - type: boolean
               type: object
+            regex_redirect:
+              additionalProperties:
+                oneOf:
+                - type: string
+                - type: boolean
+              description: Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+              type: object
             regex_rewrite:
               additionalProperties:
                 oneOf:

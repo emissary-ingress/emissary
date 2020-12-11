@@ -214,6 +214,7 @@ class V2Route(Cacheable):
 
             path_redirect = host_redirect.get('path_redirect', None)
             prefix_redirect = host_redirect.get('prefix_redirect', None)
+            regex_redirect = host_redirect.get('regex_redirect', None)
             response_code = host_redirect.get('redirect_response_code', None)
 
             # We enforce that only one of path_redirect or prefix_redirect is set in the IR.
@@ -223,6 +224,15 @@ class V2Route(Cacheable):
             elif prefix_redirect:
                 # In Envoy, it's called prefix_rewrite.
                 self['redirect']['prefix_rewrite'] = prefix_redirect
+            elif regex_redirect:
+                # In Envoy, it's called regex_rewrite.
+                self['redirect']['regex_rewrite'] = {
+                    'pattern': {
+                        'google_re2': {},
+                        'regex': regex_redirect.get('pattern', '')
+                    },
+                    'substitution': regex_redirect.get('substitution', '')
+                }
 
             # In Ambassador, we express the redirect_reponse_code as the actual
             # HTTP response code for operator simplicity. In Envoy, those codes

@@ -1381,6 +1381,13 @@ func (in *MappingSpec) DeepCopyInto(out *MappingSpec) {
 		*out = new(RetryPolicy)
 		**out = **in
 	}
+	if in.RegexRedirect != nil {
+		in, out := &in.RegexRedirect, &out.RegexRedirect
+		*out = make(map[string]BoolOrString, len(*in))
+		for key, val := range *in {
+			(*out)[key] = *val.DeepCopy()
+		}
+	}
 	if in.RedirectResponseCode != nil {
 		in, out := &in.RedirectResponseCode, &out.RedirectResponseCode
 		*out = new(int)
