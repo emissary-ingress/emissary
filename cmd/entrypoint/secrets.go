@@ -8,6 +8,12 @@ import (
 	"github.com/datawire/ambassador/pkg/kates"
 )
 
+// SecretRef is a secret reference -- basically, a namespace/name pair.
+type SecretRef struct {
+	Namespace string
+	Name      string
+}
+
 // ReconcileSecrets figures out which secrets we're actually using,
 // since we don't want to send secrets to Ambassador unless we're
 // using them, since any secret we send will be saved to disk.
@@ -88,12 +94,12 @@ func (s *AmbassadorInputs) ReconcileSecrets() {
 
 	// Once we have our list of secrets, go figure out the names of all
 	// the secrets we need. We'll use this "refs" map to hold all the names...
-	refs := map[Ref]bool{}
+	refs := map[SecretRef]bool{}
 
 	// ...and, uh, this "action" function is really just a closure to avoid
 	// needing to pass "refs" to findSecretRefs. Shrug. Arguably more
 	// complex than needed, but meh.
-	action := func(ref Ref) {
+	action := func(ref SecretRef) {
 		refs[ref] = true
 	}
 
@@ -114,7 +120,7 @@ func (s *AmbassadorInputs) ReconcileSecrets() {
 	// to Secrets.
 	s.Secrets = make([]*kates.Secret, 0, len(refs))
 	for _, secret := range s.AllSecrets {
-		if refs[Ref{secret.GetNamespace(), secret.GetName()}] {
+		if refs[SecretRef{secret.GetNamespace(), secret.GetName()}] {
 			s.Secrets = append(s.Secrets, secret)
 		}
 	}
@@ -151,7 +157,7 @@ func include(id amb.AmbassadorID) bool {
 }
 
 // Find all the secrets a given Ambassador resource references.
-func findSecretRefs(resource kates.Object, secretNamespacing bool, action func(Ref)) {
+func findSecretRefs(resource kates.Object, secretNamespacing bool, action func(SecretRef)) {
 	switch r := resource.(type) {
 	case *amb.Host:
 		// The Host resource is a little odd. Host.spec.tls, Host.spec.tlsSecret, and
@@ -226,7 +232,7 @@ func findSecretRefs(resource kates.Object, secretNamespacing bool, action func(R
 }
 
 // Mark a secret as one we reference, handling secretNamespacing correctly.
-func secretRef(namespace, name string, secretNamespacing bool, action func(Ref)) {
+func secretRef(namespace, name string, secretNamespacing bool, action func(SecretRef)) {
 	if secretNamespacing {
 		parts := strings.Split(name, ".")
 		if len(parts) > 1 {
@@ -235,13 +241,7 @@ func secretRef(namespace, name string, secretNamespacing bool, action func(Ref))
 		}
 	}
 
-	action(Ref{namespace, name})
-}
-
-// Ref is a secret reference -- basically, a namespace/name pair.
-type Ref struct {
-	Namespace string
-	Name      string
+	action(SecretRef{namespace, name})
 }
 
 // ModuleSecrets is... a hack. It's sort of a mashup of the chunk of the Ambassador
