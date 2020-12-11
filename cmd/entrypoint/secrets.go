@@ -91,7 +91,7 @@ func (s *AmbassadorInputs) ReconcileSecrets() {
 	refs := map[Ref]bool{}
 
 	// ...and, uh, this "action" function is really just a closure to avoid
-	// needing to pass "refs" to traverseSecretRefs. Shrug. Arguably more
+	// needing to pass "refs" to findSecretRefs. Shrug. Arguably more
 	// complex than needed, but meh.
 	action := func(ref Ref) {
 		refs[ref] = true
@@ -100,9 +100,7 @@ func (s *AmbassadorInputs) ReconcileSecrets() {
 	// So. Walk the list of resources...
 	for _, resource := range resources {
 		// ...and for each resource, dig out any secrets being referenced.
-		//
-		// XXX There's no traversing here, actually. Really should rename this.
-		traverseSecretRefs(resource, secretNamespacing, action)
+		findSecretRefs(resource, secretNamespacing, action)
 	}
 
 	if IsEdgeStack() {
@@ -120,8 +118,6 @@ func (s *AmbassadorInputs) ReconcileSecrets() {
 			s.Secrets = append(s.Secrets, secret)
 		}
 	}
-
-	return
 }
 
 // Should we pay attention to a given AmbassadorID set?
@@ -150,11 +146,12 @@ func include(id amb.AmbassadorID) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
-// Check to see if an Ambassador resource includes a reference to a secret.
-func traverseSecretRefs(resource kates.Object, secretNamespacing bool, action func(Ref)) {
+// Find all the secrets a given Ambassador resource references.
+func findSecretRefs(resource kates.Object, secretNamespacing bool, action func(Ref)) {
 	switch r := resource.(type) {
 	case *amb.Host:
 		// The Host resource is a little odd. Host.spec.tls, Host.spec.tlsSecret, and
@@ -226,8 +223,6 @@ func traverseSecretRefs(resource kates.Object, secretNamespacing bool, action fu
 			}
 		}
 	}
-
-	return
 }
 
 // Mark a secret as one we reference, handling secretNamespacing correctly.
