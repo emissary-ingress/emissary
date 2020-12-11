@@ -58,6 +58,17 @@ name:  {self.target.path.k8s}-invalidservice
 ambassador_id: {self.ambassador_id}
 prefix: /target/invalidservice
 service: {self.target.path.fqdn}-invalidservice
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.target.path.k8s}-invalidservice-empty
+ambassador_id: {self.ambassador_id}
+prefix: /target/invalidservice/empty
+service: {self.target.path.fqdn}-invalidservice-empty
+error_response_overrides:
+- on_status_code: 503
+  body:
+    text_format: ''
 '''
 
     def queries(self):
@@ -83,6 +94,8 @@ service: {self.target.path.fqdn}-invalidservice
         yield Query(self.url("target/"))
         # [10]
         yield Query(self.url("target/invalidservice"), expected=503)
+        # [11]
+        yield Query(self.url("target/invalidservice/empty"), expected=503)
 
     def check(self):
         # [0]
@@ -130,6 +143,10 @@ service: {self.target.path.fqdn}-invalidservice
         # [10] envoy-generated 503, since the upstream is 'invalidservice'.
         assert self.results[10].text == 'the upstream probably died', \
             f"unexpected response body: {self.results[10].text}"
+
+        # [11] envoy-generated 503, with an empty body override
+        assert self.results[11].text == '', \
+            f"unexpected response body: {self.results[11].text}"
 
 class ErrorResponseOnStatusCodeMappingCRD(AmbassadorTest):
     """
