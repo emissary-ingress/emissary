@@ -968,6 +968,10 @@ class V2Listener(dict):
         if listener_idle_timeout_ms:
             self.base_http_config["common_http_protocol_options"] = { 'idle_timeout': "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0) }
 
+        max_request_headers_kb = self.config.ir.ambassador_module.get('max_request_headers_kb', None)
+        if max_request_headers_kb:
+            self.base_http_config["max_request_headers_kb"] = max_request_headers_kb
+
         if 'enable_http10' in self.config.ir.ambassador_module:
             self.base_http_config["http_protocol_options"] = { 'accept_http_10': self.config.ir.ambassador_module.enable_http10 }
 

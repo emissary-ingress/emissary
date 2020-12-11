@@ -60,6 +60,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Change: ambassador-consul-connect resources now get deployed into the `ambassador` namespace instead of the active namespace specified in the user's kubernetes context (usually `default`). Old resource cleanup is documented in the Ambassador Consul integration documentation.
 - Feature: The redirect response code returned by Ambassador is now configurable using `redirect_reponse_code` on `Mappings` that use `host_redirect`.
 - Feature: The redirect location header returned by Ambassador now supports prefix rewrites using `prefix_redirect` on `Mappings` that use `host_redirect`.
+- Feature: Expose `max_request_headers_kb` in the Ambassador `Module`. This directly exposes the same value in Envoy; see [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/filter/network/http_connection_manager/v2/http_connection_manager.proto) for more information.
 
 ## [1.9.1] November 19, 2020
 [1.9.1]: https://github.com/datawire/ambassador/compare/v1.9.0...v1.9.1
