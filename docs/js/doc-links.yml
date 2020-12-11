@@ -193,6 +193,8 @@
               link: /docs/pre-release/topics/running/tls/origination
         - title: Troubleshooting Ambassador
           link: /docs/pre-release/topics/running/debugging
+        - title: Scaling Ambassador
+          link: /docs/pre-release/topics/running/scaling
 - title: HOWTO Guides
   link: /docs/pre-release/howtos
   items:

@@ -8,11 +8,11 @@ To use Google as an IdP for Single Sign-On, you will first need to create an OAu
 2. Click `Create credentials > OAuth client ID`.
 3. Select `Web application` and give it a name
 4. Under **Restrictions**, fill in the **Authorized redirect URIs** with
-   
+
    ```
    http(s)://{{AMBASSADOR_URL}}/.ambassador/oauth2/redirection-endpoint
    ```
-5. Click `Create` 
+5. Click `Create`
 6. Record the `client ID` and `client secret` in the pop-up window. You will need these when configuring Ambassador Edge Stack
 
 ## Set up Ambassador Edge Stack
@@ -49,9 +49,9 @@ After creating an OAuth client in Google, configuring Ambassador Edge Stack to m
       rules:
           # Requires authentication on requests from any hostname
         - host: "*"
-          # Tells Ambassador Edge Stack to apply the Filter only on request to the quote /backend/get-quote/ endpoint 
+          # Tells Ambassador Edge Stack to apply the Filter only on request to the quote /backend/get-quote/ endpoint
           path: /backend/get-quote/
-          # Identifies which Filter to use for the path and hose above
+          # Identifies which Filter to use for the path and host above
           filters:
             - name: google
     ```

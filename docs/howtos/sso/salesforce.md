@@ -59,7 +59,7 @@ After configuring an OAuth application in Salesforce, configuring Ambassador Edg
         - host: "*"
           # Tells Ambassador Edge Stack to apply the Filter only on request to the quote /backend/get-quote/ endpoint
           path: /backend/get-quote/
-          # Identifies which Filter to use for the path and hose above
+          # Identifies which Filter to use for the path and host above
           filters:
             - name: salesforce
             # Any additional scope values granted in step 6 above can be requested with the arguments field
