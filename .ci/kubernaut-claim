@@ -24,9 +24,30 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 source ${DIR}/../build-aux/helpers.sh
 
+push_metrics() {
+    if [[ -z "${KUBECEPTION_TOKEN}" ]] ; then
+        return
+    fi
+    exit_code="$?"
+    time=`date +%s`
+    build_label=
+    if [[ -n "${CIRCLE_BUILD_NUM}" ]] ; then
+        build_label=",build_id=${CIRCLE_BUILD_NUM}"
+    fi
+    # could theoretically stick more data in here, like export the error step or something
+    # but for now just going for the least intrusive change
+    # with the build id we'll be able to link to build from metrics
+    metric="apro_ci.kubeception_exit_code${build_label} value=$exit_code ${time}"
+    influx_host="https://sw.bakerstreet.io/influxdb"
+    # don't fail build if there's any weirdness here
+    curl -i -XPOST --oauth2-bearer ${KUBECEPTION_TOKEN} "${influx_host}/write?db=db0&precision=s" --data-binary "${metric}" | cat
+}
+
 # This block gets a kluster from kubeception. Comment it out to switch back to kubernaut.
 # The KUBECEPTION_TOKEN env var is set in the circleci webui.
 if [ -n "${KUBECEPTION_TOKEN}" ]; then
+
+    trap push_metrics EXIT
     # Use a CLAIM_NAME of kubeception, this will never conflict with kubernaut due to how we
     # construct kubernaut CLAIM_NAMEs below.
     CLAIM_NAME=kubeception
