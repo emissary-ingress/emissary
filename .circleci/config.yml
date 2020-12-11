@@ -22,8 +22,12 @@ commands:
   # (factored out to be commands so that they can be shared between    #
   # "oss-linux" and "aes-linux" executors)                             #
   ######################################################################
+
+  # Only one of job-generate and job-update-yaml will run.
   "job-generate":
     steps:
+    - skip-if-only-changes:
+        to: docs/
     # setup
     - amb-linux-install
     - amb-checkout
@@ -36,6 +40,24 @@ commands:
     - # Run it again to make sure that it is possible to run it twice
       # in a row.
       run: make generate
+    - dirty-check
+  # Only one of job-generate and job-update-yaml will run.
+  "job-update-yaml":
+    steps:
+    - skip-if-no-changes:
+        to: docs/
+    # setup
+    - amb-linux-install
+    - amb-checkout
+    # We might need to be logged in the registry to pull the Envoy
+    # image or the builder-base image.
+    - amb-config-registry
+    - # main
+      run: make update-yaml
+    - dirty-check
+    - # Run it again to make sure that it is possible to run it twice
+      # in a row.
+      run: make update-yaml
     - dirty-check
   "job-lint":
     steps:
@@ -451,6 +473,10 @@ jobs:
     executor: oss-linux
     steps:
     - job-generate
+  oss-update-yaml:
+    executor: oss-linux
+    steps:
+    - job-update-yaml
   oss-lint:
     executor: oss-linux
     steps:
@@ -561,6 +587,8 @@ workflows:
         name: "oss-dev-images"
     - oss-generate:
         name: "oss-dev-generate"
+    - oss-update-yaml:
+        name: "oss-dev-update-yaml"
     - oss-lint:
         name: "oss-dev-lint"
     - oss-test:
@@ -603,6 +631,13 @@ workflows:
             ignore: /.*/
     - oss-generate:
         name: "oss-release-generate"
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-update-yaml:
+        name: "oss-release-update-yaml"
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
