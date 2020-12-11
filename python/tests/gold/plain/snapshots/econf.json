@@ -2666,6 +2666,68 @@
                                   "name": "x-forwarded-proto"
                                 }
                               ],
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              },
+                              "safe_regex": {
+                                "google_re2": {
+                                  "max_program_size": 200
+                                },
+                                "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "regex_rewrite": {
+                                "pattern": {
+                                  "google_re2": {},
+                                  "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                                },
+                                "substitution": "/images/\\1"
+                              },
+                              "response_code": 4
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                }
+                              },
+                              "safe_regex": {
+                                "google_re2": {
+                                  "max_program_size": 200
+                                },
+                                "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                              }
+                            },
+                            "redirect": {
+                              "host_redirect": "foobar.com",
+                              "regex_rewrite": {
+                                "pattern": {
+                                  "google_re2": {},
+                                  "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
+                                },
+                                "substitution": "/images/\\1"
+                              },
+                              "response_code": 4
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
                               "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/",
                               "runtime_fraction": {
                                 "default_value": {
