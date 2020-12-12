@@ -34,15 +34,15 @@ def _get_envoy_config(yaml):
 def test_set_max_request_header():
     yaml = """
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config:
-    max_request_headers_kb: 96
+  max_request_headers_kb: 96
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
-name: test_mapping
+name: ambassador
 prefix: /test/
 service: test:9999
 """
@@ -56,8 +56,11 @@ service: test:9999
         for filter_chain in listener['filter_chains']:
             for f in filter_chain['filters']:
                 max_req_headers = f['typed_config'].get('max_request_headers_kb', None)
-                key_found = True
+                assert max_req_headers is not None, \
+                        f"max_request_headers_kb not found on typed_config: {f['typed_config']}"
 
-                assert (expected == int(max_req_headers),
-                    'max_request_headers_kb must equal the  value set on the ambassador Module')
+                print(f"Found max_req_headers = {max_req_headers}")
+                key_found = True
+                assert expected == int(max_req_headers), \
+                        "max_request_headers_kb must equal the value set on the ambassador Module"
     assert key_found, 'max_request_headers_kb must be found in the envoy config'
