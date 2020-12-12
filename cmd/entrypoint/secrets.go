@@ -116,11 +116,32 @@ func (s *AmbassadorInputs) ReconcileSecrets() {
 		secretRef(GetLicenseSecretNamespace(), GetLicenseSecretName(), false, action)
 	}
 
-	// OK! After all that, go copy all the matching secrets from K8sSecrets
-	// to Secrets.
+	// OK! After all that, go copy all the matching secrets from FSSecrets and
+	// K8sSecrets to Secrets.
+	//
+	// The way this works is kind of simple: first we check everything in
+	// FSSecrets. Then, when we check K8sSecrets, we skip any secrets that are
+	// also in FSSecrets. End result: FSSecrets wins if there are any conflicts.
 	s.Secrets = make([]*kates.Secret, 0, len(refs))
+
+	for ref, secret := range s.FSSecrets {
+		if refs[ref] {
+			log.Printf("Taking FSSecret %#v", ref)
+			s.Secrets = append(s.Secrets, secret)
+		}
+	}
+
 	for _, secret := range s.K8sSecrets {
-		if refs[SecretRef{secret.GetNamespace(), secret.GetName()}] {
+		ref := SecretRef{secret.GetNamespace(), secret.GetName()}
+
+		_, found := s.FSSecrets[ref]
+		if found {
+			log.Printf("Conflict! skipping K8sSecret %#v", ref)
+			continue
+		}
+
+		if refs[ref] {
+			log.Printf("Taking K8sSecret %#v", ref)
 			s.Secrets = append(s.Secrets, secret)
 		}
 	}

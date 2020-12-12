@@ -62,10 +62,19 @@ type AmbassadorInputs struct {
 	KNativeClusterIngresses []*kates.Unstructured `json:"clusteringresses.networking.internal.knative.dev,omitempty"`
 	KNativeIngresses        []*kates.Unstructured `json:"ingresses.networking.internal.knative.dev,omitempty"`
 
-	K8sSecrets []*kates.Secret `json:"-"`      // Secrets from Kubernetes
-	Secrets    []*kates.Secret `json:"secret"` // Secrets we'll feed to Ambassador
+	K8sSecrets []*kates.Secret             `json:"-"`      // Secrets from Kubernetes
+	FSSecrets  map[SecretRef]*kates.Secret `json:"-"`      // Secrets from the filesystem
+	Secrets    []*kates.Secret             `json:"secret"` // Secrets we'll feed to Ambassador
 
 	annotations []kates.Object
+}
+
+// NewAmbassadorInputs creates a new, empty set of Ambassador inputs.
+func NewAmbassadorInputs() *AmbassadorInputs {
+	a := &AmbassadorInputs{}
+	a.FSSecrets = make(map[SecretRef]*kates.Secret)
+
+	return a
 }
 
 func (a *AmbassadorInputs) Render() string {

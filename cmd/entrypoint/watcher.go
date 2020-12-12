@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 	"sync/atomic"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/datawire/ambassador/pkg/debug"
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/watt"
+	"github.com/datawire/dlib/dlog"
 )
 
 func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atomic.Value) {
@@ -119,11 +121,56 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 		}
 	}
 
-	snapshot := &AmbassadorInputs{}
+	snapshot := NewAmbassadorInputs()
 	acc := client.Watch(ctx, queries...)
 
 	consulSnapshot := &watt.ConsulSnapshot{}
 	consul := newConsul(ctx, &consulWatcher{})
+
+	// Time to fire up the stuff we need to watch the filesystem for Istio
+	// certs -- specifically, we need an FSWatcher to watch the filesystem,
+	// an IstioCert to manage the cert, and an update channel to hear about
+	// new Istio stuff.
+	//
+	// The actual functionality here is currently keyed off the environment
+	// variable AMBASSADOR_ISTIO_SECRET_DIR, but we set the update channel
+	// either way to keep the select logic below simpler. If the environment
+	// variable is unset, we never instantiate the FSWatcher or IstioCert,
+	// so there will never be any updates on the update channel.
+	istioCertUpdateChannel := make(chan IstioCertUpdate)
+
+	// OK. Are we supposed to watch anything?
+	secretDir := os.Getenv("AMBASSADOR_ISTIO_SECRET_DIR")
+
+	if secretDir != "" {
+		// Yup, get to it. First, fire up the IstioCert, and tell it to
+		// post to our update channel from above.
+		icert := NewIstioCert(secretDir, "istio-certs", GetAmbassadorNamespace(), istioCertUpdateChannel)
+
+		// Next up, fire up the FSWatcher...
+		fsw, err := NewFSWatcher(ctx)
+
+		if err != nil {
+			// Really, this should never, ever happen.
+			panic(err)
+		}
+
+		// ...then tell the FSWatcher to watch the Istio cert directory,
+		// and give it a handler function that'll update the IstioCert
+		// in turn.
+		//
+		// XXX This handler function is really just an impedance matcher.
+		// Maybe IstioCert should just have a "HandleFSWEvent"...
+		fsw.WatchDir(ctx, secretDir,
+			func(ctx context.Context, event FSWEvent) {
+				// Is this a deletion?
+				deleted := (event.Op == FSWDelete)
+
+				// OK. Feed this event into the IstioCert.
+				icert.HandleEvent(ctx, event.Path, deleted)
+			},
+		)
+	}
 
 	var unsentDeltas []*kates.Delta
 
@@ -170,6 +217,19 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 			consulUpdateTimer.Time(func() {
 				consul.update(consulSnapshot)
 			})
+		case icertUpdate := <-istioCertUpdateChannel:
+			// Make a SecretRef for this new secret...
+			ref := SecretRef{Name: icertUpdate.Name, Namespace: icertUpdate.Namespace}
+
+			// ...and delete or save, as appropriate.
+			if icertUpdate.Op == "delete" {
+				dlog.Infof(ctx, "IstioCert: certificate %s.%s deleted", icertUpdate.Name, icertUpdate.Namespace)
+				delete(snapshot.FSSecrets, ref)
+			} else {
+				dlog.Infof(ctx, "IstioCert: certificate %s.%s updated", icertUpdate.Name, icertUpdate.Namespace)
+				snapshot.FSSecrets[ref] = icertUpdate.Secret
+			}
+			// Once done here, snapshot.ReconcileSecrets will handle the rest.
 		case <-ctx.Done():
 			return
 		}
