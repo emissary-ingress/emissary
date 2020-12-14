@@ -58,10 +58,12 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Bugfix: Fix a bug in the Mapping CRD where the `text_format_source` field was incorrectly defined as type `string` instead of an object, as documented.
+- Feature: The Ambassador Module's `error_response_overrides` now support configuring an empty response body using `text_format`. Previously, empty response bodies could only be configured by specifying an empty file using `text_format_source`.
 - Feature: OAuth2 Filter: Support injecting HTTP header fields in to the request before passing on to the upstream service. Enables passing along `id_token` information to the upstream if it was returned by the IDP.
 - Change: ambassador-consul-connect resources now get deployed into the `ambassador` namespace instead of the active namespace specified in the user's kubernetes context (usually `default`). Old resource cleanup is documented in the Ambassador Consul integration documentation.
 - Feature: The redirect response code returned by Ambassador is now configurable using `redirect_reponse_code` on `Mappings` that use `host_redirect`.
 - Feature: The redirect location header returned by Ambassador now supports prefix rewrites using `prefix_redirect` on `Mappings` that use `host_redirect`.
+- Feature: The redirect location header returned by Ambassador now supports regex rewrites using `regex_redirect` on `Mappings` that use `host_redirect`.
 - Feature: Expose `max_request_headers_kb` in the Ambassador `Module`. This directly exposes the same value in Envoy; see [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/filter/network/http_connection_manager/v2/http_connection_manager.proto) for more information.
 
 
