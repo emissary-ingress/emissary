@@ -193,6 +193,8 @@
               link: /docs/latest/topics/running/tls/origination
         - title: Troubleshooting Ambassador
           link: /docs/latest/topics/running/debugging
+        - title: Scaling Ambassador
+          link: /docs/latest/topics/running/scaling
 - title: HOWTO Guides
   link: /docs/latest/howtos
   items:
