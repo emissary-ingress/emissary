@@ -14,8 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-if [ "${AMBASSADOR_FAST_RECONFIGURE,,}" == "true" ]; then
-  exec busyambassador entrypoint
+# XXX BRUTAL HACKERY: for right now, --dev-magic drops you back to the
+# old entrypoint.sh, rather than allowing entrypoint.go to run. Since
+# --dev-magic is currently really only used for test_scout, this should
+# be OK, but be aware.
+
+DEVMAGIC=
+if [ "$1" == "--dev-magic" ]; then
+    DEVMAGIC=yes
+elif [ "${AMBASSADOR_FAST_RECONFIGURE,,}" == "true" ]; then
+  exec busyambassador entrypoint "$@"   # See comment above.
 fi
 
 ENTRYPOINT_DEBUG=
@@ -97,7 +105,7 @@ export APPDIR="${APPDIR:-$ambassador_root}"
 export PYTHON_EGG_CACHE="${PYTHON_EGG_CACHE:-$AMBASSADOR_CONFIG_BASE_DIR}/.cache"
 export PYTHONUNBUFFERED=true
 
-if [[ "$1" == "--dev-magic" ]]; then
+if [ -n "$DEVMAGIC" ]; then
     log "running with dev magic"
     diagd --dev-magic
     exit $?
