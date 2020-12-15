@@ -50,7 +50,7 @@ is currently available out-of-the-box in some Kubernetes installers and local en
         </a>
       </td>
       <td>
-        <a href="https://kops.sigs.k8s.io/operations/addons/#ambassador" target="_blank">KOPS</a> documentation.
+        <a href="https://kops.sigs.k8s.io/addons/#ambassador" target="_blank">KOPS</a> documentation.
       </td>
     </tr>
     <tr>
