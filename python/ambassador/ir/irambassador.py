@@ -361,6 +361,34 @@ class IRAmbassador (IRResource):
             self.post_error("Invalid log_type specified: {}. Supported: json, text".format(self.get('envoy_log_type')))
             return False
 
+        if self.get('forward_client_cert_details') is not None:
+            # https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto#envoy-v3-api-enum-extensions-filters-network-http-connection-manager-v3-httpconnectionmanager-forwardclientcertdetails
+            valid_values = ('SANITIZE', 'FORWARD_ONLY', 'APPEND_FORWARD', 'SANITIZE_SET', 'ALWAYS_FORWARD_ONLY')
+
+            value = self.get('forward_client_cert_details')
+            if value not in valid_values:
+                self.post_error(
+                    "'forward_client_cert_details' may not be set to '{}'; it may only be set to one of: {}".format(
+                        value, ', '.join(valid_values)))
+                return False
+
+        cert_details = self.get('set_current_client_cert_details')
+        if cert_details:
+            # https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto#envoy-v3-api-msg-extensions-filters-network-http-connection-manager-v3-httpconnectionmanager-setcurrentclientcertdetails
+            valid_keys = ('subject', 'cert', 'chain', 'dns', 'uri')
+
+            for k, v in cert_details.items():
+                if k not in valid_keys:
+                    self.post_error(
+                        "'set_current_client_cert_details' may not contain key '{}'; it may only contain keys: {}".format(
+                            k, ', '.join(valid_keys)))
+                    return False
+
+                if v not in (True, False):
+                    self.post_error(
+                        "'set_current_client_cert_details' value for key '{}' may only be 'true' or 'false', not '{}'".format(k, v))
+                    return False
+
         return True
 
     def add_mappings(self, ir: 'IR', aconf: Config):
