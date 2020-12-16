@@ -24,7 +24,7 @@ spec:
     random-query-parameter: datawire
 ```
 
-will allow requests to /backend/ to succeed only if the `quote-mode` query paraameter has the value `backend` and the `random-query-parameter` has the value `datawire`.
+This will allow requests to /backend/ to succeed only if the `quote-mode` query parameter has the value `backend` and the `random-query-parameter` has the value `datawire`.
 
 ### A Conditional Example
 
@@ -50,11 +50,11 @@ spec:
   service: quote-regular
 ```
 
-will send requests that contain the `quote-mode` query parameter to the `quote-mode` target, while routing all other requests to the `quote-regular` target.
+This will send requests that contain the `quote-mode` query parameter to the `quote-mode` target, while routing all other requests to the `quote-regular` target.
 
 ## `regex_query_parameters`
 
-The following mapping will route requests with the `quote-mode` header that contain values that match the regex:
+The following mapping will route requests with the `quote-mode` header that contain values that match the regex.
 
 ```yaml
 ---
