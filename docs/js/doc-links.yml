@@ -88,6 +88,8 @@
                   link: /docs/latest/howtos/grpc
                 - title: WebSockets
                   link: /docs/latest/howtos/websockets
+            - title: Query Parameter Based Routing
+              link: /docs/pre-release/topics/using/query_parameters/
             - title: Rate Limit Concepts
               link: /docs/latest/topics/using/rate-limits/
               items:
