@@ -484,8 +484,14 @@ class Config:
         # Next up: is the AMBASSADOR_FAST_VALIDATION flag set?
 
         if Config.fast_validation:
-            # Yes, so we _don't_ need to do validation here.
-            need_validation = False
+            # Yes, so we _don't_ need to do validation here _UNLESS THIS IS A MODULE_.
+            # Why is that? Well, at present Golang doesn't validate Modules _at all_
+            # (because Module.spec.config is just a dict of anything, pretty much),
+            # and that means it can't check for Modules with missing configs, and 
+            # _that_ crashes stuff.
+
+            if resource.kind.lower() != "module":
+                need_validation = False
 
         # Finally, does the object specifically demand validation? (This is presently used
         # for objects coming from annotations, since watt can't currently validate those.)
