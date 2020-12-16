@@ -221,11 +221,41 @@ class ResourceFetcher:
         try:
             watt_dict = parse_json(serialization)
 
-            # Grab deltas if they're present.
+            # Grab deltas if they're present...
             self.deltas = watt_dict.get('Deltas', [])
 
             # ...then it's off to deal with Kubernetes.
             watt_k8s = watt_dict.get('Kubernetes', {})
+
+            # First, though, let's fold any invalid objects into the main watt_k8s
+            # tree. They're in the "Invalid" dict simply because we don't fully trust
+            # round-tripping an invalid object through our Golang parsers for Ambassador
+            # configuration objects.
+            #
+            # Why, you may ask, do we want to dump invalid objects back in to be
+            # processed??? It's because they have error information that we need to
+            # propagate to the user, and this is the simplest way to do that.
+
+            invalid: List[Dict] = watt_dict.get('Invalid') or []
+
+            for obj in invalid:
+                kind = obj.get('kind', None)
+
+                if not kind:
+                    # Can't work with this at _all_.
+                    self.logger.error(f"skipping invalid object with no kind: {obj}")
+                    continue
+            
+                # We can't use watt_k8s.setdefault() here because many keys have
+                # explicit null values -- they'll need to be turned into empty lists
+                # and re-saved, and setdefault() won't do that for an explicit null.
+                watt_list = watt_k8s.get(kind)
+
+                if not watt_list:
+                    watt_list = []
+                    watt_k8s[kind] = watt_list
+
+                watt_list.append(obj)
 
             # These objects have to be processed first, in order, as they depend
             # on each other.
