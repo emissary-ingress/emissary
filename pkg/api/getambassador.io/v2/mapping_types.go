@@ -29,9 +29,11 @@ import (
 type MappingSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
-	Prefix             string                 `json:"prefix,omitempty"`
-	PrefixRegex        bool                   `json:"prefix_regex,omitempty"`
-	PrefixExact        bool                   `json:"prefix_exact,omitempty"`
+	// +kubebuilder:validation:Required
+	Prefix      string `json:"prefix,omitempty"`
+	PrefixRegex bool   `json:"prefix_regex,omitempty"`
+	PrefixExact bool   `json:"prefix_exact,omitempty"`
+	// +kubebuilder:validation:Required
 	Service            string                 `json:"service,omitempty"`
 	AddRequestHeaders  map[string]AddedHeader `json:"add_request_headers,omitempty"`
 	AddResponseHeaders map[string]AddedHeader `json:"add_response_headers,omitempty"`

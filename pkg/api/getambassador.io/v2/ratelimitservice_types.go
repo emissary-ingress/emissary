@@ -28,6 +28,7 @@ type RateLimitServiceSpec struct {
 	// Common to all Ambassador objects.
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
+	// +kubebuilder:validation:Required
 	Service   string        `json:"service,omitempty"`
 	TimeoutMs int           `json:"timeout_ms,omitempty"`
 	Domain    string        `json:"domain,omitempty"`

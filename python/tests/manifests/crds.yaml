@@ -93,6 +93,8 @@ spec:
               oneOf:
               - type: string
               - type: boolean
+          required:
+          - auth_service
           type: object
       type: object
   version: v2
@@ -958,6 +960,9 @@ spec:
               type: boolean
             weight:
               type: integer
+          required:
+          - prefix
+          - service
           type: object
         status:
           description: MappingStatus defines the observed state of Mapping
@@ -1076,6 +1081,8 @@ spec:
               oneOf:
               - type: string
               - type: boolean
+          required:
+          - service
           type: object
       type: object
   version: v2
@@ -1164,6 +1171,9 @@ spec:
               - type: boolean
             weight:
               type: integer
+          required:
+          - port
+          - service
           type: object
       type: object
   version: v2
@@ -1344,6 +1354,9 @@ spec:
               items:
                 type: string
               type: array
+          required:
+          - driver
+          - service
           type: object
       type: object
   version: v2
