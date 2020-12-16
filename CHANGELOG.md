@@ -65,7 +65,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Feature: The redirect location header returned by Ambassador now supports prefix rewrites using `prefix_redirect` on `Mappings` that use `host_redirect`.
 - Feature: The redirect location header returned by Ambassador now supports regex rewrites using `regex_redirect` on `Mappings` that use `host_redirect`.
 - Feature: Expose `max_request_headers_kb` in the Ambassador `Module`. This directly exposes the same value in Envoy; see [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/filter/network/http_connection_manager/v2/http_connection_manager.proto) for more information.
-
+- Bugfix: Fix error reporting and required-field checks when `AMBASSADOR_FAST_VALIDATION` is enabled.
 
 ### Ambassador Edge Stack only
 
