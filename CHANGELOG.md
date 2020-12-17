@@ -55,6 +55,11 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ## Next Release
 
+(no changes yet)
+
+## [1.10.0-rc.0] December 16, 2020
+[1.10.0-rc.0]: https://github.com/datawire/ambassador/compare/v1.9.1...v1.10.0-rc.0
+
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Feature: The redirect response code returned by Ambassador is now configurable using `redirect_reponse_code` on `Mappings` that use `host_redirect`.
