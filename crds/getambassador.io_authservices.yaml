@@ -98,6 +98,8 @@ spec:
               oneOf:
               - type: string
               - type: boolean
+          required:
+          - auth_service
           type: object
       type: object
   version: null
