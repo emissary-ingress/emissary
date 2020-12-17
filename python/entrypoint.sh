@@ -22,7 +22,7 @@
 DEVMAGIC=
 if [ "$1" == "--dev-magic" ]; then
     DEVMAGIC=yes
-elif [ "${AMBASSADOR_FAST_RECONFIGURE,,}" == "true" ]; then
+elif [ "${AMBASSADOR_LEGACY_MODE,,}" != "true" ]; then
   exec busyambassador entrypoint "$@"   # See comment above.
 fi
 

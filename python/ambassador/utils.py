@@ -33,6 +33,8 @@ import tempfile
 import yaml
 
 from .VERSION import Version
+
+from distutils.util import strtobool
 from urllib.parse import urlparse
 from prometheus_client import Gauge
 
@@ -146,6 +148,23 @@ def load_url_contents(logger: logging.Logger, url: str, stream2: Optional[TextIO
         return stream.getvalue()
     else:
         return None
+
+
+def parse_bool(s: Optional[str]) -> bool:
+    """ 
+    Parse a boolean value from a string. T, True, Y, y, 1 return True;
+    other things return False.
+    """
+
+    # If we didn't get anything at all, return False.
+    if not s:
+        return False
+
+    # OK, we got _something_, so try strtobool.
+    try:
+        return strtobool(s)
+    except ValueError:
+        return False
 
 
 class SystemInfo:

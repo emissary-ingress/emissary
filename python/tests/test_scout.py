@@ -109,7 +109,8 @@ def wait_for_diagd(logfile) -> bool:
         logfile.write(f'...checking diagd ({tries_left})\n')
 
         try:
-            response = requests.get('http://diagd:9999/_internal/v0/ping')
+            response = requests.get('http://diagd:9999/_internal/v0/ping',
+                                    headers={ "X-Ambassador-Diag-IP": "127.0.0.1" })
 
             if response.status_code == 200:
                 logfile.write('   got it\n')
@@ -127,7 +128,9 @@ def wait_for_diagd(logfile) -> bool:
 
 def check_http(logfile, cmd: str) -> bool:
     try:
-        response = requests.post('http://diagd:9999/_internal/v0/fs', params={ 'path': f'cmd:{cmd}' })
+        response = requests.post('http://diagd:9999/_internal/v0/fs',
+                                 headers={ "X-Ambassador-Diag-IP": "127.0.0.1" },
+                                 params={ 'path': f'cmd:{cmd}' })
         text = response.text
 
         if response.status_code != 200:
@@ -142,7 +145,8 @@ def check_http(logfile, cmd: str) -> bool:
 
 def fetch_events(logfile) -> Any:
     try:
-        response = requests.get('http://diagd:9999/_internal/v0/events')
+        response = requests.get('http://diagd:9999/_internal/v0/events',
+                                headers={ "X-Ambassador-Diag-IP": "127.0.0.1" })
 
         if response.status_code != 200:
             logfile.write(f'events: wanted 200 but got {response.status_code} {response.text}\n')

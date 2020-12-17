@@ -107,6 +107,12 @@ class AmbassadorTest(Test):
       value: "0"
 """
 
+        if os.environ.get('AMBASSADOR_LEGACY_MODE', 'false').lower() == 'true':
+            self.manifest_envs += """
+    - name: AMBASSADOR_LEGACY_MODE
+      value: "true"
+"""
+
         if os.environ.get('AMBASSADOR_FAST_VALIDATION', 'false').lower() == 'true':
             self.manifest_envs += """
     - name: AMBASSADOR_FAST_VALIDATION
