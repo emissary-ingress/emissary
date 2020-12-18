@@ -40,6 +40,7 @@ package ambex
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -332,29 +333,29 @@ func update(ctx context.Context, config cache.SnapshotCache, generation *int, di
 		listeners,
 		runtimes)
 
-	err := snapshot.Consistent()
+	if err := snapshot.Consistent(); err != nil {
+		bs, _ := json.Marshal(snapshot)
+		log.Errorf("Snapshot inconsistency: %v: %s", err, bs)
+		return
+	}
 
-	if err != nil {
-		log.Errorf("Snapshot inconsistency: %+v", snapshot)
-	} else {
-		// This used to just directly update envoy. Since we want ratelimiting, we now send an
-		// Update object down the channel with a fuction that knows how to do the update if/when the
-		// ratelimiting logic decides.
-		//
-		// We also need to pay attention to contexts here so we can shutdown properly. If we didn't
-		// have the context portion, the ratelimit goroutine could shutdown first and we could end
-		// up blocking here and never shutting down.
-		select {
-		case updates <- Update{version, func() error {
-			err := config.SetSnapshot("test-id", snapshot)
-			if err != nil {
-				return fmt.Errorf("Snapshot error %q for %+v", err, snapshot)
-			} else {
-				return nil
-			}
-		}}:
-		case <-ctx.Done():
+	// This used to just directly update envoy. Since we want ratelimiting, we now send an
+	// Update object down the channel with a function that knows how to do the update if/when
+	// the ratelimiting logic decides.
+	//
+	// We also need to pay attention to contexts here so we can shutdown properly. If we didn't
+	// have the context portion, the ratelimit goroutine could shutdown first and we could end
+	// up blocking here and never shutting down.
+	select {
+	case updates <- Update{version, func() error {
+		err := config.SetSnapshot("test-id", snapshot)
+		if err != nil {
+			return fmt.Errorf("Snapshot error %q for %+v", err, snapshot)
+		} else {
+			return nil
 		}
+	}}:
+	case <-ctx.Done():
 	}
 }
 
