@@ -72,6 +72,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Bugfix: Fix a bug in the Mapping CRD where the `text_format_source` field was incorrectly defined as type `string` instead of an object, as documented.
 - Bugfix: Fix error reporting and required-field checks when `AMBASSADOR_FAST_VALIDATION` is enabled.
 - Change: ambassador-consul-connect resources now get deployed into the `ambassador` namespace instead of the active namespace specified in the user's kubernetes context (usually `default`). Old resource cleanup is documented in the Ambassador Consul integration documentation.
+- Change: `AMBASSADOR_FAST_VALIDATION` is now the default, as is our Golang startup process. Set `AMBASSADOR_LEGACY_MODE=true` to disable these behaviors.
 
 ### Ambassador Edge Stack only
 
