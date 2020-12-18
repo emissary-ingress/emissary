@@ -115,8 +115,8 @@ commands:
           fi
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
-          if << parameters.fast-reconfigure >>; then
-            export AMBASSADOR_FAST_VALIDATION=yes # empty/nonempty
+          if ! << parameters.fast-reconfigure >>; then
+            export AMBASSADOR_LEGACY_MODE=true # ParseBool
           fi
           export AMBASSADOR_FAST_RECONFIGURE=<< parameters.fast-reconfigure >> # ParseBool
           export TEST_XML_DIR=/tmp/test-logs/xml/
