@@ -70,9 +70,9 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Feature: The Ambassador Module's `error_response_overrides` now support configuring an empty response body using `text_format`. Previously, empty response bodies could only be configured by specifying an empty file using `text_format_source`.
 - Feature: OAuth2 Filter: Support injecting HTTP header fields in to the request before passing on to the upstream service. Enables passing along `id_token` information to the upstream if it was returned by the IDP.
 - Bugfix: Fix a bug in the Mapping CRD where the `text_format_source` field was incorrectly defined as type `string` instead of an object, as documented.
-- Bugfix: Fix error reporting and required-field checks when `AMBASSADOR_FAST_VALIDATION` is enabled.
+- Bugfix: Fix error reporting and required-field checks when fast validation is enabled. Note that fast validation is now the default; see below.
+- Change: **Fast validation is now the default**, so the `AMBASSADOR_FAST_VALIDATION` variable has been removed. The Golang boot sequence is also now the default. Set `AMBASSADOR_LEGACY_MODE=true` to disable these two behaviors.
 - Change: ambassador-consul-connect resources now get deployed into the `ambassador` namespace instead of the active namespace specified in the user's kubernetes context (usually `default`). Old resource cleanup is documented in the Ambassador Consul integration documentation.
-- Change: `AMBASSADOR_FAST_VALIDATION` is now the default, as is our Golang startup process. Set `AMBASSADOR_LEGACY_MODE=true` to disable these behaviors.
 
 ### Ambassador Edge Stack only
 
