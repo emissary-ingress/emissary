@@ -137,7 +137,7 @@
                           },
                           "timeout": "5.000s"
                         },
-                        "use_alpha": true
+                        "use_alpha": false
                       }
                     },
                     {
