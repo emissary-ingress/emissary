@@ -1,0 +1,87 @@
+kind: pipeline
+type: docker
+name: linux-amd64
+
+platform:
+  arch: amd64
+  os: linux
+
+steps:
+- name: publish
+  image: plugins/docker
+  settings:
+    repo: ellisvalentiner/ambassador
+    tags: linux-amd64-${DRONE_BRANCH}
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+
+---
+kind: pipeline
+type: docker
+name: linux-arm64
+
+platform:
+  arch: arm64
+  os: linux
+
+steps:
+- name: publish
+  image: plugins/docker
+  settings:
+    repo: ellisvalentiner/ambassador
+    tags: linux-arm64-${DRONE_BRANCH}
+    build_args:
+      - BUILD_ALL_CLIS="false"
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+
+---
+kind: pipeline
+type: docker
+name: linux-arm
+
+platform:
+  arch: arm
+  os: linux
+
+steps:
+- name: publish
+  image: plugins/docker
+  settings:
+    repo: ellisvalentiner/ambassador
+    tags: linux-arm-${DRONE_BRANCH}
+    build_args:
+      - BUILD_ALL_CLIS="false"
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+
+---
+kind: pipeline
+type: docker
+name: manifest
+
+steps:
+- name: publish
+  image: plugins/manifest
+  settings:
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+    target: ellisvalentiner/ambassador:${DRONE_BRANCH}
+    template: ellisvalentiner/ambassador:OS-ARCH-${DRONE_BRANCH}
+    platforms:
+      - linux/amd64
+      - linux/arm
+      - linux/arm64
+
+depends_on:
+- linux-arm64
+- linux-arm
+- linux-amd64
