@@ -33,7 +33,7 @@ type RateLimitServiceSpec struct {
 	TimeoutMs int           `json:"timeout_ms,omitempty"`
 	Domain    string        `json:"domain,omitempty"`
 	TLS       *BoolOrString `json:"tls,omitempty"`
-	// +kubebuilder:validation:Enum={"v3","v2","v2alpha"}
+	// +kubebuilder:validation:Enum={"v2","v2alpha"}
 	ProtocolVersion string `json:"protocol_version,omitempty"`
 }
 

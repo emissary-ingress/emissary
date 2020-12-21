@@ -1241,7 +1241,6 @@ spec:
               type: string
             protocol_version:
               enum:
-              - v3
               - v2
               - v2alpha
               type: string
