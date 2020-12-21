@@ -99,6 +99,7 @@
                       }
                     }
                   ],
+                  "forward_client_cert_details": "SANITIZE_SET",
                   "http_filters": [
                     {
                       "name": "envoy.filters.http.cors"
@@ -225,6 +226,9 @@
                     ]
                   },
                   "server_name": "envoy",
+                  "set_current_client_cert_details": {
+                    "subject": true
+                  },
                   "stat_prefix": "ingress_http",
                   "use_remote_address": true,
                   "xff_num_trusted_hops": 0
