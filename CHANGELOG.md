@@ -67,6 +67,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 - Feature: Expose `max_request_headers_kb` in the Ambassador `Module`. This directly exposes the same value in Envoy; see [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/filter/network/http_connection_manager/v2/http_connection_manager.proto) for more information.
 - Bugfix: Fix error reporting and required-field checks when `AMBASSADOR_FAST_VALIDATION` is enabled.
 - Feature: Support Istio mTLS certification rotation for Istio 1.5 and higher. See the [howto](https://www.getambassador.io/docs/latest/howtos/istio/) for details.
+- Change: The `RateLimitService` and `AuthService` default gRPC protocol version is now `v2` (instead of `v2alpha`). See the `protocol_version` setting on [RatelimitService](https://www.getambassador.io/docs/latest/topics/running/services/rate-limit-service/) and [AuthService](https://www.getambassador.io/docs/latest/topics/running/services/auth-service/).
 
 ### Ambassador Edge Stack only
 
