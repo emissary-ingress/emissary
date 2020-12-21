@@ -76,6 +76,7 @@ Note that Ambassador Edge Stack `External` Filters already unconditionally use t
 
 ### Ambassador Edge Stack only
 
+- Default-off early access: Ratelimiting now supports redis clustering, local caching, and an upgraded redis client with improved scalability. Must set AES_RATELIMIT_PREVIEW=true to access these improvements.
 - Bugfix: OAuth2 Filter: Fix `insufficient_scope` error when validating Azure access tokens.
 - Bugfix: Filters: Fix a capitalization-related bug where sometimes existing headers are appended to when they should be overwritten.
 
