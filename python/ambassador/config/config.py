@@ -28,7 +28,7 @@ from multi import multi
 from pkg_resources import Requirement, resource_filename
 from google.protobuf import json_format
 
-from ..utils import RichStatus, dump_json
+from ..utils import RichStatus, dump_json, parse_bool
 
 from ..resource import Resource
 from .acresource import ACResource
@@ -61,7 +61,7 @@ class Config:
     single_namespace: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_SINGLE_NAMESPACE'))
     certs_single_namespace: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_CERTS_SINGLE_NAMESPACE', os.environ.get('AMBASSADOR_SINGLE_NAMESPACE')))
     enable_endpoints: ClassVar[bool] = not bool(os.environ.get('AMBASSADOR_DISABLE_ENDPOINTS'))
-    fast_validation: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_FAST_VALIDATION'))
+    legacy_mode: ClassVar[bool] = parse_bool(os.environ.get('AMBASSADOR_LEGACY_MODE'))
 
     StorageByKind: ClassVar[Dict[str, str]] = {
         'authservice': "auth_configs",
@@ -114,8 +114,8 @@ class Config:
     fatal_errors: int
     object_errors: int
 
-    # fast_validation_disagreements tracks places where watt says a resource
-    # is invalid, but Python says it's OK.
+    # fast_validation_disagreements tracks places where entrypoint.go says a
+    # resource is invalid, but Python says it's OK.
     fast_validation_disagreements: Dict[str, List[str]]
 
     def __init__(self, schema_dir_path: Optional[str]=None) -> None:
@@ -290,7 +290,7 @@ class Config:
         the set of ACResources to be sorted in some way that makes sense.
         """
 
-        self.logger.debug(f"Loading config; fast validation is {'enabled' if Config.fast_validation else 'disabled'}")
+        self.logger.debug(f"Loading config; legacy mode is {'enabled' if Config.legacy_mode else 'disabled'}")
 
         rcount = 0
 
@@ -481,28 +481,31 @@ class Config:
 
         need_validation = True
 
-        # Next up: is the AMBASSADOR_FAST_VALIDATION flag set?
-
-        if Config.fast_validation:
-            # Yes, so we _don't_ need to do validation here _UNLESS THIS IS A MODULE_.
-            # Why is that? Well, at present Golang doesn't validate Modules _at all_
+        # If we're not running in legacy mode, though...
+        if not Config.legacy_mode:
+            # ...then entrypoint.go will have already done validation, and we'll 
+            # trust that its validation is good _UNLESS THIS IS A MODULE_. Why?
+            # Well, at present entrypoint.go can't actually validate Modules _at all_ 
             # (because Module.spec.config is just a dict of anything, pretty much),
             # and that means it can't check for Modules with missing configs, and 
-            # _that_ crashes stuff.
+            # Modules with missing configs will crash Ambassador.
 
             if resource.kind.lower() != "module":
                 need_validation = False
 
-        # Finally, does the object specifically demand validation? (This is presently used
-        # for objects coming from annotations, since watt can't currently validate those.)
+        # Finally, does the resource specifically demand validation? (This is currently
+        # just for resources from annotations, which entrypoint.go doesn't yet validate.)
         if resource.get('_force_validation', False):
             # Yup, so we'll honor that.
             need_validation = True
             del(resource['_force_validation'])
 
-        # Did watt find errors here? (This can only happen if AMBASSADOR_FAST_VALIDATION
-        # is enabled -- in a later version we'll short-circuit earlier, but for now we're
-        # going to re-validate as a check on watt.)
+        # Did entrypoint.go flag errors here? (This can only happen if we're not in 
+        # legacy mode -- in a later version we'll short-circuit earlier, but for now 
+        # we're going to re-validate as a sanity check.)
+        #
+        # (It's still called watt_errors because our other docs talk about "watt 
+        # snapshots", and I'm OK with retaining that name for the format.)
 
         watt_errors = None
 
@@ -525,8 +528,8 @@ class Config:
 
         # ...then, let's see whether reality matches our assumption.
         if need_validation:
-            # Aha, we need to do validation -- either fast validation isn't on, or it
-            # was requested, or watt reported errors. So if we can do validation, do it.
+            # Aha, we need to do validation -- either we're in legacy mode, or 
+            # entrypoint.go reported errors. So if we can do validation, do it.
 
             # Do we have a validator that can work on this object?
             validator = self.get_validator(apiVersion, resource.kind)
@@ -538,7 +541,7 @@ class Config:
                 rc = RichStatus.OK(msg=f"no validator for {apiVersion} {resource.kind} {name} so calling it good")
 
             if watt_errors:
-                # watt reported errors. Did we find errors or not?
+                # entrypoint.go reported errors. Did we find errors or not?
 
                 if rc:
                     # We did not. Post this into fast_validation_disagreements
@@ -546,11 +549,12 @@ class Config:
                     fvd.append(watt_errors)
                     self.logger.debug(f"validation disagreement: good {resource.kind} {name} has watt errors {watt_errors}")
 
-                    # Note that we override watt here by returning the successful
-                    # result from our validator. That's intentional in 1.6.0.
+                    # Note that we override entrypoint.go here by returning the successful
+                    # result from our validator. That's intentional for now.
                 else:
-                    # We don't like it either. Stick with the watt errors (since we know,
-                    # a priori, that fast validation is enabled).
+                    # We don't like it either. Stick with the entrypoint.go errors (since we
+                    # know, a priori, that fast validation is enabled, so the incoming error
+                    # makes more sense to report).
                     rc = RichStatus.fromError(watt_errors)
 
         # One way or the other, we're done here. Finally.

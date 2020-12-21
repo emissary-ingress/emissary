@@ -2,7 +2,6 @@ package aggregator
 
 import (
 	"encoding/json"
-	"os"
 	"os/exec"
 	"strings"
 	"sync"
@@ -239,7 +238,10 @@ func (a *Aggregator) generateSnapshot(p *supervisor.Process) (string, error) {
 	return string(jsonBytes), nil
 }
 
-var fastValidation = len(os.Getenv("AMBASSADOR_FAST_VALIDATION")) > 0
+// watt only runs in legacy mode now, and legacy mode is defined
+// to not do fast validation.
+// var fastValidation = len(os.Getenv("AMBASSADOR_FAST_VALIDATION")) > 0
+var fastValidation = false
 
 func (a *Aggregator) validate(p *supervisor.Process, resources []k8s.Resource) {
 	if !fastValidation {

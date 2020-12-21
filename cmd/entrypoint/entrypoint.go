@@ -20,6 +20,7 @@ import (
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/memory"
 	"github.com/datawire/dlib/dgroup"
+	"github.com/datawire/dlib/dlog"
 )
 
 // This is the main ambassador entrypoint. It launches and manages two other
@@ -85,6 +86,16 @@ func Main(ctx context.Context, Version string, args ...string) error {
 
 	log.Println("Started Ambassador")
 
+	demoMode := false
+
+	// XXX Yes, this is a disgusting hack. We can switch to a legit argument
+	// parser later, when we have a second argument.
+	if (len(args) == 1) && (args[0] == "--demo") {
+		// Demo mode!
+		log.Printf("DEMO MODE")
+		demoMode = true
+	}
+
 	clusterID := GetClusterID(ctx)
 	os.Setenv("AMBASSADOR_CLUSTER_ID", clusterID)
 	log.Printf("AMBASSADOR_CLUSTER_ID=%s", clusterID)
@@ -96,11 +107,6 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	os.Setenv("PYTHONUNBUFFERED", "true")
 
 	ensureDir(GetAmbassadorConfigBaseDir())
-
-	// TODO: --demo
-
-	// TODO: demo_chimed
-
 	ensureDir(GetSnapshotDir())
 	ensureDir(GetEnvoyDir())
 
@@ -117,8 +123,15 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		HardShutdownTimeout:  10 * time.Second,
 	})
 
+	// Demo mode: start the demo services. Starting the demo stuff first is
+	// kind of important: it's nice to give them a chance to start running before
+	// Ambassador really gets running.
+	if demoMode {
+		bootDemoMode(ctx, group, ambwatch)
+	}
+
 	group.Go("diagd", func(ctx context.Context) error {
-		cmd := subcommand(ctx, "diagd", GetDiagdArgs()...)
+		cmd := subcommand(ctx, "diagd", GetDiagdArgs(ctx, demoMode)...)
 		if envbool("DEV_SHUTUP_DIAGD") {
 			cmd.Stdout = nil
 			cmd.Stderr = nil
@@ -144,12 +157,15 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	group.Go("snapshot_server", func(ctx context.Context) error {
 		return snapshotServer(ctx, snapshot)
 	})
-	group.Go("watcher", func(ctx context.Context) error {
-		// We need to pass the AmbassadorWatcher to this (Kubernetes/Consul) watcher, so
-		// that it can tell the AmbassadorWatcher when snapshots are posted.
-		watcher(ctx, ambwatch, snapshot)
-		return nil
-	})
+
+	if !demoMode {
+		group.Go("watcher", func(ctx context.Context) error {
+			// We need to pass the AmbassadorWatcher to this (Kubernetes/Consul) watcher, so
+			// that it can tell the AmbassadorWatcher when snapshots are posted.
+			watcher(ctx, ambwatch, snapshot)
+			return nil
+		})
+	}
 
 	// Finally, fire up the health check handler.
 	group.Go("healthchecks", func(ctx context.Context) error {
@@ -175,13 +191,31 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	return group.Wait()
 }
 
-func GetClusterID(ctx context.Context) string {
-	clusterID := env("AMBASSADOR_CLUSTER_ID", env("AMBASSADOR_SCOUT_ID", ""))
+func clusterIDFromRootID(rootID string) string {
+	clusterUrl := fmt.Sprintf("d6e_id://%s/%s", rootID, GetAmbassadorId())
+	uid := uuid.NewSHA1(uuid.NameSpaceURL, []byte(clusterUrl))
+
+	return strings.ToLower(uid.String())
+}
+
+func GetClusterID(ctx context.Context) (clusterID string) {
+	clusterID = env("AMBASSADOR_CLUSTER_ID", env("AMBASSADOR_SCOUT_ID", ""))
 	if clusterID != "" {
 		return clusterID
 	}
 
 	rootID := "00000000-0000-0000-0000-000000000000"
+
+	// *!&@*#!& kates panics.
+	defer func() {
+		err := recover()
+
+		if err != nil {
+			// Sigh.
+			dlog.Errorf(ctx, "GetClusterID: couldn't get ID: %s", err)
+			clusterID = clusterIDFromRootID(rootID)
+		}
+	}()
 
 	client, err := kates.NewClient(kates.ClientConfig{})
 	if err == nil {
@@ -200,8 +234,5 @@ func GetClusterID(ctx context.Context) string {
 		}
 	}
 
-	clusterUrl := fmt.Sprintf("d6e_id://%s/%s", rootID, GetAmbassadorId())
-	uid := uuid.NewSHA1(uuid.NameSpaceURL, []byte(clusterUrl))
-
-	return strings.ToLower(uid.String())
+	return clusterIDFromRootID(rootID)
 }
