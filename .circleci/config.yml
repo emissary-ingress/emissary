@@ -182,6 +182,8 @@ commands:
         - "."
   amb-images-load-workspace:
     steps:
+    - run:
+        command: git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - attach_workspace:
         at: /home/circleci/project
     - run:
