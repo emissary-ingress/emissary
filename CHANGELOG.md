@@ -51,6 +51,21 @@ communicate with `AuthService`s and `RateLimitService`s:
 Note that Ambassador Edge Stack `External` Filters already unconditionally use the newer
 `envoy.service.auth.v2.Authorization` name.
 
+#### Regex Matching
+
+As of Envoy V1.12.0, the `regex` field for HeaderMatcher, RouteMatch and StringMatcher has been [deprecated in favor of safe_regex](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.12.0.html?highlight=regex#deprecated).
+
+As of Ambassador 0.83.0, the safe regex fields are used by default.
+The deprecated fields are only used when `regex_type` is set to `unsafe` in the `ambassador` `Module`.
+
+The non-safe regex fields are no longer supported with the Envoy V3 APIs, so, to service Ambassador's migration from Envoy V2 to Envoy V3 APIs, support for `regex_type` is deprecated,
+and the field will be removed from the `ambassador` `Module` *no sooner than Ambassador 1.11.0*.
+
+Additionally, as of Envoy V1.15.0, [max_program_size for the Google RE2 engine has been deprecated.](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.15.0.html?highlight=max_program_size)
+Consequently, we will be deprecating the `regex_max_size` field from the `ambassador` `Module`, and will be removing the field *no sooner than Ambassador 1.11.0*.
+
+Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/type/matcher/v3/regex.proto.html) for more information.
+
 ## RELEASE NOTES
 
 ## Next Release

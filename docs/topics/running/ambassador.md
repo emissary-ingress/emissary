@@ -45,8 +45,8 @@ spec:
 | `grpc_stats` | Enables telemetry of gRPC calls using the "gRPC Statistics" Envoy filter. see below for more details. |  |
 | `proper_case` | Should we enable upper casing for response headers? For more information, see [the Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/core/protocol.proto#envoy-api-msg-core-http1protocoloptions-headerkeyformat). | `proper_case: false` |
 | `header_case_overrides` | Array of header names whose casing should be forced, both when proxied to upstream services and when returned downstream to clients. For every header that matches (case insensitively) to an element in this array, the resulting header name is forced to the provided casing in the array. Cannot be used together with 'proper_case'. This feature provides overrides for Envoy's normal [header casing rules](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_conn_man/header_casing). | `header_case_overrides: []` |
-| `regex_max_size` | This field controls the RE2 "program size" which is a rough estimate of how complex a compiled regex is to evaluate. A regex that has a program size greater than the configured value will fail to compile.    | `regex_max_size: 200` |
-| `regex_type` | Set which regular expression engine to use. See the "Regular Expressions" section below. | `regex_type: safe` |
+| `regex_max_size` | (deprecated) This field controls the RE2 "program size" which is a rough estimate of how complex a compiled regex is to evaluate. A regex that has a program size greater than the configured value will fail to compile.    | `regex_max_size: 200` |
+| `regex_type` | (deprecated) Set which regular expression engine to use. See the "Regular Expressions" section below. | `regex_type: safe` |
 | `server_name` | By default Envoy sets server_name response header to `envoy`. Override it with this variable. | `server_name: envoy` |
 | `service_port` | If present, service_port will be the port Ambassador listens on for microservice access. If not present, Ambassador will use 8443 if TLS is configured, 8080 otherwise. | `service_port: 8080` |
 | `statsd` | Configures Ambassador statistics. These values can be set in the Ambassador module or in an environment variable. For more information, see the [Statistics reference](../statistics#exposing-statistics-via-statsd). | None |
@@ -316,7 +316,7 @@ This configuration is helpful when dealing with clients that are sensitive to sp
 
 If `regex_type` is unset (the default), or is set to any value other than `unsafe`, Ambassador Edge Stack will use the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression engine. This engine is designed to support most regular expressions, but keep bounds on execution time. **RE2 is the recommended regular expression engine.**
 
-If `regex_type` is set to `unsafe`, Ambassador Edge Stack will use the [modified ECMAScript](https://en.cppreference.com/w/cpp/regex/ecmascript) regular expression engine. **This is not recommended** since the modified ECMAScript engine can consume unbounded CPU in some cases (mostly relating to backreferences and lookahead); it is provided for backward compatibility if necessary.
+If `regex_type` is set to `unsafe`, Ambassador Edge Stack will use the [modified ECMAScript](https://en.cppreference.com/w/cpp/regex/ecmascript) regular expression engine. **This feature is deprecated**. Please migrate your regular expressions to be compatible with RE2.
 
 ### Overriding Default Ports (`service_port`)
 
