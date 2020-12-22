@@ -204,15 +204,22 @@ If `AMBASSADOR_UPDATE_MAPPING_STATUS` is set to the string `true`, Ambassador wi
 
 The default is `false`. We recommend leaving `AMBASSADOR_UPDATE_MAPPING_STATUS` turned off unless required for external systems.
 
-## **EARLY ACCESS**: `AMBASSADOR_FAST_VALIDATION`
+## `AMBASSADOR_LEGACY_MODE`
 
-Setting `AMBASSADOR_FAST_VALIDATION` to any non-empty value will enable an experimental Ambassador-resource validator than can significantly reduce configuration latency for Ambassador installations with many resources. The default is to turn off fast validation.
+Setting `AMBASSADOR_LEGACY_MODE` to `true` will result in Ambassador disabling certain features
+and reverting to older codepaths which may be better preserve certain older behaviors. Legacy mode
+currently has the following effects:
+
+- Ambassador will switch back to the Ambassador 1.6 input-resource validator (which can significantly
+increase configuration latency for Ambassador installations with many resources).
+- Ambassador will use the shell boot sequence that was the default up through 1.9.1, rather than the Golang boot sequence that became the default in 1.10.0.
+- `AMBASSADOR_FAST_RECONFIGURE` (see below) is not supported in legacy mode.
 
 ## **EARLY ACCESS**: `AMBASSADOR_FAST_RECONFIGURE`
 
 Setting `AMBASSADOR_FAST_RECONFIGURE` to "true" enables incremental reconfiguration. When enabled, Ambassador will track deltas from one configuration to the next and recalculate only what is necessary to follow the change. When disabled (the default), Ambassador will recompute the entire configuration at every change.
 
-For full benefit, you should enable `AMBASSADOR_FAST_VALIDATION` when enabing `AMBASSADOR_FAST_RECONFIGURE`.
+**`AMBASSADOR_FAST_RECONFIGURE` is not supported when `AMBASSADOR_LEGACY_MODE` is active.**
 
 ## Configuration from the Filesystem
 
