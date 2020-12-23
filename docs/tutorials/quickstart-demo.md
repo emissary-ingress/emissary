@@ -11,60 +11,25 @@ Kubernetes cluster.
 
 ## Routing Traffic from the Edge
 
-Like any other Kubernetes object, Custom Resource Definitions (CRDs) are used to
+Custom Resource Definitions (CRDs) are used to
 declaratively define Ambassador’s desired state. The workflow you are going to 
 build uses a sample deployment and the `Mapping` CRD, which is the core resource
-that you will use with Ambassador to manage your edge. It enables you to route 
-requests by host and URL path from the edge of your cluster to Kubernetes services.
+that you will use with Ambassador to manage your edge. It routes 
+requests by host and path from the edge of your cluster to Kubernetes services.
 
-1. Copy the configuration below and save it to a file named `quote.yaml` so that
-you can deploy these resources to your cluster. This basic configuration creates
-the `quote` deployment and a service to expose that deployment on port 80.
+1. First, apply [this sample configuration](../../../../yaml/aes-tutorial.yaml) 
+by saving the YAML to a local file or by running the command below. This basic 
+configuration creates the `quote` deployment and a service to expose that 
+deployment on port 80.
 
-  ```yaml
-  ---
-  apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: quote
-    namespace: ambassador
-  spec:
-    replicas: 1
-    selector:
-      matchLabels:
-        app: quote
-    strategy:
-      type: RollingUpdate
-    template:
-      metadata:
-        labels:
-          app: quote
-      spec:
-        containers:
-        - name: backend
-          image: docker.io/datawire/quote:$quoteVersion$
-          ports:
-          - name: http
-            containerPort: 8080
-  ---
-  apiVersion: v1
-  kind: Service
-  metadata:
-    name: quote
-    namespace: ambassador
-  spec:
-    ports:
-    - name: http
-      port: 80
-      targetPort: 8080
-    selector:
-      app: quote
+  ```
+  kubectl apply -f https://www.getambassador.io/yaml/aes-tutorial.yaml
   ```
 
 1. Apply the configuration to the cluster with the command `kubectl apply -f quote.yaml`.
 
-1. Copy the configuration below and save it to a file called `quote-backend.yaml` 
-so that you can create a `Mapping` on your cluster. This `Mapping` tells Edge 
+1. Copy the configuration below, save it to a file,
+and apply it to create a `Mapping` on your cluster. This `Mapping` tells Edge 
 Stack to route all traffic inbound to the `/backend/` path to the `quote` service. 
 
   ```yaml
@@ -79,11 +44,14 @@ Stack to route all traffic inbound to the `/backend/` path to the `quote` servic
     service: quote
   ```
 
-1. Apply the configuration to the cluster with the command 
-`kubectl apply -f quote-backend.yaml`
+Alternatively, run this command to apply the `Mapping`.
+
+  ```
+  kubectl apply -f https://www.getambassador.io/yaml/aes-tutorial-mapping.yaml
+  ```
 
 1. Store the Ambassador `LoadBalancer` address to a local environment variable.
-You will use this variable to test accessing your pod.
+You will use this variable to test accessing your service.
 
   ```
   export AMBASSADOR_LB_ENDPOINT=$(kubectl -n ambassador get svc ambassador -o "go-template={{range .status.loadBalancer.ingress}}{{or .ip .hostname}}{{end}}")
@@ -102,7 +70,10 @@ balancer.
   ```
 
 Success, you have created your first Ambassador `Mapping`, routing a
-request from your cluster's edge to a service!
+request from your cluster's edge to a service! Here is a diagram showing this
+architecture.
+
+!(Cluster architecture with Edge Stack)[../../images/logo.png]
 
 ## Edge Policy Console
 

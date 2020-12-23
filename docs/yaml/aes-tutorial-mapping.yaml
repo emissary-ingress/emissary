@@ -1,0 +1,9 @@
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: quote-backend
+  namespace: ambassador
+spec:
+  prefix: /backend/
+  service: quote
