@@ -387,7 +387,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
         }
 
     if auth.proto == "grpc":
-        protocol_version = auth.get('protocol_version', 'v2alpha')
+        protocol_version = auth.get('protocol_version', 'v2')
         auth_info = {
             'name': 'envoy.filters.http.ext_authz',
             'typed_config': {
