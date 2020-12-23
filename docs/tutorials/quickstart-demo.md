@@ -44,7 +44,7 @@ Stack to route all traffic inbound to the `/backend/` path to the `quote` servic
     service: quote
   ```
 
-Alternatively, run this command to apply the `Mapping`.
+  Alternatively, run this command to apply the `Mapping`.
 
   ```
   kubectl apply -f https://www.getambassador.io/yaml/aes-tutorial-mapping.yaml
@@ -73,7 +73,7 @@ Success, you have created your first Ambassador `Mapping`, routing a
 request from your cluster's edge to a service! Here is a diagram showing this
 architecture.
 
-!(Cluster architecture with Edge Stack)[../../images/logo.png]
+![Cluster architecture with Edge Stack](../../images/aes-tutorial.png)
 
 ## Edge Policy Console
 
@@ -92,7 +92,7 @@ earlier as a variable, echo that variable now to your terminal and make a note o
 1. In your browser, navigate to `http://<load-balancer-endpoint>` and follow the
 prompts to bypass the TLS warning. 
 
-  > [A `Host` resource is created in production](../../topics/running/host-crd)
+  > **Note:** [You would create a 'Host' resource](../../topics/running/host-crd)
 to use your own registered domain name instead of the load balancer endpoint to 
 access the console and your `Mapping` endpoints.
 
@@ -104,7 +104,7 @@ all OSes and log in.
 Scroll down to find an entry for the `quote-backend` `Mapping` that you created 
 in your terminal with `kubectl`.
 
-As you can see, the console lists the `Mapping` that you created earlier. This
+  As you can see, the console lists the `Mapping` that you created earlier. This
 information came from Ambassador polling the Kubernetes API. In 
 Ambassador, Kubernetes serves as the single source of truth 
 around cluster configuration. Changes made via `kubectl` are reflected in the 
