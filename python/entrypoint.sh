@@ -477,10 +477,12 @@ fi
 ################################################################################
 # WORKER: extra sidecars                                                       #
 ################################################################################
-shopt -s nullglob
-for sidecar in /ambassador/sidecars/*; do
-    launch "${sidecar##*/}" "$sidecar"
-done
+if [[ -z "$AGENT_SERVICE" ]]; then
+    shopt -s nullglob
+    for sidecar in /ambassador/sidecars/*; do
+        launch "${sidecar##*/}" "$sidecar"
+    done
+fi
 
 ################################################################################
 # Wait for one worker to quit, then kill the others                            #
