@@ -477,6 +477,10 @@ fi
 ################################################################################
 # WORKER: extra sidecars                                                       #
 ################################################################################
+# If AGENT_SERVICE is set, we don't do this: the intercept agent doesn't use
+# any of the Edge Stack sidecars, and they just clutter up the logs doing 
+# nothing useful.
+
 if [[ -z "$AGENT_SERVICE" ]]; then
     shopt -s nullglob
     for sidecar in /ambassador/sidecars/*; do
