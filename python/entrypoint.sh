@@ -14,15 +14,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-# XXX BRUTAL HACKERY: for right now, --dev-magic drops you back to the
-# old entrypoint.sh, rather than allowing entrypoint.go to run. Since
-# --dev-magic is currently really only used for test_scout, this should
-# be OK, but be aware.
+# THE DEFAULT BOOT SEQUENCE IS NOW entrypoint.go. HOWEVER, we'll stick
+# with entrypoint.sh in the following cases:
+#
+# 1. AMBASSADOR_LEGACY_MODE is set. This is the official, approved way
+#    to stick with entrypoint.sh if you need to do that for some reason.
+# 2. AGENT_SERVICE is set. This is used for old-style service preview,
+#    using telepresence 1.
+# 3. The --dev-magic parameter is present. This is currently used only
+#    for test_scout.py.
+#
+# XXX Cases 2 and 3 are BRUTAL HACKS.
 
 DEVMAGIC=
 if [ "$1" == "--dev-magic" ]; then
     DEVMAGIC=yes
-elif [ "${AMBASSADOR_LEGACY_MODE,,}" != "true" ]; then
+fi
+
+if [ -z "$DEVMAGIC" -a -z "$AGENT_SERVICE" -a \( "${AMBASSADOR_LEGACY_MODE,,}" != "true" \) ]; then
   exec busyambassador entrypoint "$@"   # See comment above.
 fi
 
