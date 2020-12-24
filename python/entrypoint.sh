@@ -35,6 +35,10 @@ if [ -z "$DEVMAGIC" -a -z "$AGENT_SERVICE" -a \( "${AMBASSADOR_LEGACY_MODE,,}" !
   exec busyambassador entrypoint "$@"   # See comment above.
 fi
 
+# If we are here, define AMBASSADOR_LEGACY_MODE, to make _absolutely certain_ that
+# diagd's localhost checks are in sync with what's actually running.
+export AMBASSADOR_LEGACY_MODE=true
+
 ENTRYPOINT_DEBUG=
 
 log () {
