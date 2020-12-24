@@ -242,7 +242,7 @@ bootstrap() {
             --group-add="${DOCKER_GID}" \
             --detach \
             --rm \
-            -e GOPRIVATE="${GOPRIVATE}" \
+            -e GOPRIVATE="${GOPRIVATE:-github.com/datawire/aes-ratelimit}" \
             --volume=/var/run/docker.sock:/var/run/docker.sock \
             --volume="$(builder_volume):/home/dw" \
             ${BUILDER_MOUNTS} \
@@ -262,8 +262,7 @@ bootstrap() {
 
     dcopy ${DIR}/builder.sh $(builder):/buildroot
     dcopy ${DIR}/builder_bash_rc $(builder):/home/dw/.bashrc
-    dsync ${HOME}/.gitconfig $(builder):/home/dw
-    dsync ${HOME}/.ssh $(builder):/home/dw/
+    dsync ${DIR}/gitconfig $(builder):/home/dw/.gitconfig
 }
 
 module_version() {
