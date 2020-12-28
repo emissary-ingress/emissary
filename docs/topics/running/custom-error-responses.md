@@ -1,7 +1,7 @@
 # Custom Error Responses
 
 Custom error responses set overrides for HTTP response statuses generated either
-by Ambassador or upstream services. 
+by Ambassador or upstream services.
 
 They can be configured either on the Ambassador
 [`Module`](../ambassador)
@@ -55,9 +55,9 @@ spec:
 ```
 ## File Response Bodies
 
-For more complex response bodies a file can be returned as the response. 
-This could be used for a customer friendly HTML document for example.  Use 
-`text_format_source` with a `filename` set as a path on the Ambassador pod. 
+For more complex response bodies a file can be returned as the response.
+This could be used for a customer friendly HTML document for example.  Use
+`text_format_source` with a `filename` set as a path on the Ambassador pod.
 `content_type` should be used set the specific file type, such as `text/html`.
 
 First configure the Ambassador module:
@@ -98,7 +98,7 @@ data:
 
 Finally, mount the configmap to the Ambassador pod:
 
-> **NOTE:** The following YAML is in [patch format](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/) 
+> **NOTE:** The following YAML is in [patch format](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/)
 and does not represent the entire deployment spec.
 
 ```yaml
@@ -109,7 +109,7 @@ spec:
         - name: aes
           volumeMounts:
             - name: ambassador-errorpages
-              mountPath: /ambassador/errorpages
+              mountPath: /ambassador/ambassador-errorpages
       volumes:
         - name: ambassador-errorpages
           configMap:
@@ -124,15 +124,15 @@ response body if, for example, the variable contains HTML data and the response
 content type is `text/html`. Be careful when using variables in this way, and
 consider whether the value may be coming from an untrusted source like request
 or response headers.
-- The `json_format` field does not support sourcing from a file. Instead 
+- The `json_format` field does not support sourcing from a file. Instead
 consider using `text_format_source` with a JSON file and `content_type` set to
 `application/json`.
 
 ## Rule Precedence
 
-If rules are set on both the `Module` and on a `Mapping`, the rule set on 
-the `Mapping` will take precedence, ignoring any `Module` rules. This is true 
-even if the rules are for different status codes. For example, consider this 
+If rules are set on both the `Module` and on a `Mapping`, the rule set on
+the `Mapping` will take precedence, ignoring any `Module` rules. This is true
+even if the rules are for different status codes. For example, consider this
 configuration:
 
 ```yaml
@@ -163,14 +163,14 @@ spec:
            text_format: "Per-mapping 429"
 ```
 The `Mapping` rule will prevent an override on the 404 rule defined on the
-`Module` for this `Mapping`. The rule on the `Mapping` will cause all rules on 
+`Module` for this `Mapping`. The rule on the `Mapping` will cause all rules on
 the `Module` to be ignored, regardless of the status codes specified. A seperate
 `Mapping` with no override rules defined will follow the 404 rule on the `Module`.
 
 ## Disabling Response Overrides
 
-If error response overrides are set on the `Module`, they can be disabled on 
-individual mappings by setting 
+If error response overrides are set on the `Module`, they can be disabled on
+individual mappings by setting
 `bypass_error_response_overrides: true` on those mappings:
 
 ```yaml
