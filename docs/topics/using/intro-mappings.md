@@ -66,40 +66,30 @@ More detail on each of the available annotations are discussed in subsequent sec
 
 To Ambassador, a `resource` is a group of one or more URLs that all share a common prefix in the URL path. For example:
 
-```shell
-https://ambassador.example.com/resource1/foo
-https://ambassador.example.com/resource1/bar
-https://ambassador.example.com/resource1/baz/zing
-https://ambassador.example.com/resource1/baz/zung
-```
+- `https://ambassador.example.com/resource1/foo`
+- `https://ambassador.example.com/resource1/bar`
+- `https://ambassador.example.com/resource1/baz/zing`
+- `https://ambassador.example.com/resource1/baz/zung`
 
 all share the `/resource1/` path prefix, so it can be considered a single resource. On the other hand:
 
-```shell
-https://ambassador.example.com/resource1/foo
-https://ambassador.example.com/resource2/bar
-https://ambassador.example.com/resource3/baz/zing
-https://ambassador.example.com/resource4/baz/zung
-```
+- `https://ambassador.example.com/resource1/foo`
+- `https://ambassador.example.com/resource2/bar`
+- `https://ambassador.example.com/resource3/baz/zing`
+- `https://ambassador.example.com/resource4/baz/zung`
 
 share only the prefix `/` -- you _could_ tell Ambassador Edge Stack to treat them as a single resource, but it's probably not terribly useful.
 
 Note that the length of the prefix doesn't matter: if you want to use prefixes like `/v1/this/is/my/very/long/resource/name/`, go right ahead, Ambassador Edge Stack can handle it.
 
-Also note that Ambassador Edge Stack does not actually require the prefix to start and end with `/` -- however, in practice, it's a good idea. Specifying a prefix of
+Also note that Ambassador Edge Stack does not actually require the
+prefix to start and end with `/` -- however, in practice, it's a good
+idea. Specifying a prefix of `/man` would match all of the following:
 
-```shell
-/man
-```
-
-would match all of the following:
-
-```shell
-https://ambassador.example.com/man/foo
-https://ambassador.example.com/mankind
-https://ambassador.example.com/man-it-is/really-hot-today
-https://ambassador.example.com/manohmanohman
-```
+- `https://ambassador.example.com/man/foo`
+- `https://ambassador.example.com/mankind`
+- `https://ambassador.example.com/man-it-is/really-hot-today`
+- `https://ambassador.example.com/manohmanohman`
 
 which is probably not what was intended.
 
