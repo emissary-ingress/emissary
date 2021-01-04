@@ -72,8 +72,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 (no changes yet)
 
-## [1.10.0-rc.3] December 24, 2020
-[1.10.0-rc.3]: https://github.com/datawire/ambassador/compare/v1.9.1...v1.10.0-rc.3
+## [1.10.0] January 04, 2021
+[1.10.0]: https://github.com/datawire/ambassador/compare/v1.9.1...v1.10.0
 
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
