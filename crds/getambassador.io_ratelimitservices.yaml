@@ -57,6 +57,8 @@ spec:
               oneOf:
               - type: string
               - type: boolean
+          required:
+          - service
           type: object
       type: object
   version: null

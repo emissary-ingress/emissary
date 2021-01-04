@@ -85,6 +85,9 @@ spec:
               - type: boolean
             weight:
               type: integer
+          required:
+          - port
+          - service
           type: object
       type: object
   version: null
