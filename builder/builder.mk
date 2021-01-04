@@ -244,7 +244,8 @@ docker/builder-base.docker.stamp: FORCE preflight
 	@$(BUILDER) build-builder-base >$@
 docker/container.txt.stamp: %/container.txt.stamp: %/builder-base.docker.tag.local %/base-envoy.docker.tag.local FORCE
 	@printf "${CYN}==> ${GRN}Bootstrapping builder container${END}\n"
-	@$(BUILDER) bootstrap > $@
+	@($(BOOTSTRAP_EXTRAS) $(BUILDER) bootstrap > $@)
+
 docker/snapshot.docker.stamp: %/snapshot.docker.stamp: %/container.txt FORCE compile
 	@set -e; { \
 	  if test -e $@ && ! docker exec $$(cat $<) test -e /buildroot/image.dirty; then \
