@@ -127,7 +127,9 @@ to Ambassador. A couple of options are
 
    `X-Forwarded-Proto` is set by the load balancer or proxy and trusted by
    Envoy. Envoy will trust the value of `X-Forwarded-For` even if the request
-   comes in over cleartext.
+   comes in over cleartext. 
+   [X-FORWARDED-PROTO redirects](../../using/redirects.md)
+   must be enabled in your Ambassador config for this to work.
 
 ## tl;dr
 
@@ -148,3 +150,5 @@ spec:
       action: Redirect     # Configures Ambassador to redirect cleartext
       additionalPort: 8080 # Optional: The redirect port. Defaults to 8080
 ```
+
+If you're using a L7 Load Balancer to terminate TLS, make sure to [enable X-FORWARDED-PROTO redirects](../../using/redirects.md).
