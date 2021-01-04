@@ -100,12 +100,14 @@ bootstrap period it behaves identically to the `check_alive` endpoint.
 Generally Ambassador's readiness probe should be configured with the same settings as its liveness
 probes.
 
-## `AMBASSADOR_FAST_RECONFIGURE` and `AMBASSADOR_FAST_VALIDATION` Flags
+## `AMBASSADOR_FAST_RECONFIGURE` and `AMBASSADOR_LEGACY_MODE` Flags
 
-These environment variables are feature flags that enable a higher performance implementation of the
-code Ambassador uses to validate and generate envoy configuration. These will eventually be enabled
-by default, but if you are experiencing performance problems you should try setting the values of
-both of these flags to `"true"` and seeing if this helps.
+`AMBASSADOR_FAST_RECONFIGURE` is a feature flag that enables a higher performance implementation of
+the code Ambassador uses to validate and generate envoy configuration. It will eventually be enabled
+by default, but if you are experiencing performance problems you should try setting 
+`AMBASSADOR_FAST_RECONFIGURE` to `true` to see if this helps.
+
+`AMBASSADOR_LEGACY_MODE` is **not** recommended when performance is critical.
 
 ## `AMBASSADOR_DRAIN_TIME`
 

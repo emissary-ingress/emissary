@@ -40,6 +40,7 @@ type AuthServiceStatusOnError struct {
 type AuthServiceSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
+	// +kubebuilder:validation:Required
 	AuthService string        `json:"auth_service,omitempty"`
 	PathPrefix  string        `json:"path_prefix,omitempty"`
 	TLS         *BoolOrString `json:"tls,omitempty"`

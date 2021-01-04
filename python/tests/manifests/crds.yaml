@@ -93,6 +93,8 @@ spec:
               oneOf:
               - type: string
               - type: boolean
+          required:
+          - auth_service
           type: object
       type: object
   version: v2
@@ -796,7 +798,11 @@ spec:
                         type: string
                       text_format_source:
                         description: A format string sourced from a file on the Ambassador container. Useful for larger response bodies that should not be placed inline in configuration.
-                        type: string
+                        properties:
+                          filename:
+                            description: The name of a file on the Ambassador pod that contains a format text string.
+                            type: string
+                        type: object
                     type: object
                   on_status_code:
                     description: The status code to match on
@@ -872,6 +878,7 @@ spec:
             outlier_detection:
               type: string
             path_redirect:
+              description: Path replacement to use when generating an HTTP redirect. Used with `host_redirect`.
               type: string
             precedence:
               type: integer
@@ -879,15 +886,30 @@ spec:
               type: string
             prefix_exact:
               type: boolean
+            prefix_redirect:
+              description: Prefix rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+              type: string
             prefix_regex:
               type: boolean
             priority:
               type: string
             query_parameters:
               type: object
+            redirect_response_code:
+              description: The response code to use when generating an HTTP redirect. Defaults to 301. Used with `host_redirect`.
+              enum:
+              - 301
+              - 302
+              - 303
+              - 307
+              - 308
+              type: integer
             regex_headers:
               type: object
             regex_query_parameters:
+              type: object
+            regex_redirect:
+              description: Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
               type: object
             regex_rewrite:
               type: object
@@ -938,6 +960,9 @@ spec:
               type: boolean
             weight:
               type: integer
+          required:
+          - prefix
+          - service
           type: object
         status:
           description: MappingStatus defines the observed state of Mapping
@@ -1056,6 +1081,8 @@ spec:
               oneOf:
               - type: string
               - type: boolean
+          required:
+          - service
           type: object
       type: object
   version: v2
@@ -1144,6 +1171,9 @@ spec:
               - type: boolean
             weight:
               type: integer
+          required:
+          - port
+          - service
           type: object
       type: object
   version: v2
@@ -1324,6 +1354,9 @@ spec:
               items:
                 type: string
               type: array
+          required:
+          - driver
+          - service
           type: object
       type: object
   version: v2

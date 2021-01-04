@@ -537,8 +537,8 @@ Modify the sources in `./_cxx/envoy/`.
   default (to keep the tests fast), the tests avoid running much
   traffic through Envoy, and instead just check that the Envoy
   configuration that Ambassador generates hasn't changed since the
-  previous version (since we generally trust that Enovy works, and
-  doesn't change as aoften).  Since you _are_ changing Envoy, you'll
+  previous version (since we generally trust that Envoy works, and
+  doesn't change as often).  Since you _are_ changing Envoy, you'll
   need to run the tests with `KAT_RUN_MODE=envoy` set in the
   environment in order to actually test against Envoy.
 
@@ -614,8 +614,6 @@ I'd put this in in the pull request template, but so few PRs change Envoy...
    `datawire-*` tags from stacking on eachother).
  - [ ] It's been tested with...
    * [ ] `make check-envoy`
-   * [ ] `make pytest KAT_RUN_MODE=envoy` for OSS
-   * [ ] `make pytest KAT_RUN_MODE=envoy` for AES
 
 How do I test Ambassador when using a private Docker repository?
 ----------------------------------------------------------------

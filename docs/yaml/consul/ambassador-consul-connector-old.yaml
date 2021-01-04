@@ -1,38 +1,17 @@
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRole
-metadata:
-  name: ambassador-consul-connect
-rules:
-  - apiGroups: [""]
-    resources:
-      - secrets
-    verbs: ["get", "list", "create", "delete", "patch"]
----
+# This yaml enables an easier migration of the consul connect integration
+# from the `default` namespace to the `ambassador` namespace
+# (as it is now specified in ambassador-consul-connector.yaml)
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: ambassador-consul-connect
-  namespace: ambassador
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: ambassador-consul-connect
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: ambassador-consul-connect
-subjects:
-  - kind: ServiceAccount
-    name: ambassador-consul-connect
-    namespace: ambassador
+  namespace: default
 ---
 apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
   name: ambassador-consul
-  namespace: ambassador
+  namespace: default
 spec:
   hosts: []
   secret: ambassador-consul-connect
@@ -41,7 +20,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ambassador-consul-connector
-  namespace: ambassador
+  namespace: default
 spec:
   ports:
   - name: ambassador-consul-connector
@@ -53,7 +32,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ambassador-consul-connect-integration
-  namespace: ambassador
+  namespace: default
   labels:
     app: ambassador
     component: consul-connect

@@ -58,6 +58,17 @@ name:  {self.target.path.k8s}-invalidservice
 ambassador_id: {self.ambassador_id}
 prefix: /target/invalidservice
 service: {self.target.path.fqdn}-invalidservice
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.target.path.k8s}-invalidservice-empty
+ambassador_id: {self.ambassador_id}
+prefix: /target/invalidservice/empty
+service: {self.target.path.fqdn}-invalidservice-empty
+error_response_overrides:
+- on_status_code: 503
+  body:
+    text_format: ''
 '''
 
     def queries(self):
@@ -83,6 +94,8 @@ service: {self.target.path.fqdn}-invalidservice
         yield Query(self.url("target/"))
         # [10]
         yield Query(self.url("target/invalidservice"), expected=503)
+        # [11]
+        yield Query(self.url("target/invalidservice/empty"), expected=503)
 
     def check(self):
         # [0]
@@ -130,6 +143,10 @@ service: {self.target.path.fqdn}-invalidservice
         # [10] envoy-generated 503, since the upstream is 'invalidservice'.
         assert self.results[10].text == 'the upstream probably died', \
             f"unexpected response body: {self.results[10].text}"
+
+        # [11] envoy-generated 503, with an empty body override
+        assert self.results[11].text == '', \
+            f"unexpected response body: {self.results[11].text}"
 
 class ErrorResponseOnStatusCodeMappingCRD(AmbassadorTest):
     """
@@ -184,6 +201,20 @@ spec:
   ambassador_id: {self.ambassador_id}
   prefix: /target/invalidservice
   service: {self.target.path.fqdn}-invalidservice
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {self.target.path.k8s}-invalidservice-override-crd
+spec:
+  ambassador_id: {self.ambassador_id}
+  prefix: /target/invalidservice/override
+  service: {self.target.path.fqdn}-invalidservice
+  error_response_overrides:
+  - on_status_code: 503
+    body:
+      text_format_source:
+        filename: /etc/issue
 '''
 
     def queries(self):
@@ -209,6 +240,8 @@ spec:
         yield Query(self.url("target/"))
         # [10]
         yield Query(self.url("target/invalidservice"), expected=503)
+        # [11]
+        yield Query(self.url("target/invalidservice/override"), expected=503)
 
     def check(self):
         # [0] does not match the error response mapping, so no 404 response.
@@ -260,6 +293,12 @@ spec:
         # on the Ambassador module
         assert self.results[10].text == 'no healthy upstream', \
             f"unexpected response body: {self.results[10].text}"
+
+        # [11] envoy-generated 503, since the upstream is 'invalidservice'.
+        # this response body should be matched by the `text_format_source` override
+        # sorry for using /etc/issue, by the way.
+        assert "Welcome to Alpine Linux" in self.results[11].text, \
+            f"unexpected response body: {self.results[11].text}"
 
 
 class ErrorResponseReturnBodyFormattedText(AmbassadorTest):

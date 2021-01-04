@@ -387,7 +387,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
         }
 
     if auth.proto == "grpc":
-        protocol_version = auth.get('protocol_version', 'v2alpha')
+        protocol_version = auth.get('protocol_version', 'v2')
         auth_info = {
             'name': 'envoy.filters.http.ext_authz',
             'typed_config': {
@@ -968,11 +968,21 @@ class V2Listener(dict):
         if listener_idle_timeout_ms:
             self.base_http_config["common_http_protocol_options"] = { 'idle_timeout': "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0) }
 
+        max_request_headers_kb = self.config.ir.ambassador_module.get('max_request_headers_kb', None)
+        if max_request_headers_kb:
+            self.base_http_config["max_request_headers_kb"] = max_request_headers_kb
+
         if 'enable_http10' in self.config.ir.ambassador_module:
             self.base_http_config["http_protocol_options"] = { 'accept_http_10': self.config.ir.ambassador_module.enable_http10 }
 
         if 'preserve_external_request_id' in self.config.ir.ambassador_module:
             self.base_http_config["preserve_external_request_id"] = self.config.ir.ambassador_module.preserve_external_request_id
+
+        if 'forward_client_cert_details' in self.config.ir.ambassador_module:
+            self.base_http_config["forward_client_cert_details"] = self.config.ir.ambassador_module.forward_client_cert_details
+
+        if 'set_current_client_cert_details' in self.config.ir.ambassador_module:
+            self.base_http_config["set_current_client_cert_details"] = self.config.ir.ambassador_module.set_current_client_cert_details
 
         if self.config.ir.tracing:
             self.base_http_config["generate_request_id"] = True

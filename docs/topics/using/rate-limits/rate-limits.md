@@ -148,18 +148,18 @@ spec:
     rate: 5
     unit: "minute"
     injectRequestHeaders:          # optional
-    - name "header-name-string-1"    # required
+    - name: "header-name-string-1"   # required
       value: "go-template-string"    # required
-    - name "header-name-string-2"    # required
+    - name: "header-name-string-2"   # required
       value: "go-template-string"    # required
     injectResponseHeaders:         # optional
-    - name "header-name-string-1"    # required
+    - name: "header-name-string-1"   # required
       value: "go-template-string"    # required
-    errorResponse:                    # optional
-      headers:                          # optional; default is [], adding no additional headers
-      - name: "header-name-string"        # required
-        value: "go-template-string"       # required
-      bodyTemplate: "string"            # optional; default is "", returning no response body
+    errorResponse:                 # optional
+      headers:                       # optional; default is [], adding no additional headers
+      - name: "header-name-string"     # required
+        value: "go-template-string"    # required
+      bodyTemplate: "string"         # optional; default is "", returning no response body
   - pattern:
     - "my_key4": ""   # check the key but not the value
     - "my_key5": "*"  # check the key but not the value
@@ -168,7 +168,7 @@ spec:
   ...
 ```
 
-It makes no difference whether a limits are defined together in one
+It makes no difference whether limits are defined together in one
 `RateLimit` resource or are defined separately in many `RateLimit`
 resources.
 

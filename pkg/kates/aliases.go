@@ -44,6 +44,7 @@ import (
 
 type TypeMeta = metav1.TypeMeta
 type ObjectMeta = metav1.ObjectMeta
+type APIResource = metav1.APIResource
 
 type Namespace = corev1.Namespace
 
@@ -53,6 +54,8 @@ type Event = corev1.Event
 type ConfigMap = corev1.ConfigMap
 
 type Secret = corev1.Secret
+
+const SecretTypeTLS = corev1.SecretTypeTLS
 
 type Ingress = netv1beta1.Ingress
 type IngressClass = netv1beta1.IngressClass

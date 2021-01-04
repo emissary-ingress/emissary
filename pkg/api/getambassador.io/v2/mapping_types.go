@@ -29,29 +29,40 @@ import (
 type MappingSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
-	Prefix                string                  `json:"prefix,omitempty"`
-	PrefixRegex           bool                    `json:"prefix_regex,omitempty"`
-	PrefixExact           bool                    `json:"prefix_exact,omitempty"`
-	Service               string                  `json:"service,omitempty"`
-	AddRequestHeaders     map[string]AddedHeader  `json:"add_request_headers,omitempty"`
-	AddResponseHeaders    map[string]AddedHeader  `json:"add_response_headers,omitempty"`
-	AddLinkerdHeaders     bool                    `json:"add_linkerd_headers,omitempty"`
-	AutoHostRewrite       bool                    `json:"auto_host_rewrite,omitempty"`
-	CaseSensitive         bool                    `json:"case_sensitive,omitempty"`
-	Docs                  *DocsInfo               `json:"docs,omitempty"`
-	EnableIPv4            bool                    `json:"enable_ipv4,omitempty"`
-	EnableIPv6            bool                    `json:"enable_ipv6,omitempty"`
-	CircuitBreakers       []*CircuitBreaker       `json:"circuit_breakers,omitempty"`
-	KeepAlive             *KeepAlive              `json:"keepalive,omitempty"`
-	CORS                  *CORS                   `json:"cors,omitempty"`
-	RetryPolicy           *RetryPolicy            `json:"retry_policy,omitempty"`
-	GRPC                  bool                    `json:"grpc,omitempty"`
-	HostRedirect          bool                    `json:"host_redirect,omitempty"`
-	HostRewrite           string                  `json:"host_rewrite,omitempty"`
-	Method                string                  `json:"method,omitempty"`
-	MethodRegex           bool                    `json:"method_regex,omitempty"`
-	OutlierDetection      string                  `json:"outlier_detection,omitempty"`
-	PathRedirect          string                  `json:"path_redirect,omitempty"`
+	// +kubebuilder:validation:Required
+	Prefix      string `json:"prefix,omitempty"`
+	PrefixRegex bool   `json:"prefix_regex,omitempty"`
+	PrefixExact bool   `json:"prefix_exact,omitempty"`
+	// +kubebuilder:validation:Required
+	Service            string                 `json:"service,omitempty"`
+	AddRequestHeaders  map[string]AddedHeader `json:"add_request_headers,omitempty"`
+	AddResponseHeaders map[string]AddedHeader `json:"add_response_headers,omitempty"`
+	AddLinkerdHeaders  bool                   `json:"add_linkerd_headers,omitempty"`
+	AutoHostRewrite    bool                   `json:"auto_host_rewrite,omitempty"`
+	CaseSensitive      bool                   `json:"case_sensitive,omitempty"`
+	Docs               *DocsInfo              `json:"docs,omitempty"`
+	EnableIPv4         bool                   `json:"enable_ipv4,omitempty"`
+	EnableIPv6         bool                   `json:"enable_ipv6,omitempty"`
+	CircuitBreakers    []*CircuitBreaker      `json:"circuit_breakers,omitempty"`
+	KeepAlive          *KeepAlive             `json:"keepalive,omitempty"`
+	CORS               *CORS                  `json:"cors,omitempty"`
+	RetryPolicy        *RetryPolicy           `json:"retry_policy,omitempty"`
+	GRPC               bool                   `json:"grpc,omitempty"`
+	HostRedirect       bool                   `json:"host_redirect,omitempty"`
+	HostRewrite        string                 `json:"host_rewrite,omitempty"`
+	Method             string                 `json:"method,omitempty"`
+	MethodRegex        bool                   `json:"method_regex,omitempty"`
+	OutlierDetection   string                 `json:"outlier_detection,omitempty"`
+	// Path replacement to use when generating an HTTP redirect. Used with `host_redirect`.
+	PathRedirect string `json:"path_redirect,omitempty"`
+	// Prefix rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+	PrefixRedirect string `json:"prefix_redirect,omitempty"`
+	// Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+	RegexRedirect map[string]BoolOrString `json:"regex_redirect,omitempty"`
+	// The response code to use when generating an HTTP redirect. Defaults to 301. Used with
+	// `host_redirect`.
+	// +kubebuilder:validation:Enum={301,302,303,307,308}
+	RedirectResponseCode  *int                    `json:"redirect_response_code,omitempty"`
 	Priority              string                  `json:"priority,omitempty"`
 	Precedence            int                     `json:"precedence,omitempty"`
 	ClusterTag            string                  `json:"cluster_tag,omitempty"`

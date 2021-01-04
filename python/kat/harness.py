@@ -1029,8 +1029,14 @@ def run_queries(name: str, queries: Sequence[Query]) -> Sequence[Result]:
     # run(f"{CLIENT_GO} -input {path_urls} -output {path_results} 2> {path_log}")
     run(f"kubectl exec -n default -i kat /work/kat_client < '{path_urls}' > '{path_results}' 2> '{path_log}'")
 
+
     with open(path_results, 'r') as f:
-        json_results = json.load(f)
+        content = f.read()
+        try:
+            json_results = json.loads(content)
+        except Exception as e:
+            print("Could not parse JSON content (exception={}):\n", e, content)
+            raise e
 
     results = []
 
@@ -1483,12 +1489,32 @@ class Runner:
 
         # First up: CRDs.
         CRDS = load_manifest("crds")
-        final_crds = CRDS
+        input_crds = CRDS
 
         if is_knative():
             KNATIVE_SERVING_CRDS = load_manifest("knative_serving_crds")
-            final_crds += KNATIVE_SERVING_CRDS
+            input_crds += KNATIVE_SERVING_CRDS
 
+        # Strip out all of the schema validation, so that we can test with broken CRDs.
+        # (KAT isn't really in the business of testing to be sure that Kubernetes can
+        # run the K8s validators...)
+        crds = pyyaml.load_all(input_crds, Loader=pyyaml_loader)
+
+        # Collect the CRDs with schema validation stripped in stripped_crds, because
+        # pyyaml.load_all actually returns something more complex than a simple list,
+        # so it doesn't reserialize well after being modified.
+        stripped_crds = []
+
+        for crd in crds:
+            # Guard against empty CRDs (the KNative files have some blank lines at
+            # the end).
+            if not crd:
+                continue
+
+            crd["spec"].pop("validation", None)
+            stripped_crds.append(crd)
+
+        final_crds = pyyaml.dump_all(stripped_crds, Dumper=pyyaml_dumper)
         changed, reason = has_changed(final_crds, "/tmp/k8s-CRDs.yaml")
 
         if changed:

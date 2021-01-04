@@ -177,3 +177,58 @@ spec:
     require_errors(r2["ir"], [
         ( "mapping-1.default.1", "cannot accept mapping-2 with host_redirect after mappings without host_redirect (eg mapping-1)")
     ])
+
+def test_hr_error_4():
+    yaml = """
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+    name: mapping-1
+    namespace: default
+spec:
+    prefix: /svc1
+    service: svc1
+    host_redirect: true
+    path_redirect: /path/
+    prefix_redirect: /prefix/
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+    name: mapping-2
+    namespace: default
+spec:
+    prefix: /svc2
+    service: svc2
+    host_redirect: true
+    path_redirect: /path/
+    regex_redirect:
+      pattern: /regex/
+      substitution: /substitution/
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+    name: mapping-3
+    namespace: default
+spec:
+    prefix: /svc3
+    service: svc3
+    host_redirect: true
+    prefix_redirect: /prefix/
+    regex_redirect:
+      pattern: /regex/
+      substitution: /substitution/
+"""
+
+    cache = Cache(logger)
+    r1 = Compile(logger, yaml, k8s=True)
+    r2 = Compile(logger, yaml, k8s=True, cache=cache)
+
+    for r in [ r1, r2 ]:
+        require_errors(r["ir"], [
+            ( "mapping-1.default.1", "Cannot specify both path_redirect and prefix_redirect. Using path_redirect and ignoring prefix_redirect."),
+            ( "mapping-2.default.1", "Cannot specify both path_redirect and regex_redirect. Using path_redirect and ignoring regex_redirect."),
+            ( "mapping-3.default.1", "Cannot specify both prefix_redirect and regex_redirect. Using prefix_redirect and ignoring regex_redirect.")
+        ])

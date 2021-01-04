@@ -33,6 +33,8 @@ import tempfile
 import yaml
 
 from .VERSION import Version
+
+from distutils.util import strtobool
 from urllib.parse import urlparse
 from prometheus_client import Gauge
 
@@ -102,20 +104,24 @@ def _load_url_contents(logger: logging.Logger, url: str, stream1: TextIO, stream
     saved = False
 
     try:
-        with requests.get(url, stream=True) as r:
+        with requests.get(url) as r:
             if r.status_code == 200:
 
                 # All's well, pull the config down.
+                encoded = b''
+
                 try:
                     for chunk in r.iter_content(chunk_size=65536):
                         # We do this by hand instead of with 'decode_unicode=True'
                         # above because setting decode_unicode only decodes text,
                         # and WATT hands us application/json...
-                        chunk = chunk.decode('utf-8')
-                        stream1.write(chunk)
+                        encoded += chunk
 
-                        if stream2:
-                            stream2.write(chunk)
+                    decoded = encoded.decode('utf-8')
+                    stream1.write(decoded)
+
+                    if stream2:
+                        stream2.write(decoded)
 
                     saved = True
                 except IOError as e:
@@ -142,6 +148,23 @@ def load_url_contents(logger: logging.Logger, url: str, stream2: Optional[TextIO
         return stream.getvalue()
     else:
         return None
+
+
+def parse_bool(s: Optional[str]) -> bool:
+    """ 
+    Parse a boolean value from a string. T, True, Y, y, 1 return True;
+    other things return False.
+    """
+
+    # If we didn't get anything at all, return False.
+    if not s:
+        return False
+
+    # OK, we got _something_, so try strtobool.
+    try:
+        return strtobool(s)
+    except ValueError:
+        return False
 
 
 class SystemInfo:

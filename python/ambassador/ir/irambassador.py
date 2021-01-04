@@ -44,12 +44,14 @@ class IRAmbassador (IRResource):
         'envoy_log_format',
         'envoy_log_path',
         'envoy_log_type',
+        'forward_client_cert_details',
         # Do not include envoy_validation_timeout; we let finalize() type-check it.
         # Do not include ip_allow or ip_deny; we let finalize() type-check them.
         'keepalive',
         'listener_idle_timeout_ms',
         'liveness_probe',
         'load_balancer',
+        'max_request_headers_kb',
         'preserve_external_request_id'
         'proper_case',
         'prune_unreachable_routes',
@@ -61,6 +63,7 @@ class IRAmbassador (IRResource):
         'header_case_overrides',
         'server_name',
         'service_port',
+        'set_current_client_cert_details',
         'statsd',
         'use_ambassador_namespace_for_service_resolution',
         'use_proxy_proto',
@@ -132,6 +135,7 @@ class IRAmbassador (IRResource):
             server_name="envoy",
             debug_mode=False,
             preserve_external_request_id=False,
+            max_request_headers_kb=None,
             **kwargs
         )
 
@@ -358,6 +362,34 @@ class IRAmbassador (IRResource):
         else:
             self.post_error("Invalid log_type specified: {}. Supported: json, text".format(self.get('envoy_log_type')))
             return False
+
+        if self.get('forward_client_cert_details') is not None:
+            # https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto#envoy-v3-api-enum-extensions-filters-network-http-connection-manager-v3-httpconnectionmanager-forwardclientcertdetails
+            valid_values = ('SANITIZE', 'FORWARD_ONLY', 'APPEND_FORWARD', 'SANITIZE_SET', 'ALWAYS_FORWARD_ONLY')
+
+            value = self.get('forward_client_cert_details')
+            if value not in valid_values:
+                self.post_error(
+                    "'forward_client_cert_details' may not be set to '{}'; it may only be set to one of: {}".format(
+                        value, ', '.join(valid_values)))
+                return False
+
+        cert_details = self.get('set_current_client_cert_details')
+        if cert_details:
+            # https://www.envoyproxy.io/docs/envoy/latest/api-v3/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto#envoy-v3-api-msg-extensions-filters-network-http-connection-manager-v3-httpconnectionmanager-setcurrentclientcertdetails
+            valid_keys = ('subject', 'cert', 'chain', 'dns', 'uri')
+
+            for k, v in cert_details.items():
+                if k not in valid_keys:
+                    self.post_error(
+                        "'set_current_client_cert_details' may not contain key '{}'; it may only contain keys: {}".format(
+                            k, ', '.join(valid_keys)))
+                    return False
+
+                if v not in (True, False):
+                    self.post_error(
+                        "'set_current_client_cert_details' value for key '{}' may only be 'true' or 'false', not '{}'".format(k, v))
+                    return False
 
         return True
 
