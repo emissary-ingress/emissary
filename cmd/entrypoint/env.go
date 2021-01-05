@@ -1,11 +1,16 @@
 package entrypoint
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
+
+	"github.com/datawire/dlib/dlog"
 )
 
 func GetAgentService() string {
@@ -60,8 +65,61 @@ func GetAppDir() string {
 	return env("APPDIR", GetAmbassadorRoot())
 }
 
-func GetConfigDir() string {
-	return env("config_dir", path.Join(GetAmbassadorConfigBaseDir(), "ambassador-config"))
+// GetConfigDir returns the path to the directory we should check for
+// filesystem config.
+func GetConfigDir(demoMode bool) string {
+	// XXX There was no way to override the config dir via the environment in
+	// entrypoint.sh.
+	configDir := env("AMBASSADOR_CONFIG_DIR", path.Join(GetAmbassadorConfigBaseDir(), "ambassador-config"))
+
+	if demoMode {
+		// There is _intentionally_ no way to override the demo-mode config directory,
+		// and it is _intentionally_ based on the root directory rather than on
+		// AMBASSADOR_CONFIG_BASE_DIR: it's baked into a specific location during
+		// the build process.
+		configDir = path.Join(GetAmbassadorRoot(), "ambassador-demo-config")
+	}
+
+	return configDir
+}
+
+// ConfigIsPresent checks to see if any configuration is actually present
+// in the given configdir.
+func ConfigIsPresent(ctx context.Context, configDir string) bool {
+	// Is there anything in this directory?
+	foundAny := false
+
+	_ = filepath.Walk(configDir, func(path string, info os.FileInfo, err error) error {
+		// If we're handed an error coming in, something has gone wrong and we _must_
+		// return the error to avoid a panic. (The most likely error, admittedly, is
+		// simply that the toplevel directory doesn't exist.)
+		if err != nil {
+			// Log it, but if it isn't an os.ErrNoExist().
+			if !os.IsNotExist(err) {
+				dlog.Errorf(ctx, "Error scanning config file %s: %s", filepath.Join(configDir, path), err)
+			}
+
+			return err
+		}
+
+		if (info.Mode() & os.ModeType) == 0 {
+			// This is a regular file, so we can consider this valid config.
+			foundAny = true
+
+			// Return an error in order to short-circuit the rest of the walk.
+			// This is kind of an abuse, honestly, but then we also don't want
+			// to spend a long time walking crap if someone sets the environment
+			// variable incorrectly -- and if we run into an actual error walking
+			// the config dir, see the comment above.
+			return errors.New("not really an errore")
+		}
+
+		return nil
+	})
+
+	// Done. We don't care what the walk actually returned, we only care
+	// about foundAny.
+	return foundAny
 }
 
 func GetSnapshotDir() string {
@@ -113,17 +171,27 @@ func IsEnvoyAvailable() bool {
 	return err == nil
 }
 
-func GetDiagdFlags() []string {
+func GetDiagdFlags(ctx context.Context, demoMode bool) []string {
 	result := []string{"--notices", path.Join(GetAmbassadorConfigBaseDir(), "notices.json")}
+
 	if isDebug("diagd") {
 		result = append(result, "--debug")
 	}
+
 	diagdBind := GetDiagdBindAddress()
 	if diagdBind != "" {
 		result = append(result, "--host", diagdBind)
 	}
+
 	// XXX: this was not in entrypoint.sh
 	result = append(result, "--port", GetDiagdBindPort())
+
+	cdir := GetConfigDir(demoMode)
+
+	if (cdir != "") && ConfigIsPresent(ctx, cdir) {
+		result = append(result, "--config-path", cdir)
+	}
+
 	if IsDiagdOnly() {
 		result = append(result, "--no-checks", "--no-envoy")
 	} else {
@@ -133,11 +201,19 @@ func GetDiagdFlags() []string {
 			result = append(result, "--no-envoy")
 		}
 	}
+
 	return result
 }
 
-func GetDiagdArgs() []string {
-	return append([]string{GetSnapshotDir(), GetEnvoyBootstrapFile(), GetEnvoyConfigFile()}, GetDiagdFlags()...)
+func GetDiagdArgs(ctx context.Context, demoMode bool) []string {
+	return append(
+		[]string{
+			GetSnapshotDir(),
+			GetEnvoyBootstrapFile(),
+			GetEnvoyConfigFile(),
+		},
+		GetDiagdFlags(ctx, demoMode)...,
+	)
 }
 
 func IsAmbassadorSingleNamespace() bool {

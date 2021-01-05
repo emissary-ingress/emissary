@@ -14,8 +14,8 @@ copy_gold () {
 		mv "$GOLDDIR/${pod}-tmp" "$GOLDDIR/${pod}"
 		# We don't try to compare aconf nor ir configuration when using gold files.
 		# They only contribute noise, so remove them here.
-		rm -f "GOLDDIR/${pod}/snapshots/aconf.json"
-		rm -f "GOLDDIR/${pod}/snapshots/ir.json"
+		rm -f "$GOLDDIR/${pod}/snapshots/aconf.json"
+		rm -f "$GOLDDIR/${pod}/snapshots/ir.json"
 		printf "                                                                \r"
 		printf "${pod}...\r"
 		# echo "$pod: copied"

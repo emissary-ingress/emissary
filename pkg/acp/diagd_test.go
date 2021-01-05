@@ -5,17 +5,18 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/pkg/acp"
+	"github.com/datawire/dlib/dtime"
 )
 
 type diagdMetadata struct {
 	t  *testing.T
-	ft *fakeTime
+	ft *dtime.FakeTime
 	dw *acp.DiagdWatcher
 }
 
 func (m *diagdMetadata) check(seq int, clock int, alive bool, ready bool) {
-	if m.ft.timeSinceBoot() != time.Duration(clock)*time.Second {
-		m.t.Errorf("%d: fakeTime.timeSinceBoot should be %ds, not %v", seq, clock, m.ft.timeSinceBoot())
+	if m.ft.TimeSinceBoot() != time.Duration(clock)*time.Second {
+		m.t.Errorf("%d: fakeTime.TimeSinceBoot should be %ds, not %v", seq, clock, m.ft.TimeSinceBoot())
 	}
 
 	if m.dw.IsAlive() != alive {
@@ -28,20 +29,20 @@ func (m *diagdMetadata) check(seq int, clock int, alive bool, ready bool) {
 }
 
 func (m *diagdMetadata) stepSec(step int) {
-	m.ft.stepSec(step)
+	m.ft.StepSec(step)
 }
 
 func newDiagdMetadata(t *testing.T) *diagdMetadata {
-	ft := newFakeTime()
+	ft := dtime.NewFakeTime()
 
 	dw := acp.NewDiagdWatcher()
-	dw.SetFetchTime(ft.now)
+	dw.SetFetchTime(ft.Now)
 
 	if dw == nil {
 		t.Error("New DiagdWatcher is nil?")
 	}
 
-	bootGraceLength := dw.GraceEnd.Sub(ft.bootTime)
+	bootGraceLength := dw.GraceEnd.Sub(ft.BootTime())
 	tenMinutes := time.Minute * 10
 
 	if bootGraceLength != tenMinutes {

@@ -51,6 +51,7 @@ class IRAmbassador (IRResource):
         'listener_idle_timeout_ms',
         'liveness_probe',
         'load_balancer',
+        'max_request_headers_kb',
         'preserve_external_request_id'
         'proper_case',
         'prune_unreachable_routes',
@@ -134,6 +135,7 @@ class IRAmbassador (IRResource):
             server_name="envoy",
             debug_mode=False,
             preserve_external_request_id=False,
+            max_request_headers_kb=None,
             **kwargs
         )
 

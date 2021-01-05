@@ -887,6 +887,7 @@ class IR:
         od['xff_num_trusted_hops'] = self.ambassador_module.get('xff_num_trusted_hops', 0)
 
         od['listener_idle_timeout_ms'] = self.ambassador_module.get('listener_idle_timeout_ms', None)
+        od['max_request_headers_kb'] = self.ambassador_module.get('max_request_headers_kb', None)
 
         od['server_name'] = bool(self.ambassador_module.server_name != 'envoy')
 
@@ -1137,7 +1138,9 @@ class IR:
         od['listener_count'] = len(self.listeners)
         od['host_count'] = len(self.hosts)
 
-        od['fast_validation'] = Config.fast_validation
+        od['legacy_mode'] = Config.legacy_mode
+        # Preserve the 'fast_validation' feature for the moment to make analytics easier
+        od['fast_validation'] = not Config.legacy_mode
         od['fast_validation_disagreements'] = len(self.aconf.fast_validation_disagreements.keys())
 
         # Fast reconfiguration information is supplied in check_scout in diagd.py.

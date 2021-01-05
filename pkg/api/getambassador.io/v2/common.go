@@ -182,7 +182,7 @@ type ErrorResponseOverrideBody struct {
 	// A format string sourced from a file on the Ambassador container.
 	// Useful for larger response bodies that should not be placed inline
 	// in configuration.
-	ErrorResponseTextFormatSource string `json:"text_format_source,omitempty"`
+	ErrorResponseTextFormatSource *ErrorResponseTextFormatSource `json:"text_format_source,omitempty"`
 
 	// The content type to set on the error response body when
 	// using text_format or text_format_source. Defaults to 'text/plain'.

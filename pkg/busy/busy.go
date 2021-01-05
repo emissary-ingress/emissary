@@ -36,6 +36,12 @@ func GetLogLevel() logrus.Level {
 	return logrusLogger.GetLevel()
 }
 
+var rootLogger dlog.Logger
+
+func GetRootLogger() dlog.Logger {
+	return rootLogger
+}
+
 func Main(binName, humanName string, version string, cmds map[string]Command) {
 	name := filepath.Base(os.Args[0])
 	if name == binName && len(os.Args) > 1 {
@@ -47,11 +53,11 @@ func Main(binName, humanName string, version string, cmds map[string]Command) {
 		environment.EnvironmentSetupEntrypoint()
 	}
 
-	logger := dlog.WrapLogrus(logrusLogger).
+	rootLogger = dlog.WrapLogrus(logrusLogger).
 		WithField("PID", os.Getpid()).
 		WithField("CMD", name)
-	ctx := dlog.WithLogger(context.Background(), logger)
-	dlog.SetFallbackLogger(logger.WithField("oops-i-did-not-pass-context-correctly", true))
+	ctx := dlog.WithLogger(context.Background(), rootLogger)
+	dlog.SetFallbackLogger(rootLogger.WithField("oops-i-did-not-pass-context-correctly", true))
 
 	if cmdFn, cmdFnOK := cmds[name]; cmdFnOK {
 		if err := cmdFn(ctx, version, os.Args[1:]...); err != nil {

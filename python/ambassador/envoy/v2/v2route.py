@@ -213,9 +213,46 @@ class V2Route(Cacheable):
             }
 
             path_redirect = host_redirect.get('path_redirect', None)
+            prefix_redirect = host_redirect.get('prefix_redirect', None)
+            regex_redirect = host_redirect.get('regex_redirect', None)
+            response_code = host_redirect.get('redirect_response_code', None)
 
+            # We enforce that only one of path_redirect or prefix_redirect is set in the IR.
+            # But here, we just prefer path_redirect if that's set.
             if path_redirect:
                 self['redirect']['path_redirect'] = path_redirect
+            elif prefix_redirect:
+                # In Envoy, it's called prefix_rewrite.
+                self['redirect']['prefix_rewrite'] = prefix_redirect
+            elif regex_redirect:
+                # In Envoy, it's called regex_rewrite.
+                self['redirect']['regex_rewrite'] = {
+                    'pattern': {
+                        'google_re2': {},
+                        'regex': regex_redirect.get('pattern', '')
+                    },
+                    'substitution': regex_redirect.get('substitution', '')
+                }
+
+            # In Ambassador, we express the redirect_reponse_code as the actual
+            # HTTP response code for operator simplicity. In Envoy, those codes
+            # are represented as an enum, so do the translation here.
+            if response_code:
+                if response_code == 301:
+                    enum_code = 0
+                elif response_code == 302:
+                    enum_code = 1
+                elif response_code == 303:
+                    enum_code = 2
+                elif response_code == 307:
+                    enum_code = 3
+                elif response_code == 308:
+                    enum_code = 4
+                else:
+                    config.ir.post_error(
+                            f"Unknown redirect_response_code={response_code}, must be one of [301, 302, 303,307, 308]. Using default redirect_response_code=301")
+                    enum_code = 0
+                self['redirect']['response_code'] = enum_code
 
             return
 

@@ -107,9 +107,9 @@ class AmbassadorTest(Test):
       value: "0"
 """
 
-        if os.environ.get('AMBASSADOR_FAST_VALIDATION', 'false').lower() == 'true':
+        if os.environ.get('AMBASSADOR_LEGACY_MODE', 'false').lower() == 'true':
             self.manifest_envs += """
-    - name: AMBASSADOR_FAST_VALIDATION
+    - name: AMBASSADOR_LEGACY_MODE
       value: "true"
 """
 
@@ -432,7 +432,7 @@ class AHTTP(ServiceType):
 class AGRPC(ServiceType):
     skip_variant: ClassVar[bool] = True
 
-    def __init__(self, protocol_version: str="v2alpha", *args, **kwargs) -> None:
+    def __init__(self, protocol_version: str="v2", *args, **kwargs) -> None:
         self.protocol_version = protocol_version
         super().__init__(*args, service_manifests=GRPC_AUTH_BACKEND, **kwargs)
 
@@ -442,7 +442,7 @@ class AGRPC(ServiceType):
 class RLSGRPC(ServiceType):
     skip_variant: ClassVar[bool] = True
 
-    def __init__(self, protocol_version: str="v2alpha", *args, **kwargs) -> None:
+    def __init__(self, protocol_version: str="v2", *args, **kwargs) -> None:
         self.protocol_version = protocol_version
         super().__init__(*args, service_manifests=GRPC_RLS_BACKEND, **kwargs)
 

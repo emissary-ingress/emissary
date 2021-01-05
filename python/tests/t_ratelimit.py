@@ -92,7 +92,7 @@ timeout_ms: 500
         assert self.results[2].headers["Hello"] == [ "Foo" ]
         assert self.results[2].headers["Hi"] == [ "Baz" ]
         assert self.results[2].headers["Content-Type"] == [ "application/json" ]
-        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ "v2alpha" ]
+        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ "v2" ]
 
 class RateLimitV1Test(AmbassadorTest):
     # debug = True
@@ -159,7 +159,7 @@ timeout_ms: 500
         assert self.results[2].headers["Hello"] == [ "Foo" ]
         assert self.results[2].headers["Hi"] == [ "Baz" ]
         assert self.results[2].headers["Content-Type"] == [ "application/json" ]
-        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ "v2alpha" ]
+        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ "v2" ]
 
 class RateLimitV1WithTLSTest(AmbassadorTest):
     # debug = True
@@ -242,7 +242,7 @@ tls: ratelimit-tls-context
         assert self.results[2].headers["Hello"] == [ "Foo" ]
         assert self.results[2].headers["Hi"] == [ "Baz" ]
         assert self.results[2].headers["Content-Type"] == [ "application/json" ]
-        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ "v2alpha" ]
+        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ "v2" ]
 
 
 class RateLimitV2Test(AmbassadorTest):
@@ -251,7 +251,7 @@ class RateLimitV2Test(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
-        self.rls = RLSGRPC(protocol_version="v2")
+        self.rls = RLSGRPC(protocol_version="v2alpha")
 
     def config(self):
         # Use self.target here, because we want this mapping to be annotated
@@ -281,7 +281,7 @@ kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"
 timeout_ms: 500
-protocol_version: "v2"
+protocol_version: "v2alpha"
 """)
 
     def queries(self):
@@ -311,4 +311,4 @@ protocol_version: "v2"
         assert self.results[2].headers["Hello"] == [ "Foo" ]
         assert self.results[2].headers["Hi"] == [ "Baz" ]
         assert self.results[2].headers["Content-Type"] == [ "application/json" ]
-        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ "v2" ]
+        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ "v2alpha" ]
