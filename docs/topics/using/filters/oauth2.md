@@ -119,6 +119,9 @@ spec:
       inheritScopeArgument: bool          # optional; default is false
       stripInheritedScope:  bool          # optional; default is false
       arguments: JWT-Filter-Arguments     # optional
+    injectRequestHeaders:               # optional; default is []
+    - name:   "header-name-string"        # required
+      value:  "go-template-string"        # required
 
     ############################################################################
     # HTTP client settings for talking with the identity provider              #
@@ -354,6 +357,21 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
 ### OAuth Resource Server settings
 
  - `allowMalformedAccessToken`: Allow any access token, even if they are not RFC 6750-compliant.
+ - `injectRequestHeaders` injects HTTP header fields in to the request before sending it to the upstream service; where the header value can be set based on the JWT value.
+ If an OAuth2 filter is chained with a JWT filter with `injectRequestHeaders` configured, both sets of headers will be injected.
+ If the same header is injected in both filters, the OAuth2 filter will populate the value.
+ The value is specified as a [Go `text/template`][] string, with the following data made available to it:
+
+    * `.token.Raw` → `string` the access token raw JWT
+    * `.token.Header` → `map[string]interface{}` the access token JWT header, as parsed JSON
+    * `.token.Claims` → `map[string]interface{}` the access token JWT claims, as parsed JSON
+    * `.token.Signature` → `string` the access token signature
+    * `.idToken.Raw` → `string` the raw id token JWT
+    * `.idToken.Header` → `map[string]interface{}` the id token JWT header, as parsed JSON
+    * `.idToken.Claims` → `map[string]interface{}` the id token JWT claims, as parsed JSON
+    * `.idToken.Signature` → `string` the id token signature
+    * `.httpRequestHeader` → [`http.Header`][] a copy of the header of the incoming HTTP request.  Any changes to `.httpRequestHeader` (such as by using using `.httpRequestHeader.Set`) have no effect.  It is recommended to use `.httpRequestHeader.Get` instead of treating it as a map, in order to handle capitalization correctly.
+
  - `accessTokenValidation`: How to verify the liveness and scope of Access Tokens issued by the identity provider.  Valid values are either `"auto"`, `"jwt"`, or `"userinfo"`.  Empty or unset is equivalent to `"auto"`.
    * `"jwt"`: Validates the Access Token as a JWT.
      + By default: It accepts the RS256, RS384, or RS512 signature

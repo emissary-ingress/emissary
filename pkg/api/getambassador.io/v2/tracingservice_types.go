@@ -46,7 +46,9 @@ type TracingServiceSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
 	// +kubebuilder:validation:Enum={"lightstep","zipkin","datadog"}
-	Driver     string         `json:"driver,omitempty"`
+	// +kubebuilder:validation:Required
+	Driver string `json:"driver,omitempty"`
+	// +kubebuilder:validation:Required
 	Service    string         `json:"service,omitempty"`
 	Sampling   *TraceSampling `json:"sampling,omitempty"`
 	TagHeaders []string       `json:"tag_headers,omitempty"`

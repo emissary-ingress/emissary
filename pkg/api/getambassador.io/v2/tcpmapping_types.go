@@ -27,9 +27,11 @@ import (
 type TCPMappingSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
-	Port            int              `json:"port,omitempty"`
-	Host            string           `json:"host,omitempty"`
-	Address         string           `json:"address,omitempty"`
+	// +kubebuilder:validation:Required
+	Port    int    `json:"port,omitempty"`
+	Host    string `json:"host,omitempty"`
+	Address string `json:"address,omitempty"`
+	// +kubebuilder:validation:Required
 	Service         string           `json:"service,omitempty"`
 	EnableIPv4      bool             `json:"enable_ipv4,omitempty"`
 	EnableIPv6      bool             `json:"enable_ipv6,omitempty"`

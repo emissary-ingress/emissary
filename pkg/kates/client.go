@@ -15,6 +15,8 @@ import (
 	"time"
 
 	"github.com/spf13/pflag"
+
+	// k8s libraries
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -30,6 +32,10 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/kubectl/pkg/polymorphichelpers"
 
+	// k8s types
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	// k8s plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
 
@@ -223,6 +229,81 @@ func (c *Client) InvalidateCache() {
 // the kubernetes api-server version.
 func (c *Client) ServerVersion() (*VersionInfo, error) {
 	return c.disco.ServerVersion()
+}
+
+// processAPIResourceLists takes a `[]*metav1.APIResourceList` as returned by any of several calls
+// to a DiscoveryInterface, and transforms it in to a straight-forward `[]metav1.APIResource`.
+//
+// If you weren't paying close-enough attention, you might have thought I said it takes a
+// `*metav1.APIResourceList` object, and now you're wondering why this needs to be anything more
+// than `return input.APIResources`.  Well:
+//
+//   1. The various DiscoveryInterface calls don't return a List, they actually return an array of
+//      Lists, where the Lists are grouped by the group/version of the resources.  So we need to
+//      flatten those out.
+//   2. I guess the reason they group them that way is to avoid repeating the group and version in
+//      each resource, because the List objects themselvs have .Group and .Version set, but the
+//      APIresource objects don't.  This lets them save 10s of bytes on an infrequently use API
+//      call!  Anyway, we'll need to fill those in on the returned objects because we're discarding
+//      the grouping.
+func processAPIResourceLists(listsByGV []*metav1.APIResourceList) []APIResource {
+	// Do some book-keeping to allow us to pre-allocate the entire list.
+	count := 0
+	for _, list := range listsByGV {
+		if list != nil {
+			count += len(list.APIResources)
+		}
+	}
+	if count == 0 {
+		return nil
+	}
+
+	// Build the processed list to return.
+	ret := make([]APIResource, 0, count)
+	for _, list := range listsByGV {
+		if list != nil {
+			gv, err := schema.ParseGroupVersion(list.GroupVersion)
+			if err != nil {
+				continue
+			}
+			for _, typeinfo := range list.APIResources {
+				// I'm not 100% sure that none of the DiscoveryInterface calls fill
+				// in .Group and .Version, so just in case one of the calls does
+				// fill them in, we'll only fill them in if they're not already set.
+				if typeinfo.Group == "" {
+					typeinfo.Group = gv.Group
+				}
+				if typeinfo.Version == "" {
+					typeinfo.Version = gv.Version
+				}
+				ret = append(ret, typeinfo)
+			}
+		}
+	}
+
+	return ret
+}
+
+// ServerPreferredResources returns the list of resource types that the server supports.
+//
+// If a resource type supports multiple versions, then *only* the preferred version is returned.
+// Use ServerResources to return a list that includes all versions.
+func (c *Client) ServerPreferredResources() ([]APIResource, error) {
+	// It's possible that an error prevented listing some apigroups, but not all; so process the
+	// output even if there is an error.
+	listsByGV, err := c.disco.ServerPreferredResources()
+	return processAPIResourceLists(listsByGV), err
+}
+
+// ServerResources returns the list of resource types that the server supports.
+//
+// If a resource type supports multiple versions, then a list entry for *each* version is returned.
+// Use ServerPreferredResources to return a list that includes just the preferred version.
+func (c *Client) ServerResources() ([]APIResource, error) {
+	// It's possible that an error prevented listing some apigroups, but not all; so process the
+	// output even if there is an error.
+	_, listsByGV, err := c.disco.ServerGroupsAndResources()
+	return processAPIResourceLists(listsByGV), err
 }
 
 // ==

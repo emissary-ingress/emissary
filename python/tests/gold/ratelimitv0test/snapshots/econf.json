@@ -140,7 +140,7 @@
                               "cluster_name": "cluster_ratelimitv0test_rlsgrpc_default"
                             }
                           },
-                          "use_alpha": true
+                          "use_alpha": false
                         },
                         "request_type": "both",
                         "timeout": "0.500s"

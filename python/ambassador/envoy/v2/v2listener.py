@@ -387,7 +387,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
         }
 
     if auth.proto == "grpc":
-        protocol_version = auth.get('protocol_version', 'v2alpha')
+        protocol_version = auth.get('protocol_version', 'v2')
         auth_info = {
             'name': 'envoy.filters.http.ext_authz',
             'typed_config': {
@@ -967,6 +967,10 @@ class V2Listener(dict):
         listener_idle_timeout_ms = self.config.ir.ambassador_module.get('listener_idle_timeout_ms', None)
         if listener_idle_timeout_ms:
             self.base_http_config["common_http_protocol_options"] = { 'idle_timeout': "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0) }
+
+        max_request_headers_kb = self.config.ir.ambassador_module.get('max_request_headers_kb', None)
+        if max_request_headers_kb:
+            self.base_http_config["max_request_headers_kb"] = max_request_headers_kb
 
         if 'enable_http10' in self.config.ir.ambassador_module:
             self.base_http_config["http_protocol_options"] = { 'accept_http_10': self.config.ir.ambassador_module.enable_http10 }

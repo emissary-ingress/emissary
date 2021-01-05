@@ -165,9 +165,12 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 		w.Header()[http.CanonicalHeaderKey("Location")] = location
 	}
 
-	addExtauth := os.Getenv("INCLUDE_EXTAUTH_HEADER")
+	addExtauthEnv := os.Getenv("INCLUDE_EXTAUTH_HEADER")
+	// KAT tests that sent really big request headers might 503 if we send the request headers
+	// in the response. Enable tests to override the env var
+	addExtAuthOverride := r.URL.Query().Get("override_extauth_header")
 
-	if len(addExtauth) > 0 {
+	if len(addExtauthEnv) > 0 && len(addExtAuthOverride) == 0 {
 		extauth := make(map[string]interface{})
 		extauth["request"] = request
 		extauth["resp_headers"] = lower(w.Header())

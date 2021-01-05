@@ -52,7 +52,7 @@ def _get_ratelimit_default_conf():
         'request_type': 'both',
         'timeout': '0.020s',
         'rate_limit_service': {
-            'use_alpha': True,
+            'use_alpha': False,
             'grpc_service': {
                 'envoy_grpc': {
                     'cluster_name': 'cluster_{}_default'.format(SERVICE_NAME)
@@ -101,6 +101,27 @@ protocol_version: "v2"
     assert conf.get('typed_config') == config
 
 
+def test_irratelimit_grpcsvc_version_v2alpha():
+    # Test protocol_version override
+    yaml = """
+---
+apiVersion: ambassador/v2
+kind: RateLimitService
+name: myrls
+service: {}
+protocol_version: "v2alpha"
+""".format(SERVICE_NAME)
+    config = _get_ratelimit_default_conf()
+    config['rate_limit_service']['use_alpha'] = True
+
+    econf = _get_envoy_config(yaml)
+    conf = _get_rl_config(econf.as_dict())
+
+    assert conf
+
+    assert conf.get('typed_config') == config
+
+
 def test_irratelimit_error():
     # Test error no svc name
     yaml = """
@@ -128,7 +149,7 @@ namespace: someotherns
 domain: otherdomain
 timeout_ms: 500
 tls: rl-tls-context
-protocol_version: v2alpha
+protocol_version: v2
 """.format(SERVICE_NAME)
     config['rate_limit_service']['grpc_service']['envoy_grpc']['cluster_name'] = 'cluster_{}_someotherns'.format(SERVICE_NAME)
     config['timeout'] = '0.500s'

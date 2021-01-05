@@ -31,6 +31,9 @@ spec:
     code: 503                         # optional; default is 403
   failure_mode_allow: false         # optional; default is false
 
+  # proto: grpc only
+  protocol_version: oneOf[v2, v2alpha]      # optional; default is v2
+
   # the following are used only if `proto: http`; they are ignored if `proto: grpc`
 
   path_prefix: "/path"             # optional; default is ""
@@ -63,6 +66,10 @@ spec:
     * `code` (optional) defaults to 403.
 
  - `failure_mode_allow` (optional) being set to `true` causes the request to be allowed through to the upstream backend service if there is an error communicating with the external auth service, instead of returning `status_on_error.code` to the client Defaults to false.
+
+The following fields are only used if `proto: grpc`; they are ignored if `proto: http`:
+
+- `protocol_version` (optional) gRPC service name used to communicate with the `AuthService`. Allowed values are `v2alpha` which will use the `envoy.service.auth.v2alpha.Authorization` service name, and `v2` which will use the `envoy.service.auth.v2.Authorization` service name. Default is `v2`.`
 
 The following fields are only used if `proto: http`; they are ignored if `proto: grpc`:
 

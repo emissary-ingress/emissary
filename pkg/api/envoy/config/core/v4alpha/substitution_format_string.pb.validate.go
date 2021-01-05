@@ -49,13 +49,7 @@ func (m *SubstitutionFormatString) Validate() error {
 	switch m.Format.(type) {
 
 	case *SubstitutionFormatString_TextFormat:
-
-		if len(m.GetTextFormat()) < 1 {
-			return SubstitutionFormatStringValidationError{
-				field:  "TextFormat",
-				reason: "value length must be at least 1 bytes",
-			}
-		}
+		// no validation rules for TextFormat
 
 	case *SubstitutionFormatString_JsonFormat:
 

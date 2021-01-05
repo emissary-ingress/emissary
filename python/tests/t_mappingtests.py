@@ -365,39 +365,108 @@ class HostRedirectMapping(MappingTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
 service: foobar.com
 host_redirect: true
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.name}-2
 prefix: /{self.name}-2/
 case_sensitive: false
 service: foobar.com
 host_redirect: true
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.name}-3
+prefix: /{self.name}-3/foo/
+service: foobar.com
+host_redirect: true
+path_redirect: /redirect/
+redirect_response_code: 302
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.name}-4
+prefix: /{self.name}-4/foo/bar/baz
+service: foobar.com
+host_redirect: true
+prefix_redirect: /foobar/baz
+redirect_response_code: 307
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.name}-5
+prefix: /{self.name}-5/assets/([a-f0-9]{{12}})/images
+prefix_regex: true
+service: foobar.com
+host_redirect: true
+regex_redirect:
+  pattern: /{self.name}-5/assets/([a-f0-9]{{12}})/images
+  substitution: /images/\\1
+redirect_response_code: 308
 """)
 
     def queries(self):
+        # [0]
         yield Query(self.parent.url(self.name + "/anything?itworked=true"), expected=301)
+
+        # [1]
         yield Query(self.parent.url(self.name.upper() + "/anything?itworked=true"), expected=404)
+
+        # [2]
         yield Query(self.parent.url(self.name + "-2/anything?itworked=true"), expected=301)
+
+        # [3]
         yield Query(self.parent.url(self.name.upper() + "-2/anything?itworked=true"), expected=301)
 
+        # [4]
+        yield Query(self.parent.url(self.name + "-3/foo/anything"), expected=302)
+
+        # [5]
+        yield Query(self.parent.url(self.name + "-4/foo/bar/baz/anything"), expected=307)
+
+        # [6]
+        yield Query(self.parent.url(self.name + "-5/assets/abcd0000f123/images"), expected=308)
+
+        # [7]
+        yield Query(self.parent.url(self.name + "-5/assets/abcd0000f123/images?itworked=true"), expected=308)
+
     def check(self):
-        assert self.results[0].headers['Location'] == [
-            self.format("http://foobar.com/{self.name}/anything?itworked=true")
-        ]
+        # [0]
+        assert self.results[0].headers['Location'] == [self.format("http://foobar.com/{self.name}/anything?itworked=true")], \
+            f"Unexpected Location {self.results[0].headers['Location']}"
+
+        # [1]
         assert self.results[1].status == 404
-        assert self.results[2].headers['Location'] == [
-            self.format("http://foobar.com/{self.name}-2/anything?itworked=true")
-        ]
-        assert self.results[3].headers['Location'] == [
-            self.format("http://foobar.com/" + self.name.upper() + "-2/anything?itworked=true")
-        ]
+
+        # [2]
+        assert self.results[2].headers['Location'] == [self.format("http://foobar.com/{self.name}-2/anything?itworked=true")], \
+            f"Unexpected Location {self.results[2].headers['Location']}"
+
+        # [3]
+        assert self.results[3].headers['Location'] == [self.format("http://foobar.com/" + self.name.upper() + "-2/anything?itworked=true")], \
+            f"Unexpected Location {self.results[3].headers['Location']}"
+
+        # [4]
+        assert self.results[4].headers['Location'] == [self.format("http://foobar.com/redirect/")], \
+            f"Unexpected Location {self.results[4].headers['Location']}"
+
+        # [5]
+        assert self.results[5].headers['Location'] == [self.format("http://foobar.com/foobar/baz/anything")], \
+            f"Unexpected Location {self.results[5].headers['Location']}"
+
+        # [6]
+        assert self.results[6].headers['Location'] == [self.format("http://foobar.com/images/abcd0000f123")], \
+            f"Unexpected Location {self.results[6].headers['Location']}"
+
+        # [7]
+        assert self.results[7].headers['Location'] == [self.format("http://foobar.com/images/abcd0000f123?itworked=true")], \
+            f"Unexpected Location {self.results[7].headers['Location']}"
 
 
 class CanaryMapping(MappingTest):
@@ -576,7 +645,7 @@ class EdgeStackMapping(MappingTest):
 
     def init(self):
         MappingTest.init(self, HTTP())
- 
+
         if not EDGE_STACK:
             self.skip_node = True
 
@@ -743,7 +812,7 @@ remove_request_headers:
 
         # [2] expect Linkerd headers only
         yield Query(self.url("target_add_linkerd_header_only/"), headers={ "x-evil-header": "evilness", "x-evilness": "more evilness" }, expected=200)
-        
+
     def check(self):
         # [0]
         assert len(self.results[0].backend.request.headers['l5d-dst-override']) > 0

@@ -118,9 +118,12 @@ metadata:
   name:  ratelimit
 spec:
   service: "example-rate-limit:5000"
+  protocol_version: oneOf[v2, v2alpha]    # optional; default is v2
 ```
 
 - `service` gives the URL of the rate limit service.
+- `protocol_version` (optional) gRPC service name used to communicate with the `RateLimitService`. Allowed values are `v2alpha` which will use the `pb.lyft.ratelimit.RateLimitService` service name, and `v2` which will use the `envoy.service.ratelimit.v2.RateLimitService` service name. Default is `v2`.`
+
 
 You may only use a single `RateLimitService` manifest.
 
