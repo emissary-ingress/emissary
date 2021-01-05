@@ -28,10 +28,11 @@ jobs:
       "test":
         type: enum
         enum:
-          - "test" # everything
+          - "test" # everything but pytest-envoy
           - "ingresstest"
           - "gotest"
           - "pytest"
+          - "pytest-envoy"
         default: "test"
       "fast-reconfigure":
         type: boolean
@@ -99,6 +100,7 @@ workflows:
               test:
                 - "gotest"
                 - "pytest"
+                - "pytest-envoy"
                 # Running the ingresstests would require we install `kind` and
                 # that the test suite supports HTTP to HTTPS redirects (AES
                 # enables cleartext redirection by default, even for fallback
@@ -137,6 +139,7 @@ workflows:
               test:
                 - "gotest"
                 - "pytest"
+                - "pytest-envoy"
                 # Running the ingresstests would require we install `kind` and
                 # that the test suite supports HTTP to HTTPS redirects (AES
                 # enables cleartext redirection by default, even for fallback
@@ -159,3 +162,18 @@ workflows:
       - "oss-promote-to-ga":
           <<: *filter-ga-only
           name: "oss-release-promote-to-ga"
+
+  "OSS: Nightly":
+    triggers:
+      - schedule:
+          # Time is in UTC: 2AM EDT on weekdays
+          cron: "0 6 * * 1-5"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - "oss-test":
+          name: "oss-nightly-pytest-envoy"
+          test: pytest-envoy
+          fast-reconfigure: true

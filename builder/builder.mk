@@ -244,7 +244,8 @@ docker/builder-base.docker.stamp: FORCE preflight
 	@$(BUILDER) build-builder-base >$@
 docker/container.txt.stamp: %/container.txt.stamp: %/builder-base.docker.tag.local %/base-envoy.docker.tag.local FORCE
 	@printf "${CYN}==> ${GRN}Bootstrapping builder container${END}\n"
-	@$(BUILDER) bootstrap > $@
+	@($(BOOTSTRAP_EXTRAS) $(BUILDER) bootstrap > $@)
+
 docker/snapshot.docker.stamp: %/snapshot.docker.stamp: %/container.txt FORCE compile
 	@set -e; { \
 	  if test -e $@ && ! docker exec $$(cat $<) test -e /buildroot/image.dirty; then \
@@ -366,7 +367,7 @@ pytest-only: sync preflight-cluster | docker/$(NAME).docker.push.remote docker/k
 		-e DEV_REGISTRY \
 		-e DOCKER_BUILD_USERNAME \
 		-e DOCKER_BUILD_PASSWORD \
-		-e AMBASSADOR_FAST_VALIDATION \
+		-e AMBASSADOR_LEGACY_MODE \
 		-e AMBASSADOR_FAST_RECONFIGURE \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal ; test_exit=$$? ; \
 		[ -n "$(TEST_XML_DIR)" ] && docker cp $(shell $(BUILDER)):/tmp/test-data/pytest.xml $(TEST_XML_DIR) ; exit $$test_exit

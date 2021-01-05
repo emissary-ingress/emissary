@@ -50,7 +50,7 @@ certificates.
 2. Create a secret to hold the client CA certificate.
 
    ```shell
-   kubectl create secret generic client-cacert --from-file=tls.crt=cet.pem
+   kubectl create secret generic client-cacert --from-file=tls.crt=cert.pem
    ```
 
 3. Configure Ambassador Edge Stack to use this certificate for client certificate validation.

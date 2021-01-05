@@ -50,75 +50,85 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 		endpointFs += fmt.Sprintf(",%s", fs)
 	}
 
-	var CRDs []*kates.CustomResourceDefinition
-	err = client.List(ctx, kates.Query{Kind: "CustomResourceDefinition"}, &CRDs)
+	serverTypeList, err := client.ServerPreferredResources()
 	if err != nil {
-		panic(err)
+		// It's possible that an error prevented listing some apigroups, but not all; so
+		// process the output even if there is an error.
+		log.Printf("Warning, unable to list api-resources: %v", err)
+	}
+	serverTypes := make(map[string]kates.APIResource, len(serverTypeList))
+	for _, typeinfo := range serverTypeList {
+		serverTypes[typeinfo.Name+"."+typeinfo.Group] = typeinfo
 	}
 
-	crdNames := map[string]bool{}
-	for _, crd := range CRDs {
-		crdNames[crd.Spec.Names.Kind] = true
-		crdNames[crd.GetName()] = true
-	}
+	// We set interestingTypes to the list of types that we'd like to watch (if that type exits
+	// in this cluster).
+	//
+	// - The key in the map is the how we'll label them in the snapshot we pass to the rest of
+	//   Ambassador.
+	// - The typename in the map values should be the qualified "${name}.${group}", where
+	//   "${name} is lowercase+plural.
+	// - If the map value doesn't set a field selector, then `fs` (above) will be used.
+	interestingTypes := map[string]struct {
+		typename      string
+		fieldselector string
+	}{
+		"Services":   {typename: "services."},
+		"K8sSecrets": {typename: "secrets."}, // Note: "K8sSecrets" is not the "obvious" keyname
+		"Endpoints":  {typename: "endpoints.", fieldselector: endpointFs},
 
-	for _, name := range []string{"Ingress", "Service", "Secret", "Endpoints"} {
-		crdNames[name] = true
-	}
+		"IngressClasses": {typename: "ingressclasses.networking.k8s.io"}, // new in Kubernetes 1.18
+		//"Ingresses": {typename: "ingresses.networking.k8s.io"}, // new in Kubernetes 1.14, deprecating ingresses.extensions
+		"Ingresses": {typename: "ingresses.extensions"}, // new in Kubernetes 1.2
 
-	allQueries := []kates.Query{
-		//kates.Query{Name: "IngressClasses", Kind: "IngressClass"}, // XXX: what is an ingress class?
-		{Namespace: ns, Name: "Ingresses", Kind: "Ingress",
-			FieldSelector: fs, LabelSelector: ls},
-		{Namespace: ns, Name: "Services", Kind: "Service",
-			FieldSelector: fs, LabelSelector: ls},
-		{Namespace: ns, Name: "K8sSecrets", Kind: "Secret",
-			FieldSelector: fs, LabelSelector: ls},
-		{Namespace: ns, Name: "Hosts", Kind: "Host",
-			FieldSelector: fs, LabelSelector: ls},
-		{Namespace: ns, Name: "Mappings", Kind: "Mapping",
-			FieldSelector: fs, LabelSelector: ls},
-		{Namespace: ns, Name: "TCPMappings", Kind: "TCPMapping",
-			FieldSelector: fs, LabelSelector: ls},
-		{Namespace: ns, Name: "TLSContexts", Kind: "TLSContext",
-			FieldSelector: fs, LabelSelector: ls},
-		{Namespace: ns, Name: "Modules", Kind: "Module",
-			FieldSelector: fs, LabelSelector: ls},
-		{Namespace: ns, Name: "RateLimitServices", Kind: "RateLimitService",
-			FieldSelector: fs, LabelSelector: ls},
-		{Namespace: ns, Name: "AuthServices", Kind: "AuthService",
-			FieldSelector: fs, LabelSelector: ls},
-		{Namespace: ns, Name: "DevPortals", Kind: "DevPortal",
-			FieldSelector: fs, LabelSelector: ls},
-		{Namespace: ns, Name: "LogServices", Kind: "LogService",
-			FieldSelector: fs, LabelSelector: ls},
-		{Namespace: ns, Name: "TracingServices", Kind: "TracingService",
-			FieldSelector: fs, LabelSelector: ls},
-		{Namespace: ns, Name: "ConsulResolvers", Kind: "ConsulResolver",
-			FieldSelector: fs, LabelSelector: ls},
-		{Namespace: ns, Name: "KubernetesEndpointResolvers", Kind: "KubernetesEndpointResolver",
-			FieldSelector: fs, LabelSelector: ls},
-		{Namespace: ns, Name: "KubernetesServiceResolvers", Kind: "KubernetesServiceResolver",
-			FieldSelector: fs, LabelSelector: ls},
-		{Namespace: ns, Name: "Endpoints", Kind: "Endpoints", FieldSelector: endpointFs, LabelSelector: ls},
+		"AuthServices":                {typename: "authservices.getambassador.io"},
+		"ConsulResolvers":             {typename: "consulresolvers.getambassador.io"},
+		"DevPortals":                  {typename: "devportals.getambassador.io"},
+		"Hosts":                       {typename: "hosts.getambassador.io"},
+		"KubernetesEndpointResolvers": {typename: "kubernetesendpointresolvers.getambassador.io"},
+		"KubernetesServiceResolvers":  {typename: "kubernetesserviceresolvers.getambassador.io"},
+		"LogServices":                 {typename: "logservices.getambassador.io"},
+		"Mappings":                    {typename: "mappings.getambassador.io"},
+		"Modules":                     {typename: "modules.getambassador.io"},
+		"RateLimitServices":           {typename: "ratelimitservices.getambassador.io"},
+		"TCPMappings":                 {typename: "tcpmappings.getambassador.io"},
+		"TLSContexts":                 {typename: "tlscontexts.getambassador.io"},
+		"TracingServices":             {typename: "tracingservices.getambassador.io"},
 	}
-
 	if IsKnativeEnabled() {
-		allQueries = append(allQueries,
-			kates.Query{Namespace: ns, Name: "KNativeClusterIngresses",
-				Kind: "clusteringresses.networking.internal.knative.dev", FieldSelector: fs, LabelSelector: ls},
-			kates.Query{Namespace: ns, Name: "KNativeIngresses", Kind: "ingresses.networking.internal.knative.dev",
-				FieldSelector: fs, LabelSelector: ls})
+		interestingKNativeTypes := map[string]struct {
+			typename      string
+			fieldselector string
+		}{
+			// Note: These keynames have a "KNative" prefix, to avoid clashing with the
+			// standard "networking.k8s.io" and "extensions" types.
+			"KNativeClusterIngresses": {typename: "clusteringresses.networking.internal.knative.dev"},
+			"KNativeIngresses":        {typename: "ingresses.networking.internal.knative.dev"},
+		}
+		for k, v := range interestingKNativeTypes {
+			interestingTypes[k] = v
+		}
 	}
 
 	var queries []kates.Query
-
-	for _, q := range allQueries {
-		if crdNames[q.Kind] {
-			queries = append(queries, q)
-		} else {
-			log.Printf("Warning, unable to watch %s, unknown kind.", q.Kind)
+	for snapshotname, queryinfo := range interestingTypes {
+		if _, haveType := serverTypes[queryinfo.typename]; !haveType {
+			log.Printf("Warning, unable to watch %s, unknown kind.", queryinfo.typename)
+			continue
 		}
+
+		query := kates.Query{
+			Namespace:     ns,
+			Name:          snapshotname,
+			Kind:          queryinfo.typename,
+			FieldSelector: queryinfo.fieldselector,
+			LabelSelector: ls,
+		}
+		if query.FieldSelector == "" {
+			query.FieldSelector = fs
+		}
+
+		queries = append(queries, query)
 	}
 
 	snapshot := NewAmbassadorInputs()

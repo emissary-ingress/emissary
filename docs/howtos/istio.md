@@ -42,7 +42,13 @@ The process of collecting mTLS certificates is different depending on your Istio
 
 Istio 1.5 introduced [istiod](https://istio.io/docs/ops/deployment/architecture/#istiod) which moved Istio towards a single control plane process.
 
-Below we will update the deployment of Ambassador to add the `istio-proxy` sidecar so we can get Istio's mTLS certificates straight from the Istio control plane.
+Below we will update the deployment of Ambassador to include the `istio-proxy` sidecar, and configure the system to allow Istio and Ambassador to share mTLS certificates:
+
+- Both the `istio-proxy` sidecar and Ambassador mount the `istio-certs` volume at `/etc/istio-certs`.
+- The `istio-proxy` sidecar will save the mTLS certificates into `/etc/istio-certs` (per the `OUTPUT_CERTS` environment variable).
+- Ambassador will read the mTLS certificates from `/etc/istio-certs` (per the `AMBASSADOR_ISTIO_SECRET_DIR` environment variable) and create a secret named `istio-certs`.
+   - At present, the secret name `istio-certs` cannot be changed.
+   - To make use of the secret, use a `TLSContext` as shown below.
 
 ```diff
 ---
@@ -89,12 +95,10 @@ spec:
           value: ambassador-redis:6379
         - name: AMBASSADOR_URL
           value: https://ambassador.ambassador.svc.cluster.local
-        - name: POLL_EVERY_SECS
-          value: '60'
         - name: AMBASSADOR_INTERNAL_URL
           value: https://127.0.0.1:8443
-        - name: AMBASSADOR_SINGLE_NAMESPACE
-          value: ''
+        - name: AMBASSADOR_ISTIO_SECRET_DIR
+          value: "/etc/istio-certs"
         # Necessary to run the istio-proxy sidecar
         - name: AMBASSADOR_ENVOY_BASE_ID
           value: "1"
@@ -256,7 +260,7 @@ Deploy the YAML above with `kubectl apply` to install Ambassador with the `istio
 
 After applying the updated Ambassador deployment above to your cluster, we need to stage the Istio mTLS certificates for use.
 
-We do this with a `TLSContext` that loads the mTLS certificates from the `istio-proxy` for use when sending requests upstream.
+We do this with a `TLSContext` using the `istio-certs` secret, which tracks the mTLS certificates provided from the `istio-proxy`.
 
 ```bash
 $ kubectl apply -f - <<EOF
@@ -267,9 +271,7 @@ metadata:
   name: istio-upstream
   namespace: ambassador
 spec:
-  cert_chain_file: /etc/istio-certs/cert-chain.pem
-  private_key_file: /etc/istio-certs/key.pem
-  cacert_chain_file: /etc/istio-certs/root-cert.pem
+  secret: istio-certs     # This secret name tracks the Istio certificates read from /etc/istio-certs
   alpn_protocols: istio
 EOF
 ```

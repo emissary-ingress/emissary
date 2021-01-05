@@ -14,9 +14,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-if [ "${AMBASSADOR_FAST_RECONFIGURE,,}" == "true" ]; then
-  exec busyambassador entrypoint
+# THE DEFAULT BOOT SEQUENCE IS NOW entrypoint.go. HOWEVER, we'll stick
+# with entrypoint.sh in the following cases:
+#
+# 1. AMBASSADOR_LEGACY_MODE is set. This is the official, approved way
+#    to stick with entrypoint.sh if you need to do that for some reason.
+# 2. AGENT_SERVICE is set. This is used for old-style service preview,
+#    using telepresence 1.
+# 3. The --dev-magic parameter is present. This is currently used only
+#    for test_scout.py.
+#
+# XXX Cases 2 and 3 are BRUTAL HACKS.
+
+DEVMAGIC=
+if [ "$1" == "--dev-magic" ]; then
+    DEVMAGIC=yes
 fi
+
+if [ -z "$DEVMAGIC" -a -z "$AGENT_SERVICE" -a \( "${AMBASSADOR_LEGACY_MODE,,}" != "true" \) ]; then
+  exec busyambassador entrypoint "$@"   # See comment above.
+fi
+
+# If we are here, define AMBASSADOR_LEGACY_MODE, to make _absolutely certain_ that
+# diagd's localhost checks are in sync with what's actually running.
+export AMBASSADOR_LEGACY_MODE=true
 
 ENTRYPOINT_DEBUG=
 
@@ -97,7 +118,7 @@ export APPDIR="${APPDIR:-$ambassador_root}"
 export PYTHON_EGG_CACHE="${PYTHON_EGG_CACHE:-$AMBASSADOR_CONFIG_BASE_DIR}/.cache"
 export PYTHONUNBUFFERED=true
 
-if [[ "$1" == "--dev-magic" ]]; then
+if [ -n "$DEVMAGIC" ]; then
     log "running with dev magic"
     diagd --dev-magic
     exit $?
@@ -456,10 +477,16 @@ fi
 ################################################################################
 # WORKER: extra sidecars                                                       #
 ################################################################################
-shopt -s nullglob
-for sidecar in /ambassador/sidecars/*; do
-    launch "${sidecar##*/}" "$sidecar"
-done
+# If AGENT_SERVICE is set, we don't do this: the intercept agent doesn't use
+# any of the Edge Stack sidecars, and they just clutter up the logs doing 
+# nothing useful.
+
+if [[ -z "$AGENT_SERVICE" ]]; then
+    shopt -s nullglob
+    for sidecar in /ambassador/sidecars/*; do
+        launch "${sidecar##*/}" "$sidecar"
+    done
+fi
 
 ################################################################################
 # Wait for one worker to quit, then kill the others                            #

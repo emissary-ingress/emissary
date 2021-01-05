@@ -80,10 +80,11 @@ commands:
       "test":
         type: enum
         enum:
-        - "test" # everything
+        - "test" # everything but pytest-envoy
         - "ingresstest"
         - "gotest"
         - "pytest"
+        - "pytest-envoy"
         - "e2etest"
         default: "test"
       "fast-reconfigure":
@@ -95,6 +96,23 @@ commands:
     - amb-images-load-workspace
     - skip-if-only-changes:
         to: docs/
+    - when:
+        condition:
+          equal: ["pytest-envoy", << parameters.test >>]
+        steps:
+        - skip-if-no-changes:
+            to: "(/envoy\\.mk$|/python/tests/gold/|/pytest/gold/)"
+        - run: |
+            if [[ -z "$KUBECEPTION_TOKEN" ]]; then
+              circleci step halt
+            fi
+        - # The hard-requirement for the cluster is "25GB of RAM",
+          # which "large" has (35GB).  There are spurts where it
+          # pegs the CPU, but for the most part it sits around 50%
+          # CPU.  And it seems that even if we peg the CPU the whole
+          # time it still runs OK if there's plenty of RAM.
+          run: |
+            echo >>"$BASH_ENV" 'export KUBECEPTION_PROFILE=large'
     - amb-config-cluster-and-registry
     - # main
       run:
@@ -115,8 +133,8 @@ commands:
           fi
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
-          if << parameters.fast-reconfigure >>; then
-            export AMBASSADOR_FAST_VALIDATION=yes # empty/nonempty
+          if ! << parameters.fast-reconfigure >>; then
+            export AMBASSADOR_LEGACY_MODE=true # ParseBool
           fi
           export AMBASSADOR_FAST_RECONFIGURE=<< parameters.fast-reconfigure >> # ParseBool
           export TEST_XML_DIR=/tmp/test-logs/xml/
@@ -182,8 +200,6 @@ commands:
         - "."
   amb-images-load-workspace:
     steps:
-    - run:
-        command: git config --global url.ssh://git@github.com/.insteadOf https://github.com/
     - attach_workspace:
         at: /home/circleci/project
     - run:
@@ -477,10 +493,11 @@ jobs:
       test:
         type: enum
         enum:
-        - "test" # everything
+        - "test" # everything but pytest-envoy
         - "ingresstest"
         - "gotest"
         - "pytest"
+        - "pytest-envoy"
         default: "test"
       fast-reconfigure:
         type: boolean
@@ -581,6 +598,7 @@ workflows:
             test:
             - "gotest"
             - "pytest"
+            - "pytest-envoy"
             # Running the ingresstests would require we install `kind` and
             # that the test suite supports HTTP to HTTPS redirects (AES
             # enables cleartext redirection by default, even for fallback
@@ -633,6 +651,7 @@ workflows:
             test:
             - "gotest"
             - "pytest"
+            - "pytest-envoy"
             # Running the ingresstests would require we install `kind` and
             # that the test suite supports HTTP to HTTPS redirects (AES
             # enables cleartext redirection by default, even for fallback
@@ -668,6 +687,19 @@ workflows:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
           branches:
             ignore: /.*/
+  'OSS: Nightly':
+    triggers:
+    - schedule:
+        cron: "0 6 * * 1-5"
+        filters:
+          branches:
+            only:
+            - master
+    jobs:
+    - oss-test:
+        name: "oss-nightly-pytest-envoy"
+        test: pytest-envoy
+        fast-reconfigure: true
   'Docs: Dev':
     jobs:
     - "website-preview-build"
