@@ -1,3 +1,6 @@
+---
+description: "Ambassador can use custom error responses to override HTTP response statuses generated either by Ambassador or upstream services."
+---
 # Custom Error Responses
 
 Custom error responses set overrides for HTTP response statuses generated either
