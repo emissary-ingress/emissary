@@ -12,7 +12,7 @@ Ambassador Edge Stack enables you to control timeouts in several different ways.
 
 ## Cluster Idle Timeout: `cluster_idle_timeout_ms`
 
-`cluster_idle_timeout_ms` controls how long a connection stream will remain open if there are no active requests. This timeout operates based on outgoing requests to upstream services. By default this is set to 30000ms.  It can be disabled by setting the value to 0.
+`cluster_idle_timeout_ms` controls how long a connection stream will remain open if there are no active requests. This timeout operates based on outgoing requests to upstream services. By default, this is set to 3600000ms (or 1 hour). It can be disabled by setting the value to 0.
 
 ## Connect Timeout: `connect_timeout_ms`
 
