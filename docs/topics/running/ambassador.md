@@ -140,7 +140,7 @@ When using Linkerd, requests going to an upstream service need to include the `l
 
 ### Upstream Idle Timeout (`cluster_idle_timeout_ms`)
 
-If set, `cluster_idle_timeout_ms` specifies the timeout (in milliseconds) after which an idle connection upstream is closed. If no `cluster_idle_timeout_ms` is specified, upstream connections will never be closed due to idling.
+If set, `cluster_idle_timeout_ms` specifies the timeout (in milliseconds) after which an idle connection upstream is closed. If `cluster_idle_timeout` is disabled by setting it to 0, you risk upstream connections never getting closed due to idling if you do not set [`idle_timeout_ms` on each `Mapping`](../../using/timeouts/).
 
 ### Defaults (`defaults`)
 
