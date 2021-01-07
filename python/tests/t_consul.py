@@ -116,13 +116,29 @@ secret: {self.path.k8s}-client-cert-secret
         yield("url", Query(self.format("http://{self.path.k8s}-consul:8500/ui/")))
 
     def queries(self):
-        # The K8s service should be OK. The Consul services should 503 because it has no upstreams
+        # Deregister the Consul services in phase 0.
+        yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/deregister"),
+                    method="PUT",
+                    body={
+                        "Datacenter": "dc1",
+                        "Node": self.format("{self.path.k8s}-consul-service")
+                    },
+                    phase=0)
+        yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/deregister"),
+                    method="PUT",
+                    body={
+                        "Datacenter": "dc1",
+                        "Node": self.format("{self.path.k8s}-consul-node")
+                    },
+                    phase=0)
+
+        # The K8s service should be OK. The Consul services should 503 since they have no upstreams
         # in phase 1.
         yield Query(self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=1)
         yield Query(self.url(self.format("{self.path.k8s}_consul/")), expected=503, phase=1)
         yield Query(self.url(self.format("{self.path.k8s}_consul_node/")), expected=503, phase=1)
 
-        # Register the Consul service in phase 2.
+        # Register the Consul services in phase 2.
         yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
                     method="PUT",
                     body={
@@ -143,15 +159,10 @@ secret: {self.path.k8s}-client-cert-secret
                                     "Port": 80}},
                     phase=2)
 
-        # The k8s service should still be working in phase 3...
+        # All services should work in phase 3.
         yield Query(self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=3)
-
-        # ...and both services should work in phase 4. We wait until phase 4 to check
-        # the consul-backed services because it sometimes takes a long time for consul
-        # to do the thing.
-        yield Query(self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=4)
-        yield Query(self.url(self.format("{self.path.k8s}_consul/")), expected=200, phase=4)
-        yield Query(self.url(self.format("{self.path.k8s}_consul_node/")), expected=200, phase=4)
+        yield Query(self.url(self.format("{self.path.k8s}_consul/")), expected=200, phase=3)
+        yield Query(self.url(self.format("{self.path.k8s}_consul_node/")), expected=200, phase=3)
 
     def check(self):
         pass
