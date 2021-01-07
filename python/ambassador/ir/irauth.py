@@ -28,6 +28,7 @@ class IRAuth (IRFilter):
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, namespace=namespace,
             cluster=None,
+            circuit_breakers=None,
             timeout_ms=None,
             connect_timeout_ms=3000,
             path_prefix=None,
@@ -75,6 +76,7 @@ class IRAuth (IRFilter):
                 ir=ir, aconf=aconf, parent_ir_resource=self, location=location,
                 service=service,
                 host_rewrite=self.get('host_rewrite', False),
+                circuit_breakers=self.circuit_breakers,
                 ctx_name=ctx_name,
                 grpc=grpc,
                 marker='extauth'
@@ -124,6 +126,16 @@ class IRAuth (IRFilter):
             add_linkerd_headers = module.get('add_linkerd_headers', None)
             if add_linkerd_headers is None:
                 self["add_linkerd_headers"] = ir.ambassador_module.get('add_linkerd_headers', False)
+
+        if module.get('circuit_breakers') is not None:
+            self['circuit_breakers'] = module.get('circuit_breakers')
+        else:
+            self['circuit_breakers'] = ir.ambassador_module.circuit_breakers
+
+        # TODO: Validate cbs
+        # if self.get('circuit_breakers', None) is not None:
+        #     if not validate_circuit_breakers(ir, self['circuit_breakers']):
+        #         self.post_error("Invalid circuit_breakers specified: {}, invalidating mapping".format(self['circuit_breakers']))
 
         self["allow_request_body"] = module.get("allow_request_body", False)
         self["include_body"] = module.get("include_body", None)

@@ -47,7 +47,7 @@
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
         "load_assignment": {
-          "cluster_name": "cluster_authenticationhttppartialbuffertest_http_default",
+          "cluster_name": "cluster_authenticationcircuitbreakersconfig_http_default",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -55,7 +55,7 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "authenticationhttppartialbuffertest-http",
+                        "address": "authenticationcircuitbreakersconfig-http",
                         "port_value": 80,
                         "protocol": "TCP"
                       }
@@ -66,7 +66,7 @@
             }
           ]
         },
-        "name": "cluster_authenticationhttppartialbuffertest_http_default",
+        "name": "cluster_authenticationcircuitbreakersconfig_http_default",
         "type": "STRICT_DNS"
       },
       {
@@ -85,7 +85,7 @@
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
         "load_assignment": {
-          "cluster_name": "cluster_extauth_authenticationhttppartia-0",
+          "cluster_name": "cluster_extauth_authenticationcircuitbre-0",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -93,8 +93,8 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "authenticationhttppartialbuffertest-http-auth",
-                        "port_value": 443,
+                        "address": "authenticationcircuitbreakersconfig-http-auth",
+                        "port_value": 80,
                         "protocol": "TCP"
                       }
                     }
@@ -104,25 +104,7 @@
             }
           ]
         },
-        "name": "cluster_extauth_authenticationhttppartia-0",
-        "transport_socket": {
-          "name": "envoy.transport_sockets.tls",
-          "typed_config": {
-            "@type": "type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext",
-            "common_tls_context": {
-              "tls_certificates": [
-                {
-                  "certificate_chain": {
-                    "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/auth-partial-secret/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt"
-                  },
-                  "private_key": {
-                    "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/auth-partial-secret/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key"
-                  }
-                }
-              ]
-            }
-          }
-        },
+        "name": "cluster_extauth_authenticationcircuitbre-0",
         "type": "STRICT_DNS"
       }
     ],
@@ -176,12 +158,6 @@
                                   "exact": "proxy-authorization"
                                 },
                                 {
-                                  "exact": "requested-header"
-                                },
-                                {
-                                  "exact": "requested-status"
-                                },
-                                {
                                   "exact": "user-agent"
                                 },
                                 {
@@ -195,19 +171,11 @@
                                 }
                               ]
                             },
-                            "headers_to_add": [
-                              {
-                                "key": "X-Added-Auth",
-                                "value": "auth-added"
-                              }
-                            ]
+                            "headers_to_add": []
                           },
                           "authorization_response": {
                             "allowed_client_headers": {
                               "patterns": [
-                                {
-                                  "exact": "auth-request-body"
-                                },
                                 {
                                   "exact": "authorization"
                                 },
@@ -228,9 +196,6 @@
                             "allowed_upstream_headers": {
                               "patterns": [
                                 {
-                                  "exact": "auth-request-body"
-                                },
-                                {
                                   "exact": "authorization"
                                 },
                                 {
@@ -250,14 +215,10 @@
                           },
                           "path_prefix": "/extauth",
                           "server_uri": {
-                            "cluster": "cluster_extauth_authenticationhttppartia-0",
+                            "cluster": "cluster_extauth_authenticationcircuitbre-0",
                             "timeout": "5.000s",
-                            "uri": "https://extauth"
+                            "uri": "http://extauth"
                           }
-                        },
-                        "with_request_body": {
-                          "allow_partial_message": true,
-                          "max_request_bytes": 7
                         }
                       }
                     },
@@ -428,11 +389,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_authenticationhttppartialbuffertest_http_default"
+                                "runtime_key": "routing.traffic_shift.cluster_authenticationcircuitbreakersconfig_http_default"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_authenticationhttppartialbuffertest_http_default",
+                              "cluster": "cluster_authenticationcircuitbreakersconfig_http_default",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -447,11 +408,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_authenticationhttppartialbuffertest_http_default"
+                                "runtime_key": "routing.traffic_shift.cluster_authenticationcircuitbreakersconfig_http_default"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_authenticationhttppartialbuffertest_http_default",
+                              "cluster": "cluster_authenticationcircuitbreakersconfig_http_default",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"

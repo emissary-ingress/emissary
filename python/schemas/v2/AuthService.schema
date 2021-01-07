@@ -42,6 +42,23 @@
         },
         "allow_request_body": { "type": "boolean" },
         "add_linkerd_headers": { "type": "boolean" },
+        "circuit_breakers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "priority": {
+                        "type": "string",
+                        "enum": ["default", "high"]
+                    },
+                    "max_connections": { "type": "integer" },
+                    "max_pending_requests": { "type": "integer" },
+                    "max_requests": { "type": "integer" },
+                    "max_retries": { "type": "integer" }
+                },
+                "additionalProperties": false
+            }
+        },
         "include_body": {
             "type": "object",
             "properties": {

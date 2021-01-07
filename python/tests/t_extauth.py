@@ -147,6 +147,13 @@ add_auth_headers:
 include_body:
   max_bytes: 7
   allow_partial: true
+
+circuit_breakers:
+- priority: default
+  max_connections: 5000
+  max_pending_requests: 5000
+  max_requests: 5000
+  max_retries: 15
 """)
         yield self, self.format("""
 ---
@@ -881,3 +888,51 @@ service: {self.target.path.fqdn}
         assert self.results[3].headers["Server"] == ["envoy"]
         assert self.results[3].headers["Authorization"] == ["foo-11111"]
         assert self.results[3].backend.request.headers['x-grpc-service-protocol-version'] == ['v2alpha']
+
+
+class AuthenticationCircuitBreakersConfig(AmbassadorTest):
+
+    target: ServiceType
+    auth: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+        self.auth = HTTP(name="auth")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v2
+kind: AuthService
+name:  {self.auth.path.k8s}
+auth_service: "{self.auth.path.fqdn}"
+path_prefix: "/extauth"
+timeout_ms: 5000
+
+circuit_breakers:
+- priority: default
+  max_connections: 5000
+  max_pending_requests: 5000
+  max_requests: 5000
+  max_retries: 15
+""")
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.target.path.k8s}
+prefix: /target/
+service: {self.target.path.fqdn}
+""")
+
+    def queries(self):
+        # [0]
+        yield Query(self.url("target/"), headers={"Requested-Status": "200"}, body="message_body", expected=200)
+
+    def check(self):
+        # [0] Verifies that the authorization server received the partial message body.
+        extauth_res1 = json.loads(self.results[0].headers["Extauth"][0])
+        assert self.results[0].backend.request.headers["requested-status"] == ["200"]
+        assert self.results[0].status == 200
+        assert self.results[0].headers["Server"] == ["envoy"]
+        assert extauth_res1["request"]["headers"]["auth-request-body"] == ["message"]

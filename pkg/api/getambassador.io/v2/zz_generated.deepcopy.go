@@ -269,6 +269,17 @@ func (in *AuthServiceSpec) DeepCopyInto(out *AuthServiceSpec) {
 			(*out)[key] = *val.DeepCopy()
 		}
 	}
+	if in.CircuitBreakers != nil {
+		in, out := &in.CircuitBreakers, &out.CircuitBreakers
+		*out = make([]*CircuitBreaker, len(*in))
+		for i := range *in {
+			if (*in)[i] != nil {
+				in, out := &(*in)[i], &(*out)[i]
+				*out = new(CircuitBreaker)
+				**out = **in
+			}
+		}
+	}
 	if in.IncludeBody != nil {
 		in, out := &in.IncludeBody, &out.IncludeBody
 		*out = new(AuthServiceIncludeBody)
