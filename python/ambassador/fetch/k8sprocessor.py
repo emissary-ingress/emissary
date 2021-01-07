@@ -26,16 +26,23 @@ class KubernetesProcessor:
         # directly.
         pass
 
-    def try_process(self, obj: KubernetesObject) -> bool:
-        if obj.gvk not in self.kinds():
-            return False
-
+    def _admit(self, obj: KubernetesObject) -> bool:
+        # Override _admit to change the admission rules for a specific object
+        # for this processor. The default rules allow admission unless the
+        # configuration specifies a single namespace and the object namespace is
+        # outside of that namespace.
         if obj.scope == KubernetesObjectScope.NAMESPACE:
             if Config.single_namespace and obj.namespace != Config.ambassador_namespace:
                 # This should never happen in actual usage, since we shouldn't
                 # be given things in the wrong namespace. However, in
                 # development, this can happen a lot.
                 return False
+
+        return True
+
+    def try_process(self, obj: KubernetesObject) -> bool:
+        if obj.gvk not in self.kinds() or not self._admit(obj):
+            return False
 
         self._process(obj)
         return True

@@ -80,9 +80,9 @@ How do I build an ambassador image from source?
 0. `git clone https://github.com/datawire/ambassador.git && cd ambassador`
 1. `make images` (this will take a while the first time)
 
-The ambassador image will be tagged as `ambassador:latest`. There will
-also be a `kat-server:latest` and a `kat-client:latest` image. These
-two images are only used for testing.
+The ambassador image will be tagged as `ambassador.local/ambassador:latest`.
+There will also be a `kat-server:latest` and a `kat-client:latest` image.
+These two images are only used for testing.
 
 ### Within a docker container
 
