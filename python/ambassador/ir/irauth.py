@@ -2,7 +2,7 @@ from typing import Optional, TYPE_CHECKING
 from typing import cast as typecast
 
 from ..config import Config
-from ..utils import RichStatus
+from ..utils import RichStatus, dump_json
 from ..resource import Resource
 
 from .irfilter import IRFilter
@@ -97,6 +97,49 @@ class IRAuth (IRFilter):
             ir.add_cluster(typecast(IRCluster, self.cluster))
             self.referenced_by(typecast(IRCluster, self.cluster))
 
+    # TODO: Copied from irbasemapping.py. Should be reused instead.
+    @staticmethod
+    def validate_circuit_breakers(ir: 'IR', circuit_breakers) -> bool:
+        if not isinstance(circuit_breakers, (list, tuple)):
+            return False
+
+        for circuit_breaker in circuit_breakers:
+            if '_name' in circuit_breaker:
+                # Already reconciled.
+                ir.logger.debug(f'Breaker validation: good breaker {circuit_breaker["_name"]}')
+                continue
+
+            ir.logger.debug(f'Breaker validation: {dump_json(circuit_breakers, pretty=True)}')
+
+            name_fields = [ 'cb' ]
+
+            if 'priority' in circuit_breaker:
+                prio = circuit_breaker.get('priority').lower()
+                if prio not in ['default', 'high']:
+                    return False
+
+                name_fields.append(prio[0])
+            else:
+                name_fields.append('n')
+
+            digit_fields = [ ( 'max_connections', 'c' ),
+                             ( 'max_pending_requests', 'p' ),
+                             ( 'max_requests', 'r' ),
+                             ( 'max_retries', 't' ) ]
+
+            for field, abbrev in digit_fields:
+                if field in circuit_breaker:
+                    try:
+                        value = int(circuit_breaker[field])
+                        name_fields.append(f'{abbrev}{value}')
+                    except ValueError:
+                        return False
+
+            circuit_breaker['_name'] = ''.join(name_fields)
+            ir.logger.debug(f'Breaker valid: {circuit_breaker["_name"]}')
+
+        return True
+
     def _load_auth(self, module: Resource, ir: 'IR'):
         self.namespace = module.get("namespace", self.namespace)
         if self.location == '--internal--':
@@ -132,10 +175,9 @@ class IRAuth (IRFilter):
         else:
             self['circuit_breakers'] = ir.ambassador_module.circuit_breakers
 
-        # TODO: Validate cbs
-        # if self.get('circuit_breakers', None) is not None:
-        #     if not validate_circuit_breakers(ir, self['circuit_breakers']):
-        #         self.post_error("Invalid circuit_breakers specified: {}, invalidating mapping".format(self['circuit_breakers']))
+        if self.get('circuit_breakers', None) is not None:
+            if not self.validate_circuit_breakers(ir, self['circuit_breakers']):
+                self.post_error("Invalid circuit_breakers specified: {}, invalidating mapping".format(self['circuit_breakers']))
 
         self["allow_request_body"] = module.get("allow_request_body", False)
         self["include_body"] = module.get("include_body", None)
