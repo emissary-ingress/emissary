@@ -272,7 +272,7 @@ class Timer:
         self.name = name
 
         if prom_metrics_registry:
-            metric_prefix = re.sub('\s+', '_', name).lower()
+            metric_prefix = re.sub(r'\s+', '_', name).lower()
             self._gauge = Gauge(f'{metric_prefix}_time_seconds', f'Elapsed time on {name} operations',
                                 namespace='ambassador', registry=prom_metrics_registry)
 

@@ -1796,12 +1796,15 @@ class Runner:
                 queries.append(q)
 
         phases = sorted(set([q.phase for q in queries]))
+        first = True
 
         for phase in phases:
-            if phase != 1:
+            if not first:
                 phase_delay = int(os.environ.get("KAT_PHASE_DELAY", 10))
                 print("Waiting for {} seconds before starting phase {}...".format(phase_delay, phase))
                 time.sleep(phase_delay)
+
+            first = False
 
             phase_queries = [q for q in queries if q.phase == phase]
 
