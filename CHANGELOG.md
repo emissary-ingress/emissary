@@ -5,6 +5,10 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+## v6.5.16
+
+- Bugfix: Ambassador CRD cleanup will now execute as expected.
+
 ## v6.5.15
 
 - Bugfix: Ambassador RBAC now includes permissions for IngressClasses.
