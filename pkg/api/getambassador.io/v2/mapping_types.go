@@ -21,6 +21,7 @@ package v2
 
 import (
 	"encoding/json"
+	"errors"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -132,63 +133,127 @@ type DocsInfo struct {
 	Ignored bool   `json:"ignored,omitempty"`
 }
 
-type DomainMap map[string]MappingLabelsArray
+// These are separate types partly because it makes it easier to think about
+// how `DomainMap` is built up, but also because it's pretty awful to read
+// a type definition that's four or five levels deep with maps and arrays.
 
-type MappingLabelsArray []MappingLabels
+// A DomainMap is the overall Mapping.spec.Labels type. It maps domains (kind of
+// like namespaces for Mapping labels) to arrays of label groups.
+type DomainMap map[string]MappingLabelGroupsArray
 
-// Python: MappingLabels = Dict[str, Union[str,'MappingLabels']]
-type MappingLabels map[string]StringOrMappingLabels
+// A MappingLabelGroupsArray is an array of MappingLabelGroups. I know, complex.
+type MappingLabelGroupsArray []MappingLabelGroup
 
-// StringOrMapping labels is the `Union[str,'MappingLabels']` part of
-// the MappingLabels type.
-//
-// See the remarks about schema on custom types in `./common.go`.
+// A MappingLabelGroup is a single element of a MappingLabelGroupsArray: a second
+// map, where the key is a human-readable name that identifies the group.
+type MappingLabelGroup map[string]MappingLabelsArray
+
+// A MappingLabelsArray is the value in the MappingLabelGroup: an array of label
+// specifiers.
+type MappingLabelsArray []MappingLabelSpecifier
+
+// A MappingLabelSpecifier (finally!) defines a single label. There are multiple
+// kinds of label, so this is more complex than we'd like it to be. See the remarks
+// about schema on custom types in `./common.go`.
 //
 // +kubebuilder:validation:Type=""
-type StringOrMappingLabels struct {
-	String *string
-	Labels []StringOrMappingLabels
+type MappingLabelSpecifier struct {
+	String  *string                  // source-cluster, destination-cluster, remote-address, or shorthand generic
+	Header  MappingLabelSpecHeader   // header (NB: no need to make this a pointer because MappingLabelSpecHeader is already nil-able)
+	Generic *MappingLabelSpecGeneric // longhand generic
+}
+
+// A MappingLabelSpecHeader is the form of MappingLabelSpecifier to use when you
+// want to take the label value from an HTTP header.  The key in the map is the
+// label key that it will set to that header value; there must be exactly one key
+// in the map.
+type MappingLabelSpecHeader map[string]struct {
+	Header           string `json:"header"`
+	OmitIfNotPresent bool   `json:"omit_if_not_present"`
+}
+
+// A MappingLabelSpecGeneric is a longhand generic key: it states a string which
+// will be included literally in the label.
+type MappingLabelSpecGeneric struct {
+	GenericKey string `json:"generic_key"`
 }
 
 // MarshalJSON is important both so that we generate the proper
 // output, and to trigger controller-gen to not try to generate
 // jsonschema for our sub-fields:
 // https://github.com/kubernetes-sigs/controller-tools/pull/427
-func (o StringOrMappingLabels) MarshalJSON() ([]byte, error) {
-	switch {
-	case o.String == nil && o.Labels == nil:
-		return json.Marshal(nil)
-	case o.String == nil && o.Labels != nil:
-		return json.Marshal(o.Labels)
-	case o.String != nil && o.Labels == nil:
-		return json.Marshal(o.String)
-	case o.String != nil && o.Labels != nil:
-		panic("invalid StringOrMappingLabels")
+func (o MappingLabelSpecifier) MarshalJSON() ([]byte, error) {
+	nonNil := 0
+
+	if o.String != nil {
+		nonNil++
 	}
+	if o.Header != nil {
+		nonNil++
+	}
+	if o.Generic != nil {
+		nonNil++
+	}
+
+	// If there's nothing set at all...
+	if nonNil == 0 {
+		// ...return nil.
+		return json.Marshal(nil)
+	}
+
+	// OK, something is set -- is more than one thing?
+	if nonNil > 1 {
+		// Bzzzt.
+		panic("invalid MappingLabelSpecifier")
+	}
+
+	// OK, exactly one thing is set. Marshal it.
+	if o.String != nil {
+		return json.Marshal(o.String)
+	}
+	if o.Header != nil {
+		return json.Marshal(o.Header)
+	}
+	if o.Generic != nil {
+		return json.Marshal(o.Generic)
+	}
+
 	panic("not reached")
 }
 
-func (o *StringOrMappingLabels) UnmarshalJSON(data []byte) error {
+// UnmarshalJSON is MarshalJSON's other half.
+func (o *MappingLabelSpecifier) UnmarshalJSON(data []byte) error {
+	// Handle "null" straight off...
 	if string(data) == "null" {
-		*o = StringOrMappingLabels{}
+		*o = MappingLabelSpecifier{}
 		return nil
 	}
 
+	// ...and if it's anything else, try all the possibilities in turn.
 	var err error
 
-	var labels []StringOrMappingLabels
-	if err = json.Unmarshal(data, &labels); err == nil {
-		*o = StringOrMappingLabels{Labels: labels}
+	var header MappingLabelSpecHeader
+
+	if err = json.Unmarshal(data, &header); err == nil {
+		*o = MappingLabelSpecifier{Header: header}
+		return nil
+	}
+
+	var generic MappingLabelSpecGeneric
+
+	if err = json.Unmarshal(data, &generic); err == nil {
+		*o = MappingLabelSpecifier{Generic: &generic}
 		return nil
 	}
 
 	var str string
+
 	if err = json.Unmarshal(data, &str); err == nil {
-		*o = StringOrMappingLabels{String: &str}
+		*o = MappingLabelSpecifier{String: &str}
 		return nil
 	}
 
-	return err
+	return errors.New("could not unmarshal MappingLabelSpecifier: invalid input")
 }
 
 // +kubebuilder:validation:Type="d6e-union:string,boolean,object"

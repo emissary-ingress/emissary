@@ -680,6 +680,55 @@
         "kind": "Mapping",
         "metadata": {
             "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"consultest\"},\"name\":\"a\",\"namespace\":\"default\"},\"spec\":{\"add_response_headers\":{\"Strict-Transport-Security\":\"max-age=31536000\"},\"ambassador_id\":\"consultest\",\"labels\":{\"ambassador\":[{\"d0\":[\"a\",{\"xratelimitid\":{\"header\":\"X-Ratelimit-Id\",\"omit_if_not_present\":true}}]}]},\"prefix\":\"/api/[^/]+/projects/[^/]+/a(/.*)?\",\"prefix_regex\":true,\"retry_policy\":{\"num_retries\":15,\"retry_on\":\"gateway-error\"},\"rewrite\":\"\",\"service\":\"https://a\",\"timeout_ms\":10000}}\n"
+            },
+            "creationTimestamp": "2021-01-07T20:27:54Z",
+            "generation": 2,
+            "labels": {
+                "kat-ambassador-id": "consultest"
+            },
+            "name": "a",
+            "namespace": "default",
+            "resourceVersion": "9298",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/default/mappings/a",
+            "uid": "caf33312-1f60-4aed-9d8d-7a9f37b68da0"
+        },
+        "spec": {
+            "add_response_headers": {
+                "Strict-Transport-Security": "max-age=31536000"
+            },
+            "ambassador_id": [ "consultest" ],
+            "labels": {
+                "ambassador": [
+                    {
+                        "d0": [
+                            "a",
+                            {
+                                "xratelimitid": {
+                                    "header": "X-Ratelimit-Id",
+                                    "omit_if_not_present": true
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "prefix": "/api/[^/]+/projects/[^/]+/a(/.*)?",
+            "prefix_regex": true,
+            "retry_policy": {
+                "num_retries": 15,
+                "retry_on": "gateway-error"
+            },
+            "rewrite": "",
+            "service": "https://a",
+            "timeout_ms": 10000
+        }
+    },    
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
                 "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"rl-dual\",\"namespace\":\"ambassador\"},\"spec\":{\"labels\":{\"ambassador\":[{\"minute_group\":[\"backend\",\"minutely\"]},{\"hour_group\":[\"backend\",\"hourly\"]}]},\"prefix\":\"/backend/\",\"service\":\"httpbin.default.svc.cluster.local\"}}\n"
             },
             "creationTimestamp": "2020-08-11T20:54:33Z",
