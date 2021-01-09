@@ -9,6 +9,7 @@ import re
 from ..config import ACResource, Config
 from ..utils import parse_yaml, parse_json, dump_json
 
+from .dependency import DependencyManager, IngressClassesDependency, SecretDependency, ServiceDependency
 from .resource import NormalizedResource, ResourceManager
 from .k8sobject import KubernetesGVK, KubernetesObject
 from .k8sprocessor import (
@@ -19,11 +20,11 @@ from .k8sprocessor import (
 )
 from .ambassador import AmbassadorProcessor
 from .secret import SecretProcessor
+from .ingress import IngressClassProcessor, IngressProcessor
 from .service import ServiceProcessor
 from .knative import KnativeIngressProcessor
 
 AnyDict = Dict[str, Any]
-HandlerResult = Optional[Tuple[str, List[AnyDict]]]
 
 # XXX ALL OF THE BELOW COMMENT IS PROBABLY OUT OF DATE. (Flynn, 2019-10-29)
 #
@@ -61,20 +62,23 @@ class ResourceFetcher:
                  skip_init_dir: bool=False, watch_only=False) -> None:
         self.aconf = aconf
         self.logger = logger
-        self.manager = ResourceManager(self.logger, self.aconf)
+        self.manager = ResourceManager(self.logger, self.aconf, DependencyManager([
+            ServiceDependency(),
+            SecretDependency(),
+            IngressClassesDependency(),
+        ]))
 
         self.k8s_processor = DeduplicatingKubernetesProcessor(AggregateKubernetesProcessor([
             CountingKubernetesProcessor(self.aconf, KubernetesGVK.for_knative_networking('Ingress'), 'knative_ingress'),
             AmbassadorProcessor(self.manager),
             SecretProcessor(self.manager),
+            IngressClassProcessor(self.manager),
+            IngressProcessor(self.manager),
             ServiceProcessor(self.manager, watch_only=watch_only),
             KnativeIngressProcessor(self.manager),
         ]))
 
         self.alerted_about_labels = False
-
-        # For deduplicating objects coming in from watt
-        self.k8s_parsed: Dict[str, bool] = {}
 
         # Deltas, for managing the cache.
         self.deltas: List[Dict[str, Union[str, Dict[str, str]]]] = []
@@ -152,38 +156,26 @@ class ResourceFetcher:
         if finalize:
             self.finalize()
 
-    def parse_yaml(self, serialization: str, k8s=False, rkey: Optional[str]=None,
-                   filename: Optional[str]=None, finalize: bool=True, metadata_labels: Optional[Dict[str, str]]=None) -> None:
+    def parse_yaml(self, serialization: str, k8s=False, rkey: Optional[str] = None,
+                   filename: Optional[str] = None, finalize: bool = True) -> None:
         # self.logger.info(f"RF YAML: {serialization}")
 
         # Expand environment variables allowing interpolation in manifests.
         serialization = os.path.expandvars(serialization)
 
-        try:
-            # UGH. This parse_yaml is the one we imported from utils. XXX This needs to be fixed.
-            objects = parse_yaml(serialization)
-            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename)
-        except yaml.error.YAMLError as e:
-            self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
+        if not filename:
+            filename = self.manager.locations.current.filename
 
-        if finalize:
-            self.finalize()
-
-    def parse_json(self, serialization: str, k8s=False, rkey: Optional[str]=None,
-                   filename: Optional[str]=None, finalize: bool=True) -> None:
-        # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
-        #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
-        #                    serialization))
-
-        # Expand environment variables allowing interpolation in manifests.
-        serialization = os.path.expandvars(serialization)
-
-        try:
-            # This parse_json is the one we imported from utils. XXX This (also?) needs to be fixed.
-            objects = parse_json(serialization)
-            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename)
-        except json.decoder.JSONDecodeError as e:
-            self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
+        with self.manager.locations.push(filename=filename):
+            try:
+                # UGH. This parse_yaml is the one we imported from utils. XXX This needs to be fixed.
+                for obj in parse_yaml(serialization):
+                    if k8s:
+                        self.handle_k8s(obj)
+                    else:
+                        self.manager.emit(NormalizedResource(obj, rkey=rkey))
+            except yaml.error.YAMLError as e:
+                self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
         if finalize:
             self.finalize()
@@ -247,7 +239,7 @@ class ResourceFetcher:
                     # Can't work with this at _all_.
                     self.logger.error(f"skipping invalid object with no kind: {obj}")
                     continue
-            
+
                 # We can't use watt_k8s.setdefault() here because many keys have
                 # explicit null values -- they'll need to be turned into empty lists
                 # and re-saved, and setdefault() won't do that for an explicit null.
@@ -261,7 +253,7 @@ class ResourceFetcher:
 
             # These objects have to be processed first, in order, as they depend
             # on each other.
-            watt_k8s_keys = ['service', 'endpoints', 'secret', 'ingressclasses', 'ingresses']
+            watt_k8s_keys = self.manager.deps.sorted_watt_keys()
 
             # Then we add everything else to be processed.
             watt_k8s_keys += watt_k8s.keys()
@@ -278,12 +270,7 @@ class ResourceFetcher:
             consul_endpoints = watt_consul.get('Endpoints', {})
 
             for consul_rkey, consul_object in consul_endpoints.items():
-                result = self.handle_consul_service(consul_rkey, consul_object)
-
-                if result:
-                    rkey, parsed_objects = result
-
-                    self.parse_object(parsed_objects, k8s=False, rkey=rkey)
+                self.handle_consul_service(consul_rkey, consul_object)
         except json.decoder.JSONDecodeError as e:
             self.aconf.post_error("%s: could not parse WATT: %s" % (self.location, e))
 
@@ -311,16 +298,8 @@ class ResourceFetcher:
                 self.aconf.pod_labels[pod_label_kv[0][0]] = pod_label_kv[0][1]
         self.logger.debug(f"Parsed pod labels: {self.aconf.pod_labels}")
 
-    def check_k8s_dup(self, kind: str, namespace: Optional[str], name: str) -> bool:
-        key = f"{kind}/{name}.{namespace}"
-
-        if key in self.k8s_parsed:
-            # self.logger.debug(f"dropping K8s dup {key}")
-            return False
-
-        # self.logger.info(f"remembering K8s {key}")
-        self.k8s_parsed[key] = True
-        return True
+    def sorted(self, key=lambda x: x.rkey):  # returns an iterator, probably
+        return sorted(self.elements, key=key)
 
     def handle_k8s(self, raw_obj: dict) -> None:
         # self.logger.debug("handle_k8s obj %s" % dump_json(obj, pretty=True))
@@ -333,335 +312,12 @@ class ResourceFetcher:
             return
 
         with self.manager.locations.push_reset():
-            if self.k8s_processor.try_process(obj):
-                # Nothing else to do.
-                return
-
-        handler_name = f'handle_k8s_{obj.kind.lower()}'
-        # self.logger.debug(f"looking for handler {handler_name} for K8s {kind} {name}")
-        handler = getattr(self, handler_name, None)
-
-        if not handler:
-            self.logger.debug(f"{self.location}: skipping K8s {obj.gvk}")
-            return
-
-        if not self.check_k8s_dup(obj.kind, obj.namespace, obj.name):
-            return
-
-        result = handler(raw_obj)
-
-        if result:
-            rkey, parsed_objects = result
-
-            self.parse_object(parsed_objects, k8s=False, rkey=rkey)
-
-    def parse_object(self, objects, k8s=False, rkey: Optional[str] = None, filename: Optional[str] = None):
-        if not filename:
-            filename = self.manager.locations.current.filename
-
-        self.manager.locations.push(filename=filename)
-
-        # self.logger.debug("PARSE_OBJECT: incoming %d" % len(objects))
-
-        for obj in objects:
-            # self.logger.debug("PARSE_OBJECT: checking %s" % obj)
-
-            if k8s:
-                self.handle_k8s(obj)
-            else:
-                # if not obj:
-                #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
-
-                self.manager.emit(NormalizedResource(obj, rkey=rkey))
-
-        self.manager.locations.pop()
-
-    def sorted(self, key=lambda x: x.rkey):  # returns an iterator, probably
-        return sorted(self.elements, key=key)
-
-    def handle_k8s_ingressclass(self, k8s_object: AnyDict) -> HandlerResult:
-        metadata = k8s_object.get('metadata', None)
-        ingress_class_name = metadata.get('name') if metadata else None
-        ingress_class_spec = k8s_object.get('spec', None)
-
-        # Important: IngressClass is not namespaced!
-        resource_identifier = f'{ingress_class_name}'
-
-        skip = False
-        if not metadata:
-            self.logger.debug('ignoring K8s IngressClass with no metadata')
-            skip = True
-        if not ingress_class_name:
-            self.logger.debug('ignoring K8s IngressClass with no name')
-            skip = True
-        if not ingress_class_spec:
-            self.logger.debug('ignoring K8s IngressClass with no spec')
-            skip = True
-
-        # We only want to deal with IngressClasses that belong to "spec.controller: getambassador.io/ingress-controller"
-        if ingress_class_spec.get('controller', '').lower() != 'getambassador.io/ingress-controller':
-            self.logger.debug(f'ignoring IngressClass {ingress_class_name} without controller - getambassador.io/ingress-controller')
-            skip = True
-
-        if skip:
-            return None
-
-        annotations = metadata.get('annotations', {})
-        ambassador_id = annotations.get('getambassador.io/ambassador-id', 'default')
-
-        # We don't want to deal with non-matching Ambassador IDs
-        if ambassador_id != Config.ambassador_id:
-            self.logger.debug(f'IngressClass {ingress_class_name} does not have Ambassador ID {Config.ambassador_id}, ignoring...')
-            return None
-
-        # TODO: Do we intend to use this parameter in any way?
-        # `parameters` is of type TypedLocalObjectReference,
-        # meaning it links to another k8s resource in the same namespace.
-        # https://godoc.org/k8s.io/api/core/v1#TypedLocalObjectReference
-        #
-        # In this case, the resource referenced by TypedLocalObjectReference
-        # should not be namespaced, as IngressClass is a non-namespaced resource.
-        #
-        # It was designed to reference a CRD for this specific ingress-controller
-        # implementation... although usage is optional and not prescribed.
-        ingress_parameters = ingress_class_spec.get('parameters', {})
-
-        self.logger.debug(f'Handling IngressClass {ingress_class_name} with parameters {ingress_parameters}...')
-
-        # Don't return this as we won't handle IngressClass downstream.
-        # Instead, save it in self.aconf.k8s_ingress_classes for reference in handle_k8s_ingress
-        self.aconf.k8s_ingress_classes[resource_identifier] = ingress_parameters
-
-        return None
-
-    def handle_k8s_ingress(self, k8s_object: AnyDict) -> HandlerResult:
-        if 'metadata' not in k8s_object:
-            self.logger.debug("ignoring K8s Ingress with no metadata")
-            return None
-
-        metadata = k8s_object['metadata']
-
-        if 'name' not in metadata:
-            self.logger.debug("ignoring K8s Ingress with no name")
-            return None
-
-        ingress_name = metadata['name']
-
-        if 'spec' not in k8s_object:
-            self.logger.debug(f"ignoring K8s Ingress {ingress_name} with no spec")
-            return None
-
-        ingress_spec = k8s_object['spec']
-        ingress_namespace = metadata.get('namespace') or 'default'
-
-        metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
-
-        resource_identifier = f'{ingress_name}.{ingress_namespace}'
-
-        # we don't need an ingress without ingress class set to ambassador
-        annotations = metadata.get('annotations', {})
-        ingress_class_name = ingress_spec.get('ingressClassName', '')
-
-        ingress_class = self.aconf.k8s_ingress_classes.get(ingress_class_name, None)
-        has_ambassador_ingress_class_annotation = annotations.get('kubernetes.io/ingress.class', '').lower() == 'ambassador'
-
-        # check the Ingress resource has either:
-        #  - a `kubernetes.io/ingress.class: "ambassador"` annotation
-        #  - a `spec.ingressClassName` that references an IngressClass with
-        #      `spec.controller: getambassador.io/ingress-controller`
-        #
-        # also worth noting, the kube-apiserver might assign the `spec.ingressClassName` if unspecified
-        # and only 1 IngressClass has the following annotation:
-        #   annotations:
-        #     ingressclass.kubernetes.io/is-default-class: "true"
-        if (not has_ambassador_ingress_class_annotation) and (ingress_class is None):
-            self.logger.debug(f'ignoring Ingress {ingress_name} without annotation (kubernetes.io/ingress.class: "ambassador") or IngressClass controller (getambassador.io/ingress-controller)')
-            return None
-
-        # Let's see if our Ingress resource has Ambassador annotations on it
-        annotations = metadata.get('annotations', {})
-        ambassador_annotations = annotations.get('getambassador.io/config', None)
-
-        parsed_ambassador_annotations = None
-        if ambassador_annotations is not None:
-            self.manager.locations.mark_annotated()
-
-            try:
-                parsed_ambassador_annotations = parse_yaml(ambassador_annotations)
-            except yaml.error.YAMLError as e:
-                self.logger.debug("could not parse YAML: %s" % e)
-
-        ambassador_id = annotations.get('getambassador.io/ambassador-id', 'default')
-
-        # We don't want to deal with non-matching Ambassador IDs
-        if ambassador_id != Config.ambassador_id:
-            self.logger.debug(f"Ingress {ingress_name} does not have Ambassador ID {Config.ambassador_id}, ignoring...")
-            return None
-
-        self.logger.debug(f"Handling Ingress {ingress_name}...")
-        # We will translate the Ingress resource into Hosts and Mappings,
-        # but keep a reference to the k8s resource in aconf for debugging and stats
-        self.aconf.k8s_ingresses[resource_identifier] = k8s_object
-
-        ingress_tls = ingress_spec.get('tls', [])
-        for tls_count, tls in enumerate(ingress_tls):
-
-            tls_secret = tls.get('secretName', None)
-            if tls_secret is not None:
-
-                for host_count, host in enumerate(tls.get('hosts', ['*'])):
-                    tls_unique_identifier = f"{ingress_name}-{tls_count}-{host_count}"
-
-                    ingress_host: Dict[str, Any] = {
-                        'apiVersion': 'getambassador.io/v2',
-                        'kind': 'Host',
-                        'metadata': {
-                            'name': tls_unique_identifier,
-                            'namespace': ingress_namespace
-                        },
-                        'spec': {
-                            'ambassador_id': [ambassador_id],
-                            'hostname': host,
-                            'acmeProvider': {
-                                'authority': 'none'
-                            },
-                            'tlsSecret': {
-                                'name': tls_secret
-                            },
-                            'requestPolicy': {
-                                'insecure': {
-                                    'action': 'Route'
-                                }
-                            }
-                        }
-                    }
-
-                    if metadata_labels:
-                        ingress_host['metadata']['labels'] = metadata_labels
-
-                    self.logger.debug(f"Generated Host from ingress {ingress_name}: {ingress_host}")
-                    self.handle_k8s(ingress_host)
-
-        # parse ingress.spec.defaultBackend
-        # using ingress.spec.backend as a fallback, for older versions of the Ingress resource.
-        default_backend = ingress_spec.get('defaultBackend', ingress_spec.get('backend', {}))
-        db_service_name = default_backend.get('serviceName', None)
-        db_service_port = default_backend.get('servicePort', None)
-        if db_service_name is not None and db_service_port is not None:
-            db_mapping_identifier = f"{ingress_name}-default-backend"
-
-            default_backend_mapping: AnyDict = {
-                'apiVersion': 'getambassador.io/v2',
-                'kind': 'Mapping',
-                'metadata': {
-                    'name': db_mapping_identifier,
-                    'namespace': ingress_namespace
-                },
-                'spec': {
-                    'ambassador_id': ambassador_id,
-                    'prefix': '/',
-                    'service': f'{db_service_name}.{ingress_namespace}:{db_service_port}'
-                }
-            }
-
-            if metadata_labels:
-                default_backend_mapping['metadata']['labels'] = metadata_labels
-
-            self.logger.debug(f"Generated mapping from Ingress {ingress_name}: {default_backend_mapping}")
-            self.handle_k8s(default_backend_mapping)
-
-        # parse ingress.spec.rules
-        ingress_rules = ingress_spec.get('rules', [])
-        for rule_count, rule in enumerate(ingress_rules):
-            rule_http = rule.get('http', {})
-
-            rule_host = rule.get('host', None)
-
-            http_paths = rule_http.get('paths', [])
-            for path_count, path in enumerate(http_paths):
-                path_backend = path.get('backend', {})
-                path_type = path.get('pathType', 'ImplementationSpecific')
-
-                service_name = path_backend.get('serviceName', None)
-                service_port = path_backend.get('servicePort', None)
-                path_location = path.get('path', '/')
-
-                if not service_name or not service_port or not path_location:
-                    continue
-
-                unique_suffix = f"{rule_count}-{path_count}"
-                mapping_identifier = f"{ingress_name}-{unique_suffix}"
-
-                # For cases where `pathType: Exact`,
-                # otherwise `Prefix` and `ImplementationSpecific` are handled as regular Mapping prefixes
-                is_exact_prefix = True if path_type == 'Exact' else False
-
-                path_mapping: Dict[str, Any] = {
-                    'apiVersion': 'getambassador.io/v2',
-                    'kind': 'Mapping',
-                    'metadata': {
-                        'name': mapping_identifier,
-                        'namespace': ingress_namespace
-                    },
-                    'spec': {
-                        'ambassador_id': ambassador_id,
-                        'prefix': path_location,
-                        'prefix_exact': is_exact_prefix,
-                        'precedence': 1 if is_exact_prefix else 0,  # Make sure exact paths are evaluated before prefix
-                        'service': f'{service_name}.{ingress_namespace}:{service_port}'
-                    }
-                }
-
-                if metadata_labels:
-                    path_mapping['metadata']['labels'] = metadata_labels
-
-                if rule_host is not None:
-                    if rule_host.startswith('*.'):
-                        # Ingress allow specifying hosts with a single wildcard as the first label in the hostname.
-                        # Transform the rule_host into a host_regex:
-                        # *.star.com  becomes  ^[a-z0-9]([-a-z0-9]*[a-z0-9])?\.star\.com$
-                        path_mapping['spec']['host'] = rule_host\
-                            .replace('.', '\\.')\
-                            .replace('*', '^[a-z0-9]([-a-z0-9]*[a-z0-9])?', 1) + '$'
-                        path_mapping['spec']['host_regex'] = True
-                    else:
-                        path_mapping['spec']['host'] = rule_host
-
-                self.logger.debug(f"Generated mapping from Ingress {ingress_name}: {path_mapping}")
-                self.handle_k8s(path_mapping)
-
-        # let's make arrangements to update Ingress' status now
-        if not self.manager.ambassador_service:
-            self.logger.error(f"Unable to update Ingress {ingress_name}'s status, could not find Ambassador service")
-        else:
-            ingress_status = self.manager.ambassador_service.status
-
-            if ingress_status:
-                kind = k8s_object.get('kind')
-                assert(kind)
-
-                ingress_status_update = (kind, ingress_namespace, ingress_status)
-                self.logger.debug(f"Updating Ingress {ingress_name} status to {ingress_status_update}")
-                self.aconf.k8s_status_updates[f'{ingress_name}.{ingress_namespace}'] = ingress_status_update
-
-        if parsed_ambassador_annotations is not None:
-            # Copy metadata_labels to parsed annotations, if need be.
-            if metadata_labels:
-                for p in parsed_ambassador_annotations:
-                    if p.get('metadata_labels') is None:
-                        p['metadata_labels'] = metadata_labels
-
-            # Force validation for all of these objects.
-            for p in parsed_ambassador_annotations:
-                p['_force_validation'] = True
-
-            return resource_identifier, parsed_ambassador_annotations
-
-        return None
+            if not self.k8s_processor.try_process(obj):
+                self.logger.debug(f"{self.location}: skipping K8s {obj.gvk}")
 
     # Handler for Consul services
     def handle_consul_service(self,
-                              consul_rkey: str, consul_object: AnyDict) -> HandlerResult:
+                              consul_rkey: str, consul_object: AnyDict) -> None:
         # resource_identifier = f'consul-{consul_rkey}'
 
         endpoints = consul_object.get('Endpoints', [])
@@ -670,7 +326,7 @@ class ResourceFetcher:
         if len(endpoints) < 1:
             # Bzzt.
             self.logger.debug(f"ignoring Consul service {name} with no Endpoints")
-            return None
+            return
 
         # We can turn this directly into an Ambassador Service resource, since Consul keeps
         # services and endpoints together (as it should!!).
@@ -709,8 +365,6 @@ class ResourceFetcher:
             spec=spec,
             rkey=f"consul-{name}-{spec['datacenter']}",
         ))
-
-        return None
 
     def finalize(self) -> None:
         self.k8s_processor.finalize()

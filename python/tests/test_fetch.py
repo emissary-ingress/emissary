@@ -13,6 +13,7 @@ logger = logging.getLogger("ambassador")
 
 from ambassador import Config
 from ambassador.fetch import ResourceFetcher
+from ambassador.fetch.dependency import DependencyManager, ServiceDependency
 from ambassador.fetch.location import LocationManager
 from ambassador.fetch.resource import NormalizedResource, ResourceManager
 from ambassador.fetch.k8sobject import (
@@ -221,7 +222,7 @@ class TestAmbassadorProcessor:
 
     def test_mapping(self):
         aconf = Config()
-        mgr = ResourceManager(logger, aconf)
+        mgr = ResourceManager(logger, aconf, DependencyManager([]))
 
         assert AmbassadorProcessor(mgr).try_process(valid_mapping)
         assert len(mgr.elements) == 1
@@ -241,7 +242,7 @@ class TestAmbassadorProcessor:
 
     def test_mapping_v1(self):
         aconf = Config()
-        mgr = ResourceManager(logger, aconf)
+        mgr = ResourceManager(logger, aconf, DependencyManager([]))
 
         assert AmbassadorProcessor(mgr).try_process(valid_mapping_v1)
         assert len(mgr.elements) == 1
@@ -316,7 +317,9 @@ class TestCountingKubernetesProcessor:
 class TestServiceAnnotations:
 
     def setup(self):
-        self.manager = ResourceManager(logger, Config())
+        self.manager = ResourceManager(logger, Config(), DependencyManager([
+            ServiceDependency(),
+        ]))
         self.processor = ServiceProcessor(self.manager)
 
     def test_no_ambassador_annotation(self):
