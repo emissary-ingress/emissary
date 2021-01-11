@@ -53,6 +53,10 @@ func GetEnvoyDir() string {
 	return env("ENVOY_DIR", path.Join(GetAmbassadorConfigBaseDir(), "envoy"))
 }
 
+func GetEnvoyConcurrency() string {
+	return env("ENVOY_CONCURRENCY", "")
+}
+
 func GetEnvoyBootstrapFile() string {
 	return env("ENVOY_BOOTSTRAP_FILE", path.Join(GetAmbassadorConfigBaseDir(), "bootstrap-ads.json"))
 }
@@ -150,6 +154,10 @@ func GetEnvoyFlags() []string {
 		result = append(result, "-l", "debug")
 	} else {
 		result = append(result, "-l", "error")
+	}
+	concurrency := GetEnvoyConcurrency()
+	if concurrency != "" {
+		result = append(result, "--concurrency", concurrency)
 	}
 	return result
 }
