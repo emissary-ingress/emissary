@@ -173,7 +173,11 @@ workflows:
               only:
                 - master
     jobs:
+      # build+push
+      - "oss-images":
+          name: "oss-nightly-images"
       - "oss-test":
+          requires: ["oss-nightly-images"]
           name: "oss-nightly-pytest-envoy"
           test: pytest-envoy
           fast-reconfigure: true
