@@ -703,6 +703,12 @@ workflows:
         - "oss-nightly-images"
         name: "oss-nightly-pytest-envoy"
         test: pytest-envoy
+        fast-reconfigure: false
+    - oss-test:
+        requires:
+        - "oss-nightly-images"
+        name: "oss-nightly-pytest-envoy-fastreconfigure"
+        test: pytest-envoy
         fast-reconfigure: true
   'Docs: Dev':
     jobs:
