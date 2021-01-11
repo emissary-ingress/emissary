@@ -1,290 +1,290 @@
 - title: First Steps
   collapsable: false
-  link: /docs/v1.9/
+  link: /docs/1.9/
   items:
     - title: Quick Start
-      link: /docs/v1.9/tutorials/getting-started
+      link: /docs/1.9/tutorials/getting-started
     - title: Ambassador Tutorial
-      link: /docs/v1.9/tutorials/quickstart-demo
+      link: /docs/1.9/tutorials/quickstart-demo
 - title: Install Ambassador Edge Stack
-  link: /docs/v1.9/topics/install/
+  link: /docs/1.9/topics/install/
   items:
   - title: Install with Helm
-    link: /docs/v1.9/topics/install/helm
+    link: /docs/1.9/topics/install/helm
   - title: Upgrade to the Ambassador Edge Stack
-    link: /docs/v1.9/topics/install/upgrade-to-edge-stack
+    link: /docs/1.9/topics/install/upgrade-to-edge-stack
   - title: Upgrade to a Newer Version
-    link: /docs/v1.9/topics/install/upgrading
+    link: /docs/1.9/topics/install/upgrading
   - title: Install the Ambassador API Gateway
-    link: /docs/v1.9/topics/install/install-ambassador-oss
+    link: /docs/1.9/topics/install/install-ambassador-oss
   - title: Install with Docker
-    link: /docs/v1.9/topics/install/docker
+    link: /docs/1.9/topics/install/docker
   - title: Install with Bare Metal
-    link: /docs/v1.9/topics/install/bare-metal
+    link: /docs/1.9/topics/install/bare-metal
   - title: Install Manually
-    link: /docs/v1.9/topics/install/yaml-install
+    link: /docs/1.9/topics/install/yaml-install
   - title: Ambassador Edge Stack Operator
-    link: /docs/v1.9/topics/install/aes-operator
+    link: /docs/1.9/topics/install/aes-operator
   - title: Install with Edgectl
-    link: /docs/v1.9/topics/install/help/
+    link: /docs/1.9/topics/install/help/
 - title: Running and Using Ambassador
   collapsable: false
   items:
     - title: Core Concepts
-      link: /docs/v1.9/topics/concepts/
+      link: /docs/1.9/topics/concepts/
       items:
         - title: Kubernetes Network Architecture
-          link: /docs/v1.9/topics/concepts/kubernetes-network-architecture
+          link: /docs/1.9/topics/concepts/kubernetes-network-architecture
         - title: "The Ambassador Operating Model: GitOps and Continuous Delivery"
-          link: /docs/v1.9/topics/concepts/gitops-continuous-delivery
+          link: /docs/1.9/topics/concepts/gitops-continuous-delivery
         - title: Progressive Delivery
-          link: /docs/v1.9/topics/concepts/progressive-delivery
+          link: /docs/1.9/topics/concepts/progressive-delivery
         - title: Microservices API Gateways
-          link: /docs/v1.9/topics/concepts/microservices-api-gateways
+          link: /docs/1.9/topics/concepts/microservices-api-gateways
         - title: Ambassador Architecture
-          link: /docs/v1.9/topics/concepts/architecture
+          link: /docs/1.9/topics/concepts/architecture
     - title: Using Ambassador
-      link: /docs/v1.9/topics/using/
+      link: /docs/1.9/topics/using/
       items:
         - title: The Mapping Resource
-          link: /docs/v1.9/topics/using/intro-mappings
+          link: /docs/1.9/topics/using/intro-mappings
         - title: Mapping Configuration
-          link: /docs/v1.9/topics/using/mappings
+          link: /docs/1.9/topics/using/mappings
           items:
             - title: Automatic Retries
-              link: /docs/v1.9/topics/using/retries
+              link: /docs/1.9/topics/using/retries
             - title: Canary Releases
-              link: /docs/v1.9/topics/using/canary
+              link: /docs/1.9/topics/using/canary
             - title: Circuit Breakers
-              link: /docs/v1.9/topics/using/circuit-breakers
+              link: /docs/1.9/topics/using/circuit-breakers
             - title: Cross-Origin Resource Sharing
-              link: /docs/v1.9/topics/using/cors
+              link: /docs/1.9/topics/using/cors
             - title: Headers
-              link: /docs/v1.9/topics/using/headers/headers
+              link: /docs/1.9/topics/using/headers/headers
               items:
                 - title: Add Request Headers
-                  link: /docs/v1.9/topics/using/headers/add_request_headers
+                  link: /docs/1.9/topics/using/headers/add_request_headers
                 - title: Remove Request Headers
-                  link: /docs/v1.9/topics/using/headers/remove_request_headers
+                  link: /docs/1.9/topics/using/headers/remove_request_headers
                 - title: Add Response Headers
-                  link: /docs/v1.9/topics/using/headers/add_response_headers
+                  link: /docs/1.9/topics/using/headers/add_response_headers
                 - title: Remove Response Headers
-                  link: /docs/v1.9/topics/using/headers/remove_response_headers
+                  link: /docs/1.9/topics/using/headers/remove_response_headers
                 - title: Header Based Routing
-                  link: /docs/v1.9/topics/using/headers/headers
+                  link: /docs/1.9/topics/using/headers/headers
                 - title: Host Header
-                  link: /docs/v1.9/topics/using/headers/host
+                  link: /docs/1.9/topics/using/headers/host
             - title: Keepalive
-              link: /docs/v1.9/topics/using/keepalive
+              link: /docs/1.9/topics/using/keepalive
             - title: Method-based Routing
-              link: /docs/v1.9/topics/using/method
+              link: /docs/1.9/topics/using/method
             - title: Prefix Regex
-              link: /docs/v1.9/topics/using/prefix_regex
+              link: /docs/1.9/topics/using/prefix_regex
             - title: Protocols
               items:
                 - title: TCP
-                  link: /docs/v1.9/topics/using/tcpmappings
+                  link: /docs/1.9/topics/using/tcpmappings
                 - title: gRPC and gRPC-Web
-                  link: /docs/v1.9/howtos/grpc
+                  link: /docs/1.9/howtos/grpc
                 - title: WebSockets
-                  link: /docs/v1.9/howtos/websockets
+                  link: /docs/1.9/howtos/websockets
             - title: Query Parameter Based Routing
               link: /docs/pre-release/topics/using/query_parameters/
             - title: Rate Limit Concepts
-              link: /docs/v1.9/topics/using/rate-limits/
+              link: /docs/1.9/topics/using/rate-limits/
               items:
                 - title: Using Rate Limits
-                  link: /docs/v1.9/topics/using/rate-limits/rate-limits
+                  link: /docs/1.9/topics/using/rate-limits/rate-limits
             - title: Redirects
-              link: /docs/v1.9/topics/using/redirects
+              link: /docs/1.9/topics/using/redirects
             - title: Rewrites
-              link: /docs/v1.9/topics/using/rewrites
+              link: /docs/1.9/topics/using/rewrites
             - title: Timeouts
-              link: /docs/v1.9/topics/using/timeouts
+              link: /docs/1.9/topics/using/timeouts
             - title: Traffic Shadowing
-              link: /docs/v1.9/topics/using/shadowing
+              link: /docs/1.9/topics/using/shadowing
         - title: Filters and Authentication
           items:
             - title: Filters and Filter Policies
-              link: /docs/v1.9/topics/using/filters/
+              link: /docs/1.9/topics/using/filters/
             - title: OAuth2 Filter
-              link: /docs/v1.9/topics/using/filters/oauth2
+              link: /docs/1.9/topics/using/filters/oauth2
             - title: JWT Filter
-              link: /docs/v1.9/topics/using/filters/jwt
+              link: /docs/1.9/topics/using/filters/jwt
             - title: External Filter
-              link: /docs/v1.9/topics/using/filters/external
+              link: /docs/1.9/topics/using/filters/external
             - title: Plugin Filter
-              link: /docs/v1.9/topics/using/filters/plugin
+              link: /docs/1.9/topics/using/filters/plugin
         - title: Developer Portal
-          link: /docs/v1.9/topics/using/dev-portal
+          link: /docs/1.9/topics/using/dev-portal
         - title: Edge Policy Console
           items: 
           - title: Introduction to Edge Policy Console
-            link: /docs/v1.9/topics/using/edge-policy-console
+            link: /docs/1.9/topics/using/edge-policy-console
           - title: Rate Limit Speedometers
-            link: /docs/v1.9/topics/using/rate-limit-speedometers
+            link: /docs/1.9/topics/using/rate-limit-speedometers
         - title: The Project Resource
-          link: /docs/v1.9/topics/using/projects
+          link: /docs/1.9/topics/using/projects
           items:
             - title: Configuring Authentication
-              link: /docs/v1.9/topics/using/project-authentication
+              link: /docs/1.9/topics/using/project-authentication
             - title: Customizing Deployment
-              link: /docs/v1.9/topics/using/project-customization
+              link: /docs/1.9/topics/using/project-customization
     - title: Running Ambassador in Production
-      link: /docs/v1.9/topics/running/
+      link: /docs/1.9/topics/running/
       items:
         - title: The Ambassador Module
-          link: /docs/v1.9/topics/running/ambassador
+          link: /docs/1.9/topics/running/ambassador
         - title: Custom Error Responses
-          link: /docs/v1.9/topics/running/custom-error-responses
+          link: /docs/1.9/topics/running/custom-error-responses
         - title: Deploying Ambassador
           items:
             - title: Deployment Architecture
-              link: /docs/v1.9/topics/running/ambassador-deployment
+              link: /docs/1.9/topics/running/ambassador-deployment
             - title: Ambassador with AWS
-              link: /docs/v1.9/topics/running/ambassador-with-aws
+              link: /docs/1.9/topics/running/ambassador-with-aws
             - title: Ambassador with GKE
-              link: /docs/v1.9/topics/running/ambassador-with-gke
+              link: /docs/1.9/topics/running/ambassador-with-gke
             - title: Advanced Deployment Configuration
-              link: /docs/v1.9/topics/running/running
+              link: /docs/1.9/topics/running/running
             - title: The Ambassador Container
-              link: /docs/v1.9/topics/running/environment
+              link: /docs/1.9/topics/running/environment
         - title: Gzip Compression
-          link: /docs/v1.9/topics/running/gzip
+          link: /docs/1.9/topics/running/gzip
         - title: Host CRD, ACME Support, and External Load Balancer Configuration
-          link: /docs/v1.9/topics/running/host-crd
+          link: /docs/1.9/topics/running/host-crd
         - title: Ingress Controller
-          link: /docs/v1.9/topics/running/ingress-controller
+          link: /docs/1.9/topics/running/ingress-controller
         - title: Load Balancing and Service Discovery
           items:
             - title: Load Balancing
-              link: /docs/v1.9/topics/running/load-balancer
+              link: /docs/1.9/topics/running/load-balancer
             - title: Service Discovery and Resolvers
-              link: /docs/v1.9/topics/running/resolvers
+              link: /docs/1.9/topics/running/resolvers
         - title: Statistics and Monitoring
-          link: /docs/v1.9/topics/running/statistics
+          link: /docs/1.9/topics/running/statistics
           items:
             - title: Envoy statistics with StatsD
-              link: /docs/v1.9/topics/running/statistics/envoy-statsd
+              link: /docs/1.9/topics/running/statistics/envoy-statsd
             - title: The `:8877/metrics` endpoint
-              link: /docs/v1.9/topics/running/statistics/8877-metrics
+              link: /docs/1.9/topics/running/statistics/8877-metrics
         - title: Plug-in Services
           items:
             - title: Authentication Service
-              link: /docs/v1.9/topics/running/services/auth-service
+              link: /docs/1.9/topics/running/services/auth-service
             - title: ExtAuth Protocol
-              link: /docs/v1.9/topics/running/services/ext_authz
+              link: /docs/1.9/topics/running/services/ext_authz
             - title: Log Service
-              link: /docs/v1.9/topics/running/services/log-service
+              link: /docs/1.9/topics/running/services/log-service
             - title: Rate Limit Service
-              link: /docs/v1.9/topics/running/services/rate-limit-service
+              link: /docs/1.9/topics/running/services/rate-limit-service
             - title: Tracing Service
-              link: /docs/v1.9/topics/running/services/tracing-service
+              link: /docs/1.9/topics/running/services/tracing-service
         - title: TLS
-          link: /docs/v1.9/topics/running/tls/
+          link: /docs/1.9/topics/running/tls/
           items:
             - title: Simultaneously Routing HTTP and HTTPS
-              link: /docs/v1.9/topics/running/tls/cleartext-redirection#cleartext-routing
+              link: /docs/1.9/topics/running/tls/cleartext-redirection#cleartext-routing
             - title: HTTP -> HTTPS Redirection
-              link: /docs/v1.9/topics/running/tls/cleartext-redirection#http---https-redirection
+              link: /docs/1.9/topics/running/tls/cleartext-redirection#http---https-redirection
             - title: Mutual TLS (mTLS)
-              link: /docs/v1.9/topics/running/tls/mtls
+              link: /docs/1.9/topics/running/tls/mtls
             - title: Server Name Indication (SNI)
-              link: /docs/v1.9/topics/running/tls/sni
+              link: /docs/1.9/topics/running/tls/sni
             - title: TLS Origination
-              link: /docs/v1.9/topics/running/tls/origination
+              link: /docs/1.9/topics/running/tls/origination
         - title: Troubleshooting Ambassador
-          link: /docs/v1.9/topics/running/debugging
+          link: /docs/1.9/topics/running/debugging
         - title: Scaling Ambassador
-          link: /docs/v1.9/topics/running/scaling
+          link: /docs/1.9/topics/running/scaling
 - title: HOWTO Guides
-  link: /docs/v1.9/howtos
+  link: /docs/1.9/howtos
   items:
     - title: Authentication
       items:
         - title: Basic Authentication
-          link: /docs/v1.9/howtos/basic-auth
+          link: /docs/1.9/howtos/basic-auth
         - title: Single Sign-On with Auth0
-          link: /docs/v1.9/howtos/sso/auth0
+          link: /docs/1.9/howtos/sso/auth0
         - title: Single Sign-On with Azure Active Directory
-          link: /docs/v1.9/howtos/sso/azure
+          link: /docs/1.9/howtos/sso/azure
         - title: Single Sign-On with Google
-          link: /docs/v1.9/howtos/sso/google
+          link: /docs/1.9/howtos/sso/google
         - title: Single Sign-On with Keycloak
-          link: /docs/v1.9/howtos/sso/keycloak
+          link: /docs/1.9/howtos/sso/keycloak
         - title: Single Sign-On with Okta
-          link: /docs/v1.9/howtos/sso/okta
+          link: /docs/1.9/howtos/sso/okta
         - title: Single Sign-On with OneLogin
-          link: /docs/v1.9/howtos/sso/onelogin
+          link: /docs/1.9/howtos/sso/onelogin
         - title: Single Sign-On with Salesforce
-          link: /docs/v1.9/howtos/sso/salesforce
+          link: /docs/1.9/howtos/sso/salesforce
         - title: Single Sign-On with UAA
-          link: /docs/v1.9/howtos/sso/uaa
+          link: /docs/1.9/howtos/sso/uaa
         - title: Using the OAuth2 filter
-          link: /docs/v1.9/howtos/oauth-oidc-auth
+          link: /docs/1.9/howtos/oauth-oidc-auth
     - title: Custom Filters
       items:
         - title: External Filters
-          link: /docs/v1.9/howtos/ext-filters
+          link: /docs/1.9/howtos/ext-filters
         - title: Plugin Filters
-          link: /docs/v1.9/howtos/filter-dev-guide
+          link: /docs/1.9/howtos/filter-dev-guide
     - title: Deploying to Kubernetes from GitHub
-      link: /docs/v1.9/tutorials/projects
+      link: /docs/1.9/tutorials/projects
     - title: Distributed Tracing
       items:
         - title: DataDog
-          link: /docs/v1.9/howtos/tracing-datadog
+          link: /docs/1.9/howtos/tracing-datadog
         - title: Zipkin
-          link: /docs/v1.9/howtos/tracing-zipkin
+          link: /docs/1.9/howtos/tracing-zipkin
     - title: Knative Serverless Framework
-      link: /docs/v1.9/howtos/knative
+      link: /docs/1.9/howtos/knative
     - title: Protocols
       items:
         - title: gRPC
-          link: /docs/v1.9/howtos/grpc
+          link: /docs/1.9/howtos/grpc
         - title: WebSockets
-          link: /docs/v1.9/howtos/websockets
+          link: /docs/1.9/howtos/websockets
     - title: Prometheus monitoring
-      link: /docs/v1.9/howtos/prometheus
+      link: /docs/1.9/howtos/prometheus
     - title: Rate Limiting
       items:
         - title: Basic Rate Limiting
-          link: /docs/v1.9/howtos/rate-limiting-tutorial
+          link: /docs/1.9/howtos/rate-limiting-tutorial
         - title: Advanced Rate Limiting
-          link: /docs/v1.9/howtos/advanced-rate-limiting
+          link: /docs/1.9/howtos/advanced-rate-limiting
     - title: Service Mesh Integration
       items:
         - title: Consul
-          link: /docs/v1.9/howtos/consul
+          link: /docs/1.9/howtos/consul
         - title: Istio
-          link: /docs/v1.9/howtos/istio
+          link: /docs/1.9/howtos/istio
         - title: Linkerd 2
-          link: /docs/v1.9/howtos/linkerd2
+          link: /docs/1.9/howtos/linkerd2
     - title: TLS
       items:
         - title: TLS Termination
-          link: /docs/v1.9/howtos/tls-termination
+          link: /docs/1.9/howtos/tls-termination
         - title: Using cert-manager
-          link: /docs/v1.9/howtos/cert-manager
+          link: /docs/1.9/howtos/cert-manager
         - title: Client Certificate Validation
-          link: /docs/v1.9/howtos/client-cert-validation
+          link: /docs/1.9/howtos/client-cert-validation
 - title: Service Preview
-  link: /docs/v1.9/topics/using/edgectl/
+  link: /docs/1.9/topics/using/edgectl/
   items:
   - title: Quick Start
-    link: /docs/v1.9/topics/using/edgectl/service-preview-install
+    link: /docs/1.9/topics/using/edgectl/service-preview-install
   - title: Tutorial
-    link: /docs/v1.9/topics/using/edgectl/service-preview-tutorial
+    link: /docs/1.9/topics/using/edgectl/service-preview-tutorial
   - title: Service Preview Reference
-    link: /docs/v1.9/topics/using/edgectl/service-preview-reference
+    link: /docs/1.9/topics/using/edgectl/service-preview-reference
   - title: Service Mesh and Service Preview
-    link: /docs/v1.9/topics/using/edgectl/service-mesh-sp
+    link: /docs/1.9/topics/using/edgectl/service-mesh-sp
   - title: Edge Control Reference
-    link: /docs/v1.9/topics/using/edgectl/edge-control
+    link: /docs/1.9/topics/using/edgectl/edge-control
   - title: Using Edge Control in CI
-    link: /docs/v1.9/topics/using/edgectl/edge-control-in-ci
+    link: /docs/1.9/topics/using/edgectl/edge-control-in-ci
 - title: Frequently Asked Questions
-  link: /docs/v1.9/about/faq
+  link: /docs/1.9/about/faq
 - title: Community
   items:
     - title: Contributor's Guide
