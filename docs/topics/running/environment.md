@@ -73,6 +73,7 @@ Use the following variables for the environment of your Ambassador container:
 | Developer Portal                  | `POLL_EVERY_SECS`                           | `60`                                                | Integer                                                                       |
 | Envoy                             | `STATSD_ENABLED`                            | `false`                                             | Boolean; Python `value.lower() == "true"`                                     |
 | Envoy                             | `DOGSTATSD`                                 | `false`                                             | Boolean; Python `value.lower() == "true"`                                     |
+| Envoy                             | `ENVOY_CONCURRENCY`                         | Empty                                               | Integer
 
 Log level names are case-insensitive.  From least verbose to most
 verbose, valid log levels are `error`, `warn`/`warning`, `info`,
