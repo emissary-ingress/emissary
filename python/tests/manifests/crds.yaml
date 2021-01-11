@@ -839,6 +839,7 @@ spec:
                   type: integer
               type: object
             labels:
+              description: A DomainMap is the overall Mapping.spec.Labels type. It maps domains (kind of like namespaces for Mapping labels) to arrays of label groups.
               type: object
             load_balancer:
               properties:

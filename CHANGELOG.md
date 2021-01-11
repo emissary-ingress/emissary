@@ -70,8 +70,13 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Make sure that `labels` specifying headers with extra attributes are correctly supported again ([#3137])
 - Bugfix: Support Consul services when the `ConsulResolver` and the `Mapping` aren't in the same namespace, and legacy mode is not enabled.
 - Feature: Ambassador now reads the ENVOY_CONCURRENCY environment variable to optionally set the [--concurrency](https://www.envoyproxy.io/docs/envoy/latest/operations/cli#cmdoption-concurrency) command line option when launching Envoy. This controls the number of worker threads used to serve requests and can be used to fine-tune system resource usage.
+
+[#3137]: https://github.com/datawire/ambassador/issues/3137
 
 ## [1.10.0] January 04, 2021
 [1.10.0]: https://github.com/datawire/ambassador/compare/v1.9.1...v1.10.0
