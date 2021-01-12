@@ -1,7 +1,6 @@
 from typing import Any, Collection, Iterator, Mapping, MutableSet, Optional, Protocol, Sequence, Type, TypeVar
 
 from collections import defaultdict
-import copy
 import dataclasses
 
 from .k8sobject import KubernetesObject
@@ -15,6 +14,9 @@ class Dependency (Protocol):
 class ServiceDependency (Dependency):
 
     ambassador_service: Optional[KubernetesObject]
+
+    def __init__(self) -> None:
+        self.ambassador_service = None
 
     def watt_key(self) -> str:
         return 'service'
@@ -88,10 +90,18 @@ class DependencyGraph:
         Returns the items in this graph in topological order.
         """
 
+        if len(self.vertices) == 0:
+            return
+
         in_counts = {obj: vertex.in_count for obj, vertex in self.vertices.items()}
 
         # Find the roots of the graph.
         queue = [obj for obj, in_count in in_counts.items() if in_count == 0]
+
+        # No roots of a graph with at least one vertex indicates a cycle.
+        if len(queue) == 0:
+            raise ValueError('cyclic')
+
         while len(queue) > 0:
             cur = queue.pop(0)
             yield cur
@@ -100,8 +110,6 @@ class DependencyGraph:
                 in_counts[obj] -= 1
                 if in_counts[obj] == 0:
                     queue.append(obj)
-        else:
-            raise ValueError('cyclic')
 
 
 class DependencyManager:

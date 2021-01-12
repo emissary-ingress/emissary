@@ -11,6 +11,7 @@ __pycache__
 .pytest_cache
 .mypy_cache
 .dmypy.json
+.coverage
 go.sum
 
 bin/

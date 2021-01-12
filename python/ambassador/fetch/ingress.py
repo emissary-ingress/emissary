@@ -1,9 +1,9 @@
-from typing import ClassVar
+from typing import ClassVar, FrozenSet
 
 from ..config import Config
 
 from .dependency import IngressClassesDependency, SecretDependency, ServiceDependency
-from .k8sobject import KubernetesObject
+from .k8sobject import KubernetesGVK, KubernetesObject
 from .k8sprocessor import ManagedKubernetesProcessor
 from .resource import NormalizedResource, ResourceManager
 
@@ -18,6 +18,9 @@ class IngressClassProcessor (ManagedKubernetesProcessor):
         super().__init__(manager)
 
         self.ingress_classes_dep = self.deps.provide(IngressClassesDependency)
+
+    def kinds(self) -> FrozenSet[KubernetesGVK]:
+        return frozenset([KubernetesGVK('networking.k8s.io/v1beta1', 'IngressClass')])
 
     def _process(self, obj: KubernetesObject) -> None:
         # We only want to deal with IngressClasses that belong to "spec.controller: getambassador.io/ingress-controller"
@@ -61,6 +64,12 @@ class IngressProcessor (ManagedKubernetesProcessor):
         self.deps.want(SecretDependency)
         self.service_dep = self.deps.want(ServiceDependency)
         self.ingress_classes_dep = self.deps.want(IngressClassesDependency)
+
+    def kinds(self) -> FrozenSet[KubernetesGVK]:
+        return frozenset([
+            KubernetesGVK('extensions/v1beta1', 'Ingress'),
+            KubernetesGVK('networking.k8s.io/v1beta1', 'Ingress'),
+        ])
 
     def _process(self, obj: KubernetesObject) -> None:
         ingress_class_name = obj.spec.get('ingressClassName', '')

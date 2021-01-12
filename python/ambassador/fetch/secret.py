@@ -2,9 +2,10 @@ from typing import FrozenSet
 
 from ..config import Config
 
+from .dependency import SecretDependency
 from .k8sobject import KubernetesGVK, KubernetesObject
 from .k8sprocessor import ManagedKubernetesProcessor
-from .resource import NormalizedResource
+from .resource import NormalizedResource, ResourceManager
 
 
 class SecretProcessor (ManagedKubernetesProcessor):
@@ -26,6 +27,11 @@ class SecretProcessor (ManagedKubernetesProcessor):
         'key.pem',
         'root-cert.pem',
     ]
+
+    def __init__(self, manager: ResourceManager) -> None:
+        super().__init__(manager)
+
+        self.deps.provide(SecretDependency)
 
     def kinds(self) -> FrozenSet[KubernetesGVK]:
         return frozenset([KubernetesGVK('v1', 'Secret')])
