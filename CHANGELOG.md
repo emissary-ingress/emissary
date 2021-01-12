@@ -76,6 +76,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: Support Consul services when the `ConsulResolver` and the `Mapping` aren't in the same namespace, and legacy mode is not enabled.
 - Feature: Ambassador now reads the ENVOY_CONCURRENCY environment variable to optionally set the [--concurrency](https://www.envoyproxy.io/docs/envoy/latest/operations/cli#cmdoption-concurrency) command line option when launching Envoy. This controls the number of worker threads used to serve requests and can be used to fine-tune system resource usage.
 - Bugfix: Fix failure to start when one or more IngressClasses are present in a cluster ([#3142]).
+- Bugfix: Prevent potential reconcile loop when updating the status of an Ingress.
 
 [#3137]: https://github.com/datawire/ambassador/issues/3137
 [#3142]: https://github.com/datawire/ambassador/issues/3142

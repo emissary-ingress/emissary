@@ -7,11 +7,21 @@ from .k8sobject import KubernetesObject
 
 
 class Dependency (Protocol):
+    """
+    Dependencies link information provided by processors of a given Watt
+    invocation to other processors that need the processed result. This results
+    in an ordering of keys so that processors can be dependent on each other
+    without direct knowledge of where data is coming from.
+    """
 
     def watt_key(self) -> str: ...
 
 
 class ServiceDependency (Dependency):
+    """
+    A dependency that exposes information about the Kubernetes service for
+    Ambassador itself.
+    """
 
     ambassador_service: Optional[KubernetesObject]
 
@@ -23,12 +33,20 @@ class ServiceDependency (Dependency):
 
 
 class SecretDependency (Dependency):
+    """
+    A dependency that is satisfied once secret information has been mapped and
+    emitted.
+    """
 
     def watt_key(self) -> str:
         return 'secret'
 
 
 class IngressClassesDependency (Dependency):
+    """
+    A dependency that provides the list of ingress classes that are valid (i.e.,
+    have the proper controller) for this cluster.
+    """
 
     ingress_classes: MutableSet[str]
 
@@ -49,6 +67,16 @@ class DependencyMapping (Protocol):
 
 
 class DependencyInjector:
+    """
+    Each processor instance is provided with a dependency injector that allows
+    it to declare what dependencies it provides as part of its processing and
+    what dependencies it wants to do its processing.
+
+    Note that dependencies need not be fulfilled; for example, nothing may
+    provide information about the Ambassador service or the list of valid
+    ingress classes. Processors should be prepared to deal with the absence of
+    valid data when they run.
+    """
 
     wants: MutableSet[Type[Dependency]]
     provides: MutableSet[Type[Dependency]]
@@ -69,6 +97,12 @@ class DependencyInjector:
 
 
 class DependencyGraph:
+    """
+    Once dependency relationships are known, this class provides the ability to
+    link them holistically and traverse them in topological order. It is most
+    useful in the context of the sorted_watt_keys() method of the
+    DependencyManager.
+    """
 
     @dataclasses.dataclass
     class Vertex:
@@ -113,6 +147,11 @@ class DependencyGraph:
 
 
 class DependencyManager:
+    """
+    A manager that provides access to a set of dependencies for arbitrary object
+    instances and the ability to compute a sorted list of Watt keys that
+    represent the processing order for the dependencies.
+    """
 
     deps: DependencyMapping
     injectors: Mapping[Any, DependencyInjector]

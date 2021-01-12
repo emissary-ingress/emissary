@@ -20,7 +20,10 @@ class IngressClassProcessor (ManagedKubernetesProcessor):
         self.ingress_classes_dep = self.deps.provide(IngressClassesDependency)
 
     def kinds(self) -> FrozenSet[KubernetesGVK]:
-        return frozenset([KubernetesGVK('networking.k8s.io/v1beta1', 'IngressClass')])
+        return frozenset([
+            KubernetesGVK('networking.k8s.io/v1beta1', 'IngressClass'),
+            KubernetesGVK('networking.k8s.io/v1', 'IngressClass'),
+        ])
 
     def _process(self, obj: KubernetesObject) -> None:
         # We only want to deal with IngressClasses that belong to "spec.controller: getambassador.io/ingress-controller"
@@ -69,7 +72,24 @@ class IngressProcessor (ManagedKubernetesProcessor):
         return frozenset([
             KubernetesGVK('extensions/v1beta1', 'Ingress'),
             KubernetesGVK('networking.k8s.io/v1beta1', 'Ingress'),
+            KubernetesGVK('networking.k8s.io/v1', 'Ingress'),
         ])
+
+    def _update_status(self, obj: KubernetesObject) -> None:
+        service_status = None
+
+        if not self.service_dep.ambassador_service or not self.service_dep.ambassador_service.name:
+            self.logger.error(f"Unable to set Ingress {obj.name}'s load balancer, could not find Ambassador service")
+        else:
+            service_status = self.service_dep.ambassador_service.status
+
+        if obj.status != service_status:
+            if service_status:
+                status_update = (obj.gvk.kind, obj.namespace, service_status)
+                self.logger.debug(f"Updating Ingress {obj.name} status to {status_update}")
+                self.aconf.k8s_status_updates[f'{obj.name}.{obj.namespace}'] = status_update
+        else:
+            self.logger.debug(f"Not reconciling Ingress {obj.name}: observed and current statuses are in sync")
 
     def _process(self, obj: KubernetesObject) -> None:
         ingress_class_name = obj.spec.get('ingressClassName', '')
@@ -215,15 +235,7 @@ class IngressProcessor (ManagedKubernetesProcessor):
                 self.manager.emit(path_mapping)
 
         # let's make arrangements to update Ingress' status now
-        if not self.service_dep.ambassador_service:
-            self.logger.error(f"Unable to update Ingress {obj.name}'s status, could not find Ambassador service")
-        else:
-            status = self.service_dep.ambassador_service.status
-
-            if status:
-                status_update = (obj.gvk.kind, obj.namespace, status)
-                self.logger.debug(f"Updating Ingress {obj.name} status to {status_update}")
-                self.aconf.k8s_status_updates[f'{obj.name}.{obj.namespace}'] = status_update
+        self._update_status(obj)
 
         # Let's see if our Ingress resource has Ambassador annotations on it
         self.manager.emit_annotated(NormalizedResource.from_kubernetes_object_annotation(obj))
