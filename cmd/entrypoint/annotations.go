@@ -4,9 +4,10 @@ import (
 	"log"
 
 	"github.com/datawire/ambassador/pkg/kates"
+	types "github.com/datawire/ambassador/pkg/snapshot"
 )
 
-func (a *AmbassadorInputs) parseAnnotations() {
+func parseAnnotations(a *types.AmbassadorInputs) {
 	var annotatable []kates.Object
 
 	for _, s := range a.Services {
@@ -17,7 +18,7 @@ func (a *AmbassadorInputs) parseAnnotations() {
 		annotatable = append(annotatable, i)
 	}
 
-	a.annotations = GetAnnotations(annotatable...)
+	a.Annotations = GetAnnotations(annotatable...)
 }
 
 // GetAnnotations extracts and converts any parseable annotations from the supplied resource. It

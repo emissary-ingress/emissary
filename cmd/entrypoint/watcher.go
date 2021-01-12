@@ -13,6 +13,7 @@ import (
 	"github.com/datawire/ambassador/pkg/acp"
 	"github.com/datawire/ambassador/pkg/debug"
 	"github.com/datawire/ambassador/pkg/kates"
+	types "github.com/datawire/ambassador/pkg/snapshot"
 	"github.com/datawire/ambassador/pkg/watt"
 	"github.com/datawire/dlib/dlog"
 )
@@ -229,7 +230,7 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 			})
 		case icertUpdate := <-istioCertUpdateChannel:
 			// Make a SecretRef for this new secret...
-			ref := SecretRef{Name: icertUpdate.Name, Namespace: icertUpdate.Namespace}
+			ref := types.SecretRef{Name: icertUpdate.Name, Namespace: icertUpdate.Namespace}
 
 			// ...and delete or save, as appropriate.
 			if icertUpdate.Op == "delete" {
@@ -244,11 +245,15 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 			return
 		}
 
-		parseAnnotationsTimer.Time(snapshot.parseAnnotations)
+		parseAnnotationsTimer.Time(func() {
+			parseAnnotations(snapshot)
+		})
 
-		reconcileSecretsTimer.Time(snapshot.ReconcileSecrets)
+		reconcileSecretsTimer.Time(func() {
+			ReconcileSecrets(snapshot)
+		})
 		reconcileConsulTimer.Time(func() {
-			snapshot.ReconcileConsul(ctx, consul)
+			ReconcileConsul(ctx, consul, snapshot)
 		})
 
 		if !consul.isBootstrapped() {
@@ -260,7 +265,7 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 			invalidSlice = append(invalidSlice, inv)
 		}
 
-		sn := &Snapshot{
+		sn := &types.Snapshot{
 			Kubernetes: snapshot,
 			Consul:     consulSnapshot,
 			Invalid:    invalidSlice,

@@ -9,12 +9,13 @@ import (
 
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/pkg/consulwatch"
+	types "github.com/datawire/ambassador/pkg/snapshot"
 	"github.com/datawire/ambassador/pkg/watt"
 )
 
-func (s *AmbassadorInputs) ReconcileConsul(ctx context.Context, consul *consul) {
+func ReconcileConsul(ctx context.Context, consul *consul, s *types.AmbassadorInputs) {
 	var mappings []*amb.Mapping
-	for _, a := range s.annotations {
+	for _, a := range s.Annotations {
 		m, ok := a.(*amb.Mapping)
 		if ok && include(m.Spec.AmbassadorID) {
 			mappings = append(mappings, m)
