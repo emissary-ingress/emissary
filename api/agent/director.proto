@@ -42,9 +42,18 @@ message Identity {
 // component of the CEPC
 message Snapshot {
   Identity identity = 1;
+  // okay but like what is this used for...
+  // or what was it intended to be used for...
   string message = 2;
+  // no longer used. leave this all behind and create a v2 api?
   repeated Service services = 3;
+  bytes raw_snapshot = 4;
+  // described how the raw_snapshot was encoded
+  string content_type = 5;
+  // api version of the raw snapshot
+  string api_version = 6;
 }
+
 
 message Service {
   string name = 1;

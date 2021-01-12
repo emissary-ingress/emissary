@@ -11,6 +11,9 @@ import (
 	"github.com/datawire/ambassador/pkg/watt"
 )
 
+// TODO: mv this into pkg/snapshot/v1/types.go?
+const ApiVersion = "V1"
+
 // SecretRef is a secret reference -- basically, a namespace/name pair.
 type SecretRef struct {
 	Namespace string
