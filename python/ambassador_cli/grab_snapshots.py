@@ -30,19 +30,18 @@ import tarfile
 
 import click
 
-from .util import dump_json
+from ambassador.utils import dump_json
 
 # Use this instead of click.option
 click_option = functools.partial(click.option, show_default=True)
 click_option_no_default = functools.partial(click.option, show_default=False)
 
-def sanitize_snapshot(path: str):
-    watt_dict = json.loads(open(path, "r"). read())
 
+def sanitize_snapshot(snapshot: dict):
     sanitized = {}
 
     # Consul is pretty easy. Just sort, using service-dc as the sort key.
-    consul_elements = watt_dict.get('Consul')
+    consul_elements = snapshot.get('Consul')
 
     if consul_elements:
         csorted = {}
@@ -52,8 +51,14 @@ def sanitize_snapshot(path: str):
 
         sanitized['Consul'] = csorted
 
+    # Make sure we grab Deltas and Invalid -- these should really be OK as-is.
+
+    for key in [ 'Deltas', 'Invalid' ]:
+        if key in snapshot:
+            sanitized[key] = snapshot[key]
+    
     # Kube is harder because we need to sanitize Kube secrets.
-    kube_elements = watt_dict.get('Kubernetes')
+    kube_elements = snapshot.get('Kubernetes')
 
     if kube_elements:
         ksorted = {}
@@ -86,8 +91,30 @@ def sanitize_snapshot(path: str):
 
     return sanitized
 
+
+# Helper to open a snapshot.yaml and sanitize it.
+def helper_snapshot(path: str) -> str:
+    snapshot = json.loads(open(path, "r"). read())
+
+    return dump_json(sanitize_snapshot(snapshot))
+
+
+# Helper to open a problems.json and sanitize the snapshot it contains.
+def helper_problems(path: str) -> str:
+    bad_dict = json.loads(open(path, "r"). read())
+
+    bad_dict["snapshot"] = sanitize_snapshot(bad_dict["snapshot"])
+
+    return dump_json(bad_dict)
+
+
+# Helper to just copy a file.
+def helper_copy(path: str) -> str:
+    return open(path, "r").read()
+
+
 # Open a tarfile for output...
-@click.command(help="Mock the watt/watch_hook/diagd cycle to generate an IR from a Kubernetes YAML manifest.")
+@click.command(help="Grab, and sanitize, Ambassador snapshots for later debugging")
 @click_option('--debug/--no-debug', default=True,
               help="enable debugging")
 @click_option('-o', '--output-path', '--output', type=click.Path(writable=True), default="sanitized.tgz",
@@ -106,34 +133,35 @@ def main(snapshot_dir: str, debug: bool, output_path: str) -> None:
 
         some_found = False
 
-        for path in glob.glob(os.path.join(snapshot_dir, "snap*.yaml")):
-            some_found = True
+        interesting_things = [
+            ( "snap*yaml", helper_snapshot ),
+            ( "problems*json", helper_problems ),
+            ( "econf*json", helper_copy ),
+            ( "diff*txt", helper_copy )
+        ]
 
-            # The tarfile can be flat, rather than embedding everything
-            # in a directory with a fixed name.
-            b = os.path.basename(path)
+        for pattern, helper in interesting_things:
+            for path in glob.glob(os.path.join(snapshot_dir, pattern)):
+                some_found = True
 
-            if debug:
-                print(f"...{b}")
+                # The tarfile can be flat, rather than embedding everything
+                # in a directory with a fixed name.
+                b = os.path.basename(path)
 
-            sanitized = sanitize_snapshot(path)
+                if debug:
+                    print(f"...{b}")
 
-            if sanitized:
-                with open('sanitized.json', 'w') as tmp:
-                    tmp.write(dump_json(sanitized))
+                sanitized = helper(path)
 
-                archive.add('sanitized.json', arcname=b)
-                os.unlink('sanitized.json')
+                if sanitized:
+                    _, ext = os.path.splitext(path)
+                    sanitized_name = f"sanitized{ext}"
 
-        for path in glob.glob(os.path.join(snapshot_dir, "econf*json")):
-            some_found = True
+                    with open(sanitized_name, 'w') as tmp:
+                        tmp.write(sanitized)
 
-            b = os.path.basename(path)
-
-            if debug:
-                print(f"...{b}")
-
-            archive.add(path, arcname=os.path.basename(path))
+                    archive.add(sanitized_name, arcname=b)
+                    os.unlink(sanitized_name)
 
         if not some_found:
             sys.stderr.write(f"No snapshots found in {snapshot_dir}?\n")

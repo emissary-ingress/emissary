@@ -81,11 +81,33 @@ def clicheck() -> bool:
         return False
 
 
+def grabsnapshotscheck() -> bool:
+    child = pexpect.spawn("grab-snapshots --help")
+
+    i = child.expect([ pexpect.EOF, pexpect.TIMEOUT, "Usage: grab-snapshots" ])
+
+    if i == 0:
+        print('grab-snapshots died without usage statement?')
+        return False
+    elif i == 1:
+        print('grab-snapshots timed out without usage statement?')
+        return False
+
+    i = child.expect([ pexpect.EOF, pexpect.TIMEOUT ])
+
+    if i == 0:
+        return True
+    else:
+        print("grab-snapshots timed out after usage statement?")
+        return False
+
+
 def test_docker():
     test_status = False
 
     # We're running in the build container here, so the Ambassador CLI should work.
     assert clicheck(), "CLI check failed"
+    assert grabsnapshotscheck(), "grab-snapshots check failed"
 
     with open('/tmp/test_docker_output', 'w') as logfile:
         if not DockerImage:
