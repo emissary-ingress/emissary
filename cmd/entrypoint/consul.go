@@ -2,7 +2,6 @@ package entrypoint
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"sync"
 
@@ -155,21 +154,26 @@ func (c *consul) reconcile(resolvers []*amb.ConsulResolver, mappings []*amb.Mapp
 	// ==First we compute resolvers and their related mappings without actualy changing anything.==
 	resolversByName := make(map[string]*amb.ConsulResolver)
 	for _, cr := range resolvers {
-		name := fmt.Sprintf("%s.%s", cr.GetName(), cr.GetNamespace())
-		resolversByName[name] = cr
+		// Ambassador can find resolvers in any namespace, but they're not partitioned
+		// by namespace once located, so just save using the name.
+		resolversByName[cr.GetName()] = cr
 	}
 
 	mappingsByResolver := make(map[string][]*amb.Mapping)
 	for _, m := range mappings {
-		if m.Spec.Resolver == "" {
+		// Everything here is keyed off m.Spec.Resolver -- again, it's fine to use a resolver
+		// from any namespace, as long as it was loaded.
+		//
+		// (This implies that if you typo a resolver name, things won't work.)
+
+		rname := m.Spec.Resolver
+
+		if rname == "" {
 			continue
 		}
 
-		// XXX: how are resolvers supposed to be resolved?
-		rname := fmt.Sprintf("%s.%s", m.Spec.Resolver, m.GetNamespace())
 		_, ok := resolversByName[rname]
 		if !ok {
-			// XXX: how do we handle typo'd resolvers?
 			continue
 		}
 		mappingsByResolver[rname] = append(mappingsByResolver[rname], m)

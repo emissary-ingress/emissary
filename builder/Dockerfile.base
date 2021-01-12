@@ -78,6 +78,8 @@ RUN curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/kuben
 RUN curl --fail -L https://github.com/gotestyourself/gotestsum/releases/download/v0.6.0/gotestsum_0.6.0_linux_amd64.tar.gz | tar -C /usr/local/bin -xzf -
 
 RUN curl --fail -L https://raw.githubusercontent.com/jonmosco/kube-ps1/v0.7.0/kube-ps1.sh -o /usr/local/bin/kube-ps1.sh
+RUN curl -o /usr/local/bin/yq --fail -L https://github.com/mikefarah/yq/releases/download/v4.3.1/yq_linux_amd64 && \
+    chmod a+x /usr/local/bin/yq
 
 # The YAML parser is... special. To get the C version, we need to install Cython and libyaml, then
 # build it locally -- just using pip won't work.

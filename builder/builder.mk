@@ -93,7 +93,8 @@
 
 BUILDER_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-BUILDER_NAME ?= $(NAME)
+LCNAME := $(shell echo $(NAME) | tr '[:upper:]' '[:lower:]')
+BUILDER_NAME ?= $(LCNAME)
 
 .DEFAULT_GOAL = all
 include $(OSS_HOME)/build-aux/prelude.mk
@@ -235,7 +236,7 @@ compile: sync
 
 # Give Make a hint about which pattern rules to apply.  Honestly, I'm
 # not sure why Make isn't figuring it out on its own, but it isn't.
-_images = builder-base snapshot base-envoy $(NAME) kat-client kat-server
+_images = builder-base snapshot base-envoy $(LCNAME) kat-client kat-server
 $(foreach i,$(_images), docker/$i.docker.tag.local  ): docker/%.docker.tag.local : docker/%.docker
 $(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remote: docker/%.docker
 
@@ -244,7 +245,8 @@ docker/builder-base.docker.stamp: FORCE preflight
 	@$(BUILDER) build-builder-base >$@
 docker/container.txt.stamp: %/container.txt.stamp: %/builder-base.docker.tag.local %/base-envoy.docker.tag.local FORCE
 	@printf "${CYN}==> ${GRN}Bootstrapping builder container${END}\n"
-	@$(BUILDER) bootstrap > $@
+	@($(BOOTSTRAP_EXTRAS) $(BUILDER) bootstrap > $@)
+
 docker/snapshot.docker.stamp: %/snapshot.docker.stamp: %/container.txt FORCE compile
 	@set -e; { \
 	  if test -e $@ && ! docker exec $$(cat $<) test -e /buildroot/image.dirty; then \
@@ -265,12 +267,12 @@ docker/base-envoy.docker.stamp: FORCE
 	    docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@; \
 	  fi; \
 	}
-docker/$(NAME).docker.stamp: %/$(NAME).docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
+docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
 	@set -e; { \
 	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
-	    printf "${CYN}==> ${GRN}Image ${BLU}$(NAME)${GRN} is already up-to-date${END}\n"; \
+	    printf "${CYN}==> ${GRN}Image ${BLU}$(LCNAME)${GRN} is already up-to-date${END}\n"; \
 	  else \
-	    printf "${CYN}==> ${GRN}Building image ${BLU}$(NAME)${END}\n"; \
+	    printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"; \
 	    ${DBUILD} ${BUILDER_HOME} \
 	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
 	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
@@ -310,7 +312,7 @@ docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/snapshot.docker.tag
 
 REPO=$(BUILDER_NAME)
 
-images: docker/$(NAME).docker.tag.local
+images: docker/$(LCNAME).docker.tag.local
 images: docker/kat-client.docker.tag.local
 images: docker/kat-server.docker.tag.local
 .PHONY: images
@@ -320,7 +322,7 @@ REGISTRY_ERR += $(NL)ERROR: please set the DEV_REGISTRY make/env variable to the
 REGISTRY_ERR += $(NL)       you would like to use for development
 REGISTRY_ERR += $(END)
 
-push: docker/$(NAME).docker.push.remote
+push: docker/$(LCNAME).docker.push.remote
 push: docker/kat-client.docker.push.remote
 push: docker/kat-server.docker.push.remote
 .PHONY: push
@@ -348,10 +350,10 @@ pytest-envoy:
 	$(MAKE) pytest KAT_RUN_MODE=envoy
 .PHONY: pytest-envoy
 
-pytest-only: sync preflight-cluster | docker/$(NAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
+pytest-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	docker exec \
-		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p docker/$(NAME).docker.push.remote) \
+		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) \
 		-e KAT_CLIENT_DOCKER_IMAGE=$$(sed -n 2p docker/kat-client.docker.push.remote) \
 		-e KAT_SERVER_DOCKER_IMAGE=$$(sed -n 2p docker/kat-server.docker.push.remote) \
 		-e KAT_IMAGE_PULL_POLICY=Always \
@@ -413,7 +415,7 @@ gotest: test-ready
 .PHONY: gotest
 
 # Ingress v1 conformance tests, using KIND and the Ingress Conformance Tests suite.
-ingresstest: | docker/$(NAME).docker.push.remote
+ingresstest: | docker/$(LCNAME).docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)Ingress v1$(GRN) tests$(END)\n"
 	@[ -n "$(INGRESS_TEST_IMAGE)" ] || { printf "$(RED)ERROR: no INGRESS_TEST_IMAGE defined$(END)\n"; exit 1; }
 	@[ -n "$(INGRESS_TEST_MANIF_DIR)" ] || { printf "$(RED)ERROR: no INGRESS_TEST_MANIF_DIR defined$(END)\n"; exit 1; }
@@ -439,10 +441,10 @@ ingresstest: | docker/$(NAME).docker.push.remote
 	@kubectl --kubeconfig=$(KIND_KUBECONFIG) cluster-info || { printf "$(RED)ERROR: kubernetes cluster not ready $(END)\n"; exit 1 ; }
 	@kubectl --kubeconfig=$(KIND_KUBECONFIG) version || { printf "$(RED)ERROR: kubernetes cluster not ready $(END)\n"; exit 1 ; }
 
-	@printf "$(CYN)==> $(GRN)Loading Ambassador (from the Ingress conformance tests) with image=$$(sed -n 2p docker/$(NAME).docker.push.remote)$(END)\n"
+	@printf "$(CYN)==> $(GRN)Loading Ambassador (from the Ingress conformance tests) with image=$$(sed -n 2p docker/$(LCNAME).docker.push.remote)$(END)\n"
 	@for f in $(INGRESS_TEST_MANIFS) ; do \
 		printf "$(CYN)==> $(GRN)... $$f $(END)\n" ; \
-		cat $(INGRESS_TEST_MANIF_DIR)/$$f | sed -e "s|image:.*ambassador\:.*|image: $$(sed -n 2p docker/$(NAME).docker.push.remote)|g" | tee /dev/tty | kubectl apply -f - ; \
+		cat $(INGRESS_TEST_MANIF_DIR)/$$f | sed -e "s|image:.*ambassador\:.*|image: $$(sed -n 2p docker/$(LCNAME).docker.push.remote)|g" | tee /dev/tty | kubectl apply -f - ; \
 	done
 
 	@printf "$(CYN)==> $(GRN)Waiting for Ambassador to be ready$(END)\n"
@@ -523,7 +525,7 @@ rc: release/bits
 release/bits: images
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
 	@printf "$(CYN)==> $(GRN)Pushing $(BLU)$(REPO)$(GRN) Docker image$(END)\n"
-	docker tag $$(cat docker/$(NAME).docker) $(AMB_IMAGE_RC)
+	docker tag $$(cat docker/$(LCNAME).docker) $(AMB_IMAGE_RC)
 	docker push $(AMB_IMAGE_RC)
 .PHONY: release/bits
 
@@ -607,7 +609,7 @@ clobber:
 CURRENT_CONTEXT=$(shell kubectl --kubeconfig=$(DEV_KUBECONFIG) config current-context)
 CURRENT_NAMESPACE=$(shell kubectl config view -o=jsonpath="{.contexts[?(@.name==\"$(CURRENT_CONTEXT)\")].context.namespace}")
 
-AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(NAME).docker.push.remote 2>/dev/null)
+AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME).docker.push.remote 2>/dev/null)
 KAT_CLIENT_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-client.docker.push.remote 2>/dev/null)
 KAT_SERVER_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-server.docker.push.remote 2>/dev/null)
 
@@ -667,7 +669,7 @@ useful for producing builds with extended functionality.  Each external
 codebase is synced into the container at the $(BLD)/buildroot/<name>$(END) path.
 
 You can control the name of the container and the images it builds by
-setting $(BLU)$$BUILDER_NAME$(END), which defaults to $(BLD)$(NAME)$(END).  Note well that if
+setting $(BLU)$$BUILDER_NAME$(END), which defaults to $(BLD)$(LCNAME)$(END).  Note well that if
 you want to make multiple clones of this repo and build in more than one
 of them at the same time, you $(BLD)must$(END) set $(BLD)$$BUILDER_NAME$(END) so that each clone
 has its own builder!  If you do not do this, your builds will collide
