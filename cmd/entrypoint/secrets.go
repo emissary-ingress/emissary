@@ -127,7 +127,7 @@ func ReconcileSecrets(s *types.AmbassadorInputs) {
 	}
 
 	for _, secret := range s.K8sSecrets {
-		ref := types.SecretRef{secret.GetNamespace(), secret.GetName()}
+		ref := types.SecretRef{Namespace: secret.GetNamespace(), Name: secret.GetName()}
 
 		_, found := s.FSSecrets[ref]
 		if found {
@@ -257,7 +257,7 @@ func secretRef(namespace, name string, secretNamespacing bool, action func(types
 		}
 	}
 
-	action(types.SecretRef{namespace, name})
+	action(types.SecretRef{Namespace: namespace, Name: name})
 }
 
 // ModuleSecrets is... a hack. It's sort of a mashup of the chunk of the Ambassador
