@@ -23,10 +23,12 @@ Use the following variables for the environment of your Ambassador container:
 | Core                              | `AMBASSADOR_FAST_RECONFIGURE`               | `false`                                             | EXPERIMENTAL -- Boolean; `true`=true, any other value=false                   |
 | Core                              | `AMBASSADOR_UPDATE_MAPPING_STATUS`          | `false`                                             | Boolean; `true`=true, any other value=false                                   |
 | Edge Stack                        | `AES_LOG_LEVEL`                             | `info`                                              | Log level (see below)                                                         |
+| Edge Stack                        | `AES_RATELIMIT_PREVIEW`                     | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | Primary Redis (L4)                | `REDIS_SOCKET_TYPE`                         | `tcp`                                               | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
 | Primary Redis (L4)                | `REDIS_URL`                                 | None, must be set explicitly                        | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
 | Primary Redis (L4)                | `REDIS_TLS_ENABLED`                         | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | Primary Redis (L4)                | `REDIS_TLS_INSECURE`                        | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
+| Primary Redis (auth)              | `REDIS_AUTH`                                | Empty                                               | Requires AES_RATELIMIT_PREVIEW; Plain string                                  |
 | Primary Redis (auth)              | `REDIS_USERNAME`                            | Empty                                               | Plain string                                                                  |
 | Primary Redis (auth)              | `REDIS_PASSWORD`                            | Empty                                               | Plain string                                                                  |
 | Primary Redis (tune)              | `REDIS_POOL_SIZE`                           | `10`                                                | Integer                                                                       |
@@ -36,6 +38,9 @@ Use the following variables for the environment of your Ambassador container:
 | Primary Redis (tune)              | `REDIS_SURGE_LIMIT_AFTER`                   | The value of `REDIS_POOL_SIZE`                      | Integer                                                                       |
 | Primary Redis (tune)              | `REDIS_SURGE_POOL_SIZE`                     | `0`                                                 | Integer                                                                       |
 | Primary Redis (tune)              | `REDIS_SURGE_POOL_DRAIN_INTERVAL`           | `1m`                                                | Duration; [Go `time.ParseDuration`][]                                         |
+| Primary Redis (tune)              | `REDIS_PIPELINE_WINDOW`                     | `0`                                                 | Requires AES_RATELIMIT_PREVIEW; Duration; [Go `time.ParseDuration`][]         |
+| Primary Redis (tune)              | `REDIS_PIPELINE_LIMIT`                      | `0`                                                 | Requires AES_RATELIMIT_PREVIEW; Integer; [Go `strconv.ParseInt`][]            |
+| Primary Redis (tune)              | `REDIS_TYPE`                                | `SINGLE`                                            | Requires AES_RATELIMIT_PREVIEW; String; SINGLE, SENTINEL, or CLUSTER          |
 | Per-Second RateLimit Redis        | `REDIS_PERSECOND`                           | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | Per-Second RateLimit Redis (L4)   | `REDIS_PERSECOND_SOCKET_TYPE`               | None, must be set explicitly (if `REDIS_PERSECOND`) | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     |
 | Per-Second RateLimit Redis (L4)   | `REDIS_PERSECOND_URL`                       | None, must be set explicitly (if `REDIS_PERSECOND`) | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] |
@@ -43,6 +48,7 @@ Use the following variables for the environment of your Ambassador container:
 | Per-Second RateLimit Redis (L4)   | `REDIS_PERSECOND_TLS_INSECURE`              | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | Per-Second RateLimit Redis (auth) | `REDIS_PERSECOND_USERNAME`                  | Empty                                               | Plain string                                                                  |
 | Per-Second RateLimit Redis (auth) | `REDIS_PERSECOND_PASSWORD`                  | Empty                                               | Plain string                                                                  |
+| Per-Second RateLimit Redis (auth) | `REDIS_PERSECOND_AUTH`                      | Empty                                               | Requires AES_RATELIMIT_PREVIEW; Plain string                                  |
 | Per-Second RateLimit Redis (tune) | `REDIS_PERSECOND_POOL_SIZE`                 | `10`                                                | Integer                                                                       |
 | Per-Second RateLimit Redis (tune) | `REDIS_PERSECOND_PING_INTERVAL`             | `10s`                                               | Duration; [Go `time.ParseDuration`][]                                         |
 | Per-Second RateLimit Redis (tune) | `REDIS_PERSECOND_TIMEOUT`                   | `0s`                                                | Duration; [Go `time.ParseDuration`][]                                         |
@@ -50,11 +56,16 @@ Use the following variables for the environment of your Ambassador container:
 | Per-Second RateLimit Redis (tune) | `REDIS_PERSECOND_SURGE_LIMIT_AFTER`         | The value of `REDIS_PERSECOND_POOL_SIZE`            | Integer                                                                       |
 | Per-Second RateLimit Redis (tune) | `REDIS_PERSECOND_SURGE_POOL_SIZE`           | `0`                                                 | Integer                                                                       |
 | Per-Second RateLimit Redis (tune) | `REDIS_PERSECOND_SURGE_POOL_DRAIN_INTERVAL` | `1m`                                                | Duration; [Go `time.ParseDuration`][]                                         |
+| Per-Second RateLimit Redis (tune) | `REDIS_PERSECOND_TYPE`                      | `SINGLE`                                            | Requires AES_RATELIMIT_PREVIEW; String; SINGLE, SENTINEL, or CLUSTER          |
+| Per-Second RateLimit Redis (tune) | `REDIS_PERSECOND_PIPELINE_WINDOW`           | `0`                                                 | Requires AES_RATELIMIT_PREVIEW; Duration; [Go `time.ParseDuration`][]         |
+| Per-Second RateLimit Redis (tune) | `REDIS_PERSECOND_PIPELINE_LIMIT`            | `0`                                                 | Requires AES_RATELIMIT_PREVIEW; Integer                                       |
 | RateLimit                         | `EXPIRATION_JITTER_MAX_SECONDS`             | `300`                                               | Integer                                                                       |
 | RateLimit                         | `USE_STATSD`                                | `false`                                             | Boolean; [Go `strconv.ParseBool`][]                                           |
 | RateLimit                         | `STATSD_HOST`                               | `localhost`                                         | Hostname                                                                      |
 | RateLimit                         | `STATSD_PORT`                               | `8125`                                              | Integer                                                                       |
 | RateLimit                         | `GOSTATS_FLUSH_INTERVAL_SECONDS`            | `5`                                                 | Integer                                                                       |
+| RateLimit                         | `LOCAL_CACHE_SIZE_IN_BYTES`                 | `0`                                                 | Requires AES_RATELIMIT_PREVIEW; Integer                                       |
+| RateLimit                         | `NEAR_LIMIT_RATIO`                          | `0.8`                                               | Requires AES_RATELIMIT_PREVIEW; Float; [Go `strconv.ParseFloat`][]            |
 | Developer Portal                  | `AMBASSADOR_URL`                            | `https://api.example.com`                           | URL                                                                           |
 | Developer Portal                  | `DEVPORTAL_CONTENT_URL`                     | `https://github.com/datawire/devportal-content`     | git-remote URL                                                                |
 | Developer Portal                  | `DEVPORTAL_CONTENT_DIR`                     | `/`                                                 | Rooted Git directory                                                          |
@@ -76,6 +87,10 @@ connection pool is created (to a potentially different Redis instance)
 that is only used for per-second RateLimits; this second connection
 pool is configured by the `REDIS_PERSECOND_*` variables rather than
 the usual `REDIS_*` variables.
+
+The Ambassador Edge Stack RateLimiting now supports redis clustering, local
+caching, and an upgraded redis client with improved scalability in preview
+mode. Set `AES_RATELIMIT_PREVIEW` to `true` to access these features.
 
 #### Redis layer 4 connectivity (L4)
 
@@ -103,6 +118,10 @@ the usual `REDIS_*` variables.
   the password to log in as that user in the [Redis 6 ACL][].  It is
   invalid to set a username without setting a password.  It is invalid
   to set a username with Redis 5 or lower.
+- If `AUTH` (only available when AES_RATELIMIT_PREVIEW=true) is set,
+  the value will be used as the password to authenticate to redis
+  (with username `default`).
+
 
 #### Redis performance tuning (tune)
 
@@ -170,6 +189,30 @@ the usual `REDIS_*` variables.
   are closed at a rate of one connection per
   `SURGE_POOL_DRAIN_INTERVAL`.  This setting has no effect if
   `SURGE_POOL_SIZE` is 0.
+
+- `TYPE` (only available when `AES_RATELIMIT_PREVIEW=true`)
+  specifies the type of the redis deployment. Options are:
+    - `SINGLE`: Talk to a single instance of redis, or a redis proxy.
+       Requires the redis `REDIS_URL` or `REDIS_PERSECOND_URL` to be
+       either a single hostname:port pair or a unix domain socket reference.
+    - `SENTINEL`: Talk to a redis deployment with sentinel instances (see https://redis.io/topics/sentinel).
+       Requires the redis `REDIS_URL` or `REDIS_PERSECOND_URL` to be
+       a comma separated list with the first string as the master name
+       of the sentinel cluster followed by hostname:port pairs. The list
+       size should be >= 2. The first item is the name of the master and
+       the rest are the sentinels.
+    - `CLUSTER`: Talk to a redis in cluster mode (see https://redis.io/topics/cluster-spec)
+       Requires the redis `REDIS_URL` or `REDIS_PERSECOND_URL` to be
+       a comma separated list of hostname:port pairs with all the nodes
+       in the cluster.
+
+- `PIPELINE_WINDOW` sets the duration after which internal pipelines
+  will be flushed. If window is zero then implicit pipelining will
+  be disabled.
+
+- `PIPELINE_LIMIT` sets maximum number of commands that can be pipelined
+  before flushing. If limit is zero then no limit will be used and
+  pipelines will only be limited by the specified time window.
 
 ## Port Assignments
 

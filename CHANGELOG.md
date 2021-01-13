@@ -84,6 +84,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: Support Istio mTLS certification rotation for Istio 1.5 and higher. See the [howto](https://www.getambassador.io/docs/latest/howtos/istio/) for details.
 - Feature: The Ambassador Module's `error_response_overrides` now support configuring an empty response body using `text_format`. Previously, empty response bodies could only be configured by specifying an empty file using `text_format_source`.
 - Feature: OAuth2 Filter: Support injecting HTTP header fields in to the request before passing on to the upstream service. Enables passing along `id_token` information to the upstream if it was returned by the IDP.
+- Bugfix: Fix the grpc external filter to properly cache grpc clients thereby avoiding initiating a separate connection to the external filter for each filtered request.
 - Bugfix: Fix a bug in the Mapping CRD where the `text_format_source` field was incorrectly defined as type `string` instead of an object, as documented.
 - Bugfix: The RBAC requirements when `AMBASSADOR_FAST_RECONFIGURE` is enabled now more-closely match the requirements when it's disabled.
 - Bugfix: Fix error reporting and required-field checks when fast validation is enabled. Note that fast validation is now the default; see below.
@@ -92,7 +93,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Ambassador Edge Stack only
 
-- Default-off early access: Ratelimiting now supports redis clustering, local caching, and an upgraded redis client with improved scalability. Must set AES_RATELIMIT_PREVIEW=true to access these improvements.
+- Default-off early access: Ratelimiting now supports redis clustering, local caching of exceeded ratelimits, and an upgraded redis client with improved scalability. Must set AES_RATELIMIT_PREVIEW=true to access these improvements.
 - Bugfix: OAuth2 Filter: Fix `insufficient_scope` error when validating Azure access tokens.
 - Bugfix: Filters: Fix a capitalization-related bug where sometimes existing headers are appended to when they should be overwritten.
 

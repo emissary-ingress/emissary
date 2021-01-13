@@ -262,7 +262,11 @@ bootstrap() {
 
     dcopy ${DIR}/builder.sh $(builder):/buildroot
     dcopy ${DIR}/builder_bash_rc $(builder):/home/dw/.bashrc
-    dsync ${DIR}/gitconfig $(builder):/home/dw/.gitconfig
+
+    # If we've been asked to muck with gitconfig, do it.
+    if [ -n "$SYNC_GITCONFIG" ]; then
+        dsync "$SYNC_GITCONFIG" $(builder):/home/dw/.gitconfig
+    fi
 }
 
 module_version() {
