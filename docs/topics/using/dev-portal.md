@@ -34,9 +34,9 @@ for the same service.
 > Note:
 >
 > Previous versions of the _Dev Portal_ tried to obtain documentation automatically
-> from `/.ambassador-internal/openapi` by default, while the current version
+> from `/.ambassador-internal/openapi-docs` by default, while the current version
 > will not try to obtain documentation unless a `docs` attribute is specified.
-> Users should set `docs.path` to `/.ambassador-internal/openapi` in their `Mapping`s
+> Users should set `docs.path` to `/.ambassador-internal/openapi-docs` in their `Mapping`s
 > in order to keep the previous behavior.
 
 Example:
