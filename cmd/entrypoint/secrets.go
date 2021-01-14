@@ -207,13 +207,20 @@ func findSecretRefs(resource kates.Object, secretNamespacing bool, action func(S
 		}
 
 	case *amb.TLSContext:
-		// TLSContext.spec.secret is the only thing to worry about -- but note well
-		// that TLSContexts can override the global secretNamespacing setting.
+		// TLSContext.spec.secret and TLSContext.spec.ca_secret are the things to worry about --
+		// but note well that TLSContexts can override the global secretNamespacing setting.
 		if r.Spec.Secret != "" {
 			if r.Spec.SecretNamespacing != nil {
 				secretNamespacing = *r.Spec.SecretNamespacing
 			}
 			secretRef(r.GetNamespace(), r.Spec.Secret, secretNamespacing, action)
+		}
+
+		if r.Spec.CASecret != "" {
+			if r.Spec.SecretNamespacing != nil {
+				secretNamespacing = *r.Spec.SecretNamespacing
+			}
+			secretRef(r.GetNamespace(), r.Spec.CASecret, secretNamespacing, action)
 		}
 
 	case *amb.Module:
