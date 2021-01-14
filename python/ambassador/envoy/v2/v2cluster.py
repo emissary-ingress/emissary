@@ -182,6 +182,7 @@ class V2Cluster(Cacheable):
                 result.append({'endpoint': {'address': {'socket_address': address}}})
         return result
 
+    # TODO: Move this to IRCircuitBreakers?
     def get_circuit_breakers(self, cluster: IRCluster):
         cluster_circuit_breakers = cluster.get('circuit_breakers', None)
         if cluster_circuit_breakers is None:

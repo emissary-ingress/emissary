@@ -7,6 +7,7 @@ from ..resource import Resource
 
 from .irfilter import IRFilter
 from .ircluster import IRCluster
+from .ircircuitbreakers import IRCircuitBreakers
 from .irretrypolicy import IRRetryPolicy
 
 if TYPE_CHECKING:
@@ -76,7 +77,8 @@ class IRAuth (IRFilter):
                 ir=ir, aconf=aconf, parent_ir_resource=self, location=location,
                 service=service,
                 host_rewrite=self.get('host_rewrite', False),
-                circuit_breakers=self.circuit_breakers,
+                # TODO: Pass self.circuit_breakers instead
+                circuit_breakers=self.circuit_breakers.circuit_breakers,
                 ctx_name=ctx_name,
                 grpc=grpc,
                 marker='extauth'
@@ -96,49 +98,6 @@ class IRAuth (IRFilter):
         if cluster_good:
             ir.add_cluster(typecast(IRCluster, self.cluster))
             self.referenced_by(typecast(IRCluster, self.cluster))
-
-    # TODO: Copied from irbasemapping.py. Should be reused instead.
-    @staticmethod
-    def validate_circuit_breakers(ir: 'IR', circuit_breakers) -> bool:
-        if not isinstance(circuit_breakers, (list, tuple)):
-            return False
-
-        for circuit_breaker in circuit_breakers:
-            if '_name' in circuit_breaker:
-                # Already reconciled.
-                ir.logger.debug(f'Breaker validation: good breaker {circuit_breaker["_name"]}')
-                continue
-
-            ir.logger.debug(f'Breaker validation: {dump_json(circuit_breakers, pretty=True)}')
-
-            name_fields = [ 'cb' ]
-
-            if 'priority' in circuit_breaker:
-                prio = circuit_breaker.get('priority').lower()
-                if prio not in ['default', 'high']:
-                    return False
-
-                name_fields.append(prio[0])
-            else:
-                name_fields.append('n')
-
-            digit_fields = [ ( 'max_connections', 'c' ),
-                             ( 'max_pending_requests', 'p' ),
-                             ( 'max_requests', 'r' ),
-                             ( 'max_retries', 't' ) ]
-
-            for field, abbrev in digit_fields:
-                if field in circuit_breaker:
-                    try:
-                        value = int(circuit_breaker[field])
-                        name_fields.append(f'{abbrev}{value}')
-                    except ValueError:
-                        return False
-
-            circuit_breaker['_name'] = ''.join(name_fields)
-            ir.logger.debug(f'Breaker valid: {circuit_breaker["_name"]}')
-
-        return True
 
     def _load_auth(self, module: Resource, ir: 'IR'):
         self.namespace = module.get("namespace", self.namespace)
@@ -171,13 +130,18 @@ class IRAuth (IRFilter):
                 self["add_linkerd_headers"] = ir.ambassador_module.get('add_linkerd_headers', False)
 
         if module.get('circuit_breakers') is not None:
-            self['circuit_breakers'] = module.get('circuit_breakers')
+            self['circuit_breakers'] = IRCircuitBreakers(
+                ir=ir, aconf=ir.aconf, parent=self,
+                circuit_breakers=module.get('circuit_breakers'),
+            )
+            self['circuit_breakers'].referenced_by(self)
         else:
-            self['circuit_breakers'] = ir.ambassador_module.circuit_breakers
-
-        if self.get('circuit_breakers', None) is not None:
-            if not self.validate_circuit_breakers(ir, self['circuit_breakers']):
-                self.post_error("Invalid circuit_breakers specified: {}, invalidating mapping".format(self['circuit_breakers']))
+            if ir.ambassador_module.circuit_breakers is not None:
+                self['circuit_breakers'] = IRCircuitBreakers(
+                    ir=ir, aconf=ir.aconf, parent=self,
+                    circuit_breakers=ir.ambassador_module.circuit_breakers,
+                )
+                self['circuit_breakers'].referenced_by(self)
 
         self["allow_request_body"] = module.get("allow_request_body", False)
         self["include_body"] = module.get("include_body", None)

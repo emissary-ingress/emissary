@@ -58,6 +58,7 @@ class IRCluster (IRResource):
                  allow_scheme: Optional[bool] = True,
                  load_balancer: Optional[dict] = None,
                  keepalive: Optional[dict] = None,
+                 # TODO: Set type to IRCircuitBreakers
                  circuit_breakers: Optional[list] = None,
 
                  rkey: str="-override-",

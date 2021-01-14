@@ -146,6 +146,7 @@ class IRBaseMapping (IRResource):
             # If there's trouble, the resolver should've already posted about it.
             return False
 
+        # TODO: Use IRCircuitBreakers
         if self.get('circuit_breakers', None) is None:
             self['circuit_breakers'] = ir.ambassador_module.circuit_breakers
 
