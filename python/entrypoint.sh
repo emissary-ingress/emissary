@@ -128,6 +128,17 @@ config_dir="${AMBASSADOR_CONFIG_BASE_DIR}/ambassador-config"
 snapshot_dir="${AMBASSADOR_CONFIG_BASE_DIR}/snapshots"
 diagd_flags=('--notices' "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json")
 
+# Make sure that $HOME exists.
+#
+# Note that this might end up with different permissions than the Golang
+# side of the world. Ambassador doesn't really care; 0700 is all we need.
+if [[ ! -d "$HOME" ]]; then
+    if ! mkdir -p "$HOME"; then
+        log "Could not create $HOME"
+        exit 1
+    fi
+fi
+
 # Make sure that base dir exists.
 if [[ ! -d "$AMBASSADOR_CONFIG_BASE_DIR" ]]; then
     if ! mkdir -p "$AMBASSADOR_CONFIG_BASE_DIR"; then

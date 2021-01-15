@@ -45,6 +45,10 @@ func GetAmbassadorRoot() string {
 	return env("ambassador_root", "/ambassador")
 }
 
+func GetHomeDir() string {
+	return env("HOME", "/tmp/ambassador")
+}
+
 func GetAmbassadorConfigBaseDir() string {
 	return env("AMBASSADOR_CONFIG_BASE_DIR", GetAmbassadorRoot())
 }

@@ -123,6 +123,13 @@ RUN chgrp -R 0 /ambassador && \
 
 WORKDIR /ambassador
 
+# Force the HOME environment variable to a directory that'll always be writeable.
+# We use /tmp/ambassador for this, and make sure it exists in our entrypoint, 
+# because trying to create it here in the Dockerfile doesn't always work very 
+# well in the face of situations like KAT volume-mounting /tmp/ambassador or
+# the like.
+ENV HOME=/tmp/ambassador
+
 ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]
 
 ########################################
