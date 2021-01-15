@@ -145,11 +145,16 @@ service: {self.target.path.fqdn}
                     ca_cert=TLSCerts["master.datawire.io"].pubcert)
 
         # In TLS < 1.3, there's not a dedicated alert code for "the client forgot to include a certificate",
-        # so we get a generic alert=40 ("handshake_failure").
-        yield Query(self.url(self.name + "/"), insecure=True, maxTLSv="v1.2", error="tls: handshake failure")
+        # so we get a generic alert=40 ("handshake_failure"). We also include "connection refused" because 
+        # we've seen cases where Envoy and the client library don't play nicely, so the error report doesn't
+        # get back before the connection closes.
+        yield Query(self.url(self.name + "/"), insecure=True, maxTLSv="v1.2", 
+                    error=[ "tls: handshake failure", "connection refused" ])
 
-        # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario.
-        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3", error="tls: certificate required")
+        # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario. See above for why
+        # "connection refused" is also accepted.
+        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3", 
+                    error=[ "tls: certificate required", "connection refused" ])
 
     def check(self):
         assert self.results[0].backend.request.headers["x-forwarded-client-cert"] == \
@@ -230,11 +235,16 @@ service: {self.target.path.fqdn}
                     ca_cert=TLSCerts["master.datawire.io"].pubcert)
 
         # In TLS < 1.3, there's not a dedicated alert code for "the client forgot to include a certificate",
-        # so we get a generic alert=40 ("handshake_failure").
-        yield Query(self.url(self.name + "/"), insecure=True, maxTLSv="v1.2", error="tls: handshake failure")
+        # so we get a generic alert=40 ("handshake_failure"). We also include "connection refused" because 
+        # we've seen cases where Envoy and the client library don't play nicely, so the error report doesn't
+        # get back before the connection closes.
+        yield Query(self.url(self.name + "/"), insecure=True, maxTLSv="v1.2", 
+                    error=[ "tls: handshake failure", "connection refused" ])
 
-        # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario.
-        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3", error="tls: certificate required")
+        # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario. See above for why
+        # "connection refused" is also accepted.
+        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3", 
+                    error=[ "tls: certificate required", "connection refused" ])
 
     def requirements(self):
         for r in super().requirements():
