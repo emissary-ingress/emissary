@@ -127,6 +127,12 @@ class DependencyGraph:
         if len(self.vertices) == 0:
             return
 
+        # This method implements Kahn's algorithm. See
+        # https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm for
+        # more information.
+
+        # Create a copy of the counts of each inbound edge so we can mutate
+        # them.
         in_counts = {obj: vertex.in_count for obj, vertex in self.vertices.items()}
 
         # Find the roots of the graph.
@@ -144,6 +150,8 @@ class DependencyGraph:
                 in_counts[obj] -= 1
                 if in_counts[obj] == 0:
                     queue.append(obj)
+
+        assert sum(in_counts.values()) == 0, 'Traversal did not reach every vertex exactly once'
 
 
 class DependencyManager:
