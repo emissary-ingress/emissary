@@ -70,7 +70,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
-(no changes yet)
+- Bugfix: Eliminate the need to drain and recreate listeners when routing configuration is changed. This reduces both memory usage and disruption of in-flight requests.
 
 ## [1.10.0] January 04, 2021
 [1.10.0]: https://github.com/datawire/ambassador/compare/v1.9.1...v1.10.0
