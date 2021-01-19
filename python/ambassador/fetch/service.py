@@ -383,8 +383,8 @@ class ServiceProcessor (ManagedKubernetesProcessor):
                 spec['helm_chart'] = self.services.helm_chart
 
             self.manager.emit(NormalizedResource.from_data(
-                kind='Service',
-                name=k8s_svc.name,
+                'Service',
+                k8s_svc.name,
                 namespace=k8s_svc.namespace,
                 labels=k8s_svc.labels,
                 spec=spec,

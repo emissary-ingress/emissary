@@ -15,19 +15,25 @@ type: Opaque
 """
 
 class ConsulTest(AmbassadorTest):
-
     enable_endpoints = True
-
     k8s_target: ServiceType
-
+    k8s_ns_target: ServiceType
 
     def init(self):
         self.k8s_target = HTTP(name="k8s")
+        self.k8s_ns_target = HTTP(name="k8s-ns", namespace="consul-test-namespace")
 
     def manifests(self) -> str:
-        # Unlike usual, super().manifests() must come before our added
+        # Unlike usual, we have stuff both before and after super().manifests():
+        # we want the namespace early, but we want the superclass before our other
         # manifests, because of some magic with ServiceAccounts?
-        return super().manifests() + self.format("""
+        return self.format("""
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: consul-test-namespace
+""") + super().manifests() + self.format("""
 ---
 apiVersion: v1
 kind: Service
@@ -66,6 +72,19 @@ spec:
   ambassador_id: consultest
   address: {self.path.k8s}-consul:8500
   datacenter: dc1
+---
+apiVersion: getambassador.io/v2
+kind:  Mapping
+metadata:
+  name:  {self.path.k8s}-consul-ns-mapping
+  namespace: consul-test-namespace
+spec:
+  ambassador_id: consultest
+  prefix: /{self.path.k8s}_consul_ns/
+  service: {self.path.k8s}-consul-ns-service
+  resolver: {self.path.k8s}-resolver
+  load_balancer:
+    policy: round_robin
 """ + SECRETS)
 
     def config(self):
@@ -116,13 +135,37 @@ secret: {self.path.k8s}-client-cert-secret
         yield("url", Query(self.format("http://{self.path.k8s}-consul:8500/ui/")))
 
     def queries(self):
-        # The K8s service should be OK. The Consul services should 503 because it has no upstreams
+        # Deregister the Consul services in phase 0.
+        yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/deregister"),
+                    method="PUT",
+                    body={
+                        "Datacenter": "dc1",
+                        "Node": self.format("{self.path.k8s}-consul-service")
+                    },
+                    phase=0)
+        yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/deregister"),
+                    method="PUT",
+                    body={
+                        "Datacenter": "dc1",
+                        "Node": self.format("{self.path.k8s}-consul-ns-service")
+                    },
+                    phase=0)
+        yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/deregister"),
+                    method="PUT",
+                    body={
+                        "Datacenter": "dc1",
+                        "Node": self.format("{self.path.k8s}-consul-node")
+                    },
+                    phase=0)
+
+        # The K8s service should be OK. The Consul services should 503 since they have no upstreams
         # in phase 1.
         yield Query(self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=1)
         yield Query(self.url(self.format("{self.path.k8s}_consul/")), expected=503, phase=1)
+        yield Query(self.url(self.format("{self.path.k8s}_consul_ns/")), expected=503, phase=1)
         yield Query(self.url(self.format("{self.path.k8s}_consul_node/")), expected=503, phase=1)
 
-        # Register the Consul service in phase 2.
+        # Register the Consul services in phase 2.
         yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
                     method="PUT",
                     body={
@@ -137,21 +180,27 @@ secret: {self.path.k8s}-client-cert-secret
                     method="PUT",
                     body={
                         "Datacenter": "dc1",
+                        "Node": self.format("{self.path.k8s}-consul-ns-service"),
+                        "Address": self.format("{self.k8s_ns_target.path.k8s}.consul-test-namespace"),
+                        "Service": {"Service": self.format("{self.path.k8s}-consul-ns-service"),
+                                    "Address": self.format("{self.k8s_ns_target.path.k8s}.consul-test-namespace"),
+                                    "Port": 80}},
+                    phase=2)
+        yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
+                    method="PUT",
+                    body={
+                        "Datacenter": "dc1",
                         "Node": self.format("{self.path.k8s}-consul-node"),
                         "Address": self.k8s_target.path.k8s,
                         "Service": {"Service": self.format("{self.path.k8s}-consul-node"),
                                     "Port": 80}},
                     phase=2)
 
-        # The k8s service should still be working in phase 3...
+        # All services should work in phase 3.
         yield Query(self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=3)
-
-        # ...and both services should work in phase 4. We wait until phase 4 to check
-        # the consul-backed services because it sometimes takes a long time for consul
-        # to do the thing.
-        yield Query(self.url(self.format("{self.path.k8s}_k8s/")), expected=200, phase=4)
-        yield Query(self.url(self.format("{self.path.k8s}_consul/")), expected=200, phase=4)
-        yield Query(self.url(self.format("{self.path.k8s}_consul_node/")), expected=200, phase=4)
+        yield Query(self.url(self.format("{self.path.k8s}_consul/")), expected=200, phase=3)
+        yield Query(self.url(self.format("{self.path.k8s}_consul_ns/")), expected=200, phase=3)
+        yield Query(self.url(self.format("{self.path.k8s}_consul_node/")), expected=200, phase=3)
 
     def check(self):
         pass

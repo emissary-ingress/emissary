@@ -2,7 +2,6 @@ package entrypoint
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"sync"
 
@@ -10,12 +9,13 @@ import (
 
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/pkg/consulwatch"
+	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot"
 	"github.com/datawire/ambassador/pkg/watt"
 )
 
-func (s *AmbassadorInputs) ReconcileConsul(ctx context.Context, consul *consul) {
+func ReconcileConsul(ctx context.Context, consul *consul, s *snapshotTypes.KubernetesSnapshot) {
 	var mappings []*amb.Mapping
-	for _, a := range s.annotations {
+	for _, a := range s.Annotations {
 		m, ok := a.(*amb.Mapping)
 		if ok && include(m.Spec.AmbassadorID) {
 			mappings = append(mappings, m)
@@ -155,21 +155,26 @@ func (c *consul) reconcile(resolvers []*amb.ConsulResolver, mappings []*amb.Mapp
 	// ==First we compute resolvers and their related mappings without actualy changing anything.==
 	resolversByName := make(map[string]*amb.ConsulResolver)
 	for _, cr := range resolvers {
-		name := fmt.Sprintf("%s.%s", cr.GetName(), cr.GetNamespace())
-		resolversByName[name] = cr
+		// Ambassador can find resolvers in any namespace, but they're not partitioned
+		// by namespace once located, so just save using the name.
+		resolversByName[cr.GetName()] = cr
 	}
 
 	mappingsByResolver := make(map[string][]*amb.Mapping)
 	for _, m := range mappings {
-		if m.Spec.Resolver == "" {
+		// Everything here is keyed off m.Spec.Resolver -- again, it's fine to use a resolver
+		// from any namespace, as long as it was loaded.
+		//
+		// (This implies that if you typo a resolver name, things won't work.)
+
+		rname := m.Spec.Resolver
+
+		if rname == "" {
 			continue
 		}
 
-		// XXX: how are resolvers supposed to be resolved?
-		rname := fmt.Sprintf("%s.%s", m.Spec.Resolver, m.GetNamespace())
 		_, ok := resolversByName[rname]
 		if !ok {
-			// XXX: how do we handle typo'd resolvers?
 			continue
 		}
 		mappingsByResolver[rname] = append(mappingsByResolver[rname], m)

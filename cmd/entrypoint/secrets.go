@@ -6,18 +6,13 @@ import (
 
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/pkg/kates"
+	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot"
 )
-
-// SecretRef is a secret reference -- basically, a namespace/name pair.
-type SecretRef struct {
-	Namespace string
-	Name      string
-}
 
 // ReconcileSecrets figures out which secrets we're actually using,
 // since we don't want to send secrets to Ambassador unless we're
 // using them, since any secret we send will be saved to disk.
-func (s *AmbassadorInputs) ReconcileSecrets() {
+func ReconcileSecrets(s *snapshotTypes.KubernetesSnapshot) {
 	// Start by building up a list of all the K8s objects that are
 	// allowed to mention secrets. Note that we vet the ambassador_id
 	// for all of these before putting them on the list.
@@ -28,7 +23,7 @@ func (s *AmbassadorInputs) ReconcileSecrets() {
 	// them earlier so that we can treat them like any other resource
 	// here).
 
-	for _, a := range s.annotations {
+	for _, a := range s.Annotations {
 		if include(GetAmbId(a)) {
 			resources = append(resources, a)
 		}
@@ -94,12 +89,12 @@ func (s *AmbassadorInputs) ReconcileSecrets() {
 
 	// Once we have our list of secrets, go figure out the names of all
 	// the secrets we need. We'll use this "refs" map to hold all the names...
-	refs := map[SecretRef]bool{}
+	refs := map[snapshotTypes.SecretRef]bool{}
 
 	// ...and, uh, this "action" function is really just a closure to avoid
-	// needing to pass "refs" to findSecretRefs. Shrug. Arguably more
+	// needing to pass "refs" to find SecretRefs. Shrug. Arguably more
 	// complex than needed, but meh.
-	action := func(ref SecretRef) {
+	action := func(ref snapshotTypes.SecretRef) {
 		refs[ref] = true
 	}
 
@@ -132,7 +127,7 @@ func (s *AmbassadorInputs) ReconcileSecrets() {
 	}
 
 	for _, secret := range s.K8sSecrets {
-		ref := SecretRef{secret.GetNamespace(), secret.GetName()}
+		ref := snapshotTypes.SecretRef{Namespace: secret.GetNamespace(), Name: secret.GetName()}
 
 		_, found := s.FSSecrets[ref]
 		if found {
@@ -178,7 +173,7 @@ func include(id amb.AmbassadorID) bool {
 }
 
 // Find all the secrets a given Ambassador resource references.
-func findSecretRefs(resource kates.Object, secretNamespacing bool, action func(SecretRef)) {
+func findSecretRefs(resource kates.Object, secretNamespacing bool, action func(snapshotTypes.SecretRef)) {
 	switch r := resource.(type) {
 	case *amb.Host:
 		// The Host resource is a little odd. Host.spec.tls, Host.spec.tlsSecret, and
@@ -207,13 +202,20 @@ func findSecretRefs(resource kates.Object, secretNamespacing bool, action func(S
 		}
 
 	case *amb.TLSContext:
-		// TLSContext.spec.secret is the only thing to worry about -- but note well
-		// that TLSContexts can override the global secretNamespacing setting.
+		// TLSContext.spec.secret and TLSContext.spec.ca_secret are the things to worry about --
+		// but note well that TLSContexts can override the global secretNamespacing setting.
 		if r.Spec.Secret != "" {
 			if r.Spec.SecretNamespacing != nil {
 				secretNamespacing = *r.Spec.SecretNamespacing
 			}
 			secretRef(r.GetNamespace(), r.Spec.Secret, secretNamespacing, action)
+		}
+
+		if r.Spec.CASecret != "" {
+			if r.Spec.SecretNamespacing != nil {
+				secretNamespacing = *r.Spec.SecretNamespacing
+			}
+			secretRef(r.GetNamespace(), r.Spec.CASecret, secretNamespacing, action)
 		}
 
 	case *amb.Module:
@@ -253,7 +255,7 @@ func findSecretRefs(resource kates.Object, secretNamespacing bool, action func(S
 }
 
 // Mark a secret as one we reference, handling secretNamespacing correctly.
-func secretRef(namespace, name string, secretNamespacing bool, action func(SecretRef)) {
+func secretRef(namespace, name string, secretNamespacing bool, action func(snapshotTypes.SecretRef)) {
 	if secretNamespacing {
 		parts := strings.Split(name, ".")
 		if len(parts) > 1 {
@@ -262,7 +264,7 @@ func secretRef(namespace, name string, secretNamespacing bool, action func(Secre
 		}
 	}
 
-	action(SecretRef{namespace, name})
+	action(snapshotTypes.SecretRef{Namespace: namespace, Name: name})
 }
 
 // ModuleSecrets is... a hack. It's sort of a mashup of the chunk of the Ambassador

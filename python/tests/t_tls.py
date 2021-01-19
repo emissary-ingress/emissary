@@ -145,15 +145,106 @@ service: {self.target.path.fqdn}
                     ca_cert=TLSCerts["master.datawire.io"].pubcert)
 
         # In TLS < 1.3, there's not a dedicated alert code for "the client forgot to include a certificate",
-        # so we get a generic alert=40 ("handshake_failure").
-        yield Query(self.url(self.name + "/"), insecure=True, maxTLSv="v1.2", error="tls: handshake failure")
+        # so we get a generic alert=40 ("handshake_failure"). We also include "connection refused" because 
+        # we've seen cases where Envoy and the client library don't play nicely, so the error report doesn't
+        # get back before the connection closes.
+        yield Query(self.url(self.name + "/"), insecure=True, maxTLSv="v1.2", 
+                    error=[ "tls: handshake failure", "connection refused" ])
 
-        # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario.
-        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3", error="tls: certificate required")
+        # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario. See above for why
+        # "connection refused" is also accepted.
+        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3", 
+                    error=[ "tls: certificate required", "connection refused" ])
 
     def check(self):
         assert self.results[0].backend.request.headers["x-forwarded-client-cert"] == \
             ["Hash=c2d41a5977dcd28a3ba21f59ed5508cc6538defa810843d8a593e668306c8c4f;Subject=\"CN=presto.example.com,OU=Engineering,O=Presto,L=Bangalore,ST=KA,C=IN\""]
+
+    def requirements(self):
+        for r in super().requirements():
+            query = r[1]
+            query.insecure = True
+            query.client_cert = TLSCerts["presto.example.com"].pubcert
+            query.client_key = TLSCerts["presto.example.com"].privkey
+            query.client_cert_required = True
+            query.ca_cert = TLSCerts["master.datawire.io"].pubcert
+            yield (r[0], query)
+
+
+class ClientCertificateAuthenticationContext(AmbassadorTest):
+
+    def init(self):
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return self.format(f"""
+---
+apiVersion: v1
+metadata:
+  name: ccauthctx-client-secret
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+data:
+  tls.crt: {TLSCerts["master.datawire.io"].k8s_crt}
+kind: Secret
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ccauthctx-server-secret
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+type: kubernetes.io/tls
+data:
+  tls.crt: {TLSCerts["ambassador.example.com"].k8s_crt}
+  tls.key: {TLSCerts["ambassador.example.com"].k8s_key}
+---
+apiVersion: getambassador.io/v2
+kind: TLSContext
+metadata:
+  name: ccauthctx-tls
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: {self.ambassador_id}
+  hosts: [ "*" ]
+  secret: ccauthctx-server-secret
+  ca_secret: ccauthctx-client-secret
+  cert_required: True
+""") + super().manifests()
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.target.path.k8s}
+prefix: /{self.name}/
+service: {self.target.path.fqdn}
+""")
+
+    def scheme(self) -> str:
+        return "https"
+
+    def queries(self):
+        yield Query(self.url(self.name + "/"), insecure=True,
+                    client_crt=TLSCerts["presto.example.com"].pubcert,
+                    client_key=TLSCerts["presto.example.com"].privkey,
+                    client_cert_required=True,
+                    ca_cert=TLSCerts["master.datawire.io"].pubcert)
+
+        # In TLS < 1.3, there's not a dedicated alert code for "the client forgot to include a certificate",
+        # so we get a generic alert=40 ("handshake_failure"). We also include "connection refused" because 
+        # we've seen cases where Envoy and the client library don't play nicely, so the error report doesn't
+        # get back before the connection closes.
+        yield Query(self.url(self.name + "/"), insecure=True, maxTLSv="v1.2", 
+                    error=[ "tls: handshake failure", "connection refused" ])
+
+        # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario. See above for why
+        # "connection refused" is also accepted.
+        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3", 
+                    error=[ "tls: certificate required", "connection refused" ])
 
     def requirements(self):
         for r in super().requirements():

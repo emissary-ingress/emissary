@@ -198,7 +198,7 @@ func (r *RLSResponse) GetOverallCode() pb.RateLimitResponse_Code {
 func (r *RLSResponse) GetResponse() *pb.RateLimitResponse {
 	rs := &pb.RateLimitResponse{}
 	rs.OverallCode = r.overallCode
-	rs.Body = r.body
+	rs.RawBody = []byte(r.body)
 	for _, h := range r.headers {
 		hdr := h.Header
 		if hdr != nil {
