@@ -42,6 +42,21 @@ class SecretDependency (Dependency):
         return 'secret'
 
 
+class IngressClassesDependency (Dependency):
+    """
+    A dependency that provides the list of ingress classes that are valid (i.e.,
+    have the proper controller) for this cluster.
+    """
+
+    ingress_classes: MutableSet[str]
+
+    def __init__(self):
+        self.ingress_classes = set()
+
+    def watt_key(self) -> str:
+        return 'ingressclasses'
+
+
 D = TypeVar('D', bound=Dependency)
 
 
