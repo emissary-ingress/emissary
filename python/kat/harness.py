@@ -143,11 +143,7 @@ def kube_client_version(version_json=None):
         return None
 
 
-def is_knative():
-    # Skip KNative immediately for run_mode local.
-    if RUN_MODE == 'local':
-        return False
-
+def is_kube_server_client_compatible(debug_desc: str, requested_server_version: str, requested_client_version: str) -> bool:
     is_cluster_compatible = True
     kube_json = kube_version_json()
 
@@ -155,24 +151,36 @@ def is_knative():
     client_version = kube_client_version(kube_json)
 
     if server_version:
-        if version.parse(server_version) < version.parse('1.14'):
-            print(f"server version {server_version} is incompatible with Knative")
+        if version.parse(server_version) < version.parse(requested_server_version):
+            print(f"server version {server_version} is incompatible with {debug_desc}")
             is_cluster_compatible = False
         else:
-            print(f"server version {server_version} is compatible with Knative")
+            print(f"server version {server_version} is compatible with {debug_desc}")
     else:
         print("could not determine Kubernetes server version?")
 
     if client_version:
-        if version.parse(client_version) < version.parse('1.14'):
-            print(f"client version {client_version} is incompatible with Knative")
+        if version.parse(client_version) < version.parse(requested_client_version):
+            print(f"client version {client_version} is incompatible with {debug_desc}")
             is_cluster_compatible = False
         else:
-            print(f"client version {client_version} is compatible with Knative")
+            print(f"client version {client_version} is compatible with {debug_desc}")
     else:
         print("could not determine Kubernetes client version?")
 
     return is_cluster_compatible
+
+
+def is_ingress_class_compatible() -> bool:
+    return is_kube_server_client_compatible('IngressClass', '1.18', '1.14')
+
+
+def is_knative_compatible() -> bool:
+    # Skip KNative immediately for run_mode local.
+    if RUN_MODE == 'local':
+        return False
+
+    return is_kube_server_client_compatible('Knative', '1.14', '1.14')
 
 
 def get_digest(data: str) -> str:
@@ -1491,7 +1499,7 @@ class Runner:
         CRDS = load_manifest("crds")
         input_crds = CRDS
 
-        if is_knative():
+        if is_knative_compatible():
             KNATIVE_SERVING_CRDS = load_manifest("knative_serving_crds")
             input_crds += KNATIVE_SERVING_CRDS
 
