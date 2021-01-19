@@ -247,7 +247,7 @@ class ResourceFetcher:
                     # Can't work with this at _all_.
                     self.logger.error(f"skipping invalid object with no kind: {obj}")
                     continue
-            
+
                 # We can't use watt_k8s.setdefault() here because many keys have
                 # explicit null values -- they'll need to be turned into empty lists
                 # and re-saved, and setdefault() won't do that for an explicit null.
@@ -345,7 +345,12 @@ class ResourceFetcher:
             self.logger.debug(f"{self.location}: skipping K8s {obj.gvk}")
             return
 
-        if not self.check_k8s_dup(obj.kind, obj.namespace, obj.name):
+        # Using obj.key.namespace instead of obj.namespace does not throw an
+        # AttributeError if the object is cluster-scoped, instead returning
+        # None. This is important because check_k8s_dup wants to work with
+        # namespace- or cluster-scoped objects equivalently, so representing the
+        # type as Optional[str] makes the most sense.
+        if not self.check_k8s_dup(obj.kind, obj.key.namespace, obj.name):
             return
 
         result = handler(raw_obj)

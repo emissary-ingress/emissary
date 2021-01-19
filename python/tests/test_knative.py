@@ -5,7 +5,7 @@ import time
 
 import pytest
 
-from kat.harness import is_knative
+from kat.harness import is_knative_compatible
 from kat.harness import load_manifest
 from ambassador import Config, IR
 from ambassador.fetch import ResourceFetcher
@@ -153,7 +153,7 @@ def test_knative_counters():
 
 
 def test_knative():
-    if is_knative():
+    if is_knative_compatible():
         knative_test = KnativeTesting()
         knative_test.test_knative()
     else:
