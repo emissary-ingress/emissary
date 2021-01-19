@@ -4,6 +4,7 @@ import dataclasses
 
 from ..config import Config
 
+from .dependency import ServiceDependency
 from .k8sobject import KubernetesGVK, KubernetesObjectKey, KubernetesObject
 from .k8sprocessor import AggregateKubernetesProcessor, ManagedKubernetesProcessor
 from .resource import NormalizedResource, ResourceManager
@@ -41,12 +42,14 @@ class InternalServiceProcessor (ManagedKubernetesProcessor):
     ServiceProcessor aggregate class.
     """
 
+    service_dep: ServiceDependency
     helm_chart: Optional[str]
     discovered_services: Dict[KubernetesObjectKey, KubernetesObject]
 
     def __init__(self, manager: ResourceManager) -> None:
         super().__init__(manager)
 
+        self.service_dep = self.deps.provide(ServiceDependency)
         self.helm_chart = None
         self.discovered_services = {}
 
@@ -88,7 +91,7 @@ class InternalServiceProcessor (ManagedKubernetesProcessor):
 
             if self._is_ambassador_service(obj.labels, obj.spec.get('selector', {})):
                 self.logger.debug(f"Found Ambassador service: {obj.name}")
-                self.manager.ambassador_service = obj
+                self.service_dep.ambassador_service = obj
 
         # Although we can't emit this resource immediately, we can handle
         # anything added as an annotation.

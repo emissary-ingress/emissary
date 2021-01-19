@@ -5,6 +5,7 @@ import logging
 
 from ..config import Config
 
+from .dependency import DependencyInjector
 from .k8sobject import KubernetesGVK, KubernetesObjectScope, KubernetesObjectKey, KubernetesObject
 from .resource import ResourceManager
 
@@ -70,6 +71,10 @@ class ManagedKubernetesProcessor (KubernetesProcessor):
     @property
     def logger(self) -> logging.Logger:
         return self.manager.logger
+
+    @property
+    def deps(self) -> DependencyInjector:
+        return self.manager.deps.for_instance(self)
 
 
 class AggregateKubernetesProcessor (KubernetesProcessor):
