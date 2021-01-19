@@ -77,6 +77,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: Make sure that `labels` specifying headers with extra attributes are correctly supported again ([#3137])
 - Bugfix: Support Consul services when the `ConsulResolver` and the `Mapping` aren't in the same namespace, and legacy mode is not enabled.
 - Feature: Ambassador now reads the ENVOY_CONCURRENCY environment variable to optionally set the [--concurrency](https://www.envoyproxy.io/docs/envoy/latest/operations/cli#cmdoption-concurrency) command line option when launching Envoy. This controls the number of worker threads used to serve requests and can be used to fine-tune system resource usage.
+- Feature: The %DOWNSTREAM_PEER_CERT_V_START% and %DOWNSTREAM_PEER_CERT_V_END% command operators now support custom date formatting, similar to %START_TIME%. This can be used for both header formatting and access log formatting.
 
 ### Ambassador Edge Stack only
 - Feature: RateLimit CRDs now suport specifying an `action` for each limit. Possible values include "Enforce" and "LogOnly", case insensitive. LogOnly may be used to implement dry run rules that do not actually enforce.
