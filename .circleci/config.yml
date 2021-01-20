@@ -127,6 +127,7 @@ commands:
           fi
     - run:
         name: "Test"
+        no_output_timeout: "30m"
         command: |
           if [[ -z "$KUBECEPTION_TOKEN" ]]; then
             export DEV_KUBE110=yes
