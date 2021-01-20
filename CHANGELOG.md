@@ -82,6 +82,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: RateLimit CRDs now suport specifying an `action` for each limit. Possible values include "Enforce" and "LogOnly", case insensitive. LogOnly may be used to implement dry run rules that do not actually enforce.
 - Feature: RateLimit CRDs now support specifying a symbolic `name` for each limit. This name can later be used in the access log to know which RateLimit, if any, applied to a request.
 - Feature: RateLimit metadata is now available using the `DYNAMIC_METADATA(envoy.http.filters.ratelimit: ... )` command operator in the Envoy access logs. See [Envoy Documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log/usage) for more on using dynamic metadata in the access log.
+- Feature: OAuth2 Filter: The SameSite cookie attribute is now configurable.
 
 [#3137]: https://github.com/datawire/ambassador/issues/3137
 
