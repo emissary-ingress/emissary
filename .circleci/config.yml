@@ -101,7 +101,7 @@ commands:
           equal: ["pytest-envoy", << parameters.test >>]
         steps:
         - skip-if-no-changes:
-            to: "(/envoy\\.mk$|/python/tests/gold/|/pytest/gold/)"
+            to: "(/envoy\\.mk$|/python/tests/gold/|/pytest/gold/|/cmd/ambex/)"
         - run: |
             if [[ -z "$KUBECEPTION_TOKEN" ]]; then
               circleci step halt
