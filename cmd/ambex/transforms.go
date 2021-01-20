@@ -8,6 +8,7 @@ import (
 	listener "github.com/datawire/ambassador/pkg/api/envoy/api/v2/listener"
 	http "github.com/datawire/ambassador/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/resource/v2"
+	"github.com/datawire/ambassador/pkg/envoy-control-plane/wellknown"
 	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/protobuf/proto"
 )
@@ -101,7 +102,13 @@ func ListenerToRdsListener(lnr *api.Listener) (*api.Listener, []*api.RouteConfig
 	var routes []*api.RouteConfiguration
 	for _, fc := range l.FilterChains {
 		for _, f := range fc.Filters {
-			// Note that the hcm configuration is stored in a protobuf any, so the
+			if f.Name != wellknown.HTTPConnectionManager {
+				// We only know how to create an rds listener for HttpConnectionManager
+				// listeners. We must ignore all other listeners.
+				continue
+			}
+
+			// Note that the hcm configuration is stored in a protobuf any, so √the
 			// GetHTTPConnectionManager is actually returning an unmarshalled copy.
 			hcm := resource.GetHTTPConnectionManager(f)
 			if hcm != nil {
