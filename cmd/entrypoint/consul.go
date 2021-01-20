@@ -9,7 +9,7 @@ import (
 
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/pkg/consulwatch"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot"
+	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
 	"github.com/datawire/ambassador/pkg/watt"
 )
 

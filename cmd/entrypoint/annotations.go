@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/datawire/ambassador/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot"
+	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
 )
 
 func parseAnnotations(a *snapshotTypes.KubernetesSnapshot) {

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot"
+	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
 )
 
 func TestUnmarshal(t *testing.T) {

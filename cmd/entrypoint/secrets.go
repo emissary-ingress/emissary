@@ -6,7 +6,7 @@ import (
 
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot"
+	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
 )
 
 // ReconcileSecrets figures out which secrets we're actually using,

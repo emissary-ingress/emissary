@@ -13,7 +13,7 @@ import (
 	"github.com/datawire/ambassador/pkg/acp"
 	"github.com/datawire/ambassador/pkg/debug"
 	"github.com/datawire/ambassador/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot"
+	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
 	"github.com/datawire/ambassador/pkg/watt"
 	"github.com/datawire/dlib/dlog"
 )
