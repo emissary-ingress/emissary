@@ -30,6 +30,7 @@ from .v2ratelimit import V2RateLimit
 
 if TYPE_CHECKING:
     from ...ir import IR
+    from ...ir.irserviceresolver import ClustermapEntry
 
 
 # #############################################################################
@@ -45,6 +46,7 @@ class V2Config (EnvoyConfig):
     listeners: List[Union[V2Listener,V2TCPListener]]
     clusters: List[V2Cluster]
     static_resources: V2StaticResources
+    clustermap: Dict[str, Any]
 
     def __init__(self, ir: 'IR', cache: Optional[Cache]=None) -> None:
         # Init our superclass...
@@ -64,16 +66,17 @@ class V2Config (EnvoyConfig):
         V2Bootstrap.generate(self)
 
     def as_dict(self) -> Dict[str, Any]:
-        bootstrap_config, ads_config = self.split_config()
+        bootstrap_config, ads_config, clustermap = self.split_config()
 
         d = {
             'bootstrap': bootstrap_config,
+            'clustermap': clustermap,
             **ads_config
         }
 
         return d
 
-    def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, 'ClustermapEntry']]:
         ads_config = {
             '@type': '/envoy.config.bootstrap.v2.Bootstrap',
             'static_resources': self.static_resources,
@@ -105,5 +108,5 @@ class V2Config (EnvoyConfig):
 
         bootstrap_config = dict(self.bootstrap)
 
-        return bootstrap_config, ads_config
+        return bootstrap_config, ads_config, self.clustermap
 
