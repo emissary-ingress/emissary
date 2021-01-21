@@ -126,7 +126,7 @@ requestPolicy:
     additionalPort: insecure-port
 ```
 
-> **WARNING:** `requestPolicy` is applied globally, even if it is applied to only one `Host` and you have multiple `Host`s configured. Different `requestPolicy` behaviors cannot be applied to different `Host`s.   A `requestPolicy` defined on one `Host` will override the default behavior on another `Host` with no `requestPolicy` defined.
+> **WARNING:** `requestPolicy` is applied globally, even if it is applied to only one `Host` when multiple `Host`s are configured. Different `requestPolicy` behaviors cannot be applied to different `Host`s. It is recommended to apply an identical `requestPolicy` to all `Host`s instead of assuming the behavior, to create a more human readable config.
 
 The `insecure-action` can be one of:
 
