@@ -14,6 +14,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/datawire/dlib/dlog"
+	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
 	// k8s libraries
@@ -345,7 +347,7 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 	// we override Watch to let us signal when our initial List is
 	// complete so we can send an update() even when there are no
 	// resource instances of the kind being watched
-	lw := newListWatcher(ctx, cli, query.FieldSelector, query.LabelSelector, func(lw *lw) {
+	lw := newListWatcher(ctx, cli, query, func(lw *lw) {
 		if lw.hasSynced() {
 			target <- rawUpdate{query.Name, true, nil, nil}
 		}
@@ -441,22 +443,22 @@ func isExpiredError(err error) bool {
 
 type lw struct {
 	// All these fields are read-only and initialized on construction.
-	ctx           context.Context
-	client        dynamic.ResourceInterface
-	fieldSelector string
-	selector      string
-	synced        func(*lw)
-	once          sync.Once
+	ctx    context.Context
+	client dynamic.ResourceInterface
+	query  Query
+	synced func(*lw)
+	once   sync.Once
 
 	// The mutex protects all the read-write fields.
 	mutex            sync.Mutex
 	initialListDone  bool
 	initialListCount int
 	addEventCount    int
+	listForbidden    bool
 }
 
-func newListWatcher(ctx context.Context, client dynamic.ResourceInterface, fieldSelector, selector string, synced func(*lw)) *lw {
-	return &lw{ctx: ctx, client: client, fieldSelector: fieldSelector, selector: selector, synced: synced}
+func newListWatcher(ctx context.Context, client dynamic.ResourceInterface, query Query, synced func(*lw)) *lw {
+	return &lw{ctx: ctx, client: client, query: query, synced: synced}
 }
 
 func (lw *lw) withMutex(f func()) {
@@ -488,26 +490,76 @@ func (lw *lw) hasSynced() (result bool) {
 	return
 }
 
+// List is used by a SharedInformer to get a baseline list of resources
+// that can then be maintained by a watch.
 func (lw *lw) List(opts ListOptions) (runtime.Object, error) {
-	opts.FieldSelector = lw.fieldSelector
-	opts.LabelSelector = lw.selector
+	// Our SharedInformer will call us every so often. Every time through,
+	// we'll decide whether we can be synchronized, and whether the list was
+	// forbidden.
+	synced := false
+	forbidden := false
+
+	opts.FieldSelector = lw.query.FieldSelector
+	opts.LabelSelector = lw.query.LabelSelector
 	result, err := lw.client.List(lw.ctx, opts)
+
 	if err == nil {
-		lw.withMutex(func() {
+		// No error, the list worked out fine. We can be synced now...
+		synced = true
+		// ...and the list was not forbidden.
+		forbidden = false
+	} else if apierrors.IsForbidden(err) {
+		// Forbidden. We'll still consider ourselves synchronized, but
+		// remember the forbidden error!
+		// dlog.Debugf(lw.ctx, "couldn't list %s (forbidden)", lw.query.Kind)
+		synced = true
+		forbidden = true
+
+		// Impedance matching for the SharedInformer interface: pretend
+		// that we got an empty list and no error.
+		result = &unstructured.UnstructuredList{}
+		err = nil
+	} else {
+		// Any other error we'll consider transient, and try again later.
+		// We're neither synced nor forbidden
+		dlog.Infof(lw.ctx, "couldn't list %s (will retry): %s", lw.query.Kind, err)
+	}
+
+	lw.withMutex(func() {
+		if synced {
 			if !lw.initialListDone {
 				lw.initialListDone = true
 				lw.initialListCount = len(result.Items)
 			}
-		})
-	}
+		}
+
+		lw.listForbidden = forbidden
+	})
+
 	return result, err
 }
 
 func (lw *lw) Watch(opts ListOptions) (watch.Interface, error) {
 	lw.once.Do(func() { lw.synced(lw) })
-	opts.FieldSelector = lw.fieldSelector
-	opts.LabelSelector = lw.selector
-	return lw.client.Watch(lw.ctx, opts)
+	opts.FieldSelector = lw.query.FieldSelector
+	opts.LabelSelector = lw.query.LabelSelector
+
+	iface, err := lw.client.Watch(lw.ctx, opts)
+
+	if err != nil {
+		// If the list was forbidden, this error will likely just be "unknown", since we
+		// returned an unstructured.UnstructuredList to fake out the lister, so in that
+		// case just synthesize a slightly nicer error.
+		if lw.listForbidden {
+			err = errors.New(fmt.Sprintf("can't watch %s: forbidden", lw.query.Kind))
+		} else {
+			// Not forbidden. Go ahead and make sure the Kind we're querying for is in
+			// there, though.
+			err = errors.Wrap(err, fmt.Sprintf("can't watch %s", lw.query.Kind))
+		}
+	}
+
+	return iface, err
 }
 
 // ==
