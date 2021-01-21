@@ -469,6 +469,7 @@ spec:
             onDeny: "enum"              # optional; default is "break"
             onAllow: "enum"             # optional; default is "continue"
             arguments: DEPENDS          # optional
+        sameSite: "enum"                # optional; the SameSite attribute to set on cookies created by this filter. valid values include: "lax", "strict", "none". by default, no SameSite attribute is set, which typically allows the browser to decide the value.
 ```
 
  - `scope`: A list of OAuth scope values to include in the scope of the authorization request.  If one of the scope values for a path is not granted, then access to that resource is forbidden; if the `scope` argument lists `foo`, but the authorization response from the provider does not include `foo` in the scope, then it will be taken to mean that the authorization server forbade access to this path, as the authenticated user does not have the `foo` resource scope.

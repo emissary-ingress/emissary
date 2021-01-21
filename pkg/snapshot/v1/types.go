@@ -11,6 +11,9 @@ import (
 	"github.com/datawire/ambassador/pkg/watt"
 )
 
+const ApiVersion = "v1"
+const ContentTypeJSON = "application/json"
+
 // SecretRef is a secret reference -- basically, a namespace/name pair.
 type SecretRef struct {
 	Namespace string

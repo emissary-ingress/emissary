@@ -6,6 +6,7 @@
 syntax = "proto3";
 
 import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
 
 package agent;
 
@@ -43,7 +44,14 @@ message Identity {
 message Snapshot {
   Identity identity = 1;
   string message = 2;
-  repeated Service services = 3;
+  // no longer used.
+  repeated Service services = 3 [deprecated=true];
+  bytes raw_snapshot = 4;
+  // describes how the raw_snapshot is encoded
+  string content_type = 5;
+  // api version of RawSnapshot
+  string api_version = 6;
+  google.protobuf.Timestamp snapshot_ts = 7;
 }
 
 message Service {

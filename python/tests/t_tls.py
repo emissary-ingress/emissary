@@ -132,6 +132,11 @@ kind:  Mapping
 name:  {self.target.path.k8s}
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
+add_request_headers:
+  x-cert-start: "%DOWNSTREAM_PEER_CERT_V_START%"
+  x-cert-end: "%DOWNSTREAM_PEER_CERT_V_END%"
+  x-cert-start-custom: "%DOWNSTREAM_PEER_CERT_V_START(%b %e %H:%M:%S %Y %Z)%"
+  x-cert-end-custom: "%DOWNSTREAM_PEER_CERT_V_END(%b %e %H:%M:%S %Y %Z)%"
 """)
 
     def scheme(self) -> str:
@@ -145,20 +150,29 @@ service: {self.target.path.fqdn}
                     ca_cert=TLSCerts["master.datawire.io"].pubcert)
 
         # In TLS < 1.3, there's not a dedicated alert code for "the client forgot to include a certificate",
-        # so we get a generic alert=40 ("handshake_failure"). We also include "connection refused" because 
-        # we've seen cases where Envoy and the client library don't play nicely, so the error report doesn't
+        # so we get a generic alert=40 ("handshake_failure"). We also include "write: connection reset by peer"
+        # because we've seen cases where Envoy and the client library don't play nicely, so the error report doesn't
         # get back before the connection closes.
-        yield Query(self.url(self.name + "/"), insecure=True, maxTLSv="v1.2", 
-                    error=[ "tls: handshake failure", "connection refused" ])
+        yield Query(self.url(self.name + "/"), insecure=True, maxTLSv="v1.2",
+                    error=[ "tls: handshake failure", "write: connection reset by peer" ])
 
         # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario. See above for why
-        # "connection refused" is also accepted.
-        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3", 
-                    error=[ "tls: certificate required", "connection refused" ])
+        # "write: connection reset by peer " is also accepted.
+        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3",
+                    error=[ "tls: certificate required", "write: connection reset by peer" ])
 
     def check(self):
         assert self.results[0].backend.request.headers["x-forwarded-client-cert"] == \
             ["Hash=c2d41a5977dcd28a3ba21f59ed5508cc6538defa810843d8a593e668306c8c4f;Subject=\"CN=presto.example.com,OU=Engineering,O=Presto,L=Bangalore,ST=KA,C=IN\""]
+        assert self.results[0].backend.request.headers["x-cert-start"] == ["2019-01-10T19:19:52.000Z"], \
+                "unexpected x-cert-start value: %s" % self.results[0].backend.request.headers["x-cert-start"]
+        assert self.results[0].backend.request.headers["x-cert-end"] == ["2118-12-17T19:19:52.000Z"], \
+                "unexpected x-cert-end value: %s" % self.results[0].backend.request.headers["x-cert-end"]
+        assert self.results[0].backend.request.headers["x-cert-start-custom"] == ["Jan 10 19:19:52 2019 UTC"], \
+                "unexpected x-cert-start-custom value: %s" % self.results[1].backend.request.headers["x-cert-start-custom"]
+        assert self.results[0].backend.request.headers["x-cert-end-custom"] == ["Dec 17 19:19:52 2118 UTC"], \
+                "unexpected x-cert-end-custom value: %s" % self.results[0].backend.request.headers["x-cert-end-custom"]
+
 
     def requirements(self):
         for r in super().requirements():
@@ -235,16 +249,16 @@ service: {self.target.path.fqdn}
                     ca_cert=TLSCerts["master.datawire.io"].pubcert)
 
         # In TLS < 1.3, there's not a dedicated alert code for "the client forgot to include a certificate",
-        # so we get a generic alert=40 ("handshake_failure"). We also include "connection refused" because 
-        # we've seen cases where Envoy and the client library don't play nicely, so the error report doesn't
+        # so we get a generic alert=40 ("handshake_failure"). We also include "write: connection reset by peer"
+        # because we've seen cases where Envoy and the client library don't play nicely, so the error report doesn't
         # get back before the connection closes.
-        yield Query(self.url(self.name + "/"), insecure=True, maxTLSv="v1.2", 
-                    error=[ "tls: handshake failure", "connection refused" ])
+        yield Query(self.url(self.name + "/"), insecure=True, maxTLSv="v1.2",
+                error=[ "tls: handshake failure", "write: connection reset by peer" ])
 
         # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario. See above for why
-        # "connection refused" is also accepted.
-        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3", 
-                    error=[ "tls: certificate required", "connection refused" ])
+        # "write: connection reset by peer" is also accepted.
+        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3",
+                error=[ "tls: certificate required", "write: connection reset by peer" ])
 
     def requirements(self):
         for r in super().requirements():

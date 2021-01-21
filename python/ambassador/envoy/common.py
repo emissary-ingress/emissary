@@ -24,6 +24,7 @@ from ..utils import dump_json
 if TYPE_CHECKING:
     from ..ir import IR, IRResource
     from ..ir.irhttpmappinggroup import IRHTTPMappingGroup
+    from ...ir.irserviceresolver import ClustermapEntry
 
 def sanitize_pre_json(input):
     # Removes all potential null values
@@ -69,7 +70,7 @@ class EnvoyConfig:
         return obj
 
     @abstractmethod
-    def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, 'ClustermapEntry']]:
         pass
 
     @abstractmethod
