@@ -277,7 +277,7 @@ points.  Grafana allows you to create dynamic dashboards for monitoring
 your ingress traffic stats collected from Prometheus.
 
 We have published a [sample
-dashboard](https://grafana.com/grafana/dashboards/4698) you can use
+dashboard](https://grafana.com/grafana/dashboards/13758) you can use
 for monitoring your ingress traffic.  Since the stats from the
 `/metrics` and `/stats` endpoints are different, you will see a
 section in the dashboard for each use case.
@@ -399,7 +399,7 @@ We deployed prometheus to the default namespace in our example, but if you
 deployed it to a different namespace, make sure to replace `default` with your
 namespace. Press `Save & Test` to confirm that the data source works.
 
-Import the [provided dashboard](https://grafana.com/grafana/dashboards/4698)
+Import the [provided dashboard](https://grafana.com/grafana/dashboards/13758)
 by clicking the plus sign in the left side-bar, clicking `Import` in the top left, and entering the dashboard ID(4698).
 
 From here, select the Prometheus data source we created from the `Prometheus` drop
@@ -504,3 +504,11 @@ spec:
   endpoints:
   - port: prometheus-metrics
 ```
+
+#### Dashboard
+
+Now that you have metrics scraping from StatsD You can use add [this version of
+the dashboard](https://grafana.com/grafana/dashboards/4698) (ID: 4698) configured to work 
+with metrics scraped from StatsD orthe metrics Endpoint. You can configure it the
+same way as the previous dashboard. Adding the prometheus data source is also required, 
+so if you did not add that yet, make sure to configure it before adding the dashboard. 
