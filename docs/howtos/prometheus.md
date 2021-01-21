@@ -400,7 +400,7 @@ deployed it to a different namespace, make sure to replace `default` with your
 namespace. Press `Save & Test` to confirm that the data source works.
 
 Import the [provided dashboard](https://grafana.com/grafana/dashboards/13758)
-by clicking the plus sign in the left side-bar, clicking `Import` in the top left, and entering the dashboard ID(4698).
+by clicking the plus sign in the left side-bar, clicking `Import` in the top left, and entering the dashboard ID(13758).
 
 From here, select the Prometheus data source we created from the `Prometheus` drop
 down menu, and select import to finish adding the dashboard.
