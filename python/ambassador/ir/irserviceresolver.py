@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Dict, List, Optional, Union, Tuple, TYPE_CHECKING
 
 import json
 import logging
@@ -128,8 +128,12 @@ class IRServiceResolver(IRResource):
 
     @resolve.when("KubernetesEndpointResolver")
     def _k8s_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, svc_namespace: str, port: int) -> Optional[SvcEndpointSet]:
-        # K8s service names can be 'svc' or 'svc.namespace'. Which does this look like?
+        svc, namespace = self.parse_service(ir, svc_name, svc_namespace)
+        # Find endpoints, and try for a port match!
+        return self.get_endpoints(ir, f'k8s-{svc}-{namespace}', port)
 
+    def parse_service(self, ir: 'IR', svc_name: str, svc_namespace: str) -> Tuple[str, str]:
+        # K8s service names can be 'svc' or 'svc.namespace'. Which does this look like?
         svc = svc_name
         namespace = Config.ambassador_namespace
 
@@ -145,8 +149,7 @@ class IRServiceResolver(IRResource):
             namespace = svc_namespace
             ir.logger.debug("KubernetesEndpointResolver use_ambassador_namespace_for_service_resolution %s, upstream key %s" % (ir.ambassador_module.use_ambassador_namespace_for_service_resolution, f'{svc}-{namespace}'))
 
-        # Find endpoints, and try for a port match!
-        return self.get_endpoints(ir, f'k8s-{svc}-{namespace}', port)
+        return svc, namespace
 
     @resolve.when("ConsulResolver")
     def _consul_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, svc_namespace: str, port: int) -> Optional[SvcEndpointSet]:
