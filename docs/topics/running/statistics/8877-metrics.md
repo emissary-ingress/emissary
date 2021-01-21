@@ -57,11 +57,10 @@ with Prometheus and Grafana](../../../../howtos/prometheus).
 
 #### Sample dashboard
 
-We provide a [sample Grafana dashboard][`8877-metrics-grafana.json`]
+We provide a [sample Grafana dashboard](https://grafana.com/dashboards/10434)
 that displays information collected by Prometheus from the
 `:8877/metrics` endpoint.
 
-[`8877-metrics-grafana.json`]: https://raw.githubusercontent.com/datawire/ambassador/$branch$/docs/topics/running/statistics/8877-metrics-grafana.json
 
 #### Just Envoy information
 
