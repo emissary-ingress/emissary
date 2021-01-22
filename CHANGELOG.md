@@ -70,6 +70,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
+(no changes yet)
+
+## [1.11.0-rc.0] January 21, 2021
+[1.11.0-rc.0]: https://github.com/datawire/ambassador/compare/v1.10.0...v1.11.0-rc.0
+
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Bugfix: Eliminate the need to drain and recreate listeners when routing configuration is changed. This reduces both memory usage and disruption of in-flight requests.
