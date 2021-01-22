@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="terminal" baseProfile="full" viewBox="0 0 487 285" width="487" version="1.1">
+    <defs>
+        <termtosvg:template_settings xmlns:termtosvg="https://github.com/nbedos/termtosvg">
+            <termtosvg:screen_geometry columns="55" rows="12"/>
+            <termtosvg:animation type="css"/>
+        </termtosvg:template_settings>
+        <style type="text/css" id="generated-style"><![CDATA[#screen {
+                font-family: 'DejaVu Sans Mono', monospace;
+                font-style: normal;
+                font-size: 14px;
+            }
+
+        text {
+            dominant-baseline: text-before-edge;
+            white-space: pre;
+        }
+    
+            :root {
+                --animation-duration: 9507ms;
+            }
+
+            @keyframes roll {
+                0.000%{transform:translateY(0px)}
+4.712%{transform:translateY(-238px)}
+5.459%{transform:translateY(-476px)}
+6.164%{transform:translateY(-714px)}
+8.047%{transform:translateY(-952px)}
+8.993%{transform:translateY(-1190px)}
+10.666%{transform:translateY(-1428px)}
+11.350%{transform:translateY(-1666px)}
+13.033%{transform:translateY(-1904px)}
+13.990%{transform:translateY(-2142px)}
+15.157%{transform:translateY(-2380px)}
+17.261%{transform:translateY(-2618px)}
+17.492%{transform:translateY(-2856px)}
+19.396%{transform:translateY(-3094px)}
+21.784%{transform:translateY(-3332px)}
+22.489%{transform:translateY(-3570px)}
+23.183%{transform:translateY(-3808px)}
+24.908%{transform:translateY(-4046px)}
+25.329%{transform:translateY(-4284px)}
+26.265%{transform:translateY(-4522px)}
+28.653%{transform:translateY(-4760px)}
+31.724%{transform:translateY(-4998px)}
+32.544%{transform:translateY(-5236px)}
+32.839%{transform:translateY(-5474px)}
+33.249%{transform:translateY(-5712px)}
+47.807%{transform:translateY(-5950px)}
+52.561%{transform:translateY(-6188px)}
+71.337%{transform:translateY(-6426px)}
+71.390%{transform:translateY(-6664px)}
+89.481%{transform:translateY(-6902px)}
+100.000%{transform:translateY(-6902px)}
+            }
+
+            #screen_view {
+                animation-duration: 9507ms;
+                animation-iteration-count:infinite;
+                animation-name:roll;
+                animation-timing-function: steps(1,end);
+                animation-fill-mode: forwards;
+            }
+        ]]></style>
+        <style type="text/css" id="user-style">
+            /* The colors defined below are the default 16 colors used for rendering text of the terminal. Adjust
+               them as needed.
+               gjm8 color theme (source: https://terminal.sexy/) */
+            .foreground {fill: #f8f8f2}
+            .background {fill: #272822}
+            .color0 {fill: #272822}
+            .color1 {fill: #f92672}
+            .color2 {fill: #a6e22e}
+            .color3 {fill: #f4bf75}
+            .color4 {fill: #66d9ef}
+            .color5 {fill: #ae81ff}
+            .color6 {fill: #a1efe4}
+            .color7 {fill: #f8f8f2}
+            .color8 {fill: #75715e}
+            .color9 {fill: #fd971f}
+            .color10 {fill: #383830}
+            .color11 {fill: #49483e}
+            .color12 {fill: #a59f85}
+            .color13 {fill: #f5f4f1}
+            .color14 {fill: #cc6633}
+            .color15 {fill: #f9f8f5}
+        </style>
+    </defs>
+    <rect id="terminalui" class="background" width="100%" height="100%" ry="4.5826941"/>
+    <circle cx="24" cy="23" r="7" class="color1"/>
+    <circle cx="44" cy="23" r="7" class="color3"/>
+    <circle cx="64" cy="23" r="7" class="color2"/>
+    <svg id="screen" width="440" height="204" x="23" y="50" viewBox="0 0 440 204" preserveAspectRatio="xMidYMin slice"><rect class="background" height="100%" width="100%" x="0" y="0"/><defs><g id="g1"><text x="0" textLength="16" class="foreground">$ </text><text x="16" textLength="8" class="background"> </text></g><g id="g2"><text x="0" textLength="24" class="foreground">$ t</text><text x="24" textLength="8" class="background"> </text></g><g id="g3"><text x="0" textLength="32" class="foreground">$ te</text><text x="32" textLength="8" class="background"> </text></g><g id="g4"><text x="0" textLength="40" class="foreground">$ tel</text><text x="40" textLength="8" class="background"> </text></g><g id="g5"><text x="0" textLength="48" class="foreground">$ tele</text><text x="48" textLength="8" class="background"> </text></g><g id="g6"><text x="0" textLength="56" class="foreground">$ telep</text><text x="56" textLength="8" class="background"> </text></g><g id="g7"><text x="0" textLength="64" class="foreground">$ telepr</text><text x="64" textLength="8" class="background"> </text></g><g id="g8"><text x="0" textLength="72" class="foreground">$ telepre</text><text x="72" textLength="8" class="background"> </text></g><g id="g9"><text x="0" textLength="80" class="foreground">$ telepres</text><text x="80" textLength="8" class="background"> </text></g><g id="g10"><text x="0" textLength="88" class="foreground">$ teleprese</text><text x="88" textLength="8" class="background"> </text></g><g id="g11"><text x="0" textLength="96" class="foreground">$ telepresen</text><text x="96" textLength="8" class="background"> </text></g><g id="g12"><text x="0" textLength="104" class="foreground">$ telepresenc</text><text x="104" textLength="8" class="background"> </text></g><g id="g13"><text x="0" textLength="112" class="foreground">$ telepresence</text><text x="112" textLength="8" class="background"> </text></g><g id="g14"><text x="0" textLength="120" class="foreground">$ telepresence </text><text x="120" textLength="8" class="background"> </text></g><g id="g15"><text x="0" textLength="128" class="foreground">$ telepresence c</text><text x="128" textLength="8" class="background"> </text></g><g id="g16"><text x="0" textLength="136" class="foreground">$ telepresence co</text><text x="136" textLength="8" class="background"> </text></g><g id="g17"><text x="0" textLength="144" class="foreground">$ telepresence con</text><text x="144" textLength="8" class="background"> </text></g><g id="g18"><text x="0" textLength="152" class="foreground">$ telepresence conn</text><text x="152" textLength="8" class="background"> </text></g><g id="g19"><text x="0" textLength="160" class="foreground">$ telepresence conne</text><text x="160" textLength="8" class="background"> </text></g><g id="g20"><text x="0" textLength="168" class="foreground">$ telepresence connec</text><text x="168" textLength="8" class="background"> </text></g><g id="g21"><text x="0" textLength="176" class="foreground">$ telepresence connect</text><text x="176" textLength="8" class="background"> </text></g><g id="g22"><text x="0" textLength="176" class="foreground">$ telepresence connect</text></g><g id="g23"><text x="0" textLength="8" class="background"> </text></g><g id="g24"><text x="0" textLength="360" class="foreground">Launching Telepresence Daemon v0.7.2 (api v3)</text></g><g id="g25"><text x="0" textLength="440" class="foreground">Need root privileges to run "/usr/local/bin/telepresenc</text></g><g id="g26"><text x="0" textLength="208" class="foreground">e daemon-foreground '' ''"</text></g><g id="g27"><text x="0" textLength="72" class="foreground">Password:</text><text x="72" textLength="8" class="background"> </text></g><g id="g28"><text x="0" textLength="72" class="foreground">Password:</text></g><g id="g29"><text x="0" textLength="256" class="foreground">Connecting to traffic manager...</text></g><g id="g30"><text x="0" textLength="424" class="foreground">Connected to context default (https://34.122.175.221)</text></g><g id="g31"><text x="0" textLength="48" class="foreground">$ </text></g></defs><g id="screen_view"><g><rect x="16" y="0" width="8" height="17" class="foreground"/><use xlink:href="#g1" y="0"/></g><g><rect x="24" y="238" width="8" height="17" class="foreground"/><use xlink:href="#g2" y="238"/></g><g><rect x="32" y="476" width="8" height="17" class="foreground"/><use xlink:href="#g3" y="476"/></g><g><rect x="40" y="714" width="8" height="17" class="foreground"/><use xlink:href="#g4" y="714"/></g><g><rect x="48" y="952" width="8" height="17" class="foreground"/><use xlink:href="#g5" y="952"/></g><g><rect x="56" y="1190" width="8" height="17" class="foreground"/><use xlink:href="#g6" y="1190"/></g><g><rect x="64" y="1428" width="8" height="17" class="foreground"/><use xlink:href="#g7" y="1428"/></g><g><rect x="72" y="1666" width="8" height="17" class="foreground"/><use xlink:href="#g8" y="1666"/></g><g><rect x="80" y="1904" width="8" height="17" class="foreground"/><use xlink:href="#g9" y="1904"/></g><g><rect x="88" y="2142" width="8" height="17" class="foreground"/><use xlink:href="#g10" y="2142"/></g><g><rect x="96" y="2380" width="8" height="17" class="foreground"/><use xlink:href="#g11" y="2380"/></g><g><rect x="104" y="2618" width="8" height="17" class="foreground"/><use xlink:href="#g12" y="2618"/></g><g><rect x="112" y="2856" width="8" height="17" class="foreground"/><use xlink:href="#g13" y="2856"/></g><g><rect x="120" y="3094" width="8" height="17" class="foreground"/><use xlink:href="#g14" y="3094"/></g><g><rect x="128" y="3332" width="8" height="17" class="foreground"/><use xlink:href="#g15" y="3332"/></g><g><rect x="136" y="3570" width="8" height="17" class="foreground"/><use xlink:href="#g16" y="3570"/></g><g><rect x="144" y="3808" width="8" height="17" class="foreground"/><use xlink:href="#g17" y="3808"/></g><g><rect x="152" y="4046" width="8" height="17" class="foreground"/><use xlink:href="#g18" y="4046"/></g><g><rect x="160" y="4284" width="8" height="17" class="foreground"/><use xlink:href="#g19" y="4284"/></g><g><rect x="168" y="4522" width="8" height="17" class="foreground"/><use xlink:href="#g20" y="4522"/></g><g><rect x="176" y="4760" width="8" height="17" class="foreground"/><use xlink:href="#g21" y="4760"/></g><g><use xlink:href="#g22" y="4998"/><rect x="0" y="5015" width="8" height="17" class="foreground"/><use xlink:href="#g23" y="5015"/></g><g><use xlink:href="#g22" y="5236"/><use xlink:href="#g24" y="5253"/><rect x="0" y="5270" width="8" height="17" class="foreground"/><use xlink:href="#g23" y="5270"/></g><g><use xlink:href="#g22" y="5474"/><use xlink:href="#g24" y="5491"/><use xlink:href="#g25" y="5508"/><use xlink:href="#g26" y="5525"/><rect x="0" y="5542" width="8" height="17" class="foreground"/><use xlink:href="#g23" y="5542"/></g><g><use xlink:href="#g22" y="5712"/><use xlink:href="#g24" y="5729"/><use xlink:href="#g25" y="5746"/><use xlink:href="#g26" y="5763"/><rect x="72" y="5780" width="8" height="17" class="foreground"/><use xlink:href="#g27" y="5780"/></g><g><use xlink:href="#g22" y="5950"/><use xlink:href="#g24" y="5967"/><use xlink:href="#g25" y="5984"/><use xlink:href="#g26" y="6001"/><use xlink:href="#g28" y="6018"/><rect x="0" y="6035" width="8" height="17" class="foreground"/><use xlink:href="#g23" y="6035"/></g><g><use xlink:href="#g22" y="6188"/><use xlink:href="#g24" y="6205"/><use xlink:href="#g25" y="6222"/><use xlink:href="#g26" y="6239"/><use xlink:href="#g28" y="6256"/><use xlink:href="#g29" y="6273"/><rect x="0" y="6290" width="8" height="17" class="foreground"/><use xlink:href="#g23" y="6290"/></g><g><use xlink:href="#g22" y="6426"/><use xlink:href="#g24" y="6443"/><use xlink:href="#g25" y="6460"/><use xlink:href="#g26" y="6477"/><use xlink:href="#g28" y="6494"/><use xlink:href="#g29" y="6511"/><use xlink:href="#g30" y="6528"/><rect x="0" y="6545" width="8" height="17" class="foreground"/><use xlink:href="#g23" y="6545"/></g><g><use xlink:href="#g22" y="6664"/><use xlink:href="#g24" y="6681"/><use xlink:href="#g25" y="6698"/><use xlink:href="#g26" y="6715"/><use xlink:href="#g28" y="6732"/><use xlink:href="#g29" y="6749"/><use xlink:href="#g30" y="6766"/><rect x="16" y="6783" width="8" height="17" class="foreground"/><use xlink:href="#g1" y="6783"/></g><g><use xlink:href="#g22" y="6902"/><use xlink:href="#g24" y="6919"/><use xlink:href="#g25" y="6936"/><use xlink:href="#g26" y="6953"/><use xlink:href="#g28" y="6970"/><use xlink:href="#g29" y="6987"/><use xlink:href="#g30" y="7004"/><use xlink:href="#g31" y="7021"/><rect x="0" y="7038" width="8" height="17" class="foreground"/><use xlink:href="#g23" y="7038"/></g></g></svg>
+</svg>
