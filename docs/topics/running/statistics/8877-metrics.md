@@ -57,7 +57,7 @@ with Prometheus and Grafana](../../../../howtos/prometheus).
 
 #### Sample dashboard
 
-We provide a [sample Grafana dashboard](https://grafana.com/dashboards/10434)
+We provide a [sample Grafana dashboard](https://grafana.com/dashboards/13758)
 that displays information collected by Prometheus from the
 `:8877/metrics` endpoint.
 
