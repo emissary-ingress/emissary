@@ -18,6 +18,14 @@ import (
 	"github.com/datawire/dlib/dlog"
 )
 
+// thingToWatch is... uh... a thing we're gonna watch. Specifically, it's a
+// K8s type name and an optional field selector.
+type thingToWatch struct {
+	typename      string
+	fieldselector string
+}
+
+// watcher is the thing that watches all the K8s stuff we're interested in.
 func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atomic.Value) {
 	crdYAML, err := ioutil.ReadFile(findCRDFilename())
 	if err != nil {
@@ -70,15 +78,14 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 	// - The typename in the map values should be the qualified "${name}.${group}", where
 	//   "${name} is lowercase+plural.
 	// - If the map value doesn't set a field selector, then `fs` (above) will be used.
-	interestingTypes := map[string]struct {
-		typename      string
-		fieldselector string
-	}{
+	//
+	// Most of the interestingTypes are static, but it's completely OK to add types based
+	// on runtime considerations, as we do for IngressClass and the KNative stuff.
+	interestingTypes := map[string]thingToWatch{
 		"Services":   {typename: "services."},
 		"K8sSecrets": {typename: "secrets."}, // Note: "K8sSecrets" is not the "obvious" keyname
 		"Endpoints":  {typename: "endpoints.", fieldselector: endpointFs},
 
-		"IngressClasses": {typename: "ingressclasses.networking.k8s.io"}, // new in Kubernetes 1.18
 		//"Ingresses": {typename: "ingresses.networking.k8s.io"}, // new in Kubernetes 1.14, deprecating ingresses.extensions
 		"Ingresses": {typename: "ingresses.extensions"}, // new in Kubernetes 1.2
 
@@ -96,19 +103,16 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 		"TLSContexts":                 {typename: "tlscontexts.getambassador.io"},
 		"TracingServices":             {typename: "tracingservices.getambassador.io"},
 	}
+
+	if !IsAmbassadorSingleNamespace() {
+		interestingTypes["IngressClasses"] = thingToWatch{typename: "ingressclasses.networking.k8s.io"} // new in Kubernetes 1.18
+	}
+
 	if IsKnativeEnabled() {
-		interestingKNativeTypes := map[string]struct {
-			typename      string
-			fieldselector string
-		}{
-			// Note: These keynames have a "KNative" prefix, to avoid clashing with the
-			// standard "networking.k8s.io" and "extensions" types.
-			"KNativeClusterIngresses": {typename: "clusteringresses.networking.internal.knative.dev"},
-			"KNativeIngresses":        {typename: "ingresses.networking.internal.knative.dev"},
-		}
-		for k, v := range interestingKNativeTypes {
-			interestingTypes[k] = v
-		}
+		// Note: These keynames have a "KNative" prefix, to avoid clashing with the
+		// standard "networking.k8s.io" and "extensions" types.
+		interestingTypes["KNativeClusterIngresses"] = thingToWatch{typename: "clusteringresses.networking.internal.knative.dev"}
+		interestingTypes["KNativeIngresses"] = thingToWatch{typename: "ingresses.networking.internal.knative.dev"}
 	}
 
 	var queries []kates.Query
