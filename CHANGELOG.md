@@ -1,8 +1,6 @@
 # Changelog
 
-## BREAKING NEWS
-
-### AMBASSADOR EDGE STACK
+## AMBASSADOR EDGE STACK
 
 Ambassador Edge Stack is a comprehensive, self-service solution for exposing,
 securing, and managing the boundary between end users and your Kubernetes services.
@@ -18,42 +16,41 @@ as well as additional capabilities including:
 - Developer onboarding assistance, including an API catalog, Swagger/OpenAPI documentation
   support, and a fully customizable developer portal.
 
-Note: Ambassador Edge Stack replaces Ambassador Pro and can be installed over existing
-instances of Ambassador Pro and Ambassador API Gateway. The Ambassador Edge Stack is free
-for all users, and includes all the functionality of the Ambassador API Gateway in addition
-to the additional capabilities mentioned above. Due to popular demand, we’re offering a free
-tier of our core features as part of the Ambassador Edge Stack, designed for startups.
+Note: The Ambassador Edge Stack is free for all users, and includes all the functionality
+of the Ambassador API Gateway in addition to the additional capabilities mentioned above. 
+Due to popular demand, we’re offering a free tier of our core features as part of the
+Ambassador Edge Stack, designed for startups.
+
+## BREAKING NEWS
 
 ### UPCOMING CHANGES
 
 #### Ingress resources and Namespaces
 
-In a future version of Ambassador, *no sooner than Ambassador 1.8.0*, TLS secrets
+In a future version of Ambassador, *no sooner than Ambassador 1.13.0*, TLS secrets
 in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
 
 #### gRPC names
 
-*In version 1.10*, Ambassador will change the version of the gRPC service name used to
+*In version 1.10*, Ambassador changed the default version of the gRPC service name used to
 communicate with `AuthService`s and `RateLimitService`s:
 
-| Resource           | Current service name                       | Upcoming service name                         |
-| :----------------- | :----------------------------------------- | :-------------------------------------------- |
-| `AuthService`      | `envoy.service.auth.v2alpha.Authorization` | `envoy.service.auth.v2.Authorization`         |
-| `RateLimitService` | `pb.lyft.ratelimit.RateLimitService`       | `envoy.service.ratelimit.v2.RateLimitService` |
+| Resource           | Default service name in v1.10.0               | Deprecated                                 |
+| :----------------- | :-------------------------------------------- | :----------------------------------------- |
+| `AuthService`      | `envoy.service.auth.v2.Authorization`         | `envoy.service.auth.v2alpha.Authorization` |
+| `RateLimitService` | `envoy.service.ratelimit.v2.RateLimitService` | `pb.lyft.ratelimit.RateLimitService`       |
 
-- In v1.9.0 of Ambassador, there will be settings to control which name is
-  used; with the default being the current name; it will be opt-in to the new names.
-- In v1.10.0 of Ambassador after that, the
-  default values of those settings will change; making them opt-out from the new names.
-- In some future version of Ambassador after that, *no sooner than Ambassador 1.11.0*, the
-  settings will go away, and Ambassador will always use the new names.
+- In Ambassador version 1.11.0, `AuthService` and `RateLimitService` configuration can specify use of the
+  deprecated protocol versions.
+- In some future version of Ambassador, *no sooner than Ambassador 1.13.0*, support for the deprecated versions
+  will be removed.
 
 Note that Ambassador Edge Stack `External` Filters already unconditionally use the newer
 `envoy.service.auth.v2.Authorization` name.
 
 #### Regex Matching
 
-As of Envoy V1.12.0, the `regex` field for HeaderMatcher, RouteMatch and StringMatcher has been [deprecated in favor of safe_regex](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.12.0.html?highlight=regex#deprecated).
+As of Envoy v1.12.0, the `regex` field for HeaderMatcher, RouteMatch and StringMatcher has been [deprecated in favor of safe_regex](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.12.0.html?highlight=regex#deprecated).
 
 As of Ambassador 0.83.0, the safe regex fields are used by default.
 The deprecated fields are only used when `regex_type` is set to `unsafe` in the `ambassador` `Module`.
