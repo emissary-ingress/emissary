@@ -1,3 +1,5 @@
+> **Service Preview has been replaced by Telepresence, these docs will remain as a historical reference. [Learn more about Telepresence](../../../../telepresence/faqs) or [go to the quick start guide](../../../../telepresence/quick-start/).**
+
 # Service Preview and Service Meshes
 
 The Service Preview `traffic-agent` runs as a sidecar to the container running your application. Service Preview will run alongside a service mesh without any changes needed to be made on your part.
