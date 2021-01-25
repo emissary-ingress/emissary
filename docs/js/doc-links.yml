@@ -265,6 +265,8 @@
                   link: /docs/latest/topics/running/scaling
         - title: FAQs
           link: /docs/latest/about/faq
+        - title: Community
+          link: /docs/latest/community
         - title: Troubleshooting
           link: /docs/latest/topics/running/debugging
     - title: Telepresence
@@ -314,5 +316,4 @@
         - title: Technical Reference
           link: /docs/latest/topics/using/edgectl/service-preview-reference
 
-- title: Community
-  link: /docs/latest/community
+
