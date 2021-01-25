@@ -1,3 +1,5 @@
+> **Service Preview has been replaced by Ambassador Telepresence, these docs will remain as a historical reference. [Learn more about Ambassador Code](../../../../../) or [go to the quick start guide](../../../../telepresence/quick-start.md).**
+
 # Introduction to Service Preview
 
 One of the challenges in adopting Kubernetes and microservices is the development and testing workflow. Creating and maintaining a full development environment with many microservices and their dependencies is complex and hard.

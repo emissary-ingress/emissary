@@ -1,3 +1,5 @@
+> **Service Preview has been replaced by Telepresence, these docs will remain as a historical reference. [Learn more about Telepresence](../../../../telepresence/faqs) or [go to the quick start guide](../../../../telepresence/quick-start/).**
+
 # Service Preview Tutorial
 
 When Service Preview is used, incoming requests get routed by Ambassador to a Traffic Agent, which then routes traffic to the microservice. When a request meets a specific criteria (e.g., it has a specific HTTP header value), the Traffic Agent will route that request to the microservice running locally. The following video shows Service Preview in more detail:
