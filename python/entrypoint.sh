@@ -36,8 +36,12 @@ if [ -z "$DEVMAGIC" -a -z "$AGENT_SERVICE" -a \( "${AMBASSADOR_LEGACY_MODE,,}" !
 fi
 
 # If we are here, define AMBASSADOR_LEGACY_MODE, to make _absolutely certain_ that
-# diagd's localhost checks are in sync with what's actually running.
+# diagd's localhost checks are in sync with what's actually running...
 export AMBASSADOR_LEGACY_MODE=true
+
+# For the same reason, smite the FAST flags -- even the old FAST_VALIDATION flag.
+unset AMBASSADOR_FAST_RECONFIGURE
+unset AMBASSADOR_FAST_VALIDATION
 
 ENTRYPOINT_DEBUG=
 
