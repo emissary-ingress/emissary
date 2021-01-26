@@ -18,14 +18,19 @@ By using the preview URL functionality you can share access with additional deve
 
 ** What protocols can be intercepted by Telepresence?**
 
- All HTTP/1.1 and HTTP/2 protocols can be intercepted. This includes:
+All HTTP/1.1 and HTTP/2 requests can be intercepted.  This includes:
 
 - REST
 - JSON/XML over HTTP
-- gRPC
 - GraphQL
 
-If you need another protocol supported, please [drop us a line](../../../../feedback) to request it. 
+Telepresence will understand incoming HTTP/2 requests, but will
+downgrade the request to HTTP/1 before forwarding it along to your
+service; so requests that rely on being HTTP/2 (such as gRPC) won't
+work in the current version of Telepresence; but this feature is
+coming soon.
+
+If you need another protocol supported, please [drop us a line](../../../../feedback) to request it.
 
 ** When using Telepresence to intercept a pod, are the Kubernetes cluster environment variables proxied to my local machine?**
 
