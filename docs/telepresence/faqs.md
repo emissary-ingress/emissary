@@ -72,6 +72,26 @@ Telepresence will discover/prompt during first use for this info and make its be
 
 The cluster must also have access to an external registry in order to be able to download the Traffic Manager and Traffic Agent containers that are deployed when connecting with Telepresence.
 
+** Can I intercept just a subset of requests to my service? **
+
+Yes.  By default when creating a preview URL, Telepresence will only
+intercept requests for which the `x-telepresence-intercept-id` HTTP
+header is set to the intercept ID; this header is set automatically by
+the preview URL.  You can make this more or less specific by using the
+`--match` flag to filter on HTTP headers.
+
+For example, if your ingress routes requests for `/foo/` to your
+service at `/foo_backend/` and routes `/bar/` to your service at
+`/bar_backend/`, and you only want to intercept requests the requests
+routed from `/foo/`, then you can specify `--match=auto
+--match=':path=/foo_backend/.*'`.  The `auto` says to keep doing the
+default filtering on `x-telepresence-id`, and the `:path=` says to
+also filter on the path of the request that makes it to your backend
+service.  You cannot filter based on the request as your ingress saw
+it; you can only filter based on the request as the final backend
+service owuld see it.  You can filter on any header, including the
+HTTP/2 pseudo-headers, even if the request came in as HTTP/1.
+
 ** Why does running Telepresence require sudo access for the local daemon?**
 
  The local daemon needs sudo to create iptable mappings. Telepresence uses this to create outbound access from the laptop to the cluster.
