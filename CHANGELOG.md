@@ -76,7 +76,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 - Feature: Ambassador now reads the ENVOY_CONCURRENCY environment variable to optionally set the [--concurrency](https://www.envoyproxy.io/docs/envoy/latest/operations/cli#cmdoption-concurrency) command line option when launching Envoy. This controls the number of worker threads used to serve requests and can be used to fine-tune system resource usage.
 - Feature: The %DOWNSTREAM_PEER_CERT_V_START% and %DOWNSTREAM_PEER_CERT_V_END% command operators now support custom date formatting, similar to %START_TIME%. This can be used for both header formatting and access log formatting.
-- Bugfix: Eliminate the need to drain and recreate listeners when routing configuration is changed. This reduces both memory usage and disruption of in-flight requests.
+- Feature: Eliminate the need to drain and recreate listeners when routing configuration is changed. This reduces both memory usage and disruption of in-flight requests.
 - Bugfix: Make sure that `labels` specifying headers with extra attributes are correctly supported again ([#3137]).
 - Bugfix: Support Consul services when the `ConsulResolver` and the `Mapping` aren't in the same namespace, and legacy mode is not enabled.
 - Bugfix: Fix failure to start when one or more IngressClasses are present in a cluster ([#3142]).
