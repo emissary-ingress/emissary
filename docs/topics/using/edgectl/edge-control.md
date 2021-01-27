@@ -1,3 +1,5 @@
+> **Service Preview has been replaced by Telepresence, these docs will remain as a historical reference. [Learn more about Telepresence](../../../../telepresence/faqs) or [go to the quick start guide](../../../../telepresence/quick-start/).**
+
 # Edge Control Reference
 
 Edge Control is the command-line tool for installing and managing the Ambassador Edge Stack. And Edge Control's outbound and intercept features allow developers to preview changes to their services while sharing a single development cluster.

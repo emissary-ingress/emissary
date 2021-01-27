@@ -1,3 +1,5 @@
+> **Service Preview has been replaced by Telepresence, these docs will remain as a historical reference. [Learn more about Telepresence](../../../../telepresence/faqs) or [go to the quick start guide](../../../../telepresence/quick-start/).**
+
 # Service Preview Quick Start
 
 Service Preview is installed as an addon to the Ambassador Edge Stack.

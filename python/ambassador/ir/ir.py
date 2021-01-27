@@ -675,6 +675,18 @@ class IR:
             self.saved_secrets[secret_name] = ss
         return ss
 
+    def resolve_resolver(self, cluster: IRCluster, resolver_name: Optional[str]) -> IRServiceResolver:
+        # Which resolver should we use?
+        if not resolver_name:
+            resolver_name = self.ambassador_module.get('resolver', 'kubernetes-service')
+
+        # Casting to str is OK because the Ambassador module's resolver must be a string,
+        # so all the paths for resolver_name land with it being a string.
+        resolver = self.get_resolver(typecast(str, resolver_name))
+        assert resolver is not None
+        return resolver
+
+
     def resolve_targets(self, cluster: IRCluster, resolver_name: Optional[str],
                         hostname: str, namespace: str, port: int) -> Optional[SvcEndpointSet]:
         # Is the host already an IP address?
@@ -698,13 +710,7 @@ class IR:
                 }
             ]
 
-        # Which resolver should we use?
-        if not resolver_name:
-            resolver_name = self.ambassador_module.get('resolver', 'kubernetes-service')
-
-        # Casting to str is OK because the Ambassador module's resolver must be a string,
-        # so all the paths for resolver_name land with it being a string.
-        resolver = self.get_resolver(typecast(str, resolver_name))
+        resolver = self.resolve_resolver(cluster, resolver_name)
 
         # It should not be possible for resolver to be unset here.
         if not resolver:

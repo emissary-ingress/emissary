@@ -1,8 +1,6 @@
 # Changelog
 
-## BREAKING NEWS
-
-### AMBASSADOR EDGE STACK
+## AMBASSADOR EDGE STACK
 
 Ambassador Edge Stack is a comprehensive, self-service solution for exposing,
 securing, and managing the boundary between end users and your Kubernetes services.
@@ -18,42 +16,41 @@ as well as additional capabilities including:
 - Developer onboarding assistance, including an API catalog, Swagger/OpenAPI documentation
   support, and a fully customizable developer portal.
 
-Note: Ambassador Edge Stack replaces Ambassador Pro and can be installed over existing
-instances of Ambassador Pro and Ambassador API Gateway. The Ambassador Edge Stack is free
-for all users, and includes all the functionality of the Ambassador API Gateway in addition
-to the additional capabilities mentioned above. Due to popular demand, we’re offering a free
-tier of our core features as part of the Ambassador Edge Stack, designed for startups.
+Note: The Ambassador Edge Stack is free for all users, and includes all the functionality
+of the Ambassador API Gateway in addition to the additional capabilities mentioned above. 
+Due to popular demand, we’re offering a free tier of our core features as part of the
+Ambassador Edge Stack, designed for startups.
+
+## BREAKING NEWS
 
 ### UPCOMING CHANGES
 
 #### Ingress resources and Namespaces
 
-In a future version of Ambassador, *no sooner than Ambassador 1.8.0*, TLS secrets
+In a future version of Ambassador, *no sooner than Ambassador 1.13.0*, TLS secrets
 in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
 
 #### gRPC names
 
-*In version 1.10*, Ambassador will change the version of the gRPC service name used to
+*In version 1.10*, Ambassador changed the default version of the gRPC service name used to
 communicate with `AuthService`s and `RateLimitService`s:
 
-| Resource           | Current service name                       | Upcoming service name                         |
-| :----------------- | :----------------------------------------- | :-------------------------------------------- |
-| `AuthService`      | `envoy.service.auth.v2alpha.Authorization` | `envoy.service.auth.v2.Authorization`         |
-| `RateLimitService` | `pb.lyft.ratelimit.RateLimitService`       | `envoy.service.ratelimit.v2.RateLimitService` |
+| Resource           | Default service name in v1.10.0               | Deprecated                                 |
+| :----------------- | :-------------------------------------------- | :----------------------------------------- |
+| `AuthService`      | `envoy.service.auth.v2.Authorization`         | `envoy.service.auth.v2alpha.Authorization` |
+| `RateLimitService` | `envoy.service.ratelimit.v2.RateLimitService` | `pb.lyft.ratelimit.RateLimitService`       |
 
-- In v1.9.0 of Ambassador, there will be settings to control which name is
-  used; with the default being the current name; it will be opt-in to the new names.
-- In v1.10.0 of Ambassador after that, the
-  default values of those settings will change; making them opt-out from the new names.
-- In some future version of Ambassador after that, *no sooner than Ambassador 1.11.0*, the
-  settings will go away, and Ambassador will always use the new names.
+- In Ambassador version 1.11.0, `AuthService` and `RateLimitService` configuration can specify use of the
+  deprecated protocol versions.
+- In some future version of Ambassador, *no sooner than Ambassador 1.13.0*, support for the deprecated versions
+  will be removed.
 
 Note that Ambassador Edge Stack `External` Filters already unconditionally use the newer
 `envoy.service.auth.v2.Authorization` name.
 
 #### Regex Matching
 
-As of Envoy V1.12.0, the `regex` field for HeaderMatcher, RouteMatch and StringMatcher has been [deprecated in favor of safe_regex](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.12.0.html?highlight=regex#deprecated).
+As of Envoy v1.12.0, the `regex` field for HeaderMatcher, RouteMatch and StringMatcher has been [deprecated in favor of safe_regex](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.12.0.html?highlight=regex#deprecated).
 
 As of Ambassador 0.83.0, the safe regex fields are used by default.
 The deprecated fields are only used when `regex_type` is set to `unsafe` in the `ambassador` `Module`.
@@ -70,13 +67,33 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
+(no changes yet)
+
+## [1.11.0] January 26, 2021
+[1.11.0]: https://github.com/datawire/ambassador/compare/v1.10.0...v1.11.0
+
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
-- Bugfix: Make sure that `labels` specifying headers with extra attributes are correctly supported again ([#3137])
-- Bugfix: Support Consul services when the `ConsulResolver` and the `Mapping` aren't in the same namespace, and legacy mode is not enabled.
 - Feature: Ambassador now reads the ENVOY_CONCURRENCY environment variable to optionally set the [--concurrency](https://www.envoyproxy.io/docs/envoy/latest/operations/cli#cmdoption-concurrency) command line option when launching Envoy. This controls the number of worker threads used to serve requests and can be used to fine-tune system resource usage.
+- Feature: The %DOWNSTREAM_PEER_CERT_V_START% and %DOWNSTREAM_PEER_CERT_V_END% command operators now support custom date formatting, similar to %START_TIME%. This can be used for both header formatting and access log formatting.
+- Feature: Eliminate the need to drain and recreate listeners when routing configuration is changed. This reduces both memory usage and disruption of in-flight requests.
+- Bugfix: Make sure that `labels` specifying headers with extra attributes are correctly supported again ([#3137]).
+- Bugfix: Support Consul services when the `ConsulResolver` and the `Mapping` aren't in the same namespace, and legacy mode is not enabled.
 - Bugfix: Fix failure to start when one or more IngressClasses are present in a cluster ([#3142]).
+- Bugfix: Properly handle Kubernetes 1.18 and greater when RBAC prohibits access to IngressClass resources.
+- Bugfix: Support `TLSContext` CA secrets with fast validation ([#3005]).
+- Bugfix: Dev Portal correctly handles transient failures when fetching content
+- Bugfix: Dev Portal sidebar pages have a stable order
+- Bugfix: Dev Portal pages are now marked cacheable
 
+### Ambassador Edge Stack only
+
+- Feature: RateLimit CRDs now suport specifying an `action` for each limit. Possible values include "Enforce" and "LogOnly", case insensitive. LogOnly may be used to implement dry run rules that do not actually enforce.
+- Feature: RateLimit CRDs now support specifying a symbolic `name` for each limit. This name can later be used in the access log to know which RateLimit, if any, applied to a request.
+- Feature: RateLimit metadata is now available using the `DYNAMIC_METADATA(envoy.http.filters.ratelimit: ... )` command operator in the Envoy access logs. See [Envoy Documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log/usage) for more on using dynamic metadata in the access log.
+- Feature: OAuth2 Filter: The SameSite cookie attribute is now configurable.
+
+[#3005]: https://github.com/datawire/ambassador/issues/3005
 [#3137]: https://github.com/datawire/ambassador/issues/3137
 [#3142]: https://github.com/datawire/ambassador/issues/3142
 

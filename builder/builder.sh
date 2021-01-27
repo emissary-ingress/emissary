@@ -223,10 +223,10 @@ bootstrap() {
             --build-arg=builderbase="${builder_base_image}" \
             --target=builder \
             ${DIR} -t ${BUILDER_NAME}.local/builder
-        if [ "$(uname -s)" == Darwin ]; then
-            DOCKER_GID=$(stat -f "%g" /var/run/docker.sock)
-        else
+        if stat --version | grep -q GNU ; then
             DOCKER_GID=$(stat -c "%g" /var/run/docker.sock)
+        else
+            DOCKER_GID=$(stat -f "%g" /var/run/docker.sock)
         fi
         if [ -z "${DOCKER_GID}" ]; then
             panic "Unable to determine docker group-id"

@@ -141,7 +141,9 @@ metadata:
 spec:
   domain: "my_domain"
   limits:
-  - pattern:
+  - name: per-minute-limit         # optional; default is the `$name.$namespace-$idx` where name is the name of the CRD and idx is the index into the limits array
+    action: Enforce                # optional; default to "Enforce". valid values are "Enforce" and "LogOnly", case insensitive.
+    pattern:
     - "my_key1": "my_value1"
       "my_key2": "my_value2"
     - "my_key3": "my_value3"
@@ -160,7 +162,9 @@ spec:
       - name: "header-name-string"     # required
         value: "go-template-string"    # required
       bodyTemplate: "string"         # optional; default is "", returning no response body
-  - pattern:
+  - name: per-second-limit
+    action: Enforce
+    pattern:
     - "my_key4": ""   # check the key but not the value
     - "my_key5": "*"  # check the key but not the value
     rate: 5
@@ -176,6 +180,13 @@ resources.
 algorithm correctly.  The thing to reference is
 `vendor-ratelimit/src/config/config_impl.go:rateLimitConfigImpl.GetLimit()`
 and/or `lib/rltypes/rls.go:Config.Add()` -->
+
+ - `name`: The symbolic name for this ratelimit. Used to set dynamic metadata that can be referenced in the Envoy access log.
+
+ - `action`: Each limit has an *action* that it will take when it is exceeded. Actions include:
+
+    * `Enforce` - enforce this limit on the client by returning HTTP 429. This is the default action.
+    * `LogOnly` - do not enforce this limit on the client, and allow the client request upstream if no other limit applies.
 
  - `pattern`: Each limit has a *pattern* that matches against a label
    group on a request to decide if that limit should apply to that
@@ -307,7 +318,36 @@ and/or `lib/rltypes/rls.go:Config.Add()` -->
 [`v2.RateLimitResponse_DescriptorStatus`]: https://godoc.org/github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v2#RateLimitResponse_DescriptorStatus
 [Sprig `hasKey`]: https://masterminds.github.io/sprig/dicts.html#haskey
 
-## Examples
+## Logging RateLimits
+
+It is often desirable to know which RateLimit, if any, is applied to a client's request. This can be achieved by leveraging dynamic metadata available to Envoy's access log.
+
+The following dynamic metadata keys are available under the `envoy.filters.http.ratelimit` namespace. See https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log/usage for more on Envoy's access log format.
+
+* `aes.ratelimit.name` - The symbolic `name` of the `Limit` on a `RateLimit` object that triggered the ratelimit action.
+* `aes.ratelimit.action` - The action that the `Limit` took. Possible values include `Enforce` and `LogOnly`. When the action is `Enforce`, the client was ratelimited with HTTP 429. When the action is `LogOnly`, the ratelimit was not enforced and the client's request was allowed upstream.
+* `aes.ratelimit.retry_after` - The time in seconds until the `Limit` resets. Equivalent to the value of the `Retry-After` returned to the client if the limit was enforced.
+
+If a `Limit` with a `LogOnly` action is exceeded and there are no other non-`LogOnly` `Limit`s that were exceeded, the request will be allowed upstream and that `Limit` will available as dynamic metadata above.
+
+Note that if multiple `Limit`s were exceeded by a request, only the `Limit` with the longest time until reset (i.e. its Retry-After value) will be available as dynamic metadata above. The only exception is if the `Limit` with the longest time until reset is `LogOnly` and there exists another non-`LogOnly` limit that was exceeded. In that case, the non-`LogOnly` `Limit` will be available as dynamic metadata. This ensures that `LogOnly` `Limits` will never prevent non-`LogOnly` `Limits` from enforcing or from being observable in the Envoy access log.
+
+### An example access log specification for RateLimit dynamic metadata
+
+Module:
+
+```yaml
+---
+apiVersion: getambassador.io/v2
+kind: Module
+metadata:
+  name: ambassador
+spec:
+  config:
+    envoy_log_format: 'ratelimit %DYNAMIC_METADATA(envoy.filters.http.ratelimit:aes.ratelimit.name)% took action %DYNAMIC_METADATA(envoy.filters.http.ratelimit:aes.ratelimit.action)'
+```
+
+## RateLimit Examples
 
 ### An example service-level rate limit
 
