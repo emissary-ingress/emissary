@@ -5,6 +5,10 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+## v6.5.17
+
+- Bugfix: Fix Mapping definition to correctly support labels in use.
+
 ## v6.5.16
 
 - Bugfix: Ambassador CRD cleanup will now execute as expected.
