@@ -170,6 +170,24 @@ spec:
   rewrite: "/docs/"
   service: "127.0.0.1:8500"
 ---
+# Set up a seperate mapping for the assets so we can inject caching headers to improve page load time
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: ambassador-devportal-assets
+  namespace: ambassador
+spec:
+  prefix: /documentation/(assets|styles)/(.*)(.css)
+  prefix_regex: true
+  regex_rewrite:
+    pattern: /documentation/(.*)
+    substitution: /docs/\1
+  service: "127.0.0.1:8500"
+  add_response_headers:
+    cache-control:
+      value: "public, max-age=3600, immutable"
+      append: false
+---
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:

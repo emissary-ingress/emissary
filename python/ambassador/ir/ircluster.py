@@ -27,6 +27,7 @@ from .irtlscontext import IRTLSContext
 
 if TYPE_CHECKING:
     from .ir import IR
+    from .ir.irserviceresolver import IRServiceResolver
 
 #############################################################################
 ## ircluster.py -- the ircluster configuration object for Ambassador
@@ -391,3 +392,9 @@ class IRCluster (IRResource):
             self.targets += other.targets
 
         return True
+
+    def get_resolver(self) -> 'IRServiceResolver':
+        return self.ir.resolve_resolver(self, self._resolver)
+
+    def clustermap_entry(self) -> Dict:
+        return self.get_resolver().clustermap_entry(self.ir, self, self._hostname, self._namespace, self._port)

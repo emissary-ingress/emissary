@@ -106,6 +106,8 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	}
 	os.Setenv("PYTHONUNBUFFERED", "true")
 
+	// Make sure that all of the directories that we need actually exist.
+	ensureDir(GetHomeDir())
 	ensureDir(GetAmbassadorConfigBaseDir())
 	ensureDir(GetSnapshotDir())
 	ensureDir(GetEnvoyDir())

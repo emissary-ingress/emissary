@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union, TYPE_CHECKING
+from typing import Dict, List, Optional, Union, Tuple, TYPE_CHECKING
 
 import json
 import logging
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
 SvcEndpoint = Dict[str, Union[int, str]]
 SvcEndpointSet = List[SvcEndpoint]
-
+ClustermapEntry = Dict[str, Union[int, str]]
 
 class IRServiceResolver(IRResource):
     def __init__(self, ir: 'IR', aconf: Config,
@@ -128,8 +128,12 @@ class IRServiceResolver(IRResource):
 
     @resolve.when("KubernetesEndpointResolver")
     def _k8s_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, svc_namespace: str, port: int) -> Optional[SvcEndpointSet]:
-        # K8s service names can be 'svc' or 'svc.namespace'. Which does this look like?
+        svc, namespace = self.parse_service(ir, svc_name, svc_namespace)
+        # Find endpoints, and try for a port match!
+        return self.get_endpoints(ir, f'k8s-{svc}-{namespace}', port)
 
+    def parse_service(self, ir: 'IR', svc_name: str, svc_namespace: str) -> Tuple[str, str]:
+        # K8s service names can be 'svc' or 'svc.namespace'. Which does this look like?
         svc = svc_name
         namespace = Config.ambassador_namespace
 
@@ -145,8 +149,7 @@ class IRServiceResolver(IRResource):
             namespace = svc_namespace
             ir.logger.debug("KubernetesEndpointResolver use_ambassador_namespace_for_service_resolution %s, upstream key %s" % (ir.ambassador_module.use_ambassador_namespace_for_service_resolution, f'{svc}-{namespace}'))
 
-        # Find endpoints, and try for a port match!
-        return self.get_endpoints(ir, f'k8s-{svc}-{namespace}', port)
+        return svc, namespace
 
     @resolve.when("ConsulResolver")
     def _consul_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, svc_namespace: str, port: int) -> Optional[SvcEndpointSet]:
@@ -193,6 +196,47 @@ class IRServiceResolver(IRResource):
 
             return None
 
+    @multi
+    def clustermap_entry(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, svc_namespace: str, port: int) -> str:
+        del ir      # silence warnings
+        del cluster
+        del svc_name
+        del svc_namespace
+        del port
+
+        return self.kind
+
+    @clustermap_entry.when("KubernetesServiceResolver")
+    def _k8s_svc_clustermap_entry(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, svc_namespace: str, port: int) -> ClustermapEntry:
+        # The K8s service resolver always returns a single endpoint.
+        return {
+            'ip': svc_name,
+            'port': port,
+            'kind': self.kind
+        }
+
+    @clustermap_entry.when("KubernetesEndpointResolver")
+    def _k8s_clustermap_entry(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, svc_namespace: str, port: int) -> ClustermapEntry:
+        svc, namespace = self.parse_service(ir, svc_name, svc_namespace)
+        # Find endpoints, and try for a port match!
+        return {
+            'service': svc,
+            'namespace': namespace,
+            'port': port,
+            'kind': self.kind
+        }
+
+    @clustermap_entry.when("ConsulResolver")
+    def _consul_clustermap_entry(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, svc_namespace: str, port: int) -> ClustermapEntry:
+        # For Consul, we look things up with the service name and the datacenter at present.
+        # We ignore the port in the lookup (we should've already posted a warning about the port
+        # being present, actually).
+
+        return {
+            'service': svc_name,
+            'datacenter': self.datacenter,
+            'kind': self.kind
+        }
 
 class IRServiceResolverFactory:
     @classmethod

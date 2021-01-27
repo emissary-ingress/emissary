@@ -310,7 +310,24 @@ func update(ctx context.Context, config cache.SnapshotCache, generation *int, di
 			bs := m.(*bootstrap.Bootstrap)
 			sr := bs.StaticResources
 			for _, lst := range sr.Listeners {
-				listeners = append(listeners, Clone(lst).(ctypes.Resource))
+				// When the RouteConfiguration is embedded in the listener, it will cause envoy to
+				// go through a complete drain cycle whenever there is a routing change and that
+				// will potentially disrupt in-flight requests. By converting all listeners to use
+				// RDS rather than inlining their routing configuration, we significantly reduce the
+				// set of circumstances where the listener definition itself changes, and this in
+				// turn reduces the set of circumstances where envoy has to go through that drain
+				// process and disrupt in-flight requests.
+				rdsListener, routeConfigs, err := ListenerToRdsListener(lst)
+				if err != nil {
+					log.Errorf("Error converting listener to RDS: %+v", err)
+					listeners = append(listeners, Clone(lst).(ctypes.Resource))
+					continue
+				}
+				listeners = append(listeners, rdsListener)
+				for _, rc := range routeConfigs {
+					// These routes will get included in the configuration snapshot created below.
+					routes = append(routes, rc)
+				}
 			}
 			for _, cls := range sr.Clusters {
 				clusters = append(clusters, Clone(cls).(ctypes.Resource))
@@ -323,6 +340,7 @@ func update(ctx context.Context, config cache.SnapshotCache, generation *int, di
 		*dst = append(*dst, m.(ctypes.Resource))
 	}
 
+	// Create a new configuration snapshot from everything we have just loaded from disk.
 	version := fmt.Sprintf("v%d", *generation)
 	*generation++
 	snapshot := cache.NewSnapshot(

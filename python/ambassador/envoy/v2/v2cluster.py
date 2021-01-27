@@ -213,6 +213,7 @@ class V2Cluster(Cacheable):
         cluster: 'V2Cluster'
 
         config.clusters = []
+        config.clustermap = {}
 
         # Sort by the envoy cluster name (x.envoy_name), not the symbolic IR cluster name (x.name)
         for ircluster in sorted(config.ir.clusters.values(), key=lambda x: x.envoy_name):
@@ -241,3 +242,4 @@ class V2Cluster(Cacheable):
                 cluster = cached_cluster
 
             config.clusters.append(cluster)
+            config.clustermap[ircluster.envoy_name] = ircluster.clustermap_entry()

@@ -109,6 +109,7 @@ class DiagApp (Flask):
     snapshot_path: str
     bootstrap_path: str
     ads_path: str
+    clustermap_path: str
     health_checks: bool
     no_envoy: bool
     debugging: bool
@@ -148,7 +149,7 @@ class DiagApp (Flask):
               config_path: Optional[str], ambex_pid: int, kick: Optional[str], banner_endpoint: Optional[str],
               metrics_endpoint: Optional[str], k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False,
               verbose=False, notices=None, validation_retries=5, allow_fs_commands=False, local_scout=False,
-              report_action_keys=False, enable_fast_reconfigure=False, legacy_mode=False):
+              report_action_keys=False, enable_fast_reconfigure=False, legacy_mode=False, clustermap_path=None):
         self.health_checks = do_checks
         self.no_envoy = no_envoy
         self.debugging = reload
@@ -222,6 +223,7 @@ class DiagApp (Flask):
         self.bootstrap_path = bootstrap_path
         self.ads_path = ads_path
         self.snapshot_path = snapshot_path
+        self.clustermap_path = clustermap_path or os.path.join(os.path.dirname(self.bootstrap_path), "clustermap.json")
 
         # You must hold config_lock when updating config elements (including diag!).
         self.config_lock = threading.Lock()
@@ -1545,7 +1547,7 @@ class AmbassadorEventWatcher(threading.Thread):
         # Instead, we'll just reset app.diag to None, then generate it on-demand when
         # we need it.
 
-        bootstrap_config, ads_config = econf.split_config()
+        bootstrap_config, ads_config, clustermap = econf.split_config()
 
         if not self.validate_envoy_config(ir, config=ads_config, retries=self.app.validation_retries):
             self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
@@ -1603,6 +1605,9 @@ class AmbassadorEventWatcher(threading.Thread):
 
         with open(app.ads_path, "w") as output:
             output.write(dump_json(ads_config, pretty=True))
+
+        with open(app.clustermap_path, "w") as output:
+            output.write(dump_json(clustermap, pretty=True))
 
         with app.config_lock:
             app.aconf = aconf

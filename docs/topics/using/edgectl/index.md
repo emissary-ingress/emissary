@@ -1,3 +1,5 @@
+> **Service Preview has been replaced by Telepresence, these docs will remain as a historical reference. [Learn more about Telepresence](../../../telepresence/faqs) or [go to the quick start guide](../../../telepresence/quick-start/).**
+
 # Introduction to Service Preview
 
 One of the challenges in adopting Kubernetes and microservices is the development and testing workflow. Creating and maintaining a full development environment with many microservices and their dependencies is complex and hard.
