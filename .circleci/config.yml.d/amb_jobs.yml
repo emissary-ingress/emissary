@@ -110,7 +110,7 @@ commands:
             equal: [ "pytest-envoy", << parameters.test >> ]
           steps:
             - skip-if-no-changes:
-                to: "(/envoy\\.mk$|/python/tests/gold/|/pytest/gold/)"
+                to: "(/envoy\\.mk$|/python/tests/gold/|/pytest/gold/|/cmd/ambex/)"
             - run: |
                 if [[ -z "$KUBECEPTION_TOKEN" ]]; then
                   circleci step halt
@@ -137,6 +137,7 @@ commands:
             fi
       - run:
           name: "Test"
+          no_output_timeout: "30m"
           command: |
             if [[ -z "$KUBECEPTION_TOKEN" ]]; then
               export DEV_KUBE110=yes

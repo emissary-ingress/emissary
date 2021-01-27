@@ -160,6 +160,7 @@ github.com/cyphar/filepath-securejoin v0.2.2 h1:jCwT2GTP+PY5nBz3c/YL5PAIbusElVrP
 github.com/cyphar/filepath-securejoin v0.2.2/go.mod h1:FpkQEhXnPnOthhzymB7CGsFk2G9VLXONKD9G7QGMM+4=
 github.com/datawire/dlib v1.1.0 h1:EKRMl8gD+XbGLFPTRXGm2CapLsHRTLMu9dYUly/IlZA=
 github.com/datawire/dlib v1.1.0/go.mod h1:aCzh74rJ3kOireYbg4gH0CuD48/xA4G+LuHhkpcqo1s=
+github.com/datawire/dlib v1.1.1 h1:MTNT9ExEF97ZkXjlvfbRxfZG6bX1S9yAAobw3g+U+uw=
 github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a h1:VHPuM0sSTEHfjtSX86XQqZKJNUWTWVu2BuV6X8SdGUk=
 github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a/go.mod h1:H8uUmE8qqo7z9u30MYB9riLyRckPHOPBk9ZdCuH+dQQ=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -1044,6 +1045,7 @@ k8s.io/apimachinery v0.18.0/go.mod h1:9SnR/e11v5IbyPCGbvJViimtJ0SwHG4nfZFjU77ftc
 k8s.io/apimachinery v0.18.2/go.mod h1:9SnR/e11v5IbyPCGbvJViimtJ0SwHG4nfZFjU77ftcA=
 k8s.io/apimachinery v0.18.4 h1:ST2beySjhqwJoIFk6p7Hp5v5O0hYY6Gngq/gUYXTPIA=
 k8s.io/apimachinery v0.18.4/go.mod h1:OaXp26zu/5J7p0f92ASynJa1pZo06YlV9fG7BoWbCko=
+k8s.io/apimachinery v0.20.2 h1:hFx6Sbt1oG0n6DZ+g4bFt5f6BoMkOjKWsQFu077M3Vg=
 k8s.io/apiserver v0.18.0/go.mod h1:3S2O6FeBBd6XTo0njUrLxiqk8GNy6wWOftjhJcXYnjw=
 k8s.io/apiserver v0.18.2/go.mod h1:Xbh066NqrZO8cbsoenCwyDJ1OSi8Ag8I2lezeHxzwzw=
 k8s.io/apiserver v0.18.4 h1:pn1jSQkfboPSirZopkVpEdLW4FcQLnYMaIY8LFxxj30=
@@ -1055,6 +1057,8 @@ k8s.io/client-go v0.18.0/go.mod h1:uQSYDYs4WhVZ9i6AIoEZuwUggLVEF64HOD37boKAtF8=
 k8s.io/client-go v0.18.2/go.mod h1:Xcm5wVGXX9HAA2JJ2sSBUn3tCJ+4SVlCbl2MNNv+CIU=
 k8s.io/client-go v0.18.4 h1:un55V1Q/B3JO3A76eS0kUSywgGK/WR3BQ8fHQjNa6Zc=
 k8s.io/client-go v0.18.4/go.mod h1:f5sXwL4yAZRkAtzOxRWUhA/N8XzGCb+nPZI8PfobZ9g=
+k8s.io/client-go v1.5.1 h1:XaX/lo2/u3/pmFau8HN+sB5C/b4dc4Dmm2eXjBH4p1E=
+k8s.io/client-go v11.0.0+incompatible h1:LBbX2+lOwY9flffWlJM7f1Ct8V2SRNiMRDFeiwnJo9o=
 k8s.io/code-generator v0.18.0/go.mod h1:+UHX5rSbxmR8kzS+FAv7um6dtYrZokQvjHpDSYRVkTc=
 k8s.io/code-generator v0.18.2/go.mod h1:+UHX5rSbxmR8kzS+FAv7um6dtYrZokQvjHpDSYRVkTc=
 k8s.io/code-generator v0.18.4/go.mod h1:TgNEVx9hCyPGpdtCWA34olQYLkh3ok9ar7XfSsr8b6c=

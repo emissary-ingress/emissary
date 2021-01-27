@@ -139,6 +139,36 @@
                                 "runtime_key": "routing.traffic_shift.cluster_clientcertificateauthentication_http_default"
                               }
                             },
+                            "request_headers_to_add": [
+                              {
+                                "append": true,
+                                "header": {
+                                  "key": "x-cert-start",
+                                  "value": "%DOWNSTREAM_PEER_CERT_V_START%"
+                                }
+                              },
+                              {
+                                "append": true,
+                                "header": {
+                                  "key": "x-cert-end",
+                                  "value": "%DOWNSTREAM_PEER_CERT_V_END%"
+                                }
+                              },
+                              {
+                                "append": true,
+                                "header": {
+                                  "key": "x-cert-start-custom",
+                                  "value": "%DOWNSTREAM_PEER_CERT_V_START(%b %e %H:%M:%S %Y %Z)%"
+                                }
+                              },
+                              {
+                                "append": true,
+                                "header": {
+                                  "key": "x-cert-end-custom",
+                                  "value": "%DOWNSTREAM_PEER_CERT_V_END(%b %e %H:%M:%S %Y %Z)%"
+                                }
+                              }
+                            ],
                             "route": {
                               "cluster": "cluster_clientcertificateauthentication_http_default",
                               "prefix_rewrite": "/",
