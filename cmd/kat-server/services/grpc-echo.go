@@ -1,6 +1,7 @@
 package services
 
 import (
+	// stdlib
 	"bytes"
 	"context"
 	"crypto/tls"
@@ -8,17 +9,17 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"time"
-
-	// "os"
 	"strconv"
 	"strings"
+	"time"
 
+	// third party
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	metadata "google.golang.org/grpc/metadata"
 	status "google.golang.org/grpc/status"
 
+	// first party (protobuf)
 	pb "github.com/datawire/ambassador/pkg/api/kat"
 )
 

@@ -68,9 +68,8 @@ import (
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/server/v2"
 	"github.com/datawire/ambassador/pkg/memory"
 
-	// envoy protobuf -- Be sure to import the package of any types that the Python
-	// emits a "@type" of in the generated config, even if that package is otherwise
-	// not used by ambex.
+	// envoy protobuf v2 -- Be sure to import the package of any types that the Python emits a
+	// "@type" of in the generated config, even if that package is otherwise not used by ambex.
 	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/api/v2/auth"
 	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
@@ -87,7 +86,7 @@ import (
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/network/tcp_proxy/v2"
 	discovery "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v2"
 
-	// envoy protobuf v3
+	// envoy protobuf v3 -- likewise
 	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/response_map/v3"
 )
 

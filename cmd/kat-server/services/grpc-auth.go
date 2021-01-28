@@ -1,6 +1,7 @@
 package services
 
 import (
+	// stdlib
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -8,20 +9,20 @@ import (
 	"log"
 	"net"
 	"net/http"
-
-	// "os"
 	"strconv"
 	"strings"
 
-	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
-	pb "github.com/datawire/ambassador/pkg/api/envoy/service/auth/v2"
-	pb_legacy "github.com/datawire/ambassador/pkg/api/envoy/service/auth/v2alpha"
-	envoy_type "github.com/datawire/ambassador/pkg/api/envoy/type"
-
+	// third party
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
+
+	// first party (protobuf)
+	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
+	pb "github.com/datawire/ambassador/pkg/api/envoy/service/auth/v2"
+	pb_legacy "github.com/datawire/ambassador/pkg/api/envoy/service/auth/v2alpha"
+	envoy_type "github.com/datawire/ambassador/pkg/api/envoy/type"
 )
 
 // GRPCAUTH server object (all fields are required).

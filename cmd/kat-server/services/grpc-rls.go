@@ -1,6 +1,7 @@
 package services
 
 import (
+	// stdlib
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -8,15 +9,16 @@ import (
 	"log"
 	"net"
 	"net/http"
-
 	"strings"
 
+	// third party
+	"github.com/golang/protobuf/ptypes/wrappers"
+	"google.golang.org/grpc"
+
+	// first party (protobuf)
 	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
 	pb "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v2"
 	pb_legacy "github.com/datawire/ambassador/pkg/api/pb/lyft/ratelimit"
-
-	"github.com/golang/protobuf/ptypes/wrappers"
-	"google.golang.org/grpc"
 )
 
 // GRPCRLS server object (all fields are required).
