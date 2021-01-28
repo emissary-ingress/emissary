@@ -88,6 +88,9 @@ import (
 
 	// envoy protobuf v3 -- likewise
 	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/response_map/v3"
+
+	// first-party libraries
+	"github.com/datawire/dlib/dhttp"
 )
 
 const (
@@ -176,16 +179,12 @@ func runManagementServer(ctx context.Context, server server.Server, adsNetwork, 
 
 	log.WithFields(logrus.Fields{"addr": adsNetwork + ":" + adsAddress}).Info("Listening")
 	go func() {
-		go func() {
-			err := grpcServer.Serve(lis)
-
-			if err != nil {
-				log.WithFields(logrus.Fields{"error": err}).Error("Management server exited")
-			}
-		}()
-
-		<-ctx.Done()
-		grpcServer.GracefulStop()
+		sc := &dhttp.ServerConfig{
+			Handler: grpcServer,
+		}
+		if err := sc.Serve(ctx, lis); err != nil {
+			log.WithFields(logrus.Fields{"error": err}).Error("Management server exited")
+		}
 	}()
 }
 

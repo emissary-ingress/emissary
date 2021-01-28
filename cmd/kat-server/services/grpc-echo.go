@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net"
 	"strconv"
 	"strings"
 	"time"
@@ -21,6 +20,10 @@ import (
 
 	// first party (protobuf)
 	pb "github.com/datawire/ambassador/pkg/api/kat"
+
+	// first party
+	"github.com/datawire/dlib/dgroup"
+	"github.com/datawire/dlib/dhttp"
 )
 
 // GRPC server object (all fields are required).
@@ -45,49 +48,36 @@ func DefaultOpts() []grpc.ServerOption {
 func (g *GRPC) Start() <-chan bool {
 	log.Printf("GRPC: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
-	exited := make(chan bool)
-	proto := "tcp"
+	grpcHandler := grpc.NewServer(DefaultOpts()...)
+	pb.RegisterEchoServiceServer(grpcHandler, g)
 
-	go func() {
-		port := fmt.Sprintf(":%d", g.Port)
+	cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-		ln, err := net.Listen(proto, port)
-		if err != nil {
-			log.Fatal()
-		}
+	sc := &dhttp.ServerConfig{
+		Handler: grpcHandler,
+		TLSConfig: &tls.Config{
+			Certificates: []tls.Certificate{cer},
+		},
+	}
 
-		s := grpc.NewServer(DefaultOpts()...)
-		pb.RegisterEchoServiceServer(s, g)
-		s.Serve(ln)
-
-		defer ln.Close()
-		close(exited)
-	}()
-
-	go func() {
-		cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
-		if err != nil {
-			log.Fatal(err)
-			return
-		}
-
-		config := &tls.Config{Certificates: []tls.Certificate{cer}}
-		port := fmt.Sprintf(":%d", g.SecurePort)
-		ln, err := tls.Listen(proto, port, config)
-		if err != nil {
-			log.Fatal(err)
-			return
-		}
-
-		s := grpc.NewServer(DefaultOpts()...)
-		pb.RegisterEchoServiceServer(s, g)
-		s.Serve(ln)
-
-		defer ln.Close()
-		close(exited)
-	}()
+	grp := dgroup.NewGroup(context.TODO(), dgroup.GroupConfig{})
+	grp.Go("cleartext", func(ctx context.Context) error {
+		return sc.ListenAndServe(ctx, fmt.Sprintf(":%v", g.Port))
+	})
+	grp.Go("tls", func(ctx context.Context) error {
+		return sc.ListenAndServeTLS(ctx, fmt.Sprintf(":%v", g.SecurePort), "", "")
+	})
 
 	log.Print("starting gRPC echo service")
+
+	exited := make(chan bool)
+	go func() {
+		log.Fatal(grp.Wait())
+		close(exited)
+	}()
 	return exited
 }
 

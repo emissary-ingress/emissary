@@ -5,12 +5,19 @@ linters:
   enable:
     - gofmt
     - govet
+    - depguard
 linters-settings:
   gofmt:
     simplify: true
   govet:
     disable:
       - lostcancel
+  depguard:
+    list-type: blacklist
+    include-go-root: true
+    packages-with-error-message:
+      - github/datawire/dlib/dutil: "use either github/datawire/dlib/derror or github/datawire/dlib/dhttp"
+      - golang.org/x/net/http2/h2c: "use github/datawire/dlib/dhttp"
 issues:
   exclude-rules:
     - linters: [govet]
@@ -57,6 +64,15 @@ run:
 #   * flag.Var()
 #   * flag.Parse()
 #   * flag.Parsed()
+#
+# I'd also like to blacklist parts of net/http to enforce using dhttp:
+#
+# - net/http.Server // use dhttp.ServerConfig instead!
+#   * net/http.Serve()
+#   * net/http.ServeTLS()
+#   * net/http.ListenAndServe()
+#   * net/http.ListenAndServeTLS()
+# - google.golang.org/grpc.Server.Serve // use dhttp.ServerConfig{Handler: grpcServer}.Serve instead!
 
 # The old configuration, that hasn't been used for many months:
 

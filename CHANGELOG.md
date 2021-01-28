@@ -67,6 +67,12 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Many of the Go parts of Ambassador now properly clean up gRPC connections when shutting down.
+
+### Ambassador Edge Stack only
+
 - Bugfix: Fix an issue that caused Dev Portal to sporadically respond with upstream connect timeout when loading content
 
 ## [1.11.0] January 26, 2021
