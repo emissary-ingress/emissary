@@ -140,7 +140,7 @@ where:
   will consider `Mapping`s in **any** of those namespaces.
   * `matchLabels`: dictionary of labels, filtering the `Mapping`s that will
   be shown in the `DevPortal`. When multiple labels are provided, the `DevPortal`
-  will onbly consider the `Mapping`s that match **all** the labels.
+  will only consider the `Mapping`s that match **all** the labels.
 * `docs`: static list of _service_/_documentation_ pairs that will be shown
   in the _Dev Portal_. Only the documentation from this list will be shown in the _Dev Portal_
   (unless additional docs are included with a `selector`).
@@ -209,7 +209,7 @@ The default _Dev Portal_ content is loaded in order from:
 - the Git repo specified in the optional `DEVPORTAL_CONTENT_URL` environment variable.
 - the default repository at [GitHub](https://github.com/datawire/devportal-content.git).
 
-To use your own styling, clone or copy the repository, create an `ambassado` `DevPortal`
+To use your own styling, clone or copy the repository, create an `ambassador` `DevPortal`
 and update the `content` attribute to point to the repository. If you wish to use a
 private GitHub repository, create a [Personal Access Token](https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line)
 and include it in the `content` following the example below:
@@ -273,5 +273,5 @@ the `ambassador` `DevPortal`.
 | AMBASSADOR_URL                   | External URL of Ambassador Edge Stack; include the protocol (e.g., `https://`) |
 | POLL_EVERY_SECS                  | Interval for polling OpenAPI docs; default 60 seconds |
 | DEVPORTAL_CONTENT_URL            | Default URL to the repository hosting the content for the Portal |
-| DEVPORTAL_CONTENT_DIR            | Deafult content subdir (defaults to `/`) |
+| DEVPORTAL_CONTENT_DIR            | Default content subdir (defaults to `/`) |
 | DEVPORTAL_CONTENT_BRANCH         | Default content branch (defaults to `master`) |
