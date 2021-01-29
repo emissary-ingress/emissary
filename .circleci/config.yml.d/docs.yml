@@ -9,7 +9,7 @@ commands:
   "website-setup":
     steps:
       - install-node:
-          version: "11"
+          version: "14"
       - install-yarn
       - install-python:
           executor-key: "202008-01"
