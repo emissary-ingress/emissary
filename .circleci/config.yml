@@ -292,7 +292,7 @@ commands:
   website-setup:
     steps:
     - install-node:
-        version: "11"
+        version: "14"
     - install-yarn
     - install-python:
         executor-key: "202008-01"
@@ -319,7 +319,7 @@ commands:
     parameters:
       version:
         type: string
-        default: "10"
+        default: "14"
     steps:
     - run:
         name: "Install Node << parameters.version >>"
