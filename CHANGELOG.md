@@ -17,7 +17,7 @@ as well as additional capabilities including:
   support, and a fully customizable developer portal.
 
 Note: The Ambassador Edge Stack is free for all users, and includes all the functionality
-of the Ambassador API Gateway in addition to the additional capabilities mentioned above. 
+of the Ambassador API Gateway in addition to the additional capabilities mentioned above.
 Due to popular demand, we’re offering a free tier of our core features as part of the
 Ambassador Edge Stack, designed for startups.
 
@@ -67,7 +67,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
-(no changes yet)
+- Bugfix: Fix an issue that caused Dev Portal to sporadically respond with upstream connect timeout when loading content
 
 ## [1.11.0] January 26, 2021
 [1.11.0]: https://github.com/datawire/ambassador/compare/v1.10.0...v1.11.0
