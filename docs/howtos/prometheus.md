@@ -277,7 +277,7 @@ points.  Grafana allows you to create dynamic dashboards for monitoring
 your ingress traffic stats collected from Prometheus.
 
 We have published a [sample
-dashboard](https://grafana.com/grafana/dashboards/4698) you can use
+dashboard](https://grafana.com/grafana/dashboards/13758) you can use
 for monitoring your ingress traffic.  Since the stats from the
 `/metrics` and `/stats` endpoints are different, you will see a
 section in the dashboard for each use case.
@@ -289,6 +289,13 @@ or set `grafana.enabled: false` and follow the instructions below.
 To deploy Grafana behind Ambassador Edge Stack: replace
 `{{AMBASSADOR_IP}}` with the IP address or DNS name of your Ambassador
 Edge Stack service, copy the YAML below, and apply it with `kubectl`:
+
+
+**Note:** If you forgot how to get the value of your `AMBASSADOR_IP` or 
+have not set-up DNS, you can get the IP by using the `kubectl get services -n ambassador` 
+command, and select the External-IP of your Ambassador LoadBalancer service. 
+
+
 
 ```yaml
 ---
@@ -325,7 +332,7 @@ spec:
               protocol: TCP
           env:
             - name: GF_SERVER_ROOT_URL
-              value: {{ SCHEME }}://{{ AMBASSADOR_HOST }}/grafana
+              value: {{ SCHEME }}://{{ AMBASSADOR_IP }}/grafana
             - name: GRAFANA_PORT
               value: '3000'
             - name: GF_AUTH_BASIC_ENABLED
@@ -370,6 +377,13 @@ spec:
 Now, create a service and `Mapping` to expose Grafana behind
 Ambassador Edge Stack:
 
+
+**Note:** Don't forget to replace `{{GRAFANA_NAMESPACE}}` with the
+namespace you deployed Grafana to. In our example we used the default namespace,
+so for this example you would change it to `grafana.default` or just `grafana`.
+
+
+
 ```yaml
 ---
 apiVersion: getambassador.io/v2
@@ -384,10 +398,21 @@ spec:
 Now, access Grafana by going to `{AMBASSADOR_IP}/grafana/` and logging
 in with `username: admin` : `password: admin`.
 
-Import the [provided dashboard](https://grafana.com/dashboards/10434)
-by clicking the plus sign in the left side-bar, clicking `New
-Dashboard` in the top left, selecting `Import Dashboard`, and entering
-the dashboard ID(10434).
+Before you can import the Ambassador dashboard. You need to add a data source.
+From the Grafana home page, select `Create your first data source`. Now,
+select 'Prometheus'. In the URL section, type in `http://prometheus.default:9090`.
+We deployed prometheus to the default namespace in our example, but if you 
+deployed it to a different namespace, make sure to replace `default` with your
+namespace. Press `Save & Test` to confirm that the data source works.
+
+Import the [provided dashboard](https://grafana.com/grafana/dashboards/13758)
+by clicking the plus sign in the left side-bar, clicking `Import` in the top left, and entering the dashboard ID(13758).
+
+From here, select the Prometheus data source we created from the `Prometheus` drop
+down menu, and select import to finish adding the dashboard.
+
+In the dashboard we just added, you should now be able to view graphs in the
+`Ambassador Metrics Endpoint` tab.
 
 ## Viewing Stats/Metrics
 
@@ -407,7 +432,7 @@ To view the full set of stats available to Prometheus you can access
 the Prometheus UI by running:
 
 ```shell
-kubectl port-forward -n monitoring service/prometheus 9090
+kubectl port-forward service/prometheus 9090
 ```
 
 and going to `http://localhost:9090/` from a web browser
