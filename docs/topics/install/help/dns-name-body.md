@@ -8,7 +8,7 @@ This is likely an intermittent failure of the EdgeStack.me service. Sorry about 
 
 Please run the installer again:
 
-```shell
+```
 edgectl install
 ```
 
