@@ -271,8 +271,8 @@
           link: /docs/pre-release/topics/running/debugging
     - title: Telepresence
       items:
-        - title: Tutorial
-          link: /docs/pre-release/telepresence/tutorial
+        - title: Quick Start
+          link: /docs/pre-release/telepresence/quick-start
         - title: How-to Guides
           items:
             - title: Intercepts
