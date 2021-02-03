@@ -8,7 +8,7 @@ Explore guides and examples to safely and securely build Kubernetes applications
 
 Develop locally on Kubernetes services without worrying about resource constraints on your local machine.
 
-<Button color="orange" to="telepresence/quick-start/">Get Started</Button>
+<Button color="orange" to="telepresence/tutorial/">Get Started</Button>
 
 ## For Your Team
 

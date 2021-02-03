@@ -271,8 +271,6 @@
           link: /docs/latest/topics/running/debugging
     - title: Telepresence
       items:
-        - title: Quick Start
-          link: /docs/latest/telepresence/quick-start
         - title: Tutorial
           link: /docs/latest/telepresence/tutorial
         - title: How-to Guides
