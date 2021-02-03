@@ -509,3 +509,11 @@ spec:
   endpoints:
   - port: prometheus-metrics
 ```
+
+#### Dashboard
+
+Now that you have metrics scraping from StatsD You can use [this version of
+the dashboard](https://grafana.com/grafana/dashboards/4698) (ID: 4698) configured to work 
+with metrics scraped from StatsD or the metrics Endpoint. You can configure it the
+same way as the previous dashboard. Adding the prometheus data source is also required, 
+so if you did not add that yet, make sure to configure it before adding the dashboard. 
