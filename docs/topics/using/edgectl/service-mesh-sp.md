@@ -18,7 +18,7 @@ Istio does some complicated networking to ensure that it can transparently inter
 
 The Traffic Manager and Ambassador Injector have this annotation by default. You must manually set this in the `teleproxy` pod that is created after running `edgectl connect` for the first time. You can do this with the following `kubectl` command:
 
-```sh
+```
 kubectl annotation po teleproxy sidecar.istio.io/inject='false'
 ```
 
