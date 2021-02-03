@@ -6,7 +6,7 @@ The installer attempted to open the Ambassador Edge Stack (AES) Policy Console f
 
 Run the installer again:
 
-```shell
+```
 edgectl install
 ```
 

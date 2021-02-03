@@ -8,7 +8,7 @@ The EdgeStack.me DNS server is serving a DNS name for you. The associated DNS re
 
 Run the installer again:
 
-```shell
+```
 edgectl install
 ```
 

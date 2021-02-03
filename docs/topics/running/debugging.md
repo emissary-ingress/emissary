@@ -14,7 +14,7 @@ First, check to see if the Edge Policy Console is reachable. If it is successful
 
     The terminal should print something similar to the following:
 
-    ```console
+    ```
     $ kubectl get pods -n ambassador
     NAME                         READY     STATUS    RESTARTS   AGE
     ambassador-85c4cf67b-4pfj2   1/1       Running   0          1m
@@ -26,7 +26,7 @@ First, check to see if the Edge Policy Console is reachable. If it is successful
 
     After a brief period, the terminal will print something similar to the following:
 
-    ```console
+    ```
     $ kubectl get -n ambassador deployments
     NAME         DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
     ambassador   3         3         3            3           1m
@@ -76,7 +76,7 @@ You can turn on Debug mode in the [Edge Policy Console](../../using/edge-policy-
 
     The terminal will print something similar to the following:
 
-    ```console
+    ```
     $ kubectl get pods -n ambassador
     NAME                         READY     STATUS    RESTARTS   AGE
     ambassador-85c4cf67b-4pfj2   1/1       Running   0          3m
@@ -86,7 +86,7 @@ You can turn on Debug mode in the [Edge Policy Console](../../using/edge-policy-
 
 The terminal will print something similar to the following:
 
-    ```console
+    ```
     $ kubectl logs -n ambassador ambassador-85c4cf67b-4pfj2
     2018-10-10 12:26:50 kubewatch 0.40.0 INFO: generating config with gencount 1 (0 changes)
     /usr/lib/python3.6/site-packages/pkg_resources/__init__.py:1235: UserWarning: /ambassador is writable by group/others and vulnerable to attack when used with get_resource_filename. Consider a more secure location (set with .set_extraction_path or the PYTHON_EGG_CACHE environment variable).
@@ -127,7 +127,7 @@ You can examine the contents of the Ambassador Pod for issues, such as if volume
 
     The terminal will print something similar to the following:
 
-    ```console
+    ```
     /ambassador # cat envoy-2.json
 
     {

@@ -13,7 +13,7 @@ The upgrader has not been able to find an existing API Gateway installation.
   The `ambassador` installation should be deployed and with `OSS` flavor.
 
 * Check all the _conditions_ your `AmbassadorInstallation` has passed through with:
-  ```commandline
+  ```
   kubectl get ambassadorinstallations -n ambassador ambassador -o jsonpath='{.status.conditions[?(@.type=="Failed")].message}'
   AuthService(s) exist in the cluster, please remove to upgrade to AES
   ```

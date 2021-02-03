@@ -64,7 +64,7 @@ spec:
 
 You can deploy this configuration into your Kubernetes cluster like so:
 
-```shell
+```
 $ kubectl apply -f zipkin.yaml
 ```
 
@@ -74,7 +74,7 @@ $ kubectl apply -f zipkin.yaml
 
 Use `curl` to generate a few requests to an existing Ambassador Edge Stack mapping. You may need to perform many requests since only a subset of random requests are sampled and instrumented with traces.
 
-```shell
+```
 $ curl -L $AMBASSADOR_IP/httpbin/ip
 ```
 
@@ -82,7 +82,7 @@ $ curl -L $AMBASSADOR_IP/httpbin/ip
 
 To test things out, we'll need to access the Zipkin UI. If you're on Kubernetes, get the name of the Zipkin pod:
 
-```shell
+```
 $ kubectl get pods
 NAME                                   READY     STATUS    RESTARTS   AGE
 ambassador-5ffcfc798-c25dc             2/2       Running   0          1d
@@ -92,7 +92,7 @@ zipkin-868b97667c-58v4r                1/1       Running   0          2h
 
 And then use `kubectl port-forward` to access the pod:
 
-```shell
+```
 $ kubectl port-forward zipkin-868b97667c-58v4r 9411
 ```
 
@@ -100,7 +100,7 @@ Open your web browser to `http://localhost:9411` for the Zipkin UI.
 
 If you're on `minikube` you can access the `NodePort` directly, and this ports number can be obtained via the `minikube services list` command. If you are using `Docker for Mac/Windows`, you can use the `kubectl get svc` command to get the same information.
 
-```shell
+```
 $ minikube service list
 |-------------|----------------------|-----------------------------|
 |  NAMESPACE  |         NAME         |             URL             |

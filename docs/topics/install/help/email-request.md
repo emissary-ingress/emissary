@@ -8,6 +8,6 @@ For some reason this request failed.
 
 Please run the installer again and enter a valid email address for the installer to send to Let's Encrypt.
 
-```shell
+```
 edgectl install
 ```

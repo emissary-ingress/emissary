@@ -248,7 +248,7 @@ where:
 
 Check out a local copy of your content repo and from within run the following docker image:
 
-```command-line
+```
 docker run -it --rm --volume $PWD:/content --publish 8877:8877 \
   docker.io/datawire/ambassador_pro:local-devportal-$aproVersion$
 ```

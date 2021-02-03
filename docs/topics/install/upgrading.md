@@ -8,7 +8,7 @@ The steps to upgrade depend on the method that was used to install Ambassador Ed
 * If you installed using the Operator, then you'll need to [use the Operator to perform the upgrade](../aes-operator/#updates-by-the-operator).
 To verify whether the Operator was used to install Ambassador Edge Stack, run the following command
 to see if it returns resources:
-```commandline
+```
 $ kubectl get deployment -n ambassador -l 'app.kubernetes.io/name=ambassador,app.kubernetes.io/managed-by in (amb-oper,amb-oper-manifest,amb-oper-helm,amb-oper-azure)' 
 NAME               READY   UP-TO-DATE   AVAILABLE   AGE
 ambassador         1/1     1            1           ...
@@ -17,7 +17,7 @@ ambassador         1/1     1            1           ...
 * If you installed using the Helm chart or `edgectl install`, then you should
 [upgrade with the help of Helm](../helm/#migrating-to-the-ambassador-edge-stack).
 To verify this, run the following command to see if it returns resources:
-```commandline
+```
 $ kubectl get deployment -n ambassador -l 'app.kubernetes.io/name=ambassador'
 NAME               READY   UP-TO-DATE   AVAILABLE   AGE
 ambassador         1/1     1            1           ...
@@ -25,7 +25,7 @@ ambassador         1/1     1            1           ...
 
 * Finally, if you installed using manifests, simply run the commands in the following section. To verify whether
 manifests were used to install Ambassador Edge Stack, run the following command to see if it returns resources:
-```commandline
+```
 $ kubectl get deployment -n ambassador -l 'product=aes'
 NAME               READY   UP-TO-DATE   AVAILABLE   AGE
 ambassador         1/1     1            1           ...
@@ -39,7 +39,7 @@ the instructions for [upgrading to Ambassador Edge Stack](../upgrade-to-edge-sta
 If you're using the YAML files supplied by Datawire, you'll be able to upgrade simply by repeating
 the following `kubectl apply` command:
 
-```shell
+```
 kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml
 kubectl apply -f https://www.getambassador.io/yaml/aes.yaml
 ```
