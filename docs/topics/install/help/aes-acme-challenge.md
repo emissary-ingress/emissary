@@ -6,7 +6,7 @@ The installer could not verify that Ambassador Edge Stack (AES) is answering que
 
 1. Verify that the load balancer address is reachable from this host
 2. Run the installer again:
-   ```shell
+   ```
    edgectl install
    ```
 

@@ -49,7 +49,7 @@ certificates.
 
 2. Create a secret to hold the client CA certificate.
 
-   ```shell
+   ```
    kubectl create secret generic client-cacert --from-file=tls.crt=cert.pem
    ```
 

@@ -28,19 +28,19 @@ The following steps deploy Ambassador in the default namespace.
 
 **Note:** If you're using Google Kubernetes Engine, you'll need to grant permissions to the account that will be setting up the Ambassador API Gateway. To do this, get your official GKE username, and then grant `cluster-admin` role privileges to that username:
 
-```shell
+```
 kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
 ```
 
 Then, you can deploy the Ambassador API Gateway. Start by installing CRDs required by Ambassador:
 
-```shell
+```
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-crds.yaml
 ```
 
 Then, apply the RBAC configuration with:
 
-```shell
+```
 kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-rbac.yaml
 ```
 
@@ -72,7 +72,7 @@ spec:
 
 Deploy this service with `kubectl`:
 
-```shell
+```
 $ kubectl apply -f ambassador-service.yaml
 ```
 
@@ -137,7 +137,7 @@ With Helm 2, you must enable CRD creation with the `crd-install` hook that is
 included in the CRD manifests. When installing with Helm 3, the following
 message will be output to `stderr`:
 
-```bash
+```
 manifest_sorter.go:175: info: skipping unknown hook: "crd-install"
 ```
 

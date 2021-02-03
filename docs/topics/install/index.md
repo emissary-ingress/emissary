@@ -25,7 +25,7 @@ import './index.less'
 1. (1a) [Download the `edgectl` installer](https://metriton.datawire.io/downloads/darwin/edgectl) 	
  or (1b) download it with a curl command:	
 
-    ```shell	
+    ```	
     sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl	
     ```	
 
@@ -48,7 +48,7 @@ for a domain name, so you can get started right away.
  (1b) download it with a curl	
    command:	
 
-    ```shell	
+    ```	
     sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && sudo chmod a+x /usr/local/bin/edgectl	
     ```	
 2. Run the installer with `edgectl install`	

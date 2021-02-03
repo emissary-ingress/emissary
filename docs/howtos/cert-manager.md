@@ -13,18 +13,18 @@ Creating and managing certificates in Kubernetes is made simple with Jetstack's 
 There are many different ways to [install cert-manager](https://docs.cert-manager.io/en/latest/getting-started/install.html). For simplicity, we will use Helm v3.
 
 1. Create the cert-manager CRDs.
-    ```shell
+    ```
     kubectl apply -f https://github.com/jetstack/cert-manager/releases/latest/download/cert-manager.crds.yaml
     ```
 
 2. Add the `jetstack` Helm repository.
-    ```shell
+    ```
     helm repo add jetstack https://charts.jetstack.io && helm repo update
     ```
 
 3. Install cert-manager.
 
-    ```shell
+    ```
     kubectl create ns cert-manager
     helm install cert-manager --namespace cert-manager jetstack/cert-manager
     ```
@@ -106,7 +106,7 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
 
 5. Verify the secret is created.
 
-    ```shell
+    ```
     $ kubectl get secrets -n ambassador
     NAME                     TYPE                                  DATA      AGE
     ambassador-certs         kubernetes.io/tls                     2         1h
@@ -162,7 +162,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
 
     After applying both of these YAML manifests, you will notice that cert-manager has spun up a temporary pod named `cm-acme-http-solver-xxxx` but no certificate has been issued. Check the cert-manager logs and you will see a log message that looks like this:
 
-    ```shell
+    ```
     $ kubectl logs cert-manager-756d6d885d-v7gmg
     ...
     Preparing certificate default/ambassador-certs with issuer
@@ -208,7 +208,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
 
 5. Verify the secret is created:
 
-    ```shell
+    ```
     $ kubectl get secrets
     NAME                     TYPE                                  DATA      AGE
     ambassador-certs         kubernetes.io/tls                     2         1h

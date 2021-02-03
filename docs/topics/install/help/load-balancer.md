@@ -7,14 +7,14 @@ The installer could not retrieve an address (DNS name or IP address) for the loa
 * Provisioning a load balancer might be taking longer than expected.
   1. Check whether a load balancer address has appeared:
 
-     ```shell
+     ```
      kubectl get -n ambassador service ambassador -o "go-template={{range .status.loadBalancer.ingress}}{{or .ip .hostname}}{{end}}"
      ```
 
      On most cloud providers, a load balancer will appear within five minutes.
 
   2. Run the installer again:
-     ```shell
+     ```
      edgectl install
      ```
 

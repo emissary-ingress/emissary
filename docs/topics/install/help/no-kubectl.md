@@ -6,7 +6,7 @@ Installation of Ambassador Edge Stack (AES) requires the `kubectl` command. The 
 
 1. Install `kubectl`: see the [Kubernetes documentation on how to install `kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
 2. Run the installer again:
-   ```shell
+   ```
    edgectl install
    ```
 
