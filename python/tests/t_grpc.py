@@ -3,11 +3,6 @@ from kat.harness import Query
 from abstract_tests import AmbassadorTest, ServiceType, EGRPC
 
 class AcceptanceGrpcTest(AmbassadorTest):
-
-    # Yes, enable endpoints here. It needs to work with them enabled but
-    # not used, after all.
-    enable_endpoints = True
-
     target: ServiceType
 
     def init(self):
@@ -62,9 +57,6 @@ service: {self.target.path.k8s}
 
 
 class EndpointGrpcTest(AmbassadorTest):
-
-    enable_endpoints = True
-
     target: ServiceType
 
     def init(self):
