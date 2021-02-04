@@ -67,6 +67,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
+(no changes yet)
+
+## [1.11.1-rc.0] February 03, 2021
+[1.11.1-rc.0]: https://github.com/datawire/ambassador/compare/v1.11.0...v1.11.1-rc.0
+
 - Bugfix: Fix an issue that caused Dev Portal to sporadically respond with upstream connect timeout when loading content
 
 ## [1.11.0] January 26, 2021
