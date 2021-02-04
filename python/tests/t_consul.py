@@ -15,7 +15,6 @@ type: Opaque
 """
 
 class ConsulTest(AmbassadorTest):
-    enable_endpoints = True
     k8s_target: ServiceType
     k8s_ns_target: ServiceType
 
