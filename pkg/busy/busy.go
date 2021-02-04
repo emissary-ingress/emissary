@@ -10,11 +10,13 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/datawire/ambassador/pkg/environment"
 	"github.com/datawire/dlib/dlog"
 )
 
-type Command = func(ctx context.Context, version string, args ...string) error
+type Command struct {
+	Setup func()
+	Run   func(ctx context.Context, version string, args ...string) error
+}
 
 var logrusLogger *logrus.Logger
 
@@ -49,8 +51,9 @@ func Main(binName, humanName string, version string, cmds map[string]Command) {
 		os.Args = os.Args[1:]
 	}
 
-	if name != "entrypoint" { // XXX: This is a layer-breaking hack
-		environment.EnvironmentSetupEntrypoint()
+	cmd, cmdOk := cmds[name]
+	if cmdOk {
+		cmd.Setup()
 	}
 
 	rootLogger = dlog.WrapLogrus(logrusLogger).
@@ -59,8 +62,8 @@ func Main(binName, humanName string, version string, cmds map[string]Command) {
 	ctx := dlog.WithLogger(context.Background(), rootLogger)
 	dlog.SetFallbackLogger(rootLogger.WithField("oops-i-did-not-pass-context-correctly", true))
 
-	if cmdFn, cmdFnOK := cmds[name]; cmdFnOK {
-		if err := cmdFn(ctx, version, os.Args[1:]...); err != nil {
+	if cmdOk {
+		if err := cmd.Run(ctx, version, os.Args[1:]...); err != nil {
 			dlog.Errorf(ctx, "shut down with error error: %v", err)
 			os.Exit(1)
 		}
