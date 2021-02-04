@@ -3,6 +3,7 @@ import json
 import os
 import re
 import subprocess
+import time
 
 
 _quote_pos = re.compile('(?=[^-0-9a-zA-Z_./\n])')
@@ -66,6 +67,20 @@ class ShellCommand:
     @property
     def stderr(self) -> str:
         return self.proc.stderr.decode("utf-8")
+
+    @classmethod
+    def run_with_retry(cls, what: str, *args, **kwargs) -> bool:
+        try_count = 0
+        retries = kwargs.pop('retries', 3)
+        sleep_seconds = kwargs.pop('sleep_seconds', 5)
+        while try_count < retries:
+            if try_count > 0:
+                print(f"Sleeping for {sleep_seconds} before retrying command")
+                time.sleep(sleep_seconds)
+            if cls.run(what, *args, **kwargs):
+                return True
+            try_count+=1
+        return False
 
     @classmethod
     def run(cls, what: str, *args, **kwargs) -> bool:
