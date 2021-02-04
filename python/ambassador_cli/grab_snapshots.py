@@ -120,9 +120,12 @@ def helper_copy(path: str) -> str:
 @click_option('-o', '--output-path', '--output', type=click.Path(writable=True), default="sanitized.tgz",
               help="output path")
 @click_option('-s', '--snapshot-dir', '--snapshot', type=click.Path(exists=True, dir_okay=True, file_okay=False),
-              envvar="AMBASSADOR_CONFIG_BASE_DIR", default="/ambassador/snapshots",
               help="snapshot directory to read")
 def main(snapshot_dir: str, debug: bool, output_path: str) -> None:
+    if not snapshot_dir:
+        config_base_dir = os.environ.get("AMBASSADOR_CONFIG_BASE_DIR", "/ambassador")
+        snapshot_dir = os.path.join(config_base_dir, "snapshots")
+
     if debug:
         print(f"Saving sanitized snapshots from {snapshot_dir} to {output_path}")
 

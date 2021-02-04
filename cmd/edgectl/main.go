@@ -165,6 +165,9 @@ func getRootCommand() *cobra.Command {
 			"The Kubernetes namespace in which the Traffic Manager is running.",
 		)
 		connectFlags.BoolVar(&cr.IsCI, "ci", false, "This session is a CI run.")
+		connectFlags.BoolVar(&cr.LegacyMode, "legacy", false, "Run in legacy mode.")
+		connectFlags.MarkHidden("legacy")
+
 		rootCmd.AddCommand(connectCmd)
 
 		rootCmd.AddCommand(&cobra.Command{

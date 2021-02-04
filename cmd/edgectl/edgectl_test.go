@@ -150,7 +150,8 @@ func TestSmokeOutbound(t *testing.T) {
 	}()
 
 	fmt.Println("connect")
-	require.NoError(t, run(executable, "connect", "-n", namespace), "connect")
+	require.Error(t, run(executable, "connect"), "connect without --legacy")
+	require.NoError(t, run(executable, "connect", "--legacy", "-n", namespace), "connect with --legacy")
 	out, err = capture(executable, "status")
 	require.NoError(t, err, "status connected")
 	if !strings.Contains(out, "Context") {
