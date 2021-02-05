@@ -144,7 +144,7 @@ Suppose, like [Example 2](#example-2-per-user-rate-limiting), you want to ensure
 ---
 apiVersion: getambassador.io/v2
 kind: Module
-matadata:
+metadata:
   name: ambassador
 spec:
   config:
