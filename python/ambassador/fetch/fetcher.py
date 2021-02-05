@@ -9,6 +9,7 @@ import re
 from ..config import ACResource, Config
 from ..utils import parse_yaml, parse_json, dump_json
 
+from .dependency import DependencyManager, SecretDependency, ServiceDependency
 from .resource import NormalizedResource, ResourceManager
 from .k8sobject import KubernetesGVK, KubernetesObject
 from .k8sprocessor import (
@@ -61,7 +62,10 @@ class ResourceFetcher:
                  skip_init_dir: bool=False, watch_only=False) -> None:
         self.aconf = aconf
         self.logger = logger
-        self.manager = ResourceManager(self.logger, self.aconf)
+        self.manager = ResourceManager(self.logger, self.aconf, DependencyManager([
+            ServiceDependency(),
+            SecretDependency(),
+        ]))
 
         self.k8s_processor = DeduplicatingKubernetesProcessor(AggregateKubernetesProcessor([
             CountingKubernetesProcessor(self.aconf, KubernetesGVK.for_knative_networking('Ingress'), 'knative_ingress'),
@@ -261,7 +265,7 @@ class ResourceFetcher:
 
             # These objects have to be processed first, in order, as they depend
             # on each other.
-            watt_k8s_keys = ['service', 'endpoints', 'secret', 'ingressclasses', 'ingresses']
+            watt_k8s_keys = list(self.manager.deps.sorted_watt_keys()) + ['ingressclasses', 'ingresses']
 
             # Then we add everything else to be processed.
             watt_k8s_keys += watt_k8s.keys()
@@ -636,10 +640,11 @@ class ResourceFetcher:
                 self.handle_k8s(path_mapping)
 
         # let's make arrangements to update Ingress' status now
-        if not self.manager.ambassador_service:
+        service_dep = self.manager.deps.for_instance(self).want(ServiceDependency)
+        if not service_dep.ambassador_service:
             self.logger.error(f"Unable to update Ingress {ingress_name}'s status, could not find Ambassador service")
         else:
-            ingress_status = self.manager.ambassador_service.status
+            ingress_status = service_dep.ambassador_service.status
 
             if ingress_status:
                 kind = k8s_object.get('kind')

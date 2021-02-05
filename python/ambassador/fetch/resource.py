@@ -8,6 +8,7 @@ import logging
 from ..config import ACResource, Config
 from ..utils import dump_yaml, parse_yaml, dump_json
 
+from .dependency import DependencyManager
 from .k8sobject import KubernetesObjectScope, KubernetesObject
 from .location import LocationManager
 
@@ -103,15 +104,15 @@ class ResourceManager:
 
     logger: logging.Logger
     aconf: Config
+    deps: DependencyManager
     locations: LocationManager
-    ambassador_service: Optional[KubernetesObject]
     elements: List[ACResource]
 
-    def __init__(self, logger: logging.Logger, aconf: Config):
+    def __init__(self, logger: logging.Logger, aconf: Config, deps: DependencyManager):
         self.logger = logger
         self.aconf = aconf
+        self.deps = deps
         self.locations = LocationManager()
-        self.ambassador_service = None
         self.elements = []
 
     @property

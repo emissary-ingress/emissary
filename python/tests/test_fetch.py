@@ -13,6 +13,7 @@ logger = logging.getLogger("ambassador")
 
 from ambassador import Config
 from ambassador.fetch import ResourceFetcher
+from ambassador.fetch.dependency import DependencyManager, ServiceDependency, SecretDependency
 from ambassador.fetch.location import LocationManager
 from ambassador.fetch.resource import NormalizedResource, ResourceManager
 from ambassador.fetch.k8sobject import (
@@ -221,7 +222,7 @@ class TestAmbassadorProcessor:
 
     def test_mapping(self):
         aconf = Config()
-        mgr = ResourceManager(logger, aconf)
+        mgr = ResourceManager(logger, aconf, DependencyManager([]))
 
         assert AmbassadorProcessor(mgr).try_process(valid_mapping)
         assert len(mgr.elements) == 1
@@ -241,7 +242,7 @@ class TestAmbassadorProcessor:
 
     def test_mapping_v1(self):
         aconf = Config()
-        mgr = ResourceManager(logger, aconf)
+        mgr = ResourceManager(logger, aconf, DependencyManager([]))
 
         assert AmbassadorProcessor(mgr).try_process(valid_mapping_v1)
         assert len(mgr.elements) == 1
@@ -316,7 +317,9 @@ class TestCountingKubernetesProcessor:
 class TestServiceAnnotations:
 
     def setup(self):
-        self.manager = ResourceManager(logger, Config())
+        self.manager = ResourceManager(logger, Config(), DependencyManager([
+            ServiceDependency(),
+        ]))
         self.processor = ServiceProcessor(self.manager)
 
     def test_no_ambassador_annotation(self):
@@ -376,6 +379,39 @@ service: test:9999""",
         }
         for key, value in expected.items():
             assert self.manager.elements[0].get(key) == value
+
+
+class TestDependencyManager:
+
+    def setup(self):
+        self.deps = DependencyManager([
+            SecretDependency(),
+            ServiceDependency(),
+        ])
+
+    def test_cyclic(self):
+        a = self.deps.for_instance(object())
+        b = self.deps.for_instance(object())
+
+        a.provide(SecretDependency)
+        a.want(ServiceDependency)
+        b.provide(ServiceDependency)
+        b.want(SecretDependency)
+
+        with pytest.raises(ValueError):
+            self.deps.sorted_watt_keys()
+
+    def test_sort(self):
+        a = self.deps.for_instance(object())
+        b = self.deps.for_instance(object())
+        c = self.deps.for_instance(object())
+
+        a.want(SecretDependency)
+        a.want(ServiceDependency)
+        b.provide(SecretDependency)
+        c.provide(ServiceDependency)
+
+        assert self.deps.sorted_watt_keys() == ['secret', 'service']
 
 
 if __name__ == '__main__':
