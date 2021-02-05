@@ -78,7 +78,7 @@ standard YAML files.  Alternatively, you can install it with
    follow the instructions in the README, or simply apply the
    published YAML with `kubectl`.
 
-    ```shell
+    ```
     kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/bundle.yaml
     ```
 
@@ -86,7 +86,7 @@ standard YAML files.  Alternatively, you can install it with
     lower version, you will need to run the following command to
     install the CRDs with the right API version:
 
-    ```shell
+    ```
     curl -sL https://raw.githubusercontent.com/coreos/prometheus-operator/master/bundle.yaml \
       | sed 's|apiVersion: apiextensions.k8s.io/v1|apiVersion: apiextensions.k8s.io/v1beta1|' \
       | sed 's|jsonPath|JSONPath|' \
@@ -97,7 +97,7 @@ standard YAML files.  Alternatively, you can install it with
 
     First, create RBAC resources for your Prometheus instance
 
-    ```shell
+    ```
     kubectl apply -f https://www.getambassador.io/yaml/monitoring/prometheus-rbac.yaml
     ```
 
@@ -406,7 +406,7 @@ connection length, and number of registered services.
 To view the full set of stats available to Prometheus you can access
 the Prometheus UI by running:
 
-```shell
+```
 kubectl port-forward -n monitoring service/prometheus 9090
 ```
 
@@ -434,7 +434,7 @@ Exporter](https://github.com/prometheus/statsd_exporter) to do this.
 
 1. Deploy the StatsD Exporter in the `default` namespace
 
-    ```shell
+    ```
     kubectl apply -f https://www.getambassador.io/yaml/monitoring/statsd-sink.yaml
     ```
 

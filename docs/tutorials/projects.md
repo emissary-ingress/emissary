@@ -25,7 +25,7 @@ the project functionality is not enabled. If you have performed a
 manual install of Ambassador, you can include this registry and enable
 the project controller by running the following command:
 
-```bash
+```
 kubectl apply -f https://www.getambassador.io/yaml/projects.yaml
 ```
 

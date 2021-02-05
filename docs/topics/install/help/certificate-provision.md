@@ -8,7 +8,7 @@ This is an unusual, unexpected failure. Sorry about that!
 
 Please run the installer again:
 
-```shell
+```
 edgectl install
 ```
 

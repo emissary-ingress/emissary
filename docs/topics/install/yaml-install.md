@@ -23,7 +23,7 @@ The Ambassador Edge Stack is typically deployed to Kubernetes from the command l
 
 1. In your terminal, run the following command:
 
-    ```bash
+    ```
     kubectl apply -f https://www.getambassador.io/yaml/aes-crds.yaml && \
     kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && \
     kubectl apply -f https://www.getambassador.io/yaml/aes.yaml && \
@@ -32,7 +32,7 @@ The Ambassador Edge Stack is typically deployed to Kubernetes from the command l
 
 2. Determine the IP address or hostname of your cluster by running the following command:
 
-    ```bash
+    ```
     kubectl get -n ambassador service ambassador -o "go-template={{range .status.loadBalancer.ingress}}{{or .ip .hostname}}{{end}}"
     ```
 
@@ -40,7 +40,7 @@ The Ambassador Edge Stack is typically deployed to Kubernetes from the command l
 
     Note: If you are a **Minikube user**, Minikube does not natively support load balancers. Instead, use `minikube service list`. You should see something similar to the following:
 
-    ```bash
+    ```
     (⎈ |minikube:ambassador)$ minikube service list
     |-------------|------------------|--------------------------------|
     |  NAMESPACE  |       NAME       |              URL               |

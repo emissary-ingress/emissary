@@ -45,7 +45,7 @@ example Graphite setup:
 
 [Graphite]: http://graphite.readthedocs.org/
 
-```shell
+```
 kubectl apply -f statsd-sink/graphite/graphite-statsd-sink.yaml
 ```
 
@@ -54,7 +54,7 @@ Graphite and its related infrastructure.  Graphite's web interface is
 available at `http://statsd-sink/` from within the cluster.  Use port
 forwarding to access the interface from your local machine:
 
-```shell
+```
 SINKPOD=$(kubectl get pod -l service=statsd-sink -o jsonpath="{.items[0].metadata.name}")
 kubectl port-forward $SINKPOD 8080:80
 ```
@@ -184,7 +184,7 @@ Prometheus Operator with Ambassador is available
 Ensure `STATSD_ENABLED` is set to `"true"` and apply the YAML with
 `kubectl`:
 
-```shell
+```
 kubectl apply -f statsd-sink.yaml
 kubectl apply -f prometheus.yaml
 ```
@@ -193,7 +193,7 @@ Wait for a minute after the pods spin up and then access the
 Prometheus dashboard by port-forwarding the Prometheus pod and going
 to `http://localhost:9090/` on a web-browser.
 
-```shell
+```
 kubectl port-forward prometheus-prometheus-0 9090
 ```
 
@@ -241,7 +241,7 @@ apply that YAML:
 
 [`dd-statsd-sink.yaml`]: https://github.com/datawire/ambassador/blob/$branch$/deployments/statsd-sink/datadog/dd-statsd-sink.yaml
 
-```shell
+```
 kubectl apply -f statsd-sink/datadog/dd-statsd-sink.yaml
 ```
 
