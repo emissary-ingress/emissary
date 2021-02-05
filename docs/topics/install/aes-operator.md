@@ -32,7 +32,7 @@ Start by installing the operator:
 3. To install the Ambassador Operator CRD in a different namespace, you can specify it in `NS` and
    then run the following command:
 
-    ```shell
+    ```
     $ NS="custom-namespace"
     $ curl -L https://github.com/datawire/ambassador-operator/releases/latest/download/ambassador-operator.yaml | \
         sed -e "s/namespace: ambassador/namespace: $NS/g" | \

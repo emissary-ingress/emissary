@@ -17,7 +17,7 @@ First, install `edgectl` by following the instructions
 
 Then, use the following command to upgrade the Ambassador API Gateway installation to Ambassador Edge Stack:
 
-```commandline
+```
 edgectl upgrade
 ```
 
