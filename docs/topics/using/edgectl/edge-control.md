@@ -14,7 +14,7 @@ Edge Control is available as a downloadable executable for both Mac OS X and Lin
 
 For MacOS:
 
-```bash
+```
 sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl \
   -o /usr/local/bin/edgectl && \
 sudo chmod a+x /usr/local/bin/edgectl
@@ -22,7 +22,7 @@ sudo chmod a+x /usr/local/bin/edgectl
 
 For Linux:
 
-```bash
+```
 sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl \
   -o /usr/local/bin/edgectl && \
 sudo chmod a+x /usr/local/bin/edgectl
@@ -104,7 +104,7 @@ List the current active intercepts.
 
 Add an intercept. The basic format of this command is:
 
-```bash
+```
   edgectl intercept add DEPLOYMENT -n NAME -t [HOST:]PORT -m HEADER=REGEX ...
 ```
 

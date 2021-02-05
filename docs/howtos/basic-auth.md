@@ -76,7 +76,7 @@ Note that the cluster does not yet contain any Ambassador AuthService definition
 
 The YAML above is published at getambassador.io, so if you like, you can just do
 
-```shell
+```
 kubectl apply -f https://www.getambassador.io/yaml/demo/demo-auth.yaml
 ```
 
@@ -84,7 +84,7 @@ to spin everything up. (Of course, you can also use a local file, if you prefer.
 
 Wait for the pod to be running before continuing. The output of `kubectl get pods` should look something like
 
-```console
+```
 $ kubectl get pods
 NAME                            READY     STATUS    RESTARTS   AGE
 example-auth-6c5855b98d-24clp   1/1       Running   0          4m
@@ -116,7 +116,7 @@ If the auth service uses a framework like [Gorilla Toolkit](http://www.gorillato
 
 You can apply this file from getambassador.io with
 
-```shell
+```
 kubectl apply -f https://www.getambassador.io/yaml/demo/demo-auth-enable.yaml
 ```
 
@@ -128,13 +128,13 @@ Note that the cluster does not yet contain any Ambassador AuthService definition
 
 If we `curl` to a protected URL:
 
-```shell
+```
 $ curl -Lv $AMBASSADORURL/backend/get-quote/
 ```
 
 We get a 401 since we haven't authenticated.
 
-```shell
+```
 * TCP_NODELAY set
 * Connected to 54.165.128.189 (54.165.128.189) port 32281 (#0)
 > GET /backend/get-quote/ HTTP/1.1
@@ -153,7 +153,7 @@ We get a 401 since we haven't authenticated.
 
 If we authenticate to the service, we will get a quote successfully:
 
-```shell
+```
 $ curl -Lv -u username:password $AMBASSADORURL/backend/get-quote/
 
 * TCP_NODELAY set
