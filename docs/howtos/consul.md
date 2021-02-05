@@ -94,7 +94,7 @@ You'll now register a demo application with Consul, and show how Ambassador Edge
 
 2. Verify the QOTM pod has been registered with Consul. You can verify the QOTM pod is registered correctly by accessing the Consul UI.
 
-   ```shell
+   ```
    kubectl port-forward service/consul-ui 8500:80
    ```
 
@@ -123,7 +123,7 @@ Save the above YAML to a file named `qotm-mapping.yaml`, and use `kubectl apply 
 
 4. Send a request to the `qotm-consul` API.
 
-   ```shell
+   ```
    curl -L http://$AMBASSADOR_IP/qotm-consul/
 
    {"hostname":"qotm-749c675c6c-hq58f","ok":true,"quote":"The last sentence you read is often sensible nonsense.","time":"2019-03-29T22:21:42.197663","version":"1.7"}

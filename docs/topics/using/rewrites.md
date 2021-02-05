@@ -73,7 +73,7 @@ http://service1<span style="color:red">/backend-api/</span><span style="color:gr
 
 In some cases, a portion of URL needs to be extracted before making the upstream service URL. For example, suppose that when a request is made to `foo/12345/list`, the target URL must be rewritten as `/bar/12345`. We can do this as follows:
 
-```shell
+```
 prefix: /foo/
 regex_rewrite:
     pattern: '/foo/([0-9]*)/list'
