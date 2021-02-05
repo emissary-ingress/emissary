@@ -63,7 +63,7 @@ require (
 	github.com/census-instrumentation/opencensus-proto v0.2.1
 	github.com/cncf/udpa/go v0.0.0-20200629203442-efcf912fb354
 	github.com/containerd/containerd v1.3.4 // indirect
-	github.com/datawire/dlib v1.1.0
+	github.com/datawire/dlib v1.1.2-0.20210128063139-0a57ab547981
 	github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/ecodia/golang-awaitility v0.0.0-20180710094957-fb55e59708c7
@@ -94,8 +94,8 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
-	golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7
-	golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1
+	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
+	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68
 	google.golang.org/genproto v0.0.0-20200115191322-ca5a22157cba
 	google.golang.org/grpc v1.29.1
 	google.golang.org/protobuf v1.23.0

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	"github.com/datawire/dlib/dutil"
+	"github.com/datawire/dlib/dhttp"
 )
 
 func snapshotServer(ctx context.Context, snapshot *atomic.Value) error {
@@ -14,10 +14,9 @@ func snapshotServer(ctx context.Context, snapshot *atomic.Value) error {
 		w.Write(snapshot.Load().([]byte))
 	})
 
-	s := &http.Server{
-		Addr:    "localhost:9696",
+	s := &dhttp.ServerConfig{
 		Handler: mux,
 	}
 
-	return dutil.ListenAndServeHTTPWithContext(ctx, s)
+	return s.ListenAndServe(ctx, "localhost:9696")
 }

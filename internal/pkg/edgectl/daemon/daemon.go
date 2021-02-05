@@ -11,6 +11,7 @@ import (
 	"github.com/datawire/ambassador/internal/pkg/edgectl"
 	"github.com/datawire/ambassador/pkg/api/edgectl/rpc"
 	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/dlib/dhttp"
 )
 
 var Help = `The Edge Control Daemon is a long-lived background component that manages
@@ -150,22 +151,23 @@ func (d *daemon) runGRPCService(daemonProc *supervisor.Process) error {
 		return errors.Wrap(err, "chmod")
 	}
 
-	grpcServer := grpc.NewServer()
-	rpc.RegisterDaemonServer(grpcServer, &grpcService{
-		s: grpcServer,
+	grpcHandler := grpc.NewServer()
+	rpc.RegisterDaemonServer(grpcHandler, &grpcService{
+		s: grpcHandler,
 		d: d,
 		p: daemonProc,
 	})
+	sc := &dhttp.ServerConfig{
+		Handler: grpcHandler,
+	}
 
 	daemonProc.Ready()
 	Notify(daemonProc, "Running")
 	defer Notify(daemonProc, "Shutting down...")
-	return daemonProc.DoClean(func() error {
-		return errors.Wrap(grpcServer.Serve(unixListener), "gRCP server")
-	}, func() error {
-		grpcServer.Stop()
-		return nil
-	})
+	ctx, cancel := context.WithCancel(daemonProc.Context())
+	return daemonProc.DoClean(
+		func() error { return sc.Serve(ctx, unixListener) },
+		func() error { cancel(); return nil })
 }
 
 func (d *daemon) pause(p *supervisor.Process) *rpc.PauseResponse {
