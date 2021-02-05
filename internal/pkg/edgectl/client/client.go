@@ -43,10 +43,15 @@ func Version(cmd *cobra.Command, _ []string) error {
 // A ConnectInfo contains all information needed to connect to a cluster.
 type ConnectInfo struct {
 	rpc.ConnectRequest
+	LegacyMode bool
 }
 
 // Connect asks the daemon to connect to a cluster
 func (x *ConnectInfo) Connect(cmd *cobra.Command, args []string) error {
+	if !x.LegacyMode {
+		return errors.New("This command is deprecated. Please go to https://a8r.io/go to use Telepresence 2!")
+	}
+
 	u, err := getRunAsInfo()
 	if err != nil {
 		return err

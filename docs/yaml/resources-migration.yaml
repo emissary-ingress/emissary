@@ -40,7 +40,6 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: ambassador-devportal-assets
-  namespace: ambassador
 spec:
   prefix: /documentation/(assets|styles)/(.*)(.css)
   prefix_regex: true
