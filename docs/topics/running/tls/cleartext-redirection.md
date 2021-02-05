@@ -5,7 +5,7 @@ are reasons why you will want to support clients who access your website
 without encryption in cleartext.
 
 Ambassador supports both forcing 
-[automatic redirection to HTTPS](#http---https-redirection) and 
+[automatic redirection to HTTPS](#http-https-redirection) and 
 [serving cleartext](#cleartext-routing) traffic on a `Host`.
 
 ## Cleartext Routing
