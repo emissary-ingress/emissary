@@ -23,10 +23,10 @@ func noop() {}
 
 func main() {
 	busy.Main("busyambassador", "Ambassador", Version, map[string]busy.Command{
-		"ambex":      busy.Command{Setup: environment.EnvironmentSetupEntrypoint, Run: ambex.Main},
-		"watt":       busy.Command{Setup: environment.EnvironmentSetupEntrypoint, Run: watt.Main},
-		"kubestatus": busy.Command{Setup: environment.EnvironmentSetupEntrypoint, Run: kubestatus.Main},
-		"entrypoint": busy.Command{Setup: noop, Run: entrypoint.Main},
-		"reproducer": busy.Command{Setup: noop, Run: reproducer.Main},
+		"ambex":      {Setup: environment.EnvironmentSetupEntrypoint, Run: ambex.Main},
+		"watt":       {Setup: environment.EnvironmentSetupEntrypoint, Run: watt.Main},
+		"kubestatus": {Setup: environment.EnvironmentSetupEntrypoint, Run: kubestatus.Main},
+		"entrypoint": {Setup: noop, Run: entrypoint.Main},
+		"reproducer": {Setup: noop, Run: reproducer.Main},
 	})
 }
