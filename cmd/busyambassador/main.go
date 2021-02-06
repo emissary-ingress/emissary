@@ -12,6 +12,7 @@ import (
 	"github.com/datawire/ambassador/cmd/ambex"
 	"github.com/datawire/ambassador/cmd/entrypoint"
 	"github.com/datawire/ambassador/cmd/kubestatus"
+	"github.com/datawire/ambassador/cmd/reproducer"
 	"github.com/datawire/ambassador/cmd/watt"
 )
 
@@ -26,5 +27,6 @@ func main() {
 		"watt":       busy.Command{Setup: environment.EnvironmentSetupEntrypoint, Run: watt.Main},
 		"kubestatus": busy.Command{Setup: environment.EnvironmentSetupEntrypoint, Run: kubestatus.Main},
 		"entrypoint": busy.Command{Setup: noop, Run: entrypoint.Main},
+		"reproducer": busy.Command{Setup: noop, Run: reproducer.Main},
 	})
 }
