@@ -3,7 +3,8 @@ description: "Install Telepresence and learn to use it to intercept services run
 ---
 
 import Alert from '@material-ui/lab/Alert';
-import QSTabs from './quick-start'
+import QSTabs from './qs-tabs'
+import QSGrid from './qs-grid'
 
 # Telepresence Quick Start
 
