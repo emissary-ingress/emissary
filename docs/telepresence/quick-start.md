@@ -4,7 +4,7 @@ description: "Install Telepresence and learn to use it to intercept services run
 
 import Alert from '@material-ui/lab/Alert';
 import QSTabs from './qs-tabs'
-import QSGrid from './qs-grid'
+import QSCards from './qs-cards'
 
 # Telepresence Quick Start
 
@@ -42,12 +42,30 @@ We recommended using an empty development Kubernetes cluster for this guide. You
   kubectl apply -f 2-aes.yml && \
   kubectl wait -n ambassador deploy -lproduct=aes --for condition=available --timeout=90s
   ```
-
-1. Install the web app by applying its YAML file:
+Then install the web app by applying its YAML file:
 
   ```
   kubectl apply -f edgy-corp-web-app.yaml
   ```
+
+## Curl a Service
+
+With the app deployed, you can immediately try using Telepresence to access pods in the cluster, as if your laptop was another pod also in the cluster.
+
+1. Run `kubectl get services` to retrieve a list of pods, you should see the three Kubernetes services that make up the web app.
+
+2. Now run `telepresence connect` to connect your laptop to the cluster, then `curl verylargejavaservice:8080` to curl the pod by it's short DNS name, just like a pod would use to communicate with another pod in the cluster.
+
+```
+telepresence connect
+curl verylargejavaservice:8080
+```
+
+<font size="+3">💡</font><b>You should see the service reply, congrats, your laptop can now communicate with pods on the cluster!</b>
+
+## Access the Web App
+
+You'll need to access to the web app now through your browser, using the load balancer's public IP address.
 
 1. Wait a few moments for the external load balancer to become available, then retrieve its IP address:
 
@@ -158,8 +176,4 @@ This diagram demonstrates the flow of requests using the intercept.  The laptop 
 
 ## <img class="os-logo" src="../../images/logo.png"/> What's Next?
 
-Telepresence and [preview URLS](../howtos/preview-urls) open up powerful possibilities for collaborating with your colleagues and others outside of your organization.
-
-Learn more about how Telepresence handles [outbound sessions](../howtos/outbound), allowing locally running services to interact with cluster services without an intercept.
-
-Read the [FAQs](../faqs) to learn more about uses cases and the technical implementation of Telepresence.
+<QSCards/>
