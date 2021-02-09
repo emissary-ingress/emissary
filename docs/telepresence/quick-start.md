@@ -42,7 +42,7 @@ We recommended using an empty development Kubernetes cluster for this guide. You
   kubectl apply -f 2-aes.yml && \
   kubectl wait -n ambassador deploy -lproduct=aes --for condition=available --timeout=90s
   ```
-Then install the web app by applying its YAML file:
+  Then install the web app by applying its YAML file:
 
   ```
   kubectl apply -f edgy-corp-web-app.yaml
@@ -56,12 +56,12 @@ With the app deployed, you can immediately try using Telepresence to access pods
 
 2. Now run `telepresence connect` to connect your laptop to the cluster, then `curl verylargejavaservice:8080` to curl the pod by it's short DNS name, just like a pod would use to communicate with another pod in the cluster.
 
-```
-telepresence connect
-curl verylargejavaservice:8080
-```
+  ```
+  telepresence connect
+  curl verylargejavaservice:8080
+  ```
 
-<font size="+3">💡</font><b>You should see the service reply, congrats, your laptop can now communicate with pods on the cluster!</b>
+  <font size="+3">💡</font><b>You should see the service reply, congrats, your laptop can now communicate with pods on the cluster!  Your locally running code can do the same blah blah...</b>
 
 ## Access the Web App
 
