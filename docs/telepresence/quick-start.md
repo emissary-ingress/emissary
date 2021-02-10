@@ -65,10 +65,10 @@ Telepresence connects your local workstation to a remote Kubernetes cluster.
 Your local workstation may not have the compute or memory resources necessary to run all the services in a multi-service application. In this example, we’ll show you how Telepresence can give you a fast development loop, even in this situation.
 
 1. Start by installing a sample application that consists of multiple services:  
-` kubectl apply -f https://raw.githubusercontent.com/mattmcclure-dw/amb-code-quickstart-app/main/k8s-config/edgy-corp-web-app-no-mapping.yaml`
+` kubectl apply -f https://raw.githubusercontent.com/datawire/amb-code-quickstart-app/main/k8s-config/edgey-corp-web-app-no-mapping.yaml`
 
   ```
-  $ kubectl apply -f https://raw.githubusercontent.com/mattmcclure-dw/amb-code-quickstart-app/main/k8s-config/edgy-corp-web-app-no-mapping.yaml
+  $ kubectl apply -f https://raw.githubusercontent.com/datawire/amb-code-quickstart-app/main/k8s-config/edgey-corp-web-app-no-mapping.yaml
   deployment.apps/dataprocessingnodeservice created
   service/dataprocessingnodeservice created
   ...  
@@ -98,23 +98,23 @@ Your local workstation may not have the compute or memory resources necessary to
 Now, we will create a local development. We’ll start the server with the `blue` option, which sets the UI components that were <span style="color:green" class="bold">green</span> to <span style="color:blue" class="bold">blue</span>.
 
 1. Clone the web app’s GitHub repo:  
-`$ git clone https://github.com/datawire/amb-code-quickstart-app.git`
+`$ git clone https://github.com/datawire/edgey-corp-nodejs.git`
 
   ```
-  git clone https://github.com/datawire/amb-code-quickstart-app.git
+  git clone https://github.com/datawire/edgey-corp-nodejs.git
   Cloning into 'amb-code-quickstart-app'...
   remote: Enumerating objects: 441, done.
   ...
   ```
 
 2. Change into the repo directory, then into DataProcessingNodeService:  
-`cd amb-code-quickstart-app/DataProcessingNodeService/`
+`cd https://github.com/datawire/edgey-corp-nodejs.git/DataProcessingNodeService/`
 
 3. Install the Node dependencies and start the Node server:  
 `npm install && node app -c blue`
 
   ```
-  $ npm install && node app -c blue
+  $ npm install && npm start
   ...
   Welcome to the DataProcessingNodeService!
   { _: [], c: 'blue' }
