@@ -58,7 +58,7 @@ Telepresence connects your local workstation to a remote Kubernetes cluster.
     }%  
 
   ```
-<Alert severity="info">The 401 response is expected, the thing to note is that you were able to contact the API.</Alert>
+<Alert severity="info">The 401 response is expected. What's important is that you were able to contact the API.</Alert>
 
 <Alert severity="success"><b>Congratulations! You’ve just accessed your remote Kubernetes API server, as if you were on the same network!</b> With Telepresence, you’re able to use any tool that you have locally to connect to any service in the cluster.</Alert>
 
