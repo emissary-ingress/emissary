@@ -10,14 +10,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAmbassadorConfigRoundTrip(t *testing.T) {
-	var m []Module
-	checkRoundtrip(t, "modules.json", &m)
-}
-
 func TestMappingRoundTrip(t *testing.T) {
 	var m []Mapping
 	checkRoundtrip(t, "mappings.json", &m)
+}
+
+func TestModuleRoundTrip(t *testing.T) {
+	var m []Module
+	checkRoundtrip(t, "modules.json", &m)
 }
 
 func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {
