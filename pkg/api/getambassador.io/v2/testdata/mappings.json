@@ -19,6 +19,8 @@
         },
         "spec": {
             "prefix": "/openapi/",
+            "auto_host_rewrite": false,
+            "prefix_regex": false,
             "rewrite": "",
             "service": "127.0.0.1:8500"
         },
@@ -46,6 +48,8 @@
         },
         "spec": {
             "prefix": "/docs/",
+            "auto_host_rewrite": true,
+            "prefix_regex": false,
             "rewrite": "/docs/",
             "service": "127.0.0.1:8500"
         },
@@ -70,6 +74,8 @@
         },
         "spec": {
             "prefix": "/echo/",
+            "prefix_regex": true,
+            "prefix_exact": false,
             "service": "echo"
         }
     },
@@ -91,6 +97,8 @@
         "spec": {
             "host_rewrite": "httpbin.org",
             "prefix": "/filter-actions/on/",
+            "prefix_exact": true,
+            "add_linkerd_headers": false,
             "rewrite": "/",
             "service": "httpbin.default.svc.cluster.local",
             "timeout_ms": 5000
@@ -101,7 +109,7 @@
         "kind": "Mapping",
         "metadata": {
             "annotations": {
-                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"filter-actions-if-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/filter-actions/if/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"filter-actions-if-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/filter-actions/if/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":0}}\n"
             },
             "creationTimestamp": "2020-08-11T20:54:12Z",
             "generation": 1,
@@ -113,10 +121,12 @@
         },
         "spec": {
             "host_rewrite": "httpbin.org",
+            "add_linkerd_headers": true,
+            "case_sensitive": false,
             "prefix": "/filter-actions/if/",
             "rewrite": "/",
             "service": "httpbin.default.svc.cluster.local",
-            "timeout_ms": 5000
+            "timeout_ms": 0
         }
     },
     {
@@ -124,7 +134,7 @@
         "kind": "Mapping",
         "metadata": {
             "annotations": {
-                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"external-grpc-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/external-grpc/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"external-grpc-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/external-grpc/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000,\"idle_timeout_ms\":0}}\n"
             },
             "creationTimestamp": "2020-08-11T20:54:13Z",
             "generation": 1,
@@ -138,7 +148,10 @@
             "host_rewrite": "httpbin.org",
             "prefix": "/external-grpc/",
             "service": "httpbin.default.svc.cluster.local",
-            "timeout_ms": 5000
+            "case_sensitive": true,
+            "enable_ipv4": false,
+            "timeout_ms": 5000,
+            "idle_timeout_ms": 0
         }
     },
     {
@@ -146,7 +159,7 @@
         "kind": "Mapping",
         "metadata": {
             "annotations": {
-                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"external-http-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/external-http/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"external-http-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/external-http/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000,\"weight\":0}}\n"
             },
             "creationTimestamp": "2020-08-11T20:54:14Z",
             "generation": 1,
@@ -160,7 +173,10 @@
             "host_rewrite": "httpbin.org",
             "prefix": "/external-http/",
             "service": "httpbin.default.svc.cluster.local",
-            "timeout_ms": 5000
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "timeout_ms": 5000,
+            "weight": 0
         }
     },
     {
@@ -182,6 +198,8 @@
             "host_rewrite": "httpbin.org",
             "prefix": "/invalid/",
             "service": "httpbin.default.svc.cluster.local",
+            "enable_ipv6": true,
+            "grpc": false,
             "timeout_ms": 5000
         }
     },
@@ -204,6 +222,8 @@
             "host_rewrite": "httpbin.org",
             "prefix": "/jwt/",
             "service": "httpbin.default.svc.cluster.local",
+            "grpc": true,
+            "host_redirect": false,
             "timeout_ms": 5000
         }
     },
@@ -227,6 +247,8 @@
             "prefix": "/oauth2-auth0-nojwt-and-plugin-and-whitelist/",
             "rewrite": "/",
             "service": "httpbin.default.svc.cluster.local",
+            "host_redirect": true,
+            "method_regex": false,
             "timeout_ms": 5000
         }
     },
@@ -250,6 +272,8 @@
             "prefix": "/oauth2-auth0-nojwt-and-k8ssecret-and-xhrerror/",
             "rewrite": "/",
             "service": "httpbin.default.svc.cluster.local",
+            "method_regex": true,
+            "redirect_response_code": 0,
             "timeout_ms": 5000
         }
     },
@@ -272,6 +296,8 @@
             "host_rewrite": "httpbin.org",
             "prefix": "/oauth2-auth0-nojwt-and-anyerror/",
             "rewrite": "/",
+            "redirect_response_code": 400,
+            "precedence": 0,
             "service": "httpbin.default.svc.cluster.local",
             "timeout_ms": 5000
         }
@@ -296,6 +322,8 @@
             "prefix": "/oauth2-auth0-simplejwt/",
             "rewrite": "/",
             "service": "httpbin.default.svc.cluster.local",
+            "precedence": 100,
+            "shadow": false,
             "timeout_ms": 5000
         }
     },
@@ -319,6 +347,8 @@
             "prefix": "/oauth2-auth0-complexjwt/",
             "rewrite": "/",
             "service": "httpbin.default.svc.cluster.local",
+            "shadow": true,
+            "use_websocket": false,
             "timeout_ms": 5000
         }
     },
@@ -340,6 +370,8 @@
         "spec": {
             "prefix": "/differingscope/endpoint1/",
             "rewrite": "/",
+            "use_websocket": true,
+            "bypass_auth": false,
             "service": "httpbin.default.svc.cluster.local"
         }
     },
@@ -361,6 +393,8 @@
         "spec": {
             "prefix": "/differingscope/endpoint2/",
             "rewrite": "/",
+            "bypass_auth": true,
+            "bypass_error_response_overrides": false,
             "service": "httpbin.default.svc.cluster.local"
         }
     },
@@ -383,6 +417,8 @@
             "host_rewrite": "httpbin.org",
             "prefix": "/azure-header-credentials/httpbin/",
             "rewrite": "/",
+            "bypass_error_response_overrides": true,
+            "host_regex": false,
             "service": "httpbin.default.svc.cluster.local",
             "timeout_ms": 5000
         }
@@ -407,7 +443,9 @@
             "prefix": "/azure/httpbin/",
             "rewrite": "/",
             "service": "httpbin.default.svc.cluster.local",
-            "timeout_ms": 5000
+            "host_regex": true,
+            "timeout_ms": 5000,
+            "docs": {}
         }
     },
     {
@@ -430,7 +468,11 @@
             "prefix": "/google/httpbin/",
             "rewrite": "/",
             "service": "httpbin.default.svc.cluster.local",
-            "timeout_ms": 5000
+            "timeout_ms": 5000,
+            "docs": {
+                "ignored": false,
+                "path": "ffs"
+            }
         }
     },
     {
@@ -453,7 +495,12 @@
             "prefix": "/keycloak/httpbin/",
             "rewrite": "/",
             "service": "httpbin.default.svc.cluster.local",
-            "timeout_ms": 5000
+            "timeout_ms": 5000,
+            "docs": {
+                "ignored": true,
+                "url": "ffs"
+            }
+
         }
     },
     {
@@ -476,7 +523,8 @@
             "prefix": "/okta-client-credentials/httpbin/",
             "rewrite": "/",
             "service": "httpbin.default.svc.cluster.local",
-            "timeout_ms": 5000
+            "timeout_ms": 5000,
+            "load_balancer": {}
         }
     },
     {
@@ -499,7 +547,10 @@
             "prefix": "/okta/httpbin/",
             "rewrite": "/",
             "service": "httpbin.default.svc.cluster.local",
-            "timeout_ms": 5000
+            "timeout_ms": 5000,
+            "load_balancer": {
+                "source_ip": false
+            }
         }
     },
     {
@@ -522,7 +573,11 @@
             "prefix": "/uaa/httpbin/",
             "rewrite": "/",
             "service": "httpbin.default.svc.cluster.local",
-            "timeout_ms": 5000
+            "timeout_ms": 5000,
+            "load_balancer": {
+                "policy": "some_policy",
+                "source_ip": true
+            }
         }
     },
     {
@@ -542,7 +597,8 @@
         },
         "spec": {
             "prefix": "/logout",
-            "service": "filter-oauth2-logout-service.default"
+            "service": "filter-oauth2-logout-service.default",
+            "cors": {}
         }
     },
     {
@@ -562,7 +618,10 @@
         },
         "spec": {
             "prefix": "/intercepted/",
-            "service": "intercepted.default"
+            "service": "intercepted.default",
+            "cors": {
+                "credentials": false
+            }
         }
     },
     {
@@ -582,7 +641,11 @@
         },
         "spec": {
             "prefix": "/load-testing/",
-            "service": "load-http-echo.default"
+            "service": "load-http-echo.default",
+            "cors": {
+                "origins": [ "ffs", "ffs2" ],
+                "credentials": true
+            }
         }
     },
     {
@@ -672,7 +735,8 @@
                 ]
             },
             "prefix": "/rl/",
-            "service": "httpbin.default.svc.cluster.local"
+            "service": "httpbin.default.svc.cluster.local",
+            "retry_policy": {}
         }
     },
     {
@@ -707,7 +771,15 @@
                                 "xratelimitid": {
                                     "header": "X-Ratelimit-Id",
                                     "omit_if_not_present": true
+                                },
+                                "xratelimitid2": {
+                                    "header": "X-Ratelimit-Id2",
+                                    "omit_if_not_present": false
+                                },
+                                "xratelimitid3": {
+                                    "header": "X-Ratelimit-Id3"
                                 }
+
                             }
                         ]
                     }
@@ -757,6 +829,10 @@
                 ]
             },
             "prefix": "/backend/",
+            "retry_policy": {
+                "num_retries": 0,
+                "retry_on": "gateway-error"
+            },
             "service": "httpbin.default.svc.cluster.local"
         }
     }
