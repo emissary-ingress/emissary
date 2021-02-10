@@ -9,7 +9,7 @@ import QSCards from './qs-cards'
 # Telepresence Quick Start
 
 ## Prerequisites
-You’ll need `kubectl` installed and configured to use a Kubernetes cluster, preferably an empty test cluster. You must have RBAC permissions in the cluster to create and update deployments and services.
+You’ll need `kubectl` installed and configured to use a Kubernetes cluster, preferably an empty test cluster.  You must have RBAC permissions in the cluster to create and update deployments and services.
 
 ## 1. Install the Telepresence CLI
 
@@ -58,7 +58,7 @@ Telepresence connects your local workstation to a remote Kubernetes cluster.
     }%  
 
   ```
-<Alert severity="info">The 401 response is expected. What's important is that you were able to contact the API.</Alert>
+<Alert severity="info">The 401 response is expected.  What's important is that you were able to contact the API.</Alert>
 
 <Alert severity="success"><b>Congratulations! You’ve just accessed your remote Kubernetes API server, as if you were on the same network!</b> With Telepresence, you’re able to use any tool that you have locally to connect to any service in the cluster.</Alert>
 
@@ -67,12 +67,11 @@ Telepresence connects your local workstation to a remote Kubernetes cluster.
 Your local workstation may not have the compute or memory resources necessary to run all the services in a multi-service application. In this example, we’ll show you how Telepresence can give you a fast development loop, even in this situation.
 
 1. Start by installing a sample application that consists of multiple services:  
-` kubectl apply -f https://raw.githubusercontent.com/datawire/edgey-corp-nodejs/main/k8s-config/edgey-corp-web-app-no-mapping.yaml`
+`kubectl apply -f https://raw.githubusercontent.com/datawire/edgey-corp-nodejs/main/k8s-config/edgey-corp-web-app-no-mapping.yaml`
 
   ```
-  $ kubectl apply -f https://raw.githubusercontent.com/datawire/edgey-corp-nodejs/main/k8s-config/
+  $ kubectl apply -f https://raw.githubusercontent.com/datawire/edgey-corp-nodejs/main/k8s-config/edgey-corp-web-app-no-mapping.yaml
     
-    edgey-corp-web-app-no-mapping.yaml
     deployment.apps/dataprocessingnodeservice created
     service/dataprocessingnodeservice created
     ...  
@@ -124,7 +123,7 @@ You will now download the repo containing the services' code and run the DataPro
     
     ...
     Welcome to the DataProcessingNodeService!
-    { _: [], c: 'blue' }
+    { _: [] }
     Server running on port 3000
   ```
 
