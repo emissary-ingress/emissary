@@ -157,10 +157,10 @@ import (
 type CircuitBreaker struct {
 	// +kubebuilder:validation:Enum={"default", "high"}
 	Priority           string `json:"priority,omitempty"`
-	MaxConnections     int    `json:"max_connections,omitempty"`
-	MaxPendingRequests int    `json:"max_pending_requests,omitempty"`
-	MaxRequests        int    `json:"max_requests,omitempty"`
-	MaxRetries         int    `json:"max_retries,omitempty"`
+	MaxConnections     *int   `json:"max_connections,omitempty"`
+	MaxPendingRequests *int   `json:"max_pending_requests,omitempty"`
+	MaxRequests        *int   `json:"max_requests,omitempty"`
+	MaxRetries         *int   `json:"max_retries,omitempty"`
 }
 
 // ErrorResponseTextFormatSource specifies a source for an error response body
@@ -191,7 +191,7 @@ type ErrorResponseOverrideBody struct {
 
 // A response rewrite for an HTTP error response
 type ErrorResponseOverride struct {
-	// The status code to match on
+	// The status code to match on -- not a pointer because it's required.
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Minimum=400
 	// +kubebuilder:validation:Maximum=599
@@ -216,6 +216,8 @@ func (aid *AmbassadorID) UnmarshalJSON(data []byte) error {
 	return (*StringOrStringList)(aid).UnmarshalJSON(data)
 }
 
+// StringOrStringList is just what it says on the tin, but note that it will always
+// marshal as a list of strings right now.
 // +kubebuilder:validation:Type="d6e-union:string,array"
 type StringOrStringList []string
 

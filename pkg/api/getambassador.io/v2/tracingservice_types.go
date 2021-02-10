@@ -24,9 +24,9 @@ import (
 )
 
 type TraceSampling struct {
-	Client  int `json:"client,omitempty"`
-	Random  int `json:"random,omitempty"`
-	Overall int `json:"overall,omitempty"`
+	Client  *int `json:"client,omitempty"`
+	Random  *int `json:"random,omitempty"`
+	Overall *int `json:"overall,omitempty"`
 }
 
 type TraceConfig struct {
@@ -36,8 +36,8 @@ type TraceConfig struct {
 	// +kubebuilder:validation:Enum=HTTP_JSON_V1;HTTP_JSON;HTTP_PROTO
 	CollectorEndpointVersion string `json:"collector_endpoint_version,omitempty"`
 	CollectorHostname        string `json:"collector_hostname,omitempty"`
-	TraceID128Bit            bool   `json:"trace_id_128bit,omitempty"`
-	SharedSpanContext        bool   `json:"shared_span_context,omitempty"`
+	TraceID128Bit            *bool  `json:"trace_id_128bit,omitempty"`
+	SharedSpanContext        *bool  `json:"shared_span_context,omitempty"`
 	ServiceName              string `json:"service_name,omitempty"`
 }
 
