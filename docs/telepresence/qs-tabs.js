@@ -73,40 +73,22 @@ export default function SimpleTabs() {
       <TabPanel value={value} index={0}>
 
         {/*macOS install instructions*/}
-        <CodeBlock>
-          {
-            '# 1. Download the latest binary (~50 MB):' + 
-            '\n' +
-            'sudo curl -fL https://app.getambassador.io/download/tel2/darwin/amd64/latest/telepresence -o /usr/local/bin/telepresence' +
-            '\n \n' +
-            '# 2. Make the binary executable:' +
-            '\n' +
-            'sudo chmod a+x /usr/local/bin/telepresence'
-          }
-        </CodeBlock> 
-     
 
-    1. Download the latest binary (~60 MB):<br/>
-        <code>sudo curl -fL https://app.getambassador.io/download/tel2/darwin/amd64/latest/telepresence -o /usr/local/bin/telepresence</code><br/>
-        2. Make the binary executable:<br/>
-        <code>sudo chmod a+x /usr/local/bin/telepresence</code>
+      1. Download the latest binary(~60 MB):<br/>
+      <a href="https://app.getambassador.io/download/tel2/darwin/amd64/latest/telepresence">https://app.getambassador.io/download/tel2/darwin/amd64/latest/telepresence</a><br/> 
+      2. Make the binary executable:<br/>
+      <code>sudo chmod a+x telepresence</code>
 
       </TabPanel>
+
       <TabPanel value={value} index={1}>
 
         {/*Linux install instructions*/}
         
-        <CodeBlock>
-          {
-            '# 1. Download the latest binary (~50 MB):' + 
-            '\n' +
-            'sudo curl -fL https://app.getambassador.io/download/tel2/linux/amd64/latest/telepresence -o /usr/local/bin/telepresence' +
-            '\n \n' +
-            '# 2. Make the binary executable:' +
-            '\n' +
-            'sudo chmod a+x /usr/local/bin/telepresence'
-          }
-        </CodeBlock>     
+      1. Download the latest binary(~50 MB):<br/>
+      <a href="https://app.getambassador.io/download/tel2/linux/amd64/latest/telepresence">https://app.getambassador.io/download/tel2/linux/amd64/latest/telepresence</a><br/> 
+      2. Make the binary executable:<br/>
+      <code>sudo chmod a+x telepresence</code>  
 
         </TabPanel>
 
