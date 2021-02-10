@@ -75,9 +75,9 @@ export default function SimpleTabs() {
         {/*macOS install instructions*/}
 
       1. Download the latest binary(~60 MB):<br/>
-      <a href="https://app.getambassador.io/download/tel2/darwin/amd64/latest/telepresence">https://app.getambassador.io/download/tel2/darwin/amd64/latest/telepresence</a><br/> 
+      <code>sudo curl -fL https://app.getambassador.io/download/tel2/darwin/amd64/latest/telepresence -o /usr/local/bin/telepresence</code><br/>
       2. Make the binary executable:<br/>
-      <code>sudo chmod a+x telepresence</code>
+      <code>sudo chmod a+x /usr/local/bin/telepresence</code>
 
       </TabPanel>
 
@@ -86,9 +86,9 @@ export default function SimpleTabs() {
         {/*Linux install instructions*/}
         
       1. Download the latest binary(~50 MB):<br/>
-      <a href="https://app.getambassador.io/download/tel2/linux/amd64/latest/telepresence">https://app.getambassador.io/download/tel2/linux/amd64/latest/telepresence</a><br/> 
+      <code>sudo curl -fL https://app.getambassador.io/download/tel2/linux/amd64/latest/telepresence -o /usr/local/bin/telepresence</code><br/>
       2. Make the binary executable:<br/>
-      <code>sudo chmod a+x telepresence</code>  
+      <code>sudo chmod a+x /usr/local/bin/telepresence</code>  
 
         </TabPanel>
 
