@@ -237,9 +237,8 @@ export default ({ data, location }) => {
               <h2>Questions?</h2>
               <p>
                 We’re here to help. If you have questions,{' '}
-                <a href="http://d6e.co/slack">join our Slack</a>,{' '}
-                <a href="/contact/">contact us</a>, or{' '}
-                <a href="/demo/">request a demo</a>.
+                <a href="http://d6e.co/slack">join our Slack</a>{' '}or{' '}
+                <a href="/contact-us/">contact us</a>.
               </p>
             </div>
           </main>
