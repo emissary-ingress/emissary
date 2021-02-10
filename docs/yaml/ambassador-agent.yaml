@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/instance: ambassador
+    app.kubernetes.io/name: ambassador-agent
+  name: ambassador-agent
+  namespace: ambassador
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: ambassador
+      app.kubernetes.io/name: ambassador-agent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: ambassador
+        app.kubernetes.io/name: ambassador-agent
+    spec:
+      containers:
+      - command:
+        - agent
+        image: docker.io/datawire/aes:$version$
+        env:
+        - name: AES_SNAPSHOT_URL
+          value: "http://ambassador-admin.ambassador:9697/snapshot-external"
+        name: agent

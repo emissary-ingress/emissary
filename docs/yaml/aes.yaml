@@ -238,6 +238,9 @@ spec:
   - name: ambassador-admin
     port: 8877
     targetPort: admin
+  - name: ambassador-snapshot
+    port: 9697
+    targetPort: 9697
   selector:
     service: ambassador
 
