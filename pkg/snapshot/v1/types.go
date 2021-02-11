@@ -85,6 +85,12 @@ type KubernetesSnapshot struct {
 	Secrets    []*kates.Secret             `json:"secret"` // Secrets we'll feed to Ambassador
 
 	Annotations []kates.Object `json:"-"`
+
+	// this is only for the saas app agent com and ambassador agent to communicate about service
+	// backends. yes, i know this isn't an ambassador input techinically, but putting this here
+	// makes things _much_ easier when giving the mothership (aka saas app's agent com) a single
+	// source of the state of the cluster
+	Pods []*kates.Pod `json:"Pods,omitempty"`
 }
 
 func (a *KubernetesSnapshot) Render() string {
