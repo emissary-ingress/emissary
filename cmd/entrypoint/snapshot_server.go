@@ -3,6 +3,7 @@ package entrypoint
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sync/atomic"
 
@@ -10,8 +11,11 @@ import (
 	"github.com/datawire/dlib/dhttp"
 )
 
+// take the next port in the range of ambassador ports.
+const ExternalSnapshotPort = 8005
+
 // expose a scrubbed version of the current snapshot outside the pod
-func externalSnapshotServer(ctx context.Context, snapshot *atomic.Value, ambClusterID string, ambID string, ambVersion string) error {
+func externalSnapshotServer(ctx context.Context, snapshot *atomic.Value) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/snapshot-external", func(w http.ResponseWriter, r *http.Request) {
 		rawSnapshot := snapshot.Load().([]byte)
@@ -31,9 +35,6 @@ func externalSnapshotServer(ctx context.Context, snapshot *atomic.Value, ambClus
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		w.Header().Set("x-ambassador-cluster-id", ambClusterID)
-		w.Header().Set("x-ambassador-id", ambID)
-		w.Header().Set("x-ambassador-version", ambVersion)
 		w.Header().Set("content-type", "application/json")
 
 		w.Write(sanitizedSnap)
@@ -43,7 +44,7 @@ func externalSnapshotServer(ctx context.Context, snapshot *atomic.Value, ambClus
 		Handler: mux,
 	}
 
-	return s.ListenAndServe(ctx, ":9697")
+	return s.ListenAndServe(ctx, fmt.Sprintf(":%d", ExternalSnapshotPort))
 }
 
 func snapshotServer(ctx context.Context, snapshot *atomic.Value) error {

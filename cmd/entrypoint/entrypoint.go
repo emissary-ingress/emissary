@@ -159,17 +159,17 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	group.Go("snapshot_server", func(ctx context.Context) error {
 		return snapshotServer(ctx, snapshot)
 	})
-	// TODO(acookin): is it a good idea to enable users to disable this external snapshot thing
-	// with a flag or something?
-	group.Go("external_snapshot_server", func(ctx context.Context) error {
-		return externalSnapshotServer(ctx, snapshot, clusterID, GetAmbassadorId(), Version)
-	})
+	if !envbool("DISABLE_SNAPSHOT_SERVER") {
+		group.Go("external_snapshot_server", func(ctx context.Context) error {
+			return externalSnapshotServer(ctx, snapshot)
+		})
+	}
 
 	if !demoMode {
 		group.Go("watcher", func(ctx context.Context) error {
 			// We need to pass the AmbassadorWatcher to this (Kubernetes/Consul) watcher, so
 			// that it can tell the AmbassadorWatcher when snapshots are posted.
-			watcher(ctx, ambwatch, snapshot)
+			watcher(ctx, ambwatch, snapshot, clusterID, Version)
 			return nil
 		})
 	}

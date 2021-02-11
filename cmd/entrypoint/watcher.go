@@ -26,7 +26,7 @@ type thingToWatch struct {
 }
 
 // watcher is the thing that watches all the K8s stuff we're interested in.
-func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atomic.Value) {
+func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atomic.Value, clusterID string, version string) {
 	crdYAML, err := ioutil.ReadFile(findCRDFilename())
 	if err != nil {
 		panic(err)
@@ -57,6 +57,18 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 	endpointFs := "metadata.namespace!=kube-system"
 	if fs != "" {
 		endpointFs += fmt.Sprintf(",%s", fs)
+	}
+
+	ambassadorMeta := snapshotTypes.AmbassadorMetaInfo{
+		ClusterID:         clusterID,
+		AmbassadorID:      GetAmbassadorId(),
+		AmbassadorVersion: version,
+	}
+	kubeServerVer, err := client.ServerVersion()
+	if err != nil {
+		log.Printf("Warning, unable to detect kube server version: %+v", err)
+	} else {
+		ambassadorMeta.KubeVersion = kubeServerVer.GitVersion
 	}
 
 	serverTypeList, err := client.ServerPreferredResources()
@@ -270,10 +282,11 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 		}
 
 		sn := &snapshotTypes.Snapshot{
-			Kubernetes: snapshot,
-			Consul:     consulSnapshot,
-			Invalid:    invalidSlice,
-			Deltas:     unsentDeltas,
+			Kubernetes:     snapshot,
+			Consul:         consulSnapshot,
+			Invalid:        invalidSlice,
+			Deltas:         unsentDeltas,
+			AmbassadorMeta: &ambassadorMeta,
 		}
 		unsentDeltas = nil
 

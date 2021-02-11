@@ -23,6 +23,8 @@ type SecretRef struct {
 // The snapshot type represents a complete configuration snapshot as sent to
 // diagd.
 type Snapshot struct {
+	// meta information to identify the ambassador
+	AmbassadorMeta *AmbassadorMetaInfo
 	// The Kubernetes field contains all the ambassador inputs from kubernetes.
 	Kubernetes *KubernetesSnapshot
 	// The Consul field contains endpoint data for any mappings setup to use a
@@ -37,6 +39,13 @@ type Snapshot struct {
 	// validation.
 	Invalid []*kates.Unstructured
 	Raw     json.RawMessage `json:"-"`
+}
+
+type AmbassadorMetaInfo struct {
+	ClusterID         string `json:"cluster_id"`
+	AmbassadorID      string `json:"ambassador_id"`
+	AmbassadorVersion string `json:"ambassador_version"`
+	KubeVersion       string `json:"kube_version"`
 }
 
 type KubernetesSnapshot struct {
