@@ -24,26 +24,33 @@ func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {
 	bytes, err := ioutil.ReadFile(path.Join("testdata", filename))
 	require.NoError(t, err)
 
-	err = json.Unmarshal(bytes, ptr)
-	require.NoError(t, err)
+	canonical := func() string {
+		var untyped interface{}
+		err = json.Unmarshal(bytes, &untyped)
+		require.NoError(t, err)
+		canonical, err := json.MarshalIndent(untyped, "", "\t")
+		require.NoError(t, err)
+		return string(canonical)
+	}()
 
-	var canonical interface{}
-	err = json.Unmarshal(bytes, &canonical)
-	require.NoError(t, err)
+	actual := func() string {
+		// Round-trip twice, to get map field ordering, instead of struct field ordering.
 
-	assert.Equal(t, canonical, roundtrip(ptr))
-}
+		// first
+		err = json.Unmarshal(bytes, ptr)
+		require.NoError(t, err)
+		first, err := json.Marshal(ptr)
+		require.NoError(t, err)
 
-func roundtrip(obj interface{}) (result interface{}) {
-	bytes, err := json.Marshal(obj)
-	if err != nil {
-		panic(err)
-	}
+		// second
+		var untyped interface{}
+		err = json.Unmarshal(first, &untyped)
+		require.NoError(t, err)
+		second, err := json.MarshalIndent(untyped, "", "\t")
+		require.NoError(t, err)
 
-	err = json.Unmarshal(bytes, &result)
-	if err != nil {
-		panic(err)
-	}
+		return string(second)
+	}()
 
-	return
+	assert.Equal(t, canonical, actual)
 }
