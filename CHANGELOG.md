@@ -67,7 +67,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
-(no changes yet)
+- Bugfix: Correctly differentiate int values of 0 and Boolean values of `false` from non-existent attributes in CRDs ([#3212])
+
+[#3212]: https://github.com/datawire/ambassador/issues/3212
 
 ## [1.11.1] February 04, 2021
 [1.11.1]: https://github.com/datawire/ambassador/compare/v1.11.0...v1.11.1
