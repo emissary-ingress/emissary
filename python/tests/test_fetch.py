@@ -13,7 +13,7 @@ logger = logging.getLogger("ambassador")
 
 from ambassador import Config
 from ambassador.fetch import ResourceFetcher
-from ambassador.fetch.dependency import DependencyManager, ServiceDependency, SecretDependency
+from ambassador.fetch.dependency import DependencyManager, ServiceDependency, SecretDependency, IngressClassesDependency
 from ambassador.fetch.location import LocationManager
 from ambassador.fetch.resource import NormalizedResource, ResourceManager
 from ambassador.fetch.k8sobject import (
@@ -387,16 +387,20 @@ class TestDependencyManager:
         self.deps = DependencyManager([
             SecretDependency(),
             ServiceDependency(),
+            IngressClassesDependency(),
         ])
 
     def test_cyclic(self):
         a = self.deps.for_instance(object())
         b = self.deps.for_instance(object())
+        c = self.deps.for_instance(object())
 
         a.provide(SecretDependency)
         a.want(ServiceDependency)
         b.provide(ServiceDependency)
-        b.want(SecretDependency)
+        b.want(IngressClassesDependency)
+        c.provide(IngressClassesDependency)
+        c.want(SecretDependency)
 
         with pytest.raises(ValueError):
             self.deps.sorted_watt_keys()
@@ -408,10 +412,11 @@ class TestDependencyManager:
 
         a.want(SecretDependency)
         a.want(ServiceDependency)
+        a.provide(IngressClassesDependency)
         b.provide(SecretDependency)
         c.provide(ServiceDependency)
 
-        assert self.deps.sorted_watt_keys() == ['secret', 'service']
+        assert self.deps.sorted_watt_keys() == ['secret', 'service', 'ingressclasses']
 
 
 if __name__ == '__main__':
