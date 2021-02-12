@@ -31,6 +31,10 @@ spec:
       {{- if (and (eq .Values.adminService.type "NodePort") (not (empty .Values.adminService.nodePort))) }}
       nodePort: {{ int .Values.adminService.nodePort }}
       {{- end }}
+    - port: {{ .Values.adminService.snapshotPort }}
+      targetPort: {{ .Values.adminService.snapshotPort }}
+      protocol: TCP
+      name: ambassador-snapshot
   selector:
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}

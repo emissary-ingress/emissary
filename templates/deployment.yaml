@@ -157,7 +157,7 @@ spec:
               {{- end }}
             {{- end}}
             - name: admin
-              containerPort: 8877
+              containerPort: {{ .Values.adminService.port }}
           env:
             - name: HOST_IP
               valueFrom:
