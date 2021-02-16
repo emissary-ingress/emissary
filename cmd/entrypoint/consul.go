@@ -299,7 +299,14 @@ func (cw *consulWatcher) Watch(resolver *amb.ConsulResolver, mapping *amb.Mappin
 	if err != nil {
 		panic(err)
 	}
+
 	w.Watch(func(endpoints consulwatch.Endpoints, e error) {
+		if endpoints.Id == "" {
+			// For Ambassador, overwrite the Id with the resolver's datacenter -- the
+			// Consul watcher doesn't actually hand back the DC, and we need it.
+			endpoints.Id = resolver.Spec.Datacenter
+		}
+
 		endpointsCh <- endpoints
 	})
 
