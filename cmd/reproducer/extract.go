@@ -440,7 +440,7 @@ func (ex *Extraction) WriteArchive(ctx context.Context, filename string, podLogs
 		return archive(name, bytes)
 	}
 
-	archiveJson("pods.log", podLogs)
+	err = archiveJson("pods.log", podLogs)
 	if err != nil {
 		return err
 	}
