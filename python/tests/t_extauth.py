@@ -512,6 +512,13 @@ bypass_auth: true
         # [7]
         yield Query(self.url("target/"), headers={"Requested-Status": "500"}, expected=503)
 
+        # Create some traffic to make it more likely that both auth services get at least one
+        # request
+        for i in range(20):
+            yield Query(self.url("target/"), headers={"Requested-Status": "200",
+                                                  "Authorization": "foo-11111",
+                                                  "Requested-Header": "Authorization"})
+
     def check_backend_name(self, result) -> bool:
         backend_name = result.backend.name
 
