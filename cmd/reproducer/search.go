@@ -82,6 +82,9 @@ func search_r(base, filename string, content []byte, action fileVisitor) error {
 
 		return nil
 	case "text/plain":
+		if filename == "" {
+			filename = base
+		}
 		return action(filename, contentType, encoding, content)
 	case "application/octet-stream":
 		tin := tar.NewReader(bytes.NewReader(content))
