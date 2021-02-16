@@ -1,5 +1,66 @@
 {{- if .Values.agent.enabled }}
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "ambassador.fullname" . }}-agent
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-agent
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    product: aes
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "ambassador.fullname" . }}-agent
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-agent
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "ambassador.fullname" . }}-agent
+subjects:
+- kind: ServiceAccount
+  name: {{ include "ambassador.fullname" . }}-agent
+  namespace: {{ include "ambassador.namespace" . }}
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: {{ include "ambassador.fullname" . }}-agent
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-agent
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    product: aes
+rules:
+- apiGroups: [""]
+  resources: [ "pods" ]
+  verbs: [ "get", "list", "watch" ]
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,6 +79,7 @@ metadata:
     product: aes
 spec:
   replicas: 1
+  serviceAccountName: {{ include "ambassador.fullname" . }}-agent
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-agent
