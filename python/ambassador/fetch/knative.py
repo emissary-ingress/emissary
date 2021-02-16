@@ -77,7 +77,7 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
                     'add_request_headers': headers,
                     'weight': split.get('percent', 100),
                     'prefix': path.get('path', '/'),
-                    'prefix_regex': True,
+                    'prefix_regex': False,
                     'timeout_ms': int(durationpy.from_str(path.get('timeout', '15s')).total_seconds() * 1000),
                 })
 
