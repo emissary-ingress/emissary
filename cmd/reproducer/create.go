@@ -296,7 +296,10 @@ func (r *Repro) process(object kates.Object) kates.Object {
 const lastApplied = "kubectl.kubernetes.io/last-applied-configuration"
 const bootstrappingLabel = "kubernetes.io/bootstrapping"
 
-// clean does generic cleanup of resources from the source cluster. Kubectl will
+// Clean does generic cleanup of resources from the source cluster. Kubectl and/or the API server
+// will add a bunch of annotations about last-applied-configurations and managed fields and what
+// not, and these annotations will make kubectl and/or the API server barf if present on a resource
+// supplied to `kubectl apply`.
 func clean(resource *kates.Unstructured) *kates.Unstructured {
 	if resource == nil {
 		return nil
