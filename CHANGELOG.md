@@ -68,6 +68,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ## Next Release
 
 - Bugfix: Correctly differentiate int values of 0 and Boolean values of `false` from non-existent attributes in CRDs ([#3212])
+- Bugfix: Correctly support Consul datacenters other than "dc1" without legacy mode.
 
 [#3212]: https://github.com/datawire/ambassador/issues/3212
 
