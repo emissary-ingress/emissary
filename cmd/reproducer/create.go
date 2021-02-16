@@ -1,6 +1,7 @@
 package reproducer
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"path/filepath"
@@ -12,7 +13,6 @@ import (
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 var createCmd = &cobra.Command{
@@ -67,7 +67,7 @@ func create(cmd *cobra.Command, args []string) error {
 			var snapshot struct {
 				Kubernetes map[string][]*kates.Unstructured
 			}
-			err := yaml.Unmarshal(content, &snapshot)
+			err := json.Unmarshal(content, &snapshot)
 			if err != nil {
 				return errors.Wrapf(err, "decoding snapshot at %s", path)
 			}
