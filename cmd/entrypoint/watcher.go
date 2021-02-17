@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 	"sync/atomic"
@@ -106,7 +105,7 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 	if err != nil {
 		// It's possible that an error prevented listing some apigroups, but not all; so
 		// process the output even if there is an error.
-		log.Printf("Warning, unable to list api-resources: %v", err)
+		dlog.Infof(ctx, "Warning, unable to list api-resources: %v", err)
 	}
 	serverTypes := make(map[string]kates.APIResource, len(serverTypeList))
 	for _, typeinfo := range serverTypeList {
@@ -161,7 +160,7 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 	var queries []kates.Query
 	for snapshotname, queryinfo := range interestingTypes {
 		if _, haveType := serverTypes[queryinfo.typename]; !haveType {
-			log.Printf("Warning, unable to watch %s, unknown kind.", queryinfo.typename)
+			dlog.Infof(ctx, "Warning, unable to watch %s, unknown kind.", queryinfo.typename)
 			continue
 		}
 
@@ -364,7 +363,7 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 		}
 		encoded.Store(bytes)
 		if firstReconfig {
-			log.Println("Bootstrapped! Computing initial configuration...")
+			dlog.Debugf(ctx, "WATCHER: Bootstrapped! Computing initial configuration...")
 			firstReconfig = false
 		}
 
