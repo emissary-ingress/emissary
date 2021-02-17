@@ -16,11 +16,14 @@ metadata:
     app.kubernetes.io/component: ambassador-service
     product: aes
   annotations:
-    app.getambassador.io/git-repo: github.com/datawire/ambassador
+    app.getambassador.io/owner: "Ambassador Labs"
+    app.getambassador.io/repository: github.com/datawire/ambassador
     app.getambassador.io/description: "The Ambassador Edge Stack goes beyond traditional API Gateways and Ingress Controllers with the advanced edge features needed to support developer self-service and full-cycle development."
     app.getambassador.io/documentation: https://www.getambassador.io/docs/latest/
     app.getambassador.io/chat: http://d6e.co/slack
     app.getambassador.io/bugs: https://github.com/datawire/ambassador/issues
+    app.getambassador.io/support: https://www.getambassador.io/about-us/support/
+    app.getambassador.io/dependencies: "Redis"
 {{- if .Values.service.annotations }}
   {{- range $key, $value := .Values.service.annotations }}
     {{ $key }}: {{ $value | quote }}
