@@ -38,6 +38,22 @@ spec:
       action: Route
 ```
 
+> **WARNING - Host Configuration:** The `requestPolicy` property of the `Host` `CRD` is applied globally within an Ambassador instance, even if it is applied to only one `Host` when multiple `Host`s are configured. Different `requestPolicy` behaviors cannot be applied to different `Host`s. It is recommended to apply an identical `requestPolicy` to all `Host`s instead of assuming the behavior, to create a more human readable config. 
+> 
+> If you intend to use more than one type of `requestPolicy`, you will need a separate Ambassador instance for each separate type.
+> 
+> If multiple `Host`s are applied, the `requestPolicy` from the `Host` with the first alphabetical `metadata.name` is always the one that is applied. Order does not matter.
+> If a `requestPolicy` is not defined for a `Host`, it's assumed to be `Redirect`, and so even if a host named `a` does not specify it, the default `requestPolicy` of `Redirect` will be applied to all `Host`s in that Ambassador instance.
+> 
+> For more information, please refer to the [`Host` documentation](../host-crd#secure-and-insecure-requests).
+
+The `insecure-action` can be one of:
+
+* `Redirect` (the default): redirect to HTTPS
+* `Route`: go ahead and route as normal; this will allow handling HTTP requests normally
+* `Reject`: reject the request with a 400 response
+
+
 ### HTTPS and Cleartext
 
 Ambassador can also support serving both HTTPS and cleartext traffic from a
@@ -67,6 +83,14 @@ spec:
 With the above configuration, we are tell Ambassador to terminate TLS with the
 certificate in the `example-cert` `Secret` and route cleartext traffic that
 comes in over port `8080`.
+
+> The `additionalPort` element tells Ambassador to listen on the specified `insecure-port` and treat any request arriving on that port as insecure. **By default, `additionalPort` will be set to 8080 for any `Host` using TLS.** To disable this redirection entirely, set `additionalPort` explicitly to `-1`:
+
+```yaml
+requestPolicy:
+  insecure:
+    additionalPort: -1   # This is how to disable the default redirection from 8080.
+```
 
 ## HTTP->HTTPS Redirection
 

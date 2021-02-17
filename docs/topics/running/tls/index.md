@@ -16,6 +16,23 @@ in Ambassador and defines how TLS is managed on that domain. In the Ambassador
 Edge Stack, the simplest configuration of a `Host` will enable TLS with a 
 self-signed certificate and redirect cleartext traffic to HTTPS. 
 
+> **WARNING - Host Configuration:** The `requestPolicy` property of the `Host` `CRD` is applied globally within an Ambassador instance, even if it is applied to only one `Host` when multiple `Host`s are configured. Different `requestPolicy` behaviors cannot be applied to different `Host`s. It is recommended to apply an identical `requestPolicy` to all `Host`s instead of assuming the behavior, to create a more human readable config. 
+> 
+> If you intend to use more than one type of `requestPolicy`, you will need a separate Ambassador instance for each separate type.
+> 
+> If multiple `Host`s are applied, the `requestPolicy` from the `Host` with the first alphabetical `metadata.name` is always the one that is applied. Order does not matter.
+> If a `requestPolicy` is not defined for a `Host`, it's assumed to be `Redirect`, and so even if a host named `a` does not specify it, the default `requestPolicy` of `Redirect` will be applied to all `Host`s in that Ambassador instance.
+>
+> The `insecure-action` can be one of:
+>
+> * `Redirect` (the default): redirect to HTTPS
+> * `Route`: go ahead and route as normal; this will allow handling HTTP requests normally
+> * `Reject`: reject the request with a 400 response
+>
+> The example below does not define a `requestPolicy`; however, this is something to keep in mind as you begin using the `Host` `CRD` in Ambassador.
+>
+> For more information, please refer to the [`Host` documentation](../host-crd#secure-and-insecure-requests).
+
 ### Automatic TLS with ACME
 
 With the Ambassador Edge Stack, the `Host` can be configured to completely 
@@ -74,9 +91,19 @@ The `Host` will configure basic TLS termination settings in Ambassador. If you
 need more advanced TLS options on a domain, such as setting the minimum TLS 
 version, you can do it in one of the following ways.
 
-1. [Create a `TLSContext` with the name `{{HOST}}-context`](#create-a-tlscontext-with-the-name-host-context)
-2. [Link a `TLSContext` to the Host](#link-a-tlscontext-to-the-host)
-3. [Specify TLS configuration in the Host](#specify-tls-configuration-in-the-host)
+- [Transport Layer Security (TLS)](#transport-layer-security-tls)
+  - [`Host`](#host)
+    - [Automatic TLS with ACME](#automatic-tls-with-acme)
+    - [Bring your own certificate](#bring-your-own-certificate)
+    - [`Host` and `TLSContext`](#host-and-tlscontext)
+      - [Create a `TLSContext` with the name `{{HOST}}-context`](#create-a-tlscontext-with-the-name-host-context)
+      - [Link a `TLSContext` to the Host](#link-a-tlscontext-to-the-host)
+      - [Specify TLS configuration in the Host](#specify-tls-configuration-in-the-host)
+  - [TLSContext](#tlscontext)
+    - [`alpn_protocols`](#alpn_protocols)
+      - [HTTP/2 Support](#http2-support)
+    - [TLS Parameters](#tls-parameters)
+  - [TLS `Module` (*Deprecated*)](#tls-module-deprecated)
 
 #### Create a `TLSContext` with the name `{{HOST}}-context`
 

@@ -155,6 +155,21 @@ spec:
 
 The Host is declared here because we are using gRPC without TLS.  Since Ambassador terminates TLS by default, in the Host we add a `requestPolicy` which allows insecure connections. After adding the Ambassador Edge Stack mapping to the service, the rest of the Kubernetes deployment YAML file is pretty straightforward. We need to identify the container image to use, expose the `containerPort` to listen on the same port the Docker container is listening on, and map the service port (80) to the container port (50051).
 
+> **WARNING - Host Configuration:** The `requestPolicy` property of the `Host` `CRD` is applied globally within an Ambassador instance, even if it is applied to only one `Host` when multiple `Host`s are configured. Different `requestPolicy` behaviors cannot be applied to different `Host`s. It is recommended to apply an identical `requestPolicy` to all `Host`s instead of assuming the behavior, to create a more human readable config. 
+> 
+> If you intend to use more than one type of `requestPolicy`, you will need a separate Ambassador instance for each separate type.
+> 
+> If multiple `Host`s are applied, the `requestPolicy` from the `Host` with the first alphabetical `metadata.name` is always the one that is applied. Order does not matter.
+> If a `requestPolicy` is not defined for a `Host`, it's assumed to be `Redirect`, and so even if a host named `a` does not specify it, the default `requestPolicy` of `Redirect` will be applied to all `Host`s in that Ambassador instance.
+>
+> The `insecure-action` can be one of:
+>
+> * `Redirect` (the default): redirect to HTTPS
+> * `Route`: go ahead and route as normal; this will allow handling HTTP requests normally
+> * `Reject`: reject the request with a 400 response
+>
+> For more information, please refer to the [`Host` documentation](../topics/running/host-crd#secure-and-insecure-requests).
+
 Once you have the YAML file and the correct Docker registry, deploy it to your cluster with `kubectl`.
 
 ```
