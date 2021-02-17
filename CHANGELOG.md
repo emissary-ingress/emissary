@@ -70,6 +70,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Bugfix: Many of the Go parts of Ambassador now properly clean up gRPC connections when shutting down.
+- Feature: A scrubbed ambassador snapshot is now accessible outside the pod at `:8005/snapshot-external`. This port is exposed on the ambassador-admin Kubernetes service.
 
 ### Ambassador Edge Stack only
 
