@@ -63,7 +63,13 @@ type thingToWatch struct {
 //       source's specific case in the watcher's select statement.
 //    C. Don't add any more select statements, so that B. above is unambiguous.
 //
-// 3. If you don't fully understand everything above, _do not touch this function without
+// 3. If you add a new channel to watch, you MUST make sure it has a way to let the loop
+//    know whether it saw real changes, so that the short-circuit logic works correctly.
+//    That said, recognize that the way it works now, with the state for the individual
+//    watchers in the watcher() function itself is a crock, and the path forward is to
+//    refactor them into classes that can separate things more cleanly.
+//
+// 4. If you don't fully understand everything above, _do not touch this function without
 //    guidance_.
 func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atomic.Value) {
 	// **** SETUP STARTS for the Kubernetes Watcher
@@ -196,6 +202,11 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 	// Istio certs to look like K8s secrets.
 	snapshot := NewKubernetesSnapshot()  // K8s/Istio Cert Watchers: core state
 	acc := client.Watch(ctx, queries...) // K8s Watcher: state manager
+	// XXX Temporary hack: we currently store the secrets found by the Istio-cert
+	// watcher in the K8s snapshot, but this gives the Istio-cert watcher an easy
+	// way to note that it saw changes. This is important because if any of the
+	// watchers see changes, we can't short-circuit the reconfiguration.
+	istioCertChangesPresent := false
 
 	// **** STATE for the Consul Watcher.
 	//
@@ -206,6 +217,10 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 	// we're interested in.
 	consulSnapshot := &watt.ConsulSnapshot{}   // Consul Watcher: core state
 	consul := newConsul(ctx, &consulWatcher{}) // Consul Watcher: state manager
+	// XXX Temporary hack: give the Consul watcher a trivial way to note that
+	// it saw changes.  This is important because if any of the watchers see
+	// changes, we can't short-circuit the reconfiguration.
+	consulChangesPresent := false // Consul Watcher: core state
 
 	// **** SETUP START for the Istio Cert Watcher
 	//
@@ -309,14 +324,16 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 	for {
 		dlog.Debugf(ctx, "WATCHER: --------")
 
-		// If the only thing that has change is Kubernetes stuff, we can short-circuit
-		// if we see no K8s deltas. If we see non-K8s stuff, though, we need to not do
-		// that.
-		onlyK8sChanged := false
-
 		select {
 		case <-acc.Changed():
+			dlog.Debugf(ctx, "WATCHER: K8s fired")
+
+			// Kubernetes has some changes. There's no k8sChangesPresent variable
+			// because we track K8s deltas -- if we have any when all is said and
+			// done, that's how we know if K8s had real changes.
+
 			stop := katesUpdateTimer.Start()
+
 			// Reset k8sdeltas.
 			k8sdeltas = make([]*kates.Delta, 0)
 
@@ -329,17 +346,17 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 			}
 
 			dlog.Debugf(ctx, "WATCHER: new deltas (%d): %s", len(k8sdeltas), deltaSummary(k8sdeltas))
-
-			// Remember that this is the case where we can short-circuit if we have
-			// no K8s deltas.
-			onlyK8sChanged = true
 			stop()
 
 		case <-consul.changed():
 			dlog.Debugf(ctx, "WATCHER: Consul fired")
 
-			// This is not a K8s-only change.
-			onlyK8sChanged = false
+			// Consul has some changes. The Consul watcher doesn't currently track
+			// deltas the same way that the K8s watcher does, but OTOH anything we
+			// watch in Consul is something that we know we have a reason to care
+			// about. So we can go ahead and declare that we've seen real Consul
+			// changes here.
+			consulChangesPresent = true
 
 			consulUpdateTimer.Time(func() {
 				consul.update(consulSnapshot)
@@ -348,8 +365,14 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 		case icertUpdate := <-istioCertUpdateChannel:
 			dlog.Debugf(ctx, "WATCHER: ICert fired")
 
-			// This is not a K8s-only change.
-			onlyK8sChanged = false
+			// We've seen a change in the Istio cert info on the filesystem. This is
+			// kind of a hack, but let's just go ahead and say that if we see an event
+			// here, it's a real change -- presumably we won't be told to watch Istio
+			// certs if they aren't important.
+			//
+			// XXX Obviously this is a crock and we should actually track whether the
+			// secret is in use.
+			istioCertChangesPresent = true
 
 			// Make a SecretRef for this new secret...
 			ref := snapshotTypes.SecretRef{Name: icertUpdate.Name, Namespace: icertUpdate.Namespace}
@@ -363,6 +386,9 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 				snapshot.FSSecrets[ref] = icertUpdate.Secret
 			}
 			// Once done here, snapshot.ReconcileSecrets will handle the rest.
+
+		// BEFORE ADDING A NEW CHANNEL, READ THE COMMENT AT THE TOP OF THIS
+		// FUNCTION so you don't break the short-circuiting logic.
 
 		case <-ctx.Done():
 			return
@@ -384,16 +410,12 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 			dlog.Debugf(ctx, "WATCHER: filtered deltas (%d): %s", len(k8sdeltas), deltaSummary(k8sdeltas))
 		})
 
-		// If we have no Kubernetes deltas...
-		if len(k8sdeltas) == 0 {
-			// ...and only K8s has changed...
-			if onlyK8sChanged {
-				// ...then we can short-circuit.
-				dlog.Debugf(ctx, "WATCHER: all deltas filtered out")
-				continue
-			}
-
-			dlog.Debugf(ctx, "WATCHER: K8s deltas filtered out, but K8s isn't all that")
+		// Do we have any real changes from any watcher? (For the K8s watcher, we can
+		// check k8sdeltas. For the others, we have booleans to look at.)
+		if (len(k8sdeltas) == 0) && !consulChangesPresent && !istioCertChangesPresent {
+			// Nope, no changes at all -- we can short-circuit.
+			dlog.Debugf(ctx, "WATCHER: all deltas filtered out")
+			continue
 		}
 
 		unsentDeltas = append(unsentDeltas, k8sdeltas...)
