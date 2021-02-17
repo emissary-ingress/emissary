@@ -79,7 +79,6 @@ metadata:
     product: aes
 spec:
   replicas: 1
-  serviceAccountName: {{ include "ambassador.fullname" . }}-agent
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-agent
@@ -98,6 +97,7 @@ spec:
         {{- end }}
         product: aes
     spec:
+      serviceAccountName: {{ include "ambassador.fullname" . }}-agent
       containers:
       - name: ambassador-agent
         image: "{{ .Values.agent.image.repository | default .Values.image.repository }}:{{ .Values.agent.image.tag | default .Values.image.tag }}"
