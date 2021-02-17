@@ -25,8 +25,51 @@ type thingToWatch struct {
 	fieldselector string
 }
 
-// watcher is the thing that watches all the K8s stuff we're interested in.
+// watcher is _the_ thing that watches all the different kinds of Ambassador configuration
+// events that we care about. This right here is pretty much the root of everything flowing
+// into Ambassador from the outside world, so:
+//
+// ******** READ THE FOLLOWING COMMENT CAREFULLY! ********
+//
+// Since this is where _all_ the different kinds of these events (K8s, Consul, filesystem,
+// whatever) are brought together and examined, and where we pass judgement on whether or
+// not a given event is worth reconfiguring Ambassador or not, the interactions between
+// this function and other pieces of the system can be quite a bit more complex than you
+// might expect. There are two really huge things you should be bearing in mind if you
+// need to work on this:
+//
+// 1. The set of things we're watching is not static, but it must converge.
+//
+//    An example: you can set up a Kubernetes watch that finds a KubernetesConsulResolver
+//    resource, which will then prompt a new Consul watch to happen. At present, nothing
+//    that that Consul watch could find is capable of prompting a new Kubernetes watch to
+//    be created. This is important: it would be fairly easy to change things such that
+//    there is a feedback loop where the set of things we watch does not converge on a
+//    stable set. If such a loop exists, fixing it will probably require grokking this
+//    watcher function, kates.Accumulator, and maybe the reconcilers in consul.go and
+//    endpoints.go as well.
+//
+// 2. No one source of input events can be allowed to alter the event stream for another
+//    source.
+//
+//    An example: at one point, a bug in the watcher function resulted in the Kubernetes
+//    watcher being able to decide to short-circuit a watcher iteration -- which had the
+//    effect of allowing the K8s watcher to cause _Consul_ events to be ignored. That's
+//    not OK. To guard against this:
+//
+//    A. Refrain from adding state to the watcher loop.
+//    B. Try very very hard to keep logic that applies to a single source within that
+//       source's specific case in the watcher's select statement.
+//    C. Don't add any more select statements, so that B. above is unambiguous.
+//
+// 3. If you don't fully understand everything above, _do not touch this function without
+//    guidance_.
 func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atomic.Value) {
+	// **** SETUP STARTS for the Kubernetes Watcher
+	//
+	// It's a lot of work to set up the Kubernetes watcher. We're not actually done
+	// until we instantiate our snapshot and accumulator, well below here.
+
 	crdYAML, err := ioutil.ReadFile(findCRDFilename())
 	if err != nil {
 		panic(err)
@@ -135,17 +178,36 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 
 		queries = append(queries, query)
 	}
+	// **** SETUP DONE for the Kubernetes Watcher
 
-	snapshot := NewKubernetesSnapshot()
-	acc := client.Watch(ctx, queries...)
+	// **** STATE for the Kubernetes Watcher and Istio Cert Watcher
+	//
+	// To track Kubernetes things, we need a snapshot and a kates.Accumulator.
+	// The snapshot is an internally-consistent view of the stuff in our K8s
+	// cluster that applies to us; the accumulator is the thing that handles all
+	// the logic around the "internally consistent" part of that statement.
+	//
+	// The snapshot here is also where we store Istio cert state, since we want
+	// Istio certs to look like K8s secrets.
+	snapshot := NewKubernetesSnapshot()  // K8s/Istio Cert Watchers: core state
+	acc := client.Watch(ctx, queries...) // K8s Watcher: state manager
 
-	consulSnapshot := &watt.ConsulSnapshot{}
-	consul := newConsul(ctx, &consulWatcher{})
+	// **** STATE for the Consul Watcher.
+	//
+	// To track Consul things, we again need a (different kind of) snapshot
+	// and a "consul" object. The snapshot, again, is our view of the stuff
+	// in the Consul world that applies to us; the consul object doesn't so
+	// much have to manage consistency as it has to manage what we tell Consul
+	// we're interested in.
+	consulSnapshot := &watt.ConsulSnapshot{}   // Consul Watcher: core state
+	consul := newConsul(ctx, &consulWatcher{}) // Consul Watcher: state manager
 
-	// Time to fire up the stuff we need to watch the filesystem for Istio
-	// certs -- specifically, we need an FSWatcher to watch the filesystem,
-	// an IstioCert to manage the cert, and an update channel to hear about
-	// new Istio stuff.
+	// **** SETUP START for the Istio Cert Watcher
+	//
+	// We can watch the filesystem for Istio mTLS certificates. Here, we fire
+	// up the stuff we need to do that -- specifically, we need an FSWatcher
+	// to watch the filesystem, an IstioCert to manage the cert, and an update
+	// channel to hear about new Istio stuff. The actual
 	//
 	// The actual functionality here is currently keyed off the environment
 	// variable AMBASSADOR_ISTIO_SECRET_DIR, but we set the update channel
@@ -186,10 +248,22 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 			},
 		)
 	}
+	// **** SETUP DONE for the Istio Cert Watcher
 
-	var unsentDeltas []*kates.Delta
+	// **** STATE (again) for the Kubernetes Watcher
+	//
+	// We use kates.Delta objects to indicate to the rest of Ambassador
+	// what has actually changed between one snapshot and the next.
+	var unsentDeltas []*kates.Delta // K8s Watcher: core state
 
-	invalid := map[string]*kates.Unstructured{}
+	// **** STATE (again) for the Kubernetes Watcher
+	//
+	// We use kates.Unstructured objects to indicate to the rest of
+	// Ambassador when we find a poorly-structured object. We also have
+	// a predicate function, isValid, which we use to decide that an
+	// object is invalid.
+	invalid := map[string]*kates.Unstructured{} // K8s Watcher: core state
+
 	isValid := func(un *kates.Unstructured) bool {
 		key := string(un.GetUID())
 		err := validator.Validate(ctx, un)
@@ -204,6 +278,7 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 		}
 	}
 
+	// We have a slew of timers to keep track of things...
 	dbg := debug.FromContext(ctx)
 
 	katesUpdateTimer := dbg.Timer("katesUpdate")
@@ -213,7 +288,10 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 	reconcileSecretsTimer := dbg.Timer("reconcileSecrets")
 	reconcileConsulTimer := dbg.Timer("reconcileConsul")
 
-	firstReconfig := true
+	// **** STATE for the watcher loop itself
+	//
+	// Is this the very first reconfigure we've done?
+	firstReconfig := true // Watcher itself: core state
 
 	for {
 		select {
@@ -228,10 +306,12 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 			}
 			unsentDeltas = append(unsentDeltas, deltas...)
 			stop()
+
 		case <-consul.changed():
 			consulUpdateTimer.Time(func() {
 				consul.update(consulSnapshot)
 			})
+
 		case icertUpdate := <-istioCertUpdateChannel:
 			// Make a SecretRef for this new secret...
 			ref := snapshotTypes.SecretRef{Name: icertUpdate.Name, Namespace: icertUpdate.Namespace}
@@ -245,6 +325,7 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 				snapshot.FSSecrets[ref] = icertUpdate.Secret
 			}
 			// Once done here, snapshot.ReconcileSecrets will handle the rest.
+
 		case <-ctx.Done():
 			return
 		}
@@ -286,17 +367,12 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 			log.Println("Bootstrapped! Computing initial configuration...")
 			firstReconfig = false
 		}
+
+		// Finally, use the reconfigure webhooks to let the rest of Ambassador
+		// know about the new configuration.
 		notifyWebhooksTimer.Time(func() {
 			notifyReconfigWebhooks(ctx, ambwatch)
 		})
-
-		// we really only need to be incremental for a subset of things:
-		//  - Mappings & Endpoints are the biggies
-		//  - TLSContext are probably next
-
-		// for Endpoints, we can probably figure out a way to wire things up where we bypass  python entirely:
-		//   - maybe have the python put in a placeholder that the go code fills in
-		//   - maybe use EDS to pump the endpoint data directly to the cluster
 	}
 }
 
