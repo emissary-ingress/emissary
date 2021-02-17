@@ -1,6 +1,7 @@
 package entrypoint
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	"github.com/datawire/ambassador/pkg/acp"
 	"github.com/datawire/ambassador/pkg/debug"
@@ -124,9 +126,12 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 	// Most of the interestingTypes are static, but it's completely OK to add types based
 	// on runtime considerations, as we do for IngressClass and the KNative stuff.
 	interestingTypes := map[string]thingToWatch{
-		"Services":   {typename: "services."},
-		"K8sSecrets": {typename: "secrets."}, // Note: "K8sSecrets" is not the "obvious" keyname
-		"Endpoints":  {typename: "endpoints.", fieldselector: endpointFs},
+		"Services": {typename: "services."},
+		// Note that we pull secrets into "K8sSecrets" and endpoints into "K8sEndpoints".
+		// ReconcileSecrets and ReconcileEndpoints pull over the ones we need into "Secrets"
+		// and "Endpoints" respectively.
+		"K8sSecrets":   {typename: "secrets."},
+		"K8sEndpoints": {typename: "endpoints.", fieldselector: endpointFs},
 
 		//"Ingresses": {typename: "ingresses.networking.k8s.io"}, // new in Kubernetes 1.14, deprecating ingresses.extensions
 		"Ingresses": {typename: "ingresses.extensions"}, // new in Kubernetes 1.2
@@ -176,6 +181,7 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 		}
 
 		queries = append(queries, query)
+		dlog.Debugf(ctx, "WATCHER: watching %#v", query)
 	}
 	// **** SETUP DONE for the Kubernetes Watcher
 
@@ -253,7 +259,11 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 	//
 	// We use kates.Delta objects to indicate to the rest of Ambassador
 	// what has actually changed between one snapshot and the next.
+	// unsentDeltas buffers deltas across iterations if a non-bootstrapped
+	// watcher short-circuits, while k8sdeltas is just the current deltas
+	// for the Kubernetes watcher during a given iteration.
 	var unsentDeltas []*kates.Delta // K8s Watcher: core state
+	var k8sdeltas []*kates.Delta    // K8s Watcher: core state
 
 	// **** STATE (again) for the Kubernetes Watcher
 	//
@@ -286,32 +296,61 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 	parseAnnotationsTimer := dbg.Timer("parseAnnotations")
 	reconcileSecretsTimer := dbg.Timer("reconcileSecrets")
 	reconcileConsulTimer := dbg.Timer("reconcileConsul")
+	reconcileEndpointsTimer := dbg.Timer("reconcileEndpoints")
 
 	// **** STATE for the watcher loop itself
 	//
 	// Is this the very first reconfigure we've done?
 	firstReconfig := true // Watcher itself: core state
 
+	// If not, what does the previous configuration look like?
+	previousSnapshotJSON := []byte{} // Watcher itself: core state
+
 	for {
+		dlog.Debugf(ctx, "WATCHER: --------")
+
+		// If the only thing that has change is Kubernetes stuff, we can short-circuit
+		// if we see no K8s deltas. If we see non-K8s stuff, though, we need to not do
+		// that.
+		onlyK8sChanged := false
+
 		select {
 		case <-acc.Changed():
 			stop := katesUpdateTimer.Start()
-			var deltas []*kates.Delta
+			// Reset k8sdeltas.
+			k8sdeltas = make([]*kates.Delta, 0)
+
 			// We could probably get a win in some scenarios by using this filtered update thing to
 			// pre-exclude based on ambassador-id.
-			if !acc.FilteredUpdate(snapshot, &deltas, isValid) {
+			if !acc.FilteredUpdate(snapshot, &k8sdeltas, isValid) {
+				dlog.Debugf(ctx, "WATCHER: filtered-update dropped everything")
 				stop()
 				continue
 			}
-			unsentDeltas = append(unsentDeltas, deltas...)
+
+			dlog.Debugf(ctx, "WATCHER: new deltas (%d): %s", len(k8sdeltas), deltaSummary(k8sdeltas))
+
+			// Remember that this is the case where we can short-circuit if we have
+			// no K8s deltas.
+			onlyK8sChanged = true
 			stop()
 
 		case <-consul.changed():
+			dlog.Debugf(ctx, "WATCHER: Consul fired")
+
+			// This is not a K8s-only change.
+			onlyK8sChanged = false
+
 			consulUpdateTimer.Time(func() {
 				consul.update(consulSnapshot)
 			})
 
 		case icertUpdate := <-istioCertUpdateChannel:
+			dlog.Debugf(ctx, "WATCHER: ICert fired")
+
+			// This is not a K8s-only change.
+			onlyK8sChanged = false
+
 			// Make a SecretRef for this new secret...
 			ref := snapshotTypes.SecretRef{Name: icertUpdate.Name, Namespace: icertUpdate.Namespace}
 
@@ -340,6 +379,25 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 			ReconcileConsul(ctx, consul, snapshot)
 		})
 
+		reconcileEndpointsTimer.Time(func() {
+			k8sdeltas = ReconcileEndpoints(ctx, snapshot, k8sdeltas)
+			dlog.Debugf(ctx, "WATCHER: filtered deltas (%d): %s", len(k8sdeltas), deltaSummary(k8sdeltas))
+		})
+
+		// If we have no Kubernetes deltas...
+		if len(k8sdeltas) == 0 {
+			// ...and only K8s has changed...
+			if onlyK8sChanged {
+				// ...then we can short-circuit.
+				dlog.Debugf(ctx, "WATCHER: all deltas filtered out")
+				continue
+			}
+
+			dlog.Debugf(ctx, "WATCHER: K8s deltas filtered out, but K8s isn't all that")
+		}
+
+		unsentDeltas = append(unsentDeltas, k8sdeltas...)
+
 		if !consul.isBootstrapped() {
 			continue
 		}
@@ -357,11 +415,37 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 		}
 		unsentDeltas = nil
 
-		bytes, err := json.MarshalIndent(sn, "", "  ")
+		snapshotJSON, err := json.MarshalIndent(sn, "", "  ")
 		if err != nil {
 			panic(err)
 		}
-		encoded.Store(bytes)
+
+		if envbool("AMBASSADOR_WATCHER_SNAPLOG") {
+			snpath := time.Now().Format("/tmp/20060102T030405-snap.json")
+
+			err = ioutil.WriteFile(snpath, snapshotJSON, 0777)
+
+			if err != nil {
+				dlog.Errorf(ctx, "WATCHER: could not save snapshot to %s: %s", snpath, err)
+			} else {
+				dlog.Debugf(ctx, "WATCHER: saved snapshot as %s", snpath)
+			}
+		}
+
+		// If our current snapshot is the same as our previous snapshot, skip
+		// it and wait for next time.
+		if bytes.Equal(snapshotJSON, previousSnapshotJSON) {
+			dlog.Debugf(ctx, "WATCHER: Short-circuiting: identical snapshots")
+			continue
+		}
+
+		dlog.Debugf(ctx, "WATCHER: use new snapshot (%d bytes, old is %d bytes)", len(snapshotJSON), len(previousSnapshotJSON))
+
+		// Update previousSnapshotJSON for next time...
+		previousSnapshotJSON = snapshotJSON
+
+		// ...then stash this snapshot and fire off webhooks.
+		encoded.Store(snapshotJSON)
 		if firstReconfig {
 			dlog.Debugf(ctx, "WATCHER: Bootstrapped! Computing initial configuration...")
 			firstReconfig = false

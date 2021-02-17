@@ -44,7 +44,9 @@ type KubernetesSnapshot struct {
 	IngressClasses []*kates.IngressClass `json:"ingressclasses"`
 	Ingresses      []*kates.Ingress      `json:"ingresses"`
 	Services       []*kates.Service      `json:"service"`
-	Endpoints      []*kates.Endpoints    `json:"Endpoints"`
+
+	K8sEndpoints []*kates.Endpoints `json:"-"`         // Endpoints from Kubernetes
+	Endpoints    []*kates.Endpoints `json:"Endpoints"` // Endpoints we'll actually feed to Ambassador
 
 	// ambassador resources
 	Hosts       []*amb.Host       `json:"Host"`
