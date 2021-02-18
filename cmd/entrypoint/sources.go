@@ -1,0 +1,16 @@
+package entrypoint
+
+import (
+	"context"
+
+	"github.com/datawire/ambassador/pkg/kates"
+)
+
+type K8sSource interface {
+	Watch(ctx context.Context, queries ...kates.Query) K8sWatcher
+}
+
+type K8sWatcher interface {
+	Changed() chan struct{}
+	FilteredUpdate(target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool
+}

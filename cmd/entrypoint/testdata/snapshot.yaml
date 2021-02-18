@@ -1,0 +1,18 @@
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: foo
+  namespace: default
+spec:
+  prefix: /foo
+  service: foo
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: bar
+  namespace: default
+spec:
+  prefix: /bar
+  service: bar
