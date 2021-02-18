@@ -42,7 +42,6 @@ metadata:
   name: ambassador-agent
   namespace: ambassador
 spec:
-  serviceAccountName: ambassador-agent
   replicas: 1
   selector:
     matchLabels:
@@ -54,6 +53,7 @@ spec:
         app.kubernetes.io/instance: ambassador
         app.kubernetes.io/name: ambassador-agent
     spec:
+      serviceAccountName: ambassador-agent
       containers:
       - command:
         - agent
