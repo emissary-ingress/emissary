@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"sync/atomic"
@@ -17,13 +16,6 @@ import (
 	"github.com/datawire/ambassador/pkg/watt"
 	"github.com/datawire/dlib/dlog"
 )
-
-// thingToWatch is... uh... a thing we're gonna watch. Specifically, it's a
-// K8s type name and an optional field selector.
-type thingToWatch struct {
-	typename      string
-	fieldselector string
-}
 
 func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atomic.Value) {
 	client, err := kates.NewClient(kates.ClientConfig{})
@@ -381,105 +373,4 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 			notify(ctx)
 		})
 	}
-}
-
-func GetQueries(ctx context.Context, interestingTypes map[string]thingToWatch) []kates.Query {
-	ns := kates.NamespaceAll
-	if IsAmbassadorSingleNamespace() {
-		ns = GetAmbassadorNamespace()
-	}
-
-	fs := GetAmbassadorFieldSelector()
-	ls := GetAmbassadorLabelSelector()
-
-	var queries []kates.Query
-	for snapshotname, queryinfo := range interestingTypes {
-		query := kates.Query{
-			Namespace:     ns,
-			Name:          snapshotname,
-			Kind:          queryinfo.typename,
-			FieldSelector: queryinfo.fieldselector,
-			LabelSelector: ls,
-		}
-		if query.FieldSelector == "" {
-			query.FieldSelector = fs
-		}
-
-		queries = append(queries, query)
-		dlog.Debugf(ctx, "WATCHER: watching %#v", query)
-	}
-
-	return queries
-}
-
-func GetInterestingTypes(ctx context.Context, serverTypeList []kates.APIResource) map[string]thingToWatch {
-	fs := GetAmbassadorFieldSelector()
-	endpointFs := "metadata.namespace!=kube-system"
-	if fs != "" {
-		endpointFs += fmt.Sprintf(",%s", fs)
-	}
-
-	// We set interestingTypes to the list of types that we'd like to watch (if that type exits
-	// in this cluster).
-	//
-	// - The key in the map is the how we'll label them in the snapshot we pass to the rest of
-	//   Ambassador.
-	// - The typename in the map values should be the qualified "${name}.${group}", where
-	//   "${name} is lowercase+plural.
-	// - If the map value doesn't set a field selector, then `fs` (above) will be used.
-	//
-	// Most of the interestingTypes are static, but it's completely OK to add types based
-	// on runtime considerations, as we do for IngressClass and the KNative stuff.
-	interestingTypes := map[string]thingToWatch{
-		"Services": {typename: "services."},
-		// Note that we pull secrets into "K8sSecrets" and endpoints into "K8sEndpoints".
-		// ReconcileSecrets and ReconcileEndpoints pull over the ones we need into "Secrets"
-		// and "Endpoints" respectively.
-		"K8sSecrets":   {typename: "secrets."},
-		"K8sEndpoints": {typename: "endpoints.", fieldselector: endpointFs},
-
-		//"Ingresses": {typename: "ingresses.networking.k8s.io"}, // new in Kubernetes 1.14, deprecating ingresses.extensions
-		"Ingresses": {typename: "ingresses.extensions"}, // new in Kubernetes 1.2
-
-		"AuthServices":                {typename: "authservices.getambassador.io"},
-		"ConsulResolvers":             {typename: "consulresolvers.getambassador.io"},
-		"DevPortals":                  {typename: "devportals.getambassador.io"},
-		"Hosts":                       {typename: "hosts.getambassador.io"},
-		"KubernetesEndpointResolvers": {typename: "kubernetesendpointresolvers.getambassador.io"},
-		"KubernetesServiceResolvers":  {typename: "kubernetesserviceresolvers.getambassador.io"},
-		"LogServices":                 {typename: "logservices.getambassador.io"},
-		"Mappings":                    {typename: "mappings.getambassador.io"},
-		"Modules":                     {typename: "modules.getambassador.io"},
-		"RateLimitServices":           {typename: "ratelimitservices.getambassador.io"},
-		"TCPMappings":                 {typename: "tcpmappings.getambassador.io"},
-		"TLSContexts":                 {typename: "tlscontexts.getambassador.io"},
-		"TracingServices":             {typename: "tracingservices.getambassador.io"},
-	}
-
-	if !IsAmbassadorSingleNamespace() {
-		interestingTypes["IngressClasses"] = thingToWatch{typename: "ingressclasses.networking.k8s.io"} // new in Kubernetes 1.18
-	}
-
-	if IsKnativeEnabled() {
-		// Note: These keynames have a "KNative" prefix, to avoid clashing with the
-		// standard "networking.k8s.io" and "extensions" types.
-		interestingTypes["KNativeClusterIngresses"] = thingToWatch{typename: "clusteringresses.networking.internal.knative.dev"}
-		interestingTypes["KNativeIngresses"] = thingToWatch{typename: "ingresses.networking.internal.knative.dev"}
-	}
-
-	if serverTypeList != nil {
-		serverTypes := make(map[string]kates.APIResource, len(serverTypeList))
-		for _, typeinfo := range serverTypeList {
-			serverTypes[typeinfo.Name+"."+typeinfo.Group] = typeinfo
-		}
-
-		for k, queryinfo := range interestingTypes {
-			if _, haveType := serverTypes[queryinfo.typename]; !haveType {
-				dlog.Infof(ctx, "Warning, unable to watch %s, unknown kind.", queryinfo.typename)
-				delete(interestingTypes, k)
-			}
-		}
-	}
-
-	return interestingTypes
 }
