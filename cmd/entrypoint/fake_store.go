@@ -3,6 +3,7 @@ package entrypoint
 import (
 	"fmt"
 	"io/ioutil"
+	"sort"
 	"strings"
 	"sync"
 
@@ -15,6 +16,7 @@ import (
 // cursors that can be used to track multiple watches independently consuming the deltas at
 // different rates.
 type K8sStore struct {
+	// The mutex protects the entire struct, including any cursors that may have been created.
 	mutex     sync.Mutex
 	resources map[K8sKey]kates.Object
 	// This tracks every delta forever. That's ok because we only use this for tests, so we want to
@@ -27,6 +29,10 @@ type K8sKey struct {
 	Kind      string
 	Namespace string
 	Name      string
+}
+
+func (k K8sKey) sortKey() string {
+	return fmt.Sprintf("%s:%s:%s", k.Kind, k.Namespace, k.Name)
 }
 
 // NewK8sStore creates a new and empty store.
@@ -112,7 +118,8 @@ func (kc *K8sStoreCursor) Get() (map[K8sKey]kates.Object, []*kates.Delta) {
 	var deltas []*kates.Delta
 
 	resources := map[K8sKey]kates.Object{}
-	for key, resource := range kc.store.resources {
+	for _, key := range sortedKeys(kc.store.resources) {
+		resource := kc.store.resources[key]
 		resources[key] = resource
 		// This is the first time Get() has been called, so we shall create a synthetic ADD delta
 		// for every resource that currently exists.
@@ -127,6 +134,19 @@ func (kc *K8sStoreCursor) Get() (map[K8sKey]kates.Object, []*kates.Delta) {
 	kc.offset = len(kc.store.deltas)
 
 	return resources, deltas
+}
+
+func sortedKeys(resources map[K8sKey]kates.Object) []K8sKey {
+	var keys []K8sKey
+	for k := range resources {
+		keys = append(keys, k)
+	}
+
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i].sortKey() < keys[j].sortKey()
+	})
+
+	return keys
 }
 
 func canon(kind string) string {

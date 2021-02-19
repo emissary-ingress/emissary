@@ -27,18 +27,18 @@ func TestStore(t *testing.T) {
 	assert.Equal(t, 2, len(resourcesEarly))
 	require.Equal(t, 2, len(deltasEarly))
 	assert.Equal(t, kates.ObjectAdd, deltasEarly[0].DeltaType)
-	assert.Equal(t, "foo", deltasEarly[0].Name)
+	assert.Equal(t, "bar", deltasEarly[0].Name)
 	assert.Equal(t, kates.ObjectAdd, deltasEarly[1].DeltaType)
-	assert.Equal(t, "bar", deltasEarly[1].Name)
+	assert.Equal(t, "foo", deltasEarly[1].Name)
 
 	// Make sure we see the synthetic deltas.
 	resourcesLate, deltasLate := cLate.Get()
 	assert.Equal(t, 2, len(resourcesLate))
 	require.Equal(t, 2, len(deltasLate))
 	assert.Equal(t, kates.ObjectAdd, deltasLate[0].DeltaType)
-	assert.Equal(t, "foo", deltasLate[0].Name)
+	assert.Equal(t, "bar", deltasLate[0].Name)
 	assert.Equal(t, kates.ObjectAdd, deltasLate[1].DeltaType)
-	assert.Equal(t, "bar", deltasLate[1].Name)
+	assert.Equal(t, "foo", deltasLate[1].Name)
 
 	// Now let's update an object.
 	fooKey := entrypoint.K8sKey{"Mapping", "default", "foo"}
