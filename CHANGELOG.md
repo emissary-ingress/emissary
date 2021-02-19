@@ -67,7 +67,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
-(no changes yet)
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Bugfix: Make Knative paths match on prefix instead of the entire path to better align to the Knative specification ([#3224]).
+
+[#3224]: https://github.com/datawire/ambassador/issues/3224
 
 ## [1.12.0] March 08, 2021
 [1.12.0]: https://github.com/datawire/ambassador/compare/v1.11.2...v1.12.0
