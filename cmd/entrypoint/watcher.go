@@ -161,6 +161,13 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 	for {
 		dlog.Debugf(ctx, "WATCHER: --------")
 
+		// XXX Hack: the istioCertWatchManager needs to reset at the start of the
+		// loop, for now. A better way, I think, will be to instead track deltas in
+		// ReconcileSecrets -- that way we can ditch this crap and Istio-cert changes
+		// that somehow don't generate an actual change will still not trigger a
+		// reconfigure.
+		istio.StartLoop(ctx)
+
 		select {
 		case <-k8s.Changed():
 			// Kubernetes has some changes, so we need to handle them.

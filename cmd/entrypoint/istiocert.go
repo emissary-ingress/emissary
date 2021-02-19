@@ -135,6 +135,12 @@ func (imgr *istioCertWatchManager) Update(ctx context.Context, icertUpdate Istio
 	// Once done here, k8s.snapshot.ReconcileSecrets will handle the rest.
 }
 
+// StartLoop sets up the istioCertWatchManager for the start of the watcher loop.
+func (imgr *istioCertWatchManager) StartLoop(ctx context.Context) {
+	// Start every loop by assuming that no changes are present.
+	imgr.changesPresent = false
+}
+
 // UpdatesPresent returns whether or not any significant updates have actually
 // happened.
 func (imgr *istioCertWatchManager) UpdatesPresent() bool {
