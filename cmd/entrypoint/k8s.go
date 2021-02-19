@@ -67,6 +67,11 @@ func (k8s *k8sWatchManager) Update(ctx context.Context, isValid func(un *kates.U
 	return true
 }
 
+// UpdatesPresent returns whether or not any updates are present.
+func (k8s *k8sWatchManager) UpdatesPresent() bool {
+	return (len(k8s.deltas) > 0)
+}
+
 // newK8sWatchManager returns a new K8sWatchManager. I know, profound.
 func newK8sWatchManager(ctx context.Context, watcher K8sWatcher) *k8sWatchManager {
 	k8s := k8sWatchManager{

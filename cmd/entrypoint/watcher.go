@@ -222,9 +222,8 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 			dlog.Debugf(ctx, "WATCHER: filtered deltas (%d): %s", len(k8s.deltas), deltaSummary(k8s.deltas))
 		})
 
-		// Do we have any real changes from any watcher? (For the K8s watcher, we can
-		// check k8s.deltas. For the others, we have booleans to look at.)
-		if (len(k8s.deltas) == 0) && !consulChangesPresent && !istio.changesPresent {
+		// Do we have any real changes from any watcher?
+		if !k8s.UpdatesPresent() && !consulChangesPresent && !istio.UpdatesPresent() {
 			// Nope, no changes at all -- we can short-circuit.
 			dlog.Debugf(ctx, "WATCHER: all deltas filtered out")
 			continue

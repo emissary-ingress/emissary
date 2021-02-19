@@ -135,6 +135,12 @@ func (imgr *istioCertWatchManager) Update(ctx context.Context, icertUpdate Istio
 	// Once done here, k8s.snapshot.ReconcileSecrets will handle the rest.
 }
 
+// UpdatesPresent returns whether or not any significant updates have actually
+// happened.
+func (imgr *istioCertWatchManager) UpdatesPresent() bool {
+	return imgr.changesPresent
+}
+
 // newIstioCertWatchManager returns... a new istioCertWatchManager.
 func newIstioCertWatchManager(ctx context.Context, watcher IstioCertWatcher) *istioCertWatchManager {
 	istio := istioCertWatchManager{
