@@ -4,12 +4,146 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
 	"time"
 
 	"github.com/datawire/ambassador/pkg/kates"
+	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
+
+// The IstioCertSource and IstioCertWatcher interfaces exist to allow dependency
+// injection while testing the watcher. What you see here are the production
+// implementations:
+//
+// istioCertSource implements IstioCertSource: its Watch() method returns an
+// istioCertWatcher, which implements IstioCertWatcher in turn.
+type istioCertSource struct {
+}
+
+type istioCertWatcher struct {
+	updateChannel chan IstioCertUpdate
+}
+
+func newIstioCertSource() IstioCertSource {
+	return &istioCertSource{}
+}
+
+// Watch sets up to watch for an Istio cert on the filesystem, if need be. This
+// is the production implementation, which returns an istioCertWatcher to implement
+// the IstioCertWatcher interface.
+func (src *istioCertSource) Watch(ctx context.Context) IstioCertWatcher {
+	// We can watch the filesystem for Istio mTLS certificates. Here, we fire
+	// up the stuff we need to do that -- specifically, we need an FSWatcher
+	// to watch the filesystem, an IstioCert to manage the cert, and an update
+	// channel to hear about new Istio stuff.
+	//
+	// The actual functionality here is currently keyed off the environment
+	// variable AMBASSADOR_ISTIO_SECRET_DIR, but we set the update channel
+	// either way to keep the select logic below simpler. If the environment
+	// variable is unset, we never instantiate the FSWatcher or IstioCert,
+	// so there will never be any updates on the update channel.
+	istioCertUpdateChannel := make(chan IstioCertUpdate)
+
+	// OK. Are we supposed to watch anything?
+	secretDir := os.Getenv("AMBASSADOR_ISTIO_SECRET_DIR")
+
+	if secretDir != "" {
+		// Yup, get to it. First, fire up the IstioCert, and tell it to
+		// post to our update channel from above.
+		icert := NewIstioCert(secretDir, "istio-certs", GetAmbassadorNamespace(), istioCertUpdateChannel)
+
+		// Next up, fire up the FSWatcher...
+		fsw, err := NewFSWatcher(ctx)
+
+		if err != nil {
+			// Really, this should never, ever happen.
+			panic(err)
+		}
+
+		// ...then tell the FSWatcher to watch the Istio cert directory,
+		// and give it a handler function that'll update the IstioCert
+		// in turn.
+		//
+		// XXX This handler function is really just an impedance matcher.
+		// Maybe IstioCert should just have a "HandleFSWEvent"...
+		fsw.WatchDir(ctx, secretDir,
+			func(ctx context.Context, event FSWEvent) {
+				// Is this a deletion?
+				deleted := (event.Op == FSWDelete)
+
+				// OK. Feed this event into the IstioCert.
+				icert.HandleEvent(ctx, event.Path, deleted)
+			},
+		)
+	}
+
+	return &istioCertWatcher{
+		updateChannel: istioCertUpdateChannel,
+	}
+}
+
+// Changed returns the channel where Istio certificates will appear.
+func (istio *istioCertWatcher) Changed() chan IstioCertUpdate {
+	return istio.updateChannel
+}
+
+// istioCertWatchManager is the interface between all the Istio-cert-watching stuff
+// and the watcher (in watcher.go).
+type istioCertWatchManager struct {
+	// XXX Temporary hack: we currently store the secrets found by the Istio-cert
+	// watcher in the K8s snapshot, but this gives the Istio-cert watcher an easy
+	// way to note that it saw changes. This is important because if any of the
+	// watchers see changes, we can't short-circuit the reconfiguration.
+	watcher        IstioCertWatcher
+	changesPresent bool
+}
+
+// Changed returns a channel to listen on for change notifications dealing with
+// Istio cert stuff.
+func (imgr *istioCertWatchManager) Changed() chan IstioCertUpdate {
+	return imgr.watcher.Changed()
+}
+
+// Update actually does the work of updating our internal state with changes. The
+// istioCertWatchManager isn't allowed to short-circuit early: it's assumed that
+// any update is relevant.
+func (imgr *istioCertWatchManager) Update(ctx context.Context, icertUpdate IstioCertUpdate, k8s *k8sWatchManager) {
+	dlog.Debugf(ctx, "WATCHER: ICert fired")
+
+	// We've seen a change in the Istio cert info on the filesystem. This is
+	// kind of a hack, but let's just go ahead and say that if we see an event
+	// here, it's a real change -- presumably we won't be told to watch Istio
+	// certs if they aren't important.
+	//
+	// XXX Obviously this is a crock and we should actually track whether the
+	// secret is in use.
+	imgr.changesPresent = true
+
+	// Make a SecretRef for this new secret...
+	ref := snapshotTypes.SecretRef{Name: icertUpdate.Name, Namespace: icertUpdate.Namespace}
+
+	// ...and delete or save, as appropriate.
+	if icertUpdate.Op == "delete" {
+		dlog.Infof(ctx, "IstioCert: certificate %s.%s deleted", icertUpdate.Name, icertUpdate.Namespace)
+		delete(k8s.snapshot.FSSecrets, ref)
+	} else {
+		dlog.Infof(ctx, "IstioCert: certificate %s.%s updated", icertUpdate.Name, icertUpdate.Namespace)
+		k8s.snapshot.FSSecrets[ref] = icertUpdate.Secret
+	}
+	// Once done here, k8s.snapshot.ReconcileSecrets will handle the rest.
+}
+
+// newIstioCertWatchManager returns... a new istioCertWatchManager.
+func newIstioCertWatchManager(ctx context.Context, watcher IstioCertWatcher) *istioCertWatchManager {
+	istio := istioCertWatchManager{
+		watcher:        watcher,
+		changesPresent: false,
+	}
+
+	return &istio
+}
 
 // Istio TLS certificates are annoying. They come in three parts (only two of
 // which are needed), they're updated non-atomically, and we need to make sure we

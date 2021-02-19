@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
-	"os"
 	"sync/atomic"
 	"time"
 
@@ -39,7 +38,11 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 		notifyReconfigWebhooks(ctx, ambwatch)
 	}
 
-	watcherLoop(ctx, encoded, newK8sSource(client), queries, &consulWatcher{}, notify)
+	k8sSrc := newK8sSource(client)
+	consulSrc := &consulWatcher{}
+	istioCertSrc := newIstioCertSource()
+
+	watcherLoop(ctx, encoded, k8sSrc, queries, consulSrc, istioCertSrc, notify)
 }
 
 // watcher is _the_ thing that watches all the different kinds of Ambassador configuration
@@ -87,11 +90,16 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 //
 // 4. If you don't fully understand everything above, _do not touch this function without
 //    guidance_.
-func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, queries []kates.Query, consulWatcher Watcher, notify func(context.Context)) {
+func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, queries []kates.Query,
+	consulWatcher Watcher, istioCertSrc IstioCertSource, notify func(context.Context)) {
 	// Synthesize the low(ish)-level Kubernetes watcher, then use it to synthesize
 	// the Kubernetes watch manager.
 	k8sWatcher := k8sSrc.Watch(ctx, queries...)
 	k8s := newK8sWatchManager(ctx, k8sWatcher)
+
+	// Likewise for the Istio cert watcher and manager.
+	istioCertWatcher := istioCertSrc.Watch(ctx)
+	istio := newIstioCertWatchManager(ctx, istioCertWatcher)
 
 	consul := newConsul(ctx, consulWatcher) // Consul Watcher: state manager
 
@@ -99,13 +107,6 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 	//
 	// It's a lot of work to set up the Kubernetes watcher. We're not actually done
 	// until we instantiate our snapshot and accumulator, well below here.
-
-	// **** STATE for the Istio Cert Watcher
-	// XXX Temporary hack: we currently store the secrets found by the Istio-cert
-	// watcher in the K8s snapshot, but this gives the Istio-cert watcher an easy
-	// way to note that it saw changes. This is important because if any of the
-	// watchers see changes, we can't short-circuit the reconfiguration.
-	istioCertChangesPresent := false
 
 	// **** STATE for the Consul Watcher.
 	//
@@ -119,54 +120,6 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 	// it saw changes.  This is important because if any of the watchers see
 	// changes, we can't short-circuit the reconfiguration.
 	consulChangesPresent := false // Consul Watcher: core state
-
-	// **** SETUP START for the Istio Cert Watcher
-	//
-	// We can watch the filesystem for Istio mTLS certificates. Here, we fire
-	// up the stuff we need to do that -- specifically, we need an FSWatcher
-	// to watch the filesystem, an IstioCert to manage the cert, and an update
-	// channel to hear about new Istio stuff. The actual
-	//
-	// The actual functionality here is currently keyed off the environment
-	// variable AMBASSADOR_ISTIO_SECRET_DIR, but we set the update channel
-	// either way to keep the select logic below simpler. If the environment
-	// variable is unset, we never instantiate the FSWatcher or IstioCert,
-	// so there will never be any updates on the update channel.
-	istioCertUpdateChannel := make(chan IstioCertUpdate)
-
-	// OK. Are we supposed to watch anything?
-	secretDir := os.Getenv("AMBASSADOR_ISTIO_SECRET_DIR")
-
-	if secretDir != "" {
-		// Yup, get to it. First, fire up the IstioCert, and tell it to
-		// post to our update channel from above.
-		icert := NewIstioCert(secretDir, "istio-certs", GetAmbassadorNamespace(), istioCertUpdateChannel)
-
-		// Next up, fire up the FSWatcher...
-		fsw, err := NewFSWatcher(ctx)
-
-		if err != nil {
-			// Really, this should never, ever happen.
-			panic(err)
-		}
-
-		// ...then tell the FSWatcher to watch the Istio cert directory,
-		// and give it a handler function that'll update the IstioCert
-		// in turn.
-		//
-		// XXX This handler function is really just an impedance matcher.
-		// Maybe IstioCert should just have a "HandleFSWEvent"...
-		fsw.WatchDir(ctx, secretDir,
-			func(ctx context.Context, event FSWEvent) {
-				// Is this a deletion?
-				deleted := (event.Op == FSWDelete)
-
-				// OK. Feed this event into the IstioCert.
-				icert.HandleEvent(ctx, event.Path, deleted)
-			},
-		)
-	}
-	// **** SETUP DONE for the Istio Cert Watcher
 
 	// **** STATE (again) for the Kubernetes Watcher
 	//
@@ -190,6 +143,7 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 
 	katesUpdateTimer := dbg.Timer("katesUpdate")
 	consulUpdateTimer := dbg.Timer("consulUpdate")
+	istioCertUpdateTimer := dbg.Timer("istioCertUpdate")
 	notifyWebhooksTimer := dbg.Timer("notifyWebhooks")
 	parseAnnotationsTimer := dbg.Timer("parseAnnotations")
 	reconcileSecretsTimer := dbg.Timer("reconcileSecrets")
@@ -239,30 +193,11 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 				consul.update(consulSnapshot)
 			})
 
-		case icertUpdate := <-istioCertUpdateChannel:
-			dlog.Debugf(ctx, "WATCHER: ICert fired")
-
-			// We've seen a change in the Istio cert info on the filesystem. This is
-			// kind of a hack, but let's just go ahead and say that if we see an event
-			// here, it's a real change -- presumably we won't be told to watch Istio
-			// certs if they aren't important.
-			//
-			// XXX Obviously this is a crock and we should actually track whether the
-			// secret is in use.
-			istioCertChangesPresent = true
-
-			// Make a SecretRef for this new secret...
-			ref := snapshotTypes.SecretRef{Name: icertUpdate.Name, Namespace: icertUpdate.Namespace}
-
-			// ...and delete or save, as appropriate.
-			if icertUpdate.Op == "delete" {
-				dlog.Infof(ctx, "IstioCert: certificate %s.%s deleted", icertUpdate.Name, icertUpdate.Namespace)
-				delete(k8s.snapshot.FSSecrets, ref)
-			} else {
-				dlog.Infof(ctx, "IstioCert: certificate %s.%s updated", icertUpdate.Name, icertUpdate.Namespace)
-				k8s.snapshot.FSSecrets[ref] = icertUpdate.Secret
-			}
-			// Once done here, k8s.snapshot.ReconcileSecrets will handle the rest.
+		case icertUpdate := <-istio.Changed():
+			// The Istio cert has some changes, so we need to handle them.
+			istioCertUpdateTimer.Time(func() {
+				istio.Update(ctx, icertUpdate, k8s)
+			})
 
 		// BEFORE ADDING A NEW CHANNEL, READ THE COMMENT AT THE TOP OF THIS
 		// FUNCTION so you don't break the short-circuiting logic.
@@ -289,7 +224,7 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 
 		// Do we have any real changes from any watcher? (For the K8s watcher, we can
 		// check k8s.deltas. For the others, we have booleans to look at.)
-		if (len(k8s.deltas) == 0) && !consulChangesPresent && !istioCertChangesPresent {
+		if (len(k8s.deltas) == 0) && !consulChangesPresent && !istio.changesPresent {
 			// Nope, no changes at all -- we can short-circuit.
 			dlog.Debugf(ctx, "WATCHER: all deltas filtered out")
 			continue
