@@ -15,7 +15,17 @@ import (
 	"github.com/datawire/ambassador/pkg/debug"
 )
 
-func notifyReconfigWebhooks(ctx context.Context, ambwatch *acp.AmbassadorWatcher) {
+type notable interface {
+	NoteSnapshotSent()
+	NoteSnapshotProcessed()
+}
+
+type noopNotable struct{}
+
+func (_ *noopNotable) NoteSnapshotSent()      {}
+func (_ *noopNotable) NoteSnapshotProcessed() {}
+
+func notifyReconfigWebhooks(ctx context.Context, ambwatch notable) {
 	// XXX: last N snapshots?
 	snapshotUrl := url.QueryEscape("http://localhost:9696/snapshot")
 
