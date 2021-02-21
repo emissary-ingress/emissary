@@ -213,7 +213,7 @@ type Validatable interface {
 	Validate() error
 }
 
-func decode(name string) (proto.Message, error) {
+func Decode(name string) (proto.Message, error) {
 	any := &any.Any{}
 	contents, err := ioutil.ReadFile(name)
 	if err != nil {
@@ -289,7 +289,7 @@ func update(ctx context.Context, config cache.SnapshotCache, generation *int, di
 	}
 
 	for _, name := range filenames {
-		m, e := decode(name)
+		m, e := Decode(name)
 		if e != nil {
 			log.Warnf("%s: %v", name, e)
 			continue
