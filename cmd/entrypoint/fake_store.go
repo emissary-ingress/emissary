@@ -52,6 +52,9 @@ func (k *K8sStore) Upsert(resource kates.Object) {
 	defer k.mutex.Unlock()
 
 	gvk := resource.GetObjectKind().GroupVersionKind()
+	if resource.GetNamespace() == "" {
+		resource.SetNamespace("default")
+	}
 
 	key := K8sKey{canon(gvk.Kind), resource.GetNamespace(), resource.GetName()}
 	_, ok := k.resources[key]

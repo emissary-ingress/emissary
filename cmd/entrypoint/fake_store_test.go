@@ -108,3 +108,14 @@ func TestStore(t *testing.T) {
 	assert.Equal(t, kates.ObjectAdd, deltasLate[0].DeltaType)
 	assert.Equal(t, "foo", deltasLate[0].Name)
 }
+
+func TestNamespaceDefault(t *testing.T) {
+	store := entrypoint.NewK8sStore()
+	store.UpsertFile("testdata/NamespaceDefault.yaml")
+	c := store.Cursor()
+	resources, _ := c.Get()
+	assert.NotEmpty(t, resources)
+	for _, r := range resources {
+		assert.Equal(t, "default", r.GetNamespace())
+	}
+}
