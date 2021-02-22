@@ -142,7 +142,8 @@ func (f *Fake) Setup() {
 		})
 
 		f.group.Go("diagd", func(ctx context.Context) error {
-			cmd := subcommand(ctx, "diagd", "/tmp", "/tmp/bootsrap-ads.json", "/tmp/envoy.json", "--no-envoy")
+			cmd := subcommand(ctx, "diagd", "/tmp", "/tmp/bootsrap-ads.json", "/tmp/envoy.json", "--no-envoy",
+				"--host", "127.0.0.1", "--port", GetDiagdBindPort())
 			if envbool("DEV_SHUTUP_DIAGD") {
 				cmd.Stdout = nil
 				cmd.Stderr = nil
