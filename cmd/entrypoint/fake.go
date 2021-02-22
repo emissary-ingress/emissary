@@ -265,6 +265,11 @@ func (f *Fake) ConsulEndpoint(datacenter, service, address string, port int, tag
 	f.consulNotifier.Changed()
 }
 
+// SendIstioCertUpdate sends the supplied Istio certificate update.
+func (f *Fake) SendIstioCertUpdate(update IstioCertUpdate) {
+	f.istioCertSource.updateChannel <- update
+}
+
 type fakeK8sSource struct {
 	fake  *Fake
 	store *K8sStore
@@ -359,12 +364,13 @@ func (f *fakeStopper) Stop() {
 }
 
 type fakeIstioCertSource struct {
+	updateChannel chan IstioCertUpdate
 }
 
 func (src *fakeIstioCertSource) Watch(ctx context.Context) IstioCertWatcher {
-	fakeChannel := make(chan IstioCertUpdate)
+	src.updateChannel = make(chan IstioCertUpdate)
 
 	return &istioCertWatcher{
-		updateChannel: fakeChannel,
+		updateChannel: src.updateChannel,
 	}
 }
