@@ -55,9 +55,9 @@ type Fake struct {
 	group  *dgroup.Group
 	cancel context.CancelFunc
 
-	k8sSource *fakeK8sSource
-	watcher   *fakeWatcher
-
+	k8sSource       *fakeK8sSource
+	watcher         *fakeWatcher
+	istioCertSource *fakeIstioCertSource
 	// This group of fields are used to store kubernetes resources and consul endpoint data and
 	// provide explicit control over when changes to that data are sent to the control plane.
 	k8sStore       *K8sStore
@@ -114,6 +114,7 @@ func NewFake(t *testing.T, config FakeConfig) *Fake {
 
 	fake.k8sSource = &fakeK8sSource{fake: fake, store: k8sStore}
 	fake.watcher = &fakeWatcher{fake: fake, store: consulStore}
+	fake.istioCertSource = &fakeIstioCertSource{}
 
 	return fake
 }
@@ -179,7 +180,7 @@ func (f *Fake) runWatcher(ctx context.Context) error {
 			err = r.(error)
 		}
 	}()
-	watcherLoop(ctx, f.currentSnapshot, f.k8sSource, queries, f.watcher, f.notifySnapshot)
+	watcherLoop(ctx, f.currentSnapshot, f.k8sSource, queries, f.watcher, f.istioCertSource, f.notifySnapshot)
 	return err
 }
 
@@ -355,4 +356,15 @@ type fakeStopper struct {
 
 func (f *fakeStopper) Stop() {
 	f.stop()
+}
+
+type fakeIstioCertSource struct {
+}
+
+func (src *fakeIstioCertSource) Watch(ctx context.Context) IstioCertWatcher {
+	fakeChannel := make(chan IstioCertUpdate)
+
+	return &istioCertWatcher{
+		updateChannel: fakeChannel,
+	}
 }
