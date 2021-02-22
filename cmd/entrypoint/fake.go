@@ -78,6 +78,7 @@ type Fake struct {
 // FakeConfig provides option when constructing a new Fake.
 type FakeConfig struct {
 	EnvoyConfig bool          // If true then the Fake will produce envoy configs in addition to Snapshots.
+	DiagdDebug  bool          // If true then diagd will have debugging enabled
 	Timeout     time.Duration // How long to wait for snapshots and/or envoy configs to become available.
 }
 
@@ -143,8 +144,16 @@ func (f *Fake) Setup() {
 		})
 
 		f.group.Go("diagd", func(ctx context.Context) error {
-			cmd := subcommand(ctx, "diagd", "/tmp", "/tmp/bootsrap-ads.json", "/tmp/envoy.json", "--no-envoy",
-				"--host", "127.0.0.1", "--port", GetDiagdBindPort())
+			cmdArgs := []string{
+				"/tmp", "/tmp/bootstrap-ads.json", "/tmp/envoy.json",
+				"--no-envoy", "--host", "127.0.0.1", "--port", GetDiagdBindPort(),
+			}
+
+			if f.config.DiagdDebug {
+				cmdArgs = append(cmdArgs, "--debug")
+			}
+
+			cmd := subcommand(ctx, "diagd", cmdArgs...)
 			if envbool("DEV_SHUTUP_DIAGD") {
 				cmd.Stdout = nil
 				cmd.Stderr = nil
@@ -244,6 +253,13 @@ func (f *Fake) Flush() {
 // created or updating any overlapping resources that exist.
 func (f *Fake) UpsertFile(filename string) {
 	f.k8sStore.UpsertFile(filename)
+	f.k8sNotifier.Changed()
+}
+
+// UpsertYAML will parse the provided YAML and feed the resources in it into the control plane,
+// creating or updating any overlapping resources that exist.
+func (f *Fake) UpsertYAML(yaml string) {
+	f.k8sStore.UpsertYAML(yaml)
 	f.k8sNotifier.Changed()
 }
 

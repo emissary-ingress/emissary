@@ -87,7 +87,13 @@ func (k *K8sStore) UpsertFile(filename string) {
 		panic(err)
 	}
 
-	objs, err := kates.ParseManifests(string(content))
+	k.UpsertYAML(string(content))
+}
+
+// UpsertYAML will parse the provided YAML and feed the resources in it into the control plane,
+// creating or updating any overlapping resources that exist.
+func (k *K8sStore) UpsertYAML(yaml string) {
+	objs, err := kates.ParseManifests(yaml)
 	if err != nil {
 		panic(err)
 	}
