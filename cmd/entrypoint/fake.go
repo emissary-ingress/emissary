@@ -36,8 +36,8 @@ import (
 // all the way through a real kubernetes API server and/or a real consul deployment. This is not
 // only significantly more efficient than spinning up real kubernetes and/or consul deployments, but
 // it also lets us precisely control the order of events thereby a) removing the nondeterminism that
-// leads to flaky tests, and b) also allowing us to deliberately create the sort of low probability
-// sequence of events that are often at the root of heisenbugs.
+// leads to flaky tests, and b) also allowing us to deliberately create/recreate the sort of low
+// probability sequence of events that are often at the root of heisenbugs.
 //
 // The key to being able to build tests this way is expressing our business logic as "hermetically
 // sealed" libraries, i.e. libraries with no/few hardcoded dependencies. This doesn't have to be
