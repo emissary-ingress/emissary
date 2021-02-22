@@ -238,13 +238,20 @@ func (f *Fake) Flush() {
 	f.consulNotifier.Notify()
 }
 
-// UpsertFile will parse the contents of the file as yaml and feed them into the control plane.
+// UpsertFile will parse the contents of the file as yaml and feed them into the control plane
+// created or updating any overlapping resources that exist.
 func (f *Fake) UpsertFile(filename string) {
 	f.k8sStore.UpsertFile(filename)
 	f.k8sNotifier.Changed()
 }
 
-// Delete removes the specified resource.
+// Upsert will update (or if necessary create) the supplied resource in the fake k8s datastore.
+func (f *Fake) Upsert(resource kates.Object) {
+	f.k8sStore.Upsert(resource)
+	f.k8sNotifier.Changed()
+}
+
+// Delete will removes the specified resource from the fake k8s datastore.
 func (f *Fake) Delete(kind, namespace, name string) {
 	f.k8sStore.Delete(kind, namespace, name)
 	f.k8sNotifier.Changed()
