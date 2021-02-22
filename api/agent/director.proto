@@ -19,6 +19,8 @@ service Director {
 }
 
 // How Ambassador's Agent identifies itself to the CEPC
+// This is the identity of the ambassador the agent is reporting on behalf of
+// no user account specific information should be contained in here
 message Identity {
   // The account ID assigned by the CEPC
   string account_id = 1;

@@ -37,6 +37,8 @@ const (
 const _ = proto.ProtoPackageIsVersion4
 
 // How Ambassador's Agent identifies itself to the CEPC
+// This is the identity of the ambassador the agent is reporting on behalf of
+// no user account specific information should be contained in here
 type Identity struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
