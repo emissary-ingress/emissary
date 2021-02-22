@@ -4,84 +4,268 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os/exec"
 	"reflect"
+	"sync"
 	"sync/atomic"
+	"testing"
+	"time"
 
+	"github.com/datawire/ambassador/cmd/ambex"
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/pkg/consulwatch"
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/snapshot/v1"
+	"github.com/datawire/dlib/dgroup"
+
+	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
 )
 
+// The Fake struct is a test harness for edgestack. Its goals are to help us fill out our test
+// pyramid by making it super easy to create unit-like tests directly from the snapshots, bug
+// reports, and other inputs provided by users who find regressions and/or encounter other problems
+// in the field. Since we have no shortage of these reports, if we make it easy to create tests from
+// them, we will fill out our test pyramid quickly and hopefully reduce our rate of
+// regressions. This also means the tests produced this way need to scale well both in terms of
+// execution time/parallelism as well as flakiness since we will quickly have a large number of
+// these tests.
+//
+// The way this works is by isolating via dependency injection the key portions of the control plane
+// where the bulk of our business logic is implemented, and providing an alternative driver that
+// lets us feed snapshots and/or other kubernetes resources directly into the control plane rather
+// than having to fire up kubernetes, consul, and istio to supply the control plane with its
+// inputs. This is not only significantly more efficient, but it also lets us precisely control the
+// order of events thereby a) removing the nondeterminism that leads to flaky tests, and b) also
+// allowing us to deliberately create the sort of low probability sequence of events that are often
+// at the root of heisenbugs. Another way of describing this is expressing our business logic as
+// "hermetically sealed" libraries, i.e. libraries with no/few hardcoded dependencies. This doesn't
+// have to be done in a fancy/elegant way, it is well worth practicing stupidly mechanical
+// dependency injection in order to quickly excise some business logic of its hardcoded dependencies
+// and enable this sort of testing.
+//
+// See TestFakeHello, TestFakeHelloWithEnvoyConfig, and TestFakeHelloConsul for examples of how to
+// get started using this struct to write tests.
 type Fake struct {
-	k8sSource    *fakeK8sSource
-	watcher      *fakeWatcher
-	snapshot     *atomic.Value
-	store        *K8sStore
-	bootstrapped chan struct{}
+	// These are all read only fields. They implement the dependencies that get injected into
+	// the watcher loop.
+	config FakeConfig
+	T      *testing.T
+	group  *dgroup.Group
+	cancel context.CancelFunc
+
+	k8sSource *fakeK8sSource
+	watcher   *fakeWatcher
+
+	// This group of fields are used to store kubernetes resources and consul endpoint data and
+	// provide explicit control over when changes to that data are sent to the control plane.
+	k8sStore       *K8sStore
+	consulStore    *ConsulStore
+	k8sNotifier    *Notifier
+	consulNotifier *Notifier
+
+	// This holds the current snapshot.
+	currentSnapshot *atomic.Value
+
+	snapshots    *Queue // All snapshots that have been produced.
+	envoyConfigs *Queue // All envoyConfigs that have been produced.
+
+	// This is used to make Teardown idempotent.
+	teardownOnce sync.Once
 }
 
-func NewFake() *Fake {
-	store := NewK8sStore()
-	return &Fake{
-		k8sSource:    &fakeK8sSource{store: store},
-		snapshot:     &atomic.Value{},
-		store:        store,
-		bootstrapped: make(chan struct{}),
+// FakeConfig provides option when constructing a new Fake.
+type FakeConfig struct {
+	EnvoyConfig bool          // If true then the Fake will produce envoy configs in addition to Snapshots.
+	Timeout     time.Duration // How long to wait for snapshots and/or envoy configs to become available.
+}
+
+func (fc *FakeConfig) fillDefaults() {
+	if fc.Timeout == 0 {
+		fc.Timeout = 10 * time.Second
 	}
 }
 
-func RunFake(ctx context.Context) *Fake {
-	fake := NewFake()
-	go fake.Run(ctx)
+// NewFake will construct a new Fake object. See RunFake for a convenient way to handle construct,
+// Setup, and Teardown of a Fake with one line of code.
+func NewFake(t *testing.T, config FakeConfig) *Fake {
+	config.fillDefaults()
+	ctx, cancel := context.WithCancel(context.Background())
+	k8sStore := NewK8sStore()
+	consulStore := NewConsulStore()
+
+	fake := &Fake{
+		config: config,
+		T:      t,
+		cancel: cancel,
+		group:  dgroup.NewGroup(ctx, dgroup.GroupConfig{EnableWithSoftness: true}),
+
+		k8sStore:       k8sStore,
+		consulStore:    consulStore,
+		k8sNotifier:    NewNotifier(),
+		consulNotifier: NewNotifier(),
+
+		currentSnapshot: &atomic.Value{},
+
+		snapshots:    NewQueue(t, config.Timeout),
+		envoyConfigs: NewQueue(t, config.Timeout),
+	}
+
+	fake.k8sSource = &fakeK8sSource{fake: fake, store: k8sStore}
+	fake.watcher = &fakeWatcher{fake: fake, store: consulStore}
+
 	return fake
 }
 
-func (f *Fake) Run(ctx context.Context) {
-	interestingTypes := GetInterestingTypes(ctx, nil)
-	queries := GetQueries(ctx, interestingTypes)
-	watcherLoop(ctx, f.snapshot, f.k8sSource, queries, f.watcher, func(ctx context.Context) {
-		close(f.bootstrapped)
+// RunFake will create a new fake, invoke its Setup method and register its Teardown method as a
+// Cleanup function with the test object.
+func RunFake(t *testing.T, config FakeConfig) *Fake {
+	fake := NewFake(t, config)
+	fake.Setup()
+	fake.T.Cleanup(fake.Teardown)
+	return fake
+}
+
+// Setup will start up all the goroutines needed for this fake edgestack instance. Depending on the
+// FakeConfig supplied wen constructing the Fake, this may also involve launching external
+// processes, you should therefore ensure that you call Teardown whenever you call Setup.
+func (f *Fake) Setup() {
+	if f.config.EnvoyConfig {
+		_, err := exec.LookPath("diagd")
+		if err != nil {
+			f.T.Skip("unable to find diagd, cannot run")
+		}
+
+		f.group.Go("snapshot_server", func(ctx context.Context) error {
+			return snapshotServer(ctx, f.currentSnapshot)
+		})
+
+		f.group.Go("diagd", func(ctx context.Context) error {
+			cmd := subcommand(ctx, "diagd", "/tmp", "/tmp/bootsrap-ads.json", "/tmp/envoy.json", "--no-envoy")
+			if envbool("DEV_SHUTUP_DIAGD") {
+				cmd.Stdout = nil
+				cmd.Stderr = nil
+			}
+			return cmd.Run()
+		})
+	}
+	f.group.Go("fake-watcher", f.runWatcher)
+
+}
+
+// Teardown will clean up anything that Setup has started. It is idempotent. Note that if you use
+// RunFake Setup will be called and Teardown will be automatically registered as a Cleanup function
+// with the supplied testing.T
+func (f *Fake) Teardown() {
+	f.teardownOnce.Do(func() {
+		f.cancel()
+		err := f.group.Wait()
+		if err != nil && err != context.Canceled {
+			f.T.Fatalf("fake edgestack errored out: %+v", err)
+		}
 	})
 }
 
-func (f *Fake) GetSnapshotBytes() []byte {
-	<-f.bootstrapped
-	return f.snapshot.Load().([]byte)
+func (f *Fake) runWatcher(ctx context.Context) error {
+	interestingTypes := GetInterestingTypes(ctx, nil)
+	queries := GetQueries(ctx, interestingTypes)
+
+	var err error
+	defer func() {
+		r := recover()
+		if r != nil {
+			err = r.(error)
+		}
+	}()
+	watcherLoop(ctx, f.currentSnapshot, f.k8sSource, queries, f.watcher, f.notifySnapshot)
+	return err
 }
 
-func (f *Fake) GetSnapshotString() string {
-	return string(f.GetSnapshotBytes())
-}
-
-func (f *Fake) GetSnapshot() snapshot.Snapshot {
-	var result snapshot.Snapshot
-	err := json.Unmarshal(f.GetSnapshotBytes(), &result)
-	if err != nil {
-		panic(err)
+// We pass this into the watcher loop to get notified when a snapshot is produced.
+func (f *Fake) notifySnapshot(ctx context.Context) {
+	if f.config.EnvoyConfig {
+		notifyReconfigWebhooks(ctx, &noopNotable{})
+		f.appendEnvoyConfig()
 	}
-	return result
+
+	f.appendSnapshot()
 }
 
-func (f *Fake) ApplyFile(filename string) {
-	f.store.UpsertFile(filename)
-	f.k8sSource.notify()
+func (f *Fake) appendSnapshot() {
+	snapshotBytes := f.currentSnapshot.Load().([]byte)
+	var snap *snapshot.Snapshot
+	err := json.Unmarshal(snapshotBytes, &snap)
+	if err != nil {
+		f.T.Fatalf("error unmarshalling snapshot: %+v", err)
+	}
+
+	f.snapshots.Add(snap)
+}
+
+// GetSnapshot will return the next snapshot that satisfies the supplied predicate.
+func (f *Fake) GetSnapshot(predicate func(*snapshot.Snapshot) bool) *snapshot.Snapshot {
+	return f.snapshots.Get(func(obj interface{}) bool {
+		return predicate(obj.(*snapshot.Snapshot))
+	}).(*snapshot.Snapshot)
+}
+
+func (f *Fake) appendEnvoyConfig() {
+	msg, err := ambex.Decode("/tmp/envoy.json")
+	if err != nil {
+		f.T.Fatalf("error decoding envoy.json after sending snapshot to python: %+v", err)
+	}
+	bs := msg.(*bootstrap.Bootstrap)
+	f.envoyConfigs.Add(bs)
+}
+
+// GetEnvoyConfig will return the next envoy config that satisfies the supplied predicate.
+func (f *Fake) GetEnvoyConfig(predicate func(*bootstrap.Bootstrap) bool) *bootstrap.Bootstrap {
+	return f.envoyConfigs.Get(func(obj interface{}) bool {
+		return predicate(obj.(*bootstrap.Bootstrap))
+	}).(*bootstrap.Bootstrap)
+}
+
+// AutoFlush will cause a flush whenever any inputs are modified.
+func (f *Fake) AutoFlush(enabled bool) {
+	f.k8sNotifier.AutoNotify(enabled)
+	f.consulNotifier.AutoNotify(enabled)
+}
+
+// Feed will cause inputs from all datasources to be delivered to the control plane.
+func (f *Fake) Flush() {
+	f.k8sNotifier.Notify()
+	f.consulNotifier.Notify()
+}
+
+// UpsertFile will parse the contents of the file as yaml and feed them into the control plane.
+func (f *Fake) UpsertFile(filename string) {
+	f.k8sStore.UpsertFile(filename)
+	f.k8sNotifier.Changed()
+}
+
+// Delete removes the specified resource.
+func (f *Fake) Delete(kind, namespace, name string) {
+	f.k8sStore.Delete(kind, namespace, name)
+	f.k8sNotifier.Changed()
+}
+
+// ConsulEndpoint stores the supplied consul endpoint data.
+func (f *Fake) ConsulEndpoint(datacenter, service, address string, port int, tags ...string) {
+	f.consulStore.ConsulEndpoint(datacenter, service, address, port, tags...)
+	f.consulNotifier.Changed()
 }
 
 type fakeK8sSource struct {
-	store    *K8sStore
-	watchers []*fakeK8sWatcher
-}
-
-func (fs *fakeK8sSource) notify() {
-	for _, fw := range fs.watchers {
-		fw.notify()
-	}
+	fake  *Fake
+	store *K8sStore
 }
 
 func (fs *fakeK8sSource) Watch(ctx context.Context, queries ...kates.Query) K8sWatcher {
 	fw := &fakeK8sWatcher{fs.store.Cursor(), make(chan struct{}), queries}
-	fs.watchers = append(fs.watchers, fw)
+	fs.fake.k8sNotifier.Listen(func() {
+		go func() {
+			fw.notifyCh <- struct{}{}
+		}()
+	})
 	return fw
 }
 
@@ -89,12 +273,6 @@ type fakeK8sWatcher struct {
 	cursor   *K8sStoreCursor
 	notifyCh chan struct{}
 	queries  []kates.Query
-}
-
-func (f *fakeK8sWatcher) notify() {
-	go func() {
-		f.notifyCh <- struct{}{}
-	}()
 }
 
 func (f *fakeK8sWatcher) Changed() chan struct{} {
@@ -145,13 +323,26 @@ func matches(query kates.Query, obj kates.Object) bool {
 }
 
 type fakeWatcher struct {
+	fake  *Fake
+	store *ConsulStore
 }
 
 func (f *fakeWatcher) Watch(resolver *amb.ConsulResolver, mapping *amb.Mapping, endpoints chan consulwatch.Endpoints) Stopper {
-	return &fakeStopper{}
+	var sent consulwatch.Endpoints
+	stop := f.fake.consulNotifier.Listen(func() {
+		ep, ok := f.store.Get(resolver.Spec.Datacenter, mapping.Spec.Service)
+		if ok && !reflect.DeepEqual(ep, sent) {
+			endpoints <- ep
+			sent = ep
+		}
+	})
+	return &fakeStopper{stop}
 }
 
 type fakeStopper struct {
+	stop StopFunc
 }
 
-func (f *fakeStopper) Stop() {}
+func (f *fakeStopper) Stop() {
+	f.stop()
+}
