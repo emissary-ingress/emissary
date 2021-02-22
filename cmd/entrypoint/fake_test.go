@@ -7,6 +7,7 @@ import (
 
 	"github.com/datawire/ambassador/cmd/entrypoint"
 	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
+	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/snapshot/v1"
 )
 
@@ -50,4 +51,51 @@ func Jsonify(obj interface{}) string {
 		panic(err)
 	}
 	return string(bytes)
+}
+
+func TestFakeIstioCert(t *testing.T) {
+	// Don't ask for the EnvoyConfig yet, 'cause we don't use it.
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: false})
+	f.AutoFlush(true)
+
+	f.UpsertFile("testdata/tls-snap.yaml")
+
+	// fmt.Println(f.GetSnapshotString())
+
+	k := f.GetSnapshot(AnySnapshot).Kubernetes
+
+	if len(k.Secrets) != 1 {
+		t.Errorf("needed 1 secret, got %d", len(k.Secrets))
+	}
+
+	istioSecret := kates.Secret{
+		TypeMeta: kates.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Secret",
+		},
+		ObjectMeta: kates.ObjectMeta{
+			Name:      "test-istio-secret",
+			Namespace: "default",
+		},
+		Type: kates.SecretTypeTLS,
+		Data: map[string][]byte{
+			"tls.key": []byte("not-real-cert"),
+			"tls.crt": []byte("not-real-pem"),
+		},
+	}
+
+	f.SendIstioCertUpdate(entrypoint.IstioCertUpdate{
+		Op:        "update",
+		Name:      "test-istio-secret",
+		Namespace: "default",
+		Secret:    &istioSecret,
+	})
+
+	k = f.GetSnapshot(AnySnapshot).Kubernetes
+
+	fmt.Println(Jsonify(k))
+
+	if len(k.Secrets) != 2 {
+		t.Errorf("needed 2 secrets, got %d", len(k.Secrets))
+	}
 }
