@@ -31,17 +31,19 @@ import (
 // these tests.
 //
 // The way this works is by isolating via dependency injection the key portions of the control plane
-// where the bulk of our business logic is implemented, and providing an alternative driver that
-// lets us feed snapshots and/or other kubernetes resources directly into the control plane rather
-// than having to fire up kubernetes, consul, and istio to supply the control plane with its
-// inputs. This is not only significantly more efficient, but it also lets us precisely control the
-// order of events thereby a) removing the nondeterminism that leads to flaky tests, and b) also
-// allowing us to deliberately create the sort of low probability sequence of events that are often
-// at the root of heisenbugs. Another way of describing this is expressing our business logic as
-// "hermetically sealed" libraries, i.e. libraries with no/few hardcoded dependencies. This doesn't
-// have to be done in a fancy/elegant way, it is well worth practicing stupidly mechanical
-// dependency injection in order to quickly excise some business logic of its hardcoded dependencies
-// and enable this sort of testing.
+// where the bulk of our business logic is implemented. The Fake utilities directly feed this
+// lightweight control plane its input as specified by the test code without passing the resources
+// all the way through a real kubernetes API server and/or a real consul deployment. This is not
+// only significantly more efficient than spinning up real kubernetes and/or consul deployments, but
+// it also lets us precisely control the order of events thereby a) removing the nondeterminism that
+// leads to flaky tests, and b) also allowing us to deliberately create the sort of low probability
+// sequence of events that are often at the root of heisenbugs.
+//
+// The key to being able to build tests this way is expressing our business logic as "hermetically
+// sealed" libraries, i.e. libraries with no/few hardcoded dependencies. This doesn't have to be
+// done in a fancy/elegant way, it is well worth practicing "stupidly mechanical dependency
+// injection" in order to quickly excise some business logic of its hardcoded dependencies and
+// enable this sort of testing.
 //
 // See TestFakeHello, TestFakeHelloWithEnvoyConfig, and TestFakeHelloConsul for examples of how to
 // get started using this struct to write tests.
