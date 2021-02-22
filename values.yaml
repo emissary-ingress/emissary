@@ -479,6 +479,10 @@ servicePreview:
 # Configure the ambassador agent
 agent:
   enabled: false
+  # this will be empty when it first gets applied, then the user will edit the agent to
+  # make it start reporting
+  cloudConnectToken: ""
+  rpcAddress: https://app.getambassador.io/
   image:
     # Leave blank to use image.repository and image.tag
     tag:

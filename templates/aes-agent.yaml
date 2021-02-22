@@ -99,11 +99,15 @@ spec:
     spec:
       serviceAccountName: {{ include "ambassador.fullname" . }}-agent
       containers:
-      - name: ambassador-agent
+      - name: agent
         image: "{{ .Values.agent.image.repository | default .Values.image.repository }}:{{ .Values.agent.image.tag | default .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: [ "agent" ]
         env:
+        - name: CLOUD_CONNECT_TOKEN
+          value: {{ .Values.agent.cloudConnectToken }}
+        - name: RPC_CONNECTION_ADDRESS
+          value: {{ .Values.agent.rpcAddress }}
         - name: AES_SNAPSHOT_URL
           value: "http://{{ include "ambassador.fullname" . }}-admin.{{ include "ambassador.namespace" . }}:{{ .Values.adminService.snapshotPort }}/snapshot-external"
 {{- end }}
