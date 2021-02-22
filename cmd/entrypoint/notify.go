@@ -26,6 +26,10 @@ func (_ *noopNotable) NoteSnapshotSent()      {}
 func (_ *noopNotable) NoteSnapshotProcessed() {}
 
 func notifyReconfigWebhooks(ctx context.Context, ambwatch notable) {
+	notifyReconfigWebhooksFunc(ctx, ambwatch, IsEdgeStack())
+}
+
+func notifyReconfigWebhooksFunc(ctx context.Context, ambwatch notable, edgestack bool) {
 	// XXX: last N snapshots?
 	snapshotUrl := url.QueryEscape("http://localhost:9696/snapshot")
 
@@ -49,7 +53,7 @@ func notifyReconfigWebhooks(ctx context.Context, ambwatch notable) {
 		ambwatch.NoteSnapshotProcessed()
 
 		// Then go deal with the Edge Stack sidecar.
-		if IsEdgeStack() {
+		if edgestack {
 			if notifyWebhookUrl(ctx, "edgestack sidecar", fmt.Sprintf("%s?url=%s", GetSidecarUrl(), snapshotUrl)) {
 				needSidecarNotify = false
 			}

@@ -186,7 +186,7 @@ func (f *Fake) runWatcher(ctx context.Context) error {
 // We pass this into the watcher loop to get notified when a snapshot is produced.
 func (f *Fake) notifySnapshot(ctx context.Context) {
 	if f.config.EnvoyConfig {
-		notifyReconfigWebhooks(ctx, &noopNotable{})
+		notifyReconfigWebhooksFunc(ctx, &noopNotable{}, false)
 		f.appendEnvoyConfig()
 	}
 
