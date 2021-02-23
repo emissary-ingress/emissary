@@ -158,7 +158,15 @@ func (f *Fake) Setup() {
 				cmd.Stdout = nil
 				cmd.Stderr = nil
 			}
-			return cmd.Run()
+			err := cmd.Run()
+			if err != nil {
+				exErr, ok := err.(*exec.ExitError)
+				if ok {
+					f.T.Logf("diagd exited with error: %+v", exErr)
+					return nil
+				}
+			}
+			return err
 		})
 	}
 	f.group.Go("fake-watcher", f.runWatcher)
