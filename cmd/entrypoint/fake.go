@@ -338,7 +338,9 @@ func (f *fakeK8sWatcher) FilteredUpdate(target interface{}, deltas *[]*kates.Del
 	// XXX: this stuff is copied from kates/accumulator.go
 	targetVal := reflect.ValueOf(target)
 	targetType := targetVal.Type().Elem()
-	for name, v := range byname {
+	for _, q := range f.queries {
+		name := q.Name
+		v := byname[q.Name]
 		fieldEntry, ok := targetType.FieldByName(name)
 		if !ok {
 			panic(fmt.Sprintf("no such field: %q", name))
