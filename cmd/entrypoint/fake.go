@@ -136,7 +136,7 @@ func (f *Fake) Setup() {
 	if f.config.EnvoyConfig {
 		_, err := exec.LookPath("diagd")
 		if err != nil {
-			f.T.Skip("unable to find diagd, cannot run")
+			f.T.Fatal("unable to find diagd, cannot run")
 		}
 
 		f.group.Go("snapshot_server", func(ctx context.Context) error {
