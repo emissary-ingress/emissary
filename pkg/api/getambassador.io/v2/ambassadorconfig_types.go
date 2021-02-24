@@ -167,6 +167,10 @@ type AmbassadorConfigSpec struct {
 	// connections will never be closed due to idling.
 	ClusterIdleTimeoutMS int `json:"cluster_idle_timeout_ms,omitempty"`
 
+	// Set the default upstream-connection max connection lifetime. If not set (the default), upstream
+	// connections may never close.
+	ClusterMaxConnectionLifetimeMS int `json:"cluster_max_connection_lifetime_ms,omitempty"`
+
 	// +kubebuilder:validation:Enum={"safe", "unsafe"}
 	RegexType string `json:"regex_type,omitempty"`
 
