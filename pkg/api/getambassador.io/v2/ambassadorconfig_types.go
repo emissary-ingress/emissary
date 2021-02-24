@@ -163,6 +163,10 @@ type AmbassadorConfigSpec struct {
 
 	Cors *CORS `json:"cors,omitempty"`
 
+	// Set the default upstream-connection request timeout. If not set (the default), upstream
+	// requests will be subject to a 3000 millisecond timeout.
+	ClusterRequestTimeoutMS int `json:"cluster_request_timeout_ms,omitempty"`
+
 	// Set the default upstream-connection idle timeout. If not set (the default), upstream
 	// connections will never be closed due to idling.
 	ClusterIdleTimeoutMS int `json:"cluster_idle_timeout_ms,omitempty"`

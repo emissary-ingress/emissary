@@ -34,6 +34,7 @@ class IRAmbassador (IRResource):
         'circuit_breakers',
         'cluster_idle_timeout_ms',
         'cluster_max_connection_lifetime_ms',
+        'cluster_request_timeout_ms',
         'debug_mode',
         # Do not include defaults, that's handled manually in setup.
         'default_label_domain',

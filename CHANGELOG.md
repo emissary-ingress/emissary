@@ -72,6 +72,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: Many of the Go parts of Ambassador now properly clean up gRPC connections when shutting down.
 - Feature: A scrubbed ambassador snapshot is now accessible outside the pod at `:8005/snapshot-external`. This port is exposed on the ambassador-admin Kubernetes service.
 - Feature: Ambassador now supports configuring the maximum lifetime of an upstream connection using `cluster_max_connection_lifetime_ms`. After the configured time, upstream connections are drained and closed, allowing an operator to set an upper bound on how long any upstream connection will remain open. This is useful when using Kubernetes Service resolvers (the default) and modifying label selectors for traffic shifting.
+- Feature: The Ambassador Module configuration now supports `cluster_request_timeout_ms` to set a default request `timeout_ms` for Mappings. This allows an operator to update the default request timeout (currently 3000ms) without needing to update every Mapping.
 
 ### Ambassador Edge Stack only
 

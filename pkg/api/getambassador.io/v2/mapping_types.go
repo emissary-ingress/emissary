@@ -76,9 +76,10 @@ type MappingSpec struct {
 	ConnectTimeoutMs               int                     `json:"connect_timeout_ms,omitempty"`
 	ClusterIdleTimeoutMs           int                     `json:"cluster_idle_timeout_ms,omitempty"`
 	ClusterMaxConnectionLifetimeMs int                     `json:"cluster_max_connection_lifetime_ms,omitempty"`
-	TimeoutMs                      int                     `json:"timeout_ms,omitempty"`
-	IdleTimeoutMs                  int                     `json:"idle_timeout_ms,omitempty"`
-	TLS                            *BoolOrString           `json:"tls,omitempty"`
+	// The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
+	TimeoutMs     int           `json:"timeout_ms,omitempty"`
+	IdleTimeoutMs int           `json:"idle_timeout_ms,omitempty"`
+	TLS           *BoolOrString `json:"tls,omitempty"`
 
 	// use_websocket is deprecated, and is equivlaent to setting
 	// `allow_upgrade: ["websocket"]`
