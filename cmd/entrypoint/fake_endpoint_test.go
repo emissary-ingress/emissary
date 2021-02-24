@@ -600,6 +600,13 @@ type eadConfig struct {
 	deltaKinds          []kates.DeltaType
 }
 
+// deltaNameAndType is a simple struct to manage delta names and types (it makes for
+// less typing for the test writer).
+type deltaNameAndType struct {
+	name      string // for sorting
+	deltaType kates.DeltaType
+}
+
 // assertEndpointsAndDeltas asserts that:
 // - we can get a snapshot and an Envoy config
 // - the snapshot contains the Mapping named in eadConfig.mappingName
@@ -614,28 +621,41 @@ func assertEndpointsAndDeltas(t *testing.T, f *entrypoint.Fake, ead *eadConfig) 
 	// Make sure that we can get a snapshot, and that it contains our mapping...
 	snap := assertSnapshotWithMapping(t, f, ead.mappingName)
 
+	// Given the snapshot, grab the K8s Endpoints...
 	k8sEndpoints := snap.Kubernetes.Endpoints
 
+	// ...make sure all the lengths match up...
 	assert.Equal(t, len(ead.k8sEndpointNames), len(k8sEndpoints))
 
-	epNames := []string{}
+	// ...then build an array of the actual endpoint names, both to format things
+	// politely and to sort it
+
+	actualNames := []string{}
 
 	for _, endpoint := range k8sEndpoints {
-		epNames = append(epNames, endpoint.GetName())
+		actualNames = append(actualNames, endpoint.GetName())
 	}
 
-	sort.Strings(epNames)
+	sort.Strings(actualNames)
 
+	// If we have any expected names...
 	if ead.k8sEndpointNames != nil {
-		assert.Equal(t, ead.k8sEndpointNames, epNames)
+		// ...then make a copy so we can sort it...
+		expectedNames := make([]string, len(ead.k8sEndpointNames))
+		copy(expectedNames, ead.k8sEndpointNames)
+		sort.Strings(expectedNames)
+
+		// ...and make sure the names match up.
+		assert.Equal(t, expectedNames, actualNames)
 	} else {
-		assert.Zero(t, len(epNames))
+		// No expected names, so we need to have no actual names.
+		assert.Zero(t, len(actualNames))
 	}
 
 	// Consul endpoints are smarter than Kube Endpoints. They're a dict mapping
 	// service names to a list of endpoints, each of which has a service name, an
 	// address, and a port. We format that as "dc/service/address:port" for our
-	// work here.
+	// work here, then sort the whole list.
 
 	consulEndpoints := snap.Consul.Endpoints
 
@@ -652,28 +672,46 @@ func assertEndpointsAndDeltas(t *testing.T, f *entrypoint.Fake, ead *eadConfig) 
 
 	sort.Strings(epAddresses)
 
+	// OK, if we have expected Consul endpoints...
 	if ead.consulAddresses != nil {
-		assert.Equal(t, ead.consulAddresses, epAddresses)
+		// ...then once again we need to copy and sort.
+		expectedAddresses := make([]string, len(ead.consulAddresses))
+		copy(expectedAddresses, ead.consulAddresses)
+		sort.Strings(expectedAddresses)
+
+		assert.Equal(t, expectedAddresses, epAddresses)
 	} else {
+		// And, again, if we expect no addresses, we need to see no addresses.
 		assert.Zero(t, len(epAddresses))
 	}
 
+	// Next up, do it all over again for deltas. Start by grabbing the
+	// (sorted) list of relevant deltas from the snapshot.
+
 	deltas := endpointDeltas(snap)
 
+	// Next, we make sure all the lengths match up...
 	assert.Equal(t, len(ead.deltaNames), len(deltas))
 	assert.Equal(t, len(ead.deltaKinds), len(deltas))
 
-	dNames := []string{}
-
-	for _, delta := range deltas {
-		dNames = append(dNames, delta.GetName())
-	}
-
-	sort.Strings(dNames)
+	// ...then build up an array of deltaNamesAndTypes to sort.
+	dnat := make([]*deltaNameAndType, len(deltas))
 
 	for i := range deltas {
-		assert.Equal(t, ead.deltaNames[i], dNames[i])
-		assert.Equal(t, ead.deltaKinds[i], deltas[i].DeltaType)
+		dnat[i] = &deltaNameAndType{
+			name:      ead.deltaNames[i],
+			deltaType: ead.deltaKinds[i],
+		}
+	}
+
+	sort.SliceStable(dnat, func(i, j int) bool {
+		return dnat[i].name < dnat[j].name
+	})
+
+	// After all that, we can check to make sure everything matches.
+	for i := range deltas {
+		assert.Equal(t, dnat[i].name, deltas[i].GetName())
+		assert.Equal(t, dnat[i].deltaType, deltas[i].DeltaType)
 	}
 
 	// Finally, make sure we have a properly-set-up cluster, too.
@@ -689,6 +727,11 @@ func endpointDeltas(snap *snapshot.Snapshot) []*kates.Delta {
 			deltas = append(deltas, delta)
 		}
 	}
+
+	// We want a sorted return here.
+	sort.SliceStable(deltas, func(i, j int) bool {
+		return deltas[i].GetName() < deltas[j].GetName()
+	})
 
 	fmt.Printf("====== DELTAS:\n%s\n", Jsonify(deltas))
 
@@ -727,14 +770,18 @@ func assertEnvoyConfigWithCluster(t *testing.T, f *entrypoint.Fake, ead *eadConf
 		return FindCluster(envoy, isWantedCluster) != nil
 	})
 
+	// Find the cluster we want...
 	cluster := FindCluster(envoyConfig, isWantedCluster)
 	fmt.Printf("Cluster:\n%s\n", Jsonify(cluster))
+
+	// ...and pull out its load assignments, which is weirder than it should be.
 	endpoints := cluster.LoadAssignment.Endpoints
 
 	assert.NotZero(t, len(endpoints))
 
 	lbEndpoints := endpoints[0].LbEndpoints
 
+	// Format everything neatly, both for readability and for sorting.
 	assignments := []string{}
 
 	for _, endpoint := range lbEndpoints {
@@ -746,10 +793,21 @@ func assertEnvoyConfigWithCluster(t *testing.T, f *entrypoint.Fake, ead *eadConf
 
 	sort.Strings(assignments)
 
+	// Make sure the lengths match...
 	assert.Equal(t, len(ead.clusterAssignments), len(assignments))
-	assert.Equal(t, ead.clusterAssignments, assignments)
+
+	// ...then make a shallow copy of the expected assignments so that we can sort
+	// that too.
+	expectedAssignments := make([]string, len(assignments))
+	copy(expectedAssignments, ead.clusterAssignments)
+	sort.Strings(expectedAssignments)
+
+	// Finally, make sure the values match.
+	assert.Equal(t, expectedAssignments, assignments)
 }
 
+// assertDroppedSnapshotEntry asserts that we've dropped a snapshot entry that contained
+// the named Mapping.
 func assertDroppedSnapshotEntry(t *testing.T, f *entrypoint.Fake, mappingName string) {
 	entry := f.GetSnapshotEntry(func(entry entrypoint.SnapshotEntry) bool {
 		fmt.Printf("Snapshot disposition %#v\n", entry.Disposition)
@@ -759,6 +817,8 @@ func assertDroppedSnapshotEntry(t *testing.T, f *entrypoint.Fake, mappingName st
 	assert.Equal(t, mappingName, entry.Snapshot.Kubernetes.Mappings[0].Name)
 }
 
+// assertIncompleteSnapshotEntry asserts that we had an incomplete snapshot entry that
+// contained the named Mapping.
 func assertIncompleteSnapshotEntry(t *testing.T, f *entrypoint.Fake, mappingName string) {
 	entry := f.GetSnapshotEntry(func(entry entrypoint.SnapshotEntry) bool {
 		fmt.Printf("Snapshot disposition %#v\n", entry.Disposition)
