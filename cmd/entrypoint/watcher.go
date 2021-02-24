@@ -109,21 +109,30 @@ const (
 //    guidance_.
 func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, queries []kates.Query,
 	consulWatcher Watcher, istioCertSrc IstioCertSource, notify SnapshotProcessor) {
+	// These timers keep track of various parts of the processing of the watcher loop. They don't
+	// directly impact the logic at all.
+	dbg := debug.FromContext(ctx)
+
+	katesUpdateTimer := dbg.Timer("katesUpdate")
+	consulUpdateTimer := dbg.Timer("consulUpdate")
+	istioCertUpdateTimer := dbg.Timer("istioCertUpdate")
+	notifyWebhooksTimer := dbg.Timer("notifyWebhooks")
+	parseAnnotationsTimer := dbg.Timer("parseAnnotations")
+	reconcileSecretsTimer := dbg.Timer("reconcileSecrets")
+	reconcileConsulTimer := dbg.Timer("reconcileConsul")
+	reconcileEndpointsTimer := dbg.Timer("reconcileEndpoints")
+
 	// Synthesize the low(ish)-level Kubernetes watcher, then use it to synthesize
 	// the Kubernetes watch manager.
 	k8sWatcher := k8sSrc.Watch(ctx, queries...)
 	k8s := newK8sWatchManager(ctx, k8sWatcher)
+	validator := newResourceValidator()
 
 	// Likewise for the Istio cert watcher and manager.
 	istioCertWatcher := istioCertSrc.Watch(ctx)
 	istio := newIstioCertWatchManager(ctx, istioCertWatcher)
 
 	consul := newConsul(ctx, consulWatcher) // Consul Watcher: state manager
-
-	// **** SETUP STARTS for the Kubernetes Watcher
-	//
-	// It's a lot of work to set up the Kubernetes watcher. We're not actually done
-	// until we instantiate our snapshot and accumulator, well below here.
 
 	// **** STATE for the Consul Watcher.
 	//
@@ -147,30 +156,8 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 	// for the Kubernetes watcher during a given iteration.
 	var unsentDeltas []*kates.Delta // K8s Watcher: core state
 
-	// **** STATE (again) for the Kubernetes Watcher
-	//
-	// We use kates.Unstructured objects to indicate to the rest of
-	// Ambassador when we find a poorly-structured object. We also have
-	// a predicate function, isValid, which we use to decide that an
-	// object is invalid.
-	validator := newResourceValidator()
-
-	// We have a slew of timers to keep track of things...
-	dbg := debug.FromContext(ctx)
-
-	katesUpdateTimer := dbg.Timer("katesUpdate")
-	consulUpdateTimer := dbg.Timer("consulUpdate")
-	istioCertUpdateTimer := dbg.Timer("istioCertUpdate")
-	notifyWebhooksTimer := dbg.Timer("notifyWebhooks")
-	parseAnnotationsTimer := dbg.Timer("parseAnnotations")
-	reconcileSecretsTimer := dbg.Timer("reconcileSecrets")
-	reconcileConsulTimer := dbg.Timer("reconcileConsul")
-	reconcileEndpointsTimer := dbg.Timer("reconcileEndpoints")
-
-	// **** STATE for the watcher loop itself
-	//
 	// Is this the very first reconfigure we've done?
-	firstReconfig := true // Watcher itself: core state
+	firstReconfig := true
 
 	for {
 		dlog.Debugf(ctx, "WATCHER: --------")
@@ -189,11 +176,9 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 
 			// We could probably get a win in some scenarios by using this filtered update thing to
 			// pre-exclude based on ambassador-id.
-			isValid := func(un *kates.Unstructured) bool {
+			newChanges := k8s.Update(ctx, func(un *kates.Unstructured) bool {
 				return validator.isValid(ctx, un)
-			}
-
-			newChanges := k8s.Update(ctx, isValid)
+			})
 			stop()
 
 			if !newChanges {
