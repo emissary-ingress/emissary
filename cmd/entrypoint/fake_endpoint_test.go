@@ -552,6 +552,210 @@ spec:
 	// })
 }
 
+func TestConsulOtherDCEndpointFiltering(t *testing.T) {
+	// This whole thing is a copy of TestConsulEndpointFiltering, just with a
+	// datacenter that isn't "dc1".
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true, DiagdDebug: true})
+
+	// ================
+	STEP("INITIALIZE K8s")
+
+	f.UpsertYAML(`---
+apiVersion: getambassador.io/v2
+kind: ConsulResolver
+metadata:
+  name: consul-other-dc
+spec:
+  address: consul-server.default.svc.cluster.local:8500
+  datacenter: other-dc
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: hello
+  namespace: default
+spec:
+  prefix: /hello
+  service: hello
+  resolver: consul-other-dc
+`)
+	f.Flush()
+
+	assertIncompleteSnapshotEntry(t, f, "hello")
+
+	// ================
+	STEP("INITIALIZE Consul")
+
+	f.ConsulEndpoint("other-dc", "hello", "1.2.3.4", 8080)
+	f.Flush()
+
+	// At this point we should see a configuration that's using endpoint routing, but we
+	// should have no K8s Deltas.
+	assertEndpointsAndDeltas(t, f, &eadConfig{
+		mappingName:         "hello",
+		clusterNameContains: "hello",
+		clusterAssignments:  []string{"1.2.3.4:8080"},
+		consulEndpointNames: []string{"hello"},
+		consulAddresses:     []string{"other-dc/hello/1.2.3.4:8080"},
+	})
+
+	// ================
+	STEP("ADD ENDPOINTS to K8s")
+
+	// When we add some Endpoints to K8s, we should see nothing, since we're not using
+	// the K8s endpoint resolver. We will, however, see a new snapshot, since we're adding
+	// a Service to K8s too.
+
+	f.UpsertFile("testdata/hello-endpoints.yaml")
+	f.Flush()
+
+	assertEndpointsAndDeltas(t, f, &eadConfig{
+		mappingName:         "hello",
+		clusterNameContains: "hello",
+		clusterAssignments:  []string{"1.2.3.4:8080"},
+		consulEndpointNames: []string{"hello"},
+		consulAddresses:     []string{"other-dc/hello/1.2.3.4:8080"},
+	})
+
+	// ================
+	STEP("ADD ENDPOINT to Consul")
+
+	// XXX This currently does an add. It would be nice to have update, delete, etc.
+	f.ConsulEndpoint("other-dc", "hello", "4.3.2.1", 8080)
+	f.Flush()
+
+	// At this point we should see a configuration that's using endpoint routing, but we
+	// should have no K8s Deltas.
+	assertEndpointsAndDeltas(t, f, &eadConfig{
+		mappingName:         "hello",
+		clusterNameContains: "hello",
+		clusterAssignments:  []string{"1.2.3.4:8080", "4.3.2.1:8080"},
+		consulEndpointNames: []string{"hello"},
+		consulAddresses:     []string{"other-dc/hello/1.2.3.4:8080", "other-dc/hello/4.3.2.1:8080"},
+	})
+
+	// ================
+	STEP("SWITCH TO K8s ENDPOINT ROUTING")
+
+	// Switch the hello mapping to explicitly use the endpoint resolver.
+	f.UpsertYAML(`---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: hello
+  namespace: default
+spec:
+  prefix: /hello
+  service: hello
+  resolver: kubernetes-endpoint
+`)
+	f.Flush()
+
+	// At this point we should see the K8s endpoints appear, with deltas, and we should see
+	// the load assignments for our cluster switch. We'll still see the Consul endpoints,
+	// though, since the Consul resolver is present.
+	//
+	// XXX Is that really correct? Feels like the Consul endpoints should disappear here.
+	assertEndpointsAndDeltas(t, f, &eadConfig{
+		mappingName:         "hello",
+		clusterNameContains: "hello",
+		clusterAssignments:  []string{"10.42.0.15:5000", "10.42.0.16:5000"},
+		k8sEndpointNames:    []string{"hello"},
+		deltaNames:          []string{"hello"},
+		deltaKinds:          []kates.DeltaType{kates.ObjectAdd},
+		consulEndpointNames: []string{"hello"},
+		consulAddresses:     []string{"other-dc/hello/1.2.3.4:8080", "other-dc/hello/4.3.2.1:8080"},
+	})
+
+	// ================
+	STEP("DROP CONSUL RESOLVER")
+
+	// Delete the ConsulResolver.
+	f.Delete("ConsulResolver", "default", "consul-other-dc")
+	f.Flush()
+
+	// At this point we should see no K8s changes, but the Consul endpoints should disappear.
+	//
+	// XXX At the moment, the Consul resolver leaves its endpoints in place, even though it
+	// shouldn't.
+	assertEndpointsAndDeltas(t, f, &eadConfig{
+		mappingName:         "hello",
+		clusterNameContains: "hello",
+		clusterAssignments:  []string{"10.42.0.15:5000", "10.42.0.16:5000"},
+		k8sEndpointNames:    []string{"hello"},
+		consulEndpointNames: []string{"hello"},
+		consulAddresses:     []string{"other-dc/hello/1.2.3.4:8080", "other-dc/hello/4.3.2.1:8080"},
+	})
+
+	// ================
+	STEP("SWITCH TO K8s DEFAULT ROUTING")
+
+	// Switch the hello mapping to use the service resolver, by default.
+	f.UpsertYAML(`---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: hello
+  namespace: default
+spec:
+  prefix: /hello
+  service: hello
+`)
+	f.Flush()
+
+	// At this point we should see the K8s endpoints disappear, with deltas, and we should
+	// see the load assignments for our cluster switch.
+	//
+	// XXX At the moment we'll still see the Consul endpoints.
+	assertEndpointsAndDeltas(t, f, &eadConfig{
+		mappingName:         "hello",
+		clusterNameContains: "hello",
+		clusterAssignments:  []string{"hello:80"},
+		deltaNames:          []string{"hello"},
+		deltaKinds:          []kates.DeltaType{kates.ObjectDelete},
+		consulEndpointNames: []string{"hello"},
+		consulAddresses:     []string{"other-dc/hello/1.2.3.4:8080", "other-dc/hello/4.3.2.1:8080"},
+	})
+
+	// ================
+	STEP("SWITCH BACK TO CONSUL RESOLVER")
+
+	// Put the Consul resolver back, and switch our Mapping's resolver to it. We should see
+	// the load assignments for the cluster switch back to the Consul endpoints, which
+	// should be present in the snapshot. There should be no K8s Endpoints and thus no
+	// deltas, since we just switched back to the service resolver.
+
+	f.UpsertYAML(`---
+apiVersion: getambassador.io/v2
+kind: ConsulResolver
+metadata:
+  name: consul-other-dc
+spec:
+  address: consul-server.default.svc.cluster.local:8500
+  datacenter: other-dc
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: hello
+  namespace: default
+spec:
+  prefix: /hello
+  service: hello
+  resolver: consul-other-dc
+`)
+	f.Flush() // get all the changes applied at once
+
+	assertEndpointsAndDeltas(t, f, &eadConfig{
+		mappingName:         "hello",
+		clusterNameContains: "hello",
+		clusterAssignments:  []string{"1.2.3.4:8080", "4.3.2.1:8080"},
+		consulEndpointNames: []string{"hello"},
+		consulAddresses:     []string{"other-dc/hello/1.2.3.4:8080", "other-dc/hello/4.3.2.1:8080"},
+	})
+
+}
+
 func STEP(step string) {
 	fmt.Printf("======== %s\n", step)
 }
