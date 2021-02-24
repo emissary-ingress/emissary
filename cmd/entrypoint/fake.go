@@ -2,7 +2,6 @@ package entrypoint
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os/exec"
 	"reflect"
@@ -201,32 +200,36 @@ func (f *Fake) runWatcher(ctx context.Context) error {
 	return err
 }
 
-// We pass this into the watcher loop to get notified when a snapshot is produced.
-func (f *Fake) notifySnapshot(ctx context.Context) {
-	if f.config.EnvoyConfig {
-		notifyReconfigWebhooksFunc(ctx, &noopNotable{}, false)
-		f.appendEnvoyConfig()
-	}
-
-	f.appendSnapshot()
+type SnapshotEntry struct {
+	Disposition SnapshotDisposition
+	Snapshot    *snapshot.Snapshot
 }
 
-func (f *Fake) appendSnapshot() {
-	snapshotBytes := f.currentSnapshot.Load().([]byte)
-	var snap *snapshot.Snapshot
-	err := json.Unmarshal(snapshotBytes, &snap)
-	if err != nil {
-		f.T.Fatalf("error unmarshalling snapshot: %+v", err)
+// We pass this into the watcher loop to get notified when a snapshot is produced.
+func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, snap *snapshot.Snapshot) {
+	if disp == SnapshotReady {
+		if f.config.EnvoyConfig {
+			notifyReconfigWebhooksFunc(ctx, &noopNotable{}, false)
+			f.appendEnvoyConfig()
+		}
 	}
 
-	f.snapshots.Add(snap)
+	f.snapshots.Add(SnapshotEntry{disp, snap})
+}
+
+// GetSnapshotEntry will return the next SnapshotEntry that satisfies the supplied predicate.
+func (f *Fake) GetSnapshotEntry(predicate func(SnapshotEntry) bool) SnapshotEntry {
+	return f.snapshots.Get(func(obj interface{}) bool {
+		entry := obj.(SnapshotEntry)
+		return predicate(entry)
+	}).(SnapshotEntry)
 }
 
 // GetSnapshot will return the next snapshot that satisfies the supplied predicate.
 func (f *Fake) GetSnapshot(predicate func(*snapshot.Snapshot) bool) *snapshot.Snapshot {
-	return f.snapshots.Get(func(obj interface{}) bool {
-		return predicate(obj.(*snapshot.Snapshot))
-	}).(*snapshot.Snapshot)
+	return f.GetSnapshotEntry(func(entry SnapshotEntry) bool {
+		return entry.Disposition == SnapshotReady && predicate(entry.Snapshot)
+	}).Snapshot
 }
 
 func (f *Fake) appendEnvoyConfig() {

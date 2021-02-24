@@ -1,7 +1,6 @@
 package entrypoint
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"io/ioutil"
@@ -11,7 +10,7 @@ import (
 	"github.com/datawire/ambassador/pkg/acp"
 	"github.com/datawire/ambassador/pkg/debug"
 	"github.com/datawire/ambassador/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
+	"github.com/datawire/ambassador/pkg/snapshot/v1"
 	"github.com/datawire/ambassador/pkg/watt"
 	"github.com/datawire/dlib/dlog"
 )
@@ -34,8 +33,10 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 
 	// **** SETUP DONE for the Kubernetes Watcher
 
-	notify := func(ctx context.Context) {
-		notifyReconfigWebhooks(ctx, ambwatch)
+	notify := func(ctx context.Context, disposition SnapshotDisposition, snap *snapshot.Snapshot) {
+		if disposition == SnapshotReady {
+			notifyReconfigWebhooks(ctx, ambwatch)
+		}
 	}
 
 	k8sSrc := newK8sSource(client)
@@ -44,6 +45,22 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 
 	watcherLoop(ctx, encoded, k8sSrc, queries, consulSrc, istioCertSrc, notify)
 }
+
+type SnapshotProcessor func(context.Context, SnapshotDisposition, *snapshot.Snapshot)
+type SnapshotDisposition int
+
+const (
+	// Indicates the watcher is still in the booting process and the snapshot has dangling pointers.
+	SnapshotIncomplete SnapshotDisposition = iota
+	// Indicates that the watcher is deferring processing of the snapshot because it is considered
+	// to be a product of churn.
+	SnapshotDefer
+	// Indicates that the watcher is dropping the snapshot because it has determined that it is
+	// logically a noop.
+	SnapshotDrop
+	// Indicates that the snapshot is ready to be processed.
+	SnapshotReady
+)
 
 // watcher is _the_ thing that watches all the different kinds of Ambassador configuration
 // events that we care about. This right here is pretty much the root of everything flowing
@@ -91,7 +108,7 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 // 4. If you don't fully understand everything above, _do not touch this function without
 //    guidance_.
 func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, queries []kates.Query,
-	consulWatcher Watcher, istioCertSrc IstioCertSource, notify func(context.Context)) {
+	consulWatcher Watcher, istioCertSrc IstioCertSource, notify SnapshotProcessor) {
 	// Synthesize the low(ish)-level Kubernetes watcher, then use it to synthesize
 	// the Kubernetes watch manager.
 	k8sWatcher := k8sSrc.Watch(ctx, queries...)
@@ -154,9 +171,6 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 	//
 	// Is this the very first reconfigure we've done?
 	firstReconfig := true // Watcher itself: core state
-
-	// If not, what does the previous configuration look like?
-	previousSnapshotJSON := []byte{} // Watcher itself: core state
 
 	for {
 		dlog.Debugf(ctx, "WATCHER: --------")
@@ -229,25 +243,28 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 			dlog.Debugf(ctx, "WATCHER: filtered deltas (%d): %s", len(k8s.deltas), deltaSummary(k8s.deltas))
 		})
 
-		// Do we have any real changes from any watcher?
-		if !k8s.UpdatesPresent() && !consulChangesPresent && !istio.UpdatesPresent() {
-			// Nope, no changes at all -- we can short-circuit.
-			dlog.Debugf(ctx, "WATCHER: all deltas filtered out")
-			continue
-		}
-
 		unsentDeltas = append(unsentDeltas, k8s.deltas...)
 
-		if !consul.isBootstrapped() {
-			continue
-		}
-
-		sn := &snapshotTypes.Snapshot{
+		sn := &snapshot.Snapshot{
 			Kubernetes: k8s.snapshot,
 			Consul:     consulSnapshot,
 			Invalid:    validator.getInvalid(),
 			Deltas:     unsentDeltas,
 		}
+
+		// Do we have any real changes from any watcher?
+		if !k8s.UpdatesPresent() && !consulChangesPresent && !istio.UpdatesPresent() {
+			// Nope, no changes at all -- we can short-circuit.
+			dlog.Debugf(ctx, "WATCHER: all deltas filtered out")
+			notify(ctx, SnapshotDrop, sn)
+			continue
+		}
+
+		if !consul.isBootstrapped() {
+			notify(ctx, SnapshotIncomplete, sn)
+			continue
+		}
+
 		unsentDeltas = nil
 
 		snapshotJSON, err := json.MarshalIndent(sn, "", "  ")
@@ -267,18 +284,6 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 			}
 		}
 
-		// If our current snapshot is the same as our previous snapshot, skip
-		// it and wait for next time.
-		if bytes.Equal(snapshotJSON, previousSnapshotJSON) {
-			dlog.Debugf(ctx, "WATCHER: Short-circuiting: identical snapshots")
-			continue
-		}
-
-		dlog.Debugf(ctx, "WATCHER: use new snapshot (%d bytes, old is %d bytes)", len(snapshotJSON), len(previousSnapshotJSON))
-
-		// Update previousSnapshotJSON for next time...
-		previousSnapshotJSON = snapshotJSON
-
 		// ...then stash this snapshot and fire off webhooks.
 		encoded.Store(snapshotJSON)
 		if firstReconfig {
@@ -289,7 +294,7 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 		// Finally, use the reconfigure webhooks to let the rest of Ambassador
 		// know about the new configuration.
 		notifyWebhooksTimer.Time(func() {
-			notify(ctx)
+			notify(ctx, SnapshotReady, sn)
 		})
 	}
 }

@@ -136,9 +136,20 @@ func TestFakeHelloConsul(t *testing.T) {
 	// until that data is available before producing the first snapshot.
 	f.Flush()
 
-	// XXX: It would be nice at this point to affirmitively test that no snapshot is produced until
-	// we supply the endpoint data below, however that would require extending the inject APIs a
-	// bit. This is something we can do in the future.
+	// In prior tests we have only examined the snapshots that were ready to be processed, but the
+	// watcher doesn't process every snapshot it constructs, it can discard various snapshots for
+	// different reasons. Using GetSnapshotEntry() we can pull entries from the full log of
+	// snapshots considered as opposed to just the skipping straight to the ones that are ready to
+	// be processed.
+	//
+	// In this case the snapshot is considered incomplete until we supply enough consul endpoint
+	// data for edgestack to construct an envoy config that won't send requests to our hello mapping
+	// into a black hole.
+	entry := f.GetSnapshotEntry(func(entry entrypoint.SnapshotEntry) bool {
+		return entry.Disposition == entrypoint.SnapshotIncomplete && len(entry.Snapshot.Kubernetes.Mappings) > 0
+	})
+	// Check that the snapshot contains the mapping from the file.
+	assert.Equal(t, "hello", entry.Snapshot.Kubernetes.Mappings[0].Name)
 
 	// Now let's supply the endpoint data for the hello service referenced by our hello mapping.
 	f.ConsulEndpoint("dc1", "hello", "1.2.3.4", 8080)
