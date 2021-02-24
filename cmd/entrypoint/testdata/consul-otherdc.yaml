@@ -1,0 +1,8 @@
+---
+apiVersion: getambassador.io/v2
+kind: ConsulResolver
+metadata:
+  name: consul-otherdc
+spec:
+  address: consul-server.default.svc.cluster.local:8500
+  datacenter: otherdc
