@@ -443,46 +443,14 @@ spec:
 	})
 
 	// ================
-	STEP("SWITCH DEFAULT RESOLVER TO CONSUL RESOLVER")
+	STEP("SWITCH BACK TO CONSUL RESOLVER")
 
-	// Put the Consul resolver back, and switch the default resolver to it. We should see
+	// Put the Consul resolver back, and switch our Mapping's resolver to it. We should see
 	// the load assignments for the cluster switch back to the Consul endpoints, which
 	// should be present in the snapshot. There should be no K8s Endpoints and thus no
 	// deltas, since we just switched back to the service resolver.
-	//
-	// XXX In pratice, you can't really use the Consul resolver as a default resolver:
-	// Edge Stack adds mappings that have "." in their service names. For this test,
-	// though, that's fine.
 
 	f.UpsertFile("testdata/FakeHelloConsul.yaml")
-	f.UpsertYAML(`---
-apiVersion: getambassador.io/v2
-kind: Module
-metadata:
-  name:  ambassador
-spec:
-  config:
-    resolver: consul-dc1
-`)
-	f.Flush() // get all the changes applied at once
-
-	assertEndpointsAndDeltas(t, f, &eadConfig{
-		mappingName:         "hello",
-		clusterNameContains: "hello",
-		clusterAssignments:  []string{"1.2.3.4:8080", "4.3.2.1:8080"},
-		consulEndpointNames: []string{"hello"},
-		consulAddresses:     []string{"dc1/hello/1.2.3.4:8080", "dc1/hello/4.3.2.1:8080"},
-	})
-
-	// ================
-	STEP("SWITCH BACK TO MAPPING CONSUL RESOLVER")
-
-	// Switch the default resolver back to the K8s service resolver, and switch our
-	// mapping back to the Consul dc1 resolver. This is just to get us back into a
-	// state that we would fully expect Ambassador to work correctly. We should see
-	// no changes, because we explicitly flush both changes at once.
-
-	f.Delete("Module", "default", "ambassador")
 	f.UpsertYAML(`---
 apiVersion: getambassador.io/v2
 kind: Mapping
