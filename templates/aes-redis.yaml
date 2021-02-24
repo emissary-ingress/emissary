@@ -16,6 +16,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
   annotations:
+    {{- toYaml .Values.redis.annotations.service | nindent 4}}
     app.getambassador.io/owner: "Ambassador Labs"
     app.getambassador.io/repository: github.com/datawire/ambassador
     app.getambassador.io/description: "The Ambassador Edge Stack Redis store for auth and rate limiting, among other things."
@@ -24,7 +25,6 @@ metadata:
     app.getambassador.io/bugs: https://github.com/datawire/ambassador/issues
     app.getambassador.io/support: https://www.getambassador.io/about-us/support/
     app.getambassador.io/dependencies: "None"
-    {{- toYaml .Values.redis.annotations.service | nindent 4}}
 spec:
   type: ClusterIP
   ports:
