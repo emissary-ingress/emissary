@@ -23,6 +23,9 @@ func TestEndpointFiltering(t *testing.T) {
 	// XXX
 	// Fake doesn't seem to really do namespacing or ambassadorID.
 
+	// ================
+	STEP("START")
+
 	f.UpsertYAML(`---
 apiVersion: getambassador.io/v2
 kind: Mapping
@@ -41,6 +44,9 @@ spec:
 		clusterNameContains: "qotm",
 		clusterAssignments:  []string{"qotm:80"},
 	})
+
+	// ================
+	STEP("EXPLICIT ENDPOINT ROUTING")
 
 	// Switch the QoTM mapping to explicitly use the endpoint resolver.
 	f.UpsertYAML(`---
@@ -64,6 +70,9 @@ spec:
 		deltaKinds:          []kates.DeltaType{kates.ObjectAdd},
 	})
 
+	// ================
+	STEP("EXPLICIT SERVICE ROUTING")
+
 	// Switch the QoTM mapping to use the service resolver.
 	f.UpsertYAML(`---
 apiVersion: getambassador.io/v2
@@ -84,6 +93,210 @@ spec:
 		deltaNames:          []string{"qotm"},
 		deltaKinds:          []kates.DeltaType{kates.ObjectDelete},
 	})
+
+	// ================
+	STEP("INSTALL CUSTOM RESOLVER")
+
+	// Nothing should change, because nothing is using it yet.
+	f.UpsertYAML(`---
+apiVersion: getambassador.io/v2
+kind: KubernetesEndpointResolver
+metadata:
+  name: custom-resolver
+spec: {}
+`)
+
+	assertEndpointsAndDeltas(t, f, &eadConfig{
+		mappingName:         "qotm-mapping",
+		clusterNameContains: "qotm",
+		clusterAssignments:  []string{"qotm:80"},
+	})
+
+	// ================
+	STEP("INSTALL CUSTOM ENDPOINTS")
+
+	// Again, nothing should change, because nothing is using endpoint routing right now.
+	// So we should see a dropped snapshot entry (that still contains our mapping).
+	f.UpsertFile("testdata/custom-endpoints.yaml")
+	assertDroppedSnapshotEntry(t, f, "qotm-mapping")
+
+	// ================
+	STEP("SWITCH QOTM TO CUSTOM RESOLVER")
+
+	// Once we switch the QotM Mapping to the custom resolver, we should see its Endpoints
+	// plus the custom Endpoints we added last time.
+	f.UpsertYAML(`---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name:  qotm-mapping
+spec:
+  prefix: /qotm/
+  service: qotm
+  resolver: custom-resolver
+`)
+
+	assertEndpointsAndDeltas(t, f, &eadConfig{
+		mappingName:         "qotm-mapping",
+		clusterNameContains: "qotm",
+		clusterAssignments:  []string{"10.42.0.15:5000", "10.42.0.16:5000"},
+		k8sEndpointNames:    []string{"qotm", "random-1", "random-2"},
+		deltaNames:          []string{"qotm", "random-1", "random-2"},
+		deltaKinds:          []kates.DeltaType{kates.ObjectAdd, kates.ObjectAdd, kates.ObjectAdd},
+	})
+
+	// ================
+	STEP("DELETE random-1 ENDPOINTS")
+
+	// When we delete the random-1 Endpoints, we should see a deletion delta for it, and
+	// we should see that its Endpoints is gone.
+	f.Delete("Endpoints", "default", "random-1")
+
+	assertEndpointsAndDeltas(t, f, &eadConfig{
+		mappingName:         "qotm-mapping",
+		clusterNameContains: "qotm",
+		clusterAssignments:  []string{"10.42.0.15:5000", "10.42.0.16:5000"},
+		k8sEndpointNames:    []string{"qotm", "random-2"},
+		deltaNames:          []string{"random-1"},
+		deltaKinds:          []kates.DeltaType{kates.ObjectDelete},
+	})
+
+	// ================
+	STEP("SWITCH QOTM TO DEFAULT RESOLVER")
+
+	// Once we switch the QotM Mapping to the default resolver, we should see all the
+	// Endpoints vanish, and we should see deletions for them.
+	f.UpsertYAML(`---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name:  qotm-mapping
+spec:
+  prefix: /qotm/
+  service: qotm
+`)
+
+	assertEndpointsAndDeltas(t, f, &eadConfig{
+		mappingName:         "qotm-mapping",
+		clusterNameContains: "qotm",
+		clusterAssignments:  []string{"qotm:80"},
+		deltaNames:          []string{"qotm", "random-2"},
+		deltaKinds:          []kates.DeltaType{kates.ObjectDelete, kates.ObjectDelete},
+	})
+
+	// ================
+	STEP("SWITCH DEFAULT RESOLVER TO CUSTOM RESOLVER")
+
+	// Switching the default resolver to our custom resolver should make all the Endpoints
+	// reappear, and we should see adds for them.
+	f.UpsertYAML(`---
+apiVersion: getambassador.io/v2
+kind: Module
+metadata:
+  name:  ambassador
+spec:
+  config:
+    resolver: custom-resolver
+`)
+
+	assertEndpointsAndDeltas(t, f, &eadConfig{
+		mappingName:         "qotm-mapping",
+		clusterNameContains: "qotm",
+		clusterAssignments:  []string{"10.42.0.15:5000", "10.42.0.16:5000"},
+		k8sEndpointNames:    []string{"qotm", "random-2"},
+		deltaNames:          []string{"qotm", "random-2"},
+		deltaKinds:          []kates.DeltaType{kates.ObjectAdd, kates.ObjectAdd},
+	})
+
+	// ================
+	STEP("RE-ADD random-1 ENDPOINTS")
+
+	// When we add the random-1 Endpoints again, by virtue of upserting the file with
+	// both Endpoints in it, we should see an addition delta for it, and we should see
+	// its Endpoints reappear.
+	//
+	// XXX Right now, we actually get _two_ deltas: an add for random-1 _and_ an update
+	// for random-2. This happens because the K8s store doesn't check whether or not the
+	// reapplied random-2 is different or not, it just calls it an update. At some point,
+	// we might fix that, in which case this test will break.
+	f.UpsertFile("testdata/custom-endpoints.yaml")
+
+	assertEndpointsAndDeltas(t, f, &eadConfig{
+		mappingName:         "qotm-mapping",
+		clusterNameContains: "qotm",
+		clusterAssignments:  []string{"10.42.0.15:5000", "10.42.0.16:5000"},
+		k8sEndpointNames:    []string{"qotm", "random-1", "random-2"},
+		deltaNames:          []string{"random-1", "random-2"},
+		deltaKinds:          []kates.DeltaType{kates.ObjectAdd, kates.ObjectUpdate},
+	})
+
+	// ================
+	STEP("SWITCH DEFAULT RESOLVER TO SERVICE RESOLVER")
+
+	// Switching the default resolver back the service resolver should make all the Endpoints
+	// Endpoints vanish, and we should see deletions for them.
+	f.UpsertYAML(`---
+apiVersion: getambassador.io/v2
+kind: Module
+metadata:
+  name:  ambassador
+spec:
+  config:
+    resolver: kubernetes-service
+`)
+
+	assertEndpointsAndDeltas(t, f, &eadConfig{
+		mappingName:         "qotm-mapping",
+		clusterNameContains: "qotm",
+		clusterAssignments:  []string{"qotm:80"},
+		deltaNames:          []string{"qotm", "random-1", "random-2"},
+		deltaKinds:          []kates.DeltaType{kates.ObjectDelete, kates.ObjectDelete, kates.ObjectDelete},
+	})
+
+	// ================
+	STEP("SWITCH DEFAULT RESOLVER TO ENDPOINT RESOLVER")
+
+	// XXX This step will go away when we can assert that we didn't generate a snapshot.
+	// But for now we'll see all three Endpoints reappear, with adds.
+	f.UpsertYAML(`---
+apiVersion: getambassador.io/v2
+kind: Module
+metadata:
+  name:  ambassador
+spec:
+  config:
+    resolver: kubernetes-endpoint
+`)
+
+	assertEndpointsAndDeltas(t, f, &eadConfig{
+		mappingName:         "qotm-mapping",
+		clusterNameContains: "qotm",
+		clusterAssignments:  []string{"10.42.0.15:5000", "10.42.0.16:5000"},
+		k8sEndpointNames:    []string{"qotm", "random-1", "random-2"},
+		deltaNames:          []string{"qotm", "random-1", "random-2"},
+		deltaKinds:          []kates.DeltaType{kates.ObjectAdd, kates.ObjectAdd, kates.ObjectAdd},
+	})
+
+	// ================
+	STEP("DELETE AMBASSADOR MODULE")
+
+	// XXX This step will change when we can assert that we didn't generate a snapshot.
+	// For now, when we delete the Ambassador module, it'll implicitly flip the default
+	// resolver back to the service resolver, so we'll see all the Endpoints vanish, and
+	// we'll see deletes.
+	f.Delete("Module", "default", "ambassador")
+
+	assertEndpointsAndDeltas(t, f, &eadConfig{
+		mappingName:         "qotm-mapping",
+		clusterNameContains: "qotm",
+		clusterAssignments:  []string{"qotm:80"},
+		deltaNames:          []string{"qotm", "random-1", "random-2"},
+		deltaKinds:          []kates.DeltaType{kates.ObjectDelete, kates.ObjectDelete, kates.ObjectDelete},
+	})
+}
+
+func STEP(step string) {
+	fmt.Printf("======== %s\n", step)
 }
 
 // eadConfig talks about endpoints and deltas.
