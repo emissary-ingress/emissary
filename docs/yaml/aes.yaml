@@ -455,3 +455,67 @@ spec:
       - name: ambassador-edge-stack-secrets
         secret:
           secretName: ambassador-edge-stack
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ambassador-agent
+  namespace: ambassador
+  labels:
+    product: aes
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: ambassador-agent
+  labels:
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ambassador-agent
+subjects:
+- kind: ServiceAccount
+  name: ambassador-agent
+  namespace: ambassador
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-agent
+  labels:
+    product: aes
+rules:
+- apiGroups: [""]
+  resources: [ "pods" ]
+  verbs: [ "get", "list", "watch" ]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/instance: ambassador
+    app.kubernetes.io/name: ambassador-agent
+  name: ambassador-agent
+  namespace: ambassador
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: ambassador
+      app.kubernetes.io/name: ambassador-agent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: ambassador
+        app.kubernetes.io/name: ambassador-agent
+    spec:
+      serviceAccountName: ambassador-agent
+      containers:
+      - command:
+        - agent
+        image: docker.io/datawire/aes:$version$
+        env:
+        - name: AES_SNAPSHOT_URL
+          value: "http://ambassador-admin.ambassador:8005/snapshot-external"
+        name: agent
