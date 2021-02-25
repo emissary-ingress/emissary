@@ -39,7 +39,7 @@ spec:
 
 	// Here at the start of the test, we expect our mapping, no Endpoints, and no endpoint
 	// deltas.
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "qotm-mapping",
 		clusterNameContains: "qotm",
 		clusterAssignments:  []string{"qotm:80"},
@@ -61,7 +61,7 @@ spec:
 `)
 
 	// Once that's done, we need the Mapping, an Endpoints, and an ADD Endpoints delta.
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "qotm-mapping",
 		clusterNameContains: "qotm",
 		clusterAssignments:  []string{"10.42.0.15:5000", "10.42.0.16:5000"},
@@ -86,7 +86,7 @@ spec:
 `)
 
 	// Once that's done, we need the Mapping, no Endpoints, and a DELETE Endpoints delta.
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "qotm-mapping",
 		clusterNameContains: "qotm",
 		clusterAssignments:  []string{"qotm:80"},
@@ -106,7 +106,7 @@ metadata:
 spec: {}
 `)
 
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "qotm-mapping",
 		clusterNameContains: "qotm",
 		clusterAssignments:  []string{"qotm:80"},
@@ -118,7 +118,7 @@ spec: {}
 	// Again, nothing should change, because nothing is using endpoint routing right now.
 	// So we should see a dropped snapshot entry (that still contains our mapping).
 	f.UpsertFile("testdata/custom-endpoints.yaml")
-	assertDroppedSnapshotEntry(t, f, "qotm-mapping")
+	assertDroppedSnapshotEntry(f, "qotm-mapping")
 
 	// ================
 	STEP("SWITCH QOTM TO CUSTOM RESOLVER")
@@ -136,7 +136,7 @@ spec:
   resolver: custom-resolver
 `)
 
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "qotm-mapping",
 		clusterNameContains: "qotm",
 		clusterAssignments:  []string{"10.42.0.15:5000", "10.42.0.16:5000"},
@@ -152,7 +152,7 @@ spec:
 	// we should see that its Endpoints is gone.
 	f.Delete("Endpoints", "default", "random-1")
 
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "qotm-mapping",
 		clusterNameContains: "qotm",
 		clusterAssignments:  []string{"10.42.0.15:5000", "10.42.0.16:5000"},
@@ -176,7 +176,7 @@ spec:
   service: qotm
 `)
 
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "qotm-mapping",
 		clusterNameContains: "qotm",
 		clusterAssignments:  []string{"qotm:80"},
@@ -199,7 +199,7 @@ spec:
     resolver: custom-resolver
 `)
 
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "qotm-mapping",
 		clusterNameContains: "qotm",
 		clusterAssignments:  []string{"10.42.0.15:5000", "10.42.0.16:5000"},
@@ -221,7 +221,7 @@ spec:
 	// we might fix that, in which case this test will break.
 	f.UpsertFile("testdata/custom-endpoints.yaml")
 
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "qotm-mapping",
 		clusterNameContains: "qotm",
 		clusterAssignments:  []string{"10.42.0.15:5000", "10.42.0.16:5000"},
@@ -245,7 +245,7 @@ spec:
     resolver: kubernetes-service
 `)
 
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "qotm-mapping",
 		clusterNameContains: "qotm",
 		clusterAssignments:  []string{"qotm:80"},
@@ -268,7 +268,7 @@ spec:
     resolver: kubernetes-endpoint
 `)
 
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "qotm-mapping",
 		clusterNameContains: "qotm",
 		clusterAssignments:  []string{"10.42.0.15:5000", "10.42.0.16:5000"},
@@ -286,7 +286,7 @@ spec:
 	// we'll see deletes.
 	f.Delete("Module", "default", "ambassador")
 
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "qotm-mapping",
 		clusterNameContains: "qotm",
 		clusterAssignments:  []string{"qotm:80"},
@@ -306,7 +306,7 @@ func TestConsulEndpointFiltering(t *testing.T) {
 	f.UpsertFile("testdata/FakeHelloConsul.yaml")
 	f.Flush()
 
-	assertIncompleteSnapshotEntry(t, f, "hello")
+	assertIncompleteSnapshotEntry(f, "hello")
 
 	// ================
 	STEP("INITIALIZE Consul")
@@ -316,7 +316,7 @@ func TestConsulEndpointFiltering(t *testing.T) {
 
 	// At this point we should see a configuration that's using endpoint routing, but we
 	// should have no K8s Deltas.
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "hello",
 		clusterNameContains: "hello",
 		clusterAssignments:  []string{"1.2.3.4:8080"},
@@ -334,7 +334,7 @@ func TestConsulEndpointFiltering(t *testing.T) {
 	f.UpsertFile("testdata/hello-endpoints.yaml")
 	f.Flush()
 
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "hello",
 		clusterNameContains: "hello",
 		clusterAssignments:  []string{"1.2.3.4:8080"},
@@ -351,7 +351,7 @@ func TestConsulEndpointFiltering(t *testing.T) {
 
 	// At this point we should see a configuration that's using endpoint routing, but we
 	// should have no K8s Deltas.
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "hello",
 		clusterNameContains: "hello",
 		clusterAssignments:  []string{"1.2.3.4:8080", "4.3.2.1:8080"},
@@ -381,7 +381,7 @@ spec:
 	// though, since the Consul resolver is present.
 	//
 	// XXX Is that really correct? Feels like the Consul endpoints should disappear here.
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "hello",
 		clusterNameContains: "hello",
 		clusterAssignments:  []string{"10.42.0.15:5000", "10.42.0.16:5000"},
@@ -403,7 +403,7 @@ spec:
 	//
 	// XXX At the moment, the Consul resolver leaves its endpoints in place, even though it
 	// shouldn't.
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "hello",
 		clusterNameContains: "hello",
 		clusterAssignments:  []string{"10.42.0.15:5000", "10.42.0.16:5000"},
@@ -432,7 +432,7 @@ spec:
 	// see the load assignments for our cluster switch.
 	//
 	// XXX At the moment we'll still see the Consul endpoints.
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "hello",
 		clusterNameContains: "hello",
 		clusterAssignments:  []string{"hello:80"},
@@ -464,7 +464,7 @@ spec:
 `)
 	f.Flush() // get all the changes applied at once
 
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "hello",
 		clusterNameContains: "hello",
 		clusterAssignments:  []string{"1.2.3.4:8080", "4.3.2.1:8080"},
@@ -492,7 +492,7 @@ spec:
 	f.ConsulEndpoint("other-dc", "hello", "1.2.1.2", 8000)
 	f.Flush() // get all the changes applied at once
 
-	assertEndpointsAndDeltas(t, f, &eadConfig{
+	assertEndpointsAndDeltas(f, &eadConfig{
 		mappingName:         "hello",
 		clusterNameContains: "hello",
 		clusterAssignments:  []string{"1.2.3.4:8080", "4.3.2.1:8080"},
@@ -532,7 +532,7 @@ spec:
 	// `)
 	// 	// f.Flush()
 
-	// 	// assertEndpointsAndDeltas(t, f, &eadConfig{
+	// 	// assertEndpointsAndDeltas(f, &eadConfig{
 	// 	// 	mappingName:         "hello",
 	// 	// 	clusterNameContains: "hello",
 	// 	// 	clusterAssignments:  []string{"1.2.3.4:8080", "4.3.2.1:8080"},
@@ -543,7 +543,7 @@ spec:
 	// 	f.ConsulEndpoint("other-dc", "hello", "2.1.2.1", 8080)
 	// 	f.Flush()
 
-	// 	assertEndpointsAndDeltas(t, f, &eadConfig{
+	// 	assertEndpointsAndDeltas(f, &eadConfig{
 	// 		mappingName:         "hello",
 	// 		clusterNameContains: "hello",
 	// 		clusterAssignments:  []string{"1.2.1.2:8000", "2.1.2.1:8080"},
@@ -585,15 +585,15 @@ type deltaNameAndType struct {
 //   types matching eadConfig.deltaTypes.
 // - the Envoy config contains a cluster whose name contains eadConfig.clusterNameContains
 // - the cluster has load assignments that match eadConfig.clusterAssignments
-func assertEndpointsAndDeltas(t *testing.T, f *entrypoint.Fake, ead *eadConfig) {
+func assertEndpointsAndDeltas(f *entrypoint.Fake, ead *eadConfig) {
 	// Make sure that we can get a snapshot, and that it contains our mapping...
-	snap := assertSnapshotWithMapping(t, f, ead.mappingName)
+	snap := assertSnapshotWithMapping(f, ead.mappingName)
 
 	// Given the snapshot, grab the K8s Endpoints...
 	k8sEndpoints := snap.Kubernetes.Endpoints
 
 	// ...make sure all the lengths match up...
-	assert.Equal(t, len(ead.k8sEndpointNames), len(k8sEndpoints))
+	assert.Equal(f.T, len(ead.k8sEndpointNames), len(k8sEndpoints))
 
 	// ...then build an array of the actual endpoint names, both to format things
 	// politely and to sort it
@@ -614,10 +614,10 @@ func assertEndpointsAndDeltas(t *testing.T, f *entrypoint.Fake, ead *eadConfig) 
 		sort.Strings(expectedNames)
 
 		// ...and make sure the names match up.
-		assert.Equal(t, expectedNames, actualNames)
+		assert.Equal(f.T, expectedNames, actualNames)
 	} else {
 		// No expected names, so we need to have no actual names.
-		assert.Zero(t, len(actualNames))
+		assert.Zero(f.T, len(actualNames))
 	}
 
 	// Consul endpoints are smarter than Kube Endpoints. They're a dict mapping
@@ -627,7 +627,7 @@ func assertEndpointsAndDeltas(t *testing.T, f *entrypoint.Fake, ead *eadConfig) 
 
 	consulEndpoints := snap.Consul.Endpoints
 
-	assert.Equal(t, len(ead.consulEndpointNames), len(consulEndpoints))
+	assert.Equal(f.T, len(ead.consulEndpointNames), len(consulEndpoints))
 
 	epAddresses := []string{}
 
@@ -647,10 +647,10 @@ func assertEndpointsAndDeltas(t *testing.T, f *entrypoint.Fake, ead *eadConfig) 
 		copy(expectedAddresses, ead.consulAddresses)
 		sort.Strings(expectedAddresses)
 
-		assert.Equal(t, expectedAddresses, epAddresses)
+		assert.Equal(f.T, expectedAddresses, epAddresses)
 	} else {
 		// And, again, if we expect no addresses, we need to see no addresses.
-		assert.Zero(t, len(epAddresses))
+		assert.Zero(f.T, len(epAddresses))
 	}
 
 	// Next up, do it all over again for deltas. Start by grabbing the
@@ -659,8 +659,8 @@ func assertEndpointsAndDeltas(t *testing.T, f *entrypoint.Fake, ead *eadConfig) 
 	deltas := endpointDeltas(snap)
 
 	// Next, we make sure all the lengths match up...
-	assert.Equal(t, len(ead.deltaNames), len(deltas))
-	assert.Equal(t, len(ead.deltaKinds), len(deltas))
+	assert.Equal(f.T, len(ead.deltaNames), len(deltas))
+	assert.Equal(f.T, len(ead.deltaKinds), len(deltas))
 
 	// ...then build up an array of deltaNamesAndTypes to sort.
 	dnat := make([]*deltaNameAndType, len(deltas))
@@ -678,12 +678,12 @@ func assertEndpointsAndDeltas(t *testing.T, f *entrypoint.Fake, ead *eadConfig) 
 
 	// After all that, we can check to make sure everything matches.
 	for i := range deltas {
-		assert.Equal(t, dnat[i].name, deltas[i].GetName())
-		assert.Equal(t, dnat[i].deltaType, deltas[i].DeltaType)
+		assert.Equal(f.T, dnat[i].name, deltas[i].GetName())
+		assert.Equal(f.T, dnat[i].deltaType, deltas[i].DeltaType)
 	}
 
 	// Finally, make sure we have a properly-set-up cluster, too.
-	assertEnvoyConfigWithCluster(t, f, ead)
+	assertEnvoyConfigWithCluster(f, ead)
 }
 
 // endpointDeltas grabs only the Endpoints deltas from the snapshot
@@ -708,24 +708,24 @@ func endpointDeltas(snap *snapshot.Snapshot) []*kates.Delta {
 
 // assertSnapshotWithMapping grabs a snapshot and makes sure that it has a Mapping
 // with the given name.
-func assertSnapshotWithMapping(t *testing.T, f *entrypoint.Fake, mappingName string) *snapshot.Snapshot {
+func assertSnapshotWithMapping(f *entrypoint.Fake, mappingName string) *snapshot.Snapshot {
 	// Assert that we can get a snapshot with a single Mapping with the given name.
 	snap := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
 		return len(snap.Kubernetes.Mappings) > 0
 	})
 
-	assert.NotNil(t, snap)
+	assert.NotNil(f.T, snap)
 
 	fmt.Printf("==== SNAPSHOT:\n%s\n", Jsonify(snap))
 
-	assert.Equal(t, mappingName, snap.Kubernetes.Mappings[0].Name)
+	assert.Equal(f.T, mappingName, snap.Kubernetes.Mappings[0].Name)
 
 	return snap
 }
 
 // assertEnvoyConfigWithCluster grabs an Envoy config and makes sure that it has a
 // cluster containing a given name, with a given set of load assignments.
-func assertEnvoyConfigWithCluster(t *testing.T, f *entrypoint.Fake, ead *eadConfig) {
+func assertEnvoyConfigWithCluster(f *entrypoint.Fake, ead *eadConfig) {
 	// Create a predicate that will recognize the cluster we care about. The surjection from
 	// Mappings to clusters is a bit opaque, so we just look for a cluster that contains the name
 	// "qotm".
@@ -745,7 +745,7 @@ func assertEnvoyConfigWithCluster(t *testing.T, f *entrypoint.Fake, ead *eadConf
 	// ...and pull out its load assignments, which is weirder than it should be.
 	endpoints := cluster.LoadAssignment.Endpoints
 
-	assert.NotZero(t, len(endpoints))
+	assert.NotZero(f.T, len(endpoints))
 
 	lbEndpoints := endpoints[0].LbEndpoints
 
@@ -762,7 +762,7 @@ func assertEnvoyConfigWithCluster(t *testing.T, f *entrypoint.Fake, ead *eadConf
 	sort.Strings(assignments)
 
 	// Make sure the lengths match...
-	assert.Equal(t, len(ead.clusterAssignments), len(assignments))
+	assert.Equal(f.T, len(ead.clusterAssignments), len(assignments))
 
 	// ...then make a shallow copy of the expected assignments so that we can sort
 	// that too.
@@ -771,27 +771,27 @@ func assertEnvoyConfigWithCluster(t *testing.T, f *entrypoint.Fake, ead *eadConf
 	sort.Strings(expectedAssignments)
 
 	// Finally, make sure the values match.
-	assert.Equal(t, expectedAssignments, assignments)
+	assert.Equal(f.T, expectedAssignments, assignments)
 }
 
 // assertDroppedSnapshotEntry asserts that we've dropped a snapshot entry that contained
 // the named Mapping.
-func assertDroppedSnapshotEntry(t *testing.T, f *entrypoint.Fake, mappingName string) {
+func assertDroppedSnapshotEntry(f *entrypoint.Fake, mappingName string) {
 	entry := f.GetSnapshotEntry(func(entry entrypoint.SnapshotEntry) bool {
 		fmt.Printf("Snapshot disposition %#v\n", entry.Disposition)
 		return entry.Disposition == entrypoint.SnapshotDrop && len(entry.Snapshot.Kubernetes.Mappings) > 0
 	})
 
-	assert.Equal(t, mappingName, entry.Snapshot.Kubernetes.Mappings[0].Name)
+	assert.Equal(f.T, mappingName, entry.Snapshot.Kubernetes.Mappings[0].Name)
 }
 
 // assertIncompleteSnapshotEntry asserts that we had an incomplete snapshot entry that
 // contained the named Mapping.
-func assertIncompleteSnapshotEntry(t *testing.T, f *entrypoint.Fake, mappingName string) {
+func assertIncompleteSnapshotEntry(f *entrypoint.Fake, mappingName string) {
 	entry := f.GetSnapshotEntry(func(entry entrypoint.SnapshotEntry) bool {
 		fmt.Printf("Snapshot disposition %#v\n", entry.Disposition)
 		return entry.Disposition == entrypoint.SnapshotIncomplete && len(entry.Snapshot.Kubernetes.Mappings) > 0
 	})
 
-	assert.Equal(t, mappingName, entry.Snapshot.Kubernetes.Mappings[0].Name)
+	assert.Equal(f.T, mappingName, entry.Snapshot.Kubernetes.Mappings[0].Name)
 }
