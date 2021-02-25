@@ -32,7 +32,7 @@ from ...ir.ircluster import IRCluster
 from ...ir.irtcpmappinggroup import IRTCPMappingGroup
 from ...ir.irtlscontext import IRTLSContext
 
-from ...utils import dump_json
+from ...utils import dump_json, parse_bool
 from ...utils import ParsedService as Service
 
 from .v2route import V2Route
@@ -569,11 +569,20 @@ def v2filter_router(router: IRFilter, v2config: 'V2Config'):
 
     od: Dict[str, Any] = { 'name': 'envoy.filters.http.router' }
 
+    # Use this config base if we actually need to set config fields below. We don't set
+    # this on `od` by default because it would be an error to end up returning a typed
+    # config that has no real config fields, only a type.
+    typed_config_base = {
+        '@type': 'type.googleapis.com/envoy.config.filter.http.router.v2.Router'
+    }
+
     if router.ir.tracing:
-        od['typed_config'] = {
-            '@type': 'type.googleapis.com/envoy.config.filter.http.router.v2.Router',
-            'start_child_span': True
-        }
+        typed_config = od.setdefault('typed_config', typed_config_base)
+        typed_config['start_child_span'] = True
+
+    if parse_bool(router.ir.ambassador_module.get('suppress_envoy_headers', 'false')):
+        typed_config = od.setdefault('typed_config', typed_config_base)
+        typed_config['suppress_envoy_headers'] = True
 
     return od
 
