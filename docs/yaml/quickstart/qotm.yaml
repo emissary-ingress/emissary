@@ -29,16 +29,16 @@ metadata:
   name: quote
   namespace: ambassador
   annotations:
-        app.getambassador.io/description: "Quote of the moment service"
-        app.getambassador.io/owner: "No owner"
-        app.getambassador.io/chat: "#ambassador"
-        app.getambassador.io/bugs: "https://github.com/datawire/qotm/issues"
-        app.getambassador.io/documentation: "https://github.com/datawire/qotm/blob/master/README.md"
-        app.getambassador.io/repository: "https://github.com/datawire/qotm"
-        app.getambassador.io/support: "http://d6e.co/slack"
-        app.getambassador.io/runbook: "https://github.com/datawire/qotm/blob/master/README.md"
-        app.getambassador.io/incidents: "https://github.com/datawire/qotm/issues"
-        app.getambassador.io/dependencies: "None"    
+        a8r.io/description: "Quote of the moment service"
+        a8r.io/owner: "No owner"
+        a8r.io/chat: "#ambassador"
+        a8r.io/bugs: "https://github.com/datawire/qotm/issues"
+        a8r.io/documentation: "https://github.com/datawire/qotm/blob/master/README.md"
+        a8r.io/repository: "https://github.com/datawire/qotm"
+        a8r.io/support: "http://d6e.co/slack"
+        a8r.io/runbook: "https://github.com/datawire/qotm/blob/master/README.md"
+        a8r.io/incidents: "https://github.com/datawire/qotm/issues"
+        a8r.io/dependencies: "None"    
 spec:
   ports:
   - name: http
