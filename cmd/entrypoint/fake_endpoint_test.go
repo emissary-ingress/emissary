@@ -9,6 +9,7 @@ import (
 	"github.com/datawire/ambassador/cmd/entrypoint"
 	envoy "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
 	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
+	v2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/snapshot/v1"
 	"github.com/stretchr/testify/assert"
@@ -777,18 +778,27 @@ type deltaNameAndType struct {
 	deltaType kates.DeltaType
 }
 
+// snapshotGetMapping returns the Mapping with a given name inside a snapshot.
+// If no mapping is found, it returns nil.
+//
+// It's used here as a building block for predicates passed to f.GetSnapshot and
+// f.GetSnapshotEntry.
+func snapshotGetMapping(snap *snapshot.Snapshot, mappingName string) *v2.Mapping {
+	for _, mapping := range snap.Kubernetes.Mappings {
+		if mapping.GetName() == mappingName {
+			return mapping
+		}
+	}
+
+	return nil
+}
+
 // getSnapshotContainingMapping grabs a snapshot and makes sure that it has a Mapping
 // with the given name.
 func getSnapshotContainingMapping(f *entrypoint.Fake, mappingName string) *snapshot.Snapshot {
 	// Grab the first snapshot that contains a mapping with the given name.
 	snap := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
-		for _, mapping := range snap.Kubernetes.Mappings {
-			if mapping.GetName() == mappingName {
-				return true
-			}
-		}
-
-		return false
+		return snapshotGetMapping(snap, mappingName) != nil
 	})
 
 	assert.NotNil(f.T, snap)
@@ -991,8 +1001,11 @@ func assertClusterLoadAssignments(f *entrypoint.Fake, cluster *envoy.Cluster, ea
 // contains the named Mapping.
 func getDroppedEntryContainingMapping(f *entrypoint.Fake, mappingName string) {
 	entry := f.GetSnapshotEntry(func(entry entrypoint.SnapshotEntry) bool {
-		fmt.Printf("Snapshot disposition %#v\n", entry.Disposition)
-		return entry.Disposition == entrypoint.SnapshotDrop && len(entry.Snapshot.Kubernetes.Mappings) > 0
+		if entry.Disposition != entrypoint.SnapshotDrop {
+			return false
+		}
+
+		return snapshotGetMapping(entry.Snapshot, mappingName) != nil
 	})
 
 	assert.Equal(f.T, mappingName, entry.Snapshot.Kubernetes.Mappings[0].Name)
@@ -1002,7 +1015,11 @@ func getDroppedEntryContainingMapping(f *entrypoint.Fake, mappingName string) {
 // contains the named Mapping.
 func getIncompleteEntryContainingMapping(f *entrypoint.Fake, mappingName string) *entrypoint.SnapshotEntry {
 	entry := f.GetSnapshotEntry(func(entry entrypoint.SnapshotEntry) bool {
-		return entry.Disposition == entrypoint.SnapshotIncomplete && len(entry.Snapshot.Kubernetes.Mappings) > 0
+		if entry.Disposition != entrypoint.SnapshotIncomplete {
+			return false
+		}
+
+		return snapshotGetMapping(entry.Snapshot, mappingName) != nil
 	})
 
 	assert.Equal(f.T, mappingName, entry.Snapshot.Kubernetes.Mappings[0].Name)
