@@ -228,7 +228,11 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 			dlog.Debugf(ctx, "WATCHER: filtered deltas (%d): %s", len(k8s.deltas), deltaSummary(k8s.deltas))
 		})
 
-		unsentDeltas = append(unsentDeltas, k8s.deltas...)
+		// Ugh. We need to remember here whether there were any Kubernetes changes,
+		// because k8s.GetDeltas() will empty the delta set that k8s.UpdatesPresent()
+		// will look at.
+		k8sHasChanges := k8s.UpdatesPresent()
+		unsentDeltas = append(unsentDeltas, k8s.GetDeltas()...)
 
 		sn := &snapshot.Snapshot{
 			Kubernetes: k8s.snapshot,
@@ -238,7 +242,7 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 		}
 
 		// Do we have any real changes from any watcher?
-		if !k8s.UpdatesPresent() && !consulChangesPresent && !istio.UpdatesPresent() {
+		if !k8sHasChanges && !consulChangesPresent && !istio.UpdatesPresent() {
 			// Nope, no changes at all -- we can short-circuit.
 			dlog.Debugf(ctx, "WATCHER: all deltas filtered out")
 			notify(ctx, SnapshotDrop, sn)

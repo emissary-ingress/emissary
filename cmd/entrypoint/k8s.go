@@ -48,6 +48,21 @@ func (k8s *k8sWatchManager) Changed() chan struct{} {
 	return k8s.watcher.Changed()
 }
 
+// resetDeltas clears our internal list of deltas.
+func (k8s *k8sWatchManager) resetDeltas() {
+	k8s.deltas = make([]*kates.Delta, 0)
+}
+
+// GetDeltas grabs the current set of deltas and returns it, leaving an empty
+// set of deltas behind.
+func (k8s *k8sWatchManager) GetDeltas() []*kates.Delta {
+	deltas := k8s.deltas
+
+	k8s.resetDeltas()
+
+	return deltas
+}
+
 // Update actually does the work of updating our internal state with changes,
 // and returning whether or not anything of interest actually happened.
 func (k8s *k8sWatchManager) Update(ctx context.Context, isValid func(un *kates.Unstructured) bool) bool {
@@ -56,7 +71,7 @@ func (k8s *k8sWatchManager) Update(ctx context.Context, isValid func(un *kates.U
 	// Kubernetes has some changes. We use our watcher's FilteredUpdate method
 	// to sort out whether any of the changes are worth paying attention to. If
 	// there are, stuff 'em in k8s.deltas.
-	k8s.deltas = make([]*kates.Delta, 0)
+	k8s.resetDeltas()
 
 	if !k8s.watcher.FilteredUpdate(k8s.snapshot, &k8s.deltas, isValid) {
 		dlog.Debugf(ctx, "WATCHER: filtered-update dropped everything")

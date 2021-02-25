@@ -1,6 +1,8 @@
 package entrypoint_test
 
 import (
+	"fmt"
+	"sort"
 	"strings"
 	"testing"
 
@@ -159,8 +161,22 @@ func TestFakeHelloConsul(t *testing.T) {
 	snap := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
 		return len(snap.Kubernetes.Mappings) > 0
 	})
+
 	// Check that the snapshot contains the mapping from the file.
 	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
+
+	// Check that our deltas are what we expect.
+	assert.Equal(t, 2, len(snap.Deltas))
+
+	deltaNames := []string{}
+
+	for _, delta := range snap.Deltas {
+		deltaNames = append(deltaNames, fmt.Sprintf("%s %s", delta.Kind, delta.Name))
+	}
+
+	sort.Strings(deltaNames)
+
+	assert.Equal(t, []string{"ConsulResolver consul-dc1", "Mapping hello"}, deltaNames)
 
 	// Create a predicate that will recognize the cluster we care about. The surjection from
 	// Mappings to clusters is a bit opaque, so we just look for a cluster that contains the name
