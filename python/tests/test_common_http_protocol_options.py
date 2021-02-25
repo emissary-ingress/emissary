@@ -1,9 +1,9 @@
 from typing import List, Tuple
+
 import json
-
 import logging
-
 import pytest
+import tempfile
 
 logging.basicConfig(
     level=logging.INFO,
@@ -15,6 +15,7 @@ logger = logging.getLogger("ambassador")
 
 from ambassador import Cache, IR
 from ambassador.compile import Compile
+from ambassador.utils import NullSecretHandler
 
 def manifests(module_confs, mapping_confs):
     yaml = """
@@ -53,12 +54,18 @@ spec:
 def require_no_errors(ir: IR):
     assert ir.aconf.errors == {}
 
+def _secret_handler():
+    source_root = tempfile.TemporaryDirectory(prefix="null-secret-", suffix="-source")
+    cache_dir = tempfile.TemporaryDirectory(prefix="null-secret-", suffix="-cache")
+    return NullSecretHandler(logger, source_root.name, cache_dir.name, "fake")
+
 def _test_common_http_protocol_options(yaml, expectations={}):
     cache = Cache(logger)
-    r1 = Compile(logger, yaml, k8s=True)
-    r2 = Compile(logger, yaml, k8s=True, cache=cache)
-    r1j = json.dumps(r1['v2'].as_dict()['static_resources']['clusters'], sort_keys=True, indent=2)
-    r2j = json.dumps(r2['v2'].as_dict()['static_resources']['clusters'], sort_keys=True, indent=2)
+    secret_handler = _secret_handler()
+    r1 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler)
+    r2 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, cache=cache)
+    r1j = json.dumps(r1['v2'].as_dict(), sort_keys=True, indent=2)
+    r2j = json.dumps(r2['v2'].as_dict(), sort_keys=True, indent=2)
     assert r1j == r2j
 
     require_no_errors(r1["ir"])
