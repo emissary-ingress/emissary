@@ -3,6 +3,7 @@ package entrypoint
 import (
 	"context"
 	"encoding/json"
+	"sync"
 	"sync/atomic"
 
 	"github.com/datawire/ambassador/pkg/acp"
@@ -122,53 +123,46 @@ const (
 //    guidance_.
 func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, queries []kates.Query,
 	consulWatcher Watcher, istioCertSrc IstioCertSource, notify SnapshotProcessor, ambassadorMeta *snapshot.AmbassadorMetaInfo) {
-	// These timers keep track of various parts of the processing of the watcher loop. They don't
-	// directly impact the logic at all.
-	dbg := debug.FromContext(ctx)
+	// Ambassador has three sources of inputs: kubernetes, consul, and the filesystem. The job of
+	// the watcherLoop is to read updates from all three of these sources, assemble them into a
+	// single coherent configuration, and pass them along to other parts of ambassador for
+	// processing.
 
-	katesUpdateTimer := dbg.Timer("katesUpdate")
-	consulUpdateTimer := dbg.Timer("consulUpdate")
-	istioCertUpdateTimer := dbg.Timer("istioCertUpdate")
-	notifyWebhooksTimer := dbg.Timer("notifyWebhooks")
-	parseAnnotationsTimer := dbg.Timer("parseAnnotations")
-	reconcileSecretsTimer := dbg.Timer("reconcileSecrets")
-	reconcileConsulTimer := dbg.Timer("reconcileConsul")
+	// The watcherLoop must decide what information is relevant to solicit from each source. This is
+	// decided a bit differently for each source.
+	//
+	// For kubernetes the set of subscriptions is basically hardcoded to the set of resources
+	// defined in interesting_types.go, this is filtered down at boot based on RBAC limitations. The
+	// filtered list is used to construct the queries that are passed into this function, and that
+	// set of queries remains fixed for the lifetime of the loop, i.e. the lifetime of the
+	// abmassador process (unless we are testing, in which case we may run the watcherLoop more than
+	// once in a single process).
+	//
+	// For the consul source we derive the set of resources to watch based on the configuration in
+	// kubernetes, i.e. we watch the services defined in Mappings that are configured to use a
+	// consul resolver. We use the ConsulResolver that a given Mapping is configured with to find
+	// the datacenter to query.
+	//
+	// The filesystem datasource is for istio secrets. XXX fill in more
 
-	// Synthesize the thing that knows how to watch kubernetes resources. This is always either a
-	// *kates.Accumulator or the mocks supplied by the Fake harness we use for testing.
+	// Each time the wathcerLoop wakes up, it assembles updates from whatever source woke it up into
+	// its view of the world. It then determines if enough information has been assembled to
+	// consider ambassador "booted" and if so passes the updated view along to its output (the
+	// SnapshotProcessor).x
+
+	// Setup our three sources of ambassador inputs: kubernetes, consul, and the filesystem. Each of
+	// these have interfaces that enable us to run with the "real" implementation or a mock
+	// implementation for our Fake test harness.
 	k8sWatcher := k8sSrc.Watch(ctx, queries...)
-	// Synthesize the thing that knows how to validate kubernetes resources. This is always calling
-	// into the kates validator even when we are being driven by the Fake harness.
-	validator := newResourceValidator()
-
-	// The consul object manages our consul watches. The consulWatcher is either the real thing or a
-	// mock from the Fake harness.
-	consul := newConsul(ctx, consulWatcher) // Consul Watcher: state manager
-
-	// Likewise for the Istio cert watcher and manager.
+	consul := newConsul(ctx, consulWatcher)
 	istioCertWatcher := istioCertSrc.Watch(ctx)
 	istio := newIstioCertWatchManager(ctx, istioCertWatcher)
 
-	// All the variables above this line are read-only with respect to the logic in the loop. The
-	// four variables defined below are updated as the loop iterates.
-
-	// These two variables represent the view of the kubernetes world and the view of the consul
-	// world. This view is constructed from the raw data given to us from each respective source,
-	// plus additional fields that are computed based on the raw data. These are cumulative values,
-	// they always represent the entire state of their respective worlds and are fully replaced each
-	// time there is an update from their respective sources.
-	k8sSnapshot := NewKubernetesSnapshot()
-	consulSnapshot := &watt.ConsulSnapshot{}
-	// XXX: you would expect there to be an analogous snapshot for istio secrets, however the istio
-	// source works by directly munging the k8sSnapshot.
-
-	// The unsentDeltas field tracks the stream of deltas that have occured in between each
-	// kubernetes snapshot. This is a passthrough of the full stream of deltas reported by kates
-	// which is in turn a facade fo the deltas reported by client-go.
-	var unsentDeltas []*kates.Delta
-
-	// Is this the very first reconfigure we've done?
-	firstReconfig := true
+	// SnapshotHolder tracks all the data structures that get updated by the various sources of
+	// information. It also holds the business logic that converts the data as received to a more
+	// amenable form for processing. It not only serves to group these together, but it also
+	// provides a mutex to protect access to the data.
+	snapshots := NewSnapshotHolder(ambassadorMeta)
 
 	for {
 		dlog.Debugf(ctx, "WATCHER: --------")
@@ -183,48 +177,16 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 		select {
 		case <-k8sWatcher.Changed():
 			// Kubernetes has some changes, so we need to handle them.
-			stop := katesUpdateTimer.Start()
-
-			// We could probably get a win in some scenarios by using this filtered update thing to
-			// pre-exclude based on ambassador-id.
-			var deltas []*kates.Delta
-			changed := k8sWatcher.FilteredUpdate(k8sSnapshot, &deltas, func(un *kates.Unstructured) bool {
-				return validator.isValid(ctx, un)
-			})
-
-			stop()
-
+			changed := snapshots.K8sUpdate(ctx, k8sWatcher, consul)
 			if !changed {
 				continue
 			}
-
-			unsentDeltas = append(unsentDeltas, deltas...)
-
-			parseAnnotationsTimer.Time(func() {
-				parseAnnotations(k8sSnapshot)
-			})
-
-			reconcileSecretsTimer.Time(func() {
-				ReconcileSecrets(ctx, k8sSnapshot)
-			})
-			reconcileConsulTimer.Time(func() {
-				ReconcileConsul(ctx, consul, k8sSnapshot)
-			})
 		case <-consul.changed():
 			dlog.Debugf(ctx, "WATCHER: Consul fired")
-
-			consulUpdateTimer.Time(func() {
-				consul.update(consulSnapshot)
-			})
+			snapshots.ConsulUpdate(ctx, consul)
 		case icertUpdate := <-istio.Changed():
 			// The Istio cert has some changes, so we need to handle them.
-			istioCertUpdateTimer.Time(func() {
-				istio.Update(ctx, icertUpdate, k8sSnapshot)
-			})
-
-			reconcileSecretsTimer.Time(func() {
-				ReconcileSecrets(ctx, k8sSnapshot)
-			})
+			snapshots.IstioUpdate(ctx, istio, icertUpdate)
 
 		// BEFORE ADDING A NEW CHANNEL, READ THE COMMENT AT THE TOP OF THIS
 		// FUNCTION so you don't break the short-circuiting logic.
@@ -233,39 +195,158 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 			return
 		}
 
-		sn := &snapshot.Snapshot{
-			Kubernetes:     k8sSnapshot,
-			Consul:         consulSnapshot,
-			Invalid:        validator.getInvalid(),
-			Deltas:         unsentDeltas,
-			AmbassadorMeta: ambassadorMeta,
-		}
-
-		if !consul.isBootstrapped() {
-			notify(ctx, SnapshotIncomplete, sn)
-			continue
-		}
-
-		unsentDeltas = nil
-
-		snapshotJSON, err := json.MarshalIndent(sn, "", "  ")
-		if err != nil {
-			panic(err)
-		}
-
-		// ...then stash this snapshot and fire off webhooks.
-		encoded.Store(snapshotJSON)
-		if firstReconfig {
-			dlog.Debugf(ctx, "WATCHER: Bootstrapped! Computing initial configuration...")
-			firstReconfig = false
-		}
-
-		// Finally, use the reconfigure webhooks to let the rest of Ambassador
-		// know about the new configuration.
-		notifyWebhooksTimer.Time(func() {
-			notify(ctx, SnapshotReady, sn)
-		})
+		snapshots.Notify(ctx, encoded, consul, notify)
 	}
+}
+
+// SnapshotHolder is responsible for holding
+type SnapshotHolder struct {
+	mutex sync.Mutex
+
+	// The thing that knows how to validate kubernetes resources. This is always calling into the
+	// kates validator even when we are being driven by the Fake harness.
+	validator *resourceValidator
+
+	// Ambassadro meta info to pass along in the snapshot.
+	ambassadorMeta *snapshot.AmbassadorMetaInfo
+
+	// These two fields represent the view of the kubernetes world and the view of the consul
+	// world. This view is constructed from the raw data given to us from each respective source,
+	// plus additional fields that are computed based on the raw data. These are cumulative values,
+	// they always represent the entire state of their respective worlds.
+	k8sSnapshot    *snapshot.KubernetesSnapshot
+	consulSnapshot *watt.ConsulSnapshot
+	// XXX: you would expect there to be an analogous snapshot for istio secrets, however the istio
+	// source works by directly munging the k8sSnapshot.
+
+	// The unsentDeltas field tracks the stream of deltas that have occured in between each
+	// kubernetes snapshot. This is a passthrough of the full stream of deltas reported by kates
+	// which is in turn a facade fo the deltas reported by client-go.
+	unsentDeltas []*kates.Delta
+
+	// Has the very first reconfig happened?
+	firstReconfig bool
+}
+
+func NewSnapshotHolder(ambassadorMeta *snapshot.AmbassadorMetaInfo) *SnapshotHolder {
+	return &SnapshotHolder{
+		validator:      newResourceValidator(),
+		ambassadorMeta: ambassadorMeta,
+		k8sSnapshot:    NewKubernetesSnapshot(),
+		consulSnapshot: &watt.ConsulSnapshot{},
+		firstReconfig:  true,
+	}
+}
+
+// Get the raw update from the kubernetes watcher, then redo our computed view.
+func (sh *SnapshotHolder) K8sUpdate(ctx context.Context, watcher K8sWatcher, consul *consul) bool {
+	dbg := debug.FromContext(ctx)
+
+	katesUpdateTimer := dbg.Timer("katesUpdate")
+	parseAnnotationsTimer := dbg.Timer("parseAnnotations")
+	reconcileSecretsTimer := dbg.Timer("reconcileSecrets")
+	reconcileConsulTimer := dbg.Timer("reconcileConsul")
+
+	sh.mutex.Lock()
+	defer sh.mutex.Unlock()
+
+	// We could probably get a win in some scenarios by using this filtered update thing to
+	// pre-exclude based on ambassador-id.
+	var deltas []*kates.Delta
+	var changed bool
+	katesUpdateTimer.Time(func() {
+		changed = watcher.FilteredUpdate(sh.k8sSnapshot, &deltas, func(un *kates.Unstructured) bool {
+			return sh.validator.isValid(ctx, un)
+		})
+	})
+
+	if !changed {
+		return false
+	}
+
+	sh.unsentDeltas = append(sh.unsentDeltas, deltas...)
+
+	parseAnnotationsTimer.Time(func() {
+		parseAnnotations(sh.k8sSnapshot)
+	})
+
+	reconcileSecretsTimer.Time(func() {
+		ReconcileSecrets(ctx, sh.k8sSnapshot)
+	})
+	reconcileConsulTimer.Time(func() {
+		ReconcileConsul(ctx, consul, sh.k8sSnapshot)
+	})
+
+	return true
+}
+
+func (sh *SnapshotHolder) ConsulUpdate(ctx context.Context, consul *consul) bool {
+	sh.mutex.Lock()
+	defer sh.mutex.Unlock()
+	consul.update(sh.consulSnapshot)
+	return true
+}
+
+func (sh *SnapshotHolder) IstioUpdate(ctx context.Context, istio *istioCertWatchManager,
+	icertUpdate IstioCertUpdate) bool {
+	dbg := debug.FromContext(ctx)
+
+	istioCertUpdateTimer := dbg.Timer("istioCertUpdate")
+	reconcileSecretsTimer := dbg.Timer("reconcileSecrets")
+
+	sh.mutex.Lock()
+	defer sh.mutex.Unlock()
+
+	istioCertUpdateTimer.Time(func() {
+		istio.Update(ctx, icertUpdate, sh.k8sSnapshot)
+	})
+
+	reconcileSecretsTimer.Time(func() {
+		ReconcileSecrets(ctx, sh.k8sSnapshot)
+	})
+
+	return true
+}
+
+func (sh *SnapshotHolder) Notify(ctx context.Context, encoded *atomic.Value, consul *consul, notify SnapshotProcessor) {
+	dbg := debug.FromContext(ctx)
+
+	notifyWebhooksTimer := dbg.Timer("notifyWebhooks")
+
+	sh.mutex.Lock()
+	defer sh.mutex.Unlock()
+
+	sn := &snapshot.Snapshot{
+		Kubernetes: sh.k8sSnapshot,
+		Consul:     sh.consulSnapshot,
+		Invalid:    sh.validator.getInvalid(),
+		Deltas:     sh.unsentDeltas,
+	}
+
+	if !consul.isBootstrapped() {
+		notify(ctx, SnapshotIncomplete, sn)
+		return
+	}
+
+	sh.unsentDeltas = nil
+
+	snapshotJSON, err := json.MarshalIndent(sn, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+
+	// ...then stash this snapshot and fire off webhooks.
+	encoded.Store(snapshotJSON)
+	if sh.firstReconfig {
+		dlog.Debugf(ctx, "WATCHER: Bootstrapped! Computing initial configuration...")
+		sh.firstReconfig = false
+	}
+
+	// Finally, use the reconfigure webhooks to let the rest of Ambassador
+	// know about the new configuration.
+	notifyWebhooksTimer.Time(func() {
+		notify(ctx, SnapshotReady, sn)
+	})
 }
 
 // The kates aka "real" version of our injected dependencies.
