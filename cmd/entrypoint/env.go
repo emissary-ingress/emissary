@@ -174,6 +174,12 @@ func IsDiagdOnly() bool {
 	return envbool("DIAGD_ONLY")
 }
 
+// ForceEndpoints reflects AMBASSADOR_FORCE_ENDPOINTS, to determine whether
+// we're forcing endpoint watching or (the default) not.
+func ForceEndpoints() bool {
+	return envbool("AMBASSADOR_FORCE_ENDPOINTS")
+}
+
 func GetDiagdBindPort() string {
 	return env("AMBASSADOR_DIAGD_BIND_PORT", "8004")
 }
