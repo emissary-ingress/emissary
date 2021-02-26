@@ -69,6 +69,7 @@ spec:
                 allow_partial:
                   type: boolean
                 max_bytes:
+                  description: These aren't pointer types because they are required.
                   type: integer
               required:
               - allow_partial

@@ -74,6 +74,7 @@ spec:
               description: 'FIXME(lukeshu): Surely this should be an ''int''?'
               type: string
             port:
+              description: Port isn't a pointer because it's required.
               type: integer
             resolver:
               type: string
