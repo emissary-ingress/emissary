@@ -3,9 +3,7 @@ package entrypoint
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"sync/atomic"
-	"time"
 
 	"github.com/datawire/ambassador/pkg/acp"
 	"github.com/datawire/ambassador/pkg/debug"
@@ -135,41 +133,39 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 	parseAnnotationsTimer := dbg.Timer("parseAnnotations")
 	reconcileSecretsTimer := dbg.Timer("reconcileSecrets")
 	reconcileConsulTimer := dbg.Timer("reconcileConsul")
-	reconcileEndpointsTimer := dbg.Timer("reconcileEndpoints")
 
-	// Synthesize the low(ish)-level Kubernetes watcher, then use it to synthesize
-	// the Kubernetes watch manager.
+	// Synthesize the thing that knows how to watch kubernetes resources. This is always either a
+	// *kates.Accumulator or the mocks supplied by the Fake harness we use for testing.
 	k8sWatcher := k8sSrc.Watch(ctx, queries...)
-	k8s := newK8sWatchManager(ctx, k8sWatcher)
+	// Synthesize the thing that knows how to validate kubernetes resources. This is always calling
+	// into the kates validator even when we are being driven by the Fake harness.
 	validator := newResourceValidator()
+
+	// The consul object manages our consul watches. The consulWatcher is either the real thing or a
+	// mock from the Fake harness.
+	consul := newConsul(ctx, consulWatcher) // Consul Watcher: state manager
 
 	// Likewise for the Istio cert watcher and manager.
 	istioCertWatcher := istioCertSrc.Watch(ctx)
 	istio := newIstioCertWatchManager(ctx, istioCertWatcher)
 
-	consul := newConsul(ctx, consulWatcher) // Consul Watcher: state manager
+	// All the variables above this line are read-only with respect to the logic in the loop. The
+	// four variables defined below are updated as the loop iterates.
 
-	// **** STATE for the Consul Watcher.
-	//
-	// To track Consul things, we again need a (different kind of) snapshot
-	// and a "consul" object. The snapshot, again, is our view of the stuff
-	// in the Consul world that applies to us; the consul object doesn't so
-	// much have to manage consistency as it has to manage what we tell Consul
-	// we're interested in.
-	consulSnapshot := &watt.ConsulSnapshot{} // Consul Watcher: core state
-	// XXX Temporary hack: give the Consul watcher a trivial way to note that
-	// it saw changes.  This is important because if any of the watchers see
-	// changes, we can't short-circuit the reconfiguration.
-	consulChangesPresent := false // Consul Watcher: core state
+	// These two variables represent the view of the kubernetes world and the view of the consul
+	// world. This view is constructed from the raw data given to us from each respective source,
+	// plus additional fields that are computed based on the raw data. These are cumulative values,
+	// they always represent the entire state of their respective worlds and are fully replaced each
+	// time there is an update from their respective sources.
+	k8sSnapshot := NewKubernetesSnapshot()
+	consulSnapshot := &watt.ConsulSnapshot{}
+	// XXX: you would expect there to be an analogous snapshot for istio secrets, however the istio
+	// source works by directly munging the k8sSnapshot.
 
-	// **** STATE (again) for the Kubernetes Watcher
-	//
-	// We use kates.Delta objects to indicate to the rest of Ambassador
-	// what has actually changed between one snapshot and the next.
-	// unsentDeltas buffers deltas across iterations if a non-bootstrapped
-	// watcher short-circuits, while k8s.deltas is just the current deltas
-	// for the Kubernetes watcher during a given iteration.
-	var unsentDeltas []*kates.Delta // K8s Watcher: core state
+	// The unsentDeltas field tracks the stream of deltas that have occured in between each
+	// kubernetes snapshot. This is a passthrough of the full stream of deltas reported by kates
+	// which is in turn a facade fo the deltas reported by client-go.
+	var unsentDeltas []*kates.Delta
 
 	// Is this the very first reconfigure we've done?
 	firstReconfig := true
@@ -185,39 +181,49 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 		istio.StartLoop(ctx)
 
 		select {
-		case <-k8s.Changed():
+		case <-k8sWatcher.Changed():
 			// Kubernetes has some changes, so we need to handle them.
 			stop := katesUpdateTimer.Start()
 
 			// We could probably get a win in some scenarios by using this filtered update thing to
 			// pre-exclude based on ambassador-id.
-			newChanges := k8s.Update(ctx, func(un *kates.Unstructured) bool {
+			var deltas []*kates.Delta
+			changed := k8sWatcher.FilteredUpdate(k8sSnapshot, &deltas, func(un *kates.Unstructured) bool {
 				return validator.isValid(ctx, un)
 			})
+
 			stop()
 
-			if !newChanges {
+			if !changed {
 				continue
 			}
 
+			unsentDeltas = append(unsentDeltas, deltas...)
+
+			parseAnnotationsTimer.Time(func() {
+				parseAnnotations(k8sSnapshot)
+			})
+
+			reconcileSecretsTimer.Time(func() {
+				ReconcileSecrets(ctx, k8sSnapshot)
+			})
+			reconcileConsulTimer.Time(func() {
+				ReconcileConsul(ctx, consul, k8sSnapshot)
+			})
 		case <-consul.changed():
 			dlog.Debugf(ctx, "WATCHER: Consul fired")
-
-			// Consul has some changes. The Consul watcher doesn't currently track
-			// deltas the same way that the K8s watcher does, but OTOH anything we
-			// watch in Consul is something that we know we have a reason to care
-			// about. So we can go ahead and declare that we've seen real Consul
-			// changes here.
-			consulChangesPresent = true
 
 			consulUpdateTimer.Time(func() {
 				consul.update(consulSnapshot)
 			})
-
 		case icertUpdate := <-istio.Changed():
 			// The Istio cert has some changes, so we need to handle them.
 			istioCertUpdateTimer.Time(func() {
-				istio.Update(ctx, icertUpdate, k8s)
+				istio.Update(ctx, icertUpdate, k8sSnapshot)
+			})
+
+			reconcileSecretsTimer.Time(func() {
+				ReconcileSecrets(ctx, k8sSnapshot)
 			})
 
 		// BEFORE ADDING A NEW CHANNEL, READ THE COMMENT AT THE TOP OF THIS
@@ -227,42 +233,12 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 			return
 		}
 
-		parseAnnotationsTimer.Time(func() {
-			parseAnnotations(k8s.snapshot)
-		})
-
-		reconcileSecretsTimer.Time(func() {
-			ReconcileSecrets(ctx, k8s.snapshot)
-		})
-		reconcileConsulTimer.Time(func() {
-			ReconcileConsul(ctx, consul, k8s.snapshot)
-		})
-
-		reconcileEndpointsTimer.Time(func() {
-			k8s.deltas = ReconcileEndpoints(ctx, k8s.snapshot, k8s.deltas)
-			dlog.Debugf(ctx, "WATCHER: filtered deltas (%d): %s", len(k8s.deltas), deltaSummary(k8s.deltas))
-		})
-
-		// Ugh. We need to remember here whether there were any Kubernetes changes,
-		// because k8s.GetDeltas() will empty the delta set that k8s.UpdatesPresent()
-		// will look at.
-		k8sHasChanges := k8s.UpdatesPresent()
-		unsentDeltas = append(unsentDeltas, k8s.GetDeltas()...)
-
 		sn := &snapshot.Snapshot{
-			Kubernetes:     k8s.snapshot,
+			Kubernetes:     k8sSnapshot,
 			Consul:         consulSnapshot,
 			Invalid:        validator.getInvalid(),
 			Deltas:         unsentDeltas,
 			AmbassadorMeta: ambassadorMeta,
-		}
-
-		// Do we have any real changes from any watcher?
-		if !k8sHasChanges && !consulChangesPresent && !istio.UpdatesPresent() {
-			// Nope, no changes at all -- we can short-circuit.
-			dlog.Debugf(ctx, "WATCHER: all deltas filtered out")
-			notify(ctx, SnapshotDrop, sn)
-			continue
 		}
 
 		if !consul.isBootstrapped() {
@@ -277,18 +253,6 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 			panic(err)
 		}
 
-		if envbool("AMBASSADOR_WATCHER_SNAPLOG") {
-			snpath := time.Now().Format("/tmp/20060102T030405-snap.json")
-
-			err = ioutil.WriteFile(snpath, snapshotJSON, 0777)
-
-			if err != nil {
-				dlog.Errorf(ctx, "WATCHER: could not save snapshot to %s: %s", snpath, err)
-			} else {
-				dlog.Debugf(ctx, "WATCHER: saved snapshot as %s", snpath)
-			}
-		}
-
 		// ...then stash this snapshot and fire off webhooks.
 		encoded.Store(snapshotJSON)
 		if firstReconfig {
@@ -301,5 +265,21 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 		notifyWebhooksTimer.Time(func() {
 			notify(ctx, SnapshotReady, sn)
 		})
+	}
+}
+
+// The kates aka "real" version of our injected dependencies.
+type k8sSource struct {
+	client *kates.Client
+}
+
+func (k *k8sSource) Watch(ctx context.Context, queries ...kates.Query) K8sWatcher {
+	acc := k.client.Watch(ctx, queries...)
+	return acc
+}
+
+func newK8sSource(client *kates.Client) *k8sSource {
+	return &k8sSource{
+		client: client,
 	}
 }
