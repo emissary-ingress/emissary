@@ -267,8 +267,8 @@ func getRootCommand() *cobra.Command {
 
 	loginCmd := &cobra.Command{
 		Use:   "login [flags] HOSTNAME",
-		Short: "Log in to the Ambassador Edge Policy Console",
-		Args:  cobra.ExactArgs(1),
+		Short: "Log in to Ambassador Cloud\nIf a HOSTNAME is specified, log in to the Ambassador Edge Policy Console",
+		Args:  cobra.RangeArgs(0, 1),
 		RunE:  client.AESLogin,
 	}
 	_ = loginCmd.Flags().StringP(
@@ -304,6 +304,10 @@ func getRootCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(0),
 		RunE:  install.AESInstall,
 	}
+	_ = installCmd.Flags().StringP(
+		"cloud-connect-token", "", "",
+		"You can get a token to connect your cluster to the service catalog in Ambassador Cloud by logging in via 'edgectl login'",
+	)
 	_ = installCmd.Flags().StringP(
 		"context", "c", "",
 		"The Kubernetes context to use. Defaults to the current kubectl context.",

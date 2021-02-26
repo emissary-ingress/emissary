@@ -11,6 +11,11 @@ import (
 )
 
 func AESLogin(cmd *cobra.Command, args []string) error {
+	if len(args) == 0 {
+		return edgectl.DoLogin()
+	}
+
+	// Legacy login, if a hostname is specified in args
 	fmt.Println(color.Info.Sprintf("Connecting to the Ambassador Edge Policy Console in this cluster..."))
 
 	// Grab options
@@ -25,5 +30,5 @@ func AESLogin(cmd *cobra.Command, args []string) error {
 	// Prepare to talk to the cluster
 	kubeinfo := k8s.NewKubeInfo("", context, namespace) // Default namespace is "ambassador"
 
-	return edgectl.DoLogin(kubeinfo, context, namespace, hostname, !justShowURL, justShowURL, showToken, false)
+	return edgectl.DoLoginLegacy(kubeinfo, context, namespace, hostname, !justShowURL, justShowURL, showToken, false)
 }
