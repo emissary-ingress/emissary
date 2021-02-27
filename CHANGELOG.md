@@ -75,6 +75,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: The Ambassador Module configuration now supports `cluster_request_timeout_ms` to set a default request `timeout_ms` for Mappings. This allows an operator to update the default request timeout (currently 3000ms) without needing to update every Mapping.
 - Feature: The Ambassador Module configuration now supports `suppress_envoy_headers` to prevent Ambassador from setting additional headers on requests and responses. These headers are typically used for diagnostic purposes and are safe to omit when they are not desired.
 - Feature: All Kubernetes services managed by Ambassador are automatically instrumented with discovery annotations.
+- Feature: [`headers_with_underscores_action`](https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/core/protocol.proto#enum-core-httpprotocoloptions-headerswithunderscoresaction) is now configurable in the Ambassador `Module`.
 
 ### Ambassador Edge Stack only
 
