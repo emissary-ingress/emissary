@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/datawire/ambassador/cmd/ambex"
 	"github.com/datawire/ambassador/cmd/entrypoint"
 	envoy "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
 	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
@@ -137,6 +138,8 @@ func TestFakeHelloConsul(t *testing.T) {
 	// figure out that there is a mapping that depends on consul endpoint data, and it needs to wait
 	// until that data is available before producing the first snapshot.
 	f.Flush()
+	eps := f.GetEndpoints(func(endpoints *ambex.Endpoints) bool { return true })
+	assert.Empty(t, eps.Entries)
 
 	// In prior tests we have only examined the snapshots that were ready to be processed, but the
 	// watcher doesn't process every snapshot it constructs, it can discard various snapshots for
@@ -156,6 +159,9 @@ func TestFakeHelloConsul(t *testing.T) {
 	// Now let's supply the endpoint data for the hello service referenced by our hello mapping.
 	f.ConsulEndpoint("dc1", "hello", "1.2.3.4", 8080)
 	f.Flush()
+	eps = f.GetEndpoints(func(endpoints *ambex.Endpoints) bool { return true })
+	assert.Len(t, eps.Entries, 1)
+	assert.Equal(t, "1.2.3.4", eps.Entries["consul/dc1/hello"].Ip)
 
 	// Grab the next snapshot that has mappings.
 	snap := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
