@@ -893,6 +893,7 @@ class IR:
         od['xff_num_trusted_hops'] = self.ambassador_module.get('xff_num_trusted_hops', 0)
 
         od['listener_idle_timeout_ms'] = self.ambassador_module.get('listener_idle_timeout_ms', None)
+        od['headers_with_underscores_action'] = self.ambassador_module.get('headers_with_underscores_action', None)
         od['max_request_headers_kb'] = self.ambassador_module.get('max_request_headers_kb', None)
 
         od['server_name'] = bool(self.ambassador_module.server_name != 'envoy')
