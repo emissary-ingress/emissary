@@ -82,6 +82,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: Add support for the ambassador-agent deployment, reporting to Ambassador Cloud Service Catalog (https://app.getambassador.io)
 - Feature: `edgectl login` will automatically open your browser, allowing you to login into Service Catalog (https://app.getambassador.io)
 - Feature: `edgectl install` command allows you to install a new Ambassador Edge Stack automatically connected to Ambassador Cloud by passing a `--cloud-connect-token` argument.
+- Feature: `AES_AUTH_TIMEOUT` now allows you to configure the timeout of the AES authentication service. Defaults to 4s.
 
 ## [1.11.1] February 04, 2021
 [1.11.1]: https://github.com/datawire/ambassador/compare/v1.11.0...v1.11.1
