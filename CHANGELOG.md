@@ -5,6 +5,10 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+## v6.5.20
+
+- Update Ambassador to version v1.11.2: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+
 ## v6.5.19
 
 - Make all `livenessProbe` and `readinessProbe` configurations available to the values file
