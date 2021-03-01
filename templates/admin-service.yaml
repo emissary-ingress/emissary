@@ -18,14 +18,14 @@ metadata:
     service: ambassador-admin
     product: aes
   annotations:
-    app.getambassador.io/owner: "Ambassador Labs"
-    app.getambassador.io/repository: github.com/datawire/ambassador
-    app.getambassador.io/description: "The Ambassador Edge Stack admin service for internal use and health checks."
-    app.getambassador.io/documentation: https://www.getambassador.io/docs/latest/
-    app.getambassador.io/chat: http://d6e.co/slack
-    app.getambassador.io/bugs: https://github.com/datawire/ambassador/issues
-    app.getambassador.io/support: https://www.getambassador.io/about-us/support/
-    app.getambassador.io/dependencies: "None"
+    a8r.io/owner: "Ambassador Labs"
+    a8r.io/repository: github.com/datawire/ambassador
+    a8r.io/description: "The Ambassador Edge Stack admin service for internal use and health checks."
+    a8r.io/documentation: https://www.getambassador.io/docs/latest/
+    a8r.io/chat: http://d6e.co/slack
+    a8r.io/bugs: https://github.com/datawire/ambassador/issues
+    a8r.io/support: https://www.getambassador.io/about-us/support/
+    a8r.io/dependencies: "None"
   {{- with .Values.adminService.annotations }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
