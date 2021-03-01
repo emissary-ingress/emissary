@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 import requests
@@ -7,10 +8,16 @@ import time
 from collections import namedtuple
 from retry import retry
 
+import json
 import yaml
 
+from ambassador import Cache, IR
+from ambassador.compile import Compile
+from ambassador.utils import NullSecretHandler
 from kat.utils import namespace_manifest
 from kat.harness import load_manifest, CLEARTEXT_HOST_YAML
+
+logger = logging.getLogger("ambassador")
 
 httpbin_manifests ="""
 ---
@@ -240,3 +247,106 @@ def get_code_with_retry(req, headers={}):
             print(f"get_code_with_retry: generic exception {e}, attempt {attempts+1}")
         time.sleep(5)
     return 503
+
+def zipkin_tracing_service_manifest():
+    return """
+---
+apiVersion: getambassador.io/v2
+kind: TracingService
+metadata:
+  name: tracing
+  namespace: ambassador
+spec:
+  service: zipkin:9411
+  driver: zipkin
+  config: {}
+"""
+
+def module_and_mapping_manifests(module_confs, mapping_confs):
+    yaml = """
+---
+apiVersion: getambassador.io/v2
+kind: Module
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  config:"""
+    if module_confs:
+        for module_conf in module_confs:
+            yaml = yaml + """
+    {}
+""".format(module_conf)
+    else:
+        yaml = yaml + " {}\n"
+
+    yaml = yaml + """
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  prefix: /httpbin/
+  service: httpbin"""
+    if mapping_confs:
+        for mapping_conf in mapping_confs:
+            yaml = yaml + """
+  {}""".format(mapping_conf)
+    return yaml
+
+def _require_no_errors(ir: IR):
+    assert ir.aconf.errors == {}
+
+def _secret_handler():
+    source_root = tempfile.TemporaryDirectory(prefix="null-secret-", suffix="-source")
+    cache_dir = tempfile.TemporaryDirectory(prefix="null-secret-", suffix="-cache")
+    return NullSecretHandler(logger, source_root.name, cache_dir.name, "fake")
+
+def econf_compile(yaml):
+    # Compile with and without a cache. Neither should produce errors.
+    cache = Cache(logger)
+    secret_handler = _secret_handler()
+    r1 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler)
+    r2 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, cache=cache)
+    _require_no_errors(r1["ir"])
+    _require_no_errors(r2["ir"])
+
+    # Both should produce equal Envoy config as sorted json.
+    r1j = json.dumps(r1['v2'].as_dict(), sort_keys=True, indent=2)
+    r2j = json.dumps(r2['v2'].as_dict(), sort_keys=True, indent=2)
+    assert r1j == r2j
+
+    # Now we can return the Envoy config as a dictionary
+    return r1['v2'].as_dict()
+
+def econf_foreach_hcm(econf, fn):
+    found_hcm = False
+    for listener in econf['static_resources']['listeners']:
+        # There's only one filter chain...
+        filter_chains = listener['filter_chains']
+        assert len(filter_chains) == 1
+
+        # ...and one filter on that chain.
+        filters = filter_chains[0]['filters']
+        assert len(filters) == 1
+
+        # The http connection manager is the only filter on the chain from the one and only vhost.
+        hcm = filters[0]
+        assert hcm['name'] == 'envoy.filters.network.http_connection_manager'
+        typed_config = hcm['typed_config']
+        assert typed_config['@type'] == 'type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager'
+
+        r = fn(typed_config)
+        if not r:
+            break
+
+def econf_foreach_cluster(econf, fn, name='cluster_httpbin_default'):
+    for cluster in econf['static_resources']['clusters']:
+        if cluster['name'] != name:
+            continue
+
+        r = fn(cluster)
+        if not r:
+            break
