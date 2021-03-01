@@ -338,15 +338,19 @@ def econf_foreach_hcm(econf, fn):
         typed_config = hcm['typed_config']
         assert typed_config['@type'] == 'type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager'
 
+        found_hcm = True
         r = fn(typed_config)
         if not r:
             break
+    assert found_hcm
 
 def econf_foreach_cluster(econf, fn, name='cluster_httpbin_default'):
     for cluster in econf['static_resources']['clusters']:
         if cluster['name'] != name:
             continue
 
+        found_cluster = True
         r = fn(cluster)
         if not r:
             break
+    assert found_cluster
