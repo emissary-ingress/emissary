@@ -36,7 +36,7 @@ Free and Open Source software:
     github.com/containerd/cgroups                            v0.0.0-20190919134610-bf292b21730f         Apache License 2.0
     github.com/containerd/containerd                         v1.3.4                                     Apache License 2.0
     github.com/cyphar/filepath-securejoin                    v0.2.2                                     3-clause BSD license
-    github.com/datawire/dlib                                 v1.1.0                                     Apache License 2.0
+    github.com/datawire/dlib                                 v1.1.2-0.20210128063139-0a57ab547981       Apache License 2.0
     github.com/datawire/pf                                   v0.0.0-20180510150411-31a823f9495a         2-clause BSD license
     github.com/davecgh/go-spew                               v1.1.1                                     ISC license
     github.com/deislabs/oras                                 v0.8.1                                     MIT license
@@ -152,10 +152,10 @@ Free and Open Source software:
     go.mongodb.org/mongo-driver                              v1.1.2                                     Apache License 2.0
     go.opencensus.io                                         v0.22.2                                    Apache License 2.0
     golang.org/x/crypto                                      v0.0.0-20200622213623-75b288015ac9         3-clause BSD license
-    golang.org/x/net                                         v0.0.0-20200520004742-59133d7f0dd7         3-clause BSD license
+    golang.org/x/net                                         v0.0.0-20210119194325-5f4716e94777         3-clause BSD license
     golang.org/x/oauth2                                      v0.0.0-20190604053449-0f29369cfe45         3-clause BSD license
     golang.org/x/sync                                        v0.0.0-20190911185100-cd5d95a43a6e         3-clause BSD license
-    golang.org/x/sys                                         v0.0.0-20200615200032-f1bc736245b1         3-clause BSD license
+    golang.org/x/sys                                         v0.0.0-20201119102817-f84b799fce68         3-clause BSD license
     golang.org/x/text                                        v0.3.3                                     3-clause BSD license
     golang.org/x/time                                        v0.0.0-20191024005414-555d28b269f0         3-clause BSD license
     golang.org/x/tools                                       v0.0.0-20200522201501-cb1345f3a375         3-clause BSD license

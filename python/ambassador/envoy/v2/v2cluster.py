@@ -67,9 +67,16 @@ class V2Cluster(Cacheable):
         else:
             cluster_idle_timeout_ms = cluster.ir.ambassador_module.get('cluster_idle_timeout_ms', None)
         if cluster_idle_timeout_ms:
-            fields['common_http_protocol_options'] = {
-                'idle_timeout': "%0.3fs" % (float(cluster_idle_timeout_ms) / 1000.0)
-            }
+            common_http_options = self.setdefault("common_http_protocol_options", {})
+            common_http_options['idle_timeout'] = "%0.3fs" % (float(cluster_idle_timeout_ms) / 1000.0)
+
+        if cluster.cluster_max_connection_lifetime_ms:
+            cluster_max_connection_lifetime_ms = cluster.cluster_max_connection_lifetime_ms
+        else:
+            cluster_max_connection_lifetime_ms = cluster.ir.ambassador_module.get('cluster_max_connection_lifetime_ms', None)
+        if cluster_max_connection_lifetime_ms:
+            common_http_options = self.setdefault("common_http_protocol_options", {})
+            common_http_options['max_connection_duration'] = "%0.3fs" % (float(cluster_max_connection_lifetime_ms) / 1000.0)
 
         circuit_breakers = self.get_circuit_breakers(cluster)
         if circuit_breakers is not None:

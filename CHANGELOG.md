@@ -69,11 +69,26 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
-- Bugfix: Fix an issue that caused Dev Portal to sporadically respond with upstream connect timeout when loading content
+- Bugfix: Many of the Go parts of Ambassador now properly clean up gRPC connections when shutting down.
+- Feature: A scrubbed ambassador snapshot is now accessible outside the pod at `:8005/snapshot-external`. This port is exposed on the ambassador-admin Kubernetes service.
+- Feature: Ambassador now supports configuring the maximum lifetime of an upstream connection using `cluster_max_connection_lifetime_ms`. After the configured time, upstream connections are drained and closed, allowing an operator to set an upper bound on how long any upstream connection will remain open. This is useful when using Kubernetes Service resolvers (the default) and modifying label selectors for traffic shifting.
+- Feature: The Ambassador Module configuration now supports `cluster_request_timeout_ms` to set a default request `timeout_ms` for Mappings. This allows an operator to update the default request timeout (currently 3000ms) without needing to update every Mapping.
+- Feature: The Ambassador Module configuration now supports `suppress_envoy_headers` to prevent Ambassador from setting additional headers on requests and responses. These headers are typically used for diagnostic purposes and are safe to omit when they are not desired.
+- Feature: All Kubernetes services managed by Ambassador are automatically instrumented with discovery annotations.
+- Feature: The Ambassador Module configuration now supports `strip_matching_host_port` to control whether the port should be removed from the host/Authority header before any processing by request filters / routing. This behavior only applies if the port matches the associated Envoy listener port.
 - Bugfix: Prevent potential reconcile loop when updating the status of an Ingress.
+
+### Ambassador Edge Stack only
+
+- Bugfix: Fix an issue that caused Dev Portal to sporadically respond with upstream connect timeout when loading content
+- Feature: Add support for the ambassador-agent deployment, reporting to Ambassador Cloud Service Catalog (https://app.getambassador.io)
+- Feature: `edgectl login` will automatically open your browser, allowing you to login into Service Catalog (https://app.getambassador.io)
+- Feature: `edgectl install` command allows you to install a new Ambassador Edge Stack automatically connected to Ambassador Cloud by passing a `--cloud-connect-token` argument.
 
 ## [1.11.2] March 01, 2021
 [1.11.2]: https://github.com/datawire/ambassador/compare/v1.11.1...v1.11.2
+
+### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Bugfix: Changes to endpoints when endpoint routing is not active will no longer cause reconfiguration
 - Bugfix: Correctly differentiate int values of 0 and Boolean values of `false` from non-existent attributes in CRDs ([#3212])

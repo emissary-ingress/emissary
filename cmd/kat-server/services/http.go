@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -11,6 +12,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/datawire/dlib/dgroup"
+	"github.com/datawire/dlib/dhttp"
 )
 
 // HTTP server object (all fields are required).
@@ -47,22 +51,23 @@ func (h *HTTP) Start() <-chan bool {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", h.handler)
 
+	sc := &dhttp.ServerConfig{
+		Handler: mux,
+	}
+
+	g := dgroup.NewGroup(context.TODO(), dgroup.GroupConfig{})
+	g.Go("cleartext", func(ctx context.Context) error {
+		return sc.ListenAndServe(ctx, fmt.Sprintf(":%v", h.Port))
+	})
+	g.Go("tls", func(ctx context.Context) error {
+		return sc.ListenAndServeTLS(ctx, fmt.Sprintf(":%v", h.SecurePort), h.Cert, h.Key)
+	})
+
 	exited := make(chan bool)
-
 	go func() {
-		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", h.Port), mux))
+		log.Fatal(g.Wait())
 		close(exited)
 	}()
-
-	go func() {
-		s := &http.Server{
-			Addr:    fmt.Sprintf(":%v", h.SecurePort),
-			Handler: mux,
-		}
-		log.Fatal(s.ListenAndServeTLS(h.Cert, h.Key))
-		close(exited)
-	}()
-
 	return exited
 }
 
