@@ -32,6 +32,7 @@
         "namespace": "default",
         "preserve_external_request_id": false,
         "proper_case": false,
+        "prune_unreachable_routes": false,
         "readiness_probe": {
             "enabled": true,
             "prefix": "/ambassador/v0/check_ready",
@@ -64,6 +65,7 @@
             "enable_endpoints": false,
             "enable_ipv4": true,
             "enable_ipv6": false,
+            "envoy_name": "cluster_127_0_0_1_8877_default",
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
@@ -99,6 +101,7 @@
             "enable_endpoints": false,
             "enable_ipv4": true,
             "enable_ipv6": false,
+            "envoy_name": "cluster_extauth_tracingexternalauthtest_ahttp_auth_default",
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
@@ -134,6 +137,7 @@
             "enable_endpoints": false,
             "enable_ipv4": true,
             "enable_ipv6": false,
+            "envoy_name": "cluster_tracing_zipkin_auth_9411_default",
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
@@ -170,6 +174,7 @@
             "enable_endpoints": false,
             "enable_ipv4": true,
             "enable_ipv6": false,
+            "envoy_name": "cluster_tracingexternalauthtest_http_default",
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",
@@ -224,6 +229,7 @@
                 "enable_endpoints": false,
                 "enable_ipv4": true,
                 "enable_ipv6": false,
+                "envoy_name": "cluster_extauth_tracingexternalauthtest_ahttp_auth_default",
                 "ignore_cluster": false,
                 "kind": "IRCluster",
                 "lb_type": "round_robin",
@@ -334,6 +340,7 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_127_0_0_1_8877_default",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
@@ -437,6 +444,7 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_127_0_0_1_8877_default",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
@@ -540,6 +548,7 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_127_0_0_1_8877_default",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
@@ -640,6 +649,7 @@
                         "enable_endpoints": false,
                         "enable_ipv4": true,
                         "enable_ipv6": false,
+                        "envoy_name": "cluster_tracingexternalauthtest_http_default",
                         "ignore_cluster": false,
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
@@ -705,7 +715,35 @@
         }
     ],
     "grpc_services": {},
-    "hosts": [],
+    "hosts": [
+        {
+            "_active": true,
+            "_errored": false,
+            "_referenced_by": [
+                "cleartext-host-tracingexternalauthtest.default.1"
+            ],
+            "_rkey": "cleartext-host-tracingexternalauthtest.default.1",
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "hostname": "*",
+            "kind": "Host",
+            "location": "cleartext-host-tracingexternalauthtest.default.1",
+            "name": "cleartext-host-tracingexternalauthtest",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "selector": {
+                "matchLabels": {
+                    "hostname": "tracingexternalauthtest"
+                }
+            },
+            "tlsSecret": {}
+        }
+    ],
     "identity": {
         "ambassador_id": "tracingexternalauthtest",
         "ambassador_namespace": "default",
@@ -720,7 +758,7 @@
             "hostname": "*",
             "insecure_action": "Route",
             "kind": "IRListener",
-            "location": "--internal--",
+            "location": "cleartext-host-tracingexternalauthtest.default.1",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
@@ -837,6 +875,7 @@
             "enable_endpoints": false,
             "enable_ipv4": true,
             "enable_ipv6": false,
+            "envoy_name": "cluster_tracing_zipkin_auth_9411_default",
             "ignore_cluster": false,
             "kind": "IRCluster",
             "lb_type": "round_robin",

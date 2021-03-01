@@ -1,0 +1,285 @@
+{
+    "_errors": {},
+    "_fast_validation_disagreements": {},
+    "_notices": {
+        "datadog-config-test.default.2": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "getambassador.io/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "getambassador.io/v0"
+        },
+        "cleartext-host-tracingdriverdatadog.default.1": {
+            "_referenced_by": {},
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "tracingdriverdatadog"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 2,
+            "hostname": "*",
+            "kind": "Host",
+            "location": "cleartext-host-tracingdriverdatadog.default.1",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-tracingdriverdatadog.default",
+                "kat-ambassador-id": "tracingdriverdatadog",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-tracingdriverdatadog",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "rkey": "cleartext-host-tracingdriverdatadog.default.1",
+            "selector": {
+                "matchLabels": {
+                    "hostname": "tracingdriverdatadog"
+                }
+            },
+            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- tracingdriverdatadog\napiVersion: getambassador.io/v2\ngeneration: 2\nhostname: '*'\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host-tracingdriverdatadog.default\n  kat-ambassador-id: tracingdriverdatadog\n  scope: AmbassadorTest\nname: cleartext-host-tracingdriverdatadog\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: tracingdriverdatadog\ntlsSecret: {}\n",
+            "tlsSecret": {}
+        },
+        "datadog-config-test.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingdriverdatadog",
+            "apiVersion": "getambassador.io/v2",
+            "driver": "datadog",
+            "kind": "TracingService",
+            "location": "datadog-config-test.default.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverdatadog",
+                "scope": "AmbassadorTest"
+            },
+            "name": "datadog-config-test",
+            "namespace": "default",
+            "rkey": "datadog-config-test.default.1",
+            "serialization": "_force_validation: true\nambassador_id: tracingdriverdatadog\napiVersion: ambassador/v2\ndriver: datadog\nkind: TracingService\nmetadata_labels:\n  kat-ambassador-id: tracingdriverdatadog\n  scope: AmbassadorTest\nname: datadog-config-test\nnamespace: default\nservice: datadog-config-test:9411\n",
+            "service": "datadog-config-test:9411"
+        },
+        "datadog-config-test.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingdriverdatadog",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "location": "datadog-config-test.default.2",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverdatadog",
+                "scope": "AmbassadorTest"
+            },
+            "name": "datadog-config_dump",
+            "namespace": "default",
+            "prefix": "/config_dump",
+            "rewrite": "/config_dump",
+            "rkey": "datadog-config-test.default.2",
+            "serialization": "_force_validation: true\nambassador_id: tracingdriverdatadog\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingdriverdatadog\n  scope: AmbassadorTest\nname: datadog-config_dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
+            "service": "http://127.0.0.1:8001"
+        },
+        "k8s-datadog-config-test-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingdriverdatadog",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-datadog-config-test-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverdatadog",
+                "scope": "AmbassadorTest"
+            },
+            "name": "datadog-config-test",
+            "namespace": "default",
+            "rkey": "k8s-datadog-config-test-default",
+            "serialization": "ambassador_id: tracingdriverdatadog\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingdriverdatadog\n  scope: AmbassadorTest\nname: datadog-config-test\nnamespace: default\n"
+        },
+        "k8s-tracingdriverdatadog-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingdriverdatadog",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingdriverdatadog-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverdatadog",
+                "scope": "AmbassadorTest",
+                "service": "tracingdriverdatadog-admin"
+            },
+            "name": "tracingdriverdatadog-admin",
+            "namespace": "default",
+            "rkey": "k8s-tracingdriverdatadog-admin-default",
+            "serialization": "ambassador_id: tracingdriverdatadog\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingdriverdatadog\n  scope: AmbassadorTest\n  service: tracingdriverdatadog-admin\nname: tracingdriverdatadog-admin\nnamespace: default\n"
+        },
+        "k8s-tracingdriverdatadog-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingdriverdatadog",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingdriverdatadog-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tracingdriverdatadog",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingdriverdatadog",
+            "namespace": "default",
+            "rkey": "k8s-tracingdriverdatadog-default",
+            "serialization": "ambassador_id: tracingdriverdatadog\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tracingdriverdatadog\n  scope: AmbassadorTest\nname: tracingdriverdatadog\nnamespace: default\n"
+        },
+        "k8s-tracingdriverdatadog-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingdriverdatadog",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingdriverdatadog-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverdatadog",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingdriverdatadog-http",
+            "namespace": "default",
+            "rkey": "k8s-tracingdriverdatadog-http-default",
+            "serialization": "ambassador_id: tracingdriverdatadog\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingdriverdatadog\n  scope: AmbassadorTest\nname: tracingdriverdatadog-http\nnamespace: default\n"
+        }
+    },
+    "hosts": {
+        "cleartext-host-tracingdriverdatadog": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "ambassador_id": [
+                "tracingdriverdatadog"
+            ],
+            "apiVersion": "getambassador.io/v2",
+            "generation": 2,
+            "hostname": "*",
+            "kind": "Host",
+            "metadata_labels": {
+                "ambassador_crd": "cleartext-host-tracingdriverdatadog.default",
+                "kat-ambassador-id": "tracingdriverdatadog",
+                "scope": "AmbassadorTest"
+            },
+            "name": "cleartext-host-tracingdriverdatadog",
+            "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
+            "selector": {
+                "matchLabels": {
+                    "hostname": "tracingdriverdatadog"
+                }
+            },
+            "tlsSecret": {}
+        }
+    },
+    "mappings": {
+        "datadog-config_dump": {
+            "ambassador_id": "tracingdriverdatadog",
+            "apiVersion": "getambassador.io/v0",
+            "kind": "Mapping",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverdatadog",
+                "scope": "AmbassadorTest"
+            },
+            "name": "datadog-config_dump",
+            "namespace": "default",
+            "prefix": "/config_dump",
+            "rewrite": "/config_dump",
+            "service": "http://127.0.0.1:8001"
+        }
+    },
+    "service": {
+        "k8s-datadog-config-test-default": {
+            "ambassador_id": "tracingdriverdatadog",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverdatadog",
+                "scope": "AmbassadorTest"
+            },
+            "name": "datadog-config-test",
+            "namespace": "default"
+        },
+        "k8s-tracingdriverdatadog-admin-default": {
+            "ambassador_id": "tracingdriverdatadog",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverdatadog",
+                "scope": "AmbassadorTest",
+                "service": "tracingdriverdatadog-admin"
+            },
+            "name": "tracingdriverdatadog-admin",
+            "namespace": "default"
+        },
+        "k8s-tracingdriverdatadog-default": {
+            "ambassador_id": "tracingdriverdatadog",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tracingdriverdatadog",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingdriverdatadog",
+            "namespace": "default"
+        },
+        "k8s-tracingdriverdatadog-http-default": {
+            "ambassador_id": "tracingdriverdatadog",
+            "apiVersion": "getambassador.io/v2",
+            "endpoints": {},
+            "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverdatadog",
+                "scope": "AmbassadorTest"
+            },
+            "name": "tracingdriverdatadog-http",
+            "namespace": "default"
+        }
+    },
+    "tracing_configs": {
+        "datadog-config-test": {
+            "ambassador_id": "tracingdriverdatadog",
+            "apiVersion": "getambassador.io/v2",
+            "driver": "datadog",
+            "kind": "TracingService",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingdriverdatadog",
+                "scope": "AmbassadorTest"
+            },
+            "name": "datadog-config-test",
+            "namespace": "default",
+            "service": "datadog-config-test:9411"
+        }
+    }
+}
