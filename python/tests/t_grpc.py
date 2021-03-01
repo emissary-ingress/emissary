@@ -114,10 +114,10 @@ load_balancer:
 
     def check(self):
         # [0]
-        assert self.results[0].headers["Grpc-Status"] == ["0"], f'0 expected ["0"], got {self.results[0].headers["Grpc-Status"]}'
+        assert self.results[0].headers["Grpc-Status"] == ["0"], f'results[0]: expected ["0"], got {self.results[0].headers["Grpc-Status"]}'
 
         # [1]
-        assert self.results[1].headers["Grpc-Status"] == ["7"], f'0 expected ["0"], got {self.results[0].headers["Grpc-Status"]}'
+        assert self.results[1].headers["Grpc-Status"] == ["7"], f'results[1]: expected ["7"], got {self.results[0].headers["Grpc-Status"]}'
 
         # [2]
         # XXX Ew. If self.results[2].json is empty, the harness won't convert it to a response.
