@@ -1011,8 +1011,8 @@ class IR:
         od['cluster_ingress_count'] = 0  # Provided for backward compatibility only.
         od['knative_ingress_count'] = self.aconf.get_count('knative_ingress')
 
-        od['k8s_ingress_count'] = len(self.aconf.k8s_ingresses)
-        od['k8s_ingress_class_count'] = len(self.aconf.k8s_ingress_classes)
+        od['k8s_ingress_count'] = self.aconf.get_count('k8s_ingress')
+        od['k8s_ingress_class_count'] = self.aconf.get_count('k8s_ingress_class')
 
         extauth = False
         extauth_proto: Optional[str] = None

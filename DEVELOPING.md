@@ -377,20 +377,11 @@ and clear the cache.
 How do I make documentation-only changes?
 -----------------------------------------
 
-The Ambassador documentation lives in the `docs` directory. If you're working
-on documentation for an upcoming feature or fix, make your docs changes along
-with your code changes, and include them all in the same PR.
-
-If you want to make a change that **only** affects the live documentation for
-an already-released version of Ambassador, you'll need to make your changes in
-a branch from the `release` branch for that version, then PR back to the
-`release` branch. For example, if you find a typo while reading the documentation
-for Ambassador 1.4:
-
-- Check out `release/v1.4`
-- Make a branch from it.
-- Fix the typo.
-- Push your branch and PR it back to `release/v1.4`.
+The Ambassador documentation lives at https://github.com/datawire/ambassador-docs.
+If you're working on documentation for an upcoming feature or fix, make your
+changes in the `pre-release` folder in that repository. If you want to make a
+change that affects the live documentation for an already-released version of
+Ambassador, make your changes in the corresponding version folder.
 
 How do I get the source code for a release?
 -------------------------------------------
@@ -414,9 +405,10 @@ How do I make a contribution?
    - If you're using a branch name that starts with your username, `git rebase` is also OK and no one from Datawire will scream at you for force-pushing.
    - Please do **not** rebase any branch that does **not** start with your username.
 
-3. **Code changes must include relevant documentation updates.**
-   - Make changes in the `docs` directory as necessary, and commit them to your
-     branch so that they can be incorporated when the feature is merged into `master`.
+3. **Code changes must have associated documentation updates.**
+   - Make changes in https://github.com/datawire/ambassador-docs as necessary,
+   and include a reference to those changes the pull request for your code
+   changes.
 
 4. **Code changes must include passing tests.**
    - See `python/tests/README.md` for more here.
@@ -662,57 +654,6 @@ Developing Ambassador (Datawire-only advice)
 At the moment, these techniques will only work internally to Datawire. Mostly
 this is because they require credentials to access internal resources at the
 moment, though in several cases we're working to fix that.
-
-How do I test my documentation work?
-------------------------------------
-
-*This will currently only work within Datawire.*
-
-After you've made some documentation changes, run
-
-```
-bash ambassador/scripts/doc-setup
-```
-
-to do all the Javascript work needed to get a local documentation server
-running. You can point a web browser to `http://localhost:8000` to view docs
-with your changes.
-
-After running `ambassador/scripts/doc-setup`, if you need to make further changes, run
-
-```
-bash ambassador/scripts/doc-sync
-```
-
-to push your changes to the local webserver. They should appear immediately
-(you may have to reload the page in your browser).
-
-How do I share a preview of my documentation work with others?
---------------------------------------------------------------
-
-*This will currently only work within Datawire.*
-
-After running `ambassador/scripts/doc-setup`, run
-
-```
-bash ambassador/scripts/doc-publish
-```
-
-to push a preview to the `getambassador-preview` Netlify site.
-Find the Netlify preview URL in the output and hand it off to others.
-
-How do I update the getambassador-preview site with my documentation for others to use?
----------------------------------------------------------------------------------------
-
-*This will currently only work within Datawire.*
-
-After running `ambassador/scripts/doc-setup`, run
-
-```
-bash ambassador/scripts/doc-publish --prod
-```
-
-to update the live `getambassador-preview` Netlify site.
 
 How do I build ambassador on Windows using WSL?
 -----------------------------------------------
