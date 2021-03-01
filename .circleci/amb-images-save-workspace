@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
-set -x
+set -ex
+
+if ! test -e docker/container.txt; then
+	# There will be nothing to do
+	exit 0
+fi
 
 # Save the images
 go run "${0%-workspace}-images.go"
