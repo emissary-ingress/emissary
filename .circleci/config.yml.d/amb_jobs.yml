@@ -24,11 +24,14 @@ commands:
   # "oss-linux" and "aes-linux" executors)                             #
   ######################################################################
 
+  # Only one of job-generate and job-update-yaml will run.
   "job-generate":
     steps:
       # setup
       - amb-linux-install
       - amb-checkout
+      - skip-if-only-changes:
+          to: docs/
       # We might need to be logged in the registry to pull the Envoy
       # image or the builder-base image.
       - amb-config-registry
@@ -39,6 +42,26 @@ commands:
       # Run it again to make sure that it is possible to run it twice
       # in a row.
       - run: make generate
+      - dirty-check
+
+  # Only one of job-generate and job-update-yaml will run.
+  "job-update-yaml":
+    steps:
+      # setup
+      - amb-linux-install
+      - amb-checkout
+      - skip-if-no-changes:
+          to: docs/
+      # We might need to be logged in the registry to pull the Envoy
+      # image or the builder-base image.
+      - amb-config-registry
+
+      # main
+      - run: make update-yaml
+      - dirty-check
+      # Run it again to make sure that it is possible to run it twice
+      # in a row.
+      - run: make update-yaml
       - dirty-check
 
   "job-lint":
