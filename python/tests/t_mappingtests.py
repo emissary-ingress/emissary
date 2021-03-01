@@ -240,6 +240,41 @@ host: inspector.external
         yield Query(self.parent.url(self.name + "/"), headers={"Host": "inspector.internal"}, expected=404)
         yield Query(self.parent.url(self.name + "/"), headers={"Host": "inspector.external"})
 
+class HostHeaderMappingStripMatchingHostPort(MappingTest):
+
+    parent: AmbassadorTest
+
+    @classmethod
+    def variants(cls):
+        for st in variants(ServiceType):
+            yield cls(st, name="{self.target.name}")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v2
+kind:  Module
+name:  ambassador
+config:
+  strip_matching_host_port: true
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: http://{self.target.path.fqdn}
+host: myhostname.com
+""")
+
+    def queries(self):
+        # Sanity test that a missing or incorrect hostname does not route, and it does route with a correct hostname.
+        yield Query(self.parent.url(self.name + "/"), expected=404)
+        yield Query(self.parent.url(self.name + "/"), headers={"Host": "yourhostname.com"}, expected=404)
+        yield Query(self.parent.url(self.name + "/"), headers={"Host": "myhostname.com"})
+        # Test that two sensible port values work when stripping matchign host port for routing.
+        yield Query(self.parent.url(self.name + "/"), headers={"Host": "myhostname.com:443"})
+        yield Query(self.parent.url(self.name + "/"), headers={"Host": "myhostname.com:8081"})
+
 
 class InvalidPortMapping(MappingTest):
 
