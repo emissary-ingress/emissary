@@ -24,6 +24,7 @@ import (
 )
 
 type AuthServiceIncludeBody struct {
+	// These aren't pointer types because they are required.
 	// +kubebuilder:validation:Required
 	MaxBytes int `json:"max_bytes,omitempty"`
 
@@ -33,7 +34,7 @@ type AuthServiceIncludeBody struct {
 
 // Why isn't this just an int??
 type AuthServiceStatusOnError struct {
-	Code int `json:"code,omitempty"`
+	Code *int `json:"code,omitempty"`
 }
 
 // AuthServiceSpec defines the desired state of AuthService
@@ -46,13 +47,13 @@ type AuthServiceSpec struct {
 	TLS         *BoolOrString `json:"tls,omitempty"`
 	// +kubebuilder:validation:Enum={"http","grpc"}
 	Proto                       string                    `json:"proto,omitempty"`
-	TimeoutMs                   int                       `json:"timeout_ms,omitempty"`
+	TimeoutMs                   *int                      `json:"timeout_ms,omitempty"`
 	AllowedRequestHeaders       []string                  `json:"allowed_request_headers,omitempty"`
 	AllowedAuthorizationHeaders []string                  `json:"allowed_authorization_headers,omitempty"`
 	AddAuthHeaders              map[string]BoolOrString   `json:"add_auth_headers,omitempty"`
-	AllowRequestBody            bool                      `json:"allow_request_body,omitempty"`
-	AddLinkerdHeaders           bool                      `json:"add_linkerd_headers,omitempty"`
-	FailureModeAllow            bool                      `json:"failure_mode_allow,omitempty"`
+	AllowRequestBody            *bool                     `json:"allow_request_body,omitempty"`
+	AddLinkerdHeaders           *bool                     `json:"add_linkerd_headers,omitempty"`
+	FailureModeAllow            *bool                     `json:"failure_mode_allow,omitempty"`
 	IncludeBody                 *AuthServiceIncludeBody   `json:"include_body,omitempty"`
 	StatusOnError               *AuthServiceStatusOnError `json:"status_on_error,omitempty"`
 	// +kubebuilder:validation:Enum={"v2","v2alpha"}

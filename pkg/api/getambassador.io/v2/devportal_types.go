@@ -61,7 +61,7 @@ type DevPortalSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
 	// Default must be true when this is the default DevPortal
-	Default bool `json:"default,omitempty"`
+	Default *bool `json:"default,omitempty"`
 
 	// Content specifies where the content shown in the DevPortal come from
 	Content *DevPortalContentSpec `json:"content,omitempty"`

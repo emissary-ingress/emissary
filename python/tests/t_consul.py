@@ -23,17 +23,25 @@ class ConsulTest(AmbassadorTest):
         self.k8s_target = HTTP(name="k8s")
         self.k8s_ns_target = HTTP(name="k8s-ns", namespace="consul-test-namespace")
 
+        # This is the datacenter we'll use.
+        self.datacenter = "dc12"
+
+        # We use Consul's local-config environment variable to set the datacenter name
+        # on the actual Consul pod. That means that we need to supply the datacenter 
+        # name in JSON format.
+        # 
+        # In a perfect world this would just be
+        # 
+        # self.datacenter_dict = { "datacenter": self.datacenter }
+        #
+        # but the world is not perfect, so we have to supply it as JSON with LOTS of
+        # escaping, since this gets passed through self.format (hence two layers of
+        # doubled braces) and JSON decoding (hence backslash-escaped double quotes, 
+        # and of course the backslashes themselves have to be escaped...)
+        self.datacenter_json = f'{{{{\\\"datacenter\\\":\\\"{self.datacenter}\\\"}}}}'
+
     def manifests(self) -> str:
-        # Unlike usual, we have stuff both before and after super().manifests():
-        # we want the namespace early, but we want the superclass before our other
-        # manifests, because of some magic with ServiceAccounts?
-        return self.format("""
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: consul-test-namespace
-""") + super().manifests() + self.format("""
+        consul_manifest = self.format("""
 ---
 apiVersion: v1
 kind: Service
@@ -62,7 +70,22 @@ spec:
   containers:
   - name: consul
     image: consul:1.4.3
+    env:
+    - name: CONSUL_LOCAL_CONFIG
+      value: "{self.datacenter_json}"
   restartPolicy: Always
+""")
+
+        # Unlike usual, we have stuff both before and after super().manifests():
+        # we want the namespace early, but we want the superclass before our other
+        # manifests, because of some magic with ServiceAccounts?
+        return self.format("""
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: consul-test-namespace
+""") + super().manifests() + consul_manifest + self.format("""
 ---
 apiVersion: getambassador.io/v2
 kind: ConsulResolver
@@ -71,7 +94,7 @@ metadata:
 spec:
   ambassador_id: consultest
   address: {self.path.k8s}-consul:8500
-  datacenter: dc1
+  datacenter: {self.datacenter}
 ---
 apiVersion: getambassador.io/v2
 kind:  Mapping
@@ -139,21 +162,21 @@ secret: {self.path.k8s}-client-cert-secret
         yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/deregister"),
                     method="PUT",
                     body={
-                        "Datacenter": "dc1",
+                        "Datacenter": self.datacenter,
                         "Node": self.format("{self.path.k8s}-consul-service")
                     },
                     phase=0)
         yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/deregister"),
                     method="PUT",
                     body={
-                        "Datacenter": "dc1",
+                        "Datacenter": self.datacenter,
                         "Node": self.format("{self.path.k8s}-consul-ns-service")
                     },
                     phase=0)
         yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/deregister"),
                     method="PUT",
                     body={
-                        "Datacenter": "dc1",
+                        "Datacenter": self.datacenter,
                         "Node": self.format("{self.path.k8s}-consul-node")
                     },
                     phase=0)
@@ -169,7 +192,7 @@ secret: {self.path.k8s}-client-cert-secret
         yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
                     method="PUT",
                     body={
-                        "Datacenter": "dc1",
+                        "Datacenter": self.datacenter,
                         "Node": self.format("{self.path.k8s}-consul-service"),
                         "Address": self.k8s_target.path.k8s,
                         "Service": {"Service": self.format("{self.path.k8s}-consul-service"),
@@ -179,7 +202,7 @@ secret: {self.path.k8s}-client-cert-secret
         yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
                     method="PUT",
                     body={
-                        "Datacenter": "dc1",
+                        "Datacenter": self.datacenter,
                         "Node": self.format("{self.path.k8s}-consul-ns-service"),
                         "Address": self.format("{self.k8s_ns_target.path.k8s}.consul-test-namespace"),
                         "Service": {"Service": self.format("{self.path.k8s}-consul-ns-service"),
@@ -189,7 +212,7 @@ secret: {self.path.k8s}-client-cert-secret
         yield Query(self.format("http://{self.path.k8s}-consul:8500/v1/catalog/register"),
                     method="PUT",
                     body={
-                        "Datacenter": "dc1",
+                        "Datacenter": self.datacenter,
                         "Node": self.format("{self.path.k8s}-consul-node"),
                         "Address": self.k8s_target.path.k8s,
                         "Service": {"Service": self.format("{self.path.k8s}-consul-node"),

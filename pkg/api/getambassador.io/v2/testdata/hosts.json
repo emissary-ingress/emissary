@@ -1,0 +1,245 @@
+[
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Host",
+        "metadata": {
+            "creationTimestamp": "2020-07-03T02:19:06Z",
+            "name": "host-base",
+            "namespace": "alt2-namespace"
+        },
+        "spec": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "hostname": "host-base"
+        },
+        "status": {}
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Host",
+        "metadata": {
+            "creationTimestamp": "2020-07-03T02:19:06Z",
+            "name": "host-tls-base",
+            "namespace": "alt2-namespace"
+        },
+        "spec": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "hostname": "host-tls-base",
+            "tls": {
+                "ca_secret": "hostcrdclientcertsamenamespace-ca"
+            },
+            "tlsSecret": {
+                "name": "hostcrdclientcertsamenamespace.server"
+            }
+        },
+        "status": {}
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Host",
+        "metadata": {
+            "creationTimestamp": "2020-07-03T02:19:06Z",
+            "name": "host-tls-ccr-true",
+            "namespace": "alt2-namespace"
+        },
+        "spec": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "hostname": "host-tls-ccr-true",
+            "tls": {
+                "ca_secret": "hostcrdclientcertsamenamespace-ca",
+                "cert_required": true
+            },
+            "tlsSecret": {
+                "name": "hostcrdclientcertsamenamespace.server"
+            }
+        },
+        "status": {}
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Host",
+        "metadata": {
+            "creationTimestamp": "2020-07-03T02:19:06Z",
+            "name": "host-tls-ccr-true-rcf-set",
+            "namespace": "alt2-namespace"
+        },
+        "spec": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "hostname": "host-tls-ccr-true-rcf-set",
+            "tls": {
+                "ca_secret": "hostcrdclientcertsamenamespace-ca",
+                "cert_required": true,
+                "redirect_cleartext_from": 8888
+            },
+            "tlsSecret": {
+                "name": "hostcrdclientcertsamenamespace.server"
+            }
+        },
+        "status": {}
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Host",
+        "metadata": {
+            "creationTimestamp": "2020-07-03T02:19:06Z",
+            "name": "host-tls-ccr-false-rcf-zero",
+            "namespace": "alt2-namespace"
+        },
+        "spec": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "hostname": "host-tls-ccr-false-rcf-zero",
+            "tls": {
+                "ca_secret": "hostcrdclientcertsamenamespace-ca",
+                "cert_required": false,
+                "redirect_cleartext_from": 0
+            },
+            "tlsSecret": {
+                "name": "hostcrdclientcertsamenamespace.server"
+            }
+        },
+        "status": {}
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Host",
+        "metadata": {
+            "creationTimestamp": "2020-07-03T02:19:06Z",
+            "name": "host-addlport-negative-1",
+            "namespace": "default"
+        },
+        "spec": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "hostname": "host-addlport-negative-1",
+            "requestPolicy": {
+                "insecure": {
+                    "additionalPort": -1
+                }
+            }
+        },
+        "status": {}
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Host",
+        "metadata": {
+            "creationTimestamp": "2020-07-03T02:19:06Z",
+            "name": "host-addlport-8080",
+            "namespace": "default"
+        },
+        "spec": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "hostname": "host-addlport-8080",
+            "requestPolicy": {
+                "insecure": {
+                    "additionalPort": 8080
+                }
+            }
+        },
+        "status": {}
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Host",
+        "metadata": {
+            "creationTimestamp": "2020-07-03T02:19:06Z",
+            "name": "host-addlport-0",
+            "namespace": "default"
+        },
+        "spec": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "hostname": "host-addlport-0",
+            "requestPolicy": {
+                "insecure": {
+                    "additionalPort": 0
+                }
+            }
+        },
+        "status": {}
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Host",
+        "metadata": {
+            "creationTimestamp": "2020-07-03T02:19:06Z",
+            "name": "host-no-addlport",
+            "namespace": "default"
+        },
+        "spec": {
+            "acmeProvider": {
+                "authority": "none"
+            },
+            "hostname": "host-no-addlport",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            }
+        },
+        "status": {}
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Host",
+        "metadata": {
+            "creationTimestamp": "2020-07-03T02:19:06Z",
+            "name": "host-no-preview-enabled",
+            "namespace": "default"
+        },
+        "spec": {
+            "hostname": "host-no-preview-enabled",
+            "previewUrl": {
+                "type": "Path"
+            }
+        },
+        "status": {}
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Host",
+        "metadata": {
+            "creationTimestamp": "2020-07-03T02:19:06Z",
+            "name": "host-preview-enabled-false",
+            "namespace": "default"
+        },
+        "spec": {
+            "hostname": "host-preview-enabled-false",
+            "previewUrl": {
+                "enabled": false,
+                "type": "Path"
+            }
+        },
+        "status": {}
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Host",
+        "metadata": {
+            "creationTimestamp": "2020-07-03T02:19:06Z",
+            "name": "host-preview-enabled-true",
+            "namespace": "default"
+        },
+        "spec": {
+            "hostname": "host-preview-enabled-true",
+            "previewUrl": {
+                "enabled": true,
+                "type": "Path"
+            }
+        },
+        "status": {}
+    }
+]

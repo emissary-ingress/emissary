@@ -125,9 +125,14 @@ def delete_kube_artifacts(namespace, artifacts):
     meta_action_kube_artifacts(namespace=namespace, artifacts=artifacts, action='delete')
 
 
-def install_ambassador(namespace, envs=None):
+def install_ambassador(namespace, single_namespace=True, envs=None):
     """
+    Install Ambassador into a given namespace. NOTE WELL that although there
+    is a 'single_namespace' parameter, this function probably needs work to do
+    the fully-correct thing with single_namespace False.
+
     :param namespace: namespace to install Ambassador in
+    :param single_namespace: should we set AMBASSADOR_SINGLE_NAMESPACE? SEE NOTE ABOVE!
     :param envs: [
       {
         'name': 'ENV_NAME',
@@ -140,6 +145,21 @@ def install_ambassador(namespace, envs=None):
 
     if envs is None:
         envs = []
+
+    found_single_namespace = False
+
+    if single_namespace:
+        for e in envs:
+            if e['name'] == 'AMBASSADOR_SINGLE_NAMESPACE':
+                e['value'] = 'true'
+                found_single_namespace = True
+                break
+    
+        if not found_single_namespace:
+            envs.append({ 
+                'name': 'AMBASSADOR_SINGLE_NAMESPACE',
+                'value': 'true'
+            })
 
     # Create namespace to install Ambassador
     create_namespace(namespace)
@@ -157,9 +177,16 @@ imagePullSecrets:
 - name: dev-image-pull-secret
 """
 
+    rbac_manifest_name = 'rbac_namespace_scope' if single_namespace else 'rbac_cluster_scope'
+
+    # Hackish fakes of actual KAT structures -- it's _far_ too much work to synthesize
+    # actual KAT Nodes and Paths.
+    fakeNode = namedtuple('fakeNode', [ 'namespace', 'path', 'ambassador_id' ])
+    fakePath = namedtuple('fakePath', [ 'k8s' ])
+
     ambassador_yaml = list(yaml.safe_load_all((
-        load_manifest('rbac_cluster_scope')+
-        load_manifest('ambassador')+
+        load_manifest(rbac_manifest_name) +
+        load_manifest('ambassador') +
         (CLEARTEXT_HOST_YAML % namespace)
     ).format(
         capabilities_block="",
@@ -167,18 +194,22 @@ imagePullSecrets:
         extra_ports="",
         serviceAccountExtra=serviceAccountExtra,
         image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-        self=namedtuple('self', 'namespace path ambassador_id')(
-            namespace,
-            namedtuple('path', 'k8s')(
-                'ambassador'),
-            'default',
-        ),
+        self=fakeNode(
+            namespace=namespace,
+            ambassador_id='default',
+            path=fakePath(k8s='ambassador')
+        )
     )))
 
     for manifest in ambassador_yaml:
-        if manifest.get('kind', '') == 'Pod' and manifest.get('metadata', {}).get('name', '') == 'ambassador':
+        kind = manifest.get('kind', None)
+        metadata = manifest.get('metadata', {})
+        name = metadata.get('name', None)
 
-            # Don't set AMBASSADOR_ID={self.k8s.path}
+        if (kind == "Pod") and (name == "ambassador"):
+            # Force AMBASSADOR_ID to match ours.
+            #
+            # XXX This is not likely to work without single_namespace=True.
             for envvar in manifest['spec']['containers'][0]['env']:
                 if envvar.get('name', '') == 'AMBASSADOR_ID':
                     envvar['value'] = 'default'

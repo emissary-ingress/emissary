@@ -68,6 +68,7 @@ spec:
                 allow_partial:
                   type: boolean
                 max_bytes:
+                  description: These aren't pointer types because they are required.
                   type: integer
               required:
               - allow_partial
@@ -798,12 +799,14 @@ spec:
                 credentials:
                   type: boolean
                 exposed_headers:
+                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
                   oneOf:
                   - type: string
                   - type: array
                 headers:
+                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
                   oneOf:
@@ -812,12 +815,14 @@ spec:
                 max_age:
                   type: string
                 methods:
+                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
                   oneOf:
                   - type: string
                   - type: array
                 origins:
+                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
                   oneOf:
@@ -868,7 +873,7 @@ spec:
                         type: object
                     type: object
                   on_status_code:
-                    description: The status code to match on
+                    description: The status code to match on -- not a pointer because it's required.
                     maximum: 599
                     minimum: 400
                     type: integer
@@ -1012,12 +1017,14 @@ spec:
                 - type: boolean
               type: object
             remove_request_headers:
+              description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
               items:
                 type: string
               oneOf:
               - type: string
               - type: array
             remove_response_headers:
+              description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
               items:
                 type: string
               oneOf:
@@ -1279,6 +1286,7 @@ spec:
               description: 'FIXME(lukeshu): Surely this should be an ''int''?'
               type: string
             port:
+              description: Port isn't a pointer because it's required.
               type: integer
             resolver:
               type: string

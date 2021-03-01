@@ -283,12 +283,7 @@ spec:
         namespace = 'header-case-overrides'
 
         # Install Ambassador
-        install_ambassador(namespace=namespace, envs=[
-            {
-                'name': 'AMBASSADOR_SINGLE_NAMESPACE',
-                'value': 'true'
-            }
-        ])
+        install_ambassador(namespace=namespace)
 
         # Install httpbin
         apply_kube_artifacts(namespace=namespace, artifacts=httpbin_manifests)
