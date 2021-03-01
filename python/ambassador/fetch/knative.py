@@ -8,9 +8,10 @@ import durationpy
 
 from ..config import Config
 
+from .dependency import ServiceDependency
 from .k8sobject import KubernetesGVK, KubernetesObject
 from .k8sprocessor import ManagedKubernetesProcessor
-from .resource import NormalizedResource
+from .resource import NormalizedResource, ResourceManager
 
 
 class KnativeIngressProcessor (ManagedKubernetesProcessor):
@@ -19,6 +20,13 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
     """
 
     INGRESS_CLASS: ClassVar[str] = 'ambassador.ingress.networking.knative.dev'
+
+    service_dep: ServiceDependency
+
+    def __init__(self, manager: ResourceManager):
+        super().__init__(manager)
+
+        self.service_dep = self.deps.want(ServiceDependency)
 
     def kinds(self) -> FrozenSet[KubernetesGVK]:
         return frozenset([KubernetesGVK.for_knative_networking('Ingress')])
@@ -141,7 +149,7 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
         # out-of-cluster ingress to access the service.
         current_lb_domain = None
 
-        if not self.manager.ambassador_service or not self.manager.ambassador_service.name:
+        if not self.service_dep.ambassador_service or not self.service_dep.ambassador_service.name:
             self.logger.warning(f"Unable to set Knative {obj.kind} {obj.name}'s load balancer, could not find Ambassador service")
         else:
             # TODO: It is technically possible to use a domain other than
@@ -149,7 +157,7 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
             # the relevant domain by doing a DNS lookup on
             # kubernetes.default.svc, but this problem appears elsewhere in the
             # code as well and probably should just be fixed all at once.
-            current_lb_domain = f"{self.manager.ambassador_service.name}.{self.manager.ambassador_service.namespace}.svc.cluster.local"
+            current_lb_domain = f"{self.service_dep.ambassador_service.name}.{self.service_dep.ambassador_service.namespace}.svc.cluster.local"
 
         observed_ingress: Dict[str, Any] = next(iter(obj.status.get('privateLoadBalancer', {}).get('ingress', [])), {})
         observed_lb_domain = observed_ingress.get('domainInternal')
@@ -160,7 +168,7 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
             status = self._make_status(generation=obj.generation, lb_domain=current_lb_domain)
 
             if status:
-                status_update = (obj.gvk.domain, obj.namespace or 'default', status)
+                status_update = (obj.gvk.domain, obj.namespace, status)
                 self.logger.info(f"Updating Knative {obj.kind} {obj.name} status to {status_update}")
                 self.aconf.k8s_status_updates[f"{obj.name}.{obj.namespace}"] = status_update
         else:

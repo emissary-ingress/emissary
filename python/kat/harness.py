@@ -1035,16 +1035,21 @@ def run_queries(name: str, queries: Sequence[Query]) -> Sequence[Result]:
         json.dump(jsonified, f)
 
     # run(f"{CLIENT_GO} -input {path_urls} -output {path_results} 2> {path_log}")
-    run(f"kubectl exec -n default -i kat /work/kat_client < '{path_urls}' > '{path_results}' 2> '{path_log}'")
+    res = ShellCommand.run('Running queries',
+            f"kubectl exec -n default -i kat /work/kat_client < '{path_urls}' > '{path_results}' 2> '{path_log}'",
+            shell=True)
 
+    if not res:
+        ret = [Result(q, {"error":"Command execution error"}) for q in queries]
+        return ret
 
     with open(path_results, 'r') as f:
         content = f.read()
         try:
             json_results = json.loads(content)
         except Exception as e:
-            print("Could not parse JSON content (exception={}):\n", e, content)
-            raise e
+            ret = [Result(q, {"error":"Could not parse JSON content after running KAT queries"}) for q in queries]
+            return ret
 
     results = []
 
@@ -1527,7 +1532,11 @@ class Runner:
 
         if changed:
             print(f'CRDS changed ({reason}), applying.')
-            run(f'kubectl apply -f /tmp/k8s-CRDs.yaml')
+            if not ShellCommand.run_with_retry(
+                    'Apply CRDs',
+                    'kubectl', 'apply', '-f', '/tmp/k8s-CRDs.yaml',
+                    retries=5, sleep_seconds=10):
+                raise RuntimeError("Failed applying CRDs")
 
             tries_left = 10
 
@@ -1551,7 +1560,10 @@ class Runner:
 
         if changed:
             print(f'KAT pod definition changed ({reason}), applying')
-            run('kubectl apply -f /tmp/k8s-kat-pod.yaml -n default')
+            if not ShellCommand.run_with_retry('Apply KAT pod',
+                    'kubectl', 'apply', '-f' , '/tmp/k8s-kat-pod.yaml', '-n', 'default',
+                    retries=5, sleep_seconds=10):
+                raise RuntimeError('Could not apply manifest for KAT pod')
 
             tries_left = 10
             time.sleep(1)
@@ -1585,7 +1597,10 @@ class Runner:
         # XXX: better prune selector label
         if manifest_changed:
             print(f"manifest changed ({manifest_reason}), applying...")
-            run("kubectl apply --prune -l scope=%s -f %s" % (self.scope, fname))
+            if not ShellCommand.run_with_retry('Applying k8s manifests',
+                    'kubectl', 'apply', '--prune', '-l', 'scope=%s' % self.scope, '-f', fname,
+                    retries=5, sleep_seconds=10):
+                raise RuntimeError('Could not apply manifests')
             self.applied_manifests = True
 
         for n in self.nodes:
@@ -1749,7 +1764,11 @@ class Runner:
         label_for_scope = f'-l scope={scope}' if scope else ''
 
         fname = f'/tmp/pods-{scope_for_path}.json'
-        run(f'kubectl get pod {label_for_scope} --all-namespaces -o json > {fname}')
+        if not ShellCommand.run_with_retry('Getting pods',
+            f'kubectl get pod {label_for_scope} --all-namespaces -o json > {fname}',
+            shell=True, retries=5, sleep_seconds=10):
+            raise RuntimeError('Could not get pods')
+
 
         with open(fname) as f:
             raw_pods = json.load(f)
