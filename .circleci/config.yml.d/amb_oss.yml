@@ -6,6 +6,11 @@ jobs:
     steps:
       - job-generate
 
+  "oss-update-yaml":
+    executor: oss-linux
+    steps:
+      - job-update-yaml
+
   "oss-lint":
     executor: oss-linux
     steps:
@@ -87,6 +92,8 @@ workflows:
       # test
       - "oss-generate":
           name: "oss-dev-generate"
+      - "oss-update-yaml":
+          name: "oss-dev-update-yaml"
       - "oss-lint":
           name: "oss-dev-lint"
       - "oss-test":
@@ -123,6 +130,9 @@ workflows:
       - "oss-generate":
           <<: *filter-prerelease-only
           name: "oss-release-generate"
+      - "oss-update-yaml":
+          <<: *filter-prerelease-only
+          name: "oss-release-update-yaml"
       - "oss-lint":
           <<: *filter-prerelease-only
           name: "oss-release-lint"
