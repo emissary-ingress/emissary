@@ -1,0 +1,92 @@
+# This is traffic-manager.yaml
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: traffic-manager
+  namespace: ambassador
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: traffic-manager
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces", "services", "pods", "secrets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: traffic-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: traffic-manager
+subjects:
+  - kind: ServiceAccount
+    name: traffic-manager
+    namespace: ambassador
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: telepresence-proxy
+  namespace: ambassador
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: telepresence-proxy
+  ports:
+    - name: sshd
+      protocol: TCP
+      port: 8022
+    - name: api
+      protocol: TCP
+      port: 8081
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telepresence-proxy
+  namespace: ambassador
+  labels:
+    app: telepresence-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telepresence-proxy
+  template:
+    metadata:
+      labels:
+        app: telepresence-proxy
+    spec:
+      containers:
+      - name: telepresence-proxy
+        image: docker.io/datawire/aes:$version$
+        command: [ "traffic-manager" ]
+        ports:
+          - name: sshd
+            containerPort: 8022
+        env:
+          - name: AMBASSADOR_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: REDIS_URL
+            value: ambassador-redis:6379
+        volumeMounts:
+          - mountPath: /tmp/ambassador-pod-info
+            name: ambassador-pod-info
+      restartPolicy: Always
+      serviceAccountName: traffic-manager
+      terminationGracePeriodSeconds: 0
+      volumes:
+      - downwardAPI:
+          items:
+          - fieldRef:
+              fieldPath: metadata.labels
+            path: labels
+        name: ambassador-pod-info
