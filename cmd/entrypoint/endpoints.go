@@ -2,6 +2,9 @@ package entrypoint
 
 import (
 	"context"
+	"fmt"
+	"net"
+	"strings"
 
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/pkg/kates"
@@ -12,10 +15,31 @@ import (
 // endpointRoutingInfo keeps track of everything we need to know to figure out if
 // endpoint routing is active.
 type endpointRoutingInfo struct {
-	resolverTypes        map[string]string // What kinds of resolvers are defined?
-	resolversInUse       map[string]bool   // What are the names of the resolvers actually in use?
-	defaultResolverName  string            // What is the default resolver in use?
-	defaultResolverInUse bool              // Is the default resolver actually in use?
+	// Map from resolver name to resolver type.
+	resolverTypes   map[string]ResolverType
+	module          moduleResolver
+	endpointWatches map[string]bool // A set to track the subset of kubernetes endpoints we care about.
+}
+
+type ResolverType int
+
+const (
+	KubernetesServiceResolver ResolverType = iota
+	KubernetesEndpointResolver
+	ConsulResolver
+)
+
+func (rt ResolverType) String() string {
+	switch rt {
+	case KubernetesServiceResolver:
+		return "KubernetesServiceResolver"
+	case KubernetesEndpointResolver:
+		return "KubernetesEndpointResolver"
+	case ConsulResolver:
+		return "ConsulResolver"
+	}
+
+	panic("unknown resolver type")
 }
 
 // newEndpointRoutingInfo creates a shiny new struct to hold information about
@@ -29,43 +53,19 @@ func newEndpointRoutingInfo() endpointRoutingInfo {
 		// overrides them, resolvers "endpoint" and "kubernetes-endpoint" are
 		// implicitly endpoint resolvers -- but they won't show up in the snapshot.
 		// So we need to track whether they've been redefined. Sigh.
-		resolverTypes: make(map[string]string),
-
-		// resolversInUse keeps track of all resolvers actually referenced by any
-		// Mapping or TCPMapping. It also starts out empty, and we cheat and use a
-		// map[string]bool as a set type here.
-		resolversInUse: make(map[string]bool),
-
-		// defaultResolverName is the default resolver defined in the Ambassador
-		// Module. Unless overridden, it's "kubernetes-service" to use the built-in
-		// KubernetesServiceResolver (see the `resolve_resolver` method in `ir.py`).
-		defaultResolverName: "kubernetes-service",
-
-		// defaultResolverInUse keeps track of whether any mapping actually uses the
-		// default resolver.
-		//
-		// XXX Why do we need this? It's because we may very well see Mappings before
-		// we see the Ambassador Module, so we might not know whether or not the default
-		// resolver has been overridden when we see a mapping.
-		defaultResolverInUse: false,
+		resolverTypes: make(map[string]ResolverType),
+		// Track which endpoints we actually want to watch.
+		endpointWatches: make(map[string]bool),
 	}
 }
 
-func (eri *endpointRoutingInfo) isRoutingActive(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) bool {
-	// Here's what we have to do:
-	//
-	// 1. Are there any KubernetesEndpointResolvers in the system?
-	// 2. Do any Mappings or TCPMappings reference them?
-	//
-	// This should be relatively easy, but annotations make it annoying. Also,
-	// we need to find the Ambassador Module, because it can specify a default
-	// resolver.
-	//
-	// So. Start by walking all the annotations, and whatever they are, check
-	// them out.
+func (eri *endpointRoutingInfo) reconcileEndpointWatches(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) {
+	// Phase one processes all the configuration stuff that Mappings depend on. Right now this
+	// includes Modules and Resolvers. When we are done with Phase one we have processed enough
+	// resources to correctly interpret Mappings.
 	for _, a := range s.Annotations {
 		if include(GetAmbId(a)) {
-			eri.checkResource(ctx, a, "annotation")
+			eri.checkResourcePhase1(ctx, a, "annotation")
 		}
 	}
 
@@ -81,19 +81,36 @@ func (eri *endpointRoutingInfo) isRoutingActive(ctx context.Context, s *snapshot
 
 	for _, r := range s.KubernetesServiceResolvers {
 		if include(r.Spec.AmbassadorID) {
-			eri.saveResolver(ctx, r.GetName(), "service", "CRD")
+			eri.saveResolver(ctx, r.GetName(), KubernetesServiceResolver, "CRD")
 		}
 	}
 
 	for _, r := range s.KubernetesEndpointResolvers {
 		if include(r.Spec.AmbassadorID) {
-			eri.saveResolver(ctx, r.GetName(), "endpoint", "CRD")
+			eri.saveResolver(ctx, r.GetName(), KubernetesEndpointResolver, "CRD")
 		}
 	}
 
 	for _, r := range s.ConsulResolvers {
 		if include(r.Spec.AmbassadorID) {
-			eri.saveResolver(ctx, r.GetName(), "consul", "CRD")
+			eri.saveResolver(ctx, r.GetName(), ConsulResolver, "CRD")
+		}
+	}
+
+	// Once all THAT is done, make sure to define the default "endpoint" and
+	// "kubernetes-endpoint" resolvers if they don't exist.
+	for _, rName := range []string{"endpoint", "kubernetes-endpoint"} {
+		_, found := eri.resolverTypes[rName]
+
+		if !found {
+			dlog.Debugf(ctx, "WATCHER: endpoint resolver %s exists by default", rName)
+			eri.resolverTypes[rName] = KubernetesEndpointResolver
+		}
+	}
+
+	for _, a := range s.Annotations {
+		if include(GetAmbId(a)) {
+			eri.checkResourcePhase2(ctx, a, "annotation")
 		}
 	}
 
@@ -108,128 +125,66 @@ func (eri *endpointRoutingInfo) isRoutingActive(ctx context.Context, s *snapshot
 			eri.checkTCPMapping(ctx, t, "CRD")
 		}
 	}
-
-	// Once all THAT is done, make sure to define the default "endpoint" and
-	// "kubernetes-endpoint" resolvers if they don't exist.
-	for _, rName := range []string{"endpoint", "kubernetes-endpoint"} {
-		_, found := eri.resolverTypes[rName]
-
-		if !found {
-			dlog.Debugf(ctx, "WATCHER: endpoint resolver %s exists by default", rName)
-			eri.resolverTypes[rName] = "endpoint"
-		}
-	}
-
-	// Once all THAT is done, see if any resolvers in use are endpoint resolvers.
-	// Check the default first.
-	if eri.defaultResolverInUse {
-		rType, found := eri.resolverTypes[eri.defaultResolverName]
-
-		if found {
-			dlog.Debugf(ctx, "WATCHER: default resolver %s is an active %s resolver", eri.defaultResolverName, rType)
-
-			if rType == "endpoint" {
-				// Yup, it's an endpoint resolver. That's enough to know that endpoint
-				// routing is active, so short-circuit here.
-				return true
-			}
-		}
-	}
-
-	// Either the default resolver isn't in use, or it isn't an endpoint resolver.
-	// In either case, we need to check the other resolvers in use.
-	for rName := range eri.resolversInUse {
-		rType, found := eri.resolverTypes[rName]
-
-		if found {
-			dlog.Debugf(ctx, "WATCHER: referenced resolver %s is an active %s resolver", rName, rType)
-
-			if rType == "endpoint" {
-				// Again, just getting one is sufficient, so we can short-circuit here.
-				return true
-			}
-		}
-	}
-
-	// If we get this far, no endpoint resolvers are in use, so endpoint routing
-	// isn't active.
-	dlog.Debugf(ctx, "WATCHER: no endpoint resolvers in use")
-	return false
 }
 
-// checkResource figures out if a resource (from an annotation) is something we're
-// interested in, and calls the correct handler if so.
-func (eri *endpointRoutingInfo) checkResource(ctx context.Context, obj kates.Object, source string) {
-	mod, ok := obj.(*amb.Module)
-	if ok {
-		eri.checkModule(ctx, mod, source)
-		return
+// checkResourcePhase1 processes Modules and Resolvers and calls the correct type specific handler.
+func (eri *endpointRoutingInfo) checkResourcePhase1(ctx context.Context, obj kates.Object, source string) {
+	switch v := obj.(type) {
+	case *amb.Module:
+		eri.checkModule(ctx, v, source)
+	case *amb.KubernetesServiceResolver:
+		eri.saveResolver(ctx, v.GetName(), KubernetesServiceResolver, "CRD")
+	case *amb.KubernetesEndpointResolver:
+		eri.saveResolver(ctx, v.GetName(), KubernetesEndpointResolver, "CRD")
+	case *amb.ConsulResolver:
+		eri.saveResolver(ctx, v.GetName(), ConsulResolver, "CRD")
 	}
+}
 
-	sr, ok := obj.(*amb.KubernetesServiceResolver)
-	if ok {
-		eri.saveResolver(ctx, sr.GetName(), "service", "CRD")
-		return
-	}
-
-	epr, ok := obj.(*amb.KubernetesEndpointResolver)
-	if ok {
-		eri.saveResolver(ctx, epr.GetName(), "endpoint", "CRD")
-		return
-	}
-
-	cr, ok := obj.(*amb.ConsulResolver)
-	if ok {
-		eri.saveResolver(ctx, cr.GetName(), "consul", "CRD")
-		return
-	}
-
-	mapping, ok := obj.(*amb.Mapping)
-	if ok {
-		eri.checkMapping(ctx, mapping, source)
-		return
-	}
-
-	tcpmapping, ok := obj.(*amb.TCPMapping)
-	if ok {
-		eri.checkTCPMapping(ctx, tcpmapping, source)
-		return
+// checkResourcePhase2 processes both regular and tcp Mappings and calls the correct type specific handler.
+func (eri *endpointRoutingInfo) checkResourcePhase2(ctx context.Context, obj kates.Object, source string) {
+	switch v := obj.(type) {
+	case *amb.Mapping:
+		eri.checkMapping(ctx, v, source)
+	case *amb.TCPMapping:
+		eri.checkTCPMapping(ctx, v, source)
 	}
 }
 
 type moduleResolver struct {
-	Resolver string `json:"resolver"`
+	Resolver                                   string `json:"resolver"`
+	UseAmbassadorNamespaceForServiceResolution bool   `json:"use_ambassador_namespace_for_service_resolution"`
 }
 
-// checkModule looks at a Module to see if it has resolver info. This can only happen
-// for the ambassador Module.
+// checkModule parses the stuff we care about out of the ambassador Module.
 func (eri *endpointRoutingInfo) checkModule(ctx context.Context, mod *amb.Module, source string) {
 	if mod.GetName() != "ambassador" {
 		return
 	}
 
-	// Yup, OK. Grab its resolver.
 	mr := moduleResolver{}
 	err := convert(mod.Spec.Config, &mr)
 
 	if err != nil {
-		dlog.Errorf(ctx, "error extracting resolver from module: %v", err)
+		dlog.Errorf(ctx, "error parsing ambassador module: %v", err)
 		return
 	}
 
-	if mr.Resolver != "" {
-		dlog.Debugf(ctx, "WATCHER: amod (%s) resolver %s", source, mr.Resolver)
-		eri.defaultResolverName = mr.Resolver
+	// The default resolver is the kubernetes service resolver.
+	if mr.Resolver == "" {
+		mr.Resolver = "kubernetes-service"
 	}
+
+	eri.module = mr
 }
 
 // saveResolver saves an active resolver in our resolver-type map. This is used for
 // all kinds of resolvers, hence the resType parameter.
-func (eri *endpointRoutingInfo) saveResolver(ctx context.Context, name string, resType string, source string) {
+func (eri *endpointRoutingInfo) saveResolver(ctx context.Context, name string, resType ResolverType, source string) {
 	// No magic here, just save the silly thing.
 	eri.resolverTypes[name] = resType
 
-	dlog.Debugf(ctx, "WATCHER: %s resolver %s is active (%s)", resType, name, source)
+	dlog.Debugf(ctx, "WATCHER: %s resolver %s is active (%s)", resType.String(), name, source)
 }
 
 // checkMapping figures out what resolver is in use for a given Mapping.
@@ -237,18 +192,18 @@ func (eri *endpointRoutingInfo) checkMapping(ctx context.Context, mapping *amb.M
 	// Grab the name and the (possibly-empty) resolver.
 	name := mapping.GetName()
 	resolver := mapping.Spec.Resolver
+	service := mapping.Spec.Service
 
 	if resolver == "" {
-		// No specified resolver means "use the default resolver". We don't necessarily know
-		// what the default resolver will be yet, so just note that "the default" is in use.
+		// No specified resolver means "use the default resolver".
+		resolver = eri.module.Resolver
 		dlog.Debugf(ctx, "WATCHER: Mapping %s uses the default resolver (%s)", name, source)
-		eri.defaultResolverInUse = true
-		return
 	}
 
-	// Given an actual resolver name, just mark that specific resolver as in use.
-	dlog.Debugf(ctx, "WATCHER: Mapping %s uses resolver %s (%s)", name, resolver, source)
-	eri.resolversInUse[resolver] = true
+	if eri.resolverTypes[resolver] == KubernetesEndpointResolver {
+		svc, ns := eri.module.parseService(service, mapping.GetNamespace())
+		eri.endpointWatches[fmt.Sprintf("%s:%s", ns, svc)] = true
+	}
 }
 
 // checkTCPMapping figures out what resolver is in use for a given TCPMapping.
@@ -256,16 +211,38 @@ func (eri *endpointRoutingInfo) checkTCPMapping(ctx context.Context, tcpmapping 
 	// Grab the name and the (possibly-empty) resolver.
 	name := tcpmapping.GetName()
 	resolver := tcpmapping.Spec.Resolver
+	service := tcpmapping.Spec.Service
 
 	if resolver == "" {
-		// No specified resolver means "use the default resolver". We don't necessarily know
-		// what the default resolver will be yet, so just note that "the default" is in use.
+		// No specified resolver means "use the default resolver".
 		dlog.Debugf(ctx, "WATCHER: TCPMapping %s uses the default resolver (%s)", name, source)
-		eri.defaultResolverInUse = true
-		return
+		resolver = eri.module.Resolver
 	}
 
-	// Given an actual resolver name, just mark that specific resolver as in use.
-	dlog.Debugf(ctx, "WATCHER: TCPMapping %s uses resolver %s (%s)", name, resolver, source)
-	eri.resolversInUse[resolver] = true
+	if eri.resolverTypes[resolver] == KubernetesEndpointResolver {
+		svc, ns := eri.module.parseService(service, tcpmapping.GetNamespace())
+		eri.endpointWatches[fmt.Sprintf("%s:%s", ns, svc)] = true
+	}
+}
+
+func (m *moduleResolver) parseService(svcName, svcNamespace string) (name string, namespace string) {
+	ip := net.ParseIP(svcName)
+	if ip != nil {
+		name = svcName
+	} else if strings.Contains(svcName, ".") {
+		parts := strings.SplitN(svcName, ".", 2)
+		name = parts[0]
+		namespace = parts[1]
+		return
+	} else {
+		name = svcName
+	}
+
+	if m.UseAmbassadorNamespaceForServiceResolution || svcNamespace == "" {
+		namespace = GetAmbassadorNamespace()
+	} else {
+		namespace = svcNamespace
+	}
+
+	return
 }

@@ -3,6 +3,7 @@ package entrypoint
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"sync"
 	"sync/atomic"
 
@@ -296,19 +297,6 @@ func (sh *SnapshotHolder) K8sUpdate(ctx context.Context, watcher K8sWatcher, con
 			return false
 		}
 
-		endpointsOnly := true
-		for _, delta := range deltas {
-			sh.unsentDeltas = append(sh.unsentDeltas, delta)
-			if delta.Kind == "Endpoints" {
-				endpointsChanged = true
-			} else {
-				endpointsOnly = false
-			}
-		}
-		if !endpointsOnly {
-			sh.snapshotChangeCount += 1
-		}
-
 		parseAnnotationsTimer.Time(func() {
 			parseAnnotations(sh.k8sSnapshot)
 		})
@@ -319,6 +307,25 @@ func (sh *SnapshotHolder) K8sUpdate(ctx context.Context, watcher K8sWatcher, con
 		reconcileConsulTimer.Time(func() {
 			ReconcileConsul(ctx, consul, sh.k8sSnapshot)
 		})
+
+		eri := newEndpointRoutingInfo()
+		eri.reconcileEndpointWatches(ctx, sh.k8sSnapshot)
+
+		endpointsOnly := true
+		for _, delta := range deltas {
+			sh.unsentDeltas = append(sh.unsentDeltas, delta)
+			if delta.Kind == "Endpoints" {
+				key := fmt.Sprintf("%s:%s", delta.Namespace, delta.Name)
+				if eri.endpointWatches[key] {
+					endpointsChanged = true
+				}
+			} else {
+				endpointsOnly = false
+			}
+		}
+		if !endpointsOnly {
+			sh.snapshotChangeCount += 1
+		}
 
 		if endpointsChanged {
 			endpoints = makeEndpoints(ctx, sh.k8sSnapshot, sh.consulSnapshot.Endpoints)
