@@ -15,7 +15,7 @@ import (
 	"github.com/datawire/dlib/dlog"
 )
 
-func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atomic.Value) {
+func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atomic.Value, clusterID string, version string) {
 	client, err := kates.NewClient(kates.ClientConfig{})
 	if err != nil {
 		panic(err)
@@ -31,6 +31,8 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 	interestingTypes := GetInterestingTypes(ctx, serverTypeList)
 	queries := GetQueries(ctx, interestingTypes)
 
+	ambassadorMeta := getAmbassadorMeta(GetAmbassadorId(), clusterID, version, client)
+
 	// **** SETUP DONE for the Kubernetes Watcher
 
 	notify := func(ctx context.Context, disposition SnapshotDisposition, snap *snapshot.Snapshot) {
@@ -43,7 +45,20 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 	consulSrc := &consulWatcher{}
 	istioCertSrc := newIstioCertSource()
 
-	watcherLoop(ctx, encoded, k8sSrc, queries, consulSrc, istioCertSrc, notify)
+	watcherLoop(ctx, encoded, k8sSrc, queries, consulSrc, istioCertSrc, notify, ambassadorMeta)
+}
+
+func getAmbassadorMeta(ambassadorID string, clusterID string, version string, client *kates.Client) *snapshot.AmbassadorMetaInfo {
+	ambMeta := &snapshot.AmbassadorMetaInfo{
+		ClusterID:         clusterID,
+		AmbassadorID:      ambassadorID,
+		AmbassadorVersion: version,
+	}
+	kubeServerVer, err := client.ServerVersion()
+	if err == nil {
+		ambMeta.KubeVersion = kubeServerVer.GitVersion
+	}
+	return ambMeta
 }
 
 type SnapshotProcessor func(context.Context, SnapshotDisposition, *snapshot.Snapshot)
@@ -108,7 +123,7 @@ const (
 // 4. If you don't fully understand everything above, _do not touch this function without
 //    guidance_.
 func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, queries []kates.Query,
-	consulWatcher Watcher, istioCertSrc IstioCertSource, notify SnapshotProcessor) {
+	consulWatcher Watcher, istioCertSrc IstioCertSource, notify SnapshotProcessor, ambassadorMeta *snapshot.AmbassadorMetaInfo) {
 	// These timers keep track of various parts of the processing of the watcher loop. They don't
 	// directly impact the logic at all.
 	dbg := debug.FromContext(ctx)
@@ -235,10 +250,11 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 		unsentDeltas = append(unsentDeltas, k8s.GetDeltas()...)
 
 		sn := &snapshot.Snapshot{
-			Kubernetes: k8s.snapshot,
-			Consul:     consulSnapshot,
-			Invalid:    validator.getInvalid(),
-			Deltas:     unsentDeltas,
+			Kubernetes:     k8s.snapshot,
+			Consul:         consulSnapshot,
+			Invalid:        validator.getInvalid(),
+			Deltas:         unsentDeltas,
+			AmbassadorMeta: ambassadorMeta,
 		}
 
 		// Do we have any real changes from any watcher?

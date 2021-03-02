@@ -72,6 +72,8 @@ type Fake struct {
 
 	// This is used to make Teardown idempotent.
 	teardownOnce sync.Once
+
+	ambassadorMeta *snapshot.AmbassadorMetaInfo
 }
 
 // FakeConfig provides option when constructing a new Fake.
@@ -196,7 +198,7 @@ func (f *Fake) runWatcher(ctx context.Context) error {
 			err = r.(error)
 		}
 	}()
-	watcherLoop(ctx, f.currentSnapshot, f.k8sSource, queries, f.watcher, f.istioCertSource, f.notifySnapshot)
+	watcherLoop(ctx, f.currentSnapshot, f.k8sSource, queries, f.watcher, f.istioCertSource, f.notifySnapshot, f.ambassadorMeta)
 	return err
 }
 
@@ -258,6 +260,11 @@ func (f *Fake) AutoFlush(enabled bool) {
 func (f *Fake) Flush() {
 	f.k8sNotifier.Notify()
 	f.consulNotifier.Notify()
+}
+
+// sets the ambassador meta info that should get sent in each snapshot
+func (f *Fake) SetAmbassadorMeta(ambMeta *snapshot.AmbassadorMetaInfo) {
+	f.ambassadorMeta = ambMeta
 }
 
 // UpsertFile will parse the contents of the file as yaml and feed them into the control plane
