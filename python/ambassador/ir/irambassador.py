@@ -68,6 +68,7 @@ class IRAmbassador (IRResource):
         'service_port',
         'set_current_client_cert_details',
         'statsd',
+        'strip_matching_host_port',
         'suppress_envoy_headers',
         'use_ambassador_namespace_for_service_resolution',
         'use_proxy_proto',

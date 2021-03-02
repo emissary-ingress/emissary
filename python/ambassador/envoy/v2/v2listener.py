@@ -1186,6 +1186,9 @@ class V2Listener(dict):
                 ]
             }
 
+            if parse_bool(self.config.ir.ambassador_module.get("strip_matching_host_port", "false")):
+                http_config["strip_matching_host_port"] = True
+
             filter_chain["filters"] = [
                 {
                     "name": "envoy.filters.network.http_connection_manager",
