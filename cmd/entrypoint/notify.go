@@ -36,21 +36,20 @@ func notifyReconfigWebhooksFunc(ctx context.Context, ambwatch notable, edgestack
 	needDiagdNotify := true
 	needSidecarNotify := true
 
-	for {
-		// We're about to send a new snapshot to diagd. The webhook we're using for this
-		// won't return, by design, until the snapshot has been processed, so first note
-		// that we're sending the snapshot...
-		ambwatch.NoteSnapshotSent()
+	// We're about to send a new snapshot to diagd. The webhook we're using for this
+	// won't return, by design, until the snapshot has been processed, so first note
+	// that we're sending the snapshot...
+	ambwatch.NoteSnapshotSent()
 
+	for {
 		// ...then send it and wait for the webhook to return...
 		if notifyWebhookUrl(ctx, "diagd", fmt.Sprintf("%s?url=%s", GetEventUrl(), snapshotUrl)) {
 			needDiagdNotify = false
+			// ...then note that it's been processed. This DOES NOT imply that the processing
+			// was successful: it's just about whether or not diagd is making progress instead
+			// of getting stuck.
+			ambwatch.NoteSnapshotProcessed()
 		}
-
-		// ...then note that it's been processed. This DOES NOT imply that the processing
-		// was successful: it's just about whether or not diagd is making progress instead
-		// of getting stuck.
-		ambwatch.NoteSnapshotProcessed()
 
 		// Then go deal with the Edge Stack sidecar.
 		if edgestack {
