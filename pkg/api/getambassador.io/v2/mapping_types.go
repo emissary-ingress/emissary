@@ -32,27 +32,27 @@ type MappingSpec struct {
 
 	// +kubebuilder:validation:Required
 	Prefix      string `json:"prefix,omitempty"`
-	PrefixRegex bool   `json:"prefix_regex,omitempty"`
-	PrefixExact bool   `json:"prefix_exact,omitempty"`
+	PrefixRegex *bool  `json:"prefix_regex,omitempty"`
+	PrefixExact *bool  `json:"prefix_exact,omitempty"`
 	// +kubebuilder:validation:Required
 	Service            string                 `json:"service,omitempty"`
 	AddRequestHeaders  map[string]AddedHeader `json:"add_request_headers,omitempty"`
 	AddResponseHeaders map[string]AddedHeader `json:"add_response_headers,omitempty"`
-	AddLinkerdHeaders  bool                   `json:"add_linkerd_headers,omitempty"`
-	AutoHostRewrite    bool                   `json:"auto_host_rewrite,omitempty"`
-	CaseSensitive      bool                   `json:"case_sensitive,omitempty"`
+	AddLinkerdHeaders  *bool                  `json:"add_linkerd_headers,omitempty"`
+	AutoHostRewrite    *bool                  `json:"auto_host_rewrite,omitempty"`
+	CaseSensitive      *bool                  `json:"case_sensitive,omitempty"`
 	Docs               *DocsInfo              `json:"docs,omitempty"`
-	EnableIPv4         bool                   `json:"enable_ipv4,omitempty"`
-	EnableIPv6         bool                   `json:"enable_ipv6,omitempty"`
+	EnableIPv4         *bool                  `json:"enable_ipv4,omitempty"`
+	EnableIPv6         *bool                  `json:"enable_ipv6,omitempty"`
 	CircuitBreakers    []*CircuitBreaker      `json:"circuit_breakers,omitempty"`
 	KeepAlive          *KeepAlive             `json:"keepalive,omitempty"`
 	CORS               *CORS                  `json:"cors,omitempty"`
 	RetryPolicy        *RetryPolicy           `json:"retry_policy,omitempty"`
-	GRPC               bool                   `json:"grpc,omitempty"`
-	HostRedirect       bool                   `json:"host_redirect,omitempty"`
+	GRPC               *bool                  `json:"grpc,omitempty"`
+	HostRedirect       *bool                  `json:"host_redirect,omitempty"`
 	HostRewrite        string                 `json:"host_rewrite,omitempty"`
 	Method             string                 `json:"method,omitempty"`
-	MethodRegex        bool                   `json:"method_regex,omitempty"`
+	MethodRegex        *bool                  `json:"method_regex,omitempty"`
 	OutlierDetection   string                 `json:"outlier_detection,omitempty"`
 	// Path replacement to use when generating an HTTP redirect. Used with `host_redirect`.
 	PathRedirect string `json:"path_redirect,omitempty"`
@@ -65,23 +65,23 @@ type MappingSpec struct {
 	// +kubebuilder:validation:Enum={301,302,303,307,308}
 	RedirectResponseCode  *int                    `json:"redirect_response_code,omitempty"`
 	Priority              string                  `json:"priority,omitempty"`
-	Precedence            int                     `json:"precedence,omitempty"`
+	Precedence            *int                    `json:"precedence,omitempty"`
 	ClusterTag            string                  `json:"cluster_tag,omitempty"`
 	RemoveRequestHeaders  StringOrStringList      `json:"remove_request_headers,omitempty"`
 	RemoveResponseHeaders StringOrStringList      `json:"remove_response_headers,omitempty"`
 	Resolver              string                  `json:"resolver,omitempty"`
 	Rewrite               *string                 `json:"rewrite,omitempty"`
 	RegexRewrite          map[string]BoolOrString `json:"regex_rewrite,omitempty"`
-	Shadow                bool                    `json:"shadow,omitempty"`
-	ConnectTimeoutMs      int                     `json:"connect_timeout_ms,omitempty"`
-	ClusterIdleTimeoutMs  int                     `json:"cluster_idle_timeout_ms,omitempty"`
-	TimeoutMs             int                     `json:"timeout_ms,omitempty"`
-	IdleTimeoutMs         int                     `json:"idle_timeout_ms,omitempty"`
+	Shadow                *bool                   `json:"shadow,omitempty"`
+	ConnectTimeoutMs      *int                    `json:"connect_timeout_ms,omitempty"`
+	ClusterIdleTimeoutMs  *int                    `json:"cluster_idle_timeout_ms,omitempty"`
+	TimeoutMs             *int                    `json:"timeout_ms,omitempty"`
+	IdleTimeoutMs         *int                    `json:"idle_timeout_ms,omitempty"`
 	TLS                   *BoolOrString           `json:"tls,omitempty"`
 
 	// use_websocket is deprecated, and is equivlaent to setting
 	// `allow_upgrade: ["websocket"]`
-	UseWebsocket bool `json:"use_websocket,omitempty"`
+	UseWebsocket *bool `json:"use_websocket,omitempty"`
 
 	// A case-insensitive list of the non-HTTP protocols to allow
 	// "upgrading" to from HTTP via the "Connection: upgrade"
@@ -105,17 +105,17 @@ type MappingSpec struct {
 	//    - spdy/3.1
 	AllowUpgrade []string `json:"allow_upgrade,omitempty"`
 
-	Weight     int  `json:"weight,omitempty"`
-	BypassAuth bool `json:"bypass_auth,omitempty"`
+	Weight     *int  `json:"weight,omitempty"`
+	BypassAuth *bool `json:"bypass_auth,omitempty"`
 	// If true, bypasses any `error_response_overrides` set on the Ambassador module.
-	BypassErrorResponseOverrides bool `json:"bypass_error_response_overrides,omitempty"`
+	BypassErrorResponseOverrides *bool `json:"bypass_error_response_overrides,omitempty"`
 	// Error response overrides for this Mapping. Replaces all of the `error_response_overrides`
 	// set on the Ambassador module, if any.
 	// +kubebuilder:validation:MinItems=1
 	ErrorResponseOverrides []ErrorResponseOverride `json:"error_response_overrides,omitempty"`
 	Modules                []UntypedDict           `json:"modules,omitempty"`
 	Host                   string                  `json:"host,omitempty"`
-	HostRegex              bool                    `json:"host_regex,omitempty"`
+	HostRegex              *bool                   `json:"host_regex,omitempty"`
 	Headers                map[string]BoolOrString `json:"headers,omitempty"`
 	RegexHeaders           map[string]BoolOrString `json:"regex_headers,omitempty"`
 	Labels                 DomainMap               `json:"labels,omitempty"`
@@ -130,7 +130,7 @@ type MappingSpec struct {
 type DocsInfo struct {
 	Path    string `json:"path,omitempty"`
 	URL     string `json:"url,omitempty"`
-	Ignored bool   `json:"ignored,omitempty"`
+	Ignored *bool  `json:"ignored,omitempty"`
 }
 
 // These are separate types partly because it makes it easier to think about
@@ -163,14 +163,31 @@ type MappingLabelSpecifier struct {
 	Generic *MappingLabelSpecGeneric // longhand generic
 }
 
-// A MappingLabelSpecHeader is the form of MappingLabelSpecifier to use when you
-// want to take the label value from an HTTP header.  The key in the map is the
-// label key that it will set to that header value; there must be exactly one key
-// in the map.
-type MappingLabelSpecHeader map[string]struct {
-	Header           string `json:"header"`
-	OmitIfNotPresent bool   `json:"omit_if_not_present"`
+// A MappingLabelSpecHeaderStruct is the value struct for MappingLabelSpecifier.Header:
+// the form of MappingLabelSpecifier to use when you want to take the label value from
+// an HTTP header. (If we make this an anonymous struct like the others, it breaks the
+// generation of its deepcopy routine. Sigh.)
+type MappingLabelSpecHeaderStruct struct {
+	Header string `json:"header,omitifempty"`
+	// XXX This is bool rather than *bool because it breaks zz_generated_deepcopy. ???!
+	OmitIfNotPresent *bool `json:"omit_if_not_present,omitempty"`
 }
+
+// A MappingLabelSpecHeader is just the aggregate map of MappingLabelSpecHeaderStruct,
+// above. The key in the map is the label key that it will set to that header value;
+// there must be exactly one key in the map.
+type MappingLabelSpecHeader map[string]MappingLabelSpecHeaderStruct
+
+// func (in *MappingLabelSpecHeader) DeepCopyInfo(out *MappingLabelSpecHeader) {
+// 	x := in.OmitIfNotPresent
+
+// 	out = MappingLabelSpecHeader{
+// 		Header:           in.Header,
+// 		OmitIfNotPresent: &x,
+// 	}
+
+// 	return &out
+// }
 
 // A MappingLabelSpecGeneric is a longhand generic key: it states a string which
 // will be included literally in the label.
@@ -310,16 +327,16 @@ func (o *AddedHeader) UnmarshalJSON(data []byte) error {
 }
 
 type KeepAlive struct {
-	Probes   int `json:"probes,omitempty"`
-	IdleTime int `json:"idle_time,omitempty"`
-	Interval int `json:"interval,omitempty"`
+	Probes   *int `json:"probes,omitempty"`
+	IdleTime *int `json:"idle_time,omitempty"`
+	Interval *int `json:"interval,omitempty"`
 }
 
 type CORS struct {
 	Origins        StringOrStringList `json:"origins,omitempty"`
 	Methods        StringOrStringList `json:"methods,omitempty"`
 	Headers        StringOrStringList `json:"headers,omitempty"`
-	Credentials    bool               `json:"credentials,omitempty"`
+	Credentials    *bool              `json:"credentials,omitempty"`
 	ExposedHeaders StringOrStringList `json:"exposed_headers,omitempty"`
 	MaxAge         string             `json:"max_age,omitempty"`
 }
@@ -327,7 +344,7 @@ type CORS struct {
 type RetryPolicy struct {
 	// +kubebuilder:validation:Enum={"5xx","gateway-error","connect-failure","retriable-4xx","refused-stream","retriable-status-codes"}
 	RetryOn       string `json:"retry_on,omitempty"`
-	NumRetries    int    `json:"num_retries,omitempty"`
+	NumRetries    *int   `json:"num_retries,omitempty"`
 	PerTryTimeout string `json:"per_try_timeout,omitempty"`
 }
 
@@ -337,7 +354,7 @@ type LoadBalancer struct {
 	Policy   string              `json:"policy,omitempty"`
 	Cookie   *LoadBalancerCookie `json:"cookie,omitempty"`
 	Header   string              `json:"header,omitempty"`
-	SourceIp bool                `json:"source_ip,omitempty"`
+	SourceIp *bool               `json:"source_ip,omitempty"`
 }
 
 type LoadBalancerCookie struct {

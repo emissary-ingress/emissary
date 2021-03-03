@@ -122,6 +122,10 @@ How do I run ambassador tests?
 - `export DEV_REGISTRY=<your-dev-docker-registry>` (you need to be logged in and have permission to push)
 - `export DEV_KUBECONFIG=<your-dev-kubeconfig>`
 
+If you want to run the Go tests for `cmd/entrypoint`, you'll need `diagd`
+in your `PATH`. See the instructions below about `Setting up diagd` to do
+that.
+
 | Group           | Command                                                             |
 |-----------------|---------------------------------------------------------------------|
 | All Tests       | `make test`                                                         |
@@ -179,13 +183,25 @@ copy and launch your `go run` from within that virtualenv. Note that these
 instructions depend on the virtualenvwrapper
 (https://virtualenvwrapper.readthedocs.io/en/latest/) package:
 
-    # Create a virtualenv named amb with all the python requirements
+    # Create a virtualenv named venv with all the python requirements
     # installed.
-    mkvirtualenv -p python3 -r builder/requirements.txt amb
+    python3 -m venv venv
+    . venv/bin/activate
+    # If you're doing this in Datawire's apro.git, then:
+    cd ambassador
+    # Update pip and install dependencies
+    pip install --upgrade pip
+    pip install orjson    # see below
+    pip install -r builder/requirements.txt
     # Created an editable installation of ambassador:
     pip install -e python/
     # Check that we do indeed have diagd in our path.
     which diagd
+    # If you're doing this in Datawire's apro.git, then:
+    cd ..
+
+(Note: it shouldn't be necessary to install `orjson` by hand. The fact that it is
+at the moment is an artifact of the way Ambassador builds currently happen.)
 
 ### Changing the ambassador root
 

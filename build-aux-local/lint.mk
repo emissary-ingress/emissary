@@ -9,7 +9,20 @@ $(tools/golangci-lint): $(OSS_HOME)/build-aux/bin-go/golangci-lint/go.mod
 lint/go-dirs = $(OSS_HOME)
 
 lint:
-	$(MAKE) -k golint mypy
+	@PS4=; set +x; r=0; { \
+		printf "$(CYN)==>$(END) Linting $(BLU)Go$(END)...\n" ;\
+		go_status=FAIL; go_color="$(RED)" ;\
+		if $(MAKE) golint; then go_status=OK; go_color="$(GRN)"; fi ;\
+		\
+		printf "$(CYN)==>$(END) Linting $(BLU)Python$(END)...\n" ;\
+		python_status=FAIL; python_color="$(RED)" ;\
+		if $(MAKE) mypy; then python_status=OK; python_color="$(GRN)"; fi ;\
+		\
+		printf "$(CYN)==>$(END) $(BLU)Go$(END) lint $${go_color}$${go_status}$(END)\n" ;\
+		printf "$(CYN)==>$(END) $(BLU)Python$(END) lint $${python_color}$${python_status}$(END)\n" ;\
+		test \( "$$go_status" = "OK" \) -a \( "$$python_status" = "OK" \) ;\
+		exit $$? ;\
+	}
 .PHONY: lint
 
 golint: $(tools/golangci-lint)

@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+data:
+  tls.crt: dGVzdC1jZXJ0Cg==
+  tls.key: dGVzdC1rZXkK
+kind: Secret
+metadata:
+  name: test-k8s-secret
+  namespace: default
+type: kubernetes.io/tls
+---
+apiVersion: getambassador.io/v2
+kind: TLSContext
+metadata:
+  name: tls-context-1
+  namespace: default
+spec:
+  hosts:
+  - tls-context-host-1
+  secret: test-k8s-secret
+---
+apiVersion: getambassador.io/v2
+kind: TLSContext
+metadata:
+  name: istio-context-1
+  namespace: default
+spec:
+  hosts:
+  - tls-context-host-1
+  secret: test-istio-secret

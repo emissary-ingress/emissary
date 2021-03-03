@@ -81,10 +81,6 @@ class KnativeTesting:
             {
                 'name': 'AMBASSADOR_KNATIVE_SUPPORT',
                 'value': 'true'
-            },
-            {
-                'name': 'AMBASSADOR_SINGLE_NAMESPACE',
-                'value': 'true'
             }
         ])
 

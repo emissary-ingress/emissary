@@ -1,0 +1,9 @@
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: hello
+  namespace: default
+spec:
+  prefix: /hello
+  service: hello

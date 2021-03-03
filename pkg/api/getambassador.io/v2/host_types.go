@@ -53,7 +53,7 @@ type ACMEProviderSpec struct {
 type InsecureRequestPolicy struct {
 	// +kubebuilder:validation:Enum={"Redirect","Reject","Route"}
 	Action         string `json:"action,omitempty"`
-	AdditionalPort int    `json:"additionalPort,omitempty"`
+	AdditionalPort *int   `json:"additionalPort,omitempty"`
 }
 
 type RequestPolicy struct {
@@ -64,7 +64,7 @@ type RequestPolicy struct {
 
 type PreviewURLSpec struct {
 	// Is the Preview URL feature enabled?
-	Enabled bool `json:"enabled,omitempty"`
+	Enabled *bool `json:"enabled,omitempty"`
 
 	// What type of Preview URL is allowed?
 	Type PreviewURLType `json:"type,omitempty"`
@@ -143,12 +143,12 @@ type TLSConfig struct {
 	CASecret              string   `json:"ca_secret,omitempty"`
 	CAcertChainFile       string   `json:"cacert_chain_file,omitempty"`
 	AlpnProtocols         string   `json:"alpn_protocols,omitempty"`
-	CertRequired          bool     `json:"cert_required,omitempty"`
+	CertRequired          *bool    `json:"cert_required,omitempty"`
 	MinTLSVersion         string   `json:"min_tls_version,omitempty"`
 	MaxTLSVersion         string   `json:"max_tls_version,omitempty"`
 	CipherSuites          []string `json:"cipher_suites,omitempty"`
 	ECDHCurves            []string `json:"ecdh_curves,omitempty"`
-	RedirectCleartextFrom int      `json:"redirect_cleartext_from,omitempty"`
+	RedirectCleartextFrom *int     `json:"redirect_cleartext_from,omitempty"`
 	SNI                   string   `json:"sni,omitempty"`
 }
 

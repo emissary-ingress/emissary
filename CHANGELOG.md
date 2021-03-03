@@ -72,6 +72,15 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: Fix an issue that caused Dev Portal to sporadically respond with upstream connect timeout when loading content
 - Bugfix: Prevent potential reconcile loop when updating the status of an Ingress.
 
+## [1.11.2] March 01, 2021
+[1.11.2]: https://github.com/datawire/ambassador/compare/v1.11.1...v1.11.2
+
+- Bugfix: Changes to endpoints when endpoint routing is not active will no longer cause reconfiguration
+- Bugfix: Correctly differentiate int values of 0 and Boolean values of `false` from non-existent attributes in CRDs ([#3212])
+- Bugfix: Correctly support Consul datacenters other than "dc1" without legacy mode.
+
+[#3212]: https://github.com/datawire/ambassador/issues/3212
+
 ## [1.11.1] February 04, 2021
 [1.11.1]: https://github.com/datawire/ambassador/compare/v1.11.0...v1.11.1
 

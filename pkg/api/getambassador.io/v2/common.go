@@ -34,6 +34,26 @@
 //   * Justification: Kubernetes style is to use camelCase. But
 //     historically Ambassador used snake_case for everything.
 //
+// - Give _every_ field a `json:""` struct tag.
+//   * Justification: Marshaling and unmarshaling are key to what we
+//     do, and it's critical to carefully define how it happens.
+//   * Notes: This is not optional. Do it for _every field_. (It's OK
+//     if the tag is literally `json:""` for fields that must never be
+//     exposed during marshaling.)
+//
+// - Prefer `*int`, `*bool`, and `*BoolOrString`, rather than just
+//   `int`, `bool`, and `BoolOrString`.
+//   * Justification: The Ambassador API is rooted in Python, where
+//     it is always possible to tell if a given element was present in
+//     in a CRD, or left unset. This is at odds with Go's `omitempty`
+//     specifier, which really means "omit if empty _or if set to the
+//     default value". For int in particular, this results in a value
+//     of 0 being omitted, and for many Ambassador fields, 0 is not
+//     the correct default value.
+//
+//     This resulted in a lot of bugs in the 1.10 timeframe, so be
+//     careful going forward.
+//
 // - Prefer for object references to not support namespacing
 //   * Exception: If there's a real use-case for it.
 //   * Justification: Most native Kubernetes resources don't support
@@ -157,10 +177,10 @@ import (
 type CircuitBreaker struct {
 	// +kubebuilder:validation:Enum={"default", "high"}
 	Priority           string `json:"priority,omitempty"`
-	MaxConnections     int    `json:"max_connections,omitempty"`
-	MaxPendingRequests int    `json:"max_pending_requests,omitempty"`
-	MaxRequests        int    `json:"max_requests,omitempty"`
-	MaxRetries         int    `json:"max_retries,omitempty"`
+	MaxConnections     *int   `json:"max_connections,omitempty"`
+	MaxPendingRequests *int   `json:"max_pending_requests,omitempty"`
+	MaxRequests        *int   `json:"max_requests,omitempty"`
+	MaxRetries         *int   `json:"max_retries,omitempty"`
 }
 
 // ErrorResponseTextFormatSource specifies a source for an error response body
@@ -191,7 +211,7 @@ type ErrorResponseOverrideBody struct {
 
 // A response rewrite for an HTTP error response
 type ErrorResponseOverride struct {
-	// The status code to match on
+	// The status code to match on -- not a pointer because it's required.
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Minimum=400
 	// +kubebuilder:validation:Maximum=599
@@ -216,6 +236,8 @@ func (aid *AmbassadorID) UnmarshalJSON(data []byte) error {
 	return (*StringOrStringList)(aid).UnmarshalJSON(data)
 }
 
+// StringOrStringList is just what it says on the tin, but note that it will always
+// marshal as a list of strings right now.
 // +kubebuilder:validation:Type="d6e-union:string,array"
 type StringOrStringList []string
 

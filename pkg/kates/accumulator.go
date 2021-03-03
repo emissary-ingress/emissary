@@ -122,6 +122,19 @@ type Delta struct {
 	DeltaType  DeltaType `json:"deltaType"`
 }
 
+func NewDelta(deltaType DeltaType, obj *Unstructured) *Delta {
+	return newDelta(deltaType, obj)
+}
+
+func NewDeltaFromObject(deltaType DeltaType, obj Object) *Delta {
+	var un *Unstructured
+	err := convert(obj, &un)
+	if err != nil {
+		panic(err)
+	}
+	return NewDelta(deltaType, un)
+}
+
 func newDelta(deltaType DeltaType, obj *Unstructured) *Delta {
 	// We don't want all of the object, just a subset.
 	return &Delta{
