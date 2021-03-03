@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/signal"
 	"path"
@@ -14,9 +13,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 
 	"github.com/datawire/ambassador/cmd/ambex"
 	"github.com/datawire/ambassador/pkg/acp"
+	"github.com/datawire/ambassador/pkg/busy"
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/memory"
 	"github.com/datawire/dlib/dgroup"
@@ -76,15 +77,18 @@ import (
 // manager (e.g. kubernetes) is expected to take note and restart if
 // appropriate.
 func Main(ctx context.Context, Version string, args ...string) error {
+	// Setup logging according to AES_LOG_LEVEL
+	lvl := os.Getenv("AES_LOG_LEVEL")
+	if lvl != "" {
+		parsed, err := logrus.ParseLevel(lvl)
+		if err != nil {
+			dlog.Errorf(ctx, "Error parsing log level: %v", err)
+		} else {
+			busy.SetLogLevel(parsed)
+		}
+	}
 
-	// TODO:
-	//  - figure out a better way to get the envoy image
-	//  - logging
-	//  - error/crash analysis
-	//  - how to get errors to users?
-	//  - fork e2e tests
-
-	log.Println("Started Ambassador")
+	dlog.Infof(ctx, "Started Ambassador")
 
 	demoMode := false
 
@@ -92,13 +96,13 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	// parser later, when we have a second argument.
 	if (len(args) == 1) && (args[0] == "--demo") {
 		// Demo mode!
-		log.Printf("DEMO MODE")
+		dlog.Infof(ctx, "DEMO MODE")
 		demoMode = true
 	}
 
 	clusterID := GetClusterID(ctx)
 	os.Setenv("AMBASSADOR_CLUSTER_ID", clusterID)
-	log.Printf("AMBASSADOR_CLUSTER_ID=%s", clusterID)
+	dlog.Infof(ctx, "AMBASSADOR_CLUSTER_ID=%s", clusterID)
 
 	pec := "PYTHON_EGG_CACHE"
 	if os.Getenv(pec) == "" {
@@ -142,10 +146,12 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	})
 
 	usage := memory.GetMemoryUsage()
-	group.Go("memory", func(ctx context.Context) error {
-		usage.Watch(ctx)
-		return nil
-	})
+	if !envbool("DEV_SHUTUP_MEMORY") {
+		group.Go("memory", func(ctx context.Context) error {
+			usage.Watch(ctx)
+			return nil
+		})
+	}
 
 	endpointsCh := make(chan *ambex.Endpoints)
 	group.Go("ambex", func(ctx context.Context) error {
