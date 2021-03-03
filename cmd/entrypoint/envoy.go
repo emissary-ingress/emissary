@@ -50,11 +50,18 @@ func runEnvoy(ctx context.Context, envoyHUP chan os.Signal) error {
 		})
 		group.Go("envoy", func(ctx context.Context) error {
 			// XXX: will host networking work on a mac? (probably not)
-			cmd := subcommand(ctx, "docker", append([]string{"run", "-l", label, "--rm", "--network", "host",
+			dockerArgs := []string{
+				"run", "-l", label, "--rm", "--network", "host",
 				"-v", fmt.Sprintf("%s:%s", snapdir, snapdir),
 				"-v", fmt.Sprintf("%s:%s", GetEnvoyBootstrapFile(), GetEnvoyBootstrapFile()),
-				"--entrypoint", "envoy", "docker.io/datawire/aes:1.6.2"},
-				GetEnvoyFlags()...)...)
+			}
+
+			if envbool("DEV_ENVOY_DOCKER_PRIVILEGED") {
+				dockerArgs = append(dockerArgs, "--privileged")
+			}
+
+			dockerArgs = append(dockerArgs, "--entrypoint", "envoy", "docker.io/datawire/aes:1.6.2")
+			cmd := subcommand(ctx, "docker", append(dockerArgs, GetEnvoyFlags()...)...)
 			if envbool("DEV_SHUTUP_ENVOY") {
 				cmd.Stdout = nil
 				cmd.Stderr = nil
