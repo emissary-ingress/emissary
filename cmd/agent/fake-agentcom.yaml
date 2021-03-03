@@ -1,0 +1,47 @@
+# @TEMPLATE@
+apiVersion: v1
+kind: Service
+metadata:
+  name: agentcom-server
+spec:
+  type: ClusterIP
+  selector:
+    app: agentcom-server
+  ports:
+  - name: grpc-server
+    port: 3000
+    targetPort: grpc-server
+  - name: snapshot-server
+    port: 3001
+    targetPort: snapshot-server
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agentcom-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agentcom-server
+  template:
+    metadata:
+      labels:
+        app: agentcom-server
+    spec:
+      containers:
+      - name: agentcom-server
+        image: {{env "MODEL_CLUSTER_AGENTCOM_IMAGE"}}
+        ports:
+        - name: grpc-server
+          containerPort: 3000
+        - name: snapshot-server
+          containerPort: 3001
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ambassador-agent-cloud-token
+  namespace: ambassador
+data:
+  CLOUD_CONNECT_TOKEN: sometoken
