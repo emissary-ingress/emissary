@@ -54,16 +54,14 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"Jinja2", "2.10.1", "BSD"}:                                   {BSD3},
 		{"chardet", "3.0.4", "LGPL"}:                                  {LGPL21},
 		{"colorama", "0.4.3", "BSD"}:                                  {BSD3},
-		{"cryptography", "3.2", "BSD or Apache License, Version 2.0"}: {Apache2},
 		{"decorator", "4.4.2", "new BSD License"}:                     {BSD2},
 		{"gitdb", "4.0.5", "BSD License"}:                             {BSD3},
 		{"idna", "2.7", "BSD-like"}:                                   {BSD3, PSF, Unicode2015},
 		{"idna", "2.8", "BSD-like"}:                                   {BSD3, PSF, Unicode2015},
 		{"itsdangerous", "1.1.0", "BSD"}:                              {BSD3},
-		{"jsonpatch", "1.26", "Modified BSD License"}:                 {BSD3},
+		{"jsonpatch", "1.30", "Modified BSD License"}:                 {BSD3},
 		{"jsonpointer", "2.0", "Modified BSD License"}:                {BSD3},
 		{"jsonschema", "3.2.0", "UNKNOWN"}:                            {MIT},
-		{"jwt", "1.1.0", "UNKNOWN"}:                                   {Apache2},
 		{"lockfile", "0.12.2", "UNKNOWN"}:                             {MIT},
 		{"oauthlib", "3.1.0", "BSD"}:                                  {BSD3},
 		{"pep517", "0.8.2", "UNKNOWN"}:                                {MIT},
@@ -72,7 +70,6 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		{"pyasn1", "0.4.8", "BSD"}:                                    {BSD2},
 		{"pycparser", "2.20", "BSD"}:                                  {BSD3},
 		{"python-dateutil", "2.8.1", "Dual License"}:                  {BSD3, Apache2},
-		{"scout.py", "0.5.0", "UNKNOWN"}:                              {Apache2},
 		{"semantic-version", "2.8.5", "BSD"}:                          {BSD2},
 		{"smmap", "3.0.4", "BSD"}:                                     {BSD3},
 		{"webencodings", "0.5.1", "BSD"}:                              {BSD3},
@@ -81,7 +78,6 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 
 		// These are packages with non-trivial strings to parse, and
 		// it's easier to just hard-code it.
-		{"cryptography", "2.9.2", "BSD or Apache License, Version 2.0"}:                      {Apache2, PSF},
 		{"docutils", "0.16", "public domain, Python, 2-Clause BSD, GPL 3 (see COPYING.txt)"}: {PublicDomain, PSF, BSD2, GPL3},
 		{"packaging", "20.4", "BSD-2-Clause or Apache-2.0"}:                                  {BSD2, Apache2},
 	}[tuple{name, version, license}]
