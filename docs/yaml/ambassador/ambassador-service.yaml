@@ -13,7 +13,7 @@ metadata:
     a8r.io/chat: http://d6e.co/slack
     a8r.io/bugs: https://github.com/datawire/ambassador/issues
     a8r.io/support: https://www.getambassador.io/about-us/support/
-    a8r.io/dependencies: "Redis"
+    a8r.io/dependencies: "ambassador-redis"
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Local
