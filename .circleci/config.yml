@@ -90,6 +90,9 @@ commands:
       "fast-reconfigure":
         type: boolean
         default: false
+      "legacy-mode":
+        type: boolean
+        default: false
     steps:
     # setup
     - amb-linux-install
@@ -134,9 +137,7 @@ commands:
           fi
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
-          if ! << parameters.fast-reconfigure >>; then
-            export AMBASSADOR_LEGACY_MODE=true # ParseBool
-          fi
+          export AMBASSADOR_LEGACY_MODE=<< parameters.legacy-mode >> # ParseBool
           export AMBASSADOR_FAST_RECONFIGURE=<< parameters.fast-reconfigure >> # ParseBool
           export TEST_XML_DIR=/tmp/test-logs/xml/
           mkdir -p ${TEST_XML_DIR}
@@ -503,10 +504,14 @@ jobs:
       fast-reconfigure:
         type: boolean
         default: false
+      legacy-mode:
+        type: boolean
+        default: false
     steps:
     - job-test:
         test: << parameters.test >>
         fast-reconfigure: << parameters.fast-reconfigure >>
+        legacy-mode: << parameters.legacy-mode >>
   oss-promote-to-rc-latest:
     executor: oss-linux
     steps:
@@ -588,7 +593,8 @@ workflows:
         requires:
         - "oss-dev-images"
         name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >>"
+          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
+          >>"
         matrix:
           alias: "oss-dev-test"
           parameters:
@@ -605,6 +611,10 @@ workflows:
             fast-reconfigure:
             - true
             - false
+            legacy-mode:
+            - false
+            # If you enable testing with legacy-mode true as well, you'll also need
+            # to add some exclusions -- see the Release workflow for more.
   'OSS: Release':
     when:
       or:
@@ -641,7 +651,8 @@ workflows:
         requires:
         - "oss-release-images"
         name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >>"
+          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
+          >>"
         matrix:
           alias: "oss-release-test"
           parameters:
@@ -658,6 +669,19 @@ workflows:
             fast-reconfigure:
             - true
             - false
+            legacy-mode:
+            - true
+            - false
+          exclude:
+          - test: gotest
+            fast-reconfigure: true
+            legacy-mode: true
+          - test: pytest
+            fast-reconfigure: true
+            legacy-mode: true
+          - test: pytest-envoy
+            fast-reconfigure: true
+            legacy-mode: true
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
@@ -698,15 +722,38 @@ workflows:
     - oss-test:
         requires:
         - "oss-nightly-images"
-        name: "oss-nightly-pytest-envoy"
-        test: pytest-envoy
-        fast-reconfigure: false
-    - oss-test:
-        requires:
-        - "oss-nightly-images"
-        name: "oss-nightly-pytest-envoy-fastreconfigure"
-        test: pytest-envoy
-        fast-reconfigure: true
+        name: "oss-nightly-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
+          >>"
+        matrix:
+          alias: "oss-nightly-test"
+          parameters:
+            test:
+            - "gotest"
+            - "pytest"
+            - "pytest-envoy"
+            # Running the ingresstests would require we install `kind` and
+            # that the test suite supports HTTP to HTTPS redirects (AES
+            # enables cleartext redirection by default, even for fallback
+            # hosts, contrary to A/OSS)
+            #- "ingresstest"
+
+            fast-reconfigure:
+            - true
+            - false
+            legacy-mode:
+            - true
+            - false
+          exclude:
+          - test: gotest
+            fast-reconfigure: true
+            legacy-mode: true
+          - test: pytest
+            fast-reconfigure: true
+            legacy-mode: true
+          - test: pytest-envoy
+            fast-reconfigure: true
+            legacy-mode: true
   'Docs: Dev':
     jobs:
     - "website-preview-build"

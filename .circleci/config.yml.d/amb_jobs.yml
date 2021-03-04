@@ -99,6 +99,9 @@ commands:
       "fast-reconfigure":
         type: boolean
         default: false
+      "legacy-mode":
+        type: boolean
+        default: false
     steps:
       # setup
       - amb-linux-install
@@ -144,9 +147,7 @@ commands:
             fi
             export DEV_KUBE_NO_PVC=yes
             export KAT_REQ_LIMIT=900
-            if ! << parameters.fast-reconfigure >>; then
-              export AMBASSADOR_LEGACY_MODE=true # ParseBool
-            fi
+            export AMBASSADOR_LEGACY_MODE=<< parameters.legacy-mode >> # ParseBool
             export AMBASSADOR_FAST_RECONFIGURE=<< parameters.fast-reconfigure >> # ParseBool
             export TEST_XML_DIR=/tmp/test-logs/xml/
             mkdir -p ${TEST_XML_DIR}
