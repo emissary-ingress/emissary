@@ -36,7 +36,7 @@ Free and Open Source software:
     github.com/containerd/cgroups                            v0.0.0-20190919134610-bf292b21730f         Apache License 2.0
     github.com/containerd/containerd                         v1.3.4                                     Apache License 2.0
     github.com/cyphar/filepath-securejoin                    v0.2.2                                     3-clause BSD license
-    github.com/datawire/dlib                                 v1.1.2-0.20210128063139-0a57ab547981       Apache License 2.0
+    github.com/datawire/dlib                                 v1.2.0                                     Apache License 2.0
     github.com/datawire/pf                                   v0.0.0-20180510150411-31a823f9495a         2-clause BSD license
     github.com/davecgh/go-spew                               v1.1.1                                     ISC license
     github.com/deislabs/oras                                 v0.8.1                                     MIT license
