@@ -396,10 +396,11 @@ func (sh *SnapshotHolder) Notify(ctx context.Context, encoded *atomic.Value, con
 		}
 
 		sn = &snapshot.Snapshot{
-			Kubernetes: sh.k8sSnapshot,
-			Consul:     sh.consulSnapshot,
-			Invalid:    sh.validator.getInvalid(),
-			Deltas:     sh.unsentDeltas,
+			Kubernetes:     sh.k8sSnapshot,
+			Consul:         sh.consulSnapshot,
+			Invalid:        sh.validator.getInvalid(),
+			Deltas:         sh.unsentDeltas,
+			AmbassadorMeta: sh.ambassadorMeta,
 		}
 
 		bootstrapped = consul.isBootstrapped()
