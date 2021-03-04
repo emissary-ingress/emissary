@@ -13,6 +13,7 @@ jsonschema==3.2.0
 k8s-proto==0.0.3
 kubernetes==12.0.1
 prometheus_client==0.9.0
+pyyaml==5.3.1
 requests==2.25.1
 semantic-version==2.8.5
 
@@ -25,5 +26,4 @@ pexpect
 pytest
 pytest
 pytest-cov
-pyyaml==5.3.1
 retry
