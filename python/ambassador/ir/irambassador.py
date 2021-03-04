@@ -49,6 +49,7 @@ class IRAmbassador (IRResource):
         'forward_client_cert_details',
         # Do not include envoy_validation_timeout; we let finalize() type-check it.
         # Do not include ip_allow or ip_deny; we let finalize() type-check them.
+        'headers_with_underscores_action',
         'keepalive',
         'listener_idle_timeout_ms',
         'liveness_probe',

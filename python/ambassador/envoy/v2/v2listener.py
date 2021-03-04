@@ -975,7 +975,16 @@ class V2Listener(dict):
 
         listener_idle_timeout_ms = self.config.ir.ambassador_module.get('listener_idle_timeout_ms', None)
         if listener_idle_timeout_ms:
-            self.base_http_config["common_http_protocol_options"] = { 'idle_timeout': "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0) }
+            if 'common_http_protocol_options' in self.base_http_config:
+                self.base_http_config["common_http_protocol_options"]["idle_timeout"] = "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0)
+            else:
+                self.base_http_config["common_http_protocol_options"] = { 'idle_timeout': "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0) }
+
+        if 'headers_with_underscores_action' in self.config.ir.ambassador_module:
+            if 'common_http_protocol_options' in self.base_http_config:
+                self.base_http_config["common_http_protocol_options"]["headers_with_underscores_action"] = self.config.ir.ambassador_module.headers_with_underscores_action
+            else:
+                self.base_http_config["common_http_protocol_options"] = { 'headers_with_underscores_action': self.config.ir.ambassador_module.headers_with_underscores_action }
 
         max_request_headers_kb = self.config.ir.ambassador_module.get('max_request_headers_kb', None)
         if max_request_headers_kb:
