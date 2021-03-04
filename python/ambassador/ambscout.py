@@ -125,7 +125,7 @@ class AmbScout:
                             self._scout_error if self._scout_error else "OK"))
 
     @property
-    def scout(self) -> Optional[Scout]:
+    def scout(self) -> Optional[Union[Scout, LocalScout]]:
         if not self._scout:
             if self._local_only:
                 self._scout = LocalScout(logger=self.logger,
