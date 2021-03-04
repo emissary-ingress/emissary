@@ -232,7 +232,7 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 		})
 
 		reconcileSecretsTimer.Time(func() {
-			ReconcileSecrets(k8s.snapshot)
+			ReconcileSecrets(ctx, k8s.snapshot)
 		})
 		reconcileConsulTimer.Time(func() {
 			ReconcileConsul(ctx, consul, k8s.snapshot)
