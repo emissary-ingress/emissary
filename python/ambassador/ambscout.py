@@ -9,9 +9,8 @@ import os
 
 import semantic_version
 
+from .scout import Scout
 from .utils import parse_json, dump_json
-
-from scout import Scout
 
 # Import version stuff directly from ambassador.VERSION to avoid a circular import.
 from .VERSION import Version, Build, BuildInfo
