@@ -17,6 +17,8 @@ from typing import Dict, List, Union, TYPE_CHECKING
 
 from ...cache import Cacheable
 from ...ir.ircluster import IRCluster
+from ...config import Config
+
 
 from .v2tls import V2TLSContext
 
@@ -46,21 +48,32 @@ class V2Cluster(Cacheable):
         assert(cluster.envoy_name)
         assert(len(cluster.envoy_name) <= 60)
 
+        cmap_entry = cluster.clustermap_entry()
+        if Config.legacy_mode or (cmap_entry['kind'] == 'KubernetesServiceResolver'):
+            ctype = cluster.type.upper()
+        else:
+            ctype = 'EDS'
+
         fields = {
             'name': cluster.envoy_name,
-            'type': cluster.type.upper(),
+            'type': ctype,
             'lb_policy': cluster.lb_type.upper(),
             'connect_timeout':"%0.3fs" % (float(cluster.connect_timeout_ms) / 1000.0),
-            'load_assignment': {
+            'dns_lookup_family': dns_lookup_family
+        }
+
+        if ctype == 'EDS':
+            fields['eds_cluster_config'] = { 'eds_config': {'ads': {}},
+                                             'service_name': cmap_entry['endpoint_path']}
+        else:
+            fields['load_assignment'] = {
                 'cluster_name': cluster.envoy_name,
                 'endpoints': [
                     {
                         'lb_endpoints': self.get_endpoints(cluster)
                     }
                 ]
-            },
-            'dns_lookup_family': dns_lookup_family
-        }
+            }
 
         if cluster.cluster_idle_timeout_ms:
             cluster_idle_timeout_ms = cluster.cluster_idle_timeout_ms

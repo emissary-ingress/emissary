@@ -16,7 +16,8 @@ import (
 	"github.com/datawire/dlib/dlog"
 )
 
-func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atomic.Value, clusterID string, version string) {
+func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atomic.Value,
+	endpointsCh chan<- *ambex.Endpoints, clusterID string, version string) {
 	client, err := kates.NewClient(kates.ClientConfig{})
 	if err != nil {
 		panic(err)
@@ -43,7 +44,7 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 	}
 
 	endpointUpdate := func(ctx context.Context, endpoints *ambex.Endpoints) {
-		// noop for now
+		endpointsCh <- endpoints
 	}
 
 	k8sSrc := newK8sSource(client)

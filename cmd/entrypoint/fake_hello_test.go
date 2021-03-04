@@ -138,8 +138,6 @@ func TestFakeHelloConsul(t *testing.T) {
 	// figure out that there is a mapping that depends on consul endpoint data, and it needs to wait
 	// until that data is available before producing the first snapshot.
 	f.Flush()
-	eps := f.GetEndpoints(func(endpoints *ambex.Endpoints) bool { return true })
-	assert.Empty(t, eps.Entries)
 
 	// In prior tests we have only examined the snapshots that were ready to be processed, but the
 	// watcher doesn't process every snapshot it constructs, it can discard various snapshots for
@@ -159,9 +157,14 @@ func TestFakeHelloConsul(t *testing.T) {
 	// Now let's supply the endpoint data for the hello service referenced by our hello mapping.
 	f.ConsulEndpoint("dc1", "hello", "1.2.3.4", 8080)
 	f.Flush()
-	eps = f.GetEndpoints(func(endpoints *ambex.Endpoints) bool { return true })
-	assert.Len(t, eps.Entries, 1)
-	assert.Equal(t, "1.2.3.4", eps.Entries["consul/dc1/hello"].Ip)
+	// The Fake harness also tracks endpoints that get sent to ambex. We can use the GetEndpoints()
+	// method to access them and check to see that the endpoint we supplied got delivered to ambex.
+	endpoints := f.GetEndpoints(func(endpoints *ambex.Endpoints) bool {
+		_, ok := endpoints.Entries["consul/dc1/hello"]
+		return ok
+	})
+	assert.Len(t, endpoints.Entries, 1)
+	assert.Equal(t, "1.2.3.4", endpoints.Entries["consul/dc1/hello"][0].Ip)
 
 	// Grab the next snapshot that has mappings.
 	snap := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
@@ -196,20 +199,17 @@ func TestFakeHelloConsul(t *testing.T) {
 		return FindCluster(envoy, isHelloCluster) != nil
 	})
 
-	// Now let's check that it has the IP address we supplied in the consul data.
-	//
-	// Note: This is admittedly quite verbose as envoy configuration is very dense. I expect we will
-	// introduce an API that will provide a more abstract and convenient way of navigating envoy
-	// configuration, however that will be covered in a future PR. The core of that logic is already
-	// developing inside ambex since ambex slices and dices the envoy config in order to implement
-	// RDS and enpdoint routing.
+	// Now let's check that the cluster produced properly references the endpoints that have already
+	// arrived at ambex.
 	cluster := FindCluster(envoyConfig, isHelloCluster)
-	endpoints := cluster.LoadAssignment.Endpoints
-	require.NotEmpty(t, endpoints)
-	lbEndpoints := endpoints[0].LbEndpoints
-	require.NotEmpty(t, lbEndpoints)
-
-	endpoint := lbEndpoints[0].GetEndpoint()
-	address := endpoint.Address.GetSocketAddress().Address
-	assert.Equal(t, "1.2.3.4", address)
+	// It uses the consul resolver, so it should not embed the load assignment directly.
+	assert.Nil(t, cluster.LoadAssignment)
+	// It *should* have an EdsConfig.
+	edsConfig := cluster.GetEdsClusterConfig()
+	require.NotNil(t, edsConfig)
+	// The EdsConfig *should* reference an endpoint.
+	eps := endpoints.Entries[edsConfig.ServiceName]
+	require.Len(t, eps, 1)
+	// The endpoint it references *should* have our supplied ip address.
+	assert.Equal(t, "1.2.3.4", eps[0].Ip)
 }

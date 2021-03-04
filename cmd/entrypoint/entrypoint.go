@@ -147,8 +147,10 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		return nil
 	})
 
+	endpointsCh := make(chan *ambex.Endpoints)
 	group.Go("ambex", func(ctx context.Context) error {
-		return ambex.Main2(ctx, Version, usage.PercentUsed, "--ads-listen-address", "127.0.0.1:8003", GetEnvoyDir())
+		return ambex.Main2(ctx, Version, usage.PercentUsed, endpointsCh, "--ads-listen-address", "127.0.0.1:8003",
+			GetEnvoyDir())
 	})
 
 	group.Go("envoy", func(ctx context.Context) error {
@@ -169,7 +171,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		group.Go("watcher", func(ctx context.Context) error {
 			// We need to pass the AmbassadorWatcher to this (Kubernetes/Consul) watcher, so
 			// that it can tell the AmbassadorWatcher when snapshots are posted.
-			watcher(ctx, ambwatch, snapshot, clusterID, Version)
+			watcher(ctx, ambwatch, snapshot, endpointsCh, clusterID, Version)
 			return nil
 		})
 	}
