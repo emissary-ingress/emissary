@@ -4,7 +4,7 @@
 #
 #    pip-compile --allow-unsafe
 #
-attrs==19.3.0             # via -r requirements.in, clize, jsonschema, pytest
+attrs==19.3.0             # via clize, jsonschema, pytest
 cachetools==4.1.1         # via google-auth
 certifi==2020.6.20        # via kubernetes, requests
 chardet==3.0.4            # via requests
@@ -12,7 +12,6 @@ click==7.1.2              # via -r requirements.in, flask
 clize==4.1.1              # via -r requirements.in
 coverage==5.3             # via pytest-cov
 decorator==4.4.2          # via retry
-docopt==0.6.2             # via -r requirements.in
 docutils==0.16            # via clize
 dpath==2.0.1              # via -r requirements.in
 durationpy==0.5           # via -r requirements.in
