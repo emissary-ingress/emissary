@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -68,27 +69,24 @@ func (q *Queue) Get(predicate func(interface{}) bool) interface{} {
 		}
 
 		if time.Since(start) > q.timeout {
-			fmt.Println("GET TIMED OUT")
-
-			if q.offset >= len(q.entries) {
-				fmt.Println("--- Queue is empty ---")
-			} else {
-				// Walk the outstanding entries in the queue and dump them as
-				// JSON, so that the test writer has a fighting chance of
-				// figuring out _why_ the get has timed out.
-				for i := q.offset; i < len(q.entries); i++ {
-					bytes, err := json.MarshalIndent(q.entries[i], "", "  ")
-
-					if err != nil {
-						panic(err)
-					}
-
-					fmt.Printf("--- Queue Entry %d ---\n", i)
-					fmt.Println(string(bytes))
+			msg := &strings.Builder{}
+			for idx, entry := range q.entries {
+				bytes, err := json.MarshalIndent(entry, "", "  ")
+				if err != nil {
+					panic(err)
 				}
+				var extra string
+				if idx < q.offset {
+					extra = "(Before Offset)"
+				} else if idx == q.offset {
+					extra = "(Offset Here)"
+				} else {
+					extra = "(After Offset)"
+				}
+				msg.WriteString(fmt.Sprintf("\n--- Queue Entry[%d] %s---\n%s\n", idx, extra, string(bytes)))
 			}
 
-			q.T.Fatal("Get timed out!")
+			q.T.Fatal(fmt.Sprintf("Get timed out!\n%s", msg))
 		}
 		q.cond.Wait()
 	}
