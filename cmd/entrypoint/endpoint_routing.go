@@ -3,11 +3,13 @@ package entrypoint
 import (
 	"context"
 	"fmt"
+	"net"
 
 	"github.com/datawire/ambassador/cmd/ambex"
 	"github.com/datawire/ambassador/pkg/consulwatch"
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/snapshot/v1"
+	"github.com/datawire/dlib/dlog"
 )
 
 func makeEndpoints(ctx context.Context, ksnap *snapshot.KubernetesSnapshot, consulEndpoints map[string]consulwatch.Endpoints) *ambex.Endpoints {
@@ -97,12 +99,19 @@ func k8sEndpointsToAmbex(ep *kates.Endpoints, svc *kates.Service) (result []*amb
 
 func consulEndpointsToAmbex(ctx context.Context, endpoints consulwatch.Endpoints) (result []*ambex.Endpoint) {
 	for _, ep := range endpoints.Endpoints {
-		result = append(result, &ambex.Endpoint{
-			ClusterName: fmt.Sprintf("consul/%s/%s", endpoints.Id, endpoints.Service),
-			Ip:          ep.Address,
-			Port:        uint32(ep.Port),
-			Protocol:    "TCP",
-		})
+		addrs, err := net.LookupHost(ep.Address)
+		if err != nil {
+			dlog.Errorf(ctx, "error resolving consul address %s: %+v", ep.Address, err)
+			continue
+		}
+		for _, addr := range addrs {
+			result = append(result, &ambex.Endpoint{
+				ClusterName: fmt.Sprintf("consul/%s/%s", endpoints.Id, endpoints.Service),
+				Ip:          addr,
+				Port:        uint32(ep.Port),
+				Protocol:    "TCP",
+			})
+		}
 	}
 
 	return
