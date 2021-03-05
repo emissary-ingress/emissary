@@ -333,9 +333,12 @@ class IRCluster (IRResource):
         # Resolve our actual targets.
         targets = ir.resolve_targets(self, self._resolver, self._hostname, self._namespace, self._port)
 
-        if targets:
+        if targets or not Config.legacy_mode:
             # Great.
             self.targets = targets
+
+            if not targets:
+                self.ir.logger.debug("accepting cluster with no endpoints: %s" % self.name)
         else:
             self.post_error("no endpoints found, disabling cluster")
 

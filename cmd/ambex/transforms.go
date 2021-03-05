@@ -193,7 +193,9 @@ func JoinEdsClusters(ctx context.Context, clusters []ctypes.Resource, edsEndpoin
 				Endpoints:   []*v2endpoint.LocalityLbEndpoints{},
 			}
 			source = "synthesized"
+			dlog.Warnf(ctx, "no endpoints for cluster %s", c.Name)
 		}
+
 		dlog.Debugf(ctx, "%s ClusterLoadAssignment for cluster %s: %v", source, c.Name, ep)
 		endpoints = append(endpoints, ep)
 	}
