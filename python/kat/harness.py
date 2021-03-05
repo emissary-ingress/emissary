@@ -1584,6 +1584,39 @@ class Runner:
         else:
             print(f'KAT pod definition unchanged {reason}, skipping apply.')
 
+        # Use a dummy pod to get around the !*@&#$!*@&# DockerHub rate limit.
+        # XXX Better: switch to GCR.
+        dummy_pod = load_manifest("dummy_pod")
+        if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
+            dummy_pod = namespace_manifest("default") + dummy_pod
+        changed, reason = has_changed(dummy_pod.format(environ=os.environ), "/tmp/k8s-dummy-pod.yaml")
+
+        if changed:
+            print(f'Dummy pod definition changed ({reason}), applying')
+            if not ShellCommand.run_with_retry('Apply dummy pod',
+                    'kubectl', 'apply', '-f' , '/tmp/k8s-dummy-pod.yaml', '-n', 'default',
+                    retries=5, sleep_seconds=10):
+                raise RuntimeError('Could not apply manifest for dummy pod')
+
+            tries_left = 10
+            time.sleep(1)
+
+            while True:
+                if ShellCommand.run("check for dummy pod",
+                                    'kubectl', 'exec', '-n', 'default', 'dummy-pod', 'echo', 'hello'):
+                    print("Dummy pod ready")
+                    break
+
+                tries_left -= 1
+
+                if tries_left <= 0:
+                    raise RuntimeError("Dummy pod never became available")
+
+                print("sleeping for dummy pod... (%d)" % tries_left)
+                time.sleep(5)
+        else:
+            print(f'Dummy pod definition unchanged {reason}, skipping apply.')
+
         # # Clear out old stuff.
         if os.environ.get("DEV_CLEAN_K8S_RESOURCES", False):
             print("Clearing cluster...")
