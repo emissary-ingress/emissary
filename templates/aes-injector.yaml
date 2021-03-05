@@ -84,6 +84,15 @@ metadata:
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
+  annotations:
+    a8r.io/owner: "Ambassador Labs"
+    a8r.io/repository: github.com/datawire/ambassador
+    a8r.io/description: "The Ambassador Edge Stack Service Preview Traffic Agent Sidecar injector."
+    a8r.io/documentation: https://www.getambassador.io/docs/latest/
+    a8r.io/chat: http://d6e.co/slack
+    a8r.io/bugs: https://github.com/datawire/ambassador/issues
+    a8r.io/support: https://www.getambassador.io/about-us/support/
+    a8r.io/dependencies: "None"
 spec:
   type: ClusterIP
   selector:
