@@ -394,7 +394,10 @@ class IRCluster (IRResource):
 
         if other.targets:
             self.referenced_by(other)
-            self.targets += other.targets
+            if self.targets == None:
+                self.targets = other.targets
+            else:
+                self.targets = typecast(List[Dict[str, Union[int, str]]], self.targets) + other.targets
 
         return True
 
