@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"reflect"
 	"strings"
 
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
@@ -19,6 +20,7 @@ type endpointRoutingInfo struct {
 	resolverTypes   map[string]ResolverType
 	module          moduleResolver
 	endpointWatches map[string]bool // A set to track the subset of kubernetes endpoints we care about.
+	previousWatches map[string]bool
 }
 
 type ResolverType int
@@ -60,6 +62,13 @@ func newEndpointRoutingInfo() endpointRoutingInfo {
 }
 
 func (eri *endpointRoutingInfo) reconcileEndpointWatches(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) {
+	// Reset our state except for the previous endpoint watches. We keep them so we can detect if
+	// the set of things we are interested in has changed.
+	eri.resolverTypes = map[string]ResolverType{}
+	eri.module = moduleResolver{}
+	eri.previousWatches = eri.endpointWatches
+	eri.endpointWatches = map[string]bool{}
+
 	// Phase one processes all the configuration stuff that Mappings depend on. Right now this
 	// includes Modules and Resolvers. When we are done with Phase one we have processed enough
 	// resources to correctly interpret Mappings.
@@ -125,6 +134,10 @@ func (eri *endpointRoutingInfo) reconcileEndpointWatches(ctx context.Context, s 
 			eri.checkTCPMapping(ctx, t, "CRD")
 		}
 	}
+}
+
+func (eri *endpointRoutingInfo) watchesChanged() bool {
+	return !reflect.DeepEqual(eri.endpointWatches, eri.previousWatches)
 }
 
 // checkResourcePhase1 processes Modules and Resolvers and calls the correct type specific handler.

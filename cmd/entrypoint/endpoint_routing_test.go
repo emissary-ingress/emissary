@@ -108,6 +108,33 @@ func TestEndpointRoutingIP(t *testing.T) {
 	assert.Equal(t, "4.3.2.1", sockAddr.Address)
 }
 
+// Test that we resend endpoints when a new mapping is created that references an existing set of
+// endpoints.
+func TestEndpointRoutingMappingCreation(t *testing.T) {
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true})
+	f.Upsert(makeService("default", "foo"))
+	f.Upsert(makeEndpoints("default", "foo", makeSubset(8080, "1.2.3.4")))
+	f.Flush()
+	f.AssertEndpointsEmpty(timeout)
+	f.UpsertYAML(`
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: foo
+  namespace: default
+spec:
+  prefix: /foo
+  resolver: endpoint
+  service: foo.default
+`)
+	f.Flush()
+	// Check that endpoints get sent even though we did not do actually update endpoints between
+	// this flush and the previous one.
+	endpoints := f.GetEndpoints(HasEndpoints("k8s/default/foo/80"))
+	assert.Equal(t, "1.2.3.4", endpoints.Entries["k8s/default/foo/80"][0].Ip)
+}
+
 func ClusterNameContains(substring string) func(*envoy.Cluster) bool {
 	return func(c *envoy.Cluster) bool {
 		return strings.Contains(c.Name, substring)

@@ -248,6 +248,8 @@ type SnapshotHolder struct {
 	// which is in turn a facade fo the deltas reported by client-go.
 	unsentDeltas []*kates.Delta
 
+	endpointRoutingInfo endpointRoutingInfo
+
 	// Serial number that tracks if we need to send snapshot changes or not. This is incremented
 	// when a change worth sending is made, and we copy it over to snapshotNotifiedCount when the
 	// change is sent.
@@ -260,11 +262,12 @@ type SnapshotHolder struct {
 
 func NewSnapshotHolder(ambassadorMeta *snapshot.AmbassadorMetaInfo) *SnapshotHolder {
 	return &SnapshotHolder{
-		validator:      newResourceValidator(),
-		ambassadorMeta: ambassadorMeta,
-		k8sSnapshot:    NewKubernetesSnapshot(),
-		consulSnapshot: &watt.ConsulSnapshot{},
-		firstReconfig:  true,
+		validator:           newResourceValidator(),
+		ambassadorMeta:      ambassadorMeta,
+		k8sSnapshot:         NewKubernetesSnapshot(),
+		consulSnapshot:      &watt.ConsulSnapshot{},
+		endpointRoutingInfo: newEndpointRoutingInfo(),
+		firstReconfig:       true,
 	}
 }
 
@@ -309,15 +312,19 @@ func (sh *SnapshotHolder) K8sUpdate(ctx context.Context, watcher K8sWatcher, con
 			ReconcileConsul(ctx, consul, sh.k8sSnapshot)
 		})
 
-		eri := newEndpointRoutingInfo()
-		eri.reconcileEndpointWatches(ctx, sh.k8sSnapshot)
+		sh.endpointRoutingInfo.reconcileEndpointWatches(ctx, sh.k8sSnapshot)
+		// Check if the set of endpoints we are interested in has changed. If so we need to send
+		// endpoint info again even if endpoints have not changed.
+		if sh.endpointRoutingInfo.watchesChanged() {
+			endpointsChanged = true
+		}
 
 		endpointsOnly := true
 		for _, delta := range deltas {
 			sh.unsentDeltas = append(sh.unsentDeltas, delta)
 			if delta.Kind == "Endpoints" {
 				key := fmt.Sprintf("%s:%s", delta.Namespace, delta.Name)
-				if eri.endpointWatches[key] {
+				if sh.endpointRoutingInfo.endpointWatches[key] {
 					endpointsChanged = true
 				}
 			} else {

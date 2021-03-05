@@ -8,6 +8,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // The Queue struct implements a multi-writer/multi-reader concurrent queue where the dequeue
@@ -56,6 +58,7 @@ func (q *Queue) Add(obj interface{}) {
 
 // Get will return the next entry that satisfies the supplied predicate.
 func (q *Queue) Get(predicate func(interface{}) bool) interface{} {
+	q.T.Helper()
 	start := time.Now()
 	q.cond.L.Lock()
 	defer q.cond.L.Unlock()
@@ -90,4 +93,13 @@ func (q *Queue) Get(predicate func(interface{}) bool) interface{} {
 		}
 		q.cond.Wait()
 	}
+}
+
+// AssertEmpty will check that the queue remains empty for the supplied duration.
+func (q *Queue) AssertEmpty(timeout time.Duration, msg string) {
+	q.T.Helper()
+	time.Sleep(timeout)
+	q.cond.L.Lock()
+	defer q.cond.L.Unlock()
+	assert.Empty(q.T, q.entries, msg)
 }
