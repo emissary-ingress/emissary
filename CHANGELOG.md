@@ -67,6 +67,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
+(no changes yet)
+
+## [1.12.0-rc.0] March 05, 2021
+[1.12.0-rc.0]: https://github.com/datawire/ambassador/compare/v1.11.2...v1.12.0-rc.0
+
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Feature: Endpoint routing is now much more performant, especially in situations where reconfigurations are frequent.
