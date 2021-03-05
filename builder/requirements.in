@@ -10,7 +10,7 @@ gunicorn==20.0.4
 jsonpatch==1.30
 jsonschema==3.2.0
 k8s-proto==0.0.3
-kubernetes==12.0.1
+kubernetes==9.0.0
 prometheus_client==0.9.0
 pyyaml==5.3.1
 requests==2.25.1

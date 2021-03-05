@@ -232,7 +232,7 @@ libraries:
     jsonpointer        2.0        3-clause BSD license
     jsonschema         3.2.0      MIT license
     k8s-proto          0.0.3      Apache License 2.0
-    kubernetes         12.0.1     Apache License 2.0
+    kubernetes         9.0.0      Apache License 2.0
     lockfile           0.12.2     MIT license
     msgpack            1.0.0      Apache License 2.0
     mypy               0.790      MIT license
