@@ -56,10 +56,10 @@ As of Ambassador 0.83.0, the safe regex fields are used by default.
 The deprecated fields are only used when `regex_type` is set to `unsafe` in the `ambassador` `Module`.
 
 The non-safe regex fields are no longer supported with the Envoy V3 APIs, so, to service Ambassador's migration from Envoy V2 to Envoy V3 APIs, support for `regex_type` is deprecated,
-and the field will be removed from the `ambassador` `Module` *no sooner than Ambassador 1.11.0*.
+and the field will be removed from the `ambassador` `Module` *no sooner than Ambassador 1.13.0*.
 
 Additionally, as of Envoy V1.15.0, [max_program_size for the Google RE2 engine has been deprecated.](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.15.0.html?highlight=max_program_size)
-Consequently, we will be deprecating the `regex_max_size` field from the `ambassador` `Module`, and will be removing the field *no sooner than Ambassador 1.11.0*.
+Consequently, we will be deprecating the `regex_max_size` field from the `ambassador` `Module`, and will be removing the field *no sooner than Ambassador 1.13.0*.
 
 Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/type/matcher/v3/regex.proto.html) for more information.
 
@@ -69,23 +69,24 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
-- Bugfix: Many of the Go parts of Ambassador now properly clean up gRPC connections when shutting down.
+- Feature: Endpoint routing is now much more performant, especially in situations where reconfigurations are frequent.
 - Feature: A scrubbed ambassador snapshot is now accessible outside the pod at `:8005/snapshot-external`. This port is exposed on the ambassador-admin Kubernetes service.
 - Feature: Ambassador now supports configuring the maximum lifetime of an upstream connection using `cluster_max_connection_lifetime_ms`. After the configured time, upstream connections are drained and closed, allowing an operator to set an upper bound on how long any upstream connection will remain open. This is useful when using Kubernetes Service resolvers (the default) and modifying label selectors for traffic shifting.
 - Feature: The Ambassador Module configuration now supports `cluster_request_timeout_ms` to set a default request `timeout_ms` for Mappings. This allows an operator to update the default request timeout (currently 3000ms) without needing to update every Mapping.
 - Feature: The Ambassador Module configuration now supports `suppress_envoy_headers` to prevent Ambassador from setting additional headers on requests and responses. These headers are typically used for diagnostic purposes and are safe to omit when they are not desired.
-- Feature: All Kubernetes services managed by Ambassador are automatically instrumented with discovery annotations.
+- Feature: All Kubernetes services managed by Ambassador are automatically instrumented with service catalog discovery annotations.
 - Feature: [`headers_with_underscores_action`](https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/core/protocol.proto#enum-core-httpprotocoloptions-headerswithunderscoresaction) is now configurable in the Ambassador `Module`.
 - Feature: The Ambassador Module configuration now supports `strip_matching_host_port` to control whether the port should be removed from the host/Authority header before any processing by request filters / routing. This behavior only applies if the port matches the associated Envoy listener port.
+- Bugfix: Many of the Go parts of Ambassador now properly clean up gRPC connections when shutting down.
 - Bugfix: Prevent potential reconcile loop when updating the status of an Ingress.
 
 ### Ambassador Edge Stack only
 
-- Bugfix: Fix an issue that caused Dev Portal to sporadically respond with upstream connect timeout when loading content
-- Feature: Add support for the ambassador-agent deployment, reporting to Ambassador Cloud Service Catalog (https://app.getambassador.io)
+- Feature: Added support for ambassador-agent deployment, reporting to Ambassador Cloud Service Catalog (https://app.getambassador.io)
 - Feature: `edgectl login` will automatically open your browser, allowing you to login into Service Catalog (https://app.getambassador.io)
 - Feature: `edgectl install` command allows you to install a new Ambassador Edge Stack automatically connected to Ambassador Cloud by passing a `--cloud-connect-token` argument.
 - Feature: `AES_AUTH_TIMEOUT` now allows you to configure the timeout of the AES authentication service. Defaults to 4s.
+- Bugfix: Prevent Dev Portal from sporadically responding with upstream connect timeout when loading content
 
 ## [1.11.2] March 01, 2021
 [1.11.2]: https://github.com/datawire/ambassador/compare/v1.11.1...v1.11.2
