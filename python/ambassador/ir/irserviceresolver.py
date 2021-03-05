@@ -5,6 +5,8 @@ import logging
 import re
 import urllib.parse
 
+from ipaddress import ip_address
+
 from multi import multi
 
 from ..config import Config
@@ -137,7 +139,7 @@ class IRServiceResolver(IRResource):
         svc = svc_name
         namespace = Config.ambassador_namespace
 
-        if '.' in svc:
+        if '.' in svc and not is_ip_address(svc):
             # OK, cool. Peel off the service and the namespace.
             #
             # Note that some people may use service.namespace.cluster.svc.local or
@@ -209,33 +211,58 @@ class IRServiceResolver(IRResource):
     @clustermap_entry.when("KubernetesServiceResolver")
     def _k8s_svc_clustermap_entry(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, svc_namespace: str, port: int) -> ClustermapEntry:
         # The K8s service resolver always returns a single endpoint.
+        svc, namespace = self.parse_service(ir, svc_name, svc_namespace)
         return {
-            'ip': svc_name,
             'port': port,
-            'kind': self.kind
+            'kind': self.kind,
+            'service': svc,
+            'namespace': namespace
         }
 
     @clustermap_entry.when("KubernetesEndpointResolver")
     def _k8s_clustermap_entry(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, svc_namespace: str, port: int) -> ClustermapEntry:
+        # Fallback to the KubernetesServiceResolver for IP addresses or if the service doesn't exist.
+        if is_ip_address(svc_name):
+            return {
+                'service': svc_name,
+                'namespace': svc_namespace,
+                'port': port,
+                'kind': "KubernetesServiceResolver",
+            }
+
+        if port:
+            portstr = "/%s" % port
+        else:
+            portstr = ""
         svc, namespace = self.parse_service(ir, svc_name, svc_namespace)
         # Find endpoints, and try for a port match!
         return {
             'service': svc,
             'namespace': namespace,
             'port': port,
-            'kind': self.kind
+            'kind': self.kind,
+            'endpoint_path': 'k8s/%s/%s%s' % (namespace, svc, portstr)
         }
 
     @clustermap_entry.when("ConsulResolver")
     def _consul_clustermap_entry(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, svc_namespace: str, port: int) -> ClustermapEntry:
+        # Fallback to the KubernetesServiceResolver for ip addresses.
+        if is_ip_address(svc_name):
+            return {
+                'service': svc_name,
+                'namespace': svc_namespace,
+                'port': port,
+                'kind': "KubernetesServiceResolver",
+            }
+
         # For Consul, we look things up with the service name and the datacenter at present.
         # We ignore the port in the lookup (we should've already posted a warning about the port
         # being present, actually).
-
         return {
             'service': svc_name,
             'datacenter': self.datacenter,
-            'kind': self.kind
+            'kind': self.kind,
+            'endpoint_path': 'consul/%s/%s' % (self.datacenter, svc_name)
         }
 
 class IRServiceResolverFactory:
@@ -339,3 +366,10 @@ class IRServiceResolverFactory:
             config['name'] = name
 
             ir.add_resolver(IRServiceResolver(ir, aconf, **config))
+
+def is_ip_address(addr: str) -> bool:
+    try:
+        x = ip_address(addr)
+        return True
+    except ValueError:
+        return False

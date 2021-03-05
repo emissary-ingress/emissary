@@ -66,6 +66,15 @@ type Service = corev1.Service
 type ServiceSpec = corev1.ServiceSpec
 type ServicePort = corev1.ServicePort
 type Endpoints = corev1.Endpoints
+type EndpointSubset = corev1.EndpointSubset
+type EndpointAddress = corev1.EndpointAddress
+type EndpointPort = corev1.EndpointPort
+
+type Protocol = corev1.Protocol
+
+var ProtocolTCP = corev1.ProtocolTCP
+var ProtocolUDP = corev1.ProtocolUDP
+var ProtocolSCTP = corev1.ProtocolSCTP
 
 var ServiceTypeLoadBalancer = corev1.ServiceTypeLoadBalancer
 var ServiceTypeClusterIP = corev1.ServiceTypeClusterIP

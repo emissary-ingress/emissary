@@ -67,6 +67,7 @@ type Fake struct {
 	// This holds the current snapshot.
 	currentSnapshot *atomic.Value
 
+	endpoints    *Queue // All endpoint sets that have been produced.
 	snapshots    *Queue // All snapshots that have been produced.
 	envoyConfigs *Queue // All envoyConfigs that have been produced.
 
@@ -110,6 +111,7 @@ func NewFake(t *testing.T, config FakeConfig) *Fake {
 
 		currentSnapshot: &atomic.Value{},
 
+		endpoints:    NewQueue(t, config.Timeout),
 		snapshots:    NewQueue(t, config.Timeout),
 		envoyConfigs: NewQueue(t, config.Timeout),
 	}
@@ -198,8 +200,25 @@ func (f *Fake) runWatcher(ctx context.Context) error {
 			err = r.(error)
 		}
 	}()
-	watcherLoop(ctx, f.currentSnapshot, f.k8sSource, queries, f.watcher, f.istioCertSource, f.notifySnapshot, f.ambassadorMeta)
+	watcherLoop(ctx, f.currentSnapshot, f.k8sSource, queries, f.watcher, f.istioCertSource, f.notifySnapshot, f.notifyEndpoints, f.ambassadorMeta)
 	return err
+}
+
+func (f *Fake) notifyEndpoints(ctx context.Context, endpoints *ambex.Endpoints) {
+	f.endpoints.Add(endpoints)
+}
+
+func (f *Fake) GetEndpoints(predicate func(*ambex.Endpoints) bool) *ambex.Endpoints {
+	f.T.Helper()
+	return f.endpoints.Get(func(obj interface{}) bool {
+		endpoints := obj.(*ambex.Endpoints)
+		return predicate(endpoints)
+	}).(*ambex.Endpoints)
+}
+
+func (f *Fake) AssertEndpointsEmpty(timeout time.Duration) {
+	f.T.Helper()
+	f.endpoints.AssertEmpty(timeout, "endpoints queue not empty")
 }
 
 type SnapshotEntry struct {
@@ -221,6 +240,7 @@ func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, sna
 
 // GetSnapshotEntry will return the next SnapshotEntry that satisfies the supplied predicate.
 func (f *Fake) GetSnapshotEntry(predicate func(SnapshotEntry) bool) SnapshotEntry {
+	f.T.Helper()
 	return f.snapshots.Get(func(obj interface{}) bool {
 		entry := obj.(SnapshotEntry)
 		return predicate(entry)
@@ -229,6 +249,7 @@ func (f *Fake) GetSnapshotEntry(predicate func(SnapshotEntry) bool) SnapshotEntr
 
 // GetSnapshot will return the next snapshot that satisfies the supplied predicate.
 func (f *Fake) GetSnapshot(predicate func(*snapshot.Snapshot) bool) *snapshot.Snapshot {
+	f.T.Helper()
 	return f.GetSnapshotEntry(func(entry SnapshotEntry) bool {
 		return entry.Disposition == SnapshotReady && predicate(entry.Snapshot)
 	}).Snapshot
@@ -245,6 +266,7 @@ func (f *Fake) appendEnvoyConfig() {
 
 // GetEnvoyConfig will return the next envoy config that satisfies the supplied predicate.
 func (f *Fake) GetEnvoyConfig(predicate func(*bootstrap.Bootstrap) bool) *bootstrap.Bootstrap {
+	f.T.Helper()
 	return f.envoyConfigs.Get(func(obj interface{}) bool {
 		return predicate(obj.(*bootstrap.Bootstrap))
 	}).(*bootstrap.Bootstrap)

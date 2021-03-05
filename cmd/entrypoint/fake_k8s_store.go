@@ -1,6 +1,7 @@
 package entrypoint
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"sort"
@@ -48,22 +49,34 @@ func NewK8sStore() *K8sStore {
 // well result in some very obscure edgecases around changing names/namespaces that behave
 // differently different from kubernetes.
 func (k *K8sStore) Upsert(resource kates.Object) {
+	var un *kates.Unstructured
+	bytes, err := json.Marshal(resource)
+	if err != nil {
+		panic(err)
+	}
+	err = json.Unmarshal(bytes, &un)
+	if err != nil {
+		panic(err)
+	}
+
+	kind, apiVersion := canonGVK(un.GetKind())
+	un.SetKind(kind)
+	un.SetAPIVersion(apiVersion)
+	if un.GetNamespace() == "" {
+		un.SetNamespace("default")
+	}
+
 	k.mutex.Lock()
 	defer k.mutex.Unlock()
 
-	gvk := resource.GetObjectKind().GroupVersionKind()
-	if resource.GetNamespace() == "" {
-		resource.SetNamespace("default")
-	}
-
-	key := K8sKey{canon(gvk.Kind), resource.GetNamespace(), resource.GetName()}
+	key := K8sKey{un.GetKind(), un.GetNamespace(), un.GetName()}
 	_, ok := k.resources[key]
 	if ok {
-		k.deltas = append(k.deltas, kates.NewDeltaFromObject(kates.ObjectUpdate, resource))
+		k.deltas = append(k.deltas, kates.NewDelta(kates.ObjectUpdate, un))
 	} else {
-		k.deltas = append(k.deltas, kates.NewDeltaFromObject(kates.ObjectAdd, resource))
+		k.deltas = append(k.deltas, kates.NewDelta(kates.ObjectAdd, un))
 	}
-	k.resources[key] = resource
+	k.resources[key] = un
 }
 
 // Delete will remove the identified resource from the store.
@@ -158,7 +171,7 @@ func sortedKeys(resources map[K8sKey]kates.Object) []K8sKey {
 	return keys
 }
 
-func canon(kind string) string {
+func canonGVK(kind string) (canonKind string, canonGroupVersion string) {
 	// XXX: there is probably a better way to do this, but this is good enough for now, we just need
 	// this to work well for ambassador and core types.
 
@@ -168,108 +181,113 @@ func canon(kind string) string {
 	case "services":
 		fallthrough
 	case "services.":
-		return "Service"
+		return "Service", "v1"
 	case "secret":
 		fallthrough
 	case "secrets":
 		fallthrough
 	case "secrets.":
-		return "Secret"
+		return "Secret", "v1"
 	case "endpoints":
 		fallthrough
 	case "endpoints.":
-		return "Endpoints"
+		return "Endpoints", "v1"
 	case "ingress":
 		fallthrough
 	case "ingresses":
 		fallthrough
 	case "ingresses.extensions":
-		return "Ingress"
+		return "Ingress", "v1"
 	case "ingressclass":
 		fallthrough
 	case "ingressclasses":
 		fallthrough
 	case "ingressclasses.networking.k8s.io":
-		return "IngressClass"
+		return "IngressClass", "v1"
 	case "authservice":
 		fallthrough
 	case "authservices":
 		fallthrough
 	case "authservices.getambassador.io":
-		return "AuthService"
+		return "AuthService", "getambassador.io/v2"
 	case "consulresolver":
 		fallthrough
 	case "consulresolvers":
 		fallthrough
 	case "consulresolvers.getambassador.io":
-		return "ConsulResolver"
+		return "ConsulResolver", "getambassador.io/v2"
 	case "devportal":
 		fallthrough
 	case "devportals":
 		fallthrough
 	case "devportals.getambassador.io":
-		return "DevPortal"
+		return "DevPortal", "getambassador.io/v2"
 	case "host":
 		fallthrough
 	case "hosts":
 		fallthrough
 	case "hosts.getambassador.io":
-		return "Host"
+		return "Host", "getambassador.io/v2"
 	case "kubernetesendpointresolver":
 		fallthrough
 	case "kubernetesendpointresolvers":
 		fallthrough
 	case "kubernetesendpointresolvers.getambassador.io":
-		return "KubernetesEndpointResolver"
+		return "KubernetesEndpointResolver", "getambassador.io/v2"
 	case "kubernetesserviceresolver":
 		fallthrough
 	case "kubernetesserviceresolvers":
 		fallthrough
 	case "kubernetesserviceresolvers.getambassador.io":
-		return "KubernetesServiceResolver"
+		return "KubernetesServiceResolver", "getambassador.io/v2"
 	case "logservice":
 		fallthrough
 	case "logservices":
 		fallthrough
 	case "logservices.getambassador.io":
-		return "LogService"
+		return "LogService", "getambassador.io/v2"
 	case "mapping":
 		fallthrough
 	case "mappings":
 		fallthrough
 	case "mappings.getambassador.io":
-		return "Mapping"
+		return "Mapping", "getambassador.io/v2"
 	case "module":
 		fallthrough
 	case "modules":
 		fallthrough
 	case "modules.getambassador.io":
-		return "Module"
+		return "Module", "getambassador.io/v2"
 	case "ratelimitservice":
 		fallthrough
 	case "ratelimitservices":
 		fallthrough
 	case "ratelimitservices.getambassador.io":
-		return "RateLimitServices"
+		return "RateLimitServices", "getambassador.io/v2"
 	case "tcpmapping":
 		fallthrough
 	case "tcpmappings":
 		fallthrough
 	case "tcpmappings.getambassador.io":
-		return "TCPMapping"
+		return "TCPMapping", "getambassador.io/v2"
 	case "tlscontext":
 		fallthrough
 	case "tlscontexts":
 		fallthrough
 	case "tlscontexts.getambassador.io":
-		return "TLSContext"
+		return "TLSContext", "getambassador.io/v2"
 	case "tracingservice":
 		fallthrough
 	case "tracingservices":
 		fallthrough
 	case "tracingservices.getambassador.io":
-		return "TracingService"
+		return "TracingService", "getambassador.io/v2"
 	default:
 		panic(fmt.Sprintf("I don't know how to canonicalize kind: %q", kind))
 	}
+}
+
+func canon(kind string) string {
+	canonKind, _ := canonGVK(kind)
+	return canonKind
 }

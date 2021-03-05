@@ -263,9 +263,8 @@ func Clone(src proto.Message) proto.Message {
 	return dst
 }
 
-func update(ctx context.Context, config cache.SnapshotCache, generation *int, dirs []string, updates chan<- Update) {
+func update(ctx context.Context, config cache.SnapshotCache, generation *int, dirs []string, edsEndpoints map[string]*v2.ClusterLoadAssignment, updates chan<- Update) {
 	clusters := []ctypes.Resource{}  // v2.Cluster
-	endpoints := []ctypes.Resource{} // v2.ClusterLoadAssignment
 	routes := []ctypes.Resource{}    // v2.RouteConfiguration
 	listeners := []ctypes.Resource{} // v2.Listener
 	runtimes := []ctypes.Resource{}  // discovery.Runtime
@@ -296,8 +295,6 @@ func update(ctx context.Context, config cache.SnapshotCache, generation *int, di
 		switch m.(type) {
 		case *v2.Cluster:
 			dst = &clusters
-		case *v2.ClusterLoadAssignment:
-			dst = &endpoints
 		case *v2.RouteConfiguration:
 			dst = &routes
 		case *v2.Listener:
@@ -337,6 +334,31 @@ func update(ctx context.Context, config cache.SnapshotCache, generation *int, di
 		}
 		*dst = append(*dst, m.(ctypes.Resource))
 	}
+
+	// The configuration data that reaches us here arrives via two parallel paths that race each
+	// other. The endpoint data comes in realtime directly from the golang watcher in the entrypoint
+	// package. The cluster configuration comes from the python code. Either one can win which means
+	// we might at times see endpoint data with no corresponding cluster and we might also see
+	// clusters with no corresponding endpoint data. Both of these circumstances should be
+	// transient.
+	//
+	// To produce a consistent configuration we do an outer join operation on the endpoint and
+	// cluster configuration that we have at this moment. If there is no endpoint information for a
+	// given cluster, we will synthesize an empty ClusterLoadAssignment.
+	//
+	// Note that a cluster not existing is very different to envoy than a cluster existing but
+	// having an empty ClusterLoadAssignment. When envoy first discovers clusters it goes through a
+	// warmup process to be sure the cluster is properly bootstrapped before routing traffic to
+	// it. See here for more details:
+	//
+	// https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/cluster_manager.html?highlight=cluster%20warming
+	//
+	// For this reason if there is no endpoint data for the cluster we will synthesize an empty
+	// ClusterLoadAssignment rather than filtering out the cluster. This avoids triggering the
+	// warmup sequence in scenarios where the endpoint data for a cluster is really flapping into
+	// and out of existence. In that circumstance we want to faithfully relay to envoy that the
+	// cluster exists but currently has no endpoints.
+	endpoints := JoinEdsClusters(ctx, clusters, edsEndpoints)
 
 	// Create a new configuration snapshot from everything we have just loaded from disk.
 	version := fmt.Sprintf("v%d", *generation)
@@ -420,10 +442,11 @@ func (l logger) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryRespo
 func Main(ctx context.Context, Version string, rawArgs ...string) error {
 	usage := memory.GetMemoryUsage()
 	go usage.Watch(ctx)
-	return Main2(ctx, Version, usage.PercentUsed, rawArgs...)
+	return Main2(ctx, Version, usage.PercentUsed, make(chan *Endpoints), rawArgs...)
 }
 
-func Main2(ctx context.Context, Version string, getUsage MemoryGetter, rawArgs ...string) error {
+func Main2(ctx context.Context, Version string, getUsage MemoryGetter, endpointsCh <-chan *Endpoints,
+	rawArgs ...string) error {
 	args, err := parseArgs(rawArgs...)
 	if err != nil {
 		return err
@@ -449,7 +472,15 @@ func Main2(ctx context.Context, Version string, getUsage MemoryGetter, rawArgs .
 		}
 	}
 
-	ch := make(chan os.Signal)
+	// The golang signal package does not block when it writes to the channel. We therefore need a
+	// nonzero buffer for the channel to minimize the possiblity that we miss out on a signal that
+	// comes in while we are doing work and not reading from the channel. Since we are subscribing
+	// to multiple signals there is also the possibility that even with buffering, too many of one
+	// kind of signal can fill up the buffer and cause us to drop an occurance of the other types of
+	// signal. To minimize the chance of that happening we will choose a buffer size of 100. That
+	// may well be overkill, but better to not have to consider the possibility that we lose a
+	// signal.
+	ch := make(chan os.Signal, 100)
 	signal.Notify(ch, syscall.SIGHUP, os.Interrupt, syscall.SIGTERM)
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -479,7 +510,8 @@ func Main2(ctx context.Context, Version string, getUsage MemoryGetter, rawArgs .
 	}()
 
 	generation := 0
-	update(ctx, config, &generation, args.dirs, updates)
+	edsEndpoints := map[string]*v2.ClusterLoadAssignment{}
+	update(ctx, config, &generation, args.dirs, edsEndpoints, updates)
 
 OUTER:
 	for {
@@ -488,12 +520,15 @@ OUTER:
 		case sig := <-ch:
 			switch sig {
 			case syscall.SIGHUP:
-				update(ctx, config, &generation, args.dirs, updates)
+				update(ctx, config, &generation, args.dirs, edsEndpoints, updates)
 			case os.Interrupt, syscall.SIGTERM:
 				break OUTER
 			}
+		case eps := <-endpointsCh:
+			edsEndpoints = eps.ToMap_v2()
+			update(ctx, config, &generation, args.dirs, edsEndpoints, updates)
 		case <-watcher.Events:
-			update(ctx, config, &generation, args.dirs, updates)
+			update(ctx, config, &generation, args.dirs, edsEndpoints, updates)
 		case err := <-watcher.Errors:
 			log.WithError(err).Warn("Watcher error")
 		case <-ctx.Done():
