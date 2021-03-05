@@ -111,7 +111,7 @@ func TestEndpointRoutingIP(t *testing.T) {
 // Test that we resend endpoints when a new mapping is created that references an existing set of
 // endpoints.
 func TestEndpointRoutingMappingCreation(t *testing.T) {
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true})
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{})
 	f.Upsert(makeService("default", "foo"))
 	f.Upsert(makeEndpoints("default", "foo", makeSubset(8080, "1.2.3.4")))
 	f.Flush()
