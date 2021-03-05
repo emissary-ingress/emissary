@@ -82,7 +82,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: All Kubernetes services managed by Ambassador are automatically instrumented with service catalog discovery annotations.
 - Feature: [`headers_with_underscores_action`](https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/core/protocol.proto#enum-core-httpprotocoloptions-headerswithunderscoresaction) is now configurable in the Ambassador `Module`.
 - Feature: The Ambassador Module configuration now supports `strip_matching_host_port` to control whether the port should be removed from the host/Authority header before any processing by request filters / routing. This behavior only applies if the port matches the associated Envoy listener port.
-- Bugfix: Many of the Go parts of Ambassador now properly clean up gRPC connections when shutting down.
+- Bugfix: Ambassador now does a better job of cleaning up gRPC connections when shutting down.
 - Bugfix: Prevent potential reconcile loop when updating the status of an Ingress.
 
 ### Ambassador Edge Stack only
