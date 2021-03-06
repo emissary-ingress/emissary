@@ -84,6 +84,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: The Ambassador Module configuration now supports `strip_matching_host_port` to control whether the port should be removed from the host/Authority header before any processing by request filters / routing. This behavior only applies if the port matches the associated Envoy listener port.
 - Bugfix: Ambassador now does a better job of cleaning up gRPC connections when shutting down.
 - Bugfix: Prevent potential reconcile loop when updating the status of an Ingress.
+- Bugfix: Update Python requirements, including addressing CVE-2020-36242 ([#3233])
+- Bugfix: Remove unnecessary logs about Kubernetes Secrets ([#3229])
+
+[#3229]: https://github.com/datawire/ambassador/issues/3229
+[#3233]: https://github.com/datawire/ambassador/issues/3233
 
 ### Ambassador Edge Stack only
 
