@@ -232,8 +232,8 @@ When you run ambassador locally it will configure itself exactly as it
 would in the cluster. That means with two caveats you can actually
 interact with it and it will function normally:
 
-1. You need to run teleproxy or equivalent so it can connect to the
-   backend services in its configuration.
+1. You need to run `telepresence connect` or equivalent so it can
+   connect to the backend services in its configuration.
 
 2. You need to supply the host header when you talk to it.
 
