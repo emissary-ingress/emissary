@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/pkg/snapshot/v1"
 	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
@@ -109,7 +110,7 @@ func (imgr *istioCertWatchManager) Changed() chan IstioCertUpdate {
 // Update actually does the work of updating our internal state with changes. The
 // istioCertWatchManager isn't allowed to short-circuit early: it's assumed that
 // any update is relevant.
-func (imgr *istioCertWatchManager) Update(ctx context.Context, icertUpdate IstioCertUpdate, k8s *k8sWatchManager) {
+func (imgr *istioCertWatchManager) Update(ctx context.Context, icertUpdate IstioCertUpdate, k8sSnapshot *snapshot.KubernetesSnapshot) {
 	dlog.Debugf(ctx, "WATCHER: ICert fired")
 
 	// We've seen a change in the Istio cert info on the filesystem. This is
@@ -127,12 +128,12 @@ func (imgr *istioCertWatchManager) Update(ctx context.Context, icertUpdate Istio
 	// ...and delete or save, as appropriate.
 	if icertUpdate.Op == "delete" {
 		dlog.Infof(ctx, "IstioCert: certificate %s.%s deleted", icertUpdate.Name, icertUpdate.Namespace)
-		delete(k8s.snapshot.FSSecrets, ref)
+		delete(k8sSnapshot.FSSecrets, ref)
 	} else {
 		dlog.Infof(ctx, "IstioCert: certificate %s.%s updated", icertUpdate.Name, icertUpdate.Namespace)
-		k8s.snapshot.FSSecrets[ref] = icertUpdate.Secret
+		k8sSnapshot.FSSecrets[ref] = icertUpdate.Secret
 	}
-	// Once done here, k8s.snapshot.ReconcileSecrets will handle the rest.
+	// Once done here, k8sSnapshot.ReconcileSecrets will handle the rest.
 }
 
 // StartLoop sets up the istioCertWatchManager for the start of the watcher loop.

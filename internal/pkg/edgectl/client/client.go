@@ -49,7 +49,7 @@ type ConnectInfo struct {
 // Connect asks the daemon to connect to a cluster
 func (x *ConnectInfo) Connect(cmd *cobra.Command, args []string) error {
 	if !x.LegacyMode {
-		return errors.New("This command is deprecated. Please go to https://a8r.io/go to use Telepresence 2!")
+		return errors.New("This command is deprecated. Please go to https://a8r.io/go to use Telepresence 2! or use edgectl connect --legacy to continue using Service Preview.")
 	}
 
 	u, err := getRunAsInfo()

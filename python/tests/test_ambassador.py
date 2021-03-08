@@ -35,6 +35,7 @@ import t_consul
 import t_circuitbreaker
 import t_envoy_logs
 import t_ingress
+import t_headerswithunderscoresaction
 import t_listeneridletimeout
 import t_cluster_tag
 import t_queryparameter_routing

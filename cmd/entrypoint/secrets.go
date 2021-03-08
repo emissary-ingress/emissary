@@ -1,18 +1,19 @@
 package entrypoint
 
 import (
-	"log"
+	"context"
 	"strings"
 
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/pkg/kates"
 	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
+	"github.com/datawire/dlib/dlog"
 )
 
 // ReconcileSecrets figures out which secrets we're actually using,
 // since we don't want to send secrets to Ambassador unless we're
 // using them, since any secret we send will be saved to disk.
-func ReconcileSecrets(s *snapshotTypes.KubernetesSnapshot) {
+func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) {
 	// Start by building up a list of all the K8s objects that are
 	// allowed to mention secrets. Note that we vet the ambassador_id
 	// for all of these before putting them on the list.
@@ -79,7 +80,7 @@ func ReconcileSecrets(s *snapshotTypes.KubernetesSnapshot) {
 			secs := ModuleSecrets{}
 			err := convert(mod.Spec.Config, &secs)
 			if err != nil {
-				log.Printf("error parsing module: %v", err)
+				dlog.Errorf(ctx, "error parsing module: %v", err)
 				continue
 			}
 			secretNamespacing = secs.Defaults.TLSSecretNamespacing
@@ -101,7 +102,7 @@ func ReconcileSecrets(s *snapshotTypes.KubernetesSnapshot) {
 	// So. Walk the list of resources...
 	for _, resource := range resources {
 		// ...and for each resource, dig out any secrets being referenced.
-		findSecretRefs(resource, secretNamespacing, action)
+		findSecretRefs(ctx, resource, secretNamespacing, action)
 	}
 
 	if IsEdgeStack() {
@@ -121,7 +122,7 @@ func ReconcileSecrets(s *snapshotTypes.KubernetesSnapshot) {
 
 	for ref, secret := range s.FSSecrets {
 		if refs[ref] {
-			log.Printf("Taking FSSecret %#v", ref)
+			dlog.Debugf(ctx, "Taking FSSecret %#v", ref)
 			s.Secrets = append(s.Secrets, secret)
 		}
 	}
@@ -131,19 +132,19 @@ func ReconcileSecrets(s *snapshotTypes.KubernetesSnapshot) {
 
 		_, found := s.FSSecrets[ref]
 		if found {
-			log.Printf("Conflict! skipping K8sSecret %#v", ref)
+			dlog.Debugf(ctx, "Conflict! skipping K8sSecret %#v", ref)
 			continue
 		}
 
 		if refs[ref] {
-			log.Printf("Taking K8sSecret %#v", ref)
+			dlog.Debugf(ctx, "Taking K8sSecret %#v", ref)
 			s.Secrets = append(s.Secrets, secret)
 		}
 	}
 }
 
 // Find all the secrets a given Ambassador resource references.
-func findSecretRefs(resource kates.Object, secretNamespacing bool, action func(snapshotTypes.SecretRef)) {
+func findSecretRefs(ctx context.Context, resource kates.Object, secretNamespacing bool, action func(snapshotTypes.SecretRef)) {
 	switch r := resource.(type) {
 	case *amb.Host:
 		// The Host resource is a little odd. Host.spec.tls, Host.spec.tlsSecret, and
@@ -198,7 +199,7 @@ func findSecretRefs(resource kates.Object, secretNamespacing bool, action func(s
 		err := convert(r.Spec.Config, &secs)
 		if err != nil {
 			// XXX
-			log.Printf("error extracting secrets from module: %v", err)
+			dlog.Errorf(ctx, "error extracting secrets from module: %v", err)
 			return
 		}
 

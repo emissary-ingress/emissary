@@ -36,7 +36,7 @@ Free and Open Source software:
     github.com/containerd/cgroups                            v0.0.0-20190919134610-bf292b21730f         Apache License 2.0
     github.com/containerd/containerd                         v1.3.4                                     Apache License 2.0
     github.com/cyphar/filepath-securejoin                    v0.2.2                                     3-clause BSD license
-    github.com/datawire/dlib                                 v1.1.0                                     Apache License 2.0
+    github.com/datawire/dlib                                 v1.2.0                                     Apache License 2.0
     github.com/datawire/pf                                   v0.0.0-20180510150411-31a823f9495a         2-clause BSD license
     github.com/davecgh/go-spew                               v1.1.1                                     ISC license
     github.com/deislabs/oras                                 v0.8.1                                     MIT license
@@ -152,10 +152,10 @@ Free and Open Source software:
     go.mongodb.org/mongo-driver                              v1.1.2                                     Apache License 2.0
     go.opencensus.io                                         v0.22.2                                    Apache License 2.0
     golang.org/x/crypto                                      v0.0.0-20200622213623-75b288015ac9         3-clause BSD license
-    golang.org/x/net                                         v0.0.0-20200520004742-59133d7f0dd7         3-clause BSD license
+    golang.org/x/net                                         v0.0.0-20210119194325-5f4716e94777         3-clause BSD license
     golang.org/x/oauth2                                      v0.0.0-20190604053449-0f29369cfe45         3-clause BSD license
     golang.org/x/sync                                        v0.0.0-20190911185100-cd5d95a43a6e         3-clause BSD license
-    golang.org/x/sys                                         v0.0.0-20200615200032-f1bc736245b1         3-clause BSD license
+    golang.org/x/sys                                         v0.0.0-20201119102817-f84b799fce68         3-clause BSD license
     golang.org/x/text                                        v0.3.3                                     3-clause BSD license
     golang.org/x/time                                        v0.0.0-20191024005414-555d28b269f0         3-clause BSD license
     golang.org/x/tools                                       v0.0.0-20200522201501-cb1345f3a375         3-clause BSD license
@@ -202,26 +202,21 @@ libraries:
     GitPython          3.1.11     3-clause BSD license
     Jinja2             2.11.2     3-clause BSD license
     MarkupSafe         1.1.1      3-clause BSD license
-    PyJWT              1.7.1      MIT license
     PyYAML             5.3.1      MIT license
     Werkzeug           1.0.1      3-clause BSD license
-    adal               1.2.5      MIT license
     appdirs            1.4.4      MIT license
     attrs              19.3.0     MIT license
     cachetools         4.1.1      MIT license
     certifi            2020.6.20  Mozilla Public License 2.0
-    cffi               1.14.3     MIT license
     chardet            3.0.4      GNU Lesser General Public License Version 2.1
     click              7.1.2      3-clause BSD license
     clize              4.1.1      MIT license
     colorama           0.4.3      3-clause BSD license
     contextlib2        0.6.0      Python Software Foundation license
     coverage           5.3        Apache License 2.0
-    cryptography       3.2        Apache License 2.0
     decorator          4.4.2      2-clause BSD license
     distlib            0.3.0      Python Software Foundation license
     distro             1.5.0      Apache License 2.0
-    docopt             0.6.2      MIT license
     docutils           0.16       2-clause BSD license, GNU General Public License Version 3, Python Software Foundation license, public domain
     dpath              2.0.1      MIT license
     durationpy         0.5        MIT license
@@ -233,12 +228,11 @@ libraries:
     idna               2.7        3-clause BSD license, Python Software Foundation license, Unicode License Agreement for Data Files and Software (2015)
     iniconfig          1.1.1      MIT license
     itsdangerous       1.1.0      3-clause BSD license
-    jsonpatch          1.26       3-clause BSD license
+    jsonpatch          1.30       3-clause BSD license
     jsonpointer        2.0        3-clause BSD license
     jsonschema         3.2.0      MIT license
-    jwt                1.1.0      Apache License 2.0
     k8s-proto          0.0.3      Apache License 2.0
-    kubernetes         8.0.0      Apache License 2.0
+    kubernetes         9.0.0      Apache License 2.0
     lockfile           0.12.2     MIT license
     msgpack            1.0.0      Apache License 2.0
     mypy               0.790      MIT license
@@ -253,25 +247,23 @@ libraries:
     pip-tools          5.3.1      3-clause BSD license
     pluggy             0.13.1     MIT license
     progress           1.5        ISC license
-    prometheus-client  0.8.0      Apache License 2.0
+    prometheus-client  0.9.0      Apache License 2.0
     protobuf           3.13.0     3-clause BSD license
     ptyprocess         0.6.0      ISC license
     py                 1.9.0      MIT license
     pyasn1             0.4.8      2-clause BSD license
     pyasn1-modules     0.2.8      2-clause BSD license
-    pycparser          2.20       3-clause BSD license
     pyparsing          2.4.7      MIT license
     pyrsistent         0.17.3     MIT license
     pytest             6.1.2      MIT license
     pytest-cov         2.10.1     MIT license
     python-dateutil    2.8.1      3-clause BSD license, Apache License 2.0
     pytoml             0.1.21     MIT license
-    requests           2.20.1     Apache License 2.0
+    requests           2.25.1     Apache License 2.0
     requests-oauthlib  1.3.0      ISC license
     retry              0.9.2      Apache License 2.0
     retrying           1.3.3      Apache License 2.0
     rsa                4.6        Apache License 2.0
-    scout.py           0.5.0      Apache License 2.0
     semantic-version   2.8.5      2-clause BSD license
     sigtools           2.0.2      MIT license
     six                1.15.0     MIT license

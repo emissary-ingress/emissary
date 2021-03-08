@@ -23,6 +23,8 @@ type SecretRef struct {
 // The snapshot type represents a complete configuration snapshot as sent to
 // diagd.
 type Snapshot struct {
+	// meta information to identify the ambassador
+	AmbassadorMeta *AmbassadorMetaInfo
 	// The Kubernetes field contains all the ambassador inputs from kubernetes.
 	Kubernetes *KubernetesSnapshot
 	// The Consul field contains endpoint data for any mappings setup to use a
@@ -39,14 +41,19 @@ type Snapshot struct {
 	Raw     json.RawMessage `json:"-"`
 }
 
+type AmbassadorMetaInfo struct {
+	ClusterID         string `json:"cluster_id"`
+	AmbassadorID      string `json:"ambassador_id"`
+	AmbassadorVersion string `json:"ambassador_version"`
+	KubeVersion       string `json:"kube_version"`
+}
+
 type KubernetesSnapshot struct {
 	// k8s resources
 	IngressClasses []*kates.IngressClass `json:"ingressclasses"`
 	Ingresses      []*kates.Ingress      `json:"ingresses"`
 	Services       []*kates.Service      `json:"service"`
-
-	K8sEndpoints []*kates.Endpoints `json:"-"`         // Endpoints from Kubernetes
-	Endpoints    []*kates.Endpoints `json:"Endpoints"` // Endpoints we'll actually feed to Ambassador
+	Endpoints      []*kates.Endpoints    `json:"Endpoints"`
 
 	// ambassador resources
 	Hosts       []*amb.Host       `json:"Host"`
@@ -78,6 +85,12 @@ type KubernetesSnapshot struct {
 	Secrets    []*kates.Secret             `json:"secret"` // Secrets we'll feed to Ambassador
 
 	Annotations []kates.Object `json:"-"`
+
+	// this is only for the saas app agent com and ambassador agent to communicate about service
+	// backends. yes, i know this isn't an ambassador input techinically, but putting this here
+	// makes things _much_ easier when giving the mothership (aka saas app's agent com) a single
+	// source of the state of the cluster
+	Pods []*kates.Pod `json:"Pods,omitempty"`
 }
 
 func (a *KubernetesSnapshot) Render() string {

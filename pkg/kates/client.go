@@ -186,11 +186,12 @@ func NewRESTMapper(config *ConfigFlags) (meta.RESTMapper, discovery.CachedDiscov
 	return expander, cachedDiscoveryClient, nil
 }
 
-// This is how client-go figures out if it is inside a cluster (from
-// client-go/tools/clientcmd/client_config.go), we don't use it right
-// now, but it might prove useful in the future if we want to choose a
-// different caching strategy when we are inside the cluster.
-func inCluster() bool {
+// The InCluster function returns true if the process is running inside a kubernetes cluster, and
+// false if it is running outside the cluster. This is determined by heuristics, however it uses the
+// exact same heuristics as client-go does. This is copied from
+// (client-go/tools/clientcmd/client_config.go), as it is not publically invocable in its original
+// place. This should be re-copied if the original code changes.
+func InCluster() bool {
 	fi, err := os.Stat("/var/run/secrets/kubernetes.io/serviceaccount/token")
 	return os.Getenv("KUBERNETES_SERVICE_HOST") != "" &&
 		os.Getenv("KUBERNETES_SERVICE_PORT") != "" &&

@@ -17,6 +17,8 @@ from typing import Dict, List, Union, TYPE_CHECKING
 
 from ...cache import Cacheable
 from ...ir.ircluster import IRCluster
+from ...config import Config
+
 
 from .v2tls import V2TLSContext
 
@@ -46,30 +48,48 @@ class V2Cluster(Cacheable):
         assert(cluster.envoy_name)
         assert(len(cluster.envoy_name) <= 60)
 
+        cmap_entry = cluster.clustermap_entry()
+        if Config.legacy_mode or (cmap_entry['kind'] == 'KubernetesServiceResolver'):
+            ctype = cluster.type.upper()
+        else:
+            ctype = 'EDS'
+
         fields = {
             'name': cluster.envoy_name,
-            'type': cluster.type.upper(),
+            'type': ctype,
             'lb_policy': cluster.lb_type.upper(),
             'connect_timeout':"%0.3fs" % (float(cluster.connect_timeout_ms) / 1000.0),
-            'load_assignment': {
+            'dns_lookup_family': dns_lookup_family
+        }
+
+        if ctype == 'EDS':
+            fields['eds_cluster_config'] = { 'eds_config': {'ads': {}},
+                                             'service_name': cmap_entry['endpoint_path']}
+        else:
+            fields['load_assignment'] = {
                 'cluster_name': cluster.envoy_name,
                 'endpoints': [
                     {
                         'lb_endpoints': self.get_endpoints(cluster)
                     }
                 ]
-            },
-            'dns_lookup_family': dns_lookup_family
-        }
+            }
 
         if cluster.cluster_idle_timeout_ms:
             cluster_idle_timeout_ms = cluster.cluster_idle_timeout_ms
         else:
             cluster_idle_timeout_ms = cluster.ir.ambassador_module.get('cluster_idle_timeout_ms', None)
         if cluster_idle_timeout_ms:
-            fields['common_http_protocol_options'] = {
-                'idle_timeout': "%0.3fs" % (float(cluster_idle_timeout_ms) / 1000.0)
-            }
+            common_http_options = self.setdefault("common_http_protocol_options", {})
+            common_http_options['idle_timeout'] = "%0.3fs" % (float(cluster_idle_timeout_ms) / 1000.0)
+
+        if cluster.cluster_max_connection_lifetime_ms:
+            cluster_max_connection_lifetime_ms = cluster.cluster_max_connection_lifetime_ms
+        else:
+            cluster_max_connection_lifetime_ms = cluster.ir.ambassador_module.get('cluster_max_connection_lifetime_ms', None)
+        if cluster_max_connection_lifetime_ms:
+            common_http_options = self.setdefault("common_http_protocol_options", {})
+            common_http_options['max_connection_duration'] = "%0.3fs" % (float(cluster_max_connection_lifetime_ms) / 1000.0)
 
         circuit_breakers = self.get_circuit_breakers(cluster)
         if circuit_breakers is not None:

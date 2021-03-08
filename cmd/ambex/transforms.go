@@ -1,14 +1,19 @@
 package ambex
 
 import (
+	"context"
 	"fmt"
 
 	api "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
+	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
 	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
+	v2endpoint "github.com/datawire/ambassador/pkg/api/envoy/api/v2/endpoint"
 	listener "github.com/datawire/ambassador/pkg/api/envoy/api/v2/listener"
 	http "github.com/datawire/ambassador/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
+	ctypes "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/resource/v2"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/wellknown"
+	"github.com/datawire/dlib/dlog"
 	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/protobuf/proto"
 )
@@ -155,4 +160,45 @@ func ListenerToRdsListener(lnr *api.Listener) (*api.Listener, []*api.RouteConfig
 	}
 
 	return l, routes, nil
+}
+
+// JoinEdsClusters will perform an outer join operation between the eds clusters in the supplied
+// clusterlist and the eds endpoint data in the supplied map. It will return a slice of
+// ClusterLoadAssignments (cast to []ctypes.Resource) with endpoint data for all the eds clusters in
+// the supplied list. If there is no map entry for a given cluster, an empty ClusterLoadAssignment
+// will be synthesized. The result is a set of endpoints that are consistent (by the
+// go-control-plane's definition of consistent) with the input clusters.
+func JoinEdsClusters(ctx context.Context, clusters []ctypes.Resource, edsEndpoints map[string]*v2.ClusterLoadAssignment) (endpoints []ctypes.Resource) {
+	for _, clu := range clusters {
+		c := clu.(*v2.Cluster)
+		// Don't mess with non EDS clusters.
+		if c.EdsClusterConfig == nil {
+			continue
+		}
+
+		// By default envoy will use the cluster name to lookup ClusterLoadAssignments unless the
+		// ServiceName is supplied in the EdsClusterConfig.
+		ref := c.EdsClusterConfig.ServiceName
+		if ref == "" {
+			ref = c.Name
+		}
+
+		var source string
+		ep, ok := edsEndpoints[ref]
+		if ok {
+			source = "found"
+		} else {
+			ep = &v2.ClusterLoadAssignment{
+				ClusterName: ref,
+				Endpoints:   []*v2endpoint.LocalityLbEndpoints{},
+			}
+			source = "synthesized"
+			dlog.Warnf(ctx, "no endpoints for cluster %s", c.Name)
+		}
+
+		dlog.Debugf(ctx, "%s ClusterLoadAssignment for cluster %s: %v", source, c.Name, ep)
+		endpoints = append(endpoints, ep)
+	}
+
+	return
 }

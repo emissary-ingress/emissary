@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
@@ -44,10 +44,38 @@ func newFromGVK(gvk schema.GroupVersionKind) (Object, error) {
 	}
 }
 
+// NewObjectFromUnstructured will construct a new specialized object based on the runtime schema
+// ambassador uses. This gaurantees any types defined by or used by ambassador will be constructed
+// as the proper golang type.
+func NewObjectFromUnstructured(unstructured *Unstructured) (Object, error) {
+	if unstructured == nil {
+		return nil, nil
+	}
+
+	gvk := unstructured.GetObjectKind().GroupVersionKind()
+
+	obj, err := newFromGVK(gvk)
+	if err != nil {
+		return nil, err
+	}
+	err = convert(unstructured, &obj)
+	if err != nil {
+		return nil, err
+	}
+
+	return obj, nil
+}
+
 func NewUnstructured(kind, version string) *Unstructured {
 	uns := &Unstructured{}
 	uns.SetGroupVersionKind(schema.FromAPIVersionAndKind(version, kind))
 	return uns
+}
+
+// Convert a potentially typed Object to an *Unstructured object.
+func NewUnstructuredFromObject(obj Object) (result *Unstructured, err error) {
+	err = convert(obj, &result)
+	return
 }
 
 func ParseManifests(text string) ([]Object, error) {

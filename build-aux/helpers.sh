@@ -44,7 +44,7 @@ curl_retry() (
     echo "abort status codes ${abort_status_codes}"
     shift 1
     while [ "${retry_count}" -lt 0 ] || [ "$tries" -lt "${retry_count}" ] ; do
-        local code=$(curl --retry 100 --retry-connrefused -skL -w "%{http_code}" "$@")
+        local code=$(curl --retry 100 --max-time 120 --retry-connrefused -skL -w "%{http_code}" "$@")
         local curlStatus="$?"
         echo $curlStatus
         if [ "$curlStatus" -ne "56" ] && [ "$curlStatus" -ne "18" ] ; then

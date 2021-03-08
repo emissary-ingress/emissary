@@ -15,7 +15,7 @@
 # limitations under the License
 
 from builtins import bytes
-from typing import Any, Dict, List, Optional, TextIO, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Union, TextIO, TYPE_CHECKING
 
 import binascii
 import hashlib
@@ -150,11 +150,18 @@ def load_url_contents(logger: logging.Logger, url: str, stream2: Optional[TextIO
         return None
 
 
-def parse_bool(s: Optional[str]) -> bool:
+def parse_bool(s: Optional[Union[str, bool]]) -> bool:
     """ 
     Parse a boolean value from a string. T, True, Y, y, 1 return True;
     other things return False.
     """
+
+    # If `s` is already a bool, return its value.
+    #
+    # This allows a caller to not know or care whether their value is already
+    # a boolean, or if it is a string that needs to be parsed below.
+    if isinstance(s, bool):
+        return s
 
     # If we didn't get anything at all, return False.
     if not s:

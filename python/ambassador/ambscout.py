@@ -9,9 +9,8 @@ import os
 
 import semantic_version
 
+from .scout import Scout
 from .utils import parse_json, dump_json
-
-from scout import Scout
 
 # Import version stuff directly from ambassador.VERSION to avoid a circular import.
 from .VERSION import Version, Build, BuildInfo
@@ -126,7 +125,7 @@ class AmbScout:
                             self._scout_error if self._scout_error else "OK"))
 
     @property
-    def scout(self) -> Optional[Scout]:
+    def scout(self) -> Optional[Union[Scout, LocalScout]]:
         if not self._scout:
             if self._local_only:
                 self._scout = LocalScout(logger=self.logger,
