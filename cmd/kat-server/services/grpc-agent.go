@@ -99,7 +99,6 @@ func main() {
 
 type director struct {
 	agent.UnimplementedDirectorServer
-	connected    int64
 	lastSnapshot *agent.Snapshot
 }
 
