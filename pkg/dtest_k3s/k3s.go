@@ -14,7 +14,6 @@ import (
 )
 
 const scope = "dtest"
-const prefix = "DTEST"
 const disableLogging = true
 
 func lines(str string) []string {
