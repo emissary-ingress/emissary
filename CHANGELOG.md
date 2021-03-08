@@ -5,6 +5,13 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+
+## v6.5.21
+
+- Update Ambassador to version 1.12.0: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+- Feature: Add support for the ambassador-agent, reporting to Service Catalog (https://app.getambassador.io)
+- Feature: All services are automatically instrumented with discovery annotations.
+
 ## v6.5.20
 
 - Update Ambassador to version v1.11.2: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
