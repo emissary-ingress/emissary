@@ -1,4 +1,4 @@
-{{- if .Values.agent.enabled }}
+{{- if and .Values.agent.enabled .Values.enableAES }}
 ---
 apiVersion: v1
 kind: ServiceAccount
