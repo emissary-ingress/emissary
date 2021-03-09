@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/datawire/ambassador/cmd/ambex"
 	"github.com/datawire/ambassador/cmd/entrypoint"
 	envoy "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
 	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
@@ -156,6 +157,14 @@ func TestFakeHelloConsul(t *testing.T) {
 	// Now let's supply the endpoint data for the hello service referenced by our hello mapping.
 	f.ConsulEndpoint("dc1", "hello", "1.2.3.4", 8080)
 	f.Flush()
+	// The Fake harness also tracks endpoints that get sent to ambex. We can use the GetEndpoints()
+	// method to access them and check to see that the endpoint we supplied got delivered to ambex.
+	endpoints := f.GetEndpoints(func(endpoints *ambex.Endpoints) bool {
+		_, ok := endpoints.Entries["consul/dc1/hello"]
+		return ok
+	})
+	assert.Len(t, endpoints.Entries, 1)
+	assert.Equal(t, "1.2.3.4", endpoints.Entries["consul/dc1/hello"][0].Ip)
 
 	// Grab the next snapshot that has mappings.
 	snap := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
@@ -190,20 +199,17 @@ func TestFakeHelloConsul(t *testing.T) {
 		return FindCluster(envoy, isHelloCluster) != nil
 	})
 
-	// Now let's check that it has the IP address we supplied in the consul data.
-	//
-	// Note: This is admittedly quite verbose as envoy configuration is very dense. I expect we will
-	// introduce an API that will provide a more abstract and convenient way of navigating envoy
-	// configuration, however that will be covered in a future PR. The core of that logic is already
-	// developing inside ambex since ambex slices and dices the envoy config in order to implement
-	// RDS and enpdoint routing.
+	// Now let's check that the cluster produced properly references the endpoints that have already
+	// arrived at ambex.
 	cluster := FindCluster(envoyConfig, isHelloCluster)
-	endpoints := cluster.LoadAssignment.Endpoints
-	require.NotEmpty(t, endpoints)
-	lbEndpoints := endpoints[0].LbEndpoints
-	require.NotEmpty(t, lbEndpoints)
-
-	endpoint := lbEndpoints[0].GetEndpoint()
-	address := endpoint.Address.GetSocketAddress().Address
-	assert.Equal(t, "1.2.3.4", address)
+	// It uses the consul resolver, so it should not embed the load assignment directly.
+	assert.Nil(t, cluster.LoadAssignment)
+	// It *should* have an EdsConfig.
+	edsConfig := cluster.GetEdsClusterConfig()
+	require.NotNil(t, edsConfig)
+	// The EdsConfig *should* reference an endpoint.
+	eps := endpoints.Entries[edsConfig.ServiceName]
+	require.Len(t, eps, 1)
+	// The endpoint it references *should* have our supplied ip address.
+	assert.Equal(t, "1.2.3.4", eps[0].Ip)
 }

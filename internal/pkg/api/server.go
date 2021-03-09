@@ -11,11 +11,16 @@ import (
 	"github.com/datawire/ambassador/internal/pkg/dns"
 	"github.com/datawire/ambassador/internal/pkg/interceptor"
 	"github.com/datawire/ambassador/internal/pkg/route"
+
+	"github.com/datawire/dlib/dhttp"
 )
 
 type APIServer struct {
 	listener net.Listener
-	server   http.Server
+	config   dhttp.ServerConfig
+
+	stop context.CancelFunc
+	done <-chan error
 }
 
 func NewAPIServer(iceptor *interceptor.Interceptor) (*APIServer, error) {
@@ -85,7 +90,7 @@ func NewAPIServer(iceptor *interceptor.Interceptor) (*APIServer, error) {
 
 	return &APIServer{
 		listener: ln,
-		server: http.Server{
+		config: dhttp.ServerConfig{
 			Handler: handler,
 		},
 	}, nil
@@ -100,17 +105,19 @@ func (a *APIServer) Port() string {
 }
 
 func (a *APIServer) Start() {
+	ctx, cancel := context.WithCancel(context.TODO())
+	ch := make(chan error)
+	a.stop = cancel
+	a.done = ch
 	go func() {
-		if err := a.server.Serve(a.listener); err != http.ErrServerClosed {
-			// Error starting or closing listener:
-			log.Printf("API Server: %v", err)
-		}
+		ch <- a.config.Serve(ctx, a.listener)
+		close(ch)
 	}()
 }
 
 func (a *APIServer) Stop() {
-	if err := a.server.Shutdown(context.Background()); err != nil {
-		// Error from closing listeners, or context timeout:
-		log.Printf("API Server Shutdown: %v", err)
+	a.stop()
+	if err := <-a.done; err != nil {
+		log.Printf("API Server: %v", err)
 	}
 }

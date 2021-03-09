@@ -1,27 +1,31 @@
 package services
 
 import (
+	// stdlib
 	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
-
-	// "os"
 	"strconv"
 	"strings"
 
+	// third party
+	"github.com/golang/protobuf/ptypes/wrappers"
+	"google.golang.org/genproto/googleapis/rpc/code"
+	"google.golang.org/genproto/googleapis/rpc/status"
+	"google.golang.org/grpc"
+
+	// first party (protobuf)
 	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
 	pb "github.com/datawire/ambassador/pkg/api/envoy/service/auth/v2"
 	pb_legacy "github.com/datawire/ambassador/pkg/api/envoy/service/auth/v2alpha"
 	envoy_type "github.com/datawire/ambassador/pkg/api/envoy/type"
 
-	"github.com/golang/protobuf/ptypes/wrappers"
-	"google.golang.org/genproto/googleapis/rpc/code"
-	"google.golang.org/genproto/googleapis/rpc/status"
-	"google.golang.org/grpc"
+	// first party
+	"github.com/datawire/dlib/dgroup"
+	"github.com/datawire/dlib/dhttp"
 )
 
 // GRPCAUTH server object (all fields are required).
@@ -39,61 +43,42 @@ type GRPCAUTH struct {
 func (g *GRPCAUTH) Start() <-chan bool {
 	log.Printf("GRPCAUTH: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
-	exited := make(chan bool)
-	proto := "tcp"
+	grpcHandler := grpc.NewServer()
+	if g.ProtocolVersion != "v2" {
+		log.Printf("registering v2alpha service")
+		pb_legacy.RegisterAuthorizationServer(grpcHandler, g)
+	} else {
+		log.Printf("registering v2 service")
+		pb.RegisterAuthorizationServer(grpcHandler, g)
+	}
 
-	go func() {
-		port := fmt.Sprintf(":%v", g.Port)
+	cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-		ln, err := net.Listen(proto, port)
-		if err != nil {
-			log.Fatal()
-		}
+	sc := &dhttp.ServerConfig{
+		Handler: grpcHandler,
+		TLSConfig: &tls.Config{
+			Certificates: []tls.Certificate{cer},
+		},
+	}
 
-		s := grpc.NewServer()
-		if g.ProtocolVersion != "v2" {
-			log.Printf("registering v2alpha service")
-			pb_legacy.RegisterAuthorizationServer(s, g)
-		} else {
-			log.Printf("registering v2 service")
-			pb.RegisterAuthorizationServer(s, g)
-		}
-		s.Serve(ln)
-
-		defer ln.Close()
-		close(exited)
-	}()
-
-	go func() {
-		cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
-		if err != nil {
-			log.Fatal(err)
-			return
-		}
-
-		config := &tls.Config{Certificates: []tls.Certificate{cer}}
-		port := fmt.Sprintf(":%v", g.SecurePort)
-		ln, err := tls.Listen(proto, port, config)
-		if err != nil {
-			log.Fatal(err)
-			return
-		}
-
-		s := grpc.NewServer()
-		if g.ProtocolVersion != "v2" {
-			log.Printf("registering v2alpha service")
-			pb_legacy.RegisterAuthorizationServer(s, g)
-		} else {
-			log.Printf("registering v2 service")
-			pb.RegisterAuthorizationServer(s, g)
-		}
-		s.Serve(ln)
-
-		defer ln.Close()
-		close(exited)
-	}()
+	grp := dgroup.NewGroup(context.TODO(), dgroup.GroupConfig{})
+	grp.Go("cleartext", func(ctx context.Context) error {
+		return sc.ListenAndServe(ctx, fmt.Sprintf(":%v", g.Port))
+	})
+	grp.Go("tls", func(ctx context.Context) error {
+		return sc.ListenAndServeTLS(ctx, fmt.Sprintf(":%v", g.SecurePort), "", "")
+	})
 
 	log.Print("starting gRPC authorization service")
+
+	exited := make(chan bool)
+	go func() {
+		log.Fatal(grp.Wait())
+		close(exited)
+	}()
 	return exited
 }
 

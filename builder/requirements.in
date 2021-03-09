@@ -1,31 +1,26 @@
 # Runtime requirements
-attrs==19.3.0
-requests==2.20.1
+# Keep these sorted for the sake of everyone's sanity.
+
+click==7.1.2
 clize==4.1.1
-cryptography==3.2
+durationpy==0.5
+expiringdict==1.2.1
 flask==1.1.2
 gunicorn==20.0.4
-jinja2==2.11.2
+jsonpatch==1.30
 jsonschema==3.2.0
-jwt==1.1.0
 k8s-proto==0.0.3
-scout.py==0.5.0
+kubernetes==9.0.0
+prometheus_client==0.9.0
+pyyaml==5.3.1
+requests==2.25.1
 semantic-version==2.8.5
-kubernetes==8.0.0
-click==7.1.2
-jsonpatch==1.26
-expiringdict==1.2.1
-durationpy==0.5
-prometheus_client==0.8.0
 
 # Dev requirements
-gitpython
-docopt
-pytest
-pytest-cov
 dpath
+gitpython
 mypy
 pexpect
 pytest
-pyyaml==5.3.1
+pytest-cov
 retry

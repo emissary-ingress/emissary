@@ -92,6 +92,7 @@ class AmbassadorTest(Test):
     path: Name
     extra_ports: Optional[List[int]] = None
     debug_diagd: bool = True
+    debug_envoy: bool = False
     manifest_envs = ""
     is_ambassador = True
     allow_edge_stack_redirect = False
@@ -119,11 +120,16 @@ class AmbassadorTest(Test):
       value: "true"
 """
 
+        amb_debug = []
         if self.debug_diagd:
+            amb_debug.append("diagd")
+        if self.debug_envoy:
+            amb_debug.append("envoy")
+        if amb_debug:
             self.manifest_envs += """
     - name: AMBASSADOR_DEBUG
-      value: "diagd"
-"""
+      value: "%s"
+""" % ":".join(amb_debug)
 
         if self.ambassador_id:
             self.manifest_envs += f"""
@@ -282,8 +288,13 @@ class AmbassadorTest(Test):
         if self.disable_endpoints:
             envs.append("AMBASSADOR_DISABLE_ENDPOINTS=yes")
 
+        amb_debug = []
         if self.debug_diagd:
-            envs.append("AMBASSADOR_DEBUG=diagd")
+            amb_debug.append("diagd")
+        if self.debug_envoy:
+            amb_debug.append("envoy")
+        if amb_debug:
+            envs.append("AMBASSADOR_DEBUG=%s" % ":".join(amb_debug))
 
         envs.extend(self.env)
         [command.extend(["-e", env]) for env in envs]

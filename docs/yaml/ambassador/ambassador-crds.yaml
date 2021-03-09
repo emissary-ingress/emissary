@@ -790,6 +790,8 @@ spec:
               type: array
             cluster_idle_timeout_ms:
               type: integer
+            cluster_max_connection_lifetime_ms:
+              type: integer
             cluster_tag:
               type: string
             connect_timeout_ms:
@@ -1055,6 +1057,7 @@ spec:
             shadow:
               type: boolean
             timeout_ms:
+              description: The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
               type: integer
             tls:
               oneOf:

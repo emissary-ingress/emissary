@@ -67,12 +67,12 @@ func GetInterestingTypes(ctx context.Context, serverTypeList []kates.APIResource
 	// Most of the interestingTypes are static, but it's completely OK to add types based
 	// on runtime considerations, as we do for IngressClass and the KNative stuff.
 	interestingTypes := map[string]thingToWatch{
-		"Services": {typename: "services."},
-		// Note that we pull secrets into "K8sSecrets" and endpoints into "K8sEndpoints".
-		// ReconcileSecrets and ReconcileEndpoints pull over the ones we need into "Secrets"
+		"Services":  {typename: "services."},
+		"Endpoints": {typename: "endpoints.", fieldselector: endpointFs},
+		// Note that we pull secrets into "K8sSecrets".
+		// ReconcileSecrets will pull over the ones we need into "Secrets"
 		// and "Endpoints" respectively.
-		"K8sSecrets":   {typename: "secrets."},
-		"K8sEndpoints": {typename: "endpoints.", fieldselector: endpointFs},
+		"K8sSecrets": {typename: "secrets."},
 
 		//"Ingresses": {typename: "ingresses.networking.k8s.io"}, // new in Kubernetes 1.14, deprecating ingresses.extensions
 		"Ingresses": {typename: "ingresses.extensions"}, // new in Kubernetes 1.2

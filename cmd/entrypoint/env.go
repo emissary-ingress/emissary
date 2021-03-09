@@ -155,7 +155,7 @@ func GetEnvoyFlags() []string {
 		result = append(result, "--drain-time-s", env("AMBASSADOR_DRAIN_TIME", "600"))
 	}
 	if isDebug("envoy") {
-		result = append(result, "-l", "debug")
+		result = append(result, "-l", "trace")
 	} else {
 		result = append(result, "-l", "error")
 	}

@@ -242,7 +242,6 @@ bootstrap() {
             --group-add="${DOCKER_GID}" \
             --detach \
             --rm \
-            -e GOPRIVATE="${GOPRIVATE:-github.com/datawire/aes-ratelimit}" \
             --volume=/var/run/docker.sock:/var/run/docker.sock \
             --volume="$(builder_volume):/home/dw" \
             ${BUILDER_MOUNTS} \
@@ -254,6 +253,7 @@ bootstrap() {
             ${BUILDER_PORTMAPS} \
             ${BUILDER_DOCKER_EXTRA} \
             --env=BUILDER_NAME="${BUILDER_NAME}" \
+            --env=GOPRIVATE="${GOPRIVATE}" \
             --entrypoint=tail ${BUILDER_NAME}.local/builder -f /dev/null > /dev/null
         echo_off
 

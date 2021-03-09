@@ -46,6 +46,7 @@ class IRCluster (IRResource):
                  resolver: Optional[str] = None,
                  connect_timeout_ms: Optional[int] = 3000,
                  cluster_idle_timeout_ms: Optional[int] = None,
+                 cluster_max_connection_lifetime_ms: Optional[int] = None,
                  marker: Optional[str] = None,  # extra marker for this context name
 
                  ctx_name: Optional[Union[str, bool]]=None,
@@ -282,6 +283,7 @@ class IRCluster (IRResource):
             'enable_endpoints': enable_endpoints,
             'connect_timeout_ms': connect_timeout_ms,
             'cluster_idle_timeout_ms': cluster_idle_timeout_ms,
+            'cluster_max_connection_lifetime_ms': cluster_max_connection_lifetime_ms,
         }
 
         if grpc:
@@ -331,9 +333,12 @@ class IRCluster (IRResource):
         # Resolve our actual targets.
         targets = ir.resolve_targets(self, self._resolver, self._hostname, self._namespace, self._port)
 
-        if targets:
+        if targets or not Config.legacy_mode:
             # Great.
             self.targets = targets
+
+            if not targets:
+                self.ir.logger.debug("accepting cluster with no endpoints: %s" % self.name)
         else:
             self.post_error("no endpoints found, disabling cluster")
 
@@ -371,7 +376,7 @@ class IRCluster (IRResource):
         mismatches = []
 
         for key in [ 'type', 'lb_type', 'host_rewrite',
-                     'tls_context', 'originate_tls', 'grpc', 'connect_timeout_ms', 'cluster_idle_timeout_ms' ]:
+                     'tls_context', 'originate_tls', 'grpc', 'connect_timeout_ms', 'cluster_idle_timeout_ms', 'cluster_max_connection_lifetime_ms' ]:
             if self.get(key, None) != other.get(key, None):
                 mismatches.append(key)
 
@@ -389,7 +394,10 @@ class IRCluster (IRResource):
 
         if other.targets:
             self.referenced_by(other)
-            self.targets += other.targets
+            if self.targets == None:
+                self.targets = other.targets
+            else:
+                self.targets = typecast(List[Dict[str, Union[int, str]]], self.targets) + other.targets
 
         return True
 

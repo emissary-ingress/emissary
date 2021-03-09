@@ -63,21 +63,23 @@ type MappingSpec struct {
 	// The response code to use when generating an HTTP redirect. Defaults to 301. Used with
 	// `host_redirect`.
 	// +kubebuilder:validation:Enum={301,302,303,307,308}
-	RedirectResponseCode  *int                    `json:"redirect_response_code,omitempty"`
-	Priority              string                  `json:"priority,omitempty"`
-	Precedence            *int                    `json:"precedence,omitempty"`
-	ClusterTag            string                  `json:"cluster_tag,omitempty"`
-	RemoveRequestHeaders  StringOrStringList      `json:"remove_request_headers,omitempty"`
-	RemoveResponseHeaders StringOrStringList      `json:"remove_response_headers,omitempty"`
-	Resolver              string                  `json:"resolver,omitempty"`
-	Rewrite               *string                 `json:"rewrite,omitempty"`
-	RegexRewrite          map[string]BoolOrString `json:"regex_rewrite,omitempty"`
-	Shadow                *bool                   `json:"shadow,omitempty"`
-	ConnectTimeoutMs      *int                    `json:"connect_timeout_ms,omitempty"`
-	ClusterIdleTimeoutMs  *int                    `json:"cluster_idle_timeout_ms,omitempty"`
-	TimeoutMs             *int                    `json:"timeout_ms,omitempty"`
-	IdleTimeoutMs         *int                    `json:"idle_timeout_ms,omitempty"`
-	TLS                   *BoolOrString           `json:"tls,omitempty"`
+	RedirectResponseCode           *int                    `json:"redirect_response_code,omitempty"`
+	Priority                       string                  `json:"priority,omitempty"`
+	Precedence                     *int                    `json:"precedence,omitempty"`
+	ClusterTag                     string                  `json:"cluster_tag,omitempty"`
+	RemoveRequestHeaders           StringOrStringList      `json:"remove_request_headers,omitempty"`
+	RemoveResponseHeaders          StringOrStringList      `json:"remove_response_headers,omitempty"`
+	Resolver                       string                  `json:"resolver,omitempty"`
+	Rewrite                        *string                 `json:"rewrite,omitempty"`
+	RegexRewrite                   map[string]BoolOrString `json:"regex_rewrite,omitempty"`
+	Shadow                         *bool                   `json:"shadow,omitempty"`
+	ConnectTimeoutMs               *int                    `json:"connect_timeout_ms,omitempty"`
+	ClusterIdleTimeoutMs           *int                    `json:"cluster_idle_timeout_ms,omitempty"`
+	ClusterMaxConnectionLifetimeMs int                     `json:"cluster_max_connection_lifetime_ms,omitempty"`
+	// The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
+	TimeoutMs     *int          `json:"timeout_ms,omitempty"`
+	IdleTimeoutMs *int          `json:"idle_timeout_ms,omitempty"`
+	TLS           *BoolOrString `json:"tls,omitempty"`
 
 	// use_websocket is deprecated, and is equivlaent to setting
 	// `allow_upgrade: ["websocket"]`
