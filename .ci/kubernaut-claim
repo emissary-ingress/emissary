@@ -64,6 +64,9 @@ if [ -n "${KUBECEPTION_TOKEN}" ]; then
     exit
 fi
 
+echo "Kubernaut is no longer supported; halting run"
+exit 1
+
 KUBERNAUT_VERSION=2018.10.24-d46c1f1
 
 set -o errexit
