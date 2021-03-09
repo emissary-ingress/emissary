@@ -394,7 +394,7 @@ func (i *Upgrader) Perform(kcontext string) Result {
 	}
 
 	// Open a browser window to the Edge Policy Console, with a welcome section or modal dialog.
-	if err := edgectl.DoLogin(i.kubeinfo, kcontext, "ambassador", hostName, true, true, false, true); err != nil {
+	if err := edgectl.DoLoginLegacy(i.kubeinfo, kcontext, "ambassador", hostName, true, true, false, true); err != nil {
 		return i.resAESLoginError(err)
 	}
 

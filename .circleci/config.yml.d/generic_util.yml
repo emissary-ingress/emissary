@@ -46,11 +46,11 @@ commands:
           command: |
             set -x
             if [[ $OS == Windows_NT ]]; then
-              curl https://dl.google.com/go/go<< parameters.version >>.windows-amd64.zip -o /tmp/go.zip
+              curl --retry 5 --retry-delay 5 https://dl.google.com/go/go<< parameters.version >>.windows-amd64.zip -o /tmp/go.zip
               mv /c/go /c/go-112
               unzip -q /tmp/go.zip -d /c/
             else
-              curl https://dl.google.com/go/go<< parameters.version >>.$(uname -s | tr A-Z a-z)-amd64.tar.gz -o /tmp/go.tar.gz
+              curl --retry 5 --retry-delay 5 https://dl.google.com/go/go<< parameters.version >>.$(uname -s | tr A-Z a-z)-amd64.tar.gz -o /tmp/go.tar.gz
               tar -C /tmp -xzf /tmp/go.tar.gz
               echo 'export PATH=/tmp/go/bin:$PATH' >> "$BASH_ENV"
               if [ -z "$(/tmp/go/bin/go env GOPROXY)" ]; then
@@ -69,7 +69,7 @@ commands:
       - run:
           name: "Install kubectl << parameters.version >>"
           command: |
-            curl -L --fail -o /tmp/kubectl https://storage.googleapis.com/kubernetes-release/release/v<< parameters.version >>/bin/$(uname -s | tr A-Z a-z)/amd64/kubectl
+            curl --retry 5 --retry-delay 5 -L --fail -o /tmp/kubectl https://storage.googleapis.com/kubernetes-release/release/v<< parameters.version >>/bin/$(uname -s | tr A-Z a-z)/amd64/kubectl
             sudo install /tmp/kubectl /usr/local/bin/kubectl
 
   "install-yarn":
@@ -77,7 +77,7 @@ commands:
       - run:
           name: "Install Yarn"
           command: |
-            curl -o- -L https://yarnpkg.com/install.sh | bash
+            curl --retry 5 --retry-delay 5 -o- -L https://yarnpkg.com/install.sh | bash
             echo 'PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> "$BASH_ENV"
 
   "install-python":

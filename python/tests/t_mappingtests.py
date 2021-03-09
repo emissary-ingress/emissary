@@ -4,6 +4,8 @@ from abstract_tests import AmbassadorTest, HTTP
 from abstract_tests import MappingTest, OptionTest, ServiceType
 from kat.utils import namespace_manifest
 
+from ambassador.constants import Constants
+
 # This is the place to add new MappingTests.
 
 
@@ -239,6 +241,48 @@ host: inspector.external
         yield Query(self.parent.url(self.name + "/"), expected=404)
         yield Query(self.parent.url(self.name + "/"), headers={"Host": "inspector.internal"}, expected=404)
         yield Query(self.parent.url(self.name + "/"), headers={"Host": "inspector.external"})
+        # Test that a host header with a port value that does match the listener's configured port is not
+        # stripped for the purpose of routing, so it does not match the Mapping. This is the default behavior,
+        # and can be overridden using `strip_matching_host_port`, tested below.
+        yield Query(self.parent.url(self.name + "/"), headers={"Host": "inspector.external:" + str(Constants.SERVICE_PORT_HTTP)}, expected=404)
+
+# This has to be an `AmbassadorTest` because we're going to set up a Module that
+# needs to apply to just this test. If this were a MappingTest, then the Module
+# would apply to all other MappingTest's and we don't want that.
+class HostHeaderMappingStripMatchingHostPort(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v2
+kind:  Module
+name:  ambassador
+config:
+  strip_matching_host_port: true
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: http://{self.target.path.fqdn}
+host: myhostname.com
+""")
+
+    def queries(self):
+        # Sanity test that a missing or incorrect hostname does not route, and it does route with a correct hostname.
+        yield Query(self.url(self.name + "/"), expected=404)
+        yield Query(self.url(self.name + "/"), headers={"Host": "yourhostname.com"}, expected=404)
+        yield Query(self.url(self.name + "/"), headers={"Host": "myhostname.com"})
+        # Test that a host header with a port value that does match the listener's configured port is correctly
+        # stripped for the purpose of routing, and matches the mapping.
+        yield Query(self.url(self.name + "/"), headers={"Host": "myhostname.com:" + str(Constants.SERVICE_PORT_HTTP)})
+        # Test that a host header with a port value that does _not_ match the listener's configured does not have its
+        # port value stripped for the purpose of routing, so it does not match the mapping.
+        yield Query(self.url(self.name + "/"), headers={"Host": "myhostname.com:11875"}, expected=404)
 
 
 class InvalidPortMapping(MappingTest):

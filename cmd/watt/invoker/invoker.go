@@ -1,6 +1,7 @@
 package invoker
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/datawire/ambassador/pkg/tpu"
+	"github.com/datawire/dlib/dhttp"
 )
 
 type invoker struct {
@@ -221,20 +223,13 @@ func (s *apiServer) Work(p *supervisor.Process) error {
 	}
 	p.Ready()
 	p.Logf("snapshot server listening on: %s:%s", s.listenNetwork, s.listenAddress)
-	srv := &http.Server{
+	srv := &dhttp.ServerConfig{
 		Handler: mux,
 	}
-	return p.DoClean(func() error {
-		err := srv.Serve(listener)
-		if err == http.ErrServerClosed {
-			return nil
-		}
-		return err
-	},
-		func() error {
-			return srv.Shutdown(p.Context())
-		})
-
+	ctx, cancel := context.WithCancel(p.Context())
+	return p.DoClean(
+		func() error { return srv.Serve(ctx, listener) },
+		func() error { cancel(); return nil })
 }
 
 func (s *apiServer) index() string {

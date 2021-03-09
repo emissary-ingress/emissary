@@ -256,9 +256,12 @@ class V2Route(Cacheable):
 
             return
 
+        # Take the default `timeout_ms` value from the Ambassador module using `cluster_request_timeout_ms`.
+        # If that isn't set, use 3000ms. The mapping below will override this if its own `timeout_ms` is set.
+        default_timeout_ms = config.ir.ambassador_module.get('cluster_request_timeout_ms', 3000)
         route = {
             'priority': group.get('priority'),
-            'timeout': "%0.3fs" % (mapping.get('timeout_ms', 3000) / 1000.0),
+            'timeout': "%0.3fs" % (mapping.get('timeout_ms', default_timeout_ms) / 1000.0),
             'cluster': mapping.cluster.envoy_name
         }
 

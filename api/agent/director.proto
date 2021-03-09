@@ -19,12 +19,14 @@ service Director {
 }
 
 // How Ambassador's Agent identifies itself to the CEPC
+// This is the identity of the ambassador the agent is reporting on behalf of
+// no user account specific information should be contained in here
 message Identity {
   // The account ID assigned by the CEPC
-  string account_id = 1;
+  string account_id = 1 [deprecated=true];
 
   // Ambassador version
-  string version = 2;
+  string version = 2 [deprecated=true];
 
   // This Ambassador's hostname
   string hostname = 3;
@@ -36,7 +38,7 @@ message Identity {
   string cluster_id = 5;
 
   // Label or description for the user
-  string label = 6;
+  string label = 6 [deprecated=true];
 }
 
 // Information that Ambassador's Agent can send to the Director

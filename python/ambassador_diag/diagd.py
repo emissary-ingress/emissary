@@ -1962,7 +1962,7 @@ class AmbassadorEventWatcher(threading.Thread):
         with open(econf_validation_path, "w") as output:
             output.write(config_json)
 
-        command = ['envoy', '--config-path', econf_validation_path, '--mode', 'validate']
+        command = ['envoy', '--service-node', 'test-id', '--service-cluster', ir.ambassador_nodename, '--config-path', econf_validation_path, '--mode', 'validate']
 
         v_exit = 0
         v_encoded = ''.encode('utf-8')

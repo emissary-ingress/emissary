@@ -81,6 +81,7 @@ class IRHTTPMapping (IRBaseMapping):
         "case_sensitive": False,
         "circuit_breakers": False,
         "cluster_idle_timeout_ms": False,
+        "cluster_max_connection_lifetime_ms": False,
         # Do not include cluster_tag
         "connect_timeout_ms": False,
         "cors": False,

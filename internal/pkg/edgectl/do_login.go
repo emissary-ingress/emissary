@@ -23,7 +23,18 @@ type LoginClaimsV1 struct {
 	jwt.StandardClaims
 }
 
-func DoLogin(kubeinfo *k8s.KubeInfo, context, namespace, hostname string, openInBrowser, showURL, showToken, showWelcome bool) error {
+func DoLogin() error {
+	url := "https://app.getambassador.io/cloud/catalog"
+
+	err := browser.OpenURL(url)
+	if err != nil {
+		fmt.Println("Unexpected error while trying to open your browser.")
+		return errors.Wrap(err, "browse")
+	}
+	return nil
+}
+
+func DoLoginLegacy(kubeinfo *k8s.KubeInfo, context, namespace, hostname string, openInBrowser, showURL, showToken, showWelcome bool) error {
 	restconfig, err := kubeinfo.GetRestConfig()
 	if err != nil {
 		return errors.Wrap(err, "Failed to connect to cluster (rest)")

@@ -10,7 +10,7 @@ import (
 
 	"github.com/datawire/ambassador/pkg/acp"
 	"github.com/datawire/ambassador/pkg/debug"
-	"github.com/datawire/dlib/dutil"
+	"github.com/datawire/dlib/dhttp"
 )
 
 func handleCheckAlive(w http.ResponseWriter, r *http.Request, ambwatch *acp.AmbassadorWatcher) {
@@ -112,9 +112,9 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) er
 		return err
 	}
 
-	s := &http.Server{
+	s := &dhttp.ServerConfig{
 		Handler: sm,
 	}
 
-	return dutil.ServeHTTPWithContext(ctx, s, listener)
+	return s.Serve(ctx, listener)
 }

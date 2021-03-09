@@ -78,6 +78,7 @@ func AESInstall(cmd *cobra.Command, args []string) error {
 	skipReport, _ := cmd.Flags().GetBool("no-report")
 	verbose, _ := cmd.Flags().GetBool("verbose")
 	kcontext, _ := cmd.Flags().GetString("context")
+	cloudConnectToken, _ := cmd.Flags().GetString("cloud-connect-token")
 	i := NewInstaller(verbose)
 
 	// If Scout is disabled (environment variable set to non-null), inform the user.
@@ -118,7 +119,7 @@ func AESInstall(cmd *cobra.Command, args []string) error {
 		Requires: []string{"signal"},
 		Work: func(p *supervisor.Process) error {
 			defer i.Quit()
-			result := i.Perform(kcontext)
+			result := i.Perform(kcontext, cloudConnectToken)
 			i.ShowResult(result)
 			return result.Err
 		},
@@ -361,7 +362,7 @@ func (i *Installer) CreateNamespace() error {
 }
 
 // Perform is the main function for the installer
-func (i *Installer) Perform(kcontext string) Result {
+func (i *Installer) Perform(kcontext, cloudConnectToken string) Result {
 	var err error
 
 	chartValues := map[string]interface{}{}
@@ -476,6 +477,10 @@ func (i *Installer) Perform(kcontext string) Result {
 	if it := os.Getenv(defEnvVarSingleNamespace); it != "" {
 		i.ShowOverridingInstallOption(defEnvVarSingleNamespace, it)
 		strvals.ParseInto(fmt.Sprintf("scope.singleNamespace=%s", it), chartValues)
+	}
+
+	if cloudConnectToken != "" {
+		strvals.ParseInto(fmt.Sprintf("agent.cloudConnectToken=%s", cloudConnectToken), chartValues)
 	}
 
 	// create a new parsed checker for versions
@@ -614,7 +619,7 @@ func (i *Installer) Perform(kcontext string) Result {
 	}
 
 	// Open a browser window to the Edge Policy Console, with a welcome section or modal dialog.
-	if err := edgectl.DoLogin(i.kubeinfo, kcontext, "ambassador", hostName, true, true, false, true); err != nil {
+	if err := edgectl.DoLoginLegacy(i.kubeinfo, kcontext, "ambassador", hostName, true, true, false, true); err != nil {
 		return i.resAESLoginError(err)
 	}
 
