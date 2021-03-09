@@ -74,6 +74,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 [#3224]: https://github.com/datawire/ambassador/issues/3224
 - Feature: Mapping configuration now supports setting `auth_context_extentions` that allows setting the `check_settings` field in the per route configuration supported by `ext_authz` http filter.
 
+- Feature: Add diagnostics.allow_non_local flag to expose admin UI internally only ([#3074])
+
 ## [1.12.1] March 12, 2021
 [1.12.1]: https://github.com/datawire/ambassador/compare/v1.12.0...v1.12.1
 
