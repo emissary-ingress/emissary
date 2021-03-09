@@ -80,7 +80,7 @@ require (
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lib/pq v1.7.0 // indirect
 	github.com/mholt/archiver/v3 v3.3.0
-	github.com/miekg/dns v1.1.6
+	github.com/miekg/dns v1.1.35
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4

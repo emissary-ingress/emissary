@@ -115,7 +115,7 @@ Free and Open Source software:
     github.com/mattn/go-runewidth                            v0.0.4                                     MIT license
     github.com/matttproud/golang_protobuf_extensions         v1.0.1                                     Apache License 2.0
     github.com/mholt/archiver/v3                             v3.3.0                                     MIT license
-    github.com/miekg/dns                                     v1.1.6                                     3-clause BSD license
+    github.com/miekg/dns                                     v1.1.35                                    3-clause BSD license
     github.com/mitchellh/copystructure                       v1.0.0                                     MIT license
     github.com/mitchellh/go-homedir                          v1.1.0                                     MIT license
     github.com/mitchellh/go-wordwrap                         v1.0.0                                     MIT license
