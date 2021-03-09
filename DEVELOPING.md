@@ -2,7 +2,7 @@ Developing Ambassador
 =====================
 
 <!--
-  When editing this document, the heirarchy of headings is:
+  When editing this document, the hierarchy of headings is:
 
      Heading 1
      =========
@@ -206,7 +206,7 @@ at the moment is an artifact of the way Ambassador builds currently happen.)
 ### Changing the ambassador root
 
 You should now be able to launch ambassador if you set the
-`ambassador_root` environment variable to a writeable location:
+`ambassador_root` environment variable to a writable location:
 
    ambassador_root=/tmp go run ./cmd/busyambassador entrypoint
 
@@ -221,7 +221,7 @@ with a mac reaches out to me (rhs@datawire.io).
 ### Shutting up the pod labels error
 
 An astute observe of the logs will notice that ambassador complains
-voiciferously that pod labels are not mounted in the ambassador
+vociferously that pod labels are not mounted in the ambassador
 container. To reduce this noise, you can:
 
     mkdir /tmp/ambassador-pod-info && touch /tmp/ambassador-pod-info/labels
@@ -505,7 +505,7 @@ Modify the sources in `./_cxx/envoy/`.
   Inner dev-loop steps:
 
    * To run just specific tests, instead of the whole test suite, set
-     the `ENVOY_TEST_LABEL` enviornment variable.  For example, to run
+     the `ENVOY_TEST_LABEL` environment variable.  For example, to run
      just the unit tests in
      `test/common/network/listener_impl_test.cc`, you should run
 
@@ -619,7 +619,7 @@ I'd put this in in the pull request template, but so few PRs change Envoy...
    * [ ] `gcr.io/datawire/ambassador-base`
  - [ ] The envoy.git commit has been tagged as `datawire-$(git
    describe --tags --match='v*')` (the `--match` is to prevent
-   `datawire-*` tags from stacking on eachother).
+   `datawire-*` tags from stacking on each other).
  - [ ] It's been tested with...
    * [ ] `make check-envoy`
 
@@ -635,7 +635,7 @@ export DOCKER_BUILD_USERNAME=...
 export DOCKER_BUILD_PASSWORD=...
 ```
 
-and the test machinery should create an imagePullSecret from those
+and the test machinery should create an `imagePullSecret` from those
 Docker credentials such that it can pull the images.
 
 How do I change the loglevel at runtime?
