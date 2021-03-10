@@ -4,63 +4,18 @@
 package agent_test
 
 import (
-	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
-	"github.com/datawire/ambassador/pkg/api/agent"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/url"
-	"path/filepath"
-	"runtime"
-	"strconv"
 	"testing"
-	"time"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/datawire/ambassador/pkg/api/agent"
+	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
+	"github.com/datawire/apro/lib/testutil"
 )
-
-type retryable struct {
-	log    *bytes.Buffer
-	failed bool
-}
-
-func (r *retryable) Errorf(s string, v ...interface{}) {
-	r.logf(s, v...)
-	r.failed = true
-}
-
-func (r *retryable) logf(s string, v ...interface{}) {
-	fmt.Fprint(r.log, "\n")
-	fmt.Fprint(r.log, lineNumber())
-	fmt.Fprintf(r.log, s, v...)
-}
-
-func lineNumber() string {
-	_, file, line, ok := runtime.Caller(3)
-	if !ok {
-		return ""
-	}
-	return filepath.Base(file) + ":" + strconv.Itoa(line) + ": "
-}
-
-func retry(t *testing.T, numRetries int, f func(r *retryable)) bool {
-
-	var lastLog *bytes.Buffer
-	for i := 0; i < numRetries; i++ {
-		r := &retryable{log: &bytes.Buffer{}, failed: false}
-		f(r)
-		if !r.failed {
-			return true
-		}
-		lastLog = r.log
-		time.Sleep(time.Second * 5)
-	}
-	t.Logf("Failed after %d attempts:%s", numRetries, lastLog.String())
-	t.Fail()
-
-	return false
-}
 
 // this is just to sanity check that the ambassador agent can successfully communicate with its
 // server counterpart
@@ -68,7 +23,7 @@ func retry(t *testing.T, numRetries int, f func(r *retryable)) bool {
 // something like it) the agent doesn't just completely fall on its face
 // Any test that's more complicated should live in apro/cmd/agent/
 func TestAgentBasicFunctionality(mt *testing.T) {
-	retry(mt, 5, func(t *retryable) {
+	testutil.Retry(mt, 5, func(t *testutil.Retryable) {
 
 		mockAgentURL, err := url.Parse("http://agentcom-server.default.svc.cluster.local:3001/lastSnapshot")
 		if err != nil {
