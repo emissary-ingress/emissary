@@ -254,6 +254,7 @@ bootstrap() {
             ${BUILDER_DOCKER_EXTRA} \
             --env=BUILDER_NAME="${BUILDER_NAME}" \
             --env=GOPRIVATE="${GOPRIVATE}" \
+            --init \
             --entrypoint=tail ${BUILDER_NAME}.local/builder -f /dev/null > /dev/null
         echo_off
 
