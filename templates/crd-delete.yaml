@@ -82,7 +82,7 @@ metadata:
   namespace: {{ include "ambassador.namespace" . }}
   annotations:
     "helm.sh/hook": post-delete
-    "helm.sh/hook-delete-policy": hook-succeeded
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
     "helm.sh/hook-weight": "3"
   labels:
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
