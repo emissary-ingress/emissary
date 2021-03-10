@@ -22,6 +22,26 @@ commands:
   # (factored out to be commands so that they can be shared between    #
   # "oss-linux" and "aes-linux" executors)                             #
   ######################################################################
+  "job-chart":
+    steps:
+    # setup
+    - amb-linux-install
+    - install-k3d
+    - amb-checkout
+    - skip-if-no-changes:
+        to: charts/ambassador
+    # We might need to be logged in the registry to pull the Envoy
+    # image or the builder-base image.
+    - amb-config-registry
+    - # main
+      run: make test-chart
+  "job-chart-publish":
+    steps:
+    - amb-linux-install
+    - amb-checkout
+    - skip-if-no-changes:
+        to: charts/ambassador/Chart.yaml
+    - run: charts/ambassador/ci/push_chart.sh
   "job-generate":
     steps:
     # setup
@@ -305,6 +325,16 @@ commands:
     - amb-checkout
     - skip-if-no-changes:
         to: docs/
+  install-k3d:
+    parameters:
+      version:
+        type: string
+        default: "v3.4.0"
+    steps:
+    - run:
+        name: "Install K3D << parameters.version >>"
+        command: |
+          curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | TAG=<< parameters.version >>  bash
   pip-install:
     parameters:
       packages:
@@ -512,6 +542,15 @@ jobs:
         test: << parameters.test >>
         fast-reconfigure: << parameters.fast-reconfigure >>
         legacy-mode: << parameters.legacy-mode >>
+  oss-chart:
+    executor: oss-linux
+    steps:
+    - job-chart
+  oss-chart-publish:
+    executor: oss-linux
+    steps:
+    - job-chart
+    - job-chart-publish
   oss-promote-to-rc-latest:
     executor: oss-linux
     steps:
@@ -589,6 +628,8 @@ workflows:
         name: "oss-dev-generate"
     - oss-lint:
         name: "oss-dev-lint"
+    - oss-chart:
+        name: "oss-dev-chart"
     - oss-test:
         requires:
         - "oss-dev-images"
@@ -615,6 +656,18 @@ workflows:
             - false
             # If you enable testing with legacy-mode true as well, you'll also need
             # to add some exclusions -- see the Release workflow for more.
+  'OSS: Chart Release':
+    when:
+      and:
+      - equal:
+        - "https://github.com/datawire/ambassador"
+        - << pipeline.project.git_url >>
+      - equal:
+        - master
+        - << pipeline.git.branch >>
+    jobs:
+    - oss-chart-publish:
+        name: "oss-release-chart"
   'OSS: Release':
     when:
       or:
@@ -628,6 +681,13 @@ workflows:
     - oss-images:
         name: "oss-release-images"
         release: true
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-chart:
+        name: "oss-release-chart"
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/

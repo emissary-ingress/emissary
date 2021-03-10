@@ -25,6 +25,7 @@ OSS_HOME := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
 include $(OSS_HOME)/builder/builder.mk
 include $(OSS_HOME)/_cxx/envoy.mk
+include $(OSS_HOME)/charts/ambassador/Makefile
 
 $(call module,ambassador,$(OSS_HOME))
 

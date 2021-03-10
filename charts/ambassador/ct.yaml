@@ -16,9 +16,9 @@ remote: origin
 ################################################
 
 charts:
-  - .
+  - /charts/
 chart-dirs:
-  - .
+  - /charts/
 chart-repos:
   - datawire=https://getambassador.io
 
