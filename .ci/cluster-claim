@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2018 Datawire. All rights reserved.
+# Copyright 2018-2021 Datawire. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,18 +16,15 @@
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
-  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-  SOURCE="$(readlink "$SOURCE")"
-  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+    DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 source ${DIR}/../build-aux/helpers.sh
 
 push_metrics() {
-    if [[ -z "${KUBECEPTION_TOKEN}" ]] ; then
-        return
-    fi
     exit_code="$?"
     time=`date +%s`
     build_label=
@@ -43,47 +40,20 @@ push_metrics() {
     curl -i -XPOST --oauth2-bearer ${KUBECEPTION_TOKEN} "${influx_host}/write?db=db0&precision=s" --data-binary "${metric}" | cat
 }
 
-# This block gets a kluster from kubeception. Comment it out to switch back to kubernaut.
-# The KUBECEPTION_TOKEN env var is set in the circleci webui.
-if [ -n "${KUBECEPTION_TOKEN}" ]; then
-
-    trap push_metrics EXIT
-    # Use a CLAIM_NAME of kubeception, this will never conflict with kubernaut due to how we
-    # construct kubernaut CLAIM_NAMEs below.
-    CLAIM_NAME=kubeception
-    echo ${CLAIM_NAME} > ~/kubernaut-claim.txt
-    mkdir -p ~/.kube
-    export DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
-    # get a kluster with a 1-hour timeout (by default) that is size "medium" (by default)
-    get_cluster ${DEV_KUBECONFIG} ${KUBECEPTION_TIMEOUT:-3600} ${KUBECEPTION_PROFILE:-large}
-    ret=$?
-    if [ "$ret" != "0" ] ; then
-        exit $ret
-    fi
-    wait_for_kubeconfig ${DEV_KUBECONFIG}
-    exit
-fi
-
-KUBERNAUT_VERSION=2018.10.24-d46c1f1
-
 set -o errexit
 set -o nounset
 set -o xtrace
 
-mkdir -p ~/bin
-PATH=~/bin:$PATH
+if [ -n "${KUBECEPTION_TOKEN}" ]; then
 
-# Install kubernaut
-curl -L -o ~/bin/kubernaut http://releases.datawire.io/kubernaut/${KUBERNAUT_VERSION}/linux/amd64/kubernaut
-chmod +x ~/bin/kubernaut
+    trap push_metrics EXIT
+    mkdir -p ~/.kube
+    export DEV_KUBECONFIG=~/.kube/kubeception.yaml
+    # get a kluster with a 1-hour timeout (by default) that is size "large" (by default)
+    get_cluster ${DEV_KUBECONFIG} ${KUBECEPTION_TIMEOUT:-3600} ${KUBECEPTION_PROFILE:-large}
+    wait_for_kubeconfig ${DEV_KUBECONFIG}
+    exit
+fi
 
-# Configure kubernaut
-base64 -d < "${0%/*}/kconf.b64" | ( cd ~ ; tar xzf - )
-# Grab a kubernaut cluster
-CLAIM_NAME=ci-${USER}-$(uuidgen)
-DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
-echo $CLAIM_NAME > ~/kubernaut-claim.txt
-kubernaut claims delete ${CLAIM_NAME}
-kubernaut claims create --name ${CLAIM_NAME} --cluster-group main
-# Do a quick sanity check on that cluster
-kubectl --kubeconfig ${DEV_KUBECONFIG} -n default get service kubernetes
+echo "Kubernaut is no longer supported; halting run"
+exit 1
