@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -e
 
 CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 [ -d "$CURR_DIR" ] || { echo "FATAL: no current dir (maybe running in zsh?)";  exit 1; }
@@ -9,14 +10,12 @@ TOP_DIR=$CURR_DIR/..
 source "$CURR_DIR/common.sh"
 
 #########################################################################################
-
-# Check for update to version of Chart.yaml
-
-if ! git diff $TRAVIS_COMMIT_RANGE Chart.yaml | grep -q +version; then
-  info "The version was not changed in Chart.yaml: the chart will not be pushed..."
-  exit 0
+if ! command -v helm 2> /dev/null ; then
+    info "Helm doesn't exist, installing helm"
+    curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+    chmod 700 get_helm.sh
+    ./get_helm.sh --version v3.4.1
 fi
-
 
 info "Pushing Helm Chart"
 helm package $TOP_DIR

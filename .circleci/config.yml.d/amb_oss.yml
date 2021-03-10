@@ -45,6 +45,15 @@ jobs:
           test: << parameters.test >>
           fast-reconfigure: << parameters.fast-reconfigure >>
           legacy-mode: << parameters.legacy-mode >>
+  "oss-chart":
+    executor: oss-linux
+    steps:
+      - job-chart
+  "oss-chart-publish":
+    executor: oss-linux
+    steps:
+      - job-chart
+      - job-chart-publish
 
   "oss-promote-to-rc-latest":
     executor: oss-linux
@@ -95,6 +104,8 @@ workflows:
           name: "oss-dev-generate"
       - "oss-lint":
           name: "oss-dev-lint"
+      - "oss-chart":
+          name: "oss-dev-chart"
       - "oss-test":
           requires: ["oss-dev-images"]
           name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
@@ -117,6 +128,14 @@ workflows:
                 - false
                 # If you enable testing with legacy-mode true as well, you'll also need
                 # to add some exclusions -- see the Release workflow for more.
+  "OSS: Chart Release":
+    when: # Don't run this workflow in apro.git
+      and:
+      - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+      - equal: [ master, << pipeline.git.branch >> ]
+    jobs:
+      - "oss-chart-publish":
+          name: "oss-release-chart"
 
   "OSS: Release":
     when: # Don't run this workflow in apro.git
@@ -130,6 +149,9 @@ workflows:
           <<: *filter-prerelease-only
           name: "oss-release-images"
           release: true
+      - "oss-chart":
+          <<: *filter-prerelease-only
+          name: "oss-release-chart"
       # test
       - "oss-generate":
           <<: *filter-prerelease-only
