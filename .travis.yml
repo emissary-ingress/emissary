@@ -14,9 +14,9 @@ env:
 install:
   - export PATH=~/bin:$PATH
   - source ~/.gimme/envs/latest.env
-  - ./ci/install.sh
-  - ./ci/providers/providers.sh setup
-  - ./ci/providers/providers.sh create
+  - ./charts/ambassador/ci/install.sh
+  - ./charts/ambassador/ci/providers/providers.sh setup
+  - ./charts/ambassador/ci/providers/providers.sh create
 
 language: generic
 
@@ -27,14 +27,14 @@ branches:
   - ci-test
 
 script:
-  - ./ci/run_test.sh
+  - ./charts/ambassador/ci/run_test.sh
 
 after_script:
-  - ./ci/providers/providers.sh delete
+  - ./charts/ambassador/ci/providers/providers.sh delete
 
 deploy:
   provider: script
-  script: bash ./ci/push_chart.sh
+  script: bash ./charts/ambassador/ci/push_chart.sh
   on:
     # FIXME: use "branch: master" for publishing only in tags in "master"
     branch: master

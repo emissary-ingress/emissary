@@ -12,7 +12,7 @@ source "$CURR_DIR/common.sh"
 
 # Check for update to version of Chart.yaml
 
-if ! git diff $TRAVIS_COMMIT_RANGE Chart.yaml | grep -q +version; then
+if ! git diff $TRAVIS_COMMIT_RANGE $TOP_DIR/Chart.yaml | grep -q +version; then
   info "The version was not changed in Chart.yaml: the chart will not be pushed..."
   exit 0
 fi

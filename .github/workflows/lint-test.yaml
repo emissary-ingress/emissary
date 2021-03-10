@@ -1,7 +1,11 @@
 
 # https://github.com/helm/chart-testing-action/blob/master/README.md
 name: Lint and Test Charts
-on: pull_request
+on:
+  pull_request:
+    paths:
+      - charts/ambassador/**
+
 jobs:
   lint-test:
     runs-on: ubuntu-latest
@@ -17,7 +21,7 @@ jobs:
         uses: helm/chart-testing-action@v1.0.0-rc.2
         with:
           command: lint
-          config: ct.yaml
+          config: charts/ambassador/ct.yaml
 
       - name: Create k3d cluster
         uses: datawire/cluster-providers@master
@@ -40,4 +44,4 @@ jobs:
         uses: helm/chart-testing-action@v1.0.0-rc.2
         with:
           command: install
-          config: ct.yaml
+          config: charts/ambassador/ct.yaml
