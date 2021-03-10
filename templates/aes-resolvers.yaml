@@ -1,0 +1,18 @@
+{{ if and .Values.resolvers.endpoint.create .Values.enableAES }}
+---
+apiVersion: getambassador.io/v2
+kind: KubernetesEndpointResolver
+metadata:
+  name: {{ .Values.resolvers.endpoint.name }}
+  namespace: {{ include "ambassador.namespace" . }}
+{{ end }}
+{{ if and .Values.resolvers.consul.create .Values.enableAES }}
+---
+apiVersion: getambassador.io/v2
+kind: ConsulResolver
+metaata:
+  name: {{ .Values.resolvers.consul.name }}
+  namespace: {{ include "ambassador.namespace" . }}
+spec:
+  {{- toYaml .Values.resolvers.consul.spec | nindent 2 }}
+{{ end }}
