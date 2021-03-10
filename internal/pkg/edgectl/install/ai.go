@@ -13,9 +13,6 @@ import (
 // see https://github.com/datawire/ambassador-operator/blob/master/pkg/apis/getambassador/v2/ambassadorinstallation_types.go
 
 const (
-	// OSS flavor to set in DeployedRelease.flavor
-	flavorOSS = "OSS"
-
 	// AES flavor to set in DeployedRelease.flavor
 	flavorAES = "AES"
 )

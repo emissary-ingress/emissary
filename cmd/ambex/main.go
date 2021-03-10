@@ -93,10 +93,6 @@ import (
 	"github.com/datawire/dlib/dhttp"
 )
 
-const (
-	localhost = "127.0.0.1"
-)
-
 type Args struct {
 	debug bool
 	watch bool
