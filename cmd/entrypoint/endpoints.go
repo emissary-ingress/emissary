@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"reflect"
+	"strconv"
 	"strings"
 
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
@@ -214,7 +215,7 @@ func (eri *endpointRoutingInfo) checkMapping(ctx context.Context, mapping *amb.M
 	}
 
 	if eri.resolverTypes[resolver] == KubernetesEndpointResolver {
-		svc, ns := eri.module.parseService(service, mapping.GetNamespace())
+		svc, ns, _ := eri.module.parseService(service, mapping.GetNamespace())
 		eri.endpointWatches[fmt.Sprintf("%s:%s", ns, svc)] = true
 	}
 }
@@ -233,16 +234,28 @@ func (eri *endpointRoutingInfo) checkTCPMapping(ctx context.Context, tcpmapping 
 	}
 
 	if eri.resolverTypes[resolver] == KubernetesEndpointResolver {
-		svc, ns := eri.module.parseService(service, tcpmapping.GetNamespace())
+		svc, ns, _ := eri.module.parseService(service, tcpmapping.GetNamespace())
 		eri.endpointWatches[fmt.Sprintf("%s:%s", ns, svc)] = true
 	}
 }
 
-func (m *moduleResolver) parseService(svcName, svcNamespace string) (name string, namespace string) {
+func (m *moduleResolver) parseService(svcName, svcNamespace string) (name string, namespace string, port string) {
+	// First split off the port if it exists.
+	parts := strings.SplitN(svcName, ":", 2)
+	if len(parts) > 1 {
+		_, err := strconv.Atoi(parts[1])
+		if err == nil {
+			port = parts[1]
+			svcName = parts[0]
+		}
+	}
+
+	// Next check to see if it is an IP address.
 	ip := net.ParseIP(svcName)
 	if ip != nil {
 		name = svcName
 	} else if strings.Contains(svcName, ".") {
+		// If it's not an ip address but does have a dot then we split it up to find the namespace.
 		parts := strings.SplitN(svcName, ".", 2)
 		name = parts[0]
 		namespace = parts[1]
