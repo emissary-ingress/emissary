@@ -1,0 +1,186 @@
+{{- if and .Values.enableAES .Values.servicePreview.enabled }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    product: aes
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+{{- if .Values.scope.singleNamespace }}
+kind: Role
+{{- else }}
+kind: ClusterRole
+{{- end }}
+metadata:
+  name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    product: aes
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces", "services", "pods", "secrets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+{{- if .Values.scope.singleNamespace }}
+kind: RoleBinding
+{{- else }}
+kind: ClusterRoleBinding
+{{- end }}
+metadata:
+  name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  {{- if .Values.scope.singleNamespace }}
+  kind: Role
+  {{- else }}
+  kind: ClusterRole
+  {{- end }}
+  name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
+    namespace: {{ include "ambassador.namespace" . }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telepresence-proxy
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: telepresence-proxy
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    product: aes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: telepresence-proxy
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: telepresence-proxy
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: telepresence-proxy
+        image: "{{ .Values.servicePreview.trafficManager.image.repository | default .Values.image.repository }}:{{ .Values.servicePreview.trafficManager.image.tag | default .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: [ "traffic-manager" ]
+        env:
+        {{- if .Values.scope.singleNamespace }}
+        - name: AMBASSADOR_SINGLE_NAMESPACE
+          value: "true"
+        {{- end }}
+        - name: AMBASSADOR_NAMESPACE
+          {{- if .Values.namespace }}
+          value: {{ .Values.namespace.name | quote }}
+          {{ else }}
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+          {{- end -}}
+        {{- if or .Values.redis.create .Values.redisURL }}
+        - name: REDIS_URL
+          {{- if .Values.redisURL }}
+          value: {{ .Values.redisURL }}
+          {{- else }}
+          value: {{ include "ambassador.fullname" . }}-redis:6379
+          {{- end }}
+        {{- end }}
+        ports:
+        - name: sshd
+          containerPort: 8022
+        volumeMounts:
+        - mountPath: /tmp/ambassador-pod-info
+          name: pod-info
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 0
+      volumes:
+      - downwardAPI:
+          items:
+          - fieldRef:
+              fieldPath: metadata.labels
+            path: labels
+        name: pod-info
+      serviceAccountName: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: telepresence-proxy
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: telepresence-proxy
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+  annotations:
+    a8r.io/owner: "Ambassador Labs"
+    a8r.io/repository: github.com/datawire/ambassador
+    a8r.io/description: "The Ambassador Edge Stack Service Preview Telepresence Proxy."
+    a8r.io/documentation: https://www.getambassador.io/docs/latest/
+    a8r.io/chat: http://d6e.co/slack
+    a8r.io/bugs: https://github.com/datawire/ambassador/issues
+    a8r.io/support: https://www.getambassador.io/about-us/support/
+    a8r.io/dependencies: "None"
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: telepresence-proxy
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+  - name: sshd
+    protocol: TCP
+    port: 8022
+  - name: api
+    protocol: TCP
+    port: 8081
+{{- end }}

@@ -19,6 +19,10 @@ __pycache__
 # binaries
 /bin_*/
 
+# helm chart
+charts/ambassador/ci/tests/values
+charts/ambassador/artifacts
+
 vendor_bootstrap_hack.go
 
 /tools/sandbox/grpc_auth/docker-compose.yml

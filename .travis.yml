@@ -1,0 +1,41 @@
+---
+
+env:
+  global:
+    - CI=travis
+    - IS_CI=true
+    - E2E_CLEANUP=true
+    # - PROVIDER="kubernaut"
+    - PROVIDER="k3d"
+    # PUSH_CHART must be != "false" for pushing the chart
+    - PUSH_CHART="true"
+    - AWS_BUCKET="datawire-static-files"
+
+install:
+  - export PATH=~/bin:$PATH
+  - source ~/.gimme/envs/latest.env
+  - ./ci/install.sh
+  - ./ci/providers/providers.sh setup
+  - ./ci/providers/providers.sh create
+
+language: generic
+
+branches:
+  only:
+  - master
+  - /^v.*$/
+  - ci-test
+
+script:
+  - ./ci/run_test.sh
+
+after_script:
+  - ./ci/providers/providers.sh delete
+
+deploy:
+  provider: script
+  script: bash ./ci/push_chart.sh
+  on:
+    # FIXME: use "branch: master" for publishing only in tags in "master"
+    branch: master
+    #all_branches: true

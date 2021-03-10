@@ -1,0 +1,43 @@
+
+# https://github.com/helm/chart-testing-action/blob/master/README.md
+name: Lint and Test Charts
+on: pull_request
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Fetch history
+        run: git fetch --prune --unshallow
+
+      - name: Run chart-testing (lint)
+        id: lint
+        uses: helm/chart-testing-action@v1.0.0-rc.2
+        with:
+          command: lint
+          config: ct.yaml
+
+      - name: Create k3d cluster
+        uses: datawire/cluster-providers@master
+        with:
+            provider: k3d
+            command: create
+        env:
+            K3D_EXTRA_ARGS: --server-arg '--no-deploy=traefik'
+
+        # Only build a kind cluster if there are chart changes to test.
+        if: steps.lint.outputs.changed == 'true'
+
+      # TODO: I don't know why `chart-testing-action` does not respect the KUBECONFIG variable...
+      - name: Copy kubeconfig for chart-testing
+        run: |
+          mkdir -p /home/runner/.kube
+          cp -f ${KUBECONFIG} /home/runner/.kube/config
+
+      - name: Run chart-testing (install)
+        uses: helm/chart-testing-action@v1.0.0-rc.2
+        with:
+          command: install
+          config: ct.yaml

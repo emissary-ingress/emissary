@@ -1,0 +1,3 @@
+[submodule "ci/providers"]
+	path = charts/ambassador/ci/providers
+	url = https://github.com/datawire/cluster-providers
