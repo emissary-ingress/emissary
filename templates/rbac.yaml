@@ -37,8 +37,12 @@ rules:
     verbs: ["get", "list", "watch", "delete"]
 
   - apiGroups: [ "networking.internal.knative.dev"]
-    resources: [ "clusteringresses" ]
+    resources: [ "clusteringresses", "ingresses" ]
     verbs: ["get", "list", "watch"]
+    
+  - apiGroups: [ "networking.internal.knative.dev"]
+    resources: [ "clusteringresses/status", "ingresses/status" ]
+    verbs: ["update"]
 
   - apiGroups: [ "extensions", "networking.k8s.io" ]
     resources: [ "ingresses", "ingressclasses" ]
