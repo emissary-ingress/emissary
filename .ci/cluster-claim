@@ -49,10 +49,24 @@ if [ -n "${KUBECEPTION_TOKEN}" ]; then
     trap push_metrics EXIT
     mkdir -p ~/.kube
     export DEV_KUBECONFIG=~/.kube/kubeception.yaml
-    # get a kluster with a 1-hour timeout (by default) that is size "large" (by default)
-    get_cluster ${DEV_KUBECONFIG} ${KUBECEPTION_TIMEOUT:-3600} ${KUBECEPTION_PROFILE:-large}
-    wait_for_kubeconfig ${DEV_KUBECONFIG}
-    exit
+    tries=0
+    while true ; do
+        # get a kluster with a 1-hour timeout (by default) that is size "large" (by default)
+        get_cluster ${DEV_KUBECONFIG} ${KUBECEPTION_TIMEOUT:-3600} ${KUBECEPTION_PROFILE:-large}
+        ret=$?
+        if [ "$ret" == "0" ] ; then
+            wait_for_kubeconfig ${DEV_KUBECONFIG}
+            ret=$?
+            if [ "$ret" == "0" ] ; then
+                exit
+            fi
+        fi
+        if [ "${tries}" == 3 ] ; then
+            echo 'Could not aquire kluster'
+            exit $ret
+        fi
+        tries=$((tries+1))
+    done
 fi
 
 echo "Kubernaut is no longer supported; halting run"
