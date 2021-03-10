@@ -155,6 +155,7 @@
         },
         "weight": { "type": "integer" },
         "bypass_auth": { "type": "boolean" },
+        "auth_context_extensions": {"$ref": "#/definitions/mapStrStr"}
         "bypass_error_response_overrides": { "type": "boolean" },
         "error_response_overrides": {
             "type": "array",

@@ -257,6 +257,72 @@
                                   "name": "x-forwarded-proto"
                                 }
                               ],
+                              "prefix": "/context-extensions/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_authenticationgrpctest_http_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_authenticationgrpctest_http_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            },
+                            "typed_per_filter_config": {
+                              "envoy.filters.http.ext_authz": {
+                                "@type": "type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthzPerRoute",
+                                "check_settings": {
+                                  "context_extensions": {
+                                    "first": "first element",
+                                    "second": "second element"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/context-extensions/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_authenticationgrpctest_http_default"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_authenticationgrpctest_http_default",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            },
+                            "typed_per_filter_config": {
+                              "envoy.filters.http.ext_authz": {
+                                "@type": "type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthzPerRoute",
+                                "check_settings": {
+                                  "context_extensions": {
+                                    "first": "first element",
+                                    "second": "second element"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
                               "prefix": "/ambassador/v0/",
                               "runtime_fraction": {
                                 "default_value": {

@@ -31,6 +31,15 @@ kind:  Mapping
 name:  {self.target.path.k8s}
 prefix: /target/
 service: {self.target.path.fqdn}
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.target.path.k8s}-context-extensions
+prefix: /context-extensions/
+service: {self.target.path.fqdn}
+auth_context_extensions:
+    first: "first element"
+    second: "second element"
 """)
 
     def queries(self):
@@ -49,9 +58,14 @@ service: {self.target.path.fqdn}
         # [3]
         yield Query(self.url("target/"), headers={"requested-status": "200",
                                                   "authorization": "foo-11111",
-                                                  "foo" : "foo",
+                                                  "foo": "foo",
                                                   "x-grpc-auth-append": "foo=bar;baz=bar",
                                                   "requested-header": "Authorization"}, expected=200)
+        # [4]
+        yield Query(self.url("context-extensions/"), headers={"request-status": "200",
+                                                              "authorization": "foo-22222",
+                                                              "requested-header": "Authorization"},
+                    expected=200)
 
     def check(self):
         # [0] Verifies all request headers sent to the authorization server.
@@ -93,6 +107,14 @@ service: {self.target.path.fqdn}
         assert self.results[3].headers["Server"] == ["envoy"]
         assert self.results[3].headers["Authorization"] == ["foo-11111"]
         assert self.results[3].backend.request.headers['x-grpc-service-protocol-version'] == ['v2']
+
+        # [4] Verifies that auth_context_extension is passed along by Envoy.
+        assert self.results[4].status == 200
+        assert self.results[4].headers["Server"] == ["envoy"]
+        assert self.results[4].headers["Authorization"] == ["foo-22222"]
+        context_ext = json.loads(self.results[4].backend.request.headers["x-request-context-extensions"][0])
+        assert context_ext["first"] == "first element"
+        assert context_ext["second"] == "second element"
 
 
 class AuthenticationHTTPPartialBufferTest(AmbassadorTest):
