@@ -324,6 +324,9 @@ class IR:
                 # its name below.
                 short_name = name[0:40]
 
+                cluster = self.clusters[name]
+                self.logger.debug(f"COLLISION: compress {name} to {short_name}")
+
                 collision_list = collisions.setdefault(short_name, [])
                 collision_list.append(name)
             else:
@@ -339,7 +342,8 @@ class IR:
                 mangled_name = "%s-%d" % (short_name, i)
                 i += 1
 
-                self.logger.debug("%s => %s" % (name, mangled_name))
+                cluster = self.clusters[name]
+                self.logger.debug("COLLISION: mangle %s => %s" % (name, mangled_name))
 
                 # We must not modify a cluster's name (nor its rkey, for that matter)
                 # because our object caching implementation depends on stable object
@@ -355,7 +359,18 @@ class IR:
                 # not necessarily the same. This is currently fine, since we never use
                 # envoy config as a source of truth - we leave that to the cluster annotations
                 # and CRDs.
-                self.clusters[name]['envoy_name'] = mangled_name
+                # 
+                # Another important consideration is that when the cache is active, we need
+                # to shred any cached cluster with this mangled_name, because the mangled_name
+                # can change as new clusters appear! This is obviously not ideal.
+                #
+                # XXX This is doubly a hack because it's duplicating this magic format from
+                # v2cluster.py.
+                self.cache.invalidate(f"V2-{cluster.cache_key}")
+
+                # OK. Finally, we can update the envoy_name.
+                cluster['envoy_name'] = mangled_name
+                self.logger.debug("COLLISION: envoy_name %s" % cluster['envoy_name'])
 
         # After we have the cluster names fixed up, go finalize filters.
         if self.tracing:
@@ -783,12 +798,14 @@ class IR:
 
     def add_cluster(self, cluster: IRCluster) -> IRCluster:
         if not self.has_cluster(cluster.name):
+            self.logger.debug("IR: add_cluster: new cluster %s" % cluster.name)
             self.clusters[cluster.name] = cluster
 
             if cluster.is_edge_stack_sidecar():
                 # self.logger.debug(f"IR: cluster {cluster.name} is the sidecar")
                 self.sidecar_cluster_name = cluster.name
 
+        self.logger.debug("IR: add_cluster: extant cluster %s (%s)" % (cluster.name, cluster.get("envoy_name", "-")))
         return self.clusters[cluster.name]
 
     def merge_cluster(self, cluster: IRCluster) -> bool:
