@@ -79,10 +79,10 @@ Free and Open Source software:
     github.com/golang/protobuf                               v1.4.2                                     3-clause BSD license
     github.com/golang/snappy                                 v0.0.1                                     3-clause BSD license
     github.com/google/btree                                  v1.0.0                                     Apache License 2.0
-    github.com/google/go-cmp                                 v0.4.0                                     3-clause BSD license
+    github.com/google/go-cmp                                 v0.5.0                                     3-clause BSD license
     github.com/google/gofuzz                                 v1.1.0                                     Apache License 2.0
     github.com/google/shlex                                  v0.0.0-20181106134648-c34317bd91bf         Apache License 2.0
-    github.com/google/uuid                                   v1.1.1                                     3-clause BSD license
+    github.com/google/uuid                                   v1.1.2                                     3-clause BSD license
     github.com/googleapis/gnostic                            v0.3.1                                     Apache License 2.0
     github.com/gookit/color                                  v1.2.3                                     MIT license
     github.com/gophercloud/gophercloud                       v0.1.0                                     Apache License 2.0
@@ -161,9 +161,9 @@ Free and Open Source software:
     golang.org/x/tools                                       v0.0.0-20200522201501-cb1345f3a375         3-clause BSD license
     golang.org/x/xerrors                                     v0.0.0-20191204190536-9bdfabe68543         3-clause BSD license
     google.golang.org/appengine                              v1.6.5                                     Apache License 2.0
-    google.golang.org/genproto                               v0.0.0-20200115191322-ca5a22157cba         Apache License 2.0
-    google.golang.org/grpc                                   v1.29.1                                    Apache License 2.0
-    google.golang.org/protobuf                               v1.23.0                                    3-clause BSD license
+    google.golang.org/genproto                               v0.0.0-20200526211855-cb27e3aa2013         Apache License 2.0
+    google.golang.org/grpc                                   v1.34.0                                    Apache License 2.0
+    google.golang.org/protobuf                               v1.25.0                                    3-clause BSD license
     gopkg.in/gorp.v1                                         v1.7.2                                     MIT license
     gopkg.in/inf.v0                                          v0.9.1                                     3-clause BSD license
     gopkg.in/natefinch/lumberjack.v2                         v2.0.0                                     MIT license

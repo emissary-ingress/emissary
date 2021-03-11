@@ -71,9 +71,9 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-openapi/validate v0.19.5
 	github.com/golang/protobuf v1.4.2
-	github.com/google/go-cmp v0.4.0
+	github.com/google/go-cmp v0.5.0
 	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf
-	github.com/google/uuid v1.1.1
+	github.com/google/uuid v1.1.2
 	github.com/gookit/color v1.2.3
 	github.com/gorilla/websocket v1.4.1
 	github.com/hashicorp/consul/api v1.3.0
@@ -96,9 +96,9 @@ require (
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
 	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68
-	google.golang.org/genproto v0.0.0-20200115191322-ca5a22157cba
-	google.golang.org/grpc v1.29.1
-	google.golang.org/protobuf v1.23.0
+	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
+	google.golang.org/grpc v1.34.0
+	google.golang.org/protobuf v1.25.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.3.0
 	helm.sh/helm/v3 v3.2.4
