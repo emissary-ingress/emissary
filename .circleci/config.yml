@@ -282,7 +282,21 @@ commands:
         name: "Gather logs"
         when: always
         command: |
-          rsync -ma --include='*/' --include='*.xml' --include='*.tap' --include='*.log' --include='Test*.webm' --exclude='*' . /tmp/test-logs
+          rsync \
+            --prune-empty-dirs --archive --include='*/' \
+            --include='*.xml' \
+            --include='*.tap' \
+            --include='*.log' \
+            --include='Test*.webm' \
+            --exclude='*' \
+            . \
+            /tmp/test-logs
+          if test -d ~/.cache/telepresence/logs; then
+            rsync \
+              --archive \
+              ~/.cache/telepresence/logs \
+              /tmp/test-logs/telepresence-logs
+          fi
     - store_artifacts:
         name: "Store logs"
         path: /tmp/test-logs
