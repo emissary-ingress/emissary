@@ -107,8 +107,9 @@ type MappingSpec struct {
 	//    - spdy/3.1
 	AllowUpgrade []string `json:"allow_upgrade,omitempty"`
 
-	Weight     *int  `json:"weight,omitempty"`
-	BypassAuth *bool `json:"bypass_auth,omitempty"`
+	Weight                *int              `json:"weight,omitempty"`
+	BypassAuth            *bool             `json:"bypass_auth,omitempty"`
+	AuthContextExtensions map[string]string `json:"auth_context_extensions,omitempty"`
 	// If true, bypasses any `error_response_overrides` set on the Ambassador module.
 	BypassErrorResponseOverrides *bool `json:"bypass_error_response_overrides,omitempty"`
 	// Error response overrides for this Mapping. Replaces all of the `error_response_overrides`
