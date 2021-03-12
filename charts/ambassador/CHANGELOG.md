@@ -6,6 +6,16 @@ numbering uses [semantic versioning](http://semver.org).
 ## Next Release
 
 
+## v6.6.0
+
+- Update Ambassador to version 1.12.1: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+- Feature: Apply Ambassador Agent deployment by default to enable Service Catalog reporting (https://app.getambassador.io)
+
+## v6.5.22
+
+- Bugfix: Disable the cloud agent by default. The agent will be enabled in 6.6.0.
+- Bugfix: Adds a check to prevent the cloud agent from being installed if AES version is less than 1.12.0
+
 ## v6.5.21
 
 - Update Ambassador to version 1.12.0: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
