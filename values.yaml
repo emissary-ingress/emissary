@@ -495,7 +495,7 @@ servicePreview:
 
 # Configure the ambassador agent
 agent:
-  enabled: false
+  enabled: true
   # this will be empty when it first gets applied, then the user will edit the agent to
   # make it start reporting
   cloudConnectToken: ""
