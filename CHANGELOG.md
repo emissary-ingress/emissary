@@ -5,6 +5,11 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+
+## v6.6.0
+
+- Update Ambassador to version 1.12.1: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+
 ## v6.5.22
 
 - Bugfix: Disable the cloud agent by default. The agent will be enabled in 6.6.0.
@@ -19,6 +24,8 @@ numbering uses [semantic versioning](http://semver.org).
 ## v6.5.20
 
 - Update Ambassador to version v1.11.2: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+- Bugfix: The endpoint routing resolver will now properly watch services with mappings that define the service field with an explicit port.
+- Bugfix: Correctly manage cluster load assignments with very long cluster names and `AMBASSADOR_FAST_RECONFIGURE`
 
 ## v6.5.19
 
