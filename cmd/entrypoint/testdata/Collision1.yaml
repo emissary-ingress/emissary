@@ -1,0 +1,120 @@
+# @TEMPLATE@
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: staging.upchieve.org
+  namespace: default
+spec:
+  hostname: staging.upchieve.org
+  acmeProvider:
+    authority: none
+    email: rhs@datawire.io
+  requestPolicy:
+    insecure:
+      action: Route
+# ---
+# apiVersion: v1
+# kind: Namespace
+# metadata:
+#   name: staging
+---
+apiVersion: getambassador.io/v2
+kind: KubernetesEndpointResolver
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: pulumi
+  name: endpoint
+  namespace: ambassador
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: subway-staging-socket-stable-mapping
+  namespace: staging
+spec:
+  allow_upgrade:
+  - websocket
+  host: staging.upchieve.org
+  load_balancer:
+    policy: ring_hash
+    source_ip: true
+  prefix: /
+  query_parameters:
+    transport: true
+  resolver: endpoint
+  service: subway-staging-stable.staging:3001
+  timeout_ms: 500000
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: subway-staging-whiteboard-reset-stable-mapping
+  namespace: staging
+spec:
+  host: staging.upchieve.org
+  load_balancer:
+    policy: ring_hash
+    source_ip: true
+  prefix: /whiteboard/reset/
+  resolver: endpoint
+  rewrite: /whiteboard/reset/
+  service: subway-staging-stable.staging:3000
+  timeout_ms: 500000
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: subway-staging-whiteboard-stable-mapping
+  namespace: staging
+spec:
+  allow_upgrade:
+  - websocket
+  host: staging.upchieve.org
+  load_balancer:
+    policy: ring_hash
+    source_ip: true
+  prefix: /whiteboard/
+  resolver: endpoint
+  rewrite: /whiteboard/
+  service: subway-staging-stable.staging:3000
+  timeout_ms: 500000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: subway-staging-stable
+  namespace: staging
+spec:
+  selector:
+    app: echo
+  ports:
+  - name: http
+    port: 3000
+    protocol: TCP
+    targetPort: 3000
+  sessionAffinity: ClientIP
+  type: ClusterIP
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: echo
+#   namespace: staging
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: echo
+#   template:
+#     metadata:
+#       labels:
+#         app: echo
+#     spec:
+#       containers:
+#       - name: churn
+#         # image: {{image "echo/Dockerfile"}}
+#         image: churn:0.0.1
+#         command: ["echo-server"]
+#         ports:
+#         - containerPort: 3000

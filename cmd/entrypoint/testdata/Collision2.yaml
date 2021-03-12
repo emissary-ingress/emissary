@@ -1,0 +1,14 @@
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: subway-staging-stable-mapping
+  namespace: staging
+spec:
+  host: staging.upchieve.org
+  load_balancer:
+    policy: least_request
+  prefix: /
+  resolver: endpoint
+  service: subway-staging-stable.staging:3000
+  timeout_ms: 500000

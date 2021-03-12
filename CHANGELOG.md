@@ -69,6 +69,12 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 (no changes yet)
 
+## [1.12.1] March 12, 2021
+[1.12.1]: https://github.com/datawire/ambassador/compare/v1.12.0...v1.12.1
+
+- Bugfix: The endpoint routing resolver will now properly watch services with mappings that define the service field with an explicit port.
+- Bugfix: Correctly manage cluster load assignments with very long cluster names and `AMBASSADOR_FAST_RECONFIGURE`
+
 ## [1.12.0] March 08, 2021
 [1.12.0]: https://github.com/datawire/ambassador/compare/v1.11.2...v1.12.0
 
