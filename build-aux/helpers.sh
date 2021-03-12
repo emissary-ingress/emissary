@@ -167,7 +167,9 @@ await_cluster() {
     kubeconfig=${1}
     name="$(head -1 "${kubeconfig}" | cut -c2-)"
     kconfurl="https://sw.bakerstreet.io/kubeception/api/klusters/${name}"
-	curl_retry -1 "200" "400" -o "${kubeconfig}" "$kconfurl" -H "Authorization: bearer ${KUBECEPTION_TOKEN}"
+	# 100*10s == a little over 15 min. if the kluster isn't ready at that point,
+	# its probably never going ready
+	curl_retry 100 "200" "400" -o "${kubeconfig}" "$kconfurl" -H "Authorization: bearer ${KUBECEPTION_TOKEN}"
 	ret=$?
 	if [ "${ret}" -ne "0" ] ; then
 		echo "Failed waiting for cluster to come up" 1>&2

@@ -257,6 +257,7 @@ bootstrap() {
             --env=AWS_SECRET_ACCESS_KEY \
             --env=AWS_ACCESS_KEY_ID \
             --env=AWS_SESSION_TOKEN \
+            --init \
             --entrypoint=tail ${BUILDER_NAME}.local/builder -f /dev/null > /dev/null
         echo_off
 

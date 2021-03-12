@@ -83,41 +83,30 @@ func FixCRD(args Args, crd *CRD) error {
 	}
 
 	// fix CRD versions
-	if args.HaveKubeversion("1.11") {
-		if crd.APIVersion == "apiextensions.k8s.io/v1" {
-			crd.Spec.Version = nil
-		} else {
-			// Set it explicitly to null, instead of just omiting it,
-			// because some apiserver versions (like 1.14.10-gke.27)
-			// will auto-populate it, and that makes upgrades
-			// troublesome if `.versions[0]` changes.
-			crd.Spec.Version = ExplicitNil
+	if crd.APIVersion == "apiextensions.k8s.io/v1" {
+		crd.Spec.Version = nil
+	} else {
+		// Set it explicitly to null, instead of just omiting it,
+		// because some apiserver versions (like 1.14.10-gke.27)
+		// will auto-populate it, and that makes upgrades
+		// troublesome if `.versions[0]` changes.
+		crd.Spec.Version = ExplicitNil
+	}
+	// Note: versions are sorted newest-first/oldest-last.
+	if inArray(crd.Spec.Names.Kind, old_pro_crds) {
+		crd.Spec.Versions = []apiext.CustomResourceDefinitionVersion{
+			{Name: "v2", Served: true, Storage: true},
+			{Name: "v1beta2", Served: true, Storage: false},
+			{Name: "v1beta1", Served: true, Storage: false},
 		}
-
-		// Note: versions are sorted newest-first/oldest-last.
-		if inArray(crd.Spec.Names.Kind, old_pro_crds) {
-			crd.Spec.Versions = []apiext.CustomResourceDefinitionVersion{
-				{Name: "v2", Served: true, Storage: true},
-				{Name: "v1beta2", Served: true, Storage: false},
-				{Name: "v1beta1", Served: true, Storage: false},
-			}
-		} else if inArray(crd.Spec.Names.Kind, old_oss_crds) {
-			crd.Spec.Versions = []apiext.CustomResourceDefinitionVersion{
-				{Name: "v2", Served: true, Storage: true},
-				{Name: "v1", Served: true, Storage: false},
-			}
-		} else {
-			crd.Spec.Versions = []apiext.CustomResourceDefinitionVersion{
-				{Name: "v2", Served: true, Storage: true},
-			}
+	} else if inArray(crd.Spec.Names.Kind, old_oss_crds) {
+		crd.Spec.Versions = []apiext.CustomResourceDefinitionVersion{
+			{Name: "v2", Served: true, Storage: true},
+			{Name: "v1", Served: true, Storage: false},
 		}
 	} else {
-		crd.Spec.Versions = nil
-		crd.Spec.Version = NewNilableString("v2")
-		if crd.Spec.Validation != nil {
-			VisitAllSchemaProps(crd.Spec.Validation.OpenAPIV3Schema, func(node *apiext.JSONSchemaProps) {
-				node.AdditionalProperties = nil
-			})
+		crd.Spec.Versions = []apiext.CustomResourceDefinitionVersion{
+			{Name: "v2", Served: true, Storage: true},
 		}
 	}
 

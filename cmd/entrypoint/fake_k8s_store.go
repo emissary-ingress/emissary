@@ -22,8 +22,7 @@ type K8sStore struct {
 	resources map[K8sKey]kates.Object
 	// This tracks every delta forever. That's ok because we only use this for tests, so we want to
 	// favor simplicity over efficiency. Also tests don't run that long, so it's not a big deal.
-	deltas  []*kates.Delta
-	cursors []*K8sStoreCursor
+	deltas []*kates.Delta
 }
 
 type K8sKey struct {

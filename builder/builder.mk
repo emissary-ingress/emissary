@@ -190,11 +190,15 @@ preflight:
 
 preflight-cluster:
 	@test -n "$(DEV_KUBECONFIG)" || (printf "$${KUBECONFIG_ERR}\n"; exit 1)
-	@if [ "$(DEV_KUBECONFIG)" != '-skip-for-release-' ]; then \
-		printf "$(CYN)==> $(GRN)Checking for test cluster$(END)\n" ;\
-		kubectl --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null || { printf "$${KUBECTL_ERR}\n"; exit 1; } ;\
-	else \
+	@if [ "$(DEV_KUBECONFIG)" == '-skip-for-release-' ]; then \
 		printf "$(CYN)==> $(RED)Skipping test cluster checks$(END)\n" ;\
+	else \
+		printf "$(CYN)==> $(GRN)Checking for test cluster$(END)\n" ;\
+		success=; \
+		for i in {1..5}; do \
+			kubectl --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null && success=true && break || sleep 15 ; \
+		done; \
+		if [ ! "$${success}" ] ; then { printf "$$KUBECTL_ERR\n" ; exit 1; } ; fi; \
 	fi
 .PHONY: preflight-cluster
 
