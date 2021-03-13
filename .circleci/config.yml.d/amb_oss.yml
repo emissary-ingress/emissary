@@ -92,6 +92,13 @@ _anchors:
       branches:
         ignore: /.*/
 
+  "filter-chart-release-only": &filter-chart-release-only
+    filters:
+      tags:
+        only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+      branches:
+        ignore: /.*/
+
 workflows:
   "OSS: Dev":
     # Run this workflow on just 'master' and PRs.
@@ -135,6 +142,7 @@ workflows:
       - equal: [ master, << pipeline.git.branch >> ]
     jobs:
       - "oss-chart-publish":
+          <<: *filter-chart-release-only
           name: "oss-release-chart"
 
   "OSS: Release":

@@ -41,8 +41,7 @@ commands:
     steps:
       - amb-linux-install
       - amb-checkout
-      - skip-if-no-changes:
-          to: charts/ambassador/Chart.yaml
+      - amb-skip-if-no-chart-changes
       - run: charts/ambassador/ci/push_chart.sh
 
   "job-generate":
