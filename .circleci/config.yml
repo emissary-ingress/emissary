@@ -656,7 +656,7 @@ workflows:
             - false
             # If you enable testing with legacy-mode true as well, you'll also need
             # to add some exclusions -- see the Release workflow for more.
-  'OSS: Chart Release':
+  'OSS: Master Chart Release':
     when:
       and:
       - equal:
@@ -763,6 +763,20 @@ workflows:
             ignore: /.*/
     - oss-promote-to-ga:
         name: "oss-release-promote-to-ga"
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+          branches:
+            ignore: /.*/
+  'OSS: Release Tag Chart Release':
+    when:
+      and:
+      - equal:
+        - "https://github.com/datawire/ambassador"
+        - << pipeline.project.git_url >>
+    jobs:
+    - oss-chart-publish:
+        name: "oss-release-chart"
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
