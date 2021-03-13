@@ -39,8 +39,7 @@ commands:
     steps:
     - amb-linux-install
     - amb-checkout
-    - skip-if-no-changes:
-        to: charts/ambassador/Chart.yaml
+    - amb-skip-if-no-chart-changes
     - run: charts/ambassador/ci/push_chart.sh
   "job-generate":
     steps:
@@ -310,6 +309,25 @@ commands:
         name: "Store logs"
         path: /tmp/test-logs
         destination: test-logs
+  amb-skip-if-no-chart-changes:
+    steps:
+    - run:
+        name: "Diff changes"
+        command: |
+          if [[ "<< pipeline.git.base_revision >>" == "" ]]; then
+            echo "There is no base_revision, therefore no changes"
+            circleci step halt
+          fi
+
+          COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
+          echo "Commit range: " $COMMIT_RANGE
+          git --no-pager diff $COMMIT_RANGE --name-only
+          git diff $TRAVIS_COMMIT_RANGE Chart.yaml | grep -q +version
+
+          if ! git diff $COMMIT_RANGE charts/ambassador/Chart.yaml | grep -q '+version' ; then
+            echo "Halting this CircleCI job because chart version did not change"
+            circleci step halt
+          fi
   website-setup:
     steps:
     - install-node:
@@ -619,6 +637,12 @@ _anchors:
         only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
       branches:
         ignore: /.*/
+  filter-chart-release-only:
+    filters:
+      tags:
+        only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+      branches:
+        ignore: /.*/
 workflows:
   'OSS: Dev':
     jobs:
@@ -668,6 +692,11 @@ workflows:
     jobs:
     - oss-chart-publish:
         name: "oss-release-chart"
+        filters:
+          tags:
+            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+          branches:
+            ignore: /.*/
   'OSS: Release':
     when:
       or:
