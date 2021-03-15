@@ -237,6 +237,7 @@ class V2Cluster(Cacheable):
 
         # Sort by the envoy cluster name (x.envoy_name), not the symbolic IR cluster name (x.name)
         for ircluster in sorted(config.ir.clusters.values(), key=lambda x: x.envoy_name):
+            # XXX This magic format is duplicated for now in ir.py.
             cache_key = f"V2-{ircluster.cache_key}"
             cached_cluster = config.cache[cache_key]
 
