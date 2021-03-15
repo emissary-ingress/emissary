@@ -136,8 +136,6 @@ workflows:
     jobs:
       - "oss-chart-publish":
           name: "oss-release-chart"
-          environment:
-            PUSH_CHART: "true"
 
   "OSS: Release":
     when: # Don't run this workflow in apro.git
@@ -219,8 +217,6 @@ workflows:
       - "oss-chart-publish":
           <<: *filter-ga-only
           name: "oss-release-chart"
-          environment:
-            PUSH_CHART: "true"
 
   "OSS: Nightly":
     triggers:
