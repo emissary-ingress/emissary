@@ -9,7 +9,7 @@ spec:
     app: agentcom-server
   ports:
   - name: grpc-server
-    port: 3000
+    port: 8080
     targetPort: grpc-server
   - name: snapshot-server
     port: 3001
@@ -31,10 +31,13 @@ spec:
     spec:
       containers:
       - name: agentcom-server
-        image: {{env "MODEL_CLUSTER_AGENTCOM_IMAGE"}}
+        image: {{env "KAT_SERVER_DOCKER_IMAGE" }}
+        env:
+          - name: "KAT_BACKEND_TYPE"
+            value: "grpc_agent"
         ports:
         - name: grpc-server
-          containerPort: 3000
+          containerPort: 8080
         - name: snapshot-server
           containerPort: 3001
 ---

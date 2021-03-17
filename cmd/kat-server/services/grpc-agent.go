@@ -1,8 +1,10 @@
-package main
+package services
 
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -20,7 +22,11 @@ import (
 	"github.com/datawire/dlib/dhttp"
 )
 
-func main() {
+type GRPCAgent struct {
+	Port int16
+}
+
+func (a *GRPCAgent) Start() <-chan bool {
 	wg := &sync.WaitGroup{}
 	grpcHandler := grpc.NewServer()
 	dir := &director{}
@@ -37,7 +43,7 @@ func main() {
 	go func() {
 		defer wg.Done()
 		log.Print("starting GRPC agentcom...")
-		if err := sc.ListenAndServe(ctx, ":3000"); err != nil {
+		if err := sc.ListenAndServe(ctx, fmt.Sprintf(":%d", a.Port)); err != nil {
 			select {
 			case grpcErrChan <- err:
 			default:
@@ -74,27 +80,31 @@ func main() {
 		}
 	}()
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	exited := make(chan bool)
+	go func() {
 
-	select {
-	case err := <-grpcErrChan:
-		log.Fatalf("GRPC service died: %+v", err)
-	case err := <-httpErrChan:
-		log.Fatalf("http service died: %+v", err)
-	case <-c:
-		log.Print("Recieved shutdown")
-	}
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
-	ctx, timeout := context.WithTimeout(context.Background(), time.Second*30)
-	defer timeout()
-	cancel()
+		select {
+		case err := <-grpcErrChan:
+			log.Fatalf("GRPC service died: %+v", err)
+		case err := <-httpErrChan:
+			log.Fatalf("http service died: %+v", err)
+		case <-c:
+			log.Print("Recieved shutdown")
+		}
 
-	grpcHandler.GracefulStop()
-	srv.Shutdown(ctx)
-	wg.Wait()
+		ctx, timeout := context.WithTimeout(context.Background(), time.Second*30)
+		defer timeout()
+		cancel()
 
-	os.Exit(0)
+		grpcHandler.GracefulStop()
+		srv.Shutdown(ctx)
+		wg.Wait()
+		close(exited)
+	}()
+	return exited
 }
 
 type director struct {
@@ -123,6 +133,14 @@ func (d *director) Report(ctx context.Context, snapshot *agent.Snapshot) (*agent
 		return nil, err
 	}
 	log.Print("Recieved snapshot")
+	snapBytes, err := json.Marshal(snapshot)
+	if err != nil {
+		return nil, err
+	}
+	err = ioutil.WriteFile("/tmp/snapshot.json", snapBytes, 0644)
+	if err != nil {
+		return nil, err
+	}
 
 	d.lastSnapshot = snapshot
 	return &agent.SnapshotResponse{}, nil
