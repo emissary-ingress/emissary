@@ -100,6 +100,7 @@ require (
 	k8s.io/cli-runtime v0.18.8
 	k8s.io/client-go v0.18.8
 	k8s.io/helm v2.16.9+incompatible
+	k8s.io/klog v1.0.0
 	k8s.io/kubectl v0.18.8
 	k8s.io/metrics v0.18.8
 	sigs.k8s.io/controller-runtime v0.6.1

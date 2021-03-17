@@ -402,11 +402,13 @@ export GOTEST_PKGS
 GOTEST_ARGS ?= -race
 export GOTEST_ARGS
 
-gotest: test-ready
+gotest: test-ready docker/kat-server.docker.push.remote docker/$(LCNAME).docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"
 	docker exec \
+		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) \
 		-e DTEST_REGISTRY=$(DEV_REGISTRY) \
 		-e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml \
+		-e KAT_SERVER_DOCKER_IMAGE=$$(sed -n 2p docker/kat-server.docker.push.remote) \
 		-e GOTEST_PKGS \
 		-e GOTEST_ARGS \
 		-e DEV_USE_IMAGEPULLSECRET \
