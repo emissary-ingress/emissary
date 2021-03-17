@@ -713,13 +713,6 @@ workflows:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
           branches:
             ignore: /.*/
-    - oss-chart:
-        name: "oss-release-chart"
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
     - oss-generate:
         name: "oss-release-generate"
         filters:
