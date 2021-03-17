@@ -157,9 +157,6 @@ workflows:
           <<: *filter-prerelease-only
           name: "oss-release-images"
           release: true
-      - "oss-chart":
-          <<: *filter-prerelease-only
-          name: "oss-release-chart"
       # test
       - "oss-generate":
           <<: *filter-prerelease-only
