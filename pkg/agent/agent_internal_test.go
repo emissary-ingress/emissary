@@ -595,7 +595,7 @@ func TestWatchStopReportingDirective(t *testing.T) {
 	// make sure that reportingStopped is still set
 	assert.True(t, a.reportingStopped)
 	// assert that no snapshots were sent
-	assert.Equal(t, len(client.SentSnapshots), 0, "No snapshots should have been sent to the client")
+	assert.Equal(t, len(client.GetSnapshots()), 0, "No snapshots should have been sent to the client")
 	assert.False(t, a.reportRunning.Value())
 }
 
@@ -813,17 +813,19 @@ func TestWatchWithSnapshot(t *testing.T) {
 	case <-time.After(3 * time.Second):
 		t.Fatal("Timed out waiting for watch to finish after cancelling context")
 	}
+	sentSnaps := client.GetSnapshots()
 
 	// Make sure that the client got a snapshot to send
-	assert.NotNil(t, client.SentSnapshots, "No snapshots sent")
-	assert.GreaterOrEqual(t, len(client.SentSnapshots), 1, "Should have sent at least 1 snapshot")
-	assert.NotNil(t, client.LastMetadata)
-	md := client.LastMetadata.Get("x-ambassador-api-key")
+	assert.NotNil(t, sentSnaps, "No snapshots sent")
+	assert.GreaterOrEqual(t, len(sentSnaps), 1, "Should have sent at least 1 snapshot")
+	lastMeta := client.GetLastMetadata()
+	assert.NotNil(t, lastMeta)
+	md := lastMeta.Get("x-ambassador-api-key")
 	assert.NotEmpty(t, md)
 	assert.Equal(t, md[0], apiKey)
 
 	/////// Make sure the raw snapshot that got sent looks like we expect
-	sentSnapshot := client.SentSnapshots[0]
+	sentSnapshot := sentSnaps[0]
 	var actualSnapshot snapshotTypes.Snapshot
 	err = json.Unmarshal(sentSnapshot.RawSnapshot, &actualSnapshot)
 	assert.Nil(t, err)

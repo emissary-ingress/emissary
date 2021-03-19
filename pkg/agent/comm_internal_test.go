@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"sync"
 	"sync/atomic"
 	"testing"
 
@@ -20,6 +21,7 @@ type MockClient struct {
 	Counter int64
 	grpc.ClientStream
 	SentSnapshots []*agent.Snapshot
+	snapMux       sync.Mutex
 	reportFunc    func(context.Context, *agent.Snapshot) (*agent.SnapshotResponse, error)
 	LastMetadata  metadata.MD
 }
@@ -28,7 +30,23 @@ func (m *MockClient) Close() error {
 	return nil
 }
 
+func (m *MockClient) GetLastMetadata() metadata.MD {
+	m.snapMux.Lock()
+	defer m.snapMux.Unlock()
+	meta := m.LastMetadata
+	return meta
+}
+
+func (m *MockClient) GetSnapshots() []*agent.Snapshot {
+	m.snapMux.Lock()
+	defer m.snapMux.Unlock()
+	snaps := m.SentSnapshots
+	return snaps
+}
+
 func (m *MockClient) Report(ctx context.Context, in *agent.Snapshot, opts ...grpc.CallOption) (*agent.SnapshotResponse, error) {
+	m.snapMux.Lock()
+	defer m.snapMux.Unlock()
 	if m.SentSnapshots == nil {
 		m.SentSnapshots = []*agent.Snapshot{}
 	}
