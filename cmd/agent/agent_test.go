@@ -152,9 +152,9 @@ func setup(t *testing.T, kubeconfig string, cli *kates.Client) {
 
 	err = kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, crdFile)
 	assert.Nil(t, err)
-	err = kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, newAesFile)
+	err = kubeapply.Kubeapply(kubeinfo, time.Second*120, true, false, newAesFile)
 	assert.Nil(t, err)
-	err = kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./fake-agentcom.yaml")
+	err = kubeapply.Kubeapply(kubeinfo, time.Second*120, true, false, "./fake-agentcom.yaml")
 	assert.Nil(t, err)
 
 	assert.Nil(t, err)
