@@ -67,6 +67,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
+- Bugfix: The endpoint routing resolver will now properly watch services that include a scheme.
+
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Bugfix: Make Knative paths match on prefix instead of the entire path to better align to the Knative specification ([#3224]).
