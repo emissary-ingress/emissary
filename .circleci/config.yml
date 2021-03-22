@@ -641,7 +641,7 @@ _anchors:
   filter-chart-release-only:
     filters:
       tags:
-        only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+        only: /^chart\-test\-v[0-9]+\.[0-9]+\.[0-9]+$/
       branches:
         ignore: /.*/
 workflows:
@@ -687,15 +687,12 @@ workflows:
       - equal:
         - "https://github.com/datawire/ambassador"
         - << pipeline.project.git_url >>
-      - equal:
-        - master
-        - << pipeline.git.branch >>
     jobs:
     - oss-chart-publish:
         name: "oss-release-chart"
         filters:
           tags:
-            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+            only: /^chart\-test\-v[0-9]+\.[0-9]+\.[0-9]+$/
           branches:
             ignore: /.*/
   'OSS: Release':

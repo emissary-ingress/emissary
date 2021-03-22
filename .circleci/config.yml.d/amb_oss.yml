@@ -97,7 +97,7 @@ _anchors:
   "filter-chart-release-only": &filter-chart-release-only
     filters:
       tags:
-        only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+        only: /^chart\-test\-v[0-9]+\.[0-9]+\.[0-9]+$/
       branches:
         ignore: /.*/
 
@@ -141,7 +141,7 @@ workflows:
     when: # Don't run this workflow in apro.git
       and:
       - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
-      - equal: [ master, << pipeline.git.branch >> ]
+      # - equal: [ master, << pipeline.git.branch >> ]
     jobs:
       - "oss-chart-publish":
           <<: *filter-chart-release-only
