@@ -48,10 +48,12 @@ jobs:
   "oss-chart":
     executor: oss-linux
     steps:
+      - job-chart-setup
       - job-chart
   "oss-chart-publish":
     executor: oss-linux
     steps:
+      - job-chart-setup
       - job-chart
       - job-chart-publish
 
