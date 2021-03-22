@@ -54,7 +54,7 @@ jobs:
     executor: oss-linux
     steps:
       - job-chart-setup
-      - job-chart
+      # - job-chart
       - job-chart-publish
 
   "oss-promote-to-rc-latest":
