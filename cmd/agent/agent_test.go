@@ -39,12 +39,6 @@ func TestAgentE2E(t *testing.T) {
 	// eh lets make sure the agent came up
 	time.Sleep(time.Second * 3)
 
-	podName, err := getFakeAgentComPodName(cli)
-	assert.Nil(t, err)
-
-	podFile := fmt.Sprintf("%s:%s", podName, "/tmp/snapshot.json")
-	localSnapshot := fmt.Sprintf("%s/snapshot.json", t.TempDir())
-
 	found := false
 	reportSnapshot := &agent.Snapshot{}
 	ambSnapshot := &snapshotTypes.Snapshot{}
@@ -55,7 +49,12 @@ func TestAgentE2E(t *testing.T) {
 	// state we're asserting. this is okay, this test is just to make sure that the agent RBAC
 	// is correct and that the agent can talk to the ambassador-agent service.
 	// any tests that do any more complicated assertions should live in ambassador.git/pkg/agent
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 15; i++ {
+		podName, err := getFakeAgentComPodName(cli)
+		assert.Nil(t, err)
+
+		podFile := fmt.Sprintf("%s:%s", podName, "/tmp/snapshot.json")
+		localSnapshot := fmt.Sprintf("%s/snapshot.json", t.TempDir())
 		time.Sleep(time.Second * time.Duration(i))
 		cmd := dexec.CommandContext(ctx, "kubectl", "--kubeconfig", kubeconfig, "cp", podFile, localSnapshot)
 		out, err := cmd.CombinedOutput()
@@ -107,6 +106,7 @@ func TestAgentE2E(t *testing.T) {
 
 	// pods not being empty basically ensures that the rbac in the yaml is correct
 	assert.NotEmpty(t, ambSnapshot.Kubernetes.Pods, "No pods found in snapshot")
+	assert.Equal(t, 1, len(ambSnapshot.Kubernetes.Rollouts))
 }
 
 func snapshotIsSane(ambSnapshot *snapshotTypes.Snapshot, t *testing.T) bool {
@@ -124,6 +124,10 @@ func snapshotIsSane(ambSnapshot *snapshotTypes.Snapshot, t *testing.T) bool {
 	}
 	if len(ambSnapshot.Kubernetes.Pods) == 0 {
 		t.Log("K8s snapshot pods empty, retrying")
+		return false
+	}
+	if len(ambSnapshot.Kubernetes.Rollouts) == 0 {
+		t.Log("K8s snapshot rollouts empty, retrying")
 		return false
 	}
 
@@ -156,7 +160,9 @@ func setup(t *testing.T, kubeconfig string, cli *kates.Client) {
 	assert.Nil(t, err)
 	err = kubeapply.Kubeapply(kubeinfo, time.Second*120, true, false, "./fake-agentcom.yaml")
 	assert.Nil(t, err)
-
+	err = kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./argo-rollouts.yaml")
+	assert.Nil(t, err)
+	err = kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./argo-rollouts-rbac.yaml")
 	assert.Nil(t, err)
 
 	dep := &kates.Deployment{
