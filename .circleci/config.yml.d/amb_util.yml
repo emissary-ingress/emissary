@@ -132,23 +132,14 @@ commands:
           path: /tmp/test-logs
           destination: test-logs
 
-  "amb-skip-if-no-chart-changes":
+  "amb-skip-if-bad-chart-version":
     steps:
       - run:
           name: "Diff changes"
           command: |
-            if [[ "<< pipeline.git.base_revision >>" == "" ]]; then
-              echo "There is no base_revision, therefore no changes"
-              circleci step halt
+            thisversion=$(grep version: charts/ambassador/Chart.yaml | awk ' { print $2 }')
+
+            if [[ "<< pipeline.git.tag >>" != "chart-test-v${thisversion}" ]]; then
+              echo "Chart version ${thisversion} doesn't match tag << pipeline.git.tag >>; aborting"
+              exit 1
             fi
-
-            COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
-            echo "Commit range: " $COMMIT_RANGE
-            git --no-pager diff $COMMIT_RANGE --name-only
-            git diff $TRAVIS_COMMIT_RANGE Chart.yaml | grep -q +version
-
-            if ! git diff $COMMIT_RANGE charts/ambassador/Chart.yaml | grep -q '+version' ; then
-              echo "Halting this CircleCI job because chart version did not change"
-              circleci step halt
-            fi
-

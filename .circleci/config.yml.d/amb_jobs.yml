@@ -41,9 +41,11 @@ commands:
       - amb-config-registry
       # main
       - run: make test-chart
+
   "job-chart-publish":
     steps:
       # Use job-chart-setup before this.
+      - amb-skip-if-bad-chart-version
       - run: charts/ambassador/ci/push_chart.sh
 
   "job-generate":
