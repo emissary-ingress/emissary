@@ -329,9 +329,11 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 				continue
 			}
 			a.podStore = NewPodStore(podSnapshot.Pods)
-		case callback := <-rolloutCallback:
-			dlog.Log(ctx, dlog.LogLevelInfo, fmt.Sprintf("rollout callback: %+v", callback))
-			a.rolloutStore = rolloutStore.FromCallback(callback)
+		case callback, ok := <-rolloutCallback:
+			if ok {
+				dlog.Log(ctx, dlog.LogLevelInfo, fmt.Sprintf("rollout callback: %+v", callback))
+				a.rolloutStore = rolloutStore.FromCallback(callback)
+			}
 		case directive := <-a.newDirective:
 			a.directiveHandler.HandleDirective(ctx, a, directive)
 		}

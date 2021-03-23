@@ -40,30 +40,51 @@ func (i *informerMock) fakeInformer(di dynamic.Interface, ns string, gvr *schema
 }
 
 func TestWatchGeneric(t *testing.T) {
-	t.Run("will watch generic resource successfully", func(t *testing.T) {
-		// given
-		t.Parallel()
-		runFunc := func(handler cache.ResourceEventHandler) {
-			obj := &unstructured.Unstructured{}
-			obj.SetName("obj1-added")
-			handler.OnAdd(obj)
+	type runFunc func(handler cache.ResourceEventHandler)
+	type fixture struct {
+		dc         *agent.DynamicClient
+		rolloutGvr *schema.GroupVersionResource
+		ctx        context.Context
+		ctxCancel  context.CancelFunc
+	}
+	defaultRunFunc := func(handler cache.ResourceEventHandler) {
+		obj := &unstructured.Unstructured{}
+		obj.SetName("obj1-added")
+		handler.OnAdd(obj)
 
-			objNew := &unstructured.Unstructured{}
-			objNew.SetName("obj1-new")
-			handler.OnUpdate(obj, objNew)
+		objNew := &unstructured.Unstructured{}
+		objNew.SetName("obj1-new")
+		handler.OnUpdate(obj, objNew)
 
-			objDel := &unstructured.Unstructured{}
-			objDel.SetName("obj1-del")
-			handler.OnDelete(objDel)
+		objDel := &unstructured.Unstructured{}
+		objDel.SetName("obj1-del")
+		handler.OnDelete(objDel)
+	}
+	setup := func(runFunc runFunc) *fixture {
+		rf := defaultRunFunc
+		if runFunc != nil {
+			rf = runFunc
 		}
-		mock := newInformerMock(runFunc)
+		mock := newInformerMock(rf)
 		dc := agent.NewDynamicClient(nil, mock.fakeInformer)
 		rolloutGvr, _ := schema.ParseResourceArg("rollouts.v1alpha1.argoproj.io")
 		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
+		return &fixture{
+			dc:         dc,
+			rolloutGvr: rolloutGvr,
+			ctx:        ctx,
+			ctxCancel:  cancel,
+		}
+
+	}
+	t.Run("will watch generic resource successfully", func(t *testing.T) {
+		// given
+		t.Parallel()
+		f := setup(nil)
+		defer f.ctxCancel()
 
 		// when
-		rolloutCallback := dc.WatchGeneric(ctx, "default", rolloutGvr)
+		rolloutCallback := f.dc.WatchGeneric(f.ctx, "default", f.rolloutGvr)
 
 		// then
 		assert.NotNil(t, rolloutCallback)
@@ -80,5 +101,20 @@ func TestWatchGeneric(t *testing.T) {
 				}
 			}
 		}
+	})
+	t.Run("will handle context cancelation gracefully", func(t *testing.T) {
+		// given
+		t.Parallel()
+		f := setup(nil)
+		f.ctxCancel()
+
+		// when
+		rolloutCallback := f.dc.WatchGeneric(f.ctx, "default", f.rolloutGvr)
+
+		// then
+		assert.NotNil(t, rolloutCallback)
+		callback, ok := <-rolloutCallback
+		assert.Nil(t, callback)
+		assert.False(t, ok)
 	})
 }

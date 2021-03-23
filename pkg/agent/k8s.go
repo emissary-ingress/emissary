@@ -39,6 +39,7 @@ type GenericCallback struct {
 type DynamicClient struct {
 	newInformer InformerFunc
 	di          dynamic.Interface
+	done        bool
 }
 
 // NewDynamicClient is the main contructor of DynamicClient
@@ -87,18 +88,28 @@ func (dc *DynamicClient) WatchGeneric(ctx context.Context, ns string, gvr *schem
 	i.AddEventHandler(
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
+				if dc.done {
+					return
+				}
 				dlog.Debugf(ctx, "WatchGeneric: AddFunc called for resource %q", gvr.String())
 				sotw := i.ListCache()
 				new := obj.(*unstructured.Unstructured)
+				dlog.Debugf(ctx, "WatchGeneric: AddFunc for obj name: %s", new.GetName())
 				callbackChan <- &GenericCallback{EventType: CallbackEventAdded, Obj: new, Sotw: sotw}
 			},
 			UpdateFunc: func(oldObj, newObj interface{}) {
+				if dc.done {
+					return
+				}
 				dlog.Debugf(ctx, "WatchGeneric: UpdateFunc called for resource %q", gvr.String())
 				new := newObj.(*unstructured.Unstructured)
 				sotw := i.ListCache()
 				callbackChan <- &GenericCallback{EventType: CallbackEventUpdated, Obj: new, Sotw: sotw}
 			},
 			DeleteFunc: func(obj interface{}) {
+				if dc.done {
+					return
+				}
 				dlog.Debugf(ctx, "WatchGeneric: DeleteFunc called for resource %q", gvr.String())
 				var old *unstructured.Unstructured
 				switch o := obj.(type) {
@@ -114,6 +125,7 @@ func (dc *DynamicClient) WatchGeneric(ctx context.Context, ns string, gvr *schem
 	)
 	go func() {
 		<-ctx.Done()
+		dc.done = true
 		close(callbackChan)
 	}()
 	go i.Run(ctx.Done())
