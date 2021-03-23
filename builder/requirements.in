@@ -24,3 +24,4 @@ pexpect
 pytest
 pytest-cov
 retry
+awscli

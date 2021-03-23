@@ -316,6 +316,7 @@ func (sh *SnapshotHolder) K8sUpdate(ctx context.Context, watcher K8sWatcher, con
 		// Check if the set of endpoints we are interested in has changed. If so we need to send
 		// endpoint info again even if endpoints have not changed.
 		if sh.endpointRoutingInfo.watchesChanged() {
+			dlog.Infof(ctx, "watches changed: %v", sh.endpointRoutingInfo.endpointWatches)
 			endpointsChanged = true
 		}
 
