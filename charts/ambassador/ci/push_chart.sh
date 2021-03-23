@@ -25,6 +25,13 @@ export CHART_PACKAGE=$(ls *.tgz)
 
 curl -o tmp.yaml -k -L https://getambassador.io/helm/index.yaml
 
+thisversion=$(grep version charts/ambassador/Chart.yaml | awk ' { print $2 }')
+
+if [[ $(grep -c "version: $thisversion" tmp.yaml || true) != 0 ]]; then
+	failed "Chart version $thisversion is already in the index"
+	exit 1
+fi
+
 helm repo index . --url https://getambassador.io/helm --merge tmp.yaml
 
 if [ -z "$AWS_BUCKET" ] ; then
