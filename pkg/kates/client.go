@@ -198,6 +198,11 @@ func InCluster() bool {
 		err == nil && !fi.IsDir()
 }
 
+// DynamicInterface is an accessor method to the k8s dynamic client
+func (c *Client) DynamicInterface() dynamic.Interface {
+	return c.cli
+}
+
 func (c *Client) WaitFor(ctx context.Context, kindOrResource string) {
 	for {
 		_, err := c.mappingFor(kindOrResource)

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/pkg/errors"
 
@@ -79,6 +80,8 @@ type Agent struct {
 
 	// current pod state in cluster
 	podStore *podStore
+
+	rolloutStore *RolloutStore
 
 	// config map/secret information
 	// agent namespace is... the namespace the agent is running in.
@@ -198,7 +201,6 @@ func (a *Agent) handleAPIKeyConfigChange(ctx context.Context, secrets []kates.Se
 		if newKey != oldKey {
 			a.ClearComm()
 		}
-
 	}
 	prevKey := a.ambassadorAPIKey
 	// first, check if we have a secret, since we want that value to take if we
@@ -286,6 +288,11 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 	acc := client.Watch(ctx, query)
 	configAcc := client.Watch(ctx, cmQuery, secretQuery)
 
+	rolloutGvr, _ := schema.ParseResourceArg("rollouts.v1alpha1.argoproj.io")
+	dc := NewDynamicClient(client.DynamicInterface(), NewK8sInformer)
+	rolloutCallback := dc.WatchGeneric(ctx, ns, rolloutGvr)
+	rolloutStore := NewRolloutStore()
+
 	// for the watch
 	// we're not watching CRDs or anything special, so i'm pretty sure it's okay just to say all
 	// the pods are valid
@@ -322,7 +329,9 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 				continue
 			}
 			a.podStore = NewPodStore(podSnapshot.Pods)
-
+		case callback := <-rolloutCallback:
+			dlog.Log(ctx, dlog.LogLevelInfo, fmt.Sprintf("rollout callback: %+v", callback))
+			a.rolloutStore = rolloutStore.FromCallback(callback)
 		case directive := <-a.newDirective:
 			a.directiveHandler.HandleDirective(ctx, a, directive)
 		}
@@ -334,7 +343,7 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 			if err != nil {
 				dlog.Warnf(ctx, "Error getting snapshot from ambassador %+v", err)
 			}
-			dlog.Debug(ctx, "Recieved snapshot in agent")
+			dlog.Debug(ctx, "Received snapshot in agent")
 			if err = a.ProcessSnapshot(ctx, snapshot, ambHost); err != nil {
 				dlog.Warnf(ctx, "error processing snapshot: %+v", err)
 			}
@@ -450,9 +459,21 @@ func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Sna
 		a.connInfo = newConnInfo
 	}
 
-	if snapshot.Kubernetes != nil && a.podStore != nil {
-		snapshot.Kubernetes.Pods = a.podStore.GetPodsForServices(snapshot.Kubernetes.Services)
-		dlog.Debugf(ctx, "Found %d pods and %d services", len(snapshot.Kubernetes.Pods), len(snapshot.Kubernetes.Services))
+	if snapshot.Kubernetes != nil {
+		if a.podStore != nil {
+			snapshot.Kubernetes.Pods = a.podStore.GetPodsForServices(snapshot.Kubernetes.Services)
+			dlog.Debugf(ctx, "Found %d pods and %d services", len(snapshot.Kubernetes.Pods), len(snapshot.Kubernetes.Services))
+		}
+		if a.rolloutStore != nil {
+			list, err := a.rolloutStore.StateOfWorld()
+			if err != nil {
+				dlog.Errorf(ctx, "Error getting rollout state of the world: %s", err)
+				return err
+			}
+			dlog.Infof(ctx, "Added %d rollouts to the snapshot", len(list))
+			snapshot.Kubernetes.Rollouts = list
+			snapshot.Deltas = append(snapshot.Deltas, a.rolloutStore.deltas...)
+		}
 	}
 
 	if err = snapshot.Sanitize(); err != nil {

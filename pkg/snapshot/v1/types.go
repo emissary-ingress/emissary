@@ -91,6 +91,8 @@ type KubernetesSnapshot struct {
 	// makes things _much_ easier when giving the mothership (aka saas app's agent com) a single
 	// source of the state of the cluster
 	Pods []*kates.Pod `json:"Pods,omitempty"`
+
+	Rollouts []*kates.Unstructured `json:"Rollouts,omitempty"`
 }
 
 func (a *KubernetesSnapshot) Render() string {
