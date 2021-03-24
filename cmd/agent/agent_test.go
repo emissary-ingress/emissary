@@ -106,7 +106,7 @@ func TestAgentE2E(t *testing.T) {
 
 	// pods not being empty basically ensures that the rbac in the yaml is correct
 	assert.NotEmpty(t, ambSnapshot.Kubernetes.Pods, "No pods found in snapshot")
-	assert.Equal(t, 1, len(ambSnapshot.Kubernetes.Rollouts))
+	assert.NotEmpty(t, ambSnapshot.Kubernetes.Rollouts, "No rollouts found in snapshot")
 }
 
 func snapshotIsSane(ambSnapshot *snapshotTypes.Snapshot, t *testing.T) bool {
@@ -160,9 +160,11 @@ func setup(t *testing.T, kubeconfig string, cli *kates.Client) {
 	assert.Nil(t, err)
 	err = kubeapply.Kubeapply(kubeinfo, time.Second*120, true, false, "./fake-agentcom.yaml")
 	assert.Nil(t, err)
-	err = kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./argo-rollouts.yaml")
+	err = kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./argo-rollouts-crd.yaml")
 	assert.Nil(t, err)
 	err = kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./argo-rollouts-rbac.yaml")
+	assert.Nil(t, err)
+	err = kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./argo-rollouts.yaml")
 	assert.Nil(t, err)
 
 	dep := &kates.Deployment{
