@@ -790,20 +790,24 @@ func TestWatchWithSnapshot(t *testing.T) {
 		watchDone <- err
 	}()
 
-	// assert that report completes
-	select {
-	case err := <-a.reportComplete:
-		cancel()
-		assert.Nil(t, err)
-		// make sure that reportToSend is nil or else future snapshots won't get sent
-		assert.Nil(t, a.reportToSend)
-		assert.False(t, a.reportRunning.Value())
-	case err := <-watchDone:
-		t.Fatalf("Watch ended early with error %s", err.Error())
-	case <-time.After(10 * time.Second):
-		cancel()
-		t.Fatal("Timed out waiting for report to complete.")
+	// assert that we send a couple of reports.
+	// we just want to make sure we don't get stuck after sending one report
+	// each report will be the same because the snapshot server we setup for this test is just
+	// returning static content
+	reportsSent := 0
+	for reportsSent < 2 {
+		select {
+		case err := <-a.reportComplete:
+			assert.Nil(t, err)
+			reportsSent += 1
+		case err := <-watchDone:
+			t.Fatalf("Watch ended early with error %s", err.Error())
+		case <-time.After(10 * time.Second):
+			cancel()
+			t.Fatal("Timed out waiting for report to complete.")
+		}
 	}
+	cancel()
 
 	// stop the watch and make sure if finishes without an error
 	select {
