@@ -24,6 +24,30 @@ commands:
   # "oss-linux" and "aes-linux" executors)                             #
   ######################################################################
 
+  "job-chart-setup":
+    steps:
+      # setup
+      - amb-linux-install
+      - amb-checkout
+      - skip-if-no-changes:
+          to: charts/ambassador
+
+  "job-chart":
+    steps:
+      # Use job-chart-setup before this
+      - install-k3d
+      # We might need to be logged in the registry to pull the Envoy
+      # image or the builder-base image.
+      - amb-config-registry
+      # main
+      - run: make test-chart
+
+  "job-chart-publish":
+    steps:
+      # Use job-chart-setup before this.
+      - amb-skip-if-bad-chart-version
+      - run: charts/ambassador/ci/push_chart.sh
+
   "job-generate":
     steps:
       # setup
