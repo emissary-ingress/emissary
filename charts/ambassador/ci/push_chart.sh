@@ -27,14 +27,12 @@ curl -o tmp.yaml -k -L https://getambassador.io/helm/index.yaml
 
 helm repo index . --url https://getambassador.io/helm --merge tmp.yaml
 
+if [ -z "$AWS_BUCKET" ] ; then
+    AWS_BUCKET=datawire-static-files
+fi
+
 [ -n "$AWS_ACCESS_KEY_ID"     ] || abort "AWS_ACCESS_KEY_ID is not set"
 [ -n "$AWS_SECRET_ACCESS_KEY" ] || abort "AWS_SECRET_ACCESS_KEY is not set"
-[ -n "$AWS_BUCKET"            ] || abort "AWS_BUCKET is not set"
-
-if [ -z "$PUSH_CHART" ] || [ "$PUSH_CHART" = "false" ] ; then
-  info "PUSH_CHART is undefined (or defined as false) in environment: the chart will not be pushed..."
-  exit 0
-fi
 
 info "Pushing chart to S3 bucket $AWS_BUCKET"
 for f in "$CHART_PACKAGE" "index.yaml" ; do
