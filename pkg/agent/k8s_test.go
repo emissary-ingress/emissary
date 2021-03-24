@@ -105,7 +105,12 @@ func TestWatchGeneric(t *testing.T) {
 	t.Run("will handle context cancelation gracefully", func(t *testing.T) {
 		// given
 		t.Parallel()
-		f := setup(nil)
+		informerRunFunc := func(handler cache.ResourceEventHandler) {
+			obj := &unstructured.Unstructured{}
+			obj.SetName("obj1-added")
+			handler.OnAdd(obj)
+		}
+		f := setup(informerRunFunc)
 		f.ctxCancel()
 
 		// when
@@ -114,7 +119,11 @@ func TestWatchGeneric(t *testing.T) {
 		// then
 		assert.NotNil(t, rolloutCallback)
 		callback, ok := <-rolloutCallback
-		assert.Nil(t, callback)
-		assert.False(t, ok)
+		if ok {
+			assert.NotNil(t, callback)
+			assert.Equal(t, "obj1-added", callback.Obj.GetName())
+		} else {
+			assert.Nil(t, callback)
+		}
 	})
 }

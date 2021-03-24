@@ -2,6 +2,7 @@ package agent
 
 import (
 	"context"
+	"sync"
 
 	"github.com/datawire/dlib/dlog"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -40,6 +41,7 @@ type DynamicClient struct {
 	newInformer InformerFunc
 	di          dynamic.Interface
 	done        bool
+	mux         sync.Mutex
 }
 
 // NewDynamicClient is the main contructor of DynamicClient
@@ -80,36 +82,44 @@ func NewK8sInformer(cli dynamic.Interface, ns string, gvr *schema.GroupVersionRe
 	}
 }
 
+func (dc *DynamicClient) sendCallback(callbackChan chan<- *GenericCallback, callback *GenericCallback) {
+	dc.mux.Lock()
+	defer dc.mux.Unlock()
+	if dc.done {
+		return
+	}
+	callbackChan <- callback
+}
+
 // WatchGeneric will watch any resource existing in the cluster or not. This is usefull for
 // watching CRDs that may or may not be available in the cluster.
 func (dc *DynamicClient) WatchGeneric(ctx context.Context, ns string, gvr *schema.GroupVersionResource) <-chan *GenericCallback {
 	callbackChan := make(chan *GenericCallback)
+	go func() {
+		<-ctx.Done()
+		dc.mux.Lock()
+		defer dc.mux.Unlock()
+		dc.done = true
+		close(callbackChan)
+	}()
 	i := dc.newInformer(dc.di, ns, gvr)
 	i.AddEventHandler(
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
-				if dc.done {
-					return
-				}
 				dlog.Debugf(ctx, "WatchGeneric: AddFunc called for resource %q", gvr.String())
 				sotw := i.ListCache()
 				new := obj.(*unstructured.Unstructured)
-				dlog.Debugf(ctx, "WatchGeneric: AddFunc for obj name: %s", new.GetName())
-				callbackChan <- &GenericCallback{EventType: CallbackEventAdded, Obj: new, Sotw: sotw}
+				callback := &GenericCallback{EventType: CallbackEventAdded, Obj: new, Sotw: sotw}
+				dc.sendCallback(callbackChan, callback)
 			},
 			UpdateFunc: func(oldObj, newObj interface{}) {
-				if dc.done {
-					return
-				}
 				dlog.Debugf(ctx, "WatchGeneric: UpdateFunc called for resource %q", gvr.String())
 				new := newObj.(*unstructured.Unstructured)
 				sotw := i.ListCache()
-				callbackChan <- &GenericCallback{EventType: CallbackEventUpdated, Obj: new, Sotw: sotw}
+				callback := &GenericCallback{EventType: CallbackEventUpdated, Obj: new, Sotw: sotw}
+				dc.sendCallback(callbackChan, callback)
 			},
 			DeleteFunc: func(obj interface{}) {
-				if dc.done {
-					return
-				}
 				dlog.Debugf(ctx, "WatchGeneric: DeleteFunc called for resource %q", gvr.String())
 				var old *unstructured.Unstructured
 				switch o := obj.(type) {
@@ -119,15 +129,11 @@ func (dc *DynamicClient) WatchGeneric(ctx context.Context, ns string, gvr *schem
 					old = o
 				}
 				sotw := i.ListCache()
-				callbackChan <- &GenericCallback{EventType: CallbackEventDeleted, Obj: old, Sotw: sotw}
+				callback := &GenericCallback{EventType: CallbackEventDeleted, Obj: old, Sotw: sotw}
+				dc.sendCallback(callbackChan, callback)
 			},
 		},
 	)
-	go func() {
-		<-ctx.Done()
-		dc.done = true
-		close(callbackChan)
-	}()
 	go i.Run(ctx.Done())
 	dlog.Infof(ctx, "WatchGeneric: Listening for events from resouce %q", gvr.String())
 	return callbackChan
