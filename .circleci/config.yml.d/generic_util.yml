@@ -6,6 +6,17 @@ version: 2.1
 
 commands:
 
+  "install-k3d":
+    parameters:
+      "version":
+        type: string
+        default: "v3.4.0"
+    steps:
+      - run:
+          name: "Install K3D << parameters.version >>"
+          command: |
+            curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | TAG=<< parameters.version >>  bash
+
   "pip-install":
     parameters:
       "packages":

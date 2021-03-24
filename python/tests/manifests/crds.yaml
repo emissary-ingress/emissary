@@ -700,6 +700,8 @@ spec:
               oneOf:
               - type: string
               - type: array
+            auth_context_extensions:
+              type: object
             auto_host_rewrite:
               type: boolean
             bypass_auth:

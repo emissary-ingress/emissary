@@ -1,4 +1,4 @@
-crds_yaml_dir = $(OSS_HOME)/../ambassador-chart/crds
+crds_yaml_dir = $(OSS_HOME)/charts/ambassador/crds
 
 generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto'))
@@ -326,7 +326,10 @@ _generate_controller_gen: $(tools/controller-gen) $(tools/fix-crds) update-yaml-
 
 $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml: _generate_controller_gen $(tools/fix-crds) update-yaml-preflight
 	@printf '  $(CYN)$@$(END)\n'
-	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/*.yaml)) > $@
+	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/getambassador.io_*.yaml)) > $@
+$(OSS_HOME)/python/tests/manifests/crds.yaml: $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml $(tools/fix-crds) update-yaml-preflight
+	@printf '  $(CYN)$@$(END)\n'
+	$(tools/fix-crds) oss 1.10 $< > $@
 $(OSS_HOME)/docs/yaml/ambassador/%.yaml: $(OSS_HOME)/docs/yaml/ambassador/%.yaml.m4 $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml update-yaml-preflight
 	@printf '  $(CYN)$@$(END)\n'
 	cd $(@D) && m4 < $(<F) > $(@F)

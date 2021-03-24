@@ -1,0 +1,345 @@
+{{- if .Values.registry.create }}
+######################################################################
+# In-cluster Registry for Projects
+
+# This mapping will make every host function as a docker
+# registry. It's not ideal to take over the "v2" mapping, but there
+# are a number of constraints that make this the least worst option
+# explored so far. These constraints are:
+#
+# - We need a registry where docker push/pull and similar (e.g. crictl
+#   push/pull) can work with no special client configuration since we
+#   don't control the clients and we can't expect our users to
+#   reconfigure their clusters to use a special push/pull
+#   configuration.
+#
+# - GKE's push/pull implementation (I think it's docker) and crictl
+#   push/pull (used by default in k3s clusters) have different default
+#   behaviors with respect to localhost registries. The docker
+#   implementation is very permissive, it will try both cleartext and
+#   TLS and it does not verify the TLS connection, so self-signed
+#   registries work fine. The crictl implementation is moving in this
+#   direction, but the version used in k3s (based on rancher's fork of
+#   containerd at v1.3.3) is not there yet. It only tries cleartext by
+#   default.
+#
+# - We want to minimize the requirements for users to have the
+#   access/understanding to create special DNS configurations
+#   (e.g. wildcard or a separate dns name for the registry).
+#
+# - You can configure the docker registry to have a prefix,
+#   e.g. <host>/<special-prefix>/v2/..., however without special
+#   configuration to override the defaults, clients can't push/pull
+#   from a registry served at a prefix. If your image is named
+#   <foo>/<bar>, the client will look for <foo>/v2/... endpoints.
+#
+# Given all the prior constraints we are left with creating this
+# mapping for all hosts. If this is a problem there are a few
+# alternatives we could consider. We can provide a way to limit this
+# mapping to only one host so they can have distinct hosts for their
+# site and their registry. We could also look into creating a
+# daemonset that binds to localhost and proxies cleartext to
+# TLS. Based on what I know of GKE and k3s its a good guess that this
+# would accommodate both of them, but possibly not other clusters with
+# different configurations.
+#
+# Another reason to lean towards an externally accessible registry is
+# that there are likely some people that would want this as a feature
+# so they can docker push/pull images from other systems into/out of
+# the builtin registry. While it's true that security minded people
+# might not like having this registry externally accessible, it's also
+# quite likely those people would want to run their own fancy registry
+# that scans/audits images, etc. The focus for RtC is really a smooth
+# out of the box experience that functions end-to-end without
+# requiring you to build your own platform. For more security minded
+# people we should expect to eventually be able to configure an
+# external registry and/or turn off the builtin one.
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: {{ include "ambassador.fullname" . }}-registry
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-registry
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    product: aes
+spec:
+  prefix: /v2/
+  rewrite: /v2/
+  service: https://{{ include "ambassador.fullname" . }}-registry
+  timeout_ms: 300000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ambassador.fullname" . }}-registry
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-registry
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    product: aes
+  annotations:
+    a8r.io/owner: "Ambassador Labs"
+    a8r.io/repository: github.com/datawire/ambassador
+    a8r.io/description: "The Ambassador Edge internal image registry."
+    a8r.io/documentation: https://www.getambassador.io/docs/latest/
+    a8r.io/chat: http://d6e.co/slack
+    a8r.io/bugs: https://github.com/datawire/ambassador/issues
+    a8r.io/support: https://www.getambassador.io/about-us/support/
+    a8r.io/dependencies: "None"
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-registry
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - port: 443
+      targetPort: 5000
+
+# The registry deployment. The deployment includes a persistent volume
+# mount for storing images, a config-map mount for customizing the
+# registry configuration, and a secret mounted for tls.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ambassador.fullname" . }}-registry
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    product: aes
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-registry
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        foo: "5"
+      labels:
+        app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-registry
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: registry
+        image: registry:2
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+          - mountPath: /var/lib/registry
+            name: registry-data
+          - name: registry-config
+            mountPath: /etc/docker/registry
+          - name: registry-tls
+            mountPath: /etc/tls
+      volumes:
+        - name: registry-config
+          configMap:
+            # Provide the name of the ConfigMap containing the files you want
+            # to add to the container
+            name: {{ include "ambassador.fullname" . }}-registry-config
+        - name: registry-data
+          persistentVolumeClaim:
+            claimName: {{ include "ambassador.fullname" . }}-registry-data
+        - name: registry-tls
+          secret:
+            secretName: {{ include "ambassador.fullname" . }}-registry-tls
+
+# The configuration file for our registry.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ambassador.fullname" . }}-registry-config
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-registry
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    product: aes
+data:
+  config.yml: |
+    version: 0.1
+    log:
+      fields:
+        service: registry
+    storage:
+      cache:
+        blobdescriptor: inmemory
+      filesystem:
+        rootdirectory: /var/lib/registry
+    http:
+      addr: :5000
+      headers:
+        X-Content-Type-Options: [nosniff]
+      tls:
+        certificate: /etc/tls/tls.crt
+        key: /etc/tls/tls.key
+    health:
+      storagedriver:
+        enabled: true
+        interval: 10s
+        threshold: 3
+
+# The persistent volume for our registry.
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "ambassador.fullname" . }}-registry-data
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-registry
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    product: aes
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+# The self-signed tls secret for our registry. We should look into
+# generating this on install with a job.
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "ambassador.fullname" . }}-registry-tls
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-registry
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    product: aes
+type: kubernetes.io/tls
+data:
+  tls.crt: |
+    LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVEekNDQXZlZ0F3SUJBZ0lVSVZrWlJGSkVJ
+    VCtOTlJiMFJ0TkxwZFp5TTVnd0RRWUpLb1pJaHZjTkFRRUwKQlFBd2daWXhDekFKQmdOVkJBWVRB
+    bFZUTVJZd0ZBWURWUVFJREExTllYTnpZV05vZFhObGRIUnpNUk13RVFZRApWUVFIREFwVGIyMWxj
+    blpwYkd4bE1SRXdEd1lEVlFRS0RBaEVZWFJoZDJseVpURVVNQklHQTFVRUN3d0xSVzVuCmFXNWxa
+    WEpwYm1jeEVUQVBCZ05WQkFNTUNISmxaMmx6ZEhKNU1SNHdIQVlKS29aSWh2Y05BUWtCRmc5a1pY
+    WkEKWkdGMFlYZHBjbVV1YVc4d0hoY05NakF3TVRNd01qRXdNVFV5V2hjTk1qRXdNVEk1TWpFd01U
+    VXlXakNCbGpFTApNQWtHQTFVRUJoTUNWVk14RmpBVUJnTlZCQWdNRFUxaGMzTmhZMmgxYzJWMGRI
+    TXhFekFSQmdOVkJBY01DbE52CmJXVnlkbWxzYkdVeEVUQVBCZ05WQkFvTUNFUmhkR0YzYVhKbE1S
+    UXdFZ1lEVlFRTERBdEZibWRwYm1WbGNtbHUKWnpFUk1BOEdBMVVFQXd3SWNtVm5hWE4wY25reEhq
+    QWNCZ2txaGtpRzl3MEJDUUVXRDJSbGRrQmtZWFJoZDJseQpaUzVwYnpDQ0FTSXdEUVlKS29aSWh2
+    Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTFRtZ21wb2szVVdCVkhqCjFqb2R5eG9LZFJad09Y
+    WnhiZ25ITXlMa2xxLzUydGdmTEJmVlU1TzB2aE5iVm5vcEVSRWdWV0pTd3dlN0dOS0EKSjlaWWxC
+    Qlc1Q1U5Q3FNalU2TTVOdTdiVWRQblNyNGRFSFlWcmhEakJYcVpDUElEaFhZS2ZZYWh0YlB4cis1
+    egpueS9qQktKU2JwM3RWU3d5SEhsY3JJNHdOU2R1Q2x5UFplOFR0Q2hGQUxhcU5rWUMvclNGK0w0
+    SWcwZmY1N0duClpFVmsyZDJja09Xbkp6akRXMGhYL3FUcXhUKzZwV2tUQThWQ0FVS2FabEY5VkRK
+    c20rOW1XM2dBWmZ5NWdFWloKajcvaktqNTd5R1BUR2xWQXhra2J2WlJJVWQ5LzVkVmE3V1RCYnlR
+    dkxvOEkyWWQ3S1h6Y3BjcElpS2hRREdPQQpHbGVoa2JVQ0F3RUFBYU5UTUZFd0hRWURWUjBPQkJZ
+    RUZGTDV5NnNIb09tV0FRWVVGano4VHNETGFnUTdNQjhHCkExVWRJd1FZTUJhQUZGTDV5NnNIb09t
+    V0FRWVVGano4VHNETGFnUTdNQThHQTFVZEV3RUIvd1FGTUFNQkFmOHcKRFFZSktvWklodmNOQVFF
+    TEJRQURnZ0VCQUFZdHlnNDNDTEJsbVlvY0NkSjVpSlF0NTR0anFGU2hIMzdFd3h4WQp1QVExRHRW
+    a0Q3QngzUURZZ1cxeU1QYzFTRDhYenFUcWxjQUlOQTZwdVB0SlNPcC8wUUVqVFJSMkFSZFF5VURI
+    ClZOZEZzcHp5MGRnbllqOXY2ckl4akdOazVHZXI3cUp4TURaUUY0dC82NHZLYWNyOHZOQ3dnSmI5
+    WEZaMTBjNlEKdVNSNVVVN1pMTWJPeWd4a0hPQStMMXp3S2pSaXZUb2ZMbExPOURQNUJwMk9hOGgr
+    TmZhVkJ4ZHFUS2l0UzFaOApnUnZhOTFuRHZwTjl5aHBiNFJVN2FoWW9tWGF4VE5ZVEJxVE1uZWhE
+    aWhPQjdBS2Z0VVErdjJWZ2VlM1FxaGJ4CjRUSlJpTTUxR2VIWEtoVWw5ZXBxRnBlYllIa1BnU1ln
+    bU1OUy9aT3JSWmFxajVRPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+  tls.key: |
+    LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2QUlCQURBTkJna3Foa2lHOXcwQkFRRUZB
+    QVNDQktZd2dnU2lBZ0VBQW9JQkFRQzA1b0pxYUpOMUZnVlIKNDlZNkhjc2FDblVXY0RsMmNXNEp4
+    ek1pNUphditkcllIeXdYMVZPVHRMNFRXMVo2S1JFUklGVmlVc01IdXhqUwpnQ2ZXV0pRUVZ1UWxQ
+    UXFqSTFPak9UYnUyMUhUNTBxK0hSQjJGYTRRNHdWNm1RanlBNFYyQ24yR29iV3o4YS91CmM1OHY0
+    d1NpVW02ZDdWVXNNaHg1WEt5T01EVW5iZ3BjajJYdkU3UW9SUUMycWpaR0F2NjBoZmkrQ0lOSDMr
+    ZXgKcDJSRlpObmRuSkRscHljNHcxdElWLzZrNnNVL3VxVnBFd1BGUWdGQ21tWlJmVlF5Ykp2dlps
+    dDRBR1g4dVlCRwpXWSsvNHlvK2U4aGoweHBWUU1aSkc3MlVTRkhmZitYVld1MWt3VzhrTHk2UENO
+    bUhleWw4M0tYS1NJaW9VQXhqCmdCcFhvWkcxQWdNQkFBRUNnZ0VBWUxiMGRxdGVXclRoTnp6V0pk
+    QVQ2K0kzWXoyd214QmR3a0NMcUZZSjhoOWsKenpNclFicTlxalJ4Z3F2TWVoZEdscDl3eHRaMGlz
+    ZU9wOHY0Z0hKdkJxVk42RkxRUXhQNS9VUHppSlFkRld1TQozRU54cjVBN3RhK0tHRmVGSHM2Zkpk
+    TEo5WmF6TEhkRWxmbWUyOTFGZHZzWFJMdkVVNUtmQW90M2ZiVnNWWjFxCnRucVIzY0dET3JVQ00v
+    ZzJKZmVBYk5wSUJjTnlCV0diOGRQbm5SaHZRNW5YN1ozUnJiNTlhQnhOcldCSkFkbnEKOUtkS3BR
+    UmU4cjBiRGJ0WVZQamxXRldpOVluWVQ0WHpQOG9TU0t5a3R4TWZraEM2dlVKb0gwNHFOSmRkWjVM
+    WAozWjRKUm14RnlUZU1rUG0xa2dnSVVRZGJhRWp1WG0rOThOeXVkZitKcVFLQmdRRGx6SS9XMzZM
+    am1pRE9MSDVUCnFhZTFnazNMV2lTY3hwZzRhazEyenhLSlkrWUJiNnc4UG5EVmlvY2tPa0lsSERh
+    V0xzQ2VpRkJsM2lPSDlUWWcKQm9iY3JVZVNUbWdOaUNqSlpIWVhIUlY1TEN2bGE0UkhhcXNMWG43
+    elptTE5GVW9YRlhaTkoyQzlqUEp5TStyQQpqOWJLWlFvQTF2NC9qOUdMTXN3eEJZem1pd0tCZ1FE
+    SmhxNDhrYmV0MlRTRFhyMUxuY3FMVU9wak1hQmNyOEJKCnpDNlBwK3F0ck01QVE1RnkwaHRoV2Zn
+    bDkzZU5vMWRQT2pCRDZ6amIyd2dNSHhBR2w1V0pIN005enFBSWJSaW0KbDFNcmsrUkprbUVGeUls
+    cU95TG9jNlg0V1pPN1BwejZPQkdWTExGOFlBR09UcldaRzZwUStDeVJWN3hHUS9PWAo4QlN5UVVh
+    d3Z3S0JnRWFXWG55dmQxYVlpb2txUzZlaFRuM0h4K08yRGRjR2ZjMmVnYXNFRW5xWGNCaHkyQ0l0
+    ClAvV29OcmpmR0dCVDJVU3FtY3BZcnZHTG1iaHlqeXlwTkpYbXVEeHR6ektRNTQ1dFNJVHpEeHlJ
+    Zi9kWjNta2QKaityUEhRbmhJbXBDcHQ2T1hpZDIrQlZoalR1ZFRQZlhkeS8yZDJzb256S2hGOG05
+    VWRHaEZkWGZBb0dBRkZ0QwpabVBoeGZIVzJCNU55TUdib0E4QVhoeTVNaU9lck5XdkxsdXIzUGRE
+    cmtJbEF4QXVLOXRHc2E4WnFIa0RiTUZYCjlzUmY3ZlZtRHJOa2p3WG8yUDBXd2Z1Sk50Q3VXTVdZ
+    WlNKL1FOOUVaYTBvRkU3ODY3WWk0YjlLcVBOZUwvaFIKN2x1aFlncmduVnRlQktWQ3d3TU9uVy9i
+    V00yc1lZQ2kxbzY1Y1VrQ2dZQUR4SUJmOGZUOURDS0NaZ1FvQXNDYwpvSzcvdzdDYk1hOEp5TjZa
+    ZDRiSlIrSzRzUEtQekd2M3dEandxRzFTRkN6UU1FR01mOWt6TWFYb09XdzNaN2NCCklIZTJDUXFF
+    N2NZdW1LYjFkOTFueU1qMVdQVC9CWEJKZzB3aUNMV0RjakdQR0xNWTJyeGsvMWwzL2xjKy9WVkcK
+    NjRZZUh1YlllOE9Iemp5UEZGSnJZdz09Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K
+
+######################################################################
+# Project Controller
+#
+# Comment this out if you want to disable the micro CI/CD functionality:
+---
+apiVersion: getambassador.io/v2
+kind: ProjectController
+metadata:
+  name: {{ include "ambassador.fullname" . }}-projectcontroller
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-projectcontroller
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    projects.getambassador.io/ambassador_id: {{ if hasKey .Values.env "AMBASSADOR_ID" }}{{ .Values.env.AMBASSADOR_ID | quote }}{{ else }}default{{ end }}
+    product: aes
+{{- end }}
