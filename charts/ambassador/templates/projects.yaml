@@ -61,6 +61,7 @@ metadata:
   name: {{ include "ambassador.fullname" . }}-registry
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}-registry
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -70,19 +71,29 @@ metadata:
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
+    {{- end }}
     product: aes
 spec:
   prefix: /v2/
   rewrite: /v2/
+  {{- if .Values.registry.resourceNameOverride }}
+  service: https://{{ .Values.registry.resourceNameOverride }}
+  {{- else }}
   service: https://{{ include "ambassador.fullname" . }}-registry
+  {{- end }}
   timeout_ms: 300000
 ---
 apiVersion: v1
 kind: Service
 metadata:
+  {{- if .Values.registry.resourceNameOverride }}
+  name: {{ .Values.registry.resourceNameOverride }}
+  {{- else }}
   name: {{ include "ambassador.fullname" . }}-registry
+  {{- end }}
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}-registry
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -91,6 +102,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
     {{- end }}
     product: aes
   annotations:
@@ -105,8 +117,12 @@ metadata:
 spec:
   type: ClusterIP
   selector:
+    {{- if .Values.registry.serviceSelectors }}
+    {{ toYaml .Values.registry.serviceSelector | nindent 4 }}
+    {{- else }}
     app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-registry
     app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- end }}
   ports:
     - port: 443
       targetPort: 5000
@@ -118,9 +134,14 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  {{- if .Values.registry.resourceNameOverride }}
+  name: {{ .Values.registry.resourceNameOverride }}
+  {{- else }}
   name: {{ include "ambassador.fullname" . }}-registry
+  {{- end }}
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -130,7 +151,9 @@ metadata:
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
+    {{- end }}
     product: aes
+    app: registry
 spec:
   replicas: 1
   strategy:
@@ -138,15 +161,23 @@ spec:
       maxSurge: 0
   selector:
     matchLabels:
+      {{- if .Values.registry.serviceSelectors }}
+      {{ toYaml .Values.registry.serviceSelector | nindent 6 }}
+      {{- else }}
       app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-registry
       app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- end }}
   template:
     metadata:
       annotations:
         foo: "5"
       labels:
+        {{- if .Values.registry.serviceSelectors }}
+        {{ toYaml .Values.registry.serviceSelector | nindent 8 }}
+        {{- else }}
         app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-registry
         app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- end }}
     spec:
       containers:
       - name: registry
@@ -165,22 +196,39 @@ spec:
           configMap:
             # Provide the name of the ConfigMap containing the files you want
             # to add to the container
+            {{- if .Values.registry.resourceNameOverride }}
+            name: {{ .Values.registry.resourceNameOverride }}-config
+            {{- else }}
             name: {{ include "ambassador.fullname" . }}-registry-config
+            {{- end }}
         - name: registry-data
           persistentVolumeClaim:
+            {{- if .Values.registry.resourceNameOverride }}
+            claimName: {{ .Values.registry.resourceNameOverride }}-data
+            {{- else }}
             claimName: {{ include "ambassador.fullname" . }}-registry-data
+            {{- end }}
         - name: registry-tls
           secret:
+            {{- if .Values.registry.resourceNameOverride }}
+            secretName: {{ .Values.registry.resourceNameOverride }}-tls
+            {{- else }}
             secretName: {{ include "ambassador.fullname" . }}-registry-tls
+            {{- end }}
 
 # The configuration file for our registry.
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  {{- if .Values.registry.resourceNameOverride }}
+  name: {{ .Values.registry.resourceNameOverride }}-config
+  {{- else }}
   name: {{ include "ambassador.fullname" . }}-registry-config
+  {{- end }}
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}-registry
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -189,6 +237,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
     {{- end }}
     product: aes
 data:
@@ -220,9 +269,14 @@ data:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  {{- if .Values.registry.resourceNameOverride }}
+  name: {{ .Values.registry.resourceNameOverride }}-data
+  {{- else }}
   name: {{ include "ambassador.fullname" . }}-registry-data
+  {{- end }}
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}-registry
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -231,6 +285,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
     {{- end }}
     product: aes
 spec:
@@ -246,9 +301,14 @@ spec:
 apiVersion: v1
 kind: Secret
 metadata:
+  {{- if .Values.registry.resourceNameOverride }}
+  name: {{ .Values.registry.resourceNameOverride }}-tls
+  {{- else }}
   name: {{ include "ambassador.fullname" . }}-registry-tls
+  {{- end }}
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}-registry
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -257,6 +317,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
     {{- end }}
     product: aes
 type: kubernetes.io/tls
@@ -328,9 +389,14 @@ data:
 apiVersion: getambassador.io/v2
 kind: ProjectController
 metadata:
+  {{- if .Values.registry.projectControllerName }}
+  name: {{ .Values.registry.projectControllerName }}
+  {{- else }}
   name: {{ include "ambassador.fullname" . }}-projectcontroller
+  {{- end }}
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}-projectcontroller
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -339,6 +405,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
     {{- end }}
     projects.getambassador.io/ambassador_id: {{ if hasKey .Values.env "AMBASSADOR_ID" }}{{ .Values.env.AMBASSADOR_ID | quote }}{{ else }}default{{ end }}
     product: aes

@@ -1,0 +1,18 @@
+resources:
+  - kind: Service
+    name: ambassador-admin
+    namespace: default
+  - kind: ClusterRole
+    name: ambassador
+  - kind: ServiceAccount
+    name: ambassador
+    namespace: default
+  - kind: ClusterRoleBinding
+    name: ambassador
+  - kind: ClusterRole
+    name: ambassador-crd
+  - kind: ClusterRole
+    name: ambassador-watch
+  - kind: Deployment
+    name: ambassador
+    namespace: default
