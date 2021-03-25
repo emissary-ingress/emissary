@@ -474,7 +474,6 @@ func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Sna
 			}
 			dlog.Infof(ctx, "Added %d rollouts to the snapshot", len(list))
 			snapshot.Kubernetes.Rollouts = list
-			snapshot.Deltas = append(snapshot.Deltas, a.rolloutStore.deltas...)
 		}
 	}
 
