@@ -25,6 +25,8 @@ Ambassador Edge Stack, designed for startups.
 
 ### UPCOMING CHANGES
 
+- Feature: The Ambassador Module configuration now supports `merge_slashes` which tells Ambassador to merge adjacent slashes when performing route matching. For example, when true, a request with URL '//foo/' would match a Mapping with prefix '/foo/'.
+
 #### Ingress resources and Namespaces
 
 In a future version of Ambassador, *no sooner than Ambassador 1.13.0*, TLS secrets

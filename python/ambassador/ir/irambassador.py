@@ -55,6 +55,7 @@ class IRAmbassador (IRResource):
         'liveness_probe',
         'load_balancer',
         'max_request_headers_kb',
+        'merge_slashes',
         'preserve_external_request_id'
         'proper_case',
         'prune_unreachable_routes',
