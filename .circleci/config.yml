@@ -22,16 +22,12 @@ commands:
   # (factored out to be commands so that they can be shared between    #
   # "oss-linux" and "aes-linux" executors)                             #
   ######################################################################
-  "job-chart-setup":
+  "job-chart":
     steps:
-    # setup
     - amb-linux-install
     - amb-checkout
     - skip-if-no-changes:
         to: charts/ambassador
-  "job-chart":
-    steps:
-    # Use job-chart-setup before this
     - install-k3d
     # We might need to be logged in the registry to pull the Envoy
     # image or the builder-base image.
@@ -40,7 +36,14 @@ commands:
       run: make test-chart
   "job-chart-publish":
     steps:
-    # Use job-chart-setup before this.
+    - amb-linux-install
+    - amb-checkout
+    - install-k3d
+    # We might need to be logged in the registry to pull the Envoy
+    # image or the builder-base image.
+    - amb-config-registry
+    - # main
+      run: make test-chart
     - amb-skip-if-bad-chart-version
     - run: charts/ambassador/ci/push_chart.sh
   "job-generate":
@@ -557,13 +560,10 @@ jobs:
   oss-chart:
     executor: oss-linux
     steps:
-    - job-chart-setup
     - job-chart
   oss-chart-publish:
     executor: oss-linux
     steps:
-    - job-chart-setup
-    - job-chart
     - job-chart-publish
   oss-promote-to-rc-latest:
     executor: oss-linux
