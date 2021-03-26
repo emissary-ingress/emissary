@@ -5,6 +5,11 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+## v6.6.1
+
+- Fix metadata field in ConsulRevoler
+- Make resolvers available to OSS
+
 
 ## v6.6.0
 
