@@ -10,7 +10,7 @@ metadata:
 ---
 apiVersion: getambassador.io/v2
 kind: ConsulResolver
-metaata:
+metadata:
   name: {{ .Values.resolvers.consul.name }}
   namespace: {{ include "ambassador.namespace" . }}
 spec:
