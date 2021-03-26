@@ -678,7 +678,7 @@ workflows:
             # to add some exclusions -- see the Release workflow for more.
   'OSS: Chart Release':
     when:
-      and:
+      or:
       - equal:
         - "https://github.com/datawire/ambassador"
         - << pipeline.project.git_url >>
