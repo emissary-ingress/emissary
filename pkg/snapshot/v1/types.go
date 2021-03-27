@@ -92,12 +92,19 @@ type KubernetesSnapshot struct {
 	// source of the state of the cluster
 	Pods []*kates.Pod `json:"Pods,omitempty"`
 
-	// Rollouts represents the argo-rollout CRD state of the world that may or may not be present
+	// ArgoRollouts represents the argo-rollout CRD state of the world that may or may not be present
 	// in the client's cluster. For this reason, Rollouts resources are fetched making use of the
 	// k8s dynamic client that returns an unstructured.Unstructured object. This is a better strategy
-	// for Ambassador code base as we don't have the overhead of Marshal/Unmarshaling into json and it
-	// is forward compatible.
-	Rollouts []*kates.Unstructured `json:"Rollouts,omitempty"`
+	// for Ambassador code base for the following reasons:
+	//   - it is forward compatible
+	//   - no need to maintain types defined by the Argo projects
+	//   - no unnecessary overhead Marshaling/Unmarshaling it into json as the state is opaque to
+	// Ambassador.
+	ArgoRollouts []*kates.Unstructured `json:"ArgoRollouts,omitempty"`
+
+	// ArgoApplications represents the argo-rollout CRD state of the world that may or may not be present
+	// in the client's cluster. For reasons why this is defined as unstructured see ArgoRollouts attribute.
+	ArgoApplications []*kates.Unstructured `json:"ArgoApplications,omitempty"`
 }
 
 func (a *KubernetesSnapshot) Render() string {

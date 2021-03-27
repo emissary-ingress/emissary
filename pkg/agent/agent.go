@@ -81,7 +81,10 @@ type Agent struct {
 	// current pod state in cluster
 	podStore *podStore
 
+	// rolloutStore holds Argo Rollouts state from cluster
 	rolloutStore *RolloutStore
+	// applicationStore holds Argo Applications state from cluster
+	applicationStore *ApplicationStore
 
 	// config map/secret information
 	// agent namespace is... the namespace the agent is running in.
@@ -288,10 +291,14 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 	acc := client.Watch(ctx, query)
 	configAcc := client.Watch(ctx, cmQuery, secretQuery)
 
-	rolloutGvr, _ := schema.ParseResourceArg("rollouts.v1alpha1.argoproj.io")
 	dc := NewDynamicClient(client.DynamicInterface(), NewK8sInformer)
+	rolloutGvr, _ := schema.ParseResourceArg("rollouts.v1alpha1.argoproj.io")
 	rolloutCallback := dc.WatchGeneric(ctx, ns, rolloutGvr)
 	rolloutStore := NewRolloutStore()
+
+	applicationGvr, _ := schema.ParseResourceArg("applications.v1alpha1.argoproj.io")
+	applicationCallback := dc.WatchGeneric(ctx, ns, applicationGvr)
+	applicationStore := NewApplicationStore()
 
 	// for the watch
 	// we're not watching CRDs or anything special, so i'm pretty sure it's okay just to say all
@@ -331,8 +338,19 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 			a.podStore = NewPodStore(podSnapshot.Pods)
 		case callback, ok := <-rolloutCallback:
 			if ok {
-				dlog.Log(ctx, dlog.LogLevelInfo, fmt.Sprintf("rollout callback: %+v", callback))
-				a.rolloutStore = rolloutStore.FromCallback(callback)
+				dlog.Debugf(ctx, "argo rollout callback: %v", callback.EventType)
+				a.rolloutStore, err = rolloutStore.FromCallback(callback)
+				if err != nil {
+					dlog.Warnf(ctx, "Error processing rollout callback: %s", err)
+				}
+			}
+		case callback, ok := <-applicationCallback:
+			if ok {
+				dlog.Debugf(ctx, "argo application callback: %v", callback.EventType)
+				a.applicationStore, err = applicationStore.FromCallback(callback)
+				if err != nil {
+					dlog.Warnf(ctx, "Error processing application callback: %s", err)
+				}
 			}
 		case directive := <-a.newDirective:
 			a.directiveHandler.HandleDirective(ctx, a, directive)
@@ -467,13 +485,12 @@ func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Sna
 			dlog.Debugf(ctx, "Found %d pods and %d services", len(snapshot.Kubernetes.Pods), len(snapshot.Kubernetes.Services))
 		}
 		if a.rolloutStore != nil {
-			list, err := a.rolloutStore.StateOfWorld()
-			if err != nil {
-				dlog.Errorf(ctx, "Error getting rollout state of the world: %s", err)
-				return err
-			}
-			dlog.Infof(ctx, "Added %d rollouts to the snapshot", len(list))
-			snapshot.Kubernetes.Rollouts = list
+			snapshot.Kubernetes.ArgoRollouts = a.rolloutStore.StateOfWorld()
+			dlog.Infof(ctx, "Found %d argo rollouts", len(snapshot.Kubernetes.ArgoRollouts))
+		}
+		if a.applicationStore != nil {
+			snapshot.Kubernetes.ArgoApplications = a.applicationStore.StateOfWorld()
+			dlog.Infof(ctx, "Found %d argo applications", len(snapshot.Kubernetes.ArgoApplications))
 		}
 	}
 

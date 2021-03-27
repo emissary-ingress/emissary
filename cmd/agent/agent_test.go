@@ -35,14 +35,46 @@ func TestAgentE2E(t *testing.T) {
 	// ambassador, ambassador-agent, rbac, crds, and a fake agentcom that implements the grpc
 	// server for the agent
 	setup(t, kubeconfig, cli)
+	defer deleteArgoResources(t, kubeconfig)
 
 	// eh lets make sure the agent came up
 	time.Sleep(time.Second * 3)
 
+	hasArgo := false
+	reportSnapshot, ambSnapshot := getAgentComSnapshots(t, kubeconfig, cli, hasArgo)
+
+	// Do actual assertions here. kind of lazy way to retry, but it should work
+	assert.NotEmpty(t, reportSnapshot.Identity.ClusterId)
+	assert.NotEmpty(t, reportSnapshot.Identity.Hostname)
+	assert.NotEmpty(t, reportSnapshot.RawSnapshot)
+	assert.NotEmpty(t, reportSnapshot.ApiVersion)
+	assert.NotEmpty(t, reportSnapshot.SnapshotTs)
+	assert.Equal(t, reportSnapshot.ApiVersion, snapshotTypes.ApiVersion)
+
+	assert.NotEmpty(t, ambSnapshot.Kubernetes)
+
+	// just make sure the stuff we really need for the service catalog is in there
+	assert.NotEmpty(t, ambSnapshot.Kubernetes.Services, "No services in snapshot")
+	assert.NotEmpty(t, ambSnapshot.Kubernetes.Mappings, "No mappings in snapshot")
+
+	// pods not being empty basically ensures that the rbac in the yaml is correct
+	assert.NotEmpty(t, ambSnapshot.Kubernetes.Pods, "No pods found in snapshot")
+	assert.Empty(t, ambSnapshot.Kubernetes.ArgoRollouts, "rollouts found in snapshot")
+	assert.Empty(t, ambSnapshot.Kubernetes.ArgoApplications, "applications found in snapshot")
+
+	applyArgoResources(t, kubeconfig, cli)
+	hasArgo = true
+	reportSnapshot, ambSnapshot = getAgentComSnapshots(t, kubeconfig, cli, hasArgo)
+	assert.NotEmpty(t, ambSnapshot.Kubernetes.ArgoRollouts, "No argo rollouts found in snapshot")
+	assert.NotEmpty(t, ambSnapshot.Kubernetes.ArgoApplications, "No argo applications found in snapshot")
+}
+
+func getAgentComSnapshots(t *testing.T, kubeconfig string, cli *kates.Client, waitArgo bool) (*agent.Snapshot, *snapshotTypes.Snapshot) {
 	found := false
 	reportSnapshot := &agent.Snapshot{}
 	ambSnapshot := &snapshotTypes.Snapshot{}
 	ctx := context.Background()
+
 	// now we're going to go copy the snapshot.json file from our fake agentcom
 	// when the agentcom gets a snapshot from the agent, it'll store it at /tmp/snapshot.json
 	// we do this in a loop because it might take ambassador and the agent a sec to get into the
@@ -83,33 +115,16 @@ func TestAgentE2E(t *testing.T) {
 		if err != nil {
 			t.Fatal("Could not unmarshal ambassador snapshot")
 		}
-		if !snapshotIsSane(ambSnapshot, t) {
+		if !snapshotIsSane(ambSnapshot, t, waitArgo) {
 			continue
 		}
 		break
 	}
 	assert.True(t, found, "Could not cp file from agentcom")
-
-	// Do actual assertions here. kind of lazy way to retry, but it should work
-	assert.NotEmpty(t, reportSnapshot.Identity.ClusterId)
-	assert.NotEmpty(t, reportSnapshot.Identity.Hostname)
-	assert.NotEmpty(t, reportSnapshot.RawSnapshot)
-	assert.NotEmpty(t, reportSnapshot.ApiVersion)
-	assert.NotEmpty(t, reportSnapshot.SnapshotTs)
-	assert.Equal(t, reportSnapshot.ApiVersion, snapshotTypes.ApiVersion)
-
-	assert.NotEmpty(t, ambSnapshot.Kubernetes)
-
-	// just make sure the stuff we really need for the service catalog is in there
-	assert.NotEmpty(t, ambSnapshot.Kubernetes.Services, "No services in snapshot")
-	assert.NotEmpty(t, ambSnapshot.Kubernetes.Mappings, "No mappings in snapshot")
-
-	// pods not being empty basically ensures that the rbac in the yaml is correct
-	assert.NotEmpty(t, ambSnapshot.Kubernetes.Pods, "No pods found in snapshot")
-	assert.NotEmpty(t, ambSnapshot.Kubernetes.Rollouts, "No rollouts found in snapshot")
+	return reportSnapshot, ambSnapshot
 }
 
-func snapshotIsSane(ambSnapshot *snapshotTypes.Snapshot, t *testing.T) bool {
+func snapshotIsSane(ambSnapshot *snapshotTypes.Snapshot, t *testing.T, hasArgo bool) bool {
 	if ambSnapshot.Kubernetes == nil {
 		t.Log("K8s snapshot empty, retrying")
 		return false
@@ -126,12 +141,39 @@ func snapshotIsSane(ambSnapshot *snapshotTypes.Snapshot, t *testing.T) bool {
 		t.Log("K8s snapshot pods empty, retrying")
 		return false
 	}
-	if len(ambSnapshot.Kubernetes.Rollouts) == 0 {
-		t.Log("K8s snapshot rollouts empty, retrying")
+	if hasArgo && len(ambSnapshot.Kubernetes.ArgoRollouts) == 0 {
+		t.Log("K8s snapshot argo rollouts empty, retrying")
+		return false
+	}
+	if hasArgo && len(ambSnapshot.Kubernetes.ArgoApplications) == 0 {
+		t.Log("K8s snapshot argo applications empty, retrying")
+		return false
+	}
+	if !hasArgo && len(ambSnapshot.Kubernetes.ArgoRollouts) != 0 {
+		t.Log("K8s snapshot argo rollouts should be empty, retrying")
+		return false
+	}
+	if !hasArgo && len(ambSnapshot.Kubernetes.ArgoApplications) != 0 {
+		t.Log("K8s snapshot argo applications should be empty, retrying")
 		return false
 	}
 
 	return true
+}
+func applyArgoResources(t *testing.T, kubeconfig string, cli *kates.Client) {
+	kubeinfo := k8s.NewKubeInfo(kubeconfig, "", "")
+	err := kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./test/argo-rollouts-crd.yaml")
+	assert.Nil(t, err)
+	err = kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./test/argo-rollouts-rbac.yaml")
+	assert.Nil(t, err)
+	err = kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./test/argo-rollouts.yaml")
+	assert.Nil(t, err)
+	err = kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./test/argo-application-crd.yaml")
+	assert.Nil(t, err)
+	err = kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./test/argo-application-rbac.yaml")
+	assert.Nil(t, err)
+	err = kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./test/argo-application.yaml")
+	assert.Nil(t, err)
 }
 
 func setup(t *testing.T, kubeconfig string, cli *kates.Client) {
@@ -160,12 +202,6 @@ func setup(t *testing.T, kubeconfig string, cli *kates.Client) {
 	assert.Nil(t, err)
 	err = kubeapply.Kubeapply(kubeinfo, time.Second*120, true, false, "./fake-agentcom.yaml")
 	assert.Nil(t, err)
-	err = kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./argo-rollouts-crd.yaml")
-	assert.Nil(t, err)
-	err = kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./argo-rollouts-rbac.yaml")
-	assert.Nil(t, err)
-	err = kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./argo-rollouts.yaml")
-	assert.Nil(t, err)
 
 	dep := &kates.Deployment{
 		TypeMeta: kates.TypeMeta{
@@ -180,6 +216,23 @@ func setup(t *testing.T, kubeconfig string, cli *kates.Client) {
 	patch := fmt.Sprintf(`{"spec":{"template":{"spec":{"containers":[{"name":"agent","env":[{"name":"%s", "value":"%s"}]}]}}}}`, "RPC_CONNECTION_ADDRESS", "http://agentcom-server.default:8080/")
 	err = cli.Patch(ctx, dep, kates.StrategicMergePatchType, []byte(patch), dep)
 	assert.Nil(t, err)
+}
+
+func deleteArgoResources(t *testing.T, kubeconfig string) {
+	ctx := context.Background()
+	// cleaning up argo crds so the e2e test can be deterministic
+	cmd := dexec.CommandContext(ctx, "kubectl", "--kubeconfig", kubeconfig, "delete", "crd", "--ignore-not-found=true", "rollouts.argoproj.io")
+	out, err := cmd.CombinedOutput()
+	t.Log(fmt.Sprintf("Kubectl delete crd rollouts output: %s", out))
+	if err != nil {
+		t.Errorf("Error running kubectl delete crd rollouts: %s", err)
+	}
+	cmd = dexec.CommandContext(ctx, "kubectl", "--kubeconfig", kubeconfig, "delete", "crd", "--ignore-not-found=true", "applications.argoproj.io")
+	out, err = cmd.CombinedOutput()
+	t.Log(fmt.Sprintf("Kubectl delete crd applications output: %s", out))
+	if err != nil {
+		t.Errorf("Error running kubectl delete crd applications: %s", err)
+	}
 }
 
 func getFakeAgentComPodName(cli *kates.Client) (string, error) {

@@ -107,8 +107,8 @@ func (dc *DynamicClient) WatchGeneric(ctx context.Context, ns string, gvr *schem
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				dlog.Debugf(ctx, "WatchGeneric: AddFunc called for resource %q", gvr.String())
-				sotw := i.ListCache()
 				new := obj.(*unstructured.Unstructured)
+				sotw := i.ListCache()
 				callback := &GenericCallback{EventType: CallbackEventAdded, Obj: new, Sotw: sotw}
 				dc.sendCallback(callbackChan, callback)
 			},
