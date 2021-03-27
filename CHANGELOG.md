@@ -67,7 +67,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
-(no changes yet)
+- Bugfix: Update OpenSSL to 1.1.1k to address CVE-2021-23840), CVE-2021-3450), CVE-2021-23841), CVE-2021-3449), CVE-2021-23839), CVE-2021-23840), CVE-2021-3450), CVE-2021-23841), CVE-2021-3449), and CVE-2021-23839)
 
 ## [1.12.1] March 12, 2021
 [1.12.1]: https://github.com/datawire/ambassador/compare/v1.12.0...v1.12.1
