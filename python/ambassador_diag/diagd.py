@@ -633,6 +633,30 @@ def _is_local_request() -> bool:
     return remote_addr == "127.0.0.1"
 
 
+def _allow_diag_ui() -> bool:
+    """
+    Helper function to check if diag ui traffic is allowed or not
+    based on the different flags from the config:
+    * diagnostics.enabled: Enable to diag UI by adding mappings
+    * diagnostics.allow_non_local: Allow non local traffic
+                                   even when diagnotics UI is disabled.
+                                   Mappings are not added for the diag UI
+                                   but the diagnotics UI is still exposed for
+                                   the pod IP in the admin port.
+    * local traffic or not: When diagnotics disagled and allow_non_local is false,
+                            allow traffic only from localhost clients
+    """
+    enabled = False
+    allow_non_local= False
+    ir = app.ir
+    if ir:
+        enabled = ir.ambassador_module.diagnostics.get("enabled", False)
+        allow_non_local = ir.ambassador_module.diagnostics.get("allow_non_local", False)
+    if not enabled and not _is_local_request() and not allow_non_local:
+        return False
+    return True
+
+
 class Notices:
     def __init__(self, local_config_path: str) -> None:
         self.local_path = local_config_path
@@ -882,8 +906,7 @@ def show_overview(reqid=None):
           app.logger.debug("OV %s - can't do overview before configuration" % reqid)
           return "Can't do overview before configuration", 503
 
-    enabled = app.ir.ambassador_module.diagnostics.get("enabled", False)
-    if not enabled and not _is_local_request():
+    if not _allow_diag_ui():
         return Response("Not found\n", 404)
 
     app.logger.debug("OV %s - showing overview" % reqid)
@@ -1018,8 +1041,7 @@ def show_intermediate(source=None, reqid=None):
           app.logger.debug("SRC %s - can't do intermediate for %s before configuration" % (reqid, source))
           return "Can't do overview before configuration", 503
 
-    enabled = app.ir.ambassador_module.diagnostics.get("enabled", False)
-    if not enabled and not _is_local_request():
+    if not _allow_diag_ui():
         return Response("Not found\n", 404)
 
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))

@@ -1774,6 +1774,13 @@ func (in *MappingSpec) DeepCopyInto(out *MappingSpec) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.AuthContextExtensions != nil {
+		in, out := &in.AuthContextExtensions, &out.AuthContextExtensions
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	if in.BypassErrorResponseOverrides != nil {
 		in, out := &in.BypassErrorResponseOverrides, &out.BypassErrorResponseOverrides
 		*out = new(bool)

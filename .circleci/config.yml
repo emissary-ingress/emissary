@@ -22,6 +22,27 @@ commands:
   # (factored out to be commands so that they can be shared between    #
   # "oss-linux" and "aes-linux" executors)                             #
   ######################################################################
+  "job-chart-setup":
+    steps:
+    # setup
+    - amb-linux-install
+    - amb-checkout
+    - skip-if-no-changes:
+        to: charts/ambassador
+  "job-chart":
+    steps:
+    # Use job-chart-setup before this
+    - install-k3d
+    # We might need to be logged in the registry to pull the Envoy
+    # image or the builder-base image.
+    - amb-config-registry
+    - # main
+      run: make test-chart
+  "job-chart-publish":
+    steps:
+    # Use job-chart-setup before this.
+    - amb-skip-if-bad-chart-version
+    - run: charts/ambassador/ci/push_chart.sh
   "job-generate":
     steps:
     # setup
@@ -301,6 +322,17 @@ commands:
         name: "Store logs"
         path: /tmp/test-logs
         destination: test-logs
+  amb-skip-if-bad-chart-version:
+    steps:
+    - run:
+        name: "Diff changes"
+        command: |
+          thisversion=$(grep version: charts/ambassador/Chart.yaml | awk ' { print $2 }')
+
+          if [[ "<< pipeline.git.tag >>" != "chart-v${thisversion}" ]]; then
+            echo "Chart version ${thisversion} doesn't match tag << pipeline.git.tag >>; aborting"
+            exit 1
+          fi
   website-setup:
     steps:
     - install-node:
@@ -316,6 +348,16 @@ commands:
     - amb-checkout
     - skip-if-no-changes:
         to: docs/
+  install-k3d:
+    parameters:
+      version:
+        type: string
+        default: "v3.4.0"
+    steps:
+    - run:
+        name: "Install K3D << parameters.version >>"
+        command: |
+          curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | TAG=<< parameters.version >>  bash
   pip-install:
     parameters:
       packages:
@@ -523,6 +565,17 @@ jobs:
         test: << parameters.test >>
         fast-reconfigure: << parameters.fast-reconfigure >>
         legacy-mode: << parameters.legacy-mode >>
+  oss-chart:
+    executor: oss-linux
+    steps:
+    - job-chart-setup
+    - job-chart
+  oss-chart-publish:
+    executor: oss-linux
+    steps:
+    - job-chart-setup
+    - job-chart
+    - job-chart-publish
   oss-promote-to-rc-latest:
     executor: oss-linux
     steps:
@@ -591,6 +644,12 @@ _anchors:
         only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
       branches:
         ignore: /.*/
+  filter-chart-release-only:
+    filters:
+      tags:
+        only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+      branches:
+        ignore: /.*/
 workflows:
   'OSS: Dev':
     jobs:
@@ -600,6 +659,8 @@ workflows:
         name: "oss-dev-generate"
     - oss-lint:
         name: "oss-dev-lint"
+    - oss-chart:
+        name: "oss-dev-chart"
     - oss-test:
         requires:
         - "oss-dev-images"
@@ -626,6 +687,23 @@ workflows:
             - false
             # If you enable testing with legacy-mode true as well, you'll also need
             # to add some exclusions -- see the Release workflow for more.
+  'OSS: Chart Release':
+    when:
+      and:
+      - equal:
+        - "https://github.com/datawire/ambassador"
+        - << pipeline.project.git_url >>
+      - equal:
+        - master
+        - << pipeline.git.branch >>
+    jobs:
+    - oss-chart-publish:
+        name: "oss-release-chart"
+        filters:
+          tags:
+            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+          branches:
+            ignore: /.*/
   'OSS: Release':
     when:
       or:

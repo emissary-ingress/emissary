@@ -1,0 +1,119 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1beta1
+{{- if .Values.scope.singleNamespace }}
+kind: Role
+{{- else }}
+kind: ClusterRole
+{{- end }}
+metadata:
+  name: {{ include "ambassador.rbacName" . }}
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    product: aes
+rules:
+  - apiGroups: [""]
+    resources:
+    - namespaces
+    - services
+    - secrets
+    - endpoints
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: [ "getambassador.io" ]
+    resources: [ "*" ]
+    verbs: ["get", "list", "watch", "update", "patch", "create", "delete" ]
+
+  - apiGroups: [ "apiextensions.k8s.io" ]
+    resources: [ "customresourcedefinitions" ]
+    verbs: ["get", "list", "watch", "delete"]
+
+  - apiGroups: [ "networking.internal.knative.dev"]
+    resources: [ "clusteringresses", "ingresses" ]
+    verbs: ["get", "list", "watch"]
+    
+  - apiGroups: [ "networking.internal.knative.dev"]
+    resources: [ "clusteringresses/status", "ingresses/status" ]
+    verbs: ["update"]
+
+  - apiGroups: [ "extensions", "networking.k8s.io" ]
+    resources: [ "ingresses", "ingressclasses" ]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: [ "extensions", "networking.k8s.io" ]
+    resources: [ "ingresses/status" ]
+    verbs: ["update"]
+
+  {{- if .Values.enableAES }}
+  - apiGroups: [""]
+    resources: [ "secrets" ]
+    verbs: ["get", "list", "watch", "create", "update"]
+
+  - apiGroups: [""]
+    resources: [ "events" ]
+    verbs: ["get", "list", "watch", "create", "patch"]
+
+  - apiGroups: ["coordination.k8s.io"]
+    resources: [ "leases" ]
+    verbs: ["get", "create", "update"]
+
+  - apiGroups: [""]
+    resources: [ "endpoints" ]
+    verbs: ["get", "list", "watch", "create", "update"]
+  {{- end }}
+
+  {{- if or .Values.rbac.podSecurityPolicies .Values.security.podSecurityPolicy }}
+  
+  - apiGroups: ['policy']
+    resources: ['podsecuritypolicies']
+    verbs: ['use']
+    resourceNames:
+    {{- if .Values.rbac.podSecurityPolicies }}
+      {{- toYaml .Values.rbac.podSecurityPolicies | nindent 6 }}
+    {{- end }}
+    {{- if .Values.security.podSecurityPolicy }}
+    - {{ include "ambassador.fullname" . }}
+    {{- end }}
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+{{- if .Values.scope.singleNamespace }}
+kind: RoleBinding
+{{- else }}
+kind: ClusterRoleBinding
+{{- end }}
+metadata:
+  name: {{ include "ambassador.rbacName" . }}
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  {{- if .Values.scope.singleNamespace }}
+  kind: Role
+  {{- else }}
+  kind: ClusterRole
+  {{- end }}
+  name: {{ include "ambassador.rbacName" . }}
+subjects:
+  - name: {{ include "ambassador.serviceAccountName" . }}
+    namespace: {{ include "ambassador.namespace" . }}
+    kind: ServiceAccount
+{{- end -}}

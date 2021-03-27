@@ -145,3 +145,15 @@ commands:
           name: "Store logs"
           path: /tmp/test-logs
           destination: test-logs
+
+  "amb-skip-if-bad-chart-version":
+    steps:
+      - run:
+          name: "Diff changes"
+          command: |
+            thisversion=$(grep version: charts/ambassador/Chart.yaml | awk ' { print $2 }')
+
+            if [[ "<< pipeline.git.tag >>" != "chart-v${thisversion}" ]]; then
+              echo "Chart version ${thisversion} doesn't match tag << pipeline.git.tag >>; aborting"
+              exit 1
+            fi
