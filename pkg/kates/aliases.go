@@ -124,6 +124,7 @@ type PersistentVolumeClaim = corev1.PersistentVolumeClaim
 
 type Deployment = appsv1.Deployment
 type ReplicaSet = appsv1.ReplicaSet
+type StatefulSet = appsv1.StatefulSet
 
 type CustomResourceDefinition = xv1.CustomResourceDefinition
 
