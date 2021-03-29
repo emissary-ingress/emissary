@@ -7,12 +7,17 @@ import (
 
 	"github.com/datawire/ambassador/pkg/agent"
 	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 func newGenericCallback(apiVersion, kind, name string, eventType agent.CallbackEventType) *agent.GenericCallback {
 	obj := &unstructured.Unstructured{}
+	id := uuid.New().String()
+	obj.SetUID(types.UID(id))
+
 	obj.SetAPIVersion(apiVersion)
 	obj.SetKind(kind)
 	obj.SetName(name)
@@ -49,13 +54,15 @@ func TestRolloutStore(t *testing.T) {
 		assert.Equal(t, "argoproj.io/v1alpha1", rs.Deltas()[0].APIVersion)
 		assert.Equal(t, "default", rs.Deltas()[0].Namespace)
 		assert.Equal(t, kates.ObjectAdd, rs.Deltas()[0].DeltaType)
+		sotw := rs.StateOfWorld()
+		assert.Equal(t, 10, len(sotw))
 	})
 }
 func TestApplicationStore(t *testing.T) {
 	t.Run("will populate the rolloutstore successfully", func(t *testing.T) {
 		// given
 		t.Parallel()
-		app := agent.NewApplicationStore()
+		as := agent.NewApplicationStore()
 		wg := sync.WaitGroup{}
 		wg.Add(10)
 
@@ -65,16 +72,19 @@ func TestApplicationStore(t *testing.T) {
 				defer wg.Done()
 				name := fmt.Sprintf("Application%d", i)
 				callback := newGenericCallback("argoproj.io/v1alpha1", "Application", name, agent.CallbackEventUpdated)
-				app.FromCallback(callback)
+				as.FromCallback(callback)
 			}(i)
 		}
 		wg.Wait()
 
 		// then
-		assert.Equal(t, 10, len(app.Deltas()))
-		assert.Equal(t, "Application", app.Deltas()[0].Kind)
-		assert.Equal(t, "argoproj.io/v1alpha1", app.Deltas()[0].APIVersion)
-		assert.Equal(t, "default", app.Deltas()[0].Namespace)
-		assert.Equal(t, kates.ObjectUpdate, app.Deltas()[0].DeltaType)
+		assert.Equal(t, 10, len(as.Deltas()))
+		assert.Equal(t, "Application", as.Deltas()[0].Kind)
+		assert.Equal(t, "argoproj.io/v1alpha1", as.Deltas()[0].APIVersion)
+		assert.Equal(t, "default", as.Deltas()[0].Namespace)
+		assert.Equal(t, kates.ObjectUpdate, as.Deltas()[0].DeltaType)
+		sotw := as.StateOfWorld()
+		assert.Equal(t, 10, len(sotw))
 	})
+
 }
