@@ -74,6 +74,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Feature: Mapping configuration now supports setting `auth_context_extentions` that allows setting the `check_settings` field in the per route configuration supported by `ext_authz` http filter.
+- Feature: Added support in ambassador-agent for reporting Argo Rollouts and Argo Applications to Ambassador Cloud (https://app.getambassador.io)
 - Bugfix: Make Knative paths match on prefix instead of the entire path to better align to the Knative specification ([#3224]).
 - Change: The Helm chart has been moved into this repo, in the `charts/ambassador` directory.
 
