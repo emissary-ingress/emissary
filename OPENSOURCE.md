@@ -206,6 +206,8 @@ libraries:
     Werkzeug           1.0.1      3-clause BSD license
     appdirs            1.4.4      MIT license
     attrs              19.3.0     MIT license
+    awscli             1.19.26    Apache License 2.0
+    botocore           1.20.26    Apache License 2.0
     cachetools         4.1.1      MIT license
     certifi            2020.6.20  Mozilla Public License 2.0
     chardet            3.0.4      GNU Lesser General Public License Version 2.1
@@ -217,7 +219,7 @@ libraries:
     decorator          4.4.2      2-clause BSD license
     distlib            0.3.0      Python Software Foundation license
     distro             1.5.0      Apache License 2.0
-    docutils           0.16       2-clause BSD license, GNU General Public License Version 3, Python Software Foundation license, public domain
+    docutils           0.15.2     2-clause BSD license, GNU General Public License Version 3, Python Software Foundation license, public domain
     dpath              2.0.1      MIT license
     durationpy         0.5        MIT license
     expiringdict       1.2.1      Apache License 2.0
@@ -228,6 +230,7 @@ libraries:
     idna               2.7        3-clause BSD license, Python Software Foundation license, Unicode License Agreement for Data Files and Software (2015)
     iniconfig          1.1.1      MIT license
     itsdangerous       1.1.0      3-clause BSD license
+    jmespath           0.10.0     MIT license
     jsonpatch          1.30       3-clause BSD license
     jsonpointer        2.0        3-clause BSD license
     jsonschema         3.2.0      MIT license
@@ -264,6 +267,7 @@ libraries:
     retry              0.9.2      Apache License 2.0
     retrying           1.3.3      Apache License 2.0
     rsa                4.6        Apache License 2.0
+    s3transfer         0.3.4      Apache License 2.0
     semantic-version   2.8.5      2-clause BSD license
     sigtools           2.0.2      MIT license
     six                1.15.0     MIT license
@@ -271,6 +275,6 @@ libraries:
     toml               0.10.2     MIT license
     typed-ast          1.4.1      Apache License 2.0
     typing-extensions  3.7.4.3    Python Software Foundation license
-    urllib3            1.24.3     MIT license
+    urllib3            1.26.3     MIT license
     webencodings       0.5.1      3-clause BSD license
     websocket-client   0.57.0     3-clause BSD license
