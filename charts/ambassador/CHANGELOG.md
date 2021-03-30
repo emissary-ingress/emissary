@@ -5,6 +5,14 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+## v6.6.2
+
+- Update Ambassador to version 1.12.2: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+
+## v6.6.1
+
+- Fix metadata field in ConsulRevoler
+- Make resolvers available to OSS
 
 ## v6.6.0
 
