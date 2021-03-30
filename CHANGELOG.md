@@ -170,7 +170,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: The redirect location header returned by Ambassador now supports prefix rewrites using `prefix_redirect` on `Mappings` that use `host_redirect`.
 - Feature: The redirect location header returned by Ambassador now supports regex rewrites using `regex_redirect` on `Mappings` that use `host_redirect`.
 - Feature: Expose `max_request_headers_kb` in the Ambassador `Module`. This directly exposes the same value in Envoy; see [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/filter/network/http_connection_manager/v2/http_connection_manager.proto) for more information.
-- Feature: Support Istio mTLS certification rotation for Istio 1.5 and higher. See the [howto](https://www.getambassador.io/docs/latest/howtos/istio/) for details.
+- Feature: Support Istio mTLS certification rotation for Istio 1.5 and higher. See the [howto](https://www.getambassador.io/docs/edge-stack/latest/howtos/istio/) for details.
 - Feature: The Ambassador Module's `error_response_overrides` now support configuring an empty response body using `text_format`. Previously, empty response bodies could only be configured by specifying an empty file using `text_format_source`.
 - Feature: OAuth2 Filter: Support injecting HTTP header fields in to the request before passing on to the upstream service. Enables passing along `id_token` information to the upstream if it was returned by the IDP.
 - Bugfix: Fix the grpc external filter to properly cache grpc clients thereby avoiding initiating a separate connection to the external filter for each filtered request.
@@ -493,7 +493,7 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 ### Ambassador Edge Stack only
 
 - Bugfix: The Traffic Agent binds to port 9900 by default. That port can be configured in the Agent's Pod spec.
-   - For more about using the Traffic Agent, see the [Service Preview documentation](https://www.getambassador.io/docs/latest/topics/using/edgectl/#configuring-service-preview).
+   - For more about using the Traffic Agent, see the [Service Preview documentation](https://www.getambassador.io/docs/edge-stack/latest/topics/using/edgectl/#configuring-service-preview).
 - Bugfix: The `OAuth2` Filter redirection-endpoint now handles various XSRF errors more consistently (the way we meant it to in 1.2.1)
 - Bugfix: The `OAuth2` Filter now supports multiple authentication domains that share the same credentials.
    - For more about using multiple domains, see the [OAuth2 `Filter` documentation](https://www.getambassador.io/docs/1.4/topics/using/filters/oauth2/).
