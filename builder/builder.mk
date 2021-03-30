@@ -277,6 +277,9 @@ docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/snapshot.docker.tag.l
 	    printf "${CYN}==> ${GRN}Image ${BLU}$(LCNAME)${GRN} is already up-to-date${END}\n"; \
 	  else \
 	    printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"; \
+	    printf "    ${BLU}artifacts=$$(cat $*/snapshot.docker)${END}\n"; \
+	    printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"; \
+	    printf "    ${BLU}builderbase=$$(cat $*/builder-base.docker)${END}\n"; \
 	    ${DBUILD} ${BUILDER_HOME} \
 	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
 	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
