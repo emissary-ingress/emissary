@@ -99,11 +99,15 @@ var serviceTests = []struct {
 
 func TestParseService(t *testing.T) {
 	for _, test := range serviceTests {
-		t.Run(fmt.Sprintf("%s,%s,%v", test.Service, test.Namespace, test.Module.UseAmbassadorNamespaceForServiceResolution), func(t *testing.T) {
-			name, namespace, port := test.Module.parseService(test.Service, test.Namespace)
-			assert.Equal(t, test.ExpectedService, name)
-			assert.Equal(t, test.ExpectedNamespace, namespace)
-			assert.Equal(t, test.ExpectedPort, port)
-		})
+		// Make sure we ignore these also.
+		for _, prefix := range []string{"", "http://", "https://"} {
+			service := fmt.Sprintf("%s%s", prefix, test.Service)
+			t.Run(fmt.Sprintf("%s,%s,%v", service, test.Namespace, test.Module.UseAmbassadorNamespaceForServiceResolution), func(t *testing.T) {
+				name, namespace, port := test.Module.parseService(service, test.Namespace)
+				assert.Equal(t, test.ExpectedService, name)
+				assert.Equal(t, test.ExpectedNamespace, namespace)
+				assert.Equal(t, test.ExpectedPort, port)
+			})
+		}
 	}
 }

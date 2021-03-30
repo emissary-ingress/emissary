@@ -168,9 +168,6 @@ commands:
           name: "Test"
           no_output_timeout: "30m"
           command: |
-            if [[ -z "$KUBECEPTION_TOKEN" ]]; then
-              export DEV_KUBE110=yes
-            fi
             export DEV_KUBE_NO_PVC=yes
             export KAT_REQ_LIMIT=900
             export AMBASSADOR_LEGACY_MODE=<< parameters.legacy-mode >> # ParseBool

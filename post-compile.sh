@@ -6,6 +6,7 @@ busyprograms=(
     #entrypoint
     kubestatus
     watt
+    agent
 )
 sudo install -D -t /opt/ambassador/bin/ /buildroot/bin/busyambassador
 for busyprogram in "${busyprograms[@]}"; do

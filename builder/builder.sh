@@ -257,6 +257,7 @@ bootstrap() {
             --env=AWS_SECRET_ACCESS_KEY \
             --env=AWS_ACCESS_KEY_ID \
             --env=AWS_SESSION_TOKEN \
+            --init \
             --entrypoint=tail ${BUILDER_NAME}.local/builder -f /dev/null > /dev/null
         echo_off
 
@@ -585,9 +586,8 @@ case "${cmd}" in
         for MODDIR in $(find-modules); do
             if [ -e "${MODDIR}/go.mod" ]; then
                 pkgs=$(cd ${MODDIR} && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' ${GOTEST_PKGS})
-
                 if [ -n "${pkgs}" ]; then
-                    if ! (cd ${MODDIR} && gotestsum --junitfile ${TEST_DATA_DIR}/gotest.xml --packages ${pkgs} -- ${GOTEST_ARGS}) then
+                    if ! (cd ${MODDIR} && gotestsum --junitfile ${TEST_DATA_DIR}/gotest.xml --packages="${pkgs}" -- ${GOTEST_ARGS}) ; then
                        fail="yes"
                     fi
                 fi

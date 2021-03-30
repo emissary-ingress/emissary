@@ -37,8 +37,8 @@ generate-clean:
 
 go-mod-tidy/oss:
 	rm -f $(OSS_HOME)/go.sum
-	cd $(OSS_HOME) && go mod tidy
-	cd $(OSS_HOME) && go mod vendor # make sure go.mod's complete, re-gen go.sum
+	cd $(OSS_HOME) && GOFLAGS=-mod=mod go mod tidy
+	cd $(OSS_HOME) && GOFLAGS=-mod=mod go mod vendor # make sure go.mod is complete, and re-gen go.sum
 	$(MAKE) go-mod-tidy/oss-evaluate
 go-mod-tidy/oss-evaluate:
 	@echo '# evaluate $$(proto_path)'; # $(proto_path) # cause Make to call `go list STUFF`, which will maybe edit go.mod or go.sum
@@ -280,7 +280,7 @@ $(OSS_HOME)/vendor: FORCE
 	     done; \
 	}
 	cp -a $(@D)/go.mod $(@D)/go.mod.vendor-hack.bak
-	cd $(@D) && go mod vendor
+	cd $(@D) && GOFLAGS=-mod=mod go mod vendor
 	find $(@D) -name vendor_bootstrap_hack.go -delete
 	mv -f $(@D)/go.mod.vendor-hack.bak $(@D)/go.mod
 
@@ -335,7 +335,6 @@ $(OSS_HOME)/docs/yaml/ambassador/%.yaml: $(OSS_HOME)/docs/yaml/ambassador/%.yaml
 	cd $(@D) && m4 < $(<F) > $(@F)
 
 update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml
-update-yaml/files += $(OSS_HOME)/python/tests/manifests/crds.yaml
 update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml
 update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-knative.yaml
 

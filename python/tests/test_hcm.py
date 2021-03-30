@@ -31,3 +31,18 @@ def test_strip_matching_host_port_module_true():
     # If we set the config to true, it should show up as true.
     yaml = module_and_mapping_manifests(['strip_matching_host_port: true'], [])
     _test_hcm(yaml, expectations={'strip_matching_host_port': True})
+
+def test_merge_slashes_missing():
+    # If we do not set the config, it should be missing (noted in this test as None).
+    yaml = module_and_mapping_manifests(None, [])
+    _test_hcm(yaml, expectations={'merge_slashes': None})
+
+def test_merge_slashes_module_false():
+    # If we set the config to false, it should be missing (noted in this test as None).
+    yaml = module_and_mapping_manifests(['merge_slashes: false'], [])
+    _test_hcm(yaml, expectations={'merge_slashes': None})
+
+def test_merge_slashes_module_true():
+    # If we set the config to true, it should show up as true.
+    yaml = module_and_mapping_manifests(['merge_slashes: true'], [])
+    _test_hcm(yaml, expectations={'merge_slashes': True})

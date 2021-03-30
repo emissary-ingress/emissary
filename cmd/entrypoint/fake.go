@@ -125,8 +125,9 @@ func NewFake(t *testing.T, config FakeConfig) *Fake {
 
 // RunFake will create a new fake, invoke its Setup method and register its Teardown method as a
 // Cleanup function with the test object.
-func RunFake(t *testing.T, config FakeConfig) *Fake {
+func RunFake(t *testing.T, config FakeConfig, ambMeta *snapshot.AmbassadorMetaInfo) *Fake {
 	fake := NewFake(t, config)
+	fake.SetAmbassadorMeta(ambMeta)
 	fake.Setup()
 	fake.T.Cleanup(fake.Teardown)
 	return fake

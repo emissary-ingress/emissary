@@ -156,9 +156,6 @@ commands:
         name: "Test"
         no_output_timeout: "30m"
         command: |
-          if [[ -z "$KUBECEPTION_TOKEN" ]]; then
-            export DEV_KUBE110=yes
-          fi
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
           export AMBASSADOR_LEGACY_MODE=<< parameters.legacy-mode >> # ParseBool
@@ -288,9 +285,9 @@ commands:
             docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
           fi
 
-          ./.ci/kubernaut-claim
-          echo >>"$BASH_ENV" 'if test -e ~/kubernaut-claim.txt; then'
-          echo >>"$BASH_ENV" '  export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml'
+          ./.ci/cluster-claim
+          echo >>"$BASH_ENV" 'if test -e ~/.kube/kubeception.yaml; then'
+          echo >>"$BASH_ENV" '  export DEV_KUBECONFIG=~/.kube/kubeception.yaml'
           echo >>"$BASH_ENV" '  if [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]]; then'
           echo >>"$BASH_ENV" '    KUBECONFIG=$DEV_KUBECONFIG go run ./cmd/k8sregistryctl up --storage=hostPath'
           echo >>"$BASH_ENV" '  fi'
@@ -301,7 +298,7 @@ commands:
     steps:
     - run:
         working_directory: ~/project/ambassador
-        command: "./.ci/kubernaut-unclaim"
+        command: "./.ci/cluster-unclaim"
         when: "always"
   amb-save-logs:
     steps:
@@ -309,7 +306,21 @@ commands:
         name: "Gather logs"
         when: always
         command: |
-          rsync -ma --include='*/' --include='*.xml' --include='*.tap' --include='*.log' --include='Test*.webm' --exclude='*' . /tmp/test-logs
+          rsync \
+            --prune-empty-dirs --archive --include='*/' \
+            --include='*.xml' \
+            --include='*.tap' \
+            --include='*.log' \
+            --include='Test*.webm' \
+            --exclude='*' \
+            . \
+            /tmp/test-logs
+          if test -d ~/.cache/telepresence/logs; then
+            rsync \
+              --archive \
+              ~/.cache/telepresence/logs \
+              /tmp/test-logs/telepresence-logs
+          fi
     - store_artifacts:
         name: "Store logs"
         path: /tmp/test-logs

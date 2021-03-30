@@ -230,19 +230,6 @@ func (i *Installer) resFailedToInstallChartError(err error, version string, note
 	}
 }
 
-// Unable to kubectl apply the aes.yaml manifests
-func (i *Installer) resInstallAESError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/install-aes"
-
-	return Result{
-		Report:       "fail_install_aes",
-		ShortMessage: "An error occurred while installing AES",
-		Message:      fmt.Sprintf("Find a more detailed explanation and suggestions on how to continue installing Ambassador Edge Stack at %v", url),
-		URL:          url,
-		Err:          err,
-	}
-}
-
 // Unable to get the AES Install ID via kubectl exec to ask for the pod ID
 func (i *Installer) resAESPodStartupError(err error) Result {
 	url := "https://www.getambassador.io/docs/latest/topics/install/help/aes-pod-startup"

@@ -69,6 +69,11 @@ func main() {
 		}
 
 		listeners = append(listeners, s)
+	case "grpc_agent":
+		s = &srv.GRPCAgent{
+			Port: Port,
+		}
+		listeners = append(listeners, s)
 
 	default:
 		port := Port

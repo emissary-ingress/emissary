@@ -25,7 +25,7 @@ func TestFakeHello(t *testing.T) {
 	// Use RunFake() to spin up the ambassador control plane with its inputs wired up to the Fake
 	// APIs. This will automatically invoke the Setup() method for the Fake and also register the
 	// Teardown() method with the Cleanup() hook of the supplied testing.T object.
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{})
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{}, nil)
 
 	// The Fake harness has a store for both kubernetes resources and consul endpoint data. We can
 	// use the UpsertFile() to method to load as many resources as we would like. This is much like
@@ -66,7 +66,7 @@ func TestFakeHello(t *testing.T) {
 func TestFakeHelloWithEnvoyConfig(t *testing.T) {
 	// Use the FakeConfig parameter to conigure the Fake harness. In this case we want to inspect
 	// the EnvoyConfig that is produced from the inputs we feed the control plane.
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true})
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 
 	// We will use the same inputs we used in TestFakeHello. A single mapping named "hello".
 	f.UpsertFile("testdata/FakeHello.yaml")
@@ -128,7 +128,7 @@ func FindCluster(envoyConfig *bootstrap.Bootstrap, predicate func(*envoy.Cluster
 // provide consul data.
 func TestFakeHelloConsul(t *testing.T) {
 	// Create our Fake harness and tell it to produce envoy configuration.
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true})
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 
 	// Feed the control plane the kubernetes resources supplied in the referenced file. In this case
 	// that includes a consul resolver and a mapping that uses that consul resolver.

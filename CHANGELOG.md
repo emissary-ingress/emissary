@@ -25,6 +25,8 @@ Ambassador Edge Stack, designed for startups.
 
 ### UPCOMING CHANGES
 
+- Feature: The Ambassador Module configuration now supports `merge_slashes` which tells Ambassador to merge adjacent slashes when performing route matching. For example, when true, a request with URL '//foo/' would match a Mapping with prefix '/foo/'.
+
 #### Ingress resources and Namespaces
 
 In a future version of Ambassador, *no sooner than Ambassador 1.13.0*, TLS secrets
@@ -67,9 +69,12 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
+- Bugfix: The endpoint routing resolver will now properly watch services that include a scheme.
+
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Feature: Mapping configuration now supports setting `auth_context_extentions` that allows setting the `check_settings` field in the per route configuration supported by `ext_authz` http filter.
+- Feature: Added support in ambassador-agent for reporting Argo Rollouts and Argo Applications to Ambassador Cloud (https://app.getambassador.io)
 - Bugfix: Make Knative paths match on prefix instead of the entire path to better align to the Knative specification ([#3224]).
 - Change: The Helm chart has been moved into this repo, in the `charts/ambassador` directory.
 
