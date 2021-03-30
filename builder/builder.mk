@@ -373,6 +373,9 @@ pytest-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker
 		-e DOCKER_BUILD_PASSWORD \
 		-e AMBASSADOR_LEGACY_MODE \
 		-e AMBASSADOR_FAST_RECONFIGURE \
+		-e AWS_SECRET_ACCESS_KEY \
+		-e AWS_ACCESS_KEY_ID \
+		-e AWS_SESSION_TOKEN \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal ; test_exit=$$? ; \
 		[ -n "$(TEST_XML_DIR)" ] && docker cp $(shell $(BUILDER)):/tmp/test-data/pytest.xml $(TEST_XML_DIR) ; exit $$test_exit
 .PHONY: pytest-only
