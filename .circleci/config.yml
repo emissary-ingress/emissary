@@ -154,6 +154,7 @@ commands:
         type: enum
         enum: ["oss", "aes"]
     steps:
+    - run: "true" # Always run a no-op step so that this config has non-zero steps even for -private repos
     - when:
         condition: # Don't do this in the -private repos
           or:
@@ -204,6 +205,12 @@ commands:
     steps:
     - attach_workspace:
         at: /home/circleci/project
+    - run:
+        name: "Running docker login"
+        command: |
+          if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
+            docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
+          fi
     - run:
         name: "Loading Docker data from workspace"
         command: "~/project/ambassador/.circleci/amb-images-load-workspace"
