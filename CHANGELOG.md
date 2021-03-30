@@ -77,6 +77,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 - Feature: Add diagnostics.allow_non_local flag to expose admin UI internally only ([#3074])
 
+## [1.12.2] March 29, 2021
+[1.12.2]: https://github.com/datawire/ambassador/compare/v1.12.1...v1.12.2
+
+- Bugfix: Update OpenSSL to 1.1.1k to address CVE-2021-23840), CVE-2021-3450), CVE-2021-23841), CVE-2021-3449), CVE-2021-23839), CVE-2021-23840), CVE-2021-3450), CVE-2021-23841), CVE-2021-3449), and CVE-2021-23839)
+
 ## [1.12.1] March 12, 2021
 [1.12.1]: https://github.com/datawire/ambassador/compare/v1.12.0...v1.12.1
 
