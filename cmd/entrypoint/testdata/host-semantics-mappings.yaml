@@ -1,0 +1,428 @@
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: base-mapping
+spec:
+  prefix: /base-mapping/
+  service: base-mapping
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-no-match
+spec:
+  headers:
+    :authority: no-match.example.com
+  prefix: /exact-authority-no-match/
+  service: exact-authority-no-match
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-no-match
+spec:
+  regex_headers:
+    :authority: no-match.*\.example\.com
+  prefix: /regex-authority-no-match/
+  service: regex-authority-no-match
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-noacme-noaction
+spec:
+  headers:
+    :authority: noacme-noaction.example.com
+  prefix: /exact-authority-noacme-noaction/
+  service: exact-authority-noacme-noaction
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-noacme-noaction
+spec:
+  regex_headers:
+    :authority: noacme-noaction.*\.example\.com
+  prefix: /regex-authority-noacme-noaction/
+  service: regex-authority-noacme-noaction
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-noacme-redirect
+spec:
+  headers:
+    :authority: noacme-redirect.example.com
+  prefix: /exact-authority-noacme-redirect/
+  service: exact-authority-noacme-redirect
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-noacme-redirect
+spec:
+  regex_headers:
+    :authority: noacme-redirect.*\.example\.com
+  prefix: /regex-authority-noacme-redirect/
+  service: regex-authority-noacme-redirect
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-noacme-route
+spec:
+  headers:
+    :authority: noacme-route.example.com
+  prefix: /exact-authority-noacme-route/
+  service: exact-authority-noacme-route
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-noacme-route
+spec:
+  regex_headers:
+    :authority: noacme-route.*\.example\.com
+  prefix: /regex-authority-noacme-route/
+  service: regex-authority-noacme-route
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-noacme-reject
+spec:
+  headers:
+    :authority: noacme-reject.example.com
+  prefix: /exact-authority-noacme-reject/
+  service: exact-authority-noacme-reject
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-noacme-reject
+spec:
+  regex_headers:
+    :authority: noacme-reject.*\.example\.com
+  prefix: /regex-authority-noacme-reject/
+  service: regex-authority-noacme-reject
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-acme-noaction
+spec:
+  headers:
+    :authority: acme-noaction.example.com
+  prefix: /exact-authority-acme-noaction/
+  service: exact-authority-acme-noaction
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-acme-noaction
+spec:
+  regex_headers:
+    :authority: acme-noaction.*\.example\.com
+  prefix: /regex-authority-acme-noaction/
+  service: regex-authority-acme-noaction
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-acme-redirect
+spec:
+  headers:
+    :authority: acme-redirect.example.com
+  prefix: /exact-authority-acme-redirect/
+  service: exact-authority-acme-redirect
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-acme-redirect
+spec:
+  regex_headers:
+    :authority: acme-redirect.*\.example\.com
+  prefix: /regex-authority-acme-redirect/
+  service: regex-authority-acme-redirect
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-acme-route
+spec:
+  headers:
+    :authority: acme-route.example.com
+  prefix: /exact-authority-acme-route/
+  service: exact-authority-acme-route
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-acme-route
+spec:
+  regex_headers:
+    :authority: acme-route.*\.example\.com
+  prefix: /regex-authority-acme-route/
+  service: regex-authority-acme-route
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-acme-reject
+spec:
+  headers:
+    :authority: acme-reject.example.com
+  prefix: /exact-authority-acme-reject/
+  service: exact-authority-acme-reject
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-acme-reject
+spec:
+  regex_headers:
+    :authority: acme-reject.*\.example\.com
+  prefix: /regex-authority-acme-reject/
+  service: regex-authority-acme-reject
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-tls-noaction
+spec:
+  headers:
+    :authority: tls-noaction.example.com
+  prefix: /exact-authority-tls-noaction/
+  service: exact-authority-tls-noaction
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-tls-noaction
+spec:
+  regex_headers:
+    :authority: tls-noaction.*\.example\.com
+  prefix: /regex-authority-tls-noaction/
+  service: regex-authority-tls-noaction
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-tls-redirect
+spec:
+  headers:
+    :authority: tls-redirect.example.com
+  prefix: /exact-authority-tls-redirect/
+  service: exact-authority-tls-redirect
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-tls-redirect
+spec:
+  regex_headers:
+    :authority: tls-redirect.*\.example\.com
+  prefix: /regex-authority-tls-redirect/
+  service: regex-authority-tls-redirect
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-tls-route
+spec:
+  headers:
+    :authority: tls-route.example.com
+  prefix: /exact-authority-tls-route/
+  service: exact-authority-tls-route
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-tls-route
+spec:
+  regex_headers:
+    :authority: tls-route.*\.example\.com
+  prefix: /regex-authority-tls-route/
+  service: regex-authority-tls-route
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-tls-reject
+spec:
+  headers:
+    :authority: tls-reject.example.com
+  prefix: /exact-authority-tls-reject/
+  service: exact-authority-tls-reject
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-tls-reject
+spec:
+  regex_headers:
+    :authority: tls-reject.*\.example\.com
+  prefix: /regex-authority-tls-reject/
+  service: regex-authority-tls-reject
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-implicit-noaction
+spec:
+  headers:
+    :authority: implicit-noaction.example.com
+  prefix: /exact-authority-implicit-noaction/
+  service: exact-authority-implicit-noaction
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-implicit-noaction
+spec:
+  regex_headers:
+    :authority: implicit-noaction.*\.example\.com
+  prefix: /regex-authority-implicit-noaction/
+  service: regex-authority-implicit-noaction
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-implicit-redirect
+spec:
+  headers:
+    :authority: implicit-redirect.example.com
+  prefix: /exact-authority-implicit-redirect/
+  service: exact-authority-implicit-redirect
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-implicit-redirect
+spec:
+  regex_headers:
+    :authority: implicit-redirect.*\.example\.com
+  prefix: /regex-authority-implicit-redirect/
+  service: regex-authority-implicit-redirect
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-implicit-route
+spec:
+  headers:
+    :authority: implicit-route.example.com
+  prefix: /exact-authority-implicit-route/
+  service: exact-authority-implicit-route
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-implicit-route
+spec:
+  regex_headers:
+    :authority: implicit-route.*\.example\.com
+  prefix: /regex-authority-implicit-route/
+  service: regex-authority-implicit-route
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-implicit-reject
+spec:
+  headers:
+    :authority: implicit-reject.example.com
+  prefix: /exact-authority-implicit-reject/
+  service: exact-authority-implicit-reject
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-implicit-reject
+spec:
+  regex_headers:
+    :authority: implicit-reject.*\.example\.com
+  prefix: /regex-authority-implicit-reject/
+  service: regex-authority-implicit-reject
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-explicit-noaction
+spec:
+  headers:
+    :authority: explicit-noaction.example.com
+  prefix: /exact-authority-explicit-noaction/
+  service: exact-authority-explicit-noaction
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-explicit-noaction
+spec:
+  regex_headers:
+    :authority: explicit-noaction.*\.example\.com
+  prefix: /regex-authority-explicit-noaction/
+  service: regex-authority-explicit-noaction
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-explicit-redirect
+spec:
+  headers:
+    :authority: explicit-redirect.example.com
+  prefix: /exact-authority-explicit-redirect/
+  service: exact-authority-explicit-redirect
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-explicit-redirect
+spec:
+  regex_headers:
+    :authority: explicit-redirect.*\.example\.com
+  prefix: /regex-authority-explicit-redirect/
+  service: regex-authority-explicit-redirect
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-explicit-route
+spec:
+  headers:
+    :authority: explicit-route.example.com
+  prefix: /exact-authority-explicit-route/
+  service: exact-authority-explicit-route
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-explicit-route
+spec:
+  regex_headers:
+    :authority: explicit-route.*\.example\.com
+  prefix: /regex-authority-explicit-route/
+  service: regex-authority-explicit-route
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: exact-authority-explicit-reject
+spec:
+  headers:
+    :authority: explicit-reject.example.com
+  prefix: /exact-authority-explicit-reject/
+  service: exact-authority-explicit-reject
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: regex-authority-explicit-reject
+spec:
+  regex_headers:
+    :authority: explicit-reject.*\.example\.com
+  prefix: /regex-authority-explicit-reject/
+  service: regex-authority-explicit-reject
+
