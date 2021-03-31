@@ -3,9 +3,10 @@
 apiVersion: getambassador.io/v2
 kind: AuthService
 metadata:
-  name: {{ include "ambassador.fullname" . }}-auth
+  name: {{ include "ambassador.fullname" . }}-{{ .Values.authService.deploymentExtraName | default "auth" }}
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -16,6 +17,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
     app.kubernetes.io/component: {{ include "ambassador.name" . }}-auth
+    {{- end }}
     product: aes
 spec:
   proto: grpc

@@ -1,99 +1,90 @@
-# GENERATED FILE: DO NOT EDIT.
+# GENERATED FILE: edits made by hand will not be preserved.
 ---
+# Source: ambassador/templates/aes-ratelimit.yaml
 apiVersion: getambassador.io/v2
 kind: RateLimitService
 metadata:
   name: ambassador-edge-stack-ratelimit
+  namespace: default
   labels:
     product: aes
 spec:
-  service: "127.0.0.1:8500"
+  service: 127.0.0.1:8500
 ---
+# Source: ambassador/templates/aes-authservice.yaml
 apiVersion: getambassador.io/v2
 kind: AuthService
 metadata:
   name: ambassador-edge-stack-auth
+  namespace: default
   labels:
     product: aes
 spec:
   proto: grpc
+  auth_service: 127.0.0.1:8500
+  allow_request_body: false
   status_on_error:
     code: 504
-  auth_service: "127.0.0.1:8500"
-  allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
 ---
+# Source: ambassador/templates/aes-internal.yaml
 # Configure DevPortal
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   # This Mapping name is referenced by convention, it's important to leave as-is.
   name: ambassador-devportal
+  namespace: default
   labels:
     product: aes
 spec:
   prefix: /documentation/
-  rewrite: "/docs/"
-  service: "127.0.0.1:8500"
+  rewrite: /docs/
+  service: 127.0.0.1:8500
 ---
-# Set up a seperate mapping for the assets so we can inject caching headers to improve page load time
+# Source: ambassador/templates/aes-internal.yaml
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: ambassador-devportal-assets
+  namespace: default
+  labels:
+    product: aes
 spec:
   prefix: /documentation/(assets|styles)/(.*)(.css)
   prefix_regex: true
   regex_rewrite:
     pattern: /documentation/(.*)
     substitution: /docs/\1
-  service: "127.0.0.1:8500"
+  service: 127.0.0.1:8500
   add_response_headers:
     cache-control:
-      value: "public, max-age=3600, immutable"
+      value: public, max-age=3600, immutable
       append: false
 ---
+# Source: ambassador/templates/aes-internal.yaml
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   # This Mapping name is what the demo uses. Sigh.
   name: ambassador-devportal-demo
+  namespace: default
   labels:
     product: aes
 spec:
   prefix: /docs/
-  rewrite: "/docs/"
-  service: "127.0.0.1:8500"
+  rewrite: /docs/
+  service: 127.0.0.1:8500
 ---
+# Source: ambassador/templates/aes-internal.yaml
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   # This Mapping name is referenced by convention, it's important to leave as-is.
   name: ambassador-devportal-api
+  namespace: default
   labels:
     product: aes
 spec:
   prefix: /openapi/
-  rewrite: ""
-  service: "127.0.0.1:8500"
----
-apiVersion: getambassador.io/v2
-kind: FilterPolicy
-metadata:
-  name: ambassador-internal-access-control
-  labels:
-    product: aes
-spec:
-  rules:
-    - host: "*"
-      path: "*/.ambassador-internal/*"
-      filters:
-        - name: ambassador-internal-access-control
----
-apiVersion: getambassador.io/v2
-kind: Filter
-metadata:
-  name: ambassador-internal-access-control
-  labels:
-    product: aes
-spec:
-  Internal: {}
+  rewrite: ''
+  service: 127.0.0.1:8500

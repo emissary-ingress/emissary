@@ -5,6 +5,7 @@ metadata:
   name: {{ include "ambassador.fullname" . }}-admin
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -13,6 +14,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
     {{- end }}
     # Hard-coded label for Prometheus Operator ServiceMonitor
     service: ambassador-admin
@@ -44,8 +46,12 @@ spec:
       protocol: TCP
       name: ambassador-snapshot
   selector:
+    {{- if .Values.service.selector }}
+    {{ toYaml .Values.service.selector | nindent 6 }}
+    {{- else }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- end }}
   {{- if eq .Values.adminService.type "LoadBalancer" }}
   {{- if not (empty .Values.adminService.loadBalancerIP) }}
   loadBalancerIP: {{ .Values.adminService.loadBalancerIP | quote }}
