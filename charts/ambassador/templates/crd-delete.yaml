@@ -116,8 +116,8 @@ spec:
         - name: kubectl
           image: "buoyantio/kubectl"
           args:
-          - delete 
-          - crds 
+          - delete
+          - crds
           - -l app.kubernetes.io/name=ambassador
       restartPolicy: OnFailure
 {{- end }}

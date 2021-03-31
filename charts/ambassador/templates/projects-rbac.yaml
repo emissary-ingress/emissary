@@ -8,6 +8,7 @@ kind: ClusterRole
 metadata:
   name: {{ include "ambassador.rbacName" . }}-projects
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -15,6 +16,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
     {{- end }}
     product: aes
 rules:
@@ -42,8 +44,11 @@ kind: ClusterRoleBinding
 {{- end }}
 metadata:
   name: {{ include "ambassador.rbacName" . }}-projects
+  {{- if .Values.scope.singleNamespace }}
   namespace: {{ include "ambassador.namespace" . }}
+  {{- end }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -52,6 +57,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
     {{- end }}
     product: aes
 roleRef:
