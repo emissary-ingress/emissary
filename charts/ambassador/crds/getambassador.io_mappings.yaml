@@ -12,11 +12,14 @@ metadata:
   name: mappings.getambassador.io
 spec:
   additionalPrinterColumns:
+  - JSONPath: .spec.host
+    name: Source Host
+    type: string
   - JSONPath: .spec.prefix
-    name: Prefix
+    name: Source Prefix
     type: string
   - JSONPath: .spec.service
-    name: Service
+    name: Dest Service
     type: string
   - JSONPath: .status.state
     name: State

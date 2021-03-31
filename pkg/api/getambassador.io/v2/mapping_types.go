@@ -379,8 +379,9 @@ type MappingStatus struct {
 //
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="Prefix",type=string,JSONPath=`.spec.prefix`
-// +kubebuilder:printcolumn:name="Service",type=string,JSONPath=`.spec.service`
+// +kubebuilder:printcolumn:name="Source Host",type=string,JSONPath=`.spec.host`
+// +kubebuilder:printcolumn:name="Source Prefix",type=string,JSONPath=`.spec.prefix`
+// +kubebuilder:printcolumn:name="Dest Service",type=string,JSONPath=`.spec.service`
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
 // +kubebuilder:printcolumn:name="Reason",type=string,JSONPath=`.status.reason`
 type Mapping struct {

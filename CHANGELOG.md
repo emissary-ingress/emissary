@@ -75,6 +75,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: Added support in ambassador-agent for reporting Argo Rollouts and Argo Applications to Ambassador Cloud (https://app.getambassador.io)
 - Feature: Add `diagnostics.allow_non_local` flag to expose admin UI internally only ([#3074])
 - Change: The Helm chart has been moved into this repo, in the `charts/ambassador` directory.
+- Change: The `Mapping` CRD has been modified so that `kubectl get mappings` now has a column for not just the source path-prefix (`.spec.prefix`), but the source host (`.spec.host`) too.
 - Bugfix: Make Knative paths match on prefix instead of the entire path to better align to the Knative specification ([#3224]).
 - Bugfix: The endpoint routing resolver will now properly watch services that include a scheme.
 
