@@ -67,6 +67,7 @@ class Config:
         'authservice': "auth_configs",
         'consulresolver': "resolvers",
         'host': "hosts",
+        'listener': "listeners",
         'mapping': "mappings",
         'kubernetesendpointresolver': "resolvers",
         'kubernetesserviceresolver': "resolvers",
