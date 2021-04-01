@@ -1,6 +1,6 @@
 
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {self.path.k8s}
@@ -33,7 +33,7 @@ metadata:
   name: {self.path.k8s}
 {serviceAccountExtra}
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {self.path.k8s}

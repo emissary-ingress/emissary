@@ -32,7 +32,7 @@ metadata:
     kubernetes.io/service-account.name: traffic-agent
 type: kubernetes.io/service-account-token
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}
@@ -56,7 +56,7 @@ rules:
     resources: [ "*" ]
     verbs: ["get", "list", "watch", "update"]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}
@@ -84,7 +84,7 @@ subjects:
 ## If we install Service Preview cluster-wide, this means we can't use the 'traffic-agent' ServiceAccount
 ## as it does not exist in every namespace. We must instead grant new Roles to all ServiceAccounts (cluster-wide).
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}
@@ -108,7 +108,7 @@ rules:
     resources: [ "*" ]
     verbs: ["get", "list", "watch", "update"]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: {{ .Values.servicePreview.trafficAgent.serviceAccountName }}

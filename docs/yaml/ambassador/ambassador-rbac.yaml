@@ -35,7 +35,7 @@ spec:
     service: ambassador
 ---
 # Source: ambassador/templates/rbac.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ambassador
@@ -57,7 +57,7 @@ metadata:
     product: aes
 ---
 # Source: ambassador/templates/rbac.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: ambassador
@@ -75,7 +75,7 @@ subjects:
 # Source: ambassador/templates/rbac.yaml
 # CRDs are cluster scoped resources, so they need to be in a cluster role,
 # even if ambassador is running in single namespace mode
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ambassador-crd
@@ -88,7 +88,7 @@ rules:
   verbs: [get, list, watch, delete]
 ---
 # Source: ambassador/templates/rbac.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ambassador-watch
