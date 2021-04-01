@@ -20,7 +20,6 @@ import logging
 
 from ...ir.irlistener import IRListener
 from ...ir.irtcpmappinggroup import IRTCPMappingGroup
-from ...ir.irtlscontext import IRTLSContext
 
 from ...utils import dump_json, parse_bool
 
@@ -29,7 +28,8 @@ from .v2tls import V2TLSContext
 from .v2virtualhost import V2VirtualHost, DictifiedV2Route, v2prettyroute
 
 if TYPE_CHECKING:
-    from . import V2Config # pragma: no cover
+    from ...ir.irtlscontext import IRTLSContext # pragma: no cover
+    from . import V2Config                      # pragma: no cover
 
 
 class V2TCPListener(dict):
@@ -419,7 +419,7 @@ class V2Listener(dict):
                             (self.name, listener.name, listener.hostname, listener.service_port))
 
     # Weirdly, the action is optional but the insecure_action is not. This is not a typo.
-    def make_vhost(self, name: str, hostname: str, context: Optional[IRTLSContext], secure: bool,
+    def make_vhost(self, name: str, hostname: str, context: Optional['IRTLSContext'], secure: bool,
                    action: Optional[str], insecure_action: str) -> None:
         if self.config.ir.logger.isEnabledFor(logging.DEBUG):
             self.config.ir.logger.debug("V2Listener %s: adding VHost %s for host %s, secure %s, insecure %s)" %
