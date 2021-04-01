@@ -843,7 +843,6 @@ class V3Listener(dict):
         self.name = f"ambassador-listener-{self.service_port}"
         self.use_proxy_proto = False
         self.access_log: List[dict] = []
-        self.upgrade_configs: Optional[List[dict]] = None
         self.vhosts: Dict[str, V3VirtualHost] = {}
         self.first_vhost: Optional[V3VirtualHost] = None
         self.http_filters: List[dict] = []
@@ -969,9 +968,6 @@ class V3Listener(dict):
             'http_filters': self.http_filters,
             'normalize_path': True
         }
-
-        if self.upgrade_configs:
-            self.base_http_config['upgrade_configs'] = self.upgrade_configs
 
         if 'use_remote_address' in self.config.ir.ambassador_module:
             self.base_http_config["use_remote_address"] = self.config.ir.ambassador_module.use_remote_address
