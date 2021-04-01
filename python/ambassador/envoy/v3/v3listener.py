@@ -144,18 +144,18 @@ class V3ListenerCollection:
             v3listener.use_proxy_proto = use_proxy_proto
         elif v3listener.use_proxy_proto != use_proxy_proto:
             raise Exception("listener for port %d has use_proxy_proto %s, requester wants upp %s" %
-                            (v3listener.service_port, v3listener.use_proxy_proto, use_proxy_proto))
+                            (v3listener.port, v3listener.use_proxy_proto, use_proxy_proto))
 
         return v3listener
 
 
 class V3Listener(dict):
-    def __init__(self, config: 'V3Config', service_port: int) -> None:
+    def __init__(self, config: 'V3Config', port: int) -> None:
         super().__init__()
 
         self.config = config
-        self.service_port = service_port
-        self.name = f"ambassador-listener-{self.service_port}"
+        self.port = port
+        self.name = f"ambassador-listener-{self.port}"
         self.use_proxy_proto = False
         self.access_log: List[dict] = []
         self.vhosts: Dict[str, V3VirtualHost] = {}
@@ -424,7 +424,7 @@ class V3Listener(dict):
                 self.base_http_config["http_protocol_options"] = proper_case_header
 
     def add_irlistener(self, listener: IRListener) -> None:
-        if listener.service_port != self.service_port:
+        if listener.service_port != self.port:
             # This is a problem.
             raise Exception("V3Listener %s: trying to add listener %s on %s:%d??" %
                             (self.name, listener.name, listener.hostname, listener.service_port))
@@ -476,7 +476,7 @@ class V3Listener(dict):
         self.address = {
             "socket_address": {
                 "address": envoy_bind_address,
-                "port_value": self.service_port,
+                "port_value": self.port,
                 "protocol": "TCP"
             }
         }
@@ -564,7 +564,7 @@ class V3Listener(dict):
 
     def pretty(self) -> dict:
         return { "name": self.name,
-                 "port": self.service_port,
+                 "port": self.port,
                  "use_proxy_proto": self.use_proxy_proto,
                  "vhosts": { k: v.pretty() for k, v in self.vhosts.items() } }
 
