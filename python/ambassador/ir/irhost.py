@@ -23,6 +23,8 @@ class IRHost(IRResource):
         'tlsContext',
         'tls',
     }
+    
+    hostname: str
 
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str,      # REQUIRED
