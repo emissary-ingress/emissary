@@ -30,6 +30,14 @@ class IRListener (IRResource):
     definition. See V2Listener for more.
     """
 
+    service_port: int
+    use_proxy_proto: bool
+    hostname: str
+    context: Optional[IRTLSContext]
+    secure_action: str
+    insecure_action: str
+    insecure_addl_port: Optional[int]
+
     def __init__(self, ir: 'IR', aconf: Config,
                  service_port: int,
                  use_proxy_proto: bool,
