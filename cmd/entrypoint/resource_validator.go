@@ -62,6 +62,7 @@ func findCRDFilename() string {
 		"/opt/ambassador/etc/crds.yaml",
 		"docs/yaml/ambassador/ambassador-crds.yaml",
 		"../../docs/yaml/ambassador/ambassador-crds.yaml",
+		"ambassador/docs/yaml/ambassador/ambassador-crds.yaml",
 	}
 
 	for _, candidate := range searchPath {
