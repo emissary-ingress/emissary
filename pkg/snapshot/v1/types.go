@@ -57,6 +57,7 @@ type KubernetesSnapshot struct {
 	Endpoints      []*kates.Endpoints    `json:"Endpoints"`
 
 	// ambassador resources
+	Listeners   []*amb.Listener   `json:"Listener"`
 	Hosts       []*amb.Host       `json:"Host"`
 	Mappings    []*amb.Mapping    `json:"Mapping"`
 	TCPMappings []*amb.TCPMapping `json:"TCPMapping"`
