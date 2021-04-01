@@ -20,7 +20,6 @@ import logging
 
 from ...ir.irlistener import IRListener
 from ...ir.irtcpmappinggroup import IRTCPMappingGroup
-from ...ir.irtlscontext import IRTLSContext
 
 from ...utils import dump_json, parse_bool
 
@@ -29,6 +28,7 @@ from .v3tls import V3TLSContext
 from .v3virtualhost import V3VirtualHost, DictifiedV3Route, v3prettyroute
 
 if TYPE_CHECKING:
+    from ...ir.irtlscontext import IRTLSContext
     from . import V3Config # pragma: no cover
 
 
@@ -435,7 +435,7 @@ class V3Listener(dict):
                             (self.name, listener.name, listener.hostname, listener.service_port))
 
     # Weirdly, the action is optional but the insecure_action is not. This is not a typo.
-    def make_vhost(self, name: str, hostname: str, context: Optional[IRTLSContext], secure: bool,
+    def make_vhost(self, name: str, hostname: str, context: Optional['IRTLSContext'], secure: bool,
                    action: Optional[str], insecure_action: str) -> None:
         if self.config.ir.logger.isEnabledFor(logging.DEBUG):
             self.config.ir.logger.debug("V3Listener %s: adding VHost %s for host %s, secure %s, insecure %s)" %
