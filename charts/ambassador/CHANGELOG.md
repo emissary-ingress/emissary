@@ -5,6 +5,8 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+- Change: Ambassador ClusterRoles are now aggregated under the label `rbac.getambassador.io/role-group`. The aggregated role has the same name as the previous role name (so no need to update ClusterRoleBindings).
+
 ## v6.6.2
 
 - Update Ambassador to version 1.12.2: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
