@@ -6,6 +6,7 @@ numbering uses [semantic versioning](http://semver.org).
 ## Next Release
 
 - Change: Ambassador ClusterRoles are now aggregated under the label `rbac.getambassador.io/role-group`. The aggregated role has the same name as the previous role name (so no need to update ClusterRoleBindings).
+- Feature: Ambassador Agent now available (and deployed by default) for the API Gateway (https://app.getambassador.io). To disable, use `--set agent.enabled=false` when running helm.
 
 ## v6.6.2
 
