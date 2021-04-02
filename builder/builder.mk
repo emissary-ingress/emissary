@@ -419,7 +419,7 @@ gotest: test-ready docker/kat-server.docker.push.remote docker/$(LCNAME).docker.
 		-e DOCKER_BUILD_USERNAME \
 		-e DOCKER_BUILD_PASSWORD \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh gotest-internal ; test_exit=$$? ; \
-		[ -n "$(TEST_XML_DIR)" ] && docker cp $(shell $(BUILDER)):/tmp/test-data/gotest.xml $(TEST_XML_DIR) ; [ $$test_exit == 0 ] || exit $$test_exit
+		[ -n "$(TEST_XML_DIR)" ] && docker cp $(shell $(BUILDER)):/tmp/test-xml.tar.gz $(TEST_XML_DIR) && tar -xvf $(TEST_XML_DIR)/test-xml.tar.gz -C $(TEST_XML_DIR)  ; [ $$test_exit == 0 ] || exit $$test_exit
 	docker exec \
 		-w /buildroot/ambassador \
 		-e GOOS=windows \
