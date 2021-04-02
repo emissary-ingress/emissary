@@ -12,11 +12,14 @@ metadata:
   name: mappings.getambassador.io
 spec:
   additionalPrinterColumns:
+  - JSONPath: .spec.host
+    name: Source Host
+    type: string
   - JSONPath: .spec.prefix
-    name: Prefix
+    name: Source Prefix
     type: string
   - JSONPath: .spec.service
-    name: Service
+    name: Dest Service
     type: string
   - JSONPath: .status.state
     name: State
@@ -155,6 +158,8 @@ spec:
             docs:
               description: DocsInfo provides some extra information about the docs for the Mapping (used by the Dev Portal)
               properties:
+                display_name:
+                  type: string
                 ignored:
                   type: boolean
                 path:

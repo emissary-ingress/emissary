@@ -131,9 +131,10 @@ type MappingSpec struct {
 // DocsInfo provides some extra information about the docs for the Mapping
 // (used by the Dev Portal)
 type DocsInfo struct {
-	Path    string `json:"path,omitempty"`
-	URL     string `json:"url,omitempty"`
-	Ignored *bool  `json:"ignored,omitempty"`
+	Path        string `json:"path,omitempty"`
+	URL         string `json:"url,omitempty"`
+	Ignored     *bool  `json:"ignored,omitempty"`
+	DisplayName string `json:"display_name,omitempty"`
 }
 
 // These are separate types partly because it makes it easier to think about
@@ -379,8 +380,9 @@ type MappingStatus struct {
 //
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="Prefix",type=string,JSONPath=`.spec.prefix`
-// +kubebuilder:printcolumn:name="Service",type=string,JSONPath=`.spec.service`
+// +kubebuilder:printcolumn:name="Source Host",type=string,JSONPath=`.spec.host`
+// +kubebuilder:printcolumn:name="Source Prefix",type=string,JSONPath=`.spec.prefix`
+// +kubebuilder:printcolumn:name="Dest Service",type=string,JSONPath=`.spec.service`
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
 // +kubebuilder:printcolumn:name="Reason",type=string,JSONPath=`.status.reason`
 type Mapping struct {

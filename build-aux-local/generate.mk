@@ -336,7 +336,6 @@ $(OSS_HOME)/docs/yaml/ambassador/%.yaml: $(OSS_HOME)/docs/yaml/ambassador/%.yaml
 
 update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml
 update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml
-update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-knative.yaml
 update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac.yaml
 update-yaml/files += $(OSS_HOME)/docs/yaml/oss-migration.yaml
 update-yaml/files += $(OSS_HOME)/docs/yaml/resources-migration.yaml
