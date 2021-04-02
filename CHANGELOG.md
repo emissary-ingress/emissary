@@ -73,6 +73,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: Make Knative paths match on prefix instead of the entire path to better align to the Knative specification ([#3224]).
 - Change: The Helm chart has been moved into this repo, in the `charts/ambassador` directory.
 - Change: The yaml in yaml/docs is now generated from the contents of the helm chart in the `charts/ambassador` directory.
+- Feature: Ambassador Agent now available (and deployed by default) for the API Gateway (https://app.getambassador.io).
 
 [#3224]: https://github.com/datawire/ambassador/issues/3224
 
