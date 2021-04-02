@@ -93,6 +93,7 @@ require (
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.3.0
+	gotest.tools v2.2.0+incompatible
 	helm.sh/helm/v3 v3.2.4
 	k8s.io/api v0.18.8
 	k8s.io/apiextensions-apiserver v0.18.8
