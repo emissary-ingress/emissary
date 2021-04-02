@@ -298,6 +298,12 @@ spec:
                     type: string
                 type: object
               type: array
+            naming_scheme:
+              description: Describes how to display "services" in the DevPortal. Default namespace.name
+              enum:
+              - namespace.name
+              - name.prefix
+              type: string
             selector:
               description: Selector is used for choosing what is shown in the DevPortal
               properties:
@@ -905,6 +911,8 @@ spec:
             docs:
               description: DocsInfo provides some extra information about the docs for the Mapping (used by the Dev Portal)
               properties:
+                display_name:
+                  type: string
                 ignored:
                   type: boolean
                 path:

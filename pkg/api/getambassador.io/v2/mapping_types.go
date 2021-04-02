@@ -131,9 +131,10 @@ type MappingSpec struct {
 // DocsInfo provides some extra information about the docs for the Mapping
 // (used by the Dev Portal)
 type DocsInfo struct {
-	Path    string `json:"path,omitempty"`
-	URL     string `json:"url,omitempty"`
-	Ignored *bool  `json:"ignored,omitempty"`
+	Path        string `json:"path,omitempty"`
+	URL         string `json:"url,omitempty"`
+	Ignored     *bool  `json:"ignored,omitempty"`
+	DisplayName string `json:"display_name,omitempty"`
 }
 
 // These are separate types partly because it makes it easier to think about
