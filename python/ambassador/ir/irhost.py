@@ -49,6 +49,9 @@ class IRHost(IRResource):
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         ir.logger.debug(f"Host {self.name} setting up")
 
+        if not self.get('hostname', None):
+            self.hostname = '*'
+
         tls_ss: Optional[SavedSecret] = None
         pkey_ss: Optional[SavedSecret] = None
 
@@ -240,7 +243,7 @@ class IRHost(IRResource):
                         else:
                             ir.logger.error(f"Host {self.name}: new TLSContext {ctx_name} is not valid")
                 else:
-                    ir.logger.error(f"Host {self.name}: continuing with invalid TLS secret {tls_name}")
+                    ir.logger.error(f"Host {self.name}: invalid TLS secret {tls_name}, marking inactive")
                     return False
 
         if self.get('acmeProvider', None):
