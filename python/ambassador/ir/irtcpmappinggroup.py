@@ -106,7 +106,7 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
 
     # Deliberately matches IRListener.bind_to()
     def bind_to(self) -> str:
-        bind_addr = self.get('address') or '0.0.0.0'
+        bind_addr = self.get('address') or Config.envoy_bind_address
         return f"{bind_addr}-{self.port}"
 
     def add_cluster_for_mapping(self, mapping: IRBaseMapping,
