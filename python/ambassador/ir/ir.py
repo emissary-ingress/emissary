@@ -232,9 +232,6 @@ class IR:
         # Finally, finalize all the Host stuff (including the !*@#&!* fallback context)...
         HostFactory.finalize(self, aconf)
 
-        # ...and the listeners.
-        ListenerFactory.finalize(self, aconf)
-
         # Now we can finalize the Ambassador module, to tidy up secrets et al. We do this
         # here so that secrets and TLS contexts are available.
         if not self.ambassador_module.finalize(self, aconf):
@@ -312,6 +309,10 @@ class IR:
 
         TLSModuleFactory.finalize(self, aconf)
         MappingFactory.finalize(self, aconf)
+
+        # We can't finalize the listeners until _after_ we have all the TCPMapping
+        # information we might need, so that happens here.
+        ListenerFactory.finalize(self, aconf)
 
         # At this point we should know the full set of clusters, so we can generate
         # appropriate envoy names.

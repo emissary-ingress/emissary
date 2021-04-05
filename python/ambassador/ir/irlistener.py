@@ -8,6 +8,7 @@ from ..utils import dump_json
 
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
+from .irtcpmappinggroup import IRTCPMappingGroup
 
 if TYPE_CHECKING:
     from .ir import IR # pragma: no cover
@@ -223,3 +224,31 @@ class ListenerFactory:
                         protocol="HTTPS",   # Not a typo! See "Add the default HTTP listener" above.
                         securityModel="INSECURE"
                     ))
+
+        # Finally, cycle over our TCPMappingGroups and make sure we have
+        # Listeners for all of them, too.
+        for group in ir.ordered_groups():
+            if not isinstance(group, IRTCPMappingGroup):
+                continue
+
+            # OK. Do we have a Listener binding here already?
+            # (Note that group.bind_to() cleverly uses the same format as 
+            # IRListener.bind_to().)
+            group_key = group.bind_to()
+
+            if group_key not in ir.listeners:
+                # Nothing already exists, so fab one up. 
+                protocol = "TLS" if group.get('tls_context', None) else "TCP"
+                bind_address = group.get('address') or Config.envoy_bind_address
+                name = f"tcplistener-{bind_address}-{group.port}"
+
+                ir.logger.info("ListenerFactory: synthesizing %s listener for TCPMappingGroup on %s:%d" %
+                               (protocol, bind_address, group.port))
+
+                ir.save_listener(IRListener(
+                    ir, aconf, '-internal-', name, '-internal-',
+                    bind_address=bind_address,
+                    port=group.port,
+                    protocol=protocol,
+                    securityModel="SECURE"  # XXX Might be wrong
+                ))
