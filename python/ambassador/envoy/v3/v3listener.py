@@ -159,7 +159,6 @@ class V3Listener(dict):
         self.use_proxy_proto = False
         self.vhosts: Dict[str, V3VirtualHost] = {}
         self.first_vhost: Optional[V3VirtualHost] = None
-        self.http_filters: List[dict] = []
         self.listener_filters: List[dict] = []
         self.traffic_direction: str = "UNSPECIFIED"
 
@@ -171,18 +170,6 @@ class V3Listener(dict):
         log_debug = self.config.ir.logger.isEnabledFor(logging.DEBUG)
         if log_debug:
             self.config.ir.logger.debug(f"V3Listener {self.name} created")
-
-        # Assemble filters
-        for f in self.config.ir.filters:
-            v3hf: dict = V3HTTPFilter(f, self.config)
-
-            # V3HTTPFilter can return None to indicate that the filter config
-            # should be omitted from the final envoy config. This is the
-            # uncommon case, but it can happen if a filter waits utnil the
-            # v3config is generated before deciding if it needs to be
-            # instantiated. See IRErrorResponse for an example.
-            if v3hf:
-                self.http_filters.append(v3hf)
 
         # Start by building our base HTTP config...
         self._base_http_config = self.base_http_config(log_debug)
@@ -291,9 +278,21 @@ class V3Listener(dict):
         base_http_config: Dict[str, Any] = {
             'stat_prefix': 'ingress_http',
             'access_log': self.access_log(log_debug),
-            'http_filters': self.http_filters,
+            'http_filters': [],
             'normalize_path': True
         }
+
+        # Assemble filters
+        for f in self.config.ir.filters:
+            v3hf: dict = V3HTTPFilter(f, self.config)
+
+            # V3HTTPFilter can return None to indicate that the filter config
+            # should be omitted from the final envoy config. This is the
+            # uncommon case, but it can happen if a filter waits utnil the
+            # v3config is generated before deciding if it needs to be
+            # instantiated. See IRErrorResponse for an example.
+            if v3hf:
+                base_http_config['http_filters'].append(v3hf)
 
         if 'use_remote_address' in self.config.ir.ambassador_module:
             base_http_config["use_remote_address"] = self.config.ir.ambassador_module.use_remote_address
