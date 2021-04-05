@@ -69,8 +69,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 Bugfix: Dummy change for Ambassador 1.12.3-rc.1
 
-## [1.12.3-rc.0] April 05, 2021
-[1.12.3-rc.0]: https://github.com/datawire/ambassador/compare/v1.12.2...v1.12.3-rc.0
+## [1.12.3-rc.1] April 05, 2021
+[1.12.3-rc.1]: https://github.com/datawire/ambassador/compare/v1.12.2...v1.12.3-rc.1
 
 (no changes yet)
 
