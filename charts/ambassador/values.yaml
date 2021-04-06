@@ -300,6 +300,8 @@ tolerations: []
 
 affinity: {}
 
+topologySpreadConstraints: []
+
 ambassadorConfig: ""
 
 crds:
