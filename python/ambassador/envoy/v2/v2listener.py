@@ -56,8 +56,25 @@ class V2Listener(dict):
         if self._log_debug:
             self.config.ir.logger.debug(f"V2Listener {self.name} created -- {self._security_model}, l7Depth {self._l7_depth}")
 
-        # Start by building our base HTTP config...
-        self._base_http_config = self.base_http_config()
+        # Build out our listener filters, and figure out if we're an HTTP listener
+        # in the process.
+        for proto in irlistener.protocolStack:
+            if proto == "HTTP":
+                # Start by building our base HTTP config...
+                self._base_http_config = self.base_http_config()
+
+            if proto == "PROXY":
+                self.listener_filters.append({
+                    'name': 'envoy.filters.listener.proxy_protocol'
+                })
+
+            if proto == "TLS":
+                self.listener_filters.append({
+                    'name': 'envoy.filters.listener.tls_inspector'
+                })
+
+            # TCP (and, later, UDP) don't require any specific listener filters.
+            # They're handled exclusively in the filter chains.
 
     # access_log constructs the access_log configuration for this V2Listener
     def access_log(self) -> List[dict]:
