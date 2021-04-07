@@ -230,6 +230,7 @@ libraries:
     google-auth        1.23.0     Apache License 2.0
     gunicorn           20.0.4     MIT license
     html5lib           1.0.1      MIT license
+    httpretty          1.0.4      MIT license
     idna               2.7        3-clause BSD license, Python Software Foundation license, Unicode License Agreement for Data Files and Software (2015)
     iniconfig          1.1.1      MIT license
     itsdangerous       1.1.0      3-clause BSD license

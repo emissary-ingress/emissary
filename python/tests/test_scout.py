@@ -8,6 +8,8 @@ import pexpect
 import pytest
 import requests
 
+from runutils import run_and_assert
+
 DockerImage = os.environ.get("AMBASSADOR_DOCKER_IMAGE", None)
 child = None                    # see docker_start()
 child_name = "diagd-unset"      # see docker_start() and docker_kill()
@@ -243,6 +245,13 @@ def test_scout():
         if not DockerImage:
             logfile.write('No $AMBASSADOR_DOCKER_IMAGE??\n')
         else:
+            # Telepresence interferes with the docker network we set up, so stop it before running this test.
+            # Any test that depends on telepresence should correctly run `telepresence connect` anyway.
+            run_and_assert(['telepresence', 'quit'])
+
+            # Sleep to make sure telepresence exited gracefully etc...
+            time.sleep(2)
+
             if docker_start(logfile):
                 if wait_for_diagd(logfile) and check_chimes(logfile):
                     test_status = True

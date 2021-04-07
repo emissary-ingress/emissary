@@ -110,6 +110,7 @@ commands:
         - "gotest"
         - "pytest"
         - "pytest-envoy"
+        - "pytest-envoy-v3"
         - "e2etest"
         default: "test"
       "fast-reconfigure":
@@ -126,7 +127,9 @@ commands:
         to: docs/
     - when:
         condition:
-          equal: ["pytest-envoy", << parameters.test >>]
+          or:
+          - equal: ["pytest-envoy", << parameters.test >>]
+          - equal: ["pytest-envoy-v3", << parameters.test >>]
         steps:
         - skip-if-no-changes:
             to: "(/envoy\\.mk$|/python/tests/gold/|/pytest/gold/|/cmd/ambex/)"
@@ -619,6 +622,7 @@ jobs:
         - "gotest"
         - "pytest"
         - "pytest-envoy"
+        - "pytest-envoy-v3"
         default: "test"
       fast-reconfigure:
         type: boolean
@@ -737,6 +741,7 @@ workflows:
             - "gotest"
             - "pytest"
             - "pytest-envoy"
+            - "pytest-envoy-v3"
             # Running the ingresstests would require we install `kind` and
             # that the test suite supports HTTP to HTTPS redirects (AES
             # enables cleartext redirection by default, even for fallback
@@ -812,6 +817,7 @@ workflows:
             - "gotest"
             - "pytest"
             - "pytest-envoy"
+            - "pytest-envoy-v3"
             # Running the ingresstests would require we install `kind` and
             # that the test suite supports HTTP to HTTPS redirects (AES
             # enables cleartext redirection by default, even for fallback

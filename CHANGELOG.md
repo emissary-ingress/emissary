@@ -74,6 +74,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: Mapping configuration now supports setting `auth_context_extentions` that allows setting the `check_settings` field in the per route configuration supported by `ext_authz` http filter.
 - Feature: Added support in ambassador-agent for reporting Argo Rollouts and Argo Applications to Ambassador Cloud (https://app.getambassador.io)
 - Feature: Add `diagnostics.allow_non_local` flag to expose admin UI internally only ([#3074])
+- Feature: Ambassador will now use the Envoy v3 API internally when the AMBASSADOR_ENVOY_API_VERSION environment variable is set to "V3". By default, Ambassador will continue to use the v2 API.
 - Change: The Helm chart has been moved into this repo, in the `charts/ambassador` directory.
 - Change: The `Mapping` CRD has been modified so that `kubectl get mappings` now has a column for not just the source path-prefix (`.spec.prefix`), but the source host (`.spec.host`) too.
 - Bugfix: Make Knative paths match on prefix instead of the entire path to better align to the Knative specification ([#3224]).
