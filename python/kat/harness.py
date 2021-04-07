@@ -18,13 +18,14 @@ import time
 import threading
 import traceback
 
-from .utils import ShellCommand
+from .utils import ShellCommand, namespace_manifest
 
 from yaml.scanner import ScannerError as YAMLScanError
 
 from multi import multi
 from .parser import dump, load, Tag
-from .utils import namespace_manifest
+from tests.manifests import httpbin_manifests, websocket_echo_server_manifests
+from tests.kubeutils import apply_kube_artifacts
 
 import yaml as pyyaml
 
@@ -1228,8 +1229,8 @@ class Runner:
             finally:
                 self.done = True
 
-    def get_manifests(self, selected) -> OrderedDict:
-        manifests: OrderedDict[Union[Superpod,Node], list] = OrderedDict()  # type: ignore
+    def get_manifests_and_namespace(self, selected) -> Tuple[Any, str]:
+        manifests: OrderedDict[Any, list] = OrderedDict()  # type: ignore
         superpods: Dict[str, Superpod] = {}
 
         for n in (n for n in self.nodes if n in selected and not n.xfail):
@@ -1338,7 +1339,7 @@ class Runner:
         for superpod in superpods.values():
             manifests[superpod] = superpod.get_manifest_list()
 
-        return manifests
+        return manifests, str(nsp)
 
     def do_local_checks(self, selected, fname) -> bool:
         if RUN_MODE == 'envoy':
@@ -1363,7 +1364,7 @@ class Runner:
 
     def _setup_k8s(self, selected):
         # First up, get the full manifest and save it to disk.
-        manifests = self.get_manifests(selected)
+        manifests, namespace = self.get_manifests_and_namespace(selected)
 
         configs = OrderedDict()
         for n in (n for n in self.nodes if n in selected and not n.xfail):
@@ -1438,6 +1439,12 @@ class Runner:
         # Something didn't work out quite right.
         print(f'Continuing with Kube tests...')
         # print(f"ids_to_strip {self.ids_to_strip}")
+
+        # Install httpbin
+        apply_kube_artifacts(namespace, httpbin_manifests)
+
+        # Install websocket-echo-server
+        apply_kube_artifacts(namespace, websocket_echo_server_manifests)
 
         # XXX It is _so stupid_ that we're reparsing the whole manifest here.
         xxx_crap = pyyaml.load_all(open(fname, "r").read(), Loader=pyyaml_loader)
@@ -1698,7 +1705,7 @@ class Runner:
         kinds = [ "pod", "url" ]
         delay = 5
         start = time.time()
-        limit = int(os.environ.get("KAT_REQ_LIMIT", "300"))
+        limit = int(os.environ.get("KAT_REQ_LIMIT", "600"))
 
         print("Starting requirements check (limit %ds)... " % limit)
 

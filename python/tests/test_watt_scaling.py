@@ -3,7 +3,10 @@ import sys
 
 import pytest
 
-from utils import run_and_assert, apply_kube_artifacts, delete_kube_artifacts, install_ambassador, qotm_manifests, get_code_with_retry
+from utils import install_ambassador, get_code_with_retry
+from kubeutils import apply_kube_artifacts, delete_kube_artifacts
+from runutils import run_with_retry, run_and_assert
+from manifests import qotm_manifests
 
 
 class WattTesting:
@@ -106,8 +109,8 @@ spec:
             self.delete_qotm_mapping(namespace=namespace)
             self.create_qotm_mapping(namespace=namespace)
 
-        # Let's give Ambassador some time to register the changes
-        time.sleep(60)
+        # Let's give Ambassador a few seconds to register the changes...
+        time.sleep(5)
 
         # Assert 200 OK at /qotm/ endpoint
         qotm_http_code = get_code_with_retry(qotm_url)

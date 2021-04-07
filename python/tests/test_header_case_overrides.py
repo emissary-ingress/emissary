@@ -6,8 +6,10 @@ import sys
 import pytest
 import requests
 
-from utils import run_and_assert, apply_kube_artifacts, delete_kube_artifacts, install_ambassador, \
-        httpbin_manifests, create_httpbin_mapping
+from utils import install_ambassador, get_code_with_retry, create_httpbin_mapping
+from kubeutils import apply_kube_artifacts, delete_kube_artifacts
+from runutils import run_with_retry, run_and_assert
+from manifests import httpbin_manifests
 
 logging.basicConfig(
     level=logging.INFO,
@@ -19,8 +21,6 @@ logger = logging.getLogger("ambassador")
 
 from ambassador import Config, IR
 from ambassador.ir.irerrorresponse import IRErrorResponse
-from ambassador.envoy.v2.v2config import V2Config
-from ambassador.envoy.v2.v2listener import V2Listener
 from ambassador.envoy import EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
@@ -374,7 +374,6 @@ spec:
         # Second, test that the request headers sent to the headerecho server
         # have the correct case.
 
-        headerecho_url = f'http://localhost:{port_forward_port}/headerecho/'
         headers = {
             'x-Hello': '1',
             'X-foo-Bar': '1',

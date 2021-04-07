@@ -332,7 +332,11 @@
                   },
                   "server_name": "envoy",
                   "stat_prefix": "ingress_http",
-                  "tracing": {},
+                  "tracing": {
+                    "request_headers_for_tags": [
+                      "x-watsup"
+                    ]
+                  },
                   "use_remote_address": true,
                   "xff_num_trusted_hops": 0
                 }

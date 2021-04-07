@@ -409,7 +409,7 @@ spec:
     matchLabels:
       hostname: {self.path.k8s}-host-cleartext
   requestPolicy:
-    insecure: 
+    insecure:
       action: Route
 ---
 apiVersion: getambassador.io/v2

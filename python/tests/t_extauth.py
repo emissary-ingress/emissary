@@ -827,22 +827,13 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name: {self.name}
 prefix: /{self.name}/
-service: http://echo.websocket.org
-host_rewrite: echo.websocket.org
+service: websocket-echo-server
 use_websocket: true
 """)
 
 
     def queries(self):
         yield Query(self.url(self.name + "/"), expected=404)
-
-        yield Query(self.url(self.name + "/"), expected=101, headers={
-            "Requested-Status": "200",
-            "Connection": "Upgrade",
-            "Upgrade": "websocket",
-            "sec-websocket-key": "DcndnpZl13bMQDh7HOcz0g==",
-            "sec-websocket-version": "13"
-        })
 
         yield Query(self.url(self.name + "/", scheme="ws"), messages=["one", "two", "three"])
 
