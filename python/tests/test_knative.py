@@ -154,6 +154,7 @@ def test_knative_counters():
     assert feats['cluster_ingress_count'] == 0, f"Expected no Knative cluster ingresses, found at least one"
 
 
+@pytest.mark.flaky(reruns=1, reruns_delay=10)
 def test_knative():
     if is_knative_compatible():
         knative_test = KnativeTesting()

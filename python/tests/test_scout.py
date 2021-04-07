@@ -238,6 +238,7 @@ def check_chimes(logfile) -> bool:
 
     return result
 
+@pytest.mark.flaky(reruns=1, reruns_delay=10)
 def test_scout():
     test_status = False
 
@@ -250,7 +251,7 @@ def test_scout():
             run_and_assert(['telepresence', 'quit'])
 
             # Sleep to make sure telepresence exited gracefully etc...
-            time.sleep(2)
+            time.sleep(10)
 
             if docker_start(logfile):
                 if wait_for_diagd(logfile) and check_chimes(logfile):

@@ -405,6 +405,7 @@ spec:
         assert 'x-lowercase2' in hdrs
 
 
+@pytest.mark.flaky(reruns=1, reruns_delay=10)
 def test_ambassador_headercaseoverrides():
     t = HeaderCaseOverridesTesting()
     t.test_header_case_overrides()

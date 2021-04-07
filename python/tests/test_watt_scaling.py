@@ -119,6 +119,7 @@ spec:
         assert qotm_http_code == 200, f"Expected 200 OK, got {qotm_http_code}"
 
 
+@pytest.mark.flaky(reruns=1, reruns_delay=10)
 def test_watt():
     watt_test = WattTesting()
     watt_test.test_rapid_additions_and_deletions()

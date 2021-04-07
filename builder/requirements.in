@@ -26,3 +26,4 @@ pytest-cov
 retry
 awscli
 httpretty
+pytest-rerunfailures
