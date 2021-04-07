@@ -78,6 +78,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Change: The `Mapping` CRD has been modified so that `kubectl get mappings` now has a column for not just the source path-prefix (`.spec.prefix`), but the source host (`.spec.host`) too.
 - Bugfix: Make Knative paths match on prefix instead of the entire path to better align to the Knative specification ([#3224]).
 - Bugfix: The endpoint routing resolver will now properly watch services that include a scheme.
+- Feature: Ambassador Agent now available (and deployed by default) for the API Gateway (https://app.getambassador.io).
 
 [#3074]: https://github.com/datawire/ambassador/issues/3074
 [#3224]: https://github.com/datawire/ambassador/issues/3224

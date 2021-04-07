@@ -5,6 +5,8 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+- Feature: Ambassador Agent now available for API Gateway (https://app.getambassador.io)
+
 ## v6.6.2
 
 - Update Ambassador to version 1.12.2: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
