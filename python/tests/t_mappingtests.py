@@ -333,25 +333,17 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: echo.websocket.org:80
-host_rewrite: echo.websocket.org
+service: websocket-echo-server
 use_websocket: true
 """)
 
     def queries(self):
         yield Query(self.parent.url(self.name + "/"), expected=404)
 
-        yield Query(self.parent.url(self.name + "/"), expected=101, headers={
-            "Connection": "Upgrade",
-            "Upgrade": "websocket",
-            "sec-websocket-key": "DcndnpZl13bMQDh7HOcz0g==",
-            "sec-websocket-version": "13"
-        })
-
         yield Query(self.parent.url(self.name + "/", scheme="ws"), messages=["one", "two", "three"])
 
     def check(self):
-        assert self.results[-1].messages == ["one", "two", "three"]
+        assert self.results[-1].messages == ["one", "two", "three"], "invalid messages: %s" % repr(self.results[-1].messages)
 
 
 class TLSOrigination(MappingTest):
@@ -656,7 +648,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: http://httpbin.org
+service: httpbin
 add_response_headers:
     koo:
         append: False
@@ -727,7 +719,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: http://httpbin.org
+service: httpbin
 remove_request_headers:
 - zoo
 - aoo
@@ -936,7 +928,7 @@ metadata:
   name: thisisaverylongservicenameoverwithsixythreecharacters123456789
 spec:
   type: ExternalName
-  externalName: httpbin.org
+  externalName: httpbin.default.svc.cluster.local
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping

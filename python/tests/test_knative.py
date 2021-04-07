@@ -10,7 +10,11 @@ from kat.harness import load_manifest
 from ambassador import Config, IR
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
-from utils import run_and_assert, apply_kube_artifacts, install_ambassador, qotm_manifests, create_qotm_mapping, get_code_with_retry
+
+from utils import install_ambassador, get_code_with_retry, create_qotm_mapping
+from kubeutils import apply_kube_artifacts, delete_kube_artifacts
+from runutils import run_with_retry, run_and_assert
+from manifests import qotm_manifests
 
 logger = logging.getLogger('ambassador')
 
