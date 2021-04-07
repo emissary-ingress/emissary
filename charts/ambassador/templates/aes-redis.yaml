@@ -6,6 +6,7 @@ metadata:
   name: {{ include "ambassador.fullname" . }}-redis
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-redis
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -14,6 +15,9 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    {{- else }}
+    product: aes
     {{- end }}
   annotations:
     a8r.io/owner: "Ambassador Labs"
@@ -33,8 +37,12 @@ spec:
   - port: 6379
     targetPort: 6379
   selector:
+    {{- if .Values.redis.serviceSelector }}
+    {{ toYaml .Values.redis.serviceSelector | nindent 4 }}
+    {{- else }}
     app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-redis
     app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- end }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -42,6 +50,7 @@ metadata:
   name: {{ include "ambassador.fullname" . }}-redis
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-redis
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -51,6 +60,7 @@ metadata:
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
+    {{- end }}
     product: aes
   annotations:
     {{- toYaml .Values.redis.annotations.deployment | nindent 4}}
@@ -58,13 +68,21 @@ spec:
   replicas: 1
   selector:
     matchLabels:
+      {{- if .Values.redis.serviceSelector }}
+      {{ toYaml .Values.redis.serviceSelector | nindent 6 }}
+      {{- else }}
       app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-redis
       app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- end }}
   template:
     metadata:
       labels:
+        {{- if .Values.redis.serviceSelector }}
+        {{ toYaml .Values.redis.serviceSelector | nindent 8 }}
+        {{- else }}
         app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-redis
         app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- end }}
     spec:
       containers:
       - name: redis

@@ -1,5 +1,12 @@
 {{- if and .Values.agent.enabled .Values.enableAES  }}
-{{- if ne (semver "1.12.0" | (semver .Values.image.tag).Compare) -1 }}
+{{- $allowAgent := false -}}
+{{- if not (regexMatch "^0|[1-9]\\d*\\.0|[1-9]\\d*\\.0|[1-9]\\d*(?:-(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?(?:\\+[0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*)?$" .Values.image.tag) }}
+{{- $allowAgent = true }}
+{{- else if ne (semver "1.12.0" | (semver .Values.image.tag).Compare) -1 }}
+{{- $allowAgent = true }}
+{{- end }}
+
+{{- if $allowAgent }}
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -7,6 +14,7 @@ metadata:
   name: {{ include "ambassador.fullname" . }}-agent
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}-agent
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -16,6 +24,7 @@ metadata:
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
+    {{- end }}
     product: aes
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -24,6 +33,7 @@ metadata:
   name: {{ include "ambassador.fullname" . }}-agent-config
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}-agent
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -32,6 +42,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
     {{- end }}
     product: aes
 roleRef:
@@ -49,6 +60,7 @@ metadata:
   name: {{ include "ambassador.fullname" . }}-agent-config
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}-agent
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -57,6 +69,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
     {{- end }}
     product: aes
 rules:
@@ -69,6 +82,7 @@ kind: ClusterRoleBinding
 metadata:
   name: {{ include "ambassador.fullname" . }}-agent
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}-agent
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -77,6 +91,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
     {{- end }}
     product: aes
 roleRef:
@@ -93,6 +108,7 @@ kind: ClusterRole
 metadata:
   name: {{ include "ambassador.fullname" . }}-agent
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}-agent
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -101,6 +117,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
     {{- end }}
     product: aes
 rules:
@@ -116,6 +133,7 @@ metadata:
   name: {{ include "ambassador.fullname" . }}-agent-cloud-token
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}-agent-cloud-token
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -124,6 +142,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
     {{- end }}
     product: aes
 data:
@@ -138,6 +157,8 @@ metadata:
   namespace: {{ include "ambassador.namespace" . }}
   labels:
     app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-agent
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -147,6 +168,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
     product: aes
+    {{- end }}
 spec:
   replicas: 1
   selector:
@@ -157,20 +179,27 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-agent
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- if ne .Values.deploymentTool "getambassador.io" }}
         app.kubernetes.io/part-of: {{ .Release.Name }}
         helm.sh/chart: {{ include "ambassador.chart" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+        product: aes
         {{- if .Values.deploymentTool }}
         app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
         {{- else }}
         app.kubernetes.io/managed-by: {{ .Release.Service }}
         {{- end }}
-        product: aes
+        {{- end }}
     spec:
       serviceAccountName: {{ include "ambassador.fullname" . }}-agent
       containers:
       - name: agent
+        {{- if .Values.image.fullImageOverride }}
+        image: '{{ .Values.image.fullImageOverride }}'
+        {{- else }}
         image: "{{ .Values.agent.image.repository | default .Values.image.repository }}:{{ .Values.agent.image.tag | default .Values.image.tag }}"
+        {{- end }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: [ "agent" ]
         env:
