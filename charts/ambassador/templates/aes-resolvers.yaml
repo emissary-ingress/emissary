@@ -1,4 +1,4 @@
-{{ if and .Values.resolvers.endpoint.create .Values.enableAES }}
+{{ if .Values.resolvers.endpoint.create }}
 ---
 apiVersion: getambassador.io/v2
 kind: KubernetesEndpointResolver
@@ -6,11 +6,11 @@ metadata:
   name: {{ .Values.resolvers.endpoint.name }}
   namespace: {{ include "ambassador.namespace" . }}
 {{ end }}
-{{ if and .Values.resolvers.consul.create .Values.enableAES }}
+{{ if .Values.resolvers.consul.create }}
 ---
 apiVersion: getambassador.io/v2
 kind: ConsulResolver
-metaata:
+metadata:
   name: {{ .Values.resolvers.consul.name }}
   namespace: {{ include "ambassador.namespace" . }}
 spec:

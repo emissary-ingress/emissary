@@ -23,7 +23,7 @@ from ...ir.irbasemapping import IRBaseMapping
 from .v2ratelimitaction import V2RateLimitAction
 
 if TYPE_CHECKING:
-    from . import V2Config
+    from . import V2Config # pragma: no cover
 
 
 def regex_matcher(config: 'V2Config', regex: str, key="regex", safe_key=None, re_type=None) -> Dict[str, Any]:

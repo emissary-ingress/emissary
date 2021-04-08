@@ -31,6 +31,7 @@ def require_errors(ir: IR, errors: List[Tuple[str, str]]):
 
     assert sorted(flattened_ir_errors) == sorted(flattened_wanted_errors)
 
+@pytest.mark.compilertest
 def test_valid_forward_client_cert_details():
     yaml = """
 ---
@@ -51,6 +52,7 @@ spec:
     require_no_errors(r1["ir"])
     require_no_errors(r2["ir"])
 
+@pytest.mark.compilertest
 def test_invalid_forward_client_cert_details():
     yaml = """
 ---
@@ -75,6 +77,7 @@ spec:
         ( "ambassador.default.1", "'forward_client_cert_details' may not be set to 'SANITIZE_INVALID'; it may only be set to one of: SANITIZE, FORWARD_ONLY, APPEND_FORWARD, SANITIZE_SET, ALWAYS_FORWARD_ONLY")
     ])
 
+@pytest.mark.compilertest
 def test_valid_set_current_client_cert_details():
     yaml = """
 ---
@@ -97,6 +100,7 @@ spec:
     require_no_errors(r1["ir"])
     require_no_errors(r2["ir"])
 
+@pytest.mark.compilertest
 def test_invalid_set_current_client_cert_details_key():
     yaml = """
 ---
@@ -124,6 +128,7 @@ spec:
         ( "ambassador.default.1", "'set_current_client_cert_details' may not contain key 'invalid'; it may only contain keys: subject, cert, chain, dns, uri")
     ])
 
+@pytest.mark.compilertest
 def test_invalid_set_current_client_cert_details_value():
     yaml = """
 ---

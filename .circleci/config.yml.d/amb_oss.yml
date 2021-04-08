@@ -33,6 +33,7 @@ jobs:
           - "gotest"
           - "pytest"
           - "pytest-envoy"
+          - "pytest-envoy-v3"
         default: "test"
       "fast-reconfigure":
         type: boolean
@@ -48,13 +49,10 @@ jobs:
   "oss-chart":
     executor: oss-linux
     steps:
-      - job-chart-setup
       - job-chart
   "oss-chart-publish":
     executor: oss-linux
     steps:
-      - job-chart-setup
-      - job-chart
       - job-chart-publish
 
   "oss-promote-to-rc-latest":
@@ -125,6 +123,7 @@ workflows:
                 - "gotest"
                 - "pytest"
                 - "pytest-envoy"
+                - "pytest-envoy-v3"
                 # Running the ingresstests would require we install `kind` and
                 # that the test suite supports HTTP to HTTPS redirects (AES
                 # enables cleartext redirection by default, even for fallback
@@ -139,9 +138,9 @@ workflows:
                 # to add some exclusions -- see the Release workflow for more.
   "OSS: Chart Release":
     when: # Don't run this workflow in apro.git
-      and:
+      or:
       - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
-      - equal: [ master, << pipeline.git.branch >> ]
+      - equal: [ "https://github.com/datawire/ambassador-private", << pipeline.project.git_url >> ]
     jobs:
       - "oss-chart-publish":
           <<: *filter-chart-release-only
@@ -177,6 +176,7 @@ workflows:
                 - "gotest"
                 - "pytest"
                 - "pytest-envoy"
+                - "pytest-envoy-v3"
                 # Running the ingresstests would require we install `kind` and
                 # that the test suite supports HTTP to HTTPS redirects (AES
                 # enables cleartext redirection by default, even for fallback

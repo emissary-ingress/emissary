@@ -119,7 +119,7 @@ security:
 
 image:
   repository: docker.io/datawire/aes
-  tag: 1.12.1
+  tag: 1.12.2
   pullPolicy: IfNotPresent
 
 dnsPolicy: "ClusterFirst"
@@ -339,6 +339,8 @@ licenseKey:
 # The DevPortal is exposed at /docs/ endpoint in the AES container.
 # Setting this to true will automatically create routes for the DevPortal.
 createDevPortalMappings: true
+devportal:
+  docsPrefix: "/documentation/"
 
 # The Ambassador Edge Stack uses a redis instance for managing authentication,
 # rate limiting, and sharing minor configuration details between pods for
@@ -384,9 +386,10 @@ redis:
 # the External Filter to communicate with a custom authentication service.
 # https://www.getambassador.io/reference/filter-reference/#filter-type-external
 authService:
+  deploymentExtraName: auth
   create: true
   # Set additional configuration options. See https://www.getambassador.io/reference/services/auth-service for more information
-  optional_configurations:
+  optional_configurations: {}
     # include_body:
     #   max_bytes: 4096
     #   allow_partial: true
@@ -404,15 +407,16 @@ authService:
 # Keep this enabled to configure RateLimits in AES.
 rateLimit:
   create: true
+  deploymentExtraName: ratelimit
 
 # Projects are a beta feature of Ambassador that allow developers to stage and
 # deploy code with nothing more than a Github repository.
-# See: https://www.getambassador.io/docs/latest/topics/using/projects/
+# See: https://www.getambassador.io/docs/edge-stack/latest/topics/using/projects/
 registry:
   create: false
 
 # Resolvers are used to configure the discovery service strategy for Ambasador Edge Stack.
-# See: https://www.getambassador.io/docs/latest/topics/running/resolvers/
+# See: https://www.getambassador.io/docs/edge-stack/latest/topics/running/resolvers/
 resolvers:
   endpoint:
     create: false
@@ -500,8 +504,15 @@ agent:
   # make it start reporting
   cloudConnectToken: ""
   rpcAddress: https://app.getambassador.io/
+  createArgoRBAC: true
   image:
     # Leave blank to use image.repository and image.tag
     tag:
     repository:
+
 deploymentTool: ""
+
+# configure docker to pull from private registry
+docker: {}
+createNamespace: false
+enableTestService: false

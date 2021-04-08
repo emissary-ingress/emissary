@@ -9,7 +9,7 @@ from ...ir.irtracing import IRTracing
 from .v2cluster import V2Cluster
 
 if TYPE_CHECKING:
-    from . import V2Config
+    from . import V2Config # pragma: no cover
 
 
 class V2Bootstrap(dict):

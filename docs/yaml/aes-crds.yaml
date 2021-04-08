@@ -84,6 +84,7 @@ spec:
             protocol_version:
               enum:
               - v2
+              - v3
               - v2alpha
               type: string
             status_on_error:
@@ -234,6 +235,12 @@ spec:
                     type: string
                 type: object
               type: array
+            naming_scheme:
+              description: Describes how to display "services" in the DevPortal. Default namespace.name
+              enum:
+              - namespace.name
+              - name.prefix
+              type: string
             selector:
               description: Selector is used for choosing what is shown in the DevPortal
               properties:
@@ -695,11 +702,14 @@ metadata:
   name: mappings.getambassador.io
 spec:
   additionalPrinterColumns:
+  - JSONPath: .spec.host
+    name: Source Host
+    type: string
   - JSONPath: .spec.prefix
-    name: Prefix
+    name: Source Prefix
     type: string
   - JSONPath: .spec.service
-    name: Service
+    name: Dest Service
     type: string
   - JSONPath: .status.state
     name: State
@@ -761,6 +771,10 @@ spec:
               oneOf:
               - type: string
               - type: array
+            auth_context_extensions:
+              additionalProperties:
+                type: string
+              type: object
             auto_host_rewrite:
               type: boolean
             bypass_auth:
@@ -834,6 +848,8 @@ spec:
             docs:
               description: DocsInfo provides some extra information about the docs for the Mapping (used by the Dev Portal)
               properties:
+                display_name:
+                  type: string
                 ignored:
                   type: boolean
                 path:
@@ -1115,7 +1131,7 @@ spec:
   scope: Namespaced
   validation:
     openAPIV3Schema:
-      description: "A Module defines system-wide configuration.  The type of module is controlled by the .metadata.name; valid names are \"ambassador\" or \"tls\". \n https://www.getambassador.io/docs/latest/topics/running/ambassador/#the-ambassador-module https://www.getambassador.io/docs/latest/topics/running/tls/#tls-module-deprecated"
+      description: "A Module defines system-wide configuration.  The type of module is controlled by the .metadata.name; valid names are \"ambassador\" or \"tls\". \n https://www.getambassador.io/docs/edge-stack/latest/topics/running/ambassador/#the-ambassador-module https://www.getambassador.io/docs/edge-stack/latest/topics/running/tls/#tls-module-deprecated"
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
@@ -1193,6 +1209,7 @@ spec:
             protocol_version:
               enum:
               - v2
+              - v3
               - v2alpha
               type: string
             service:

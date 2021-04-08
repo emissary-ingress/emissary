@@ -1,5 +1,6 @@
 import json
 import pytest
+import os
 
 from typing import ClassVar, Dict, List, Sequence, Tuple, Union
 
@@ -81,6 +82,8 @@ kind: TracingService
 name: tracing
 service: zipkin:9411
 driver: zipkin
+tag_headers:
+  - "x-watsup"
 """)
 
     def requirements(self):
@@ -91,7 +94,7 @@ driver: zipkin
         # Speak through each Ambassador to the traced service...
 
         for i in range(100):
-              yield Query(self.url("target/"), phase=1)
+            yield Query(self.url("target/"), headers={'x-watsup':'nothin'}, phase=1)
 
 
         # ...then ask the Zipkin for services and spans. Including debug=True in these queries
@@ -126,6 +129,10 @@ driver: zipkin
         trace = self.results[102].json[0][0]
         traceId = trace['traceId']
         assert len(traceId) == 32
+        for t in self.results[102].json[0]:
+            if t.get('tags', {}).get('node_id') == 'test-id':
+                assert 'x-watsup' in t['tags']
+                assert t['tags']['x-watsup'] == 'nothin'
 
 
 class TracingTestLongClusterName(AmbassadorTest):
@@ -655,6 +662,8 @@ class TracingTestZipkinV1(AmbassadorTest):
     """
 
     def init(self):
+        if os.environ.get('KAT_USE_ENVOY_V3', '') != '':
+            self.skip_node = True
         self.target = HTTP()
 
     def manifests(self) -> str:

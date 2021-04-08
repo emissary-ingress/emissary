@@ -5,6 +5,7 @@ metadata:
   name: {{ include "ambassador.fullname" . }}-admin
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -14,6 +15,7 @@ metadata:
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
+    {{- end }}
     # Hard-coded label for Prometheus Operator ServiceMonitor
     service: ambassador-admin
     product: aes
@@ -21,7 +23,7 @@ metadata:
     a8r.io/owner: "Ambassador Labs"
     a8r.io/repository: github.com/datawire/ambassador
     a8r.io/description: "The Ambassador Edge Stack admin service for internal use and health checks."
-    a8r.io/documentation: https://www.getambassador.io/docs/latest/
+    a8r.io/documentation: https://www.getambassador.io/docs/edge-stack/latest/
     a8r.io/chat: http://d6e.co/slack
     a8r.io/bugs: https://github.com/datawire/ambassador/issues
     a8r.io/support: https://www.getambassador.io/about-us/support/
@@ -44,8 +46,12 @@ spec:
       protocol: TCP
       name: ambassador-snapshot
   selector:
+    {{- if .Values.service.selector }}
+    {{ toYaml .Values.service.selector | nindent 6 }}
+    {{- else }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- end }}
   {{- if eq .Values.adminService.type "LoadBalancer" }}
   {{- if not (empty .Values.adminService.loadBalancerIP) }}
   loadBalancerIP: {{ .Values.adminService.loadBalancerIP | quote }}

@@ -47,6 +47,7 @@ spec:
             protocol_version:
               enum:
               - v2
+              - v3
               - v2alpha
               type: string
             service:

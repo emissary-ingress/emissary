@@ -22,16 +22,12 @@ commands:
   # (factored out to be commands so that they can be shared between    #
   # "oss-linux" and "aes-linux" executors)                             #
   ######################################################################
-  "job-chart-setup":
+  "job-chart":
     steps:
-    # setup
     - amb-linux-install
     - amb-checkout
     - skip-if-no-changes:
         to: charts/ambassador
-  "job-chart":
-    steps:
-    # Use job-chart-setup before this
     - install-k3d
     # We might need to be logged in the registry to pull the Envoy
     # image or the builder-base image.
@@ -40,13 +36,21 @@ commands:
       run: make test-chart
   "job-chart-publish":
     steps:
-    # Use job-chart-setup before this.
+    - amb-linux-install
+    - amb-checkout
+    - install-k3d
+    # We might need to be logged in the registry to pull the Envoy
+    # image or the builder-base image.
+    - amb-config-registry
+    - # main
+      run: make test-chart
     - amb-skip-if-bad-chart-version
     - run: charts/ambassador/ci/push_chart.sh
   "job-generate":
     steps:
     # setup
     - amb-linux-install
+    - install-helm
     - amb-checkout
     # We might need to be logged in the registry to pull the Envoy
     # image or the builder-base image.
@@ -106,6 +110,7 @@ commands:
         - "gotest"
         - "pytest"
         - "pytest-envoy"
+        - "pytest-envoy-v3"
         - "e2etest"
         default: "test"
       "fast-reconfigure":
@@ -122,7 +127,9 @@ commands:
         to: docs/
     - when:
         condition:
-          equal: ["pytest-envoy", << parameters.test >>]
+          or:
+          - equal: ["pytest-envoy", << parameters.test >>]
+          - equal: ["pytest-envoy-v3", << parameters.test >>]
         steps:
         - skip-if-no-changes:
             to: "(/envoy\\.mk$|/python/tests/gold/|/pytest/gold/|/cmd/ambex/)"
@@ -223,6 +230,12 @@ commands:
     - attach_workspace:
         at: /home/circleci/project
     - run:
+        name: "Running docker login"
+        command: |
+          if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
+            docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
+          fi
+    - run:
         name: "Loading Docker data from workspace"
         command: "~/project/ambassador/.circleci/amb-images-load-workspace"
   amb-checkout:
@@ -318,10 +331,52 @@ commands:
               ~/.cache/telepresence/logs \
               /tmp/test-logs/telepresence-logs
           fi
+          if test -f docker/container.txt; then
+            docker exec $(cat docker/container.txt) /bin/bash -c 'mkdir -p /tmp/build-container-logs && (cp -r /tmp/*.txt /tmp/*.json /tmp/*.log /tmp/*.yaml /tmp/build-container-logs || true) && ((test -d ~/.cache/telepresence/logs && cp -r ~/.cache/telepresence/logs /tmp/build-container-logs/telepresence-logs) || true)'
+            docker cp $(cat docker/container.txt):/tmp/build-container-logs /tmp/test-logs/build-container-logs
+          fi
     - store_artifacts:
         name: "Store logs"
         path: /tmp/test-logs
         destination: test-logs
+    - run:
+        name: "Gather coverage"
+        when: always
+        command: |
+          mkdir -p /tmp/coverage
+          if test -f docker/container.txt; then
+            docker cp $(cat docker/container.txt):/tmp/cov_html /tmp/coverage || true
+          fi
+    - store_artifacts:
+        name: "Store coverage"
+        path: /tmp/coverage
+        destination: coverage
+    - run:
+        name: "Gather pod logs"
+        when: always
+        command: |
+          if ! test -f ~/.kube/kubeception.yaml ; then
+            exit 0
+          fi
+
+          export KUBECONFIG=~/.kube/kubeception.yaml
+          podsfile=/tmp/all-pods.txt
+          (kubectl get pods --all-namespaces -ocustom-columns="name:.metadata.name,namespace:.metadata.namespace" --no-headers || true) > $podsfile
+          (kubectl describe pods --all-namespaces || true) > /tmp/all-pods-described.txt
+
+          mkdir -p /tmp/pod-logs
+          cat $podsfile | while IFS= read -r line; do
+            name=$(echo $line | awk '{print $1}')
+            ns=$(echo $line | awk '{print $2}')
+            nsdir=/tmp/pod-logs/${ns}/
+            mkdir -p $nsdir
+            outfile=${nsdir}/${name}-pod.log
+            (kubectl logs -n $ns $name > $outfile || echo "FAILED, status $ret, continuing...") || true
+          done
+    - store_artifacts:
+        name: "Store pod logs"
+        path: /tmp/pod-logs
+        destination: pod-logs
   amb-skip-if-bad-chart-version:
     steps:
     - run:
@@ -385,6 +440,20 @@ commands:
           source $NVM_DIR/nvm.sh
           if ! nvm ls << parameters.version >> > /dev/null; then nvm install << parameters.version >>; fi
           nvm alias default << parameters.version >>
+  install-helm:
+    parameters:
+      version:
+        type: string
+        default: "v3.4.1"
+    steps:
+    - run:
+        name: "Install Helm << parameters.version >>"
+        command: |
+          set -x
+          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+          chmod 700 get_helm.sh
+          ./get_helm.sh --version << parameters.version >>
+          rm ./get_helm.sh
   install-go:
     parameters:
       version:
@@ -553,6 +622,7 @@ jobs:
         - "gotest"
         - "pytest"
         - "pytest-envoy"
+        - "pytest-envoy-v3"
         default: "test"
       fast-reconfigure:
         type: boolean
@@ -568,13 +638,10 @@ jobs:
   oss-chart:
     executor: oss-linux
     steps:
-    - job-chart-setup
     - job-chart
   oss-chart-publish:
     executor: oss-linux
     steps:
-    - job-chart-setup
-    - job-chart
     - job-chart-publish
   oss-promote-to-rc-latest:
     executor: oss-linux
@@ -674,6 +741,7 @@ workflows:
             - "gotest"
             - "pytest"
             - "pytest-envoy"
+            - "pytest-envoy-v3"
             # Running the ingresstests would require we install `kind` and
             # that the test suite supports HTTP to HTTPS redirects (AES
             # enables cleartext redirection by default, even for fallback
@@ -689,13 +757,13 @@ workflows:
             # to add some exclusions -- see the Release workflow for more.
   'OSS: Chart Release':
     when:
-      and:
+      or:
       - equal:
         - "https://github.com/datawire/ambassador"
         - << pipeline.project.git_url >>
       - equal:
-        - master
-        - << pipeline.git.branch >>
+        - "https://github.com/datawire/ambassador-private"
+        - << pipeline.project.git_url >>
     jobs:
     - oss-chart-publish:
         name: "oss-release-chart"
@@ -749,6 +817,7 @@ workflows:
             - "gotest"
             - "pytest"
             - "pytest-envoy"
+            - "pytest-envoy-v3"
             # Running the ingresstests would require we install `kind` and
             # that the test suite supports HTTP to HTTPS redirects (AES
             # enables cleartext redirection by default, even for fallback

@@ -3,9 +3,10 @@
 apiVersion: getambassador.io/v2
 kind: RateLimitService
 metadata:
-  name: {{ include "ambassador.fullname" . }}-ratelimit
+  name: {{ include "ambassador.fullname" . }}-{{ .Values.rateLimit.deploymentExtraName | default "ratelimit" }}
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -16,6 +17,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
     app.kubernetes.io/component: {{ include "ambassador.name" . }}-ratelimit
+    {{- end }}
     product: aes
 spec:
   {{- if .Values.env }}

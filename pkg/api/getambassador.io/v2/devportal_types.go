@@ -71,6 +71,10 @@ type DevPortalSpec struct {
 
 	// Selector is used for choosing what is shown in the DevPortal
 	Selector *DevPortalSelectorSpec `json:"selector,omitempty"`
+
+	// Describes how to display "services" in the DevPortal. Default namespace.name
+	// +kubebuilder:validation:Enum={"namespace.name", "name.prefix"}
+	NamingScheme string `json:"naming_scheme,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

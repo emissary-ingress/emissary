@@ -37,7 +37,7 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 
 	// **** SETUP DONE for the Kubernetes Watcher
 
-	notify := func(ctx context.Context, disposition SnapshotDisposition, snap *snapshot.Snapshot) {
+	notify := func(ctx context.Context, disposition SnapshotDisposition, _ []byte) {
 		if disposition == SnapshotReady {
 			notifyReconfigWebhooks(ctx, ambwatch)
 		}
@@ -67,7 +67,7 @@ func getAmbassadorMeta(ambassadorID string, clusterID string, version string, cl
 	return ambMeta
 }
 
-type SnapshotProcessor func(context.Context, SnapshotDisposition, *snapshot.Snapshot)
+type SnapshotProcessor func(context.Context, SnapshotDisposition, []byte)
 type SnapshotDisposition int
 
 const (
@@ -390,7 +390,7 @@ func (sh *SnapshotHolder) Notify(ctx context.Context, encoded *atomic.Value, con
 	notifyWebhooksTimer := dbg.Timer("notifyWebhooks")
 
 	// If the change is solely endpoints we don't bother making a snapshot.
-	var sn *snapshot.Snapshot
+	var snapshotJSON []byte
 	var bootstrapped bool
 	changed := true
 
@@ -403,12 +403,18 @@ func (sh *SnapshotHolder) Notify(ctx context.Context, encoded *atomic.Value, con
 			return
 		}
 
-		sn = &snapshot.Snapshot{
+		sn := &snapshot.Snapshot{
 			Kubernetes:     sh.k8sSnapshot,
 			Consul:         sh.consulSnapshot,
 			Invalid:        sh.validator.getInvalid(),
 			Deltas:         sh.unsentDeltas,
 			AmbassadorMeta: sh.ambassadorMeta,
+		}
+
+		var err error
+		snapshotJSON, err = json.MarshalIndent(sn, "", "  ")
+		if err != nil {
+			panic(err)
 		}
 
 		bootstrapped = consul.isBootstrapped()
@@ -427,21 +433,16 @@ func (sh *SnapshotHolder) Notify(ctx context.Context, encoded *atomic.Value, con
 	}
 
 	if bootstrapped {
-		snapshotJSON, err := json.MarshalIndent(sn, "", "  ")
-		if err != nil {
-			panic(err)
-		}
-
 		// ...then stash this snapshot and fire off webhooks.
 		encoded.Store(snapshotJSON)
 
 		// Finally, use the reconfigure webhooks to let the rest of Ambassador
 		// know about the new configuration.
 		notifyWebhooksTimer.Time(func() {
-			snapshotProcessor(ctx, SnapshotReady, sn)
+			snapshotProcessor(ctx, SnapshotReady, snapshotJSON)
 		})
 	} else {
-		snapshotProcessor(ctx, SnapshotIncomplete, sn)
+		snapshotProcessor(ctx, SnapshotIncomplete, snapshotJSON)
 		return
 	}
 }

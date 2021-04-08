@@ -19,7 +19,7 @@ const noTlsSuccess = "<bold>You've successfully installed the Ambassador Edge St
 
 // An internal error that should never happen.
 func (i *Installer) resInternalError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/tutorials/getting-started/"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/tutorials/getting-started/"
 
 	return Result{
 		ShortMessage: "The installer experienced an internal error",
@@ -31,7 +31,7 @@ func (i *Installer) resInternalError(err error) Result {
 
 // User interrupted the email request.
 func (i *Installer) resEmailRequestError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/email-request"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/email-request"
 
 	return Result{
 		ShortMessage: "The request for email was interrupted or failed.",
@@ -45,7 +45,7 @@ func (i *Installer) resEmailRequestError(err error) Result {
 
 // Unable to get a kubectl path.
 func (i *Installer) resNoKubectlError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/no-kubectl"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/no-kubectl"
 
 	return Result{
 		Report:       "fail_no_kubectl",
@@ -58,7 +58,7 @@ func (i *Installer) resNoKubectlError(err error) Result {
 
 // Unable to get cluster information
 func (i *Installer) resNoClusterError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/no-cluster"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/no-cluster"
 
 	return Result{
 		Report:       "fail_no_cluster",
@@ -71,7 +71,7 @@ func (i *Installer) resNoClusterError(err error) Result {
 
 // Unable to get client configuration or namespace
 func (i *Installer) resGetRestConfigError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/get-rest-config"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/get-rest-config"
 
 	return Result{
 		Report:       "fail_no_cluster",
@@ -84,7 +84,7 @@ func (i *Installer) resGetRestConfigError(err error) Result {
 
 // Unable to create a new CoreV1Client for the given configuration.
 func (i *Installer) resNewForConfigError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/new-for-config"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/new-for-config"
 
 	return Result{
 		Report:       "fail_no_cluster",
@@ -97,7 +97,7 @@ func (i *Installer) resNewForConfigError(err error) Result {
 
 // Unable to get versions via kubectl
 func (i *Installer) resGetVersionsError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/get-versions"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/get-versions"
 
 	return Result{
 		Report:       "fail_no_cluster",
@@ -112,7 +112,7 @@ func (i *Installer) resGetVersionsError(err error) Result {
 func (i *Installer) resDownloadError(err error) Result {
 	i.Report("fail_no_internet", client.ScoutMeta{Key: "err", Value: err.Error()})
 
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/download-error"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/download-error"
 
 	return Result{
 		ShortMessage: "The installer failed to download AES",
@@ -123,7 +123,7 @@ func (i *Installer) resDownloadError(err error) Result {
 }
 
 func (i *Installer) resCantReplaceExistingInstallationError(installedVersion string) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/existing-installation"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/existing-installation"
 
 	return Result{
 		Report:       "fail_existing_installation",
@@ -135,7 +135,7 @@ func (i *Installer) resCantReplaceExistingInstallationError(installedVersion str
 }
 
 func (i *Installer) resUpgradeTooOldOSSError(installedVersion, latestVersion string) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/upgrade-tool-old"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/upgrade-tool-old"
 
 	return Result{
 		Report: "fail_old_oss_installation",
@@ -149,7 +149,7 @@ func (i *Installer) resUpgradeTooOldOSSError(installedVersion, latestVersion str
 
 // resUpgradeNoOSSFound returns an error when OSS was not found
 func (i *Installer) resUpgradeNoOSSFound(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/upgrade-no-oss-found"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/upgrade-no-oss-found"
 	if err == nil {
 		err = errUpgradeNoAmbInst
 	}
@@ -165,7 +165,7 @@ func (i *Installer) resUpgradeNoOSSFound(err error) Result {
 
 // resUpgradeApplyError returns an error when applying the new manifest
 func (i *Installer) resUpgradeApplyError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/upgrade-apply-error"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/upgrade-apply-error"
 
 	return Result{
 		Report:       "fail_upgrade_apply",
@@ -178,7 +178,7 @@ func (i *Installer) resUpgradeApplyError(err error) Result {
 
 // resUpgradeFailed returns a generic error on upgrades
 func (i *Installer) resUpgradeFailed(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/upgrade-error"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/upgrade-error"
 
 	return Result{
 		Report:       "fail_upgrade",
@@ -191,7 +191,7 @@ func (i *Installer) resUpgradeFailed(err error) Result {
 
 func (i *Installer) resNamespaceCreationError(err error) Result {
 	i.Report("fail_install_aes", client.ScoutMeta{Key: "err", Value: err.Error()})
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/install-aes"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/install-aes"
 
 	return Result{
 		Report:       "fail_install_aes",
@@ -203,7 +203,7 @@ func (i *Installer) resNamespaceCreationError(err error) Result {
 }
 
 func (i *Installer) resFailedToInstallChartError(err error, version string, notes string) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/install-aes"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/install-aes"
 	i.Report("fail_install_aes", client.ScoutMeta{Key: "err", Value: err.Error()})
 
 	msg := fmt.Sprintf("Failed to install Helm chart: %s", err)
@@ -232,7 +232,7 @@ func (i *Installer) resFailedToInstallChartError(err error, version string, note
 
 // Unable to get the AES Install ID via kubectl exec to ask for the pod ID
 func (i *Installer) resAESPodStartupError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/aes-pod-startup"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/aes-pod-startup"
 
 	return Result{
 		Report:       "fail_pod_timeout",
@@ -245,7 +245,7 @@ func (i *Installer) resAESPodStartupError(err error) Result {
 
 // docker-desktop, minikube, or kind: local cluster so no automatic TLS.
 func (i *Installer) resKnownLocalClusterResult(ci clusterInfo) Result {
-	url := "https://www.getambassador.io/docs/latest/tutorials/getting-started/"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/tutorials/getting-started/"
 
 	getServiceIPmsg := "kubectl get services -n ambassador ambassador"
 	if ci.customMessages.getServiceIP != "" {
@@ -270,7 +270,7 @@ func (i *Installer) resKnownLocalClusterResult(ci clusterInfo) Result {
 
 // Unable to provision a load balancer (failed to retrieve the IP address)
 func (i *Installer) resLoadBalancerError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/load-balancer"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/load-balancer"
 
 	message := noTlsSuccess
 	message += "\n\n"
@@ -289,7 +289,7 @@ func (i *Installer) resLoadBalancerError(err error) Result {
 // AES failed to respond to the ACME challenge.  This may be because AES did not start quickly enough or
 // if the AES load balancer is not reachable.
 func (i *Installer) resAESACMEChallengeError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/aes-acme-challenge"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/aes-acme-challenge"
 
 	message := "<bold>It seems AES did not start in the expected time, or the AES load balancer is not reachable from here.</>"
 	message += "\n\n"
@@ -308,7 +308,7 @@ func (i *Installer) resAESACMEChallengeError(err error) Result {
 // Unable to make an HTTP Post to Metriton at https://metriton.datawire.io/register-domain
 // and so cannot acquire a DNS name for the cluster's load balancer.
 func (i *Installer) resDNSNamePostError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/dns-name-post"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/dns-name-post"
 	i.Report("dns_name_failure", client.ScoutMeta{Key: "err", Value: err.Error()})
 
 	return Result{
@@ -321,7 +321,7 @@ func (i *Installer) resDNSNamePostError(err error) Result {
 
 // Unable to fetch the response from the HTTP Post to Metriton.
 func (i *Installer) resDNSNameBodyError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/dns-name-body"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/dns-name-body"
 	i.Report("dns_name_failure", client.ScoutMeta{Key: "err", Value: err.Error()})
 
 	return Result{
@@ -334,7 +334,7 @@ func (i *Installer) resDNSNameBodyError(err error) Result {
 
 // The DNS name propagation timed out, so unable to resolve the name.
 func (i *Installer) resDNSPropagationError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/dns-propagation"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/dns-propagation"
 
 	return Result{
 		Report:       "dns_name_propagation_timeout",
@@ -348,7 +348,7 @@ func (i *Installer) resDNSPropagationError(err error) Result {
 
 // In attempting to kubectl apply the hostResource yaml, kubectl failed.
 func (i *Installer) resHostResourceCreationError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/host-resource-creation"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/host-resource-creation"
 	i.Report("fail_host_resource", client.ScoutMeta{Key: "err", Value: err.Error()})
 
 	return Result{
@@ -361,7 +361,7 @@ func (i *Installer) resHostResourceCreationError(err error) Result {
 
 // Unable to acquire a TLS certificate from Let's Encrypt
 func (i *Installer) resCertificateProvisionError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/certificate-provision"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/certificate-provision"
 
 	return Result{
 		Report:       "cert_provision_failed",
@@ -375,7 +375,7 @@ func (i *Installer) resCertificateProvisionError(err error) Result {
 
 // Unable to acquire a TLS certificate from Let's Encrypt
 func (i *Installer) resHostRetrievalError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/host-retrieval"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/host-retrieval"
 
 	return Result{
 		ShortMessage: "The installer failed to retrieve the Host resource from your cluster that was just created. This is unexpected.",
@@ -390,7 +390,7 @@ func (i *Installer) resHostRetrievalError(err error) Result {
 
 // Attempted to log in to the cluster but failed.
 func (i *Installer) resAESLoginError(err error) Result {
-	url := "https://www.getambassador.io/docs/latest/topics/install/help/aes-login"
+	url := "https://www.getambassador.io/docs/edge-stack/latest/topics/install/help/aes-login"
 
 	message := "The installer failed to log in to the Ambassador Edge Policy Console.\n\n"
 	message += fmt.Sprintf("Find a more detailed explanation and suggestions on how to resolve this problem at %v", url)

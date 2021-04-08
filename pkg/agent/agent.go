@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/pkg/errors"
 
@@ -79,6 +80,11 @@ type Agent struct {
 
 	// current pod state in cluster
 	podStore *podStore
+
+	// rolloutStore holds Argo Rollouts state from cluster
+	rolloutStore *RolloutStore
+	// applicationStore holds Argo Applications state from cluster
+	applicationStore *ApplicationStore
 
 	// config map/secret information
 	// agent namespace is... the namespace the agent is running in.
@@ -198,7 +204,6 @@ func (a *Agent) handleAPIKeyConfigChange(ctx context.Context, secrets []kates.Se
 		if newKey != oldKey {
 			a.ClearComm()
 		}
-
 	}
 	prevKey := a.ambassadorAPIKey
 	// first, check if we have a secret, since we want that value to take if we
@@ -286,6 +291,15 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 	acc := client.Watch(ctx, query)
 	configAcc := client.Watch(ctx, cmQuery, secretQuery)
 
+	dc := NewDynamicClient(client.DynamicInterface(), NewK8sInformer)
+	rolloutGvr, _ := schema.ParseResourceArg("rollouts.v1alpha1.argoproj.io")
+	rolloutCallback := dc.WatchGeneric(ctx, ns, rolloutGvr)
+	rolloutStore := NewRolloutStore()
+
+	applicationGvr, _ := schema.ParseResourceArg("applications.v1alpha1.argoproj.io")
+	applicationCallback := dc.WatchGeneric(ctx, ns, applicationGvr)
+	applicationStore := NewApplicationStore()
+
 	// for the watch
 	// we're not watching CRDs or anything special, so i'm pretty sure it's okay just to say all
 	// the pods are valid
@@ -322,7 +336,22 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 				continue
 			}
 			a.podStore = NewPodStore(podSnapshot.Pods)
-
+		case callback, ok := <-rolloutCallback:
+			if ok {
+				dlog.Debugf(ctx, "argo rollout callback: %v", callback.EventType)
+				a.rolloutStore, err = rolloutStore.FromCallback(callback)
+				if err != nil {
+					dlog.Warnf(ctx, "Error processing rollout callback: %s", err)
+				}
+			}
+		case callback, ok := <-applicationCallback:
+			if ok {
+				dlog.Debugf(ctx, "argo application callback: %v", callback.EventType)
+				a.applicationStore, err = applicationStore.FromCallback(callback)
+				if err != nil {
+					dlog.Warnf(ctx, "Error processing application callback: %s", err)
+				}
+			}
 		case directive := <-a.newDirective:
 			a.directiveHandler.HandleDirective(ctx, a, directive)
 		}
@@ -334,7 +363,7 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 			if err != nil {
 				dlog.Warnf(ctx, "Error getting snapshot from ambassador %+v", err)
 			}
-			dlog.Debug(ctx, "Recieved snapshot in agent")
+			dlog.Debug(ctx, "Received snapshot in agent")
 			if err = a.ProcessSnapshot(ctx, snapshot, ambHost); err != nil {
 				dlog.Warnf(ctx, "error processing snapshot: %+v", err)
 			}
@@ -450,9 +479,19 @@ func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Sna
 		a.connInfo = newConnInfo
 	}
 
-	if snapshot.Kubernetes != nil && a.podStore != nil {
-		snapshot.Kubernetes.Pods = a.podStore.GetPodsForServices(snapshot.Kubernetes.Services)
-		dlog.Debugf(ctx, "Found %d pods and %d services", len(snapshot.Kubernetes.Pods), len(snapshot.Kubernetes.Services))
+	if snapshot.Kubernetes != nil {
+		if a.podStore != nil {
+			snapshot.Kubernetes.Pods = a.podStore.GetPodsForServices(snapshot.Kubernetes.Services)
+			dlog.Debugf(ctx, "Found %d pods and %d services", len(snapshot.Kubernetes.Pods), len(snapshot.Kubernetes.Services))
+		}
+		if a.rolloutStore != nil {
+			snapshot.Kubernetes.ArgoRollouts = a.rolloutStore.StateOfWorld()
+			dlog.Infof(ctx, "Found %d argo rollouts", len(snapshot.Kubernetes.ArgoRollouts))
+		}
+		if a.applicationStore != nil {
+			snapshot.Kubernetes.ArgoApplications = a.applicationStore.StateOfWorld()
+			dlog.Infof(ctx, "Found %d argo applications", len(snapshot.Kubernetes.ArgoApplications))
+		}
 	}
 
 	if err = snapshot.Sanitize(); err != nil {

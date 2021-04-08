@@ -2,6 +2,7 @@ package entrypoint
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"reflect"
@@ -228,12 +229,18 @@ type SnapshotEntry struct {
 }
 
 // We pass this into the watcher loop to get notified when a snapshot is produced.
-func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, snap *snapshot.Snapshot) {
+func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, snapJSON []byte) {
 	if disp == SnapshotReady {
 		if f.config.EnvoyConfig {
 			notifyReconfigWebhooksFunc(ctx, &noopNotable{}, false)
 			f.appendEnvoyConfig()
 		}
+	}
+
+	var snap *snapshot.Snapshot
+	err := json.Unmarshal(snapJSON, &snap)
+	if err != nil {
+		f.T.Fatalf("error decoding snapshot: %+v", err)
 	}
 
 	f.snapshots.Add(SnapshotEntry{disp, snap})

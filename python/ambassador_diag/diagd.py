@@ -63,7 +63,7 @@ from ambassador.diagnostics import EnvoyStatsMgr, EnvoyStats
 from ambassador.constants import Constants
 
 if TYPE_CHECKING:
-    from ambassador.ir.irtlscontext import IRTLSContext
+    from ambassador.ir.irtlscontext import IRTLSContext # pragma: no cover
 
 __version__ = Version
 
@@ -98,6 +98,14 @@ ambassador_targets = {
 
 def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
+
+
+def envoy_api_version():
+    env_version = os.environ.get('AMBASSADOR_ENVOY_API_VERSION', 'V2')
+    version = env_version.upper()
+    if version == 'V2' or env_version == 'V3':
+        return version
+    return 'V2'
 
 
 class DiagApp (Flask):
@@ -423,6 +431,7 @@ class DiagApp (Flask):
 
         return output
 
+
     def check_cache(self) -> bool:
         # We're going to build a shiny new IR and econf from our existing aconf, and make
         # sure everything matches. We will _not_ use the existing cache for this.
@@ -439,7 +448,7 @@ class DiagApp (Flask):
         cache = Cache(self.logger)
         scc = SecretHandler(app.logger, "check_cache", app.snapshot_path, "check")
         ir = IR(self.aconf, secret_handler=scc, cache=cache)
-        econf = EnvoyConfig.generate(ir, "V2", cache=cache)
+        econf = EnvoyConfig.generate(ir, envoy_api_version(), cache=cache)
 
         # This is testing code.
         # name = list(ir.clusters.keys())[0]
@@ -607,7 +616,7 @@ def _is_local_request() -> bool:
     Determine if this request originated with localhost.
 
     When we are not running in LEGACY_MODE, we rely on healthcheck_server.go setting
-    the X-Ambassador-Diag-IP header for us (and we rely on it overwriting anything 
+    the X-Ambassador-Diag-IP header for us (and we rely on it overwriting anything
     that's already there!).
 
     When we _are_ running in LEGACY_MODE, we rely on an implementation detail of
@@ -1563,7 +1572,9 @@ class AmbassadorEventWatcher(threading.Thread):
         open(ir_path, "w").write(ir.as_json())
 
         with self.app.econf_timer:
-            econf = EnvoyConfig.generate(ir, "V2", cache=self.app.cache)
+            econf_api_version = envoy_api_version()
+            self.logger.debug("generating envoy configuration with api version %s" % econf_api_version)
+            econf = EnvoyConfig.generate(ir, econf_api_version, cache=self.app.cache)
 
         # DON'T generate the Diagnostics here, because that turns out to be expensive.
         # Instead, we'll just reset app.diag to None, then generate it on-demand when

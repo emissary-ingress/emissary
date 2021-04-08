@@ -10,7 +10,11 @@ from kat.harness import load_manifest
 from ambassador import Config, IR
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
-from utils import run_and_assert, apply_kube_artifacts, install_ambassador, qotm_manifests, create_qotm_mapping, get_code_with_retry
+
+from utils import install_ambassador, get_code_with_retry, create_qotm_mapping
+from kubeutils import apply_kube_artifacts, delete_kube_artifacts
+from runutils import run_with_retry, run_and_assert
+from manifests import qotm_manifests
 
 logger = logging.getLogger('ambassador')
 
@@ -65,6 +69,10 @@ class KnativeTesting:
     def test_knative(self):
         namespace = 'knative-testing'
 
+        # Make sure telepresence is connected. Do this early on in the test to give the TP daemon plenty of
+        # time to do its thing while we wait for other k8 resources to reconcile.
+        run_with_retry(['telepresence', 'connect'])
+
         # Install Knative
         apply_kube_artifacts(namespace=None, artifacts=load_manifest("knative_serving_crds"))
         apply_kube_artifacts(namespace='knative-serving', artifacts=load_manifest("knative_serving_0.18.0"))
@@ -95,19 +103,17 @@ class KnativeTesting:
         # Create kservice
         apply_kube_artifacts(namespace=namespace, artifacts=knative_service_example)
 
-        # Let's port-forward ambassador service to talk to QOTM
-        port_forward_port = 7000
-        port_forward_command = ['kubectl', 'port-forward', '--namespace', namespace, 'service/ambassador', f'{port_forward_port}:80']
-        run_and_assert(port_forward_command, communicate=False)
+        # Assume we can reach Ambassador through telepresence
+        qotm_host = "ambassador." + namespace
 
         # Assert 200 OK at /qotm/ endpoint
-        qotm_url = f'http://localhost:{port_forward_port}/qotm/'
+        qotm_url = f'http://{qotm_host}/qotm/'
         code = get_code_with_retry(qotm_url)
         assert code == 200, f"Expected 200 OK, got {code}"
         print(f"{qotm_url} is ready")
 
         # Assert 200 OK at / with Knative Host header and 404 with other/no header
-        kservice_url = f'http://localhost:{port_forward_port}/'
+        kservice_url = f'http://{qotm_host}/'
 
         code = get_code_with_retry(kservice_url)
         assert code == 404, f"Expected 404, got {code}"
@@ -148,6 +154,7 @@ def test_knative_counters():
     assert feats['cluster_ingress_count'] == 0, f"Expected no Knative cluster ingresses, found at least one"
 
 
+@pytest.mark.flaky(reruns=1, reruns_delay=10)
 def test_knative():
     if is_knative_compatible():
         knative_test = KnativeTesting()

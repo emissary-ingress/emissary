@@ -277,6 +277,9 @@ docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/snapshot.docker.tag.l
 	    printf "${CYN}==> ${GRN}Image ${BLU}$(LCNAME)${GRN} is already up-to-date${END}\n"; \
 	  else \
 	    printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"; \
+	    printf "    ${BLU}artifacts=$$(cat $*/snapshot.docker)${END}\n"; \
+	    printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"; \
+	    printf "    ${BLU}builderbase=$$(cat $*/builder-base.docker)${END}\n"; \
 	    ${DBUILD} ${BUILDER_HOME} \
 	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
 	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
@@ -354,6 +357,10 @@ pytest-envoy:
 	$(MAKE) pytest KAT_RUN_MODE=envoy
 .PHONY: pytest-envoy
 
+pytest-envoy-v3:
+	$(MAKE) pytest KAT_RUN_MODE=envoy KAT_USE_ENVOY_V3=true
+.PHONY: pytest-envoy-v3
+
 pytest-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	docker exec \
@@ -364,6 +371,7 @@ pytest-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker
 		-e DOCKER_NETWORK=$(DOCKER_NETWORK) \
 		-e KAT_REQ_LIMIT \
 		-e KAT_RUN_MODE \
+		-e KAT_USE_ENVOY_V3 \
 		-e KAT_VERBOSE \
 		-e PYTEST_ARGS \
 		-e TEST_SERVICE_REGISTRY \
@@ -416,7 +424,7 @@ gotest: test-ready docker/kat-server.docker.push.remote docker/$(LCNAME).docker.
 		-e DOCKER_BUILD_USERNAME \
 		-e DOCKER_BUILD_PASSWORD \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh gotest-internal ; test_exit=$$? ; \
-		[ -n "$(TEST_XML_DIR)" ] && docker cp $(shell $(BUILDER)):/tmp/test-data/gotest.xml $(TEST_XML_DIR) ; [ $$test_exit == 0 ] || exit $$test_exit
+		[ -n "$(TEST_XML_DIR)" ] && docker cp $(shell $(BUILDER)):/tmp/test-xml.tar.gz $(TEST_XML_DIR) && tar -xvf $(TEST_XML_DIR)/test-xml.tar.gz -C $(TEST_XML_DIR)  ; [ $$test_exit == 0 ] || exit $$test_exit
 	docker exec \
 		-w /buildroot/ambassador \
 		-e GOOS=windows \

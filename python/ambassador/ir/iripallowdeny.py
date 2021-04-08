@@ -8,7 +8,7 @@ from .irresource import IRResource
 from .irfilter import IRFilter
 
 if TYPE_CHECKING:
-    from .ir import IR
+    from .ir import IR # pragma: no cover
 
 
 class IRIPAllowDeny(IRFilter):

@@ -1,4 +1,5 @@
 import logging
+import json
 import os
 import subprocess
 import requests
@@ -15,121 +16,35 @@ from ambassador import Cache, IR
 from ambassador.compile import Compile
 from ambassador.utils import NullSecretHandler
 from kat.utils import namespace_manifest
-from kat.harness import load_manifest, CLEARTEXT_HOST_YAML
+from kat.harness import load_manifest
+from tests.kubeutils import apply_kube_artifacts
 
 logger = logging.getLogger("ambassador")
 
-httpbin_manifests ="""
+SUPPORTED_ENVOY_VERSIONS = ["V2", "V3"]
+
+CLEARTEXT_HOST_YAML = '''
 ---
-apiVersion: v1
-kind: Service
+apiVersion: getambassador.io/v2
+kind: Host
 metadata:
-  name: httpbin
+  name: cleartext-host-{self.path.k8s}
+  labels:
+    scope: AmbassadorTest
+  namespace: %s
 spec:
-  type: ClusterIP
-  selector:
-    service: httpbin
-  ports:
-  - port: 80
-    targetPort: http
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: httpbin
-spec:
-  replicas: 1
+  ambassador_id: [ "{self.ambassador_id}" ]
+  hostname: "*"
   selector:
     matchLabels:
-      service: httpbin
-  template:
-    metadata:
-      labels:
-        service: httpbin
-    spec:
-      containers:
-      - name: httpbin
-        image: kennethreitz/httpbin
-        ports:
-        - name: http
-          containerPort: 80
-"""
-
-qotm_manifests = """
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: qotm
-spec:
-  selector:
-    service: qotm
-  ports:
-    - port: 80
-      targetPort: http-api
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: qotm
-spec:
-  selector:
-    matchLabels:
-      service: qotm
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      annotations:
-        sidecar.istio.io/inject: "false"
-      labels:
-        service: qotm
-    spec:
-      serviceAccountName: ambassador
-      containers:
-      - name: qotm
-        image: docker.io/datawire/qotm:1.3
-        ports:
-        - name: http-api
-          containerPort: 5000
-"""
-
-
-def run_and_assert(command, communicate=True):
-    print(f"Running command {command}")
-    output = subprocess.Popen(command, stdout=subprocess.PIPE)
-    if communicate:
-        stdout, stderr = output.communicate()
-        print('STDOUT', stdout.decode("utf-8") if stdout is not None else None)
-        print('STDERR', stderr.decode("utf-8") if stderr is not None else None)
-        assert output.returncode == 0
-        return stdout.decode("utf-8") if stdout is not None else None
-    return None
-
-
-def meta_action_kube_artifacts(namespace, artifacts, action):
-    temp_file = tempfile.NamedTemporaryFile()
-    temp_file.write(artifacts.encode())
-    temp_file.flush()
-
-    command = ['kubectl', action, '-f', temp_file.name]
-    if namespace is None:
-        namespace = 'default'
-
-    if namespace is not None:
-        command.extend(['-n', namespace])
-
-    run_and_assert(command)
-    temp_file.close()
-
-
-def apply_kube_artifacts(namespace, artifacts):
-    meta_action_kube_artifacts(namespace=namespace, artifacts=artifacts, action='apply')
-
-
-def delete_kube_artifacts(namespace, artifacts):
-    meta_action_kube_artifacts(namespace=namespace, artifacts=artifacts, action='delete')
+      hostname: {self.path.k8s}
+  acmeProvider:
+    authority: none
+  requestPolicy:
+    insecure:
+      action: Route
+      # additionalPort: 8080
+'''
 
 
 def install_ambassador(namespace, single_namespace=True, envs=None):
@@ -161,9 +76,9 @@ def install_ambassador(namespace, single_namespace=True, envs=None):
                 e['value'] = 'true'
                 found_single_namespace = True
                 break
-    
+
         if not found_single_namespace:
-            envs.append({ 
+            envs.append({
                 'name': 'AMBASSADOR_SINGLE_NAMESPACE',
                 'value': 'true'
             })
@@ -335,24 +250,25 @@ def _secret_handler():
     cache_dir = tempfile.TemporaryDirectory(prefix="null-secret-", suffix="-cache")
     return NullSecretHandler(logger, source_root.name, cache_dir.name, "fake")
 
-def econf_compile(yaml):
+def econf_compile(yaml, envoy_version="V2"):
     # Compile with and without a cache. Neither should produce errors.
     cache = Cache(logger)
     secret_handler = _secret_handler()
-    r1 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler)
-    r2 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, cache=cache)
+    r1 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, envoy_version=envoy_version)
+    r2 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, cache=cache,
+            envoy_version=envoy_version)
     _require_no_errors(r1["ir"])
     _require_no_errors(r2["ir"])
 
     # Both should produce equal Envoy config as sorted json.
-    r1j = json.dumps(r1['v2'].as_dict(), sort_keys=True, indent=2)
-    r2j = json.dumps(r2['v2'].as_dict(), sort_keys=True, indent=2)
+    r1j = json.dumps(r1[envoy_version.lower()].as_dict(), sort_keys=True, indent=2)
+    r2j = json.dumps(r2[envoy_version.lower()].as_dict(), sort_keys=True, indent=2)
     assert r1j == r2j
 
     # Now we can return the Envoy config as a dictionary
-    return r1['v2'].as_dict()
+    return r1[envoy_version.lower()].as_dict()
 
-def econf_foreach_hcm(econf, fn):
+def econf_foreach_hcm(econf, fn, envoy_version='V2'):
     found_hcm = False
     for listener in econf['static_resources']['listeners']:
         # There's only one filter chain...
@@ -367,7 +283,11 @@ def econf_foreach_hcm(econf, fn):
         hcm = filters[0]
         assert hcm['name'] == 'envoy.filters.network.http_connection_manager'
         typed_config = hcm['typed_config']
-        assert typed_config['@type'] == 'type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager'
+        envoy_version_type_map = {
+            'V3': 'type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager',
+            'V2': 'type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager',
+        }
+        assert typed_config['@type'] == envoy_version_type_map[envoy_version], "bad type: %s" % typed_config['@type']
 
         found_hcm = True
         r = fn(typed_config)
@@ -385,3 +305,11 @@ def econf_foreach_cluster(econf, fn, name='cluster_httpbin_default'):
         if not r:
             break
     assert found_cluster
+
+def assert_valid_envoy_config(config_dict):
+    with tempfile.NamedTemporaryFile() as temp:
+        temp.write(bytes(json.dumps(config_dict), encoding = 'utf-8'))
+        temp.flush()
+        f_name = temp.name
+        cmd = ['envoy', '--config-path', f_name, '--mode', 'validate']
+        v_encoded = subprocess.check_output(cmd, stderr=subprocess.STDOUT)

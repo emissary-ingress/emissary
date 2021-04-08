@@ -5,6 +5,16 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+- Feature: Ambassador Agent now available for API Gateway (https://app.getambassador.io)
+
+## v6.6.2
+
+- Update Ambassador to version 1.12.2: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+
+## v6.6.1
+
+- Fix metadata field in ConsulRevoler
+- Make resolvers available to OSS
 
 ## v6.6.0
 
@@ -144,8 +154,8 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## v6.4.4
 
-- Feature flag for enabling or disabling the [`Project` registry](https://www.getambassador.io/docs/latest/topics/using/projects/)
-- redisEnv for setting environment variables to control how Ambassador interacts with redis. See [redis environment](https://www.getambassador.io/docs/latest/topics/running/environment/#redis)
+- Feature flag for enabling or disabling the [`Project` registry](https://www.getambassador.io/docs/edge-stack/latest/topics/using/projects/)
+- redisEnv for setting environment variables to control how Ambassador interacts with redis. See [redis environment](https://www.getambassador.io/docs/edge-stack/latest/topics/running/environment/#redis)
 
 ## v6.4.3
 

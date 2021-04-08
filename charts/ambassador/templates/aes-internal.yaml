@@ -6,7 +6,9 @@ kind: Mapping
 metadata:
   # This Mapping name is referenced by convention, it's important to leave as-is.
   name: {{ include "ambassador.fullname" . }}-devportal
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -17,6 +19,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
     app.kubernetes.io/component: {{ include "ambassador.name" . }}-devportal
+    {{- end }}
     product: aes
 spec:
   {{- if .Values.env }}
@@ -24,7 +27,7 @@ spec:
   ambassador_id: {{ .Values.env.AMBASSADOR_ID | quote }}
   {{- end }}
   {{- end }}
-  prefix: /documentation/
+  prefix: {{ .Values.devportal.docsPrefix }}
   rewrite: "/docs/"
   service: "127.0.0.1:8500"
 ---
@@ -32,7 +35,9 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: {{ include "ambassador.fullname" . }}-devportal-assets
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -43,6 +48,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
     app.kubernetes.io/component: {{ include "ambassador.name" . }}-devportal-assets
+    {{- end }}
     product: aes
 spec:
   {{- if .Values.env }}
@@ -66,7 +72,9 @@ kind: Mapping
 metadata:
   # This Mapping name is what the demo uses. Sigh.
   name: {{ include "ambassador.fullname" . }}-devportal-demo
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -77,6 +85,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
     app.kubernetes.io/component: {{ include "ambassador.name" . }}-devportal-demo
+    {{- end }}
     product: aes
 spec:
   {{- if .Values.env }}
@@ -93,7 +102,9 @@ kind: Mapping
 metadata:
   # This Mapping name is referenced by convention, it's important to leave as-is.
   name: {{ include "ambassador.fullname" . }}-devportal-api
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -104,6 +115,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
     app.kubernetes.io/component: {{ include "ambassador.name" . }}-devportal-api
+    {{- end }}
     product: aes
 spec:
   {{- if .Values.env }}

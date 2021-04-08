@@ -20,7 +20,7 @@ from .irtlscontext import IRTLSContext
 from ambassador.utils import RichStatus
 
 if TYPE_CHECKING:
-    from .ir import IR
+    from .ir import IR # pragma: no cover
 
 
 #############################################################################

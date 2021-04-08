@@ -15,7 +15,7 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from . import V2Config
+    from . import V2Config # pragma: no cover
 
 
 class V2Admin(dict):

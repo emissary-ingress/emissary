@@ -5,9 +5,14 @@ kind: DaemonSet
 kind: Deployment
 {{- end }}
 metadata:
+  {{- if .Values.deploymentNameOverride }}
+  name: {{ .Values.deploymentNameOverride }}
+  {{- else }}
   name: {{ include "ambassador.fullname" . }}
+  {{- end }}
   namespace: {{ include "ambassador.namespace" . }}
   labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
@@ -16,6 +21,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
     {{- end }}
     product: aes
     {{- if .Values.deploymentLabels }}
@@ -31,8 +37,12 @@ spec:
 {{- end }}
   selector:
     matchLabels:
+      {{- if .Values.service.selector }}
+      {{ toYaml .Values.service.selector | nindent 6 }}
+      {{- else }}
       app.kubernetes.io/name: {{ include "ambassador.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- end }}
   {{- if .Values.daemonSet }}
   updateStrategy:
   {{- else }}
@@ -42,20 +52,27 @@ spec:
   template:
     metadata:
       labels:
+        {{- if .Values.service.selector }}
+        {{ toYaml .Values.service.selector | nindent 8 }}
+        {{- end }}
+        {{- if ne .Values.deploymentTool "getambassador.io" }}
         app.kubernetes.io/name: {{ include "ambassador.name" . }}
         app.kubernetes.io/part-of: {{ .Release.Name }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+        product: aes
+        {{- end }}
         {{- if .Values.deploymentTool }}
         app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
         {{- else }}
         app.kubernetes.io/managed-by: {{ .Release.Service }}
         {{- end }}
-        product: aes
       {{- if .Values.podLabels }}
         {{- toYaml .Values.podLabels | nindent 8 }}
       {{- end }}
       annotations:
+        {{- if ne .Values.deploymentTool "getambassador.io" }}
         checksum/config: {{ include (print $.Template.BasePath "/config.yaml") . | sha256sum }}
+        {{- end }}
       {{- if .Values.podAnnotations }}
         {{- toYaml .Values.podAnnotations | nindent 8 }}
       {{- end }}
@@ -142,8 +159,12 @@ spec:
           resources:
             {{- toYaml .Values.prometheusExporter.resources | nindent 12 }}
         {{- end }}
-        - name: {{ .Chart.Name }}
+        - name: {{ if .Values.containerNameOverride }}{{ .Values.containerNameOverride }}{{ else }}{{ .Chart.Name }}{{ end }}
+          {{- if .Values.image.fullImageOverride }}
+          image: '{{ .Values.image.fullImageOverride }}'
+          {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             {{- range .Values.service.ports }}

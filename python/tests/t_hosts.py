@@ -3,6 +3,7 @@ from kat.utils import namespace_manifest
 
 from abstract_tests import AmbassadorTest, ServiceType, HTTP
 from selfsigned import TLSCerts
+import os
 
 # STILL TO ADD:
 # Host referencing a Secret in another namespace?
@@ -409,7 +410,7 @@ spec:
     matchLabels:
       hostname: {self.path.k8s}-host-cleartext
   requestPolicy:
-    insecure: 
+    insecure:
       action: Route
 ---
 apiVersion: getambassador.io/v2
@@ -1282,6 +1283,8 @@ class HostCRDRootRedirectECMARegexMapping(AmbassadorTest):
     target: ServiceType
 
     def init(self):
+        if os.environ.get('KAT_USE_ENVOY_V3', '') != '':
+            self.skip_node = True
         self.target = HTTP()
 
     def config(self):
