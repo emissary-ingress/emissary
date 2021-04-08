@@ -504,6 +504,7 @@ agent:
   # make it start reporting
   cloudConnectToken: ""
   rpcAddress: https://app.getambassador.io/
+  createArgoRBAC: true
   image:
     # Leave blank to use image.repository and image.tag
     tag:

@@ -1,7 +1,8 @@
 {{- if and .Values.agent.enabled }}
 {{- $allowAgent := false -}}
 {{- /* if the tag isn't semver, this is probably testing or yaml generation, so allow agent */ -}}
-{{- if not (regexMatch "^0|[1-9]\\d*\\.0|[1-9]\\d*\\.0|[1-9]\\d*(?:-(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?(?:\\+[0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*)?$" .Values.image.tag) }}
+{{- /* Yes, this isn't the official semver regex, but if the user is not running an X.Y.Z tag, let's assume they are a power user */ -}}
+{{- if not (regexMatch "^\\d+\\.\\d+\\.\\d+$" .Values.image.tag) }}
 {{- $allowAgent = true }}
 {{- else if ne (semver "1.12.0" | (semver .Values.image.tag).Compare) -1 }}
 {{- /* agent was introduced in AES in 1.12.0 */ -}}
@@ -126,11 +127,82 @@ metadata:
     {{- end }}
     {{- end }}
     product: aes
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.getambassador.io/role-group: {{ include "ambassador.rbacName" . }}-agent
+rules: []
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: {{ include "ambassador.fullname" . }}-agent-pods
+  labels:
+    rbac.getambassador.io/role-group: {{ include "ambassador.rbacName" . }}-agent
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-agent
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    {{- end }}
+    product: aes
 rules:
 - apiGroups: [""]
   resources: [ "pods" ]
   verbs: [ "get", "list", "watch" ]
-
+{{- if .Values.agent.createArgoRBAC }}
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: {{ include "ambassador.fullname" . }}-agent-rollouts
+  labels:
+    rbac.getambassador.io/role-group: {{ include "ambassador.rbacName" . }}-agent
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-agent
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    {{- end }}
+    product: aes
+rules:
+- apiGroups: ["argoproj.io"]
+  resources: [ "rollouts" ]
+  verbs: [ "get", "list", "watch" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: {{ include "ambassador.fullname" . }}-agent-applications
+  labels:
+    rbac.getambassador.io/role-group: {{ include "ambassador.rbacName" . }}-agent
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-agent
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    {{- end }}
+    product: aes
+rules:
+- apiGroups: ["argoproj.io"]
+  resources: [ "applications" ]
+  verbs: [ "get", "list", "watch" ]
+{{- end }}
 {{ if ne .Values.agent.cloudConnectToken "" }}
 ---
 apiVersion: v1
