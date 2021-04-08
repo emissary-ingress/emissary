@@ -139,6 +139,17 @@ class V2Route(Cacheable):
         # `typed_per_filter_config` is used to pass typed configuration to Envoy filters
         typed_per_filter_config = {}
 
+        # add and remove headers before parsing the filters
+        response_headers_to_add = group.get('add_response_headers', None)
+        if response_headers_to_add:
+            self['response_headers_to_add'] = self.generate_headers_to_add(response_headers_to_add)
+
+        response_headers_to_remove = group.get('remove_response_headers', None)
+        if response_headers_to_remove:
+            if type(response_headers_to_remove) != list:
+                response_headers_to_remove = [ response_headers_to_remove ]
+            self['response_headers_to_remove'] = response_headers_to_remove
+
         if mapping.get('bypass_error_response_overrides', False):
             typed_per_filter_config['envoy.filters.http.response_map'] = {
                 '@type': 'type.googleapis.com/envoy.extensions.filters.http.response_map.v3.ResponseMapPerRoute',
@@ -196,21 +207,11 @@ class V2Route(Cacheable):
         if request_headers_to_add:
             self['request_headers_to_add'] = self.generate_headers_to_add(request_headers_to_add)
 
-        response_headers_to_add = group.get('add_response_headers', None)
-        if response_headers_to_add:
-            self['response_headers_to_add'] = self.generate_headers_to_add(response_headers_to_add)
-
         request_headers_to_remove = group.get('remove_request_headers', None)
         if request_headers_to_remove:
             if type(request_headers_to_remove) != list:
                 request_headers_to_remove = [ request_headers_to_remove ]
             self['request_headers_to_remove'] = request_headers_to_remove
-
-        response_headers_to_remove = group.get('remove_response_headers', None)
-        if response_headers_to_remove:
-            if type(response_headers_to_remove) != list:
-                response_headers_to_remove = [ response_headers_to_remove ]
-            self['response_headers_to_remove'] = response_headers_to_remove
 
         host_redirect = group.get('host_redirect', None)
 
