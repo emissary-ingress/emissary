@@ -1,0 +1,9 @@
+service:
+  type: NodePort
+
+redis:
+  enabled: false
+  # Annotations for Ambassador Pro's redis instance.
+
+deploymentStrategy:
+  type: Recreate
