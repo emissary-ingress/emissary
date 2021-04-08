@@ -1572,12 +1572,12 @@ class Runner:
                     retries=5, sleep_seconds=10):
                 raise RuntimeError('Could not apply manifest for KAT pod')
 
-            tries_left = 10
+            tries_left = 3
             time.sleep(1)
 
             while True:
-                if ShellCommand.run("check for KAT pod",
-                                    'kubectl', 'exec', '-n', 'default', 'kat', 'echo', 'hello'):
+                if ShellCommand.run("wait for KAT pod",
+                                    'kubectl', '-n', 'default', 'wait', '--timeout=30s', '--for=condition=Ready', 'pod', 'kat'):
                     print("KAT pod ready")
                     break
 
@@ -1605,12 +1605,12 @@ class Runner:
                     retries=5, sleep_seconds=10):
                 raise RuntimeError('Could not apply manifest for dummy pod')
 
-            tries_left = 10
+            tries_left = 3
             time.sleep(1)
 
             while True:
-                if ShellCommand.run("check for dummy pod",
-                                    'kubectl', 'exec', '-n', 'default', 'dummy-pod', 'echo', 'hello'):
+                if ShellCommand.run("wait for dummy pod",
+                                    'kubectl', '-n', 'default', 'wait', '--timeout=30s', '--for=condition=Ready', 'pod', 'dummy-pod'):
                     print("Dummy pod ready")
                     break
 
