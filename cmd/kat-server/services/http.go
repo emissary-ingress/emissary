@@ -147,7 +147,9 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 
 	if b, _ := ioutil.ReadAll(r.Body); b != nil {
 		body := string(b)
-		log.Printf("received body: %s", body)
+		if len(body) > 0 {
+			log.Printf("received body: %s", body)
+		}
 		w.Header()[http.CanonicalHeaderKey("Auth-Request-Body")] = []string{body}
 	}
 	defer r.Body.Close()
@@ -219,6 +221,6 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 		b = []byte(fmt.Sprintf("Error: %v", err))
 	}
 
-	log.Printf("%s (%s): writing response HTTP %v", backend, conntype, statusCode)
+	log.Printf("%s (%s): \"%s %s\" -> HTTP %v", r.Method, r.URL.Path, backend, conntype, statusCode)
 	w.Write(b)
 }

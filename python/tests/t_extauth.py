@@ -483,41 +483,39 @@ bypass_auth: true
 
     def queries(self):
         # [0]
-        yield Query(self.url("target/"), headers={"Requested-Status": "401",
+        yield Query(self.url("target/0"), headers={"Requested-Status": "401",
                                                   "Baz": "baz",
                                                   "Request-Header": "Baz"}, expected=401)
         # [1]
-        yield Query(self.url("target/"), headers={"requested-status": "302",
+        yield Query(self.url("target/1"), headers={"requested-status": "302",
                                                   "location": "foo",
                                                   "requested-header": "location"}, expected=302)
         # [2]
-        yield Query(self.url("target/"), headers={"Requested-Status": "401",
+        yield Query(self.url("target/2"), headers={"Requested-Status": "401",
                                                   "X-Foo": "foo",
                                                   "Requested-Header": "X-Foo"}, expected=401)
         # [3]
-        yield Query(self.url("target/"), headers={"Requested-Status": "401",
+        yield Query(self.url("target/3"), headers={"Requested-Status": "401",
                                                   "X-Bar": "bar",
                                                   "Requested-Header": "X-Bar"}, expected=401)
         # [4]
-        yield Query(self.url("target/"), headers={"Requested-Status": "200",
+        yield Query(self.url("target/4"), headers={"Requested-Status": "200",
                                                   "Authorization": "foo-11111",
                                                   "Requested-Header": "Authorization"}, expected=200)
 
         # [5]
-        yield Query(self.url("target/"), headers={"X-Forwarded-Proto": "https"}, expected=200)
+        yield Query(self.url("target/5"), headers={"X-Forwarded-Proto": "https"}, expected=200)
 
         # [6]
-        yield Query(self.url("target/unauthed/"), headers={"Requested-Status": "200"}, expected=200)
+        yield Query(self.url("target/unauthed/6"), headers={"Requested-Status": "200"}, expected=200)
 
         # [7]
-        yield Query(self.url("target/"), headers={"Requested-Status": "500"}, expected=503)
+        yield Query(self.url("target/7"), headers={"Requested-Status": "500"}, expected=503)
 
         # Create some traffic to make it more likely that both auth services get at least one
         # request
         for i in range(20):
-            yield Query(self.url("target/"), headers={"Requested-Status": "200",
-                                                  "Authorization": "foo-11111",
-                                                  "Requested-Header": "Authorization"})
+            yield Query(self.url("target/" + str(8 + i)), headers={"Requested-Status": "403"}, expected=403)
 
     def check_backend_name(self, result) -> bool:
         backend_name = result.backend.name
@@ -528,9 +526,10 @@ bypass_auth: true
         return (backend_name == self.auth1.path.k8s) or (backend_name == self.auth2.path.k8s)
 
     def check(self):
+
         # [0] Verifies all request headers sent to the authorization server.
         assert self.check_backend_name(self.results[0])
-        assert self.results[0].backend.request.url.path == "/extauth/target/"
+        assert self.results[0].backend.request.url.path == "/extauth/target/0"
         assert self.results[0].backend.request.headers["x-forwarded-proto"]== ["http"]
         assert self.results[0].backend.request.headers["content-length"]== ["0"]
         assert "x-forwarded-for" in self.results[0].backend.request.headers
@@ -609,14 +608,19 @@ bypass_auth: true
         except ValueError as e:
             assert False, "could not parse Extauth header '%s': %s" % (eahdr, e)
 
-        assert self.backend_counts.get(self.auth1.path.k8s, 0) > 0, "auth1 got no requests"
-        assert self.backend_counts.get(self.auth2.path.k8s, 0) > 0, "auth2 got no requests"
-
         # [7] Verifies that envoy returns customized status_on_error code.
         assert self.results[7].status == 503
 
         # TODO(gsagula): Write tests for all UCs which request header headers
         # are overridden, e.g. Authorization.
+
+        for i in range(20):
+            assert self.check_backend_name(self.results[8+i])
+
+        print ("auth1 service got %d requests" % self.backend_counts.get(self.auth1.path.k8s, -1))
+        print ("auth2 service got %d requests" % self.backend_counts.get(self.auth2.path.k8s, -1))
+        assert self.backend_counts.get(self.auth1.path.k8s, 0) > 0, "auth1 got no requests"
+        assert self.backend_counts.get(self.auth2.path.k8s, 0) > 0, "auth2 got no requests"
 
 
 class AuthenticationTest(AmbassadorTest):
