@@ -397,11 +397,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
                         'cluster_name': cluster.envoy_name
                     },
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
-                },
-                # currently, use alpha service name by default
-                'use_alpha': (protocol_version == 'v2alpha'),
-                # only a valid field in envoy v3 schema
-                # 'transport_api_version': protocol_version.replace("alpha", "").upper(),
+                }
             }
         }
 

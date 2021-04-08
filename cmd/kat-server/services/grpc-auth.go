@@ -20,7 +20,6 @@ import (
 	// first party (protobuf)
 	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
 	pb "github.com/datawire/ambassador/pkg/api/envoy/service/auth/v2"
-	pb_legacy "github.com/datawire/ambassador/pkg/api/envoy/service/auth/v2alpha"
 	envoy_type "github.com/datawire/ambassador/pkg/api/envoy/type"
 
 	// first party
@@ -44,13 +43,8 @@ func (g *GRPCAUTH) Start() <-chan bool {
 	log.Printf("GRPCAUTH: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
 	grpcHandler := grpc.NewServer()
-	if g.ProtocolVersion != "v2" {
-		log.Printf("registering v2alpha service")
-		pb_legacy.RegisterAuthorizationServer(grpcHandler, g)
-	} else {
-		log.Printf("registering v2 service")
-		pb.RegisterAuthorizationServer(grpcHandler, g)
-	}
+	log.Printf("registering v2 service")
+	pb.RegisterAuthorizationServer(grpcHandler, g)
 
 	cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
 	if err != nil {
