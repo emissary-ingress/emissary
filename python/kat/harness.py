@@ -656,7 +656,7 @@ class Test(Node):
     def handle_local_result(self) -> bool:
         test_name = self.format('{self.path.k8s}')
 
-        print(f"{test_name} {type(self)} HANDLE_LOCAL_RESULT")
+        # print(f"{test_name} {type(self)} HANDLE_LOCAL_RESULT")
 
         end_result = self.find_local_result()
 
