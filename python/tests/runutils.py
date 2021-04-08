@@ -12,12 +12,13 @@ def run_and_assert(command, communicate=True):
         return stdout.decode("utf-8") if stdout is not None else None
     return None
 
-def run_with_retry(command):
+def run_with_retry(command, retries=0):
     print(f"Running command {command}")
     returncode = -1
     decoded = ""
     tries = 0
-    while returncode != 0 and tries < 3:
+    max_tries = retries + 1
+    while returncode != 0 and tries < max_tries:
         output = subprocess.Popen(command, stdout=subprocess.PIPE)
         if tries > 0:
             print('SLEEPING 5 seconds, TRIES=%d' % tries)

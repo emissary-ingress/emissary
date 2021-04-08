@@ -1,8 +1,8 @@
 import tempfile
 
-from runutils import run_and_assert
+from runutils import run_with_retry
 
-def meta_action_kube_artifacts(namespace, artifacts, action):
+def meta_action_kube_artifacts(namespace, artifacts, action, retries=0):
     temp_file = tempfile.NamedTemporaryFile()
     temp_file.write(artifacts.encode())
     temp_file.flush()
@@ -14,12 +14,12 @@ def meta_action_kube_artifacts(namespace, artifacts, action):
     if namespace is not None:
         command.extend(['-n', namespace])
 
-    run_and_assert(command)
+    run_with_retry(command, retries=retries)
     temp_file.close()
 
 
 def apply_kube_artifacts(namespace, artifacts):
-    meta_action_kube_artifacts(namespace=namespace, artifacts=artifacts, action='apply')
+    meta_action_kube_artifacts(namespace=namespace, artifacts=artifacts, action='apply', retries=1)
 
 
 def delete_kube_artifacts(namespace, artifacts):
