@@ -7,7 +7,7 @@ from .irhttpmapping import IRHTTPMapping
 from .irtcpmapping import IRTCPMapping
 
 if TYPE_CHECKING:
-    from .ir import IR
+    from .ir import IR # pragma: no cover
 
 
 def unique_mapping_name(aconf: Config, name: str) -> str:

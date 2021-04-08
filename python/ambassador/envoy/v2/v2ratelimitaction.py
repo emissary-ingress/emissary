@@ -17,7 +17,7 @@ from typing import Any, ClassVar, Dict, List, TYPE_CHECKING
 # from ...utils import RichStatus
 
 if TYPE_CHECKING:
-    from . import V2Config
+    from . import V2Config # pragma: no cover
 
 
 class V2RateLimitAction(dict):

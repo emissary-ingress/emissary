@@ -114,7 +114,8 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		"MIT":         {MIT},
 		"MIT-LICENSE": {MIT},
 
-		"MPL-2.0": {MPL2},
+		"Mozilla Public License 2.0 (MPL 2.0)": {MPL2},
+		"MPL-2.0":                              {MPL2},
 
 		"PSF License":    {PSF},
 		"PSF":            {PSF},

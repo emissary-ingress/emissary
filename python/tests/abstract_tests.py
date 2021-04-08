@@ -97,6 +97,8 @@ class AmbassadorTest(Test):
     is_ambassador = True
     allow_edge_stack_redirect = False
     edge_stack_cleartext_host = True
+    envoy_api_version = None
+
 
     env = []
 
@@ -153,6 +155,17 @@ class AmbassadorTest(Test):
             self.manifest_envs += """
     - name: AMBASSADOR_NO_TLS_REDIRECT
       value: "yes"
+"""
+
+        if self.envoy_api_version is not None:
+            self.manifest_envs += f"""
+    - name: AMBASSADOR_ENVOY_API_VERSION
+      value: "{self.envoy_api_version}"
+"""
+        elif os.environ.get('KAT_USE_ENVOY_V3', '') != '':
+            self.manifest_envs += """
+    - name: AMBASSADOR_ENVOY_API_VERSION
+      value: "V3"
 """
 
         eports = ""
@@ -445,6 +458,7 @@ class AGRPC(ServiceType):
 
     def __init__(self, protocol_version: str="v2", *args, **kwargs) -> None:
         self.protocol_version = protocol_version
+
         super().__init__(*args, service_manifests=GRPC_AUTH_BACKEND, **kwargs)
 
     def requirements(self):

@@ -177,7 +177,7 @@ def _test_errorresponse_onemapper_onstatuscode_textformat_datasource(
     )
 
 
-def sanitize_json(json_format):
+def _sanitize_json(json_format):
     sanitized = {}
     for k, v in json_format.items():
         if isinstance(v, bool):
@@ -194,7 +194,7 @@ def _test_errorresponse_onemapper_onstatuscode_jsonformat(status_code, json_form
         # We expect the output json to be sanitized and contain the string representation
         # of every value. We provide a basic implementation of string sanitizatino in this
         # test, `sanitize_json`.
-        _json_format_obj(sanitize_json(json_format)),
+        _json_format_obj(_sanitize_json(json_format)),
     )
 
 
@@ -223,6 +223,7 @@ def _test_errorresponse_invalid_configs(yaml):
     _test_errorresponse(yaml, list(), expect_fail=True)
 
 
+@pytest.mark.compilertest
 def test_errorresponse_twomappers_onstatuscode_textformat():
     _test_errorresponse_twomappers_onstatuscode_textformat(
         '400', 'bad request my friend', '504', 'waited too long for an upstream resonse'
@@ -232,6 +233,7 @@ def test_errorresponse_twomappers_onstatuscode_textformat():
     )
 
 
+@pytest.mark.compilertest
 def test_errorresponse_onemapper_onstatuscode_textformat():
     _test_errorresponse_onemapper_onstatuscode_textformat(429, '429 the int')
     _test_errorresponse_onemapper_onstatuscode_textformat('501', 'five oh one')
@@ -241,6 +243,7 @@ def test_errorresponse_onemapper_onstatuscode_textformat():
     )
 
 
+@pytest.mark.compilertest
 def test_errorresponse_onemapper_onstatuscode_textformat_contenttype():
     _test_errorresponse_onemapper_onstatuscode_textformat_contenttype('503', 'oops', 'text/what')
     _test_errorresponse_onemapper_onstatuscode_textformat_contenttype(
@@ -251,6 +254,7 @@ def test_errorresponse_onemapper_onstatuscode_textformat_contenttype():
     )
 
 
+@pytest.mark.compilertest
 def test_errorresponse_onemapper_onstatuscode_jsonformat():
     _test_errorresponse_onemapper_onstatuscode_jsonformat('501',
         {
@@ -281,6 +285,7 @@ def test_errorresponse_onemapper_onstatuscode_jsonformat():
     )
 
 
+@pytest.mark.compilertest
 def test_errorresponse_onemapper_onstatuscode_textformatsource():
     _test_errorresponse_onemapper_onstatuscode_textformat_datasource(
             '400', 'badness', '/tmp/badness', 'text/plain')
@@ -292,6 +297,7 @@ def test_errorresponse_onemapper_onstatuscode_textformatsource():
             '503', 'something went wrong', '/tmp/replies/503.html', 'text/html; charset=UTF-8' )
 
 
+@pytest.mark.compilertest
 def test_errorresponse_invalid_configs():
     # status code must be an int
     _test_errorresponse_invalid_configs(

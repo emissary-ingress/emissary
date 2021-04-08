@@ -22,9 +22,9 @@ from ..cache import Cache
 from ..utils import dump_json
 
 if TYPE_CHECKING:
-    from ..ir import IR, IRResource
-    from ..ir.irhttpmappinggroup import IRHTTPMappingGroup
-    from ...ir.irserviceresolver import ClustermapEntry
+    from ..ir import IR, IRResource # pragma: no cover
+    from ..ir.irhttpmappinggroup import IRHTTPMappingGroup # pragma: no cover
+    from ...ir.irserviceresolver import ClustermapEntry # pragma: no cover
 
 def sanitize_pre_json(input):
     # Removes all potential null values
@@ -82,9 +82,13 @@ class EnvoyConfig:
 
     @classmethod
     def generate(cls, ir: 'IR', version: str="V2", cache: Optional[Cache]=None) -> 'EnvoyConfig':
-        assert version == "V2"
+        assert version in ["V2", "V3"]
 
-        from . import V2Config
+        if version == "V3":
+            from . import V3Config
+            return V3Config(ir, cache=cache)
+
+        from . import V2Config, V3Config
         return V2Config(ir, cache=cache)
 
 

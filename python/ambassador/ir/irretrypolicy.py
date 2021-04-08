@@ -6,7 +6,7 @@ from ..utils import RichStatus
 from .irresource import IRResource
 
 if TYPE_CHECKING:
-    from .ir import IR
+    from .ir import IR # pragma: no cover
 
 class IRRetryPolicy (IRResource):
     def __init__(self, ir: 'IR', aconf: Config,

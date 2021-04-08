@@ -64,17 +64,19 @@ import (
 
 	// envoy control plane
 	ctypes "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v2"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/server/v2"
+	v2cache "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v2"
+	v3cache "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v3"
+	v2server "github.com/datawire/ambassador/pkg/envoy-control-plane/server/v2"
+	v3server "github.com/datawire/ambassador/pkg/envoy-control-plane/server/v3"
 	"github.com/datawire/ambassador/pkg/memory"
 
 	// envoy protobuf v2 -- Be sure to import the package of any types that the Python emits a
 	// "@type" of in the generated config, even if that package is otherwise not used by ambex.
 	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/api/v2/auth"
-	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
+	v2core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/accesslog/v2"
-	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
+	v2bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/buffer/v2"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/ext_authz/v2"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/gzip/v2"
@@ -84,7 +86,40 @@ import (
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/router/v2"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/network/tcp_proxy/v2"
-	discovery "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v2"
+	v2discovery "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v2"
+
+	// Envoy API v3
+	//
+	// XXX TODO Is this actually true and necessary?
+	// yes it is true and necessary. need to import all types so they can be decoded by `decode`
+	// Be sure to import the package of any types that the Python
+	// emits a "@type" of in the generated config, even if that package is otherwise
+	// not used by ambex.
+	_ "github.com/datawire/ambassador/pkg/api/envoy/config/accesslog/v3"
+	v3bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v3"
+	v3clusterconfig "github.com/datawire/ambassador/pkg/api/envoy/config/cluster/v3"
+	v3core "github.com/datawire/ambassador/pkg/api/envoy/config/core/v3"
+	v3endpointconfig "github.com/datawire/ambassador/pkg/api/envoy/config/endpoint/v3"
+	v3listenerconfig "github.com/datawire/ambassador/pkg/api/envoy/config/listener/v3"
+	v3routeconfig "github.com/datawire/ambassador/pkg/api/envoy/config/route/v3"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/access_loggers/file/v3"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/access_loggers/grpc/v3"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/buffer/v3"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/ext_authz/v3"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/grpc_stats/v3"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/gzip/v3"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/lua/v3"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/ratelimit/v3"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/rbac/v3"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/router/v3"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/network/tcp_proxy/v3"
+	v3cluster "github.com/datawire/ambassador/pkg/api/envoy/service/cluster/v3"
+	v3discovery "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v3"
+	v3endpoint "github.com/datawire/ambassador/pkg/api/envoy/service/endpoint/v3"
+	v3listener "github.com/datawire/ambassador/pkg/api/envoy/service/listener/v3"
+	v3route "github.com/datawire/ambassador/pkg/api/envoy/service/route/v3"
+	v3runtime "github.com/datawire/ambassador/pkg/api/envoy/service/runtime/v3"
 
 	// envoy protobuf v3 -- likewise
 	_ "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/http/response_map/v3"
@@ -134,11 +169,23 @@ func parseArgs(rawArgs ...string) (*Args, error) {
 }
 
 // Hasher returns node ID as an ID
-type Hasher struct {
+type HasherV2 struct {
 }
 
 // ID function
-func (h Hasher) ID(node *core.Node) string {
+func (h HasherV2) ID(node *v2core.Node) string {
+	if node == nil {
+		return "unknown"
+	}
+	return node.Id
+}
+
+// Hasher returns node ID as an ID
+type HasherV3 struct {
+}
+
+// ID function
+func (h HasherV3) ID(node *v3core.Node) string {
 	if node == nil {
 		return "unknown"
 	}
@@ -148,17 +195,25 @@ func (h Hasher) ID(node *core.Node) string {
 // end Hasher stuff
 
 // This feels kinda dumb.
-type logger struct {
+type loggerv2 struct {
 	*logrus.Logger
 }
 
-var log = &logger{
+var log = &loggerv2{
+	Logger: logrus.StandardLogger(),
+}
+
+type loggerv3 struct {
+	*logrus.Logger
+}
+
+var logv3 = &loggerv3{
 	Logger: logrus.StandardLogger(),
 }
 
 // run stuff
 // RunManagementServer starts an xDS server at the given port.
-func runManagementServer(ctx context.Context, server server.Server, adsNetwork, adsAddress string) {
+func runManagementServer(ctx context.Context, server v2server.Server, serverv3 v3server.Server, adsNetwork, adsAddress string) {
 	grpcServer := grpc.NewServer()
 
 	lis, err := net.Listen(adsNetwork, adsAddress)
@@ -167,11 +222,17 @@ func runManagementServer(ctx context.Context, server server.Server, adsNetwork, 
 	}
 
 	// register services
-	discovery.RegisterAggregatedDiscoveryServiceServer(grpcServer, server)
+	v2discovery.RegisterAggregatedDiscoveryServiceServer(grpcServer, server)
 	v2.RegisterEndpointDiscoveryServiceServer(grpcServer, server)
 	v2.RegisterClusterDiscoveryServiceServer(grpcServer, server)
 	v2.RegisterRouteDiscoveryServiceServer(grpcServer, server)
 	v2.RegisterListenerDiscoveryServiceServer(grpcServer, server)
+
+	v3discovery.RegisterAggregatedDiscoveryServiceServer(grpcServer, serverv3)
+	v3endpoint.RegisterEndpointDiscoveryServiceServer(grpcServer, serverv3)
+	v3cluster.RegisterClusterDiscoveryServiceServer(grpcServer, serverv3)
+	v3route.RegisterRouteDiscoveryServiceServer(grpcServer, serverv3)
+	v3listener.RegisterListenerDiscoveryServiceServer(grpcServer, serverv3)
 
 	log.WithFields(logrus.Fields{"addr": adsNetwork + ":" + adsAddress}).Info("Listening")
 	go func() {
@@ -259,11 +320,16 @@ func Clone(src proto.Message) proto.Message {
 	return dst
 }
 
-func update(ctx context.Context, config cache.SnapshotCache, generation *int, dirs []string, edsEndpoints map[string]*v2.ClusterLoadAssignment, updates chan<- Update) {
+func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.SnapshotCache, generation *int, dirs []string, edsEndpoints map[string]*v2.ClusterLoadAssignment, edsEndpointsV3 map[string]*v3endpointconfig.ClusterLoadAssignment, updates chan<- Update) {
 	clusters := []ctypes.Resource{}  // v2.Cluster
 	routes := []ctypes.Resource{}    // v2.RouteConfiguration
 	listeners := []ctypes.Resource{} // v2.Listener
 	runtimes := []ctypes.Resource{}  // discovery.Runtime
+
+	clustersv3 := []ctypes.Resource{}  // v3.Cluster
+	routesv3 := []ctypes.Resource{}    // v3.RouteConfiguration
+	listenersv3 := []ctypes.Resource{} // v3.Listener
+	runtimesv3 := []ctypes.Resource{}  // v3.Runtime
 
 	var filenames []string
 
@@ -295,10 +361,10 @@ func update(ctx context.Context, config cache.SnapshotCache, generation *int, di
 			dst = &routes
 		case *v2.Listener:
 			dst = &listeners
-		case *discovery.Runtime:
+		case *v2discovery.Runtime:
 			dst = &runtimes
-		case *bootstrap.Bootstrap:
-			bs := m.(*bootstrap.Bootstrap)
+		case *v2bootstrap.Bootstrap:
+			bs := m.(*v2bootstrap.Bootstrap)
 			sr := bs.StaticResources
 			for _, lst := range sr.Listeners {
 				// When the RouteConfiguration is embedded in the listener, it will cause envoy to
@@ -322,6 +388,41 @@ func update(ctx context.Context, config cache.SnapshotCache, generation *int, di
 			}
 			for _, cls := range sr.Clusters {
 				clusters = append(clusters, Clone(cls).(ctypes.Resource))
+			}
+			continue
+		case *v3clusterconfig.Cluster:
+			dst = &clustersv3
+		case *v3routeconfig.RouteConfiguration:
+			dst = &routesv3
+		case *v3listenerconfig.Listener:
+			dst = &listenersv3
+		case *v3runtime.Runtime:
+			dst = &runtimesv3
+		case *v3bootstrap.Bootstrap:
+			bs := m.(*v3bootstrap.Bootstrap)
+			sr := bs.StaticResources
+			for _, lst := range sr.Listeners {
+				// When the RouteConfiguration is embedded in the listener, it will cause envoy to
+				// go through a complete drain cycle whenever there is a routing change and that
+				// will potentially disrupt in-flight requests. By converting all listeners to use
+				// RDS rather than inlining their routing configuration, we significantly reduce the
+				// set of circumstances where the listener definition itself changes, and this in
+				// turn reduces the set of circumstances where envoy has to go through that drain
+				// process and disrupt in-flight requests.
+				rdsListener, routeConfigs, err := V3ListenerToRdsListener(lst)
+				if err != nil {
+					log.Errorf("Error converting listener to RDS: %+v", err)
+					listenersv3 = append(listenersv3, Clone(lst).(ctypes.Resource))
+					continue
+				}
+				listenersv3 = append(listenersv3, rdsListener)
+				for _, rc := range routeConfigs {
+					// These routes will get included in the configuration snapshot created below.
+					routesv3 = append(routesv3, rc)
+				}
+			}
+			for _, cls := range sr.Clusters {
+				clustersv3 = append(clustersv3, Clone(cls).(ctypes.Resource))
 			}
 			continue
 		default:
@@ -355,11 +456,12 @@ func update(ctx context.Context, config cache.SnapshotCache, generation *int, di
 	// and out of existence. In that circumstance we want to faithfully relay to envoy that the
 	// cluster exists but currently has no endpoints.
 	endpoints := JoinEdsClusters(ctx, clusters, edsEndpoints)
+	endpointsv3 := JoinEdsClustersV3(ctx, clustersv3, edsEndpointsV3)
 
 	// Create a new configuration snapshot from everything we have just loaded from disk.
 	version := fmt.Sprintf("v%d", *generation)
 	*generation++
-	snapshot := cache.NewSnapshot(
+	snapshot := v2cache.NewSnapshot(
 		version,
 		endpoints,
 		clusters,
@@ -369,7 +471,21 @@ func update(ctx context.Context, config cache.SnapshotCache, generation *int, di
 
 	if err := snapshot.Consistent(); err != nil {
 		bs, _ := json.Marshal(snapshot)
-		log.Errorf("Snapshot inconsistency: %v: %s", err, bs)
+		log.Errorf("V2 Snapshot inconsistency: %v: %s", err, bs)
+		return
+	}
+
+	snapshotv3 := v3cache.NewSnapshot(
+		version,
+		endpointsv3,
+		clustersv3,
+		routesv3,
+		listenersv3,
+		runtimesv3)
+
+	if err := snapshotv3.Consistent(); err != nil {
+		bs, _ := json.Marshal(snapshotv3)
+		log.Errorf("V3 Snapshot inconsistency: %v: %s", err, bs)
 		return
 	}
 
@@ -384,10 +500,15 @@ func update(ctx context.Context, config cache.SnapshotCache, generation *int, di
 	case updates <- Update{version, func() error {
 		err := config.SetSnapshot("test-id", snapshot)
 		if err != nil {
-			return fmt.Errorf("Snapshot error %q for %+v", err, snapshot)
-		} else {
-			return nil
+			return fmt.Errorf("V2 Snapshot error %q for %+v", err, snapshot)
 		}
+
+		err = configv3.SetSnapshot("test-id", snapshotv3)
+		if err != nil {
+			return fmt.Errorf("V3 Snapshot error %q for %+v", err, snapshotv3)
+		}
+
+		return nil
 	}}:
 	case <-ctx.Done():
 	}
@@ -403,36 +524,67 @@ func warn(err error) bool {
 }
 
 // OnStreamOpen is called once an xDS stream is open with a stream ID and the type URL (or "" for ADS).
-func (l logger) OnStreamOpen(_ context.Context, sid int64, stype string) error {
-	l.Infof("Stream open[%v]: %v", sid, stype)
+func (l loggerv2) OnStreamOpen(_ context.Context, sid int64, stype string) error {
+	l.Infof("V2 Stream open[%v]: %v", sid, stype)
+	return nil
+}
+
+func (l loggerv3) OnStreamOpen(_ context.Context, sid int64, stype string) error {
+	l.Infof("V3 Stream open[%v]: %v", sid, stype)
 	return nil
 }
 
 // OnStreamClosed is called immediately prior to closing an xDS stream with a stream ID.
-func (l logger) OnStreamClosed(sid int64) {
-	l.Infof("Stream closed[%v]", sid)
+func (l loggerv2) OnStreamClosed(sid int64) {
+	l.Infof("V2 Stream closed[%v]", sid)
+}
+
+func (l loggerv3) OnStreamClosed(sid int64) {
+	l.Infof("V3 Stream closed[%v]", sid)
 }
 
 // OnStreamRequest is called once a request is received on a stream.
-func (l logger) OnStreamRequest(sid int64, req *v2.DiscoveryRequest) error {
-	l.Infof("Stream request[%v]: %v", sid, req)
+func (l loggerv2) OnStreamRequest(sid int64, req *v2.DiscoveryRequest) error {
+	l.Infof("V2 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
+	l.Debugf("V2 Stream request[%v] dump: %v", sid, req)
+	return nil
+}
+
+func (l loggerv3) OnStreamRequest(sid int64, req *v3discovery.DiscoveryRequest) error {
+	l.Infof("V3 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
+	l.Debugf("V3 Stream request[%v] dump: %v", sid, req)
 	return nil
 }
 
 // OnStreamResponse is called immediately prior to sending a response on a stream.
-func (l logger) OnStreamResponse(sid int64, req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
-	l.Infof("Stream response[%v]: %v -> %v", sid, req, res)
+func (l loggerv2) OnStreamResponse(sid int64, req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
+	l.Infof("V2 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
+	l.Debugf("V2 Stream dump response[%v]: %v -> %v", sid, req, res)
+}
+
+func (l loggerv3) OnStreamResponse(sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
+	l.Infof("V3 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
+	l.Debugf("V3 Stream dump response[%v]: %v -> %v", sid, req, res)
 }
 
 // OnFetchRequest is called for each Fetch request
-func (l logger) OnFetchRequest(_ context.Context, r *v2.DiscoveryRequest) error {
-	l.Infof("Fetch request: %v", r)
+func (l loggerv2) OnFetchRequest(_ context.Context, r *v2.DiscoveryRequest) error {
+	l.Infof("V2 Fetch request: %v", r)
+	return nil
+}
+
+func (l loggerv3) OnFetchRequest(_ context.Context, r *v3discovery.DiscoveryRequest) error {
+	l.Infof("V3 Fetch request: %v", r)
 	return nil
 }
 
 // OnFetchResponse is called immediately prior to sending a response.
-func (l logger) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
-	l.Infof("Fetch response: %v -> %v", req, res)
+func (l loggerv2) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
+	l.Infof("V2 Fetch response: %v -> %v", req, res)
+}
+
+func (l loggerv3) OnFetchResponse(req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
+	l.Infof("V3 Fetch response: %v -> %v", req, res)
 }
 
 func Main(ctx context.Context, Version string, rawArgs ...string) error {
@@ -482,10 +634,12 @@ func Main2(ctx context.Context, Version string, getUsage MemoryGetter, endpoints
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	config := cache.NewSnapshotCache(true, Hasher{}, log)
-	srv := server.NewServer(ctx, config, log)
+	config := v2cache.NewSnapshotCache(true, HasherV2{}, log)
+	configv3 := v3cache.NewSnapshotCache(true, HasherV3{}, logv3)
+	server := v2server.NewServer(ctx, config, log)
+	serverv3 := v3server.NewServer(ctx, configv3, logv3)
 
-	runManagementServer(ctx, srv, args.adsNetwork, args.adsAddress)
+	runManagementServer(ctx, server, serverv3, args.adsNetwork, args.adsAddress)
 
 	pid := os.Getpid()
 	file := "ambex.pid"
@@ -507,7 +661,8 @@ func Main2(ctx context.Context, Version string, getUsage MemoryGetter, endpoints
 
 	generation := 0
 	edsEndpoints := map[string]*v2.ClusterLoadAssignment{}
-	update(ctx, config, &generation, args.dirs, edsEndpoints, updates)
+	edsEndpointsV3 := map[string]*v3endpointconfig.ClusterLoadAssignment{}
+	update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, updates)
 
 OUTER:
 	for {
@@ -516,15 +671,16 @@ OUTER:
 		case sig := <-ch:
 			switch sig {
 			case syscall.SIGHUP:
-				update(ctx, config, &generation, args.dirs, edsEndpoints, updates)
+				update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, updates)
 			case os.Interrupt, syscall.SIGTERM:
 				break OUTER
 			}
 		case eps := <-endpointsCh:
 			edsEndpoints = eps.ToMap_v2()
-			update(ctx, config, &generation, args.dirs, edsEndpoints, updates)
+			edsEndpointsV3 = eps.ToMap_v3()
+			update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, updates)
 		case <-watcher.Events:
-			update(ctx, config, &generation, args.dirs, edsEndpoints, updates)
+			update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, updates)
 		case err := <-watcher.Errors:
 			log.WithError(err).Warn("Watcher error")
 		case <-ctx.Done():

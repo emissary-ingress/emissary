@@ -16,9 +16,9 @@ from .irresource import IRResource
 from .irtlscontext import IRTLSContext
 
 if TYPE_CHECKING:
-    from .ir import IR
-    from .ircluster import IRCluster
-    from .irbasemapping import IRBaseMapping
+    from .ir import IR # pragma: no cover
+    from .ircluster import IRCluster # pragma: no cover
+    from .irbasemapping import IRBaseMapping # pragma: no cover
 
 #############################################################################
 ## irserviceresolver.py -- resolve endpoints for services

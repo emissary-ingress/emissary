@@ -39,7 +39,7 @@ from .v2route import V2Route
 from .v2tls import V2TLSContext
 
 if TYPE_CHECKING:
-    from . import V2Config
+    from . import V2Config # pragma: no cover
 
 DictifiedV2Route = Dict[str, Any]
 
