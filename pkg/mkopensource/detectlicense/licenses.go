@@ -259,6 +259,8 @@ func IdentifyLicenses(body []byte) map[License]struct{} {
 		licenses[ISC] = struct{}{}
 	case reMatch(reMIT, body):
 		licenses[MIT] = struct{}{}
+	case reMatch(reMIT2, body):
+		licenses[MIT] = struct{}{}
 	case reMatch(reMPL, body):
 		licenses[MPL2] = struct{}{}
 	case reMatch(reCcBySa40, body):

@@ -162,9 +162,9 @@ type MappingLabelsArray []MappingLabelSpecifier
 //
 // +kubebuilder:validation:Type=""
 type MappingLabelSpecifier struct {
-	String  *string                  // source-cluster, destination-cluster, remote-address, or shorthand generic
-	Header  MappingLabelSpecHeader   // header (NB: no need to make this a pointer because MappingLabelSpecHeader is already nil-able)
-	Generic *MappingLabelSpecGeneric // longhand generic
+	String  *string                  `json:"-"` // source-cluster, destination-cluster, remote-address, or shorthand generic
+	Header  MappingLabelSpecHeader   `json:"-"` // header (NB: no need to make this a pointer because MappingLabelSpecHeader is already nil-able)
+	Generic *MappingLabelSpecGeneric `json:"-"` // longhand generic
 }
 
 // A MappingLabelSpecHeaderStruct is the value struct for MappingLabelSpecifier.Header:
@@ -279,9 +279,9 @@ func (o *MappingLabelSpecifier) UnmarshalJSON(data []byte) error {
 
 // +kubebuilder:validation:Type="d6e-union:string,boolean,object"
 type AddedHeader struct {
-	String *string
-	Bool   *bool
-	Object *UntypedDict
+	String *string      `json:"-"`
+	Bool   *bool        `json:"-"`
+	Object *UntypedDict `json:"-"`
 }
 
 // MarshalJSON is important both so that we generate the proper
