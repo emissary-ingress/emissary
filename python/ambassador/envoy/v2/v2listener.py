@@ -40,6 +40,7 @@ class V2Listener(dict):
         self.config = config
         self.bind_address = irlistener.bind_address
         self.port = irlistener.port
+        self.bind_to = f"{self.bind_address}-{self.port}"
 
         bindstr = f"-{self.bind_address}" if (self.bind_address != "0.0.0.0") else ""
         self.name = f"ambassador-listener{bindstr}-{self.port}"
@@ -92,8 +93,72 @@ class V2Listener(dict):
                     'name': 'envoy.filters.listener.tls_inspector'
                 })
 
-            # TCP (and, later, UDP) don't require any specific listener filters.
-            # They're handled exclusively in the filter chains.
+            if proto == "TCP":
+                # TCP doesn't require any specific listener filters, but it
+                # does require stuff in the filter chains. We can go ahead and
+                # tackle that here.
+                for irgroup in self.config.ir.ordered_groups():
+                    if not isinstance(irgroup, IRTCPMappingGroup):
+                        continue
+                    
+                    if irgroup.bind_to() != self.bind_to: 
+                        # self.config.ir.logger.debug("V2Listener %s: skip TCPMappingGroup on %s", self.bind_to, irgroup.bind_to())
+                        continue
+                    
+                    self.add_tcp_group(irgroup)
+
+    def add_tcp_group(self, irgroup: IRTCPMappingGroup) -> None:
+        # self.config.ir.logger.debug("V2Listener %s: take TCPMappingGroup on %s", self.bind_to, irgroup.bind_to())
+
+        # First up, which clusters do we need to talk to?
+        clusters = [{
+            'name': mapping.cluster.envoy_name,
+            'weight': mapping.weight
+        } for mapping in irgroup.mappings]
+
+        # From that, we can sort out a basic tcp_proxy filter config.
+        tcp_filter = {
+            'name': 'envoy.filters.network.tcp_proxy',
+            'typed_config': {
+                '@type': 'type.googleapis.com/envoy.config.filter.network.tcp_proxy.v2.TcpProxy',
+                'stat_prefix': 'ingress_tcp_%d' % irgroup.port,
+                'weighted_clusters': {
+                    'clusters': clusters
+                }
+            }
+        }
+
+        # We're going to build a filter chain entry, but we're going to cheat 
+        # massively by cramming the metadata labels into the name. *cough*
+        # 
+        # XXX
+        # Yes, this is a horrible hack.
+        horrible_hack_name = dump_json(irgroup.metadata_labels, pretty=False)
+
+        # OK. Basic filter chain entry next.
+        chain_entry: Dict[str, Any] = {
+            'name': horrible_hack_name,
+            'filters': [
+                tcp_filter
+            ]
+        }
+
+        # Then, if SNI is a thing, update the chain entry with the appropriate chain match.
+        if irgroup.get('tls_context', None):
+            # Apply the context to the chain...
+            chain_entry['tls_context'] = V2TLSContext(irgroup.tls_context)
+
+            # Do we have a host match?
+            host_wanted = irgroup.get('host') or '*'
+
+            if host_wanted != '*':
+                # Yup. Hook it in.
+                chain_entry['filter_chain_match'] = {
+                    'server_names': [ host_wanted ]
+                }
+
+        # OK, once that's done, stick this into our filter chains.
+        self._filter_chains.append(chain_entry)
 
     # access_log constructs the access_log configuration for this V2Listener
     def access_log(self) -> List[dict]:
