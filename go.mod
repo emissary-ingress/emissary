@@ -67,7 +67,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/go-openapi/validate v0.19.5
 	github.com/golang/protobuf v1.4.3
-	github.com/google/go-cmp v0.5.0
+	github.com/google/go-cmp v0.5.2
 	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf
 	github.com/google/uuid v1.1.2
 	github.com/gookit/color v1.2.3
@@ -83,36 +83,38 @@ require (
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/telepresenceio/telepresence/v2 v2.1.1-rc.0
-	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
+	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
-	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68
-	google.golang.org/genproto v0.0.0-20200806141610-86f49bd18e98
+	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c
+	google.golang.org/genproto v0.0.0-20201110150050-8816d57aaa9a
 	google.golang.org/grpc v1.34.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.3.0
 	gotest.tools v2.2.0+incompatible
-	helm.sh/helm/v3 v3.2.4
-	k8s.io/api v0.18.8
-	k8s.io/apiextensions-apiserver v0.18.8
-	k8s.io/apimachinery v0.18.8
-	k8s.io/cli-runtime v0.18.8
-	k8s.io/client-go v0.18.8
+	helm.sh/helm/v3 v3.5.3
+	k8s.io/api v0.20.2
+	k8s.io/apiextensions-apiserver v0.20.2
+	k8s.io/apimachinery v0.20.2
+	k8s.io/cli-runtime v0.20.2
+	k8s.io/client-go v0.20.2
 	k8s.io/helm v2.16.9+incompatible
 	k8s.io/klog v1.0.0
-	k8s.io/kubectl v0.18.8
-	k8s.io/metrics v0.18.8
-	sigs.k8s.io/controller-runtime v0.6.1
-	sigs.k8s.io/controller-tools v0.3.1-0.20200517180335-820a4a27ea84
+	k8s.io/kube-openapi v0.0.0-20201113171705-d219536bb9fd
+	k8s.io/kubectl v0.20.2
+	k8s.io/metrics v0.20.2
+	sigs.k8s.io/controller-runtime v0.8.0
+	sigs.k8s.io/controller-tools v0.4.1
+	sigs.k8s.io/gateway-api v0.2.0
 	sigs.k8s.io/yaml v1.2.0
 )
 
 // We need to inherit this from helm.sh/helm/v3
 replace (
-	github.com/docker/docker v0.0.0-00010101000000-000000000000 => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
-	github.com/docker/docker v1.4.2-0.20181221150755-2cb26cfe9cbf => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309
+	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d
+	github.com/docker/docker => github.com/moby/moby v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
 )
 
 // The issue doesn't trigger with the current versions of our
