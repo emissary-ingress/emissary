@@ -56,6 +56,11 @@ type DevPortalDocsSpec struct {
 	URL string `json:"url,omitempty"`
 }
 
+// DevPortalSearchSpec allows configuration over search functionality for the DevPortal
+type DevPortalSearchSpec struct {
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
 // DevPortalSpec defines the desired state of DevPortal
 type DevPortalSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
@@ -75,6 +80,8 @@ type DevPortalSpec struct {
 	// Describes how to display "services" in the DevPortal. Default namespace.name
 	// +kubebuilder:validation:Enum={"namespace.name", "name.prefix"}
 	NamingScheme string `json:"naming_scheme,omitempty"`
+
+	Search *DevPortalSearchSpec `json:"search,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

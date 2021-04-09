@@ -90,6 +90,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: DevPortal: Added `naming_scheme` enum to the DevPortal CRD. This enum controls the way services are displayed in the DevPortal. Supported values are `namespace.name` (current behavior) and `name.prefix`, which will use the Mapping name and Mapping prefix to display the services.
 - Feature: DevPortal: `DEVPORTAL_DOCS_BASE_PATH` environment variable makes the base path of service API documentation configurable.
 - Feature: DevPortal: DevPortal will now reload content on changes to Mapping and DevPortal resources.
+- Feature: DevPortal: DevPortal now supports a search endpoint at `/docs/api/search`
 
 ## [1.12.2] March 29, 2021
 [1.12.2]: https://github.com/datawire/ambassador/compare/v1.12.1...v1.12.2

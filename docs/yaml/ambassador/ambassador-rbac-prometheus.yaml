@@ -305,6 +305,12 @@ spec:
               - namespace.name
               - name.prefix
               type: string
+            search:
+              description: DevPortalSearchSpec allows configuration over search functionality for the DevPortal
+              properties:
+                enabled:
+                  type: boolean
+              type: object
             selector:
               description: Selector is used for choosing what is shown in the DevPortal
               properties:
