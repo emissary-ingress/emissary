@@ -1,6 +1,7 @@
 package envoy
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -17,8 +18,30 @@ import (
 	"time"
 
 	"github.com/datawire/dlib/dhttp"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
+
+func GetLoopbackAddr(port int) string {
+	return fmt.Sprintf("%s:%d", GetLoopbackIp(), port)
+}
+
+func GetLoopbackIp() string {
+	_, err := exec.LookPath("envoy")
+	if err == nil {
+		return "127.0.0.1"
+	} else {
+		cmd := exec.Command("docker", "network", "inspect", "bridge", "--format={{(index .IPAM.Config 0).Gateway}}")
+		buf := &bytes.Buffer{}
+		cmd.Stdout = buf
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		if err != nil {
+			panic(errors.Wrapf(err, "error finding loopback ip"))
+		}
+		return strings.TrimSpace(buf.String())
+	}
+}
 
 var cidCounter int64
 
@@ -29,17 +52,26 @@ func SetupEnvoy(t *testing.T, adsAddress string, portmaps ...string) {
 	host, port, err := net.SplitHostPort(adsAddress)
 	require.NoError(t, err)
 
-	counter := atomic.AddInt64(&cidCounter, 1)
-	cidfile := path.Join(os.TempDir(), fmt.Sprintf("envoy-%d-%d-cid", os.Getpid(), counter))
+	yaml := fmt.Sprintf(bootstrap, host, port)
 
-	args := []string{"run", "--cidfile", cidfile}
-	for _, pm := range portmaps {
-		args = append(args, "-p", pm)
+	_, err = exec.LookPath("envoy")
+
+	var cmd *exec.Cmd
+	var cidfile string
+	if err == nil {
+		cmd = exec.Command("envoy", "--config-yaml", yaml)
+	} else {
+		counter := atomic.AddInt64(&cidCounter, 1)
+		cidfile = path.Join(os.TempDir(), fmt.Sprintf("envoy-%d-%d-cid", os.Getpid(), counter))
+
+		args := []string{"run", "--cidfile", cidfile}
+		for _, pm := range portmaps {
+			args = append(args, "-p", pm)
+		}
+		args = append(args, "--rm", "--entrypoint", "envoy", "docker.io/datawire/aes:1.6.2", "--config-yaml", yaml)
+		cmd = exec.Command("docker", args...)
 	}
-	args = append(args, "--rm", "--entrypoint", "envoy", "docker.io/datawire/aes:1.6.2", "--config-yaml",
-		fmt.Sprintf(bootstrap, host, port))
 
-	cmd := exec.Command("docker", args...)
 	cmd.Stdin = os.Stdin
 	var out io.Writer
 	if os.Getenv("SHUTUP_ENVOY") == "" {
@@ -52,47 +84,60 @@ func SetupEnvoy(t *testing.T, adsAddress string, portmaps ...string) {
 		t.Errorf("error starting envoy: %v", err)
 		return
 	}
-	t.Cleanup(func() {
-		// try a few times just in case the test aborted super quickly
-		delay := 1 * time.Second
-		var cidBytes []byte
-		for {
-			var err error
-			cidBytes, err = ioutil.ReadFile(cidfile)
+
+	if cidfile == "" {
+		// we started envoy without a container
+		t.Cleanup(func() {
+			cmd.Process.Kill()
+			_, err := cmd.Process.Wait()
 			if err != nil {
-				if delay < 8*time.Second {
-					time.Sleep(delay)
-					delay = 2 * delay
-					continue
+				t.Logf("error tearing down envoy: %+v", err)
+			}
+		})
+	} else {
+		// we started envoy inside a container so we need cleanup using the container id we captured on startup
+		t.Cleanup(func() {
+			// try a few times just in case the test aborted super quickly
+			delay := 1 * time.Second
+			var cidBytes []byte
+			for {
+				var err error
+				cidBytes, err = ioutil.ReadFile(cidfile)
+				if err != nil {
+					if delay < 8*time.Second {
+						time.Sleep(delay)
+						delay = 2 * delay
+						continue
+					}
+
+					t.Logf("error reading envoy container id: %+v", err)
+					return
 				}
+				break
+			}
+			defer os.Remove(cidfile)
 
-				t.Logf("error reading envoy container id: %+v", err)
+			cid := strings.TrimSpace(string(cidBytes))
+
+			cmd := exec.Command("docker", "kill", cid)
+			err = cmd.Run()
+			if err != nil {
+				t.Logf("error killing envoy container %s: %+v", cid, err)
 				return
 			}
-			break
-		}
-		defer os.Remove(cidfile)
 
-		cid := strings.TrimSpace(string(cidBytes))
-
-		cmd := exec.Command("docker", "kill", cid)
-		err = cmd.Run()
-		if err != nil {
-			t.Logf("error killing envoy container %s: %+v", cid, err)
-			return
-		}
-
-		cmd = exec.Command("docker", "wait", cid)
-		cmd.Run()
-		if err != nil {
-			// No such container is an "expected" error since the container might exit before we get
-			// around to waiting for it.
-			if !strings.Contains(err.Error(), "No such container") {
-				t.Logf("error waiting for envoy container %s: %+v", cid, err)
-				return
+			cmd = exec.Command("docker", "wait", cid)
+			cmd.Run()
+			if err != nil {
+				// No such container is an "expected" error since the container might exit before we get
+				// around to waiting for it.
+				if !strings.Contains(err.Error(), "No such container") {
+					t.Logf("error waiting for envoy container %s: %+v", cid, err)
+					return
+				}
 			}
-		}
-	})
+		})
+	}
 }
 
 // This is the bootstrap we use for starting envoy. This is hardcoded for now, but we may want to

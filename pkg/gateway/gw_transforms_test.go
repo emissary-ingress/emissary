@@ -15,7 +15,7 @@ import (
 func TestGatewayMatches(t *testing.T) {
 	envoy.SetupRequestLogger(t, ":9000", ":9002")
 	e := envoy.SetupEnvoyController(t, ":8003")
-	envoy.SetupEnvoy(t, "172.17.0.1:8003", "8080:8080")
+	envoy.SetupEnvoy(t, envoy.GetLoopbackAddr(8003), "8080:8080")
 
 	d := makeDispatcher(t)
 
@@ -78,9 +78,9 @@ spec:
 `)
 
 	require.NoError(t, err)
-	err = d.Upsert(makeEndpoint("default", "foo-backend-1", "172.17.0.1", 9000))
+	err = d.Upsert(makeEndpoint("default", "foo-backend-1", envoy.GetLoopbackIp(), 9000))
 	require.NoError(t, err)
-	err = d.Upsert(makeEndpoint("default", "foo-backend-2", "172.17.0.1", 9001))
+	err = d.Upsert(makeEndpoint("default", "foo-backend-2", envoy.GetLoopbackIp(), 9001))
 	require.NoError(t, err)
 
 	version, snapshot := d.GetSnapshot()
@@ -89,23 +89,23 @@ spec:
 		t.Fatalf("envoy error: %s", status.Message)
 	}
 
-	assertGet(t, "http://localhost:8080/exact", 200, "Hello World")
-	assertGet(t, "http://localhost:8080/exact/foo", 404, "")
-	assertGet(t, "http://localhost:8080/prefix", 200, "Hello World")
-	assertGet(t, "http://localhost:8080/prefix/foo", 200, "Hello World")
+	assertGet(t, "http://127.0.0.1:8080/exact", 200, "Hello World")
+	assertGet(t, "http://127.0.0.1:8080/exact/foo", 404, "")
+	assertGet(t, "http://127.0.0.1:8080/prefix", 200, "Hello World")
+	assertGet(t, "http://127.0.0.1:8080/prefix/foo", 200, "Hello World")
 
-	assertGet(t, "http://localhost:8080/regular_expression", 200, "Hello World")
-	assertGet(t, "http://localhost:8080/regular_expression_a", 200, "Hello World")
-	assertGet(t, "http://localhost:8080/regular_expression_aaaaaaaa", 200, "Hello World")
-	assertGet(t, "http://localhost:8080/regular_expression_aaAaaaAa", 200, "Hello World")
-	assertGet(t, "http://localhost:8080/regular_expression_aaAaaaAab", 404, "")
+	assertGet(t, "http://127.0.0.1:8080/regular_expression", 200, "Hello World")
+	assertGet(t, "http://127.0.0.1:8080/regular_expression_a", 200, "Hello World")
+	assertGet(t, "http://127.0.0.1:8080/regular_expression_aaaaaaaa", 200, "Hello World")
+	assertGet(t, "http://127.0.0.1:8080/regular_expression_aaAaaaAa", 200, "Hello World")
+	assertGet(t, "http://127.0.0.1:8080/regular_expression_aaAaaaAab", 404, "")
 
-	assertGetHeader(t, "http://localhost:8080", "exact", "foo", 200, "Hello World")
-	assertGetHeader(t, "http://localhost:8080", "exact", "bar", 404, "")
-	assertGetHeader(t, "http://localhost:8080", "regular_expression", "foo", 200, "Hello World")
-	assertGetHeader(t, "http://localhost:8080", "regular_expression", "foo_aaaaAaaaa", 200, "Hello World")
-	assertGetHeader(t, "http://localhost:8080", "regular_expression", "foo_aaaaAaaaab", 404, "")
-	assertGetHeader(t, "http://localhost:8080", "regular_expression", "bar", 404, "")
+	assertGetHeader(t, "http://127.0.0.1:8080", "exact", "foo", 200, "Hello World")
+	assertGetHeader(t, "http://127.0.0.1:8080", "exact", "bar", 404, "")
+	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "foo", 200, "Hello World")
+	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "foo_aaaaAaaaa", 200, "Hello World")
+	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "foo_aaaaAaaaab", 404, "")
+	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "bar", 404, "")
 }
 
 func makeDispatcher(t *testing.T) *gateway.Dispatcher {
