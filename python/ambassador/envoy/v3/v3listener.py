@@ -28,8 +28,8 @@ from .v3tls import V3TLSContext
 from .v3virtualhost import V3VirtualHost, DictifiedV3Route, v3prettyroute
 
 if TYPE_CHECKING:
-    from ...ir.irtlscontext import IRTLSContext
-    from . import V3Config # pragma: no cover
+    from ...ir.irtlscontext import IRTLSContext # pragma: no cover
+    from . import V3Config                      # pragma: no cover
 
 
 class V3TCPListener(dict):
@@ -157,12 +157,13 @@ class V3Listener(dict):
         self.port = port
         self.name = f"ambassador-listener-{self.port}"
         self.use_proxy_proto = False
-        self.access_log: List[dict] = []
         self.vhosts: Dict[str, V3VirtualHost] = {}
         self.first_vhost: Optional[V3VirtualHost] = None
         self.http_filters: List[dict] = []
         self.listener_filters: List[dict] = []
         self.traffic_direction: str = "UNSPECIFIED"
+
+        self._base_http_config: Optional[Dict[str, Any]] = None
 
         # It's important from a performance perspective to wrap debug log statements
         # with this check so we don't end up generating log strings (or even JSON
@@ -183,7 +184,13 @@ class V3Listener(dict):
             if v3hf:
                 self.http_filters.append(v3hf)
 
-        # Get Access Log Rules
+        # Start by building our base HTTP config...
+        self._base_http_config = self.base_http_config(log_debug)
+
+    # access_log constructs the access_log configuration for this V3Listener
+    def access_log(self, log_debug: bool) -> List[dict]:
+        access_log: List[dict] = []
+
         for al in self.config.ir.log_services.values():
             access_log_obj: Dict[str, Any] = { "common_config": al.get_common_config() }
             req_headers = []
@@ -203,7 +210,7 @@ class V3Listener(dict):
                 access_log_obj['additional_response_headers_to_log'] = resp_headers
                 access_log_obj['additional_response_trailers_to_log'] = trailer_headers
                 access_log_obj['@type'] = 'type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.HttpGrpcAccessLogConfig'
-                self.access_log.append({
+                access_log.append({
                     "name": "envoy.access_loggers.http_grpc",
                     "typed_config": access_log_obj
                 })
@@ -211,7 +218,7 @@ class V3Listener(dict):
                 # inherently TCP right now
                 # tcp loggers do not support additional headers
                 access_log_obj['@type'] = 'type.googleapis.com/envoy.extensions.access_loggers.grpc.v3.TcpGrpcAccessLogConfig'
-                self.access_log.append({
+                access_log.append({
                     "name": "envoy.access_loggers.tcp_grpc",
                     "typed_config": access_log_obj
                 })
@@ -250,7 +257,7 @@ class V3Listener(dict):
                     log_format['dd.trace_id'] = '%REQ(X-DATADOG-TRACE-ID)%'
                     log_format['dd.span_id'] = '%REQ(X-DATADOG-PARENT-ID)%'
 
-            self.access_log.append({
+            access_log.append({
                 'name': 'envoy.access_loggers.file',
                 'typed_config': {
                     '@type': 'type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog',
@@ -267,7 +274,7 @@ class V3Listener(dict):
 
             if log_debug:
                 self.config.ir.logger.debug("V3Listener: Using log_format '%s'" % log_format)
-            self.access_log.append({
+            access_log.append({
                 'name': 'envoy.access_loggers.file',
                 'typed_config': {
                     '@type': 'type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog',
@@ -276,63 +283,67 @@ class V3Listener(dict):
                 }
             })
 
-        # Start by building our base HTTP config...
-        self.base_http_config: Dict[str, Any] = {
+        return access_log
+
+    # base_http_config constructs the starting configuration for this
+    # V3Listener's http_connection_manager filter.
+    def base_http_config(self, log_debug: bool) -> Dict[str, Any]:
+        base_http_config: Dict[str, Any] = {
             'stat_prefix': 'ingress_http',
-            'access_log': self.access_log,
+            'access_log': self.access_log(log_debug),
             'http_filters': self.http_filters,
             'normalize_path': True
         }
 
         if 'use_remote_address' in self.config.ir.ambassador_module:
-            self.base_http_config["use_remote_address"] = self.config.ir.ambassador_module.use_remote_address
+            base_http_config["use_remote_address"] = self.config.ir.ambassador_module.use_remote_address
 
         if 'xff_num_trusted_hops' in self.config.ir.ambassador_module:
-            self.base_http_config["xff_num_trusted_hops"] = self.config.ir.ambassador_module.xff_num_trusted_hops
+            base_http_config["xff_num_trusted_hops"] = self.config.ir.ambassador_module.xff_num_trusted_hops
 
         if 'server_name' in self.config.ir.ambassador_module:
-            self.base_http_config["server_name"] = self.config.ir.ambassador_module.server_name
+            base_http_config["server_name"] = self.config.ir.ambassador_module.server_name
 
         listener_idle_timeout_ms = self.config.ir.ambassador_module.get('listener_idle_timeout_ms', None)
         if listener_idle_timeout_ms:
-            if 'common_http_protocol_options' in self.base_http_config:
-                self.base_http_config["common_http_protocol_options"]["idle_timeout"] = "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0)
+            if 'common_http_protocol_options' in base_http_config:
+                base_http_config["common_http_protocol_options"]["idle_timeout"] = "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0)
             else:
-                self.base_http_config["common_http_protocol_options"] = { 'idle_timeout': "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0) }
+                base_http_config["common_http_protocol_options"] = { 'idle_timeout': "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0) }
 
         if 'headers_with_underscores_action' in self.config.ir.ambassador_module:
-            if 'common_http_protocol_options' in self.base_http_config:
-                self.base_http_config["common_http_protocol_options"]["headers_with_underscores_action"] = self.config.ir.ambassador_module.headers_with_underscores_action
+            if 'common_http_protocol_options' in base_http_config:
+                base_http_config["common_http_protocol_options"]["headers_with_underscores_action"] = self.config.ir.ambassador_module.headers_with_underscores_action
             else:
-                self.base_http_config["common_http_protocol_options"] = { 'headers_with_underscores_action': self.config.ir.ambassador_module.headers_with_underscores_action }
+                base_http_config["common_http_protocol_options"] = { 'headers_with_underscores_action': self.config.ir.ambassador_module.headers_with_underscores_action }
 
         max_request_headers_kb = self.config.ir.ambassador_module.get('max_request_headers_kb', None)
         if max_request_headers_kb:
-            self.base_http_config["max_request_headers_kb"] = max_request_headers_kb
+            base_http_config["max_request_headers_kb"] = max_request_headers_kb
 
         if 'enable_http10' in self.config.ir.ambassador_module:
             http_options = self.base_http_config.setdefault("http_protocol_options", {})
             http_options['accept_http_10'] = self.config.ir.ambassador_module.enable_http10
 
         if 'preserve_external_request_id' in self.config.ir.ambassador_module:
-            self.base_http_config["preserve_external_request_id"] = self.config.ir.ambassador_module.preserve_external_request_id
+            base_http_config["preserve_external_request_id"] = self.config.ir.ambassador_module.preserve_external_request_id
 
         if 'forward_client_cert_details' in self.config.ir.ambassador_module:
-            self.base_http_config["forward_client_cert_details"] = self.config.ir.ambassador_module.forward_client_cert_details
+            base_http_config["forward_client_cert_details"] = self.config.ir.ambassador_module.forward_client_cert_details
 
         if 'set_current_client_cert_details' in self.config.ir.ambassador_module:
-            self.base_http_config["set_current_client_cert_details"] = self.config.ir.ambassador_module.set_current_client_cert_details
+            base_http_config["set_current_client_cert_details"] = self.config.ir.ambassador_module.set_current_client_cert_details
 
         if self.config.ir.tracing:
-            self.base_http_config["generate_request_id"] = True
+            base_http_config["generate_request_id"] = True
 
-            self.base_http_config["tracing"] = {}
+            base_http_config["tracing"] = {}
             self.traffic_direction = "OUTBOUND"
 
             req_hdrs = self.config.ir.tracing.get('tag_headers', [])
 
             if req_hdrs:
-                self.base_http_config["tracing"]["custom_tags"] = []
+                base_http_config["tracing"]["custom_tags"] = []
                 for hdr in req_hdrs:
                     custom_tag = {
                         "request_header": {
@@ -340,29 +351,28 @@ class V3Listener(dict):
                             },
                         "tag": hdr,
                     }
-                    self.base_http_config["tracing"]["custom_tags"].append(custom_tag)
+                    base_http_config["tracing"]["custom_tags"].append(custom_tag)
 
 
             sampling = self.config.ir.tracing.get('sampling', {})
             if sampling:
                 client_sampling = sampling.get('client', None)
                 if client_sampling is not None:
-                    self.base_http_config["tracing"]["client_sampling"] = {
+                    base_http_config["tracing"]["client_sampling"] = {
                         "value": client_sampling
                     }
 
                 random_sampling = sampling.get('random', None)
                 if random_sampling is not None:
-                    self.base_http_config["tracing"]["random_sampling"] = {
+                    base_http_config["tracing"]["random_sampling"] = {
                         "value": random_sampling
                     }
 
                 overall_sampling = sampling.get('overall', None)
                 if overall_sampling is not None:
-                    self.base_http_config["tracing"]["overall_sampling"] = {
+                    base_http_config["tracing"]["overall_sampling"] = {
                         "value": overall_sampling
                     }
-
 
         proper_case: bool = self.config.ir.ambassador_module['proper_case']
 
@@ -413,15 +423,17 @@ class V3Listener(dict):
                         }
                     }
                 }
-                http_options = self.base_http_config.setdefault("http_protocol_options", {})
+                http_options = base_http_config.setdefault("http_protocol_options", {})
                 http_options["header_key_format"] = custom_header_rules
 
         if proper_case:
             proper_case_header: Dict[str, Dict[str, dict]] = {'header_key_format': {'proper_case_words': {}}}
-            if 'http_protocol_options' in self.base_http_config:
-                self.base_http_config["http_protocol_options"].update(proper_case_header)
+            if 'http_protocol_options' in base_http_config:
+                base_http_config["http_protocol_options"].update(proper_case_header)
             else:
-                self.base_http_config["http_protocol_options"] = proper_case_header
+                base_http_config["http_protocol_options"] = proper_case_header
+
+        return base_http_config
 
     def add_irlistener(self, listener: IRListener) -> None:
         if listener.service_port != self.port:
@@ -511,7 +523,7 @@ class V3Listener(dict):
                 }
                 need_tcp_inspector = True
 
-            http_config = dict(self.base_http_config)
+            http_config = dict(self._base_http_config or {})
             http_config["route_config"] = {
                 "virtual_hosts": [
                     {
