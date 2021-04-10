@@ -43,7 +43,7 @@ class V3Listener(dict):
         self.use_proxy_proto = False
         self.listener_filters: List[dict] = []
         self.traffic_direction: str = "UNSPECIFIED"
-
+        self._filter_chains: List[dict] = []
         self._base_http_config: Optional[Dict[str, Any]] = None
 
         # It's important from a performance perspective to wrap debug log statements
@@ -59,6 +59,22 @@ class V3Listener(dict):
             if proto == "HTTP":
                 # Start by building our base HTTP config...
                 self._base_http_config = self.base_http_config(log_debug)
+
+                self._filter_chains.append(
+                    {
+                        "name": "base_http_config",
+                        "filterChainMatch": {},
+                        "filters": [
+                            {
+                                "name": "envoy.filters.network.http_connection_manager",
+                                "typed_config": {
+                                    "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                                    **self._base_http_config                
+                                }
+                            }
+                        ]
+                    }
+                )
 
             if proto == "PROXY":
                 self.listener_filters.append({
@@ -345,13 +361,11 @@ class V3Listener(dict):
             }
         }
 
-        self.filter_chains: List[dict] = []
-
     def as_dict(self) -> dict:
         return {
             "name": self.name,
             "address": self.address,
-            "filter_chains": self.filter_chains,
+            "filter_chains": self._filter_chains,
             "listener_filters": self.listener_filters,
             "traffic_direction": self.traffic_direction
         }
