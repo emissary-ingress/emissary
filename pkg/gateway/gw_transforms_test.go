@@ -1,6 +1,7 @@
 package gateway_test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -78,9 +79,12 @@ spec:
 `)
 
 	require.NoError(t, err)
-	err = d.Upsert(makeEndpoint("default", "foo-backend-1", envoy.GetLoopbackIp(), 9000))
+
+	loopbackIp := envoy.GetLoopbackIp()
+
+	err = d.Upsert(makeEndpoint("default", "foo-backend-1", loopbackIp, 9000))
 	require.NoError(t, err)
-	err = d.Upsert(makeEndpoint("default", "foo-backend-2", envoy.GetLoopbackIp(), 9001))
+	err = d.Upsert(makeEndpoint("default", "foo-backend-2", loopbackIp, 9001))
 	require.NoError(t, err)
 
 	version, snapshot := d.GetSnapshot()
@@ -89,23 +93,25 @@ spec:
 		t.Fatalf("envoy error: %s", status.Message)
 	}
 
-	assertGet(t, "http://127.0.0.1:8080/exact", 200, "Hello World")
-	assertGet(t, "http://127.0.0.1:8080/exact/foo", 404, "")
-	assertGet(t, "http://127.0.0.1:8080/prefix", 200, "Hello World")
-	assertGet(t, "http://127.0.0.1:8080/prefix/foo", 200, "Hello World")
+	urlBase := fmt.Sprintf("http://%s:8080", loopbackIp)
 
-	assertGet(t, "http://127.0.0.1:8080/regular_expression", 200, "Hello World")
-	assertGet(t, "http://127.0.0.1:8080/regular_expression_a", 200, "Hello World")
-	assertGet(t, "http://127.0.0.1:8080/regular_expression_aaaaaaaa", 200, "Hello World")
-	assertGet(t, "http://127.0.0.1:8080/regular_expression_aaAaaaAa", 200, "Hello World")
-	assertGet(t, "http://127.0.0.1:8080/regular_expression_aaAaaaAab", 404, "")
+	assertGet(t, urlBase+"/exact", 200, "Hello World")
+	assertGet(t, urlBase+"/exact/foo", 404, "")
+	assertGet(t, urlBase+"/prefix", 200, "Hello World")
+	assertGet(t, urlBase+"/prefix/foo", 200, "Hello World")
 
-	assertGetHeader(t, "http://127.0.0.1:8080", "exact", "foo", 200, "Hello World")
-	assertGetHeader(t, "http://127.0.0.1:8080", "exact", "bar", 404, "")
-	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "foo", 200, "Hello World")
-	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "foo_aaaaAaaaa", 200, "Hello World")
-	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "foo_aaaaAaaaab", 404, "")
-	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "bar", 404, "")
+	assertGet(t, urlBase+"/regular_expression", 200, "Hello World")
+	assertGet(t, urlBase+"/regular_expression_a", 200, "Hello World")
+	assertGet(t, urlBase+"/regular_expression_aaaaaaaa", 200, "Hello World")
+	assertGet(t, urlBase+"/regular_expression_aaAaaaAa", 200, "Hello World")
+	assertGet(t, urlBase+"/regular_expression_aaAaaaAab", 404, "")
+
+	assertGetHeader(t, urlBase+"", "exact", "foo", 200, "Hello World")
+	assertGetHeader(t, urlBase+"", "exact", "bar", 404, "")
+	assertGetHeader(t, urlBase+"", "regular_expression", "foo", 200, "Hello World")
+	assertGetHeader(t, urlBase+"", "regular_expression", "foo_aaaaAaaaa", 200, "Hello World")
+	assertGetHeader(t, urlBase+"", "regular_expression", "foo_aaaaAaaaab", 404, "")
+	assertGetHeader(t, urlBase+"", "regular_expression", "bar", 404, "")
 }
 
 func makeDispatcher(t *testing.T) *gateway.Dispatcher {
