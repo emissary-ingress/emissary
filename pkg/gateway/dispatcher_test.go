@@ -11,9 +11,14 @@ import (
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/wellknown"
 	"github.com/datawire/ambassador/pkg/gateway"
 	"github.com/golang/protobuf/ptypes"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gotest.tools/assert"
 )
+
+func assertErrorContains(t *testing.T, err error, msg string) {
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), msg)
+}
 
 func TestDispatcherRegister(t *testing.T) {
 	disp := gateway.NewDispatcher()
@@ -31,7 +36,15 @@ func TestDispatcherDuplicateRegister(t *testing.T) {
 	err := disp.Register("Foo", compile_Foo)
 	require.NoError(t, err)
 	err = disp.Register("Foo", compile_Foo)
-	assert.ErrorContains(t, err, "duplicate")
+	assertErrorContains(t, err, "duplicate")
+}
+
+func TestIsRegistered(t *testing.T) {
+	disp := gateway.NewDispatcher()
+	err := disp.Register("Foo", compile_Foo)
+	require.NoError(t, err)
+	assert.True(t, disp.IsRegistered("Foo"))
+	assert.False(t, disp.IsRegistered("Bar"))
 }
 
 func TestDispatcherFaultIsolation1(t *testing.T) {
@@ -41,7 +54,7 @@ func TestDispatcherFaultIsolation1(t *testing.T) {
 	foo := makeFoo("default", "foo", "bang")
 	foo.Spec.PanicArg = "bang bang!"
 	err = disp.Upsert(foo)
-	assert.ErrorContains(t, err, "error processing")
+	assertErrorContains(t, err, "error processing")
 }
 
 func TestDispatcherFaultIsolation2(t *testing.T) {
@@ -51,7 +64,7 @@ func TestDispatcherFaultIsolation2(t *testing.T) {
 	foo := makeFoo("default", "foo", "bang")
 	foo.Spec.PanicArg = fmt.Errorf("bang bang!")
 	err = disp.Upsert(foo)
-	assert.ErrorContains(t, err, "error processing")
+	assertErrorContains(t, err, "error processing")
 }
 
 func TestDispatcherTransformError(t *testing.T) {
@@ -112,7 +125,7 @@ func TestDispatcherNoTransform(t *testing.T) {
 	disp := gateway.NewDispatcher()
 	foo := makeFoo("default", "foo", "bar")
 	err := disp.Upsert(foo)
-	assert.ErrorContains(t, err, "no transform for kind")
+	assertErrorContains(t, err, "no transform for kind")
 }
 
 func TestDispatcherDelete(t *testing.T) {
@@ -146,7 +159,7 @@ func compile_Foo(f *Foo) *gateway.CompiledConfig {
 func TestDispatcherUpsertYamlErr(t *testing.T) {
 	disp := gateway.NewDispatcher()
 	err := disp.UpsertYaml("{")
-	assert.ErrorContains(t, err, "error converting")
+	assertErrorContains(t, err, "error converting")
 	err = disp.UpsertYaml(`
 ---
 kind: Gatewayyyy
@@ -158,7 +171,7 @@ spec:
   - protocol: HTTP
     port: 8080
 `)
-	assert.ErrorContains(t, err, "no transform for kind")
+	assertErrorContains(t, err, "no transform for kind")
 }
 
 func TestDispatcherAssemblyWithRouteConfg(t *testing.T) {

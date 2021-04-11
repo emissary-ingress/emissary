@@ -57,6 +57,12 @@ func (d *Dispatcher) Register(kind string, transform interface{}) error {
 	return nil
 }
 
+// IsRegistered returns true if the given kind can be processed by this dispatcher.
+func (d *Dispatcher) IsRegistered(kind string) bool {
+	_, ok := d.transforms[kind]
+	return ok
+}
+
 // Upsert processes the given kubernetes resource whether it is new or just updated.
 func (d *Dispatcher) Upsert(resource kates.Object) error {
 	gvk := resource.GetObjectKind().GroupVersionKind()
