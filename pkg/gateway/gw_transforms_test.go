@@ -1,10 +1,10 @@
 package gateway_test
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/datawire/ambassador/pkg/envoy"
 	"github.com/datawire/ambassador/pkg/gateway"
@@ -93,25 +93,29 @@ spec:
 		t.Fatalf("envoy error: %s", status.Message)
 	}
 
-	urlBase := fmt.Sprintf("http://%s:8080", loopbackIp)
+	// Sometimes envoy seems to acknowledge the configuration before listening on the port. (This is
+	// weird because sometimes envoy sends back an error indicating that it cannot bind to the
+	// port. Either way, we need to check that we can actually connect before running the rest of
+	// the tests.
+	checkReady(t, "http://127.0.0.1:8080/")
 
-	assertGet(t, urlBase+"/exact", 200, "Hello World")
-	assertGet(t, urlBase+"/exact/foo", 404, "")
-	assertGet(t, urlBase+"/prefix", 200, "Hello World")
-	assertGet(t, urlBase+"/prefix/foo", 200, "Hello World")
+	assertGet(t, "http://127.0.0.1:8080/exact", 200, "Hello World")
+	assertGet(t, "http://127.0.0.1:8080/exact/foo", 404, "")
+	assertGet(t, "http://127.0.0.1:8080/prefix", 200, "Hello World")
+	assertGet(t, "http://127.0.0.1:8080/prefix/foo", 200, "Hello World")
 
-	assertGet(t, urlBase+"/regular_expression", 200, "Hello World")
-	assertGet(t, urlBase+"/regular_expression_a", 200, "Hello World")
-	assertGet(t, urlBase+"/regular_expression_aaaaaaaa", 200, "Hello World")
-	assertGet(t, urlBase+"/regular_expression_aaAaaaAa", 200, "Hello World")
-	assertGet(t, urlBase+"/regular_expression_aaAaaaAab", 404, "")
+	assertGet(t, "http://127.0.0.1:8080/regular_expression", 200, "Hello World")
+	assertGet(t, "http://127.0.0.1:8080/regular_expression_a", 200, "Hello World")
+	assertGet(t, "http://127.0.0.1:8080/regular_expression_aaaaaaaa", 200, "Hello World")
+	assertGet(t, "http://127.0.0.1:8080/regular_expression_aaAaaaAa", 200, "Hello World")
+	assertGet(t, "http://127.0.0.1:8080/regular_expression_aaAaaaAab", 404, "")
 
-	assertGetHeader(t, urlBase+"", "exact", "foo", 200, "Hello World")
-	assertGetHeader(t, urlBase+"", "exact", "bar", 404, "")
-	assertGetHeader(t, urlBase+"", "regular_expression", "foo", 200, "Hello World")
-	assertGetHeader(t, urlBase+"", "regular_expression", "foo_aaaaAaaaa", 200, "Hello World")
-	assertGetHeader(t, urlBase+"", "regular_expression", "foo_aaaaAaaaab", 404, "")
-	assertGetHeader(t, urlBase+"", "regular_expression", "bar", 404, "")
+	assertGetHeader(t, "http://127.0.0.1:8080", "exact", "foo", 200, "Hello World")
+	assertGetHeader(t, "http://127.0.0.1:8080", "exact", "bar", 404, "")
+	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "foo", 200, "Hello World")
+	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "foo_aaaaAaaaa", 200, "Hello World")
+	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "foo_aaaaAaaaab", 404, "")
+	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "bar", 404, "")
 }
 
 func makeDispatcher(t *testing.T) *gateway.Dispatcher {
@@ -133,6 +137,22 @@ func makeEndpoint(namespace, name, ip string, port int) *kates.Endpoints {
 		TypeMeta:   kates.TypeMeta{Kind: "Endpoints"},
 		ObjectMeta: kates.ObjectMeta{Namespace: namespace, Name: name},
 		Subsets:    []kates.EndpointSubset{{Addresses: addrs, Ports: ports}},
+	}
+}
+
+func checkReady(t *testing.T, url string) {
+	delay := 10 * time.Millisecond
+	for {
+		if delay > 10*time.Second {
+			require.Fail(t, "url never became ready", url)
+		}
+		_, err := http.Get(url)
+		if err != nil {
+			t.Logf("error %v, retrying...", err)
+			time.Sleep(delay)
+			delay = delay * 2
+		}
+		return
 	}
 }
 
