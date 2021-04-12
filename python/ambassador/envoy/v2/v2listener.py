@@ -24,8 +24,9 @@ from ...ir.irtcpmappinggroup import IRTCPMappingGroup
 from ...utils import dump_json, parse_bool
 
 from .v2httpfilter import V2HTTPFilter
+from .v2route import DictifiedV2Route, v2prettyroute
 from .v2tls import V2TLSContext
-from .v2virtualhost import V2VirtualHost, DictifiedV2Route, v2prettyroute
+from .v2virtualhost import V2VirtualHost
 
 if TYPE_CHECKING:
     from ...ir.irtlscontext import IRTLSContext # pragma: no cover
