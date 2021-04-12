@@ -29,6 +29,7 @@ from .v2tls import V2TLSContext
 from .v2virtualhost import V2VirtualHost
 
 if TYPE_CHECKING:
+    from ...ir.irhost import IRHost             # pragma: no cover
     from ...ir.irtlscontext import IRTLSContext # pragma: no cover
     from . import V2Config                      # pragma: no cover
 
@@ -50,6 +51,7 @@ class V2Listener(dict):
         self._insecure_only: bool = False
         self._filter_chains: List[dict] = []
         self._base_http_config: Optional[Dict[str, Any]] = None
+        self._vhosts: Dict[str, V2VirtualHost] = {}
 
         # It's important from a performance perspective to wrap debug log statements
         # with this check so we don't end up generating log strings (or even JSON
@@ -160,6 +162,33 @@ class V2Listener(dict):
 
         # OK, once that's done, stick this into our filter chains.
         self._filter_chains.append(chain_entry)
+
+    def add_vhost(self, name: str, host: 'IRHost', secure: bool) -> None:
+        # None is OK for a secure action, though not for an insecure action. For real.
+        secure_action = host.secure_action if secure else None
+        insecure_action = host.insecure_action
+
+        if self._log_debug:
+            self.config.ir.logger.debug("V2Listener %s: adding %s VHost %s for host %s, secure %s, insecure %s)" %
+                                       (self.name, "secure" if secure else "insecure", name, host.hostname, secure_action, insecure_action))
+
+        vhost = self._vhosts.get(host.hostname)
+
+        if vhost:
+            if ((host.hostname != vhost._hostname) or
+                (host.context != vhost._ctx) or
+                (secure != vhost._secure) or
+                (secure_action != vhost._action) or
+                (insecure_action != vhost._insecure_action)):
+                raise Exception("V2Listener %s: trying to make vhost %s for %s but one already exists" %
+                                (self.name, name, host.hostname))
+            else:
+                return
+
+        vhost = V2VirtualHost(config=self.config, listener=self,
+                              name=name, hostname=host.hostname, ctx=host.context,
+                              secure=secure, action=secure_action, insecure_action=insecure_action)
+        self._vhosts[host.hostname] = vhost
 
     # access_log constructs the access_log configuration for this V2Listener
     def access_log(self) -> List[dict]:
@@ -424,6 +453,54 @@ class V2Listener(dict):
             }
         }
 
+        # Next, deal with HTTP stuff if this is an HTTP Listener.
+        if self._base_http_config:
+            self.finalize_vhosts()
+
+    def finalize_vhosts(self) -> None:
+        # Match up Hosts with this Listener, and create VHosts for them.
+        for host in self.config.ir.get_hosts():
+            # XXX Reject if labels don't match.
+
+            # OK, if we're still here, then it's a question of matching the Listener's 
+            # SecurityModel with the Host's requestPolicy:
+            #
+            # 1. If the securityModel is SECURE, and the Host has no secure action, don't take 
+            #    this Host: it'll never work.
+            # 2. Otherwise, if the securityModel is INSECURE, and the Host's insecure action is
+            #    Reject, don't take this Host: it'll never work.
+            # 3. Otherwise, if the Listener is marked insecure-only, but the Listener's port
+            #    doesn't match the Host's insecure_addl_port, don't take this Host: this 
+            #    Listener was synthesized to handle some other Host. (This is a corner case that
+            #    will become less and less likely as more people hop on the Listener bandwagon.)
+            # 4. Otherwise, take the Host.
+            #
+            # (Remember that Hosts don't specify the bind address, so only the port numbers 
+            # matter when checking the insecure_addl_port.)
+
+            vhostname = host.hostname or "*"
+
+            secure_action = host.secure_action
+            insecure_action = host.insecure_action
+
+            if (self._security_model == 'SECURE') and (not secure_action):
+                # Case 1. Drop this Host.
+                self.config.ir.logger.info("V2Listener %s (SECURE): drop %s, no secure action", self.name, host.name)
+                pass
+            elif (self._security_model == 'INSECURE') and (insecure_action == 'Reject'):
+                # Case 2. Drop this Host.
+                self.config.ir.logger.info("V2Listener %s (INSECURE): drop %s, insecure action == Reject", self.name, host.name)
+                pass
+            elif self._insecure_only and (self.port != host.insecure_addl_port):
+                # Case 3. Drop this Host.
+                self.config.ir.logger.info("V2Listener %s (%s): drop %s, insecure-only port mismatch", 
+                                           self.name, self._security_model, host.name)
+                pass
+            else:
+                # Case 4 above. Take this host.
+                self.config.ir.logger.info("V2Listener %s: take %s", self.name, host.name)
+                self.add_vhost(name=vhostname, host=host, secure=True)
+
     def as_dict(self) -> dict:
         return {
             "name": self.name,
@@ -438,6 +515,7 @@ class V2Listener(dict):
             "name": self.name,
             "bind_address": self.bind_address,
             "port": self.port,
+            "vhosts": [ self._vhosts[k].verbose_dict() for k in sorted(self._vhosts.keys()) ],
             #  "use_proxy_proto": self.use_proxy_proto,
         }
 
@@ -464,6 +542,7 @@ class V2Listener(dict):
             v2listener.finalize()
 
             config.listeners.append(v2listener)
-
-            if log_debug:
-                config.ir.logger.debug(f"V2Listener generated: {v2listener}")
+            config.ir.logger.info(f"V2Listener: ==== GENERATED {v2listener}")
+            
+            for k in sorted(v2listener._vhosts.keys()):
+                config.ir.logger.info("    %s", v2listener._vhosts[k].pretty())
