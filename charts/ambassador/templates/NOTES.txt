@@ -4,10 +4,10 @@ Congratulations! You have successfully installed The Ambassador Edge Stack!
 
 {{- if empty .Values.licenseKey.value }}
 -------------------------------------------------------------------------------
-NOTE: You are currently running The Ambassador Edge Stack in EVALUATION MODE. 
-  
-Request a free community license key at https://SERVICE_IP/edge_stack_admin/#dashboard 
-to unlock all the features of The Ambassador Edge Stack and update the value of 
+NOTE: You are currently running The Ambassador Edge Stack in EVALUATION MODE.
+
+Request a free community license key at https://SERVICE_IP/edge_stack_admin/#dashboard
+to unlock all the features of The Ambassador Edge Stack and update the value of
 licenseKey.value in your values.yaml file.
 {{- end }}
 
@@ -23,8 +23,8 @@ With your installation of the Ambassador Edge Stack, you have created a:
 {{ end }}
 in the {{ include "ambassador.namespace" . }} namespace.
 
-Please ensure there is not another of these resources configured in your cluster. 
-If there is, please either remove the old resource or run 
+Please ensure there is not another of these resources configured in your cluster.
+If there is, please either remove the old resource or run
 
 helm upgrade {{ .Release.Name }} -n {{ .Release.Namespace }} --set authService.create=false --set RateLimit.create=false
 
@@ -57,4 +57,4 @@ NOTE: It may take a few minutes for the LoadBalancer IP to be available.
 {{- end }}
 {{- end }}
 
-For help, visit our Slack at https://d6e.co/slack or view the documentation online at https://www.getambassador.io.
+For help, visit our Slack at http://a8r.io/Slack or view the documentation online at https://www.getambassador.io.
