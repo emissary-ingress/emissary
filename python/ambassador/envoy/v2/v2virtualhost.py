@@ -99,13 +99,8 @@ class V2VirtualHost:
         self._secure = secure
         self._action = action
         self._insecure_action = insecure_action
-        self._needs_redirect = False
-
         self.tls_context = V2TLSContext(ctx)
         self.routes: List[DictifiedV2Route] = []
-
-    def needs_redirect(self) -> None:
-        self._needs_redirect = True
 
     def finalize(self) -> None:
         # It's important from a performance perspective to wrap debug log statements
@@ -178,8 +173,8 @@ class V2VirtualHost:
         route_count = len(self.routes)
         route_plural = "" if (route_count == 1) else "s"
 
-        return "<VHost %s ctx %s redir %s a %s ia %s %d route%s>" % \
-               (self._hostname, ctx_name, self._needs_redirect, self._action, self._insecure_action,
+        return "<VHost %s ctx %s a %s ia %s %d route%s>" % \
+               (self._hostname, ctx_name, self._action, self._insecure_action,
                 route_count, route_plural)
 
     def verbose_dict(self) -> dict:
@@ -189,7 +184,6 @@ class V2VirtualHost:
             "_secure": self._secure,
             "_action": self._action,
             "_insecure_action": self._insecure_action,
-            "_needs_redirect": self._needs_redirect,
             "tls_context": self.tls_context,
             "routes": self.routes,
         }
