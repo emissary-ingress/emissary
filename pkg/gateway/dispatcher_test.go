@@ -142,6 +142,20 @@ func TestDispatcherDelete(t *testing.T) {
 	require.Nil(t, l)
 }
 
+func TestDispatcherDeleteKey(t *testing.T) {
+	disp := gateway.NewDispatcher()
+	err := disp.Register("Foo", compile_Foo)
+	require.NoError(t, err)
+	foo := makeFoo("default", "foo", "bar")
+	disp.Upsert(foo)
+	l := disp.GetListener("bar")
+	require.NotNil(t, l)
+	assert.Equal(t, "bar", l.Name)
+	disp.DeleteKey("Foo", "default", "foo")
+	l = disp.GetListener("bar")
+	require.Nil(t, l)
+}
+
 func compile_Foo(f *Foo) *gateway.CompiledConfig {
 	if f.Spec.Value == "bang" {
 		panic(f.Spec.PanicArg)

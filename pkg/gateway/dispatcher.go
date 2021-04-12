@@ -32,7 +32,11 @@ type Dispatcher struct {
 // resourceKey produces a fully qualified key for a kubernetes resource.
 func resourceKey(resource kates.Object) string {
 	gvk := resource.GetObjectKind().GroupVersionKind()
-	return fmt.Sprintf("%s:%s:%s:%s:%s", gvk.Group, gvk.Version, gvk.Kind, resource.GetNamespace(), resource.GetName())
+	return resourceKeyFromParts(gvk.Kind, resource.GetNamespace(), resource.GetName())
+}
+
+func resourceKeyFromParts(kind, namespace, name string) string {
+	return fmt.Sprintf("%s:%s:%s", kind, namespace, name)
 }
 
 // NewDispatcher creates a new and empty *Dispatcher struct.
@@ -106,6 +110,12 @@ func (d *Dispatcher) Delete(resource kates.Object) {
 	delete(d.configs, key)
 
 	// Clear out the snapshot so we regenerate one.
+	d.snapshot = nil
+}
+
+func (d *Dispatcher) DeleteKey(kind, namespace, name string) {
+	key := resourceKeyFromParts(kind, namespace, name)
+	delete(d.configs, key)
 	d.snapshot = nil
 }
 
