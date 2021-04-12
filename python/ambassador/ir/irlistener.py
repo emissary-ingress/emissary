@@ -19,11 +19,12 @@ class IRListener (IRResource):
     IRListener is a pretty direct translation of the Ambassador Listener resource.
     """
 
-    bind_address: str   # Often "0.0.0.0", but can be overridden.
+    bind_address: str       # Often "0.0.0.0", but can be overridden.
     service_port: int
     use_proxy_proto: bool
     hostname: str
     context: Optional[IRTLSContext]
+    insecure_only: bool     # Was this synthesized solely due to an insecure_addl_port?
 
     AllowedKeys = {
         'bind_address',
@@ -65,6 +66,7 @@ class IRListener (IRResource):
                  namespace: Optional[str]=None,
                  kind: str="IRListener",
                  apiVersion: str="getambassador.io/v2",
+                 insecure_only: bool=False,
                  **kwargs) -> None:
         ir.logger.debug("IRListener __init__ (%s %s %s)" % (kind, name, kwargs))
 
@@ -76,6 +78,7 @@ class IRListener (IRResource):
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
             kind=kind, name=name, namespace=namespace, apiVersion=apiVersion,
+            insecure_only=insecure_only, 
             **new_args
         )
 
@@ -222,7 +225,8 @@ class ListenerFactory:
                         ir, aconf, "-internal-", name, "-internal-",
                         port=host.insecure_addl_port,
                         protocol="HTTPS",   # Not a typo! See "Add the default HTTP listener" above.
-                        securityModel="INSECURE"
+                        securityModel="INSECURE",
+                        insecure_only=True
                     ))
 
         # Finally, cycle over our TCPMappingGroups and make sure we have

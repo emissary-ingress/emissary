@@ -50,6 +50,7 @@ class V2Listener(dict):
         self.traffic_direction: str = "UNSPECIFIED"
         self._security_model: str = irlistener.securityModel
         self._l7_depth: int = irlistener.get('l7Depth', 0)
+        self._insecure_only: bool = False
         self._filter_chains: List[dict] = []
         self._base_http_config: Optional[Dict[str, Any]] = None
 
@@ -59,6 +60,9 @@ class V2Listener(dict):
         self._log_debug = self.config.ir.logger.isEnabledFor(logging.DEBUG)
         if self._log_debug:
             self.config.ir.logger.debug(f"V2Listener {self.name} created -- {self._security_model}, l7Depth {self._l7_depth}")
+
+        # If the IRListener is marked insecure-only, so are we.
+        self._insecure_only = irlistener.insecure_only
 
         # Build out our listener filters, and figure out if we're an HTTP listener
         # in the process.
