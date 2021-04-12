@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List, Optional, Set, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Set, Tuple, Union, TYPE_CHECKING
 from typing import cast as typecast
 
 from ..common import EnvoyRoute
@@ -121,6 +121,88 @@ def hostglob_matches(glob: str, value: str) -> bool:
         return value.endswith(glob[1:])
     else: # exact match
         return value == glob
+
+
+class V2RouteVariants:
+    route: 'V2Route'
+    variants: Dict[str, DictifiedV2Route]
+
+    def __init__(self, route: 'V2Route') -> None:
+        self.route = route
+        self.variants = {}
+
+    def get_variant(self, matcher: str, action: str) -> DictifiedV2Route:
+        matcher = matcher.lower()
+        action = action.lower()
+
+        key = f"{matcher}-{action}"
+
+        variant: Optional[DictifiedV2Route] = self.variants.get(key, None)
+
+        if variant:
+            return variant
+
+        # Handle matchers.
+        matcher_handler = getattr(self, f"matcher_{matcher.replace('-', '_')}")
+
+        if not matcher_handler:
+            raise Exception(f"Invalid route matcher {matcher} requested")
+
+        variant = dict(self.route)
+        matcher_handler(variant)
+
+        # Handle the action.
+        action_handler = getattr(self, f"action_{action.replace('-', '_')}")
+
+        if not action_handler:
+            raise Exception(f"Invalid route action {action} requested")
+
+        action_handler(variant)
+
+        self.variants[key] = variant
+        return variant
+
+    def matcher_always(self, variant: DictifiedV2Route) -> None:
+        pass
+
+    def matcher_xfp_https(self, variant: DictifiedV2Route) -> None:
+        self.matcher_xfp(variant, "https")
+
+    def matcher_xfp_http(self, variant: DictifiedV2Route) -> None:
+        self.matcher_xfp(variant, "http")
+
+    def matcher_xfp(self, variant: DictifiedV2Route, value: str) -> None:
+        found_xfp = False
+        for header in variant["match"].get("headers", []):
+            if header.get("name", "").lower() == "x-forwarded-proto":
+                # DON'T override the value here -- the user explicitly asked
+                # for it, so, I guess we should keep it.
+                found_xfp = True
+                break
+
+        if not found_xfp:
+            # Ew.
+            match_copy = dict(variant["match"])
+            variant["match"] = match_copy
+
+            headers_copy = list(match_copy.get("headers") or [])
+            match_copy["headers"] = headers_copy
+
+            headers_copy.append({
+                "name": "x-forwarded-proto",
+                "exact_match": value
+            })
+
+    def action_route(self, variant) -> None:
+        # "Route" really means "do what the rule asks for". If the user asked for a host
+        # redirect, keep that.
+        pass
+
+    def action_redirect(self, variant) -> None:
+        variant.pop("route", None)
+        variant["redirect"] = {
+            "https_redirect": True
+        }
 
 
 class V2Route(Cacheable):
@@ -541,6 +623,12 @@ class V2Route(Cacheable):
 
                 if not route.get('_failed', False):
                     config.routes.append(config.save_element('route', irgroup, route))
+
+        # Once that's done, go build the variants on each route.
+        config.route_variants = []
+
+        for route in config.routes:
+            config.route_variants.append(V2RouteVariants(route))
 
     @staticmethod
     def generate_headers(config: 'V2Config', mapping_group: IRHTTPMappingGroup) -> List[dict]:

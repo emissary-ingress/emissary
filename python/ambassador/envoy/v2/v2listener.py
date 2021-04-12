@@ -24,7 +24,7 @@ from ...ir.irtcpmappinggroup import IRTCPMappingGroup
 from ...utils import dump_json, parse_bool
 
 from .v2httpfilter import V2HTTPFilter
-from .v2route import DictifiedV2Route, v2prettyroute
+from .v2route import DictifiedV2Route, v2prettyroute, V2RouteVariants
 from .v2tls import V2TLSContext
 from .v2virtualhost import V2VirtualHost
 
@@ -441,8 +441,9 @@ class V2Listener(dict):
         return base_http_config
 
     def finalize(self) -> None:
-        if self.config.ir.logger.isEnabledFor(logging.DEBUG):
-            self.config.ir.logger.debug(f"V2Listener finalize {self}")
+        # if self._log_debug:
+        #     self.config.ir.logger.debug(f"V2Listener finalize {self}")
+        self.config.ir.logger.info(f"V2Listener: ==== finalize {self}")
 
         # OK. Assemble the high-level stuff for Envoy.
         self.address = {
@@ -456,6 +457,7 @@ class V2Listener(dict):
         # Next, deal with HTTP stuff if this is an HTTP Listener.
         if self._base_http_config:
             self.finalize_vhosts()
+            self.finalize_routes()
 
     def finalize_vhosts(self) -> None:
         # Match up Hosts with this Listener, and create VHosts for them.
@@ -500,6 +502,79 @@ class V2Listener(dict):
                 # Case 4 above. Take this host.
                 self.config.ir.logger.info("V2Listener %s: take %s", self.name, host.name)
                 self.add_vhost(name=vhostname, host=host, secure=True)
+
+    def finalize_routes(self) -> None:
+        logger = self.config.ir.logger
+
+        # For each route in the system, grab all its variations...
+        for rv in self.config.route_variants:
+            logger.info("CHECK ROUTE: %s", v2prettyroute(dict(rv.route)))
+
+            # ...then go walk all our vhosts and match things up.
+            for vhostkey, vhost in self._vhosts.items():
+                logger.info(f"    {vhost.pretty()}")
+
+                # For each vhost, we need to look at things for the secure world as well
+                # as the insecure world, depending on what the action is exactly (and note
+                # that, yes, we can have an action of None for an insecure_only listener).
+                # 
+                # "candidates" is matcher, action, V2RouteVariants
+                candidates: List[Tuple[str, str, V2RouteVariants]] = []
+                vhostname = vhost._hostname
+
+                if (vhost._action is not None) and (self._security_model != "INSECURE"):
+                    # We have a secure action, and we're willing to believe that at least some of
+                    # our requests will be secure.
+                    matcher = 'always' if (self._security_model == 'SECURE') else 'xfp-https'
+
+                    candidates.append(( matcher, 'Route', rv ))
+                
+                if (vhost._insecure_action is not None) and (self._security_model != "SECURE"):
+                    # We have an insecure action, and we're willing to believe that at least some of
+                    # our requests will be insecure.
+                    matcher = 'always' if (self._security_model == 'INSECURE') else 'xfp-http'
+                    action = vhost._insecure_action
+
+                    candidates.append(( matcher, action, rv ))
+
+                for matcher, action, rv in candidates:
+                    logger.info(f"      check {matcher} - {action}")
+
+                    route_precedence = rv.route.get('_precedence', None)
+                    route_hosts = rv.route['_host_constraints']
+
+                    if rv.route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
+                        # We need to be sure to route ACME challenges, no matter what else is going
+                        # on (this is the infamous ACME hole-puncher mentioned everywhere).
+                        if True or self._log_debug:
+                            logger.info(f"V2Listeners: {self.name} {vhostname} force Route for ACME challenge")
+                        action = "Route"
+                    elif ('*' not in route_hosts) and (vhostname != '*') and (vhostname not in route_hosts):
+                        # Drop this because the host is mismatched.
+                        if True or self._log_debug:
+                            logger.info(
+                                f"V2Listeners: {self.name} {vhostname} {matcher}-{action}: force Reject (rhosts {sorted(route_hosts)}, vhost {vhostname})")
+                        action = "Reject"
+                    elif (self.config.ir.edge_stack_allowed and
+                            (route_precedence == -1000000) and
+                            (rv.route["match"].get("safe_regex", {}).get("regex", None) == "^/$")):
+                        if True or self._log_debug:
+                            logger.info(
+                                f"V2Listeners: {self.name} {vhostname} {matcher}-{action}: force Route for fallback Mapping")
+                        action = "Route"
+
+                    if action != 'Reject':
+                        # Worth noting here that "Route" really means "do what the V2Route really says", which 
+                        # might be a host redirect. When we talk about "Redirect", we really mean "redirect to HTTPS".
+
+                        if True or self._log_debug:
+                            logger.info(
+                                f"V2Listeners: {self.name} {vhostname} {matcher}-{action}: Accept as {action}")
+                        vhost.routes.append(rv.get_variant(matcher, action.lower()))
+                    else:
+                        if True or self._log_debug:
+                            logger.info(
+                                f"V2Listeners: {self.name} {vhostname} {matcher}-{action}: Drop")
 
     def as_dict(self) -> dict:
         return {
