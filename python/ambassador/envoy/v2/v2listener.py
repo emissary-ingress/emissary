@@ -103,13 +103,13 @@ class V2Listener(dict):
                         continue
                     
                     if irgroup.bind_to() != self.bind_to: 
-                        self.config.ir.logger.info("V2Listener %s: skip TCPMappingGroup on %s", self.bind_to, irgroup.bind_to())
+                        # self.config.ir.logger.debug("V2Listener %s: skip TCPMappingGroup on %s", self.bind_to, irgroup.bind_to())
                         continue
                     
                     self.add_tcp_group(irgroup)
 
     def add_tcp_group(self, irgroup: IRTCPMappingGroup) -> None:
-        self.config.ir.logger.info("V2Listener %s: take TCPMappingGroup on %s", self.bind_to, irgroup.bind_to())
+        # self.config.ir.logger.debug("V2Listener %s: take TCPMappingGroup on %s", self.bind_to, irgroup.bind_to())
 
         # First up, which clusters do we need to talk to?
         clusters = [{
