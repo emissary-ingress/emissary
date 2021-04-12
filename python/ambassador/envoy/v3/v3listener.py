@@ -808,11 +808,6 @@ class V3Listener(dict):
                                 logger.debug(
                                     f"V3Listeners: {listener.name} {vhostname} {variant}: Drop")
 
-                        # Also, remember if we're redirecting so that the VHost finalizer can DTRT
-                        # for ACME.
-                        if action == 'Redirect':
-                            vhost.needs_redirect()
-
         # OK. Finalize the world.
         for port, listener in listeners_by_port.items():
             listener.finalize()
