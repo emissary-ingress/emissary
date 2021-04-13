@@ -76,7 +76,9 @@ func NewDispatcher() *Dispatcher {
 	}
 }
 
-// Register registers a transform function for the specified kubernetes resource.
+// Register registers a transform function for the specified kubernetes resource. The transform
+// argument must be a function that takes a single resource of the supplied "kind" and returns a
+// single CompiledConfig object, i.e.: `func(Kind) CompiledConfig`
 func (d *Dispatcher) Register(kind string, transform interface{}) error {
 	_, ok := d.transforms[kind]
 	if ok {
