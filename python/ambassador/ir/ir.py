@@ -222,7 +222,6 @@ class IR:
 
         # After that, load and finalize our Listeners.
         ListenerFactory.load_all(self, aconf)
-        ListenerFactory.finalize(self, aconf)
 
         # ...then grab whatever we know about Hosts...
         HostFactory.load_all(self, aconf)
@@ -230,8 +229,11 @@ class IR:
         # ...then set up for the intercept agent, if that's a thing.
         self.agent_init(aconf)
 
-        # Finally, finalize all the Host stuff (including the !*@#&!* fallback context).
+        # Finally, finalize all the Host stuff (including the !*@#&!* fallback context)...
         HostFactory.finalize(self, aconf)
+
+        # ...and the listeners.
+        ListenerFactory.finalize(self, aconf)
 
         # Now we can finalize the Ambassador module, to tidy up secrets et al. We do this
         # here so that secrets and TLS contexts are available.
