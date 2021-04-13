@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List, Set, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Set, Union, TYPE_CHECKING
 from typing import cast as typecast
 
 from ..common import EnvoyRoute
@@ -50,22 +50,25 @@ def v2prettyroute(route: DictifiedV2Route) -> str:
     match_str = f"{key} {value}"
 
     headers = match.get("headers", {})
-    xfp = None
-    host = None
+    xfp: Optional[str] = None
+    host: Optional[str] = None
 
     for header in headers:
         name = header.get("name", None).lower()
         exact = header.get("exact_match", None)
 
-        if not name or not exact:
-            continue
+        if header == ':authority':
+            if exact:
+                host = exact
+            elif 'safe_regex_match' in header:
+                host = header['safe_regex_match']['regex']
+        elif name == 'x-forwarded-proto':
+            xfp = exact
 
-        if name == "x-forwarded-proto":
-            xfp = bool(exact == "https")
-        elif name == ":authority":
-            host = exact
-
-    match_str += f" {'IN' if not xfp else ''}SECURE"
+    if xfp:
+        match_str += f" XFP {xfp}"
+    else:
+        match_str += " ALWAYS"
 
     if host:
         match_str += f" HOST {host}"
@@ -133,6 +136,9 @@ class V2Route(Cacheable):
 
         if group.get('precedence'):
             self['_precedence'] = group['precedence']
+
+        # Next up, save our host constraints.
+        self['_host_constraints'] = self.host_constraints(True)
 
         envoy_route = EnvoyRoute(group).envoy_route
 
@@ -418,7 +424,6 @@ class V2Route(Cacheable):
             route["upgrade_configs"] = [ { 'upgrade_type': proto } for proto in group.get('allow_upgrade', []) ]
 
         self['route'] = route
-
 
     def host_constraints(self, prune_unreachable_routes: bool) -> Set[str]:
         """Return a set of hostglobs that match (a superset of) all hostnames that this route can
