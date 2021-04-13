@@ -77,6 +77,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 [#3224]: https://github.com/datawire/ambassador/issues/3224
 
 - Feature: Add diagnostics.allow_non_local flag to expose admin UI internally only ([#3074])
+- Change: Move endpoint to change log level from GET+params to POST request
 
 ## [1.12.2] March 29, 2021
 [1.12.2]: https://github.com/datawire/ambassador/compare/v1.12.1...v1.12.2
