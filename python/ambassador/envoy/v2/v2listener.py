@@ -311,7 +311,7 @@ class V2Listener(dict):
 
     def finalize(self) -> None:
         if self.config.ir.logger.isEnabledFor(logging.DEBUG):
-            self.config.ir.logger.debug(f"V2Listener finalize {self.pretty()}")
+            self.config.ir.logger.debug(f"V2Listener finalize {self}")
 
         # OK. Assemble the high-level stuff for Envoy.
         self.address = {
@@ -341,6 +341,12 @@ class V2Listener(dict):
             #  "use_proxy_proto": self.use_proxy_proto,
         }
 
+    def __str__(self) -> str:
+        return "<V2Listener %s %s on %s:%d [%s]>" % (
+            "HTTP" if self._base_http_config else "TCP",
+            self.name, self.bind_address, self.port, self._security_model
+        )
+
     @classmethod
     def dump_listeners(cls, logger, listeners_by_port) -> None:
         pretty = { k: v.pretty() for k, v in listeners_by_port.items() }
@@ -364,4 +370,4 @@ class V2Listener(dict):
 
             config.listeners.append(v2listener)
 
-            config.ir.logger.debug(f"V2Listener generated: {v2listener.pretty()}")
+            config.ir.logger.debug(f"V2Listener generated: {v2listener}")
