@@ -25,6 +25,9 @@ class IRHost(IRResource):
     }
     
     hostname: str
+    secure_action: str
+    insecure_action: str
+    insecure_addl_port: Optional[int]
 
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str,      # REQUIRED
@@ -56,6 +59,16 @@ class IRHost(IRResource):
 
         tls_ss: Optional[SavedSecret] = None
         pkey_ss: Optional[SavedSecret] = None
+
+        # Go ahead and cache some things to make life easier later.
+        request_policy = self.get('requestPolicy', {})
+
+        # XXX This will change later!!
+        self.secure_action = 'Route'
+
+        insecure_policy = request_policy.get('insecure', {})
+        self.insecure_action = insecure_policy.get('action', 'Redirect')
+        self.insecure_addl_port: Optional[int] = insecure_policy.get('additionalPort', None)
 
         if self.get('tlsSecret', None):
             tls_secret = self.tlsSecret
@@ -256,17 +269,25 @@ class IRHost(IRResource):
                 authority = acme.get('authority', None)
 
                 if authority and (authority.lower() != 'none'):
-                    # ACME is active. Are they trying to not set insecure.additionalPort?
-                    request_policy = self.get('requestPolicy', {})
-                    insecure_policy = request_policy.get('insecure', {})
+                    # ACME is active, which means that we must have an insecure_addl_port.
+                    # Make sure we do -- if no port is set at all, just silently default it,
+                    # but if for some reason they tried to force it disabled, be noisy.
 
-                    # Default the additionalPort to 8080. This can be overridden by the user
-                    # explicitly setting it to -1.
-                    insecure_addl_port = insecure_policy.get('additionalPort', 8080)
+                    override_insecure = False
 
-                    if insecure_addl_port < 0:
-                        # Bzzzt.
+                    if self.insecure_addl_port is None:
+                        # Override silently, since it's not set at all.
+                        override_insecure = True
+                    elif self.insecure_addl_port < 0:
+                        # Override noisily, since they tried to explicitly disable it.
                         self.post_error("ACME requires insecure.additionalPort to function; forcing to 8080")
+                        override_insecure = True
+                    
+                    if override_insecure:
+                        # Force self.insecure_addl_port...
+                        self.insecure_addl_port = 8080
+
+                        # ...but also update the actual policy dict, too.
                         insecure_policy['additionalPort'] = 8080
 
                         if 'action' not in insecure_policy:
