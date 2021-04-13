@@ -1,17 +1,21 @@
 package gateway
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"reflect"
 
 	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
 	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
+	v2endpoint "github.com/datawire/ambassador/pkg/api/envoy/api/v2/endpoint"
 	route "github.com/datawire/ambassador/pkg/api/envoy/api/v2/route"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v2"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/resource/v2"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/wellknown"
 	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/dlib/dlog"
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/pkg/errors"
 )
@@ -300,14 +304,23 @@ func (d *Dispatcher) buildSnapshot() {
 	endpoints := []types.Resource{}
 	for name := range clusterMap {
 		clusters = append(clusters, makeCluster(name))
-		endpoints = append(endpoints, endpointMap[name])
+		la, ok := endpointMap[name]
+		if ok {
+			endpoints = append(endpoints, la)
+		} else {
+			endpoints = append(endpoints, &v2.ClusterLoadAssignment{
+				ClusterName: name,
+				Endpoints:   []*v2endpoint.LocalityLbEndpoints{},
+			})
+		}
 	}
 
 	listeners, routes := d.buildRouteConfigurations()
 
 	snapshot := cache.NewSnapshot(d.version, endpoints, clusters, routes, listeners, nil)
 	if err := snapshot.Consistent(); err != nil {
-		panic(errors.Wrapf(err, "Snapshot inconsistency: %s", d.version))
+		bs, _ := json.MarshalIndent(snapshot, "", "  ")
+		dlog.Errorf(context.Background(), "Dispatcher Snapshot inconsistency: %v: %s", err, bs)
 	} else {
 		d.snapshot = &snapshot
 	}

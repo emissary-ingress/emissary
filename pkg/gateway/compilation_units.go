@@ -50,8 +50,11 @@ type CompiledListener struct {
 // CompiledRoute is
 type CompiledRoute struct {
 	CompiledItem
-	Name        string
-	HTTPRoute   *gw.HTTPRoute
+
+	// This field will likely get replaced with something more astract, e.g. just info about the
+	// source such as labels kind, namespace, name, etc.
+	HTTPRoute *gw.HTTPRoute
+
 	Routes      []*route.Route
 	ClusterRefs []*ClusterRef
 }

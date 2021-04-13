@@ -8,6 +8,7 @@ import (
 	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
 	listener "github.com/datawire/ambassador/pkg/api/envoy/api/v2/listener"
 	v2http "github.com/datawire/ambassador/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
+	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
 	"github.com/datawire/ambassador/pkg/envoy-control-plane/wellknown"
 	"github.com/datawire/ambassador/pkg/gateway"
 	"github.com/golang/protobuf/ptypes"
@@ -360,5 +361,34 @@ func compile_FooWithoutRds(f *Foo) *gateway.CompiledConfig {
 	return &gateway.CompiledConfig{
 		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
 		Listeners:    []*gateway.CompiledListener{{Listener: l}},
+	}
+}
+
+func TestDispatcherAssemblyEndpointDefaulting(t *testing.T) {
+	disp := gateway.NewDispatcher()
+	err := disp.Register("Foo", compile_FooWithClusterRefs)
+	require.NoError(t, err)
+	foo := makeFoo("default", "foo", "bar")
+	err = disp.Upsert(foo)
+	require.NoError(t, err)
+	_, snap := disp.GetSnapshot()
+	found := false
+	for _, r := range snap.Resources[types.Endpoint].Items {
+		cla := r.(*v2.ClusterLoadAssignment)
+		if cla.ClusterName == "foo" && len(cla.Endpoints) == 0 {
+			found = true
+		}
+	}
+	if !found {
+		assert.Fail(t, "no defaulted cluster load assignment")
+	}
+}
+
+func compile_FooWithClusterRefs(f *Foo) *gateway.CompiledConfig {
+	return &gateway.CompiledConfig{
+		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
+		Routes: []*gateway.CompiledRoute{{
+			ClusterRefs: []*gateway.ClusterRef{{Name: "foo"}},
+		}},
 	}
 }
