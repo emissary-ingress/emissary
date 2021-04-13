@@ -184,19 +184,19 @@ class ResourceFetcher:
         basedir = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', '/ambassador')
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds')):
-            self.aconf.post_error("Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
+            self.aconf.post_error("Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_2')):
-            self.aconf.post_error("Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador, but ConsulResolver, KubernetesEndpointResolver, and KubernetesServiceResolver resources will be ignored...")
+            self.aconf.post_error("Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador, but ConsulResolver, KubernetesEndpointResolver, and KubernetesServiceResolver resources will be ignored...")
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_3')):
-            self.aconf.post_error("Ambassador could not find the Host CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador, but Host resources will be ignored...")
+            self.aconf.post_error("Ambassador could not find the Host CRD definition. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador, but Host resources will be ignored...")
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_4')):
-            self.aconf.post_error("Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador, but LogService resources will be ignored...")
+            self.aconf.post_error("Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador, but LogService resources will be ignored...")
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_5')):
-            self.aconf.post_error("Ambassador could not find the DevPortal CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador, but DevPortal resources will be ignored...")
+            self.aconf.post_error("Ambassador could not find the DevPortal CRD definition. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador, but DevPortal resources will be ignored...")
 
         # We could be posting errors about the missing IngressClass resource, but given it's new in K8s 1.18
         # and we assume most users would be worried about it when running on older clusters, we'll rely on
@@ -205,7 +205,7 @@ class ResourceFetcher:
         #    self.aconf.post_error("Ambassador is not permitted to read IngressClass resources. Please visit https://www.getambassador.io/user-guide/ingress-controller/ for more information. You can continue using Ambassador, but IngressClass resources will be ignored...")
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_ingress')):
-            self.aconf.post_error("Ambassador is not permitted to read Ingress resources. Please visit https://www.getambassador.io/user-guide/ingress-controller/ for more information. You can continue using Ambassador, but Ingress resources will be ignored...")
+            self.aconf.post_error("Ambassador is not permitted to read Ingress resources. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/running/ingress-controller/#ambassador-as-an-ingress-controller for more information. You can continue using Ambassador, but Ingress resources will be ignored...")
 
         # Expand environment variables allowing interpolation in manifests.
         serialization = os.path.expandvars(serialization)
