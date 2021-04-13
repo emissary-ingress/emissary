@@ -23,6 +23,31 @@ import (
 // The Dispatcher struct allows transforms to be registered for different kinds of kubernetes
 // resources and invokes those transforms to produce compiled envoy configurations. It also knows
 // how to assemble the compiled envoy configuration into a complete snapshot.
+//
+// Currently the dispatch process is relatively simple, each resource is processed as an independent
+// unit. This is sufficient for the gateway API since the currently implemented resources are
+// conveniently defined in such a way as to make them independent.
+//
+// Consistency is guaranteed assuming transform functions don't use out of band communication to
+// include information from other resources. This guarantee is achieved because each transform is
+// only passed a single resource and can therefore only use information from that one
+// resource. Changes to any other resource cannot impact the result of that transform.
+//
+// Not all the edgestack resources are defined as conveniently, so the Dispatcher design is expected
+// to be extended in two ways to handle resources with more complex interdependencies:
+//
+//   1. Grouping -- This feature would cover resources that need to be processed as a group,
+//      e.g. Mappings that get grouped together based on prefix. Instead of dispatching at the
+//      granularity of a single resource, the dispatcher will track groups of resources that need to
+//      be processed together via a logical "hash" function provided at registration. Whenever any
+//      item in a given bucket changes, the dispatcher will transform the entire bucket.
+//
+//   2. Dependencies -- This feature would cover resources that need to lookup the contents of other
+//      resources in order to properly implement their transform. This would be done by passing the
+//      transform function a Query API. Any resources queried by the transform would be
+//      automatically tracked as a dependency of that resource. The dependencies would then be used
+//      to perform invalidation whenever a resource is Upsert()ed.
+//
 type Dispatcher struct {
 	// Map from kind to transform function.
 	transforms map[string]reflect.Value
