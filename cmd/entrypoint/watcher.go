@@ -10,6 +10,8 @@ import (
 	"github.com/datawire/ambassador/cmd/ambex"
 	"github.com/datawire/ambassador/pkg/acp"
 	"github.com/datawire/ambassador/pkg/debug"
+	v2cache "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v2"
+	"github.com/datawire/ambassador/pkg/gateway"
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/snapshot/v1"
 	"github.com/datawire/ambassador/pkg/watt"
@@ -17,7 +19,7 @@ import (
 )
 
 func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atomic.Value,
-	endpointsCh chan<- *ambex.Endpoints, clusterID string, version string) {
+	fastpathCh chan<- *ambex.FastpathSnapshot, clusterID string, version string) {
 	client, err := kates.NewClient(kates.ClientConfig{})
 	if err != nil {
 		panic(err)
@@ -43,15 +45,15 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 		}
 	}
 
-	endpointUpdate := func(ctx context.Context, endpoints *ambex.Endpoints) {
-		endpointsCh <- endpoints
+	fastpathUpdate := func(ctx context.Context, fastpathSnapshot *ambex.FastpathSnapshot) {
+		fastpathCh <- fastpathSnapshot
 	}
 
 	k8sSrc := newK8sSource(client)
 	consulSrc := &consulWatcher{}
 	istioCertSrc := newIstioCertSource()
 
-	watcherLoop(ctx, encoded, k8sSrc, queries, consulSrc, istioCertSrc, notify, endpointUpdate, ambassadorMeta)
+	watcherLoop(ctx, encoded, k8sSrc, queries, consulSrc, istioCertSrc, notify, fastpathUpdate, ambassadorMeta)
 }
 
 func getAmbassadorMeta(ambassadorID string, clusterID string, version string, client *kates.Client) *snapshot.AmbassadorMetaInfo {
@@ -83,7 +85,7 @@ const (
 	SnapshotReady
 )
 
-type EndpointProcessor func(context.Context, *ambex.Endpoints)
+type FastpathProcessor func(context.Context, *ambex.FastpathSnapshot)
 
 // watcher is _the_ thing that watches all the different kinds of Ambassador configuration
 // events that we care about. This right here is pretty much the root of everything flowing
@@ -131,7 +133,7 @@ type EndpointProcessor func(context.Context, *ambex.Endpoints)
 // 4. If you don't fully understand everything above, _do not touch this function without
 //    guidance_.
 func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, queries []kates.Query,
-	consulWatcher Watcher, istioCertSrc IstioCertSource, snapshotProcessor SnapshotProcessor, endpointProcessor EndpointProcessor, ambassadorMeta *snapshot.AmbassadorMetaInfo) {
+	consulWatcher Watcher, istioCertSrc IstioCertSource, snapshotProcessor SnapshotProcessor, fastpathProcessor FastpathProcessor, ambassadorMeta *snapshot.AmbassadorMetaInfo) {
 	// Ambassador has three sources of inputs: kubernetes, consul, and the filesystem. The job of
 	// the watcherLoop is to read updates from all three of these sources, assemble them into a
 	// single coherent configuration, and pass them along to other parts of ambassador for
@@ -201,14 +203,14 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 		select {
 		case <-k8sWatcher.Changed():
 			// Kubernetes has some changes, so we need to handle them.
-			changed := snapshots.K8sUpdate(ctx, k8sWatcher, consul, endpointProcessor)
+			changed := snapshots.K8sUpdate(ctx, k8sWatcher, consul, fastpathProcessor)
 			if !changed {
 				continue
 			}
 			out = notifyCh
 		case <-consul.changed():
 			dlog.Debugf(ctx, "WATCHER: Consul fired")
-			snapshots.ConsulUpdate(ctx, consul, endpointProcessor)
+			snapshots.ConsulUpdate(ctx, consul, fastpathProcessor)
 			out = notifyCh
 		case icertUpdate := <-istio.Changed():
 			// The Istio cert has some changes, so we need to handle them.
@@ -249,6 +251,7 @@ type SnapshotHolder struct {
 	unsentDeltas []*kates.Delta
 
 	endpointRoutingInfo endpointRoutingInfo
+	dispatcher          *gateway.Dispatcher
 
 	// Serial number that tracks if we need to send snapshot changes or not. This is incremented
 	// when a change worth sending is made, and we copy it over to snapshotNotifiedCount when the
@@ -261,19 +264,33 @@ type SnapshotHolder struct {
 }
 
 func NewSnapshotHolder(ambassadorMeta *snapshot.AmbassadorMetaInfo) *SnapshotHolder {
+	disp := gateway.NewDispatcher()
+	err := disp.Register("Gateway", gateway.Compile_Gateway)
+	if err != nil {
+		panic(err)
+	}
+	err = disp.Register("HTTPRoute", gateway.Compile_HTTPRoute)
+	if err != nil {
+		panic(err)
+	}
+	err = disp.Register("Endpoints", gateway.Compile_Endpoints)
+	if err != nil {
+		panic(err)
+	}
 	return &SnapshotHolder{
 		validator:           newResourceValidator(),
 		ambassadorMeta:      ambassadorMeta,
 		k8sSnapshot:         NewKubernetesSnapshot(),
 		consulSnapshot:      &watt.ConsulSnapshot{},
 		endpointRoutingInfo: newEndpointRoutingInfo(),
+		dispatcher:          disp,
 		firstReconfig:       true,
 	}
 }
 
 // Get the raw update from the kubernetes watcher, then redo our computed view.
 func (sh *SnapshotHolder) K8sUpdate(ctx context.Context, watcher K8sWatcher, consul *consul,
-	endpointProcessor EndpointProcessor) bool {
+	fastpathProcessor FastpathProcessor) bool {
 	dbg := debug.FromContext(ctx)
 
 	katesUpdateTimer := dbg.Timer("katesUpdate")
@@ -282,7 +299,9 @@ func (sh *SnapshotHolder) K8sUpdate(ctx context.Context, watcher K8sWatcher, con
 	reconcileConsulTimer := dbg.Timer("reconcileConsul")
 
 	endpointsChanged := false
+	dispatcherChanged := false
 	var endpoints *ambex.Endpoints
+	var dispSnapshot *v2cache.Snapshot
 	changed := func() bool {
 		sh.mutex.Lock()
 		defer sh.mutex.Unlock()
@@ -323,41 +342,69 @@ func (sh *SnapshotHolder) K8sUpdate(ctx context.Context, watcher K8sWatcher, con
 		endpointsOnly := true
 		for _, delta := range deltas {
 			sh.unsentDeltas = append(sh.unsentDeltas, delta)
+
 			if delta.Kind == "Endpoints" {
 				key := fmt.Sprintf("%s:%s", delta.Namespace, delta.Name)
-				if sh.endpointRoutingInfo.endpointWatches[key] {
+				if sh.endpointRoutingInfo.endpointWatches[key] || sh.dispatcher.IsWatched(delta.Namespace, delta.Name) {
 					endpointsChanged = true
 				}
 			} else {
 				endpointsOnly = false
+			}
+
+			if sh.dispatcher.IsRegistered(delta.Kind) {
+				dispatcherChanged = true
+				if delta.DeltaType == kates.ObjectDelete {
+					sh.dispatcher.DeleteKey(delta.Kind, delta.Namespace, delta.Name)
+				}
 			}
 		}
 		if !endpointsOnly {
 			sh.snapshotChangeCount += 1
 		}
 
-		if endpointsChanged {
+		if endpointsChanged || dispatcherChanged {
 			endpoints = makeEndpoints(ctx, sh.k8sSnapshot, sh.consulSnapshot.Endpoints)
+			for _, gwc := range sh.k8sSnapshot.GatewayClasses {
+				sh.dispatcher.Upsert(gwc)
+			}
+			for _, gw := range sh.k8sSnapshot.Gateways {
+				sh.dispatcher.Upsert(gw)
+			}
+			for _, hr := range sh.k8sSnapshot.HTTPRoutes {
+				sh.dispatcher.Upsert(hr)
+			}
+			_, dispSnapshot = sh.dispatcher.GetSnapshot()
 		}
+
 		return true
 	}()
 
-	if endpointsChanged {
-		endpointProcessor(ctx, endpoints)
+	if endpointsChanged || dispatcherChanged {
+		fastpath := &ambex.FastpathSnapshot{
+			Endpoints: endpoints,
+			Snapshot:  dispSnapshot,
+		}
+		fastpathProcessor(ctx, fastpath)
 	}
 
 	return changed
 }
 
-func (sh *SnapshotHolder) ConsulUpdate(ctx context.Context, consul *consul, endpointProcessor EndpointProcessor) bool {
+func (sh *SnapshotHolder) ConsulUpdate(ctx context.Context, consul *consul, fastpathProcessor FastpathProcessor) bool {
 	var endpoints *ambex.Endpoints
+	var dispSnapshot *v2cache.Snapshot
 	func() {
 		sh.mutex.Lock()
 		defer sh.mutex.Unlock()
 		consul.update(sh.consulSnapshot)
 		endpoints = makeEndpoints(ctx, sh.k8sSnapshot, sh.consulSnapshot.Endpoints)
+		_, dispSnapshot = sh.dispatcher.GetSnapshot()
 	}()
-	endpointProcessor(ctx, endpoints)
+	fastpathProcessor(ctx, &ambex.FastpathSnapshot{
+		Endpoints: endpoints,
+		Snapshot:  dispSnapshot,
+	})
 	return true
 }
 

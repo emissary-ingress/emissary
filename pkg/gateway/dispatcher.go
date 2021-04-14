@@ -53,9 +53,16 @@ type Dispatcher struct {
 	transforms map[string]reflect.Value
 	configs    map[string]*CompiledConfig
 
-	version     string
-	changeCount int
-	snapshot    *cache.Snapshot
+	version         string
+	changeCount     int
+	snapshot        *cache.Snapshot
+	endpointWatches map[string]bool
+}
+
+type ResourceRef struct {
+	Kind      string
+	Namespace string
+	Name      string
 }
 
 // resourceKey produces a fully qualified key for a kubernetes resource.
@@ -235,16 +242,29 @@ func (d *Dispatcher) GetRouteConfiguration(name string) *v2.RouteConfiguration {
 	return nil
 }
 
-func (d *Dispatcher) buildClusterMap() map[string][]*ClusterRef {
-	refs := map[string][]*ClusterRef{}
+// IsWatched is a temporary hack for dealing with the way endpoint data currenttly flows from
+// watcher -> ambex.n
+func (d *Dispatcher) IsWatched(namespace, name string) bool {
+	key := fmt.Sprintf("%s:%s", namespace, name)
+	_, ok := d.endpointWatches[key]
+	return ok
+}
+
+func (d *Dispatcher) buildClusterMap() (map[string]string, map[string]bool) {
+	refs := map[string]string{}
+	watches := map[string]bool{}
 	for _, config := range d.configs {
 		for _, route := range config.Routes {
 			for _, ref := range route.ClusterRefs {
-				refs[ref.Name] = append(refs[ref.Name], ref)
+				refs[ref.Name] = ref.EndpointPath
+				if route.Namespace != "" {
+					key := fmt.Sprintf("%s:%s", route.Namespace, ref.Name)
+					watches[key] = true
+				}
 			}
 		}
 	}
-	return refs
+	return refs, watches
 }
 
 func (d *Dispatcher) buildEndpointMap() map[string]*v2.ClusterLoadAssignment {
@@ -325,18 +345,22 @@ func (d *Dispatcher) buildSnapshot() {
 	d.version = fmt.Sprintf("v%d", d.changeCount)
 
 	endpointMap := d.buildEndpointMap()
-	clusterMap := d.buildClusterMap()
+	clusterMap, endpointWatches := d.buildClusterMap()
 
 	clusters := []types.Resource{}
 	endpoints := []types.Resource{}
-	for name := range clusterMap {
-		clusters = append(clusters, makeCluster(name))
-		la, ok := endpointMap[name]
+	for name, path := range clusterMap {
+		clusters = append(clusters, makeCluster(name, path))
+		key := path
+		if key == "" {
+			key = name
+		}
+		la, ok := endpointMap[key]
 		if ok {
 			endpoints = append(endpoints, la)
 		} else {
 			endpoints = append(endpoints, &v2.ClusterLoadAssignment{
-				ClusterName: name,
+				ClusterName: key,
 				Endpoints:   []*v2endpoint.LocalityLbEndpoints{},
 			})
 		}
@@ -350,14 +374,18 @@ func (d *Dispatcher) buildSnapshot() {
 		dlog.Errorf(context.Background(), "Dispatcher Snapshot inconsistency: %v: %s", err, bs)
 	} else {
 		d.snapshot = &snapshot
+		d.endpointWatches = endpointWatches
 	}
 }
 
-func makeCluster(name string) *v2.Cluster {
+func makeCluster(name, path string) *v2.Cluster {
 	return &v2.Cluster{
 		Name:                 name,
 		ConnectTimeout:       &duration.Duration{Seconds: 10},
 		ClusterDiscoveryType: &v2.Cluster_Type{Type: v2.Cluster_EDS},
-		EdsClusterConfig:     &v2.Cluster_EdsClusterConfig{EdsConfig: &core.ConfigSource{ConfigSourceSpecifier: &core.ConfigSource_Ads{}}},
+		EdsClusterConfig: &v2.Cluster_EdsClusterConfig{
+			EdsConfig:   &core.ConfigSource{ConfigSourceSpecifier: &core.ConfigSource_Ads{}},
+			ServiceName: path,
+		},
 	}
 }

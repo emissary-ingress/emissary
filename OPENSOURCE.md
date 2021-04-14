@@ -170,7 +170,6 @@ Free and Open Source software:
     gopkg.in/natefinch/lumberjack.v2                               v2.0.0                                                      MIT license
     gopkg.in/yaml.v2                                               v2.3.0                                                      Apache License 2.0, MIT license
     gopkg.in/yaml.v3                                               v3.0.0-20200615113413-eeeca48fe776                          Apache License 2.0, MIT license
-    gotest.tools                                                   v2.2.0+incompatible                                         3-clause BSD license, Apache License 2.0
     helm.sh/helm/v3                                                v3.5.3                                                      Apache License 2.0
     k8s.io/api                                                     v0.20.2                                                     Apache License 2.0
     k8s.io/apiextensions-apiserver                                 v0.20.2                                                     Apache License 2.0

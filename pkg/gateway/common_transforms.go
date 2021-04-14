@@ -1,6 +1,8 @@
 package gateway
 
 import (
+	"fmt"
+
 	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
 	v2core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
 	v2endpoint "github.com/datawire/ambassador/pkg/api/envoy/api/v2/endpoint"
@@ -9,26 +11,38 @@ import (
 
 // Compile_Endpoints transforms a kubernetes endpoints resource into a v2.ClusterLoadAssignment
 func Compile_Endpoints(endpoints *kates.Endpoints) *CompiledConfig {
-	var lbEndpoints []*v2endpoint.LbEndpoint
+	var clas []*CompiledLoadAssignment
+
 	for _, subset := range endpoints.Subsets {
-		for _, addr := range subset.Addresses {
-			for _, port := range subset.Ports {
+		for _, port := range subset.Ports {
+			var lbEndpoints []*v2endpoint.LbEndpoint
+			for _, addr := range subset.Addresses {
 				lbEndpoints = append(lbEndpoints, makeLbEndpoint("TCP", addr.IP, int(port.Port)))
+			}
+			path := fmt.Sprintf("k8s/%s/%s/%d", endpoints.Namespace, endpoints.Name, port.Port)
+			clas = append(clas, &CompiledLoadAssignment{
+				CompiledItem: NewCompiledItem(SourceFromResource(endpoints)),
+				LoadAssignment: &v2.ClusterLoadAssignment{
+					ClusterName: path,
+					Endpoints:   []*v2endpoint.LocalityLbEndpoints{{LbEndpoints: lbEndpoints}},
+				},
+			})
+			if len(subset.Ports) == 1 {
+				path := fmt.Sprintf("k8s/%s/%s", endpoints.Namespace, endpoints.Name)
+				clas = append(clas, &CompiledLoadAssignment{
+					CompiledItem: NewCompiledItem(SourceFromResource(endpoints)),
+					LoadAssignment: &v2.ClusterLoadAssignment{
+						ClusterName: path,
+						Endpoints:   []*v2endpoint.LocalityLbEndpoints{{LbEndpoints: lbEndpoints}},
+					},
+				})
 			}
 		}
 	}
 
 	return &CompiledConfig{
-		CompiledItem: NewCompiledItem(SourceFromResource(endpoints)),
-		LoadAssignments: []*CompiledLoadAssignment{
-			{
-				CompiledItem: NewCompiledItem(SourceFromResource(endpoints)),
-				LoadAssignment: &v2.ClusterLoadAssignment{
-					ClusterName: endpoints.Name,
-					Endpoints:   []*v2endpoint.LocalityLbEndpoints{{LbEndpoints: lbEndpoints}},
-				},
-			},
-		},
+		CompiledItem:    NewCompiledItem(SourceFromResource(endpoints)),
+		LoadAssignments: clas,
 	}
 }
 
