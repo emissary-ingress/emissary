@@ -59,6 +59,14 @@ type DevPortalDocsSpec struct {
 // DevPortalSearchSpec allows configuration over search functionality for the DevPortal
 type DevPortalSearchSpec struct {
 	Enabled *bool `json:"enabled,omitempty"`
+
+	// Type of search.
+	// "title-only" does a fuzzy search over openapi and page titles
+	// "all-content" will fuzzy search over all openapi and page content.
+	// "title-only" is the default.
+	// warning:  using all-content may incur a larger memory footprint
+	// +kubebuilder:validation:Enum={"title-only", "all-content"}
+	Type string `json:"type,omitempty"`
 }
 
 // DevPortalSpec defines the desired state of DevPortal

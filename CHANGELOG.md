@@ -91,6 +91,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: DevPortal: `DEVPORTAL_DOCS_BASE_PATH` environment variable makes the base path of service API documentation configurable.
 - Feature: DevPortal: DevPortal will now reload content on changes to Mapping and DevPortal resources.
 - Feature: DevPortal: DevPortal now supports a search endpoint at `/docs/api/search`
+- Feature: DevPortal search can be configured to only search over titles (with search.type=`title-only`in the DevPortal CRD) or to search over all content (search.type=`all-content`)
+- Feature: DevPortal search supports deep linking to openapi spec entries (must set `search.type=all-content` and `search.enabled=true` on the DevPortal CRD)
 
 ## [1.12.2] March 29, 2021
 [1.12.2]: https://github.com/datawire/ambassador/compare/v1.12.1...v1.12.2

@@ -312,6 +312,12 @@ spec:
               properties:
                 enabled:
                   type: boolean
+                type:
+                  description: 'Type of search. "title-only" does a fuzzy search over openapi and page titles "all-content" will fuzzy search over all openapi and page content. "title-only" is the default. warning:  using all-content may incur a larger memory footprint'
+                  enum:
+                  - title-only
+                  - all-content
+                  type: string
               type: object
             selector:
               description: Selector is used for choosing what is shown in the DevPortal
