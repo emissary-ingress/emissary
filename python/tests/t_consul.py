@@ -93,7 +93,7 @@ metadata:
   name: {self.path.k8s}-resolver
 spec:
   ambassador_id: consultest
-  address: {self.path.k8s}-consul:8500
+  address: {self.path.k8s}-consul:$CONSUL_WATCHER_PORT
   datacenter: {self.datacenter}
 ---
 apiVersion: getambassador.io/v2

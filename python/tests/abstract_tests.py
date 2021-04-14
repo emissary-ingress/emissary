@@ -108,6 +108,8 @@ class AmbassadorTest(Test):
         self.manifest_envs += """
     - name: POLL_EVERY_SECS
       value: "0"
+    - name: CONSUL_WATCHER_PORT
+      value: "8500"
 """
 
         if os.environ.get('AMBASSADOR_LEGACY_MODE', 'false').lower() == 'true':
@@ -289,6 +291,7 @@ class AmbassadorTest(Test):
                  "AMBASSADOR_SNAPSHOT_COUNT=1",
                  "AMBASSADOR_CONFIG_BASE_DIR=/tmp/ambassador",
                  "POLL_EVERY_SECS=0",
+                 "CONSUL_WATCHER_PORT=8500",
                  "AMBASSADOR_UPDATE_MAPPING_STATUS=false",
                  "AMBASSADOR_ID=%s" % self.ambassador_id]
 
