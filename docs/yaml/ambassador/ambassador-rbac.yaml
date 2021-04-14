@@ -116,6 +116,10 @@ rules:
   resources: [clusteringresses, ingresses]
   verbs: [get, list, watch]
 
+- apiGroups: [networking.x-k8s.io]
+  resources: ['*']
+  verbs: [get, list, watch]
+
 - apiGroups: [networking.internal.knative.dev]
   resources: [ingresses/status, clusteringresses/status]
   verbs: [update]
