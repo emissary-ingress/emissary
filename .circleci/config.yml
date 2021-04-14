@@ -127,6 +127,12 @@ commands:
         to: docs/
     - when:
         condition:
+          equal: ["e2etest", << parameters.test >>]
+        steps:
+        - skip-if-only-changes:
+            to: "(ambassador/|tests/pytest/gold/)"
+    - when:
+        condition:
           or:
           - equal: ["pytest-envoy", << parameters.test >>]
           - equal: ["pytest-envoy-v3", << parameters.test >>]
