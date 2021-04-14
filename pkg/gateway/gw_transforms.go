@@ -86,12 +86,13 @@ func Compile_HTTPRoute(httpRoute *gw.HTTPRoute) *CompiledConfig {
 	var routes []*route.Route
 	for idx, rule := range httpRoute.Spec.Rules {
 		s := Sourcef("rule %d in %s", idx, src)
-		routes = append(routes, Compile_HTTPRouteRule(s, rule, &clusterRefs)...)
+		routes = append(routes, Compile_HTTPRouteRule(s, rule, httpRoute.Namespace, &clusterRefs)...)
 	}
 	return &CompiledConfig{
+		CompiledItem: NewCompiledItem(src),
 		Routes: []*CompiledRoute{
 			{
-				CompiledItem: NewCompiledItem(src),
+				CompiledItem: CompiledItem{Source: src, Namespace: httpRoute.Namespace},
 				HTTPRoute:    httpRoute,
 				Routes:       routes,
 				ClusterRefs:  clusterRefs,
@@ -100,11 +101,11 @@ func Compile_HTTPRoute(httpRoute *gw.HTTPRoute) *CompiledConfig {
 	}
 }
 
-func Compile_HTTPRouteRule(src Source, rule gw.HTTPRouteRule, clusterRefs *[]*ClusterRef) (result []*route.Route) {
+func Compile_HTTPRouteRule(src Source, rule gw.HTTPRouteRule, namespace string, clusterRefs *[]*ClusterRef) (result []*route.Route) {
 	var clusters []*route.WeightedCluster_ClusterWeight
 	for idx, fwd := range rule.ForwardTo {
 		s := Sourcef("forwardTo %d in %s", idx, src)
-		clusters = append(clusters, Compile_HTTPRouteForwardTo(s, fwd, clusterRefs))
+		clusters = append(clusters, Compile_HTTPRouteForwardTo(s, fwd, namespace, clusterRefs))
 	}
 
 	wc := &route.WeightedCluster{Clusters: clusters}
@@ -121,13 +122,21 @@ func Compile_HTTPRouteRule(src Source, rule gw.HTTPRouteRule, clusterRefs *[]*Cl
 	return
 }
 
-func Compile_HTTPRouteForwardTo(src Source, forward gw.HTTPRouteForwardTo, clusterRefs *[]*ClusterRef) *route.WeightedCluster_ClusterWeight {
+func Compile_HTTPRouteForwardTo(src Source, forward gw.HTTPRouteForwardTo, namespace string, clusterRefs *[]*ClusterRef) *route.WeightedCluster_ClusterWeight {
+	suffix := ""
+	clusterName := *forward.ServiceName
+	if forward.Port != nil {
+		suffix = fmt.Sprintf("/%d", *forward.Port)
+		clusterName = fmt.Sprintf("%s_%d", *forward.ServiceName, *forward.Port)
+	}
+
 	*clusterRefs = append(*clusterRefs, &ClusterRef{
 		CompiledItem: NewCompiledItem(src),
-		Name:         *forward.ServiceName,
+		Name:         clusterName,
+		EndpointPath: fmt.Sprintf("k8s/%s/%s%s", namespace, *forward.ServiceName, suffix),
 	})
 	return &route.WeightedCluster_ClusterWeight{
-		Name:   *forward.ServiceName,
+		Name:   clusterName,
 		Weight: &wrappers.UInt32Value{Value: uint32(forward.Weight)},
 	}
 }

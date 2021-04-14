@@ -392,3 +392,24 @@ func compile_FooWithClusterRefs(f *Foo) *gateway.CompiledConfig {
 		}},
 	}
 }
+
+func TestDispatcherAssemblyEndpointWatches(t *testing.T) {
+	disp := gateway.NewDispatcher()
+	err := disp.Register("Foo", compile_FooEndpointWatches)
+	require.NoError(t, err)
+	foo := makeFoo("default", "foo", "bar")
+	err = disp.Upsert(foo)
+	require.NoError(t, err)
+	disp.GetSnapshot()
+	assert.True(t, disp.IsWatched("foo-ns", "foo"))
+}
+
+func compile_FooEndpointWatches(f *Foo) *gateway.CompiledConfig {
+	return &gateway.CompiledConfig{
+		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
+		Routes: []*gateway.CompiledRoute{{
+			CompiledItem: gateway.CompiledItem{Source: gateway.SourceFromResource(f), Namespace: "foo-ns"},
+			ClusterRefs:  []*gateway.ClusterRef{{Name: "foo"}},
+		}},
+	}
+}

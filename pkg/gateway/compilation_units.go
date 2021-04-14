@@ -12,8 +12,9 @@ import (
 
 // CompiledItem has fields common to all compilation units.
 type CompiledItem struct {
-	Source Source // Tracks the source of truth for whatever produced this compiled item.
-	Error  string // Holds any error associated with this compiled item.
+	Source    Source // Tracks the source of truth for whatever produced this compiled item.
+	Namespace string // The namespace of whatever produced this item.
+	Error     string // Holds any error associated with this compiled item.
 }
 
 func NewCompiledItem(source Source) CompiledItem {
@@ -63,6 +64,10 @@ type CompiledRoute struct {
 type ClusterRef struct {
 	CompiledItem
 	Name string
+
+	// These are temporary fields to deal with how endpoints are currently plumbed from the watcher
+	// through to ambex.
+	EndpointPath string
 }
 
 // CompiledCluster decorates an envoy v2.Cluster.

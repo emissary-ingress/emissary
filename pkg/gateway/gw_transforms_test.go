@@ -9,8 +9,8 @@ import (
 	"github.com/datawire/ambassador/pkg/envoy"
 	"github.com/datawire/ambassador/pkg/gateway"
 	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gotest.tools/assert"
 )
 
 func TestGatewayMatches(t *testing.T) {
@@ -28,6 +28,7 @@ kind: Gateway
 apiVersion: networking.x-k8s.io/v1alpha1
 metadata:
   name: my-gateway
+  namespace: default
 spec:
   listeners:
   - protocol: HTTP
@@ -37,6 +38,7 @@ kind: HTTPRoute
 apiVersion: networking.x-k8s.io/v1alpha1
 metadata:
   name: my-route
+  namespace: default
 spec:
   rules:
   - matches:
@@ -45,6 +47,7 @@ spec:
         value: /exact
     forwardTo:
     - serviceName: foo-backend-1
+      port: 9000
       weight: 100
   - matches:
     - path:
@@ -116,6 +119,52 @@ spec:
 	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "foo_aaaaAaaaa", 200, "Hello World")
 	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "foo_aaaaAaaaab", 404, "")
 	assertGetHeader(t, "http://127.0.0.1:8080", "regular_expression", "bar", 404, "")
+}
+
+func TestBadMatchTypes(t *testing.T) {
+	d := makeDispatcher(t)
+
+	// One rule for each type of path match (exact, prefix, regex) and each type of header match
+	// (exact and regex).
+	err := d.UpsertYaml(`
+---
+kind: HTTPRoute
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: my-route
+  namespace: default
+spec:
+  rules:
+  - matches:
+    - path:
+        type: Blah
+        value: /exact
+    forwardTo:
+    - serviceName: foo-backend-1
+      port: 9000
+      weight: 100
+`)
+	assertErrorContains(t, err, `processing HTTPRoute:default:my-route: unknown path match type: "Blah"`)
+
+	err = d.UpsertYaml(`
+---
+kind: HTTPRoute
+apiVersion: networking.x-k8s.io/v1alpha1
+metadata:
+  name: my-route
+  namespace: default
+spec:
+  rules:
+  - matches:
+    - headers:
+        type: Bleh
+        values:
+          exact: foo
+    forwardTo:
+    - serviceName: foo-backend-1
+      weight: 100
+`)
+	assertErrorContains(t, err, `processing HTTPRoute:default:my-route: unknown header match type: Bleh`)
 }
 
 func makeDispatcher(t *testing.T) *gateway.Dispatcher {
