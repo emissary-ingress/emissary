@@ -159,8 +159,8 @@ class V2RouteVariants:
 
         action_handler(variant)
 
-        self.variants[key] = variant
-        return variant
+        self.variants[key] = { k: v for k, v in variant.items() if k[0] != '_' }
+        return self.variants[key]
 
     def matcher_always(self, variant: DictifiedV2Route) -> None:
         pass
