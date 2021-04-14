@@ -63,6 +63,7 @@ import (
 	"github.com/golang/protobuf/ptypes/any"
 
 	// envoy control plane
+	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
 	ctypes "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
 	v2cache "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v2"
 	v3cache "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v3"
@@ -320,7 +321,7 @@ func Clone(src proto.Message) proto.Message {
 	return dst
 }
 
-func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.SnapshotCache, generation *int, dirs []string, edsEndpoints map[string]*v2.ClusterLoadAssignment, edsEndpointsV3 map[string]*v3endpointconfig.ClusterLoadAssignment, updates chan<- Update) {
+func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.SnapshotCache, generation *int, dirs []string, edsEndpoints map[string]*v2.ClusterLoadAssignment, edsEndpointsV3 map[string]*v3endpointconfig.ClusterLoadAssignment, fastpathSnapshot *FastpathSnapshot, updates chan<- Update) {
 	clusters := []ctypes.Resource{}  // v2.Cluster
 	routes := []ctypes.Resource{}    // v2.RouteConfiguration
 	listeners := []ctypes.Resource{} // v2.Listener
@@ -430,6 +431,19 @@ func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.
 			continue
 		}
 		*dst = append(*dst, m.(ctypes.Resource))
+	}
+
+	if fastpathSnapshot != nil && fastpathSnapshot.Snapshot != nil {
+		for _, lst := range fastpathSnapshot.Snapshot.Resources[types.Listener].Items {
+			listeners = append(listeners, lst)
+		}
+		for _, route := range fastpathSnapshot.Snapshot.Resources[types.Route].Items {
+			routes = append(routes, route)
+		}
+		for _, clu := range fastpathSnapshot.Snapshot.Resources[types.Cluster].Items {
+			clusters = append(clusters, clu)
+		}
+		// We intentionally omit endpoints since those are carried separately.
 	}
 
 	// The configuration data that reaches us here arrives via two parallel paths that race each
@@ -590,10 +604,10 @@ func (l loggerv3) OnFetchResponse(req *v3discovery.DiscoveryRequest, res *v3disc
 func Main(ctx context.Context, Version string, rawArgs ...string) error {
 	usage := memory.GetMemoryUsage()
 	go usage.Watch(ctx)
-	return Main2(ctx, Version, usage.PercentUsed, make(chan *Endpoints), rawArgs...)
+	return Main2(ctx, Version, usage.PercentUsed, make(chan *FastpathSnapshot), rawArgs...)
 }
 
-func Main2(ctx context.Context, Version string, getUsage MemoryGetter, endpointsCh <-chan *Endpoints,
+func Main2(ctx context.Context, Version string, getUsage MemoryGetter, fastpathCh <-chan *FastpathSnapshot,
 	rawArgs ...string) error {
 	args, err := parseArgs(rawArgs...)
 	if err != nil {
@@ -660,9 +674,10 @@ func Main2(ctx context.Context, Version string, getUsage MemoryGetter, endpoints
 	}()
 
 	generation := 0
+	var fastpathSnapshot *FastpathSnapshot
 	edsEndpoints := map[string]*v2.ClusterLoadAssignment{}
 	edsEndpointsV3 := map[string]*v3endpointconfig.ClusterLoadAssignment{}
-	update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, updates)
+	update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
 
 OUTER:
 	for {
@@ -671,16 +686,19 @@ OUTER:
 		case sig := <-ch:
 			switch sig {
 			case syscall.SIGHUP:
-				update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, updates)
+				update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
 			case os.Interrupt, syscall.SIGTERM:
 				break OUTER
 			}
-		case eps := <-endpointsCh:
-			edsEndpoints = eps.ToMap_v2()
-			edsEndpointsV3 = eps.ToMap_v3()
-			update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, updates)
+		case fpSnap := <-fastpathCh:
+			if fpSnap.Endpoints != nil {
+				edsEndpoints = fpSnap.Endpoints.ToMap_v2()
+				edsEndpointsV3 = fpSnap.Endpoints.ToMap_v3()
+			}
+			fastpathSnapshot = fpSnap
+			update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
 		case <-watcher.Events:
-			update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, updates)
+			update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
 		case err := <-watcher.Errors:
 			log.WithError(err).Warn("Watcher error")
 		case <-ctx.Done():

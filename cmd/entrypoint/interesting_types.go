@@ -90,6 +90,11 @@ func GetInterestingTypes(ctx context.Context, serverTypeList []kates.APIResource
 		"TCPMappings":                 {typename: "tcpmappings.getambassador.io"},
 		"TLSContexts":                 {typename: "tlscontexts.getambassador.io"},
 		"TracingServices":             {typename: "tracingservices.getambassador.io"},
+
+		// Gateway API resources
+		"GatewayClasses": {typename: "gatewayclasses.networking.x-k8s.io"},
+		"Gateways":       {typename: "gateways.networking.x-k8s.io"},
+		"HTTPRoutes":     {typename: "httproutes.networking.x-k8s.io"},
 	}
 
 	if !IsAmbassadorSingleNamespace() {

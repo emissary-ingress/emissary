@@ -68,7 +68,7 @@ type Fake struct {
 	// This holds the current snapshot.
 	currentSnapshot *atomic.Value
 
-	endpoints    *Queue // All endpoint sets that have been produced.
+	fastpath     *Queue // All fastpath snapshots that have been produced.
 	snapshots    *Queue // All snapshots that have been produced.
 	envoyConfigs *Queue // All envoyConfigs that have been produced.
 
@@ -112,7 +112,7 @@ func NewFake(t *testing.T, config FakeConfig) *Fake {
 
 		currentSnapshot: &atomic.Value{},
 
-		endpoints:    NewQueue(t, config.Timeout),
+		fastpath:     NewQueue(t, config.Timeout),
 		snapshots:    NewQueue(t, config.Timeout),
 		envoyConfigs: NewQueue(t, config.Timeout),
 	}
@@ -202,25 +202,25 @@ func (f *Fake) runWatcher(ctx context.Context) error {
 			err = r.(error)
 		}
 	}()
-	watcherLoop(ctx, f.currentSnapshot, f.k8sSource, queries, f.watcher, f.istioCertSource, f.notifySnapshot, f.notifyEndpoints, f.ambassadorMeta)
+	watcherLoop(ctx, f.currentSnapshot, f.k8sSource, queries, f.watcher, f.istioCertSource, f.notifySnapshot, f.notifyFastpath, f.ambassadorMeta)
 	return err
 }
 
-func (f *Fake) notifyEndpoints(ctx context.Context, endpoints *ambex.Endpoints) {
-	f.endpoints.Add(endpoints)
+func (f *Fake) notifyFastpath(ctx context.Context, fastpath *ambex.FastpathSnapshot) {
+	f.fastpath.Add(fastpath)
 }
 
 func (f *Fake) GetEndpoints(predicate func(*ambex.Endpoints) bool) *ambex.Endpoints {
 	f.T.Helper()
-	return f.endpoints.Get(func(obj interface{}) bool {
-		endpoints := obj.(*ambex.Endpoints)
-		return predicate(endpoints)
-	}).(*ambex.Endpoints)
+	return f.fastpath.Get(func(obj interface{}) bool {
+		fastpath := obj.(*ambex.FastpathSnapshot)
+		return predicate(fastpath.Endpoints)
+	}).(*ambex.FastpathSnapshot).Endpoints
 }
 
 func (f *Fake) AssertEndpointsEmpty(timeout time.Duration) {
 	f.T.Helper()
-	f.endpoints.AssertEmpty(timeout, "endpoints queue not empty")
+	f.fastpath.AssertEmpty(timeout, "endpoints queue not empty")
 }
 
 type SnapshotEntry struct {
