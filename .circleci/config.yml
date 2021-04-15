@@ -108,6 +108,16 @@ commands:
     - amb-config-registry
     - # main
       run: make lint
+  "job-check-envoy-version":
+    steps:
+    # setup
+    - amb-checkout
+    - amb-config-registry
+    - # main
+      run:
+        name: "Check Envoy version"
+        command: |
+          make check-envoy-version
   "job-promote-passed-ci-build":
     steps:
     - amb-linux-install
@@ -802,6 +812,10 @@ jobs:
     executor: oss-linux
     steps:
     - job-lint
+  oss-check-envoy-version:
+    executor: oss-linux
+    steps:
+    - job-check-envoy-version
   oss-images:
     parameters:
       release:

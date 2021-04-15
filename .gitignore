@@ -55,6 +55,8 @@ dist
 *.log
 *.tmp
 *.bak
+*.orig
+*.rej
 log.txt
 
 # From `make update-aws`

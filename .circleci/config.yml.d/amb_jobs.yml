@@ -119,6 +119,17 @@ commands:
       # main
       - run: make lint
 
+  "job-check-envoy-version":
+    steps:
+      # setup
+      - amb-checkout
+      - amb-config-registry
+      # main
+      - run:
+          name: "Check Envoy version"
+          command: |
+            make check-envoy-version
+
   "job-promote-passed-ci-build":
     steps:
       - amb-linux-install
