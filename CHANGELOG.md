@@ -69,6 +69,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
+- Bugfix: Endpoint routing will now detect endpoint changes when your service field includes `.svc.cluster.local`. ([#3324])
+
+[#3324]: https://github.com/datawire/ambassador/issues/3324
+
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Feature: Mapping configuration now supports setting `auth_context_extentions` that allows setting the `check_settings` field in the per route configuration supported by `ext_authz` http filter.
