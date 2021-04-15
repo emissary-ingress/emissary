@@ -69,8 +69,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 (no changes yet)
 
-## [1.12.3-rc.4] April 10, 2021
-[1.12.3-rc.4]: https://github.com/datawire/ambassador/compare/v1.12.2...v1.12.3-rc.4
+## [1.12.3] April 15, 2021
+[1.12.3]: https://github.com/datawire/ambassador/compare/v1.12.2...v1.12.3
 
 Bugfix: Incorporate the Envoy 1.15.4 security update.
 
