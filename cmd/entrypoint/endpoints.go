@@ -240,7 +240,6 @@ func (eri *endpointRoutingInfo) checkTCPMapping(ctx context.Context, tcpmapping 
 }
 
 func (m *moduleResolver) parseService(ctx context.Context, resource kates.Object, svcName, svcNamespace string) (name string, namespace string, port string) {
-	original := svcName
 	// First strip off the scheme if it exists.
 	parts := strings.SplitN(svcName, "://", 2)
 	if len(parts) > 1 {
@@ -265,9 +264,9 @@ func (m *moduleResolver) parseService(ctx context.Context, resource kates.Object
 		// If it's not an ip address but does have a dot then we split it up to find the namespace.
 		parts := strings.Split(svcName, ".")
 		if len(parts) > 2 {
-			extra := strings.Join(parts[2:], ".")
-			dlog.Errorf(ctx, "mapping %s in namespace %s: invalid service (%q), ignoring (%q)",
-				resource.GetName(), resource.GetNamespace(), original, extra)
+			using := strings.Join(parts[:2], ".")
+			dlog.Errorf(ctx, "mapping %s in namespace %s: ignoring extra domain parts in service, using %q",
+				resource.GetName(), resource.GetNamespace(), using)
 		}
 		name = parts[0]
 		namespace = parts[1]
