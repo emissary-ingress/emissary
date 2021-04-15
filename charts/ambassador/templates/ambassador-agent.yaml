@@ -1,10 +1,11 @@
-{{- if and .Values.agent.enabled }}
+{{- if .Values.agent.enabled }}
 {{- $allowAgent := false -}}
+{{- if .Values.image.fullImageOverride }}
+{{- $allowAgent = true }}
 {{- /* if the tag isn't semver, this is probably testing or yaml generation, so allow agent */ -}}
 {{- /* Yes, this isn't the official semver regex, but if the user is not running an X.Y.Z tag, let's assume they are a power user */ -}}
-{{- if not (regexMatch "^\\d+\\.\\d+\\.\\d+$" .Values.image.tag) }}
+{{- else if not (regexMatch "^\\d+\\.\\d+\\.\\d+$" .Values.image.tag) }}
 {{- $allowAgent = true }}
-{{- else if ne (semver "1.12.0" | (semver .Values.image.tag).Compare) -1 }}
 {{- /* agent was introduced in AES in 1.12.0 */ -}}
 {{- else if and .Values.enableAES (ne (semver "1.12.0" | (semver .Values.image.tag).Compare) -1) }}
 {{- $allowAgent = true }}
