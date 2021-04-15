@@ -69,6 +69,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
+- Feature: The AES ratelimit preview service now supports burst (aka token bucket) ratelimiting.
+- Bugfix: The AES ratelimit preview no longer ignores LOCAL_CACHE_SIZE_IN_BYTES.
+- Bugfix: The AES ratelimit preview no longer ignores NEAR_LIMIT_RATION.
+- Bugfix: The AES ratelimit preview no longer ignores EXPIRATION_JITTER_MAX_SECONDS.
+
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Feature: Mapping configuration now supports setting `auth_context_extentions` that allows setting the `check_settings` field in the per route configuration supported by `ext_authz` http filter.
