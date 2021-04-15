@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"sync"
 	"sync/atomic"
 
@@ -318,6 +319,33 @@ func (sh *SnapshotHolder) K8sUpdate(ctx context.Context, watcher K8sWatcher, con
 
 		if !changed {
 			return false
+		}
+
+		// ConsulResolvers are special in that people like to be able to interpolate enviroment
+		// variables in their Spec.Address field (e.g. "address: $CONSULHOST:8500" or the like),
+		// so we need to handle that, but we need to also not interpolate the same thing multiple
+		// times (it's probably unlikely to cause trouble, but you just know eventually it'll
+		// bite us). So we'll look through deltas for changing ConsulResolvers, and then only
+		// interpolate the ones that've changed.
+		//
+		// Also note that legacy mode supports interpolation literally anywhere in the input, but
+		// let's not do that here.
+		for _, delta := range deltas {
+			if (delta.Kind == "ConsulResolver") && (delta.DeltaType != kates.ObjectDelete) {
+				// Oh, look, a ConsulResolver changed, and it wasn't deleted. Go find the object
+				// in the snapshot so we can update it.
+				//
+				// XXX Yes, I know, linear searches suck. We don't expect there to be many
+				// ConsulResolvers, though, and we also don't expect them to change often.
+				for _, resolver := range sh.k8sSnapshot.ConsulResolvers {
+					if resolver.ObjectMeta.Name == delta.Name {
+						// Found it! Go do the environment variable interpolation and update
+						// resolver.Spec.Address in place, so that the change makes it into
+						// the snapshot.
+						resolver.Spec.Address = os.ExpandEnv(resolver.Spec.Address)
+					}
+				}
+			}
 		}
 
 		parseAnnotationsTimer.Time(func() {

@@ -1440,12 +1440,6 @@ class Runner:
         print(f'Continuing with Kube tests...')
         # print(f"ids_to_strip {self.ids_to_strip}")
 
-        # Install httpbin
-        apply_kube_artifacts(namespace, httpbin_manifests)
-
-        # Install websocket-echo-server
-        apply_kube_artifacts(namespace, websocket_echo_server_manifests)
-
         # XXX It is _so stupid_ that we're reparsing the whole manifest here.
         xxx_crap = pyyaml.load_all(open(fname, "r").read(), Loader=pyyaml_loader)
 
@@ -1557,8 +1551,7 @@ class Runner:
                 time.sleep(5)
         else:
             print(f'CRDS unchanged {reason}, skipping apply.')
-
-
+            
         # Next up: the KAT pod.
         KAT_CLIENT_POD = load_manifest("kat_client_pod")
         if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
@@ -1642,6 +1635,10 @@ class Runner:
                     retries=5, sleep_seconds=10):
                 raise RuntimeError('Could not apply manifests')
             self.applied_manifests = True
+
+        # Finally, install httpbin and the websocket-echo-server.
+        apply_kube_artifacts(namespace, httpbin_manifests)
+        apply_kube_artifacts(namespace, websocket_echo_server_manifests)
 
         for n in self.nodes:
             if n in selected and not n.xfail:
