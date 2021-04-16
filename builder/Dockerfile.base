@@ -88,9 +88,9 @@ RUN curl -o /usr/local/bin/yq --fail -L https://github.com/mikefarah/yq/releases
 # Download, build, and install PyYAML.
 RUN mkdir /tmp/pyyaml && \
   cd /tmp/pyyaml && \
-  curl -O -L http://pyyaml.org/download/pyyaml/PyYAML-5.3.1.tar.gz && \
-  tar xzf PyYAML-5.3.1.tar.gz && \
-  cd PyYAML-5.3.1 && \
+  curl -o pyyaml-5.4.1.1.tar.gz -L https://github.com/yaml/pyyaml/archive/refs/tags/5.4.1.1.tar.gz && \
+  tar xzf pyyaml-5.4.1.1.tar.gz && \
+  cd pyyaml-5.4.1.1 && \
   python3 setup.py --with-libyaml install
 
 FROM ${builderbase_stage1} as builderbase-stage2

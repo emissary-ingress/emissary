@@ -85,6 +85,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: The endpoint routing resolver will now properly watch services that include a scheme.
 - Bugfix: Environment variable interpolation works again for `ConsulResolver.Spec.Address` without setting `AMBASSADOR_LEGACY_MODE` ([#3182], [#3317])
 - Bugfix: Endpoint routing will now detect endpoint changes when your service field includes `.svc.cluster.local`. ([#3324])
+- Bugfix: Upgrade PyYAML to 5.4.1 ([#3349])
 - Change: The Helm chart has been moved into this repo, in the `charts/ambassador` directory.
 - Change: The `Mapping` CRD has been modified so that `kubectl get mappings` now has a column for not just the source path-prefix (`.spec.prefix`), but the source host (`.spec.host`) too.
 - Change: The yaml in yaml/docs is now generated from the contents of the helm chart in the `charts/ambassador` directory.
@@ -95,6 +96,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 [#3317]: https://github.com/datawire/ambassador/issues/3317
 [#3324]: https://github.com/datawire/ambassador/issues/3324
 [#3341]: https://github.com/datawire/ambassador/issues/3341
+[#3349]: https://github.com/datawire/ambassador/issues/3349
 
 ### Ambassador Edge Stack only
 
