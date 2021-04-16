@@ -69,6 +69,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
+(no changes yet)
+
+## [1.13.0-rc.0] April 16, 2021
+[1.13.0-rc.0]: https://github.com/datawire/ambassador/compare/v1.12.3...v1.13.0-rc.0
+
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Feature: Mapping configuration now supports setting `auth_context_extentions` that allows setting the `check_settings` field in the per route configuration supported by `ext_authz` http filter.
