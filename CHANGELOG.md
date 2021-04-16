@@ -71,8 +71,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 (no changes yet)
 
-## [1.13.0-rc.0] April 16, 2021
-[1.13.0-rc.0]: https://github.com/datawire/ambassador/compare/v1.12.3...v1.13.0-rc.0
+## [1.13.0-rc.1] April 16, 2021
+[1.13.0-rc.1]: https://github.com/datawire/ambassador/compare/v1.12.3...v1.13.0-rc.1
 
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
