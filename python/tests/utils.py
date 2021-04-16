@@ -15,121 +15,33 @@ from ambassador import Cache, IR
 from ambassador.compile import Compile
 from ambassador.utils import NullSecretHandler
 from kat.utils import namespace_manifest
-from kat.harness import load_manifest, CLEARTEXT_HOST_YAML
+from kat.harness import load_manifest
+from tests.kubeutils import apply_kube_artifacts
 
 logger = logging.getLogger("ambassador")
 
-httpbin_manifests ="""
+CLEARTEXT_HOST_YAML = '''
 ---
-apiVersion: v1
-kind: Service
+apiVersion: getambassador.io/v2
+kind: Host
 metadata:
-  name: httpbin
+  name: cleartext-host-{self.path.k8s}
+  labels:
+    scope: AmbassadorTest
+  namespace: %s
 spec:
-  type: ClusterIP
-  selector:
-    service: httpbin
-  ports:
-  - port: 80
-    targetPort: http
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: httpbin
-spec:
-  replicas: 1
+  ambassador_id: [ "{self.ambassador_id}" ]
+  hostname: "*"
   selector:
     matchLabels:
-      service: httpbin
-  template:
-    metadata:
-      labels:
-        service: httpbin
-    spec:
-      containers:
-      - name: httpbin
-        image: kennethreitz/httpbin
-        ports:
-        - name: http
-          containerPort: 80
-"""
-
-qotm_manifests = """
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: qotm
-spec:
-  selector:
-    service: qotm
-  ports:
-    - port: 80
-      targetPort: http-api
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: qotm
-spec:
-  selector:
-    matchLabels:
-      service: qotm
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      annotations:
-        sidecar.istio.io/inject: "false"
-      labels:
-        service: qotm
-    spec:
-      serviceAccountName: ambassador
-      containers:
-      - name: qotm
-        image: docker.io/datawire/qotm:1.3
-        ports:
-        - name: http-api
-          containerPort: 5000
-"""
-
-
-def run_and_assert(command, communicate=True):
-    print(f"Running command {command}")
-    output = subprocess.Popen(command, stdout=subprocess.PIPE)
-    if communicate:
-        stdout, stderr = output.communicate()
-        print('STDOUT', stdout.decode("utf-8") if stdout is not None else None)
-        print('STDERR', stderr.decode("utf-8") if stderr is not None else None)
-        assert output.returncode == 0
-        return stdout.decode("utf-8") if stdout is not None else None
-    return None
-
-
-def meta_action_kube_artifacts(namespace, artifacts, action):
-    temp_file = tempfile.NamedTemporaryFile()
-    temp_file.write(artifacts.encode())
-    temp_file.flush()
-
-    command = ['kubectl', action, '-f', temp_file.name]
-    if namespace is None:
-        namespace = 'default'
-
-    if namespace is not None:
-        command.extend(['-n', namespace])
-
-    run_and_assert(command)
-    temp_file.close()
-
-
-def apply_kube_artifacts(namespace, artifacts):
-    meta_action_kube_artifacts(namespace=namespace, artifacts=artifacts, action='apply')
-
-
-def delete_kube_artifacts(namespace, artifacts):
-    meta_action_kube_artifacts(namespace=namespace, artifacts=artifacts, action='delete')
+      hostname: {self.path.k8s}
+  acmeProvider:
+    authority: none
+  requestPolicy:
+    insecure:
+      action: Route
+      # additionalPort: 8080
+'''
 
 
 def install_ambassador(namespace, single_namespace=True, envs=None):
@@ -161,9 +73,9 @@ def install_ambassador(namespace, single_namespace=True, envs=None):
                 e['value'] = 'true'
                 found_single_namespace = True
                 break
-    
+
         if not found_single_namespace:
-            envs.append({ 
+            envs.append({
                 'name': 'AMBASSADOR_SINGLE_NAMESPACE',
                 'value': 'true'
             })

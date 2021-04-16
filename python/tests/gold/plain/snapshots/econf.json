@@ -47,60 +47,6 @@
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
         "load_assignment": {
-          "cluster_name": "cluster_echo_websocket_org_80_plain_namespace",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "echo.websocket.org",
-                        "port_value": 80,
-                        "protocol": "TCP"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "cluster_echo_websocket_org_80_plain_namespace",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": "3.000s",
-        "dns_lookup_family": "V4_ONLY",
-        "lb_policy": "ROUND_ROBIN",
-        "load_assignment": {
-          "cluster_name": "cluster_http___httpbin_org_plain_namespace",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "httpbin.org",
-                        "port_value": 80,
-                        "protocol": "TCP"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "cluster_http___httpbin_org_plain_namespace",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": "3.000s",
-        "dns_lookup_family": "V4_ONLY",
-        "lb_policy": "ROUND_ROBIN",
-        "load_assignment": {
           "cluster_name": "cluster_http___plain_addreqheadersmappin-0",
           "endpoints": [
             {
@@ -2315,6 +2261,33 @@
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
         "load_assignment": {
+          "cluster_name": "cluster_httpbin_plain_namespace",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "httpbin",
+                        "port_value": 80,
+                        "protocol": "TCP"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "cluster_httpbin_plain_namespace",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": "3.000s",
+        "dns_lookup_family": "V4_ONLY",
+        "lb_policy": "ROUND_ROBIN",
+        "load_assignment": {
           "cluster_name": "cluster_https___plain_tlsorigination_grp-0",
           "endpoints": [
             {
@@ -2606,6 +2579,33 @@
             "common_tls_context": {}
           }
         },
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": "3.000s",
+        "dns_lookup_family": "V4_ONLY",
+        "lb_policy": "ROUND_ROBIN",
+        "load_assignment": {
+          "cluster_name": "cluster_websocket_echo_server_plain_namespace",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "websocket-echo-server",
+                        "port_value": 80,
+                        "protocol": "TCP"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "cluster_websocket_echo_server_plain_namespace",
         "type": "STRICT_DNS"
       }
     ],
@@ -5038,7 +5038,7 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_http___httpbin_org_plain_namespace"
+                                "runtime_key": "routing.traffic_shift.cluster_httpbin_plain_namespace"
                               }
                             },
                             "request_headers_to_remove": [
@@ -5046,7 +5046,7 @@
                               "aoo"
                             ],
                             "route": {
-                              "cluster": "cluster_http___httpbin_org_plain_namespace",
+                              "cluster": "cluster_httpbin_plain_namespace",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5061,7 +5061,7 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_http___httpbin_org_plain_namespace"
+                                "runtime_key": "routing.traffic_shift.cluster_httpbin_plain_namespace"
                               }
                             },
                             "request_headers_to_remove": [
@@ -5069,7 +5069,7 @@
                               "aoo"
                             ],
                             "route": {
-                              "cluster": "cluster_http___httpbin_org_plain_namespace",
+                              "cluster": "cluster_httpbin_plain_namespace",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5090,7 +5090,7 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_http___httpbin_org_plain_namespace"
+                                "runtime_key": "routing.traffic_shift.cluster_httpbin_plain_namespace"
                               }
                             },
                             "request_headers_to_remove": [
@@ -5098,7 +5098,7 @@
                               "aoo"
                             ],
                             "route": {
-                              "cluster": "cluster_http___httpbin_org_plain_namespace",
+                              "cluster": "cluster_httpbin_plain_namespace",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5113,7 +5113,7 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_http___httpbin_org_plain_namespace"
+                                "runtime_key": "routing.traffic_shift.cluster_httpbin_plain_namespace"
                               }
                             },
                             "request_headers_to_remove": [
@@ -5121,7 +5121,7 @@
                               "aoo"
                             ],
                             "route": {
-                              "cluster": "cluster_http___httpbin_org_plain_namespace",
+                              "cluster": "cluster_httpbin_plain_namespace",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5326,7 +5326,7 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_http___httpbin_org_plain_namespace"
+                                "runtime_key": "routing.traffic_shift.cluster_httpbin_plain_namespace"
                               }
                             },
                             "response_headers_to_add": [
@@ -5360,7 +5360,7 @@
                               }
                             ],
                             "route": {
-                              "cluster": "cluster_http___httpbin_org_plain_namespace",
+                              "cluster": "cluster_httpbin_plain_namespace",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5375,7 +5375,7 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_http___httpbin_org_plain_namespace"
+                                "runtime_key": "routing.traffic_shift.cluster_httpbin_plain_namespace"
                               }
                             },
                             "response_headers_to_add": [
@@ -5409,7 +5409,7 @@
                               }
                             ],
                             "route": {
-                              "cluster": "cluster_http___httpbin_org_plain_namespace",
+                              "cluster": "cluster_httpbin_plain_namespace",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5430,7 +5430,7 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_http___httpbin_org_plain_namespace"
+                                "runtime_key": "routing.traffic_shift.cluster_httpbin_plain_namespace"
                               }
                             },
                             "response_headers_to_add": [
@@ -5464,7 +5464,7 @@
                               }
                             ],
                             "route": {
-                              "cluster": "cluster_http___httpbin_org_plain_namespace",
+                              "cluster": "cluster_httpbin_plain_namespace",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5479,7 +5479,7 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_http___httpbin_org_plain_namespace"
+                                "runtime_key": "routing.traffic_shift.cluster_httpbin_plain_namespace"
                               }
                             },
                             "response_headers_to_add": [
@@ -5513,7 +5513,7 @@
                               }
                             ],
                             "route": {
-                              "cluster": "cluster_http___httpbin_org_plain_namespace",
+                              "cluster": "cluster_httpbin_plain_namespace",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -7474,12 +7474,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_echo_websocket_org_80_plain_namespace"
+                                "runtime_key": "routing.traffic_shift.cluster_websocket_echo_server_plain_namespace"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_echo_websocket_org_80_plain_namespace",
-                              "host_rewrite": "echo.websocket.org",
+                              "cluster": "cluster_websocket_echo_server_plain_namespace",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s",
@@ -7499,12 +7498,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_echo_websocket_org_80_plain_namespace"
+                                "runtime_key": "routing.traffic_shift.cluster_websocket_echo_server_plain_namespace"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_echo_websocket_org_80_plain_namespace",
-                              "host_rewrite": "echo.websocket.org",
+                              "cluster": "cluster_websocket_echo_server_plain_namespace",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s",
@@ -7530,12 +7528,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_echo_websocket_org_80_plain_namespace"
+                                "runtime_key": "routing.traffic_shift.cluster_websocket_echo_server_plain_namespace"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_echo_websocket_org_80_plain_namespace",
-                              "host_rewrite": "echo.websocket.org",
+                              "cluster": "cluster_websocket_echo_server_plain_namespace",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s",
@@ -7555,12 +7552,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_echo_websocket_org_80_plain_namespace"
+                                "runtime_key": "routing.traffic_shift.cluster_websocket_echo_server_plain_namespace"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_echo_websocket_org_80_plain_namespace",
-                              "host_rewrite": "echo.websocket.org",
+                              "cluster": "cluster_websocket_echo_server_plain_namespace",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s",
