@@ -86,6 +86,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: The endpoint routing resolver will now properly watch services that include a scheme.
 - Bugfix: Environment variable interpolation works again for `ConsulResolver.Spec.Address` without setting `AMBASSADOR_LEGACY_MODE` ([#3317])
 - Feature: Ambassador Agent now available (and deployed by default) for the API Gateway (https://app.getambassador.io).
+- Change: The yaml in yaml/docs is now generated from the contents of the helm chart in the `charts/ambassador` directory.
 
 [#3074]: https://github.com/datawire/ambassador/issues/3074
 [#3317]: https://github.com/datawire/ambassador/issues/3317
