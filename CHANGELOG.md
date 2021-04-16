@@ -94,6 +94,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 [#3224]: https://github.com/datawire/ambassador/issues/3224
 [#3317]: https://github.com/datawire/ambassador/issues/3317
 [#3324]: https://github.com/datawire/ambassador/issues/3324
+[#3341]: https://github.com/datawire/ambassador/issues/3341
 
 ### Ambassador Edge Stack only
 
@@ -109,6 +110,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: The AES ratelimit preview no longer ignores LOCAL_CACHE_SIZE_IN_BYTES.
 - Bugfix: The AES ratelimit preview no longer ignores NEAR_LIMIT_RATION.
 - Bugfix: The AES ratelimit preview no longer ignores EXPIRATION_JITTER_MAX_SECONDS.
+- Change: Silence DevPortal warnings when DevPortal cannot parse a hostname from a Mapping. (#3341)
 
 ## [1.12.3] April 15, 2021
 [1.12.3]: https://github.com/datawire/ambassador/compare/v1.12.2...v1.12.3
