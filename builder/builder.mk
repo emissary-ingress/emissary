@@ -257,7 +257,9 @@ docker/snapshot.docker.stamp: %/snapshot.docker.stamp: %/container.txt FORCE com
 	    printf "${CYN}==> ${GRN}Snapshot of ${BLU}$$(cat $<)${GRN} container is already up-to-date${END}\n"; \
 	  else \
 	    printf "${CYN}==> ${GRN}Snapshotting ${BLU}$$(cat $<)${GRN} container${END}\n"; \
-	    TIMEFORMAT="     (snapshot took %1R seconds)" time docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $$(cat $<) > $@; \
+	    TIMEFORMAT="     (snapshot took %1R seconds)"; \
+	    time docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $$(cat $<) > $@; \
+	    unset TIMEFORMAT; \
 	    docker exec $$(cat $<) rm -f /buildroot/image.dirty; \
 	  fi; \
 	}
@@ -267,7 +269,9 @@ docker/base-envoy.docker.stamp: FORCE
 	    printf "${CYN}==> ${GRN}Base Envoy image is already pulled${END}\n"; \
 	  else \
 	    printf "${CYN}==> ${GRN}Pulling base Envoy image${END}\n"; \
-	    TIMEFORMAT="     (pull took %1R seconds)" time docker pull $(ENVOY_DOCKER_TAG); \
+	    TIMEFORMAT="     (docker pull took %1R seconds)"; \
+	    time docker pull $(ENVOY_DOCKER_TAG); \
+	    unset TIMEFORMAT; \
 	    docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@; \
 	  fi; \
 	}
@@ -280,12 +284,14 @@ docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/snapshot.docker.tag.l
 	    printf "    ${BLU}artifacts=$$(cat $*/snapshot.docker)${END}\n"; \
 	    printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"; \
 	    printf "    ${BLU}builderbase=$$(cat $*/builder-base.docker)${END}\n"; \
-	    ${DBUILD} ${BUILDER_HOME} \
+	    TIMEFORMAT="     (docker build took %1R seconds)"; \
+	    time ${DBUILD} ${BUILDER_HOME} \
 	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
 	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
 	      --target=ambassador \
 	      --iidfile=$@; \
+	    unset TIMEFORMAT; \
 	  fi; \
 	}
 docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
@@ -294,12 +300,14 @@ docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/snapshot.docker.tag
 	    printf "${CYN}==> ${GRN}Image ${BLU}kat-client${GRN} is already up-to-date${END}\n"; \
 	  else \
 	    printf "${CYN}==> ${GRN}Building image ${BLU}kat-client${END}\n"; \
-	    ${DBUILD} ${BUILDER_HOME} \
+	    TIMEFORMAT="     (kat-client build took %1R seconds)"; \
+	    time ${DBUILD} ${BUILDER_HOME} \
 	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
 	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
 	      --target=kat-client \
 	      --iidfile=$@; \
+	    unset TIMEFORMAT; \
 	  fi; \
 	}
 docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
@@ -308,12 +316,14 @@ docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/snapshot.docker.tag
 	    printf "${CYN}==> ${GRN}Image ${BLU}kat-server${GRN} is already up-to-date${END}\n"; \
 	  else \
 	    printf "${CYN}==> ${GRN}Building image ${BLU}kat-server${END}\n"; \
-	    ${DBUILD} ${BUILDER_HOME} \
+	    TIMEFORMAT="     (kat-server build took %1R seconds)"; \
+	    time ${DBUILD} ${BUILDER_HOME} \
 	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
 	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
 	      --target=kat-server \
 	      --iidfile=$@; \
+	    unset TIMEFORMAT; \
 	  fi; \
 	}
 

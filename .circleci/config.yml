@@ -185,6 +185,7 @@ commands:
         type: enum
         enum: ["oss", "aes"]
     steps:
+    - run: "true" # Always run a no-op step so that this config has non-zero steps even for -private repos
     - when:
         condition: # Don't do this in the -private repos
           or:
@@ -273,8 +274,36 @@ commands:
             command: "rmdir ~/project/ambassador || true"
         - checkout:
             path: ~/project
+  amb-login-registry:
+    steps:
+    - run:
+        name: "Docker login"
+        command: |
+          if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
+            tries=0
+            while true; do
+              if [ "$tries" -gt 10 ] ; then
+                circleci step halt
+              fi
+
+              fail=0
+              out=$(docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}") || fail=1
+              if [ "$fail" == "0" ] ; then
+                break
+              fi
+
+              echo $out
+              if echo "$out" | grep "503 Service Unavailable" ; then
+                ((tries++))
+                sleep 30
+              else
+                circleci step halt
+              fi
+            done
+          fi
   amb-config-registry:
     steps:
+    - amb-login-registry
     - run:
         name: "Configure Docker registry"
         command: |
@@ -282,13 +311,11 @@ commands:
             echo >>"$BASH_ENV" 'export DEV_REGISTRY=127.0.0.1:31000'
             echo >>"$BASH_ENV" 'export BASE_REGISTRY=docker.io/datawiredev'
           fi
-          if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
-            docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
-          fi
 
           echo >>"$BASH_ENV" 'unset BASH_ENV'
   amb-config-cluster-and-registry:
     steps:
+    - amb-login-registry
     - run:
         name: "Configure Kubernetes cluster and Docker registry"
         working_directory: ~/project/ambassador
@@ -296,9 +323,6 @@ commands:
           if [[ -z "$DEV_REGISTRY" ]]; then
             echo >>"$BASH_ENV" 'export DEV_REGISTRY=127.0.0.1:31000'
             echo >>"$BASH_ENV" 'export BASE_REGISTRY=docker.io/datawiredev'
-          fi
-          if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
-            docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
           fi
 
           ./.ci/cluster-claim
@@ -366,11 +390,11 @@ commands:
           fi
 
           export KUBECONFIG=~/.kube/kubeception.yaml
-          podsfile=/tmp/all-pods.txt
-          (kubectl get pods --all-namespaces -ocustom-columns="name:.metadata.name,namespace:.metadata.namespace" --no-headers || true) > $podsfile
-          (kubectl describe pods --all-namespaces || true) > /tmp/all-pods-described.txt
-
           mkdir -p /tmp/pod-logs
+          podsfile=/tmp/pod-logs/all-pods.txt
+          (kubectl get pods --all-namespaces -ocustom-columns="name:.metadata.name,namespace:.metadata.namespace" --no-headers || true) > $podsfile
+          (kubectl describe pods --all-namespaces || true) > /tmp/pod-logs/all-pods-described.txt
+
           cat $podsfile | while IFS= read -r line; do
             name=$(echo $line | awk '{print $1}')
             ns=$(echo $line | awk '{print $2}')

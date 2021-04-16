@@ -69,26 +69,26 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
-- Bugfix: Endpoint routing will now detect endpoint changes when your service field includes `.svc.cluster.local`. ([#3324])
-
-[#3324]: https://github.com/datawire/ambassador/issues/3324
-
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
 - Feature: Mapping configuration now supports setting `auth_context_extentions` that allows setting the `check_settings` field in the per route configuration supported by `ext_authz` http filter.
 - Feature: Added support in ambassador-agent for reporting Argo Rollouts and Argo Applications to Ambassador Cloud (https://app.getambassador.io)
 - Feature: Add `diagnostics.allow_non_local` flag to expose admin UI internally only ([#3074])
 - Feature: Ambassador will now use the Envoy v3 API internally when the AMBASSADOR_ENVOY_API_VERSION environment variable is set to "V3". By default, Ambassador will continue to use the v2 API.
-- Change: The Helm chart has been moved into this repo, in the `charts/ambassador` directory.
-- Change: The `Mapping` CRD has been modified so that `kubectl get mappings` now has a column for not just the source path-prefix (`.spec.prefix`), but the source host (`.spec.host`) too.
+- Feature: Ambassador Agent now available (and deployed by default) for the API Gateway (https://app.getambassador.io).
 - Bugfix: Make Knative paths match on prefix instead of the entire path to better align to the Knative specification ([#3224]).
 - Bugfix: The endpoint routing resolver will now properly watch services that include a scheme.
-- Bugfix: Environment variable interpolation works again for `ConsulResolver.Spec.Address` without setting `AMBASSADOR_LEGACY_MODE` ([#3317])
-- Feature: Ambassador Agent now available (and deployed by default) for the API Gateway (https://app.getambassador.io).
+- Bugfix: Environment variable interpolation works again for `ConsulResolver.Spec.Address` without setting `AMBASSADOR_LEGACY_MODE` ([#3182], [#3317])
+- Bugfix: Endpoint routing will now detect endpoint changes when your service field includes `.svc.cluster.local`. ([#3324])
+- Change: The Helm chart has been moved into this repo, in the `charts/ambassador` directory.
+- Change: The `Mapping` CRD has been modified so that `kubectl get mappings` now has a column for not just the source path-prefix (`.spec.prefix`), but the source host (`.spec.host`) too.
+- Change: The yaml in yaml/docs is now generated from the contents of the helm chart in the `charts/ambassador` directory.
 
 [#3074]: https://github.com/datawire/ambassador/issues/3074
-[#3317]: https://github.com/datawire/ambassador/issues/3317
+[#3182]: https://github.com/datawire/ambassador/issues/3182
 [#3224]: https://github.com/datawire/ambassador/issues/3224
+[#3317]: https://github.com/datawire/ambassador/issues/3317
+[#3324]: https://github.com/datawire/ambassador/issues/3324
 
 ### Ambassador Edge Stack only
 
@@ -100,6 +100,15 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: DevPortal search can be configured to only search over titles (with search.type=`title-only`in the DevPortal CRD) or to search over all content (search.type=`all-content`)
 - Feature: DevPortal search supports deep linking to openapi spec entries (must set `search.type=all-content` and `search.enabled=true` on the DevPortal CRD)
 - Feature: DevPortal: Trigger content refresh by hitting `/docs/api/refreshContent`
+- Feature: The AES ratelimit preview service now supports burst (aka token bucket) ratelimiting.
+- Bugfix: The AES ratelimit preview no longer ignores LOCAL_CACHE_SIZE_IN_BYTES.
+- Bugfix: The AES ratelimit preview no longer ignores NEAR_LIMIT_RATION.
+- Bugfix: The AES ratelimit preview no longer ignores EXPIRATION_JITTER_MAX_SECONDS.
+
+## [1.12.3] April 15, 2021
+[1.12.3]: https://github.com/datawire/ambassador/compare/v1.12.2...v1.12.3
+
+Bugfix: Incorporate the Envoy 1.15.4 security update.
 
 ## [1.12.2] March 29, 2021
 [1.12.2]: https://github.com/datawire/ambassador/compare/v1.12.1...v1.12.2

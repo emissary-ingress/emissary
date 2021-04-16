@@ -200,6 +200,7 @@ commands:
         type: enum
         enum: ["oss", "aes"]
     steps:
+      - run: "true" # Always run a no-op step so that this config has non-zero steps even for -private repos
       - when:
           condition: # Don't do this in the -private repos
             or:

@@ -10,9 +10,11 @@ Ambassador API Gateway [![Build Status][build-status]][build-pages] [![Docker Re
 [slack-join]:    https://img.shields.io/badge/slack-join-orange.svg
 
 
-[Ambassador API Gateway](https://www.getambassador.io) is an open-source Kubernetes-native API Gateway + Layer 7 load balancer + Kubernetes Ingress built on [Envoy Proxy](https://www.envoyproxy.io). The Ambassador Edge Stack is a complete superset of the OSS Ambassador API Gateway that offers additional functionality. Ambassador is designed to easily expose, secure, and manage traffic to your Kubernetes microservices of any type. Ambassador was built around the ideas of self-service (enabling GitOps-style management) and comprehensiveness (so it works with your situations and technology solutions). 
+Emissary Ingress (formerly known as the [Ambassador API Gateway](https://www.getambassador.io)) is an open-source Kubernetes-native API Gateway + Layer 7 load balancer + Kubernetes Ingress built on [Envoy Proxy](https://www.envoyproxy.io). Emissary Ingress is an CNCF incubation project.
 
-The Ambassador API Gateway enables its users to:
+The Ambassador Edge Stack is a complete superset of the OSS Emissary Ingress project that offers additional functionality. Edge Stack is designed to easily expose, secure, and manage traffic to your Kubernetes microservices of any type. Edge Stack was built around the ideas of self-service (enabling GitOps-style management) and comprehensiveness (so it works with your situations and technology solutions). 
+
+Emissary Ingress enables its users to:
 
 * Manage ingress traffic with [load balancing](https://www.getambassador.io/docs/edge-stack/latest/topics/running/load-balancer/#load-balancing-in-ambassador-edge-stack), protocol support([gRPC and HTTP/2](https://www.getambassador.io/docs/edge-stack/latest/howtos/grpc/), [TCP](https://www.getambassador.io/docs/edge-stack/latest/topics/using/tcpmappings/), and [web sockets](https://www.getambassador.io/docs/edge-stack/latest/topics/using/tcpmappings/)), and Kubernetes integration
 * Manage changes to routing with an easy to use declarative policy engine and [self-service configuration](https://www.getambassador.io/docs/edge-stack/latest/topics/using/mappings/), via Kubernetes [CRDs](https://www.getambassador.io/docs/edge-stack/latest/topics/using/edge-policy-console/) or annotations 
