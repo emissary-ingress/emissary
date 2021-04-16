@@ -89,6 +89,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 [#3224]: https://github.com/datawire/ambassador/issues/3224
 [#3317]: https://github.com/datawire/ambassador/issues/3317
 [#3324]: https://github.com/datawire/ambassador/issues/3324
+[#3341]: https://github.com/datawire/ambassador/issues/3341
 
 ### Ambassador Edge Stack only
 
