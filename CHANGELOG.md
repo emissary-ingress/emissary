@@ -43,9 +43,8 @@ communicate with `AuthService`s and `RateLimitService`s:
 | `RateLimitService` | `envoy.service.ratelimit.v2.RateLimitService` | `pb.lyft.ratelimit.RateLimitService`       |
 
 - In Ambassador version 1.11.0, `AuthService` and `RateLimitService` configuration can specify use of the
-  deprecated protocol versions.
-- In some future version of Ambassador, *no sooner than Ambassador 1.13.0*, support for the deprecated versions
-  will be removed.
+  deprecated protocol versions (e.g. by setting `protocol_version: v2alpha`)
+- In Ambassador version 1.13.0, the deprecated versions were removed. Users must now omit `protocol_version` or set it to `v2`.
 
 Note that Ambassador Edge Stack `External` Filters already unconditionally use the newer
 `envoy.service.auth.v2.Authorization` name.
@@ -58,10 +57,10 @@ As of Ambassador 0.83.0, the safe regex fields are used by default.
 The deprecated fields are only used when `regex_type` is set to `unsafe` in the `ambassador` `Module`.
 
 The non-safe regex fields are no longer supported with the Envoy V3 APIs, so, to service Ambassador's migration from Envoy V2 to Envoy V3 APIs, support for `regex_type` is deprecated,
-and the field will be removed from the `ambassador` `Module` *no sooner than Ambassador 1.13.0*.
+and the field will be removed from the `ambassador` `Module` *no sooner than Ambassador 1.14.0*.
 
 Additionally, as of Envoy V1.15.0, [max_program_size for the Google RE2 engine has been deprecated.](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.15.0.html?highlight=max_program_size)
-Consequently, we will be deprecating the `regex_max_size` field from the `ambassador` `Module`, and will be removing the field *no sooner than Ambassador 1.13.0*.
+Consequently, we will be deprecating the `regex_max_size` field from the `ambassador` `Module`, and will be removing the field *no sooner than Ambassador 1.14.0*.
 
 Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/type/matcher/v3/regex.proto.html) for more information.
 
@@ -88,6 +87,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Change: The Helm chart has been moved into this repo, in the `charts/ambassador` directory.
 - Change: The `Mapping` CRD has been modified so that `kubectl get mappings` now has a column for not just the source path-prefix (`.spec.prefix`), but the source host (`.spec.host`) too.
 - Change: The yaml in yaml/docs is now generated from the contents of the helm chart in the `charts/ambassador` directory.
+- Change: Ambassador no longer supports `v2alpha` as the `protocol_version` for AuthSerivce and RateLimitService resources. See the "gRPC names" section above for more information.
 
 [#3074]: https://github.com/datawire/ambassador/issues/3074
 [#3182]: https://github.com/datawire/ambassador/issues/3182
