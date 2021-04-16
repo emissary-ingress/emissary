@@ -1440,12 +1440,6 @@ class Runner:
         print(f'Continuing with Kube tests...')
         # print(f"ids_to_strip {self.ids_to_strip}")
 
-        # Install httpbin
-        apply_kube_artifacts(namespace, httpbin_manifests)
-
-        # Install websocket-echo-server
-        apply_kube_artifacts(namespace, websocket_echo_server_manifests)
-
         # XXX It is _so stupid_ that we're reparsing the whole manifest here.
         xxx_crap = pyyaml.load_all(open(fname, "r").read(), Loader=pyyaml_loader)
 
