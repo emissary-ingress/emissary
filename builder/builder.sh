@@ -254,6 +254,9 @@ bootstrap() {
             ${BUILDER_DOCKER_EXTRA} \
             --env=BUILDER_NAME="${BUILDER_NAME}" \
             --env=GOPRIVATE="${GOPRIVATE}" \
+            --env=AWS_SECRET_ACCESS_KEY \
+            --env=AWS_ACCESS_KEY_ID \
+            --env=AWS_SESSION_TOKEN \
             --entrypoint=tail ${BUILDER_NAME}.local/builder -f /dev/null > /dev/null
         echo_off
 
