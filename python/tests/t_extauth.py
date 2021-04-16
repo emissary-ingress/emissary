@@ -5,6 +5,7 @@ from kat.harness import Query
 from abstract_tests import AmbassadorTest, ServiceType, HTTP, AHTTP, AGRPC
 from selfsigned import TLSCerts
 
+
 class AuthenticationGRPCTest(AmbassadorTest):
 
     target: ServiceType
@@ -13,6 +14,22 @@ class AuthenticationGRPCTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
         self.auth = AGRPC(name="auth")
+
+    def manifests(self) -> str:
+        return self.format('''
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: auth-context-mapping
+spec:
+  ambassador_id: {self.ambassador_id}
+  service: {self.target.path.fqdn}
+  prefix: /context-extensions-crd/
+  auth_context_extensions:
+    context: "auth-context-name"
+    data: "auth-data"
+''') + super().manifests()
 
     def config(self):
         yield self, self.format("""
@@ -31,6 +48,15 @@ kind:  Mapping
 name:  {self.target.path.k8s}
 prefix: /target/
 service: {self.target.path.fqdn}
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.target.path.k8s}-context-extensions
+prefix: /context-extensions/
+service: {self.target.path.fqdn}
+auth_context_extensions:
+    first: "first element"
+    second: "second element"
 """)
 
     def queries(self):
@@ -49,9 +75,19 @@ service: {self.target.path.fqdn}
         # [3]
         yield Query(self.url("target/"), headers={"requested-status": "200",
                                                   "authorization": "foo-11111",
-                                                  "foo" : "foo",
+                                                  "foo": "foo",
                                                   "x-grpc-auth-append": "foo=bar;baz=bar",
                                                   "requested-header": "Authorization"}, expected=200)
+        # [4]
+        yield Query(self.url("context-extensions/"), headers={"request-status": "200",
+                                                              "authorization": "foo-22222",
+                                                              "requested-header": "Authorization"},
+                    expected=200)
+        # [5]
+        yield Query(self.url("context-extensions-crd/"), headers={"request-status": "200",
+                                                                  "authorization": "foo-33333",
+                                                                  "requested-header": "Authorization"},
+                    expected=200)
 
     def check(self):
         # [0] Verifies all request headers sent to the authorization server.
@@ -93,6 +129,22 @@ service: {self.target.path.fqdn}
         assert self.results[3].headers["Server"] == ["envoy"]
         assert self.results[3].headers["Authorization"] == ["foo-11111"]
         assert self.results[3].backend.request.headers['x-grpc-service-protocol-version'] == ['v2']
+
+        # [4] Verifies that auth_context_extension is passed along by Envoy.
+        assert self.results[4].status == 200
+        assert self.results[4].headers["Server"] == ["envoy"]
+        assert self.results[4].headers["Authorization"] == ["foo-22222"]
+        context_ext = json.loads(self.results[4].backend.request.headers["x-request-context-extensions"][0])
+        assert context_ext["first"] == "first element"
+        assert context_ext["second"] == "second element"
+
+        # [5] Verifies that auth_context_extension is passed along by Envoy when using a crd Mapping
+        assert self.results[5].status == 200
+        assert self.results[5].headers["Server"] == ["envoy"]
+        assert self.results[5].headers["Authorization"] == ["foo-33333"]
+        context_ext = json.loads(self.results[5].backend.request.headers["x-request-context-extensions"][0])
+        assert context_ext["context"] == "auth-context-name"
+        assert context_ext["data"] == "auth-data"
 
 
 class AuthenticationHTTPPartialBufferTest(AmbassadorTest):

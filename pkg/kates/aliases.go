@@ -88,6 +88,7 @@ type ClusterRoleBinding = rbacv1.ClusterRoleBinding
 
 type Pod = corev1.Pod
 type PodSpec = corev1.PodSpec
+type PodTemplateSpec = corev1.PodTemplateSpec
 type Container = corev1.Container
 type EnvVar = corev1.EnvVar
 type SecurityContext = corev1.SecurityContext
@@ -122,6 +123,8 @@ const ResourceMemory = corev1.ResourceMemory
 type PersistentVolumeClaim = corev1.PersistentVolumeClaim
 
 type Deployment = appsv1.Deployment
+type ReplicaSet = appsv1.ReplicaSet
+type StatefulSet = appsv1.StatefulSet
 
 type CustomResourceDefinition = xv1.CustomResourceDefinition
 
