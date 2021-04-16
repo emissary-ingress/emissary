@@ -575,6 +575,82 @@ case "${cmd}" in
         mv -f "$DIR/requirements.txt.tmp" "$DIR/requirements.txt"
         ;;
 
+    pytest-venv)
+        # This runs inside a virtualenv
+        if [ ! -d .venv ] ; then
+            printf "${CYN}==> ${GRN}Creating venv ${BLU}.venv${END}\n"
+            python3 -m venv .venv && source .venv/bin/activate
+            if [ -d ambassador ] ; then
+                pip install -r ambassador/builder/requirements.txt
+                pip install -e ambassador/python
+            else
+                pip install -r builder/requirements.txt
+                pip install -e python
+            fi
+            pip install orjson
+        else
+            printf "${CYN}==> ${GRN}Activating venv ${BLU}.venv${END}\n"
+            source .venv/bin/activate
+        fi
+
+        fail=""
+        mkdir -p ${TEST_DATA_DIR}
+
+        export SOURCE_ROOT=$PWD
+        # Figure out if this is apro or Ambassador OSS.
+        # This is the least evil thing I could think of quickly.
+        if [ -d "cmd/amb-sidecar" ] ; then
+            MODDIR="$PWD/ambassador"
+            export EDGE_STACK="true"
+        else
+            MODDIR="$PWD"
+            export EDGE_STACK="false"
+        fi
+
+        if [ -z "$ENVOY_PATH" ] ; then
+            if [ -f "${MODDIR}/bin/envoy" ] ; then
+                # We omit MODDIR from the path here because we change into that directory
+                # before calling pytest before.
+                export ENVOY_PATH="${MODDIR}/bin/envoy"
+            fi
+        fi
+
+        if [ ! -f "$ENVOY_PATH" ] ; then
+            echo "Envoy not found at ENVOY_PATH=$ENVOY_PATH"
+            exit 1
+        fi
+
+        if [ -z "$KUBESTATUS_PATH" ] ; then
+            export KUBESTATUS_PATH="${MODDIR}/bin/kubestatus"
+        fi
+        if [ ! -f "$KUBESTATUS_PATH" ] ; then
+            echo "Kubestatus not found at $KUBESTATUS_PATH"
+            exit 1
+        fi
+
+        if [ -z "$TELEPRESENCE_PATH" ] ; then
+            export TELEPRESENCE_PATH="${MODDIR}/bin/telepresence"
+        fi
+        if [ ! -f "$TELEPRESENCE_PATH" ] ; then
+            echo "Telepresence not found at $TELEPRESENCE_PATH"
+            exit 1
+        fi
+
+        echo "$0: EDGE_STACK=$EDGE_STACK"
+        echo "$0: SOURCE_ROOT=$SOURCE_ROOT"
+        echo "$0: MODDIR=$MODDIR"
+        echo "$0: ENVOY_PATH=$ENVOY_PATH"
+        echo "$0: KUBESTATUS_PATH=$KUBESTATUS_PATH"
+        echo "$0: TELEPRESENCE_PATH=$TELEPRESENCE_PATH"
+        if ! (cd ${MODDIR} && pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=${TEST_DATA_DIR}/pytest.xml --tb=short -rP "${pytest_args[@]}") then
+            fail="yes"
+        fi
+
+        if [ "${fail}" = yes ]; then
+            exit 1
+        fi
+        ;;
+
     pytest-internal)
         # This runs inside the builder image
         fail=""

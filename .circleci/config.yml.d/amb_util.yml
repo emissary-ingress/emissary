@@ -34,20 +34,26 @@ commands:
       - install-kubectl
       - install-node
 
-  "amb-images-save-workspace":
+  "amb-images-save-images-to-workspace":
     steps:
       - run:
           name: "Saving Docker data to workspace"
           command: "~/project/ambassador/.circleci/amb-images-save-workspace"
+
+  "amb-save-workspace":
+    steps:
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
             - "."
 
-  "amb-images-load-workspace":
+  "amb-attach-workspace":
     steps:
       - attach_workspace:
           at: /home/circleci/project
+
+  "amb-load-docker-images-from-workspace":
+    steps:
       - run:
           name: "Running docker login"
           command: |
@@ -57,6 +63,11 @@ commands:
       - run:
           name: "Loading Docker data from workspace"
           command: "~/project/ambassador/.circleci/amb-images-load-workspace"
+
+  "amb-skip-if-no-code-changes":
+    steps:
+      - skip-if-only-changes:
+          to: (charts/ambassador\|docs/\|*.md)
 
   "amb-checkout":
     steps:
@@ -134,6 +145,9 @@ commands:
             fi
 
             ./.ci/cluster-claim
+            rm -f ~/.kube/config
+            cp ~/.kube/kubeception.yaml ~/.kube/config
+
             echo >>"$BASH_ENV" 'if test -e ~/.kube/kubeception.yaml; then'
             echo >>"$BASH_ENV" '  export DEV_KUBECONFIG=~/.kube/kubeception.yaml'
             echo >>"$BASH_ENV" '  if [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]]; then'
@@ -171,9 +185,9 @@ commands:
                 ~/.cache/telepresence/logs \
                 /tmp/test-logs/telepresence-logs
             fi
-            if test -f docker/container.txt; then
+            if [ -f docker/container.txt ] && docker inspect $(cat docker/container.txt) >/dev/null; then
               docker exec $(cat docker/container.txt) /bin/bash -c 'mkdir -p /tmp/build-container-logs && (cp -r /tmp/*.txt /tmp/*.json /tmp/*.log /tmp/*.yaml /tmp/build-container-logs || true) && ((test -d ~/.cache/telepresence/logs && cp -r ~/.cache/telepresence/logs /tmp/build-container-logs/telepresence-logs) || true)'
-              docker cp $(cat docker/container.txt):/tmp/build-container-logs /tmp/test-logs/build-container-logs
+              docker cp $(cat docker/container.txt):/tmp/build-container-logs /tmp/test-logs/build-container-logs || true
             fi
       - store_artifacts:
           name: "Store logs"
@@ -183,13 +197,12 @@ commands:
           name: "Gather coverage"
           when: always
           command: |
-              mkdir -p /tmp/coverage
-              if test -f docker/container.txt; then
-                docker cp $(cat docker/container.txt):/tmp/cov_html /tmp/coverage || true
+              if [ -f docker/container.txt ] && docker inspect $(cat docker/container.txt) >/dev/null; then
+                docker cp $(cat docker/container.txt):/tmp/cov_html /tmp/cov_html || true
               fi
       - store_artifacts:
           name: "Store coverage"
-          path: /tmp/coverage
+          path: /tmp/cov_html
           destination: coverage
       - run:
           name: "Gather pod logs"

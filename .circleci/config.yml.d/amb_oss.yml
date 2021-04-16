@@ -3,6 +3,7 @@ version: 2.1
 jobs:
   "oss-generate":
     executor: oss-linux
+    resource_class: large
     steps:
       - job-generate
 
@@ -17,10 +18,11 @@ jobs:
         type: boolean
         default: false
     executor: oss-linux
-    resource_class: large
+    resource_class: xlarge
     steps:
       - job-images:
           release: << parameters.release >>
+          save_images_to_workspace: false
 
   "oss-gotest":
     executor: oss-linux
@@ -38,15 +40,16 @@ jobs:
 
   "oss-test":
     executor: oss-linux
+    resource_class: large
     parameters:
       "test":
         type: enum
         enum:
-          - "test" # everything but pytest-envoy
+          - "test" # everything but pytest-envoy-venv
           - "ingresstest"
-          - "pytest"
-          - "pytest-envoy"
-          - "pytest-envoy-v3"
+          - "pytest-venv"
+          - "pytest-envoy-venv"
+          - "pytest-envoy-v3-venv"
         default: "test"
       "fast-reconfigure":
         type: boolean
@@ -145,9 +148,9 @@ workflows:
             alias: "oss-dev-test"
             parameters:
               test:
-                - "pytest"
-                - "pytest-envoy"
-                - "pytest-envoy-v3"
+                - "pytest-venv"
+                - "pytest-envoy-venv"
+                - "pytest-envoy-v3-venv"
                 # Running the ingresstests would require we install `kind` and
                 # that the test suite supports HTTP to HTTPS redirects (AES
                 # enables cleartext redirection by default, even for fallback
@@ -215,9 +218,9 @@ workflows:
             alias: "oss-release-test"
             parameters:
               test:
-                - "pytest"
-                - "pytest-envoy"
-                - "pytest-envoy-v3"
+                - "pytest-venv"
+                - "pytest-envoy-venv"
+                - "pytest-envoy-v3-venv"
                 # Running the ingresstests would require we install `kind` and
                 # that the test suite supports HTTP to HTTPS redirects (AES
                 # enables cleartext redirection by default, even for fallback
@@ -233,10 +236,10 @@ workflows:
               # It's not meaningful to set fast reconfigure and legacy mode at the same time.
               # Annoyingly, we have to iterate all the 'test' values that we're using for
               # this to work.
-              - test: pytest
+              - test: pytest-venv
                 fast-reconfigure: true
                 legacy-mode: true
-              - test: pytest-envoy
+              - test: pytest-envoy-venv
                 fast-reconfigure: true
                 legacy-mode: true
       # promote
@@ -291,8 +294,8 @@ workflows:
             alias: "oss-nightly-test"
             parameters:
               test:
-                - "pytest"
-                - "pytest-envoy"
+                - "pytest-venv"
+                - "pytest-envoy-venv"
                 # Running the ingresstests would require we install `kind` and
                 # that the test suite supports HTTP to HTTPS redirects (AES
                 # enables cleartext redirection by default, even for fallback
@@ -308,9 +311,9 @@ workflows:
               # It's not meaningful to set fast reconfigure and legacy mode at the same time.
               # Annoyingly, we have to iterate all the 'test' values that we're using for
               # this to work.
-              - test: pytest
+              - test: pytest-venv
                 fast-reconfigure: true
                 legacy-mode: true
-              - test: pytest-envoy
+              - test: pytest-envoy-venv
                 fast-reconfigure: true
                 legacy-mode: true
