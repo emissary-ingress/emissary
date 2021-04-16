@@ -1,3 +1,5 @@
+import os
+
 from typing import TYPE_CHECKING
 from typing import cast as typecast
 
@@ -9,7 +11,7 @@ from ...ir.irtracing import IRTracing
 from .v2cluster import V2Cluster
 
 if TYPE_CHECKING:
-    from . import V2Config
+    from . import V2Config # pragma: no cover
 
 
 class V2Bootstrap(dict):
@@ -114,6 +116,13 @@ class V2Bootstrap(dict):
             if config.ir.statsd['dogstatsd']:
                 name = 'envoy.stat_sinks.dog_statsd'
                 typename = 'type.googleapis.com/envoy.config.metrics.v2.DogStatsdSink'
+                dd_entity_id = os.environ.get('DD_ENTITY_ID', None)
+                if dd_entity_id:
+                    stats_tags = self.setdefault('stats_config', {}).setdefault('stats_tags', [])
+                    stats_tags.append({
+                        'tag_name': 'dd.internal.entity_id',
+                        'fixed_value': dd_entity_id
+                    })
             else:
                 name = 'envoy.stats_sinks.statsd'
                 typename = 'type.googleapis.com/envoy.config.metrics.v2.StatsdSink'

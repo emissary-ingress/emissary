@@ -285,6 +285,70 @@ host: myhostname.com
         yield Query(self.url(self.name + "/"), headers={"Host": "myhostname.com:11875"}, expected=404)
 
 
+# This has to be an `AmbassadorTest` because we're going to set up a Module that
+# needs to apply to just this test. If this were a MappingTest, then the Module
+# would apply to all other MappingTest's and we don't want that.
+class MergeSlashesDisabled(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/status/
+rewrite: /status/
+service: httpbin
+""")
+
+    def queries(self):
+        yield Query(self.url(self.name + "/status/200"))
+        # Sanity test that an extra slash in the front of the request URL does not match the mapping,
+        # since we did not set merge_slashes on the Ambassador module.
+        yield Query(self.url("/" + self.name + "/status/200"), expected=404)
+        yield Query(self.url("/" + self.name + "//status/200"), expected=404)
+        yield Query(self.url(self.name + "//status/200"), expected=404)
+
+
+# This has to be an `AmbassadorTest` because we're going to set up a Module that
+# needs to apply to just this test. If this were a MappingTest, then the Module
+# would apply to all other MappingTest's and we don't want that.
+class MergeSlashesEnabled(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v2
+kind:  Module
+name:  ambassador
+config:
+  merge_slashes: true
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/status/
+rewrite: /status/
+service: httpbin
+""")
+
+    def queries(self):
+        yield Query(self.url(self.name + "/status/200"))
+        # Since merge_slashes is on the Ambassador module, extra slashes in the URL should not prevent the request
+        # from matching.
+        yield Query(self.url("/" + self.name + "/status/200"))
+        yield Query(self.url("/" + self.name + "//status/200"))
+        yield Query(self.url(self.name + "//status/200"))
+
+
 class InvalidPortMapping(MappingTest):
 
     parent: AmbassadorTest

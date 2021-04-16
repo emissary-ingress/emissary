@@ -22,10 +22,35 @@ commands:
   # (factored out to be commands so that they can be shared between    #
   # "oss-linux" and "aes-linux" executors)                             #
   ######################################################################
+  "job-chart":
+    steps:
+    - amb-linux-install
+    - amb-checkout
+    - skip-if-no-changes:
+        to: charts/ambassador
+    - install-k3d
+    # We might need to be logged in the registry to pull the Envoy
+    # image or the builder-base image.
+    - amb-config-registry
+    - # main
+      run: make test-chart
+  "job-chart-publish":
+    steps:
+    - amb-linux-install
+    - amb-checkout
+    - install-k3d
+    # We might need to be logged in the registry to pull the Envoy
+    # image or the builder-base image.
+    - amb-config-registry
+    - # main
+      run: make test-chart
+    - amb-skip-if-bad-chart-version
+    - run: charts/ambassador/ci/push_chart.sh
   "job-generate":
     steps:
     # setup
     - amb-linux-install
+    - install-helm
     - amb-checkout
     # We might need to be logged in the registry to pull the Envoy
     # image or the builder-base image.
@@ -85,6 +110,7 @@ commands:
         - "gotest"
         - "pytest"
         - "pytest-envoy"
+        - "pytest-envoy-v3"
         - "e2etest"
         default: "test"
       "fast-reconfigure":
@@ -101,7 +127,15 @@ commands:
         to: docs/
     - when:
         condition:
-          equal: ["pytest-envoy", << parameters.test >>]
+          equal: ["e2etest", << parameters.test >>]
+        steps:
+        - skip-if-only-changes:
+            to: "(ambassador/|tests/pytest/gold/)"
+    - when:
+        condition:
+          or:
+          - equal: ["pytest-envoy", << parameters.test >>]
+          - equal: ["pytest-envoy-v3", << parameters.test >>]
         steps:
         - skip-if-no-changes:
             to: "(/envoy\\.mk$|/python/tests/gold/|/pytest/gold/|/cmd/ambex/)"
@@ -132,9 +166,6 @@ commands:
         name: "Test"
         no_output_timeout: "30m"
         command: |
-          if [[ -z "$KUBECEPTION_TOKEN" ]]; then
-            export DEV_KUBE110=yes
-          fi
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
           export AMBASSADOR_LEGACY_MODE=<< parameters.legacy-mode >> # ParseBool
@@ -271,9 +302,9 @@ commands:
             docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
           fi
 
-          ./.ci/kubernaut-claim
-          echo >>"$BASH_ENV" 'if test -e ~/kubernaut-claim.txt; then'
-          echo >>"$BASH_ENV" '  export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml'
+          ./.ci/cluster-claim
+          echo >>"$BASH_ENV" 'if test -e ~/.kube/kubeception.yaml; then'
+          echo >>"$BASH_ENV" '  export DEV_KUBECONFIG=~/.kube/kubeception.yaml'
           echo >>"$BASH_ENV" '  if [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]]; then'
           echo >>"$BASH_ENV" '    KUBECONFIG=$DEV_KUBECONFIG go run ./cmd/k8sregistryctl up --storage=hostPath'
           echo >>"$BASH_ENV" '  fi'
@@ -284,7 +315,7 @@ commands:
     steps:
     - run:
         working_directory: ~/project/ambassador
-        command: "./.ci/kubernaut-unclaim"
+        command: "./.ci/cluster-unclaim"
         when: "always"
   amb-save-logs:
     steps:
@@ -353,6 +384,17 @@ commands:
         name: "Store pod logs"
         path: /tmp/pod-logs
         destination: pod-logs
+  amb-skip-if-bad-chart-version:
+    steps:
+    - run:
+        name: "Diff changes"
+        command: |
+          thisversion=$(grep version: charts/ambassador/Chart.yaml | awk ' { print $2 }')
+
+          if [[ "<< pipeline.git.tag >>" != "chart-v${thisversion}" ]]; then
+            echo "Chart version ${thisversion} doesn't match tag << pipeline.git.tag >>; aborting"
+            exit 1
+          fi
   website-setup:
     steps:
     - install-node:
@@ -368,6 +410,16 @@ commands:
     - amb-checkout
     - skip-if-no-changes:
         to: docs/
+  install-k3d:
+    parameters:
+      version:
+        type: string
+        default: "v3.4.0"
+    steps:
+    - run:
+        name: "Install K3D << parameters.version >>"
+        command: |
+          curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | TAG=<< parameters.version >>  bash
   pip-install:
     parameters:
       packages:
@@ -395,6 +447,20 @@ commands:
           source $NVM_DIR/nvm.sh
           if ! nvm ls << parameters.version >> > /dev/null; then nvm install << parameters.version >>; fi
           nvm alias default << parameters.version >>
+  install-helm:
+    parameters:
+      version:
+        type: string
+        default: "v3.4.1"
+    steps:
+    - run:
+        name: "Install Helm << parameters.version >>"
+        command: |
+          set -x
+          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+          chmod 700 get_helm.sh
+          ./get_helm.sh --version << parameters.version >>
+          rm ./get_helm.sh
   install-go:
     parameters:
       version:
@@ -563,6 +629,7 @@ jobs:
         - "gotest"
         - "pytest"
         - "pytest-envoy"
+        - "pytest-envoy-v3"
         default: "test"
       fast-reconfigure:
         type: boolean
@@ -575,6 +642,14 @@ jobs:
         test: << parameters.test >>
         fast-reconfigure: << parameters.fast-reconfigure >>
         legacy-mode: << parameters.legacy-mode >>
+  oss-chart:
+    executor: oss-linux
+    steps:
+    - job-chart
+  oss-chart-publish:
+    executor: oss-linux
+    steps:
+    - job-chart-publish
   oss-promote-to-rc-latest:
     executor: oss-linux
     steps:
@@ -643,6 +718,12 @@ _anchors:
         only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
       branches:
         ignore: /.*/
+  filter-chart-release-only:
+    filters:
+      tags:
+        only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+      branches:
+        ignore: /.*/
 workflows:
   'OSS: Dev':
     jobs:
@@ -652,6 +733,8 @@ workflows:
         name: "oss-dev-generate"
     - oss-lint:
         name: "oss-dev-lint"
+    - oss-chart:
+        name: "oss-dev-chart"
     - oss-test:
         requires:
         - "oss-dev-images"
@@ -665,6 +748,7 @@ workflows:
             - "gotest"
             - "pytest"
             - "pytest-envoy"
+            - "pytest-envoy-v3"
             # Running the ingresstests would require we install `kind` and
             # that the test suite supports HTTP to HTTPS redirects (AES
             # enables cleartext redirection by default, even for fallback
@@ -678,6 +762,23 @@ workflows:
             - false
             # If you enable testing with legacy-mode true as well, you'll also need
             # to add some exclusions -- see the Release workflow for more.
+  'OSS: Chart Release':
+    when:
+      or:
+      - equal:
+        - "https://github.com/datawire/ambassador"
+        - << pipeline.project.git_url >>
+      - equal:
+        - "https://github.com/datawire/ambassador-private"
+        - << pipeline.project.git_url >>
+    jobs:
+    - oss-chart-publish:
+        name: "oss-release-chart"
+        filters:
+          tags:
+            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+          branches:
+            ignore: /.*/
   'OSS: Release':
     when:
       or:
@@ -723,6 +824,7 @@ workflows:
             - "gotest"
             - "pytest"
             - "pytest-envoy"
+            - "pytest-envoy-v3"
             # Running the ingresstests would require we install `kind` and
             # that the test suite supports HTTP to HTTPS redirects (AES
             # enables cleartext redirection by default, even for fallback

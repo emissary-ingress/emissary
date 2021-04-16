@@ -21,7 +21,7 @@ from ambassador.utils import SecretInfo, SavedSecret, SecretHandler
 from ambassador.fetch import ResourceFetcher
 
 if TYPE_CHECKING:
-    from ambassador.ir.irtlscontext import IRTLSContext
+    from ambassador.ir.irtlscontext import IRTLSContext # pragma: no cover
 
 
 class SecretRecorder(SecretHandler):

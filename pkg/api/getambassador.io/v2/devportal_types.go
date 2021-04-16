@@ -56,6 +56,19 @@ type DevPortalDocsSpec struct {
 	URL string `json:"url,omitempty"`
 }
 
+// DevPortalSearchSpec allows configuration over search functionality for the DevPortal
+type DevPortalSearchSpec struct {
+	Enabled *bool `json:"enabled,omitempty"`
+
+	// Type of search.
+	// "title-only" does a fuzzy search over openapi and page titles
+	// "all-content" will fuzzy search over all openapi and page content.
+	// "title-only" is the default.
+	// warning:  using all-content may incur a larger memory footprint
+	// +kubebuilder:validation:Enum={"title-only", "all-content"}
+	Type string `json:"type,omitempty"`
+}
+
 // DevPortalSpec defines the desired state of DevPortal
 type DevPortalSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
@@ -71,6 +84,12 @@ type DevPortalSpec struct {
 
 	// Selector is used for choosing what is shown in the DevPortal
 	Selector *DevPortalSelectorSpec `json:"selector,omitempty"`
+
+	// Describes how to display "services" in the DevPortal. Default namespace.name
+	// +kubebuilder:validation:Enum={"namespace.name", "name.prefix"}
+	NamingScheme string `json:"naming_scheme,omitempty"`
+
+	Search *DevPortalSearchSpec `json:"search,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

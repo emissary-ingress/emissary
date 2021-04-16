@@ -240,8 +240,14 @@ func (eri *endpointRoutingInfo) checkTCPMapping(ctx context.Context, tcpmapping 
 }
 
 func (m *moduleResolver) parseService(svcName, svcNamespace string) (name string, namespace string, port string) {
-	// First split off the port if it exists.
-	parts := strings.SplitN(svcName, ":", 2)
+	// First strip off the scheme if it exists.
+	parts := strings.SplitN(svcName, "://", 2)
+	if len(parts) > 1 {
+		svcName = parts[1]
+	}
+
+	// Next split off the port if it exists.
+	parts = strings.SplitN(svcName, ":", 2)
 	if len(parts) > 1 {
 		_, err := strconv.Atoi(parts[1])
 		if err == nil {

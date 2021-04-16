@@ -656,7 +656,7 @@ class Test(Node):
     def handle_local_result(self) -> bool:
         test_name = self.format('{self.path.k8s}')
 
-        print(f"{test_name} {type(self)} HANDLE_LOCAL_RESULT")
+        # print(f"{test_name} {type(self)} HANDLE_LOCAL_RESULT")
 
         end_result = self.find_local_result()
 
@@ -1557,8 +1557,7 @@ class Runner:
                 time.sleep(5)
         else:
             print(f'CRDS unchanged {reason}, skipping apply.')
-
-
+            
         # Next up: the KAT pod.
         KAT_CLIENT_POD = load_manifest("kat_client_pod")
         if os.environ.get("DEV_USE_IMAGEPULLSECRET", False):
@@ -1642,6 +1641,10 @@ class Runner:
                     retries=5, sleep_seconds=10):
                 raise RuntimeError('Could not apply manifests')
             self.applied_manifests = True
+
+        # Finally, install httpbin and the websocket-echo-server.
+        apply_kube_artifacts(namespace, httpbin_manifests)
+        apply_kube_artifacts(namespace, websocket_echo_server_manifests)
 
         for n in self.nodes:
             if n in selected and not n.xfail:

@@ -23,7 +23,7 @@ from ...ir.irbasemapping import IRBaseMapping
 from .v2ratelimitaction import V2RateLimitAction
 
 if TYPE_CHECKING:
-    from . import V2Config
+    from . import V2Config # pragma: no cover
 
 
 def regex_matcher(config: 'V2Config', regex: str, key="regex", safe_key=None, re_type=None) -> Dict[str, Any]:
@@ -180,6 +180,14 @@ class V2Route(Cacheable):
                 '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthzPerRoute',
                 'disabled': True,
             }
+        else:
+            # Additional ext_auth configuration only makes sense when not bypassing auth.
+            auth_context_extensions = mapping.get('auth_context_extensions', False)
+            if auth_context_extensions:
+                typed_per_filter_config['envoy.filters.http.ext_authz'] = {
+                    '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthzPerRoute',
+                    'check_settings': {'context_extensions': auth_context_extensions}
+                }
 
         if len(typed_per_filter_config) > 0:
             self['typed_per_filter_config'] = typed_per_filter_config

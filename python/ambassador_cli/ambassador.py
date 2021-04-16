@@ -38,12 +38,12 @@ from clize import Parameter
 
 from ambassador import Scout, Config, IR, Diagnostics, Version
 from ambassador.fetch import ResourceFetcher
-from ambassador.envoy import EnvoyConfig, V2Config
+from ambassador.envoy import EnvoyConfig, V2Config, V3Config
 
 from ambassador.utils import RichStatus, SecretHandler, SecretInfo, NullSecretHandler, Timer, parse_json, dump_json
 
 if TYPE_CHECKING:
-    from ambassador.ir import IRResource
+    from ambassador.ir import IRResource # pragma: no cover
 
 __version__ = Version
 
@@ -143,7 +143,7 @@ class CLISecretHandler(SecretHandler):
 
 def dump(config_dir_path: Parameter.REQUIRED, *,
          secret_dir_path=None, watt=False, debug=False, debug_scout=False, k8s=False, recurse=False,
-         stats=False, nopretty=False, everything=False, aconf=False, ir=False, v2=False, diag=False,
+         stats=False, nopretty=False, everything=False, aconf=False, ir=False, v2=False, v3=False, diag=False,
          features=False, profile=False):
     """
     Dump various forms of an Ambassador configuration for debugging
@@ -163,6 +163,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     :param aconf: If set, dump the Ambassador config
     :param ir: If set, dump the IR
     :param v2: If set, dump the Envoy V2 config
+    :param v3: If set, dump the Envoy V3 config
     :param diag: If set, dump the Diagnostics overview
     :param everything: If set, dump everything
     :param features: If set, dump the feature set
@@ -185,18 +186,21 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         aconf = True
         ir = True
         v2 = True
+        v3 = True
         diag = True
         features = True
-    elif not (aconf or ir or v2 or diag or features):
+    elif not (aconf or ir or v2 or v3 or diag or features):
         aconf = True
         ir = True
         v2 = True
+        v3 = False
         diag = False
         features = False
 
     dump_aconf = aconf
     dump_ir = ir
     dump_v2 = v2
+    dump_v3 = v3
     dump_diag = diag
     dump_features = features
 
@@ -254,16 +258,26 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
                 v2config = V2Config(ir)
                 diagconfig = v2config
                 od['v2'] = v2config.as_dict()
-
+        v3_timer = Timer("v3")
+        with v3_timer:
+            if dump_v3:
+                v3config = V3Config(ir)
+                diagconfig = v3config
+                od['v3'] = v3config.as_dict()
         diag_timer = Timer("diag")
         with diag_timer:
             if dump_diag:
                 if not diagconfig:
                     diagconfig = V2Config(ir)
+                    diagconfigv3 = V3Config(ir)
                 econf = typecast(EnvoyConfig, diagconfig)
+                econfv3 = typecast(EnvoyConfig, diagconfigv3)
                 diag = Diagnostics(ir, econf)
+                diagv3 = Diagnostics(ir, econfv3)
                 od['diag'] = diag.as_dict()
                 od['elements'] = econf.elements
+                od['diagv3'] = diagv3.as_dict()
+                od['elementsv3'] = econfv3.elements
 
         features_timer = Timer("features")
         with features_timer:
@@ -296,14 +310,16 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         vhost_count = 0
         filter_chain_count = 0
         filter_count = 0
-        for listener in od['v2']['static_resources']['listeners']:
-            for fc in listener['filter_chains']:
-                filter_chain_count += 1
-                for f in fc['filters']:
-                    filter_count += 1
-                    for vh in f['typed_config']['route_config']['virtual_hosts']:
-                        vhost_count += 1
-                        route_count += len(vh['routes'])
+        apiversion = 'v2' if v2 else 'v3'
+        if apiversion in od:
+            for listener in od[apiversion]['static_resources']['listeners']:
+                for fc in listener['filter_chains']:
+                    filter_chain_count += 1
+                    for f in fc['filters']:
+                        filter_count += 1
+                        for vh in f['typed_config']['route_config']['virtual_hosts']:
+                            vhost_count += 1
+                            route_count += len(vh['routes'])
 
         if stats:
             sys.stderr.write("STATS:\n")

@@ -18,7 +18,7 @@ from typing import cast as typecast
 from ...ir.irtracing import IRTracing
 
 if TYPE_CHECKING:
-    from . import V2Config
+    from . import V2Config # pragma: no cover
 
 
 class V2Tracing(dict):

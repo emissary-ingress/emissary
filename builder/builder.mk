@@ -190,11 +190,15 @@ preflight:
 
 preflight-cluster:
 	@test -n "$(DEV_KUBECONFIG)" || (printf "$${KUBECONFIG_ERR}\n"; exit 1)
-	@if [ "$(DEV_KUBECONFIG)" != '-skip-for-release-' ]; then \
-		printf "$(CYN)==> $(GRN)Checking for test cluster$(END)\n" ;\
-		kubectl --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null || { printf "$${KUBECTL_ERR}\n"; exit 1; } ;\
-	else \
+	@if [ "$(DEV_KUBECONFIG)" == '-skip-for-release-' ]; then \
 		printf "$(CYN)==> $(RED)Skipping test cluster checks$(END)\n" ;\
+	else \
+		printf "$(CYN)==> $(GRN)Checking for test cluster$(END)\n" ;\
+		success=; \
+		for i in {1..5}; do \
+			kubectl --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null && success=true && break || sleep 15 ; \
+		done; \
+		if [ ! "$${success}" ] ; then { printf "$$KUBECTL_ERR\n" ; exit 1; } ; fi; \
 	fi
 .PHONY: preflight-cluster
 
@@ -353,6 +357,10 @@ pytest-envoy:
 	$(MAKE) pytest KAT_RUN_MODE=envoy
 .PHONY: pytest-envoy
 
+pytest-envoy-v3:
+	$(MAKE) pytest KAT_RUN_MODE=envoy KAT_USE_ENVOY_V3=true
+.PHONY: pytest-envoy-v3
+
 pytest-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	docker exec \
@@ -363,6 +371,7 @@ pytest-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker
 		-e DOCKER_NETWORK=$(DOCKER_NETWORK) \
 		-e KAT_REQ_LIMIT \
 		-e KAT_RUN_MODE \
+		-e KAT_USE_ENVOY_V3 \
 		-e KAT_VERBOSE \
 		-e PYTEST_ARGS \
 		-e TEST_SERVICE_REGISTRY \
@@ -373,6 +382,9 @@ pytest-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker
 		-e DOCKER_BUILD_PASSWORD \
 		-e AMBASSADOR_LEGACY_MODE \
 		-e AMBASSADOR_FAST_RECONFIGURE \
+		-e AWS_SECRET_ACCESS_KEY \
+		-e AWS_ACCESS_KEY_ID \
+		-e AWS_SESSION_TOKEN \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal ; test_exit=$$? ; \
 		[ -n "$(TEST_XML_DIR)" ] && docker cp $(shell $(BUILDER)):/tmp/test-data/pytest.xml $(TEST_XML_DIR) ; exit $$test_exit
 .PHONY: pytest-only
@@ -398,11 +410,13 @@ export GOTEST_PKGS
 GOTEST_ARGS ?= -race
 export GOTEST_ARGS
 
-gotest: test-ready
+gotest: test-ready docker/kat-server.docker.push.remote docker/$(LCNAME).docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"
 	docker exec \
+		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) \
 		-e DTEST_REGISTRY=$(DEV_REGISTRY) \
 		-e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml \
+		-e KAT_SERVER_DOCKER_IMAGE=$$(sed -n 2p docker/kat-server.docker.push.remote) \
 		-e GOTEST_PKGS \
 		-e GOTEST_ARGS \
 		-e DEV_USE_IMAGEPULLSECRET \
@@ -410,7 +424,7 @@ gotest: test-ready
 		-e DOCKER_BUILD_USERNAME \
 		-e DOCKER_BUILD_PASSWORD \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh gotest-internal ; test_exit=$$? ; \
-		[ -n "$(TEST_XML_DIR)" ] && docker cp $(shell $(BUILDER)):/tmp/test-data/gotest.xml $(TEST_XML_DIR) ; [ $$test_exit == 0 ] || exit $$test_exit
+		[ -n "$(TEST_XML_DIR)" ] && docker cp $(shell $(BUILDER)):/tmp/test-xml.tar.gz $(TEST_XML_DIR) && tar -xvf $(TEST_XML_DIR)/test-xml.tar.gz -C $(TEST_XML_DIR)  ; [ $$test_exit == 0 ] || exit $$test_exit
 	docker exec \
 		-w /buildroot/ambassador \
 		-e GOOS=windows \

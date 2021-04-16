@@ -216,7 +216,7 @@ spec:
         return super().manifests() + "\n".join(manifests)
 
     def queries(self):
-        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), debug=True)
+        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"))
 
         yield Query(self.url("good-annotation/"), expected=200)
         yield Query(self.url("bad-annotation/"), expected=404)

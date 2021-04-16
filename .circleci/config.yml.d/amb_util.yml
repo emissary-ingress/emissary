@@ -109,9 +109,9 @@ commands:
               docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
             fi
 
-            ./.ci/kubernaut-claim
-            echo >>"$BASH_ENV" 'if test -e ~/kubernaut-claim.txt; then'
-            echo >>"$BASH_ENV" '  export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml'
+            ./.ci/cluster-claim
+            echo >>"$BASH_ENV" 'if test -e ~/.kube/kubeception.yaml; then'
+            echo >>"$BASH_ENV" '  export DEV_KUBECONFIG=~/.kube/kubeception.yaml'
             echo >>"$BASH_ENV" '  if [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]]; then'
             echo >>"$BASH_ENV" '    KUBECONFIG=$DEV_KUBECONFIG go run ./cmd/k8sregistryctl up --storage=hostPath'
             echo >>"$BASH_ENV" '  fi'
@@ -123,7 +123,7 @@ commands:
     steps:
       - run:
           working_directory: ~/project/ambassador
-          command: "./.ci/kubernaut-unclaim"
+          command: "./.ci/cluster-unclaim"
           when: "always"
 
   "amb-save-logs":
@@ -193,3 +193,15 @@ commands:
           name: "Store pod logs"
           path: /tmp/pod-logs
           destination: pod-logs
+
+  "amb-skip-if-bad-chart-version":
+    steps:
+      - run:
+          name: "Diff changes"
+          command: |
+            thisversion=$(grep version: charts/ambassador/Chart.yaml | awk ' { print $2 }')
+
+            if [[ "<< pipeline.git.tag >>" != "chart-v${thisversion}" ]]; then
+              echo "Chart version ${thisversion} doesn't match tag << pipeline.git.tag >>; aborting"
+              exit 1
+            fi

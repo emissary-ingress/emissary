@@ -254,6 +254,10 @@ bootstrap() {
             ${BUILDER_DOCKER_EXTRA} \
             --env=BUILDER_NAME="${BUILDER_NAME}" \
             --env=GOPRIVATE="${GOPRIVATE}" \
+            --env=AWS_SECRET_ACCESS_KEY \
+            --env=AWS_ACCESS_KEY_ID \
+            --env=AWS_SESSION_TOKEN \
+            --init \
             --entrypoint=tail ${BUILDER_NAME}.local/builder -f /dev/null > /dev/null
         echo_off
 
@@ -565,7 +569,7 @@ case "${cmd}" in
         mkdir -p ${TEST_DATA_DIR}
         for MODDIR in $(find-modules); do
             if [ -e "${MODDIR}/python" ]; then
-                if ! (cd ${MODDIR} && pytest --cov=ambassador --junitxml=${TEST_DATA_DIR}/pytest.xml --tb=short -ra "${pytest_args[@]}") then
+                if ! (cd ${MODDIR} && pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=${TEST_DATA_DIR}/pytest.xml --tb=short -ra "${pytest_args[@]}") then
                    fail="yes"
                 fi
             fi
@@ -582,14 +586,15 @@ case "${cmd}" in
         for MODDIR in $(find-modules); do
             if [ -e "${MODDIR}/go.mod" ]; then
                 pkgs=$(cd ${MODDIR} && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' ${GOTEST_PKGS})
-
                 if [ -n "${pkgs}" ]; then
-                    if ! (cd ${MODDIR} && gotestsum --junitfile ${TEST_DATA_DIR}/gotest.xml --packages ${pkgs} -- ${GOTEST_ARGS}) then
+                    modname=`basename ${MODDIR}`
+                    if ! (cd ${MODDIR} && gotestsum --junitfile ${TEST_DATA_DIR}/${modname}-gotest.xml --packages="${pkgs}" -- ${GOTEST_ARGS}) ; then
                        fail="yes"
                     fi
                 fi
             fi
         done
+        tar -C ${TEST_DATA_DIR} -cvf /tmp/test-xml.tar.gz .
 
         if [ "${fail}" = yes ]; then
             exit 1
