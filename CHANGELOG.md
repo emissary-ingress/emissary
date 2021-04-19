@@ -21,9 +21,7 @@ of the Ambassador API Gateway in addition to the additional capabilities mention
 Due to popular demand, we’re offering a free tier of our core features as part of the
 Ambassador Edge Stack, designed for startups.
 
-## BREAKING NEWS
-
-### UPCOMING CHANGES
+## UPCOMING BREAKING CHANGES
 
 #### `Ingress` Resources and Namespaces
 
