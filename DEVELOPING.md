@@ -469,7 +469,6 @@ and tests on a RAM disk (see the `/etc/fstab` line above).
 
    ```shell
    export YES_I_AM_OK_WITH_COMPILING_ENVOY=true
-   export YES_I_AM_UPDATING_THE_BASE_IMAGES=true
    export ENVOY_COMMIT='-'
    ```
 
@@ -572,7 +571,6 @@ Once you're happy with your changes to Envoy:
 
    ```shell
    export YES_I_AM_OK_WITH_COMPILING_ENVOY=true
-   export YES_I_AM_UPDATING_THE_BASE_IMAGES=true
    unset ENVOY_COMMIT
    make update-base
    ```

@@ -2,7 +2,6 @@
 include $(OSS_HOME)/build-aux/prelude.mk
 
 YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
-YES_I_AM_UPDATING_THE_BASE_IMAGES ?=
 ENVOY_TEST_LABEL ?= //test/...
 
 _git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
@@ -148,13 +147,6 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	    if [ '$(ENVOY_COMMIT)' != '-' ] && docker run --rm --entrypoint=true $(ENVOY_FULL_DOCKER_TAG); then \
 	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_FULL_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy-static $@; \
 	    else \
-	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
-	            { set +x; } &>/dev/null; \
-	            echo 'error: failed to pull $(ENVOY_FULL_DOCKER_TAG), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
-	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
-	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
-	            exit 1; \
-	        fi; \
 	        if [ -z '$(YES_I_AM_OK_WITH_COMPILING_ENVOY)' ]; then \
 	            { set +x; } &>/dev/null; \
 	            echo 'error: Envoy compilation triggered, but $$YES_I_AM_OK_WITH_COMPILING_ENVOY is not set'; \
