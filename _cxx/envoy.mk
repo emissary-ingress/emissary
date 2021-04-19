@@ -13,7 +13,7 @@ IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
-  BASE_ENVOY_RELVER ?= 0
+  BASE_ENVOY_RELVER ?= 1
 
   ENVOY_DOCKER_REPO ?= $(if $(IS_PRIVATE),quay.io/datawire-private/ambassador-base,docker.io/datawire/ambassador-base)
   ENVOY_DOCKER_VERSION ?= $(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
@@ -158,11 +158,20 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	        ); \
 	    fi; \
 	}
-%-stripped: % $(OSS_HOME)/_cxx/envoy-build-container.txt
+%-stripped: % $(ENOVY_BASH.deps) FORCE
 	@PS4=; set -ex; { \
-	    rsync -Pav --blocking-io -e 'docker exec -i' $< $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/tmp/$(<F); \
-	    docker exec $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt) strip /tmp/$(<F) -o /tmp/$(@F); \
-	    rsync -Pav --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/tmp/$(@F) $@; \
+	    if [ '$(ENVOY_COMMIT)' != '-' ] && docker run --rm --entrypoint=true $(ENVOY_FULL_DOCKER_TAG); then \
+	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_FULL_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/$(@F) $@; \
+	    else \
+	        if [ -z '$(YES_I_AM_OK_WITH_COMPILING_ENVOY)' ]; then \
+	            { set +x; } &>/dev/null; \
+	            echo 'error: Envoy compilation triggered, but $$YES_I_AM_OK_WITH_COMPILING_ENVOY is not set'; \
+	            exit 1; \
+	        fi; \
+	        rsync -Pav --blocking-io -e 'docker exec -i' $< $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/tmp/$(<F); \
+	        docker exec $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt) strip /tmp/$(<F) -o /tmp/$(@F); \
+	        rsync -Pav --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/tmp/$(@F) $@; \
+	    fi; \
 	}
 
 check-envoy: ## Run the Envoy test suite
