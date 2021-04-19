@@ -25,25 +25,25 @@ Ambassador Edge Stack, designed for startups.
 
 ### UPCOMING CHANGES
 
-#### Ingress resources and Namespaces
+#### `Ingress` Resources and Namespaces
 
 In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, TLS secrets
 in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
 
 #### Regex Matching
 
-As of Envoy v1.12.0, the `regex` field for HeaderMatcher, RouteMatch and StringMatcher has been [deprecated in favor of safe_regex](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.12.0.html?highlight=regex#deprecated).
+In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, the `regex_type` and `regex_max_size`
+fields will be removed from the `ambassador` `Module`, and Ambassador will support only Envoy `safe_regex`
+matching. Note that `safe_regex` matching has been Ambassador's default since Ambassador v0.83.0.
 
-As of Ambassador 0.83.0, the safe regex fields are used by default.
-The deprecated fields are only used when `regex_type` is set to `unsafe` in the `ambassador` `Module`.
-
-The non-safe regex fields are no longer supported with the Envoy V3 APIs, so, to service Ambassador's migration from Envoy V2 to Envoy V3 APIs, support for `regex_type` is deprecated,
-and the field will be removed from the `ambassador` `Module` *no sooner than Ambassador 1.14.0*.
-
-Additionally, as of Envoy V1.15.0, [max_program_size for the Google RE2 engine has been deprecated.](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.15.0.html?highlight=max_program_size)
-Consequently, we will be deprecating the `regex_max_size` field from the `ambassador` `Module`, and will be removing the field *no sooner than Ambassador 1.14.0*.
+This change is being made because the `regex` field for `HeaderMatcher`, `RouteMatch`, and `StringMatcher` was
+[deprecated in favor of safe_regex] in Envoy v1.12.0, then removed entirely from the Envoy V3 APIs. Additionally,
+setting [max_program_size was deprecated] in Envoy v1.15.0.
 
 Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/type/matcher/v3/regex.proto.html) for more information.
+
+[deprecated in favor of safe_regex]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.12.0.html?highlight=regex#deprecated
+[max_program_size was deprecated]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.15.0.html?highlight=max_program_size
 
 ## RELEASE NOTES
 
