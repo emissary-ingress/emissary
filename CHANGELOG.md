@@ -25,8 +25,6 @@ Ambassador Edge Stack, designed for startups.
 
 ### UPCOMING CHANGES
 
-- Feature: The Ambassador Module configuration now supports `merge_slashes` which tells Ambassador to merge adjacent slashes when performing route matching. For example, when true, a request with URL '//foo/' would match a Mapping with prefix '/foo/'.
-
 #### Ingress resources and Namespaces
 
 In a future version of Ambassador, *no sooner than Ambassador 1.13.0*, TLS secrets
@@ -65,6 +63,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: Add `diagnostics.allow_non_local` flag to expose admin UI internally only ([#3074])
 - Feature: Ambassador will now use the Envoy v3 API internally when the AMBASSADOR_ENVOY_API_VERSION environment variable is set to "V3". By default, Ambassador will continue to use the v2 API.
 - Feature: Ambassador Agent now available (and deployed by default) for the API Gateway (https://app.getambassador.io).
+- Feature: The Ambassador Module configuration now supports `merge_slashes` which tells Ambassador to merge adjacent slashes when performing route matching. For example, when true, a request with URL '//foo/' would match a Mapping with prefix '/foo/'.
 - Bugfix: Make Knative paths match on prefix instead of the entire path to better align to the Knative specification ([#3224]).
 - Bugfix: The endpoint routing resolver will now properly watch services that include a scheme.
 - Bugfix: Environment variable interpolation works again for `ConsulResolver.Spec.Address` without setting `AMBASSADOR_LEGACY_MODE` ([#3182], [#3317])
