@@ -32,23 +32,6 @@ Ambassador Edge Stack, designed for startups.
 In a future version of Ambassador, *no sooner than Ambassador 1.13.0*, TLS secrets
 in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
 
-#### gRPC names
-
-*In version 1.10*, Ambassador changed the default version of the gRPC service name used to
-communicate with `AuthService`s and `RateLimitService`s:
-
-| Resource           | Default service name in v1.10.0               | Deprecated                                 |
-| :----------------- | :-------------------------------------------- | :----------------------------------------- |
-| `AuthService`      | `envoy.service.auth.v2.Authorization`         | `envoy.service.auth.v2alpha.Authorization` |
-| `RateLimitService` | `envoy.service.ratelimit.v2.RateLimitService` | `pb.lyft.ratelimit.RateLimitService`       |
-
-- In Ambassador version 1.11.0, `AuthService` and `RateLimitService` configuration can specify use of the
-  deprecated protocol versions (e.g. by setting `protocol_version: v2alpha`)
-- In Ambassador version 1.13.0, the deprecated versions were removed. Users must now omit `protocol_version` or set it to `v2`.
-
-Note that Ambassador Edge Stack `External` Filters already unconditionally use the newer
-`envoy.service.auth.v2.Authorization` name.
-
 #### Regex Matching
 
 As of Envoy v1.12.0, the `regex` field for HeaderMatcher, RouteMatch and StringMatcher has been [deprecated in favor of safe_regex](https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.12.0.html?highlight=regex#deprecated).
@@ -75,6 +58,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Ambasssador API Gateway + Ambassador Edge Stack
 
+*Note*: Support for the deprecated `v2alpha` `protocol_version` has been removed from the `AuthService` and `RateLimitService`.
+
 - Feature: Mapping configuration now supports setting `auth_context_extentions` that allows setting the `check_settings` field in the per route configuration supported by `ext_authz` http filter.
 - Feature: Added support in ambassador-agent for reporting Argo Rollouts and Argo Applications to Ambassador Cloud (https://app.getambassador.io)
 - Feature: Add `diagnostics.allow_non_local` flag to expose admin UI internally only ([#3074])
@@ -87,7 +72,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Change: The Helm chart has been moved into this repo, in the `charts/ambassador` directory.
 - Change: The `Mapping` CRD has been modified so that `kubectl get mappings` now has a column for not just the source path-prefix (`.spec.prefix`), but the source host (`.spec.host`) too.
 - Change: The yaml in yaml/docs is now generated from the contents of the helm chart in the `charts/ambassador` directory.
-- Change: Ambassador no longer supports `v2alpha` as the `protocol_version` for AuthSerivce and RateLimitService resources. See the "gRPC names" section above for more information.
+- Change: Support for the deprecated `v2alpha` `protocol_version` has been removed from the `AuthService` and `RateLimitService`.
 
 [#3074]: https://github.com/datawire/ambassador/issues/3074
 [#3182]: https://github.com/datawire/ambassador/issues/3182
