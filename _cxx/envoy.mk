@@ -208,11 +208,40 @@ $(OSS_HOME)/pkg/api/pb $(OSS_HOME)/pkg/api/envoy: $(OSS_HOME)/pkg/api/%: $(OSS_H
 	  mv "$$tmpdir/$*" $@; \
 	}
 
-update-base: $(OSS_HOME)/_cxx/envoy-build-image.txt $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-envoy/envoy-static-stripped
-	docker build -f $(OSS_HOME)/docker/base-envoy/Dockerfile.stripped -t $(ENVOY_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy
-	docker build --build-arg=base=$$(cat $(OSS_HOME)/_cxx/envoy-build-image.txt) -t $(ENVOY_FULL_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy
+update-base: $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-envoy/envoy-static-stripped $(OSS_HOME)/_cxx/envoy-build-image.txt
+	@PS4=; set -ex; { \
+	    if [ '$(ENVOY_COMMIT)' != '-' ] && docker pull $(ENVOY_FULL_DOCKER_TAG); then \
+	        echo 'Already up-to-date: $(ENVOY_FULL_DOCKER_TAG)'; \
+	    else \
+	        if [ -z '$(YES_I_AM_OK_WITH_COMPILING_ENVOY)' ]; then \
+	            { set +x; } &>/dev/null; \
+	            echo 'error: Envoy compilation triggered, but $$YES_I_AM_OK_WITH_COMPILING_ENVOY is not set'; \
+	            exit 1; \
+	        fi; \
+	        docker build --build-arg=base=$$(cat $(OSS_HOME)/_cxx/envoy-build-image.txt) -f $(OSS_HOME)/docker/base-envoy/Dockerfile -t $(ENVOY_FULL_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy; \
+	        if [ '$(ENVOY_COMMIT)' != '-' ]; then \
+	            docker push $(ENVOY_FULL_DOCKER_TAG); \
+	        fi; \
+	    fi; \
+	}
+	@PS4=; set -ex; { \
+	    if [ '$(ENVOY_COMMIT)' != '-' ] && docker pull $(ENVOY_DOCKER_TAG); then \
+	        echo 'Already up-to-date: $(ENVOY_DOCKER_TAG)'; \
+	    else \
+	        if [ -z '$(YES_I_AM_OK_WITH_COMPILING_ENVOY)' ]; then \
+	            { set +x; } &>/dev/null; \
+	            echo 'error: Envoy compilation triggered, but $$YES_I_AM_OK_WITH_COMPILING_ENVOY is not set'; \
+	            exit 1; \
+	        fi; \
+	        docker build -f $(OSS_HOME)/docker/base-envoy/Dockerfile.stripped -t $(ENVOY_DOCKER_TAG) $(OSS_HOME)/docker/base-envoy; \
+	        if [ '$(ENVOY_COMMIT)' != '-' ]; then \
+	            docker push $(ENVOY_DOCKER_TAG); \
+	        fi; \
+	    fi; \
+	}
+# `make generate` has to come *after* the above, because builder.sh will
+# try to use the images that the above create.
 	$(MAKE) generate
-	if [ '$(ENVOY_COMMIT)' != '-' ]; then docker push $(ENVOY_DOCKER_TAG) && docker push $(ENVOY_FULL_DOCKER_TAG); fi
 .PHONY: update-base
 
 #
