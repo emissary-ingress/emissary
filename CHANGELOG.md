@@ -59,12 +59,12 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 *Note*: Support for the deprecated `v2alpha` `protocol_version` has been removed from the `AuthService` and `RateLimitService`.
 
-- Feature: Mapping configuration now supports setting `auth_context_extentions` that allows setting the `check_settings` field in the per route configuration supported by `ext_authz` http filter.
-- Feature: Added support in ambassador-agent for reporting Argo Rollouts and Argo Applications to Ambassador Cloud (https://app.getambassador.io)
-- Feature: Add `diagnostics.allow_non_local` flag to expose admin UI internally only ([#3074])
+- Feature: Mapping configuration now supports setting `auth_context_extentions` that allows setting the `check_settings` field in the per route configuration supported by `ext_authz` http filter (thanks, [Giridhar Pathak](https://github.com/gpathak)!).
+- Feature: Added support in ambassador-agent for reporting [Argo Rollouts] and [Argo Applications] to Ambassador Cloud
+- Feature: The [Ambassador Module configuration] now supports the `diagnostics.allow_non_local` flag to expose admin UI internally only ([#3074] -- thanks, [Fabrice](https://github.com/jfrabaute)!)
 - Feature: Ambassador will now use the Envoy v3 API internally when the AMBASSADOR_ENVOY_API_VERSION environment variable is set to "V3". By default, Ambassador will continue to use the v2 API.
-- Feature: Ambassador Agent now available (and deployed by default) for the API Gateway (https://app.getambassador.io).
-- Feature: The Ambassador Module configuration now supports `merge_slashes` which tells Ambassador to merge adjacent slashes when performing route matching. For example, when true, a request with URL '//foo/' would match a Mapping with prefix '/foo/'.
+- Feature: The [Ambassador Agent] is now available (and deployed by default) for the API Gateway (https://app.getambassador.io).
+- Feature: The [Ambassador Module configuration] now supports `merge_slashes` which tells Ambassador to merge adjacent slashes when performing route matching. For example, when true, a request with URL '//foo/' would match a Mapping with prefix '/foo/'.
 - Bugfix: Make Knative paths match on prefix instead of the entire path to better align to the Knative specification ([#3224]).
 - Bugfix: The endpoint routing resolver will now properly watch services that include a scheme.
 - Bugfix: Environment variable interpolation works again for `ConsulResolver.Spec.Address` without setting `AMBASSADOR_LEGACY_MODE` ([#3182], [#3317])
@@ -75,12 +75,16 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Change: The yaml in yaml/docs is now generated from the contents of the helm chart in the `charts/ambassador` directory.
 - Change: Support for the deprecated `v2alpha` `protocol_version` has been removed from the `AuthService` and `RateLimitService`.
 
+[Ambassador Agent]: https://www.getambassador.io/docs/cloud/latest/service-catalog/quick-start/
+[Ambassador Module configuration]: https://getambassador.io/docs/edge-stack/latest/topics/running/ambassador/
+[Argo Applications]: https://www.getambassador.io/docs/argo/latest/quick-start/
+[Argo Rollouts]: https://www.getambassador.io/docs/argo/latest/quick-start/
+
 [#3074]: https://github.com/datawire/ambassador/issues/3074
 [#3182]: https://github.com/datawire/ambassador/issues/3182
 [#3224]: https://github.com/datawire/ambassador/issues/3224
 [#3317]: https://github.com/datawire/ambassador/issues/3317
 [#3324]: https://github.com/datawire/ambassador/issues/3324
-[#3341]: https://github.com/datawire/ambassador/issues/3341
 [#3349]: https://github.com/datawire/ambassador/issues/3349
 
 ### Ambassador Edge Stack only
@@ -93,11 +97,15 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: DevPortal search can be configured to only search over titles (with search.type=`title-only`in the DevPortal CRD) or to search over all content (search.type=`all-content`)
 - Feature: DevPortal search supports deep linking to openapi spec entries (must set `search.type=all-content` and `search.enabled=true` on the DevPortal CRD)
 - Feature: DevPortal: Trigger content refresh by hitting `/docs/api/refreshContent`
-- Feature: The AES ratelimit preview service now supports burst (aka token bucket) ratelimiting.
+- Feature: The AES ratelimit preview service now supports [burst ratelimiting] (aka token bucket ratelimiting).
 - Bugfix: The AES ratelimit preview no longer ignores LOCAL_CACHE_SIZE_IN_BYTES.
-- Bugfix: The AES ratelimit preview no longer ignores NEAR_LIMIT_RATION.
+- Bugfix: The AES ratelimit preview no longer ignores NEAR_LIMIT_RATIO.
 - Bugfix: The AES ratelimit preview no longer ignores EXPIRATION_JITTER_MAX_SECONDS.
 - Change: Silence DevPortal warnings when DevPortal cannot parse a hostname from a Mapping. (#3341)
+
+[burst ratelimiting]: https://getambassador.io/docs/edge-stack/latest/topics/using/rate-limits/
+
+[#3341]: https://github.com/datawire/ambassador/issues/3341
 
 ## [1.12.4] April 19, 2021
 [1.12.4]: https://github.com/datawire/ambassador/compare/v1.12.3...v1.12.4-rc.0
