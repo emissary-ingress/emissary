@@ -27,7 +27,7 @@ Ambassador Edge Stack, designed for startups.
 
 #### Ingress resources and Namespaces
 
-In a future version of Ambassador, *no sooner than Ambassador 1.13.0*, TLS secrets
+In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, TLS secrets
 in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
 
 #### Regex Matching
