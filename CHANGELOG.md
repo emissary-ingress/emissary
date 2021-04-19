@@ -4,10 +4,10 @@
 
 Ambassador Edge Stack is a comprehensive, self-service solution for exposing,
 securing, and managing the boundary between end users and your Kubernetes services.
-The core of Ambassador Edge Stack is the open-source Ambassador API Gateway, built on
-the Envoy proxy.
+The core of Ambassador Edge Stack is Emissary Ingress, the open-source API gateway
+built on the Envoy proxy.
 
-Ambassador Edge Stack provides all the capabilities of the Ambassador API Gateway,
+Ambassador Edge Stack provides all the capabilities of the Emissary Ingress,
 as well as additional capabilities including:
 
 - The Edge Policy Console, a graphical UI to visualize and manage all of your edge policies;
@@ -17,9 +17,12 @@ as well as additional capabilities including:
   support, and a fully customizable developer portal.
 
 Note: The Ambassador Edge Stack is free for all users, and includes all the functionality
-of the Ambassador API Gateway in addition to the additional capabilities mentioned above.
-Due to popular demand, we’re offering a free tier of our core features as part of the
-Ambassador Edge Stack, designed for startups.
+of Emissary Ingress in addition to the additional capabilities mentioned above. Due to
+popular demand, we’re offering a free tier of our core features as part of the Ambassador
+Edge Stack, designed for startups.
+
+In general, references to "Ambassador" in this CHANGELOG and the rest of the Ambassador 
+Edge Stack documentation refer both to the Ambassador Edge Stack and Emissary Ingress.
 
 ## UPCOMING BREAKING CHANGES
 
@@ -52,7 +55,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ## [1.13.0-rc.0] April 16, 2021
 [1.13.0-rc.0]: https://github.com/datawire/ambassador/compare/v1.12.3...v1.13.0-rc.0
 
-### Ambasssador API Gateway + Ambassador Edge Stack
+### Emissary Ingress and Ambassador Edge Stack
 
 *Note*: Support for the deprecated `v2alpha` `protocol_version` has been removed from the `AuthService` and `RateLimitService`.
 
