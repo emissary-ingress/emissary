@@ -825,6 +825,10 @@ spec:
               oneOf:
               - type: string
               - type: array
+            auth_context_extensions:
+              additionalProperties:
+                type: string
+              type: object
             auto_host_rewrite:
               type: boolean
             bypass_auth:
