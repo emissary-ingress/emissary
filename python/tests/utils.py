@@ -1,4 +1,5 @@
 import logging
+import json
 import os
 import subprocess
 import requests
@@ -19,6 +20,8 @@ from kat.harness import load_manifest
 from tests.kubeutils import apply_kube_artifacts
 
 logger = logging.getLogger("ambassador")
+
+SUPPORTED_ENVOY_VERSIONS = ["V2", "V3"]
 
 CLEARTEXT_HOST_YAML = '''
 ---
@@ -247,24 +250,25 @@ def _secret_handler():
     cache_dir = tempfile.TemporaryDirectory(prefix="null-secret-", suffix="-cache")
     return NullSecretHandler(logger, source_root.name, cache_dir.name, "fake")
 
-def econf_compile(yaml):
+def econf_compile(yaml, envoy_version="V2"):
     # Compile with and without a cache. Neither should produce errors.
     cache = Cache(logger)
     secret_handler = _secret_handler()
-    r1 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler)
-    r2 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, cache=cache)
+    r1 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, envoy_version=envoy_version)
+    r2 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, cache=cache,
+            envoy_version=envoy_version)
     _require_no_errors(r1["ir"])
     _require_no_errors(r2["ir"])
 
     # Both should produce equal Envoy config as sorted json.
-    r1j = json.dumps(r1['v2'].as_dict(), sort_keys=True, indent=2)
-    r2j = json.dumps(r2['v2'].as_dict(), sort_keys=True, indent=2)
+    r1j = json.dumps(r1[envoy_version.lower()].as_dict(), sort_keys=True, indent=2)
+    r2j = json.dumps(r2[envoy_version.lower()].as_dict(), sort_keys=True, indent=2)
     assert r1j == r2j
 
     # Now we can return the Envoy config as a dictionary
-    return r1['v2'].as_dict()
+    return r1[envoy_version.lower()].as_dict()
 
-def econf_foreach_hcm(econf, fn):
+def econf_foreach_hcm(econf, fn, envoy_version='V2'):
     found_hcm = False
     for listener in econf['static_resources']['listeners']:
         # There's only one filter chain...
@@ -279,7 +283,11 @@ def econf_foreach_hcm(econf, fn):
         hcm = filters[0]
         assert hcm['name'] == 'envoy.filters.network.http_connection_manager'
         typed_config = hcm['typed_config']
-        assert typed_config['@type'] == 'type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager'
+        envoy_version_type_map = {
+            'V3': 'type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager',
+            'V2': 'type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager',
+        }
+        assert typed_config['@type'] == envoy_version_type_map[envoy_version], "bad type: %s" % typed_config['@type']
 
         found_hcm = True
         r = fn(typed_config)
@@ -297,3 +305,11 @@ def econf_foreach_cluster(econf, fn, name='cluster_httpbin_default'):
         if not r:
             break
     assert found_cluster
+
+def assert_valid_envoy_config(config_dict):
+    with tempfile.NamedTemporaryFile() as temp:
+        temp.write(bytes(json.dumps(config_dict), encoding = 'utf-8'))
+        temp.flush()
+        f_name = temp.name
+        cmd = ['envoy', '--config-path', f_name, '--mode', 'validate']
+        v_encoded = subprocess.check_output(cmd, stderr=subprocess.STDOUT)

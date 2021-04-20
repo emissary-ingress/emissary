@@ -25,6 +25,8 @@ Ambassador Edge Stack, designed for startups.
 
 ### UPCOMING CHANGES
 
+- Feature: The Ambassador Module configuration now supports `merge_slashes` which tells Ambassador to merge adjacent slashes when performing route matching. For example, when true, a request with URL '//foo/' would match a Mapping with prefix '/foo/'.
+
 #### Ingress resources and Namespaces
 
 In a future version of Ambassador, *no sooner than Ambassador 1.13.0*, TLS secrets
@@ -67,7 +69,41 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
-(no changes yet)
+### Ambasssador API Gateway + Ambassador Edge Stack
+
+- Feature: Mapping configuration now supports setting `auth_context_extentions` that allows setting the `check_settings` field in the per route configuration supported by `ext_authz` http filter.
+- Feature: Added support in ambassador-agent for reporting Argo Rollouts and Argo Applications to Ambassador Cloud (https://app.getambassador.io)
+- Feature: Add `diagnostics.allow_non_local` flag to expose admin UI internally only ([#3074])
+- Feature: Ambassador will now use the Envoy v3 API internally when the AMBASSADOR_ENVOY_API_VERSION environment variable is set to "V3". By default, Ambassador will continue to use the v2 API.
+- Feature: Ambassador Agent now available (and deployed by default) for the API Gateway (https://app.getambassador.io).
+- Bugfix: Make Knative paths match on prefix instead of the entire path to better align to the Knative specification ([#3224]).
+- Bugfix: The endpoint routing resolver will now properly watch services that include a scheme.
+- Bugfix: Environment variable interpolation works again for `ConsulResolver.Spec.Address` without setting `AMBASSADOR_LEGACY_MODE` ([#3182], [#3317])
+- Bugfix: Endpoint routing will now detect endpoint changes when your service field includes `.svc.cluster.local`. ([#3324])
+- Change: The Helm chart has been moved into this repo, in the `charts/ambassador` directory.
+- Change: The `Mapping` CRD has been modified so that `kubectl get mappings` now has a column for not just the source path-prefix (`.spec.prefix`), but the source host (`.spec.host`) too.
+- Change: The yaml in yaml/docs is now generated from the contents of the helm chart in the `charts/ambassador` directory.
+
+[#3074]: https://github.com/datawire/ambassador/issues/3074
+[#3182]: https://github.com/datawire/ambassador/issues/3182
+[#3224]: https://github.com/datawire/ambassador/issues/3224
+[#3317]: https://github.com/datawire/ambassador/issues/3317
+[#3324]: https://github.com/datawire/ambassador/issues/3324
+
+### Ambassador Edge Stack only
+
+- Feature: DevPortal: Added doc.display_name attribute to the Mapping CRD. This value allows for a custom name and documentation URL path of the service in the DevPortal.
+- Feature: DevPortal: Added `naming_scheme` enum to the DevPortal CRD. This enum controls the way services are displayed in the DevPortal. Supported values are `namespace.name` (current behavior) and `name.prefix`, which will use the Mapping name and Mapping prefix to display the services.
+- Feature: DevPortal: `DEVPORTAL_DOCS_BASE_PATH` environment variable makes the base path of service API documentation configurable.
+- Feature: DevPortal: DevPortal will now reload content on changes to Mapping and DevPortal resources.
+- Feature: DevPortal: DevPortal now supports a search endpoint at `/docs/api/search`
+- Feature: DevPortal search can be configured to only search over titles (with search.type=`title-only`in the DevPortal CRD) or to search over all content (search.type=`all-content`)
+- Feature: DevPortal search supports deep linking to openapi spec entries (must set `search.type=all-content` and `search.enabled=true` on the DevPortal CRD)
+- Feature: DevPortal: Trigger content refresh by hitting `/docs/api/refreshContent`
+- Feature: The AES ratelimit preview service now supports burst (aka token bucket) ratelimiting.
+- Bugfix: The AES ratelimit preview no longer ignores LOCAL_CACHE_SIZE_IN_BYTES.
+- Bugfix: The AES ratelimit preview no longer ignores NEAR_LIMIT_RATION.
+- Bugfix: The AES ratelimit preview no longer ignores EXPIRATION_JITTER_MAX_SECONDS.
 
 ## [1.12.4] April 19, 2021
 [1.12.4]: https://github.com/datawire/ambassador/compare/v1.12.3...v1.12.4
@@ -172,7 +208,7 @@ Bugfix: Incorporate the Envoy 1.15.4 security update.
 - Feature: The redirect location header returned by Ambassador now supports prefix rewrites using `prefix_redirect` on `Mappings` that use `host_redirect`.
 - Feature: The redirect location header returned by Ambassador now supports regex rewrites using `regex_redirect` on `Mappings` that use `host_redirect`.
 - Feature: Expose `max_request_headers_kb` in the Ambassador `Module`. This directly exposes the same value in Envoy; see [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/filter/network/http_connection_manager/v2/http_connection_manager.proto) for more information.
-- Feature: Support Istio mTLS certification rotation for Istio 1.5 and higher. See the [howto](https://www.getambassador.io/docs/latest/howtos/istio/) for details.
+- Feature: Support Istio mTLS certification rotation for Istio 1.5 and higher. See the [howto](https://www.getambassador.io/docs/edge-stack/latest/howtos/istio/) for details.
 - Feature: The Ambassador Module's `error_response_overrides` now support configuring an empty response body using `text_format`. Previously, empty response bodies could only be configured by specifying an empty file using `text_format_source`.
 - Feature: OAuth2 Filter: Support injecting HTTP header fields in to the request before passing on to the upstream service. Enables passing along `id_token` information to the upstream if it was returned by the IDP.
 - Bugfix: Fix the grpc external filter to properly cache grpc clients thereby avoiding initiating a separate connection to the external filter for each filtered request.
@@ -495,10 +531,10 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 ### Ambassador Edge Stack only
 
 - Bugfix: The Traffic Agent binds to port 9900 by default. That port can be configured in the Agent's Pod spec.
-   - For more about using the Traffic Agent, see the [Service Preview documentation](https://www.getambassador.io/docs/latest/topics/using/edgectl/#configuring-service-preview).
+   - For more about using the Traffic Agent, see the [Service Preview documentation](https://www.getambassador.io/docs/edge-stack/latest/topics/using/edgectl/#configuring-service-preview).
 - Bugfix: The `OAuth2` Filter redirection-endpoint now handles various XSRF errors more consistently (the way we meant it to in 1.2.1)
 - Bugfix: The `OAuth2` Filter now supports multiple authentication domains that share the same credentials.
-   - For more about using multiple domains, see the [OAuth2 `Filter` documentation](https://www.getambassador.io/docs/1.4/topics/using/filters/oauth2/).
+   - For more about using multiple domains, see the [OAuth2 `Filter` documentation](https://www.getambassador.io/docs/edge-stack/1.4/topics/using/filters/oauth2/).
 - Bugfix: The ACME client now obeys `AMBASSADOR_ID`
 - Feature (ALPHA): Added an in-cluster micro CI/CD system to enable building, staging, and publishing of GitHub projects from source.  This is disabled by default.
 
@@ -517,11 +553,11 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 - Feature: Support Ingress Path types improvements from networking.k8s.io/v1beta1 on Kubernetes 1.18+
 - Feature: Support Ingress hostname wildcards
 - Feature: Support for the IngressClass Resource, added to networking.k8s.io/v1beta1 on Kubernetes 1.18+
-   - For more about new Ingress support, see the [Ingress Controller documentation](https://getambassador.io/docs/1.4/topics/running/ingress-controller).
+   - For more about new Ingress support, see the [Ingress Controller documentation](https://getambassador.io/docs/edge-stack/1.4/topics/running/ingress-controller).
 - Feature: `Mapping`s support the `cluster_tag` attribute to control the name of the generated Envoy cluster (thanks, [Stefan Sedich](https://github.com/stefansedich)!)
-   - See the [Advanced Mapping Configuration documentation](https://getambassador.io/docs/1.4/topics/using/mappings) for more.
+   - See the [Advanced Mapping Configuration documentation](https://getambassador.io/docs/edge-stack/1.4/topics/using/mappings) for more.
 - Feature: Support Envoy's ability to force response headers to canonical HTTP case (thanks, [Puneet Loya](https://github.com/puneetloya)!)
-   - See the [Ambassador Module documentation](https://getambassador.io/docs/1.4/topics/running/ambassador) for more.
+   - See the [Ambassador Module documentation](https://getambassador.io/docs/edge-stack/1.4/topics/running/ambassador) for more.
 - Bugfix: Correctly ignore Kubernetes services with no metadata (thanks, [Fabrice](https://github.com/jfrabaute)!)
 
 ### Ambassador Edge Stack only
@@ -533,7 +569,7 @@ The default value of `AMBASSADOR_UPDATE_MAPPING_STATUS` will change to
 - Bugfix: The ACME client of of one Ambassador install will no longer interfere with the ACME client of another Ambassador install in the same namespace with a different AMBASSADOR_ID.
 - Bugfix: `edgectl intercept` supports matching headers values against regular expressions once more
 - Bugfix: `edgectl install` correctly handles more local and cluster environments
-   - For more about `edgectl` improvements, see the [Service Preview and Edge Control documentation](https://getambassador.io/docs/1.4/topics/using/edgectl).
+   - For more about `edgectl` improvements, see the [Service Preview and Edge Control documentation](https://getambassador.io/docs/edge-stack/1.4/topics/using/edgectl).
 
 ## [1.3.2] April 01, 2020
 [1.3.2]: https://github.com/datawire/ambassador/compare/v1.3.1...v1.3.2

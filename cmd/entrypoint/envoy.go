@@ -60,7 +60,7 @@ func runEnvoy(ctx context.Context, envoyHUP chan os.Signal) error {
 				dockerArgs = append(dockerArgs, "--privileged")
 			}
 
-			dockerArgs = append(dockerArgs, "--entrypoint", "envoy", "docker.io/datawire/aes:1.6.2")
+			dockerArgs = append(dockerArgs, "--entrypoint", "envoy", "docker.io/datawire/aes:1.12.2")
 			cmd := subcommand(ctx, "docker", append(dockerArgs, GetEnvoyFlags()...)...)
 			if envbool("DEV_SHUTUP_ENVOY") {
 				cmd.Stdout = nil

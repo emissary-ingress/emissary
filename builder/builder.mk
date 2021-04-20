@@ -190,11 +190,15 @@ preflight:
 
 preflight-cluster:
 	@test -n "$(DEV_KUBECONFIG)" || (printf "$${KUBECONFIG_ERR}\n"; exit 1)
-	@if [ "$(DEV_KUBECONFIG)" != '-skip-for-release-' ]; then \
-		printf "$(CYN)==> $(GRN)Checking for test cluster$(END)\n" ;\
-		kubectl --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null || { printf "$${KUBECTL_ERR}\n"; exit 1; } ;\
-	else \
+	@if [ "$(DEV_KUBECONFIG)" == '-skip-for-release-' ]; then \
 		printf "$(CYN)==> $(RED)Skipping test cluster checks$(END)\n" ;\
+	else \
+		printf "$(CYN)==> $(GRN)Checking for test cluster$(END)\n" ;\
+		success=; \
+		for i in {1..5}; do \
+			kubectl --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null && success=true && break || sleep 15 ; \
+		done; \
+		if [ ! "$${success}" ] ; then { printf "$$KUBECTL_ERR\n" ; exit 1; } ; fi; \
 	fi
 .PHONY: preflight-cluster
 
@@ -253,7 +257,9 @@ docker/snapshot.docker.stamp: %/snapshot.docker.stamp: %/container.txt FORCE com
 	    printf "${CYN}==> ${GRN}Snapshot of ${BLU}$$(cat $<)${GRN} container is already up-to-date${END}\n"; \
 	  else \
 	    printf "${CYN}==> ${GRN}Snapshotting ${BLU}$$(cat $<)${GRN} container${END}\n"; \
-	    TIMEFORMAT="     (snapshot took %1R seconds)" time docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $$(cat $<) > $@; \
+	    TIMEFORMAT="     (snapshot took %1R seconds)"; \
+	    time docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $$(cat $<) > $@; \
+	    unset TIMEFORMAT; \
 	    docker exec $$(cat $<) rm -f /buildroot/image.dirty; \
 	  fi; \
 	}
@@ -263,7 +269,9 @@ docker/base-envoy.docker.stamp: FORCE
 	    printf "${CYN}==> ${GRN}Base Envoy image is already pulled${END}\n"; \
 	  else \
 	    printf "${CYN}==> ${GRN}Pulling base Envoy image${END}\n"; \
-	    TIMEFORMAT="     (pull took %1R seconds)" time docker pull $(ENVOY_DOCKER_TAG); \
+	    TIMEFORMAT="     (docker pull took %1R seconds)"; \
+	    time docker pull $(ENVOY_DOCKER_TAG); \
+	    unset TIMEFORMAT; \
 	    docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@; \
 	  fi; \
 	}
@@ -276,12 +284,14 @@ docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/snapshot.docker.tag.l
 	    printf "    ${BLU}artifacts=$$(cat $*/snapshot.docker)${END}\n"; \
 	    printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"; \
 	    printf "    ${BLU}builderbase=$$(cat $*/builder-base.docker)${END}\n"; \
-	    ${DBUILD} ${BUILDER_HOME} \
+	    TIMEFORMAT="     (docker build took %1R seconds)"; \
+	    time ${DBUILD} ${BUILDER_HOME} \
 	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
 	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
 	      --target=ambassador \
 	      --iidfile=$@; \
+	    unset TIMEFORMAT; \
 	  fi; \
 	}
 docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
@@ -290,12 +300,14 @@ docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/snapshot.docker.tag
 	    printf "${CYN}==> ${GRN}Image ${BLU}kat-client${GRN} is already up-to-date${END}\n"; \
 	  else \
 	    printf "${CYN}==> ${GRN}Building image ${BLU}kat-client${END}\n"; \
-	    ${DBUILD} ${BUILDER_HOME} \
+	    TIMEFORMAT="     (kat-client build took %1R seconds)"; \
+	    time ${DBUILD} ${BUILDER_HOME} \
 	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
 	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
 	      --target=kat-client \
 	      --iidfile=$@; \
+	    unset TIMEFORMAT; \
 	  fi; \
 	}
 docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
@@ -304,12 +316,14 @@ docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/snapshot.docker.tag
 	    printf "${CYN}==> ${GRN}Image ${BLU}kat-server${GRN} is already up-to-date${END}\n"; \
 	  else \
 	    printf "${CYN}==> ${GRN}Building image ${BLU}kat-server${END}\n"; \
-	    ${DBUILD} ${BUILDER_HOME} \
+	    TIMEFORMAT="     (kat-server build took %1R seconds)"; \
+	    time ${DBUILD} ${BUILDER_HOME} \
 	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
 	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
 	      --target=kat-server \
 	      --iidfile=$@; \
+	    unset TIMEFORMAT; \
 	  fi; \
 	}
 
@@ -353,6 +367,10 @@ pytest-envoy:
 	$(MAKE) pytest KAT_RUN_MODE=envoy
 .PHONY: pytest-envoy
 
+pytest-envoy-v3:
+	$(MAKE) pytest KAT_RUN_MODE=envoy KAT_USE_ENVOY_V3=true
+.PHONY: pytest-envoy-v3
+
 pytest-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	docker exec \
@@ -363,6 +381,7 @@ pytest-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker
 		-e DOCKER_NETWORK=$(DOCKER_NETWORK) \
 		-e KAT_REQ_LIMIT \
 		-e KAT_RUN_MODE \
+		-e KAT_USE_ENVOY_V3 \
 		-e KAT_VERBOSE \
 		-e PYTEST_ARGS \
 		-e TEST_SERVICE_REGISTRY \
@@ -373,6 +392,9 @@ pytest-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker
 		-e DOCKER_BUILD_PASSWORD \
 		-e AMBASSADOR_LEGACY_MODE \
 		-e AMBASSADOR_FAST_RECONFIGURE \
+		-e AWS_SECRET_ACCESS_KEY \
+		-e AWS_ACCESS_KEY_ID \
+		-e AWS_SESSION_TOKEN \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal ; test_exit=$$? ; \
 		[ -n "$(TEST_XML_DIR)" ] && docker cp $(shell $(BUILDER)):/tmp/test-data/pytest.xml $(TEST_XML_DIR) ; exit $$test_exit
 .PHONY: pytest-only
@@ -398,11 +420,13 @@ export GOTEST_PKGS
 GOTEST_ARGS ?= -race
 export GOTEST_ARGS
 
-gotest: test-ready
+gotest: test-ready docker/kat-server.docker.push.remote docker/$(LCNAME).docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"
 	docker exec \
+		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) \
 		-e DTEST_REGISTRY=$(DEV_REGISTRY) \
 		-e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml \
+		-e KAT_SERVER_DOCKER_IMAGE=$$(sed -n 2p docker/kat-server.docker.push.remote) \
 		-e GOTEST_PKGS \
 		-e GOTEST_ARGS \
 		-e DEV_USE_IMAGEPULLSECRET \
@@ -410,7 +434,7 @@ gotest: test-ready
 		-e DOCKER_BUILD_USERNAME \
 		-e DOCKER_BUILD_PASSWORD \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh gotest-internal ; test_exit=$$? ; \
-		[ -n "$(TEST_XML_DIR)" ] && docker cp $(shell $(BUILDER)):/tmp/test-data/gotest.xml $(TEST_XML_DIR) ; [ $$test_exit == 0 ] || exit $$test_exit
+		[ -n "$(TEST_XML_DIR)" ] && docker cp $(shell $(BUILDER)):/tmp/test-xml.tar.gz $(TEST_XML_DIR) && tar -xvf $(TEST_XML_DIR)/test-xml.tar.gz -C $(TEST_XML_DIR)  ; [ $$test_exit == 0 ] || exit $$test_exit
 	docker exec \
 		-w /buildroot/ambassador \
 		-e GOOS=windows \

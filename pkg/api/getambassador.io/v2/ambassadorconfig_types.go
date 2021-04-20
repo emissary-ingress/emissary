@@ -33,8 +33,8 @@ type ModuleSpec struct {
 // controlled by the .metadata.name; valid names are "ambassador" or
 // "tls".
 //
-// https://www.getambassador.io/docs/latest/topics/running/ambassador/#the-ambassador-module
-// https://www.getambassador.io/docs/latest/topics/running/tls/#tls-module-deprecated
+// https://www.getambassador.io/docs/edge-stack/latest/topics/running/ambassador/#the-ambassador-module
+// https://www.getambassador.io/docs/edge-stack/latest/topics/running/tls/#tls-module-deprecated
 //
 // +kubebuilder:object:root=true
 type Module struct {

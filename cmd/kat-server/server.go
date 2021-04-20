@@ -45,29 +45,62 @@ func main() {
 		listeners = append(listeners, s)
 
 	case "grpc_auth":
-		s = &srv.GRPCAUTH{
-			Port:            Port,
-			Backend:         os.Getenv("BACKEND"),
-			SecurePort:      SSLPort,
-			SecureBackend:   os.Getenv("BACKEND"),
-			Cert:            Crt,
-			Key:             Key,
-			ProtocolVersion: os.Getenv("GRPC_AUTH_PROTOCOL_VERSION"),
+		protocolVersion := os.Getenv("GRPC_AUTH_PROTOCOL_VERSION")
+		if protocolVersion == "v3" {
+			s = &srv.GRPCAUTHV3{
+				Port:            Port,
+				Backend:         os.Getenv("BACKEND"),
+				SecurePort:      SSLPort,
+				SecureBackend:   os.Getenv("BACKEND"),
+				Cert:            Crt,
+				Key:             Key,
+				ProtocolVersion: protocolVersion,
+			}
+		} else {
+			s = &srv.GRPCAUTH{
+				Port:            Port,
+				Backend:         os.Getenv("BACKEND"),
+				SecurePort:      SSLPort,
+				SecureBackend:   os.Getenv("BACKEND"),
+				Cert:            Crt,
+				Key:             Key,
+				ProtocolVersion: protocolVersion,
+			}
 		}
 
 		listeners = append(listeners, s)
 
 	case "grpc_rls":
-		s = &srv.GRPCRLS{
-			Port:            Port,
-			Backend:         os.Getenv("BACKEND"),
-			SecurePort:      SSLPort,
-			SecureBackend:   os.Getenv("BACKEND"),
-			Cert:            Crt,
-			Key:             Key,
-			ProtocolVersion: os.Getenv("GRPC_RLS_PROTOCOL_VERSION"),
+		protocolVersion := os.Getenv("GRPC_RLS_PROTOCOL_VERSION")
+		if protocolVersion == "v3" {
+			s = &srv.GRPCRLSV3{
+				Port:            Port,
+				Backend:         os.Getenv("BACKEND"),
+				SecurePort:      SSLPort,
+				SecureBackend:   os.Getenv("BACKEND"),
+				Cert:            Crt,
+				Key:             Key,
+				ProtocolVersion: protocolVersion,
+			}
+
+		} else {
+			s = &srv.GRPCRLS{
+				Port:            Port,
+				Backend:         os.Getenv("BACKEND"),
+				SecurePort:      SSLPort,
+				SecureBackend:   os.Getenv("BACKEND"),
+				Cert:            Crt,
+				Key:             Key,
+				ProtocolVersion: protocolVersion,
+			}
+
 		}
 
+		listeners = append(listeners, s)
+	case "grpc_agent":
+		s = &srv.GRPCAgent{
+			Port: Port,
+		}
 		listeners = append(listeners, s)
 
 	default:
