@@ -46,7 +46,7 @@ from pkg_resources import Requirement, resource_filename
 
 import clize
 from clize import Parameter
-from flask import Flask, render_template, send_from_directory, request, jsonify, Response
+from flask import Flask, render_template, send_from_directory, request, jsonify, Response, redirect
 from flask import json as flask_json
 import gunicorn.app.base
 
@@ -928,7 +928,7 @@ def show_overview(reqid=None):
         app.logger.debug("%s" % dump_json(ov, pretty=True))
         app.logger.debug("OV %s: collecting errors" % reqid)
 
-    ddict = collect_errors_and_notices(request, reqid, "overview", diag)
+    ddict = collect_errors_and_notices("overview", diag)
 
     banner_content = None
     if app.banner_endpoint and app.ir and app.ir.edge_stack_allowed:
@@ -982,18 +982,7 @@ def show_overview(reqid=None):
         return Response(render_template("overview.html", **tvars))
 
 
-def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> Dict:
-    loglevel = request.args.get('loglevel', None)
-    notice = None
-
-    if loglevel:
-        app.logger.debug("%s %s -- requesting loglevel %s" % (what, reqid, loglevel))
-
-        if not app.estatsmgr.update_log_levels(time.time(), level=loglevel):
-            notice = { 'level': 'WARNING', 'message': "Could not update log level!" }
-        # else:
-        #     return redirect("/ambassador/v0/diag/", code=302)
-
+def collect_errors_and_notices(what: str, diag: Diagnostics) -> Dict:
     # We need to grab errors and notices from diag.as_dict(), process the errors so
     # they work for the HTML rendering, and post the notices to app.notices. Then we
     # return the dict representation that our caller should work with.
@@ -1015,10 +1004,6 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 
     dnotices = ddict.pop('notices', {})
 
-    # Make sure that anything about the loglevel gets folded into this set.
-    if notice:
-        app.notices.prepend(notice)
-
     for notice_key, notice_list in dnotices.items():
         for notice in notice_list:
             app.notices.post({'level': 'NOTICE', 'message': "%s: %s" % (notice_key, notice)})
@@ -1026,7 +1011,6 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
     ddict['errors'] = errors
 
     return ddict
-
 
 @app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
 @standard_handler
@@ -1060,7 +1044,7 @@ def show_intermediate(source=None, reqid=None):
     if app.verbose:
         app.logger.debug("RESULT %s" % dump_json(result, pretty=True))
 
-    ddict = collect_errors_and_notices(request, reqid, "detail %s" % source, diag)
+    ddict = collect_errors_and_notices("detail %s" % source, diag)
 
     tvars = dict(system=system_info(app),
                  envoy_status=envoy_status(estats),
@@ -1079,6 +1063,21 @@ def show_intermediate(source=None, reqid=None):
     else:
         app.check_scout("detail: %s" % source)
         return Response(render_template("diag.html", **tvars))
+
+
+@app.route('/ambassador/v0/diag/loglevel', methods=[ 'POST' ])
+def set_loglevel(reqid=None):
+    loglevel = request.form.get('loglevel', None)
+    redirect_url = request.form.get('redirect_url', '/ambassador/v0/diag/')
+    if loglevel:
+        app.logger.debug("%s %s -- requesting loglevel %s" % (redirect_url, reqid, loglevel))
+
+        if not app.estatsmgr.update_log_levels(time.time(), level=loglevel):
+            app.logger.error("Could not update log level!")
+            # TODO: Log on the UI as well
+            # notice = { 'level': 'WARNING', 'message': "Could not update log level!" }
+
+    return redirect(redirect_url, code=302)
 
 
 @app.template_filter('sort_by_key')
