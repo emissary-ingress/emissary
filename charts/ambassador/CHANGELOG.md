@@ -5,13 +5,17 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
-- Feature: Ambassador Agent now available for API Gateway (https://app.getambassador.io)
-- Change: Ambassador ClusterRoles are now aggregated under the label `rbac.getambassador.io/role-group`. The aggregated role has the same name as the previous role name (so no need to update ClusterRoleBindings).
-- Feature: Add support for [pod toplology spread constraints](https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/) via the `topologySpreadConstraints` helm value to the Ambassador deployment. (thanks, [@lawliet89](https://github.com/lawliet89)!)
-
 ## v6.7.0
 
 - Update Ambassador to version 1.13.0: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+- Feature: Ambassador Agent now available for API Gateway (https://app.getambassador.io)
+- Feature: Add support for [pod toplology spread constraints](https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/) via the `topologySpreadConstraints` helm value to the Ambassador deployment. (thanks, [@lawliet89](https://github.com/lawliet89)!)
+- BugFix: Add missing `ambassador_id` for resolvers.
+- Change: Ambassador ClusterRoles are now aggregated under the label `rbac.getambassador.io/role-group`. The aggregated role has the same name as the previous role name (so no need to update ClusterRoleBindings).
+
+## v6.6.4
+
+- Update Ambassador to version 1.12.4: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
 
 ## v6.6.3
 
