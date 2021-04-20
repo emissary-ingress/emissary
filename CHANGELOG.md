@@ -59,6 +59,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 *Note*: Support for the deprecated `v2alpha` `protocol_version` has been removed from the `AuthService` and `RateLimitService`.
 
+- Feature: Ambassador now supports the DD_ENTITY_ID environment variable to set the 'dd.internal.entity_id' statistics tag on metrics generated when using DogStatsD.
 - Feature: Mapping configuration now supports setting `auth_context_extentions` that allows setting the `check_settings` field in the per route configuration supported by `ext_authz` http filter (thanks, [Giridhar Pathak](https://github.com/gpathak)!).
 - Feature: Added support in ambassador-agent for reporting [Argo Rollouts] and [Argo Applications] to Ambassador Cloud
 - Feature: The [Ambassador Module configuration] now supports the `diagnostics.allow_non_local` flag to expose admin UI internally only ([#3074] -- thanks, [Fabrice](https://github.com/jfrabaute)!)
