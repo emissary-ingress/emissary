@@ -65,6 +65,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Feature: Ambassador will now use the Envoy v3 API internally when the AMBASSADOR_ENVOY_API_VERSION environment variable is set to "V3". By default, Ambassador will continue to use the v2 API.
 - Feature: The [Ambassador Agent] is now available (and deployed by default) for the API Gateway (https://app.getambassador.io).
 - Feature: The [Ambassador Module configuration] now supports `merge_slashes` which tells Ambassador to merge adjacent slashes when performing route matching. For example, when true, a request with URL '//foo/' would match a Mapping with prefix '/foo/'.
+- Feature: Basic support for a subset of the [Kubernetes Gateway API] has been added.
 - Bugfix: Make Knative paths match on prefix instead of the entire path to better align to the Knative specification ([#3224]).
 - Bugfix: The endpoint routing resolver will now properly watch services that include a scheme.
 - Bugfix: Environment variable interpolation works again for `ConsulResolver.Spec.Address` without setting `AMBASSADOR_LEGACY_MODE` ([#3182], [#3317])
@@ -79,6 +80,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 [Ambassador Module configuration]: https://getambassador.io/docs/edge-stack/latest/topics/running/ambassador/
 [Argo Applications]: https://www.getambassador.io/docs/argo/latest/quick-start/
 [Argo Rollouts]: https://www.getambassador.io/docs/argo/latest/quick-start/
+[Kubernetes Gateway API]: https://getambassador.io/docs/edge-stack/latest/topics/using/gateway-api/
 
 [#3074]: https://github.com/datawire/ambassador/issues/3074
 [#3182]: https://github.com/datawire/ambassador/issues/3182
