@@ -39,7 +39,8 @@ matching. Note that `safe_regex` matching has been Ambassador's default since Am
 
 This change is being made because the `regex` field for `HeaderMatcher`, `RouteMatch`, and `StringMatcher` was
 [deprecated in favor of safe_regex] in Envoy v1.12.0, then removed entirely from the Envoy V3 APIs. Additionally,
-setting [max_program_size was deprecated] in Envoy v1.15.0.
+setting [max_program_size was deprecated] in Envoy v1.15.0. As such, `regex_type: unsafe` and setting
+`regex_max_size` are not supported when `AMBASSADOR_ENVOY_API_VERSION` is set to `V3`.
 
 Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/type/matcher/v3/regex.proto.html) for more information.
 
@@ -48,15 +49,17 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 #### Zipkin Collector Versions
 
-As of Envoy 1.12.0, [the HTTP_JSON_V1 Zipkin collector version](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version)
-has been deprecated, and the code is completely removed for Envoy V3 APIs.
+In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, support for the [HTTP_JSON_V1] Zipkin
+collector version will be removed. 
 
-If you are using V3 as `AMBASSADOR_ENVOY_API_VERSION`, HTTP_JSON_V1 has already been deprecated,
-so please migrate to HTTP_JSON or HTTP_PROTO before using V3 apis.
-
-In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, the use of HTTP_JSON_V1 will be deprecated.
+This change is being made because the HTTP_JSON_V1 collector was deprecated in Envoy v1.12.0, then removed
+entirely from the Envoy V3 APIs. As such, the HTTP_JSON_V1 collector is not supported when 
+`AMBASSADOR_ENVOY_API_VERSION` is set to `V3`: you will need to migrate to the HTTP_JSON or HTTP_PROTO 
+collectors before using V3 APIs.
 
 Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version) for more information.
+
+[HTTP_JSON_V1]: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version
 
 ## RELEASE NOTES
 
@@ -71,14 +74,14 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 *Note*: Support for the deprecated `v2alpha` `protocol_version` has been removed from the `AuthService` and `RateLimitService`.
 
-- Feature: Ambassador now supports the DD_ENTITY_ID environment variable to set the 'dd.internal.entity_id' statistics tag on metrics generated when using DogStatsD.
-- Feature: Mapping configuration now supports setting `auth_context_extentions` that allows setting the `check_settings` field in the per route configuration supported by `ext_authz` http filter (thanks, [Giridhar Pathak](https://github.com/gpathak)!).
+- Feature: Added support for the [Mapping AuthService setting] `auth_context_extensions`, allowing supplying custom per-mapping information to external auth services (thanks, [Giridhar Pathak](https://github.com/gpathak)!).
 - Feature: Added support in ambassador-agent for reporting [Argo Rollouts] and [Argo Applications] to Ambassador Cloud
 - Feature: The [Ambassador Module configuration] now supports the `diagnostics.allow_non_local` flag to expose admin UI internally only ([#3074] -- thanks, [Fabrice](https://github.com/jfrabaute)!)
 - Feature: Ambassador will now use the Envoy v3 API internally when the AMBASSADOR_ENVOY_API_VERSION environment variable is set to "V3". By default, Ambassador will continue to use the v2 API.
 - Feature: The [Ambassador Agent] is now available (and deployed by default) for the API Gateway (https://app.getambassador.io).
 - Feature: The [Ambassador Module configuration] now supports `merge_slashes` which tells Ambassador to merge adjacent slashes when performing route matching. For example, when true, a request with URL '//foo/' would match a Mapping with prefix '/foo/'.
 - Feature: Basic support for a subset of the [Kubernetes Gateway API] has been added.
+- Feature: Ambassador now supports the `DD_ENTITY_ID` environment variable to set the `dd.internal.entity_id` statistics tag on metrics generated when using DogStatsD.
 - Bugfix: Make Knative paths match on prefix instead of the entire path to better align to the Knative specification ([#3224]).
 - Bugfix: The endpoint routing resolver will now properly watch services that include a scheme.
 - Bugfix: Environment variable interpolation works again for `ConsulResolver.Spec.Address` without setting `AMBASSADOR_LEGACY_MODE` ([#3182], [#3317])
@@ -94,6 +97,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 [Argo Applications]: https://www.getambassador.io/docs/argo/latest/quick-start/
 [Argo Rollouts]: https://www.getambassador.io/docs/argo/latest/quick-start/
 [Kubernetes Gateway API]: https://getambassador.io/docs/edge-stack/latest/topics/using/gateway-api/
+[Mapping AuthService setting]: https://getambassador.io/docs/edge-stack/latest/topics/using/authservice
 
 [#3074]: https://github.com/datawire/ambassador/issues/3074
 [#3182]: https://github.com/datawire/ambassador/issues/3182
