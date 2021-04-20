@@ -47,10 +47,13 @@ func LaunchDaemon(ccmd *cobra.Command, _ []string) error {
 	}
 
 	success := false
+	var errs []error
 	for count := 0; count < 40; count++ {
-		if IsServerRunning() {
+		if _, _, err := daemonVersion(); err == nil {
 			success = true
 			break
+		} else {
+			errs = append(errs, err)
 		}
 		if count == 4 {
 			fmt.Println("Waiting for daemon to start...")
@@ -59,6 +62,14 @@ func LaunchDaemon(ccmd *cobra.Command, _ []string) error {
 	}
 	if !success {
 		fmt.Println("Server did not come up!")
+		printedErrs := make(map[string]struct{})
+		for _, err := range errs {
+			str := err.Error()
+			if _, printed := printedErrs[str]; !printed {
+				fmt.Printf("  err: %q\n", str)
+				printedErrs[str] = struct{}{}
+			}
+		}
 		fmt.Printf("Take a look at %s for more information.\n", edgectl.Logfile)
 		return errors.New("launch failed")
 	}

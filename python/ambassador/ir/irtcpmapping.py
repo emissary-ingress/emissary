@@ -10,7 +10,7 @@ from .irtcpmappinggroup import IRTCPMappingGroup
 import hashlib
 
 if TYPE_CHECKING:
-    from .ir import IR
+    from .ir import IR # pragma: no cover
 
 
 class IRTCPMapping (IRBaseMapping):

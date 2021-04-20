@@ -15,7 +15,7 @@ from .irretrypolicy import IRRetryPolicy
 import hashlib
 
 if TYPE_CHECKING:
-    from .ir import IR
+    from .ir import IR # pragma: no cover
 
 
 # Kind of cheating here so that it's easy to json-serialize key-value pairs (including with regex)
@@ -77,6 +77,7 @@ class IRHTTPMapping (IRBaseMapping):
         # Do not include add_request_headers and add_response_headers
         "auto_host_rewrite": False,
         "bypass_auth": False,
+        "auth_context_extensions": False,
         "bypass_error_response_overrides": False,
         "case_sensitive": False,
         "circuit_breakers": False,

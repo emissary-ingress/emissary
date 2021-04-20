@@ -166,7 +166,7 @@ func IdentifySPDXLicenses(body []byte) (map[License]struct{}, error) {
 var (
 	bsd3funnyAttributionLines = []string{
 		`(?:Copyright [^\n]*(?:\s+All rights reserved\.)? *\n)`,
-		reQuote(`As this is fork of the official Go code the same license applies:`),
+		`As this is fork of the official Go code the same license applies[.:]`,
 		reQuote(`Extensions of the original work are copyright (c) 2011 Miek Gieben`),
 		reQuote(`Go support for Protocol Buffers - Google's data interchange format`),
 		reQuote(`Protocol Buffers for Go with Gadgets`),
@@ -259,6 +259,8 @@ func IdentifyLicenses(body []byte) map[License]struct{} {
 		licenses[ISC] = struct{}{}
 	case reMatch(reMIT, body):
 		licenses[MIT] = struct{}{}
+	case reMatch(reMIT2, body):
+		licenses[MIT] = struct{}{}
 	case reMatch(reMPL, body):
 		licenses[MPL2] = struct{}{}
 	case reMatch(reCcBySa40, body):
@@ -269,16 +271,19 @@ func IdentifyLicenses(body []byte) map[License]struct{} {
 		// github.com/emirpasic/gods/LICENSE
 		licenses[BSD2] = struct{}{}
 		licenses[ISC] = struct{}{}
-	case reMatch(reCompile(
-		`(?:`+strings.Join(bsd3funnyAttributionLines, `\s*|`)+`\s*)+`+reWrap(``+
+	case reMatch(reCompile(``+
+		`(?:`+strings.Join(bsd3funnyAttributionLines, `\s*|`)+`\s*)*`+
+		reWrap(``+
 			bsdPrefix+
 			bsdClause1+
 			bsdClause2+
 			bsdClause3+
-			bsdSuffix)),
+			bsdSuffix)+
+		`(?:\s*`+strings.Join(bsd3funnyAttributionLines, `|\s*`)+`)*\s*`),
 		body):
 		// github.com/gogo/protobuf/LICENSE
 		// github.com/src-d/gcfg/LICENSE
+		// github.com/miekg/dns/LICENSE
 		licenses[BSD3] = struct{}{}
 	case reMatch(reCompile(reQuote(rackspaceHeader)+reApacheLicense.String()), body):
 		// github.com/gophercloud/gophercloud/LICENSE

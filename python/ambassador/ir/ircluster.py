@@ -26,8 +26,8 @@ from .irresource import IRResource
 from .irtlscontext import IRTLSContext
 
 if TYPE_CHECKING:
-    from .ir import IR
-    from .ir.irserviceresolver import IRServiceResolver
+    from .ir import IR # pragma: no cover
+    from .ir.irserviceresolver import IRServiceResolver # pragma: no cover
 
 #############################################################################
 ## ircluster.py -- the ircluster configuration object for Ambassador

@@ -215,7 +215,7 @@ func (eri *endpointRoutingInfo) checkMapping(ctx context.Context, mapping *amb.M
 	}
 
 	if eri.resolverTypes[resolver] == KubernetesEndpointResolver {
-		svc, ns, _ := eri.module.parseService(service, mapping.GetNamespace())
+		svc, ns, _ := eri.module.parseService(ctx, mapping, service, mapping.GetNamespace())
 		eri.endpointWatches[fmt.Sprintf("%s:%s", ns, svc)] = true
 	}
 }
@@ -234,14 +234,20 @@ func (eri *endpointRoutingInfo) checkTCPMapping(ctx context.Context, tcpmapping 
 	}
 
 	if eri.resolverTypes[resolver] == KubernetesEndpointResolver {
-		svc, ns, _ := eri.module.parseService(service, tcpmapping.GetNamespace())
+		svc, ns, _ := eri.module.parseService(ctx, tcpmapping, service, tcpmapping.GetNamespace())
 		eri.endpointWatches[fmt.Sprintf("%s:%s", ns, svc)] = true
 	}
 }
 
-func (m *moduleResolver) parseService(svcName, svcNamespace string) (name string, namespace string, port string) {
-	// First split off the port if it exists.
-	parts := strings.SplitN(svcName, ":", 2)
+func (m *moduleResolver) parseService(ctx context.Context, resource kates.Object, svcName, svcNamespace string) (name string, namespace string, port string) {
+	// First strip off the scheme if it exists.
+	parts := strings.SplitN(svcName, "://", 2)
+	if len(parts) > 1 {
+		svcName = parts[1]
+	}
+
+	// Next split off the port if it exists.
+	parts = strings.SplitN(svcName, ":", 2)
 	if len(parts) > 1 {
 		_, err := strconv.Atoi(parts[1])
 		if err == nil {
@@ -256,7 +262,12 @@ func (m *moduleResolver) parseService(svcName, svcNamespace string) (name string
 		name = svcName
 	} else if strings.Contains(svcName, ".") {
 		// If it's not an ip address but does have a dot then we split it up to find the namespace.
-		parts := strings.SplitN(svcName, ".", 2)
+		parts := strings.Split(svcName, ".")
+		if len(parts) > 2 {
+			using := strings.Join(parts[:2], ".")
+			dlog.Errorf(ctx, "mapping %s in namespace %s: ignoring extra domain parts in service, using %q",
+				resource.GetName(), resource.GetNamespace(), using)
+		}
 		name = parts[0]
 		namespace = parts[1]
 		return

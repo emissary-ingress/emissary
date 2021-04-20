@@ -20,7 +20,7 @@ import (
 )
 
 func TestEndpointRouting(t *testing.T) {
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true})
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 	// Create Mapping, Service, and Endpoints resources to start.
 	f.Upsert(makeMapping("default", "foo", "/foo", "foo", "endpoint"))
 	f.Upsert(makeService("default", "foo"))
@@ -39,7 +39,7 @@ func TestEndpointRouting(t *testing.T) {
 }
 
 func TestEndpointRoutingMultiplePorts(t *testing.T) {
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true})
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 	// Create Mapping, Service, and Endpoints, except this time the Service has multiple ports.
 	f.Upsert(makeMapping("default", "foo", "/foo", "foo", "endpoint"))
 	f.Upsert(&kates.Service{
@@ -88,7 +88,7 @@ func TestEndpointRoutingMultiplePorts(t *testing.T) {
 }
 
 func TestEndpointRoutingIP(t *testing.T) {
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true})
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 	// Create a Mapping that points straight at an IP address.
 	f.Upsert(makeMapping("default", "foo", "/foo", "4.3.2.1", "endpoint"))
 	f.Flush()
@@ -111,7 +111,7 @@ func TestEndpointRoutingIP(t *testing.T) {
 // Test that we resend endpoints when a new mapping is created that references an existing set of
 // endpoints.
 func TestEndpointRoutingMappingCreation(t *testing.T) {
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{})
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{}, nil)
 	f.Upsert(makeService("default", "foo"))
 	f.Upsert(makeEndpoints("default", "foo", makeSubset(8080, "1.2.3.4")))
 	f.Flush()

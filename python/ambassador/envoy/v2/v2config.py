@@ -29,8 +29,8 @@ from .v2tracing import V2Tracing
 from .v2ratelimit import V2RateLimit
 
 if TYPE_CHECKING:
-    from ...ir import IR
-    from ...ir.irserviceresolver import ClustermapEntry
+    from ...ir import IR # pragma: no cover
+    from ...ir.irserviceresolver import ClustermapEntry # pragma: no cover
 
 
 # #############################################################################

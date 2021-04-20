@@ -39,9 +39,9 @@ from urllib.parse import urlparse
 from prometheus_client import Gauge
 
 if TYPE_CHECKING:
-    from .ir import IRResource
-    from .ir.irtlscontext import IRTLSContext
-    from .config.acresource import ACResource
+    from .ir import IRResource # pragma: no cover
+    from .ir.irtlscontext import IRTLSContext # pragma: no cover
+    from .config.acresource import ACResource # pragma: no cover
 
 logger = logging.getLogger("utils")
 logger.setLevel(logging.INFO)

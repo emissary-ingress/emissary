@@ -1,9 +1,11 @@
 package entrypoint
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
+	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,6 +32,54 @@ var serviceTests = []struct {
 		"service-name",
 		"namespace",
 		"3000",
+	},
+	{
+		moduleResolver{},
+		"service-name.namespace",
+		"other-namespace",
+		"service-name",
+		"namespace",
+		"",
+	},
+	{
+		moduleResolver{UseAmbassadorNamespaceForServiceResolution: true},
+		"service-name.namespace",
+		"other-namespace",
+		"service-name",
+		"namespace",
+		"",
+	},
+	{
+		moduleResolver{},
+		"service-name.namespace.svc.cluster.local:3000",
+		"other-namespace",
+		"service-name",
+		"namespace",
+		"3000",
+	},
+	{
+		moduleResolver{UseAmbassadorNamespaceForServiceResolution: true},
+		"service-name.namespace.svc.cluster.local:3000",
+		"other-namespace",
+		"service-name",
+		"namespace",
+		"3000",
+	},
+	{
+		moduleResolver{},
+		"service-name.namespace.svc.cluster.local",
+		"other-namespace",
+		"service-name",
+		"namespace",
+		"",
+	},
+	{
+		moduleResolver{UseAmbassadorNamespaceForServiceResolution: true},
+		"service-name.namespace.svc.cluster.local",
+		"other-namespace",
+		"service-name",
+		"namespace",
+		"",
 	},
 	{
 		moduleResolver{},
@@ -84,7 +134,7 @@ var serviceTests = []struct {
 		"1.2.3.4:blah",
 		"other-namespace",
 		"1",
-		"2.3.4:blah",
+		"2",
 		"",
 	},
 	{
@@ -92,18 +142,24 @@ var serviceTests = []struct {
 		"1.2.3.4:blah",
 		"other-namespace",
 		"1",
-		"2.3.4:blah",
+		"2",
 		"",
 	},
 }
 
 func TestParseService(t *testing.T) {
+	ctx := context.Background()
+	cm := &kates.ConfigMap{ObjectMeta: kates.ObjectMeta{Name: "foo", Namespace: "bar"}}
 	for _, test := range serviceTests {
-		t.Run(fmt.Sprintf("%s,%s,%v", test.Service, test.Namespace, test.Module.UseAmbassadorNamespaceForServiceResolution), func(t *testing.T) {
-			name, namespace, port := test.Module.parseService(test.Service, test.Namespace)
-			assert.Equal(t, test.ExpectedService, name)
-			assert.Equal(t, test.ExpectedNamespace, namespace)
-			assert.Equal(t, test.ExpectedPort, port)
-		})
+		// Make sure we ignore these also.
+		for _, prefix := range []string{"", "http://", "https://"} {
+			service := fmt.Sprintf("%s%s", prefix, test.Service)
+			t.Run(fmt.Sprintf("%s,%s,%v", service, test.Namespace, test.Module.UseAmbassadorNamespaceForServiceResolution), func(t *testing.T) {
+				name, namespace, port := test.Module.parseService(ctx, cm, service, test.Namespace)
+				assert.Equal(t, test.ExpectedService, name)
+				assert.Equal(t, test.ExpectedNamespace, namespace)
+				assert.Equal(t, test.ExpectedPort, port)
+			})
+		}
 	}
 }

@@ -24,10 +24,37 @@ commands:
   # "oss-linux" and "aes-linux" executors)                             #
   ######################################################################
 
+  "job-chart":
+    steps:
+      - amb-linux-install
+      - amb-checkout
+      - skip-if-no-changes:
+          to: charts/ambassador
+      - install-k3d
+      # We might need to be logged in the registry to pull the Envoy
+      # image or the builder-base image.
+      - amb-config-registry
+      # main
+      - run: make test-chart
+
+  "job-chart-publish":
+    steps:
+      - amb-linux-install
+      - amb-checkout
+      - install-k3d
+      # We might need to be logged in the registry to pull the Envoy
+      # image or the builder-base image.
+      - amb-config-registry
+      # main
+      - run: make test-chart
+      - amb-skip-if-bad-chart-version
+      - run: charts/ambassador/ci/push_chart.sh
+
   "job-generate":
     steps:
       # setup
       - amb-linux-install
+      - install-helm
       - amb-checkout
       # We might need to be logged in the registry to pull the Envoy
       # image or the builder-base image.
@@ -94,6 +121,7 @@ commands:
           - "gotest"
           - "pytest"
           - "pytest-envoy"
+          - "pytest-envoy-v3"
           - "e2etest"
         default: "test"
       "fast-reconfigure":
@@ -110,7 +138,15 @@ commands:
           to: docs/
       - when:
           condition:
-            equal: [ "pytest-envoy", << parameters.test >> ]
+            equal: ["e2etest", << parameters.test >>]
+          steps:
+          - skip-if-only-changes:
+              to: "(ambassador/|tests/pytest/gold/)"
+      - when:
+          condition:
+            or:
+              - equal: [ "pytest-envoy", << parameters.test >> ]
+              - equal: [ "pytest-envoy-v3", << parameters.test >> ]
           steps:
             - skip-if-no-changes:
                 to: "(/envoy\\.mk$|/python/tests/gold/|/pytest/gold/|/cmd/ambex/)"
@@ -138,13 +174,11 @@ commands:
               echo "Makefile 'test' target has changed to $actual, you need to update '.circleci/config.yml.d/amb_jobs.yml'" >&2
               exit 1
             fi
+
       - run:
           name: "Test"
           no_output_timeout: "30m"
           command: |
-            if [[ -z "$KUBECEPTION_TOKEN" ]]; then
-              export DEV_KUBE110=yes
-            fi
             export DEV_KUBE_NO_PVC=yes
             export KAT_REQ_LIMIT=900
             export AMBASSADOR_LEGACY_MODE=<< parameters.legacy-mode >> # ParseBool

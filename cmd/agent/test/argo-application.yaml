@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: test-application
+  namespace: default
+spec:
+  destination:
+    namespace: default
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: examples/ambassador-canary
+    repoURL: git@github.com:datawire/argo-rollouts.git
+    targetRevision: ambassador/test/echo
+  syncPolicy:
+    automated: {}

@@ -22,8 +22,7 @@ type K8sStore struct {
 	resources map[K8sKey]kates.Object
 	// This tracks every delta forever. That's ok because we only use this for tests, so we want to
 	// favor simplicity over efficiency. Also tests don't run that long, so it's not a big deal.
-	deltas  []*kates.Delta
-	cursors []*K8sStoreCursor
+	deltas []*kates.Delta
 }
 
 type K8sKey struct {
@@ -282,6 +281,12 @@ func canonGVK(kind string) (canonKind string, canonGroupVersion string) {
 		fallthrough
 	case "tracingservices.getambassador.io":
 		return "TracingService", "getambassador.io/v2"
+	case "gatewayclasses.networking.x-k8s.io":
+		return "GatewayClass", "networking.x-k8s.io/v1alpha1"
+	case "gateways.networking.x-k8s.io":
+		return "Gateway", "networking.x-k8s.io/v1alpha1"
+	case "httproutes.networking.x-k8s.io":
+		return "HTTPRoute", "networking.x-k8s.io/v1alpha1"
 	default:
 		panic(fmt.Sprintf("I don't know how to canonicalize kind: %q", kind))
 	}

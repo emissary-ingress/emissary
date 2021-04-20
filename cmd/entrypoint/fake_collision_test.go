@@ -10,7 +10,7 @@ import (
 )
 
 func TestFakeCollision(t *testing.T) {
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true, DiagdDebug: true})
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true, DiagdDebug: true}, nil)
 
 	f.UpsertFile("testdata/Collision1.yaml")
 	f.Flush()

@@ -28,7 +28,7 @@ class Builder:
     def __init__(self, logger: logging.Logger, yaml_file: str,
                  enable_cache=True) -> None:
         self.test_dir = os.path.join(
-            os.path.dirname(os.environ.get('PYTEST_CURRENT_TEST').split("::")[0]),
+            os.path.dirname(os.path.abspath(__file__)),
             "test_cache_data"
         )
 
@@ -39,7 +39,7 @@ class Builder:
 
         # This is a brutal hack: we load all the YAML, store it as objects, then
         # build IR and econf from the re-serialized YAML from these resources.
-        # The reason is that it's kind of the only way we can apply deltas in 
+        # The reason is that it's kind of the only way we can apply deltas in
         # a meaningful way.
         self.resources: Dict[str, Any] = {}
 
@@ -90,7 +90,7 @@ class Builder:
                 if self.cache is not None:
                     self.cache.invalidate(key)
 
-    def build(self) -> Tuple[IR, EnvoyConfig]:
+    def build(self, version='V2') -> Tuple[IR, EnvoyConfig]:
         # Do a build, return IR & econf, but also stash them in self.builds.
 
         yaml_data = yaml.safe_dump_all(self.resources.values())
@@ -108,7 +108,7 @@ class Builder:
 
         assert ir, "could not create an IR"
 
-        econf = EnvoyConfig.generate(ir, "V2", cache=self.cache)
+        econf = EnvoyConfig.generate(ir, version, cache=self.cache)
 
         assert econf, "could not create an econf"
 
@@ -127,7 +127,7 @@ class Builder:
             if strip_cache_keys and (idx == 0):
                 x1 = self.strip_cache_keys(b1[idx].as_dict())
                 j1 = json.dumps(x1, sort_keys=True, indent=4)
-                
+
                 x2 = self.strip_cache_keys(b2[idx].as_dict())
                 j2 = json.dumps(x2, sort_keys=True, indent=4)
             else:
@@ -182,7 +182,7 @@ def test_circular_link():
     builder = Builder(logger, "cache_test_1.yaml")
     builder.build()
 
-    # This Can't Happen(tm) in Ambassador, but it's important that it not go 
+    # This Can't Happen(tm) in Ambassador, but it's important that it not go
     # off the rails. Find a Mapping...
     mapping_key = "Mapping-v2-foo-4-default"
     m = builder.cache[mapping_key]

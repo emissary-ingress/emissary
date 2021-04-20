@@ -63,10 +63,6 @@ aligned between rows.  Types currently used are:
      also listing it in "Outputs".
      - `NAME` in `go-mod.mk`.  It isn't listed as an an input, because
        it isn't one "in spirit".
-     - `KUBECONFIG` in `kubernaut-ui.mk` is ":=", but it is listed as
-       an input anyway; it's one "in spirit"; it's just that it must
-       be overridden more forcefully than with an environment
-       variable.
      - "Executables" (below) are set with `?=`, but don't list them as
        "inputs".
  - `Function`: (only for use as an output) This is a special case of a

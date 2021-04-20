@@ -84,7 +84,6 @@ func RunAsDaemon(dns, fallback string) error {
 }
 
 type grpcService struct {
-	s *grpc.Server
 	d *daemon
 	p *supervisor.Process
 }
@@ -133,9 +132,6 @@ func (s *grpcService) Resume(ctx context.Context, empty *rpc.Empty) (*rpc.Resume
 }
 
 func (s *grpcService) Quit(ctx context.Context, empty *rpc.Empty) (*rpc.Empty, error) {
-	// GracefulStop() must be called in a separate go routine since it will await the
-	// client disconnect. That doesn't happen until this function returns.
-	go s.s.GracefulStop()
 	s.p.Supervisor().Shutdown()
 	return &rpc.Empty{}, nil
 }
@@ -153,7 +149,6 @@ func (d *daemon) runGRPCService(daemonProc *supervisor.Process) error {
 
 	grpcHandler := grpc.NewServer()
 	rpc.RegisterDaemonServer(grpcHandler, &grpcService{
-		s: grpcHandler,
 		d: d,
 		p: daemonProc,
 	})

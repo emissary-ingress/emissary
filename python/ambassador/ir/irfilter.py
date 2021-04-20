@@ -5,7 +5,7 @@ from ..config import Config
 from .irresource import IRResource
 
 if TYPE_CHECKING:
-    from .ir import IR
+    from .ir import IR # pragma: no cover
 
 
 class IRFilter(IRResource):

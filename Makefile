@@ -1,6 +1,6 @@
 # Sanitize the environment a bit.
-unexport ENV      # bad configuration mechansim
-unexport BASH_ENV # bad configuration mechansim, but CircleCI insists on it
+unexport ENV      # bad configuration mechanism
+unexport BASH_ENV # bad configuration mechanism, but CircleCI insists on it
 unexport CDPATH   # should not be exported, but some people do
 unexport IFS      # should not be exported, but some people do
 
@@ -25,6 +25,7 @@ OSS_HOME := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
 include $(OSS_HOME)/builder/builder.mk
 include $(OSS_HOME)/_cxx/envoy.mk
+include $(OSS_HOME)/charts/ambassador/Makefile
 
 $(call module,ambassador,$(OSS_HOME))
 

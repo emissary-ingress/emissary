@@ -15,7 +15,7 @@ from ambassador.fetch import ResourceFetcher
 from ambassador.utils import SecretInfo, SavedSecret, SecretHandler, dump_json
 
 if TYPE_CHECKING:
-    from ambassador.ir.irresource import IRResource
+    from ambassador.ir.irresource import IRResource # pragma: no cover
 
 # default AES's Secret name
 # (by default, we assume it will be in the same namespace as Ambassador)

@@ -138,6 +138,10 @@ func GetEnvoyConfigFile() string {
 	return env("envoy_config_file", path.Join(GetEnvoyDir(), "envoy.json"))
 }
 
+func GetEnvoyAPIVersion() string {
+	return env("AMBASSADOR_ENVOY_API_VERSION", "V2")
+}
+
 func GetAmbassadorDebug() string {
 	return env("AMBASSADOR_DEBUG", "")
 }
@@ -162,6 +166,12 @@ func GetEnvoyFlags() []string {
 	concurrency := GetEnvoyConcurrency()
 	if concurrency != "" {
 		result = append(result, "--concurrency", concurrency)
+	}
+	envoyAPIVersion := GetEnvoyAPIVersion()
+	if strings.ToUpper(envoyAPIVersion) == "V3" {
+		result = append(result, "--bootstrap-version", "3")
+	} else {
+		result = append(result, "--bootstrap-version", "2")
 	}
 	return result
 }

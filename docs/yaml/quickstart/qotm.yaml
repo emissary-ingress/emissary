@@ -35,10 +35,10 @@ metadata:
         a8r.io/bugs: "https://github.com/datawire/qotm/issues"
         a8r.io/documentation: "https://github.com/datawire/qotm/blob/master/README.md"
         a8r.io/repository: "https://github.com/datawire/qotm"
-        a8r.io/support: "http://d6e.co/slack"
+        a8r.io/support: "http://a8r.io/Slack"
         a8r.io/runbook: "https://github.com/datawire/qotm/blob/master/README.md"
         a8r.io/incidents: "https://github.com/datawire/qotm/issues"
-        a8r.io/dependencies: "None"    
+        a8r.io/dependencies: "None"
 spec:
   ports:
   - name: http

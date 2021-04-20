@@ -67,6 +67,10 @@ spec:
     def test_rapid_additions_and_deletions(self):
         namespace = 'watt-rapid'
 
+        # Make sure telepresence is connected. Do this early on in the test to give the TP daemon plenty of
+        # time to do its thing while we wait for other k8 resources to reconcile.
+        run_with_retry(['telepresence', 'connect'])
+
         # Install Ambassador
         install_ambassador(namespace=namespace)
 
@@ -80,11 +84,9 @@ spec:
         run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
         run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=qotm', '-n', namespace])
 
-        # Let's port-forward ambassador service to talk to QOTM
-        port_forward_port = 6000
-        port_forward_command = ['kubectl', 'port-forward', '--namespace', namespace, 'service/ambassador', f'{port_forward_port}:80']
-        run_and_assert(port_forward_command, communicate=False)
-        qotm_url = f'http://localhost:{port_forward_port}/qotm/'
+        # Assume we can reach Ambassador through telepresence
+        qotm_host = "ambassador." + namespace
+        qotm_url = f"http://{qotm_host}/qotm/"
 
         # Assert 200 OK at /qotm/ endpoint
         qotm_ready = False
@@ -117,6 +119,7 @@ spec:
         assert qotm_http_code == 200, f"Expected 200 OK, got {qotm_http_code}"
 
 
+@pytest.mark.flaky(reruns=1, reruns_delay=10)
 def test_watt():
     watt_test = WattTesting()
     watt_test.test_rapid_additions_and_deletions()

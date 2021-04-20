@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"sort"
-	"strings"
 	"sync"
 
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -363,12 +361,4 @@ func (a *Accumulator) update(target reflect.Value, deltas *[]*Delta, predicate f
 	}
 
 	return updated
-}
-
-func unKeySort(items []*Unstructured) {
-	sort.Slice(items, func(i, j int) bool {
-		ik := unKey(items[i])
-		jk := unKey(items[j])
-		return strings.Compare(ik, jk) < 0
-	})
 }

@@ -6,6 +6,7 @@ linters:
     - gofmt
     - govet
     - depguard
+    - unused
 linters-settings:
   gofmt:
     simplify: true
@@ -18,6 +19,10 @@ linters-settings:
     packages-with-error-message:
       - github/datawire/dlib/dutil: "use either github/datawire/dlib/derror or github/datawire/dlib/dhttp"
       - golang.org/x/net/http2/h2c: "use github/datawire/dlib/dhttp"
+  unused:
+    # treat code as a program (not a library) and report unused
+    # exported identifiers
+    check-exported: true
 issues:
   exclude-rules:
     - linters: [govet]
@@ -90,12 +95,7 @@ run:
 #    - scopelint
 #    - stylecheck
 #    - unparam
-#    - unused  # confused by dev-portal-server, for some reason
 #linters-settings:
-#  unused:
-#    # treat code as a program (not a library) and report unused
-#    # exported identifiers
-#    check-exported: true
 #  goimports:
 #    # put imports beginning with prefix after 3rd-party packages;
 #    # it's a comma-separated list of prefixes

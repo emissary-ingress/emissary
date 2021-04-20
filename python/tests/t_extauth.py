@@ -1,9 +1,12 @@
 import json
+import pytest
+import os
 
 from kat.harness import Query
 
 from abstract_tests import AmbassadorTest, ServiceType, HTTP, AHTTP, AGRPC
 from selfsigned import TLSCerts
+
 
 class AuthenticationGRPCTest(AmbassadorTest):
 
@@ -13,6 +16,22 @@ class AuthenticationGRPCTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
         self.auth = AGRPC(name="auth")
+
+    def manifests(self) -> str:
+        return self.format('''
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: auth-context-mapping
+spec:
+  ambassador_id: {self.ambassador_id}
+  service: {self.target.path.fqdn}
+  prefix: /context-extensions-crd/
+  auth_context_extensions:
+    context: "auth-context-name"
+    data: "auth-data"
+''') + super().manifests()
 
     def config(self):
         yield self, self.format("""
@@ -31,6 +50,15 @@ kind:  Mapping
 name:  {self.target.path.k8s}
 prefix: /target/
 service: {self.target.path.fqdn}
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.target.path.k8s}-context-extensions
+prefix: /context-extensions/
+service: {self.target.path.fqdn}
+auth_context_extensions:
+    first: "first element"
+    second: "second element"
 """)
 
     def queries(self):
@@ -49,9 +77,19 @@ service: {self.target.path.fqdn}
         # [3]
         yield Query(self.url("target/"), headers={"requested-status": "200",
                                                   "authorization": "foo-11111",
-                                                  "foo" : "foo",
+                                                  "foo": "foo",
                                                   "x-grpc-auth-append": "foo=bar;baz=bar",
                                                   "requested-header": "Authorization"}, expected=200)
+        # [4]
+        yield Query(self.url("context-extensions/"), headers={"request-status": "200",
+                                                              "authorization": "foo-22222",
+                                                              "requested-header": "Authorization"},
+                    expected=200)
+        # [5]
+        yield Query(self.url("context-extensions-crd/"), headers={"request-status": "200",
+                                                                  "authorization": "foo-33333",
+                                                                  "requested-header": "Authorization"},
+                    expected=200)
 
     def check(self):
         # [0] Verifies all request headers sent to the authorization server.
@@ -93,6 +131,22 @@ service: {self.target.path.fqdn}
         assert self.results[3].headers["Server"] == ["envoy"]
         assert self.results[3].headers["Authorization"] == ["foo-11111"]
         assert self.results[3].backend.request.headers['x-grpc-service-protocol-version'] == ['v2']
+
+        # [4] Verifies that auth_context_extension is passed along by Envoy.
+        assert self.results[4].status == 200
+        assert self.results[4].headers["Server"] == ["envoy"]
+        assert self.results[4].headers["Authorization"] == ["foo-22222"]
+        context_ext = json.loads(self.results[4].backend.request.headers["x-request-context-extensions"][0])
+        assert context_ext["first"] == "first element"
+        assert context_ext["second"] == "second element"
+
+        # [5] Verifies that auth_context_extension is passed along by Envoy when using a crd Mapping
+        assert self.results[5].status == 200
+        assert self.results[5].headers["Server"] == ["envoy"]
+        assert self.results[5].headers["Authorization"] == ["foo-33333"]
+        context_ext = json.loads(self.results[5].backend.request.headers["x-request-context-extensions"][0])
+        assert context_ext["context"] == "auth-context-name"
+        assert context_ext["data"] == "auth-data"
 
 
 class AuthenticationHTTPPartialBufferTest(AmbassadorTest):
@@ -793,12 +847,14 @@ use_websocket: true
         assert self.results[-1].messages == ["one", "two", "three"]
 
 
-class AuthenticationGRPCAlphaV2Test(AmbassadorTest):
+class AuthenticationGRPCV2AlphaTest(AmbassadorTest):
 
     target: ServiceType
     auth: ServiceType
 
     def init(self):
+        if os.environ.get('KAT_USE_ENVOY_V3', '') != '':
+            self.skip_node = True
         self.target = HTTP()
         self.auth = AGRPC(name="auth", protocol_version="v2alpha")
 
@@ -883,3 +939,97 @@ service: {self.target.path.fqdn}
         assert self.results[3].headers["Server"] == ["envoy"]
         assert self.results[3].headers["Authorization"] == ["foo-11111"]
         assert self.results[3].backend.request.headers['x-grpc-service-protocol-version'] == ['v2alpha']
+
+
+class AuthenticationGRPCV3Test(AmbassadorTest):
+
+    target: ServiceType
+    auth: ServiceType
+
+    def init(self):
+        if os.environ.get('KAT_USE_ENVOY_V3', '') == '':
+            self.skip_node = True
+        self.target = HTTP()
+        self.auth = AGRPC(name="auth", protocol_version="v3")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v2
+kind: AuthService
+name:  {self.auth.path.k8s}
+auth_service: "{self.auth.path.fqdn}"
+timeout_ms: 5000
+protocol_version: "v3"
+proto: grpc
+""")
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.target.path.k8s}
+prefix: /target/
+service: {self.target.path.fqdn}
+""")
+
+    def queries(self):
+        # TODO add more
+        # [0]
+        yield Query(self.url("target/"), headers={"requested-status": "401",
+                                                  "baz": "baz",
+                                                  "request-header": "baz"}, expected=401)
+
+        # [1]
+        yield Query(self.url("target/"), headers={"requested-status": "302",
+                                                  "requested-location": "foo"}, expected=302)
+
+        # [2]
+        yield Query(self.url("target/"), headers={"requested-status": "401",
+                                                  "x-foo": "foo",
+                                                  "requested-header": "x-foo"}, expected=401)
+        # [3]
+        yield Query(self.url("target/"), headers={"requested-status": "200",
+                                                  "authorization": "foo-11111",
+                                                  "foo" : "foo",
+                                                  "x-grpc-auth-append": "foo=bar;baz=bar",
+                                                  "requested-header": "Authorization"}, expected=200)
+
+    def check(self):
+        # [0] Verifies all request headers sent to the authorization server.
+        assert self.results[0].backend.name == self.auth.path.k8s
+        assert self.results[0].backend.request.url.path == "/target/"
+        assert self.results[0].backend.request.headers["x-forwarded-proto"]== ["http"]
+        assert "user-agent" in self.results[0].backend.request.headers
+        assert "baz" in self.results[0].backend.request.headers
+        assert self.results[0].status == 401
+        assert self.results[0].headers["Server"] == ["envoy"]
+        assert self.results[0].headers['X-Grpc-Service-Protocol-Version'] == ['v3']
+
+        # [1] Verifies that Location header is returned from Envoy.
+        assert self.results[1].backend.name == self.auth.path.k8s
+        assert self.results[1].backend.request.headers["requested-status"] == ["302"]
+        assert self.results[1].backend.request.headers["requested-location"] == ["foo"]
+        assert self.results[1].status == 302
+        assert self.results[1].headers["Location"] == ["foo"]
+        assert self.results[1].headers['X-Grpc-Service-Protocol-Version'] == ['v3']
+
+        # [2] Verifies Envoy returns whitelisted headers input by the user.
+        assert self.results[2].backend.name == self.auth.path.k8s
+        assert self.results[2].backend.request.headers["requested-status"] == ["401"]
+        assert self.results[2].backend.request.headers["requested-header"] == ["x-foo"]
+        assert self.results[2].backend.request.headers["x-foo"] == ["foo"]
+        assert self.results[2].status == 401
+        assert self.results[2].headers["Server"] == ["envoy"]
+        assert self.results[2].headers["X-Foo"] == ["foo"]
+        assert self.results[2].headers['X-Grpc-Service-Protocol-Version'] == ['v3']
+
+        # [3] Verifies default whitelisted Authorization request header.
+        assert self.results[3].backend.request.headers["requested-status"] == ["200"]
+        assert self.results[3].backend.request.headers["requested-header"] == ["Authorization"]
+        assert self.results[3].backend.request.headers["authorization"] == ["foo-11111"]
+        assert self.results[3].backend.request.headers["foo"] == ["foo,bar"]
+        assert self.results[3].backend.request.headers["baz"] == ["bar"]
+        assert self.results[3].status == 200
+        assert self.results[3].headers["Server"] == ["envoy"]
+        assert self.results[3].headers["Authorization"] == ["foo-11111"]
+        assert self.results[3].backend.request.headers['x-grpc-service-protocol-version'] == ['v3']

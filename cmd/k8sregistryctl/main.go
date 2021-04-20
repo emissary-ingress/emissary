@@ -70,7 +70,7 @@ spec:
       volumes:
         - name: registry-data
 {{ if eq .Storage "pvc" | not }}
-          # On kubernaut.io clusters, there is only 1 node, so a
+          # On Kubeception clusters, there is only 1 node, so a
           # hostPath is fine.
           hostPath:
             path: /var/lib/registry

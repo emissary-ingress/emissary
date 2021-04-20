@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sync"
 	"testing"
 	"time"
 
@@ -23,6 +24,7 @@ type fswMetadata struct {
 	updates      map[string]int
 	deletes      map[string]int
 	errorCount   int
+	mutex        sync.Mutex
 }
 
 func newMetadata(t *testing.T) (*fswMetadata, error) {
@@ -90,6 +92,8 @@ func (m *fswMetadata) done() {
 // Error handler: just count errors received.
 func (m *fswMetadata) errorHandler(ctx context.Context, err error) {
 	dlog.Infof(ctx, "errorHandler: got %s", err)
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
 	m.errorCount++
 	dlog.Infof(ctx, "errorHandler: errorCount now %d", m.errorCount)
 }
@@ -134,6 +138,8 @@ func (m *fswMetadata) eventHandler(ctx context.Context, event entrypoint.FSWEven
 
 	count, ok := which[base]
 
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
 	if ok {
 		which[base] = count + 1
 	} else {
@@ -156,7 +162,9 @@ func (m *fswMetadata) check(key string, wantedBootstrap bool, wantedUpdates int,
 		m.t.Errorf("%s bootstrapped: wanted %v, got %v", key, wantedBootstrap, bootstrapped)
 	}
 
+	m.mutex.Lock()
 	got, ok := m.updates[key]
+	m.mutex.Unlock()
 
 	if !ok {
 		dlog.Infof(context.TODO(), "%s updates: wanted %d, got nothing", key, wantedUpdates)
@@ -169,7 +177,9 @@ func (m *fswMetadata) check(key string, wantedBootstrap bool, wantedUpdates int,
 		m.t.Errorf("%s updates: wanted %d, got %d", key, wantedUpdates, got)
 	}
 
+	m.mutex.Lock()
 	got, ok = m.deletes[key]
+	m.mutex.Unlock()
 
 	if !ok {
 		dlog.Infof(context.TODO(), "%s deletes: wanted %d, got nothing", key, wantedDeletes)
@@ -185,6 +195,8 @@ func (m *fswMetadata) check(key string, wantedBootstrap bool, wantedUpdates int,
 
 // Make sure that the error count is what we expect.
 func (m *fswMetadata) checkErrors(wanted int) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
 	dlog.Infof(context.TODO(), "checkErrors: wanted %d, have %d", wanted, m.errorCount)
 
 	if m.errorCount != wanted {

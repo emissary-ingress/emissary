@@ -68,7 +68,7 @@ func getRootCommand() *cobra.Command {
 	}
 
 	myHelp := myName + `
-  https://www.getambassador.io/docs/latest/topics/install/
+  https://www.getambassador.io/docs/edge-stack/latest/topics/install/
 `
 
 	rootCmd := &cobra.Command{

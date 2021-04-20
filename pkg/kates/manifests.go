@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes/scheme"
+	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 	"sigs.k8s.io/yaml"
 
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
@@ -24,6 +25,7 @@ func init() {
 	scheme.AddToScheme(sch)
 	apiextensions.AddToScheme(sch)
 	amb.AddToScheme(sch)
+	gw.AddToScheme(sch)
 }
 
 func NewObject(kind, version string) (Object, error) {

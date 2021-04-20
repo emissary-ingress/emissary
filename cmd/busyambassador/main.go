@@ -9,6 +9,7 @@ import (
 	"github.com/datawire/ambassador/pkg/busy"
 	"github.com/datawire/ambassador/pkg/environment"
 
+	amb_agent "github.com/datawire/ambassador/cmd/agent"
 	"github.com/datawire/ambassador/cmd/ambex"
 	"github.com/datawire/ambassador/cmd/entrypoint"
 	"github.com/datawire/ambassador/cmd/kubestatus"
@@ -28,5 +29,6 @@ func main() {
 		"kubestatus": {Setup: environment.EnvironmentSetupEntrypoint, Run: kubestatus.Main},
 		"entrypoint": {Setup: noop, Run: entrypoint.Main},
 		"reproducer": {Setup: noop, Run: reproducer.Main},
+		"agent":      {Setup: environment.EnvironmentSetupEntrypoint, Run: amb_agent.Main},
 	})
 }

@@ -28,7 +28,7 @@ def Compile(logger: logging.Logger, input_text: str,
             cache: Optional[Cache]=None,
             file_checker: Optional[IRFileChecker]=None,
             secret_handler: Optional[SecretHandler]=None,
-            k8s=False, v2=True) -> Dict[str, Union[IR, EnvoyConfig]]:
+            k8s=False, envoy_version="V2") -> Dict[str, Union[IR, EnvoyConfig]]:
     """
     Compile is a helper function to take a bunch of YAML and compile it into an
     IR and, optionally, an Envoy config.
@@ -41,7 +41,7 @@ def Compile(logger: logging.Logger, input_text: str,
 
     IFF v2 is True, there will be a toplevel "v2" key whose value is the Envoy
     V2 config.
-    
+
     :param input_text: The input text (WATT snapshot JSON or K8s YAML per 'k8s')
     :param k8s: If true, input_text is K8s YAML, otherwise it's WATT snapshot JSON
     :param ir: Generate the IR IFF True
@@ -57,7 +57,7 @@ def Compile(logger: logging.Logger, input_text: str,
     aconf = Config()
 
     fetcher = ResourceFetcher(logger, aconf)
-    
+
     if k8s:
         fetcher.parse_yaml(input_text, k8s=True)
     else:
@@ -69,8 +69,8 @@ def Compile(logger: logging.Logger, input_text: str,
 
     out: Dict[str, Union[IR, EnvoyConfig]] = { "ir": ir }
 
-    if ir and v2:
-        out["v2"] = EnvoyConfig.generate(ir, "V2", cache=cache)
+    if ir:
+        out[envoy_version.lower()] = EnvoyConfig.generate(ir, envoy_version.upper(), cache=cache)
 
     return out
 

@@ -1,0 +1,47 @@
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: quote-backend
+spec:
+  prefix: /backend/
+  service: quote
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quote
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+  selector:
+    app: quote
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quote
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quote
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: quote
+    spec:
+      containers:
+      - name: backend
+        image: datawire/quote:0.4.0
+        ports:
+        - name: http
+          containerPort: 8080
+        resources:
+          limits:
+            cpu: "0.1"
+            memory: 100Mi

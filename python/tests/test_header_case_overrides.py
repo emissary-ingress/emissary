@@ -110,7 +110,7 @@ def _ambassador_module_header_case_overrides(overrides, proper_case=False):
 '''
     return mod
 
-def _test_headercaseoverrides(yaml, expectations, expect_norules=False):
+def _test_headercaseoverrides(yaml, expectations, expect_norules=False, version='V3'):
     aconf = Config()
 
     yaml = yaml + '''
@@ -132,7 +132,7 @@ prefix: /httpbin/
     ir = IR(aconf, file_checker=lambda path: True, secret_handler=secret_handler)
     assert ir
 
-    econf = EnvoyConfig.generate(ir, "V2")
+    econf = EnvoyConfig.generate(ir, version)
     assert econf, "could not create an econf"
 
     found_module_rules = False
@@ -206,59 +206,69 @@ prefix: /httpbin/
         assert found_module_rules
         assert found_cluster_rules
 
-def _test_headercaseoverrides_rules(rules, expected=None, expect_norules=False):
+def _test_headercaseoverrides_rules(rules, expected=None, expect_norules=False, version='V3'):
     if not expected:
         expected = rules
     _test_headercaseoverrides(
         _ambassador_module_header_case_overrides(rules),
         expected,
-        expect_norules=expect_norules
+        expect_norules=expect_norules,
+        version=version
     )
 
 # Test that we throw assertions for obviously wrong cases
+@pytest.mark.compilertest
 def test_testsanity():
     failed = False
-    try:
-        _test_headercaseoverrides_rules(['X-ABC'], expected=['X-Wrong'])
-    except AssertionError as e:
-        failed = True
-    assert failed
+    for version in ['V2', 'V3']:
+        try:
+            _test_headercaseoverrides_rules(['X-ABC'], expected=['X-Wrong'], version=version)
+        except AssertionError as e:
+            failed = True
+        assert failed
 
-    failed = False
-    try:
-        _test_headercaseoverrides_rules([], expected=['X-Wrong'])
-    except AssertionError as e:
-        failed = True
+        failed = False
+        try:
+            _test_headercaseoverrides_rules([], expected=['X-Wrong'], version=version)
+        except AssertionError as e:
+            failed = True
     assert failed
 
 # Test that we can parse a variety of header case override arrays.
+@pytest.mark.compilertest
 def test_headercaseoverrides_basic():
-    _test_headercaseoverrides_rules([], expect_norules=True)
-    _test_headercaseoverrides_rules([{}], expect_norules=True)
-    _test_headercaseoverrides_rules([5], expect_norules=True)
-    _test_headercaseoverrides_rules(['X-ABC'])
-    _test_headercaseoverrides_rules(['X-foo', 'X-ABC-Baz'])
-    _test_headercaseoverrides_rules(['x-goOd', 'X-alSo-good', 'Authorization'])
-    _test_headercaseoverrides_rules(['x-good', ['hello']], expected=['x-good'])
-    _test_headercaseoverrides_rules(['X-ABC', 'x-foo', 5, {}], expected=['X-ABC', 'x-foo'])
+    for version in ['V2', 'V3']:
+        _test_headercaseoverrides_rules([], expect_norules=True, version=version)
+        _test_headercaseoverrides_rules([{}], expect_norules=True, version=version)
+        _test_headercaseoverrides_rules([5], expect_norules=True, version=version)
+        _test_headercaseoverrides_rules(['X-ABC'], version=version)
+        _test_headercaseoverrides_rules(['X-foo', 'X-ABC-Baz'], version=version)
+        _test_headercaseoverrides_rules(['x-goOd', 'X-alSo-good', 'Authorization'], version=version)
+        _test_headercaseoverrides_rules(['x-good', ['hello']], expected=['x-good'], version=version)
+        _test_headercaseoverrides_rules(['X-ABC', 'x-foo', 5, {}], expected=['X-ABC', 'x-foo'], version=version)
 
 # Test that we always omit header case overrides if proper case is set
+@pytest.mark.compilertest
 def test_headercaseoverrides_propercasefail():
-    _test_headercaseoverrides(
-        _ambassador_module_header_case_overrides(['My-OPINIONATED-CASING'], proper_case=True),
-        [],
-        expect_norules=True
-    )
-    _test_headercaseoverrides(
-        _ambassador_module_header_case_overrides([], proper_case=True),
-        [],
-        expect_norules=True
-    )
-    _test_headercaseoverrides(
-        _ambassador_module_header_case_overrides([{"invalid": "true"}, "X-COOL"], proper_case=True),
-        [],
-        expect_norules=True
-    )
+    for version in ['V2', 'V3']:
+        _test_headercaseoverrides(
+            _ambassador_module_header_case_overrides(['My-OPINIONATED-CASING'], proper_case=True),
+            [],
+            expect_norules=True,
+            version=version
+        )
+        _test_headercaseoverrides(
+            _ambassador_module_header_case_overrides([], proper_case=True),
+            [],
+            expect_norules=True,
+            version=version
+        )
+        _test_headercaseoverrides(
+            _ambassador_module_header_case_overrides([{"invalid": "true"}, "X-COOL"], proper_case=True),
+            [],
+            expect_norules=True,
+            version=version
+        )
 
 
 class HeaderCaseOverridesTesting:
@@ -282,6 +292,10 @@ spec:
         # Is there any reason not to use the default namespace?
         namespace = 'header-case-overrides'
 
+        # Make sure telepresence is connected. Do this early on in the test to give the TP daemon plenty of
+        # time to do its thing while we wait for other k8 resources to reconcile.
+        run_with_retry(['telepresence', 'connect'])
+
         # Install Ambassador
         install_ambassador(namespace=namespace)
 
@@ -304,21 +318,13 @@ spec:
         run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
         run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=httpbin', '-n', namespace])
 
-        # Let's port-forward ambassador service to talk to Ambassador.
-        # IMPORTANT: We _must_ choose a unique port_forward_port so long as test_watt.py,
-        # test_knative.py, and others like it, run in the same environment as this test.
-        # Otherwise we get port collisions and it's madness.
-        port_forward_port = 6123
-        port_forward_command = ['kubectl', 'port-forward', '--namespace', namespace, 'service/ambassador', f'{port_forward_port}:80']
-        run_and_assert(port_forward_command, communicate=False)
-
-        print("Waiting 5 seconds, just because...")
-        time.sleep(2)
+        # Assume we can reach Ambassador through telepresence
+        ambassador_host = "ambassador." + namespace
 
         # Assert 200 OK at httpbin/status/200 endpoint
         ready = False
-        httpbin_url = f'http://localhost:{port_forward_port}/httpbin/status/200'
-        headerecho_url = f'http://localhost:{port_forward_port}/headerecho/'
+        httpbin_url = f'http://{ambassador_host}/httpbin/status/200'
+        headerecho_url = f'http://{ambassador_host}/headerecho/'
 
         loop_limit = 10
         while not ready:
@@ -348,7 +354,7 @@ spec:
 
         assert ready
 
-        httpbin_url = f'http://localhost:{port_forward_port}/httpbin/response-headers?x-Hello=1&X-foo-Bar=1&x-Lowercase1=1&x-lowercase2=1'
+        httpbin_url = f'http://{ambassador_host}/httpbin/response-headers?x-Hello=1&X-foo-Bar=1&x-Lowercase1=1&x-lowercase2=1'
         resp = requests.get(httpbin_url, timeout=5)
         code = resp.status_code
         assert code == 200, f"Expected 200 OK, got {code}"
@@ -399,6 +405,7 @@ spec:
         assert 'x-lowercase2' in hdrs
 
 
+@pytest.mark.flaky(reruns=1, reruns_delay=10)
 def test_ambassador_headercaseoverrides():
     t = HeaderCaseOverridesTesting()
     t.test_header_case_overrides()

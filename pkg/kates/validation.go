@@ -11,8 +11,8 @@ import (
 	apiextValidation "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/validation"
 	"k8s.io/apiextensions-apiserver/pkg/apiserver/validation"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/kube-openapi/pkg/validation/validate"
 
-	"github.com/go-openapi/validate"
 	"github.com/pkg/errors"
 )
 

@@ -4,7 +4,7 @@ kind: ConsulResolver
 metadata:
   name: consul-dc1
 spec:
-  address: consul-server.default.svc.cluster.local:8500
+  address: consul-server.default:$CONSULPORT
   datacenter: dc1
 ---
 apiVersion: getambassador.io/v2

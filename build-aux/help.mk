@@ -87,14 +87,6 @@ help.body ?= $(call _help.genbody,,$(help.body.vars))
 #      (Go)         go-get           Download Go dependencies
 #      (Go)         go-lint          Check the code with `golangci-lint`
 #      (Go)         go-test          Check the code with `go test`
-#      (Kubernaut)  apply            Apply YAML to the cluster, WITHOUT pushing newer Docker images
-#      (Kubernaut)  claim            Obtain an ephemeral cluster from kubernaut.io
-#      (Kubernaut)  deploy           Apply YAML to the cluster, pushing newer Docker images
-#      (Kubernaut)  proxy            Launch teleproxy in the background
-#      (Kubernaut)  push             Push Docker images to the cluster
-#      (Kubernaut)  shell            Run an interactive Bash shell with KUBECONFIG= set to the Kubernaut claim
-#      (Kubernaut)  unclaim          Destroy the cluster
-#      (Kubernaut)  unproxy          Shut down 'proxy'
 #      -            release-bin      Upload binaries to S3
 #      -            release          Cut a release; upload binaries to S3 and Docker images to $$RELEASE_REGISTRY
 #      -            release-docker   Upload Docker images to $$RELEASE_REGISTRY

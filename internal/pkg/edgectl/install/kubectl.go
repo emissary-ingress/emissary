@@ -51,16 +51,6 @@ type Kubectl interface {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// SimpleRunner
-type SimpleRunner struct {
-	name   string
-	exe    string
-	args   []string
-	stdin  io.Reader
-	stdout io.Writer
-	stderr io.Writer
-}
-
 // SimpleKubectl is a simple `kubectl` wrapper
 type SimpleKubectl struct {
 	name   string

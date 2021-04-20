@@ -76,16 +76,22 @@ func (m *icertMetadata) check(what string, name string, deleted bool, count int)
 	m.icert.HandleEvent(context.TODO(), name, deleted)
 	time.Sleep(250 * time.Millisecond)
 
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
 	if len(m.events) != count {
 		m.t.Errorf("%s: wanted event count %d, got %d", what, count, len(m.events))
 	}
 }
 
 func (m *icertMetadata) checkNoSecret() {
+	m.mutex.Lock()
 	count := len(m.events)
+	m.mutex.Unlock()
 
 	if count > 0 {
+		m.mutex.Lock()
 		evt := m.events[count-1]
+		m.mutex.Unlock()
 
 		if evt.Op != "delete" {
 			m.t.Errorf("wanted no live secret, got %s op?", evt.Op)
@@ -121,7 +127,9 @@ func (m *icertMetadata) checkSecret(namespace string, publicPEM string, privateP
 		return
 	}
 
+	m.mutex.Lock()
 	evt := m.events[count-1]
+	m.mutex.Unlock()
 
 	if evt.Op != "update" {
 		m.t.Errorf("wanted live secret, got %s op?", evt.Op)
