@@ -78,6 +78,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 - Feature: Add diagnostics.allow_non_local flag to expose admin UI internally only ([#3074])
 
+## [1.12.4] April 19, 2021
+[1.12.4]: https://github.com/datawire/ambassador/compare/v1.12.3...v1.12.4
+
+Bugfix: Fix the Envoy base image build step and, as a result, correctly ship the Envoy 1.15.4 security updates.
+
 ## [1.12.3] April 15, 2021
 [1.12.3]: https://github.com/datawire/ambassador/compare/v1.12.2...v1.12.3
 
