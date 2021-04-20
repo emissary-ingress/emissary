@@ -8,6 +8,7 @@
 .DS_Store
 .skip_test_warning
 venv
+.venv
 __pycache__
 .pytest_cache
 .mypy_cache
