@@ -21,7 +21,7 @@ of Emissary Ingress in addition to the additional capabilities mentioned above. 
 popular demand, we’re offering a free tier of our core features as part of the Ambassador
 Edge Stack, designed for startups.
 
-In general, references to "Ambassador" in this CHANGELOG and the rest of the Ambassador 
+In general, references to "Ambassador" in this CHANGELOG and the rest of the Ambassador
 Edge Stack documentation refer both to the Ambassador Edge Stack and Emissary Ingress.
 
 ## UPCOMING BREAKING CHANGES
@@ -45,6 +45,18 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 [deprecated in favor of safe_regex]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.12.0.html?highlight=regex#deprecated
 [max_program_size was deprecated]: https://www.envoyproxy.io/docs/envoy/latest/version_history/v1.15.0.html?highlight=max_program_size
+
+#### Zipkin Collector Versions
+
+As of Envoy 1.12.0, [the HTTP_JSON_V1 Zipkin collector version](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version)
+has been deprecated, and the code is completely removed for Envoy V3 APIs.
+
+If you are using V3 as `AMBASSADOR_ENVOY_API_VERSION`, HTTP_JSON_V1 has already been deprecated,
+so please migrate to HTTP_JSON or HTTP_PROTO before using V3 apis.
+
+In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, the use of HTTP_JSON_V1 will be deprecated.
+
+Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version) for more information.
 
 ## RELEASE NOTES
 
