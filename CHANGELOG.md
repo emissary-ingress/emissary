@@ -103,7 +103,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: The AES ratelimit preview no longer ignores EXPIRATION_JITTER_MAX_SECONDS.
 - Change: Silence DevPortal warnings when DevPortal cannot parse a hostname from a Mapping. (#3341)
 
-[burst ratelimiting]: https://getambassador.io/docs/edge-stack/latest/topics/using/rate-limits/
+[burst ratelimiting]: https://getambassador.io/docs/edge-stack/latest/topics/using/rate-limits/rate-limits/
 
 [#3341]: https://github.com/datawire/ambassador/issues/3341
 
