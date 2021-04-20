@@ -46,19 +46,19 @@ type: kubernetes.io/service-account-token
 def assert_default_errors(errors, include_ingress_errors=True):
     default_errors = [
         ["",
-         "Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..."],
+         "Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..."],
         ["",
-         "Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..."],
+         "Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..."],
         ["",
-         "Ambassador could not find the Host CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..."],
+         "Ambassador could not find the Host CRD definition. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..."],
         ["",
-         "Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..."]
+         "Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/install/upgrade-to-edge-stack/#5-update-and-restart for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..."]
     ]
 
     if include_ingress_errors:
         default_errors.append(
             ["",
-             "Ambassador is not permitted to read Ingress resources. Please visit https://www.getambassador.io/user-guide/ingress-controller/ for more information. You can continue using Ambassador, but Ingress resources will be ignored..."
+             "Ambassador is not permitted to read Ingress resources. Please visit https://www.getambassador.io/docs/edge-stack/latest/topics/running/ingress-controller/#ambassador-as-an-ingress-controller for more information. You can continue using Ambassador, but Ingress resources will be ignored..."
             ]
         )
 
@@ -97,6 +97,8 @@ class AmbassadorTest(Test):
     is_ambassador = True
     allow_edge_stack_redirect = False
     edge_stack_cleartext_host = True
+    envoy_api_version = None
+
 
     env = []
 
@@ -106,6 +108,8 @@ class AmbassadorTest(Test):
         self.manifest_envs += """
     - name: POLL_EVERY_SECS
       value: "0"
+    - name: CONSUL_WATCHER_PORT
+      value: "8500"
 """
 
         if os.environ.get('AMBASSADOR_LEGACY_MODE', 'false').lower() == 'true':
@@ -153,6 +157,17 @@ class AmbassadorTest(Test):
             self.manifest_envs += """
     - name: AMBASSADOR_NO_TLS_REDIRECT
       value: "yes"
+"""
+
+        if self.envoy_api_version is not None:
+            self.manifest_envs += f"""
+    - name: AMBASSADOR_ENVOY_API_VERSION
+      value: "{self.envoy_api_version}"
+"""
+        elif os.environ.get('KAT_USE_ENVOY_V3', '') != '':
+            self.manifest_envs += """
+    - name: AMBASSADOR_ENVOY_API_VERSION
+      value: "V3"
 """
 
         eports = ""
@@ -276,6 +291,7 @@ class AmbassadorTest(Test):
                  "AMBASSADOR_SNAPSHOT_COUNT=1",
                  "AMBASSADOR_CONFIG_BASE_DIR=/tmp/ambassador",
                  "POLL_EVERY_SECS=0",
+                 "CONSUL_WATCHER_PORT=8500",
                  "AMBASSADOR_UPDATE_MAPPING_STATUS=false",
                  "AMBASSADOR_ID=%s" % self.ambassador_id]
 
@@ -445,6 +461,7 @@ class AGRPC(ServiceType):
 
     def __init__(self, protocol_version: str="v2", *args, **kwargs) -> None:
         self.protocol_version = protocol_version
+
         super().__init__(*args, service_manifests=GRPC_AUTH_BACKEND, **kwargs)
 
     def requirements(self):

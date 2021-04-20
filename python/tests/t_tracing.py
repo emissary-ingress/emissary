@@ -1,5 +1,6 @@
 import json
 import pytest
+import os
 
 from typing import ClassVar, Dict, List, Sequence, Tuple, Union
 
@@ -661,6 +662,8 @@ class TracingTestZipkinV1(AmbassadorTest):
     """
 
     def init(self):
+        if os.environ.get('KAT_USE_ENVOY_V3', '') != '':
+            self.skip_node = True
         self.target = HTTP()
 
     def manifests(self) -> str:

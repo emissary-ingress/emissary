@@ -39,7 +39,7 @@ from .v2route import V2Route
 from .v2tls import V2TLSContext
 
 if TYPE_CHECKING:
-    from . import V2Config
+    from . import V2Config # pragma: no cover
 
 DictifiedV2Route = Dict[str, Any]
 
@@ -397,11 +397,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
                         'cluster_name': cluster.envoy_name
                     },
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
-                },
-                # currently, use alpha service name by default
-                'use_alpha': (protocol_version == 'v2alpha'),
-                # only a valid field in envoy v3 schema
-                # 'transport_api_version': protocol_version.replace("alpha", "").upper(),
+                }
             }
         }
 
@@ -1188,6 +1184,9 @@ class V2Listener(dict):
 
             if parse_bool(self.config.ir.ambassador_module.get("strip_matching_host_port", "false")):
                 http_config["strip_matching_host_port"] = True
+
+            if parse_bool(self.config.ir.ambassador_module.get("merge_slashes", "false")):
+                http_config["merge_slashes"] = True
 
             filter_chain["filters"] = [
                 {

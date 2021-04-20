@@ -2,6 +2,7 @@ package entrypoint
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"reflect"
@@ -67,7 +68,7 @@ type Fake struct {
 	// This holds the current snapshot.
 	currentSnapshot *atomic.Value
 
-	endpoints    *Queue // All endpoint sets that have been produced.
+	fastpath     *Queue // All fastpath snapshots that have been produced.
 	snapshots    *Queue // All snapshots that have been produced.
 	envoyConfigs *Queue // All envoyConfigs that have been produced.
 
@@ -111,7 +112,7 @@ func NewFake(t *testing.T, config FakeConfig) *Fake {
 
 		currentSnapshot: &atomic.Value{},
 
-		endpoints:    NewQueue(t, config.Timeout),
+		fastpath:     NewQueue(t, config.Timeout),
 		snapshots:    NewQueue(t, config.Timeout),
 		envoyConfigs: NewQueue(t, config.Timeout),
 	}
@@ -125,8 +126,9 @@ func NewFake(t *testing.T, config FakeConfig) *Fake {
 
 // RunFake will create a new fake, invoke its Setup method and register its Teardown method as a
 // Cleanup function with the test object.
-func RunFake(t *testing.T, config FakeConfig) *Fake {
+func RunFake(t *testing.T, config FakeConfig, ambMeta *snapshot.AmbassadorMetaInfo) *Fake {
 	fake := NewFake(t, config)
+	fake.SetAmbassadorMeta(ambMeta)
 	fake.Setup()
 	fake.T.Cleanup(fake.Teardown)
 	return fake
@@ -200,25 +202,25 @@ func (f *Fake) runWatcher(ctx context.Context) error {
 			err = r.(error)
 		}
 	}()
-	watcherLoop(ctx, f.currentSnapshot, f.k8sSource, queries, f.watcher, f.istioCertSource, f.notifySnapshot, f.notifyEndpoints, f.ambassadorMeta)
+	watcherLoop(ctx, f.currentSnapshot, f.k8sSource, queries, f.watcher, f.istioCertSource, f.notifySnapshot, f.notifyFastpath, f.ambassadorMeta)
 	return err
 }
 
-func (f *Fake) notifyEndpoints(ctx context.Context, endpoints *ambex.Endpoints) {
-	f.endpoints.Add(endpoints)
+func (f *Fake) notifyFastpath(ctx context.Context, fastpath *ambex.FastpathSnapshot) {
+	f.fastpath.Add(fastpath)
 }
 
 func (f *Fake) GetEndpoints(predicate func(*ambex.Endpoints) bool) *ambex.Endpoints {
 	f.T.Helper()
-	return f.endpoints.Get(func(obj interface{}) bool {
-		endpoints := obj.(*ambex.Endpoints)
-		return predicate(endpoints)
-	}).(*ambex.Endpoints)
+	return f.fastpath.Get(func(obj interface{}) bool {
+		fastpath := obj.(*ambex.FastpathSnapshot)
+		return predicate(fastpath.Endpoints)
+	}).(*ambex.FastpathSnapshot).Endpoints
 }
 
 func (f *Fake) AssertEndpointsEmpty(timeout time.Duration) {
 	f.T.Helper()
-	f.endpoints.AssertEmpty(timeout, "endpoints queue not empty")
+	f.fastpath.AssertEmpty(timeout, "endpoints queue not empty")
 }
 
 type SnapshotEntry struct {
@@ -227,12 +229,18 @@ type SnapshotEntry struct {
 }
 
 // We pass this into the watcher loop to get notified when a snapshot is produced.
-func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, snap *snapshot.Snapshot) {
+func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, snapJSON []byte) {
 	if disp == SnapshotReady {
 		if f.config.EnvoyConfig {
 			notifyReconfigWebhooksFunc(ctx, &noopNotable{}, false)
 			f.appendEnvoyConfig()
 		}
+	}
+
+	var snap *snapshot.Snapshot
+	err := json.Unmarshal(snapJSON, &snap)
+	if err != nil {
+		f.T.Fatalf("error decoding snapshot: %+v", err)
 	}
 
 	f.snapshots.Add(SnapshotEntry{disp, snap})

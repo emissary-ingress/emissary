@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: agent-e2e-test-rollout
+  annotations:
+    getambassador.io/rolloutId: "87544c25-710e-41fa-9fa8-3e0b2c0ed927"
+spec:
+  replicas: 5
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: echo
+  template:
+    metadata:
+      labels:
+        app: echo
+    spec:
+      containers:
+        - image: hashicorp/http-echo
+          args:
+            - "-text=VERSION 1"
+            - -listen=:8080
+          imagePullPolicy: Always
+          name: echo-v1
+          ports:
+            - containerPort: 8080
+  strategy:
+    canary:
+      stableService: echo-stable
+      canaryService: echo-canary
+      trafficRouting:
+        ambassador:
+          apiVersion: getambassador.io/v1
+          mappings:
+            - echo
+      steps:
+      - setWeight: 20
+      - pause: {duration: 10s}
+      - setWeight: 100
+      - pause: {duration: 10}

@@ -76,7 +76,8 @@ RUN curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/kubec
 RUN curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/kubens -o /usr/local/bin/kubens && chmod a+x /usr/local/bin/kubens && \
     curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubens.bash -o /usr/share/bash-completion/completions/kubens
 RUN curl --fail -L https://github.com/gotestyourself/gotestsum/releases/download/v0.6.0/gotestsum_0.6.0_linux_amd64.tar.gz | tar -C /usr/local/bin -xzf -
-
+RUN mkdir helmtmp && curl -o helmtmp/helm.tar.gz https://get.helm.sh/helm-v3.4.1-linux-amd64.tar.gz && tar -zxvf helmtmp/helm.tar.gz -C helmtmp && mv helmtmp/linux-amd64/helm /usr/local/bin/helm && rm -rf helmtmp
+RUN curl --fail -L https://app.getambassador.io/download/tel2/linux/amd64/latest/telepresence -o /usr/local/bin/telepresence && chmod a+x /usr/local/bin/telepresence
 RUN curl --fail -L https://raw.githubusercontent.com/jonmosco/kube-ps1/v0.7.0/kube-ps1.sh -o /usr/local/bin/kube-ps1.sh
 RUN curl -o /usr/local/bin/yq --fail -L https://github.com/mikefarah/yq/releases/download/v4.3.1/yq_linux_amd64 && \
     chmod a+x /usr/local/bin/yq
@@ -87,9 +88,9 @@ RUN curl -o /usr/local/bin/yq --fail -L https://github.com/mikefarah/yq/releases
 # Download, build, and install PyYAML.
 RUN mkdir /tmp/pyyaml && \
   cd /tmp/pyyaml && \
-  curl -O -L http://pyyaml.org/download/pyyaml/PyYAML-5.3.1.tar.gz && \
-  tar xzf PyYAML-5.3.1.tar.gz && \
-  cd PyYAML-5.3.1 && \
+  curl -o pyyaml-5.4.1.1.tar.gz -L https://github.com/yaml/pyyaml/archive/refs/tags/5.4.1.1.tar.gz && \
+  tar xzf pyyaml-5.4.1.1.tar.gz && \
+  cd pyyaml-5.4.1.1 && \
   python3 setup.py --with-libyaml install
 
 FROM ${builderbase_stage1} as builderbase-stage2

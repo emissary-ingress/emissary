@@ -38,6 +38,7 @@ def require_errors(ir: IR, errors: List[Tuple[str, str]]):
 
     assert sorted(flattened_ir_errors) == sorted(flattened_wanted_errors)
 
+@pytest.mark.compilertest
 def test_hr_good_1():
     yaml = """
 ---
@@ -69,6 +70,7 @@ spec:
     require_no_errors(r1["ir"])
     require_no_errors(r2["ir"])
 
+@pytest.mark.compilertest
 def test_hr_error_1():
     yaml = """
 ---
@@ -106,6 +108,7 @@ spec:
         ( "mapping-1.default.1", "cannot accept mapping-2 as second host_redirect after mapping-1")
     ])
 
+@pytest.mark.compilertest
 def test_hr_error_2():
     yaml = """
 ---
@@ -142,6 +145,7 @@ spec:
         ( "-global-", "cannot accept mapping-2 without host_redirect after mapping-1 with host_redirect")
     ])
 
+@pytest.mark.compilertest
 def test_hr_error_3():
     yaml = """
 ---
@@ -178,6 +182,7 @@ spec:
         ( "mapping-1.default.1", "cannot accept mapping-2 with host_redirect after mappings without host_redirect (eg mapping-1)")
     ])
 
+@pytest.mark.compilertest
 def test_hr_error_4():
     yaml = """
 ---

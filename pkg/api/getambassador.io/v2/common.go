@@ -268,8 +268,8 @@ func (sl *StringOrStringList) UnmarshalJSON(data []byte) error {
 //
 // +kubebuilder:validation:Type="d6e-union:string,boolean"
 type BoolOrString struct {
-	String *string
-	Bool   *bool
+	String *string `json:"-"`
+	Bool   *bool   `json:"-"`
 }
 
 // MarshalJSON is important both so that we generate the proper
@@ -317,7 +317,7 @@ func (o *BoolOrString) UnmarshalJSON(data []byte) error {
 // way.
 // +kubebuilder:validation:Type="object"
 type UntypedDict struct {
-	Values map[string]UntypedValue
+	Values map[string]UntypedValue `json:"-"`
 }
 
 func (u UntypedDict) MarshalJSON() ([]byte, error) {

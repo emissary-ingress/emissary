@@ -86,8 +86,8 @@ metadata:
     a8r.io/repository: github.com/datawire/ambassador
     a8r.io/description: The Ambassador Edge Stack Redis store for auth and rate limiting,
       among other things.
-    a8r.io/documentation: https://www.getambassador.io/docs/latest/
-    a8r.io/chat: http://d6e.co/slack
+    a8r.io/documentation: https://www.getambassador.io/docs/edge-stack/latest/
+    a8r.io/chat: http://a8r.io/Slack
     a8r.io/bugs: https://github.com/datawire/ambassador/issues
     a8r.io/support: https://www.getambassador.io/about-us/support/
     a8r.io/dependencies: None
@@ -225,8 +225,8 @@ metadata:
     a8r.io/description: The Ambassador Edge Stack goes beyond traditional API Gateways
       and Ingress Controllers with the advanced edge features needed to support developer
       self-service and full-cycle development.
-    a8r.io/documentation: https://www.getambassador.io/docs/latest/
-    a8r.io/chat: http://d6e.co/slack
+    a8r.io/documentation: https://www.getambassador.io/docs/edge-stack/latest/
+    a8r.io/chat: http://a8r.io/Slack
     a8r.io/bugs: https://github.com/datawire/ambassador/issues
     a8r.io/support: https://www.getambassador.io/about-us/support/
     a8r.io/dependencies: ambassador-redis.ambassador
@@ -257,8 +257,8 @@ metadata:
     a8r.io/repository: github.com/datawire/ambassador
     a8r.io/description: The Ambassador Edge Stack admin service for internal use and
       health checks.
-    a8r.io/documentation: https://www.getambassador.io/docs/latest/
-    a8r.io/chat: http://d6e.co/slack
+    a8r.io/documentation: https://www.getambassador.io/docs/edge-stack/latest/
+    a8r.io/chat: http://a8r.io/Slack
     a8r.io/bugs: https://github.com/datawire/ambassador/issues
     a8r.io/support: https://www.getambassador.io/about-us/support/
     a8r.io/dependencies: None
@@ -331,6 +331,10 @@ rules:
 
 - apiGroups: [networking.internal.knative.dev]
   resources: [clusteringresses, ingresses]
+  verbs: [get, list, watch]
+
+- apiGroups: [networking.x-k8s.io]
+  resources: ['*']
   verbs: [get, list, watch]
 
 - apiGroups: [networking.internal.knative.dev]
@@ -473,7 +477,7 @@ spec:
       dnsPolicy: ClusterFirst
       hostNetwork: false
 ---
-# Source: ambassador/templates/aes-agent.yaml
+# Source: ambassador/templates/ambassador-agent.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -482,7 +486,7 @@ metadata:
   labels:
     product: aes
 ---
-# Source: ambassador/templates/aes-agent.yaml
+# Source: ambassador/templates/ambassador-agent.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
@@ -498,19 +502,59 @@ subjects:
   name: ambassador-agent
   namespace: ambassador
 ---
-# Source: ambassador/templates/aes-agent.yaml
+# Source: ambassador/templates/ambassador-agent.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
   name: ambassador-agent
   labels:
     product: aes
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.getambassador.io/role-group: ambassador-agent
+rules: []
+---
+# Source: ambassador/templates/ambassador-agent.yaml
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-agent-pods
+  labels:
+    rbac.getambassador.io/role-group: ambassador-agent
+    product: aes
 rules:
 - apiGroups: ['']
   resources: [pods]
   verbs: [get, list, watch]
 ---
-# Source: ambassador/templates/aes-agent.yaml
+# Source: ambassador/templates/ambassador-agent.yaml
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-agent-rollouts
+  labels:
+    rbac.getambassador.io/role-group: ambassador-agent
+    product: aes
+rules:
+- apiGroups: [argoproj.io]
+  resources: [rollouts]
+  verbs: [get, list, watch]
+---
+# Source: ambassador/templates/ambassador-agent.yaml
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-agent-applications
+  labels:
+    rbac.getambassador.io/role-group: ambassador-agent
+    product: aes
+rules:
+- apiGroups: [argoproj.io]
+  resources: [applications]
+  verbs: [get, list, watch]
+---
+# Source: ambassador/templates/ambassador-agent.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: Role
 metadata:
@@ -523,7 +567,7 @@ rules:
   resources: [configmaps]
   verbs: [get, list, watch]
 ---
-# Source: ambassador/templates/aes-agent.yaml
+# Source: ambassador/templates/ambassador-agent.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
@@ -540,7 +584,7 @@ subjects:
   name: ambassador-agent
   namespace: ambassador
 ---
-# Source: ambassador/templates/aes-agent.yaml
+# Source: ambassador/templates/ambassador-agent.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:

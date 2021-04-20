@@ -20,7 +20,7 @@ func AnyConfig(_ *bootstrap.Bootstrap) bool {
 }
 
 func TestFake(t *testing.T) {
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true})
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 	f.UpsertFile("testdata/snapshot.yaml")
 	f.AutoFlush(true)
 	fmt.Println(Jsonify(f.GetSnapshot(AnySnapshot)))
@@ -55,7 +55,7 @@ func Jsonify(obj interface{}) string {
 
 func TestFakeIstioCert(t *testing.T) {
 	// Don't ask for the EnvoyConfig yet, 'cause we don't use it.
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: false})
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: false}, nil)
 	f.AutoFlush(true)
 
 	f.UpsertFile("testdata/tls-snap.yaml")

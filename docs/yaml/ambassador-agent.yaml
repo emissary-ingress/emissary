@@ -1,6 +1,6 @@
 # GENERATED FILE: edits made by hand will not be preserved.
 ---
-# Source: ambassador/templates/aes-agent.yaml
+# Source: ambassador/templates/ambassador-agent.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -9,7 +9,7 @@ metadata:
   labels:
     product: aes
 ---
-# Source: ambassador/templates/aes-agent.yaml
+# Source: ambassador/templates/ambassador-agent.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
@@ -25,19 +25,59 @@ subjects:
   name: ambassador-agent
   namespace: ambassador
 ---
-# Source: ambassador/templates/aes-agent.yaml
+# Source: ambassador/templates/ambassador-agent.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
   name: ambassador-agent
   labels:
     product: aes
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.getambassador.io/role-group: ambassador-agent
+rules: []
+---
+# Source: ambassador/templates/ambassador-agent.yaml
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-agent-pods
+  labels:
+    rbac.getambassador.io/role-group: ambassador-agent
+    product: aes
 rules:
 - apiGroups: ['']
   resources: [pods]
   verbs: [get, list, watch]
 ---
-# Source: ambassador/templates/aes-agent.yaml
+# Source: ambassador/templates/ambassador-agent.yaml
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-agent-rollouts
+  labels:
+    rbac.getambassador.io/role-group: ambassador-agent
+    product: aes
+rules:
+- apiGroups: [argoproj.io]
+  resources: [rollouts]
+  verbs: [get, list, watch]
+---
+# Source: ambassador/templates/ambassador-agent.yaml
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-agent-applications
+  labels:
+    rbac.getambassador.io/role-group: ambassador-agent
+    product: aes
+rules:
+- apiGroups: [argoproj.io]
+  resources: [applications]
+  verbs: [get, list, watch]
+---
+# Source: ambassador/templates/ambassador-agent.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: Role
 metadata:
@@ -50,7 +90,7 @@ rules:
   resources: [configmaps]
   verbs: [get, list, watch]
 ---
-# Source: ambassador/templates/aes-agent.yaml
+# Source: ambassador/templates/ambassador-agent.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
@@ -67,7 +107,7 @@ subjects:
   name: ambassador-agent
   namespace: ambassador
 ---
-# Source: ambassador/templates/aes-agent.yaml
+# Source: ambassador/templates/ambassador-agent.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -91,7 +131,7 @@ spec:
       serviceAccountName: ambassador-agent
       containers:
       - name: agent
-        image: docker.io/datawire/aes:$version$
+        image: docker.io/datawire/ambassador:$version$
         imagePullPolicy: IfNotPresent
         command: [agent]
         env:
