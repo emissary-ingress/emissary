@@ -68,7 +68,6 @@ def _get_ratelimit_default_conf_v2():
         'request_type': 'both',
         'timeout': '0.020s',
         'rate_limit_service': {
-            'use_alpha': False,
             'grpc_service': {
                 'envoy_grpc': {
                     'cluster_name': 'cluster_{}_default'.format(SERVICE_NAME)
@@ -150,30 +149,6 @@ service: {}
 protocol_version: "v2"
 """.format(SERVICE_NAME)
     config = _get_ratelimit_default_conf_v2()
-    config['rate_limit_service']['use_alpha'] = False
-
-    econf = _get_envoy_config(yaml)
-    conf = _get_rl_config(econf.as_dict())
-
-    assert conf
-
-    assert conf.get('typed_config') == config
-
-
-@pytest.mark.compilertest
-def test_irratelimit_grpcsvc_version_v2alpha():
-    # Test protocol_version override
-    yaml = """
----
-apiVersion: ambassador/v2
-kind: RateLimitService
-name: myrls
-service: {}
-protocol_version: "v2alpha"
-""".format(SERVICE_NAME)
-    config = _get_ratelimit_default_conf_v2()
-    config['rate_limit_service']['use_alpha'] = True
-
     econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())
 

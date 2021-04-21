@@ -847,7 +847,7 @@ use_websocket: true
         assert self.results[-1].messages == ["one", "two", "three"]
 
 
-class AuthenticationGRPCV2AlphaTest(AmbassadorTest):
+class AuthenticationGRPCV2Test(AmbassadorTest):
 
     target: ServiceType
     auth: ServiceType
@@ -856,7 +856,7 @@ class AuthenticationGRPCV2AlphaTest(AmbassadorTest):
         if os.environ.get('KAT_USE_ENVOY_V3', '') != '':
             self.skip_node = True
         self.target = HTTP()
-        self.auth = AGRPC(name="auth", protocol_version="v2alpha")
+        self.auth = AGRPC(name="auth", protocol_version="v2")
 
     def config(self):
         yield self, self.format("""
@@ -866,7 +866,7 @@ kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
 timeout_ms: 5000
-protocol_version: "v2alpha"
+protocol_version: "v2"
 proto: grpc
 """)
         yield self, self.format("""
@@ -909,7 +909,7 @@ service: {self.target.path.fqdn}
         assert "baz" in self.results[0].backend.request.headers
         assert self.results[0].status == 401
         assert self.results[0].headers["Server"] == ["envoy"]
-        assert self.results[0].headers['X-Grpc-Service-Protocol-Version'] == ['v2alpha']
+        assert self.results[0].headers['X-Grpc-Service-Protocol-Version'] == ['v2']
 
         # [1] Verifies that Location header is returned from Envoy.
         assert self.results[1].backend.name == self.auth.path.k8s
@@ -917,7 +917,7 @@ service: {self.target.path.fqdn}
         assert self.results[1].backend.request.headers["requested-location"] == ["foo"]
         assert self.results[1].status == 302
         assert self.results[1].headers["Location"] == ["foo"]
-        assert self.results[1].headers['X-Grpc-Service-Protocol-Version'] == ['v2alpha']
+        assert self.results[1].headers['X-Grpc-Service-Protocol-Version'] == ['v2']
 
         # [2] Verifies Envoy returns whitelisted headers input by the user.
         assert self.results[2].backend.name == self.auth.path.k8s
@@ -927,7 +927,7 @@ service: {self.target.path.fqdn}
         assert self.results[2].status == 401
         assert self.results[2].headers["Server"] == ["envoy"]
         assert self.results[2].headers["X-Foo"] == ["foo"]
-        assert self.results[2].headers['X-Grpc-Service-Protocol-Version'] == ['v2alpha']
+        assert self.results[2].headers['X-Grpc-Service-Protocol-Version'] == ['v2']
 
         # [3] Verifies default whitelisted Authorization request header.
         assert self.results[3].backend.request.headers["requested-status"] == ["200"]
@@ -938,7 +938,7 @@ service: {self.target.path.fqdn}
         assert self.results[3].status == 200
         assert self.results[3].headers["Server"] == ["envoy"]
         assert self.results[3].headers["Authorization"] == ["foo-11111"]
-        assert self.results[3].backend.request.headers['x-grpc-service-protocol-version'] == ['v2alpha']
+        assert self.results[3].backend.request.headers['x-grpc-service-protocol-version'] == ['v2']
 
 
 class AuthenticationGRPCV3Test(AmbassadorTest):

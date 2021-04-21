@@ -33,7 +33,6 @@ class V2RateLimit(dict):
         assert(ratelimit.cluster.envoy_name)
 
         protocol_version = ratelimit.protocol_version
-        self['use_alpha'] = (protocol_version == 'v2alpha')
         # only a valid field in envoy v3 schema
         # self['transport_api_version'] = protocol_version.replace("alpha", "").upper()
         self['grpc_service'] = {
