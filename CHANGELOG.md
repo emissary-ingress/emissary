@@ -63,7 +63,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## Next Release
+## [1.13.1] April 21, 2021
 
  - Bugfix: Potentially increased CPU Usage for deployments with large numbers of Hosts ([#3358])
 
