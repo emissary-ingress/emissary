@@ -110,6 +110,7 @@ commands:
         - "gotest"
         - "pytest"
         - "pytest-envoy"
+        - "pytest-envoy-v3"
         - "e2etest"
         default: "test"
       "fast-reconfigure":
@@ -126,7 +127,15 @@ commands:
         to: docs/
     - when:
         condition:
-          equal: ["pytest-envoy", << parameters.test >>]
+          equal: ["e2etest", << parameters.test >>]
+        steps:
+        - skip-if-only-changes:
+            to: "(ambassador/|tests/pytest/gold/)"
+    - when:
+        condition:
+          or:
+          - equal: ["pytest-envoy", << parameters.test >>]
+          - equal: ["pytest-envoy-v3", << parameters.test >>]
         steps:
         - skip-if-no-changes:
             to: "(/envoy\\.mk$|/python/tests/gold/|/pytest/gold/|/cmd/ambex/)"
@@ -157,9 +166,6 @@ commands:
         name: "Test"
         no_output_timeout: "30m"
         command: |
-          if [[ -z "$KUBECEPTION_TOKEN" ]]; then
-            export DEV_KUBE110=yes
-          fi
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
           export AMBASSADOR_LEGACY_MODE=<< parameters.legacy-mode >> # ParseBool
@@ -268,8 +274,36 @@ commands:
             command: "rmdir ~/project/ambassador || true"
         - checkout:
             path: ~/project
+  amb-login-registry:
+    steps:
+    - run:
+        name: "Docker login"
+        command: |
+          if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
+            tries=0
+            while true; do
+              if [ "$tries" -gt 10 ] ; then
+                circleci step halt
+              fi
+
+              fail=0
+              out=$(docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}") || fail=1
+              if [ "$fail" == "0" ] ; then
+                break
+              fi
+
+              echo $out
+              if echo "$out" | grep "503 Service Unavailable" ; then
+                ((tries++))
+                sleep 30
+              else
+                circleci step halt
+              fi
+            done
+          fi
   amb-config-registry:
     steps:
+    - amb-login-registry
     - run:
         name: "Configure Docker registry"
         command: |
@@ -277,13 +311,11 @@ commands:
             echo >>"$BASH_ENV" 'export DEV_REGISTRY=127.0.0.1:31000'
             echo >>"$BASH_ENV" 'export BASE_REGISTRY=docker.io/datawiredev'
           fi
-          if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
-            docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
-          fi
 
           echo >>"$BASH_ENV" 'unset BASH_ENV'
   amb-config-cluster-and-registry:
     steps:
+    - amb-login-registry
     - run:
         name: "Configure Kubernetes cluster and Docker registry"
         working_directory: ~/project/ambassador
@@ -292,13 +324,10 @@ commands:
             echo >>"$BASH_ENV" 'export DEV_REGISTRY=127.0.0.1:31000'
             echo >>"$BASH_ENV" 'export BASE_REGISTRY=docker.io/datawiredev'
           fi
-          if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
-            docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
-          fi
 
-          ./.ci/kubernaut-claim
-          echo >>"$BASH_ENV" 'if test -e ~/kubernaut-claim.txt; then'
-          echo >>"$BASH_ENV" '  export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml'
+          ./.ci/cluster-claim
+          echo >>"$BASH_ENV" 'if test -e ~/.kube/kubeception.yaml; then'
+          echo >>"$BASH_ENV" '  export DEV_KUBECONFIG=~/.kube/kubeception.yaml'
           echo >>"$BASH_ENV" '  if [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]]; then'
           echo >>"$BASH_ENV" '    KUBECONFIG=$DEV_KUBECONFIG go run ./cmd/k8sregistryctl up --storage=hostPath'
           echo >>"$BASH_ENV" '  fi'
@@ -309,7 +338,7 @@ commands:
     steps:
     - run:
         working_directory: ~/project/ambassador
-        command: "./.ci/kubernaut-unclaim"
+        command: "./.ci/cluster-unclaim"
         when: "always"
   amb-save-logs:
     steps:
@@ -361,11 +390,11 @@ commands:
           fi
 
           export KUBECONFIG=~/.kube/kubeception.yaml
-          podsfile=/tmp/all-pods.txt
-          (kubectl get pods --all-namespaces -ocustom-columns="name:.metadata.name,namespace:.metadata.namespace" --no-headers || true) > $podsfile
-          (kubectl describe pods --all-namespaces || true) > /tmp/all-pods-described.txt
-
           mkdir -p /tmp/pod-logs
+          podsfile=/tmp/pod-logs/all-pods.txt
+          (kubectl get pods --all-namespaces -ocustom-columns="name:.metadata.name,namespace:.metadata.namespace" --no-headers || true) > $podsfile
+          (kubectl describe pods --all-namespaces || true) > /tmp/pod-logs/all-pods-described.txt
+
           cat $podsfile | while IFS= read -r line; do
             name=$(echo $line | awk '{print $1}')
             ns=$(echo $line | awk '{print $2}')
@@ -623,6 +652,7 @@ jobs:
         - "gotest"
         - "pytest"
         - "pytest-envoy"
+        - "pytest-envoy-v3"
         default: "test"
       fast-reconfigure:
         type: boolean
@@ -741,6 +771,7 @@ workflows:
             - "gotest"
             - "pytest"
             - "pytest-envoy"
+            - "pytest-envoy-v3"
             # Running the ingresstests would require we install `kind` and
             # that the test suite supports HTTP to HTTPS redirects (AES
             # enables cleartext redirection by default, even for fallback
@@ -816,6 +847,7 @@ workflows:
             - "gotest"
             - "pytest"
             - "pytest-envoy"
+            - "pytest-envoy-v3"
             # Running the ingresstests would require we install `kind` and
             # that the test suite supports HTTP to HTTPS redirects (AES
             # enables cleartext redirection by default, even for fallback

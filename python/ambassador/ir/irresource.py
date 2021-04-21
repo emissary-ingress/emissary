@@ -8,7 +8,7 @@ from ..resource import Resource
 from ..utils import RichStatus
 
 if TYPE_CHECKING:
-    from .ir import IR
+    from .ir import IR # pragma: no cover
 
 
 class IRResource (Resource):

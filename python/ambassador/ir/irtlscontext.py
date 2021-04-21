@@ -9,8 +9,8 @@ from ..config import Config
 from .irresource import IRResource
 
 if TYPE_CHECKING:
-    from .ir import IR
-    from .irtls import IRAmbassadorTLS
+    from .ir import IR # pragma: no cover
+    from .irtls import IRAmbassadorTLS # pragma: no cover
 
 
 class IRTLSContext(IRResource):

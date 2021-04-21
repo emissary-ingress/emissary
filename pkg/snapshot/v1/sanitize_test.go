@@ -19,13 +19,6 @@ func getUnstructured(objStr string) *kates.Unstructured {
 	return unstructured
 }
 
-func strToObject(str string) map[string]interface{} {
-	var obj map[string]interface{}
-	_ = json.Unmarshal([]byte(str), &obj)
-
-	return obj
-}
-
 var sanitizeTests = []struct {
 	testName          string
 	unsanitized       *snapshotTypes.Snapshot

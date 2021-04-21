@@ -109,8 +109,8 @@ metadata:
     a8r.io/owner: "Ambassador Labs"
     a8r.io/repository: github.com/datawire/ambassador
     a8r.io/description: "The Ambassador Edge internal image registry."
-    a8r.io/documentation: https://www.getambassador.io/docs/latest/
-    a8r.io/chat: http://d6e.co/slack
+    a8r.io/documentation: https://www.getambassador.io/docs/edge-stack/latest/
+    a8r.io/chat: http://a8r.io/Slack
     a8r.io/bugs: https://github.com/datawire/ambassador/issues
     a8r.io/support: https://www.getambassador.io/about-us/support/
     a8r.io/dependencies: "None"

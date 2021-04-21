@@ -10,7 +10,7 @@ from ..utils import dump_json
 from .irresource import IRResource
 
 if TYPE_CHECKING:
-    from .ir import IR
+    from .ir import IR # pragma: no cover
 
 def would_confuse_urlparse(url: str) -> bool:
     """Returns whether an URL-ish string would be interpretted by urlparse()

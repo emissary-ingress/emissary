@@ -5,9 +5,13 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
-- Change: Ambassador ClusterRoles are now aggregated under the label `rbac.getambassador.io/role-group`. The aggregated role has the same name as the previous role name (so no need to update ClusterRoleBindings).
+## v6.7.0
+
+- Update Ambassador to version 1.13.0: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+- Feature: Ambassador Agent now available for API Gateway (https://app.getambassador.io)
 - Feature: Add support for [pod toplology spread constraints](https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/) via the `topologySpreadConstraints` helm value to the Ambassador deployment. (thanks, [@lawliet89](https://github.com/lawliet89)!)
 - BugFix: Add missing `ambassador_id` for resolvers.
+- Change: Ambassador ClusterRoles are now aggregated under the label `rbac.getambassador.io/role-group`. The aggregated role has the same name as the previous role name (so no need to update ClusterRoleBindings).
 
 ## v6.6.4
 
@@ -164,8 +168,8 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## v6.4.4
 
-- Feature flag for enabling or disabling the [`Project` registry](https://www.getambassador.io/docs/latest/topics/using/projects/)
-- redisEnv for setting environment variables to control how Ambassador interacts with redis. See [redis environment](https://www.getambassador.io/docs/latest/topics/running/environment/#redis)
+- Feature flag for enabling or disabling the [`Project` registry](https://www.getambassador.io/docs/edge-stack/latest/topics/using/projects/)
+- redisEnv for setting environment variables to control how Ambassador interacts with redis. See [redis environment](https://www.getambassador.io/docs/edge-stack/latest/topics/running/environment/#redis)
 
 ## v6.4.3
 

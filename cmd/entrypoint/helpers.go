@@ -9,34 +9,8 @@ import (
 	"strings"
 
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/dlib/dexec"
 )
-
-func deltaSummary(deltas []*kates.Delta) string {
-	deltaIDs := make([]string, 0, len(deltas))
-
-	for _, delta := range deltas {
-		kind := delta.GetObjectKind().GroupVersionKind().Kind
-		name := delta.GetName()
-		namespace := delta.GetNamespace()
-
-		dtypeName := "UNK"
-
-		switch delta.DeltaType {
-		case kates.ObjectAdd:
-			dtypeName = "ADD"
-		case kates.ObjectDelete:
-			dtypeName = "DEL"
-		case kates.ObjectUpdate:
-			dtypeName = "UPD"
-		}
-
-		deltaIDs = append(deltaIDs, fmt.Sprintf("%s %s: %s/%s", dtypeName, kind, namespace, name))
-	}
-
-	return strings.Join(deltaIDs, ",")
-}
 
 func envbool(name string) bool {
 	return os.Getenv(name) != ""

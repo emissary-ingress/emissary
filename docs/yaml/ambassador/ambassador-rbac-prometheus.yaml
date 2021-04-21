@@ -68,7 +68,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
+    controller-gen.kubebuilder.io/version: v0.4.1
   labels:
     app.kubernetes.io/name: ambassador
     product: aes
@@ -100,6 +100,7 @@ spec:
           properties:
             add_auth_headers:
               additionalProperties:
+                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -148,7 +149,7 @@ spec:
             protocol_version:
               enum:
               - v2
-              - v2alpha
+              - v3
               type: string
             status_on_error:
               description: Why isn't this just an int??
@@ -159,6 +160,7 @@ spec:
             timeout_ms:
               type: integer
             tls:
+              description: BoolOrString is a type that can hold a Boolean or a string.
               oneOf:
               - type: string
               - type: boolean
@@ -179,7 +181,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
+    controller-gen.kubebuilder.io/version: v0.4.1
   labels:
     app.kubernetes.io/name: ambassador
     product: aes
@@ -235,7 +237,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
+    controller-gen.kubebuilder.io/version: v0.4.1
   labels:
     app.kubernetes.io/name: ambassador
     product: aes
@@ -298,6 +300,24 @@ spec:
                     type: string
                 type: object
               type: array
+            naming_scheme:
+              description: Describes how to display "services" in the DevPortal. Default namespace.name
+              enum:
+              - namespace.name
+              - name.prefix
+              type: string
+            search:
+              description: DevPortalSearchSpec allows configuration over search functionality for the DevPortal
+              properties:
+                enabled:
+                  type: boolean
+                type:
+                  description: 'Type of search. "title-only" does a fuzzy search over openapi and page titles "all-content" will fuzzy search over all openapi and page content. "title-only" is the default. warning:  using all-content may incur a larger memory footprint'
+                  enum:
+                  - title-only
+                  - all-content
+                  type: string
+              type: object
             selector:
               description: Selector is used for choosing what is shown in the DevPortal
               properties:
@@ -324,7 +344,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
+    controller-gen.kubebuilder.io/version: v0.4.1
   labels:
     app.kubernetes.io/name: ambassador
     product: aes
@@ -542,6 +562,7 @@ spec:
               - ACMECertificateChallenge
               type: string
             state:
+              description: The first value listed in the Enum marker becomes the "zero" value, and it would be great if "Pending" could be the default value; but it's Important that the "zero" value be able to be shown as empty/omitted from display, and we really do want `kubectl get hosts` to say "Pending" in the "STATE" column, and not leave the column empty.
               enum:
               - Initial
               - Pending
@@ -567,7 +588,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
+    controller-gen.kubebuilder.io/version: v0.4.1
   labels:
     app.kubernetes.io/name: ambassador
     product: aes
@@ -619,7 +640,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
+    controller-gen.kubebuilder.io/version: v0.4.1
   labels:
     app.kubernetes.io/name: ambassador
     product: aes
@@ -671,7 +692,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
+    controller-gen.kubebuilder.io/version: v0.4.1
   labels:
     app.kubernetes.io/name: ambassador
     product: aes
@@ -752,18 +773,21 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
+    controller-gen.kubebuilder.io/version: v0.4.1
   labels:
     app.kubernetes.io/name: ambassador
     product: aes
   name: mappings.getambassador.io
 spec:
   additionalPrinterColumns:
+  - JSONPath: .spec.host
+    name: Source Host
+    type: string
   - JSONPath: .spec.prefix
-    name: Prefix
+    name: Source Prefix
     type: string
   - JSONPath: .spec.service
-    name: Service
+    name: Dest Service
     type: string
   - JSONPath: .status.state
     name: State
@@ -902,6 +926,8 @@ spec:
             docs:
               description: DocsInfo provides some extra information about the docs for the Mapping (used by the Dev Portal)
               properties:
+                display_name:
+                  type: string
                 ignored:
                   type: boolean
                 path:
@@ -914,6 +940,7 @@ spec:
             enable_ipv6:
               type: boolean
             envoy_override:
+              description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
               type: object
             error_response_overrides:
               description: Error response overrides for this Mapping. Replaces all of the `error_response_overrides` set on the Ambassador module, if any.
@@ -957,6 +984,7 @@ spec:
               type: boolean
             headers:
               additionalProperties:
+                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -986,7 +1014,8 @@ spec:
                 items:
                   additionalProperties:
                     description: 'A MappingLabelsArray is the value in the MappingLabelGroup: an array of label specifiers.'
-                    items: {}
+                    items:
+                      description: A MappingLabelSpecifier (finally!) defines a single label. There are multiple kinds of label, so this is more complex than we'd like it to be. See the remarks about schema on custom types in `./common.go`.
                     type: array
                   description: 'A MappingLabelGroup is a single element of a MappingLabelGroupsArray: a second map, where the key is a human-readable name that identifies the group.'
                   type: object
@@ -1026,6 +1055,7 @@ spec:
               type: boolean
             modules:
               items:
+                description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
                 type: object
               type: array
             outlier_detection:
@@ -1048,6 +1078,7 @@ spec:
               type: string
             query_parameters:
               additionalProperties:
+                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -1063,18 +1094,21 @@ spec:
               type: integer
             regex_headers:
               additionalProperties:
+                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
               type: object
             regex_query_parameters:
               additionalProperties:
+                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
               type: object
             regex_redirect:
               additionalProperties:
+                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -1082,6 +1116,7 @@ spec:
               type: object
             regex_rewrite:
               additionalProperties:
+                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -1128,6 +1163,7 @@ spec:
               description: The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
               type: integer
             tls:
+              description: BoolOrString is a type that can hold a Boolean or a string.
               oneOf:
               - type: string
               - type: boolean
@@ -1166,7 +1202,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
+    controller-gen.kubebuilder.io/version: v0.4.1
   labels:
     app.kubernetes.io/name: ambassador
     product: aes
@@ -1183,7 +1219,7 @@ spec:
   scope: Namespaced
   validation:
     openAPIV3Schema:
-      description: "A Module defines system-wide configuration.  The type of module is controlled by the .metadata.name; valid names are \"ambassador\" or \"tls\". \n https://www.getambassador.io/docs/latest/topics/running/ambassador/#the-ambassador-module https://www.getambassador.io/docs/latest/topics/running/tls/#tls-module-deprecated"
+      description: "A Module defines system-wide configuration.  The type of module is controlled by the .metadata.name; valid names are \"ambassador\" or \"tls\". \n https://www.getambassador.io/docs/edge-stack/latest/topics/running/ambassador/#the-ambassador-module https://www.getambassador.io/docs/edge-stack/latest/topics/running/tls/#tls-module-deprecated"
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
@@ -1203,6 +1239,7 @@ spec:
               - type: string
               - type: array
             config:
+              description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
               type: object
           type: object
       type: object
@@ -1219,7 +1256,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
+    controller-gen.kubebuilder.io/version: v0.4.1
   labels:
     app.kubernetes.io/name: ambassador
     product: aes
@@ -1261,13 +1298,14 @@ spec:
             protocol_version:
               enum:
               - v2
-              - v2alpha
+              - v3
               type: string
             service:
               type: string
             timeout_ms:
               type: integer
             tls:
+              description: BoolOrString is a type that can hold a Boolean or a string.
               oneOf:
               - type: string
               - type: boolean
@@ -1288,7 +1326,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
+    controller-gen.kubebuilder.io/version: v0.4.1
   labels:
     app.kubernetes.io/name: ambassador
     product: aes
@@ -1364,6 +1402,7 @@ spec:
             service:
               type: string
             tls:
+              description: BoolOrString is a type that can hold a Boolean or a string.
               oneOf:
               - type: string
               - type: boolean
@@ -1387,7 +1426,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
+    controller-gen.kubebuilder.io/version: v0.4.1
   labels:
     app.kubernetes.io/name: ambassador
     product: aes
@@ -1485,7 +1524,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
+    controller-gen.kubebuilder.io/version: v0.4.1
   labels:
     app.kubernetes.io/name: ambassador
     product: aes

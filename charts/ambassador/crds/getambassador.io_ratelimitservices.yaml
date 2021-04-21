@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
+    controller-gen.kubebuilder.io/version: v0.4.1
     helm.sh/hook: crd-install
   labels:
     app.kubernetes.io/name: ambassador
@@ -47,13 +47,14 @@ spec:
             protocol_version:
               enum:
               - v2
-              - v2alpha
+              - v3
               type: string
             service:
               type: string
             timeout_ms:
               type: integer
             tls:
+              description: BoolOrString is a type that can hold a Boolean or a string.
               oneOf:
               - type: string
               - type: boolean

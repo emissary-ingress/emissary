@@ -1,3 +1,5 @@
+import os
+
 from typing import TYPE_CHECKING
 from typing import cast as typecast
 
@@ -9,7 +11,7 @@ from ...ir.irtracing import IRTracing
 from .v2cluster import V2Cluster
 
 if TYPE_CHECKING:
-    from . import V2Config
+    from . import V2Config # pragma: no cover
 
 
 class V2Bootstrap(dict):
@@ -43,9 +45,6 @@ class V2Bootstrap(dict):
                             # non-deprecated options HTTP_JSON and HTTP_PROTO are the Zipkin v2 API; switching
                             # top one of them would change how Envoy talks to the outside world.
                             'envoy.deprecated_features:envoy.config.trace.v2.ZipkinConfig.HTTP_JSON_V1': True,
-                            # Give our users more time to migrate to v2; we've said that we'll continue
-                            # supporting both for a while even after we change the default.
-                            'envoy.deprecated_features:envoy.config.filter.http.ext_authz.v2.ExtAuthz.use_alpha': True,
                             # We haven't yet told users that we'll be deprecating `regex_type: unsafe`.
                             'envoy.deprecated_features:envoy.api.v2.route.RouteMatch.regex': True,         # HTTP path
                             'envoy.deprecated_features:envoy.api.v2.route.HeaderMatcher.regex_match': True, # HTTP header,
@@ -114,6 +113,13 @@ class V2Bootstrap(dict):
             if config.ir.statsd['dogstatsd']:
                 name = 'envoy.stat_sinks.dog_statsd'
                 typename = 'type.googleapis.com/envoy.config.metrics.v2.DogStatsdSink'
+                dd_entity_id = os.environ.get('DD_ENTITY_ID', None)
+                if dd_entity_id:
+                    stats_tags = self.setdefault('stats_config', {}).setdefault('stats_tags', [])
+                    stats_tags.append({
+                        'tag_name': 'dd.internal.entity_id',
+                        'fixed_value': dd_entity_id
+                    })
             else:
                 name = 'envoy.stats_sinks.statsd'
                 typename = 'type.googleapis.com/envoy.config.metrics.v2.StatsdSink'

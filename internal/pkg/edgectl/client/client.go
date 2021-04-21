@@ -443,9 +443,6 @@ func daemonVersion() (apiVersion int, version string, err error) {
 // withDaemon establishes a connection, calls the function with the gRPC client, and ensures
 // that the connection is closed.
 func withDaemon(f func(rpc.DaemonClient) error) error {
-	// TODO: Revise use of passthrough once this is fixed in grpc-go.
-	//  see: https://github.com/grpc/grpc-go/issues/1741
-	//  and https://github.com/grpc/grpc-go/issues/1911
 	_, err := os.Stat(edgectl.DaemonSocketName)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -453,7 +450,7 @@ func withDaemon(f func(rpc.DaemonClient) error) error {
 		}
 		return err
 	}
-	conn, err := grpc.Dial("passthrough:///unix://"+edgectl.DaemonSocketName,
+	conn, err := grpc.Dial("unix:"+edgectl.DaemonSocketName,
 		grpc.WithInsecure(), grpc.WithNoProxy())
 	if err == nil {
 		defer conn.Close()

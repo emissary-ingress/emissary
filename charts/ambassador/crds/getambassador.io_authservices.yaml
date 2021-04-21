@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
+    controller-gen.kubebuilder.io/version: v0.4.1
     helm.sh/hook: crd-install
   labels:
     app.kubernetes.io/name: ambassador
@@ -37,6 +37,7 @@ spec:
           properties:
             add_auth_headers:
               additionalProperties:
+                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -85,7 +86,7 @@ spec:
             protocol_version:
               enum:
               - v2
-              - v2alpha
+              - v3
               type: string
             status_on_error:
               description: Why isn't this just an int??
@@ -96,6 +97,7 @@ spec:
             timeout_ms:
               type: integer
             tls:
+              description: BoolOrString is a type that can hold a Boolean or a string.
               oneOf:
               - type: string
               - type: boolean

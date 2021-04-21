@@ -4,7 +4,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.1-0.20200517180335-820a4a27ea84
+    controller-gen.kubebuilder.io/version: v0.4.1
     helm.sh/hook: crd-install
   labels:
     app.kubernetes.io/name: ambassador
@@ -12,11 +12,14 @@ metadata:
   name: mappings.getambassador.io
 spec:
   additionalPrinterColumns:
+  - JSONPath: .spec.host
+    name: Source Host
+    type: string
   - JSONPath: .spec.prefix
-    name: Prefix
+    name: Source Prefix
     type: string
   - JSONPath: .spec.service
-    name: Service
+    name: Dest Service
     type: string
   - JSONPath: .status.state
     name: State
@@ -155,6 +158,8 @@ spec:
             docs:
               description: DocsInfo provides some extra information about the docs for the Mapping (used by the Dev Portal)
               properties:
+                display_name:
+                  type: string
                 ignored:
                   type: boolean
                 path:
@@ -167,6 +172,7 @@ spec:
             enable_ipv6:
               type: boolean
             envoy_override:
+              description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
               type: object
             error_response_overrides:
               description: Error response overrides for this Mapping. Replaces all of the `error_response_overrides` set on the Ambassador module, if any.
@@ -210,6 +216,7 @@ spec:
               type: boolean
             headers:
               additionalProperties:
+                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -239,7 +246,8 @@ spec:
                 items:
                   additionalProperties:
                     description: 'A MappingLabelsArray is the value in the MappingLabelGroup: an array of label specifiers.'
-                    items: {}
+                    items:
+                      description: A MappingLabelSpecifier (finally!) defines a single label. There are multiple kinds of label, so this is more complex than we'd like it to be. See the remarks about schema on custom types in `./common.go`.
                     type: array
                   description: 'A MappingLabelGroup is a single element of a MappingLabelGroupsArray: a second map, where the key is a human-readable name that identifies the group.'
                   type: object
@@ -279,6 +287,7 @@ spec:
               type: boolean
             modules:
               items:
+                description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
                 type: object
               type: array
             outlier_detection:
@@ -301,6 +310,7 @@ spec:
               type: string
             query_parameters:
               additionalProperties:
+                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -316,18 +326,21 @@ spec:
               type: integer
             regex_headers:
               additionalProperties:
+                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
               type: object
             regex_query_parameters:
               additionalProperties:
+                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
               type: object
             regex_redirect:
               additionalProperties:
+                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -335,6 +348,7 @@ spec:
               type: object
             regex_rewrite:
               additionalProperties:
+                description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:
                 - type: string
                 - type: boolean
@@ -381,6 +395,7 @@ spec:
               description: The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
               type: integer
             tls:
+              description: BoolOrString is a type that can hold a Boolean or a string.
               oneOf:
               - type: string
               - type: boolean

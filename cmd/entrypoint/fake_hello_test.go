@@ -2,6 +2,7 @@ package entrypoint_test
 
 import (
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"github.com/datawire/ambassador/cmd/entrypoint"
 	envoy "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
 	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
+	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/snapshot/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,7 +27,7 @@ func TestFakeHello(t *testing.T) {
 	// Use RunFake() to spin up the ambassador control plane with its inputs wired up to the Fake
 	// APIs. This will automatically invoke the Setup() method for the Fake and also register the
 	// Teardown() method with the Cleanup() hook of the supplied testing.T object.
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{})
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{}, nil)
 
 	// The Fake harness has a store for both kubernetes resources and consul endpoint data. We can
 	// use the UpsertFile() to method to load as many resources as we would like. This is much like
@@ -66,7 +68,7 @@ func TestFakeHello(t *testing.T) {
 func TestFakeHelloWithEnvoyConfig(t *testing.T) {
 	// Use the FakeConfig parameter to conigure the Fake harness. In this case we want to inspect
 	// the EnvoyConfig that is produced from the inputs we feed the control plane.
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true})
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 
 	// We will use the same inputs we used in TestFakeHello. A single mapping named "hello".
 	f.UpsertFile("testdata/FakeHello.yaml")
@@ -123,12 +125,40 @@ func FindCluster(envoyConfig *bootstrap.Bootstrap, predicate func(*envoy.Cluster
 	return nil
 }
 
+func deltaSummary(snap *snapshot.Snapshot) []string {
+	summary := []string{}
+
+	var typestr string
+
+	for _, delta := range snap.Deltas {
+		switch delta.DeltaType {
+		case kates.ObjectAdd:
+			typestr = "add"
+		case kates.ObjectUpdate:
+			typestr = "update"
+		case kates.ObjectDelete:
+			typestr = "delete"
+		default:
+			panic("missing case")
+		}
+
+		summary = append(summary, fmt.Sprintf("%s %s %s", typestr, delta.Kind, delta.Name))
+	}
+
+	sort.Strings(summary)
+
+	return summary
+}
+
 // This test will cover how to exercise the consul portion of the control plane. In principal it is
 // the same as supplying kubernetes resources, however it uses the ConsulEndpoint() method to
 // provide consul data.
 func TestFakeHelloConsul(t *testing.T) {
+	os.Setenv("CONSULPORT", "8500")
+	os.Setenv("CONSULHOST", "consul-1")
+
 	// Create our Fake harness and tell it to produce envoy configuration.
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true})
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 
 	// Feed the control plane the kubernetes resources supplied in the referenced file. In this case
 	// that includes a consul resolver and a mapping that uses that consul resolver.
@@ -166,26 +196,22 @@ func TestFakeHelloConsul(t *testing.T) {
 	assert.Len(t, endpoints.Entries, 1)
 	assert.Equal(t, "1.2.3.4", endpoints.Entries["consul/dc1/hello"][0].Ip)
 
-	// Grab the next snapshot that has mappings.
+	// Grab the next snapshot that has mappings and a Consul resolver. The bootstrap logic
+	// should actually guarantee this is also the first mapping, but we aren't trying to test
+	// that here.
 	snap := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
-		return len(snap.Kubernetes.Mappings) > 0
+		return (len(snap.Kubernetes.Mappings) > 0) && (len(snap.Kubernetes.ConsulResolvers) > 0)
 	})
-
-	// Check that the snapshot contains the mapping from the file.
+	// The first snapshot should contain the one and only mapping we have supplied the control
+	// plane.x
 	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
 
+	// It should also contain one ConsulResolver with a Spec.Address of
+	// "consul-server.default:8500" (where the 8500 came from an environment variable).
+	assert.Equal(t, "consul-server.default:8500", snap.Kubernetes.ConsulResolvers[0].Spec.Address)
+
 	// Check that our deltas are what we expect.
-	assert.Equal(t, 2, len(snap.Deltas))
-
-	deltaNames := []string{}
-
-	for _, delta := range snap.Deltas {
-		deltaNames = append(deltaNames, fmt.Sprintf("%s %s", delta.Kind, delta.Name))
-	}
-
-	sort.Strings(deltaNames)
-
-	assert.Equal(t, []string{"ConsulResolver consul-dc1", "Mapping hello"}, deltaNames)
+	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "add Mapping hello"}, deltaSummary(snap))
 
 	// Create a predicate that will recognize the cluster we care about. The surjection from
 	// Mappings to clusters is a bit opaque, so we just look for a cluster that contains the name
@@ -212,4 +238,64 @@ func TestFakeHelloConsul(t *testing.T) {
 	require.Len(t, eps, 1)
 	// The endpoint it references *should* have our supplied ip address.
 	assert.Equal(t, "1.2.3.4", eps[0].Ip)
+
+	// Next up, change the Consul resolver definition.
+	f.UpsertYAML(`
+---
+apiVersion: getambassador.io/v2
+kind: ConsulResolver
+metadata:
+  name: consul-dc1
+spec:
+  address: $CONSULHOST:$CONSULPORT
+  datacenter: dc1
+`)
+	f.Flush()
+
+	// Repeat the snapshot checks. We must have mappings and consulresolvers...
+	snap = f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
+		return (len(snap.Kubernetes.Mappings) > 0) && (len(snap.Kubernetes.ConsulResolvers) > 0)
+	})
+
+	// ...with one delta, namely the ConsulResolver...
+	assert.Equal(t, []string{"update ConsulResolver consul-dc1"}, deltaSummary(snap))
+
+	// ...where the mapping name hasn't changed...
+	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
+
+	// ...but the Consul server address has.
+	assert.Equal(t, "consul-1:8500", snap.Kubernetes.ConsulResolvers[0].Spec.Address)
+
+	// Finally, delete the Consul resolver, then replace it. This is mostly just testing that
+	// things don't crash.
+
+	f.Delete("ConsulResolver", "default", "consul-dc1")
+	f.Flush()
+
+	f.UpsertYAML(`
+---
+apiVersion: getambassador.io/v2
+kind: ConsulResolver
+metadata:
+  name: consul-dc1
+spec:
+  address: $CONSULHOST:9999
+  datacenter: dc1
+`)
+	f.Flush()
+
+	// Repeat all the checks.
+	snap = f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
+		return (len(snap.Kubernetes.Mappings) > 0) && (len(snap.Kubernetes.ConsulResolvers) > 0)
+	})
+
+	// Two deltas here since we've deleted and re-added without a check in between.
+	// (They appear out of order here because of string sorting. Don't panic.)
+	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "delete ConsulResolver consul-dc1"}, deltaSummary(snap))
+
+	// ...one mapping...
+	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
+
+	// ...and one ConsulResolver.
+	assert.Equal(t, "consul-1:9999", snap.Kubernetes.ConsulResolvers[0].Spec.Address)
 }

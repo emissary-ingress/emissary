@@ -173,9 +173,13 @@ print("stage2_tag=%s" % stage2)
 
     msg2 "Using stage-1 base ${BLU}${name1}${GRN}"
     if ! docker run --rm --entrypoint=true "$name1"; then # skip building if the "$name1" already exists
-        ${DBUILD} -f "${DIR}/Dockerfile.base" -t "${name1}" --target builderbase-stage1 "${DIR}"
+        TIMEFORMAT="     (stage-1 build took %1R seconds)"
+        time ${DBUILD} -f "${DIR}/Dockerfile.base" -t "${name1}" --target builderbase-stage1 "${DIR}"
+        unset TIMEFORMAT
         if [[ "$BASE_REGISTRY" == "$DEV_REGISTRY" ]]; then
-            docker push "$name1"
+            TIMEFORMAT="     (stage-1 push took %1R seconds)"
+            time docker push "$name1"
+            unset TIMEFORMAT
         fi
     fi
     if [[ $1 = '--stage1-only' ]]; then
@@ -185,9 +189,13 @@ print("stage2_tag=%s" % stage2)
 
     msg2 "Using stage-2 base ${BLU}${name2}${GRN}"
     if ! docker run --rm --entrypoint=true "$name2"; then # skip building if the "$name2" already exists
-        ${DBUILD} --build-arg=builderbase_stage1="$name1" -f "${DIR}/Dockerfile.base" -t "${name2}" --target builderbase-stage2 "${DIR}"
+        TIMEFORMAT="     (stage-2 build took %1R seconds)"
+        time ${DBUILD} --build-arg=builderbase_stage1="$name1" -f "${DIR}/Dockerfile.base" -t "${name2}" --target builderbase-stage2 "${DIR}"
+        unset TIMEFORMAT
         if [[ "$BASE_REGISTRY" == "$DEV_REGISTRY" ]]; then
-            docker push "$name2"
+            TIMEFORMAT="     (stage-2 push took %1R seconds)"
+            time docker push "$name2"
+            unset TIMEFORMAT
         fi
     fi
 
@@ -218,11 +226,13 @@ bootstrap() {
         builder_base_image=$(cat docker/builder-base.docker)
         envoy_base_image=$(cat docker/base-envoy.docker)
         msg2 'Bootstrapping build image'
-        ${DBUILD} \
+        TIMEFORMAT="     (builder bootstrap took %1R seconds)"
+        time ${DBUILD} \
             --build-arg=envoy="${envoy_base_image}" \
             --build-arg=builderbase="${builder_base_image}" \
             --target=builder \
             ${DIR} -t ${BUILDER_NAME}.local/builder
+        unset TIMEFORMAT
         if stat --version | grep -q GNU ; then
             DOCKER_GID=$(stat -c "%g" /var/run/docker.sock)
         else
@@ -257,6 +267,7 @@ bootstrap() {
             --env=AWS_SECRET_ACCESS_KEY \
             --env=AWS_ACCESS_KEY_ID \
             --env=AWS_SESSION_TOKEN \
+            --init \
             --entrypoint=tail ${BUILDER_NAME}.local/builder -f /dev/null > /dev/null
         echo_off
 
@@ -484,11 +495,11 @@ case "${cmd}" in
                     printf "${CYN}==> ${GRN}Building ${BLU}${module}${GRN} go code${END}\n"
                     echo_on
                     mkdir -p /buildroot/bin
-                    TIMEFORMAT="     (build took %1R seconds)"
+                    TIMEFORMAT="     (go build took %1R seconds)"
                     (cd ${MODDIR} && time go build -trimpath ${BUILD_VERSION:+ -ldflags "-X main.Version=$BUILD_VERSION" } -o /buildroot/bin ./cmd/...) || exit 1
-                    TIMEFORMAT="     (post-compile took %1R seconds)"
+                    TIMEFORMAT="     (${MODDIR}/post-compile took %1R seconds)"
                     if [ -e ${MODDIR}/post-compile.sh ]; then (cd ${MODDIR} && time bash post-compile.sh); fi
-                    TIMEFORMAT=""
+                    unset TIMEFORMAT
                     echo_off
                 fi
             fi
@@ -498,7 +509,9 @@ case "${cmd}" in
                     if ! [ -e ${MODDIR}/python/*.egg-info ]; then
                         printf "${CYN}==> ${GRN}Setting up ${BLU}${module}${GRN} python code${END}\n"
                         echo_on
-                        sudo pip install --no-deps -e ${MODDIR}/python || exit 1
+                        TIMEFORMAT="     (pip install took %1R seconds)"
+                        time sudo pip install --no-deps -e ${MODDIR}/python || exit 1
+                        unset TIMEFORMAT
                         echo_off
                     fi
                     chmod a+x ${MODDIR}/python/*.py
@@ -568,7 +581,7 @@ case "${cmd}" in
         mkdir -p ${TEST_DATA_DIR}
         for MODDIR in $(find-modules); do
             if [ -e "${MODDIR}/python" ]; then
-                if ! (cd ${MODDIR} && pytest --cov=ambassador --junitxml=${TEST_DATA_DIR}/pytest.xml --tb=short -ra "${pytest_args[@]}") then
+                if ! (cd ${MODDIR} && pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=${TEST_DATA_DIR}/pytest.xml --tb=short -ra "${pytest_args[@]}") then
                    fail="yes"
                 fi
             fi
@@ -585,14 +598,15 @@ case "${cmd}" in
         for MODDIR in $(find-modules); do
             if [ -e "${MODDIR}/go.mod" ]; then
                 pkgs=$(cd ${MODDIR} && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' ${GOTEST_PKGS})
-
                 if [ -n "${pkgs}" ]; then
-                    if ! (cd ${MODDIR} && gotestsum --junitfile ${TEST_DATA_DIR}/gotest.xml --packages ${pkgs} -- ${GOTEST_ARGS}) then
+                    modname=`basename ${MODDIR}`
+                    if ! (cd ${MODDIR} && gotestsum --junitfile ${TEST_DATA_DIR}/${modname}-gotest.xml --packages="${pkgs}" -- ${GOTEST_ARGS}) ; then
                        fail="yes"
                     fi
                 fi
             fi
         done
+        tar -C ${TEST_DATA_DIR} -cvf /tmp/test-xml.tar.gz .
 
         if [ "${fail}" = yes ]; then
             exit 1
