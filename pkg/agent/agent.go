@@ -257,12 +257,6 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 		}
 	}()
 
-	ambHost, err := parseAmbassadorAdminHost(snapshotURL)
-	if err != nil {
-		// if we can't parse the host out of the url we won't be able to talk to ambassador
-		// anyway
-		return err
-	}
 	client, err := kates.NewClient(kates.ClientConfig{})
 	if err != nil {
 		return err
@@ -294,18 +288,35 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 	dc := NewDynamicClient(client.DynamicInterface(), NewK8sInformer)
 	rolloutGvr, _ := schema.ParseResourceArg("rollouts.v1alpha1.argoproj.io")
 	rolloutCallback := dc.WatchGeneric(ctx, ns, rolloutGvr)
-	rolloutStore := NewRolloutStore()
 
 	applicationGvr, _ := schema.ParseResourceArg("applications.v1alpha1.argoproj.io")
 	applicationCallback := dc.WatchGeneric(ctx, ns, applicationGvr)
-	applicationStore := NewApplicationStore()
 
+	return a.watch(ctx, snapshotURL, configAcc, acc, rolloutCallback, applicationCallback)
+}
+
+type accumulator interface {
+	Changed() chan struct{}
+	FilteredUpdate(target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool
+}
+
+func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator accumulator, podAccumulator accumulator, rolloutCallback <-chan *GenericCallback, applicationCallback <-chan *GenericCallback) error {
+	var err error
 	// for the watch
 	// we're not watching CRDs or anything special, so i'm pretty sure it's okay just to say all
 	// the pods are valid
 	isValid := func(un *kates.Unstructured) bool {
 		return true
 	}
+	ambHost, err := parseAmbassadorAdminHost(snapshotURL)
+	if err != nil {
+		// if we can't parse the host out of the url we won't be able to talk to ambassador
+		// anyway
+		return err
+	}
+
+	applicationStore := NewApplicationStore()
+	rolloutStore := NewRolloutStore()
 	dlog.Info(ctx, "Agent is running")
 	for {
 		// Wait for an event
@@ -318,21 +329,21 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 			// bunch
 		case <-time.After(1 * time.Second):
 			// just a ticker, this will fallthru to the snapshot getting thing
-		case <-configAcc.Changed():
+		case <-configAccumulator.Changed():
 			configSnapshot := struct {
 				Secrets    []kates.Secret
 				ConfigMaps []kates.ConfigMap
 			}{}
-			if !configAcc.FilteredUpdate(&configSnapshot, &[]*kates.Delta{}, isValid) {
+			if !configAccumulator.FilteredUpdate(&configSnapshot, &[]*kates.Delta{}, isValid) {
 				continue
 			}
 			a.handleAPIKeyConfigChange(ctx, configSnapshot.Secrets, configSnapshot.ConfigMaps)
-		case <-acc.Changed():
+		case <-podAccumulator.Changed():
 			var deltas []*kates.Delta
 			podSnapshot := struct {
 				Pods []kates.Pod
 			}{}
-			if !acc.FilteredUpdate(&podSnapshot, &deltas, isValid) {
+			if !podAccumulator.FilteredUpdate(&podSnapshot, &deltas, isValid) {
 				continue
 			}
 			a.podStore = NewPodStore(podSnapshot.Pods)
@@ -371,6 +382,7 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 
 		a.MaybeReport(ctx)
 	}
+
 }
 
 func (a *Agent) MaybeReport(ctx context.Context) {
