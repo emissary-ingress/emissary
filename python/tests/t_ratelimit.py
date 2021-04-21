@@ -254,7 +254,7 @@ class RateLimitV2Test(AmbassadorTest):
         if os.environ.get('KAT_USE_ENVOY_V3', '') != '':
             self.skip_node = True
         self.target = HTTP()
-        self.rls = RLSGRPC(protocol_version="v2alpha")
+        self.rls = RLSGRPC(protocol_version="v2")
 
     def config(self):
         # Use self.target here, because we want this mapping to be annotated
@@ -284,7 +284,7 @@ kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"
 timeout_ms: 500
-protocol_version: "v2alpha"
+protocol_version: "v2"
 """)
 
     def queries(self):
@@ -314,7 +314,7 @@ protocol_version: "v2alpha"
         assert self.results[2].headers["Hello"] == [ "Foo" ]
         assert self.results[2].headers["Hi"] == [ "Baz" ]
         assert self.results[2].headers["Content-Type"] == [ "application/json" ]
-        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ "v2alpha" ]
+        assert self.results[2].headers["X-Grpc-Service-Protocol-Version"] == [ "v2" ]
 
 
 class RateLimitV3Test(AmbassadorTest):

@@ -150,7 +150,6 @@ spec:
               enum:
               - v2
               - v3
-              - v2alpha
               type: string
             status_on_error:
               description: Why isn't this just an int??
@@ -1300,7 +1299,6 @@ spec:
               enum:
               - v2
               - v3
-              - v2alpha
               type: string
             service:
               type: string

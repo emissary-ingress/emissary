@@ -17,7 +17,6 @@ import (
 	// first party (protobuf)
 	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
 	pb "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v2"
-	pb_legacy "github.com/datawire/ambassador/pkg/api/pb/lyft/ratelimit"
 
 	// first party
 	"github.com/datawire/dlib/dgroup"
@@ -40,13 +39,8 @@ func (g *GRPCRLS) Start() <-chan bool {
 	log.Printf("GRPCRLS: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
 	grpcHandler := grpc.NewServer()
-	if g.ProtocolVersion != "v2" {
-		log.Printf("registering v2alpha service")
-		pb_legacy.RegisterRateLimitServiceServer(grpcHandler, g)
-	} else {
-		log.Printf("registering v2 service")
-		pb.RegisterRateLimitServiceServer(grpcHandler, g)
-	}
+	log.Printf("registering v2 service")
+	pb.RegisterRateLimitServiceServer(grpcHandler, g)
 
 	cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
 	if err != nil {

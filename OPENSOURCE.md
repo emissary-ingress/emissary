@@ -204,7 +204,7 @@ libraries:
     GitPython             3.1.11     3-clause BSD license
     Jinja2                2.11.2     3-clause BSD license
     MarkupSafe            1.1.1      3-clause BSD license
-    PyYAML                5.3.1      MIT license
+    PyYAML                5.4.1      MIT license
     Werkzeug              1.0.1      3-clause BSD license
     appdirs               1.4.4      MIT license
     attrs                 19.3.0     MIT license

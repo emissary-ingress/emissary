@@ -60,7 +60,7 @@
         "failure_mode_allow": { "type": "boolean" },
         "protocol_version": {
             "type": "string",
-            "enum": [ "v2", "v3", "v2alpha" ]
+            "enum": [ "v2", "v3" ]
         }
     },
     "required": [ "apiVersion", "kind", "name", "auth_service" ],

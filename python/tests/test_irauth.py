@@ -62,7 +62,6 @@ proto: grpc
     assert ext_auth_config
 
     assert ext_auth_config['typed_config']['grpc_service']['envoy_grpc']['cluster_name'] == 'cluster_extauth_someservice_default'
-    assert not ext_auth_config['typed_config']['use_alpha']
 
 
 @pytest.mark.compilertest
@@ -105,7 +104,6 @@ proto: grpc
     assert ext_auth_config
 
     assert ext_auth_config['typed_config']['grpc_service']['envoy_grpc']['cluster_name'] == 'cluster_extauth_someservice_default'
-    assert not ext_auth_config['typed_config']['use_alpha']
 
 
 @pytest.mark.compilertest
