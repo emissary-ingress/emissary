@@ -7,7 +7,7 @@ import yaml
 import re
 
 from ..config import ACResource, Config
-from ..utils import parse_yaml, parse_json, dump_json
+from ..utils import parse_yaml, parse_json, dump_json, parse_bool
 
 from .dependency import DependencyManager, IngressClassesDependency, SecretDependency, ServiceDependency
 from .resource import NormalizedResource, ResourceManager
@@ -99,8 +99,34 @@ class ResourceFetcher:
             # doesn't move around if you change the configuration base.
             init_dir = '/ambassador/init-config'
 
-            if os.path.isdir(init_dir):
-                self.load_from_filesystem(init_dir, k8s=True, recurse=True, finalize=False)
+            automatic_manifests = []
+            edge_stack_mappings_path = os.path.join(init_dir, "edge-stack-mappings.yaml")
+            if parse_bool(os.environ.get('EDGE_STACK', 'false')) and not os.path.exists(edge_stack_mappings_path):
+                # HACK
+                # If we're running in Edge Stack via environment variable and the magic "edge-stack-mappings.yaml" file doesn't
+                # exist in its well known location, then go ahead and add it. This should _not_ be necessary under
+                # normal circumstances where Edge Stack is running in its container. We do this so that tests can
+                # run outside of a container with this environment variable set.
+                automatic_manifests.append('''
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: ambassador-edge-stack
+  namespace: _automatic_
+  labels:
+    product: aes
+    ambassador_diag_class: private
+spec:
+  ambassador_id: [ "_automatic_" ]
+  prefix: /.ambassador/
+  rewrite: ""
+  service: "127.0.0.1:8500"
+  precedence: 1000000
+''')
+
+            if os.path.isdir(init_dir) or len(automatic_manifests) > 0:
+                self.load_from_filesystem(init_dir, k8s=True, recurse=True, finalize=False, automatic_manifests=automatic_manifests)
 
     @property
     def elements(self) -> List[ACResource]:
@@ -111,7 +137,8 @@ class ResourceFetcher:
         return str(self.manager.locations.current)
 
     def load_from_filesystem(self, config_dir_path, recurse: bool=False,
-                             k8s: bool=False, finalize: bool=True):
+                             k8s: bool=False, finalize: bool=True,
+                             automatic_manifests: List[str]=[]):
         inputs: List[Tuple[str, str]] = []
 
         if os.path.isdir(config_dir_path):
@@ -139,10 +166,14 @@ class ResourceFetcher:
                     # self.logger.debug("%s: SAVE configuration file" % filepath)
                     inputs.append((filepath, filename))
 
-        else:
+        elif os.path.isfile(config_dir_path):
             # this allows a file to be passed into the ambassador cli
             # rather than just a directory
             inputs.append((config_dir_path, os.path.basename(config_dir_path)))
+        elif len(automatic_manifests) == 0:
+            # The config_dir_path wasn't a directory nor a file, and there are
+            # no automatic manifests. Nothing to do.
+            self.logger.debug("no init directory/file at path %s and no automatic manifests, doing nothing" % config_dir_path)
 
         for filepath, filename in inputs:
             self.logger.debug("reading %s (%s)" % (filename, filepath))
@@ -152,6 +183,13 @@ class ResourceFetcher:
                 self.parse_yaml(serialization, k8s=k8s, filename=filename, finalize=False)
             except IOError as e:
                 self.aconf.post_error("could not read YAML from %s: %s" % (filepath, e))
+
+        for manifest in automatic_manifests:
+            self.logger.debug("reading automatic manifest: %s" % manifest)
+            try:
+                self.parse_yaml(manifest, k8s=k8s, filename="_automatic_", finalize=False)
+            except IOError as e:
+                self.aconf.post_error("could not read automatic manifest: %s\n%s" % (manifest, e))
 
         if finalize:
             self.finalize()

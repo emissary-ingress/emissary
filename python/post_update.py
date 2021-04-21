@@ -4,6 +4,7 @@ import os
 import urllib
 
 import requests
+from ambassador.utils import parse_bool
 
 def usage(program):
     sys.stderr.write(f'Usage: {program} [--watt|--k8s|--fs] UPDATE_URL\n')
@@ -42,7 +43,7 @@ if len(args) != 1:
 
 urls = [ f'{base_host}/{base_path}/{url_type}' ]
 
-if os.path.exists('/ambassador/.edge_stack'):
+if parse_bool(os.environ.get('EDGE_STACK', 'false')) or os.path.exists('/ambassador/.edge_stack'):
     urls.append(f'{sidecar_host}/{sidecar_path}/{url_type}')
 
 exitcode = 0
