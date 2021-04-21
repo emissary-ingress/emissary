@@ -1,9 +1,9 @@
 package aggregator
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
-	"os/exec"
-	"strings"
 	"sync"
 	"time"
 
@@ -16,6 +16,8 @@ import (
 	"github.com/datawire/ambassador/pkg/limiter"
 	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/datawire/ambassador/pkg/watt"
+	"github.com/datawire/dlib/dexec"
+	"github.com/datawire/dlib/dlog"
 )
 
 type WatchHook func(p *supervisor.Process, snapshot string) watchapi.WatchSet
@@ -366,7 +368,7 @@ func ExecWatchHook(watchHooks []string) WatchHook {
 		result := watchapi.WatchSet{}
 
 		for _, hook := range watchHooks {
-			ws := invokeHook(p, hook, snapshot)
+			ws := invokeHook(p.Context(), hook, snapshot)
 			result.KubernetesWatches = append(result.KubernetesWatches, ws.KubernetesWatches...)
 			result.ConsulWatches = append(result.ConsulWatches, ws.ConsulWatches...)
 		}
@@ -375,39 +377,19 @@ func ExecWatchHook(watchHooks []string) WatchHook {
 	}
 }
 
-func lines(st string) []string {
-	return strings.Split(st, "\n")
-}
-
-func invokeHook(p *supervisor.Process, hook, snapshot string) watchapi.WatchSet {
-	cmd := exec.Command("sh", "-c", hook)
-	cmd.Stdin = strings.NewReader(snapshot)
-	var watches, errors strings.Builder
-	cmd.Stdout = &watches
-	cmd.Stderr = &errors
-	err := cmd.Run()
-	stderr := errors.String()
-	if stderr != "" {
-		for _, line := range lines(stderr) {
-			p.Logf("watch hook stderr: %s", line)
-		}
-	}
+func invokeHook(ctx context.Context, hook, snapshot string) watchapi.WatchSet {
+	watches, err := dexec.CommandContext(ctx, "sh", "-c", hook).Output()
 	if err != nil {
-		p.Logf("watch hook failed: %v", err)
+		dlog.Infof(ctx, "watch hook failed: %v", err)
 		return watchapi.WatchSet{}
 	}
 
-	encoded := watches.String()
-
-	decoder := json.NewDecoder(strings.NewReader(encoded))
+	decoder := json.NewDecoder(bytes.NewReader(watches))
 	decoder.DisallowUnknownFields()
-	result := watchapi.WatchSet{}
-	err = decoder.Decode(&result)
-	if err != nil {
-		for _, line := range lines(encoded) {
-			p.Debugf("watch hook: %s", line)
-		}
-		p.Logf("watchset decode failed: %v", err)
+
+	var result watchapi.WatchSet
+	if err := decoder.Decode(&result); err != nil {
+		dlog.Infof(ctx, "watchset decode failed: %v", err)
 		return watchapi.WatchSet{}
 	}
 
