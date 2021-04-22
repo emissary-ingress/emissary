@@ -478,6 +478,21 @@ serviceMesh:
         ## Default: false
         validate: false
 
+  istio:
+    ## Ambassador integrates with Istio by manually injecting the sidecar so
+    ## that we can get the mTLS certificates without Istio hijacking
+    ## Ambassador's Pod network. Setting this to true will set up that manual
+    ## injection automatically.
+    ##
+    ## NOTE!!! This is not compatible with manually adding the sidecar via the
+    ## sidecarContainers value.
+    enabled: false
+
+    ## Version of the Istio sidecar to inject. 
+    ##
+    ## NOTE!! Must match the version of Istio you are running.
+    version: 
+
 ################################################################################
 ## DEPRECATED configuration objects                                           ##
 ################################################################################
