@@ -274,10 +274,6 @@ func NewSnapshotHolder(ambassadorMeta *snapshot.AmbassadorMetaInfo) *SnapshotHol
 	if err != nil {
 		panic(err)
 	}
-	err = disp.Register("Endpoints", gateway.Compile_Endpoints)
-	if err != nil {
-		panic(err)
-	}
 	return &SnapshotHolder{
 		validator:           newResourceValidator(),
 		ambassadorMeta:      ambassadorMeta,
