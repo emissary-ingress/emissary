@@ -228,6 +228,12 @@ spec:
               {{- toYaml . | nindent 12 }}
             {{- end }}
             {{- end }}
+            {{- if .Values.serviceMesh.consulConnect.enable }}
+            - name: CONSUL_HTTP_SSL_VERIFY
+              value: {{ .Values.serviceMesh.consulConnect.consulServer.tls.validate }}
+            - name: CONSUL_HTTP_TOKEN
+              value: {{ .Values.serviceMesh.consulConnect.consulServer.acl.token }}
+            {{- end }}
           {{- with .Values.security.containerSecurityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
