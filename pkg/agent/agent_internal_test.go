@@ -410,33 +410,23 @@ func TestProcessSnapshot(t *testing.T) {
 	}
 }
 
-// Call agent.Watch() with a cancellable context, then cancel the context and make sure the watch
-// completes to ensure graceful exits.
-func TestWatchSnapshotContextCancelled(t *testing.T) {
-	// cancellable context
-	ctx, cancel := getCtxLog()
+type mockAccumulator struct {
+	changedChan     chan struct{}
+	targetInterface interface{}
+}
 
-	a := NewAgent(nil)
-	watchDone := make(chan error)
+func (m *mockAccumulator) Changed() chan struct{} {
+	return m.changedChan
+}
 
-	// setup async watch
-	go func() {
-		err := a.Watch(ctx, "http://localhost:9697/snapshot-external")
-		watchDone <- err
-	}()
-	// sleep for a sec so we enter the Watch loop
-	time.Sleep(2 * time.Second)
+func (m *mockAccumulator) FilteredUpdate(target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool {
+	rawtarget, err := json.Marshal(m.targetInterface)
 
-	// cancel the context
-	cancel()
-	select {
-	// make sure the watch exits without error
-	case err := <-watchDone:
-		assert.Nil(t, err)
-	case <-time.After(3 * time.Second):
-		t.Fatal("Timed out waiting for watch to finish after cancelling context")
+	if err != nil {
+		return false
 	}
-	assert.False(t, a.reportRunning.Value())
+	err = json.Unmarshal(rawtarget, target)
+	return true
 }
 
 // Set up a watch and send a MinReportPeriod directive to the directive channel
@@ -457,8 +447,17 @@ func TestWatchReportPeriodDirective(t *testing.T) {
 	expectedDuration, err := time.ParseDuration("50s10ns")
 	assert.Nil(t, err)
 
+	podAcc := &mockAccumulator{
+		changedChan: make(chan struct{}),
+	}
+	configAcc := &mockAccumulator{
+		changedChan: make(chan struct{}),
+	}
+	rolloutCallback := make(chan *GenericCallback)
+	appCallback := make(chan *GenericCallback)
+
 	go func() {
-		err := a.Watch(ctx, "http://localhost:9697")
+		err := a.watch(ctx, "http://localhost:9697", configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 	dur := durationpb.Duration{
@@ -482,7 +481,7 @@ func TestWatchReportPeriodDirective(t *testing.T) {
 	select {
 	case err := <-watchDone:
 		assert.Nil(t, err)
-	case <-time.After(3 * time.Second):
+	case <-time.After(10 * time.Second):
 		t.Fatal("Timed out waiting for watch to finish after cancelling context")
 	}
 	// make sure that the agent's min report period is what we expect
@@ -502,8 +501,16 @@ func TestWatchEmptyDirectives(t *testing.T) {
 	directiveChan := make(chan *agent.Directive)
 	a.newDirective = directiveChan
 
+	podAcc := &mockAccumulator{
+		changedChan: make(chan struct{}),
+	}
+	configAcc := &mockAccumulator{
+		changedChan: make(chan struct{}),
+	}
+	rolloutCallback := make(chan *GenericCallback)
+	appCallback := make(chan *GenericCallback)
 	go func() {
-		err := a.Watch(ctx, "http://localhost:9697")
+		err := a.watch(ctx, "http://localhost:9697", configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 
@@ -537,7 +544,7 @@ func TestWatchEmptyDirectives(t *testing.T) {
 	select {
 	case err := <-watchDone:
 		assert.Nil(t, err)
-	case <-time.After(3 * time.Second):
+	case <-time.After(10 * time.Second):
 		t.Fatal("Timed out waiting for watch to finish after cancelling context")
 	}
 }
@@ -567,10 +574,18 @@ func TestWatchStopReportingDirective(t *testing.T) {
 	}
 	a.comm = c
 	a.connInfo = &ConnInfo{hostname: "localhost", port: "8080", secure: false}
+	podAcc := &mockAccumulator{
+		changedChan: make(chan struct{}),
+	}
+	configAcc := &mockAccumulator{
+		changedChan: make(chan struct{}),
+	}
+	rolloutCallback := make(chan *GenericCallback)
+	appCallback := make(chan *GenericCallback)
 
 	// start watch
 	go func() {
-		err := a.Watch(ctx, "http://thisdoesntmatter")
+		err := a.watch(ctx, "http://localhost:9697", configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 
@@ -589,7 +604,7 @@ func TestWatchStopReportingDirective(t *testing.T) {
 	select {
 	case err := <-watchDone:
 		assert.Nil(t, err)
-	case <-time.After(3 * time.Second):
+	case <-time.After(10 * time.Second):
 		t.Fatal("Timed out waiting for watch to finish after cancelling context")
 	}
 	// make sure that reportingStopped is still set
@@ -655,10 +670,18 @@ func TestWatchErrorSendingSnapshot(t *testing.T) {
 	a.comm = c
 
 	watchDone := make(chan error)
+	podAcc := &mockAccumulator{
+		changedChan: make(chan struct{}),
+	}
+	configAcc := &mockAccumulator{
+		changedChan: make(chan struct{}),
+	}
+	rolloutCallback := make(chan *GenericCallback)
+	appCallback := make(chan *GenericCallback)
 
 	// start the watch
 	go func() {
-		err := a.Watch(ctx, ts.URL)
+		err := a.watch(ctx, ts.URL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 
@@ -783,10 +806,18 @@ func TestWatchWithSnapshot(t *testing.T) {
 	a.comm = c
 
 	watchDone := make(chan error)
+	podAcc := &mockAccumulator{
+		changedChan: make(chan struct{}),
+	}
+	configAcc := &mockAccumulator{
+		changedChan: make(chan struct{}),
+	}
+	rolloutCallback := make(chan *GenericCallback)
+	appCallback := make(chan *GenericCallback)
 
 	// start the watch
 	go func() {
-		err := a.Watch(ctx, ts.URL)
+		err := a.watch(ctx, ts.URL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 
@@ -814,7 +845,7 @@ func TestWatchWithSnapshot(t *testing.T) {
 	case err := <-watchDone:
 		// make sure the watch finishes without a problem
 		assert.Nil(t, err)
-	case <-time.After(3 * time.Second):
+	case <-time.After(10 * time.Second):
 		t.Fatal("Timed out waiting for watch to finish after cancelling context")
 	}
 	sentSnaps := client.GetSnapshots()
@@ -912,6 +943,14 @@ func TestWatchEmptySnapshot(t *testing.T) {
 		}
 	}))
 	defer ts.Close()
+	podAcc := &mockAccumulator{
+		changedChan: make(chan struct{}),
+	}
+	configAcc := &mockAccumulator{
+		changedChan: make(chan struct{}),
+	}
+	rolloutCallback := make(chan *GenericCallback)
+	appCallback := make(chan *GenericCallback)
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
@@ -919,7 +958,7 @@ func TestWatchEmptySnapshot(t *testing.T) {
 				t.Errorf("Panic-ed while sending an empty snapshot")
 			}
 		}()
-		err := a.Watch(ctx, ts.URL)
+		err := a.watch(ctx, ts.URL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()
 	select {

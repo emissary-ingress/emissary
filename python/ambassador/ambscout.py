@@ -10,7 +10,7 @@ import os
 import semantic_version
 
 from .scout import Scout
-from .utils import parse_json, dump_json
+from .utils import parse_json, dump_json, parse_bool
 
 # Import version stuff directly from ambassador.VERSION to avoid a circular import.
 from .VERSION import Version, Build, BuildInfo
@@ -86,7 +86,10 @@ class AmbScout:
         self.runtime = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
         self.namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
-        self.is_edge_stack = os.path.exists('/ambassador/.edge_stack')
+        # Allow an environment variable to state whether we're in Edge Stack. But keep the
+        # existing condition as sufficient, so that there is less of a chance of breaking
+        # things running in a container with this file present.
+        self.is_edge_stack = parse_bool(os.environ.get('EDGE_STACK', 'false')) or os.path.exists('/ambassador/.edge_stack')
         self.app = "aes" if self.is_edge_stack else "ambassador"
         self.version = Version
         self.semver = self.get_semver(self.version)
