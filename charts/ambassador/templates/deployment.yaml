@@ -156,6 +156,7 @@ spec:
                 audience: istio-ca
                 expirationSeconds: 43200
                 path: istio-token
+      {{- end }}
       {{- with .Values.initContainers }}
       initContainers:
         {{- toYaml . | nindent 8 }}
@@ -252,9 +253,9 @@ spec:
             {{- end }}
             {{- if .Values.serviceMesh.consulConnect.enable }}
             - name: CONSUL_HTTP_SSL_VERIFY
-              value: {{ .Values.serviceMesh.consulConnect.consulServer.tls.validate }}
+              value: {{ .Values.serviceMesh.consulConnect.consulServer.tls.validate | quote }}
             - name: CONSUL_HTTP_TOKEN
-              value: {{ .Values.serviceMesh.consulConnect.consulServer.acl.token }}
+              value: {{ .Values.serviceMesh.consulConnect.consulServer.aclToken | quote }}
             {{- end }}
             {{- if .Values.serviceMesh.istio.enable }}
             - name: AMBASSADOR_ENVOY_BASE_ID
@@ -386,7 +387,7 @@ spec:
             name: istio-token
           securityContext:
             runAsUser: 0
-              {{- end }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
