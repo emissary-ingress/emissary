@@ -63,7 +63,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [1.13.1] April 21, 2021
+## [1.13.1] April 22, 2021
+[1.13.1]: https://github.com/datawire/ambassador/compare/v1.13.0...v1.13.1
 
  - Bugfix: Potentially increased CPU Usage for deployments with large numbers of Hosts ([#3358])
 
