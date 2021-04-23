@@ -444,8 +444,7 @@ serviceMesh:
       create: true
       secret:
         ## The name of the Kubernetes Secret the connect will write the Consul
-        ## mTLS certificates to and the TLSContext Ambassador will look for to 
-        ## use the certificates.
+        ## mTLS certificates.
         ##
         ## Default: ambassador-consul-connect
         name: ambassador-consul-connect
@@ -454,6 +453,12 @@ serviceMesh:
         ##
         ## Default: Same namespace as the consul connector.
         # namespace:
+      tlsContext:
+        ## The name of the TLSContext Ambassador will use to read the mTLS
+        ## certificates output from the Consul Connector.
+        ##
+        ## Default: ambassador-consul
+        name: ambassador-consul
     
     consulServer:
       ## The address you can reach Consul on.
@@ -477,6 +482,11 @@ serviceMesh:
         ##
         ## Default: false
         validate: false
+
+      ## The ACL token to use when communicating with Consul if ACLs are enabled
+      ##
+      ## Default: nil
+      aclToken:
 
   istio:
     ## Ambassador integrates with Istio by manually injecting the sidecar so

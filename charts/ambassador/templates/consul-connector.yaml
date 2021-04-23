@@ -1,4 +1,4 @@
-{{ - if and .Values.serviceMesh.consulConnect.enable .Values.serviceMesh.consulConnect.connector.create }}
+{{- if and .Values.serviceMesh.consulConnect.enable .Values.serviceMesh.consulConnect.connector.create }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
@@ -27,7 +27,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: {{ include "ambassador.fullname" . }}-consul-connect
-  namespace: ambassador
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
@@ -66,13 +66,17 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: {{ include "ambassador.fullname" . }}-consul-connect
-    namespace: ambassador
+    namespace: {{ include "ambassador.namespace" . }}
 ---
 apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
-  name: {{ .Values.serviceMesh.consulConnect.connector.secret.name }}-context
-  namespace: ambassador
+  name: {{ .Values.serviceMesh.consulConnect.connector.tlsContext.name }}
+  {{- if .Values.serviceMesh.consulConnect.connector.secret.namespace }}
+  namespace: {{ .Values.serviceMesh.consulConnect.connector.secret.namespace }}
+  {{- else }}
+  namespace: {{ include "ambassador.namespace" . }}
+  {{- end }}
   labels:
     {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
@@ -95,7 +99,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "ambassador.fullname" . }}-consul-connector
-  namespace: ambassador
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
@@ -130,7 +134,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "ambassador.fullname" . }}-consul-connect-integration
-  namespace: ambassador
+  namespace: {{ include "ambassador.namespace" . }}
   labels:
     {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
@@ -186,13 +190,13 @@ spec:
                   fieldPath: status.hostIP
               {{- end }}
             - name: _CONSUL_PORT
-              value: {{ .Values.serviceMesh.consulConnect.consulServer.port }}
+              value: {{ .Values.serviceMesh.consulConnect.consulServer.port | quote }}
             - name: CONSUL_HTTP_SSL
-              value: {{ .Values.serviceMesh.consulConnect.consulServer.tls.enabled }}
+              value: {{ .Values.serviceMesh.consulConnect.consulServer.tls.enabled | quote }}
             - name: CONSUL_HTTP_SSL_VERIFY
-              value: {{ .Values.serviceMesh.consulConnect.consulServer.tls.validate }}
+              value: {{ .Values.serviceMesh.consulConnect.consulServer.tls.validate | quote }}
             - name: CONSUL_HTTP_TOKEN
-              value: {{ .Values.serviceMesh.consulConnect.consulServer.acl.token }}
+              value: {{ .Values.serviceMesh.consulConnect.consulServer.aclToken | quote }}
             - name: _AMBASSADOR_TLS_SECRET_NAME
               value: {{ .Values.serviceMesh.consulConnect.connector.secret.name }}
             - name: _AMBASSADOR_TLS_SECRET_NAMESPACE
