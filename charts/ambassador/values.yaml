@@ -496,12 +496,25 @@ serviceMesh:
     ##
     ## NOTE!!! This is not compatible with manually adding the sidecar via the
     ## sidecarContainers value.
-    enabled: false
+    enable: false
 
     ## Version of the Istio sidecar to inject. 
     ##
     ## NOTE!! Must match the version of Istio you are running.
     version: 
+
+    tlsContext:
+      ## Controls whether the chart should create the TLSContext that Ambassador
+      ## uses to read the mTLS certificates from Istio.
+      ##
+      ## Default: true
+      create: true
+
+      ## The name of the TLSContext Ambassador will use to read the mTLS
+      ## certificates grabbed by the Istio sidecar.
+      ##
+      ## Default: istio-upstream
+      name: istio-upstream
 
 ################################################################################
 ## DEPRECATED configuration objects                                           ##
