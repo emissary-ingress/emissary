@@ -3,6 +3,10 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## Next release
+
+- Change: unless image.repository or image.fullImageOverride is explicitly set, the ambassador image used will be templated on .Values.enableAES. If AES is enabled, the chart will use docker.io/datawire/aes, otherwise will use docker.io/datawire/ambassador.
+
 ## v6.7.1
 
 - Update Ambassador chart image to version v1.13.1: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
