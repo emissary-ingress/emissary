@@ -175,6 +175,8 @@ commands:
           steps:
           - skip-if-only-changes:
               to: "(ambassador/|tests/pytest/gold/)"
+          - run: |
+              echo >>"$BASH_ENV" 'export USE_LOCAL_K3S_CLUSTER=1'
       - when:
           condition:
             or:
@@ -195,8 +197,8 @@ commands:
             - run: |
                 echo >>"$BASH_ENV" 'export KUBECEPTION_PROFILE=large'
       - install-helm
+      - install-k3d
       - amb-config-cluster-and-registry
-
       # main
       - run:
           name: "Ensure CI configuration is up-to-date"
