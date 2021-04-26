@@ -44,6 +44,17 @@ set -o errexit
 set -o nounset
 set -o xtrace
 
+if [ -n "${USE_LOCAL_K3S_CLUSTER:-}" ] ; then
+    mkdir -p ~/.kube
+    export DEV_KUBECONFIG=~/.kube/kubeception.yaml
+    touch ${DEV_KUBECONFIG}
+    if [ -z "${K3S_CLUSTER_NAME:-}" ] ; then
+        K3S_CLUSTER_NAME=amb-ci
+    fi
+    KUBECONFIG=${DEV_KUBECONFIG} k3d cluster create ${K3S_CLUSTER_NAME} --k3s-server-arg "--no-deploy=traefik"
+    exit 0
+fi
+
 if [ -n "${KUBECEPTION_TOKEN}" ]; then
 
     trap push_metrics EXIT
