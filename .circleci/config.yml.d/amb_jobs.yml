@@ -111,6 +111,40 @@ commands:
       - dirty-check
       - amb-images-save-workspace
 
+  "job-gotest":
+    parameters:
+      "fast-reconfigure":
+        type: boolean
+        default: false
+      "legacy-mode":
+        type: boolean
+        default: false
+    steps:
+      # setup
+      - amb-linux-install
+      - install-gotestsum
+      - amb-checkout
+      - skip-if-only-changes:
+          to: docs/
+      - amb-config-registry
+      - run:
+          name: "Test"
+          no_output_timeout: "30m"
+          command: |
+            export DEV_KUBE_NO_PVC=yes
+            export KAT_REQ_LIMIT=900
+            export AMBASSADOR_LEGACY_MODE=<< parameters.legacy-mode >> # ParseBool
+            export AMBASSADOR_FAST_RECONFIGURE=<< parameters.fast-reconfigure >> # ParseBool
+            export TEST_XML_DIR=/tmp/test-logs/xml/
+            mkdir -p ${TEST_XML_DIR}
+            make gotest
+
+      # teardown
+      - amb-save-logs
+      - store_test_results:
+          path: /tmp/test-logs/xml/
+      - dirty-check
+
   "job-test":
     parameters:
       "test":
@@ -118,7 +152,6 @@ commands:
         enum:
           - "test" # everything but pytest-envoy
           - "ingresstest"
-          - "gotest"
           - "pytest"
           - "pytest-envoy"
           - "pytest-envoy-v3"

@@ -56,6 +56,7 @@ func getCtxLog() (context.Context, context.CancelFunc) {
 }
 
 func TestHandleAPIKeyConfigChange(t *testing.T) {
+	t.Parallel()
 	objMeta := metav1.ObjectMeta{
 		Name:      "coolname",
 		Namespace: "coolnamespace",
@@ -215,6 +216,7 @@ func TestHandleAPIKeyConfigChange(t *testing.T) {
 }
 
 func TestProcessSnapshot(t *testing.T) {
+	t.Parallel()
 	snapshotTests := []struct {
 		// name of test (passed to t.Run())
 		testName string
@@ -432,6 +434,7 @@ func (m *mockAccumulator) FilteredUpdate(target interface{}, deltas *[]*kates.De
 // Set up a watch and send a MinReportPeriod directive to the directive channel
 // Make sure that Agent.MinReportPeriod is set to this new value
 func TestWatchReportPeriodDirective(t *testing.T) {
+	t.Parallel()
 	ctx, cancel := getCtxLog()
 
 	a := NewAgent(nil)
@@ -492,6 +495,7 @@ func TestWatchReportPeriodDirective(t *testing.T) {
 // Start a watch and send a nil then empty directive through the channel
 // make sure nothing errors or panics
 func TestWatchEmptyDirectives(t *testing.T) {
+	t.Parallel()
 	ctx, cancel := getCtxLog()
 
 	a := NewAgent(nil)
@@ -553,6 +557,7 @@ func TestWatchEmptyDirectives(t *testing.T) {
 // send a directive to tell the agent to stop sending reports to the agent comm.
 // Then, send a snapshot through the channel and ensure that it doesn't get sent to the agent com
 func TestWatchStopReportingDirective(t *testing.T) {
+	t.Parallel()
 	ctx, cancel := getCtxLog()
 
 	a := NewAgent(nil)
@@ -618,6 +623,7 @@ func TestWatchStopReportingDirective(t *testing.T) {
 // Send a snapshot through the channel, and make sure the error propogates thru the agent.reportComplete
 // channel, and that the error doesn't make things sad.
 func TestWatchErrorSendingSnapshot(t *testing.T) {
+	t.Parallel()
 	ctx, cancel := getCtxLog()
 	ambId := getRandomAmbassadorID()
 	a := NewAgent(nil)
@@ -717,6 +723,7 @@ func TestWatchErrorSendingSnapshot(t *testing.T) {
 // Make sure the Snapshot.KubernetesSecrets and Snapshot.Invalid get scrubbed of sensitive data and
 // we send a SnapshotTs that makes sense (so the agent com can throw out older snapshots)
 func TestWatchWithSnapshot(t *testing.T) {
+	t.Parallel()
 	ctx, cancel := getCtxLog()
 	clusterID := "coolcluster"
 	ambId := getRandomAmbassadorID()
@@ -914,6 +921,7 @@ func TestWatchWithSnapshot(t *testing.T) {
 // Send a snapshot with no cluster id
 // Make sure we don't try to send anything and that nothing errors or panics
 func TestWatchEmptySnapshot(t *testing.T) {
+	t.Parallel()
 	ctx, cancel := getCtxLog()
 
 	a := NewAgent(nil)

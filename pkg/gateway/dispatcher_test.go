@@ -22,6 +22,7 @@ func assertErrorContains(t *testing.T, err error, msg string) {
 }
 
 func TestDispatcherRegister(t *testing.T) {
+	t.Parallel()
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_Foo)
 	require.NoError(t, err)
@@ -33,6 +34,7 @@ func TestDispatcherRegister(t *testing.T) {
 }
 
 func TestDispatcherDuplicateRegister(t *testing.T) {
+	t.Parallel()
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_Foo)
 	require.NoError(t, err)
@@ -41,6 +43,7 @@ func TestDispatcherDuplicateRegister(t *testing.T) {
 }
 
 func TestIsRegistered(t *testing.T) {
+	t.Parallel()
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_Foo)
 	require.NoError(t, err)
@@ -49,6 +52,7 @@ func TestIsRegistered(t *testing.T) {
 }
 
 func TestDispatcherFaultIsolation1(t *testing.T) {
+	t.Parallel()
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_Foo)
 	require.NoError(t, err)
@@ -59,6 +63,7 @@ func TestDispatcherFaultIsolation1(t *testing.T) {
 }
 
 func TestDispatcherFaultIsolation2(t *testing.T) {
+	t.Parallel()
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_Foo)
 	require.NoError(t, err)
@@ -69,6 +74,7 @@ func TestDispatcherFaultIsolation2(t *testing.T) {
 }
 
 func TestDispatcherTransformError(t *testing.T) {
+	t.Parallel()
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_FooWithErrors)
 	require.NoError(t, err)
@@ -123,6 +129,7 @@ func compile_FooWithErrors(f *Foo) *gateway.CompiledConfig {
 }
 
 func TestDispatcherNoTransform(t *testing.T) {
+	t.Parallel()
 	disp := gateway.NewDispatcher()
 	foo := makeFoo("default", "foo", "bar")
 	err := disp.Upsert(foo)
@@ -130,6 +137,7 @@ func TestDispatcherNoTransform(t *testing.T) {
 }
 
 func TestDispatcherDelete(t *testing.T) {
+	t.Parallel()
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_Foo)
 	require.NoError(t, err)
@@ -144,6 +152,7 @@ func TestDispatcherDelete(t *testing.T) {
 }
 
 func TestDispatcherDeleteKey(t *testing.T) {
+	t.Parallel()
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_Foo)
 	require.NoError(t, err)
@@ -172,6 +181,7 @@ func compile_Foo(f *Foo) *gateway.CompiledConfig {
 }
 
 func TestDispatcherUpsertYamlErr(t *testing.T) {
+	t.Parallel()
 	disp := gateway.NewDispatcher()
 	err := disp.UpsertYaml("{")
 	assertErrorContains(t, err, "error converting")
@@ -190,6 +200,7 @@ spec:
 }
 
 func TestDispatcherAssemblyWithRouteConfg(t *testing.T) {
+	t.Parallel()
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_FooWithRouteConfigName)
 	require.NoError(t, err)
@@ -254,6 +265,7 @@ func compile_FooWithRouteConfigName(f *Foo) *gateway.CompiledConfig {
 }
 
 func TestDispatcherAssemblyWithEmptyRouteConfigName(t *testing.T) {
+	t.Parallel()
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_FooWithEmptyRouteConfigName)
 	require.NoError(t, err)
@@ -314,6 +326,7 @@ func compile_FooWithEmptyRouteConfigName(f *Foo) *gateway.CompiledConfig {
 }
 
 func TestDispatcherAssemblyWithoutRds(t *testing.T) {
+	t.Parallel()
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_FooWithoutRds)
 	require.NoError(t, err)
@@ -365,6 +378,7 @@ func compile_FooWithoutRds(f *Foo) *gateway.CompiledConfig {
 }
 
 func TestDispatcherAssemblyEndpointDefaulting(t *testing.T) {
+	t.Parallel()
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_FooWithClusterRefs)
 	require.NoError(t, err)
@@ -394,6 +408,7 @@ func compile_FooWithClusterRefs(f *Foo) *gateway.CompiledConfig {
 }
 
 func TestDispatcherAssemblyEndpointWatches(t *testing.T) {
+	t.Parallel()
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_FooEndpointWatches)
 	require.NoError(t, err)
