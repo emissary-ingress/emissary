@@ -161,6 +161,7 @@ commands:
             # time it still runs OK if there's plenty of RAM.
             - run: |
                 echo >>"$BASH_ENV" 'export KUBECEPTION_PROFILE=large'
+      - install-helm
       - amb-config-cluster-and-registry
 
       # main
