@@ -131,7 +131,7 @@ class IRAmbassador (IRResource):
             use_proxy_proto=False,
             enable_http10=False,
             proper_case=False,
-            prune_unreachable_routes=False,
+            prune_unreachable_routes=True,          # default True; can be updated in finalize()
             use_remote_address=use_remote_address,
             x_forwarded_proto_redirect=False,
             load_balancer=None,
