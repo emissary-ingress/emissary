@@ -591,22 +591,24 @@ case "${cmd}" in
             exit 1
         fi
         ;;
-    gotest-internal)
-        # This runs inside the builder image
+    gotest-local)
+        [ -n "${TEST_XML_DIR}" ] && mkdir -p ${TEST_XML_DIR}
         fail=""
-        mkdir -p ${TEST_DATA_DIR}
-        for MODDIR in $(find-modules); do
+        for MODDIR in ${GOTEST_MODDIRS} ; do
             if [ -e "${MODDIR}/go.mod" ]; then
                 pkgs=$(cd ${MODDIR} && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' ${GOTEST_PKGS})
                 if [ -n "${pkgs}" ]; then
                     modname=`basename ${MODDIR}`
-                    if ! (cd ${MODDIR} && gotestsum --junitfile ${TEST_DATA_DIR}/${modname}-gotest.xml --packages="${pkgs}" -- ${GOTEST_ARGS}) ; then
+                    junitarg=
+                    if [[ -n "${TEST_XML_DIR}" ]] ; then
+                        junitarg="--junitfile ${TEST_XML_DIR}/${modname}-gotest.xml"
+                    fi
+                    if ! (cd ${MODDIR} && gotestsum ${junitarg} --rerun-fails=3 --packages="${pkgs}" -- ${GOTEST_ARGS}) ; then
                        fail="yes"
                     fi
                 fi
             fi
         done
-        tar -C ${TEST_DATA_DIR} -cvf /tmp/test-xml.tar.gz .
 
         if [ "${fail}" = yes ]; then
             exit 1

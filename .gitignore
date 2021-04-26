@@ -30,6 +30,9 @@ vendor_bootstrap_hack.go
 /tools/sandbox/grpc_web/docker-compose.yaml
 /tools/sandbox/http_auth/docker-compose.yml
 
+/docker/images.sh
+/docker/images.tar
+/docker/volume.tar
 /docker/container.txt
 /docker/container.txt.stamp
 *.docker
