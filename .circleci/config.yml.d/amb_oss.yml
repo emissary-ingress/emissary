@@ -46,14 +46,30 @@ jobs:
           test: << parameters.test >>
           fast-reconfigure: << parameters.fast-reconfigure >>
           legacy-mode: << parameters.legacy-mode >>
+
   "oss-chart":
     executor: oss-linux
     steps:
       - job-chart
+
   "oss-chart-publish":
+    environment:
+      PUBLISH_GIT_RELEASE: "1"
     executor: oss-linux
     steps:
       - job-chart-publish
+
+  "oss-chart-changelog":
+    executor: oss-linux
+    steps:
+      - when:
+          condition:
+            and:
+              - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+              - not:
+                  equal: [ "master", << pipeline.git.branch >>  ]
+          steps:
+            - job-chart-changelog
 
   "oss-promote-to-rc-latest":
     executor: oss-linux
@@ -92,12 +108,11 @@ _anchors:
       branches:
         ignore: /.*/
 
+  # chart release will create a tag IFF there are changes to the chart version
   "filter-chart-release-only": &filter-chart-release-only
     filters:
-      tags:
-        only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
       branches:
-        ignore: /.*/
+        only: master
 
 workflows:
   "OSS: Dev":
@@ -113,6 +128,8 @@ workflows:
           name: "oss-dev-lint"
       - "oss-chart":
           name: "oss-dev-chart"
+      - "oss-chart-changelog":
+          name: "oss-chart-changelog"
       - "oss-test":
           requires: ["oss-dev-images"]
           name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
