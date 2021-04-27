@@ -42,6 +42,10 @@ metadata:
     {{- end }}
     {{- end }}
     product: aes
+{{- if .Values.docker.useImagePullSecret }}
+imagePullSecrets:
+- name: {{ .Values.docker.imagePullSecretName }}
+{{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
