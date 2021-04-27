@@ -63,6 +63,12 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## Next Release
+
+### Emissary Ingress and Ambassador Edge Stack
+
+- Change: `prune_unreachable_routes` now defaults to true, which should reduce Envoy memory requirements for installations with many `Host`s
+
 ## [1.13.1] April 22, 2021
 [1.13.1]: https://github.com/datawire/ambassador/compare/v1.13.0...v1.13.1
 
