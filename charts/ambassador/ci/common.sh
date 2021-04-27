@@ -134,3 +134,7 @@ cleanup () {
 
   rm -rf "$VALUES_DIR"
 }
+
+get_chart_version () {
+    grep version ${1}/Chart.yaml | awk ' { print $2 }'
+}
