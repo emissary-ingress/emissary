@@ -182,6 +182,12 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `metrics.serviceMonitor.interval`                  | Interval at which metrics should be scraped                                                                                                                              | `30s`                                                                                               |
 | `metrics.serviceMonitor.scrapeTimeout`             | Timeout after which the scrape is ended                                                                                                                                  | `30s`                                                                                               |
 | `metrics.serviceMonitor.selector`                  | Label Selector for Prometheus to find ServiceMonitors                                                                                                                    | `{ prometheus: kube-prometheus }`                                                                   |
+| `serviceMesh.consulConnect.enable`                 | Enable the Consul Connect integration in the helm chart which installs the Consul Connector for exporting consul mTLS certificates                                       | `false`                                                                                             |
+| `serviceMesh.consulConnect.connector`              | Create and configure the Consul Connector in the Chart. Set to `false` if you want to manually create and manage it. See the values file for more information.           |                                                                                                     |
+| `serviceMesh.consulConnect.consulServer`           | Configure different options for the Consul Server. See the values file for more information.                                                                             |                                                                                                     |
+| `serviceMesh.istio.enable`                         | Enable the Istio integration and have Helm automatically inject the Istio proxy sidecar. See the values file for more information.                                       | `false`                                                                                             |
+| `serviceMesh.istio.version`                        | The version of Istio that you are running. **This must be set!**                                                                                                         | `""`                                                                                                |
+| `serviceMesh.istio.tlsContext`                     | Manage the `TLSContext` created to expose Istio mTLS certificates to Ambassador. See the values file for more information.                                               |                                                                                                     |
 | `servicePreview.enabled`                           | If true, install Service Preview components: traffic-manager & traffic-agent (`enableAES` needs to also be to `true`)                                                    | `false`                                                                                             |
 | `servicePreview.trafficManager.image.repository`   | Ambassador Traffic-manager image                                                                                                                                         | Same value as `image.repository`                                                                    |
 | `servicePreview.trafficManager.image.tag`          | Ambassador Traffic-manager image tag                                                                                                                                     | Same value as `image.tag`                                                                           |
@@ -274,6 +280,97 @@ security:
     #   allowPrivilegeEscalation: false
     #   runAsUser:
     #     rule: MustRunAsNonRoot
+```
+
+### Service Mesh Integrations
+
+Ambassador integrates with the three major service meshes. Istio and Consul Connect integrations require additional configuration that can be managed by the chart. 
+
+```yaml
+serviceMesh:
+
+  consulConnect:
+    enable: false
+
+    connector:
+      ## The Consul Connector is used to export the mTLS certificates used by 
+      ## Consul to a Kubernetes Secret.
+      ##
+      ## Default: true
+      create: true
+      secret:
+        ## The name of the Kubernetes Secret the connect will write the Consul
+        ## mTLS certificates.
+        ##
+        ## Default: ambassador-consul-connect
+        name: ambassador-consul-connect
+
+        ## The namespace the Consul Connect mTLS Secret will be written to
+        ##
+        ## Default: Same namespace as the consul connector.
+        # namespace:
+      tlsContext:
+        ## The name of the TLSContext Ambassador will use to read the mTLS
+        ## certificates output from the Consul Connector.
+        ##
+        ## Default: ambassador-consul
+        name: ambassador-consul
+    
+    consulServer:
+      ## The address you can reach Consul on.
+      ##
+      ## Default: The IP address of the host machine.
+      # address:
+
+      ## The port you can reach the Consul on. 
+      ##
+      ## Defaults: 8500 for HTTP 8501 for HTTPS
+      port: 8500
+
+      tls:
+        ## Control whether to talk to Consul over TLS or not
+        ##
+        ## Default: false
+        enabled: false
+
+        ## Toggle whether Ambassador should validate the Consul server 
+        ## certificate
+        ##
+        ## Default: false
+        validate: false
+
+      ## The ACL token to use when communicating with Consul if ACLs are enabled
+      ##
+      ## Default: nil
+      aclToken:
+
+  istio:
+    ## Ambassador integrates with Istio by manually injecting the sidecar so
+    ## that we can get the mTLS certificates without Istio hijacking
+    ## Ambassador's Pod network. Setting this to true will set up that manual
+    ## injection automatically.
+    ##
+    ## NOTE!!! This is not compatible with manually adding the sidecar via the
+    ## sidecarContainers value.
+    enable: false
+
+    ## Version of the Istio sidecar to inject. 
+    ##
+    ## NOTE!! Must match the version of Istio you are running.
+    version: 
+
+    tlsContext:
+      ## Controls whether the chart should create the TLSContext that Ambassador
+      ## uses to read the mTLS certificates from Istio.
+      ##
+      ## Default: true
+      create: true
+
+      ## The name of the TLSContext Ambassador will use to read the mTLS
+      ## certificates grabbed by the Istio sidecar.
+      ##
+      ## Default: istio-upstream
+      name: istio-upstream
 ```
 
 ### Annotations
