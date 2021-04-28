@@ -50,11 +50,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 #### Zipkin Collector Versions
 
 In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, support for the [HTTP_JSON_V1] Zipkin
-collector version will be removed. 
+collector version will be removed.
 
 This change is being made because the HTTP_JSON_V1 collector was deprecated in Envoy v1.12.0, then removed
-entirely from the Envoy V3 APIs. As such, the HTTP_JSON_V1 collector is not supported when 
-`AMBASSADOR_ENVOY_API_VERSION` is set to `V3`: you will need to migrate to the HTTP_JSON or HTTP_PROTO 
+entirely from the Envoy V3 APIs. As such, the HTTP_JSON_V1 collector is not supported when
+`AMBASSADOR_ENVOY_API_VERSION` is set to `V3`: you will need to migrate to the HTTP_JSON or HTTP_PROTO
 collectors before using V3 APIs.
 
 Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version) for more information.
@@ -62,6 +62,12 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 [HTTP_JSON_V1]: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version
 
 ## RELEASE NOTES
+
+## Next Release
+
+- Bugfix: Fixed a regression that cause endpoint routing to not work when defining mappings in service annotations ([#3369])
+
+[#3369]: https://github.com/datawire/ambassador/issues/3369
 
 ## [1.13.1] April 21, 2021
 
