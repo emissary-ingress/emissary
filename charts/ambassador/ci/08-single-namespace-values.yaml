@@ -4,11 +4,5 @@ service:
 deploymentStrategy:
   type: Recreate
 
-## This does not work. Waiting on fix for APro code watching for all namespaces
-##
-
-# scope:
-#   singleNamespace: true
-
-env:
-  AMBASSADOR_SINGLE_NAMESPACE: true
+scope:
+  singleNamespace: true
