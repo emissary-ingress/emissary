@@ -224,6 +224,7 @@ update-base: $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-
 	        ENVOY_VERSION_OUTPUT=$$(docker run -it --entrypoint envoy-static $(ENVOY_FULL_DOCKER_TAG) --version | grep "version:"); \
 	        ENVOY_VERSION_EXPECTED="envoy-static .*version:.* $(ENVOY_COMMIT)/.*"; \
 	        if ! echo "$$ENVOY_VERSION_OUTPUT" | grep "$$ENVOY_VERSION_EXPECTED"; then \
+	            { set +x; } &>/dev/null; \
 	            echo "error: Envoy base image $(ENVOY_FULL_DOCKER_TAG) contains envoy-static binary that reported an unexpected version string!" \
 	                 "See ENVOY_VERSION_OUTPUT and ENVOY_VERSION_EXPECTED in the output above. This error is usually not recoverable." \
 	                 "You may need to rebuild the Envoy base image after either updating ENVOY_COMMIT or bumping BASE_ENVOY_RELVER" \
@@ -241,6 +242,7 @@ update-base: $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-
 	            ENVOY_VERSION_OUTPUT=$$(docker run -it --entrypoint envoy-static $(ENVOY_FULL_DOCKER_TAG) --version | grep "version:"); \
 	            ENVOY_VERSION_EXPECTED="envoy-static .*version:.* $(ENVOY_COMMIT)/.*"; \
 	            if ! echo "$$ENVOY_VERSION_OUTPUT" | grep "$$ENVOY_VERSION_EXPECTED"; then \
+	                { set +x; } &>/dev/null; \
 	                echo "error: Envoy base image $(ENVOY_FULL_DOCKER_TAG) contains envoy-static binary that reported an unexpected version string!" \
 	                     "See ENVOY_VERSION_OUTPUT and ENVOY_VERSION_EXPECTED in the output above. This error is usually not recoverable." \
 	                     "You may need to rebuild the Envoy base image after either updating ENVOY_COMMIT or bumping BASE_ENVOY_RELVER" \
@@ -257,6 +259,7 @@ update-base: $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-
 	        ENVOY_VERSION_OUTPUT=$$(docker run -it --entrypoint envoy-static-stripped $(ENVOY_DOCKER_TAG) --version | grep "version:"); \
 	        ENVOY_VERSION_EXPECTED="envoy-static-stripped .*version:.* $(ENVOY_COMMIT)/.*"; \
 	        if ! echo "$$ENVOY_VERSION_OUTPUT" | grep "$$ENVOY_VERSION_EXPECTED"; then \
+	            { set +x; } &>/dev/null; \
 	            echo "error: Envoy base image $(ENVOY_DOCKER_TAG) contains envoy-static-stripped binary that reported an unexpected version string!" \
 	                 "See ENVOY_VERSION_OUTPUT and ENVOY_VERSION_EXPECTED in the output above. This error is usually not recoverable." \
 	                 "You may need to rebuild the Envoy base image after either updating ENVOY_COMMIT or bumping BASE_ENVOY_RELVER" \
@@ -274,6 +277,7 @@ update-base: $(OSS_HOME)/docker/base-envoy/envoy-static $(OSS_HOME)/docker/base-
 	            ENVOY_VERSION_OUTPUT=$$(docker run -it --entrypoint envoy-static-stripped $(ENVOY_DOCKER_TAG) --version | grep "version:"); \
 	            ENVOY_VERSION_EXPECTED="envoy-static-stripped .*version:.* $(ENVOY_COMMIT)/.*"; \
 	            if ! echo "$$ENVOY_VERSION_OUTPUT" | grep "$$ENVOY_VERSION_EXPECTED"; then \
+	                { set +x; } &>/dev/null; \
 	                echo "error: Envoy base image $(ENVOY_DOCKER_TAG) contains envoy-static-stripped binary that reported an unexpected version string!" \
 	                     "See ENVOY_VERSION_OUTPUT and ENVOY_VERSION_EXPECTED in the output above. This error is usually not recoverable." \
 	                     "You may need to rebuild the Envoy base image after either updating ENVOY_COMMIT or bumping BASE_ENVOY_RELVER" \
