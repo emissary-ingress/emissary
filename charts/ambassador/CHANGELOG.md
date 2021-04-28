@@ -7,6 +7,10 @@ numbering uses [semantic versioning](http://semver.org).
 
 - Feature: Expose values for managing Service Mesh integration config in the Helm chart.
 
+## v6.7.2
+
+- Bugfix: Don't change the Role name when running in singleNamespace mode.
+
 ## v6.7.1
 
 - Update Ambassador chart image to version v1.13.1: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
