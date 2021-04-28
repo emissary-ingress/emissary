@@ -145,13 +145,14 @@ start_cluster() {
     kubeconfig=${1}
     timeout=${2:-3600}
     profile=${3:-default}
+    version=${4:-1.19}
     retries=2
     if [ -e "${kubeconfig}" ]; then
         echo "cannot get cluster, kubeconfig ${kubeconfig} exists" 1>&2
         return 1
     fi
-    klusterurl="https://sw.bakerstreet.io/kubeception/api/klusters/ci-?generate=true&timeoutSecs=${timeout}&profile=${profile}"
-    printf "${BLU}Acquiring cluster:\n==${END}\n" 1>&2
+    klusterurl="https://sw.bakerstreet.io/kubeception/api/klusters/ci-?generate=true&timeoutSecs=${timeout}&profile=${profile}&version=${version}"
+    printf "${BLU}Acquiring cluster with K8s version ${version}:\n==${END}\n" 1>&2
     curl_retry $retries "200,425" "" -o "${kubeconfig}" -H "Authorization: bearer ${KUBECEPTION_TOKEN}" "${klusterurl}" -X PUT
     ret="$?"
     if [ "${ret}" -ne "0" ] ; then
