@@ -65,6 +65,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
+(no changes yet)
+
+## [1.13.2-rc.0] April 28, 2021
+[1.13.2-rc.0]: https://github.com/datawire/ambassador/compare/v1.13.1...v1.13.2-rc.0
+
 - Bugfix: Fixed a regression that cause endpoint routing to not work when defining mappings in service annotations ([#3369])
 
 [#3369]: https://github.com/datawire/ambassador/issues/3369
