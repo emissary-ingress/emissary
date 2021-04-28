@@ -186,7 +186,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `serviceMesh.consulConnect.connector`              | Create and configure the Consul Connector in the Chart. Set to `false` if you want to manually create and manage it. See the values file for more information.           |                                                                                                     |
 | `serviceMesh.consulConnect.consulServer`           | Configure different options for the Consul Server. See the values file for more information.                                                                             |                                                                                                     |
 | `serviceMesh.istio.enable`                         | Enable the Istio integration and have Helm automatically inject the Istio proxy sidecar. See the values file for more information.                                       | `false`                                                                                             |
-| `serviceMesh.istio.version`                        | The version of Istio that you are running. **This must be set!**                                                                                                         | `""`                                                                                                |
+| `serviceMesh.istio.image`                          | Where to pull the image of Istio that you are running. **This must be set!**                                                                                             |                                                                                                     |
 | `serviceMesh.istio.tlsContext`                     | Manage the `TLSContext` created to expose Istio mTLS certificates to Ambassador. See the values file for more information.                                               |                                                                                                     |
 | `servicePreview.enabled`                           | If true, install Service Preview components: traffic-manager & traffic-agent (`enableAES` needs to also be to `true`)                                                    | `false`                                                                                             |
 | `servicePreview.trafficManager.image.repository`   | Ambassador Traffic-manager image                                                                                                                                         | Same value as `image.repository`                                                                    |
@@ -354,10 +354,12 @@ serviceMesh:
     ## sidecarContainers value.
     enable: false
 
-    ## Version of the Istio sidecar to inject. 
+    ## Which image of the Istio sidecar to inject. 
     ##
     ## NOTE!! Must match the version of Istio you are running.
-    version: 
+    image:
+      repository: istio/proxyv2
+      tag:
 
     tlsContext:
       ## Controls whether the chart should create the TLSContext that Ambassador
