@@ -306,7 +306,7 @@ spec:
       {{- if .Values.serviceMesh.istio.enable }}
         - name: istio-proxy
           # Use the same version as your Istio installation
-          image: istio/proxyv2:{{ .Values.serviceMesh.istio.version }}
+          image: {{ .Values.serviceMesh.istio.image.repository }}:{{ .Values.serviceMesh.istio.image.tag }}
           args:
           - proxy
           - sidecar

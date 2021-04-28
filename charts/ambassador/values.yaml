@@ -498,10 +498,12 @@ serviceMesh:
     ## sidecarContainers value.
     enable: false
 
-    ## Version of the Istio sidecar to inject. 
+    ## Which image of the Istio sidecar to inject. 
     ##
     ## NOTE!! Must match the version of Istio you are running.
-    version: 
+    image:
+      repository: istio/proxyv2
+      tag:
 
     tlsContext:
       ## Controls whether the chart should create the TLSContext that Ambassador
