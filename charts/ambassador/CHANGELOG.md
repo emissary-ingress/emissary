@@ -5,6 +5,10 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+(no changes yet)
+
+## v6.7.2
+
 - Bugfix: Don't change the Role name when running in singleNamespace mode.
 
 ## v6.7.1
