@@ -63,7 +63,7 @@ if [ -n "${KUBECEPTION_TOKEN}" ]; then
     tries=0
     while true ; do
         # get a kluster with a 1-hour timeout (by default) that is size "large" (by default)
-        get_cluster ${DEV_KUBECONFIG} ${KUBECEPTION_TIMEOUT:-3600} ${KUBECEPTION_PROFILE:-large}
+        get_cluster ${DEV_KUBECONFIG} ${KUBECEPTION_TIMEOUT:-3600} ${KUBECEPTION_PROFILE:-large} ${KUBECEPTION_VERSION:-1.19}
         ret=$?
         if [ "$ret" == "0" ] ; then
             wait_for_kubeconfig ${DEV_KUBECONFIG}
