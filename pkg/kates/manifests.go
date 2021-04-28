@@ -80,7 +80,7 @@ func NewUnstructuredFromObject(obj Object) (result *Unstructured, err error) {
 	return
 }
 
-func ParseManifests(text string) ([]Object, error) {
+func parseManifests(text string, structured bool) ([]Object, error) {
 	yr := utilyaml.NewYAMLReader(bufio.NewReader(strings.NewReader(text)))
 
 	var result []Object
@@ -110,11 +110,19 @@ func ParseManifests(text string) ([]Object, error) {
 		if err != nil {
 			return nil, err
 		}
+		var obj Object
 
-		obj, err := newFromGVK(tm.GroupVersionKind())
-		if err != nil {
-			return nil, err
+		if structured {
+			obj, err = newFromGVK(tm.GroupVersionKind())
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			un := &Unstructured{}
+			un.SetGroupVersionKind(tm.GroupVersionKind())
+			obj = un
 		}
+
 		err = yaml.Unmarshal(bs, obj)
 		if err != nil {
 			return nil, err
@@ -124,6 +132,15 @@ func ParseManifests(text string) ([]Object, error) {
 	}
 
 	return result, nil
+
+}
+
+func ParseManifestsToUnstructured(text string) ([]Object, error) {
+	return parseManifests(text, false)
+}
+
+func ParseManifests(text string) ([]Object, error) {
+	return parseManifests(text, true)
 }
 
 func HasOwnerReference(owner, other Object) bool {
