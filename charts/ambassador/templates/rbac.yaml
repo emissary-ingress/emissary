@@ -51,14 +51,14 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1beta1
 {{- if .Values.scope.singleNamespace }}
 kind: Role
+metadata:
+  name: {{ include "ambassador.rbacName" . }}
+  namespace: {{ include "ambassador.namespace" . }}
 {{- else }}
 kind: ClusterRole
-{{- end }}
 metadata:
   name: {{ include "ambassador.rbacName" . }}-watch
-  {{- if .Values.scope.singleNamespace }}
-  namespace: {{ include "ambassador.namespace" . }}
-  {{- end }}
+{{- end }}
   labels:
     {{- if ne .Values.deploymentTool "getambassador.io" }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
@@ -191,7 +191,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: {{ include "ambassador.rbacName" . }}-watch
+  name: {{ include "ambassador.rbacName" . }}
 subjects:
   - name: {{ include "ambassador.serviceAccountName" . }}
     namespace: {{ include "ambassador.namespace" . }}
