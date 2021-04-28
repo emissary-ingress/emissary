@@ -158,7 +158,7 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	        ); \
 	    fi; \
 	}
-%-stripped: % $(ENOVY_BASH.deps) FORCE
+%-stripped: % FORCE
 	@PS4=; set -ex; { \
 	    if [ '$(ENVOY_COMMIT)' != '-' ] && docker run --rm --entrypoint=true $(ENVOY_FULL_DOCKER_TAG); then \
 	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_FULL_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/$(@F) $@; \
