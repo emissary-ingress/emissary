@@ -42,6 +42,7 @@ func info() *k8s.KubeInfo {
 }
 
 func TestUpdateStatus(t *testing.T) {
+	t.Parallel()
 	w := k8s.MustNewWatcher(info())
 
 	svc := fetch(w, "services", "kubernetes.default")
@@ -67,6 +68,7 @@ func TestUpdateStatus(t *testing.T) {
 }
 
 func TestWatchCustom(t *testing.T) {
+	t.Parallel()
 	w := k8s.MustNewWatcher(info())
 
 	// XXX: we can only watch custom resources... k8s doesn't
@@ -83,6 +85,7 @@ func TestWatchCustom(t *testing.T) {
 }
 
 func TestWatchCustomCollision(t *testing.T) {
+	t.Parallel()
 	w := k8s.MustNewWatcher(info())
 
 	easter := fetch(w, "csrv", "easter.default")
@@ -98,6 +101,7 @@ func TestWatchCustomCollision(t *testing.T) {
 }
 
 func TestWatchQuery(t *testing.T) {
+	t.Parallel()
 	w := k8s.MustNewWatcher(info())
 
 	services := []string{}
