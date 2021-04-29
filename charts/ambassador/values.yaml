@@ -159,8 +159,6 @@ service:
 
   annotations: {}
 
-  # Manually set the name of the generated Service
-  nameOverride:
   #############################################################################
   ## Ambassador should be configured using CRD definition. If you want
   ## to use annotations, the following is an example of annotating the
@@ -209,6 +207,9 @@ service:
   #      retry_policy:
   #        retry_on: "5xx"
   #      cors:
+
+  # Manually set the name of the generated Service
+  nameOverride:
 
 adminService:
   create: true
