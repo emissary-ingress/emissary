@@ -437,7 +437,7 @@ serviceMesh:
     enable: false
 
     connector:
-      ## The Consul Connector is used to export the mTLS certificates used by 
+      ## The Consul Connector is used to export the mTLS certificates used by
       ## Consul to a Kubernetes Secret.
       ##
       ## Default: true
@@ -459,14 +459,14 @@ serviceMesh:
         ##
         ## Default: ambassador-consul
         name: ambassador-consul
-    
+
     consulServer:
       ## The address you can reach Consul on.
       ##
       ## Default: The IP address of the host machine.
       # address:
 
-      ## The port you can reach the Consul on. 
+      ## The port you can reach the Consul on.
       ##
       ## Defaults: 8500 for HTTP 8501 for HTTPS
       port: 8500
@@ -477,7 +477,7 @@ serviceMesh:
         ## Default: false
         enabled: false
 
-        ## Toggle whether Ambassador should validate the Consul server 
+        ## Toggle whether Ambassador should validate the Consul server
         ## certificate
         ##
         ## Default: false
@@ -498,7 +498,7 @@ serviceMesh:
     ## sidecarContainers value.
     enable: false
 
-    ## Which image of the Istio sidecar to inject. 
+    ## Which image of the Istio sidecar to inject.
     ##
     ## NOTE!! Must match the version of Istio you are running.
     image:
