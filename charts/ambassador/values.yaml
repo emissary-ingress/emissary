@@ -436,7 +436,7 @@ resolvers:
 # https://www.getambassador.io/docs/edge-stack/latest/topics/running/ambassador
 # for more info on the available options.
 #
-# Note: The Module can only be named ambassador. There can only be one Module 
+# Note: The Module can only be named ambassador. There can only be one Module
 # installed per-namespace.
 module: {}
 
