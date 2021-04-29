@@ -14,6 +14,7 @@ import (
 )
 
 func TestGatewayMatches(t *testing.T) {
+	t.Parallel()
 	envoy.SetupRequestLogger(t, ":9000", ":9002")
 	e := envoy.SetupEnvoyController(t, ":8003")
 	envoy.SetupEnvoy(t, envoy.GetLoopbackAddr(8003), "8080:8080")
@@ -122,6 +123,7 @@ spec:
 }
 
 func TestBadMatchTypes(t *testing.T) {
+	t.Parallel()
 	d := makeDispatcher(t)
 
 	// One rule for each type of path match (exact, prefix, regex) and each type of header match

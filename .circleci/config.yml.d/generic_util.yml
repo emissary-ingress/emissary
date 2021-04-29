@@ -5,6 +5,19 @@
 version: 2.1
 
 commands:
+  "install-gotestsum":
+    steps:
+    - run:
+        name: "Install gotestsum"
+        command: |
+          go get gotest.tools/gotestsum
+  "install-redis":
+    steps:
+    - run:
+        name: "Install Redis"
+        command: |
+          sudo apt update -y
+          sudo apt install -y redis-server
 
   "install-k3d":
     parameters:

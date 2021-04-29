@@ -249,6 +249,9 @@ func IsAmbassadorSingleNamespace() bool {
 }
 
 func IsEdgeStack() bool {
+	if envbool("EDGE_STACK") {
+		return true
+	}
 	_, err := os.Stat("/ambassador/.edge_stack")
 	if err == nil {
 		return true

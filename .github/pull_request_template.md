@@ -7,28 +7,38 @@ List related issues.
 ## Testing
 A few sentences describing what testing you've done, e.g., manual tests, automated tests, deployed in production, etc.
 
-## Tasks That Must Be Done
-- [ ] Did you update CHANGELOG.md?
-  + [ ] Is this a new feature?
-  + [ ] Are there any non-backward-compatible changes?
-  + [ ] Did the envoy version change?
-  + [ ] Are there any deprecations?
-  + [ ] Will the changes impact how ambassador performs at scale?
-    - [ ] Might an existing production deployment need to change:
-      + memory limits?
-      + cpu limits?
-      + replica counts?
-    - [ ] Does the change impact data-plane latency/scalability?
-- [ ] Is your change adequately tested?
-  + [ ] Was their sufficient test coverage for the area changed?
-  + [ ] Do the existing tests capture the requirements for the area changed?
-  + [ ] Is the bulk of your code covered by unit tests?
-  + [ ] Does at least one end-to-end test cover the integration points your change depends on?
-- [ ] Did you update documentation?
-- [ ] Were there any special dev tricks you had to use to work on this code efficiently?
-  + [ ] Did you add them to DEVELOPING.md?
-- [ ] Is this a build change?
-  + [ ] If so, did you test on both Mac and Linux?
+## Checklist
 
-## Other
-* If this is a documentation change for a particular release, please open the pull request against the release branch.
+<!--
+  Please review the requirements for each checkbox, and check them
+  off (change "[ ]" to "[x]") as you verify that they are complete.
+-->
+
+ - [ ] I made sure to update `CHANGELOG.md`.
+   
+   Remember, the CHANGELOG needs to mention:
+    + Any new features
+    + Any changes to our included version of Envoy
+    + Any non-backward-compatible changes
+    + Any deprecations
+ 
+ - [ ] This is unlikely to impact how Ambassador performs at scale.
+ 
+   Remember, things that might have an impact at scale include:
+    + Any significant changes in memory use that might require adjusting the memory limits
+    + Any significant changes in CPU use that might require adjusting the CPU limits
+    + Anything that might change how many replicas users should use
+    + Changes that impact data-plane latency/scalability
+ 
+ - [ ] My change is adequately tested.
+ 
+   Remember when considering testing:
+    + Your change needs to be specifically covered by tests.
+       + Tests need to cover all the states where your change is relevant: for example, if you add a behavior that can be enabled or disabled, you'll need tests that cover the enabled case and tests that cover the disabled case. It's not sufficient just to test with the behavior enabled.
+    + You also need to make sure that the _entire area being changed_ has adequate test coverage.
+       + If existing tests don't actually cover the entire area being changed, add tests.
+       + This applies even for aspects of the area that you're not changing – check the test coverage, and improve it if needed!
+    + We should lean on the bulk of code being covered by unit tests, but...
+    + ... an end-to-end test should cover the integration points
+ 
+ - [ ] I updated `DEVELOPING.md` with any any special dev tricks I had to use to work on this code efficiently.

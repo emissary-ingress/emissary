@@ -118,7 +118,6 @@ security:
     #     rule: MustRunAsNonRoot
 
 image:
-  repository: docker.io/datawire/aes
   tag: 1.13.2
   pullPolicy: IfNotPresent
 

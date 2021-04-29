@@ -100,6 +100,38 @@ commands:
     # teardown
     - dirty-check
     - amb-images-save-workspace
+  "job-gotest":
+    parameters:
+      "fast-reconfigure":
+        type: boolean
+        default: false
+      "legacy-mode":
+        type: boolean
+        default: false
+    steps:
+    # setup
+    - amb-linux-install
+    - install-gotestsum
+    - amb-checkout
+    - skip-if-only-changes:
+        to: docs/
+    - amb-config-registry
+    - run:
+        name: "Test"
+        no_output_timeout: "30m"
+        command: |
+          export DEV_KUBE_NO_PVC=yes
+          export KAT_REQ_LIMIT=900
+          export AMBASSADOR_LEGACY_MODE=<< parameters.legacy-mode >> # ParseBool
+          export AMBASSADOR_FAST_RECONFIGURE=<< parameters.fast-reconfigure >> # ParseBool
+          export TEST_XML_DIR=/tmp/test-logs/xml/
+          mkdir -p ${TEST_XML_DIR}
+          make gotest
+    # teardown
+    - amb-save-logs
+    - store_test_results:
+        path: /tmp/test-logs/xml/
+    - dirty-check
   "job-test":
     parameters:
       "test":
@@ -107,7 +139,6 @@ commands:
         enum:
         - "test" # everything but pytest-envoy
         - "ingresstest"
-        - "gotest"
         - "pytest"
         - "pytest-envoy"
         - "pytest-envoy-v3"
@@ -131,6 +162,8 @@ commands:
         steps:
         - skip-if-only-changes:
             to: "(ambassador/|tests/pytest/gold/)"
+        - run: |
+            echo >>"$BASH_ENV" 'export USE_LOCAL_K3S_CLUSTER=1'
     - when:
         condition:
           or:
@@ -150,6 +183,8 @@ commands:
           # time it still runs OK if there's plenty of RAM.
           run: |
             echo >>"$BASH_ENV" 'export KUBECEPTION_PROFILE=large'
+    - install-helm
+    - install-k3d
     - amb-config-cluster-and-registry
     - # main
       run:
@@ -433,6 +468,19 @@ commands:
     - amb-checkout
     - skip-if-no-changes:
         to: docs/
+  install-gotestsum:
+    steps:
+    - run:
+        name: "Install gotestsum"
+        command: |
+          go get gotest.tools/gotestsum
+  install-redis:
+    steps:
+    - run:
+        name: "Install Redis"
+        command: |
+          sudo apt update -y
+          sudo apt install -y redis-server
   install-k3d:
     parameters:
       version:
@@ -641,6 +689,19 @@ jobs:
     steps:
     - job-images:
         release: << parameters.release >>
+  oss-gotest:
+    executor: oss-linux
+    parameters:
+      fast-reconfigure:
+        type: boolean
+        default: false
+      legacy-mode:
+        type: boolean
+        default: false
+    steps:
+    - job-gotest:
+        fast-reconfigure: << parameters.fast-reconfigure >>
+        legacy-mode: << parameters.legacy-mode >>
   oss-test:
     executor: oss-linux
     parameters:
@@ -649,7 +710,6 @@ jobs:
         enum:
         - "test" # everything but pytest-envoy
         - "ingresstest"
-        - "gotest"
         - "pytest"
         - "pytest-envoy"
         - "pytest-envoy-v3"
@@ -758,6 +818,19 @@ workflows:
         name: "oss-dev-lint"
     - oss-chart:
         name: "oss-dev-chart"
+    - oss-gotest:
+        name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure
+          >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
+        matrix:
+          alias: "oss-dev-gotest"
+          parameters:
+            fast-reconfigure:
+            - true
+            - false
+            legacy-mode:
+            - false
+            # If you enable testing with legacy-mode true as well, you'll also need
+            # to add some exclusions -- see the Release workflow for more.
     - oss-test:
         requires:
         - "oss-dev-images"
@@ -768,7 +841,6 @@ workflows:
           alias: "oss-dev-test"
           parameters:
             test:
-            - "gotest"
             - "pytest"
             - "pytest-envoy"
             - "pytest-envoy-v3"
@@ -834,6 +906,27 @@ workflows:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
           branches:
             ignore: /.*/
+    - oss-gotest:
+        name: "oss-release-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
+          >>"
+        matrix:
+          alias: "oss-release-gotest"
+          parameters:
+            fast-reconfigure:
+            - true
+            - false
+            legacy-mode:
+            - true
+            - false
+          exclude:
+          - fast-reconfigure: true
+            legacy-mode: true
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
     - oss-test:
         requires:
         - "oss-release-images"
@@ -844,7 +937,6 @@ workflows:
           alias: "oss-release-test"
           parameters:
             test:
-            - "gotest"
             - "pytest"
             - "pytest-envoy"
             - "pytest-envoy-v3"
@@ -861,9 +953,6 @@ workflows:
             - true
             - false
           exclude:
-          - test: gotest
-            fast-reconfigure: true
-            legacy-mode: true
           - test: pytest
             fast-reconfigure: true
             legacy-mode: true
@@ -907,6 +996,22 @@ workflows:
     jobs:
     - oss-images:
         name: "oss-nightly-images"
+    - oss-gotest:
+        name: "oss-nightly-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
+          >>"
+        matrix:
+          alias: "oss-nightly-gotest"
+          parameters:
+            fast-reconfigure:
+            - true
+            - false
+            legacy-mode:
+            - true
+            - false
+          exclude:
+          - fast-reconfigure: true
+            legacy-mode: true
     - oss-test:
         requires:
         - "oss-nightly-images"
@@ -917,7 +1022,6 @@ workflows:
           alias: "oss-nightly-test"
           parameters:
             test:
-            - "gotest"
             - "pytest"
             - "pytest-envoy"
             # Running the ingresstests would require we install `kind` and
@@ -933,9 +1037,6 @@ workflows:
             - true
             - false
           exclude:
-          - test: gotest
-            fast-reconfigure: true
-            legacy-mode: true
           - test: pytest
             fast-reconfigure: true
             legacy-mode: true
