@@ -689,6 +689,18 @@ release/bits: images
 	docker push $(AMB_IMAGE_RC)
 .PHONY: release/bits
 
+release/yaml: FORCE
+	@cd $(OSS_HOME)/docs/yaml && pwd && \
+	if [ -z "$$VERSION" ]; then \
+		VERSION=$$(grep 'version: ' versions.yml | cut -d' ' -f2) ;\
+	fi ;\
+	printf "$(CYN)==> $(GRN)Publishing YAML for $(BLU)$$VERSION$(END)\n" ;\
+	for file in $$(find . -type f -name '*.yaml' | sed -e 's!^\./!!' | sort); do \
+		echo $$file ;\
+		sed -e "s/\\\$$version\\\$$/$$VERSION/g" < $$file | aws s3 cp - "s3://datawire-static-files/yaml/$$VERSION/$$file" ;\
+	done
+.PHONY: release/yaml
+
 release/promote-oss/.main:
 	@[[ "$(RELEASE_VERSION)"      =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
 	@[[ '$(PROMOTE_FROM_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
@@ -920,6 +932,11 @@ define _help.targets
     $(BLD)DO NOT$(END) run $(BLD)$(MAKE) $(BLU)pytest-gold$(END) if you have failing tests.
 
   $(BLD)$(MAKE) $(BLU)shell$(END)        -- starts a shell in the build container
+
+  $(BLD)$(MAKE) $(BLU)release/yaml$(END) -- push the YAML to S3 so they're accessible
+
+    The YAML files are versioned. Set $(BLD)VERSION$(END) to override the version; otherwise the version
+	defined in $(OSS_HOME)/docs/yaml/versions.yml will be use.
 
   $(BLD)$(MAKE) $(BLU)release/bits$(END) -- do the 'push some bits' part of a release
 

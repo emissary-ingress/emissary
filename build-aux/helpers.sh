@@ -177,6 +177,8 @@ await_cluster() {
 		return $ret
 	fi
     printf "${BLU}Cluster ${name} acquired:\n==${END}\n" 1>&2
+    kubectl version
+    printf "${BLU}==${END}\n" 1>&2
     cat "${kubeconfig}" 1>&2
     printf "${BLU}==${END}\n" 1>&2
 }
