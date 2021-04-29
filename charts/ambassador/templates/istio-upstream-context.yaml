@@ -1,0 +1,25 @@
+{{- if and .Values.serviceMesh.istio.enable .Values.serviceMesh.istio.tlsContext.create }}
+---
+apiVersion: getambassador.io/v2
+kind: TLSContext
+metadata:
+  name: {{ .Values.serviceMesh.istio.tlsContext.name }}
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    app.kubernetes.io/component: {{ include "ambassador.name" . }}-consul-connect
+    {{- end }}
+    product: aes
+spec:
+  secret: istio-certs     # This secret name tracks the Istio certificates read from /etc/istio-certs
+  alpn_protocols: istio
+{{- end }}

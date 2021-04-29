@@ -73,6 +73,9 @@ spec:
         {{- if ne .Values.deploymentTool "getambassador.io" }}
         checksum/config: {{ include (print $.Template.BasePath "/config.yaml") . | sha256sum }}
         {{- end }}
+      {{- if .Values.serviceMesh.istio.enable }}
+        sidecar.istio.io/inject: 'false'
+      {{- end }}
       {{- if .Values.podAnnotations }}
         {{- toYaml .Values.podAnnotations | nindent 8 }}
       {{- end }}
@@ -133,6 +136,26 @@ spec:
         {{- end }}
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.serviceMesh.istio.enable }}
+        - name: istio-certs
+          emptyDir:
+            medium: Memory
+        - name: istiod-ca-cert
+          configMap:
+            defaultMode: 420
+            name: istio-ca-root-cert
+        - emptyDir:
+            medium: Memory
+          name: istio-envoy
+        - name: istio-token
+          projected:
+            defaultMode: 420
+            sources:
+            - serviceAccountToken:
+                audience: istio-ca
+                expirationSeconds: 43200
+                path: istio-token
       {{- end }}
       {{- with .Values.initContainers }}
       initContainers:
@@ -228,6 +251,18 @@ spec:
               {{- toYaml . | nindent 12 }}
             {{- end }}
             {{- end }}
+            {{- if .Values.serviceMesh.consulConnect.enable }}
+            - name: CONSUL_HTTP_SSL_VERIFY
+              value: {{ .Values.serviceMesh.consulConnect.consulServer.tls.validate | quote }}
+            - name: CONSUL_HTTP_TOKEN
+              value: {{ .Values.serviceMesh.consulConnect.consulServer.aclToken | quote }}
+            {{- end }}
+            {{- if .Values.serviceMesh.istio.enable }}
+            - name: AMBASSADOR_ENVOY_BASE_ID
+              value: "1"
+            - name: AMBASSADOR_ISTIO_SECRET_DIR
+              value: /etc/istio-certs
+            {{- end }}
           {{- with .Values.security.containerSecurityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
@@ -259,10 +294,99 @@ spec:
           {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- if .Values.serviceMesh.istio.enable }}
+            - name: istio-certs
+              mountPath: /etc/istio-certs/
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.sidecarContainers }}
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.serviceMesh.istio.enable }}
+        - name: istio-proxy
+          # Use the same version as your Istio installation
+          image: {{ .Values.serviceMesh.istio.image.repository }}:{{ .Values.serviceMesh.istio.image.tag }}
+          args:
+          - proxy
+          - sidecar
+          - --domain
+          - $(POD_NAMESPACE).svc.cluster.local
+          - --serviceCluster
+          - istio-proxy-ambassador
+          - --discoveryAddress
+          - istio-pilot.istio-system.svc:15012
+          - --connectTimeout
+          - 10s
+          - --statusPort
+          - "15020"
+          - --trust-domain=cluster.local
+          - --controlPlaneBootstrap=false
+          env:
+          - name: OUTPUT_CERTS
+            value: "/etc/istio-certs"
+          - name: JWT_POLICY
+            value: third-party-jwt
+          - name: PILOT_CERT_PROVIDER
+            value: istiod
+          - name: CA_ADDR
+            value: istiod.istio-system.svc:15012
+          - name: ISTIO_META_MESH_ID
+            value: cluster.local
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: INSTANCE_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: SERVICE_ACCOUNT
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.serviceAccountName
+          - name: HOST_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          - name: ISTIO_META_POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: ISTIO_META_CONFIG_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: ISTIO_META_CLUSTER_ID
+            value: Kubernetes
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /healthz/ready
+              port: 15020
+              scheme: HTTP
+            initialDelaySeconds: 1
+            periodSeconds: 2
+            successThreshold: 1
+            timeoutSeconds: 1
+          volumeMounts:
+          - mountPath: /var/run/secrets/istio
+            name: istiod-ca-cert
+          - mountPath: /etc/istio/proxy
+            name: istio-envoy
+          - mountPath: /etc/istio-certs/
+            name: istio-certs
+          - mountPath: /var/run/secrets/tokens
+            name: istio-token
+          securityContext:
+            runAsUser: 0
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

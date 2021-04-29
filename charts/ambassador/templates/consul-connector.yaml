@@ -1,0 +1,210 @@
+{{- if and .Values.serviceMesh.consulConnect.enable .Values.serviceMesh.consulConnect.connector.create }}
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: {{ include "ambassador.fullname" . }}-consul-connect
+  labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    {{- end }}
+    product: aes
+rules:
+  - apiGroups: [""]
+    resources:
+      - secrets
+    verbs: ["get", "list", "create", "delete", "patch"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "ambassador.fullname" . }}-consul-connect
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    {{- end }}
+    product: aes  
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "ambassador.fullname" . }}-consul-connect
+  labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    {{- end }}
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "ambassador.fullname" . }}-consul-connect
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "ambassador.fullname" . }}-consul-connect
+    namespace: {{ include "ambassador.namespace" . }}
+---
+apiVersion: getambassador.io/v2
+kind: TLSContext
+metadata:
+  name: {{ .Values.serviceMesh.consulConnect.connector.tlsContext.name }}
+  {{- if .Values.serviceMesh.consulConnect.connector.secret.namespace }}
+  namespace: {{ .Values.serviceMesh.consulConnect.connector.secret.namespace }}
+  {{- else }}
+  namespace: {{ include "ambassador.namespace" . }}
+  {{- end }}
+  labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    app.kubernetes.io/component: {{ include "ambassador.name" . }}-consul-connect
+    {{- end }}
+    product: aes
+spec:
+  hosts: []
+  secret: {{ .Values.serviceMesh.consulConnect.connector.secret.name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ambassador.fullname" . }}-consul-connector
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    app.kubernetes.io/component: {{ include "ambassador.name" . }}-consul-connector
+    {{- end }}
+    product: aes
+  annotations:
+    a8r.io/owner: "Ambassador Labs"
+    a8r.io/repository: github.com/datawire/ambassador
+    a8r.io/description: "The Ambassador Edge Stack Consul Connect integration."
+    a8r.io/documentation: https://www.getambassador.io/docs/edge-stack/latest/
+    a8r.io/chat: http://a8r.io/Slack
+    a8r.io/bugs: https://github.com/datawire/ambassador/issues
+    a8r.io/support: https://www.getambassador.io/about-us/support/
+    a8r.io/dependencies: "consul-server.default"
+spec:
+  ports:
+  - name: ambassador-consul-connector
+    port: 80
+  selector:
+    component: consul-connect
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ambassador.fullname" . }}-consul-connect-integration
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    app.kubernetes.io/component: {{ include "ambassador.name" . }}-consul-connector
+    {{- end }}
+    product: aes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ambassador
+      component: consul-connect
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: ambassador
+        component: consul-connect
+      annotations:
+        "consul.hashicorp.com/connect-inject": "false"
+    spec:
+      serviceAccountName: {{ include "ambassador.fullname" . }}-consul-connect
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: consul-connect-integration
+          image: docker.io/datawire/aes:1.13.1
+          command: [ "consul_connect_integration" ]
+          resources:
+            limits:
+              cpu: 200m
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 50Mi
+          env:
+            # Consul runs as a DaemonSet on each Node therefore we need to talk to the Host machine.
+            # See: https://www.consul.io/docs/platform/k8s/run.html#architecture
+            - name: _CONSUL_HOST
+              {{- if .Values.serviceMesh.consulConnect.consulServer.address }}
+              value: {{ .Values.serviceMesh.consulConnect.consulServer.address }}
+              {{- else }}
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+              {{- end }}
+            - name: _CONSUL_PORT
+              value: {{ .Values.serviceMesh.consulConnect.consulServer.port | quote }}
+            - name: CONSUL_HTTP_SSL
+              value: {{ .Values.serviceMesh.consulConnect.consulServer.tls.enabled | quote }}
+            - name: CONSUL_HTTP_SSL_VERIFY
+              value: {{ .Values.serviceMesh.consulConnect.consulServer.tls.validate | quote }}
+            - name: CONSUL_HTTP_TOKEN
+              value: {{ .Values.serviceMesh.consulConnect.consulServer.aclToken | quote }}
+            - name: _AMBASSADOR_TLS_SECRET_NAME
+              value: {{ .Values.serviceMesh.consulConnect.connector.secret.name }}
+            - name: _AMBASSADOR_TLS_SECRET_NAMESPACE
+              {{- if .Values.serviceMesh.consulConnect.connector.secret.namespace }}
+              value: {{ .Values.serviceMesh.consulConnect.connector.secret.namespace }}
+              {{- else }}
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+              {{- end }}
+{{- end }}

@@ -5,7 +5,7 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
-(no changes yet)
+- Feature: Expose values for managing Service Mesh integration config in the Helm chart.
 
 ## v6.7.3
 
