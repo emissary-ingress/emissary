@@ -95,16 +95,17 @@ func TestBootstrap(t *testing.T) {
 }
 
 func setup(t *testing.T) (resolvers []*amb.ConsulResolver, mappings []*amb.Mapping, c *consul, tw *testWatcher) {
-	objs, err := kates.ParseManifests(manifests)
+	objs, err := kates.ParseManifestsToUnstructured(manifests)
 	require.NoError(t, err)
 
 	parent := &kates.Unstructured{}
 	parent.SetNamespace("default")
+	ctx := context.Background()
 
 	for _, obj := range objs {
-		obj = convertAnnotation(parent, obj)
-		obj.SetNamespace("default")
-		switch o := obj.(type) {
+		newobj := convertAnnotation(ctx, parent, obj)
+		newobj.SetNamespace("default")
+		switch o := newobj.(type) {
 		case *amb.ConsulResolver:
 			resolvers = append(resolvers, o)
 		case *amb.Mapping:

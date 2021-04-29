@@ -1,13 +1,14 @@
 package entrypoint
 
 import (
-	"log"
+	"context"
 
 	"github.com/datawire/ambassador/pkg/kates"
 	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
+	"github.com/datawire/dlib/dlog"
 )
 
-func parseAnnotations(a *snapshotTypes.KubernetesSnapshot) {
+func parseAnnotations(ctx context.Context, a *snapshotTypes.KubernetesSnapshot) {
 	var annotatable []kates.Object
 
 	for _, s := range a.Services {
@@ -18,22 +19,22 @@ func parseAnnotations(a *snapshotTypes.KubernetesSnapshot) {
 		annotatable = append(annotatable, i)
 	}
 
-	a.Annotations = GetAnnotations(annotatable...)
+	a.Annotations = GetAnnotations(ctx, annotatable...)
 }
 
 // GetAnnotations extracts and converts any parseable annotations from the supplied resource. It
 // omits any malformed annotations and does not report the errors. This is ok for now because the
 // python code will catch and report any errors.
-func GetAnnotations(resources ...kates.Object) (result []kates.Object) {
+func GetAnnotations(ctx context.Context, resources ...kates.Object) (result []kates.Object) {
 	for _, r := range resources {
 		ann, ok := r.GetAnnotations()["getambassador.io/config"]
 		if ok {
-			objs, err := kates.ParseManifests(ann)
+			objs, err := kates.ParseManifestsToUnstructured(ann)
 			if err != nil {
-				log.Printf("error parsing annotations: %v", err)
+				dlog.Errorf(ctx, "error parsing annotations: %v", err)
 			} else {
 				for _, o := range objs {
-					result = append(result, convertAnnotation(r, o))
+					result = append(result, convertAnnotation(ctx, r, o))
 				}
 			}
 		}
@@ -49,18 +50,17 @@ func GetAnnotations(resources ...kates.Object) (result []kates.Object) {
 //
 // NOTE: Right now this is only guaranteed to preserve enough fidelity to find secrets, this may
 // work well enough for other purposes, but some careful review is required before such use.
-func convertAnnotation(parent kates.Object, kobj kates.Object) kates.Object {
-
-	// XXX: steal luke's code
-
+func convertAnnotation(ctx context.Context, parent kates.Object, kobj kates.Object) kates.Object {
 	un, ok := kobj.(*kates.Unstructured)
 	if !ok {
 		return kobj
 	}
 
+	// XXX: steal luke's code
 	var tm kates.TypeMeta
 	err := convert(un, &tm)
 	if err != nil {
+		dlog.Debugf(ctx, "Error parsing type meta for annotation")
 		return un
 	}
 
@@ -73,6 +73,7 @@ func convertAnnotation(parent kates.Object, kobj kates.Object) kates.Object {
 	}
 
 	if gvk.Group != "getambassador.io" {
+		dlog.Debugf(ctx, "Annotation does not have group getambassador.io")
 		return un
 	}
 
