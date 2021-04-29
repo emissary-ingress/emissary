@@ -7,6 +7,10 @@ numbering uses [semantic versioning](http://semver.org).
 
 (no changes yet)
 
+## v6.7.3
+
+- Feature: The [Ambassador Module](https://www.getambassador.io/docs/edge-stack/latest/topics/running/ambassador/) can now be configured and managed by Helm
+
 ## v6.7.2
 
 - Bugfix: Don't change the Role name when running in singleNamespace mode.
