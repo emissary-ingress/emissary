@@ -38,6 +38,35 @@ func TestEndpointRouting(t *testing.T) {
 	assert.Equal(t, uint32(8080), endpoints.Entries["k8s/default/foo/80"][0].Port)
 }
 
+func TestEndpointRoutingMappingAnnotations(t *testing.T) {
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
+	// Create Mapping, Service, and Endpoints resources to start.
+	svc := makeService("default", "foo")
+	svc.ObjectMeta.Annotations = map[string]string{
+		"getambassador.io/config": `
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+name: foo
+prefix: /foo
+service: foo
+resolver: endpoint`,
+	}
+	f.Upsert(svc)
+	f.Upsert(makeEndpoints("default", "foo", makeSubset(8080, "1.2.3.4")))
+	f.Flush()
+	snap := f.GetSnapshot(HasService("default", "foo"))
+	assert.NotNil(t, snap)
+
+	// Check that the endpoints resource we created at the start was properly propagated.
+	endpoints := f.GetEndpoints(HasEndpoints("k8s/default/foo"))
+	assert.Equal(t, "1.2.3.4", endpoints.Entries["k8s/default/foo"][0].Ip)
+	assert.Equal(t, uint32(8080), endpoints.Entries["k8s/default/foo"][0].Port)
+	assert.Contains(t, endpoints.Entries, "k8s/default/foo/80")
+	assert.Equal(t, "1.2.3.4", endpoints.Entries["k8s/default/foo/80"][0].Ip)
+	assert.Equal(t, uint32(8080), endpoints.Entries["k8s/default/foo/80"][0].Port)
+}
+
 func TestEndpointRoutingMultiplePorts(t *testing.T) {
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 	// Create Mapping, Service, and Endpoints, except this time the Service has multiple ports.
@@ -138,6 +167,17 @@ spec:
 func ClusterNameContains(substring string) func(*envoy.Cluster) bool {
 	return func(c *envoy.Cluster) bool {
 		return strings.Contains(c.Name, substring)
+	}
+}
+
+func HasService(namespace, name string) func(snapshot *snapshot.Snapshot) bool {
+	return func(snapshot *snapshot.Snapshot) bool {
+		for _, m := range snapshot.Kubernetes.Services {
+			if m.Namespace == namespace && m.Name == name {
+				return true
+			}
+		}
+		return false
 	}
 }
 
