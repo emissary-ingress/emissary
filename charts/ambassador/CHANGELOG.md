@@ -7,6 +7,10 @@ numbering uses [semantic versioning](http://semver.org).
 
 (no changes yet)
 
+## v6.7.4
+
+- Feature: The [Ambassador Module](https://www.getambassador.io/docs/edge-stack/latest/topics/running/ambassador/) can now be configured and managed by Helm
+
 ## v6.7.3
 
 - Update Ambassador chart image to version v1.13.2: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
