@@ -127,7 +127,7 @@ _anchors:
   "filter-chart-release-only": &filter-chart-release-only
     filters:
       branches:
-        only: master
+        only: /^release\/v[0-9]+\.[0-9]+$/
 
 workflows:
   "OSS: Dev":
