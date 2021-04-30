@@ -50,6 +50,8 @@ commands:
       - amb-linux-install
       - amb-checkout
       - skip-if-no-new-chart
+      - run: |
+          ./charts/ambassador/ci/check_updated_changelog.sh
       - install-k3d
       # We might need to be logged in the registry to pull the Envoy
       # image or the builder-base image.
