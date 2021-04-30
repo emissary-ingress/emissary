@@ -26,6 +26,10 @@ while IFS= read -r line ; do
 done < ${TOP_DIR}/CHANGELOG.md
 
 mv ${new_changelog} ${TOP_DIR}/CHANGELOG.md
+if [[ -n "${DONT_COMMIT_DIFF}" ]] ; then
+    echo "DONT_COMMIT_DIFF is set, not committing"
+    exit 0
+fi
 
 if git diff --exit-code -- ${TOP_DIR}/CHANGELOG.md > /dev/null 2>&1 ; then
     echo "No changes to changelog, exiting"
@@ -45,5 +49,5 @@ elif [[ "${branch_name}" == "detached" ]] ; then
 fi
 branch_name=${branch_name##refs/heads/}
 git add ${TOP_DIR}/CHANGELOG.md
-git commit -m "[skip ci] Committing changelog for chart v${chart_version} from CI"
+git commit -m "Committing changelog for chart v${chart_version}"
 git push -u origin ${branch_name}
