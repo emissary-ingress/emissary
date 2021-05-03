@@ -67,6 +67,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 (no changes yet)
 
+## [1.13.3] May 03, 2021
+[1.13.3]: https://github.com/datawire/ambassador/compare/v1.13.2...v1.13.3
+
+- Bugfix: Fixed a regression that caused Ambassdor to crash when loading the Edge Policy Console when any RateLimit resources exist ([#3348])
+
 ## [1.13.2] April 29, 2021
 [1.13.2]: https://github.com/datawire/ambassador/compare/v1.13.1...v1.13.2
 
