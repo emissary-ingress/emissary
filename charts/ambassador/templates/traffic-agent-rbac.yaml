@@ -83,6 +83,7 @@ subjects:
 {{- else }}
 ## If we install Service Preview cluster-wide, this means we can't use the 'traffic-agent' ServiceAccount
 ## as it does not exist in every namespace. We must instead grant new Roles to all ServiceAccounts (cluster-wide).
+{{- if eq .Values.rbac.scope "all" }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
@@ -131,5 +132,6 @@ subjects:
   - name: system:serviceaccounts
     kind: Group
     apiGroup: rbac.authorization.k8s.io
+{{- end }}
 {{- end }}
 {{- end }}

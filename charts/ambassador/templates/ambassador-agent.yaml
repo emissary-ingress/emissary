@@ -92,6 +92,7 @@ rules:
 - apiGroups: [""]
   resources: [ "configmaps" ]
   verbs: [ "get", "list", "watch" ]
+{{- if eq .Values.rbac.scope "all" }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
@@ -211,6 +212,7 @@ rules:
 - apiGroups: ["argoproj.io"]
   resources: [ "applications" ]
   verbs: [ "get", "list", "watch" ]
+{{- end }}
 {{- end }}
 {{ if ne .Values.agent.cloudConnectToken "" }}
 ---

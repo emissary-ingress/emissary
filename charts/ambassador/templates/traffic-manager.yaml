@@ -17,6 +17,7 @@ metadata:
     {{- end }}
     product: aes
 ---
+{{- if or .Values.scope.singleNamespace (eq .Values.rbac.scope "all") }}
 apiVersion: rbac.authorization.k8s.io/v1beta1
 {{- if .Values.scope.singleNamespace }}
 kind: Role
@@ -74,6 +75,7 @@ subjects:
   - kind: ServiceAccount
     name: {{ .Values.servicePreview.trafficManager.serviceAccountName }}
     namespace: {{ include "ambassador.namespace" . }}
+{{- end }}
 ---
 apiVersion: apps/v1
 kind: Deployment

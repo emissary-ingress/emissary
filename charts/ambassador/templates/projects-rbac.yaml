@@ -1,4 +1,5 @@
 {{- if and .Values.rbac.create .Values.registry.create -}}
+{{- if or .Values.scope.singleNamespace (eq .Values.rbac.scope "all") }}
 apiVersion: rbac.authorization.k8s.io/v1beta1
 {{- if .Values.scope.singleNamespace }}
 kind: Role
@@ -72,4 +73,5 @@ subjects:
   - name: {{ include "ambassador.serviceAccountName" . }}
     namespace: {{ include "ambassador.namespace" . }}
     kind: ServiceAccount
+{{- end }}
 {{- end }}

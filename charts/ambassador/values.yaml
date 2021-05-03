@@ -222,6 +222,13 @@ adminService:
     {}
 
 rbac:
+  # if scope == namespaced, will only deploy namespaced rbac resources
+  # (Role, RoleBindings)
+  # and not cluster-wide rbac resources
+  # (ClusterRole, ClusterRoleBinding)
+  # rbac.scope=namespaced enables deploying ambassador with the same
+  # release name in multiple namespaces
+  scope: all
   # Specifies whether RBAC resources should be created
   create: true
   # List of Pod Security Policies to use on the container.

@@ -1,4 +1,5 @@
 {{- if .Values.rbac.create -}}
+{{- if eq .Values.rbac.scope "all" }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
@@ -48,6 +49,34 @@ rules:
     resources: [ "customresourcedefinitions" ]
     verbs: ["get", "list", "watch", "delete"]
 ---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "ambassador.rbacName" . }}
+  labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    {{- end }}
+    product: aes
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "ambassador.rbacName" . }}
+subjects:
+  - name: {{ include "ambassador.serviceAccountName" . }}
+    namespace: {{ include "ambassador.namespace" . }}
+    kind: ServiceAccount
+{{- end }}
+---
+{{- if or .Values.scope.singleNamespace (eq .Values.rbac.scope "all") }}
 apiVersion: rbac.authorization.k8s.io/v1beta1
 {{- if .Values.scope.singleNamespace }}
 kind: Role
@@ -142,32 +171,7 @@ rules:
     - {{ include "ambassador.fullname" . }}
     {{- end }}
   {{- end }}
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: {{ include "ambassador.rbacName" . }}
-  labels:
-    {{- if ne .Values.deploymentTool "getambassador.io" }}
-    app.kubernetes.io/name: {{ include "ambassador.name" . }}
-    app.kubernetes.io/part-of: {{ .Release.Name }}
-    helm.sh/chart: {{ include "ambassador.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- if .Values.deploymentTool }}
-    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
-    {{- else }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{- end }}
-    {{- end }}
-    product: aes
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: {{ include "ambassador.rbacName" . }}
-subjects:
-  - name: {{ include "ambassador.serviceAccountName" . }}
-    namespace: {{ include "ambassador.namespace" . }}
-    kind: ServiceAccount
+{{- end }}
 ---
 {{- if .Values.scope.singleNamespace }}
 apiVersion: rbac.authorization.k8s.io/v1beta1
