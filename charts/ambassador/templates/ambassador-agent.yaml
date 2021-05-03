@@ -42,6 +42,10 @@ metadata:
     {{- end }}
     {{- end }}
     product: aes
+{{- if .Values.docker.useImagePullSecret }}
+imagePullSecrets:
+- name: {{ .Values.docker.imagePullSecretName }}
+{{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
@@ -282,11 +286,7 @@ spec:
       serviceAccountName: {{ include "ambassador.fullname" . }}-agent
       containers:
       - name: agent
-        {{- if .Values.image.fullImageOverride }}
-        image: '{{ .Values.image.fullImageOverride }}'
-        {{- else }}
-        image: "{{ .Values.agent.image.repository | default .Values.image.repository }}:{{ .Values.agent.image.tag | default .Values.image.tag }}"
-        {{- end }}
+        image: {{ include "ambassador.image" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: [ "agent" ]
         env:

@@ -22,7 +22,7 @@ from ipaddress import ip_address
 
 from ..constants import Constants
 
-from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo, dump_json
+from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo, dump_json, parse_bool
 from ..cache import Cache, NullCache
 from ..config import Config
 
@@ -188,7 +188,10 @@ class IR:
         # within $AMBASSADOR_CONFIG_BASE_DIR: it stays in /ambassador no matter what.
 
         self.agent_active = (os.environ.get("AGENT_SERVICE", None) != None)
-        self.edge_stack_allowed = os.path.exists('/ambassador/.edge_stack')
+        # Allow an environment variable to state whether we're in Edge Stack. But keep the
+        # existing condition as sufficient, so that there is less of a chance of breaking
+        # things running in a container with this file present.
+        self.edge_stack_allowed = parse_bool(os.environ.get('EDGE_STACK', 'false')) or os.path.exists('/ambassador/.edge_stack')
         self.agent_origination_ctx = None
 
         # OK, time to get this show on the road. First things first: set up the
@@ -359,7 +362,7 @@ class IR:
                 # not necessarily the same. This is currently fine, since we never use
                 # envoy config as a source of truth - we leave that to the cluster annotations
                 # and CRDs.
-                # 
+                #
                 # Another important consideration is that when the cache is active, we need
                 # to shred any cached cluster with this mangled_name, because the mangled_name
                 # can change as new clusters appear! This is obviously not ideal.

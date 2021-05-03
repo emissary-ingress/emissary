@@ -45,7 +45,7 @@ click_option_no_default = functools.partial(click.option, show_default=False)
 
 from ambassador import Config, IR, Diagnostics, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
-from ambassador.utils import parse_yaml, SecretHandler, SecretInfo, dump_json
+from ambassador.utils import parse_yaml, SecretHandler, SecretInfo, dump_json, parse_bool
 from kat.utils import ShellCommand
 
 if TYPE_CHECKING:
@@ -294,7 +294,10 @@ class Mockery:
 
 class MockSecretHandler(SecretHandler):
     def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
-        if os.path.exists('/ambassador/.edge_stack'):
+        # Allow an environment variable to state whether we're in Edge Stack. But keep the
+        # existing condition as sufficient, so that there is less of a chance of breaking
+        # things running in a container with this file present.
+        if parse_bool(os.environ.get('EDGE_STACK', 'false')) or os.path.exists('/ambassador/.edge_stack'):
             if ((secret_name == "fallback-self-signed-cert") and
                 (namespace == Config.ambassador_namespace)):
                 # This is Edge Stack. Force the fake TLS secret.
