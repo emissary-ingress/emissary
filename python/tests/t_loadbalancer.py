@@ -30,7 +30,6 @@ spec:
 
 class LoadBalancerTest(AmbassadorTest):
     target: ServiceType
-    enable_endpoints = True
 
     def init(self):
         self.target = HTTP()
@@ -153,7 +152,6 @@ load_balancer:
 
 class GlobalLoadBalancing(AmbassadorTest):
     target: ServiceType
-    enable_endpoints = True
 
     def init(self):
         self.target = HTTP()
@@ -300,7 +298,6 @@ service: globalloadbalancing-service
 
 class PerMappingLoadBalancing(AmbassadorTest):
     target: ServiceType
-    enable_endpoints = True
     policy: str
 
     def init(self):
