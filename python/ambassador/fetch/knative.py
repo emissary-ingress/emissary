@@ -78,6 +78,7 @@ class KnativeIngressProcessor (ManagedKubernetesProcessor):
                     'weight': split.get('percent', 100),
                     'prefix': path.get('path', '/'),
                     'timeout_ms': int(durationpy.from_str(path.get('timeout', '15s')).total_seconds() * 1000),
+                    'idle_timeout_ms': int(durationpy.from_str(path.get('timeout', '15s')).total_seconds() * 1000),
                 })
 
         for split_count, (host, split_mapping_spec) in enumerate(itertools.product(hosts, split_mapping_specs)):
