@@ -119,7 +119,7 @@ security:
 
 image:
   repository: docker.io/datawire/aes
-  tag: 1.13.3
+  tag: 1.13.2
   pullPolicy: IfNotPresent
 
 dnsPolicy: "ClusterFirst"
@@ -159,8 +159,6 @@ service:
 
   annotations: {}
 
-  # Manually set the name of the generated Service
-  nameOverride:
   #############################################################################
   ## Ambassador should be configured using CRD definition. If you want
   ## to use annotations, the following is an example of annotating the
@@ -209,6 +207,9 @@ service:
   #      retry_policy:
   #        retry_on: "5xx"
   #      cors:
+
+  # Manually set the name of the generated Service
+  nameOverride:
 
 adminService:
   create: true
@@ -430,6 +431,14 @@ resolvers:
     # Configuration for a Consul Resolver
     #   address: consul-server.default.svc.cluster.local:8500
     #   datacenter: dc1
+
+# Create and manage an Ambassador Module from the Helm Chart. See:
+# https://www.getambassador.io/docs/edge-stack/latest/topics/running/ambassador
+# for more info on the available options.
+#
+# Note: The Module can only be named ambassador. There can only be one Module
+# installed per-namespace.
+module: {}
 
 ################################################################################
 ## DEPRECATED configuration objects                                           ##
