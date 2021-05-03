@@ -48,7 +48,7 @@ This chart defaults to installing The Ambassador Edge Stack with all of its conf
 - `RateLimitService` resource for enabling rate limiting
 - `Mapping`s for internal request routing
 
-If installing alongside another deployment of Ambassador, some of these resources can cause configuration errors since only one `AuthService` or `RateLimitService` can be configured at a time. 
+If installing alongside another deployment of Ambassador, some of these resources can cause configuration errors since only one `AuthService` or `RateLimitService` can be configured at a time.
 
 If you already have one of these resources configured in your cluster, please see the [configuration](#configuration) section below for information on how to disable them in the chart.
 
@@ -100,7 +100,7 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `envRaw`                                           | Additional environment variables in raw YAML format                                                                                                                      | `{}`                                                                                                |
 | `image.pullPolicy`                                 | Ambassador image pull policy                                                                                                                                             | `IfNotPresent`                                                                                      |
 | `image.repository`                                 | Ambassador image                                                                                                                                                         | `docker.io/datawire/aes`                                                                            |
-| `image.tag`                                        | Ambassador image tag                                                                                                                                                     | `1.13.2`                                                                                             |
+| `image.tag`                                        | Ambassador image tag                                                                                                                                                     | `1.13.3`                                                                                             |
 | `imagePullSecrets`                                 | Image pull secrets                                                                                                                                                       | `[]`                                                                                                |
 | `namespace.name`                                   | Set the `AMBASSADOR_NAMESPACE` environment variable                                                                                                                      | `metadata.namespace`                                                                                |
 | `scope.singleNamespace`                            | Set the `AMBASSADOR_SINGLE_NAMESPACE` environment variable and create namespaced RBAC if `rbac.enabled: true`                                                            | `false`                                                                                             |
@@ -168,11 +168,12 @@ The following tables lists the configurable parameters of the Ambassador chart a
 | `autoscaling.maxReplicas`                          | If autoscaling enabled, this field sets maximum replica count                                                                                                            | `5`                                                                                                 |
 | `autoscaling.metrics`                              | If autoscaling enabled, configure hpa metrics                                                                                                                            |                                                                                                     |
 | `podDisruptionBudget`                              | Pod disruption budget rules                                                                                                                                              | `{}`                                                                                                |
-| `resolvers.endpoint.create` | Create a KubernetesEndpointResolver | `false` |
-| `resolvers.endpoint.name` | If creating a KubernetesEndpointResolver, the resolver name | `endpoint` |
-| `resolvers.consul.create` | Create a ConsulResolver | `false` |
-| `resolvers.consul.name` | If creating a ConsulResolver, the resolver name | `consul-dc1` |
-| `resolvers.consul.spec` | If creating a ConsulResolver, additional configuration | `{}` |
+| `resolvers.endpoint.create`                        | Create a KubernetesEndpointResolver                                                                                                                                      | `false`                                                                                             |
+| `resolvers.endpoint.name`                          | If creating a KubernetesEndpointResolver, the resolver name                                                                                                              | `endpoint`                                                                                          |
+| `resolvers.consul.create`                          | Create a ConsulResolver                                                                                                                                                  | `false`                                                                                             |
+| `resolvers.consul.name`                            | If creating a ConsulResolver, the resolver name                                                                                                                          | `consul-dc1`                                                                                        |
+| `resolvers.consul.spec`                            | If creating a ConsulResolver, additional configuration                                                                                                                   | `{}`                                                                                                |
+| `module`                                           | Configure and manage the Ambassador Module from the Chart                                                                                                                | `{}`                                                                                                |
 | `prometheusExporter.enabled`                       | DEPRECATED: Prometheus exporter side-car enabled                                                                                                                         | `false`                                                                                             |
 | `prometheusExporter.pullPolicy`                    | DEPRECATED: Image pull policy                                                                                                                                            | `IfNotPresent`                                                                                      |
 | `prometheusExporter.repository`                    | DEPRECATED: Prometheus exporter image                                                                                                                                    | `prom/statsd-exporter`                                                                              |
@@ -204,23 +205,23 @@ The following tables lists the configurable parameters of the Ambassador chart a
 
 ### The Ambasssador Edge Stack
 
-The Ambassador Edge Stack provides a comprehensive, self-service edge stack in 
-the Kubernetes cluster with a decentralized deployment model and a declarative 
-paradigm. 
+The Ambassador Edge Stack provides a comprehensive, self-service edge stack in
+the Kubernetes cluster with a decentralized deployment model and a declarative
+paradigm.
 
-By default, this chart will install the latest image of The Ambassador Edge 
+By default, this chart will install the latest image of The Ambassador Edge
 Stack which will replace your existing deployment of Ambassador with no changes
 to functionality.
 
-### CRDs 
+### CRDs
 
 This helm chart includes the creation of the core CRDs Ambassador uses for
-configuration. 
+configuration.
 
 The `crds` flags (Helm 2 only) let you configure how a release manages crds.
-- `crds.create` Can only be set on your first/master Ambassador release. 
+- `crds.create` Can only be set on your first/master Ambassador release.
 - `crds.enabled` Should be set on all releases using Ambassador CRDs
-- `crds.keep` Configures if the CRDs are deleted when the master release is 
+- `crds.keep` Configures if the CRDs are deleted when the master release is
   purged. This value is only checked for the master release and can be set to
   any value on secondary releases.
 
@@ -249,7 +250,7 @@ security:
   #
   # A set of reasonable defaults is outlined below. This is not created by default as it should only
   # be created by a one Release. If you want to use the PodSecurityPolicy in the chart, create it in
-  # the "master" Release and then leave it unset in all others. Set the `rbac.podSecurityPolicies` 
+  # the "master" Release and then leave it unset in all others. Set the `rbac.podSecurityPolicies`
   # in all non-"master" Releases.
   podSecurityPolicy: {}
     # # Add AppArmor and Seccomp annotations
@@ -400,9 +401,9 @@ service:
 
 This change has also replaced the `.additionalTCPPorts` configuration. Additional TCP ports can be created the same as the http and https ports above.
 
-### Annotations and `service_port` 
+### Annotations and `service_port`
 
-The below Ambassador `Module` annotation is no longer being applied by default. 
+The below Ambassador `Module` annotation is no longer being applied by default.
 
 ```yaml
 getambassador.io/config: |
@@ -415,7 +416,7 @@ getambassador.io/config: |
 ```
 This was causing confusion with the `service_port` being hard-coded when enabling TLS termination in Ambassador.
 
-Ambassador has been listening on port 8080 for HTTP and 8443 for HTTPS by default since version `0.60.0` (chart version 2.2.0). 
+Ambassador has been listening on port 8080 for HTTP and 8443 for HTTPS by default since version `0.60.0` (chart version 2.2.0).
 
 ### RBAC and CRDs
 
