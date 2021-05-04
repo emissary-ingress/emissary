@@ -181,8 +181,6 @@ commands:
               to: "(ambassador/|tests/pytest/gold/)"
           - run: |
               echo >>"$BASH_ENV" 'export USE_LOCAL_K3S_CLUSTER=1'
-          # The e2e tests still require loading docker images
-          - amb-load-docker-images-from-workspace
       - when:
           condition:
             or:
