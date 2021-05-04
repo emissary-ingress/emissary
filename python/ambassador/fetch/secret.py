@@ -20,12 +20,12 @@ class SecretProcessor (ManagedKubernetesProcessor):
     ]
 
     KNOWN_DATA_KEYS = [
-        'tls.crt',
-        'tls.key',
-        'user.key',
-        'cert-chain.pem',
-        'key.pem',
-        'root-cert.pem',
+        'tls.crt',         # type="kubernetes.io/tls"
+        'tls.key',         # type="kubernetes.io/tls"
+        'user.key',        # type="Opaque", used for AES ACME
+        'cert-chain.pem',  # type="istio.io/key-and-cert"
+        'key.pem',         # type="istio.io/key-and-cert"
+        'root-cert.pem',   # type="istio.io/key-and-cert"
     ]
 
     def __init__(self, manager: ResourceManager) -> None:

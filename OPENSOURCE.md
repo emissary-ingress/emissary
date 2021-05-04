@@ -58,7 +58,7 @@ Free and Open Source software:
     github.com/evanphx/json-patch                                  v4.9.0+incompatible                                         3-clause BSD license
     github.com/exponent-io/jsonpath                                v0.0.0-20151013193312-d6023ce2651d                          MIT license
     github.com/fatih/camelcase                                     v1.0.0                                                      MIT license
-    github.com/fatih/color                                         v1.7.0                                                      MIT license
+    github.com/fatih/color                                         v1.10.0                                                     MIT license
     github.com/form3tech-oss/jwt-go                                v3.2.2+incompatible                                         MIT license
     github.com/fsnotify/fsnotify                                   v1.4.9                                                      3-clause BSD license
     github.com/ghodss/yaml                                         v1.0.0                                                      3-clause BSD license, MIT license
@@ -76,9 +76,9 @@ Free and Open Source software:
     github.com/golang/protobuf                                     v1.4.3                                                      3-clause BSD license
     github.com/golang/snappy                                       v0.0.1                                                      3-clause BSD license
     github.com/google/btree                                        v1.0.0                                                      Apache License 2.0
-    github.com/google/go-cmp                                       v0.5.2                                                      3-clause BSD license
+    github.com/google/go-cmp                                       v0.5.5                                                      3-clause BSD license
     github.com/google/gofuzz                                       v1.1.0                                                      Apache License 2.0
-    github.com/google/shlex                                        v0.0.0-20181106134648-c34317bd91bf                          Apache License 2.0
+    github.com/google/shlex                                        v0.0.0-20191202100458-e7afc7fbc510                          Apache License 2.0
     github.com/google/uuid                                         v1.1.2                                                      3-clause BSD license
     github.com/googleapis/gnostic                                  v0.5.1                                                      Apache License 2.0
     github.com/gookit/color                                        v1.2.3                                                      MIT license
@@ -105,8 +105,8 @@ Free and Open Source software:
     github.com/lib/pq                                              v1.9.0                                                      MIT license
     github.com/liggitt/tabwriter                                   v0.0.0-20181228230101-89fcab3d43de                          3-clause BSD license
     github.com/mailru/easyjson                                     v0.7.0                                                      MIT license
-    github.com/mattn/go-colorable                                  v0.1.2                                                      MIT license
-    github.com/mattn/go-isatty                                     v0.0.8                                                      MIT license
+    github.com/mattn/go-colorable                                  v0.1.8                                                      MIT license
+    github.com/mattn/go-isatty                                     v0.0.12                                                     MIT license
     github.com/mattn/go-runewidth                                  v0.0.4                                                      MIT license
     github.com/matttproud/golang_protobuf_extensions               v1.0.2-0.20181231171920-c182affec369                        Apache License 2.0
     github.com/mholt/archiver/v3                                   v3.3.0                                                      MIT license
@@ -159,7 +159,7 @@ Free and Open Source software:
     golang.org/x/term                                              v0.0.0-20201126162022-7de9c90e9dd1                          3-clause BSD license
     golang.org/x/text                                              v0.3.4                                                      3-clause BSD license
     golang.org/x/time                                              v0.0.0-20200630173020-3af7569d3a1e                          3-clause BSD license
-    golang.org/x/tools                                             v0.0.0-20200904185747-39188db58858                          3-clause BSD license
+    golang.org/x/tools                                             v0.1.0                                                      3-clause BSD license
     golang.org/x/xerrors                                           v0.0.0-20200804184101-5ec99f83aff1                          3-clause BSD license
     google.golang.org/appengine                                    v1.6.7                                                      Apache License 2.0
     google.golang.org/genproto                                     v0.0.0-20201110150050-8816d57aaa9a                          Apache License 2.0

@@ -41,6 +41,8 @@ func (p *Prefixer) Write(b []byte) (int, error) {
 
 	if n < len(munged) {
 		p.leftover = munged[n:]
+	} else {
+		p.output.Write([]byte("\n"))
 	}
 
 	return len(b), err
