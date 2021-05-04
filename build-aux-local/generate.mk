@@ -378,9 +378,8 @@ $(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(O
 		{ sed 's/^---$$//' $(OSS_HOME)/build-aux-local/pip-show.txt; echo; } | $(tools/py-mkopensource); \
 	} > $@
 
-python-setup:
-	[ -d $(OSS_HOME)/.venv ] || python3 -m virtualenv $(OSS_HOME)/.venv
-	$(OSS_HOME)/.venv/bin/python -m pip install ruamel.yaml
+python-setup: create-venv
+	$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
 .PHONY: python-setup
 
 define generate_yaml_from_helm
@@ -388,7 +387,7 @@ define generate_yaml_from_helm
 		helm template ambassador -n $(2) \
 		-f $(OSS_HOME)/k8s-config/$(1)/values.yaml \
 		$(OSS_HOME)/charts/ambassador > $(OSS_HOME)/build/yaml/$(1)/helm-expanded.yaml
-	$(OSS_HOME)/.venv/bin/python $(OSS_HOME)/k8s-config/create_yaml.py \
+	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/k8s-config/create_yaml.py \
 		$(OSS_HOME)/build/yaml/$(1)/helm-expanded.yaml $(OSS_HOME)/k8s-config/$(1)/require.yaml > $(3)
 endef
 

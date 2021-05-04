@@ -79,7 +79,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 [#3369]: https://github.com/datawire/ambassador/issues/3369
 
-## [1.13.1] April 21, 2021
+## [1.13.1] April 22, 2021
+[1.13.1]: https://github.com/datawire/ambassador/compare/v1.13.0...v1.13.1
 
  - Bugfix: Potentially increased CPU Usage for deployments with large numbers of Hosts ([#3358])
 
@@ -145,7 +146,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 [#3341]: https://github.com/datawire/ambassador/issues/3341
 
 ## [1.12.4] April 19, 2021
-[1.12.4]: https://github.com/datawire/ambassador/compare/v1.12.3...v1.12.4-rc.0
+[1.12.4]: https://github.com/datawire/ambassador/compare/v1.12.3...v1.12.4
 
 Bugfix: Fix the Envoy base image build step and, as a result, correctly ship the Envoy 1.15.4 security updates.
 

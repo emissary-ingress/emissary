@@ -19,6 +19,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestList(t *testing.T) {
+	t.Parallel()
 	c, err := k8s.NewClient(info())
 	if err != nil {
 		t.Error(err)

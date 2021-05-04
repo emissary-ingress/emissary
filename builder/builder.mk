@@ -415,30 +415,28 @@ mypy: mypy-server
 .PHONY: mypy
 
 GOTEST_PKGS = github.com/datawire/ambassador/...
+GOTEST_MODDIRS = $(OSS_HOME)
 export GOTEST_PKGS
+export GOTEST_MODDIRS
 
-GOTEST_ARGS ?= -race
+GOTEST_ARGS ?= -race -count=1
 export GOTEST_ARGS
 
-gotest: test-ready docker/kat-server.docker.push.remote docker/$(LCNAME).docker.push.remote
+create-venv:
+	[[ -d $(OSS_HOME)/venv ]] || python3 -m venv $(OSS_HOME)/venv
+.PHONY: create-venv
+
+setup-diagd: create-venv
+	. $(OSS_HOME)/venv/bin/activate && pip install orjson && \
+		pip install -r $(OSS_HOME)/builder/requirements.txt && \
+		pip install -e $(OSS_HOME)/python
+.PHONY: setup-diagd
+
+gotest: setup-diagd
 	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"
-	docker exec \
-		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) \
-		-e DTEST_REGISTRY=$(DEV_REGISTRY) \
-		-e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml \
-		-e KAT_SERVER_DOCKER_IMAGE=$$(sed -n 2p docker/kat-server.docker.push.remote) \
-		-e GOTEST_PKGS \
-		-e GOTEST_ARGS \
-		-e DEV_USE_IMAGEPULLSECRET \
-		-e DEV_REGISTRY \
-		-e DOCKER_BUILD_USERNAME \
-		-e DOCKER_BUILD_PASSWORD \
-		-it $(shell $(BUILDER)) /buildroot/builder.sh gotest-internal ; test_exit=$$? ; \
-		[ -n "$(TEST_XML_DIR)" ] && docker cp $(shell $(BUILDER)):/tmp/test-xml.tar.gz $(TEST_XML_DIR) && tar -xvf $(TEST_XML_DIR)/test-xml.tar.gz -C $(TEST_XML_DIR)  ; [ $$test_exit == 0 ] || exit $$test_exit
-	docker exec \
-		-w /buildroot/ambassador \
-		-e GOOS=windows \
-		-it $(shell $(BUILDER)) go build -o /dev/null ./cmd/edgectl
+	. $(OSS_HOME)/venv/bin/activate; \
+		EDGE_STACK=$(GOTEST_AES_ENABLED) \
+		$(OSS_HOME)/builder/builder.sh gotest-local
 .PHONY: gotest
 
 # Ingress v1 conformance tests, using KIND and the Ingress Conformance Tests suite.
