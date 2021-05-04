@@ -361,14 +361,15 @@ PYTEST_GOLD_DIR ?= $(abspath python/tests/gold)
 
 setup-envoy: extract-bin-envoy
 
-pytest-venv: $(OSS_HOME)/bin/telepresence $(OSS_HOME)/bin/kubestatus setup-envoy
-	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests using virtualenv$(END)\n"
+pytest-local: setup-diagd setup-envoy $(OSS_HOME)/bin/telepresence $(OSS_HOME)/bin/kubestatus
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
 	@echo "KAT_CLIENT_DOCKER_IMAGE=$$KAT_CLIENT_DOCKER_IMAGE"
 	@echo "KAT_SERVER_DOCKER_IMAGE=$$KAT_SERVER_DOCKER_IMAGE"
 	@echo "DEV_KUBECONFIG=$$DEV_KUBECONFIG"
-	@$(BUILDER) pytest-venv
-.PHONY: pytest-venv
+	. $(OSS_HOME)/venv/bin/activate; \
+		$(OSS_HOME)/builder/builder.sh pytest-local
+.PHONY: pytest-local
 
 extract-bin-envoy:
 	@mkdir -p $(OSS_HOME)/bin/
@@ -393,20 +394,20 @@ pytest-envoy:
 	$(MAKE) pytest KAT_RUN_MODE=envoy
 .PHONY: pytest-envoy
 
-pytest-envoy-venv:
-	$(MAKE) pytest-venv KAT_RUN_MODE=envoy
-.PHONY: pytest-envoy-venv
+pytest-envoy-local:
+	$(MAKE) pytest-local KAT_RUN_MODE=envoy
+.PHONY: pytest-envoy-local
 
 pytest-envoy-v3:
 	$(MAKE) pytest KAT_RUN_MODE=envoy KAT_USE_ENVOY_V3=true
 .PHONY: pytest-envoy-v3
 
-pytest-envoy-v3-venv:
-	$(MAKE) pytest-venv KAT_RUN_MODE=envoy KAT_USE_ENVOY_V3=true
-.PHONY: pytest-envoy-v3-venv
+pytest-envoy-v3-local:
+	$(MAKE) pytest-local KAT_RUN_MODE=envoy KAT_USE_ENVOY_V3=true
+.PHONY: pytest-envoy-v3-local
 
 pytest-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
-	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests in builder shell$(END)\n"
 	docker exec \
 		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) \
 		-e KAT_CLIENT_DOCKER_IMAGE=$$(sed -n 2p docker/kat-client.docker.push.remote) \
