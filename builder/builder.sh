@@ -575,46 +575,21 @@ case "${cmd}" in
         mv -f "$DIR/requirements.txt.tmp" "$DIR/requirements.txt"
         ;;
 
-    pytest-venv)
-        # This runs inside a virtualenv
-        if [ ! -d .venv ] ; then
-            printf "${CYN}==> ${GRN}Creating venv ${BLU}.venv${END}\n"
-            python3 -m venv .venv && source .venv/bin/activate
-            if [ -d ambassador ] ; then
-                pip install -r ambassador/builder/requirements.txt
-                pip install -e ambassador/python
-            else
-                pip install -r builder/requirements.txt
-                pip install -e python
-            fi
-            pip install orjson
-        else
-            printf "${CYN}==> ${GRN}Activating venv ${BLU}.venv${END}\n"
-            source .venv/bin/activate
-        fi
-
+    pytest-local)
         fail=""
         mkdir -p ${TEST_DATA_DIR}
 
-        export SOURCE_ROOT=$PWD
-        # Figure out if this is apro or Ambassador OSS.
-        # This is the least evil thing I could think of quickly.
-        if [ -d "cmd/amb-sidecar" ] ; then
-            MODDIR="$PWD/ambassador"
-            export EDGE_STACK="true"
-        else
-            MODDIR="$PWD"
-            export EDGE_STACK="false"
+        if [ -z "$SOURCE_ROOT" ] ; then
+            export SOURCE_ROOT="$PWD"
+        fi
+
+        if [ -z "$MODDIR" ] ; then
+            export MODDIR="$PWD"
         fi
 
         if [ -z "$ENVOY_PATH" ] ; then
-            if [ -f "${MODDIR}/bin/envoy" ] ; then
-                # We omit MODDIR from the path here because we change into that directory
-                # before calling pytest before.
-                export ENVOY_PATH="${MODDIR}/bin/envoy"
-            fi
+            export ENVOY_PATH="${MODDIR}/bin/envoy"
         fi
-
         if [ ! -f "$ENVOY_PATH" ] ; then
             echo "Envoy not found at ENVOY_PATH=$ENVOY_PATH"
             exit 1

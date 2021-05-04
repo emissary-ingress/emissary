@@ -45,11 +45,11 @@ jobs:
       "test":
         type: enum
         enum:
-          - "test" # everything but pytest-envoy-venv
+          - "test" # everything but pytest-envoy-local
           - "ingresstest"
-          - "pytest-venv"
-          - "pytest-envoy-venv"
-          - "pytest-envoy-v3-venv"
+          - "pytest-local"
+          - "pytest-envoy-local"
+          - "pytest-envoy-v3-local"
         default: "test"
       "fast-reconfigure":
         type: boolean
@@ -148,9 +148,9 @@ workflows:
             alias: "oss-dev-test"
             parameters:
               test:
-                - "pytest-venv"
-                - "pytest-envoy-venv"
-                - "pytest-envoy-v3-venv"
+                - "pytest-local"
+                - "pytest-envoy-local"
+                - "pytest-envoy-v3-local"
                 # Running the ingresstests would require we install `kind` and
                 # that the test suite supports HTTP to HTTPS redirects (AES
                 # enables cleartext redirection by default, even for fallback
@@ -218,9 +218,9 @@ workflows:
             alias: "oss-release-test"
             parameters:
               test:
-                - "pytest-venv"
-                - "pytest-envoy-venv"
-                - "pytest-envoy-v3-venv"
+                - "pytest-local"
+                - "pytest-envoy-local"
+                - "pytest-envoy-v3-local"
                 # Running the ingresstests would require we install `kind` and
                 # that the test suite supports HTTP to HTTPS redirects (AES
                 # enables cleartext redirection by default, even for fallback
@@ -236,10 +236,10 @@ workflows:
               # It's not meaningful to set fast reconfigure and legacy mode at the same time.
               # Annoyingly, we have to iterate all the 'test' values that we're using for
               # this to work.
-              - test: pytest-venv
+              - test: pytest-local
                 fast-reconfigure: true
                 legacy-mode: true
-              - test: pytest-envoy-venv
+              - test: pytest-envoy-local
                 fast-reconfigure: true
                 legacy-mode: true
       # promote
@@ -294,8 +294,8 @@ workflows:
             alias: "oss-nightly-test"
             parameters:
               test:
-                - "pytest-venv"
-                - "pytest-envoy-venv"
+                - "pytest-local"
+                - "pytest-envoy-local"
                 # Running the ingresstests would require we install `kind` and
                 # that the test suite supports HTTP to HTTPS redirects (AES
                 # enables cleartext redirection by default, even for fallback
@@ -311,9 +311,9 @@ workflows:
               # It's not meaningful to set fast reconfigure and legacy mode at the same time.
               # Annoyingly, we have to iterate all the 'test' values that we're using for
               # this to work.
-              - test: pytest-venv
+              - test: pytest-local
                 fast-reconfigure: true
                 legacy-mode: true
-              - test: pytest-envoy-venv
+              - test: pytest-envoy-local
                 fast-reconfigure: true
                 legacy-mode: true
