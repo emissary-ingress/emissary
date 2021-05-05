@@ -157,9 +157,9 @@ commands:
         enum:
           - "test" # everything but pytest-envoy
           - "ingresstest"
-          - "pytest-local"
-          - "pytest-envoy-local"
-          - "pytest-envoy-v3-local"
+          - "pytest"
+          - "pytest-envoy"
+          - "pytest-envoy-v3"
           - "e2etest"
         default: "test"
       "fast-reconfigure":
