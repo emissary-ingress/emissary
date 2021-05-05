@@ -302,7 +302,7 @@ kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/status/
 rewrite: /status/
-service: httpbin
+service: httpbin.default
 """)
 
     def queries(self):
@@ -337,7 +337,7 @@ kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/status/
 rewrite: /status/
-service: httpbin
+service: httpbin.default
 """)
 
     def queries(self):
@@ -397,7 +397,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: websocket-echo-server
+service: websocket-echo-server.default
 use_websocket: true
 """)
 
@@ -712,7 +712,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: httpbin
+service: httpbin.default
 add_response_headers:
     koo:
         append: False
@@ -783,7 +783,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: httpbin
+service: httpbin.default
 remove_request_headers:
 - zoo
 - aoo

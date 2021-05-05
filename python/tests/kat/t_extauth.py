@@ -833,7 +833,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name: {self.name}
 prefix: /{self.name}/
-service: websocket-echo-server
+service: websocket-echo-server.default
 use_websocket: true
 """)
 

@@ -2,6 +2,8 @@ package entrypoint_test
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 	"testing"
 
 	"github.com/datawire/ambassador/cmd/entrypoint"
@@ -10,6 +12,11 @@ import (
 )
 
 func TestFakeCollision(t *testing.T) {
+	// This test will not pass in legacy mode because diagd will not emit EDS clusters in legacy mode.
+	if legacy, err := strconv.ParseBool(os.Getenv("AMBASSADOR_LEGACY_MODE")); err == nil && legacy {
+		return
+	}
+
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true, DiagdDebug: true}, nil)
 
 	f.UpsertFile("testdata/Collision1.yaml")
