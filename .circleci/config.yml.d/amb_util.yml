@@ -34,12 +34,6 @@ commands:
       - install-kubectl
       - install-node
 
-  "amb-images-save-images-to-workspace":
-    steps:
-      - run:
-          name: "Saving Docker data to workspace"
-          command: "~/project/ambassador/.circleci/amb-images-save-workspace"
-
   "amb-save-workspace":
     steps:
       - persist_to_workspace:

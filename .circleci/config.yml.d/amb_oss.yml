@@ -22,7 +22,6 @@ jobs:
     steps:
       - job-images:
           release: << parameters.release >>
-          save_images_to_workspace: false
 
   "oss-gotest":
     executor: oss-linux
