@@ -288,7 +288,7 @@ func canonGVK(kind string) (canonKind string, canonGroupVersion string) {
 	case "httproutes.networking.x-k8s.io":
 		return "HTTPRoute", "networking.x-k8s.io/v1alpha1"
 	default:
-		panic(fmt.Sprintf("I don't know how to canonicalize kind: %q", kind))
+		panic(fmt.Errorf("I don't know how to canonicalize kind: %q", kind))
 	}
 }
 

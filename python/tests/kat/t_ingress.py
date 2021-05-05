@@ -10,6 +10,7 @@ from kat.harness import Query, is_ingress_class_compatible
 from abstract_tests import AmbassadorTest, HTTP, ServiceType
 from kat.utils import namespace_manifest
 from tests.utils import KUBESTATUS_PATH
+from ambassador.utils import parse_bool
 
 class IngressStatusTest1(AmbassadorTest):
     status_update = {
@@ -58,6 +59,9 @@ spec:
             yield Query(self.url(f'need-normalization/../{self.name}/'))
 
     def check(self):
+        if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
+            pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
+
         if sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
@@ -121,6 +125,9 @@ spec:
             yield Query(self.url(f'need-normalization/../{self.name}/'))
 
     def check(self):
+        if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
+            pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
+
         if sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
@@ -185,6 +192,9 @@ spec:
             yield Query(self.url(f'need-normalization/../{self.name}/'))
 
     def check(self):
+        if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
+            pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
+
         if sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
@@ -256,6 +266,9 @@ spec:
         yield Query(self.url(f'need-normalization/../{self.name}/'))
 
     def check(self):
+        if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
+            pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
+
         # check for Ingress IP here
         ingress_cmd = ["kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
         ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
@@ -332,6 +345,9 @@ spec:
             yield Query(self.url(self.name + "-target2/"))
 
     def check(self):
+        if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
+            pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
+
         if sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
@@ -425,6 +441,9 @@ spec:
             yield Query(self.url(f'need-normalization/../{self.name}/'))
 
     def check(self):
+        if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
+            pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
+
         if sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
