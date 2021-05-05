@@ -361,7 +361,7 @@ PYTEST_GOLD_DIR ?= $(abspath python/tests/gold)
 
 setup-envoy: extract-bin-envoy
 
-pytest-local: setup-diagd setup-envoy $(OSS_HOME)/bin/telepresence $(OSS_HOME)/bin/kubestatus
+pytest: setup-diagd setup-envoy $(OSS_HOME)/bin/telepresence $(OSS_HOME)/bin/kubestatus
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
 	@echo "KAT_CLIENT_DOCKER_IMAGE=$$KAT_CLIENT_DOCKER_IMAGE"
@@ -369,7 +369,7 @@ pytest-local: setup-diagd setup-envoy $(OSS_HOME)/bin/telepresence $(OSS_HOME)/b
 	@echo "DEV_KUBECONFIG=$$DEV_KUBECONFIG"
 	. $(OSS_HOME)/venv/bin/activate; \
 		$(OSS_HOME)/builder/builder.sh pytest-local
-.PHONY: pytest-local
+.PHONY: pytest
 
 extract-bin-envoy:
 	@mkdir -p $(OSS_HOME)/bin/
@@ -386,27 +386,27 @@ $(OSS_HOME)/bin/kubestatus:
 $(OSS_HOME)/bin/telepresence:
 	@curl --fail -L https://app.getambassador.io/download/tel2/linux/amd64/latest/telepresence -o $(OSS_HOME)/bin/telepresence && chmod a+x $(OSS_HOME)/bin/telepresence
 
-pytest: test-ready
-	$(MAKE) pytest-only
-.PHONY: pytest
+pytest-builder: test-ready
+	$(MAKE) pytest-builder-only
+.PHONY: pytest-builder
 
 pytest-envoy:
 	$(MAKE) pytest KAT_RUN_MODE=envoy
 .PHONY: pytest-envoy
 
-pytest-envoy-local:
-	$(MAKE) pytest-local KAT_RUN_MODE=envoy
-.PHONY: pytest-envoy-local
+pytest-envoy-builder:
+	$(MAKE) pytest-builder KAT_RUN_MODE=envoy
+.PHONY: pytest-envoy-builder
 
 pytest-envoy-v3:
 	$(MAKE) pytest KAT_RUN_MODE=envoy KAT_USE_ENVOY_V3=true
 .PHONY: pytest-envoy-v3
 
-pytest-envoy-v3-local:
-	$(MAKE) pytest-local KAT_RUN_MODE=envoy KAT_USE_ENVOY_V3=true
-.PHONY: pytest-envoy-v3-local
+pytest-envoy-v3-builder:
+	$(MAKE) pytest-builder KAT_RUN_MODE=envoy KAT_USE_ENVOY_V3=true
+.PHONY: pytest-envoy-v3-builder
 
-pytest-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
+pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests in builder shell$(END)\n"
 	docker exec \
 		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) \
@@ -432,7 +432,7 @@ pytest-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker
 		-e AWS_SESSION_TOKEN \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal ; test_exit=$$? ; \
 		[ -n "$(TEST_XML_DIR)" ] && docker cp $(shell $(BUILDER)):/tmp/test-data/pytest.xml $(TEST_XML_DIR) ; exit $$test_exit
-.PHONY: pytest-only
+.PHONY: pytest-builder-only
 
 pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
