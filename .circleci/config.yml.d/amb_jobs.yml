@@ -110,11 +110,6 @@ commands:
 
       # teardown
       - dirty-check
-      - when:
-          condition:
-            equal: [true, << parameters.save_images_to_workspace >>]
-          steps:
-          - amb-images-save-images-to-workspace
       - amb-save-workspace
 
   "job-gotest":

@@ -100,11 +100,6 @@ commands:
               DEV_KUBECONFIG="-skip-for-release-" make release/bits
     # teardown
     - dirty-check
-    - when:
-        condition:
-          equal: [true, << parameters.save_images_to_workspace >>]
-        steps:
-        - amb-images-save-images-to-workspace
     - amb-save-workspace
   "job-gotest":
     parameters:
@@ -168,8 +163,6 @@ commands:
             to: "(ambassador/|tests/pytest/gold/)"
         - run: |
             echo >>"$BASH_ENV" 'export USE_LOCAL_K3S_CLUSTER=1'
-        # The e2e tests still require loading docker images
-        - amb-load-docker-images-from-workspace
     - when:
         condition:
           or:
@@ -265,11 +258,6 @@ commands:
     - install-go
     - install-kubectl
     - install-node
-  amb-images-save-images-to-workspace:
-    steps:
-    - run:
-        name: "Saving Docker data to workspace"
-        command: "~/project/ambassador/.circleci/amb-images-save-workspace"
   amb-save-workspace:
     steps:
     - persist_to_workspace:
@@ -707,7 +695,6 @@ jobs:
     steps:
     - job-images:
         release: << parameters.release >>
-        save_images_to_workspace: false
   oss-gotest:
     executor: oss-linux
     parameters:
