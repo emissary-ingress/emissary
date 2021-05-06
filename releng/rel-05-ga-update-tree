@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+"""Update the directory "tree" for cutting a GA release.  This will
+change the appropriate files, then launch the `git citool` GUI to
+create a commit of it.
+
+"""
+
+import datetime
+import fileinput
+import os.path
+import sys
+
+from lib import ansiterm, build_version, re_rc
+from lib.uiutil import run
+from lib.uiutil import run_txtcapture as run_capture
+
+
+def git_add(filename: str) -> None:
+    run(['git', 'add', '--', filename])
+
+
+def main(rc_ver: str, today: datetime.date) -> int:
+    ga_ver = build_version(rc_ver)
+
+    # Remove "-rc.N", update the date
+    for line in fileinput.FileInput("ambassador/CHANGELOG.md", inplace=True):
+        if line.startswith(f'## [{rc_ver}] '):
+            line = f"## [{ga_ver}] {today.strftime('%B %d, %Y')}\n"
+        elif line.startswith(f'[{rc_ver}]: https://github.com/datawire/ambassador/compare/v'):
+            prev_ver = line[len(f'[{rc_ver}]: https://github.com/datawire/ambassador/compare/v'):].split('...', 1)[0]
+            line = f"[{ga_ver}]: https://github.com/datawire/ambassador/compare/v{prev_ver}...v{ga_ver}\n"
+        sys.stdout.write(line)
+    git_add("ambassador/CHANGELOG.md")
+
+    # Remove "-rc.N"
+    for line in fileinput.FileInput("ambassador/docs/yaml/versions.yml", inplace=True):
+        if line.startswith("version:"):
+            line = f"version: {ga_ver}\n"
+        sys.stdout.write(line)
+    git_add("ambassador/docs/yaml/versions.yml")
+
+    if run_capture(['git', 'status', '--porcelain']):
+        gitdir = run_capture(['git', 'rev-parse', '--git-dir'])
+        with open(os.path.join(gitdir, 'GITGUI_MSG'), 'w') as msgfile:
+            msgfile.write(f"Update for v{ga_ver}\n")
+        run(['git', 'citool'])
+
+    return 0
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2 or not re_rc.match(sys.argv[1]):
+        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z-rc.N\n")
+        sys.exit(2)
+    sys.exit(main(
+        rc_ver=sys.argv[1],
+        today=datetime.date.today(),
+    ))

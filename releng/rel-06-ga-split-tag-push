@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+"""Split, tag and push Git things for an GA release.  These steps will
+create Git refs and add to the history a bit, but should not change
+the directory "tree" pointed to by HEAD; at the end of the previous
+script (checklist step 5), the HEAD tree is the final tree for the GA
+release.
+
+"""
+
+import os.path
+import shlex
+import sys
+from typing import List
+
+from lib import aes_branchname, ansiterm, oss_branchname, re_ga
+from lib.uiutil import run as _run
+
+
+def run(args: List[str]) -> None:
+    print("$ " + (" ".join(shlex.quote(arg) for arg in args)))
+    _run(args)
+
+
+def main(ga_ver: str) -> int:
+    warning = """
+ ==> Warning: FIXME: This script does not have the property that if
+     something goes wrong, you can just restart it; put another way:
+     it does not have the property that each step is idempotent.
+
+     If something does go wrong, then you'll have to address it, then
+     resume where the script left off by going through the checklist
+     manually (or by commenting out the already-completed steps).
+"""
+    print(f"{ansiterm.sgr.fg_red}{warning}{ansiterm.sgr}")
+
+    run(['git', 'tag', '--annotate', f'--message=v{ga_ver}', f'v{ga_ver}'])
+    run(['git', 'push', 'origin', f'v{ga_ver}'])
+
+    run(['make', 'push-oss', f'PULL_BRANCH={oss_branchname()}', f'PUSH_BRANCH={oss_branchname()}'])
+    run(['git', 'tag', '--delete', f'v{ga_ver}'])  # delete the local AES tag; temporarily make room for the OSS tag
+    run(['git', 'tag', '--annotate', f'--message=v{ga_ver}', f'v{ga_ver}', 'HEAD^2'])  # create the OSS tag
+    run(['git', 'push', 'git@github.com:datawire/ambassador.git', f'v{ga_ver}'])  # push the OSS tag
+    run(['git', 'tag', '--delete', f'v{ga_ver}'])  # delete the local OSS tag; avoid confusion
+
+    run(['git', 'push', 'origin', aes_branchname()])
+
+    return 0
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2 or not re_ga.match(sys.argv[1]):
+        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z\n")
+        sys.exit(2)
+    sys.exit(main(ga_ver=sys.argv[1]))

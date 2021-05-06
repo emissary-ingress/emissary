@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+"""Move things from private Docker and Git repos to "public" Docker
+and Git repos, for when an embargo is over.
+
+"""
+
+import os
+import os.path
+import subprocess
+import sys
+import webbrowser
+
+from lib import assert_eq, base_version, build_version, mirror_artifacts, re_rc
+from lib.uiutil import Checker, run
+from lib.uiutil import run_txtcapture as run_capture
+
+
+def main(rc_ver: str) -> int:
+    checker = Checker()
+    with checker.check("You're in a clone of git@github.com:datawire/apro-private.git"):
+        url = run_capture(['git', 'remote', 'get-url', '--push', 'origin'])
+        if url.endswith("/"):
+            url = url[:-len("/")]
+        if url.endswith(".git"):
+            url = url[:-len(".git")]
+        assert_eq(url, "git@github.com:datawire/apro-private")
+    with checker.check("You're on the correct branchname"):
+        cur_branch = run_capture(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
+        correct_branch = f"rel/v{build_version(rc_ver)}"
+        assert_eq(cur_branch, correct_branch)
+    if not checker.ok:
+        return 1
+
+    # We're going to want to poke around in envoy.git, so go ahead and
+    # ensure that clone is up-to-date.
+    run(['make', os.path.abspath('ambassador/_cxx/envoy')])
+
+    # transfer Docker images
+    mirror_artifacts.main([rc_ver], source_registry='quay.io/datawire-private')
+    envoy_docker_tags = [
+        t.split(':')[1] for t in subprocess.run(
+            ['make', '-f', '-', 'print-envoy-docker-tags'],
+            check=True,
+            text=True,
+            input="print-envoy-docker-tags:\n\t@echo $(ENVOY_DOCKER_TAG) $(ENVOY_FULL_DOCKER_TAG)\ninclude Makefile\n",
+            stdout=subprocess.PIPE).stdout.split()
+    ]
+    mirror_artifacts.main(envoy_docker_tags, source_registry='quay.io/datawire-private', repos=['ambassador-base'])
+
+    # transfer Git refs & file PRs
+    for repo in ['apro', 'ambassador']:
+        for ref in [f'refs/heads/rel/v{build_version(rc_ver)}', f'refs/tags/v{rc_ver}']:
+            run(['git', 'fetch', f'git@github.com:datawire/{repo}-private.git', ref])
+            run(['git', 'push', f'git@github.com:datawire/{repo}.git', f'FETCH_HEAD:{ref}'])
+        webbrowser.open(
+            f"https://github.com/datawire/{repo}/compare/release/v{base_version(rc_ver)}...rel/v{build_version(rc_ver)}?expand=1"
+        )
+    envoy_git_tag = run_capture(['git', '-C', 'ambassador/_cxx/envoy', 'describe', '--tags', '--exact-match'])
+    run(['git', '-C', 'ambassador/_cxx/envoy', 'push', 'git@github.com:datawire/envoy.git', envoy_git_tag])
+
+    print("OK, now go cancel CI for the tags that we just pushed.")
+    print("Then run `make release/promote-oss/to-rc-latest` and `make release/promote-aes/to-rc-latest` manually.")
+
+    return 0
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2 or not re_rc.match(sys.argv[1]):
+        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z-rc.N\n")
+        sys.exit(2)
+    sys.exit(main(rc_ver=sys.argv[1]))

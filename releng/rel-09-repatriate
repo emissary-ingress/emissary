@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+"""Update the version numbers and such in the directory "tree" for
+repatriating a release branch in to 'master'.  This will change the
+appropriate files, then launch the `git citool` GUI to create a commit
+of it.
+
+"""
+
+import fileinput
+import os.path
+import sys
+
+from lib import ansiterm, base_version, re_ga
+from lib.uiutil import run
+from lib.uiutil import run_txtcapture as run_capture
+
+
+def git_add(filename: str) -> None:
+    run(['git', 'add', '--', filename])
+
+
+def main(ga_ver: str) -> int:
+    for line in fileinput.FileInput(".ci/website-preview-build", inplace=True):
+        if line.startswith("for submodule in "):
+            line = f"for submodule in pre-release; do\n"
+        sys.stdout.write(line)
+    git_add(".ci/website-preview-build")
+
+    if run_capture(['git', 'status', '--porcelain']):
+        gitdir = run_capture(['git', 'rev-parse', '--git-dir'])
+        with open(os.path.join(gitdir, 'GITGUI_MSG'), 'w') as msgfile:
+            msgfile.write("Adjust the website stuff for repatriation back in to master\n")
+        run(['git', 'citool'])
+
+    return 0
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2 or not re_ga.match(sys.argv[1]):
+        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z\n")
+        sys.exit(2)
+    sys.exit(main(ga_ver=sys.argv[1]))

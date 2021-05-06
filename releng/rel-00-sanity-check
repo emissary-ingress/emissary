@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+"""Do a sanity check that you're at something that's ready for you to
+cut an RC from; that you're in the right repo, that you're on the
+right branch, that all of the subtrees are up-to-date...
+
+"""
+
+import os.path
+import sys
+import time
+from contextlib import contextmanager
+from typing import Generator
+
+from lib import ansiterm, assert_eq, oss_branchname, re_rc, vX, vY, vZ
+from lib.uiutil import Checker, CheckResult, LineTracker, run
+from lib.uiutil import run_txtcapture as run_capture
+
+
+def main(next_ver: str) -> int:
+    print(f'So, you think you\'ve got an ambassador.git commit that you want to release as "v{next_ver}"?')
+    print("Let's see about that...")
+    print()
+
+    checker = Checker()
+
+    @contextmanager
+    def check(name: str) -> Generator[CheckResult, None, None]:
+        with checker.check(name) as subcheck:
+            # time.sleep(1)  # it's stupid, but honestly the delay makes the output more readable
+            yield subcheck
+
+    is_private = False
+
+    with check("You're in a clone of git@github.com:datawire/ambassador[-private].git"):
+        url = run_capture(['git', 'remote', 'get-url', '--push', 'origin'])
+        if url.endswith("/"):
+            url = url[:-len("/")]
+        if url.endswith(".git"):
+            url = url[:-len(".git")]
+        if url.endswith("-private"):
+            is_private = True
+            url = url[:-len("-private")]
+        assert_eq(url, "git@github.com:datawire/ambassador")
+
+    with check("You're in the toplevel of the clone"):
+        toplevel = run_capture(['git', 'rev-parse', '--show-toplevel'])
+        if not os.path.samefile(toplevel, '.'):
+            raise Exception(f"Not in {toplevel}")
+
+    with check("You're in a clean checkout"):
+        out = run_capture(['git', 'status', '--porcelain'])
+        if out:
+            raise Exception(out)
+
+    # Cache the name of our remote...
+    remote_name = 'git@github.com:datawire/ambassador.git' if is_private else 'origin'
+
+    # ...make sure the passed-in version is OK...
+    m = re_rc.match(next_ver)
+    assert m
+
+    # ...and figure out some branch names.
+    release_branch = f"release/v{m[vX]}.{m[vY]}"
+    work_branch = f"rel/v{m[vX]}.{m[vY]}.{m[vZ]}"
+
+    with check(f"The {release_branch} branch exists"):
+        branch_exists(remote_name, release_branch)
+
+    with check(f"The {work_branch} branch exists"):
+        branch_exists(remote_name, work_branch)
+
+    with check(f"You're on the {work_branch} branch"):
+        cur_branch = run_capture(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
+        correct_branch = f"rel/v{m[vX]}.{m[vY]}.{m[vZ]}"
+        assert_eq(cur_branch, correct_branch)
+
+    with check("You're up-to-date with ambassador.git"):
+        remote_name = 'git@github.com:datawire/ambassador.git' if is_private else 'origin'
+
+        m = re_rc.match(next_ver)
+        assert m
+
+        branch_up_to_date(
+            remote=remote_name,
+            branch=release_branch,
+            update_cmd=f'git pull {remote_name} {release_branch}',
+        )
+
+    if is_private:
+        with check("You're up-to-date with ambassador-private.git"):
+            m = re_rc.match(next_ver)
+            assert m
+            release_branch = f"release/v{m[vX]}.{m[vY]}"
+
+            branch_up_to_date(
+                remote='git@github.com:datawire/ambassador-private.git',
+                branch=release_branch,
+                update_cmd=f'git pull git@github.com:datawire/ambassador-private.git {release_branch}',
+            )
+
+    with check("The changelogs have been reviewed"):
+        stdio = LineTracker(output=sys.stdout)
+        try:
+            stdio.write("""
+
+Look over the items in `ambassador/CHANGELOG.md`.  Make sure nothing’s
+missing, and check over the wording.  Make sure to give a "thanks" to
+any OSS contributors.  No need to worry about version numbers or
+release dates in this step.  Commit any changes you make.
+
+Does the changelog look good? [y/n]:
+
+            """.strip() + ' ')
+            stdio.flush()
+
+            valid = {
+                'y': True,
+                'ye': True,
+                'yes': True,
+                'n': False,
+                'no': False,
+            }
+
+            while True:
+                choice = stdio.input().lower()
+                if choice in valid:
+                    ok = valid[choice]
+                    if ok:
+                        break
+                    raise Exception(f"Edit and commit the changelogs, then re-run {os.path.basename(sys.argv[0])}")
+                else:
+                    stdio.write("Please respond 'yes' or 'no'\nDo the changelogs look good? [y/n] ")
+        finally:
+            stdio.goto_line(1)
+            stdio.write(ansiterm.clear_rest_of_screen)
+            stdio.flush()
+
+    if checker.ok:
+        print()
+        print("Yep, looks like you're good to proceed to running `rel-01-rc-update-tree`.")
+        return 0
+    else:
+        print()
+        print("Looks like there's something wrong with this commit that you should address before doing an RC.")
+        return 1
+
+
+def branch_exists(remote: str, branch: str) -> None:
+    # Allow exceptions to propagate upward
+    run(['git', 'fetch', remote, f'refs/heads/{branch}'])
+
+
+def branch_up_to_date(remote: str, branch: str, update_cmd: str) -> None:
+    run(['git', 'fetch', remote, f'refs/heads/{branch}'])
+    try:
+        run(['git', 'merge-base', '--is-ancestor', 'FETCH_HEAD', 'HEAD'])
+    except Exception as err:
+        print(f"HEAD is not up-to-date with '{remote}' '{branch}':")
+        print("You need to update it with:")
+        print()
+        print(f"    $ {update_cmd}")
+        print()
+        raise
+
+
+subtree_up_to_date = branch_up_to_date
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2 or not re_rc.match(sys.argv[1]):
+        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z-rc.N\n")
+        sys.exit(2)
+    sys.exit(main(next_ver=sys.argv[1]))

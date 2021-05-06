@@ -1,0 +1,156 @@
+#!/usr/bin/env python3
+"""Update the directory "tree" for cutting an RC release.  This will
+change the appropriate files, then launch the `git citool` GUI to
+create a commit of it.
+
+"""
+
+import datetime
+import fileinput
+import os.path
+import re
+import sys
+from contextlib import contextmanager
+from typing import Generator
+
+from lib import base_version, build_version, re_rc
+from lib.uiutil import Checker, CheckResult, run
+from lib.uiutil import run_txtcapture as run_capture
+
+
+def git_add(filename: str) -> None:
+    run(['git', 'add', '--', filename])
+
+
+def main(next_ver: str, today: datetime.date) -> int:
+    """This edits several files (the Git directory "tree"), then launches
+    the `git citool` GUI to commit them.  This _should_ be an utterly
+    trivial and readable list of
+
+        for line in fileinput.FileInput("FILENAME", inplace=True):
+            # edit 'line' as appropriate
+            sys.stdout.write(line)
+        git_add("FILENAME")
+
+    blocks.  However, the block to edit the CHANGELOG.md file is unfortunately a
+    touch more complex, because it has to deal with parsing the file in to
+    sections and buffering the sections... maybe line-oriented processing wasn't
+    the best choice for that file.
+
+    """
+
+    print()
+    print(f'Doing basic updates for v{next_ver}...')
+    print()
+
+    # This context manager and check function are pretty much just to produce
+    # a nice list of steps...
+
+    checker = Checker()
+
+    @contextmanager
+    def check(name: str) -> Generator[CheckResult, None, None]:
+        with checker.check(name) as subcheck:
+            # time.sleep(1)  # it's stupid, but honestly the delay makes the output more readable
+            yield subcheck
+
+    # docs/yaml/versions.yml
+    with check(f"Updating docs/yaml/versions.yml with {next_ver}'..."):
+        for line in fileinput.FileInput("docs/yaml/versions.yml", inplace=True):
+            if line.startswith("version:"):
+                line = f"version: {next_ver}\n"
+            sys.stdout.write(line)
+        git_add("docs/yaml/versions.yml")
+
+    # CHANGELOG.md:
+    #
+    # - If there's not already a "X.Y.Z" section for this version, then rename
+    #   the current "Next Release" section to to "X.Y.Z-rc.N (Month DD, YYYY)",
+    #   and create a new empty "Next Release" section.  If the section already
+    #   exists, then just ensure the "-rc.N" and "Month, DD, YYYY" are
+    #   up-to-date.
+    # - Ensure that the https://github.com/datawire/ambassador/compare/vA...vB"
+    #   link on the first line of the section is up-to-date.
+    #
+    # This one is extra-complicated,, because it can't just recognize that
+    # there's already a "X.Y.Z" section and decide to stop processing, it needs
+    # to buffer the section in order to read ahead to see what the previous
+    # version is, for the GitHub "compare" link.
+
+    with check("Updating CHANGELOG.md version and date information..."):
+        buffering = False
+        buff = ""
+        pat = re.compile(r"^## \[([0-9]+\.[0-9]+\.[0-9]+(?:-rc\.[0-9]+)?)\] \S+ [0-9]+, [0-9]{4}$")
+        editing = False  # editing an existing section, or creating a new section?
+        skip = False
+        for line in fileinput.FileInput("CHANGELOG.md", inplace=True):
+            if skip:
+                skip = False
+                continue
+            if not buffering:
+                sys.stdout.write(line)
+                if line == "## Next Release\n":
+                    buffering = True
+            else:
+                m = pat.match(line)
+                if not m:
+                    buff += line
+                else:
+                    prev_ver = m[1]
+                    if build_version(next_ver) == build_version(prev_ver):
+                        sys.stdout.write(buff)
+                        buff = ""
+                        editing = True
+                        skip = True
+                    else:
+                        if not editing:
+                            sys.stdout.write("\n")
+                            sys.stdout.write("(no changes yet)\n")
+                            sys.stdout.write("\n")
+                        sys.stdout.write(f"## [{next_ver}] {today.strftime('%B %d, %Y')}\n")
+                        sys.stdout.write(
+                            f"[{next_ver}]: https://github.com/datawire/ambassador/compare/v{prev_ver}...v{next_ver}\n")
+                        sys.stdout.write(buff)
+                        sys.stdout.write(line)
+                        buffering = False
+        git_add("CHANGELOG.md")
+
+    # .ci/website-preview-build
+    next_base = base_version(next_ver)
+
+    with check(f"Updating .ci/website-preview-build to iterate over 'latest' and '{next_base}'..."):
+        for line in fileinput.FileInput(".ci/website-preview-build", inplace=True):
+            if line.startswith("for submodule in "):
+                line = f"for submodule in latest {next_base}; do\n"
+            sys.stdout.write(line)
+        git_add(".ci/website-preview-build")
+
+    with check(f"Verifying that tree is clean..."):
+        out = run_capture(['git', 'status', '--porcelain'])
+        if out:
+            lines = out.split('\n')
+            text = "\n".join([ line for line in lines if not line.startswith("M ") ])
+
+            raise Exception(text)
+
+    if checker.ok:
+        with check(f"Committing changes..."):
+            gitdir = run_capture(['git', 'rev-parse', '--git-dir'])
+            with open(os.path.join(gitdir, 'GITGUI_MSG'), 'w') as msgfile:
+                msgfile.write(f"Update for v{next_ver}\n")
+            run(['git', 'citool'])
+
+    if checker.ok:
+        return 0
+    else:
+        return 1
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2 or not re_rc.match(sys.argv[1]):
+        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z-rc.N\n")
+        sys.exit(2)
+    sys.exit(main(
+        next_ver=sys.argv[1],
+        today=datetime.date.today(),
+    ))
