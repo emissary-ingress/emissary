@@ -677,8 +677,8 @@ rc: release/bits
 
 release/prep:
 	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
-	@releng/rel-00-sanity-check $(VERSION)
-	@releng/rel-01-rc-update-tree $(VERSION)
+	@releng/rel-00-sanity-check --release-prep $(VERSION)
+	@releng/rel-01-rc-update-tree --no-commit $(VERSION)
 .PHONY: release/prep
 
 release/bits: images

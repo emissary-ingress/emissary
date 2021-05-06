@@ -18,7 +18,7 @@ from lib.uiutil import Checker, CheckResult, run
 from lib.uiutil import run_txtcapture as run_capture
 
 
-def main(next_ver: str, today: datetime.date) -> int:
+def main(next_ver: str, today: datetime.date, commit: bool = True) -> int:
     """This edits several files (the Git directory "tree"), then launches
     the `git citool` GUI to commit them.  This _should_ be an utterly
     trivial and readable list of
@@ -124,7 +124,7 @@ def main(next_ver: str, today: datetime.date) -> int:
     with check(f"Verifying that tree is clean..."):
         git_check_clean(allow_staged=True)
 
-    if checker.ok:
+    if checker.ok and commit:
         with check(f"Committing changes..."):
             gitdir = run_capture(['git', 'rev-parse', '--git-dir'])
             with open(os.path.join(gitdir, 'GITGUI_MSG'), 'w') as msgfile:
@@ -138,10 +138,19 @@ def main(next_ver: str, today: datetime.date) -> int:
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2 or not re_rc.match(sys.argv[1]):
+    args = sys.argv[1:]
+    commit = True
+
+    if args and (args[0] == '--no-commit'):
+        commit = False
+        args.pop(0)
+
+    if len(args) != 1 or not re_rc.match(args[0]):
         sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z-rc.N\n")
         sys.exit(2)
+
     sys.exit(main(
-        next_ver=sys.argv[1],
+        next_ver=args[0],
         today=datetime.date.today(),
+        commit=commit,
     ))
