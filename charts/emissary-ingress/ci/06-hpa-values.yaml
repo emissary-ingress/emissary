@@ -1,0 +1,8 @@
+deploymentStrategy:
+  type: Recreate
+
+service:
+  type: NodePort
+
+autoscaling:
+  enabled: true

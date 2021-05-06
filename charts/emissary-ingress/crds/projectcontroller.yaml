@@ -1,0 +1,24 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    helm.sh/hook: crd-install
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
+  name: projectcontrollers.getambassador.io
+spec:
+  group: getambassador.io
+  names:
+    categories:
+    - ambassador-crds
+    kind: ProjectController
+    plural: projectcontrollers
+    singular: projectcontroller
+  scope: Namespaced
+  subresources:
+    status: {}
+  versions:
+  - name: v2
+    served: true
+    storage: true
