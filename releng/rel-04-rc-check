@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+"""Verify that all RC artifacts got pushed."""
+
+import os.path
+import sys
+
+from lib import check_artifacts, re_rc
+
+if __name__ == '__main__':
+    include_latest = True
+
+    args = sys.argv[1:]
+
+    if args and (args[0] == "--no-latest"):
+        include_latest = False
+        args.pop(0)
+
+    if (len(args) != 1) or not re_rc.match(args[0]):
+        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} [--no-latest] X.Y.Z-rc.N\n")
+        sys.exit(2)
+    sys.exit(check_artifacts.main(rc_ver=args[0], ga=False, include_docker=True, include_latest=include_latest))

@@ -675,6 +675,12 @@ IS_DIRTY=$$($(BUILDER) is-dirty)
 rc: release/bits
 .PHONY: rc
 
+release/prep:
+	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
+	@releng/rel-00-sanity-check $(VERSION)
+	@releng/rel-01-rc-update-tree $(VERSION)
+.PHONY: release/prep
+
 release/bits: images
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
 	@printf "$(CYN)==> $(GRN)Pushing $(BLU)$(REPO)$(GRN) Docker image$(END)\n"

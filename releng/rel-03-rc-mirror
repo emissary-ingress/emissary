@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+"""Mirror RC Docker images from one Docker registry to several others.
+
+"""
+
+import os.path
+import sys
+
+from lib import build_version, mirror_artifacts, re_rc
+
+
+def main(rc_ver: str, include_latest: bool) -> int:
+    versions = [rc_ver]
+
+    if include_latest:
+        versions.append(build_version(rc_ver) + "-rc-latest")
+
+    # mirror_artifacts.main([build_version(rc_ver) + '-rc-latest', rc_ver])
+    # mirror_artifacts.main([rc_ver])
+    mirror_artifacts.main(versions)
+    return 0
+
+
+if __name__ == '__main__':
+    include_latest = True
+
+    args = sys.argv[1:]
+
+    if args and (args[0] == "--no-latest"):
+        include_latest = False
+        args.pop(0)
+
+    if (len(args) != 1) or not re_rc.match(args[0]):
+        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} [--no-latest] X.Y.Z-rc.N\n")
+        sys.exit(2)
+    sys.exit(main(rc_ver=args[0], include_latest=include_latest))

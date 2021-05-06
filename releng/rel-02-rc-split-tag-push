@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+"""Split, tag and push Git things for an RC release.  These steps will
+create Git refs and add to the history a bit, but should not change
+the directory "tree" pointed to by HEAD; at the end of the previous
+script (checklist step 3), the HEAD tree is the final tree for the RC.
+
+"""
+
+import os.path
+import shlex
+import sys
+import webbrowser
+from typing import List
+
+from lib import (aes_branchname, ansiterm, base_version, get_is_private, oss_branchname, plugin_branchname, re_rc)
+from lib.uiutil import run as _run
+from lib.uiutil import run_txtcapture
+
+
+def run(args: List[str]) -> None:
+    print("$ " + (" ".join(shlex.quote(arg) for arg in args)))
+    _run(args)
+
+
+def main(next_ver: str) -> int:
+    warning = """
+ ==> Warning: FIXME: This script does not have the property that if
+     something goes wrong, you can just restart it; put another way:
+     it does not have the property that each step is idempotent.
+
+     If something does go wrong, then you'll have to address it, then
+     resume where the script left off by going through the checklist
+     manually (or by commenting out the already-completed steps).
+"""
+    print(f"{ansiterm.sgr.fg_red}{warning}{ansiterm.sgr}")
+
+    is_private = get_is_private()
+    print(f"is_private = {is_private}")
+    print("")
+    aes_url = f"git@github.com:datawire/apro{'-private' if is_private else ''}.git"
+    oss_url = f"git@github.com:datawire/ambassador{'-private' if is_private else ''}.git"
+
+    run(['make', 'subtree-preflight'])
+
+    run([
+        'git', 'subtree', 'push', '--rejoin', '--prefix=aes-example-plugins',
+        'git@github.com:datawire/apro-example-plugin.git',
+        plugin_branchname()
+    ])
+    webbrowser.open(f"https://github.com/datawire/apro-example-plugin/compare/master...{plugin_branchname()}?expand=1")
+
+    run(['git', 'tag', '--annotate', f'--message=v{next_ver}', f'v{next_ver}'])
+    run(['git', 'push', aes_url, f'v{next_ver}'])
+
+    run(['make', 'push-oss', f'PUSH_BRANCH={oss_branchname()}'])
+    run(['git', 'tag', '--delete', f'v{next_ver}'])  # delete the local AES tag; temporarily make room for the OSS tag
+    run(['git', 'tag', '--annotate', f'--message=v{next_ver}', f'v{next_ver}', 'HEAD^2'])  # create the OSS tag
+    run(['git', 'push', oss_url, f'v{next_ver}'])  # push the OSS tag
+    run(['git', 'tag', '--delete', f'v{next_ver}'])  # delete the local OSS tag; avoid confusion
+
+    webbrowser.open(
+        f"https://github.com/datawire/ambassador{'-private' if is_private else ''}/compare/release/v{base_version(next_ver)}...{oss_branchname()}?expand=1"
+    )
+
+    run(['git', 'push', aes_url, aes_branchname()])
+    webbrowser.open(
+        f"https://github.com/datawire/apro{'-private' if is_private else ''}/compare/release/v{base_version(next_ver)}...{aes_branchname()}?expand=1"
+    )
+
+    return 0
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2 or not re_rc.match(sys.argv[1]):
+        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z-rc.N\n")
+        sys.exit(2)
+    sys.exit(main(next_ver=sys.argv[1]))
