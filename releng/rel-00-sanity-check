@@ -16,7 +16,7 @@ from lib.uiutil import Checker, CheckResult, LineTracker, run
 from lib.uiutil import run_txtcapture as run_capture
 
 
-def main(next_ver: str) -> int:
+def main(next_ver: str, from_release_prep: bool = False) -> int:
     print(f'So, you think you\'ve got an ambassador.git commit that you want to release as "v{next_ver}"?')
     print("Let's see about that...")
     print()
@@ -134,12 +134,13 @@ Does the changelog look good? [y/n]:
             stdio.flush()
 
     if checker.ok:
-        print()
-        print("Yep, looks like you're good to proceed to running `rel-01-rc-update-tree`.")
+        if not from_release_prep:
+            print()
+            print("Yep, looks like you're good to proceed to running `rel-01-rc-update-tree`.")
         return 0
     else:
         print()
-        print("Looks like there's something wrong with this commit that you should address before doing an RC.")
+        print("Looks like there's something wrong with your tree that you need to address before continuing.")
         return 1
 
 
@@ -164,7 +165,15 @@ def branch_up_to_date(remote: str, branch: str, update_cmd: str) -> None:
 subtree_up_to_date = branch_up_to_date
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2 or not re_rc.match(sys.argv[1]):
+    args = sys.argv[1:]
+    from_release_prep = False
+
+    if args and (args[0] == '--release-prep'):
+        from_release_prep = True
+        args.pop(0)
+
+    if len(args) != 1 or not re_rc.match(args[0]):
         sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z-rc.N\n")
         sys.exit(2)
-    sys.exit(main(next_ver=sys.argv[1]))
+
+    sys.exit(main(next_ver=args[0], from_release_prep=from_release_prep))
