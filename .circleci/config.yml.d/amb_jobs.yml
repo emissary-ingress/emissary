@@ -44,6 +44,18 @@ commands:
       - skip-if-no-new-chart
       - run: |
           ./charts/ambassador/ci/check_updated_changelog.sh
+  "job-emissary-chart":
+    steps:
+      - amb-linux-install
+      - amb-checkout
+      - skip-if-no-changes:
+          to: charts/emissary-ingress
+      - install-k3d
+      # We might need to be logged in the registry to pull the Envoy
+      # image or the builder-base image.
+      - amb-config-registry
+      # main
+      - run: make -f charts/emissary-ingress/Makefile test-chart
 
   "job-chart-publish":
     steps:
@@ -59,6 +71,19 @@ commands:
       # main
       - run: make test-chart
       - run: charts/ambassador/ci/push_chart.sh
+
+  "job-emissary-chart-publish":
+    steps:
+      - amb-linux-install
+      - amb-checkout
+      - install-k3d
+      # We might need to be logged in the registry to pull the Envoy
+      # image or the builder-base image.
+      - amb-config-registry
+      # main
+      - run: make test-chart
+      - amb-skip-if-bad-chart-version
+      - run: charts/emissary-ingress/ci/push_chart.sh
 
   "job-generate":
     steps:
@@ -221,7 +246,7 @@ commands:
           name: "Set USE_LOCAL_K3S_CLUSTER=1"
           command:
             echo >>"$BASH_ENV" 'export USE_LOCAL_K3S_CLUSTER=1'
-      - run: 
+      - run:
           name: "Configure system file and inotify maximums"
           command: |
             sudo sysctl -w fs.file-max=1600000

@@ -106,6 +106,10 @@ jobs:
                   equal: [ "master", << pipeline.git.branch >>  ]
           steps:
             - job-chart-changelog
+  "emissary-chart":
+    executor: oss-linux
+    steps:
+      - job-emissary-chart
 
   "oss-promote-to-rc-latest":
     executor: oss-linux
@@ -179,6 +183,8 @@ workflows:
           name: "oss-dev-lint"
       - "oss-chart":
           name: "oss-dev-chart"
+      - "emissary-chart":
+          name: "emissary-dev-chart"
       - "oss-gotest":
           name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           matrix:
