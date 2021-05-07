@@ -122,17 +122,11 @@ spec:
             - key: ambassadorConfig
               path: ambassador-config.yaml
         {{- end }}
-        {{- if and .Values.licenseKey.createSecret .Values.enableAES }}
-        - name: {{ include "ambassador.fullname" . }}-edge-stack-secrets
-          secret:
-            {{- if .Values.licenseKey.secretName }}
-            secretName: {{ .Values.licenseKey.secretName }}
-            {{- else }}
-            secretName: {{ include "ambassador.fullname" . }}-edge-stack
-            {{- end }}
-        {{- end }}
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.volumesRaw }}
+        {{- tpl .Values.volumesRaw . | nindent 8 }}
       {{- end }}
       {{- with .Values.initContainers }}
       initContainers:
@@ -180,18 +174,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
-            {{- if and (or .Values.redis.create .Values.redisURL) (.Values.enableAES) }}
-            - name: REDIS_URL
-              {{- if .Values.redisURL }}
-              value: {{ .Values.redisURL }}
-              {{- else }}
-              value: {{ include "ambassador.fullname" . }}-redis:6379
-              {{- end }}
-            {{- end }}
-            {{- if and .Values.licenseKey.secretName .Values.enableAES}}
-            - name: AMBASSADOR_AES_SECRET_NAME
-              value: {{ .Values.licenseKey.secretName }}
-            {{- end }}
             {{- if .Values.prometheusExporter.enabled }}
             - name: STATSD_ENABLED
               value: "true"
@@ -210,9 +192,6 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
               {{- end -}}
-            {{- if .Values.redisEnv }}
-            {{ toYaml .Values.redisEnv | nindent 12 }}
-            {{- end }}
             {{- if .Values.env }}
             {{- range $key,$value := .Values.env }}
             - name: {{ $key | upper | quote}}
@@ -220,9 +199,7 @@ spec:
             {{- end }}
             {{- end }}
             {{- if .Values.envRaw }}
-            {{- with .Values.envRaw }}
-              {{- toYaml . | nindent 12 }}
-            {{- end }}
+              {{- tpl .Values.envRaw . | nindent 12 }}
             {{- end }}
           {{- with .Values.security.containerSecurityContext }}
           securityContext:
@@ -247,13 +224,11 @@ spec:
               mountPath: /ambassador/ambassador-config/ambassador-config.yaml
               subPath: ambassador-config.yaml
           {{- end }}
-          {{- if and .Values.licenseKey.createSecret .Values.enableAES }}
-            - name: {{ include "ambassador.fullname" . }}-edge-stack-secrets
-              mountPath: /.config/ambassador
-              readOnly: true
-          {{- end }}
           {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.volumeMountsRaw }}
+            {{- tpl .Values.volumeMountsRaw . | nindent 12 }}
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
