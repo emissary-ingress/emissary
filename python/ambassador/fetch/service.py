@@ -56,22 +56,30 @@ class InternalServiceProcessor (ManagedKubernetesProcessor):
     def kinds(self) -> FrozenSet[KubernetesGVK]:
         return frozenset([KubernetesGVK('v1', 'Service')])
 
-    def _is_ambassador_service(self, service_labels: Dict[str, str], service_selector: Dict[str, str]) -> bool:
-        # self.logger.info(f"is_ambassador_service checking {service_labels} - {service_selector}")
+    def _is_ambassador_service(self, obj: KubernetesObject) -> bool:
+        selector = obj.spec.get('selector', {})
+        # self.logger.info(f"is_ambassador_service checking {obj.labels} - {selector}")
 
         # Every Ambassador service must have the label 'app.kubernetes.io/component: ambassador-service'
-        if service_labels.get('app.kubernetes.io/component', "").lower() != 'ambassador-service':
+        if obj.labels.get('app.kubernetes.io/component', "").lower() != 'ambassador-service':
+            return False
+
+        # This service must be in the same namespace as the Ambassador deployment.
+        if obj.namespace != Config.ambassador_namespace:
             return False
 
         # Now that we have the Ambassador label, let's verify that this Ambassador service routes to this very
         # Ambassador pod.
         # We do this by checking that the pod's labels match the selector in the service.
-        for key, value in service_selector.items():
-            pod_label_value = self.aconf.pod_labels.get(key)
-            if pod_label_value == value:
-                return True
+        if len(selector) == 0:
+            return False
 
-        return False
+        for key, value in selector.items():
+            pod_label_value = self.aconf.pod_labels.get(key)
+            if pod_label_value != value:
+                return False
+
+        return True
 
     def _process(self, obj: KubernetesObject) -> None:
         # The annoying bit about K8s Service resources is that not only do we have to look
@@ -89,7 +97,7 @@ class InternalServiceProcessor (ManagedKubernetesProcessor):
         else:
             self.discovered_services[obj.key] = obj
 
-            if self._is_ambassador_service(obj.labels, obj.spec.get('selector', {})):
+            if self._is_ambassador_service(obj):
                 self.logger.debug(f"Found Ambassador service: {obj.name}")
                 self.service_dep.ambassador_service = obj
 
