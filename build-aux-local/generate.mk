@@ -322,6 +322,9 @@ _generate_controller_gen: $(tools/controller-gen) $(tools/fix-crds) update-yaml-
 	  $(foreach varname,$(sort $(filter controller-gen/output/%,$(.VARIABLES))), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
 	  paths="./pkg/api/getambassador.io/..."
 	@PS4=; set -ex; for file in $(crds_yaml_dir)/getambassador.io_*.yaml; do $(tools/fix-crds) helm 1.11 "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
+	# copy the crds into the emissary chart for now.
+	# hack-ish, but this will keep things in sync for the time being
+	cp $(crds_yaml_dir)/* $(OSS_HOME)/charts/emissary-ingress/crds/
 .PHONY: _generate_controller_gen
 
 $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml: _generate_controller_gen $(tools/fix-crds) update-yaml-preflight
