@@ -41,6 +41,18 @@ commands:
     - skip-if-no-new-chart
     - run: |
         ./charts/ambassador/ci/check_updated_changelog.sh
+  "job-emissary-chart":
+    steps:
+    - amb-linux-install
+    - amb-checkout
+    - skip-if-no-changes:
+        to: charts/emissary-ingress
+    - install-k3d
+    # We might need to be logged in the registry to pull the Envoy
+    # image or the builder-base image.
+    - amb-config-registry
+    - # main
+      run: make -f charts/emissary-ingress/Makefile test-chart
   "job-chart-publish":
     steps:
     - amb-linux-install
@@ -55,6 +67,18 @@ commands:
     - # main
       run: make test-chart
     - run: charts/ambassador/ci/push_chart.sh
+  "job-emissary-chart-publish":
+    steps:
+    - amb-linux-install
+    - amb-checkout
+    - install-k3d
+    # We might need to be logged in the registry to pull the Envoy
+    # image or the builder-base image.
+    - amb-config-registry
+    - # main
+      run: make test-chart
+    - amb-skip-if-bad-chart-version
+    - run: charts/emissary-ingress/ci/push_chart.sh
   "job-generate":
     steps:
     # setup
@@ -810,6 +834,10 @@ jobs:
               - << pipeline.git.branch >>
         steps:
         - job-chart-changelog
+  emissary-chart:
+    executor: oss-linux
+    steps:
+    - job-emissary-chart
   oss-promote-to-rc-latest:
     executor: oss-linux
     steps:
@@ -905,6 +933,8 @@ workflows:
         name: "oss-dev-lint"
     - oss-chart:
         name: "oss-dev-chart"
+    - emissary-chart:
+        name: "emissary-dev-chart"
     - oss-gotest:
         name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure
           >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
