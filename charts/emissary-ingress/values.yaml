@@ -118,6 +118,7 @@ security:
     #     rule: MustRunAsNonRoot
 
 image:
+  repository: docker.io/datawire/ambassador
   tag: 1.13.3
   pullPolicy: IfNotPresent
 
@@ -318,106 +319,7 @@ metrics:
     # scrapeTimeout: 30s
     # selector: {}
 
-################################################################################
-## Ambassador Edge Stack Configuration                                        ##
-################################################################################
-
-# The Ambassador Edge Stack is free for limited use without a license key.
-# Go to https://{ambassador-host}/edge_stack/admin/#dashboard to register
-# for a community license key.
-
-enableAES: true
-
-# Set createSecret: false is installing multiple releases of The Ambassador
-# Edge Stack in the same namespace.
-licenseKey:
-  value:
-  createSecret: true
-  secretName:
-  # Annotations to attach to the license-key-secret.
-  annotations:
-    {}
-
-# The DevPortal is exposed at /docs/ endpoint in the AES container.
-# Setting this to true will automatically create routes for the DevPortal.
-createDevPortalMappings: true
-devportal:
-  docsPrefix: "/documentation/"
-
-# The Ambassador Edge Stack uses a redis instance for managing authentication,
-# rate limiting, and sharing minor configuration details between pods for
-# centralized management. These values configure the redis instance that ships
-# by default with The Ambassador Edge Stack.
-#
-# URL of your redis instance. Defaults to redis instance created below.
-redisURL:
-
-# Ambassador ships with a basic redis instance. Configure the deployment with the options below.
-redis:
-  create: true
-  image:
-    repository: redis
-    tag: 5.0.1
-    pullPolicy: IfNotPresent
-  # Annotations for Ambassador Pro's redis instance.
-  annotations:
-    deployment:
-      {}
-    service:
-      {}
-  resources: {}
-  # If you want to specify resources, uncomment the following
-  # lines and remove the curly braces after 'resources:'.
-  # These are placeholder values and must be tuned.
-  #   limits:
-  #     cpu: 100m
-  #     memory: 256Mi
-  #   requests:
-  #     cpu: 50m
-  #     memory: 128Mi
-  nodeSelector: {}
-  affinity: {}
-  tolerations: {}
-
-
-# Configures the AuthService that ships with the Ambassador Edge Stack.
-# Setting authService.create: false will not install the AES AuthService and
-# allow you to define your own.
-#
-# Typically when using the AES, you will want to keep this set to true and use
-# the External Filter to communicate with a custom authentication service.
-# https://www.getambassador.io/reference/filter-reference/#filter-type-external
-authService:
-  deploymentExtraName: auth
-  create: true
-  # Set additional configuration options. See https://www.getambassador.io/reference/services/auth-service for more information
-  optional_configurations: {}
-    # include_body:
-    #   max_bytes: 4096
-    #   allow_partial: true
-    # status_on_error:
-    #   code: 403
-    # failure_mode_allow: false
-    # retry_policy:
-    #   retry_on: "5xx"
-    #   num_retries: 2
-    # add_linkerd_headers: true
-    # timeout_ms: 30000
-
-
-# Configures the RateLimitService in the Ambassador Edge Stack.
-# Keep this enabled to configure RateLimits in AES.
-rateLimit:
-  create: true
-  deploymentExtraName: ratelimit
-
-# Projects are a beta feature of Ambassador that allow developers to stage and
-# deploy code with nothing more than a Github repository.
-# See: https://www.getambassador.io/docs/edge-stack/latest/topics/using/projects/
-registry:
-  create: false
-
-# Resolvers are used to configure the discovery service strategy for Ambasador Edge Stack.
+# Resolvers are used to configure the discovery service strategy for Ambasador
 # See: https://www.getambassador.io/docs/edge-stack/latest/topics/running/resolvers/
 resolvers:
   endpoint:
@@ -478,35 +380,6 @@ prometheusExporter:
 #   runAsUser: 8888
 
 
-# Configures Service Preview that ships with the Ambassador Edge Stack and edgectl.
-# Setting servicePreview.enabled: true will install the Traffic Agent Service Account, Traffic Manager with RBAC, and ambassador-injector
-servicePreview:
-  enabled: false
-  trafficManager:
-    image:
-      # Leave blank to use image.repository and image.tag
-      repository:
-      tag:
-    serviceAccountName: "traffic-manager"
-  trafficAgent:
-    image:
-      # Leave blank to use image.repository and image.tag
-      repository:
-      tag:
-    singleNamespace: true
-    serviceAccountName: "traffic-agent"
-    port: 9900
-
-    # Configure the ambassador-injector webhook for Service Preview Traffic Agent automatic sidecar injection.
-    injector:
-      enabled: true
-
-      # If no injector.crtPEM and injector.keyPEM are provided, a self-signed certificate will be issued
-      # for the Common Name (CN) of `<ambassador-injector>.<namespace>.svc`, which is the cluster-internal DNS name
-      # for the service.
-      crtPEM: ""
-      keyPEM: ""
-
 # Configure the ambassador agent
 agent:
   enabled: true
@@ -525,4 +398,3 @@ deploymentTool: ""
 # configure docker to pull from private registry
 docker: {}
 createNamespace: false
-enableTestService: false

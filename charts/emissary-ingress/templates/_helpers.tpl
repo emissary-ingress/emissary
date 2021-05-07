@@ -28,16 +28,12 @@ If release name contains chart name it will be used as a full name.
 Set the image that should be used for ambassador.
 Use fullImageOverride if present,
 Then if the image repository is explicitly set, use "repository:image"
-Otherwise, check if AES is enabled
-Use AES image if AES is enabled, ambassador image if not
 */}}
 {{- define "ambassador.image" -}}
 {{- if .Values.image.fullImageOverride }}
 {{- .Values.image.fullImageOverride }}
 {{- else if hasKey .Values.image "repository"  -}}
 {{- printf "%s:%s" .Values.image.repository .Values.image.tag -}}
-{{- else if .Values.enableAES -}}
-{{- printf "%s:%s" "docker.io/datawire/aes" .Values.image.tag -}}
 {{- else -}}
 {{- printf "%s:%s" "docker.io/datawire/ambassador" .Values.image.tag -}}
 {{- end -}}
