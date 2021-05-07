@@ -67,8 +67,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 (no changes yet)
 
-## [1.13.4-rc.2] May 06, 2021
-[1.13.4-rc.2]: https://github.com/datawire/ambassador/compare/v1.13.3...v1.13.4-rc.2
+## [1.13.4-rc.3] May 07, 2021
+[1.13.4-rc.3]: https://github.com/datawire/ambassador/compare/v1.13.3...v1.13.4-rc.3
 
 - Bugfix: Incorporate the Envoy 1.15.5 security update by adding the `reject_requests_with_escaped_slashes` option to the Ambassador module.
 
