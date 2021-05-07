@@ -33,5 +33,5 @@ helm-extra-args: --timeout 600s
 
 validate-maintainers: false
 validate-chart-schema: true
-validate-yaml: true
+validate-yaml: false
 # check-version-increment: true
