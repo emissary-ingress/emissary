@@ -5,6 +5,7 @@ import subprocess
 from typing import Any, List
 
 from .uiutil import run_txtcapture
+from .gitutil import git_add as git_add # Stop mypy complaining about implicit reexport
 
 # These are some regular expressions to validate and parse
 # X.Y.Z[-rc.N] versions.

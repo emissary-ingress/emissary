@@ -13,13 +13,9 @@ import sys
 from contextlib import contextmanager
 from typing import Generator
 
-from lib import base_version, build_version, re_rc
+from lib import base_version, build_version, re_rc, git_add
 from lib.uiutil import Checker, CheckResult, run
 from lib.uiutil import run_txtcapture as run_capture
-
-
-def git_add(filename: str) -> None:
-    run(['git', 'add', '--', filename])
 
 
 def main(next_ver: str, today: datetime.date) -> int:
