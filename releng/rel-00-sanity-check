@@ -11,7 +11,7 @@ import time
 from contextlib import contextmanager
 from typing import Generator
 
-from lib import ansiterm, assert_eq, oss_branchname, re_rc, vX, vY, vZ
+from lib import ansiterm, assert_eq, git_check_clean, oss_branchname, re_rc, vX, vY, vZ
 from lib.uiutil import Checker, CheckResult, LineTracker, run
 from lib.uiutil import run_txtcapture as run_capture
 
@@ -48,9 +48,7 @@ def main(next_ver: str) -> int:
             raise Exception(f"Not in {toplevel}")
 
     with check("You're in a clean checkout"):
-        out = run_capture(['git', 'status', '--porcelain'])
-        if out:
-            raise Exception(out)
+        git_check_clean()
 
     # Cache the name of our remote...
     remote_name = 'git@github.com:datawire/ambassador.git' if is_private else 'origin'

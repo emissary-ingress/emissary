@@ -4,6 +4,7 @@ import re
 import subprocess
 from typing import Any, List
 
+from .gitutil import git_check_clean as git_check_clean  # Stop mypy complaining about implicit reexport
 from .uiutil import run_txtcapture
 from .gitutil import git_add as git_add # Stop mypy complaining about implicit reexport
 
