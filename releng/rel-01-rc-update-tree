@@ -13,7 +13,7 @@ import sys
 from contextlib import contextmanager
 from typing import Generator
 
-from lib import base_version, build_version, re_rc, git_add
+from lib import base_version, build_version, git_add, git_check_clean, re_rc
 from lib.uiutil import Checker, CheckResult, run
 from lib.uiutil import run_txtcapture as run_capture
 
@@ -122,12 +122,7 @@ def main(next_ver: str, today: datetime.date) -> int:
         git_add(".ci/website-preview-build")
 
     with check(f"Verifying that tree is clean..."):
-        out = run_capture(['git', 'status', '--porcelain'])
-        if out:
-            lines = out.split('\n')
-            text = "\n".join([ line for line in lines if not line.startswith("M ") ])
-
-            raise Exception(text)
+        git_check_clean(allow_staged=True)
 
     if checker.ok:
         with check(f"Committing changes..."):
