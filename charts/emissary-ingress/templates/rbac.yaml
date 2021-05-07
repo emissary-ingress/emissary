@@ -110,25 +110,6 @@ rules:
     resources: [ "ingresses/status" ]
     verbs: ["update"]
 
-  {{- if .Values.enableAES }}
-
-  - apiGroups: [""]
-    resources: [ "secrets" ]
-    verbs: ["get", "list", "watch", "create", "update"]
-
-  - apiGroups: [""]
-    resources: [ "events" ]
-    verbs: ["get", "list", "watch", "create", "patch"]
-
-  - apiGroups: ["coordination.k8s.io"]
-    resources: [ "leases" ]
-    verbs: ["get", "create", "update"]
-
-  - apiGroups: [""]
-    resources: [ "endpoints" ]
-    verbs: ["get", "list", "watch", "create", "update"]
-  {{- end }}
-
   {{- if or .Values.rbac.podSecurityPolicies .Values.security.podSecurityPolicy }}
 
   - apiGroups: ['policy']
