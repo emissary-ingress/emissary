@@ -1,0 +1,8 @@
+service:
+  type: NodePort
+
+authService:
+  create: false
+
+deploymentStrategy:
+  type: Recreate
