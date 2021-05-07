@@ -1,6 +1,6 @@
 # Emissary
 
-[Emissary Ingress](https://github.com/datawire/ambassador) - The Ambassador Edge Stack is a self-service, comprehensive edge stack that is Kubernetes-native and built on [Envoy Proxy](https://www.envoyproxy.io/).
+[Emissary Ingress](https://github.com/datawire/ambassador) - Emissary Ingress is a self-service, comprehensive API gateway that is Kubernetes-native and built on [Envoy Proxy](https://www.envoyproxy.io/).
 
 ## TL;DR;
 
