@@ -185,7 +185,7 @@ spec:
               value: "YES"
             {{- end }}
             - name: AMBASSADOR_NAMESPACE
-              {{- if .Values.namespace }}
+              {{- if .Values.namespace.name }}
               value: {{ .Values.namespace.name | quote }}
               {{ else }}
               valueFrom:
