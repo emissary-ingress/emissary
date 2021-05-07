@@ -35,3 +35,14 @@ chart-create-cluster: preflight-kubeconfig
 chart-delete-cluster:
 	$(K3D_EXEC) cluster delete $(K3D_CLUSTER_NAME)
 .PHONY: chart-delete-cluster
+
+doc-gen-preflight:
+	@if ! command -v chart-doc-gen 2> /dev/null ; then \
+		printf 'chart-doc-gen not installed, see https://github.com/kubepack/chart-doc-gen'; \
+	    false; \
+	fi
+.PHONY: doc-gen-preflight
+
+chart-doc-gen: doc-gen-preflight
+	chart-doc-gen -d ./doc.yaml -t ./readme.tpl -v ./values.yaml > ./README.md
+.PHONY: chart-doc-gen
