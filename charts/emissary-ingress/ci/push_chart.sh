@@ -16,6 +16,7 @@ if ! command -v helm 2> /dev/null ; then
     chmod 700 get_helm.sh
     ./get_helm.sh --version v3.4.1
 fi
+s3url=https://s3.amazonaws.com/datawire-static-files/emissary-charts/index.yaml
 
 info "Pushing Helm Chart"
 helm package $TOP_DIR
@@ -25,7 +26,7 @@ export CHART_PACKAGE=$(ls *.tgz)
 
 curl -o tmp.yaml -k -L https://getambassador.io/helm/index.yaml
 
-thisversion=$(grep version charts/ambassador/Chart.yaml | awk ' { print $2 }')
+thisversion=$(grep version charts/emissary-ingress/Chart.yaml | awk ' { print $2 }')
 
 if [[ $(grep -c "version: $thisversion" tmp.yaml || true) != 0 ]]; then
 	failed "Chart version $thisversion is already in the index"
@@ -45,7 +46,7 @@ info "Pushing chart to S3 bucket $AWS_BUCKET"
 for f in "$CHART_PACKAGE" "index.yaml" ; do
   aws s3api put-object \
     --bucket "$AWS_BUCKET" \
-    --key "ambassador/$f" \
+    --key "emissary-charts/$f" \
     --body "$f" && passed "... ambassador/$f pushed"
 done
 
