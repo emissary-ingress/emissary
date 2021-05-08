@@ -225,6 +225,14 @@ version:
 	@$(BUILDER) version
 .PHONY: version
 
+release-version:
+	@$(BUILDER) release-version
+.PHONY: release-version
+
+version-from-yaml:
+	@grep version: $(OSS_HOME)/docs/yaml/versions.yml | awk ' { print $$2 }'
+.PHONY: version-from-yaml
+
 compile: sync
 	@$(BUILDER) compile
 .PHONY: compile
@@ -343,6 +351,16 @@ push: docker/$(LCNAME).docker.push.remote
 push: docker/kat-client.docker.push.remote
 push: docker/kat-server.docker.push.remote
 .PHONY: push
+
+push-with-datestamp: docker/$(LCNAME).docker.tag.local
+	@set -e; { \
+		version=$$(grep version: $(OSS_HOME)/docs/yaml/versions.yml | awk ' { print $$2 }') ;\
+		today=$$(date +"%Y%m%d") ;\
+		tag="$(DEV_REGISTRY)/$(REPO):$${version}-wip.$${today}" ;\
+		echo "pushing as $$tag..." ;\
+		docker tag $$(cat docker/$(LCNAME).docker) $$tag && \
+		docker push $$tag ;\
+	}
 
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
 export KUBECTL_ERR=$(RED)ERROR: preflight kubectl check failed$(END)

@@ -16,11 +16,15 @@ jobs:
       "release":
         type: boolean
         default: false
+      "push_with_datestamp":
+        type: boolean
+        default: false
     executor: oss-linux
     resource_class: large
     steps:
       - job-images:
           release: << parameters.release >>
+          push_with_datestamp: << parameters.push_with_datestamp >>
 
   "oss-gotest":
     executor: oss-linux
@@ -263,10 +267,19 @@ workflows:
             branches:
               only:
                 - master
+      - schedule:
+          # Time is in UTC: 1AM EDT every day
+          cron: "0 5 * * *"
+          filters:
+            branches:
+              only:
+                - shared/nightly-test
+                - shared/emissary
     jobs:
       # build+push
       - "oss-images":
           name: "oss-nightly-images"
+          push_with_datestamp: true
       - "oss-gotest":
           name: "oss-nightly-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           matrix:

@@ -85,6 +85,9 @@ commands:
       "release":
         type: boolean
         default: false
+      "push_with_datestamp":
+        type: boolean
+        default: false
     steps:
       # setup
       - amb-linux-install
@@ -106,6 +109,13 @@ commands:
                 command: |
                   docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
                   DEV_KUBECONFIG="-skip-for-release-" make release/bits
+      - when:
+          condition: << parameters.push_with_datestamp >>
+          steps:
+            - run:
+                name: "Push with datestamp"
+                command: |
+                  make push-with-datestamp
 
       # teardown
       - dirty-check

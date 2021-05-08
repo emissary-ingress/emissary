@@ -77,6 +77,9 @@ commands:
       "release":
         type: boolean
         default: false
+      "push_with_datestamp":
+        type: boolean
+        default: false
     steps:
     # setup
     - amb-linux-install
@@ -97,6 +100,13 @@ commands:
             command: |
               docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
               DEV_KUBECONFIG="-skip-for-release-" make release/bits
+    - when:
+        condition: << parameters.push_with_datestamp >>
+        steps:
+        - run:
+            name: "Push with datestamp"
+            command: |
+              make push-with-datestamp
     # teardown
     - dirty-check
     - amb-images-save-workspace
@@ -684,11 +694,15 @@ jobs:
       release:
         type: boolean
         default: false
+      push_with_datestamp:
+        type: boolean
+        default: false
     executor: oss-linux
     resource_class: large
     steps:
     - job-images:
         release: << parameters.release >>
+        push_with_datestamp: << parameters.push_with_datestamp >>
   oss-gotest:
     executor: oss-linux
     parameters:
@@ -993,9 +1007,17 @@ workflows:
           branches:
             only:
             - master
+    - schedule:
+        cron: "0 5 * * *"
+        filters:
+          branches:
+            only:
+            - shared/nightly-test
+            - shared/emissary
     jobs:
     - oss-images:
         name: "oss-nightly-images"
+        push_with_datestamp: true
     - oss-gotest:
         name: "oss-nightly-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
