@@ -227,6 +227,10 @@ version:
 	@$(BUILDER) version
 .PHONY: version
 
+raw-version:
+	@$(BUILDER) raw-version
+.PHONY: raw-version
+
 compile: sync
 	@$(BUILDER) compile
 .PHONY: compile
