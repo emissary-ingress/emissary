@@ -466,12 +466,12 @@ case "${cmd}" in
         ;;
     release-version)
         shift
-        source <(module_version ${BUILDER_NAME})
+        eval $(module_version ${BUILDER_NAME})
         echo "${RELEASE_VERSION}"
         ;;
     version)
         shift
-        source <(module_version ${BUILDER_NAME})
+        eval $(module_version ${BUILDER_NAME})
         echo "${BUILD_VERSION}"
         ;;
     compile)
