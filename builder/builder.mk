@@ -375,6 +375,26 @@ push: docker/kat-client.docker.push.remote
 push: docker/kat-server.docker.push.remote
 .PHONY: push
 
+push-nightly: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
+	@set -e; { \
+		if [ -n "$(IS_DIRTY)" ]; then \
+			echo "push-with-datestamp: tree must be clean" >&2 ;\
+			exit 1 ;\
+		fi; \
+		now=$$(date +"%Y%m%dT%H%M%S") ;\
+		today=$$(date +"%Y%m%d") ;\
+		base_version=$$(echo $(BUILD_VERSION) | cut -d- -f1) ;\
+		for image in $(LCNAME) $(LCNAME)-ea; do \
+			for suffix in "$$now" "$$today"; do \
+				tag="$(DEV_REGISTRY)/$$image:$${base_version}-nightly.$${suffix}" ;\
+				echo "pushing $$image as $$tag..." ;\
+				docker tag $$(cat docker/$$image.docker) $$tag && \
+				docker push $$tag ;\
+			done ;\
+		done ;\
+	}
+.PHONY: push-nightly
+
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
 export KUBECTL_ERR=$(RED)ERROR: preflight kubectl check failed$(END)
 
@@ -615,6 +635,7 @@ export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/en
 RELEASE_TYPE=$$($(BUILDER) release-type)
 RELEASE_VERSION=$$($(BUILDER) release-version)
 BUILD_VERSION=$$($(BUILDER) version)
+IS_DIRTY=$$($(BUILDER) is-dirty)
 
 # 'rc' is a deprecated alias for 'release/bits', kept around for the
 # moment to avoid pain with needing to update apro.git in lockstep.
