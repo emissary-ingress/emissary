@@ -244,7 +244,7 @@ compile: sync
 
 # Give Make a hint about which pattern rules to apply.  Honestly, I'm
 # not sure why Make isn't figuring it out on its own, but it isn't.
-_images = builder-base snapshot base-envoy $(LCNAME) kat-client kat-server
+_images = builder-base snapshot base-envoy $(LCNAME) $(LCNAME)-ea kat-client kat-server
 $(foreach i,$(_images), docker/$i.docker.tag.local  ): docker/%.docker.tag.local : docker/%.docker
 $(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remote: docker/%.docker
 
@@ -298,6 +298,29 @@ docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/snapshot.docker.tag.l
 	    unset TIMEFORMAT; \
 	  fi; \
 	}
+
+docker/$(LCNAME)-ea.docker.stamp: %/$(LCNAME)-ea.docker.stamp: %/$(LCNAME).docker $(BUILDER_HOME)/Dockerfile-ea FORCE
+	@set -e; { \
+	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
+	    printf "${CYN}==> ${GRN}Image ${BLU}$(LCNAME)-ea${GRN} is already up-to-date${END}\n"; \
+	  else \
+	    printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)-ea${END}\n"; \
+	    printf "    ${BLU}base_ambassador=$$(cat $*/$(LCNAME).docker)${END}\n"; \
+	    TIMEFORMAT="     (docker build took %1R seconds)"; \
+	    echo time ${DBUILD} ${BUILDER_HOME} \
+	      -f $(BUILDER_HOME)/Dockerfile-ea \
+	      --build-arg=base_ambassador="$$(cat $*/$(LCNAME).docker)" \
+	      --target=ambassador-ea \
+	      --iidfile=$@; \
+	    time ${DBUILD} ${BUILDER_HOME} \
+	      -f $(BUILDER_HOME)/Dockerfile-ea \
+	      --build-arg=base_ambassador="$$(cat $*/$(LCNAME).docker)" \
+	      --target=ambassador-ea \
+	      --iidfile=$@; \
+	    unset TIMEFORMAT; \
+	  fi; \
+	}
+
 docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
 	@set -e; { \
 	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
@@ -334,6 +357,7 @@ docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/snapshot.docker.tag
 REPO=$(BUILDER_NAME)
 
 images: docker/$(LCNAME).docker.tag.local
+images: docker/$(LCNAME)-ea.docker.tag.local
 images: docker/kat-client.docker.tag.local
 images: docker/kat-server.docker.tag.local
 .PHONY: images
@@ -344,6 +368,7 @@ REGISTRY_ERR += $(NL)       you would like to use for development
 REGISTRY_ERR += $(END)
 
 push: docker/$(LCNAME).docker.push.remote
+push: docker/$(LCNAME)-ea.docker.push.remote
 push: docker/kat-client.docker.push.remote
 push: docker/kat-server.docker.push.remote
 .PHONY: push
@@ -414,6 +439,7 @@ pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remot
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests in builder shell$(END)\n"
 	docker exec \
 		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) \
+		-e AMBASSADOR_EA_DOCKER_IMAGE=$$(sed -n 2p docker/$(LCNAME)-ea.docker.push.remote) \
 		-e KAT_CLIENT_DOCKER_IMAGE=$$(sed -n 2p docker/kat-client.docker.push.remote) \
 		-e KAT_SERVER_DOCKER_IMAGE=$$(sed -n 2p docker/kat-server.docker.push.remote) \
 		-e KAT_IMAGE_PULL_POLICY=Always \
@@ -675,6 +701,8 @@ CURRENT_NAMESPACE=$(shell kubectl config view -o=jsonpath="{.contexts[?(@.name==
 
 AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME).docker.push.remote 2>/dev/null)
 export AMBASSADOR_DOCKER_IMAGE
+AMBASSADOR_EA_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME)-ea.docker.push.remote 2>/dev/null)
+export AMBASSADOR_EA_DOCKER_IMAGE
 KAT_CLIENT_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-client.docker.push.remote 2>/dev/null)
 export KAT_CLIENT_DOCKER_IMAGE
 KAT_SERVER_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-server.docker.push.remote 2>/dev/null)
@@ -685,6 +713,7 @@ _user-vars += DEV_KUBECONFIG
 _user-vars += DEV_REGISTRY
 _user-vars += RELEASE_REGISTRY
 _user-vars += AMBASSADOR_DOCKER_IMAGE
+_user-vars += AMBASSADOR_EA_DOCKER_IMAGE
 _user-vars += KAT_CLIENT_DOCKER_IMAGE
 _user-vars += KAT_SERVER_DOCKER_IMAGE
 env:
