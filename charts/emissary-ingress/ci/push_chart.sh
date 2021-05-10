@@ -16,7 +16,8 @@ if ! command -v helm 2> /dev/null ; then
     chmod 700 get_helm.sh
     ./get_helm.sh --version v3.4.1
 fi
-s3url=https://s3.amazonaws.com/datawire-static-files/emissary-charts/index.yaml
+# TODO: when system a mappings exist, we can change this to app.getambassador.io
+s3url=https://s3.amazonaws.com/datawire-static-files/emissary-charts/
 
 info "Pushing Helm Chart"
 helm package $TOP_DIR
@@ -24,7 +25,7 @@ helm package $TOP_DIR
 # Get name of package
 export CHART_PACKAGE=$(ls *.tgz)
 
-curl -o tmp.yaml -k -L https://getambassador.io/helm/index.yaml
+curl -o tmp.yaml -k -L ${s3url}index.yaml
 
 thisversion=$(grep version charts/emissary-ingress/Chart.yaml | awk ' { print $2 }')
 
@@ -33,7 +34,7 @@ if [[ $(grep -c "version: $thisversion" tmp.yaml || true) != 0 ]]; then
 	exit 1
 fi
 
-helm repo index . --url https://getambassador.io/helm --merge tmp.yaml
+helm repo index . --url ${s3url} --merge tmp.yaml
 
 if [ -z "$AWS_BUCKET" ] ; then
     AWS_BUCKET=datawire-static-files
@@ -47,7 +48,7 @@ for f in "$CHART_PACKAGE" "index.yaml" ; do
   aws s3api put-object \
     --bucket "$AWS_BUCKET" \
     --key "emissary-charts/$f" \
-    --body "$f" && passed "... ambassador/$f pushed"
+    --body "$f" && passed "... emissary-charts/$f pushed"
 done
 
 info "Cleaning up..."
