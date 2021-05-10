@@ -37,6 +37,19 @@ commands:
       # main
       - run: make test-chart
 
+  "job-emissary-chart":
+    steps:
+      - amb-linux-install
+      - amb-checkout
+      - skip-if-no-changes:
+          to: charts/emissary-ingress
+      - install-k3d
+      # We might need to be logged in the registry to pull the Envoy
+      # image or the builder-base image.
+      - amb-config-registry
+      # main
+      - run: make -f charts/emissary-ingress/Makefile test-chart
+
   "job-chart-publish":
     steps:
       - amb-linux-install
@@ -49,6 +62,19 @@ commands:
       - run: make test-chart
       - amb-skip-if-bad-chart-version
       - run: charts/ambassador/ci/push_chart.sh
+
+  "job-emissary-chart-publish":
+    steps:
+      - amb-linux-install
+      - amb-checkout
+      - install-k3d
+      # We might need to be logged in the registry to pull the Envoy
+      # image or the builder-base image.
+      - amb-config-registry
+      # main
+      - run: make test-chart
+      - amb-skip-if-bad-chart-version
+      - run: charts/emissary-ingress/ci/push_chart.sh
 
   "job-generate":
     steps:
