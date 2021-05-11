@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+"""Do a sanity check that you're at something that's ready for you to
+cut an RC from; that you're in the right repo, that you're on the
+right branch, that all of the subtrees are up-to-date...
+
+"""
+
+import os.path
+import sys
+import time
+from contextlib import contextmanager
+from typing import Generator
+
+from lib import ansiterm, assert_eq, git_check_clean, oss_branchname, re_ga, vX, vY, vZ
+from lib.uiutil import Checker, CheckResult, LineTracker, run
+from lib.uiutil import run_txtcapture as run_capture
+
+
+def main(next_ver: str, quiet: bool = False) -> int:
+    print(f'Starting work on "v{next_ver}"...')
+    print()
+
+    checker = Checker()
+
+    @contextmanager
+    def check(name: str) -> Generator[CheckResult, None, None]:
+        with checker.check(name) as subcheck:
+            # time.sleep(1)  # it's stupid, but honestly the delay makes the output more readable
+            yield subcheck
+
+    is_private = False
+
+    with check("You're in a clone of git@github.com:datawire/ambassador[-private].git"):
+        url = run_capture(['git', 'remote', 'get-url', '--push', 'origin'])
+        if url.endswith("/"):
+            url = url[:-len("/")]
+        if url.endswith(".git"):
+            url = url[:-len(".git")]
+        if url.endswith("-private"):
+            is_private = True
+            url = url[:-len("-private")]
+        assert_eq(url, "git@github.com:datawire/ambassador")
+
+    with check("You're in the toplevel of the clone"):
+        toplevel = run_capture(['git', 'rev-parse', '--show-toplevel'])
+        if not os.path.samefile(toplevel, '.'):
+            raise Exception(f"Not in {toplevel}")
+
+    with check("You're in a clean checkout"):
+        git_check_clean()
+
+    # Cache the name of our remote...
+    remote_name = 'git@github.com:datawire/ambassador.git' if is_private else 'origin'
+
+    # ...make sure the passed-in version is OK...
+    m = re_ga.match(next_ver)
+    assert m
+
+    # ...and figure out some branch names.
+    release_branch = os.environ.get("RELEASE_BRANCH") or f"release/v{m[vX]}.{m[vY]}"
+    cur_branch = ""
+
+    with check(f"You're on master or {release_branch}"):
+        cur_branch = run_capture(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
+
+        if (cur_branch != "master") and (cur_branch != release_branch):
+            raise AssertionError(f"You can't start a release from {cur_branch}")
+
+    if checker.ok:
+        with check("You're up-to-date with ambassador.git"):
+            remote_name = 'git@github.com:datawire/ambassador.git' if is_private else 'origin'
+
+            branch_up_to_date(
+                remote=remote_name,
+                branch=cur_branch,
+                update_cmd=f'git pull {remote_name} {cur_branch}',
+            )
+
+        if is_private:
+            with check("You're up-to-date with ambassador-private.git"):
+                branch_up_to_date(
+                    remote='git@github.com:datawire/ambassador-private.git',
+                    branch=cur_branch,
+                    update_cmd=f'git pull git@github.com:datawire/ambassador-private.git {cur_branch}',
+                )
+
+    if checker.ok:
+        if not quiet:
+            print()
+            print("Yep, looks like you're good to proceed to running `rel-01-rc-update-tree`.")
+        return 0
+    else:
+        print()
+        print("Looks like there's something wrong with your tree that you need to address before continuing.")
+        return 1
+
+
+def branch_exists(remote: str, branch: str) -> None:
+    # Allow exceptions to propagate upward
+    run(['git', 'fetch', remote, f'refs/heads/{branch}'])
+
+
+def branch_up_to_date(remote: str, branch: str, update_cmd: str) -> None:
+    run(['git', 'fetch', remote, f'refs/heads/{branch}'])
+    try:
+        run(['git', 'merge-base', '--is-ancestor', 'FETCH_HEAD', 'HEAD'])
+    except Exception as err:
+        print(f"HEAD is not up-to-date with '{remote}' '{branch}':")
+        print("You need to update it with:")
+        print()
+        print(f"    $ {update_cmd}")
+        print()
+        raise
+
+
+subtree_up_to_date = branch_up_to_date
+
+if __name__ == '__main__':
+    args = sys.argv[1:]
+    quiet = False
+
+    if args and (args[0] == '--quiet'):
+        quiet = True
+        args.pop(0)
+
+    if len(args) != 1 or not re_ga.match(args[0]):
+        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z\n")
+        sys.exit(2)
+
+    sys.exit(main(next_ver=args[0], quiet=quiet))

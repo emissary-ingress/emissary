@@ -675,12 +675,12 @@ IS_DIRTY=$$($(BUILDER) is-dirty)
 rc: release/bits
 .PHONY: rc
 
-release/prep:
+release/start:
 	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
-	@releng/rel-00-sanity-check --release-prep $(VERSION)
-	@releng/rel-01-rc-update-tree --no-commit $(VERSION)
-	@releng/rel-02-rc-update-chart $(VERSION)
-.PHONY: release/prep
+	@releng/start-sanity-check $(VERSION)
+# 	@releng/rel-01-rc-update-tree --no-commit $(VERSION)
+# 	@releng/rel-02-rc-update-chart $(VERSION)
+.PHONY: release/start
 
 release/bits: images
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
