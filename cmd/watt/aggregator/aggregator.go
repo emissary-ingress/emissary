@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"strings"
 	"sync"
 	"time"
 
@@ -378,7 +379,9 @@ func ExecWatchHook(watchHooks []string) WatchHook {
 }
 
 func invokeHook(ctx context.Context, hook, snapshot string) watchapi.WatchSet {
-	watches, err := dexec.CommandContext(ctx, "sh", "-c", hook).Output()
+	cmd := dexec.CommandContext(ctx, "sh", "-c", hook)
+	cmd.Stdin = strings.NewReader(snapshot)
+	watches, err := cmd.Output()
 	if err != nil {
 		dlog.Infof(ctx, "watch hook failed: %v", err)
 		return watchapi.WatchSet{}
