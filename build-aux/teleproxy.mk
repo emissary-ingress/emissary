@@ -1,6 +1,6 @@
 # Copyright 2018 Datawire. All rights reserved.
 #
-# Makefile snippet for calling `teleproxy`
+# Makefile snippet for calling `telepresence`
 #
 ## Eager inputs ##
 #  - Variable: KUBECONFIG
@@ -21,9 +21,9 @@ tools/telepresence = $(build-aux.bindir)/telepresence
 ifeq ($(GOHOSTOS),darwin)
 $(tools/telepresence): CGO_ENABLED = 1
 endif
-$(tools/telepresence): FORCE
+$(tools/telepresence): $(abspath $@)
 	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $(abspath $@) github.com/telepresenceio/telepresence/v2/cmd/telepresence
+	cd $(OSS_HOME) && curl -s --fail -L https://app.getambassador.io/download/tel2/linux/amd64/latest/telepresence -o $(abspath $@) && chmod a+x $(abspath $@)
 
 proxy: ## (Telepresence) Launch telepresence in the background
 proxy: $(KUBECONFIG) $(tools/telepresence)
@@ -34,7 +34,7 @@ unproxy: ## (Telepresence) Shut down 'proxy'
 	$(tools/telepresence) quit || true
 .PHONY: unproxy
 
-status-proxy: ## (Telepresence) Fail if cluster connectivity is broken or Teleproxy is not running
+status-proxy: ## (Telepresence) Fail if cluster connectivity is broken or telepresence is not running
 status-proxy: status-cluster
 	$(tools/telepresence) status
 .PHONY: status-proxy
@@ -42,5 +42,6 @@ status-proxy: status-cluster
 $(KUBECONFIG).clean: unproxy
 
 clean: unproxy
+	cd $(OSS_HOME) && rm -f $(abspath $(tools/telepresence))
 
 endif
