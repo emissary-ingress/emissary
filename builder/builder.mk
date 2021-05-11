@@ -677,9 +677,9 @@ rc: release/bits
 
 release/start:
 	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
-	@releng/start-sanity-check $(VERSION)
-# 	@releng/rel-01-rc-update-tree --no-commit $(VERSION)
-# 	@releng/rel-02-rc-update-chart $(VERSION)
+	@releng/start-sanity-check --quiet $(VERSION)
+	@releng/start-update-version --quiet --no-commit $(VERSION)
+	@releng/start-update-chart --quiet $(VERSION)
 .PHONY: release/start
 
 release/bits: images
