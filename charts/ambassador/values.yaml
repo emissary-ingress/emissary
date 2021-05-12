@@ -116,6 +116,8 @@ security:
     #   allowPrivilegeEscalation: false
     #   runAsUser:
     #     rule: MustRunAsNonRoot
+  snapshot:
+    mountInMemory: true
 
 image:
   tag: 1.13.3
