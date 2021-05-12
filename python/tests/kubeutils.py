@@ -1,6 +1,6 @@
 import tempfile
 
-from runutils import run_with_retry
+from tests.runutils import run_with_retry
 
 def meta_action_kube_artifacts(namespace, artifacts, action, retries=0):
     temp_file = tempfile.NamedTemporaryFile()
