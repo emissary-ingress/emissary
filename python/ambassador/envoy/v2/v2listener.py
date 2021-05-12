@@ -16,588 +16,21 @@ from typing import cast as typecast
 
 from os import environ
 
-import json
 import logging
 
-from multi import multi
 from ...ir.irlistener import IRListener
-from ...ir.irauth import IRAuth
-from ...ir.irerrorresponse import IRErrorResponse
-from ...ir.irbuffer import IRBuffer
-from ...ir.irgzip import IRGzip
-from ...ir.irfilter import IRFilter
-from ...ir.irratelimit import IRRateLimit
-from ...ir.ircors import IRCORS
-from ...ir.ircluster import IRCluster
 from ...ir.irtcpmappinggroup import IRTCPMappingGroup
-from ...ir.irtlscontext import IRTLSContext
 
 from ...utils import dump_json, parse_bool
-from ...utils import ParsedService as Service
 
-from .v2route import V2Route
+from .v2httpfilter import V2HTTPFilter
+from .v2route import DictifiedV2Route, v2prettyroute
 from .v2tls import V2TLSContext
+from .v2virtualhost import V2VirtualHost
 
 if TYPE_CHECKING:
-    from . import V2Config # pragma: no cover
-
-DictifiedV2Route = Dict[str, Any]
-
-EnvoyCTXInfo = Tuple[str, Optional[List[str]], V2TLSContext]
-
-# Static header keys normally used in the context of an authorization request.
-AllowedRequestHeaders = frozenset([
-    'authorization',
-    'cookie',
-    'from',
-    'proxy-authorization',
-    'user-agent',
-    'x-forwarded-for',
-    'x-forwarded-host',
-    'x-forwarded-proto'
-])
-
-# Static header keys normally used in the context of an authorization response.
-AllowedAuthorizationHeaders = frozenset([
-    'location',
-    'authorization',
-    'proxy-authenticate',
-    'set-cookie',
-    'www-authenticate'
-])
-
-# This mapping is only used for ambassador/v0.
-ExtAuthRequestHeaders = {
-    'Authorization': True,
-    'Cookie': True,
-    'Forwarded': True,
-    'From': True,
-    'Host': True,
-    'Proxy-Authenticate': True,
-    'Proxy-Authorization': True,
-    'Set-Cookie': True,
-    'User-Agent': True,
-    'x-b3-flags': True,
-    'x-b3-parentspanid': True,
-    'x-b3-traceid': True,
-    'x-b3-sampled': True,
-    'x-b3-spanid': True,
-    'X-Forwarded-For': True,
-    'X-Forwarded-Host': True,
-    'X-Forwarded-Proto': True,
-    'X-Gateway-Proto': True,
-    'x-ot-span-context': True,
-    'WWW-Authenticate': True,
-}
-
-
-def jsonify(x) -> str:
-    return dump_json(x, pretty=True)
-
-
-def prettyroute(route: DictifiedV2Route) -> str:
-    match = route["match"]
-
-    key = "PFX"
-    value = match.get("prefix", None)
-
-    if not value:
-        key = "SRX"
-        value = match.get("safe_regex", {}).get("regex", None)
-
-    if not value:
-        key = "URX"
-        value = match.get("unsafe_regex", None)
-
-    if not value:
-        key = "???"
-        value = "-none-"
-
-    match_str = f"{key} {value}"
-
-    headers = match.get("headers", {})
-    xfp = None
-    host = None
-
-    for header in headers:
-        name = header.get("name", None).lower()
-        exact = header.get("exact_match", None)
-
-        if not name or not exact:
-            continue
-
-        if name == "x-forwarded-proto":
-            xfp = bool(exact == "https")
-        elif name == ":authority":
-            host = exact
-
-    match_str += f" {'IN' if not xfp else ''}SECURE"
-
-    if host:
-        match_str += f" HOST {host}"
-
-    target_str = "-none-"
-
-    if route.get("route"):
-        target_str = f"ROUTE {route['route']['cluster']}"
-    elif route.get("redirect"):
-        target_str = f"REDIRECT"
-
-    return f"<V2Route {match_str} -> {target_str}>"
-
-
-def header_pattern_key(x: Dict[str, str]) -> List[Tuple[str, str]]:
-    return sorted([ (k, v) for k, v in x.items() ])
-
-
-@multi
-def v2filter(irfilter: IRFilter, v2config: 'V2Config'):
-    del v2config  # silence unused-variable warning
-
-    if irfilter.kind == 'IRAuth':
-        if irfilter.api_version == 'getambassador.io/v0':
-            return 'IRAuth_v0'
-        elif (irfilter.api_version == 'getambassador.io/v1') or (irfilter.api_version == 'getambassador.io/v2'):
-            return 'IRAuth_v1-2'
-        else:
-            irfilter.post_error('AuthService version %s unknown, treating as v2' % irfilter.api_version)
-            return 'IRAuth_v1-2'
-    else:
-        return irfilter.kind
-
-@v2filter.when("IRBuffer")
-def v2filter_buffer(buffer: IRBuffer, v2config: 'V2Config'):
-    del v2config  # silence unused-variable warning
-
-    return {
-        'name': 'envoy.filters.http.buffer',
-        'typed_config': {
-            '@type': 'type.googleapis.com/envoy.config.filter.http.buffer.v2.Buffer',
-            "max_request_bytes": buffer.max_request_bytes
-        }
-    }
-
-@v2filter.when("IRGzip")
-def v2filter_gzip(gzip: IRGzip, v2config: 'V2Config'):
-    del v2config  # silence unused-variable warning
-
-    return {
-        'name': 'envoy.filters.http.gzip',
-        'typed_config': {
-            '@type': 'type.googleapis.com/envoy.config.filter.http.gzip.v2.Gzip',
-            'memory_level': gzip.memory_level,
-            'content_length': gzip.content_length,
-            'compression_level': gzip.compression_level,
-            'compression_strategy': gzip.compression_strategy,
-            'window_bits': gzip.window_bits,
-            'content_type': gzip.content_type,
-            'disable_on_etag_header': gzip.disable_on_etag_header,
-            'remove_accept_encoding_header': gzip.remove_accept_encoding_header,
-        }
-    }
-
-@v2filter.when("ir.grpc_http1_bridge")
-def v2filter_grpc_http1_bridge(irfilter: IRFilter, v2config: 'V2Config'):
-    del irfilter  # silence unused-variable warning
-    del v2config  # silence unused-variable warning
-
-    return {
-        'name': 'envoy.filters.http.grpc_http1_bridge'
-    }
-
-@v2filter.when("ir.grpc_web")
-def v2filter_grpc_web(irfilter: IRFilter, v2config: 'V2Config'):
-    del irfilter  # silence unused-variable warning
-    del v2config  # silence unused-variable warning
-
-    return {
-        'name': 'envoy.filters.http.grpc_web'
-    }
-
-@v2filter.when("ir.grpc_stats")
-def v2filter_grpc_stats(irfilter: IRFilter, v2config: 'V2Config'):
-    del v2config  # silence unused-variable warning
-
-    return {
-        'name': 'envoy.filters.http.grpc_stats',
-        'config': irfilter.config_dict(),
-    }
-
-def auth_cluster_uri(auth: IRAuth, cluster: IRCluster) -> str:
-    cluster_context = cluster.get('tls_context')
-    scheme = 'https' if cluster_context else 'http'
-
-    prefix = auth.get("path_prefix") or ""
-
-    if prefix.startswith("/"):
-        prefix = prefix[1:]
-
-    server_uri = "%s://%s" % (scheme, prefix)
-
-    if auth.ir.logger.isEnabledFor(logging.DEBUG):
-        auth.ir.logger.debug("%s: server_uri %s" % (auth.name, server_uri))
-
-    return server_uri
-
-@v2filter.when("IRAuth_v0")
-def v2filter_authv0(auth: IRAuth, v2config: 'V2Config'):
-    del v2config  # silence unused-variable warning
-
-    assert auth.cluster
-    cluster = typecast(IRCluster, auth.cluster)
-
-    assert auth.api_version == "getambassador.io/v0"
-
-    # This preserves almost exactly the same logic prior to ambassador/v1 implementation.
-    request_headers = dict(ExtAuthRequestHeaders)
-
-    for hdr in auth.allowed_headers:
-        request_headers[hdr] = True
-
-    # Always allow the default set, above. This may be a slight behavior change from the
-    # v0 config, but it seems to aid usability.
-
-    hdrs = set(auth.allowed_headers or [])      # turn list into a set
-    hdrs.update(AllowedAuthorizationHeaders)    # merge in a frozenset
-
-    allowed_authorization_headers = []
-
-    for key in sorted(hdrs):
-        allowed_authorization_headers.append({"exact": key})
-
-    allowed_request_headers = []
-
-    for key in sorted(request_headers.keys()):
-        allowed_request_headers.append({"exact": key})
-
-    return {
-        'name': 'envoy.filters.http.ext_authz',
-        'typed_config': {
-            '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthz',
-            'http_service': {
-                'server_uri': {
-                    'uri': auth_cluster_uri(auth, cluster),
-                    'cluster': cluster.envoy_name,
-                    'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
-                },
-                'path_prefix': auth.path_prefix,
-                'authorization_request': {
-                    'allowed_headers': {
-                        'patterns': sorted(allowed_request_headers, key=header_pattern_key)
-                    }
-                },
-                'authorization_response' : {
-                    'allowed_upstream_headers': {
-                        'patterns': sorted(allowed_authorization_headers, key=header_pattern_key)
-                    },
-                    'allowed_client_headers': {
-                        'patterns': sorted(allowed_authorization_headers, key=header_pattern_key)
-                    }
-                }
-            }
-        }
-    }
-
-
-@v2filter.when("IRAuth_v1-2")
-def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
-    del v2config  # silence unused-variable warning
-
-    assert auth.cluster
-    cluster = typecast(IRCluster, auth.cluster)
-
-    if (auth.api_version != "getambassador.io/v1") and (auth.api_version != "getambassador.io/v2"):
-        auth.ir.logger.warning("IRAuth_v1 working on %s, mismatched at %s" % (auth.name, auth.api_version))
-
-    assert auth.proto
-
-    raw_body_info: Optional[Dict[str, int]] = auth.get('include_body')
-
-    if not raw_body_info and auth.get('allow_request_body', False):
-        raw_body_info = {
-            'max_bytes': 4096,
-            'allow_partial': True
-        }
-
-    body_info: Optional[Dict[str, int]] = None
-
-    if raw_body_info:
-        body_info = {}
-
-        if 'max_bytes' in raw_body_info:
-            body_info['max_request_bytes'] = raw_body_info['max_bytes']
-
-        if 'allow_partial' in raw_body_info:
-            body_info['allow_partial_message'] = raw_body_info['allow_partial']
-
-    auth_info: Dict[str, Any] = {}
-
-    if auth.proto == "http":
-        allowed_authorization_headers = []
-        headers_to_add = []
-
-        for k, v in auth.get('add_auth_headers', {}).items():
-            headers_to_add.append({
-                'key': k,
-                'value': v,
-            })
-
-        for key in list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)):
-            allowed_authorization_headers.append({"exact": key})
-
-        allowed_request_headers = []
-
-        for key in list(set(auth.allowed_request_headers).union(AllowedRequestHeaders)):
-            allowed_request_headers.append({"exact": key})
-
-        if auth.get('add_linkerd_headers', False):
-            svc = Service(auth.ir.logger, auth_cluster_uri(auth, cluster))
-            headers_to_add.append({
-                'key' : 'l5d-dst-override',
-                'value': svc.hostname_port
-            })
-
-        auth_info = {
-            'name': 'envoy.filters.http.ext_authz',
-            'typed_config': {
-                '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthz',
-                'http_service': {
-                    'server_uri': {
-                        'uri': auth_cluster_uri(auth, cluster),
-                        'cluster': cluster.envoy_name,
-                        'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
-                    },
-                    'path_prefix': auth.path_prefix,
-                    'authorization_request': {
-                        'allowed_headers': {
-                            'patterns': sorted(allowed_request_headers, key=header_pattern_key)
-                        },
-                        'headers_to_add' : headers_to_add
-                    },
-                    'authorization_response' : {
-                        'allowed_upstream_headers': {
-                            'patterns': sorted(allowed_authorization_headers, key=header_pattern_key)
-                        },
-                        'allowed_client_headers': {
-                            'patterns': sorted(allowed_authorization_headers, key=header_pattern_key)
-                        }
-                    }
-                },
-            }
-        }
-
-    if auth.proto == "grpc":
-        protocol_version = auth.get('protocol_version', 'v2')
-        auth_info = {
-            'name': 'envoy.filters.http.ext_authz',
-            'typed_config': {
-                '@type': 'type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthz',
-                'grpc_service': {
-                    'envoy_grpc': {
-                        'cluster_name': cluster.envoy_name
-                    },
-                    'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
-                }
-            }
-        }
-
-    if auth_info:
-        auth_info['typed_config']['clear_route_cache'] = True
-
-        if body_info:
-            auth_info['typed_config']['with_request_body'] = body_info
-
-        if 'failure_mode_allow' in auth:
-            auth_info['typed_config']["failure_mode_allow"] = auth.failure_mode_allow
-
-        if 'status_on_error' in auth:
-            status_on_error: Optional[Dict[str, int]] = auth.get('status_on_error')
-            auth_info['typed_config']["status_on_error"] = status_on_error
-
-        return auth_info
-
-    # If here, something's gone horribly wrong.
-    auth.post_error("Protocol '%s' is not supported, auth not enabled" % auth.proto)
-    return None
-
-
-# Careful: this function returns None to indicate that no Envoy response_map
-# filter needs to be instantiated, because either no Module nor Mapping
-# has error_response_overrides, or the ones that exist are not valid.
-#
-# By not instantiating the filter in those cases, we prevent adding a useless
-# filter onto the chain.
-@v2filter.when("IRErrorResponse")
-def v2filter_error_response(error_response: IRErrorResponse, v2config: 'V2Config'):
-    # Error response configuration can come from the Ambassador module, on a
-    # a Mapping, or both. We need to use the response_map filter if either one
-    # of these sources defines error responses. First, check if any route
-    # has per-filter config for error responses. If so, we know a Mapping has
-    # defined error responses.
-    route_has_error_responses = False
-    for route in v2config.routes:
-        typed_per_filter_config = route.get('typed_per_filter_config', {})
-        if 'envoy.filters.http.response_map' in typed_per_filter_config:
-            route_has_error_responses = True
-            break
-
-    filter_config: Dict[str, Any] = {
-        # The IRErrorResponse filter builds on the 'envoy.filters.http.response_map' filter.
-        'name': 'envoy.filters.http.response_map'
-    }
-
-    module_config = error_response.config()
-    if module_config:
-        # Mappers are required, otherwise this the response map has nothing to do. We really
-        # shouldn't have a config with nothing in it, but we defend against this case anyway.
-        if 'mappers' not in module_config or len(module_config['mappers']) == 0:
-            error_response.post_error('ErrorResponse Module config has no mappers, cannot configure.')
-            return None
-
-        # If there's module config for error responses, create config for that here.
-        # If not, there must be some Mapping config for it, so we'll just return
-        # a filter with no global config and let the Mapping's per-route config
-        # take action instead.
-        filter_config['typed_config'] = {
-            '@type': 'type.googleapis.com/envoy.extensions.filters.http.response_map.v3.ResponseMap',
-            # The response map filter supports an array of mappers for matching as well
-            # as default actions to take if there are no overrides on a mapper. We do
-            # not take advantage of any default actions, and instead ensure that all of
-            # the mappers we generate contain some action (eg: body_format_override).
-            'mappers': module_config['mappers']
-        }
-        return filter_config
-    elif route_has_error_responses:
-        # Return the filter config as-is without global configuration. The mapping config
-        # has its own per-route config and simply needs this filter to exist.
-        return filter_config
-
-    # There is no module config nor mapping config that requires the response map filter,
-    # so we omit it. By returning None, the caller will omit this filter from the
-    # filter chain entirely, which is not the usual way of handling filter config,
-    # but it's valid.
-    return None
-
-
-@v2filter.when("IRRateLimit")
-def v2filter_ratelimit(ratelimit: IRRateLimit, v2config: 'V2Config'):
-    config = dict(ratelimit.config)
-
-    if 'timeout_ms' in config:
-        tm_ms = config.pop('timeout_ms')
-
-        config['timeout'] = "%0.3fs" % (float(tm_ms) / 1000.0)
-
-    # If here, we must have a ratelimit service configured.
-    assert v2config.ratelimit
-    config['rate_limit_service'] = dict(v2config.ratelimit)
-    config['@type'] = 'type.googleapis.com/envoy.config.filter.http.rate_limit.v2.RateLimit'
-
-    return {
-        'name': 'envoy.filters.http.ratelimit',
-        'typed_config': config,
-    }
-
-
-@v2filter.when("IRIPAllowDeny")
-def v2filter_ipallowdeny(irfilter: IRFilter, v2config: 'V2Config'):
-    del v2config  # silence unused-variable warning
-
-    # Go ahead and convert the irfilter to its dictionary form; it's
-    # just simpler to do that once up front.
-
-    fdict = irfilter.as_dict()
-
-    # How many principals do we have?
-    num_principals = len(fdict["principals"])
-    assert num_principals > 0
-
-    # Ew.
-    SinglePrincipal = Dict[str, Dict[str, str]]
-    MultiplePrincipals = Dict[str, Dict[str, List[SinglePrincipal]]]
-
-    principals: Union[SinglePrincipal, MultiplePrincipals]
-
-    if num_principals == 1:
-        # Just one principal, so we can stuff it directly into the
-        # Envoy-config principals "list".
-        principals = fdict["principals"][0]
-    else:
-        # Multiple principals, so we have to set up an or_ids set.
-        principals = {
-            "or_ids": {
-                "ids": fdict["principals"]
-            }
-        }
-
-    return {
-        "name": "envoy.filters.http.rbac",
-        "typed_config": {
-            "@type": "type.googleapis.com/envoy.config.filter.http.rbac.v2.RBAC",
-            "rules": {
-                "action": irfilter.action.upper(),
-                "policies": {
-                    f"ambassador-ip-{irfilter.action.lower()}": {
-                        "permissions": [
-                            {
-                                "any": True
-                            }
-                        ],
-                        "principals": [ principals ]
-                    }
-                }
-            }
-        }
-    }
-
-
-@v2filter.when("ir.cors")
-def v2filter_cors(cors: IRCORS, v2config: 'V2Config'):
-    del cors    # silence unused-variable warning
-    del v2config  # silence unused-variable warning
-
-    return { 'name': 'envoy.filters.http.cors' }
-
-
-@v2filter.when("ir.router")
-def v2filter_router(router: IRFilter, v2config: 'V2Config'):
-    del v2config  # silence unused-variable warning
-
-    od: Dict[str, Any] = { 'name': 'envoy.filters.http.router' }
-
-    # Use this config base if we actually need to set config fields below. We don't set
-    # this on `od` by default because it would be an error to end up returning a typed
-    # config that has no real config fields, only a type.
-    typed_config_base = {
-        '@type': 'type.googleapis.com/envoy.config.filter.http.router.v2.Router'
-    }
-
-    if router.ir.tracing:
-        typed_config = od.setdefault('typed_config', typed_config_base)
-        typed_config['start_child_span'] = True
-
-    if parse_bool(router.ir.ambassador_module.get('suppress_envoy_headers', 'false')):
-        typed_config = od.setdefault('typed_config', typed_config_base)
-        typed_config['suppress_envoy_headers'] = True
-
-    return od
-
-
-@v2filter.when("ir.lua_scripts")
-def v2filter_lua(irfilter: IRFilter, v2config: 'V2Config'):
-    del v2config  # silence unused-variable warning
-
-    config_dict = irfilter.config_dict()
-    config: Dict[str, Any]
-    config = {
-        'name': 'envoy.filters.http.lua'
-    }
-
-    if config_dict:
-        config['typed_config'] = config_dict
-        config['typed_config']['@type'] = 'type.googleapis.com/envoy.config.filter.http.lua.v2.Lua'
-
-    return config
+    from ...ir.irtlscontext import IRTLSContext # pragma: no cover
+    from . import V2Config                      # pragma: no cover
 
 
 class V2TCPListener(dict):
@@ -677,116 +110,6 @@ class V2TCPListener(dict):
         self['filter_chains'].append(chain_entry)
 
 
-class V2VirtualHost:
-    def __init__(self, config: 'V2Config', listener: 'V2Listener',
-                 name: str, hostname: str, ctx: Optional[IRTLSContext],
-                 secure: bool, action: Optional[str], insecure_action: Optional[str]) -> None:
-        super().__init__()
-
-        self._config = config
-        self._listener = listener
-        self._name = name
-        self._hostname = hostname
-        self._ctx = ctx
-        self._secure = secure
-        self._action = action
-        self._insecure_action = insecure_action
-        self._needs_redirect = False
-
-        self.tls_context = V2TLSContext(ctx)
-        self.routes: List[DictifiedV2Route] = []
-
-    def needs_redirect(self) -> None:
-        self._needs_redirect = True
-
-    def finalize(self) -> None:
-        # It's important from a performance perspective to wrap debug log statements
-        # with this check so we don't end up generating log strings (or even JSON
-        # representations) that won't get logged anyway.
-        log_debug = self._config.ir.logger.isEnabledFor(logging.DEBUG)
-
-        # Even though this is called V2VirtualHost, we track the filter_chain_match here,
-        # because it makes more sense, because this is where we have the domain information.
-        # The 1:1 correspondence that this implies between filters and domains may need to
-        # change later, of course...
-        if log_debug:
-            self._config.ir.logger.debug(f"V2VirtualHost finalize {jsonify(self.pretty())}")
-
-        match: Dict[str, Any] = {}
-
-        if self._ctx:
-            match["transport_protocol"] = "tls"
-
-        # Make sure we include a server name match if the hostname isn't "*".
-        if self._hostname and (self._hostname != '*'):
-                match["server_names"] = [ self._hostname ]
-
-        self.filter_chain_match = match
-
-        # If we're on Edge Stack and we're not an intercept agent, punch a hole for ACME
-        # challenges, for every listener.
-        if self._config.ir.edge_stack_allowed and not self._config.ir.agent_active:
-            found_acme = False
-
-            for route in self.routes:
-                if route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
-                    found_acme = True
-                    break
-
-            if not found_acme:
-                # The target cluster doesn't actually matter -- the auth service grabs the
-                # challenge and does the right thing. But we do need a cluster that actually
-                # exists, so use the sidecar cluster.
-
-                if not self._config.ir.sidecar_cluster_name:
-                    # Uh whut? how is Edge Stack running exactly?
-                    raise Exception("Edge Stack claims to be running, but we have no sidecar cluster??")
-
-                if log_debug:
-                    self._config.ir.logger.debug(f"V2VirtualHost finalize punching a hole for ACME")
-
-                self.routes.insert(0, {
-                    "match": {
-                        "case_sensitive": True,
-                        "prefix": "/.well-known/acme-challenge/"
-                    },
-                    "route": {
-                        "cluster": self._config.ir.sidecar_cluster_name,
-                        "prefix_rewrite": "/.well-known/acme-challenge/",
-                        "timeout": "3.000s"
-                    }
-                })
-
-        if log_debug:
-            for route in self.routes:
-                self._config.ir.logger.debug(f"VHost Route {prettyroute(route)}")
-
-    def pretty(self) -> str:
-        ctx_name = "-none-"
-
-        if self.tls_context:
-            ctx_name = self.tls_context.pretty()
-
-        route_count = len(self.routes)
-        route_plural = "" if (route_count == 1) else "s"
-
-        return "<VHost %s ctx %s redir %s a %s ia %s %d route%s>" % \
-               (self._hostname, ctx_name, self._needs_redirect, self._action, self._insecure_action,
-                route_count, route_plural)
-
-    def verbose_dict(self) -> dict:
-        return {
-            "_name": self._name,
-            "_hostname": self._hostname,
-            "_secure": self._secure,
-            "_action": self._action,
-            "_insecure_action": self._insecure_action,
-            "_needs_redirect": self._needs_redirect,
-            "tls_context": self.tls_context,
-            "routes": self.routes,
-        }
-
-
 class V2ListenerCollection:
     def __init__(self, config: 'V2Config') -> None:
         self.listeners: Dict[int, 'V2Listener'] = {}
@@ -816,26 +139,25 @@ class V2ListenerCollection:
             v2listener.use_proxy_proto = use_proxy_proto
         elif v2listener.use_proxy_proto != use_proxy_proto:
             raise Exception("listener for port %d has use_proxy_proto %s, requester wants upp %s" %
-                            (v2listener.service_port, v2listener.use_proxy_proto, use_proxy_proto))
+                            (v2listener.port, v2listener.use_proxy_proto, use_proxy_proto))
 
         return v2listener
 
 
 class V2Listener(dict):
-    def __init__(self, config: 'V2Config', service_port: int) -> None:
+    def __init__(self, config: 'V2Config', port: int) -> None:
         super().__init__()
 
         self.config = config
-        self.service_port = service_port
-        self.name = f"ambassador-listener-{self.service_port}"
+        self.port = port
+        self.name = f"ambassador-listener-{self.port}"
         self.use_proxy_proto = False
-        self.access_log: List[dict] = []
-        self.upgrade_configs: Optional[List[dict]] = None
         self.vhosts: Dict[str, V2VirtualHost] = {}
         self.first_vhost: Optional[V2VirtualHost] = None
-        self.http_filters: List[dict] = []
         self.listener_filters: List[dict] = []
         self.traffic_direction: str = "UNSPECIFIED"
+
+        self._base_http_config: Optional[Dict[str, Any]] = None
 
         # It's important from a performance perspective to wrap debug log statements
         # with this check so we don't end up generating log strings (or even JSON
@@ -844,19 +166,13 @@ class V2Listener(dict):
         if log_debug:
             self.config.ir.logger.debug(f"V2Listener {self.name} created")
 
-        # Assemble filters
-        for f in self.config.ir.filters:
-            v2f: dict = v2filter(f, self.config)
+        # Start by building our base HTTP config...
+        self._base_http_config = self.base_http_config(log_debug)
 
-            # v2filter can return None to indicate that the filter config
-            # should be omitted from the final envoy config. This is the
-            # uncommon case, but it can happen if a filter waits utnil the
-            # v2config is generated before deciding if it needs to be
-            # instantiated. See IRErrorResponse for an example.
-            if v2f:
-                self.http_filters.append(v2f)
+    # access_log constructs the access_log configuration for this V2Listener
+    def access_log(self, log_debug: bool) -> List[dict]:
+        access_log: List[dict] = []
 
-        # Get Access Log Rules
         for al in self.config.ir.log_services.values():
             access_log_obj: Dict[str, Any] = { "common_config": al.get_common_config() }
             req_headers = []
@@ -876,7 +192,7 @@ class V2Listener(dict):
                 access_log_obj['additional_response_headers_to_log'] = resp_headers
                 access_log_obj['additional_response_trailers_to_log'] = trailer_headers
                 access_log_obj['@type'] = 'type.googleapis.com/envoy.config.accesslog.v2.HttpGrpcAccessLogConfig'
-                self.access_log.append({
+                access_log.append({
                     "name": "envoy.access_loggers.http_grpc",
                     "typed_config": access_log_obj
                 })
@@ -884,7 +200,7 @@ class V2Listener(dict):
                 # inherently TCP right now
                 # tcp loggers do not support additional headers
                 access_log_obj['@type'] = 'type.googleapis.com/envoy.config.accesslog.v2.TcpGrpcAccessLogConfig'
-                self.access_log.append({
+                access_log.append({
                     "name": "envoy.access_loggers.tcp_grpc",
                     "typed_config": access_log_obj
                 })
@@ -923,7 +239,7 @@ class V2Listener(dict):
                     log_format['dd.trace_id'] = '%REQ(X-DATADOG-TRACE-ID)%'
                     log_format['dd.span_id'] = '%REQ(X-DATADOG-PARENT-ID)%'
 
-            self.access_log.append({
+            access_log.append({
                 'name': 'envoy.access_loggers.file',
                 'typed_config': {
                     '@type': 'type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog',
@@ -940,7 +256,7 @@ class V2Listener(dict):
 
             if log_debug:
                 self.config.ir.logger.debug("V2Listener: Using log_format '%s'" % log_format)
-            self.access_log.append({
+            access_log.append({
                 'name': 'envoy.access_loggers.file',
                 'typed_config': {
                     '@type': 'type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog',
@@ -949,86 +265,98 @@ class V2Listener(dict):
                 }
             })
 
-        # Start by building our base HTTP config...
-        self.base_http_config: Dict[str, Any] = {
+        return access_log
+
+    # base_http_config constructs the starting configuration for this 
+    # V2Listener's http_connection_manager filter.
+    def base_http_config(self, log_debug: bool) -> Dict[str, Any]:
+        base_http_config: Dict[str, Any] = {
             'stat_prefix': 'ingress_http',
-            'access_log': self.access_log,
-            'http_filters': self.http_filters,
+            'access_log': self.access_log(log_debug),
+            'http_filters': [],
             'normalize_path': True
         }
 
-        if self.upgrade_configs:
-            self.base_http_config['upgrade_configs'] = self.upgrade_configs
+        # Assemble base HTTP filters
+        for f in self.config.ir.filters:
+            v2hf: dict = V2HTTPFilter(f, self.config)
+
+            # V2HTTPFilter can return None to indicate that the filter config
+            # should be omitted from the final envoy config. This is the
+            # uncommon case, but it can happen if a filter waits utnil the
+            # v2config is generated before deciding if it needs to be
+            # instantiated. See IRErrorResponse for an example.
+            if v2hf:
+                base_http_config['http_filters'].append(v2hf)
 
         if 'use_remote_address' in self.config.ir.ambassador_module:
-            self.base_http_config["use_remote_address"] = self.config.ir.ambassador_module.use_remote_address
+            base_http_config["use_remote_address"] = self.config.ir.ambassador_module.use_remote_address
 
         if 'xff_num_trusted_hops' in self.config.ir.ambassador_module:
-            self.base_http_config["xff_num_trusted_hops"] = self.config.ir.ambassador_module.xff_num_trusted_hops
+            base_http_config["xff_num_trusted_hops"] = self.config.ir.ambassador_module.xff_num_trusted_hops
 
         if 'server_name' in self.config.ir.ambassador_module:
-            self.base_http_config["server_name"] = self.config.ir.ambassador_module.server_name
+            base_http_config["server_name"] = self.config.ir.ambassador_module.server_name
 
         listener_idle_timeout_ms = self.config.ir.ambassador_module.get('listener_idle_timeout_ms', None)
         if listener_idle_timeout_ms:
-            if 'common_http_protocol_options' in self.base_http_config:
-                self.base_http_config["common_http_protocol_options"]["idle_timeout"] = "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0)
+            if 'common_http_protocol_options' in base_http_config:
+                base_http_config["common_http_protocol_options"]["idle_timeout"] = "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0)
             else:
-                self.base_http_config["common_http_protocol_options"] = { 'idle_timeout': "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0) }
+                base_http_config["common_http_protocol_options"] = { 'idle_timeout': "%0.3fs" % (float(listener_idle_timeout_ms) / 1000.0) }
 
         if 'headers_with_underscores_action' in self.config.ir.ambassador_module:
-            if 'common_http_protocol_options' in self.base_http_config:
-                self.base_http_config["common_http_protocol_options"]["headers_with_underscores_action"] = self.config.ir.ambassador_module.headers_with_underscores_action
+            if 'common_http_protocol_options' in base_http_config:
+                base_http_config["common_http_protocol_options"]["headers_with_underscores_action"] = self.config.ir.ambassador_module.headers_with_underscores_action
             else:
-                self.base_http_config["common_http_protocol_options"] = { 'headers_with_underscores_action': self.config.ir.ambassador_module.headers_with_underscores_action }
+                base_http_config["common_http_protocol_options"] = { 'headers_with_underscores_action': self.config.ir.ambassador_module.headers_with_underscores_action }
 
         max_request_headers_kb = self.config.ir.ambassador_module.get('max_request_headers_kb', None)
         if max_request_headers_kb:
-            self.base_http_config["max_request_headers_kb"] = max_request_headers_kb
+            base_http_config["max_request_headers_kb"] = max_request_headers_kb
 
         if 'enable_http10' in self.config.ir.ambassador_module:
-            self.base_http_config["http_protocol_options"] = { 'accept_http_10': self.config.ir.ambassador_module.enable_http10 }
+            base_http_config["http_protocol_options"] = { 'accept_http_10': self.config.ir.ambassador_module.enable_http10 }
 
         if 'preserve_external_request_id' in self.config.ir.ambassador_module:
-            self.base_http_config["preserve_external_request_id"] = self.config.ir.ambassador_module.preserve_external_request_id
+            base_http_config["preserve_external_request_id"] = self.config.ir.ambassador_module.preserve_external_request_id
 
         if 'forward_client_cert_details' in self.config.ir.ambassador_module:
-            self.base_http_config["forward_client_cert_details"] = self.config.ir.ambassador_module.forward_client_cert_details
+            base_http_config["forward_client_cert_details"] = self.config.ir.ambassador_module.forward_client_cert_details
 
         if 'set_current_client_cert_details' in self.config.ir.ambassador_module:
-            self.base_http_config["set_current_client_cert_details"] = self.config.ir.ambassador_module.set_current_client_cert_details
+            base_http_config["set_current_client_cert_details"] = self.config.ir.ambassador_module.set_current_client_cert_details
 
         if self.config.ir.tracing:
-            self.base_http_config["generate_request_id"] = True
+            base_http_config["generate_request_id"] = True
 
-            self.base_http_config["tracing"] = {}
+            base_http_config["tracing"] = {}
             self.traffic_direction = "OUTBOUND"
 
             req_hdrs = self.config.ir.tracing.get('tag_headers', [])
 
             if req_hdrs:
-                self.base_http_config["tracing"]["request_headers_for_tags"] = req_hdrs
+                base_http_config["tracing"]["request_headers_for_tags"] = req_hdrs
 
             sampling = self.config.ir.tracing.get('sampling', {})
             if sampling:
                 client_sampling = sampling.get('client', None)
                 if client_sampling is not None:
-                    self.base_http_config["tracing"]["client_sampling"] = {
+                    base_http_config["tracing"]["client_sampling"] = {
                         "value": client_sampling
                     }
 
                 random_sampling = sampling.get('random', None)
                 if random_sampling is not None:
-                    self.base_http_config["tracing"]["random_sampling"] = {
+                    base_http_config["tracing"]["random_sampling"] = {
                         "value": random_sampling
                     }
 
                 overall_sampling = sampling.get('overall', None)
                 if overall_sampling is not None:
-                    self.base_http_config["tracing"]["overall_sampling"] = {
+                    base_http_config["tracing"]["overall_sampling"] = {
                         "value": overall_sampling
                     }
-
 
         proper_case: bool = self.config.ir.ambassador_module['proper_case']
 
@@ -1079,18 +407,20 @@ class V2Listener(dict):
                         }
                     }
                 }
-                http_options = self.base_http_config.setdefault("http_protocol_options", {})
+                http_options = base_http_config.setdefault("http_protocol_options", {})
                 http_options["header_key_format"] = custom_header_rules
 
         if proper_case:
             proper_case_header: Dict[str, Dict[str, dict]] = {'header_key_format': {'proper_case_words': {}}}
-            if 'http_protocol_options' in self.base_http_config:
-                self.base_http_config["http_protocol_options"].update(proper_case_header)
+            if 'http_protocol_options' in base_http_config:
+                base_http_config["http_protocol_options"].update(proper_case_header)
             else:
-                self.base_http_config["http_protocol_options"] = proper_case_header
+                base_http_config["http_protocol_options"] = proper_case_header
+
+        return base_http_config
 
     def add_irlistener(self, listener: IRListener) -> None:
-        if listener.service_port != self.service_port:
+        if listener.service_port != self.port:
             # This is a problem.
             raise Exception("V2Listener %s: trying to add listener %s on %s:%d??" %
                             (self.name, listener.name, listener.hostname, listener.service_port))
@@ -1101,7 +431,7 @@ class V2Listener(dict):
                             (self.name, listener.name, listener.hostname, listener.service_port))
 
     # Weirdly, the action is optional but the insecure_action is not. This is not a typo.
-    def make_vhost(self, name: str, hostname: str, context: Optional[IRTLSContext], secure: bool,
+    def make_vhost(self, name: str, hostname: str, context: Optional['IRTLSContext'], secure: bool,
                    action: Optional[str], insecure_action: str) -> None:
         if self.config.ir.logger.isEnabledFor(logging.DEBUG):
             self.config.ir.logger.debug("V2Listener %s: adding VHost %s for host %s, secure %s, insecure %s)" %
@@ -1142,7 +472,7 @@ class V2Listener(dict):
         self.address = {
             "socket_address": {
                 "address": envoy_bind_address,
-                "port_value": self.service_port,
+                "port_value": self.port,
                 "protocol": "TCP"
             }
         }
@@ -1171,7 +501,7 @@ class V2Listener(dict):
                 filter_chain["tls_context"] = vhost.tls_context
                 need_tcp_inspector = True
 
-            http_config = dict(self.base_http_config)
+            http_config = dict(self._base_http_config or {})
             http_config["route_config"] = {
                 "virtual_hosts": [
                     {
@@ -1221,7 +551,7 @@ class V2Listener(dict):
 
     def pretty(self) -> dict:
         return { "name": self.name,
-                 "port": self.service_port,
+                 "port": self.port,
                  "use_proxy_proto": self.use_proxy_proto,
                  "vhosts": { k: v.pretty() for k, v in self.vhosts.items() } }
 
@@ -1342,7 +672,7 @@ class V2Listener(dict):
             route_precedence = c_route.get('_precedence', None)
 
             if log_debug:
-                logger.debug(f"V2Listeners: route {prettyroute(c_route)}...")
+                logger.debug(f"V2Listeners: route {v2prettyroute(c_route)}...")
 
             # Build a cleaned-up version of this route without the '_sni' and '_precedence' elements...
             insecure_route: DictifiedV2Route = dict(c_route)
@@ -1453,11 +783,6 @@ class V2Listener(dict):
                             if log_debug:
                                 logger.debug(
                                     f"V2Listeners: {listener.name} {vhostname} {variant}: Drop")
-
-                        # Also, remember if we're redirecting so that the VHost finalizer can DTRT
-                        # for ACME.
-                        if action == 'Redirect':
-                            vhost.needs_redirect()
 
         # OK. Finalize the world.
         for port, listener in listeners_by_port.items():
