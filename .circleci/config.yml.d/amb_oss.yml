@@ -3,6 +3,7 @@ version: 2.1
 jobs:
   "oss-generate":
     executor: oss-linux
+    resource_class: large
     steps:
       - job-generate
 
@@ -17,7 +18,7 @@ jobs:
         type: boolean
         default: false
     executor: oss-linux
-    resource_class: large
+    resource_class: xlarge
     steps:
       - job-images:
           release: << parameters.release >>
@@ -38,6 +39,7 @@ jobs:
 
   "oss-test":
     executor: oss-linux
+    resource_class: large
     parameters:
       "test":
         type: enum

@@ -18,6 +18,7 @@ __pycache__
 *.local.sh
 
 # binaries
+/bin
 /bin_*/
 
 # helm chart

@@ -18,8 +18,14 @@ from ambassador.utils import NullSecretHandler
 from kat.utils import namespace_manifest
 from kat.harness import load_manifest
 from tests.kubeutils import apply_kube_artifacts
+from tests.runutils import run_and_assert, run_with_retry
 
 logger = logging.getLogger("ambassador")
+
+ENVOY_PATH = os.environ.get('ENVOY_PATH', '/usr/local/bin/envoy')
+# Assume that both of these are on the PATH if not explicitly set
+KUBESTATUS_PATH = os.environ.get('KUBESTATUS_PATH', 'kubestatus')
+TELEPRESENCE_PATH = os.environ.get('TELEPRESENCE_PATH', 'telepresence')
 
 SUPPORTED_ENVOY_VERSIONS = ["V2", "V3"]
 
@@ -311,5 +317,15 @@ def assert_valid_envoy_config(config_dict):
         temp.write(bytes(json.dumps(config_dict), encoding = 'utf-8'))
         temp.flush()
         f_name = temp.name
-        cmd = ['envoy', '--config-path', f_name, '--mode', 'validate']
+        cmd = [ENVOY_PATH, '--config-path', f_name, '--mode', 'validate']
         v_encoded = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+
+# TODO: Consider removing this now that test_scout.py no longer uses
+# a docker network and therefore does not need to futz with tp
+def telepresence_connect():
+    run_with_retry([TELEPRESENCE_PATH, 'connect'])
+
+# TODO: Consider removing this now that test_scout.py no longer uses
+# a docker network and therefore does not need to futz with tp
+def telepresence_quit():
+    run_and_assert([TELEPRESENCE_PATH, 'quit'])
