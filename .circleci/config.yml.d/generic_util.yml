@@ -166,25 +166,6 @@ commands:
                exit 1
             fi
 
-  "skip-if-no-new-chart":
-    steps:
-      - run:
-          name: "Diff chart changes"
-          command: |
-            if [[ "<< pipeline.git.base_revision >>" == "" ]]; then
-              echo "There is no base_revision, therefore no changes"
-              exit 0
-            fi
-
-            COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
-            echo "Commit range: " $COMMIT_RANGE
-            git --no-pager diff $COMMIT_RANGE charts/ambassador/Chart.yaml
-
-            if ! git --no-pager diff $COMMIT_RANGE charts/ambassador/Chart.yaml | grep -q +version; then
-              echo "Halting this CircleCI job because the version was not changed in Chart.yaml"
-              circleci step halt
-            fi
-
   "skip-if-no-changes":
     parameters:
       "to":

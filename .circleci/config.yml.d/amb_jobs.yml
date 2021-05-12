@@ -49,7 +49,7 @@ commands:
     steps:
       - amb-linux-install
       - amb-checkout
-      - skip-if-no-new-chart
+      - amb-skip-if-bad-chart-version
       - run: |
           ./charts/ambassador/ci/check_updated_changelog.sh
       - install-k3d

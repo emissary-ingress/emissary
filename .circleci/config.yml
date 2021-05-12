@@ -45,7 +45,7 @@ commands:
     steps:
     - amb-linux-install
     - amb-checkout
-    - skip-if-no-new-chart
+    - amb-skip-if-bad-chart-version
     - run: |
         ./charts/ambassador/ci/check_updated_changelog.sh
     - install-k3d
@@ -445,6 +445,17 @@ commands:
         name: "Store pod logs"
         path: /tmp/pod-logs
         destination: pod-logs
+  amb-skip-if-bad-chart-version:
+    steps:
+    - run:
+        name: "Diff changes"
+        command: |
+          thisversion=$(grep version: charts/ambassador/Chart.yaml | awk ' { print $2 }')
+
+          if [[ "<< pipeline.git.tag >>" != "chart-v${thisversion}" ]]; then
+            echo "Chart version ${thisversion} doesn't match tag << pipeline.git.tag >>; aborting"
+            exit 1
+          fi
   website-setup:
     steps:
     - install-node:
@@ -613,24 +624,6 @@ commands:
           if [[ -n "$(git status --porcelain)" ]]; then
              PAGER= git diff --cached
              exit 1
-          fi
-  skip-if-no-new-chart:
-    steps:
-    - run:
-        name: "Diff chart changes"
-        command: |
-          if [[ "<< pipeline.git.base_revision >>" == "" ]]; then
-            echo "There is no base_revision, therefore no changes"
-            exit 0
-          fi
-
-          COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
-          echo "Commit range: " $COMMIT_RANGE
-          git --no-pager diff $COMMIT_RANGE charts/ambassador/Chart.yaml
-
-          if ! git --no-pager diff $COMMIT_RANGE charts/ambassador/Chart.yaml | grep -q +version; then
-            echo "Halting this CircleCI job because the version was not changed in Chart.yaml"
-            circleci step halt
           fi
   skip-if-no-changes:
     parameters:
