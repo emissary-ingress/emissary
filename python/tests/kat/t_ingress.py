@@ -1,3 +1,4 @@
+import os
 import sys
 
 import json
@@ -8,7 +9,7 @@ import time
 from kat.harness import Query, is_ingress_class_compatible
 from abstract_tests import AmbassadorTest, HTTP, ServiceType
 from kat.utils import namespace_manifest
-
+from tests.utils import KUBESTATUS_PATH
 
 class IngressStatusTest1(AmbassadorTest):
     status_update = {
@@ -46,7 +47,7 @@ spec:
         if sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
-            update_cmd = ['kubestatus', 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+            update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
             subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=10)
             # If you run these tests individually, the time between running kubestatus
             # and the ingress resource actually getting updated is longer than the
@@ -109,7 +110,7 @@ spec:
         if sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
-            update_cmd = ['kubestatus', 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+            update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
             subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=10)
             # If you run these tests individually, the time between running kubestatus
             # and the ingress resource actually getting updated is longer than the
@@ -173,7 +174,7 @@ spec:
         if sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
-            update_cmd = ['kubestatus', 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+            update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
             subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=10)
             # If you run these tests individually, the time between running kubestatus
             # and the ingress resource actually getting updated is longer than the
@@ -243,7 +244,7 @@ spec:
     def queries(self):
         text = json.dumps(self.status_update)
 
-        update_cmd = ['kubestatus', 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+        update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
         subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=10)
         # If you run these tests individually, the time between running kubestatus
         # and the ingress resource actually getting updated is longer than the
@@ -320,7 +321,7 @@ spec:
         if sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
-            update_cmd = ['kubestatus', 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+            update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
             subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=10)
             # If you run these tests individually, the time between running kubestatus
             # and the ingress resource actually getting updated is longer than the
@@ -413,7 +414,7 @@ spec:
         if sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
-            update_cmd = ['kubestatus', 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+            update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
             subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=10)
             # If you run these tests individually, the time between running kubestatus
             # and the ingress resource actually getting updated is longer than the

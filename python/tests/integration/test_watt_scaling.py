@@ -3,10 +3,10 @@ import sys
 
 import pytest
 
-from utils import install_ambassador, get_code_with_retry
-from kubeutils import apply_kube_artifacts, delete_kube_artifacts
-from runutils import run_with_retry, run_and_assert
-from manifests import qotm_manifests
+from tests.utils import install_ambassador, get_code_with_retry, telepresence_connect
+from tests.kubeutils import apply_kube_artifacts, delete_kube_artifacts
+from tests.runutils import run_with_retry, run_and_assert
+from tests.manifests import qotm_manifests
 
 
 class WattTesting:
@@ -69,7 +69,7 @@ spec:
 
         # Make sure telepresence is connected. Do this early on in the test to give the TP daemon plenty of
         # time to do its thing while we wait for other k8 resources to reconcile.
-        run_with_retry(['telepresence', 'connect'])
+        telepresence_connect()
 
         # Install Ambassador
         install_ambassador(namespace=namespace)

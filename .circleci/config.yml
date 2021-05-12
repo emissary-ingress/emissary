@@ -101,13 +101,14 @@ commands:
       "release":
         type: boolean
         default: false
+      "save_images_to_workspace":
+        type: boolean
+        default: false
     steps:
     # setup
     - amb-linux-install
     - amb-checkout
-    - amb-images-save-workspace # in case skip-if-only-changes
-    - skip-if-only-changes:
-        to: docs/
+    - amb-skip-if-no-code-changes
     - amb-config-registry
     - # main
       run: make images
@@ -123,7 +124,7 @@ commands:
               DEV_KUBECONFIG="-skip-for-release-" make release/bits
     # teardown
     - dirty-check
-    - amb-images-save-workspace
+    - amb-save-workspace
   "job-gotest":
     parameters:
       "fast-reconfigure":
@@ -137,8 +138,7 @@ commands:
     - amb-linux-install
     - install-gotestsum
     - amb-checkout
-    - skip-if-only-changes:
-        to: docs/
+    - amb-skip-if-no-code-changes
     - amb-config-registry
     - run:
         name: "Test"
@@ -177,9 +177,8 @@ commands:
     steps:
     # setup
     - amb-linux-install
-    - amb-images-load-workspace
-    - skip-if-only-changes:
-        to: docs/
+    - amb-attach-workspace
+    - amb-skip-if-no-code-changes
     - when:
         condition:
           equal: ["e2etest", << parameters.test >>]
@@ -230,6 +229,7 @@ commands:
           export AMBASSADOR_LEGACY_MODE=<< parameters.legacy-mode >> # ParseBool
           export AMBASSADOR_FAST_RECONFIGURE=<< parameters.fast-reconfigure >> # ParseBool
           export TEST_XML_DIR=/tmp/test-logs/xml/
+          export DEV_KUBECONFIG=~/.kube/kubeception.yaml
           mkdir -p ${TEST_XML_DIR}
           make << parameters.test >>
     # teardown
@@ -282,28 +282,20 @@ commands:
     - install-go
     - install-kubectl
     - install-node
-  amb-images-save-workspace:
+  amb-save-workspace:
     steps:
-    - run:
-        name: "Saving Docker data to workspace"
-        command: "~/project/ambassador/.circleci/amb-images-save-workspace"
     - persist_to_workspace:
         root: /home/circleci/project
         paths:
         - "."
-  amb-images-load-workspace:
+  amb-attach-workspace:
     steps:
     - attach_workspace:
         at: /home/circleci/project
-    - run:
-        name: "Running docker login"
-        command: |
-          if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
-            docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
-          fi
-    - run:
-        name: "Loading Docker data from workspace"
-        command: "~/project/ambassador/.circleci/amb-images-load-workspace"
+  amb-skip-if-no-code-changes:
+    steps:
+    - skip-if-only-changes:
+        to: (charts/ambassador\|docs/\|*.md)
   amb-checkout:
     steps:
     - when:
@@ -385,6 +377,9 @@ commands:
           fi
 
           ./.ci/cluster-claim
+          rm -f ~/.kube/config
+          cp ~/.kube/kubeception.yaml ~/.kube/config
+
           echo >>"$BASH_ENV" 'if test -e ~/.kube/kubeception.yaml; then'
           echo >>"$BASH_ENV" '  export DEV_KUBECONFIG=~/.kube/kubeception.yaml'
           echo >>"$BASH_ENV" '  if [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]]; then'
@@ -420,9 +415,9 @@ commands:
               ~/.cache/telepresence/logs \
               /tmp/test-logs/telepresence-logs
           fi
-          if test -f docker/container.txt; then
+          if [ -f docker/container.txt ] && docker inspect $(cat docker/container.txt) >/dev/null; then
             docker exec $(cat docker/container.txt) /bin/bash -c 'mkdir -p /tmp/build-container-logs && (cp -r /tmp/*.txt /tmp/*.json /tmp/*.log /tmp/*.yaml /tmp/build-container-logs || true) && ((test -d ~/.cache/telepresence/logs && cp -r ~/.cache/telepresence/logs /tmp/build-container-logs/telepresence-logs) || true)'
-            docker cp $(cat docker/container.txt):/tmp/build-container-logs /tmp/test-logs/build-container-logs
+            docker cp $(cat docker/container.txt):/tmp/build-container-logs /tmp/test-logs/build-container-logs || true
           fi
     - store_artifacts:
         name: "Store logs"
@@ -432,13 +427,12 @@ commands:
         name: "Gather coverage"
         when: always
         command: |
-          mkdir -p /tmp/coverage
-          if test -f docker/container.txt; then
-            docker cp $(cat docker/container.txt):/tmp/cov_html /tmp/coverage || true
+          if [ -f docker/container.txt ] && docker inspect $(cat docker/container.txt) >/dev/null; then
+            docker cp $(cat docker/container.txt):/tmp/cov_html /tmp/cov_html || true
           fi
     - store_artifacts:
         name: "Store coverage"
-        path: /tmp/coverage
+        path: /tmp/cov_html
         destination: coverage
     - run:
         name: "Gather pod logs"
@@ -697,6 +691,7 @@ commands:
 jobs:
   oss-generate:
     executor: oss-linux
+    resource_class: large
     steps:
     - job-generate
   oss-lint:
@@ -709,7 +704,7 @@ jobs:
         type: boolean
         default: false
     executor: oss-linux
-    resource_class: large
+    resource_class: xlarge
     steps:
     - job-images:
         release: << parameters.release >>
@@ -728,6 +723,7 @@ jobs:
         legacy-mode: << parameters.legacy-mode >>
   oss-test:
     executor: oss-linux
+    resource_class: large
     parameters:
       test:
         type: enum
