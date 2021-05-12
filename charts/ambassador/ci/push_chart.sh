@@ -16,6 +16,7 @@ if ! command -v helm 2> /dev/null ; then
     chmod 700 get_helm.sh
     ./get_helm.sh --version v3.4.1
 fi
+repo_url=https://s3.amazonaws.com/datawire-static-files/ambassador/
 
 info "Pushing Helm Chart"
 helm package $TOP_DIR
@@ -23,7 +24,7 @@ helm package $TOP_DIR
 # Get name of package
 export CHART_PACKAGE=$(ls *.tgz)
 
-curl -o tmp.yaml -k -L https://getambassador.io/helm/index.yaml
+curl -o tmp.yaml -k -L ${repo_url}index.yaml
 
 thisversion=$(grep version charts/ambassador/Chart.yaml | awk ' { print $2 }')
 
@@ -32,7 +33,7 @@ if [[ $(grep -c "version: $thisversion" tmp.yaml || true) != 0 ]]; then
 	exit 1
 fi
 
-helm repo index . --url https://getambassador.io/helm --merge tmp.yaml
+helm repo index . --url ${repo_url} --merge tmp.yaml
 
 if [ -z "$AWS_BUCKET" ] ; then
     AWS_BUCKET=datawire-static-files

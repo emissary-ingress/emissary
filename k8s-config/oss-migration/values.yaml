@@ -1,6 +1,4 @@
 deploymentTool: getambassador.io
-image:
-  tag: "$version$"
 redis:
   serviceSelector:
     service: ambassador-redis

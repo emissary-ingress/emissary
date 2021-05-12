@@ -16,8 +16,7 @@ if ! command -v helm 2> /dev/null ; then
     chmod 700 get_helm.sh
     ./get_helm.sh --version v3.4.1
 fi
-# TODO: when system a mappings exist, we can change this to app.getambassador.io
-s3url=https://s3.amazonaws.com/datawire-static-files/emissary-charts/
+s3url=https://s3.amazonaws.com/datawire-static-files/ambassador/
 
 info "Pushing Helm Chart"
 helm package $TOP_DIR
@@ -47,8 +46,8 @@ info "Pushing chart to S3 bucket $AWS_BUCKET"
 for f in "$CHART_PACKAGE" "index.yaml" ; do
   aws s3api put-object \
     --bucket "$AWS_BUCKET" \
-    --key "emissary-charts/$f" \
-    --body "$f" && passed "... emissary-charts/$f pushed"
+    --key "ambassador/$f" \
+    --body "$f" && passed "... ambassador/$f pushed"
 done
 
 info "Cleaning up..."
