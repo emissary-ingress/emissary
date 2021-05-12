@@ -77,13 +77,14 @@ commands:
       "release":
         type: boolean
         default: false
+      "save_images_to_workspace":
+        type: boolean
+        default: false
     steps:
     # setup
     - amb-linux-install
     - amb-checkout
-    - amb-images-save-workspace # in case skip-if-only-changes
-    - skip-if-only-changes:
-        to: docs/
+    - amb-skip-if-no-code-changes
     - amb-config-registry
     - # main
       run: make images
@@ -99,7 +100,7 @@ commands:
               DEV_KUBECONFIG="-skip-for-release-" make release/bits
     # teardown
     - dirty-check
-    - amb-images-save-workspace
+    - amb-save-workspace
   "job-gotest":
     parameters:
       "fast-reconfigure":
@@ -113,8 +114,7 @@ commands:
     - amb-linux-install
     - install-gotestsum
     - amb-checkout
-    - skip-if-only-changes:
-        to: docs/
+    - amb-skip-if-no-code-changes
     - amb-config-registry
     - run:
         name: "Test"
@@ -153,18 +153,19 @@ commands:
     steps:
     # setup
     - amb-linux-install
-    - amb-images-load-workspace
-    - skip-if-only-changes:
-        to: docs/
-    - when:
+    - amb-attach-workspace
+    - amb-skip-if-no-code-changes
+    - # e2etests can be skipped if the only chances are to
+      # the Ambassador repo and the pytest gold directory
+      when:
         condition:
           equal: ["e2etest", << parameters.test >>]
         steps:
         - skip-if-only-changes:
             to: "(ambassador/|tests/pytest/gold/)"
-        - run: |
-            echo >>"$BASH_ENV" 'export USE_LOCAL_K3S_CLUSTER=1'
-    - when:
+    - # pytest-envoy can be skipped unless the envoy.mk file changes, or the ambex control
+      # plane changes, or the gold files change.
+      when:
         condition:
           or:
           - equal: ["pytest-envoy", << parameters.test >>]
@@ -176,13 +177,14 @@ commands:
             if [[ -z "$KUBECEPTION_TOKEN" ]]; then
               circleci step halt
             fi
-        - # The hard-requirement for the cluster is "25GB of RAM",
-          # which "large" has (35GB).  There are spurts where it
-          # pegs the CPU, but for the most part it sits around 50%
-          # CPU.  And it seems that even if we peg the CPU the whole
-          # time it still runs OK if there's plenty of RAM.
-          run: |
-            echo >>"$BASH_ENV" 'export KUBECEPTION_PROFILE=large'
+    - run:
+        name: "Set USE_LOCAL_K3S_CLUSTER=1"
+        command: echo >>"$BASH_ENV" 'export USE_LOCAL_K3S_CLUSTER=1'
+    - run:
+        name: "Configure system file and inotify maximums"
+        command: |
+          sudo sysctl -w fs.file-max=1600000
+          sudo sysctl -w fs.inotify.max_user_instances=4096
     - install-helm
     - install-k3d
     - amb-config-cluster-and-registry
@@ -206,6 +208,7 @@ commands:
           export AMBASSADOR_LEGACY_MODE=<< parameters.legacy-mode >> # ParseBool
           export AMBASSADOR_FAST_RECONFIGURE=<< parameters.fast-reconfigure >> # ParseBool
           export TEST_XML_DIR=/tmp/test-logs/xml/
+          export DEV_KUBECONFIG=~/.kube/kubeception.yaml
           mkdir -p ${TEST_XML_DIR}
           make << parameters.test >>
     # teardown
@@ -258,28 +261,20 @@ commands:
     - install-go
     - install-kubectl
     - install-node
-  amb-images-save-workspace:
+  amb-save-workspace:
     steps:
-    - run:
-        name: "Saving Docker data to workspace"
-        command: "~/project/ambassador/.circleci/amb-images-save-workspace"
     - persist_to_workspace:
         root: /home/circleci/project
         paths:
         - "."
-  amb-images-load-workspace:
+  amb-attach-workspace:
     steps:
     - attach_workspace:
         at: /home/circleci/project
-    - run:
-        name: "Running docker login"
-        command: |
-          if [[ -n "$DOCKER_BUILD_USERNAME" && -n "DOCKER_BUILD_PASSWORD" ]]; then
-            docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" "${DEV_REGISTRY%%/*}"
-          fi
-    - run:
-        name: "Loading Docker data from workspace"
-        command: "~/project/ambassador/.circleci/amb-images-load-workspace"
+  amb-skip-if-no-code-changes:
+    steps:
+    - skip-if-only-changes:
+        to: (charts/ambassador\|docs/\|*.md)
   amb-checkout:
     steps:
     - when:
@@ -361,6 +356,9 @@ commands:
           fi
 
           ./.ci/cluster-claim
+          rm -f ~/.kube/config
+          cp ~/.kube/kubeception.yaml ~/.kube/config
+
           echo >>"$BASH_ENV" 'if test -e ~/.kube/kubeception.yaml; then'
           echo >>"$BASH_ENV" '  export DEV_KUBECONFIG=~/.kube/kubeception.yaml'
           echo >>"$BASH_ENV" '  if [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]]; then'
@@ -396,9 +394,9 @@ commands:
               ~/.cache/telepresence/logs \
               /tmp/test-logs/telepresence-logs
           fi
-          if test -f docker/container.txt; then
+          if [ -f docker/container.txt ] && docker inspect $(cat docker/container.txt) >/dev/null; then
             docker exec $(cat docker/container.txt) /bin/bash -c 'mkdir -p /tmp/build-container-logs && (cp -r /tmp/*.txt /tmp/*.json /tmp/*.log /tmp/*.yaml /tmp/build-container-logs || true) && ((test -d ~/.cache/telepresence/logs && cp -r ~/.cache/telepresence/logs /tmp/build-container-logs/telepresence-logs) || true)'
-            docker cp $(cat docker/container.txt):/tmp/build-container-logs /tmp/test-logs/build-container-logs
+            docker cp $(cat docker/container.txt):/tmp/build-container-logs /tmp/test-logs/build-container-logs || true
           fi
     - store_artifacts:
         name: "Store logs"
@@ -408,13 +406,12 @@ commands:
         name: "Gather coverage"
         when: always
         command: |
-          mkdir -p /tmp/coverage
-          if test -f docker/container.txt; then
-            docker cp $(cat docker/container.txt):/tmp/cov_html /tmp/coverage || true
+          if [ -f docker/container.txt ] && docker inspect $(cat docker/container.txt) >/dev/null; then
+            docker cp $(cat docker/container.txt):/tmp/cov_html /tmp/cov_html || true
           fi
     - store_artifacts:
         name: "Store coverage"
-        path: /tmp/coverage
+        path: /tmp/cov_html
         destination: coverage
     - run:
         name: "Gather pod logs"
@@ -673,6 +670,7 @@ commands:
 jobs:
   oss-generate:
     executor: oss-linux
+    resource_class: large
     steps:
     - job-generate
   oss-lint:
@@ -685,7 +683,7 @@ jobs:
         type: boolean
         default: false
     executor: oss-linux
-    resource_class: large
+    resource_class: xlarge
     steps:
     - job-images:
         release: << parameters.release >>
@@ -704,6 +702,7 @@ jobs:
         legacy-mode: << parameters.legacy-mode >>
   oss-test:
     executor: oss-linux
+    resource_class: large
     parameters:
       test:
         type: enum
@@ -711,9 +710,28 @@ jobs:
         - "test" # everything but pytest-envoy
         - "ingresstest"
         - "pytest"
+        default: "test"
+      fast-reconfigure:
+        type: boolean
+        default: false
+      legacy-mode:
+        type: boolean
+        default: false
+    steps:
+    - job-test:
+        test: << parameters.test >>
+        fast-reconfigure: << parameters.fast-reconfigure >>
+        legacy-mode: << parameters.legacy-mode >>
+  oss-envoy-test:
+    executor: oss-linux
+    resource_class: xlarge
+    parameters:
+      test:
+        type: enum
+        enum:
         - "pytest-envoy"
         - "pytest-envoy-v3"
-        default: "test"
+        default: "pytest-envoy"
       fast-reconfigure:
         type: boolean
         default: false
@@ -842,8 +860,6 @@ workflows:
           parameters:
             test:
             - "pytest"
-            - "pytest-envoy"
-            - "pytest-envoy-v3"
             # Running the ingresstests would require we install `kind` and
             # that the test suite supports HTTP to HTTPS redirects (AES
             # enables cleartext redirection by default, even for fallback
@@ -854,9 +870,39 @@ workflows:
             - true
             - false
             legacy-mode:
+            # We don't run legacy mode tests in the "Dev" workflow but we do
+            # in the Nightly and Release workflows.
             - false
-            # If you enable testing with legacy-mode true as well, you'll also need
-            # to add some exclusions -- see the Release workflow for more.
+          exclude:
+          - test: pytest
+            fast-reconfigure: true
+            legacy-mode: true
+    - oss-envoy-test:
+        requires:
+        - "oss-dev-images"
+        name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
+          >>"
+        matrix:
+          alias: "oss-dev-envoy-test"
+          parameters:
+            test:
+            - "pytest-envoy"
+            - "pytest-envoy-v3"
+            fast-reconfigure:
+            - true
+            - false
+            legacy-mode:
+            # We don't run legacy mode tests in the "Dev" workflow but we do
+            # in the Nightly and Release workflows.
+            - false
+          exclude:
+          - test: pytest-envoy
+            fast-reconfigure: true
+            legacy-mode: true
+          - test: pytest-envoy-v3
+            fast-reconfigure: true
+            legacy-mode: true
   'OSS: Chart Release':
     when:
       or:
@@ -938,8 +984,6 @@ workflows:
           parameters:
             test:
             - "pytest"
-            - "pytest-envoy"
-            - "pytest-envoy-v3"
             # Running the ingresstests would require we install `kind` and
             # that the test suite supports HTTP to HTTPS redirects (AES
             # enables cleartext redirection by default, even for fallback
@@ -956,7 +1000,34 @@ workflows:
           - test: pytest
             fast-reconfigure: true
             legacy-mode: true
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-envoy-test:
+        requires:
+        - "oss-release-images"
+        name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
+          >>"
+        matrix:
+          alias: "oss-release-envoy-test"
+          parameters:
+            test:
+            - "pytest-envoy"
+            - "pytest-envoy-v3"
+            fast-reconfigure:
+            - true
+            - false
+            legacy-mode:
+            - true
+            - false
+          exclude:
           - test: pytest-envoy
+            fast-reconfigure: true
+            legacy-mode: true
+          - test: pytest-envoy-v3
             fast-reconfigure: true
             legacy-mode: true
         filters:
@@ -1023,7 +1094,6 @@ workflows:
           parameters:
             test:
             - "pytest"
-            - "pytest-envoy"
             # Running the ingresstests would require we install `kind` and
             # that the test suite supports HTTP to HTTPS redirects (AES
             # enables cleartext redirection by default, even for fallback
@@ -1040,7 +1110,29 @@ workflows:
           - test: pytest
             fast-reconfigure: true
             legacy-mode: true
+    - oss-envoy-test:
+        requires:
+        - "oss-nightly-images"
+        name: "oss-nightly-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
+          >>"
+        matrix:
+          alias: "oss-nightly-envoy-test"
+          parameters:
+            test:
+            - "pytest-envoy"
+            - "pytest-envoy-v3"
+            fast-reconfigure:
+            - true
+            - false
+            legacy-mode:
+            - true
+            - false
+          exclude:
           - test: pytest-envoy
+            fast-reconfigure: true
+            legacy-mode: true
+          - test: pytest-envoy-v3
             fast-reconfigure: true
             legacy-mode: true
   'Docs: Dev':

@@ -51,7 +51,7 @@ if [ -n "${USE_LOCAL_K3S_CLUSTER:-}" ] ; then
     if [ -z "${K3S_CLUSTER_NAME:-}" ] ; then
         K3S_CLUSTER_NAME=amb-ci
     fi
-    KUBECONFIG=${DEV_KUBECONFIG} k3d cluster create ${K3S_CLUSTER_NAME} --k3s-server-arg "--no-deploy=traefik"
+    KUBECONFIG=${DEV_KUBECONFIG} k3d cluster create ${K3S_CLUSTER_NAME} --k3s-server-arg "--no-deploy=traefik" --k3s-server-arg "--kubelet-arg=max-pods=255"
     exit 0
 fi
 
