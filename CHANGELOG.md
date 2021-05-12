@@ -65,7 +65,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
-(no changes yet)
+- Bugfix: Fix a regression from 1.8.0 that prevented Ambassador module config keys `proper_case` and `preserve_external_request_id` from working correctly.
 
 ## [1.13.4] May 11, 2021
 [1.13.4]: https://github.com/datawire/ambassador/compare/v1.13.3...v1.13.4
