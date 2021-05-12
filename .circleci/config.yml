@@ -832,8 +832,10 @@ _anchors:
         ignore: /.*/
   filter-chart-release-only:
     filters:
+      tags:
+        only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
       branches:
-        only: /^release\/v[0-9]+\.[0-9]+$/
+        ignore: /.*/
 workflows:
   'OSS: Dev':
     jobs:
@@ -899,8 +901,10 @@ workflows:
     - oss-chart-publish:
         name: "oss-release-chart"
         filters:
+          tags:
+            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
           branches:
-            only: /^release\/v[0-9]+\.[0-9]+$/
+            ignore: /.*/
   'OSS: Release':
     when:
       or:

@@ -126,8 +126,10 @@ _anchors:
   # chart release will create a tag IFF there are changes to the chart version
   "filter-chart-release-only": &filter-chart-release-only
     filters:
+      tags:
+        only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
       branches:
-        only: /^release\/v[0-9]+\.[0-9]+$/
+        ignore: /.*/
 
 workflows:
   "OSS: Dev":
