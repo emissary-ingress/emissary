@@ -74,7 +74,7 @@ else:
     if not SOURCE_ROOT:
         SOURCE_ROOT = "/buildroot/ambassador"
     GOLD_ROOT = os.path.join(SOURCE_ROOT, "python/tests/gold")
-    MANIFEST_ROOT = os.path.join(SOURCE_ROOT, "python/tests/manifests")
+    MANIFEST_ROOT = os.path.join(SOURCE_ROOT, "python/tests/integration/manifests")
 
 def load_manifest(manifest_name: str) -> str:
     return open(os.path.join(MANIFEST_ROOT, f"{manifest_name.lower()}.yaml"), "r").read()

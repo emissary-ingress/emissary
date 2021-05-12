@@ -6,17 +6,24 @@ import pytest
 import requests
 import time
 
-DockerImage = os.environ.get("AMBASSADOR_DOCKER_IMAGE", None)
+DOCKER_IMAGE = os.environ.get("AMBASSADOR_DOCKER_IMAGE", "")
+DOCKER_NETWORK = os.environ.get("DOCKER_NETWORK", None)
 
-child = None    # see docker_start()
+child = None           # see docker_start()
+ambassador_host = None # see docker_start() and DOCKER_NETWORK
 
 def docker_start(logfile) -> bool:
     # Use a global here so that the child process doesn't get killed
     global child
 
-    logfile.write(f'DOCKER_NETWORK = {os.environ["DOCKER_NETWORK"]}\n')
+    global ambassador_host
 
-    cmd = f'docker run --rm --name test_docker_ambassador --network {os.environ["DOCKER_NETWORK"]} --network-alias docker-ambassador -u8888:0 {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --demo'
+    if DOCKER_NETWORK is not None:
+        cmd = f'docker run --rm --name test_docker_ambassador --network {DOCKER_NETWORK} --network-alias docker-ambassador -u8888:0 {DOCKER_IMAGE} --demo'
+        ambassador_host = 'docker-ambassador:8080'
+    else:
+        cmd = f'docker run --rm --name test_docker_ambassador -p 9987:8080 -u8888:0 {DOCKER_IMAGE} --demo'
+        ambassador_host = 'localhost:9987'
     logfile.write(f"Running: {cmd}\n")
 
     child = pexpect.spawn(cmd, encoding='utf-8')
@@ -45,7 +52,7 @@ def docker_kill(logfile):
 def check_http(logfile) -> bool:
     try:
         logfile.write("QotM: making request\n")
-        response = requests.get('http://docker-ambassador:8080/qotm/?json=true', headers={ 'Host': 'localhost' })
+        response = requests.get(f'http://{ambassador_host}/qotm/?json=true', headers={ 'Host': 'localhost' })
         text = response.text
 
         logfile.write(f"QotM: got status {response.status_code}, text {text}\n")
@@ -110,7 +117,7 @@ def test_docker():
     assert grabsnapshotscheck(), "grab-snapshots check failed"
 
     with open('/tmp/test_docker_output', 'w') as logfile:
-        if not DockerImage:
+        if not DOCKER_IMAGE:
             logfile.write('No $AMBASSADOR_DOCKER_IMAGE??\n')
         else:
             if docker_start(logfile):
