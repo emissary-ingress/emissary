@@ -359,20 +359,55 @@ export PYTEST_ARGS
 
 PYTEST_GOLD_DIR ?= $(abspath python/tests/gold)
 
-pytest: test-ready
-	$(MAKE) pytest-only
+setup-envoy: extract-bin-envoy
+
+pytest: setup-diagd setup-envoy $(OSS_HOME)/bin/telepresence $(OSS_HOME)/bin/kubestatus
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
+	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
+	@echo "KAT_CLIENT_DOCKER_IMAGE=$$KAT_CLIENT_DOCKER_IMAGE"
+	@echo "KAT_SERVER_DOCKER_IMAGE=$$KAT_SERVER_DOCKER_IMAGE"
+	@echo "DEV_KUBECONFIG=$$DEV_KUBECONFIG"
+	. $(OSS_HOME)/venv/bin/activate; \
+		$(OSS_HOME)/builder/builder.sh pytest-local
 .PHONY: pytest
+
+extract-bin-envoy:
+	@mkdir -p $(OSS_HOME)/bin/
+	@rm -f $(OSS_HOME)/bin/envoy
+	@printf "Extracting envoy binary to $(OSS_HOME)/bin/envoy\n"
+	# Note that the call to `id -u` and `id -g` below are run in _this_ shell, not the docker container.
+	# That has the desired effect of chown'ing the output binary to the calling user/group.
+	@docker run -v $(OSS_HOME)/bin/:/output/ --rm -it --entrypoint /bin/bash $$AMBASSADOR_DOCKER_IMAGE -c "cp /usr/local/bin/envoy /output/envoy && chown $$(id -u):$$(id -g) /output/envoy"
+.PHONY: extract-bin-envoy
+
+$(OSS_HOME)/bin/kubestatus:
+	@(cd $(OSS_HOME) && mkdir -p bin && go build -o bin/kubestatus ./cmd/busyambassador)
+
+$(OSS_HOME)/bin/telepresence:
+	@curl --fail -L https://app.getambassador.io/download/tel2/linux/amd64/latest/telepresence -o $(OSS_HOME)/bin/telepresence && chmod a+x $(OSS_HOME)/bin/telepresence
+
+pytest-builder: test-ready
+	$(MAKE) pytest-builder-only
+.PHONY: pytest-builder
 
 pytest-envoy:
 	$(MAKE) pytest KAT_RUN_MODE=envoy
 .PHONY: pytest-envoy
 
+pytest-envoy-builder:
+	$(MAKE) pytest-builder KAT_RUN_MODE=envoy
+.PHONY: pytest-envoy-builder
+
 pytest-envoy-v3:
 	$(MAKE) pytest KAT_RUN_MODE=envoy KAT_USE_ENVOY_V3=true
 .PHONY: pytest-envoy-v3
 
-pytest-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
-	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
+pytest-envoy-v3-builder:
+	$(MAKE) pytest-builder KAT_RUN_MODE=envoy KAT_USE_ENVOY_V3=true
+.PHONY: pytest-envoy-v3-builder
+
+pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests in builder shell$(END)\n"
 	docker exec \
 		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) \
 		-e KAT_CLIENT_DOCKER_IMAGE=$$(sed -n 2p docker/kat-client.docker.push.remote) \
@@ -397,7 +432,7 @@ pytest-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker
 		-e AWS_SESSION_TOKEN \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal ; test_exit=$$? ; \
 		[ -n "$(TEST_XML_DIR)" ] && docker cp $(shell $(BUILDER)):/tmp/test-data/pytest.xml $(TEST_XML_DIR) ; exit $$test_exit
-.PHONY: pytest-only
+.PHONY: pytest-builder-only
 
 pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
@@ -635,8 +670,11 @@ CURRENT_CONTEXT=$(shell kubectl --kubeconfig=$(DEV_KUBECONFIG) config current-co
 CURRENT_NAMESPACE=$(shell kubectl config view -o=jsonpath="{.contexts[?(@.name==\"$(CURRENT_CONTEXT)\")].context.namespace}")
 
 AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME).docker.push.remote 2>/dev/null)
+export AMBASSADOR_DOCKER_IMAGE
 KAT_CLIENT_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-client.docker.push.remote 2>/dev/null)
+export KAT_CLIENT_DOCKER_IMAGE
 KAT_SERVER_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-server.docker.push.remote 2>/dev/null)
+export KAT_SERVER_DOCKER_IMAGE
 
 _user-vars  = BUILDER_NAME
 _user-vars += DEV_KUBECONFIG
