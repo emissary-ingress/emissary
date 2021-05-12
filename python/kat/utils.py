@@ -50,13 +50,15 @@ class ShellCommand:
             return True
         else:
             print(f"==== COMMAND FAILED: {what}")
-            print("---- command line ----")
-            print(self.cmdline)
-            print("---- stdout ----")
-            print(self.stdout)
-            print("")
-            print("---- stderr ----")
-            print(self.stderr)
+            print(f'---- command line: {self.cmdline}')
+            if self.stdout:
+                print("---- stdout ----")
+                print(self.stdout)
+                print("---- end stdout ----")
+            if self.stderr:
+                print("---- stderr ----")
+                print(self.stderr)
+                print("---- end stderr ----")
 
             return False
 
