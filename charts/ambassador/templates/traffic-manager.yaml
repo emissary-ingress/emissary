@@ -105,7 +105,11 @@ spec:
     spec:
       containers:
       - name: telepresence-proxy
-        image: "{{ .Values.servicePreview.trafficManager.image.repository | default .Values.image.repository }}:{{ .Values.servicePreview.trafficManager.image.tag | default .Values.image.tag }}"
+        {{- if .Values.servicePreview.trafficManager.image.repository }}
+        image: "{{ .Values.servicePreview.trafficManager.image.repository }}:{{ .Values.servicePreview.trafficManager.image.tag | default .Values.image.tag }}"
+        {{- else }}
+        image: {{ include "ambassador.image" . }}
+        {{- end }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: [ "traffic-manager" ]
         env:
