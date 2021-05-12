@@ -65,6 +65,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
+(no changes yet)
+
+## [1.13.5-rc.0] May 12, 2021
+[1.13.5-rc.0]: https://github.com/datawire/ambassador/compare/v1.13.4...v1.13.5-rc.0
+
 ### Emissary Ingress and Ambassador Edge Stack
 
 - Bugfix: Fix a regression from 1.8.0 that prevented Ambassador module config keys `proper_case` and `preserve_external_request_id` from working correctly.
