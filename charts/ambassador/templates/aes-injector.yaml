@@ -38,7 +38,11 @@ spec:
     spec:
       containers:
       - name: webhook
-        image: "{{ .Values.servicePreview.trafficAgent.image.repository | default .Values.image.repository }}:{{ .Values.servicePreview.trafficAgent.image.tag | default .Values.image.tag }}"
+        {{- if .Values.servicePreview.trafficAgent.image.repository }}
+        image: "{{ .Values.servicePreview.trafficAgent.image.repository }}:{{ .Values.servicePreview.trafficAgent.image.tag | default .Values.image.tag }}"
+        {{- else }}
+        image: {{ include "ambassador.image" . }}
+        {{- end }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: [ "aes-injector" ]
         env:

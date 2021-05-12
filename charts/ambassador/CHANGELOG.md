@@ -7,6 +7,10 @@ numbering uses [semantic versioning](http://semver.org).
 
 (no changes yet)
 
+## v6.7.7
+
+- Bugfix: ambassador-injector and telepresence-proxy now use the correct default image repository
+
 ## v6.7.6
 
 - Update Ambassador chart image to version 1.13.4: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
