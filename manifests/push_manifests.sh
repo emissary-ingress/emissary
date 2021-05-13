@@ -30,9 +30,9 @@ fi
 [ -n "$AWS_ACCESS_KEY_ID"     ] || abort "AWS_ACCESS_KEY_ID is not set"
 [ -n "$AWS_SECRET_ACCESS_KEY" ] || abort "AWS_SECRET_ACCESS_KEY is not set"
 
+echo ${version} > stable.txt
 for dir in ${CURR_DIR}/*/ ; do
     dir=`basename ${dir%*/}`
-    echo $dir
     aws s3api put-object \
         --bucket "$AWS_BUCKET" \
         --key "yaml/${dir}/${version}"
@@ -44,6 +44,16 @@ for dir in ${CURR_DIR}/*/ ; do
         --key "yaml/${dir}/${version}/$fname" \
         --body "$f" &&  echo "... yaml/${dir}/${version}/$fname pushed"
     done
+    # bump the stable version for this directory
+    if [[ -n "${BUMP_STABLE}" ]] ; then
+        log "Bumping stable version for yaml/${dir}"
+        aws s3api put-object \
+            --bucket "$AWS_BUCKET" \
+            --key "yaml/${dir}/stable.txt" \
+            --body stable.txt
+    fi
 done
+
+rm stable.txt
 
 exit 0

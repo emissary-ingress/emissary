@@ -16,7 +16,17 @@ if ! command -v helm 2> /dev/null ; then
     chmod 700 get_helm.sh
     ./get_helm.sh --version v3.4.1
 fi
-repo_url=https://s3.amazonaws.com/datawire-static-files/ambassador/
+thisversion=$(grep version charts/ambassador/Chart.yaml | awk ' { print $2 }')
+
+repo_key=
+if [[ -n "${REPO_KEY}" ]] ; then
+    repo_key="${REPO_KEY}"
+elif [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
+    repo_key=ambassador
+else
+    repo_key=ambassador-dev
+fi
+repo_url=https://s3.amazonaws.com/datawire-static-files/${repo_key}/
 
 info "Pushing Helm Chart"
 helm package $TOP_DIR
@@ -25,9 +35,6 @@ helm package $TOP_DIR
 export CHART_PACKAGE=$(ls *.tgz)
 
 curl -o tmp.yaml -k -L ${repo_url}index.yaml
-
-thisversion=$(grep version charts/ambassador/Chart.yaml | awk ' { print $2 }')
-
 if [[ $(grep -c "version: $thisversion" tmp.yaml || true) != 0 ]]; then
 	failed "Chart version $thisversion is already in the index"
 	exit 1
@@ -46,8 +53,8 @@ info "Pushing chart to S3 bucket $AWS_BUCKET"
 for f in "$CHART_PACKAGE" "index.yaml" ; do
   aws s3api put-object \
     --bucket "$AWS_BUCKET" \
-    --key "ambassador/$f" \
-    --body "$f" && passed "... ambassador/$f pushed"
+    --key "${repo_key}/$f" \
+    --body "$f" && passed "... ${repo_key}/$f pushed"
 done
 
 info "Cleaning up..."
