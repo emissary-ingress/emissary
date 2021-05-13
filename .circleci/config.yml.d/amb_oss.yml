@@ -82,6 +82,19 @@ jobs:
       - job-promote-to-ga:
           channel: oss
 
+  "oss-yaml-publish-s3-ga":
+    executor: oss-linux
+    steps:
+      - job-yaml-publish-s3:
+          update-stable: true
+
+  "oss-yaml-publish-s3-rc":
+    executor: oss-linux
+    steps:
+      - job-yaml-publish-s3:
+          update-stable: false
+
+
 _anchors:
   # All of these filters assume that "Only build pull requests" is turned on at
   # https://app.circleci.com/settings/project/github/datawire/ambassador/advanced
@@ -188,6 +201,10 @@ workflows:
       - "oss-generate":
           <<: *filter-prerelease-only
           name: "oss-release-generate"
+      - "oss-yaml-publish-s3-rc":
+          <<: *filter-prerelease-only
+          name: "oss-yaml-s3-rc"
+          requires: ["oss-release-generate"]
       - "oss-lint":
           <<: *filter-prerelease-only
           name: "oss-release-lint"
@@ -255,6 +272,11 @@ workflows:
       - "oss-promote-to-ga":
           <<: *filter-ga-only
           name: "oss-release-promote-to-ga"
+      - "oss-yaml-publish-s3-ga":
+          <<: *filter-ga-only
+          name: "oss-yaml-s3-ga"
+          requires:
+            - "oss-release-generate"
 
   "OSS: Nightly":
     triggers:

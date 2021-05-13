@@ -68,6 +68,23 @@ commands:
       - run: make generate
       - dirty-check
 
+  "job-yaml-publish-s3":
+    parameters:
+      "update-stable":
+        type: boolean
+        default: false
+    steps:
+      # setup
+      - amb-linux-install
+      - amb-checkout
+      - amb-config-registry
+      # main
+      - run:
+          name: "Publish to S3"
+          command: |
+            export BUMP_STABLE=<< parameters.update-stable >>
+            make publish-docs-yaml
+
   "job-lint":
     steps:
       # setup
