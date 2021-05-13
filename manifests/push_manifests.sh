@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -e
 
 CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 [ -d "$CURR_DIR" ] || { echo "FATAL: no current dir (maybe running in zsh?)";  exit 1; }
@@ -15,8 +15,26 @@ abort() {
   exit 1
 }
 
-[ -n "$MANIFEST_VERSION"     ] || abort "MANIFEST_VERSION is not set"
+TOP_DIR=${CURR_DIR}/../
+version=
+if [[ -n "${VERSION_OVERRIDE}" ]] ; then
+    version=${VERSION_OVERRIDE}
+else
+    version=$(grep version ${TOP_DIR}docs/yaml/versions.yml | awk '{ print $2 }')
+fi
+[ -n ${version} ] || abort "could not read version from docs/yaml/versions.yml"
+log "Publishing manifest version ${version}"
 
+if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
+    # if this is a stable version, working directory must be clean
+    # otherwise this is an rc, ea or test version and we don't care
+    if [ -n "$(git status --porcelain)" ] ; then
+        abort "working tree is dirty, aborting"
+    fi
+else [[ -n "${BUMP_STABLE}" ]]
+    # if this isn't an X.Y.Z version, don't let allow bumping stable
+    abort "Cannot bump stable unless this is an X.Y.Z tag"
+fi
 if [ -z "$AWS_BUCKET" ] ; then
     AWS_BUCKET=datawire-static-files
 fi
@@ -24,25 +42,30 @@ fi
 [ -n "$AWS_ACCESS_KEY_ID"     ] || abort "AWS_ACCESS_KEY_ID is not set"
 [ -n "$AWS_SECRET_ACCESS_KEY" ] || abort "AWS_SECRET_ACCESS_KEY is not set"
 
-if [ -z "${FORCE}" ] ; then
-    if aws s3api get-object --bucket ${AWS_BUCKET} --key emissary-yaml/${MANIFEST_VERSION} /dev/null ; then
-        abort "FORCE is not set and manifests already exist for ${MANIFEST_VERSION}"
+echo ${version} > stable.txt
+for dir in ${CURR_DIR}/*/ ; do
+    dir=`basename ${dir%*/}`
+    aws s3api put-object \
+        --bucket "$AWS_BUCKET" \
+        --key "yaml/${dir}/${version}"
+    for f in ${CURR_DIR}/${dir}/*.yaml ; do
+      fname=`basename $f`
+      echo ${fname}
+      aws s3api put-object \
+        --bucket "$AWS_BUCKET" \
+        --key "yaml/${dir}/${version}/$fname" \
+        --body "$f" &&  echo "... yaml/${dir}/${version}/$fname pushed"
+    done
+    # bump the stable version for this directory
+    if [[ -n "${BUMP_STABLE}" ]] ; then
+        log "Bumping stable version for yaml/${dir}"
+        aws s3api put-object \
+            --bucket "$AWS_BUCKET" \
+            --key "yaml/${dir}/stable.txt" \
+            --body stable.txt
     fi
-fi
-# TODO: check if there's already a directory for the manifest versions,
-# abort if things exists and force isn't set
-# and probably if git ref isn't up to date with manifest version?
-aws s3api put-object \
-    --bucket "$AWS_BUCKET" \
-    --key "emissary-yaml/${MANIFEST_VERSION}"
-
-log "Pushing manifests to S3 bucket $AWS_BUCKET"
-for f in ${CURR_DIR}/*.yaml ; do
-  fname=`basename $f`
-  aws s3api put-object \
-    --bucket "$AWS_BUCKET" \
-    --key "emissary-yaml/${MANIFEST_VERSION}/$fname" \
-    --body "$f" &&  echo "... emisasry-yaml/$fname pushed"
 done
+
+rm stable.txt
 
 exit 0
