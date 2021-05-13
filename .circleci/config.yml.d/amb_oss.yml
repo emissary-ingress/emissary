@@ -39,7 +39,7 @@ jobs:
 
   "oss-test":
     executor: oss-linux
-    resource_class: large
+    resource_class: xlarge
     parameters:
       "test":
         type: enum
