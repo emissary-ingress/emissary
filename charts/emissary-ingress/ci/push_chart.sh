@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#### NOTE: this chart is not published by any automation or process yet.
+# you can run this script manually to publish this chart
+# "soon" we'll start publishing this along with the ambassador chart
+# and "eventually" this chart will become the only chart we publish
+
 set -e
 
 CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -16,8 +21,16 @@ if ! command -v helm 2> /dev/null ; then
     chmod 700 get_helm.sh
     ./get_helm.sh --version v3.4.1
 fi
-# TODO: when system a mappings exist, we can change this to app.getambassador.io
-s3url=https://s3.amazonaws.com/datawire-static-files/emissary-charts/
+thisversion=$(grep version charts/emissary-ingress/Chart.yaml | awk ' { print $2 }')
+repo_key=
+if [[ -n "${REPO_KEY}" ]] ; then
+    repo_key="${REPO_KEY}"
+elif [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
+    repo_key=ambassador
+else
+    repo_key=ambassador-dev
+fi
+s3url=https://s3.amazonaws.com/datawire-static-files/${repo_key}/
 
 info "Pushing Helm Chart"
 helm package $TOP_DIR
@@ -27,7 +40,6 @@ export CHART_PACKAGE=$(ls *.tgz)
 
 curl -o tmp.yaml -k -L ${s3url}index.yaml
 
-thisversion=$(grep version charts/emissary-ingress/Chart.yaml | awk ' { print $2 }')
 
 if [[ $(grep -c "version: $thisversion" tmp.yaml || true) != 0 ]]; then
 	failed "Chart version $thisversion is already in the index"
@@ -47,8 +59,8 @@ info "Pushing chart to S3 bucket $AWS_BUCKET"
 for f in "$CHART_PACKAGE" "index.yaml" ; do
   aws s3api put-object \
     --bucket "$AWS_BUCKET" \
-    --key "emissary-charts/$f" \
-    --body "$f" && passed "... emissary-charts/$f pushed"
+    --key "${repo_key}/$f" \
+    --body "$f" && passed "... ${repo_key}/$f pushed"
 done
 
 info "Cleaning up..."
