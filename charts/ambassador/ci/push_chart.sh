@@ -16,6 +16,17 @@ if ! command -v helm 2> /dev/null ; then
     chmod 700 get_helm.sh
     ./get_helm.sh --version v3.4.1
 fi
+thisversion=$(get_chart_version ${TOP_DIR})
+
+repo_key=
+if [[ -n "${REPO_KEY}" ]] ; then
+    repo_key="${REPO_KEY}"
+elif [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
+    repo_key=ambassador
+else
+    repo_key=ambassador-dev
+fi
+repo_url=https://s3.amazonaws.com/datawire-static-files/${repo_key}/
 
 info "Pushing Helm Chart"
 helm package $TOP_DIR
@@ -23,16 +34,13 @@ helm package $TOP_DIR
 # Get name of package
 export CHART_PACKAGE=$(ls *.tgz)
 
-curl -o tmp.yaml -k -L https://getambassador.io/helm/index.yaml
-
-thisversion=$(get_chart_version ${TOP_DIR})
-
+curl -o tmp.yaml -k -L ${repo_url}index.yaml
 if [[ $(grep -c "version: $thisversion" tmp.yaml || true) != 0 ]]; then
     failed "Chart version $thisversion is already in the index"
     exit 1
 fi
 
-helm repo index . --url https://getambassador.io/helm --merge tmp.yaml
+helm repo index . --url ${repo_url} --merge tmp.yaml
 
 if [ -z "$AWS_BUCKET" ] ; then
     AWS_BUCKET=datawire-static-files
@@ -45,8 +53,8 @@ info "Pushing chart to S3 bucket $AWS_BUCKET"
 for f in "$CHART_PACKAGE" "index.yaml" ; do
   aws s3api put-object \
     --bucket "$AWS_BUCKET" \
-    --key "ambassador/$f" \
-    --body "$f" && passed "... ambassador/$f pushed"
+    --key "${repo_key}/$f" \
+    --body "$f" && passed "... ${repo_key}/$f pushed"
 done
 
 info "Cleaning up..."
