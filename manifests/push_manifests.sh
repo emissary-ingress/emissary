@@ -16,12 +16,24 @@ abort() {
 }
 
 TOP_DIR=${CURR_DIR}/../
-version=$(grep version ${TOP_DIR}docs/yaml/versions.yml | awk '{ print $2 }')
+version=
+if [[ -n "${VERSION_OVERRIDE}" ]] ; then
+    version=${VERSION_OVERRIDE}
+else
+    version=$(grep version ${TOP_DIR}docs/yaml/versions.yml | awk '{ print $2 }')
+fi
 [ -n ${version} ] || abort "could not read version from docs/yaml/versions.yml"
 log "Publishing manifest version ${version}"
 
-if [ -n "$(git status --porcelain)" ]; then
-    abort "working tree is dirty, aborting"
+if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
+    # if this is a stable version, working directory must be clean
+    # otherwise this is an rc, ea or test version and we don't care
+    if [ -n "$(git status --porcelain)" ] ; then
+        abort "working tree is dirty, aborting"
+    fi
+else [[ -n "${BUMP_STABLE}" ]]
+    # if this isn't an X.Y.Z version, don't let allow bumping stable
+    abort "Cannot bump stable unless this is an X.Y.Z tag"
 fi
 if [ -z "$AWS_BUCKET" ] ; then
     AWS_BUCKET=datawire-static-files
