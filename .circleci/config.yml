@@ -62,6 +62,22 @@ commands:
       # in a row.
       run: make generate
     - dirty-check
+  "job-yaml-publish-s3":
+    parameters:
+      "update-stable":
+        type: boolean
+        default: false
+    steps:
+    # setup
+    - amb-linux-install
+    - amb-checkout
+    - amb-config-registry
+    - # main
+      run:
+        name: "Publish to S3"
+        command: |
+          export BUMP_STABLE=<< parameters.update-stable >>
+          make publish-docs-yaml
   "job-lint":
     steps:
     # setup
@@ -761,6 +777,16 @@ jobs:
     steps:
     - job-promote-to-ga:
         channel: oss
+  oss-yaml-publish-s3-ga:
+    executor: oss-linux
+    steps:
+    - job-yaml-publish-s3:
+        update-stable: true
+  oss-yaml-publish-s3-rc:
+    executor: oss-linux
+    steps:
+    - job-yaml-publish-s3:
+        update-stable: false
   website-preview-build:
     executor: oss-linux
     steps:
@@ -945,6 +971,15 @@ workflows:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
           branches:
             ignore: /.*/
+    - oss-yaml-publish-s3-rc:
+        name: "oss-yaml-s3-rc"
+        requires:
+        - "oss-release-generate"
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
     - oss-lint:
         name: "oss-release-lint"
         filters:
@@ -1051,6 +1086,15 @@ workflows:
             ignore: /.*/
     - oss-promote-to-ga:
         name: "oss-release-promote-to-ga"
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-yaml-publish-s3-ga:
+        name: "oss-yaml-s3-ga"
+        requires:
+        - "oss-release-generate"
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
