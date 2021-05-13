@@ -6,10 +6,10 @@ import sys
 import pytest
 import requests
 
-from utils import install_ambassador, get_code_with_retry, create_httpbin_mapping
-from kubeutils import apply_kube_artifacts, delete_kube_artifacts
-from runutils import run_with_retry, run_and_assert
-from manifests import httpbin_manifests
+from tests.utils import install_ambassador, get_code_with_retry, create_httpbin_mapping
+from tests.kubeutils import apply_kube_artifacts, delete_kube_artifacts
+from tests.runutils import run_with_retry, run_and_assert
+from tests.manifests import httpbin_manifests
 
 logging.basicConfig(
     level=logging.INFO,
@@ -291,10 +291,6 @@ spec:
     def test_header_case_overrides(self):
         # Is there any reason not to use the default namespace?
         namespace = 'header-case-overrides'
-
-        # Make sure telepresence is connected. Do this early on in the test to give the TP daemon plenty of
-        # time to do its thing while we wait for other k8 resources to reconcile.
-        run_with_retry(['telepresence', 'connect'])
 
         # Install Ambassador
         install_ambassador(namespace=namespace)

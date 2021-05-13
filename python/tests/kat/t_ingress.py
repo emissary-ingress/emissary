@@ -1,3 +1,4 @@
+import os
 import sys
 
 import json
@@ -8,7 +9,8 @@ import time
 from kat.harness import Query, is_ingress_class_compatible
 from abstract_tests import AmbassadorTest, HTTP, ServiceType
 from kat.utils import namespace_manifest
-
+from tests.utils import KUBESTATUS_PATH
+from ambassador.utils import parse_bool
 
 class IngressStatusTest1(AmbassadorTest):
     status_update = {
@@ -46,7 +48,7 @@ spec:
         if sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
-            update_cmd = ['kubestatus', 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+            update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
             subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=10)
             # If you run these tests individually, the time between running kubestatus
             # and the ingress resource actually getting updated is longer than the
@@ -57,6 +59,9 @@ spec:
             yield Query(self.url(f'need-normalization/../{self.name}/'))
 
     def check(self):
+        if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
+            pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
+
         if sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
@@ -109,7 +114,7 @@ spec:
         if sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
-            update_cmd = ['kubestatus', 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+            update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
             subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=10)
             # If you run these tests individually, the time between running kubestatus
             # and the ingress resource actually getting updated is longer than the
@@ -120,6 +125,9 @@ spec:
             yield Query(self.url(f'need-normalization/../{self.name}/'))
 
     def check(self):
+        if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
+            pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
+
         if sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
@@ -173,7 +181,7 @@ spec:
         if sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
-            update_cmd = ['kubestatus', 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+            update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
             subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=10)
             # If you run these tests individually, the time between running kubestatus
             # and the ingress resource actually getting updated is longer than the
@@ -184,6 +192,9 @@ spec:
             yield Query(self.url(f'need-normalization/../{self.name}/'))
 
     def check(self):
+        if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
+            pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
+
         if sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
@@ -243,7 +254,7 @@ spec:
     def queries(self):
         text = json.dumps(self.status_update)
 
-        update_cmd = ['kubestatus', 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+        update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
         subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=10)
         # If you run these tests individually, the time between running kubestatus
         # and the ingress resource actually getting updated is longer than the
@@ -255,6 +266,9 @@ spec:
         yield Query(self.url(f'need-normalization/../{self.name}/'))
 
     def check(self):
+        if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
+            pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
+
         # check for Ingress IP here
         ingress_cmd = ["kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
         ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
@@ -320,7 +334,7 @@ spec:
         if sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
-            update_cmd = ['kubestatus', 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+            update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
             subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=10)
             # If you run these tests individually, the time between running kubestatus
             # and the ingress resource actually getting updated is longer than the
@@ -331,6 +345,9 @@ spec:
             yield Query(self.url(self.name + "-target2/"))
 
     def check(self):
+        if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
+            pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
+
         if sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
@@ -413,7 +430,7 @@ spec:
         if sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
-            update_cmd = ['kubestatus', 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+            update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
             subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=10)
             # If you run these tests individually, the time between running kubestatus
             # and the ingress resource actually getting updated is longer than the
@@ -424,6 +441,9 @@ spec:
             yield Query(self.url(f'need-normalization/../{self.name}/'))
 
     def check(self):
+        if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
+            pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
+
         if sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 

@@ -8,11 +8,13 @@ import pexpect
 import pytest
 import requests
 
-from runutils import run_and_assert
+from tests.runutils import run_and_assert
 
-DockerImage = os.environ.get("AMBASSADOR_DOCKER_IMAGE", None)
+DOCKER_IMAGE = os.environ.get("AMBASSADOR_DOCKER_IMAGE", None)
+
 child = None                    # see docker_start()
 child_name = "diagd-unset"      # see docker_start() and docker_kill()
+diagd_host = None               # see docker_start()
 
 SEQUENCES = [
     (
@@ -48,7 +50,10 @@ def docker_start(logfile) -> bool:
     global child_name
     child_name = f"diagd-{int(time.time() * 1000)}"
 
-    cmd = f'docker run --name {child_name} --rm --network {os.environ["DOCKER_NETWORK"]} --network-alias diagd {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --dev-magic'
+    global diagd_host
+
+    cmd = f'docker run --name {child_name} --rm -p 9999:9999 {DOCKER_IMAGE} --dev-magic'
+    diagd_host = 'localhost:9999'
 
     child = pexpect.spawn(cmd, encoding='utf-8')
     child.logfile = logfile
@@ -111,7 +116,8 @@ def wait_for_diagd(logfile) -> bool:
         logfile.write(f'...checking diagd ({tries_left})\n')
 
         try:
-            response = requests.get('http://diagd:9999/_internal/v0/ping',
+            global diagd_host
+            response = requests.get(f'http://{diagd_host}/_internal/v0/ping',
                                     headers={ "X-Ambassador-Diag-IP": "127.0.0.1" })
 
             if response.status_code == 200:
@@ -130,7 +136,8 @@ def wait_for_diagd(logfile) -> bool:
 
 def check_http(logfile, cmd: str) -> bool:
     try:
-        response = requests.post('http://diagd:9999/_internal/v0/fs',
+        global diagd_host
+        response = requests.post(f'http://{diagd_host}/_internal/v0/fs',
                                  headers={ "X-Ambassador-Diag-IP": "127.0.0.1" },
                                  params={ 'path': f'cmd:{cmd}' })
         text = response.text
@@ -147,7 +154,8 @@ def check_http(logfile, cmd: str) -> bool:
 
 def fetch_events(logfile) -> Any:
     try:
-        response = requests.get('http://diagd:9999/_internal/v0/events',
+        global diagd_host
+        response = requests.get(f'http://{diagd_host}/_internal/v0/events',
                                 headers={ "X-Ambassador-Diag-IP": "127.0.0.1" })
 
         if response.status_code != 200:
@@ -243,16 +251,9 @@ def test_scout():
     test_status = False
 
     with open('/tmp/test_scout_output', 'w') as logfile:
-        if not DockerImage:
+        if not DOCKER_IMAGE:
             logfile.write('No $AMBASSADOR_DOCKER_IMAGE??\n')
         else:
-            # Telepresence interferes with the docker network we set up, so stop it before running this test.
-            # Any test that depends on telepresence should correctly run `telepresence connect` anyway.
-            run_and_assert(['telepresence', 'quit'])
-
-            # Sleep to make sure telepresence exited gracefully etc...
-            time.sleep(10)
-
             if docker_start(logfile):
                 if wait_for_diagd(logfile) and check_chimes(logfile):
                     test_status = True
