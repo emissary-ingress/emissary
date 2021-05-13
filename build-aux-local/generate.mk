@@ -354,7 +354,7 @@ update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador-agent.yaml
 update-yaml/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
 update-yaml/files += $(OSS_HOME)/manifests/emissary/emissary-ingress.yaml
 update-yaml/files += $(OSS_HOME)/manifests/ambassador/ambassador-crds.yaml
-update-yaml/files += $(OSS_HOME)/manifests/ambassador/ambassador-rbac.yaml
+update-yaml/files += $(OSS_HOME)/manifests/ambassador/ambassador.yaml
 update-yaml/files += $(OSS_HOME)/manifests/edge-stack/oss-migration.yaml
 update-yaml/files += $(OSS_HOME)/manifests/edge-stack/resources-migration.yaml
 update-yaml/files += $(OSS_HOME)/manifests/edge-stack/aes.yaml
@@ -419,11 +419,11 @@ define generate_emissary_yaml_from_helm
 		$(OSS_HOME)/build/yaml/$(1)/helm-expanded.yaml $(OSS_HOME)/k8s-config/$(1)/require.yaml > $(3)
 endef
 
-$(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac.yaml: $(OSS_HOME)/manifests/ambassador/ambassador-rbac.yaml
+$(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac.yaml: $(OSS_HOME)/manifests/ambassador/ambassador.yaml
 	@printf '  $(CYN)$@$(END)\n'
-	cp $(OSS_HOME)/manifests/ambassador/ambassador-rbac.yaml $@
+	cp $(OSS_HOME)/manifests/ambassador/ambassador.yaml $@
 
-$(OSS_HOME)/manifests/ambassador/ambassador-rbac.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/ambassador-rbac/require.yaml $(OSS_HOME)/k8s-config/ambassador-rbac/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
+$(OSS_HOME)/manifests/ambassador/ambassador.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/ambassador-rbac/require.yaml $(OSS_HOME)/k8s-config/ambassador-rbac/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
 	@printf '  $(CYN)$@$(END)\n'
 	$(call generate_yaml_from_helm,ambassador-rbac,default,$@)
 

@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#### NOTE: this chart is not published by any automation or process yet.
+# you can run this script manually to publish this chart
+# "soon" we'll start publishing this along with the ambassador chart
+# and "eventually" this chart will become the only chart we publish
+
 set -e
 
 CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
