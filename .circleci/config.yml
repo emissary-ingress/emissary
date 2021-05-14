@@ -1042,8 +1042,7 @@ workflows:
         filters:
           branches:
             only:
-            - shared/nightly-test
-            # - shared/emissary
+            - shared/emissary
     jobs:
     - oss-images:
         name: "oss-nightly-images"
