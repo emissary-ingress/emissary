@@ -65,6 +65,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
+### DiagD internal tcp idle timeout tuning
+Set the diagd tcp idle timeout (i.e. keepalive timeout) to 300s, up from the gunicorn default of 2s. This should help eliminate race-conditions where probing `/ambassador/v0/check_alive` may intermittently fail.
 ### Emissary Ingress and Ambassador Edge Stack
 
 - Change: `prune_unreachable_routes` now defaults to true, which should reduce Envoy memory requirements for installations with many `Host`s
