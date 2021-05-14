@@ -395,8 +395,7 @@ workflows:
           filters:
             branches:
               only:
-                - shared/nightly-test
-                # - shared/emissary
+                - shared/emissary
     jobs:
       # build+push
       - "oss-images":
