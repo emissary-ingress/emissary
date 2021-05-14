@@ -143,6 +143,14 @@ commands:
     - run: |
         [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push
     - when:
+        condition:
+          not: << parameters.release >>
+        steps:
+        - run:
+            name: "Push dev images"
+            command: |
+              [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push-dev
+    - when:
         condition: << parameters.release >>
         steps:
         - run:
