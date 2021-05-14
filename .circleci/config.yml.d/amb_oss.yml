@@ -27,6 +27,11 @@ jobs:
           release: << parameters.release >>
           push_nightly: << parameters.push_nightly >>
 
+  "oss-push-ci":
+    executor: oss-linux
+    steps: 
+      - job-push-ci
+
   "oss-gotest":
     executor: oss-linux
     parameters:
@@ -150,7 +155,7 @@ workflows:
       - "oss-gotest":
           name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           matrix:
-            alias: "oss-dev-gotest"
+            alias: "oss-dev-gotest-matrix"
             parameters:
               fast-reconfigure:
                 - true
@@ -163,7 +168,7 @@ workflows:
           requires: ["oss-dev-images"]
           name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           matrix:
-            alias: "oss-dev-test"
+            alias: "oss-dev-test-matrix"
             parameters:
               test:
                 - "pytest"
@@ -181,6 +186,10 @@ workflows:
                 - false
                 # If you enable testing with legacy-mode true as well, you'll also need
                 # to add some exclusions -- see the Release workflow for more.
+      - "oss-push-ci":
+          requires: [ "oss-dev-generate", "oss-dev-lint", "oss-dev-gotest-matrix", "oss-dev-test-matrix" ]
+          name: "oss-dev-push-ci"
+
   "OSS: Chart Release":
     when: # Don't run this workflow in apro.git
       or:

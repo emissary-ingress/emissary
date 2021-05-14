@@ -143,6 +143,21 @@ commands:
     # teardown
     - dirty-check
     - amb-save-workspace
+  "job-push-ci":
+    steps:
+    # setup
+    - amb-linux-install
+    - amb-checkout
+    - amb-skip-if-no-code-changes
+    - amb-config-registry
+    - # main
+      run: make images
+    - run: |
+        [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push
+    - run: make push-ci
+    # teardown
+    - dirty-check
+    - amb-save-workspace
   "job-gotest":
     parameters:
       "fast-reconfigure":
@@ -730,6 +745,10 @@ jobs:
     - job-images:
         release: << parameters.release >>
         push_nightly: << parameters.push_nightly >>
+  oss-push-ci:
+    executor: oss-linux
+    steps:
+    - job-push-ci
   oss-gotest:
     executor: oss-linux
     parameters:
@@ -874,7 +893,7 @@ workflows:
         name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure
           >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
         matrix:
-          alias: "oss-dev-gotest"
+          alias: "oss-dev-gotest-matrix"
           parameters:
             fast-reconfigure:
             - true
@@ -890,7 +909,7 @@ workflows:
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
         matrix:
-          alias: "oss-dev-test"
+          alias: "oss-dev-test-matrix"
           parameters:
             test:
             - "pytest"
@@ -909,6 +928,13 @@ workflows:
             - false
             # If you enable testing with legacy-mode true as well, you'll also need
             # to add some exclusions -- see the Release workflow for more.
+    - oss-push-ci:
+        requires:
+        - "oss-dev-generate"
+        - "oss-dev-lint"
+        - "oss-dev-gotest-matrix"
+        - "oss-dev-test-matrix"
+        name: "oss-dev-push-ci"
   'OSS: Chart Release':
     when:
       or:
