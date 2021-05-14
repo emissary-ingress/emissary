@@ -225,6 +225,10 @@ version:
 	@$(BUILDER) version
 .PHONY: version
 
+raw-version:
+	@$(BUILDER) raw-version
+.PHONY: raw-version
+
 compile: sync
 	@$(BUILDER) compile
 .PHONY: compile
@@ -240,7 +244,7 @@ compile: sync
 
 # Give Make a hint about which pattern rules to apply.  Honestly, I'm
 # not sure why Make isn't figuring it out on its own, but it isn't.
-_images = builder-base snapshot base-envoy $(LCNAME) kat-client kat-server
+_images = builder-base snapshot base-envoy $(LCNAME) $(LCNAME)-ea kat-client kat-server
 $(foreach i,$(_images), docker/$i.docker.tag.local  ): docker/%.docker.tag.local : docker/%.docker
 $(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remote: docker/%.docker
 
@@ -294,6 +298,29 @@ docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/snapshot.docker.tag.l
 	    unset TIMEFORMAT; \
 	  fi; \
 	}
+
+docker/$(LCNAME)-ea.docker.stamp: %/$(LCNAME)-ea.docker.stamp: %/$(LCNAME).docker $(BUILDER_HOME)/Dockerfile-ea FORCE
+	@set -e; { \
+	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
+	    printf "${CYN}==> ${GRN}Image ${BLU}$(LCNAME)-ea${GRN} is already up-to-date${END}\n"; \
+	  else \
+	    printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)-ea${END}\n"; \
+	    printf "    ${BLU}base_ambassador=$$(cat $*/$(LCNAME).docker)${END}\n"; \
+	    TIMEFORMAT="     (docker build took %1R seconds)"; \
+	    echo time ${DBUILD} ${BUILDER_HOME} \
+	      -f $(BUILDER_HOME)/Dockerfile-ea \
+	      --build-arg=base_ambassador="$$(cat $*/$(LCNAME).docker)" \
+	      --target=ambassador-ea \
+	      --iidfile=$@; \
+	    time ${DBUILD} ${BUILDER_HOME} \
+	      -f $(BUILDER_HOME)/Dockerfile-ea \
+	      --build-arg=base_ambassador="$$(cat $*/$(LCNAME).docker)" \
+	      --target=ambassador-ea \
+	      --iidfile=$@; \
+	    unset TIMEFORMAT; \
+	  fi; \
+	}
+
 docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
 	@set -e; { \
 	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
@@ -330,6 +357,7 @@ docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/snapshot.docker.tag
 REPO=$(BUILDER_NAME)
 
 images: docker/$(LCNAME).docker.tag.local
+images: docker/$(LCNAME)-ea.docker.tag.local
 images: docker/kat-client.docker.tag.local
 images: docker/kat-server.docker.tag.local
 .PHONY: images
@@ -340,9 +368,72 @@ REGISTRY_ERR += $(NL)       you would like to use for development
 REGISTRY_ERR += $(END)
 
 push: docker/$(LCNAME).docker.push.remote
+push: docker/$(LCNAME)-ea.docker.push.remote
 push: docker/kat-client.docker.push.remote
 push: docker/kat-server.docker.push.remote
 .PHONY: push
+
+push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
+	@set -e; { \
+		if [ -n "$(IS_DIRTY)" ]; then \
+			echo "push-dev: tree must be clean" >&2 ;\
+			exit 1 ;\
+		fi; \
+		check=$$(echo $(BUILD_VERSION) | grep -c -e -dev || true) ;\
+		if [ $$check -lt 1 ]; then \
+			echo "push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version" >&2 ;\
+			exit 1 ;\
+		fi ;\
+		suffix=$$(echo $(BUILD_VERSION) | sed -e 's/\+/-/') ;\
+		for image in $(LCNAME) $(LCNAME)-ea; do \
+			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
+			echo "pushing $$image as $$tag..." ;\
+			docker tag $$(cat docker/$$image.docker) $$tag && \
+			docker push $$tag ;\
+		done ;\
+	}
+.PHONY: push-dev
+
+push-ci: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
+	@set -e; { \
+		if [ -n "$(IS_DIRTY)" ]; then \
+			echo "push-ci: tree must be clean" >&2 ;\
+			exit 1 ;\
+		fi; \
+		check=$$(echo $(BUILD_VERSION) | grep -c -e -dev || true) ;\
+		if [ $$check -lt 1 ]; then \
+			echo "push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version" >&2 ;\
+			exit 1 ;\
+		fi ;\
+		suffix=$$(echo $(BUILD_VERSION) | sed -e 's/-dev\.\([0-9][0-9]*\).*$$/-ci.\1/') ;\
+		for image in $(LCNAME) $(LCNAME)-ea; do \
+			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
+			echo "pushing $$image as $$tag..." ;\
+			docker tag $$(cat docker/$$image.docker) $$tag && \
+			docker push $$tag ;\
+		done ;\
+	}
+.PHONY: push-ci
+
+push-nightly: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
+	@set -e; { \
+		if [ -n "$(IS_DIRTY)" ]; then \
+			echo "push-with-datestamp: tree must be clean" >&2 ;\
+			exit 1 ;\
+		fi; \
+		now=$$(date +"%Y%m%dT%H%M%S") ;\
+		today=$$(date +"%Y%m%d") ;\
+		base_version=$$(echo $(BUILD_VERSION) | cut -d- -f1) ;\
+		for image in $(LCNAME) $(LCNAME)-ea; do \
+			for suffix in "$$now" "$$today"; do \
+				tag="$(DEV_REGISTRY)/$$image:$${base_version}-nightly.$${suffix}" ;\
+				echo "pushing $$image as $$tag..." ;\
+				docker tag $$(cat docker/$$image.docker) $$tag && \
+				docker push $$tag ;\
+			done ;\
+		done ;\
+	}
+.PHONY: push-nightly
 
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
 export KUBECTL_ERR=$(RED)ERROR: preflight kubectl check failed$(END)
@@ -410,6 +501,7 @@ pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remot
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests in builder shell$(END)\n"
 	docker exec \
 		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) \
+		-e AMBASSADOR_EA_DOCKER_IMAGE=$$(sed -n 2p docker/$(LCNAME)-ea.docker.push.remote) \
 		-e KAT_CLIENT_DOCKER_IMAGE=$$(sed -n 2p docker/kat-client.docker.push.remote) \
 		-e KAT_SERVER_DOCKER_IMAGE=$$(sed -n 2p docker/kat-server.docker.push.remote) \
 		-e KAT_IMAGE_PULL_POLICY=Always \
@@ -576,6 +668,7 @@ export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/en
 RELEASE_TYPE=$$($(BUILDER) release-type)
 RELEASE_VERSION=$$($(BUILDER) release-version)
 BUILD_VERSION=$$($(BUILDER) version)
+IS_DIRTY=$$($(BUILDER) is-dirty)
 
 # 'rc' is a deprecated alias for 'release/bits', kept around for the
 # moment to avoid pain with needing to update apro.git in lockstep.
@@ -671,6 +764,8 @@ CURRENT_NAMESPACE=$(shell kubectl config view -o=jsonpath="{.contexts[?(@.name==
 
 AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME).docker.push.remote 2>/dev/null)
 export AMBASSADOR_DOCKER_IMAGE
+AMBASSADOR_EA_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME)-ea.docker.push.remote 2>/dev/null)
+export AMBASSADOR_EA_DOCKER_IMAGE
 KAT_CLIENT_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-client.docker.push.remote 2>/dev/null)
 export KAT_CLIENT_DOCKER_IMAGE
 KAT_SERVER_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-server.docker.push.remote 2>/dev/null)
@@ -681,6 +776,7 @@ _user-vars += DEV_KUBECONFIG
 _user-vars += DEV_REGISTRY
 _user-vars += RELEASE_REGISTRY
 _user-vars += AMBASSADOR_DOCKER_IMAGE
+_user-vars += AMBASSADOR_EA_DOCKER_IMAGE
 _user-vars += KAT_CLIENT_DOCKER_IMAGE
 _user-vars += KAT_SERVER_DOCKER_IMAGE
 env:

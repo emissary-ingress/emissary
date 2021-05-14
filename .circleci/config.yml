@@ -104,6 +104,9 @@ commands:
       "save_images_to_workspace":
         type: boolean
         default: false
+      "push_nightly":
+        type: boolean
+        default: false
     steps:
     # setup
     - amb-linux-install
@@ -115,6 +118,14 @@ commands:
     - run: |
         [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push
     - when:
+        condition:
+          not: << parameters.release >>
+        steps:
+        - run:
+            name: "Push dev images"
+            command: |
+              [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push-dev
+    - when:
         condition: << parameters.release >>
         steps:
         - run:
@@ -122,6 +133,28 @@ commands:
             command: |
               docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
               DEV_KUBECONFIG="-skip-for-release-" make release/bits
+    - when:
+        condition: << parameters.push_nightly >>
+        steps:
+        - run:
+            name: "Push nightly images"
+            command: |
+              make push-nightly
+    # teardown
+    - dirty-check
+    - amb-save-workspace
+  "job-push-ci":
+    steps:
+    # setup
+    - amb-linux-install
+    - amb-checkout
+    - amb-skip-if-no-code-changes
+    - amb-config-registry
+    - # main
+      run: make images
+    - run: |
+        [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push
+    - run: make push-ci
     # teardown
     - dirty-check
     - amb-save-workspace
@@ -703,11 +736,19 @@ jobs:
       release:
         type: boolean
         default: false
+      push_nightly:
+        type: boolean
+        default: false
     executor: oss-linux
-    resource_class: xlarge
+    resource_class: large
     steps:
     - job-images:
         release: << parameters.release >>
+        push_nightly: << parameters.push_nightly >>
+  oss-push-ci:
+    executor: oss-linux
+    steps:
+    - job-push-ci
   oss-gotest:
     executor: oss-linux
     parameters:
@@ -723,7 +764,7 @@ jobs:
         legacy-mode: << parameters.legacy-mode >>
   oss-test:
     executor: oss-linux
-    resource_class: large
+    resource_class: xlarge
     parameters:
       test:
         type: enum
@@ -852,7 +893,7 @@ workflows:
         name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure
           >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
         matrix:
-          alias: "oss-dev-gotest"
+          alias: "oss-dev-gotest-matrix"
           parameters:
             fast-reconfigure:
             - true
@@ -868,7 +909,7 @@ workflows:
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
         matrix:
-          alias: "oss-dev-test"
+          alias: "oss-dev-test-matrix"
           parameters:
             test:
             - "pytest"
@@ -887,6 +928,13 @@ workflows:
             - false
             # If you enable testing with legacy-mode true as well, you'll also need
             # to add some exclusions -- see the Release workflow for more.
+    - oss-push-ci:
+        requires:
+        - "oss-dev-generate"
+        - "oss-dev-lint"
+        - "oss-dev-gotest-matrix"
+        - "oss-dev-test-matrix"
+        name: "oss-dev-push-ci"
   'OSS: Chart Release':
     when:
       or:
@@ -1023,9 +1071,16 @@ workflows:
           branches:
             only:
             - master
+    - schedule:
+        cron: "0 5 * * *"
+        filters:
+          branches:
+            only:
+            - shared/emissary
     jobs:
     - oss-images:
         name: "oss-nightly-images"
+        push_nightly: true
     - oss-gotest:
         name: "oss-nightly-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode

@@ -114,6 +114,9 @@ commands:
       "save_images_to_workspace":
         type: boolean
         default: false
+      "push_nightly":
+        type: boolean
+        default: false
     steps:
       # setup
       - amb-linux-install
@@ -126,6 +129,14 @@ commands:
       - run: |
           [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push
       - when:
+          condition:
+            not: << parameters.release >>
+          steps:
+            - run: 
+                name: "Push dev images"
+                command: |
+                  [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push-dev
+      - when:
           condition: << parameters.release >>
           steps:
             - run:
@@ -133,6 +144,31 @@ commands:
                 command: |
                   docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
                   DEV_KUBECONFIG="-skip-for-release-" make release/bits
+      - when:
+          condition: << parameters.push_nightly >>
+          steps:
+            - run:
+                name: "Push nightly images"
+                command: |
+                  make push-nightly
+
+      # teardown
+      - dirty-check
+      - amb-save-workspace
+
+  "job-push-ci":
+    steps:
+      # setup
+      - amb-linux-install
+      - amb-checkout
+      - amb-skip-if-no-code-changes
+      - amb-config-registry
+
+      # main
+      - run: make images
+      - run: |
+          [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push
+      - run: make push-ci
 
       # teardown
       - dirty-check
