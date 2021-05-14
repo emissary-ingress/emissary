@@ -192,7 +192,7 @@ workflows:
       - "oss-gotest":
           name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           matrix:
-            alias: "oss-dev-gotest"
+            alias: "oss-dev-gotest-matrix"
             parameters:
               fast-reconfigure:
                 - true
@@ -207,7 +207,7 @@ workflows:
           requires: ["oss-dev-images"]
           name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           matrix:
-            alias: "oss-dev-test"
+            alias: "oss-dev-test-matrix"
             parameters:
               test:
                 - "pytest"
