@@ -18,7 +18,7 @@ jobs:
         type: boolean
         default: false
     executor: oss-linux
-    resource_class: xlarge
+    resource_class: large
     steps:
       - job-images:
           release: << parameters.release >>
@@ -39,7 +39,7 @@ jobs:
 
   "oss-test":
     executor: oss-linux
-    resource_class: large
+    resource_class: xlarge
     parameters:
       "test":
         type: enum
@@ -61,10 +61,12 @@ jobs:
           test: << parameters.test >>
           fast-reconfigure: << parameters.fast-reconfigure >>
           legacy-mode: << parameters.legacy-mode >>
+
   "oss-chart":
     executor: oss-linux
     steps:
       - job-chart
+
   "oss-chart-publish":
     executor: oss-linux
     steps:
