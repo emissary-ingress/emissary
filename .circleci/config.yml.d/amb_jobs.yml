@@ -72,6 +72,13 @@ commands:
       - run: make test-chart
       - run: charts/ambassador/ci/push_chart.sh
 
+  "job-manifests-publish":
+    steps:
+      - amb-linux-install
+      - amb-checkout
+      - amb-config-registry
+      - run:  manifests/push_manifests.sh
+
   "job-emissary-chart-publish":
     steps:
       - amb-linux-install
