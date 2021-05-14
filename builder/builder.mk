@@ -408,14 +408,14 @@ push-ci: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 			echo "pushing $$image as $$tag..." ;\
 			docker tag $$(cat docker/$$image.docker) $$tag && \
 			docker push $$tag ;\
-			$(MAKE) \
-				CHART_VERSION_SUFFIX=-$$chartsuffix \
-				IMAGE_TAG=$${suffix} \
-				IMAGE_REPO="$(DEV_REGISTRY)/$$image" \
-				chart-push-ci ; \
-			$(MAKE) update-yaml --always-make; \
-			VERSION_OVERRIDE=$$suffix $(OSS_HOME)/manifests/push_manifests.sh ; \
 		done ;\
+		$(MAKE) \
+			CHART_VERSION_SUFFIX=-$$chartsuffix \
+			IMAGE_TAG=$${suffix} \
+			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
+			chart-push-ci ; \
+		$(MAKE) update-yaml --always-make; \
+		VERSION_OVERRIDE=$$suffix $(OSS_HOME)/manifests/push_manifests.sh ; \
 	}
 .PHONY: push-ci
 
@@ -435,14 +435,14 @@ push-nightly: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.l
 				docker tag $$(cat docker/$$image.docker) $$tag && \
 				docker push $$tag ;\
 			done ;\
-			$(MAKE) \
-				CHART_VERSION_SUFFIX=-nightly.$$today \
-				IMAGE_TAG=$${base_version}-nightly.$${suffix} \
-				IMAGE_REPO="$(DEV_REGISTRY)/$$image" \
-				chart-push-ci ; \
-			$(MAKE) update-yaml --always-make; \
-			VERSION_OVERRIDE=$${base_version}-nightly.$${suffix} $(OSS_HOME)/manifests/push_manifests.sh ; \
 		done ;\
+		$(MAKE) \
+			CHART_VERSION_SUFFIX=-nightly.$$today \
+			IMAGE_TAG=$${base_version}-nightly.$${suffix} \
+			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
+			chart-push-ci ; \
+		$(MAKE) update-yaml --always-make; \
+		VERSION_OVERRIDE=$${base_version}-nightly.$${suffix} $(OSS_HOME)/manifests/push_manifests.sh ; \
 	}
 .PHONY: push-nightly
 
