@@ -31,7 +31,7 @@ if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
     if [ -n "$(git status --porcelain)" ] ; then
         abort "working tree is dirty, aborting"
     fi
-else [[ -n "${BUMP_STABLE}" ]]
+elif [[ "${BUMP_STABLE}" ]] ; then
     # if this isn't an X.Y.Z version, don't let allow bumping stable
     abort "Cannot bump stable unless this is an X.Y.Z tag"
 fi
@@ -57,7 +57,7 @@ for dir in ${CURR_DIR}/*/ ; do
         --body "$f" &&  echo "... yaml/${dir}/${version}/$fname pushed"
     done
     # bump the stable version for this directory
-    if [[ -n "${BUMP_STABLE}" ]] ; then
+    if [[ "${BUMP_STABLE}" ]] ; then
         log "Bumping stable version for yaml/${dir}"
         aws s3api put-object \
             --bucket "$AWS_BUCKET" \
