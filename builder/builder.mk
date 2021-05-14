@@ -408,11 +408,17 @@ push-ci: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 			exit 1 ;\
 		fi ;\
 		suffix=$$(echo $(BUILD_VERSION) | sed -e 's/-dev\.\([0-9][0-9]*\).*$$/-ci.\1/') ;\
+		chartsuffix=$${suffix#*-}
 		for image in $(LCNAME) $(LCNAME)-ea; do \
 			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
 			echo "pushing $$image as $$tag..." ;\
 			docker tag $$(cat docker/$$image.docker) $$tag && \
 			docker push $$tag ;\
+			$(MAKE) \
+				CHART_VERSION_SUFFIX=$$chartsuffix \
+				IMAGE_TAG=$${suffix} \
+				IMAGE_REPO="$(DEV_REGISTRY)/$$image" \
+				chart-push-ci ; \
 		done ;\
 	}
 .PHONY: push-ci
@@ -433,6 +439,11 @@ push-nightly: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.l
 				docker tag $$(cat docker/$$image.docker) $$tag && \
 				docker push $$tag ;\
 			done ;\
+			$(MAKE) \
+				CHART_VERSION_SUFFIX=-nightly.$$today \
+				IMAGE_TAG=$${base_version}-nightly.$${suffix} \
+				IMAGE_REPO="$(DEV_REGISTRY)/$$image" \
+				chart-push-ci ; \
 		done ;\
 	}
 .PHONY: push-nightly
