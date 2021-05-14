@@ -294,6 +294,8 @@ func (m *HttpConnectionManager) Validate() error {
 
 	// no validation rules for MergeSlashes
 
+	// no validation rules for PathWithEscapedSlashesAction
+
 	if v, ok := interface{}(m.GetRequestIdExtension()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return HttpConnectionManagerValidationError{

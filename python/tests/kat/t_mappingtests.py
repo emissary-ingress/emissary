@@ -302,7 +302,7 @@ kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/status/
 rewrite: /status/
-service: httpbin
+service: httpbin.default
 """)
 
     def queries(self):
@@ -337,7 +337,7 @@ kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/status/
 rewrite: /status/
-service: httpbin
+service: httpbin.default
 """)
 
     def queries(self):
@@ -347,6 +347,75 @@ service: httpbin
         yield Query(self.url("/" + self.name + "/status/200"))
         yield Query(self.url("/" + self.name + "//status/200"))
         yield Query(self.url(self.name + "//status/200"))
+
+# This has to be an `AmbassadorTest` because we're going to set up a Module that
+# needs to apply to just this test. If this were a MappingTest, then the Module
+# would apply to all other MappingTest's and we don't want that.
+class RejectRequestsWithEscapedSlashesDisabled(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/status/
+rewrite: /status/
+service: httpbin
+""")
+
+    def queries(self):
+        # Sanity test that escaped slashes are not rejected by default. The upstream
+        # httpbin server doesn't know what to do with this request, though, so expect
+        # a 404. In another test, we'll expect HTTP 400 with reject_requests_with_escaped_slashes
+        yield Query(self.url(self.name + "/status/%2F200"), expected=404)
+
+    def check(self):
+        # We should have observed this 404 upstream from httpbin. The presence of this header verifies that.
+        print ("headers=%s", repr(self.results[0].headers))
+        assert 'X-Envoy-Upstream-Service-Time' in self.results[0].headers
+
+
+# This has to be an `AmbassadorTest` because we're going to set up a Module that
+# needs to apply to just this test. If this were a MappingTest, then the Module
+# would apply to all other MappingTest's and we don't want that.
+class RejectRequestsWithEscapedSlashesEnabled(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v2
+kind:  Module
+name:  ambassador
+config:
+  reject_requests_with_escaped_slashes: true
+---
+apiVersion: ambassador/v2
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/status/
+rewrite: /status/
+service: httpbin
+""")
+
+    def queries(self):
+        # Expect that requests with escaped slashes are rejected by Envoy. We know this is rejected
+        # by envoy because in a previous test, without the reject_requests_with_escaped_slashes,
+        # this same request got status 404.
+        yield Query(self.url(self.name + "/status/%2F200"), expected=400)
+
+    def check(self):
+        # We should have not have observed this 400 upstream from httpbin. The absence of this header
+        # suggests that (though does not prove, in theory).
+        assert 'X-Envoy-Upstream-Service-Time' not in self.results[0].headers
 
 
 class InvalidPortMapping(MappingTest):
@@ -397,7 +466,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: websocket-echo-server
+service: websocket-echo-server.default
 use_websocket: true
 """)
 
@@ -712,7 +781,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: httpbin
+service: httpbin.default
 add_response_headers:
     koo:
         append: False
@@ -783,7 +852,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: httpbin
+service: httpbin.default
 remove_request_headers:
 - zoo
 - aoo

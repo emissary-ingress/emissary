@@ -70,13 +70,24 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Change: `prune_unreachable_routes` now defaults to true, which should reduce Envoy memory requirements for installations with many `Host`s
 - Bugfix: Fixed a regression in detecting the Ambassador Kubernetes service that could cause the wrong IP or hostname to be used in Ingress statuses
 
+## [1.13.4] May 11, 2021
+[1.13.4]: https://github.com/datawire/ambassador/compare/v1.13.3...v1.13.4
+
+### Emissary Ingress and Ambassador Edge Stack
+
+- Bugfix: Incorporate the Envoy 1.15.5 security update by adding the `reject_requests_with_escaped_slashes` option to the Ambassador module.
+
 ## [1.13.3] May 03, 2021
 [1.13.3]: https://github.com/datawire/ambassador/compare/v1.13.2...v1.13.3
 
-- Bugfix: Fixed a regression that caused Ambassdor to crash when loading the Edge Policy Console when any RateLimit resources exist ([#3348])
+### Emissary Ingress and Ambassador Edge Stack
+
+- Bugfix: Fixed a regression that caused Ambassador to crash when loading the Edge Policy Console when any RateLimit resources exist ([#3348])
 
 ## [1.13.2] April 29, 2021
 [1.13.2]: https://github.com/datawire/ambassador/compare/v1.13.1...v1.13.2
+
+### Emissary Ingress and Ambassador Edge Stack
 
 - Bugfix: Fixed a regression that caused endpoint routing to not work when defining mappings in service annotations ([#3369])
 
@@ -85,7 +96,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ## [1.13.1] April 22, 2021
 [1.13.1]: https://github.com/datawire/ambassador/compare/v1.13.0...v1.13.1
 
- - Bugfix: Potentially increased CPU Usage for deployments with large numbers of Hosts ([#3358])
+### Emissary Ingress and Ambassador Edge Stack
+
+- Bugfix: Potentially increased CPU Usage for deployments with large numbers of Hosts ([#3358])
 
 [#3358]: https://github.com/datawire/ambassador/issues/3358
 

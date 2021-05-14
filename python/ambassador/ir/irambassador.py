@@ -56,6 +56,7 @@ class IRAmbassador (IRResource):
         'load_balancer',
         'max_request_headers_kb',
         'merge_slashes',
+        'reject_requests_with_escaped_slashes',
         'preserve_external_request_id'
         'proper_case',
         'prune_unreachable_routes',

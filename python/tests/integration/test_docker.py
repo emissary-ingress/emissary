@@ -4,13 +4,13 @@ import sys
 import pexpect
 import pytest
 import requests
+import subprocess
 import time
 
 DOCKER_IMAGE = os.environ.get("AMBASSADOR_DOCKER_IMAGE", "")
-DOCKER_NETWORK = os.environ.get("DOCKER_NETWORK", None)
 
 child = None           # see docker_start()
-ambassador_host = None # see docker_start() and DOCKER_NETWORK
+ambassador_host = None # see docker_start()
 
 def docker_start(logfile) -> bool:
     # Use a global here so that the child process doesn't get killed
@@ -18,13 +18,8 @@ def docker_start(logfile) -> bool:
 
     global ambassador_host
 
-    if DOCKER_NETWORK is not None:
-        cmd = f'docker run --rm --name test_docker_ambassador --network {DOCKER_NETWORK} --network-alias docker-ambassador -u8888:0 {DOCKER_IMAGE} --demo'
-        ambassador_host = 'docker-ambassador:8080'
-    else:
-        cmd = f'docker run --rm --name test_docker_ambassador -p 9987:8080 -u8888:0 {DOCKER_IMAGE} --demo'
-        ambassador_host = 'localhost:9987'
-    logfile.write(f"Running: {cmd}\n")
+    cmd = f'docker run --rm --name test_docker_ambassador -p 9987:8080 -u8888:0 {DOCKER_IMAGE} --demo'
+    ambassador_host = 'localhost:9987'
 
     child = pexpect.spawn(cmd, encoding='utf-8')
     child.logfile = logfile
@@ -67,9 +62,10 @@ def check_http(logfile) -> bool:
 
         return False
 
-def clicheck() -> bool:
-    child = pexpect.spawn("ambassador --help")
+def check_cli() -> bool:
+    child = pexpect.spawn(f"docker run --rm --entrypoint ambassador {DOCKER_IMAGE} --help")
 
+    #v_encoded = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
     i = child.expect([ pexpect.EOF, pexpect.TIMEOUT, "Usage: ambassador" ])
 
     if i == 0:
@@ -88,8 +84,8 @@ def clicheck() -> bool:
         return False
 
 
-def grabsnapshotscheck() -> bool:
-    child = pexpect.spawn("grab-snapshots --help")
+def check_grab_snapshots() -> bool:
+    child = pexpect.spawn(f"docker run --rm --entrypoint grab-snapshots {DOCKER_IMAGE} --help")
 
     i = child.expect([ pexpect.EOF, pexpect.TIMEOUT, "Usage: grab-snapshots" ])
 
@@ -109,13 +105,17 @@ def grabsnapshotscheck() -> bool:
         return False
 
 
-def test_docker():
+def test_cli():
+    assert check_cli(), "CLI check failed"
+
+def test_grab_snapshots():
+    assert check_grab_snapshots(), "grab-snapshots check failed"
+
+def test_demo():
     test_status = False
 
-    # We're running in the build container here, so the Ambassador CLI should work.
-    assert clicheck(), "CLI check failed"
-    assert grabsnapshotscheck(), "grab-snapshots check failed"
-
+    # And this tests that the Ambasasdor can run with the `--demo` argument
+    # and run normally with a sample /qotm/ Mapping.
     with open('/tmp/test_docker_output', 'w') as logfile:
         if not DOCKER_IMAGE:
             logfile.write('No $AMBASSADOR_DOCKER_IMAGE??\n')

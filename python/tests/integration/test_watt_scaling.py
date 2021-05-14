@@ -3,7 +3,7 @@ import sys
 
 import pytest
 
-from tests.utils import install_ambassador, get_code_with_retry, telepresence_connect
+from tests.utils import install_ambassador, get_code_with_retry
 from tests.kubeutils import apply_kube_artifacts, delete_kube_artifacts
 from tests.runutils import run_with_retry, run_and_assert
 from tests.manifests import qotm_manifests
@@ -66,10 +66,6 @@ spec:
 
     def test_rapid_additions_and_deletions(self):
         namespace = 'watt-rapid'
-
-        # Make sure telepresence is connected. Do this early on in the test to give the TP daemon plenty of
-        # time to do its thing while we wait for other k8 resources to reconcile.
-        telepresence_connect()
 
         # Install Ambassador
         install_ambassador(namespace=namespace)

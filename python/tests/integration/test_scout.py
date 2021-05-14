@@ -8,15 +8,13 @@ import pexpect
 import pytest
 import requests
 
-from runutils import run_and_assert
-from utils import telepresence_quit
+from tests.runutils import run_and_assert
 
 DOCKER_IMAGE = os.environ.get("AMBASSADOR_DOCKER_IMAGE", None)
-DOCKER_NETWORK = os.environ.get("DOCKER_NETWORK", None)
 
 child = None                    # see docker_start()
 child_name = "diagd-unset"      # see docker_start() and docker_kill()
-diagd_host = None               # see docker_start() around DOCKER_NETWORK
+diagd_host = None               # see docker_start()
 
 SEQUENCES = [
     (
@@ -54,14 +52,8 @@ def docker_start(logfile) -> bool:
 
     global diagd_host
 
-    # When running in the builder shell with a DOCKER_NETWORK, run a container in
-    # that network.
-    if DOCKER_NETWORK is not None:
-        cmd = f'docker run --name {child_name} --rm --network {DOCKER_NETWORK} --network-alias diagd {DOCKER_IMAGE} --dev-magic'
-        diagd_host = 'diagd:9999'
-    else:
-        cmd = f'docker run --name {child_name} --rm -p 9999:9999 {DOCKER_IMAGE} --dev-magic'
-        diagd_host = 'localhost:9999'
+    cmd = f'docker run --name {child_name} --rm -p 9999:9999 {DOCKER_IMAGE} --dev-magic'
+    diagd_host = 'localhost:9999'
 
     child = pexpect.spawn(cmd, encoding='utf-8')
     child.logfile = logfile
@@ -262,14 +254,6 @@ def test_scout():
         if not DOCKER_IMAGE:
             logfile.write('No $AMBASSADOR_DOCKER_IMAGE??\n')
         else:
-            if DOCKER_NETWORK is not None:
-                # Telepresence interferes with the docker network we set up, so stop it before running this test.
-                # Any test that depends on telepresence should correctly run `telepresence connect` anyway.
-                run_and_assert(['telepresence', 'quit'])
-
-            # Sleep to make sure telepresence exited gracefully etc...
-            time.sleep(10)
-
             if docker_start(logfile):
                 if wait_for_diagd(logfile) and check_chimes(logfile):
                     test_status = True
