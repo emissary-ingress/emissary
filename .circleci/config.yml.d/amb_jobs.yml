@@ -132,7 +132,7 @@ commands:
           condition:
             not: << parameters.release >>
           steps:
-            - run: 
+            - run:
                 name: "Push dev images"
                 command: |
                   [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push-dev
@@ -169,10 +169,6 @@ commands:
       - run: |
           [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push
       - run: make push-ci
-
-      # teardown
-      - dirty-check
-      - amb-save-workspace
 
   "job-gotest":
     parameters:
