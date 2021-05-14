@@ -114,6 +114,9 @@ commands:
       "save_images_to_workspace":
         type: boolean
         default: false
+      "push_nightly":
+        type: boolean
+        default: false
     steps:
       # setup
       - amb-linux-install
@@ -133,6 +136,13 @@ commands:
                 command: |
                   docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
                   DEV_KUBECONFIG="-skip-for-release-" make release/bits
+      - when:
+          condition: << parameters.push_nightly >>
+          steps:
+            - run:
+                name: "Push nightly images"
+                command: |
+                  make push-nightly
 
       # teardown
       - dirty-check
