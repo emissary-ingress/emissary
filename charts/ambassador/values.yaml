@@ -1,4 +1,3 @@
----
 # Default values for ambassador.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
@@ -11,16 +10,13 @@ nameOverride: ""
 fullnameOverride: ""
 # Defaults to .Release.Namespace
 namespaceOverride: ""
-
 replicaCount: 3
 daemonSet: false
-
 # This will enable the test-ready Pod (https://github.com/datawire/ambassador-chart/blob/master/templates/tests/test-ready.yaml).
 # It will spawn a busybox container to call Ambassador's check_ready endpoint to validate it is working correctly.
 test:
   enabled: true
   image: busybox
-
 # Enable autoscaling using HorizontalPodAutoscaler
 # daemonSet: true, autoscaling will be disabled
 autoscaling:
@@ -40,26 +36,24 @@ autoscaling:
       target:
         type: Utilization
         averageUtilization: 60
-
 podDisruptionBudget: {}
-
 # namespace:
-  # name: default
+# name: default
 
 # Additional container environment variable
 # Uncomment or add additional environment variables for the container here.
 env: {}
-  # Exposing statistics via StatsD
-  # STATSD_ENABLED: true
-  # STATSD_HOST: statsd-sink
-  # sets the minimum number of seconds between Envoy restarts
-  # AMBASSADOR_RESTART_TIME: 15
-  # sets the number of seconds that the Envoy will wait for open connections to drain on a restart
-  # AMBASSADOR_DRAIN_TIME: 5
-  # sets the number of seconds that Ambassador will wait for the old Envoy to clean up and exit on a restart
-  # AMBASSADOR_SHUTDOWN_TIME: 10
-  # labels Ambassador with an ID to allow for configuring multiple Ambassadors in a cluster
-  # AMBASSADOR_ID: default
+# Exposing statistics via StatsD
+# STATSD_ENABLED: true
+# STATSD_HOST: statsd-sink
+# sets the minimum number of seconds between Envoy restarts
+# AMBASSADOR_RESTART_TIME: 15
+# sets the number of seconds that the Envoy will wait for open connections to drain on a restart
+# AMBASSADOR_DRAIN_TIME: 5
+# sets the number of seconds that Ambassador will wait for the old Envoy to clean up and exit on a restart
+# AMBASSADOR_SHUTDOWN_TIME: 10
+# labels Ambassador with an ID to allow for configuring multiple Ambassadors in a cluster
+# AMBASSADOR_ID: default
 
 # Additional container environment variable in raw YAML format
 # Uncomment or add additional environment variables for the container here.
@@ -76,7 +70,6 @@ envRaw: {}
 #       fieldPath: status.podIP
 
 imagePullSecrets: []
-
 security:
   # Security Context for all containers in the pod.
   # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#podsecuritycontext-v1-core
@@ -94,70 +87,61 @@ security:
   # the "master" Release and then leave it unset in all others. Set the `rbac.podSecurityPolicies`
   # in all non-"master" Releases.
   podSecurityPolicy: {}
-    # # Add AppArmor and Seccomp annotations
-    # # https://kubernetes.io/docs/concepts/policy/pod-security-policy/#apparmor
-    # annotations:
-    # spec:
-    #   seLinux:
-    #     rule: RunAsAny
-    #   supplementalGroups:
-    #     rule: 'MustRunAs'
-    #     ranges:
-    #       # Forbid adding the root group.
-    #       - min: 1
-    #         max: 65535
-    #   fsGroup:
-    #     rule: 'MustRunAs'
-    #     ranges:
-    #       # Forbid adding the root group.
-    #       - min: 1
-    #         max: 65535
-    #   privileged: false
-    #   allowPrivilegeEscalation: false
-    #   runAsUser:
-    #     rule: MustRunAsNonRoot
-
+  # # Add AppArmor and Seccomp annotations
+  # # https://kubernetes.io/docs/concepts/policy/pod-security-policy/#apparmor
+  # annotations:
+  # spec:
+  #   seLinux:
+  #     rule: RunAsAny
+  #   supplementalGroups:
+  #     rule: 'MustRunAs'
+  #     ranges:
+  #       # Forbid adding the root group.
+  #       - min: 1
+  #         max: 65535
+  #   fsGroup:
+  #     rule: 'MustRunAs'
+  #     ranges:
+  #       # Forbid adding the root group.
+  #       - min: 1
+  #         max: 65535
+  #   privileged: false
+  #   allowPrivilegeEscalation: false
+  #   runAsUser:
+  #     rule: MustRunAsNonRoot
 image:
   tag: 1.13.6
   pullPolicy: IfNotPresent
-
 dnsPolicy: "ClusterFirst"
 hostNetwork: false
-
 service:
   type: LoadBalancer
-
   # Note that target http ports need to match your ambassador configurations service_port
   # https://www.getambassador.io/reference/modules/#the-ambassador-module
   ports:
-    - name: http
-      port: 80
-      targetPort: 8080
-      # protocol: TCP
-      # nodePort: 30080
-      # hostPort: 80
-    - name: https
-      port: 443
-      targetPort: 8443
-      # protocol: TCP
-      # nodePort: 30443
-      # hostPort: 443
-    # TCPMapping_Port
-      # port: 2222
-      # targetPort: 2222
-      # protocol: TCP
-      # nodePort: 30222
+  - name: http
+    port: 80
+    targetPort: 8080
+    # protocol: TCP
+    # nodePort: 30080
+    # hostPort: 80
+  - name: https
+    port: 443
+    targetPort: 8443
+    # protocol: TCP
+    # nodePort: 30443
+    # hostPort: 443
+  # TCPMapping_Port
+  # port: 2222
+  # targetPort: 2222
+  # protocol: TCP
+  # nodePort: 30222
 
   externalTrafficPolicy:
-
   sessionAffinity:
-
   sessionAffinityConfig:
-
   externalIPs: []
-
   annotations: {}
-
   #############################################################################
   ## Ambassador should be configured using CRD definition. If you want
   ## to use annotations, the following is an example of annotating the
@@ -209,7 +193,6 @@ service:
 
   # Manually set the name of the generated Service
   nameOverride:
-
 adminService:
   create: true
   type: ClusterIP
@@ -217,9 +200,7 @@ adminService:
   snapshotPort: 8005
   # NodePort used if type is NodePort
   # nodePort: 38877
-  annotations:
-    {}
-
+  annotations: {}
 rbac:
   # Specifies whether RBAC resources should be created
   create: true
@@ -230,58 +211,39 @@ rbac:
   # Set nameOverride when installing Ambassador with cluster-wide scope in
   # different namespaces with the same release name to avoid conflicts.
   nameOverride:
-
 scope:
   # tells Ambassador to only use resources in the namespace or namespace set by namespace.name
   singleNamespace: false
-
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name:
-
 deploymentStrategy:
   type: RollingUpdate
-
 restartPolicy:
-
 terminationGracePeriodSeconds:
-
 initContainers: []
-
 sidecarContainers: []
-
 livenessProbe:
   initialDelaySeconds: 30
   periodSeconds: 3
   failureThreshold: 3
-
 readinessProbe:
   initialDelaySeconds: 30
   periodSeconds: 3
   failureThreshold: 3
-
-
 volumes: []
-
 volumeMounts: []
+podLabels: {}
+podAnnotations: {}
+# prometheus.io/scrape: "true"
+# prometheus.io/port: "9102"
 
-podLabels:
-  {}
-
-podAnnotations:
-  {}
-  # prometheus.io/scrape: "true"
-  # prometheus.io/port: "9102"
-
-deploymentLabels:
-  {}
-
-deploymentAnnotations:
-  {}
-  # configmap.reloader.stakater.com/auto: "true"
+deploymentLabels: {}
+deploymentAnnotations: {}
+# configmap.reloader.stakater.com/auto: "true"
 
 resources:
   # Recommended resource requests and limits for Ambassador
@@ -291,24 +253,16 @@ resources:
   requests:
     cpu: 200m
     memory: 300Mi
-
 priorityClassName: ""
-
 nodeSelector: {}
-
 tolerations: []
-
 affinity: {}
-
 topologySpreadConstraints: []
-
 ambassadorConfig: ""
-
 crds:
   enabled: true
   create: true
   keep: true
-
 # Prometheus Operator ServiceMonitor configuration
 # See documentation: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#servicemonitor
 metrics:
@@ -317,7 +271,6 @@ metrics:
     # interval: 30s
     # scrapeTimeout: 30s
     # selector: {}
-
 ################################################################################
 ## Ambassador Edge Stack Configuration                                        ##
 ################################################################################
@@ -325,9 +278,7 @@ metrics:
 # The Ambassador Edge Stack is free for limited use without a license key.
 # Go to https://{ambassador-host}/edge_stack/admin/#dashboard to register
 # for a community license key.
-
 enableAES: true
-
 # Set createSecret: false is installing multiple releases of The Ambassador
 # Edge Stack in the same namespace.
 licenseKey:
@@ -335,15 +286,12 @@ licenseKey:
   createSecret: true
   secretName:
   # Annotations to attach to the license-key-secret.
-  annotations:
-    {}
-
+  annotations: {}
 # The DevPortal is exposed at /docs/ endpoint in the AES container.
 # Setting this to true will automatically create routes for the DevPortal.
 createDevPortalMappings: true
 devportal:
   docsPrefix: "/documentation/"
-
 # The Ambassador Edge Stack uses a redis instance for managing authentication,
 # rate limiting, and sharing minor configuration details between pods for
 # centralized management. These values configure the redis instance that ships
@@ -351,7 +299,6 @@ devportal:
 #
 # URL of your redis instance. Defaults to redis instance created below.
 redisURL:
-
 # Ambassador ships with a basic redis instance. Configure the deployment with the options below.
 redis:
   create: true
@@ -361,10 +308,8 @@ redis:
     pullPolicy: IfNotPresent
   # Annotations for Ambassador Pro's redis instance.
   annotations:
-    deployment:
-      {}
-    service:
-      {}
+    deployment: {}
+    service: {}
   resources: {}
   # If you want to specify resources, uncomment the following
   # lines and remove the curly braces after 'resources:'.
@@ -378,8 +323,6 @@ redis:
   nodeSelector: {}
   affinity: {}
   tolerations: {}
-
-
 # Configures the AuthService that ships with the Ambassador Edge Stack.
 # Setting authService.create: false will not install the AES AuthService and
 # allow you to define your own.
@@ -392,31 +335,27 @@ authService:
   create: true
   # Set additional configuration options. See https://www.getambassador.io/reference/services/auth-service for more information
   optional_configurations: {}
-    # include_body:
-    #   max_bytes: 4096
-    #   allow_partial: true
-    # status_on_error:
-    #   code: 403
-    # failure_mode_allow: false
-    # retry_policy:
-    #   retry_on: "5xx"
-    #   num_retries: 2
-    # add_linkerd_headers: true
-    # timeout_ms: 30000
-
-
+  # include_body:
+  #   max_bytes: 4096
+  #   allow_partial: true
+  # status_on_error:
+  #   code: 403
+  # failure_mode_allow: false
+  # retry_policy:
+  #   retry_on: "5xx"
+  #   num_retries: 2
+  # add_linkerd_headers: true
+  # timeout_ms: 30000
 # Configures the RateLimitService in the Ambassador Edge Stack.
 # Keep this enabled to configure RateLimits in AES.
 rateLimit:
   create: true
   deploymentExtraName: ratelimit
-
 # Projects are a beta feature of Ambassador that allow developers to stage and
 # deploy code with nothing more than a Github repository.
 # See: https://www.getambassador.io/docs/edge-stack/latest/topics/using/projects/
 registry:
   create: false
-
 # Resolvers are used to configure the discovery service strategy for Ambasador Edge Stack.
 # See: https://www.getambassador.io/docs/edge-stack/latest/topics/running/resolvers/
 resolvers:
@@ -430,7 +369,6 @@ resolvers:
     # Configuration for a Consul Resolver
     #   address: consul-server.default.svc.cluster.local:8500
     #   datacenter: dc1
-
 # Create and manage an Ambassador Module from the Helm Chart. See:
 # https://www.getambassador.io/docs/edge-stack/latest/topics/running/ambassador
 # for more info on the available options.
@@ -438,7 +376,6 @@ resolvers:
 # Note: The Module can only be named ambassador. There can only be one Module
 # installed per-namespace.
 module: {}
-
 ################################################################################
 ## DEPRECATED configuration objects                                           ##
 ################################################################################
@@ -472,11 +409,9 @@ prometheusExporter:
   #     timer_type: 'histogram'
   #     labels:
   #       cluster_name: "$1"
-
 # DEPRECATED: Use security.podSecurityContext
 # securityContext:
 #   runAsUser: 8888
-
 
 # Configures Service Preview that ships with the Ambassador Edge Stack and edgectl.
 # Setting servicePreview.enabled: true will install the Traffic Agent Service Account, Traffic Manager with RBAC, and ambassador-injector
@@ -496,17 +431,14 @@ servicePreview:
     singleNamespace: true
     serviceAccountName: "traffic-agent"
     port: 9900
-
     # Configure the ambassador-injector webhook for Service Preview Traffic Agent automatic sidecar injection.
     injector:
       enabled: true
-
       # If no injector.crtPEM and injector.keyPEM are provided, a self-signed certificate will be issued
       # for the Common Name (CN) of `<ambassador-injector>.<namespace>.svc`, which is the cluster-internal DNS name
       # for the service.
       crtPEM: ""
       keyPEM: ""
-
 # Configure the ambassador agent
 agent:
   enabled: true
@@ -519,9 +451,7 @@ agent:
     # Leave blank to use image.repository and image.tag
     tag:
     repository:
-
 deploymentTool: ""
-
 # configure docker to pull from private registry
 docker: {}
 createNamespace: false
