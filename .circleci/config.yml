@@ -129,6 +129,9 @@ commands:
       "save_images_to_workspace":
         type: boolean
         default: false
+      "push_nightly":
+        type: boolean
+        default: false
     steps:
     # setup
     - amb-linux-install
@@ -147,6 +150,13 @@ commands:
             command: |
               docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
               DEV_KUBECONFIG="-skip-for-release-" make release/bits
+    - when:
+        condition: << parameters.push_nightly >>
+        steps:
+        - run:
+            name: "Push nightly images"
+            command: |
+              make push-nightly
     # teardown
     - dirty-check
     - amb-save-workspace
@@ -747,11 +757,15 @@ jobs:
       release:
         type: boolean
         default: false
+      push_nightly:
+        type: boolean
+        default: false
     executor: oss-linux
     resource_class: large
     steps:
     - job-images:
         release: << parameters.release >>
+        push_nightly: << parameters.push_nightly >>
   oss-gotest:
     executor: oss-linux
     parameters:
@@ -1183,9 +1197,17 @@ workflows:
           branches:
             only:
             - master
+    - schedule:
+        cron: "0 5 * * *"
+        filters:
+          branches:
+            only:
+            - shared/nightly-test
+            # - shared/emissary
     jobs:
     - oss-images:
         name: "oss-nightly-images"
+        push_nightly: true
     - oss-gotest:
         name: "oss-nightly-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
