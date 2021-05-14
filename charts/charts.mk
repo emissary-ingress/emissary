@@ -20,7 +20,6 @@ chart-push-ci:
 	@[ -n "${CHART_VERSION_SUFFIX}" ] || (echo "CHART_VERSION_SUFFIX must be set for non-GA pushes" && exit 1)
 	@[ -n "${IMAGE_TAG}" ] || (echo "IMAGE_TAG must be set" && exit 1)
 	@[ -n "${IMAGE_REPO}" ] || (echo "IMAGE_REPO must be set" && exit 1)
-	@mkdir -p $(TMPDIR)
 	@for chart in $(AMBASSADOR_CHART) $(EMISSARY_CHART) ; do \
 		sed -i.bak -E "s/version: ([0-9]+\.[0-9]+\.[0-9]+).*/version: \1${CHART_VERSION_SUFFIX}/g" $$chart/Chart.yaml && rm $$chart/Chart.yaml.bak ; \
 		$(call _set_tag,$$chart,${IMAGE_TAG}) ; \
