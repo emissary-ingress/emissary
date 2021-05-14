@@ -538,6 +538,9 @@ class V3Listener(dict):
             if parse_bool(self.config.ir.ambassador_module.get("merge_slashes", "false")):
                 http_config["merge_slashes"] = True
 
+            if parse_bool(self.config.ir.ambassador_module.get("reject_requests_with_escaped_slashes", "false")):
+                http_config["path_with_escaped_slashes_action"] = "REJECT_REQUEST"
+
             filter_chain["filters"] = [
                 {
                     "name": "envoy.filters.network.http_connection_manager",

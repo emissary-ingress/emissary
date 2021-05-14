@@ -73,7 +73,7 @@
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
         "load_assignment": {
-          "cluster_name": "cluster_websocket_echo_server_default",
+          "cluster_name": "cluster_websocket_echo_server_default_default",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -81,7 +81,7 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "websocket-echo-server",
+                        "address": "websocket-echo-server.default",
                         "port_value": 80,
                         "protocol": "TCP"
                       }
@@ -92,7 +92,7 @@
             }
           ]
         },
-        "name": "cluster_websocket_echo_server_default",
+        "name": "cluster_websocket_echo_server_default_default",
         "type": "STRICT_DNS"
       }
     ],
@@ -252,11 +252,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_websocket_echo_server_default"
+                                "runtime_key": "routing.traffic_shift.cluster_websocket_echo_server_default_default"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_websocket_echo_server_default",
+                              "cluster": "cluster_websocket_echo_server_default_default",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s",
@@ -276,11 +276,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_websocket_echo_server_default"
+                                "runtime_key": "routing.traffic_shift.cluster_websocket_echo_server_default_default"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_websocket_echo_server_default",
+                              "cluster": "cluster_websocket_echo_server_default_default",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s",

@@ -37,6 +37,14 @@ commands:
       # main
       - run: make test-chart
 
+  "job-chart-changelog":
+    steps:
+      - amb-linux-install
+      - amb-checkout
+      - skip-if-no-new-chart
+      - run: |
+          ./charts/ambassador/ci/check_updated_changelog.sh
+
   "job-emissary-chart":
     steps:
       - amb-linux-install
@@ -54,26 +62,30 @@ commands:
     steps:
       - amb-linux-install
       - amb-checkout
+      - amb-skip-if-bad-chart-version
+      - run: |
+          ./charts/ambassador/ci/check_updated_changelog.sh
       - install-k3d
       # We might need to be logged in the registry to pull the Envoy
       # image or the builder-base image.
       - amb-config-registry
       # main
       - run: make test-chart
-      - amb-skip-if-bad-chart-version
       - run: charts/ambassador/ci/push_chart.sh
 
   "job-emissary-chart-publish":
     steps:
       - amb-linux-install
       - amb-checkout
+      - amb-skip-if-bad-chart-version
+      - run: |
+          ./charts/ambassador/ci/check_updated_changelog.sh
       - install-k3d
       # We might need to be logged in the registry to pull the Envoy
       # image or the builder-base image.
       - amb-config-registry
       # main
       - run: make test-chart
-      - amb-skip-if-bad-chart-version
       - run: charts/emissary-ingress/ci/push_chart.sh
 
   "job-generate":
@@ -230,14 +242,16 @@ commands:
       - amb-linux-install
       - amb-attach-workspace
       - amb-skip-if-no-code-changes
+      # e2etests can be skipped if the only chances are to
+      # the Ambassador repo and the pytest gold directory
       - when:
           condition:
             equal: ["e2etest", << parameters.test >>]
           steps:
           - skip-if-only-changes:
               to: "(ambassador/|tests/pytest/gold/)"
-          - run: |
-              echo >>"$BASH_ENV" 'export USE_LOCAL_K3S_CLUSTER=1'
+      # pytest-envoy can be skipped unless the envoy.mk file changes, or the ambex control
+      # plane changes, or the gold files change.
       - when:
           condition:
             or:
@@ -250,13 +264,15 @@ commands:
                 if [[ -z "$KUBECEPTION_TOKEN" ]]; then
                   circleci step halt
                 fi
-            # The hard-requirement for the cluster is "25GB of RAM",
-            # which "large" has (35GB).  There are spurts where it
-            # pegs the CPU, but for the most part it sits around 50%
-            # CPU.  And it seems that even if we peg the CPU the whole
-            # time it still runs OK if there's plenty of RAM.
-            - run: |
-                echo >>"$BASH_ENV" 'export KUBECEPTION_PROFILE=large'
+      - run:
+          name: "Set USE_LOCAL_K3S_CLUSTER=1"
+          command:
+            echo >>"$BASH_ENV" 'export USE_LOCAL_K3S_CLUSTER=1'
+      - run: 
+          name: "Configure system file and inotify maximums"
+          command: |
+            sudo sysctl -w fs.file-max=1600000
+            sudo sysctl -w fs.inotify.max_user_instances=4096
       - install-helm
       - install-k3d
       - amb-config-cluster-and-registry

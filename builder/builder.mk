@@ -104,6 +104,8 @@ docker.tag.local = $(BUILDER_NAME).local/$(*F)
 docker.tag.remote = $(if $(DEV_REGISTRY),,$(error $(REGISTRY_ERR)))$(DEV_REGISTRY)/$(*F):$(shell docker image inspect --format='{{slice (index (split .Id ":") 1) 0 12}}' $$(cat $<))
 include $(OSS_HOME)/build-aux/docker.mk
 
+include $(OSS_HOME)/build-aux/teleproxy.mk
+
 MODULES :=
 
 module = $(eval MODULES += $(1))$(eval SOURCE_$(1)=$(abspath $(2)))
@@ -452,7 +454,7 @@ PYTEST_GOLD_DIR ?= $(abspath python/tests/gold)
 
 setup-envoy: extract-bin-envoy
 
-pytest: setup-diagd setup-envoy $(OSS_HOME)/bin/telepresence $(OSS_HOME)/bin/kubestatus
+pytest: setup-diagd setup-envoy $(OSS_HOME)/bin/kubestatus proxy
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
 	@echo "KAT_CLIENT_DOCKER_IMAGE=$$KAT_CLIENT_DOCKER_IMAGE"
@@ -461,6 +463,16 @@ pytest: setup-diagd setup-envoy $(OSS_HOME)/bin/telepresence $(OSS_HOME)/bin/kub
 	. $(OSS_HOME)/venv/bin/activate; \
 		$(OSS_HOME)/builder/builder.sh pytest-local
 .PHONY: pytest
+
+pytest-integration:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) integration tests$(END)\n"
+	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/integration"
+.PHONY: pytest-integration
+
+pytest-kat:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) kat tests$(END)\n"
+	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
+.PHONY: pytest-kat
 
 extract-bin-envoy:
 	@mkdir -p $(OSS_HOME)/bin/
@@ -473,9 +485,6 @@ extract-bin-envoy:
 
 $(OSS_HOME)/bin/kubestatus:
 	@(cd $(OSS_HOME) && mkdir -p bin && go build -o bin/kubestatus ./cmd/busyambassador)
-
-$(OSS_HOME)/bin/telepresence:
-	@curl --fail -L https://app.getambassador.io/download/tel2/linux/amd64/latest/telepresence -o $(OSS_HOME)/bin/telepresence && chmod a+x $(OSS_HOME)/bin/telepresence
 
 pytest-builder: test-ready
 	$(MAKE) pytest-builder-only

@@ -34,6 +34,13 @@ commands:
     - amb-config-registry
     - # main
       run: make test-chart
+  "job-chart-changelog":
+    steps:
+    - amb-linux-install
+    - amb-checkout
+    - skip-if-no-new-chart
+    - run: |
+        ./charts/ambassador/ci/check_updated_changelog.sh
   "job-emissary-chart":
     steps:
     - amb-linux-install
@@ -50,25 +57,29 @@ commands:
     steps:
     - amb-linux-install
     - amb-checkout
+    - amb-skip-if-bad-chart-version
+    - run: |
+        ./charts/ambassador/ci/check_updated_changelog.sh
     - install-k3d
     # We might need to be logged in the registry to pull the Envoy
     # image or the builder-base image.
     - amb-config-registry
     - # main
       run: make test-chart
-    - amb-skip-if-bad-chart-version
     - run: charts/ambassador/ci/push_chart.sh
   "job-emissary-chart-publish":
     steps:
     - amb-linux-install
     - amb-checkout
+    - amb-skip-if-bad-chart-version
+    - run: |
+        ./charts/ambassador/ci/check_updated_changelog.sh
     - install-k3d
     # We might need to be logged in the registry to pull the Envoy
     # image or the builder-base image.
     - amb-config-registry
     - # main
       run: make test-chart
-    - amb-skip-if-bad-chart-version
     - run: charts/emissary-ingress/ci/push_chart.sh
   "job-generate":
     steps:
@@ -212,15 +223,17 @@ commands:
     - amb-linux-install
     - amb-attach-workspace
     - amb-skip-if-no-code-changes
-    - when:
+    - # e2etests can be skipped if the only chances are to
+      # the Ambassador repo and the pytest gold directory
+      when:
         condition:
           equal: ["e2etest", << parameters.test >>]
         steps:
         - skip-if-only-changes:
             to: "(ambassador/|tests/pytest/gold/)"
-        - run: |
-            echo >>"$BASH_ENV" 'export USE_LOCAL_K3S_CLUSTER=1'
-    - when:
+    - # pytest-envoy can be skipped unless the envoy.mk file changes, or the ambex control
+      # plane changes, or the gold files change.
+      when:
         condition:
           or:
           - equal: ["pytest-envoy", << parameters.test >>]
@@ -232,13 +245,14 @@ commands:
             if [[ -z "$KUBECEPTION_TOKEN" ]]; then
               circleci step halt
             fi
-        - # The hard-requirement for the cluster is "25GB of RAM",
-          # which "large" has (35GB).  There are spurts where it
-          # pegs the CPU, but for the most part it sits around 50%
-          # CPU.  And it seems that even if we peg the CPU the whole
-          # time it still runs OK if there's plenty of RAM.
-          run: |
-            echo >>"$BASH_ENV" 'export KUBECEPTION_PROFILE=large'
+    - run:
+        name: "Set USE_LOCAL_K3S_CLUSTER=1"
+        command: echo >>"$BASH_ENV" 'export USE_LOCAL_K3S_CLUSTER=1'
+    - run:
+        name: "Configure system file and inotify maximums"
+        command: |
+          sudo sysctl -w fs.file-max=1600000
+          sudo sysctl -w fs.inotify.max_user_instances=4096
     - install-helm
     - install-k3d
     - amb-config-cluster-and-registry
@@ -673,6 +687,22 @@ commands:
              PAGER= git diff --cached
              exit 1
           fi
+  skip-if-no-new-chart:
+    steps:
+    - run:
+        name: "Diff chart changes"
+        command: |
+          if [[ "<< pipeline.git.base_revision >>" == "" ]]; then
+            echo "There is no base_revision, therefore no changes"
+            exit 0
+          fi
+          COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
+          echo "Commit range: " $COMMIT_RANGE
+          git --no-pager diff $COMMIT_RANGE charts/ambassador/Chart.yaml
+          if ! git --no-pager diff $COMMIT_RANGE charts/ambassador/Chart.yaml | grep -q +version; then
+            echo "Halting this CircleCI job because the version was not changed in Chart.yaml"
+            circleci step halt
+          fi
   skip-if-no-changes:
     parameters:
       to:
@@ -772,9 +802,28 @@ jobs:
         - "test" # everything but pytest-envoy
         - "ingresstest"
         - "pytest"
+        default: "test"
+      fast-reconfigure:
+        type: boolean
+        default: false
+      legacy-mode:
+        type: boolean
+        default: false
+    steps:
+    - job-test:
+        test: << parameters.test >>
+        fast-reconfigure: << parameters.fast-reconfigure >>
+        legacy-mode: << parameters.legacy-mode >>
+  oss-envoy-test:
+    executor: oss-linux
+    resource_class: xlarge
+    parameters:
+      test:
+        type: enum
+        enum:
         - "pytest-envoy"
         - "pytest-envoy-v3"
-        default: "test"
+        default: "pytest-envoy"
       fast-reconfigure:
         type: boolean
         default: false
@@ -791,9 +840,26 @@ jobs:
     steps:
     - job-chart
   oss-chart-publish:
+    environment:
+      PUBLISH_GIT_RELEASE: "1"
     executor: oss-linux
     steps:
     - job-chart-publish
+  oss-chart-changelog:
+    executor: oss-linux
+    steps:
+    - when:
+        condition:
+          and:
+          - equal:
+            - "https://github.com/datawire/ambassador"
+            - << pipeline.project.git_url >>
+          - not:
+              equal:
+              - "master"
+              - << pipeline.git.branch >>
+        steps:
+        - job-chart-changelog
   emissary-chart:
     executor: oss-linux
     steps:
@@ -902,6 +968,8 @@ workflows:
             - false
             # If you enable testing with legacy-mode true as well, you'll also need
             # to add some exclusions -- see the Release workflow for more.
+    - oss-chart-changelog:
+        name: "oss-chart-changelog"
     - oss-test:
         requires:
         - "oss-dev-images"
@@ -913,8 +981,6 @@ workflows:
           parameters:
             test:
             - "pytest"
-            - "pytest-envoy"
-            - "pytest-envoy-v3"
             # Running the ingresstests would require we install `kind` and
             # that the test suite supports HTTP to HTTPS redirects (AES
             # enables cleartext redirection by default, even for fallback
@@ -925,16 +991,39 @@ workflows:
             - true
             - false
             legacy-mode:
+            # We don't run legacy mode tests in the "Dev" workflow but we do
+            # in the Nightly and Release workflows.
             - false
-            # If you enable testing with legacy-mode true as well, you'll also need
-            # to add some exclusions -- see the Release workflow for more.
-    - oss-push-ci:
+          exclude:
+          - test: pytest
+            fast-reconfigure: true
+            legacy-mode: true
+    - oss-envoy-test:
         requires:
-        - "oss-dev-generate"
-        - "oss-dev-lint"
-        - "oss-dev-gotest-matrix"
-        - "oss-dev-test-matrix"
-        name: "oss-dev-push-ci"
+        - "oss-dev-images"
+        name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
+          >>"
+        matrix:
+          alias: "oss-dev-envoy-test"
+          parameters:
+            test:
+            - "pytest-envoy"
+            - "pytest-envoy-v3"
+            fast-reconfigure:
+            - true
+            - false
+            legacy-mode:
+            # We don't run legacy mode tests in the "Dev" workflow but we do
+            # in the Nightly and Release workflows.
+            - false
+          exclude:
+          - test: pytest-envoy
+            fast-reconfigure: true
+            legacy-mode: true
+          - test: pytest-envoy-v3
+            fast-reconfigure: true
+            legacy-mode: true
   'OSS: Chart Release':
     when:
       or:
@@ -1016,8 +1105,6 @@ workflows:
           parameters:
             test:
             - "pytest"
-            - "pytest-envoy"
-            - "pytest-envoy-v3"
             # Running the ingresstests would require we install `kind` and
             # that the test suite supports HTTP to HTTPS redirects (AES
             # enables cleartext redirection by default, even for fallback
@@ -1034,7 +1121,34 @@ workflows:
           - test: pytest
             fast-reconfigure: true
             legacy-mode: true
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-envoy-test:
+        requires:
+        - "oss-release-images"
+        name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
+          >>"
+        matrix:
+          alias: "oss-release-envoy-test"
+          parameters:
+            test:
+            - "pytest-envoy"
+            - "pytest-envoy-v3"
+            fast-reconfigure:
+            - true
+            - false
+            legacy-mode:
+            - true
+            - false
+          exclude:
           - test: pytest-envoy
+            fast-reconfigure: true
+            legacy-mode: true
+          - test: pytest-envoy-v3
             fast-reconfigure: true
             legacy-mode: true
         filters:
@@ -1108,7 +1222,6 @@ workflows:
           parameters:
             test:
             - "pytest"
-            - "pytest-envoy"
             # Running the ingresstests would require we install `kind` and
             # that the test suite supports HTTP to HTTPS redirects (AES
             # enables cleartext redirection by default, even for fallback
@@ -1125,7 +1238,29 @@ workflows:
           - test: pytest
             fast-reconfigure: true
             legacy-mode: true
+    - oss-envoy-test:
+        requires:
+        - "oss-nightly-images"
+        name: "oss-nightly-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
+          >>"
+        matrix:
+          alias: "oss-nightly-envoy-test"
+          parameters:
+            test:
+            - "pytest-envoy"
+            - "pytest-envoy-v3"
+            fast-reconfigure:
+            - true
+            - false
+            legacy-mode:
+            - true
+            - false
+          exclude:
           - test: pytest-envoy
+            fast-reconfigure: true
+            legacy-mode: true
+          - test: pytest-envoy-v3
             fast-reconfigure: true
             legacy-mode: true
   'Docs: Dev':

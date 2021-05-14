@@ -60,4 +60,60 @@ done
 info "Cleaning up..."
 rm tmp.yaml index.yaml "$CHART_PACKAGE"
 
+if [[ -n "${PUBLISH_GIT_RELEASE}" ]] ; then
+    if [[ -z "${CIRCLE_SHA1}" ]] ; then
+        echo "CIRCLE_SHA1 not set"
+        exit 1
+    fi
+    if [[ -z "${GH_RELEASE_TOKEN}" ]] ; then
+        echo "GH_RELEASE_TOKEN not set"
+        exit 1
+    fi
+    tag="chart-v${thisversion}"
+    title="Ambassador Chart ${thisversion}"
+    repo_full_name="datawire/ambassador"
+    token="${GH_RELEASE_TOKEN}"
+    description=$(cat <<-END
+## :tada: Ambassador Chart ${thisversion} :tada:
+
+Upgrade Ambassador - https://www.getambassador.io/reference/upgrading#helm.html
+View changelog - https://github.com/datawire/ambassador/blob/master/charts/ambassador/CHANGELOG.md
+
+---
+
+END
+)
+    description=`echo "${description}" | awk '{printf "%s\\\n", $0}'`
+    in_changelog=false
+    while IFS= read -r line ; do
+        if ${in_changelog} ; then
+            if [[ "${line}" =~ "## v" ]] ; then
+                break
+            fi
+            if [[ -n "${line}" ]] ; then
+                description="${description}\\n${line}"
+            fi
+        fi
+        if [[ "${line}" =~ "## v${chart_version}" ]] ; then
+            in_changelog=true
+        fi
+
+    done < ${TOP_DIR}/CHANGELOG.md
+
+    generate_post_data()
+    {
+        cat <<EOF
+{
+  "tag_name": "$tag",
+  "name": "$title",
+  "body": "${description}",
+  "draft": false,
+  "prerelease": false,
+  "target_commitish": "${CIRCLE_SHA1}"
+}
+EOF
+    }
+    curl -H "Authorization: token ${token}" --data "$(generate_post_data)" "https://api.github.com/repos/$repo_full_name/releases"
+fi
+
 exit 0

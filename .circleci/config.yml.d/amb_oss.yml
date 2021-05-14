@@ -56,9 +56,29 @@ jobs:
           - "test" # everything but pytest-envoy
           - "ingresstest"
           - "pytest"
+        default: "test"
+      "fast-reconfigure":
+        type: boolean
+        default: false
+      "legacy-mode":
+        type: boolean
+        default: false
+    steps:
+      - job-test:
+          test: << parameters.test >>
+          fast-reconfigure: << parameters.fast-reconfigure >>
+          legacy-mode: << parameters.legacy-mode >>
+
+  "oss-envoy-test":
+    executor: oss-linux
+    resource_class: xlarge
+    parameters:
+      "test":
+        type: enum
+        enum:
           - "pytest-envoy"
           - "pytest-envoy-v3"
-        default: "test"
+        default: "pytest-envoy"
       "fast-reconfigure":
         type: boolean
         default: false
@@ -77,9 +97,23 @@ jobs:
       - job-chart
 
   "oss-chart-publish":
+    environment:
+      PUBLISH_GIT_RELEASE: "1"
     executor: oss-linux
     steps:
       - job-chart-publish
+
+  "oss-chart-changelog":
+    executor: oss-linux
+    steps:
+      - when:
+          condition:
+            and:
+              - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+              - not:
+                  equal: [ "master", << pipeline.git.branch >>  ]
+          steps:
+            - job-chart-changelog
 
   "emissary-chart":
     executor: oss-linux
@@ -129,6 +163,7 @@ _anchors:
       branches:
         ignore: /.*/
 
+  # chart release will create a tag IFF there are changes to the chart version
   "filter-chart-release-only": &filter-chart-release-only
     filters:
       tags:
@@ -164,6 +199,8 @@ workflows:
                 - false
                 # If you enable testing with legacy-mode true as well, you'll also need
                 # to add some exclusions -- see the Release workflow for more.
+      - "oss-chart-changelog":
+          name: "oss-chart-changelog"
       - "oss-test":
           requires: ["oss-dev-images"]
           name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
@@ -172,8 +209,6 @@ workflows:
             parameters:
               test:
                 - "pytest"
-                - "pytest-envoy"
-                - "pytest-envoy-v3"
                 # Running the ingresstests would require we install `kind` and
                 # that the test suite supports HTTP to HTTPS redirects (AES
                 # enables cleartext redirection by default, even for fallback
@@ -183,13 +218,42 @@ workflows:
                 - true
                 - false
               legacy-mode:
+                # We don't run legacy mode tests in the "Dev" workflow but we do
+                # in the Nightly and Release workflows.
                 - false
-                # If you enable testing with legacy-mode true as well, you'll also need
-                # to add some exclusions -- see the Release workflow for more.
-      - "oss-push-ci":
-          requires: [ "oss-dev-generate", "oss-dev-lint", "oss-dev-gotest-matrix", "oss-dev-test-matrix" ]
-          name: "oss-dev-push-ci"
-
+            exclude:
+              # It's not meaningful to set fast reconfigure and legacy mode at the same time.
+              # Annoyingly, we have to iterate all the 'test' values that we're using for
+              # this to work.
+              - test: pytest
+                fast-reconfigure: true
+                legacy-mode: true
+      - "oss-envoy-test":
+          requires: ["oss-dev-images"]
+          name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
+          matrix:
+            alias: "oss-dev-envoy-test"
+            parameters:
+              test:
+                - "pytest-envoy"
+                - "pytest-envoy-v3"
+              fast-reconfigure:
+                - true
+                - false
+              legacy-mode:
+                # We don't run legacy mode tests in the "Dev" workflow but we do
+                # in the Nightly and Release workflows.
+                - false
+            exclude:
+              # It's not meaningful to set fast reconfigure and legacy mode at the same time.
+              # Annoyingly, we have to iterate all the 'test' values that we're using for
+              # this to work.
+              - test: pytest-envoy
+                fast-reconfigure: true
+                legacy-mode: true
+              - test: pytest-envoy-v3
+                fast-reconfigure: true
+                legacy-mode: true
   "OSS: Chart Release":
     when: # Don't run this workflow in apro.git
       or:
@@ -246,8 +310,6 @@ workflows:
             parameters:
               test:
                 - "pytest"
-                - "pytest-envoy"
-                - "pytest-envoy-v3"
                 # Running the ingresstests would require we install `kind` and
                 # that the test suite supports HTTP to HTTPS redirects (AES
                 # enables cleartext redirection by default, even for fallback
@@ -266,7 +328,30 @@ workflows:
               - test: pytest
                 fast-reconfigure: true
                 legacy-mode: true
+      - "oss-envoy-test":
+          <<: *filter-prerelease-only
+          requires: ["oss-release-images"]
+          name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
+          matrix:
+            alias: "oss-release-envoy-test"
+            parameters:
+              test:
+                - "pytest-envoy"
+                - "pytest-envoy-v3"
+              fast-reconfigure:
+                - true
+                - false
+              legacy-mode:
+                - true
+                - false
+            exclude:
+              # It's not meaningful to set fast reconfigure and legacy mode at the same time.
+              # Annoyingly, we have to iterate all the 'test' values that we're using for
+              # this to work.
               - test: pytest-envoy
+                fast-reconfigure: true
+                legacy-mode: true
+              - test: pytest-envoy-v3
                 fast-reconfigure: true
                 legacy-mode: true
       # promote
@@ -330,7 +415,6 @@ workflows:
             parameters:
               test:
                 - "pytest"
-                - "pytest-envoy"
                 # Running the ingresstests would require we install `kind` and
                 # that the test suite supports HTTP to HTTPS redirects (AES
                 # enables cleartext redirection by default, even for fallback
@@ -349,6 +433,28 @@ workflows:
               - test: pytest
                 fast-reconfigure: true
                 legacy-mode: true
+      - "oss-envoy-test":
+          requires: ["oss-nightly-images"]
+          name: "oss-nightly-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
+          matrix:
+            alias: "oss-nightly-envoy-test"
+            parameters:
+              test:
+                - "pytest-envoy"
+                - "pytest-envoy-v3"
+              fast-reconfigure:
+                - true
+                - false
+              legacy-mode:
+                - true
+                - false
+            exclude:
+              # It's not meaningful to set fast reconfigure and legacy mode at the same time.
+              # Annoyingly, we have to iterate all the 'test' values that we're using for
+              # this to work.
               - test: pytest-envoy
+                fast-reconfigure: true
+                legacy-mode: true
+              - test: pytest-envoy-v3
                 fast-reconfigure: true
                 legacy-mode: true

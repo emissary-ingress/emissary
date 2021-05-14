@@ -652,20 +652,11 @@ case "${cmd}" in
             exit 1
         fi
 
-        if [ -z "$TELEPRESENCE_PATH" ] ; then
-            export TELEPRESENCE_PATH="${MODDIR}/bin/telepresence"
-        fi
-        if [ ! -f "$TELEPRESENCE_PATH" ] ; then
-            echo "Telepresence not found at $TELEPRESENCE_PATH"
-            exit 1
-        fi
-
         echo "$0: EDGE_STACK=$EDGE_STACK"
         echo "$0: SOURCE_ROOT=$SOURCE_ROOT"
         echo "$0: MODDIR=$MODDIR"
         echo "$0: ENVOY_PATH=$ENVOY_PATH"
         echo "$0: KUBESTATUS_PATH=$KUBESTATUS_PATH"
-        echo "$0: TELEPRESENCE_PATH=$TELEPRESENCE_PATH"
         if ! (cd ${MODDIR} && pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=${TEST_DATA_DIR}/pytest.xml --tb=short -rP "${pytest_args[@]}") then
             fail="yes"
         fi
