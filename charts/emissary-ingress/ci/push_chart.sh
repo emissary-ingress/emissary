@@ -33,15 +33,14 @@ fi
 s3url=https://s3.amazonaws.com/datawire-static-files/${repo_key}/
 
 info "Pushing Helm Chart"
-helm package $TOP_DIR
+helm package --destination $TOP_DIR $TOP_DIR
 
 # Get name of package
-export CHART_PACKAGE=$(ls *.tgz)
+export CHART_PACKAGE=$(ls ${TOP_DIR}/*.tgz)
 
 curl -o tmp.yaml -k -L ${s3url}index.yaml
 
-
-if [[ $(grep -c "version: $thisversion" tmp.yaml || true) != 0 ]]; then
+if [[ $(grep -c "version: $thisversion$" tmp.yaml || true) != 0 ]]; then
 	failed "Chart version $thisversion is already in the index"
 	exit 1
 fi
@@ -57,11 +56,12 @@ fi
 
 info "Pushing chart to S3 bucket $AWS_BUCKET"
 for f in "$CHART_PACKAGE" "index.yaml" ; do
-    echo "would have pushed ${repo_key}/$f"
-  #aws s3api put-object \
-    #--bucket "$AWS_BUCKET" \
-    #--key "${repo_key}/$f" \
-    #--body "$f" && passed "... ${repo_key}/$f pushed"
+    fname=`basename $f`
+    echo "would have pushed ${repo_key}/$fname"
+    aws s3api put-object \
+        --bucket "$AWS_BUCKET" \
+        --key "${repo_key}/$fname" \
+        --body "$f" && passed "... ${repo_key}/$fname pushed"
 done
 
 info "Cleaning up..."
