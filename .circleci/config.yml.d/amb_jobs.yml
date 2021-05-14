@@ -158,7 +158,7 @@ commands:
           condition:
             not: << parameters.release >>
           steps:
-            - run: 
+            - run:
                 name: "Push dev images"
                 command: |
                   [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push-dev

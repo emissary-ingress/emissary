@@ -961,7 +961,7 @@ workflows:
         name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure
           >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
         matrix:
-          alias: "oss-dev-gotest"
+          alias: "oss-dev-gotest-matrix"
           parameters:
             fast-reconfigure:
             - true
@@ -979,7 +979,7 @@ workflows:
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
         matrix:
-          alias: "oss-dev-test"
+          alias: "oss-dev-test-matrix"
           parameters:
             test:
             - "pytest"
