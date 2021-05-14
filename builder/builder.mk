@@ -398,22 +398,26 @@ push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 
 push-ci: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 	@set -e; { \
-		if [ -n "$(IS_DIRTY)" ]; then \
-			echo "push-ci: tree must be clean" >&2 ;\
-			exit 1 ;\
-		fi; \
 		check=$$(echo $(BUILD_VERSION) | grep -c -e -dev || true) ;\
 		if [ $$check -lt 1 ]; then \
 			echo "push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version" >&2 ;\
 			exit 1 ;\
 		fi ;\
 		suffix=$$(echo $(BUILD_VERSION) | sed -e 's/-dev\.\([0-9][0-9]*\).*$$/-ci.\1/') ;\
+		chartsuffix=$${suffix#*-} ; \
 		for image in $(LCNAME) $(LCNAME)-ea; do \
 			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
 			echo "pushing $$image as $$tag..." ;\
 			docker tag $$(cat docker/$$image.docker) $$tag && \
 			docker push $$tag ;\
 		done ;\
+		$(MAKE) \
+			CHART_VERSION_SUFFIX=-$$chartsuffix \
+			IMAGE_TAG=$${suffix} \
+			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
+			chart-push-ci ; \
+		$(MAKE) update-yaml --always-make; \
+		VERSION_OVERRIDE=$$suffix $(OSS_HOME)/manifests/push_manifests.sh ; \
 	}
 .PHONY: push-ci
 
@@ -434,6 +438,13 @@ push-nightly: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.l
 				docker push $$tag ;\
 			done ;\
 		done ;\
+		$(MAKE) \
+			CHART_VERSION_SUFFIX=-nightly.$$today \
+			IMAGE_TAG=$${base_version}-nightly.$${suffix} \
+			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
+			chart-push-ci ; \
+		$(MAKE) update-yaml --always-make; \
+		VERSION_OVERRIDE=$${base_version}-nightly.$${suffix} $(OSS_HOME)/manifests/push_manifests.sh ; \
 	}
 .PHONY: push-nightly
 

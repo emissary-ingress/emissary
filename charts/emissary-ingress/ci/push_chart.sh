@@ -33,20 +33,19 @@ fi
 s3url=https://s3.amazonaws.com/datawire-static-files/${repo_key}/
 
 info "Pushing Helm Chart"
-helm package $TOP_DIR
+helm package --destination $TOP_DIR $TOP_DIR
 
 # Get name of package
-export CHART_PACKAGE=$(ls *.tgz)
+export CHART_PACKAGE=$(ls ${TOP_DIR}/*.tgz)
 
-curl -o tmp.yaml -k -L ${s3url}index.yaml
+curl -o ${TOP_DIR}/tmp.yaml -k -L ${s3url}index.yaml
 
-
-if [[ $(grep -c "version: $thisversion" tmp.yaml || true) != 0 ]]; then
+if [[ $(grep -c "version: $thisversion$" ${TOP_DIR}/tmp.yaml || true) != 0 ]]; then
 	failed "Chart version $thisversion is already in the index"
 	exit 1
 fi
 
-helm repo index . --url ${s3url} --merge tmp.yaml
+helm repo index ${TOP_DIR} --url ${s3url} --merge ${TOP_DIR}/tmp.yaml
 
 if [ -z "$AWS_BUCKET" ] ; then
     AWS_BUCKET=datawire-static-files
@@ -56,14 +55,16 @@ fi
 [ -n "$AWS_SECRET_ACCESS_KEY" ] || abort "AWS_SECRET_ACCESS_KEY is not set"
 
 info "Pushing chart to S3 bucket $AWS_BUCKET"
-for f in "$CHART_PACKAGE" "index.yaml" ; do
-  aws s3api put-object \
-    --bucket "$AWS_BUCKET" \
-    --key "${repo_key}/$f" \
-    --body "$f" && passed "... ${repo_key}/$f pushed"
+for f in "$CHART_PACKAGE" "${TOP_DIR}/index.yaml" ; do
+    fname=`basename $f`
+    echo "would have pushed ${repo_key}/$fname"
+    aws s3api put-object \
+        --bucket "$AWS_BUCKET" \
+        --key "${repo_key}/$fname" \
+        --body "$f" && passed "... ${repo_key}/$fname pushed"
 done
 
 info "Cleaning up..."
-rm tmp.yaml index.yaml "$CHART_PACKAGE"
+rm ${TOP_DIR}/tmp.yaml ${TOP_DIR}/index.yaml "$CHART_PACKAGE"
 
 exit 0
