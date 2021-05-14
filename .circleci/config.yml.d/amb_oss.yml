@@ -29,7 +29,7 @@ jobs:
 
   "oss-push-ci":
     executor: oss-linux
-    steps: 
+    steps:
       - job-push-ci
 
   "oss-gotest":
@@ -102,6 +102,11 @@ jobs:
     executor: oss-linux
     steps:
       - job-chart-publish
+
+  "oss-manifest-publish":
+    executor: oss-linux
+    steps:
+      - job-manifests-publish
 
   "oss-chart-changelog":
     executor: oss-linux
@@ -283,6 +288,10 @@ workflows:
       - "oss-lint":
           <<: *filter-prerelease-only
           name: "oss-release-lint"
+      - "oss-manifest-publish":
+          <<: *filter-prerelease-only
+          name: "oss-rc-manifests-publish"
+          requires: ["oss-release-generate"]
       - "oss-gotest":
           <<: *filter-prerelease-only
           name: "oss-release-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
@@ -368,6 +377,10 @@ workflows:
       - "oss-promote-to-ga":
           <<: *filter-ga-only
           name: "oss-release-promote-to-ga"
+      - "oss-manifest-publish":
+          <<: *filter-ga-only
+          name: "oss-ga-manifests-publish"
+          requires: ["oss-release-generate"]
 
   "OSS: Nightly":
     triggers:
