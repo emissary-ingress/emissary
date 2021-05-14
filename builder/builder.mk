@@ -396,10 +396,6 @@ push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 
 push-ci: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 	@set -e; { \
-		if [ -n "$(IS_DIRTY)" ]; then \
-			echo "push-ci: tree must be clean" >&2 ;\
-			exit 1 ;\
-		fi; \
 		check=$$(echo $(BUILD_VERSION) | grep -c -e -dev || true) ;\
 		if [ $$check -lt 1 ]; then \
 			echo "push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version" >&2 ;\

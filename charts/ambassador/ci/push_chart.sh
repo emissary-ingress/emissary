@@ -34,13 +34,13 @@ helm package --destination $TOP_DIR $TOP_DIR
 # Get name of package
 export CHART_PACKAGE=$(ls ${TOP_DIR}/*.tgz)
 
-curl -o tmp.yaml -k -L ${repo_url}index.yaml
-if [[ $(grep -c "version: $thisversion$" tmp.yaml || true) != 0 ]]; then
+curl -o ${TOP_DIR}/tmp.yaml -k -L ${repo_url}index.yaml
+if [[ $(grep -c "version: $thisversion$" ${TOP_DIR}/tmp.yaml || true) != 0 ]]; then
 	failed "Chart version $thisversion is already in the index"
 	exit 1
 fi
 
-helm repo index . --url ${repo_url} --merge tmp.yaml
+helm repo index ${TOP_DIR} --url ${repo_url} --merge ${TOP_DIR}/tmp.yaml
 
 if [ -z "$AWS_BUCKET" ] ; then
     AWS_BUCKET=datawire-static-files
@@ -50,7 +50,7 @@ fi
 [ -n "$AWS_SECRET_ACCESS_KEY" ] || abort "AWS_SECRET_ACCESS_KEY is not set"
 
 info "Pushing chart to S3 bucket $AWS_BUCKET"
-for f in "$CHART_PACKAGE" "index.yaml" ; do
+for f in "$CHART_PACKAGE" "${TOP_DIR}/index.yaml" ; do
     fname=`basename $f`
     echo "would have pushed ${repo_key}/$fname"
     aws s3api put-object \
@@ -60,6 +60,7 @@ for f in "$CHART_PACKAGE" "index.yaml" ; do
 done
 
 info "Cleaning up..."
-rm tmp.yaml index.yaml "$CHART_PACKAGE"
+echo
+rm ${TOP_DIR}/tmp.yaml ${TOP_DIR}/index.yaml "$CHART_PACKAGE"
 
 exit 0

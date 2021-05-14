@@ -22,7 +22,7 @@ chart-push-ci:
 	@[ -n "${IMAGE_REPO}" ] || (echo "IMAGE_REPO must be set" && exit 1)
 	@mkdir -p $(TMPDIR)
 	@for chart in $(AMBASSADOR_CHART) $(EMISSARY_CHART) ; do \
-		sed -i.bak -E "s/version: ([0-9]+\.[0-9]+\.[0-9]+)/version: \1${CHART_VERSION_SUFFIX}/g" $$chart/Chart.yaml && rm $$chart/Chart.yaml.bak ; \
+		sed -i.bak -E "s/version: ([0-9]+\.[0-9]+\.[0-9]+).*/version: \1${CHART_VERSION_SUFFIX}/g" $$chart/Chart.yaml && rm $$chart/Chart.yaml.bak ; \
 		$(call _set_tag,$$chart,${IMAGE_TAG}) ; \
 		$(call _set_repo,$$chart,${IMAGE_REPO}) ; \
 		$(call _push_chart,$$chart) ; \
