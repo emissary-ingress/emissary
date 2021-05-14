@@ -15,6 +15,7 @@ if ! command -v helm 2> /dev/null ; then
     curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
     chmod 700 get_helm.sh
     ./get_helm.sh --version v3.4.1
+    rm -f get_helm.sh
 fi
 thisversion=$(grep version charts/ambassador/Chart.yaml | awk ' { print $2 }')
 

@@ -142,6 +142,9 @@ commands:
             name: "Push dev images"
             command: |
               [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push-dev
+        - run:
+            name: "Clean up dirty chart stuff"
+            command: "make chart-clean                 \n"
     - when:
         condition: << parameters.release >>
         steps:
@@ -157,6 +160,10 @@ commands:
             name: "Push nightly images"
             command: |
               make push-nightly
+        - run:
+            name: "Clean up dirty chart stuff"
+            command: |
+              make chart-clean
     # teardown
     - dirty-check
     - amb-save-workspace

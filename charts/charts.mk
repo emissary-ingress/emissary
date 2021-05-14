@@ -26,3 +26,9 @@ chart-push-ci:
 		$(call _set_repo,$$chart,${IMAGE_REPO}) ; \
 		$(call _push_chart,$$chart) ; \
 	done ;
+
+# This is pretty Draconian. Use with care.
+chart-clean:
+	git restore charts/*/Chart.yaml charts/*/values.yaml
+	rm -f charts/*/*.tgz charts/*/index.yaml charts/*/tmp.yaml
+.PHONY: chart-clean
