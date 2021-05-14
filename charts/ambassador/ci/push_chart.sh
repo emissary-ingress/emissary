@@ -51,10 +51,11 @@ fi
 
 info "Pushing chart to S3 bucket $AWS_BUCKET"
 for f in "$CHART_PACKAGE" "index.yaml" ; do
-  aws s3api put-object \
-    --bucket "$AWS_BUCKET" \
-    --key "${repo_key}/$f" \
-    --body "$f" && passed "... ${repo_key}/$f pushed"
+    echo "would have pushed ${repo_key}/$f"
+  #aws s3api put-object \
+    #--bucket "$AWS_BUCKET" \
+    #--key "${repo_key}/$f" \
+    #--body "$f" && passed "... ${repo_key}/$f pushed"
 done
 
 info "Cleaning up..."
