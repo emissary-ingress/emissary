@@ -37,17 +37,27 @@ commands:
       # main
       - run: make test-chart
 
+  "job-chart-changelog":
+    steps:
+      - amb-linux-install
+      - amb-checkout
+      - skip-if-no-new-chart
+      - run: |
+          ./charts/ambassador/ci/check_updated_changelog.sh
+
   "job-chart-publish":
     steps:
       - amb-linux-install
       - amb-checkout
+      - amb-skip-if-bad-chart-version
+      - run: |
+          ./charts/ambassador/ci/check_updated_changelog.sh
       - install-k3d
       # We might need to be logged in the registry to pull the Envoy
       # image or the builder-base image.
       - amb-config-registry
       # main
       - run: make test-chart
-      - amb-skip-if-bad-chart-version
       - run: charts/ambassador/ci/push_chart.sh
 
   "job-generate":
@@ -67,6 +77,23 @@ commands:
       # in a row.
       - run: make generate
       - dirty-check
+
+  "job-yaml-publish-s3":
+    parameters:
+      "update-stable":
+        type: boolean
+        default: false
+    steps:
+      # setup
+      - amb-linux-install
+      - amb-checkout
+      - amb-config-registry
+      # main
+      - run:
+          name: "Publish to S3"
+          command: |
+            export BUMP_STABLE=<< parameters.update-stable >>
+            make publish-docs-yaml
 
   "job-lint":
     steps:
