@@ -34,17 +34,26 @@ commands:
     - amb-config-registry
     - # main
       run: make test-chart
+  "job-chart-changelog":
+    steps:
+    - amb-linux-install
+    - amb-checkout
+    - skip-if-no-new-chart
+    - run: |
+        ./charts/ambassador/ci/check_updated_changelog.sh
   "job-chart-publish":
     steps:
     - amb-linux-install
     - amb-checkout
+    - amb-skip-if-bad-chart-version
+    - run: |
+        ./charts/ambassador/ci/check_updated_changelog.sh
     - install-k3d
     # We might need to be logged in the registry to pull the Envoy
     # image or the builder-base image.
     - amb-config-registry
     - # main
       run: make test-chart
-    - amb-skip-if-bad-chart-version
     - run: charts/ambassador/ci/push_chart.sh
   "job-generate":
     steps:
@@ -635,6 +644,22 @@ commands:
              PAGER= git diff --cached
              exit 1
           fi
+  skip-if-no-new-chart:
+    steps:
+    - run:
+        name: "Diff chart changes"
+        command: |
+          if [[ "<< pipeline.git.base_revision >>" == "" ]]; then
+            echo "There is no base_revision, therefore no changes"
+            exit 0
+          fi
+          COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
+          echo "Commit range: " $COMMIT_RANGE
+          git --no-pager diff $COMMIT_RANGE charts/ambassador/Chart.yaml
+          if ! git --no-pager diff $COMMIT_RANGE charts/ambassador/Chart.yaml | grep -q +version; then
+            echo "Halting this CircleCI job because the version was not changed in Chart.yaml"
+            circleci step halt
+          fi
   skip-if-no-changes:
     parameters:
       to:
@@ -764,9 +789,26 @@ jobs:
     steps:
     - job-chart
   oss-chart-publish:
+    environment:
+      PUBLISH_GIT_RELEASE: "1"
     executor: oss-linux
     steps:
     - job-chart-publish
+  oss-chart-changelog:
+    executor: oss-linux
+    steps:
+    - when:
+        condition:
+          and:
+          - equal:
+            - "https://github.com/datawire/ambassador"
+            - << pipeline.project.git_url >>
+          - not:
+              equal:
+              - "master"
+              - << pipeline.git.branch >>
+        steps:
+        - job-chart-changelog
   oss-promote-to-rc-latest:
     executor: oss-linux
     steps:
@@ -875,6 +917,8 @@ workflows:
             - false
             # If you enable testing with legacy-mode true as well, you'll also need
             # to add some exclusions -- see the Release workflow for more.
+    - oss-chart-changelog:
+        name: "oss-chart-changelog"
     - oss-test:
         requires:
         - "oss-dev-images"
