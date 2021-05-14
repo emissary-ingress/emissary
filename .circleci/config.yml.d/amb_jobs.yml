@@ -73,6 +73,13 @@ commands:
       - run: make test-chart
       - run: charts/ambassador/ci/push_chart.sh
 
+  "job-manifests-publish":
+    steps:
+      - amb-linux-install
+      - amb-checkout
+      - amb-config-registry
+      - run:  manifests/push_manifests.sh
+
   "job-emissary-chart-publish":
     steps:
       - amb-linux-install
@@ -144,7 +151,7 @@ commands:
           condition:
             not: << parameters.release >>
           steps:
-            - run: 
+            - run:
                 name: "Push dev images"
                 command: |
                   [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push-dev
@@ -268,7 +275,7 @@ commands:
           name: "Set USE_LOCAL_K3S_CLUSTER=1"
           command:
             echo >>"$BASH_ENV" 'export USE_LOCAL_K3S_CLUSTER=1'
-      - run: 
+      - run:
           name: "Configure system file and inotify maximums"
           command: |
             sudo sysctl -w fs.file-max=1600000

@@ -67,6 +67,12 @@ commands:
     - # main
       run: make test-chart
     - run: charts/ambassador/ci/push_chart.sh
+  "job-manifests-publish":
+    steps:
+    - amb-linux-install
+    - amb-checkout
+    - amb-config-registry
+    - run: manifests/push_manifests.sh
   "job-emissary-chart-publish":
     steps:
     - amb-linux-install
@@ -845,6 +851,10 @@ jobs:
     executor: oss-linux
     steps:
     - job-chart-publish
+  oss-manifest-publish:
+    executor: oss-linux
+    steps:
+    - job-manifests-publish
   oss-chart-changelog:
     executor: oss-linux
     steps:
@@ -1073,6 +1083,15 @@ workflows:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
           branches:
             ignore: /.*/
+    - oss-manifest-publish:
+        name: "oss-rc-manifests-publish"
+        requires:
+        - "oss-release-generate"
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
     - oss-gotest:
         name: "oss-release-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
@@ -1172,6 +1191,15 @@ workflows:
             ignore: /.*/
     - oss-promote-to-ga:
         name: "oss-release-promote-to-ga"
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-manifest-publish:
+        name: "oss-ga-manifests-publish"
+        requires:
+        - "oss-release-generate"
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
