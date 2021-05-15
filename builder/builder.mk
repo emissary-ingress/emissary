@@ -434,9 +434,11 @@ push-nightly: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.l
 				docker push $$tag ;\
 			done ;\
 		done ;\
+		CHART_VERSION_SUFFIX=-nightly.$$today ;\
+		IMAGE_TAG=$${base_version}$${CHART_VERSION_SUFFIX} ;\
 		$(MAKE) \
-			CHART_VERSION_SUFFIX=-nightly.$$today \
-			IMAGE_TAG=$${base_version}-nightly.$${suffix} \
+			CHART_VERSION_SUFFIX="$${CHART_VERSION_SUFFIX}" \
+			IMAGE_TAG="$${IMAGE_TAG}" \
 			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
 		$(MAKE) update-yaml --always-make; \
