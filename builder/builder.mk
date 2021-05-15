@@ -390,6 +390,9 @@ push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 			docker tag $$(cat docker/$$image.docker) $$tag && \
 			docker push $$tag ;\
 		done ;\
+		commit=$$(git rev-parse HEAD) ;\
+		printf "$(CYN)==> $(GRN)recording $(BLU)$$commit$(GRN) => $(BLU)$$suffix$(GRN) in S3...$(END)\n" ;\
+		echo "$$suffix" | aws s3 cp - s3://datawire-static-files/dev-builds/$$commit ;\
 		$(MAKE) \
 			CHART_VERSION_SUFFIX=-$$chartsuffix \
 			IMAGE_TAG=$${suffix} \
