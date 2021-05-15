@@ -424,7 +424,7 @@ push-ci: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 push-nightly: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 	@set -e; { \
 		if [ -n "$(IS_DIRTY)" ]; then \
-			echo "push-with-datestamp: tree must be clean" >&2 ;\
+			echo "push-nightly: tree must be clean" >&2 ;\
 			exit 1 ;\
 		fi; \
 		now=$$(date +"%Y%m%dT%H%M%S") ;\
