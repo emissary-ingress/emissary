@@ -731,6 +731,13 @@ release/promote-oss/.main:
 
 	@printf '  $(CYN)s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json$(END)\n'
 	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(RELEASE_VERSION)" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
+	$(MAKE) \
+		CHART_VERSION_SUFFIX= \
+		IMAGE_TAG=$(PROMOTE_TO_VERSION) \
+		IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
+		chart-push-ga ; \
+	$(MAKE) update-yaml --always-make; \
+	VERSION_OVERRIDE=$$suffix $(OSS_HOME)/manifests/push_manifests.sh
 .PHONY: release/promote-oss/.main
 
 # To be run from a checkout at the tag you are promoting _from_.
