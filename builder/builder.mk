@@ -716,7 +716,7 @@ release/promote-oss/.main:
 	@[[ '$(PROMOTE_FROM_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
 	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
 	@case "$(PROMOTE_CHANNEL)" in \
-		""|early|test) true ;; \
+		""|wip|early|test) true ;; \
 		*) echo "Unknown PROMOTE_CHANNEL $(PROMOTE_CHANNEL)" >&2 ; exit 1;; \
 	esac
 	@printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN) (channel=$(BLU)%s$(GRN))$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(PROMOTE_TO_VERSION)' '$(PROMOTE_CHANNEL)'
@@ -726,11 +726,11 @@ release/promote-oss/.main:
 	docker tag $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
 	docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
 
-	@printf '  $(CYN)https://s3.amazonaws.com/datawire-static-files/ambassador/$(PROMOTE_CHANNEL)stable.txt$(END)\n'
-	printf '%s' "$(RELEASE_VERSION)" | aws s3 cp - s3://datawire-static-files/ambassador/$(PROMOTE_CHANNEL)stable.txt
+	@printf '  $(CYN)https://s3.amazonaws.com/datawire-static-files/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt$(END)\n'
+	printf '%s' "$(RELEASE_VERSION)" | aws s3 cp - s3://datawire-static-files/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt
 
-	@printf '  $(CYN)s3://scout-datawire-io/ambassador/$(PROMOTE_CHANNEL)app.json$(END)\n'
-	printf '{"application":"ambassador","latest_version":"%s","notices":[]}' "$(RELEASE_VERSION)" | aws s3 cp - s3://scout-datawire-io/ambassador/$(PROMOTE_CHANNEL)app.json
+	@printf '  $(CYN)s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json$(END)\n'
+	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(RELEASE_VERSION)" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
 .PHONY: release/promote-oss/.main
 
 # To be run from a checkout at the tag you are promoting _from_.
@@ -757,21 +757,23 @@ release/promote-oss/to-rc-latest:
 	; }
 .PHONY: release/promote-oss/to-rc-latest
 
-# To be run from a checkout at the tag you are promoting _to_.
+# To be run from a checkout at the tag you are promoting _from_.
 # This is normally run from CI by creating the GA tag.
 release/promote-oss/to-ga:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
 	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(RELEASE_VERSION)"; exit 1)
 	@set -e; { \
-	  rc_latest=$$(curl -sL --fail https://s3.amazonaws.com/datawire-static-files/ambassador/teststable.txt); \
-	  if ! [[ "$$rc_latest" == "$(RELEASE_VERSION)"-rc.* ]]; then \
-	    printf '$(RED)ERROR: https://s3.amazonaws.com/datawire-static-files/ambassador/teststable.txt => %s does not look like a RC of %s\n' "$$rc_latest" "$(RELEASE_VERSION)"; \
-	    exit 1; \
-	  fi; \
+      commit=$$(git rev-parse HEAD) ;\
+	  dev_version=$$(aws s3 cp s3://datawire-static-files/dev-builds/$$commit -) ;\
+	  if [ -z "$$dev_version" ]; then \
+		  printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
+		  exit 1 ;\
+      fi ;\
+ 	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
 	  $(MAKE) release/promote-oss/.main \
-	    PROMOTE_FROM_VERSION="$$rc_latest" \
-	    PROMOTE_TO_VERSION="$(RELEASE_VERSION)" \
-	    PROMOTE_CHANNEL='' \
+	    PROMOTE_FROM_VERSION="$$dev_version" \
+	    PROMOTE_TO_VERSION="$(RELEASE_VERSION)-wip" \
+	    PROMOTE_CHANNEL=wip \
 	    ; \
 	}
 .PHONY: release/promote-oss/to-ga
