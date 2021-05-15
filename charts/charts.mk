@@ -27,6 +27,19 @@ chart-push-ci:
 		$(call _push_chart,$$chart) ; \
 	done ;
 
+chart-push-ga:
+	@echo ">>> This will dirty your local tree and should only be run in CI"
+	@echo ">>> If running locally, you'll probably want to reset charts/ directory after running this"
+	@[ -z "${CHART_VERSION_SUFFIX}" ] || (echo "CHART_VERSION_SUFFIX must not be set for GA pushes" && exit 1)
+	@[ -n "${IMAGE_TAG}" ] || (echo "IMAGE_TAG must be set" && exit 1)
+	@[ -n "${IMAGE_REPO}" ] || (echo "IMAGE_REPO must be set" && exit 1)
+	@for chart in $(AMBASSADOR_CHART) $(EMISSARY_CHART) ; do \
+		sed -i.bak -E "s/version: ([0-9]+\.[0-9]+\.[0-9]+).*/version: \1/g" $$chart/Chart.yaml && rm $$chart/Chart.yaml.bak ; \
+		$(call _set_tag,$$chart,${IMAGE_TAG}) ; \
+		$(call _set_repo,$$chart,${IMAGE_REPO}) ; \
+		$(call _push_chart,$$chart) ; \
+	done ;
+
 # This is pretty Draconian. Use with care.
 chart-clean:
 	git restore charts/*/Chart.yaml charts/*/values.yaml
