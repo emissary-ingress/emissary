@@ -57,7 +57,7 @@ fi
 info "Pushing chart to S3 bucket $AWS_BUCKET"
 for f in "$CHART_PACKAGE" "${TOP_DIR}/index.yaml" ; do
     fname=`basename $f`
-    echo "would have pushed ${repo_key}/$fname"
+    echo "pushing ${repo_key}/$fname"
     aws s3api put-object \
         --bucket "$AWS_BUCKET" \
         --key "${repo_key}/$fname" \
