@@ -383,12 +383,20 @@ push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 			exit 1 ;\
 		fi ;\
 		suffix=$$(echo $(BUILD_VERSION) | sed -e 's/\+/-/') ;\
+		chartsuffix=$${suffix#*-} ; \
 		for image in $(LCNAME) $(LCNAME)-ea; do \
 			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
 			printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
 			docker tag $$(cat docker/$$image.docker) $$tag && \
 			docker push $$tag ;\
 		done ;\
+		$(MAKE) \
+			CHART_VERSION_SUFFIX=-$$chartsuffix \
+			IMAGE_TAG=$${suffix} \
+			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
+			chart-push-ci ; \
+		$(MAKE) update-yaml --always-make; \
+		VERSION_OVERRIDE=$$suffix $(OSS_HOME)/manifests/push_manifests.sh ; \
 	}
 .PHONY: push-dev
 
