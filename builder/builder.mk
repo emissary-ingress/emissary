@@ -383,13 +383,13 @@ push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 		fi; \
 		check=$$(echo $(BUILD_VERSION) | grep -c -e -dev || true) ;\
 		if [ $$check -lt 1 ]; then \
-			echo "push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version" >&2 ;\
+			printf "$(RED)push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version$(END)\n" >&2 ;\
 			exit 1 ;\
 		fi ;\
 		suffix=$$(echo $(BUILD_VERSION) | sed -e 's/\+/-/') ;\
 		for image in $(LCNAME) $(LCNAME)-ea; do \
 			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
-			echo "pushing $$image as $$tag..." ;\
+			printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
 			docker tag $$(cat docker/$$image.docker) $$tag && \
 			docker push $$tag ;\
 		done ;\
@@ -400,14 +400,14 @@ push-ci: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 	@set -e; { \
 		check=$$(echo $(BUILD_VERSION) | grep -c -e -dev || true) ;\
 		if [ $$check -lt 1 ]; then \
-			echo "push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version" >&2 ;\
+			printf "$(RED)push-ci: BUILD_VERSION $(BUILD_VERSION) is not a dev version$(END)\n" >&2 ;\
 			exit 1 ;\
 		fi ;\
 		suffix=$$(echo $(BUILD_VERSION) | sed -e 's/-dev\.\([0-9][0-9]*\).*$$/-ci.\1/') ;\
 		chartsuffix=$${suffix#*-} ; \
 		for image in $(LCNAME) $(LCNAME)-ea; do \
 			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
-			echo "pushing $$image as $$tag..." ;\
+			printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
 			docker tag $$(cat docker/$$image.docker) $$tag && \
 			docker push $$tag ;\
 		done ;\
@@ -433,7 +433,7 @@ push-nightly: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.l
 		for image in $(LCNAME) $(LCNAME)-ea; do \
 			for suffix in "$$now" "$$today"; do \
 				tag="$(DEV_REGISTRY)/$$image:$${base_version}-nightly.$${suffix}" ;\
-				echo "pushing $$image as $$tag..." ;\
+				printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
 				docker tag $$(cat docker/$$image.docker) $$tag && \
 				docker push $$tag ;\
 			done ;\
