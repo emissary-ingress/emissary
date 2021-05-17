@@ -117,7 +117,7 @@ security:
     #   runAsUser:
     #     rule: MustRunAsNonRoot
   snapshot:
-    mountInMemory: true
+    mountInMemory: false
 
 image:
   tag: 1.13.3
