@@ -377,6 +377,10 @@ push: docker/kat-server.docker.push.remote
 
 push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 	@set -e; { \
+		if [ -n "$(IS_DIRTY)" ]; then \
+			echo "push-dev: tree must be clean" >&2 ;\
+			exit 1 ;\
+		fi; \
 		check=$$(echo $(BUILD_VERSION) | grep -c -e -dev || true) ;\
 		if [ $$check -lt 1 ]; then \
 			printf "$(RED)push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version$(END)\n" >&2 ;\
@@ -399,7 +403,8 @@ push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
 		$(MAKE) update-yaml --always-make; \
-		VERSION_OVERRIDE=$$suffix $(OSS_HOME)/manifests/push_manifests.sh ; \
+		$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests  ; \
+		$(MAKE) clean-manifests ; \
 	}
 .PHONY: push-dev
 
@@ -424,7 +429,8 @@ push-ci: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
 		$(MAKE) update-yaml --always-make; \
-		VERSION_OVERRIDE=$$suffix $(OSS_HOME)/manifests/push_manifests.sh ; \
+		$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests  ; \
+		$(MAKE) clean-manifests ; \
 	}
 .PHONY: push-ci
 
@@ -453,7 +459,8 @@ push-nightly: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.l
 			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
 		$(MAKE) update-yaml --always-make; \
-		VERSION_OVERRIDE=$${base_version}-nightly.$${suffix} $(OSS_HOME)/manifests/push_manifests.sh ; \
+		$(MAKE) VERSION_OVERRIDE=$${base_version}-nightly.$${suffix} push-manifests  ; \
+		$(MAKE) clean-manifests ; \
 	}
 .PHONY: push-nightly
 
@@ -737,7 +744,8 @@ release/promote-oss/.main:
 		IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
 		chart-push-ga ; \
 	$(MAKE) update-yaml --always-make; \
-	VERSION_OVERRIDE=$$suffix $(OSS_HOME)/manifests/push_manifests.sh
+	$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests ; \
+	$(MAKE) clean-manifests ; \
 .PHONY: release/promote-oss/.main
 
 # To be run from a checkout at the tag you are promoting _from_.
@@ -785,9 +793,37 @@ release/promote-oss/to-ga:
 	}
 .PHONY: release/promote-oss/to-ga
 
+release/go:
+	@set -e; { \
+		if [ -n "$(IS_DIRTY)" ]; then \
+			echo "release/chart/tag: tree must be clean" >&2 ;\
+			exit 1 ;\
+		fi; \
+	}
+	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
+	@$(OSS_HOME)/releng/start-sanity-check --quiet $(VERSION)
+	@git tag -s -m "Tagging v$(VERSION) for GA" -a v$(VERSION)
+	@git push origin v$(VERSION)
+	@$(OSS_HOME)/releng/release-go-changelog-update --quiet $(VERSION)
+
+release/manifests:
+	@set -e; { \
+		if [ -n "$(IS_DIRTY)" ]; then \
+			echo "release/manifests: tree must be clean" >&2 ;\
+			exit 1 ;\
+		fi; \
+	}
+	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
+	@$(OSS_HOME)/releng/release-manifest-image-update
+
 release-prep:
 	bash $(OSS_HOME)/releng/release-prep.sh
 .PHONY: release-prep
+
+release/start:
+	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
+	@$(OSS_HOME)/releng/start-sanity-check --quiet $(VERSION)
+	@$(OSS_HOME)/releng/start-update-version --quiet --no-commit $(VERSION)
 
 clean:
 	@$(BUILDER) clean

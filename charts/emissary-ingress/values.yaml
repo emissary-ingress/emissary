@@ -1,10 +1,9 @@
----
 # Override the generated chart name. Defaults to .Chart.Name.
-nameOverride: ""
+nameOverride: ''
 # Override the generated release name. Defaults to .Release.Name.
-fullnameOverride: ""
+fullnameOverride: ''
 # Override the generated release namespace. Defaults to .Release.Namespace.
-namespaceOverride: ""
+namespaceOverride: ''
 
 # Number of Ambassador replicas
 replicaCount: 3
@@ -119,12 +118,12 @@ image:
   # Emissary Ingress docker repo
   repository: docker.io/datawire/ambassador
   # Emissary Ingress docker tag
-  tag: 1.13.3
+  tag: 1.13.4
   # Pod container image pull policy
   pullPolicy: IfNotPresent
 
 # Dns policy, when hostNetwork set to ClusterFirstWithHostNet
-dnsPolicy: "ClusterFirst"
+dnsPolicy: ClusterFirst
 # If true, uses the host network, useful for on-premise setups
 hostNetwork: false
 
@@ -134,15 +133,15 @@ service:
   # Note that target http ports need to match your ambassador configurations service_port
   # https://www.getambassador.io/reference/modules/#the-ambassador-module
   ports:
-    - name: http
-      port: 80
-      targetPort: 8080
+  - name: http
+    port: 80
+    targetPort: 8080
       # protocol: TCP
       # nodePort: 30080
       # hostPort: 80
-    - name: https
-      port: 443
-      targetPort: 8443
+  - name: https
+    port: 443
+    targetPort: 8443
       # protocol: TCP
       # nodePort: 30443
       # hostPort: 443
@@ -175,8 +174,7 @@ adminService:
   # If explicit NodePort for admin service is required
   nodePort:
   # Annotations to apply to Ambassador admin service
-  annotations:
-    {}
+  annotations: {}
   # IP address to assign (if cloud provider supports it)
   loadBalancerIP:
   # Passed to cloud provider load balancer if created (e.g: AWS ELB)
@@ -233,26 +231,22 @@ volumes: []
 volumeMounts: []
 
 # Additional labels for ambassador pods
-podLabels:
-  {}
+podLabels: {}
 
 # Additional annotations for ambassador pods
 # Example:
 # prometheus.io/scrape: "true"
 # prometheus.io/port: "9102"
-podAnnotations:
-  {}
+podAnnotations: {}
 
 
 # Additional labels for ambassador DaemonSet/Deployment
-deploymentLabels:
-  {}
+deploymentLabels: {}
 
 # Additional annotations for ambassador DaemonSet/Deployment
 # Example:
 # configmap.reloader.stakater.com/auto: "true"
-deploymentAnnotations:
-  {}
+deploymentAnnotations: {}
 
 # CPU/memory resource requests/limits
 resources: # +doc-gen:break
@@ -265,7 +259,7 @@ resources: # +doc-gen:break
     memory: 300Mi
 
 # The name of the priorityClass for the ambassador DaemonSet/Deployment
-priorityClassName: ""
+priorityClassName: ''
 
 # NodeSelector for ambassador pods
 nodeSelector: {}
@@ -279,7 +273,7 @@ affinity: {}
 topologySpreadConstraints: []
 
 # Config thats mounted to `/ambassador/ambassador-config`
-ambassadorConfig: ""
+ambassadorConfig: ''
 
 crds:
   # If `true`, enables CRD resources for the installation.
@@ -308,10 +302,10 @@ metrics:
 resolvers: # +doc-gen:break
   endpoint:
     create: false
-    name: "endpoint"
+    name: endpoint
   consul:
     create: false
-    name: "consul-dc1"
+    name: consul-dc1
     spec: {}
 
 # Create and manage an Ambassador Module from the Helm Chart. See:
@@ -362,7 +356,7 @@ agent:
   enabled: true
   # this will be empty when it first gets applied, then the user will edit the agent to
   # make it start reporting
-  cloudConnectToken: ""
+  cloudConnectToken: ''
   rpcAddress: https://app.getambassador.io/
   createArgoRBAC: true
   image:
@@ -370,7 +364,7 @@ agent:
     tag:
     repository:
 
-deploymentTool: ""
+deploymentTool: ''
 
 # configure docker to pull from private registry
 docker: {}

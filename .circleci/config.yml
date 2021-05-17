@@ -40,7 +40,7 @@ commands:
     - amb-checkout
     - skip-if-no-new-chart
     - run: |
-        ./charts/ambassador/ci/check_updated_changelog.sh
+        CHART_NAME=ambassador ./charts/scripts/check_updated_changelog.sh
   "job-emissary-chart":
     steps:
     - amb-linux-install
@@ -59,7 +59,7 @@ commands:
     - amb-checkout
     - amb-skip-if-bad-chart-version
     - run: |
-        ./charts/ambassador/ci/check_updated_changelog.sh
+        CHART_NAME=ambassador ./charts/scripts/check_updated_changelog.sh
     - install-k3d
     # We might need to be logged in the registry to pull the Envoy
     # image or the builder-base image.
@@ -144,7 +144,8 @@ commands:
               [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push-dev
         - run:
             name: "Clean up dirty chart stuff"
-            command: "make chart-clean                 \n"
+            command: |
+              make chart-clean
     - when:
         condition: << parameters.release >>
         steps:
@@ -1065,6 +1066,23 @@ workflows:
             only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
           branches:
             ignore: /.*/
+  'OSS: Manifests Release':
+    when:
+      or:
+      - equal:
+        - "https://github.com/datawire/ambassador"
+        - << pipeline.project.git_url >>
+      - equal:
+        - "https://github.com/datawire/ambassador-private"
+        - << pipeline.project.git_url >>
+    jobs:
+    - oss-manifest-publish:
+        name: "oss-rc-manifests-publish"
+        filters:
+          tags:
+            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+          branches:
+            ignore: /.*/
   'OSS: Release':
     when:
       or:
@@ -1092,15 +1110,6 @@ workflows:
             ignore: /.*/
     - oss-lint:
         name: "oss-release-lint"
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-manifest-publish:
-        name: "oss-rc-manifests-publish"
-        requires:
-        - "oss-release-generate"
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
