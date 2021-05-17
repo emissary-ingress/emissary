@@ -183,20 +183,6 @@ commands:
       - dirty-check
       - amb-save-workspace
 
-  "job-push-ci":
-    steps:
-      # setup
-      - amb-linux-install
-      - amb-checkout
-      - amb-skip-if-no-code-changes
-      - amb-config-registry
-
-      # main
-      - run: make images
-      - run: |
-          [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push
-      - run: make push-ci
-
   "job-gotest":
     parameters:
       "fast-reconfigure":

@@ -167,18 +167,6 @@ commands:
     # teardown
     - dirty-check
     - amb-save-workspace
-  "job-push-ci":
-    steps:
-    # setup
-    - amb-linux-install
-    - amb-checkout
-    - amb-skip-if-no-code-changes
-    - amb-config-registry
-    - # main
-      run: make images
-    - run: |
-        [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push
-    - run: make push-ci
   "job-gotest":
     parameters:
       "fast-reconfigure":
@@ -785,10 +773,6 @@ jobs:
     - job-images:
         release: << parameters.release >>
         push_nightly: << parameters.push_nightly >>
-  oss-push-ci:
-    executor: oss-linux
-    steps:
-    - job-push-ci
   oss-gotest:
     executor: oss-linux
     parameters:
@@ -1038,16 +1022,6 @@ workflows:
           - test: pytest-envoy-v3
             fast-reconfigure: true
             legacy-mode: true
-    - oss-push-ci:
-        name: oss-dev-push-ci
-        requires:
-        - oss-dev-generate
-        - oss-dev-lint
-        - oss-dev-chart
-        - emissary-dev-chart
-        - oss-dev-gotest-matrix
-        - oss-dev-pytest-matrix
-        - oss-dev-envoy-test-matrix
   'OSS: Chart Release':
     when:
       or:
