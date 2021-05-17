@@ -20,15 +20,18 @@ if ! command -v helm 2> /dev/null ; then
     curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
     chmod 700 get_helm.sh
     ./get_helm.sh --version v3.4.1
+    rm -f get_helm.sh
 fi
 thisversion=$(grep version charts/emissary-ingress/Chart.yaml | awk ' { print $2 }')
 repo_key=
 if [[ -n "${REPO_KEY}" ]] ; then
     repo_key="${REPO_KEY}"
 elif [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
-    repo_key=ambassador
+    # repo_key=ambassador
+    repo_key=emissary-ingress   # I really don't want this messing with ambassador's stuff now
 else
-    repo_key=ambassador-dev
+    # repo_key=ambassador-dev
+    repo_key=emissary-ingress   # I really don't want this messing with ambassador's stuff now
 fi
 s3url=https://s3.amazonaws.com/datawire-static-files/${repo_key}/
 
@@ -57,7 +60,7 @@ fi
 info "Pushing chart to S3 bucket $AWS_BUCKET"
 for f in "$CHART_PACKAGE" "${TOP_DIR}/index.yaml" ; do
     fname=`basename $f`
-    echo "would have pushed ${repo_key}/$fname"
+    echo "pushing ${repo_key}/$fname"
     aws s3api put-object \
         --bucket "$AWS_BUCKET" \
         --key "${repo_key}/$fname" \

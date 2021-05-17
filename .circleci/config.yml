@@ -142,6 +142,9 @@ commands:
             name: "Push dev images"
             command: |
               [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push-dev
+        - run:
+            name: "Clean up dirty chart stuff"
+            command: "make chart-clean                 \n"
     - when:
         condition: << parameters.release >>
         steps:
@@ -157,6 +160,10 @@ commands:
             name: "Push nightly images"
             command: |
               make push-nightly
+        - run:
+            name: "Clean up dirty chart stuff"
+            command: |
+              make chart-clean
     # teardown
     - dirty-check
     - amb-save-workspace
@@ -984,7 +991,7 @@ workflows:
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
         matrix:
-          alias: "oss-dev-test-matrix"
+          alias: "oss-dev-pytest-matrix"
           parameters:
             test:
             - "pytest"
@@ -1012,7 +1019,7 @@ workflows:
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
         matrix:
-          alias: "oss-dev-envoy-test"
+          alias: "oss-dev-envoy-test-matrix"
           parameters:
             test:
             - "pytest-envoy"
@@ -1031,6 +1038,16 @@ workflows:
           - test: pytest-envoy-v3
             fast-reconfigure: true
             legacy-mode: true
+    - oss-push-ci:
+        name: oss-dev-push-ci
+        requires:
+        - oss-dev-generate
+        - oss-dev-lint
+        - oss-dev-chart
+        - emissary-dev-chart
+        - oss-dev-gotest-matrix
+        - oss-dev-pytest-matrix
+        - oss-dev-envoy-test-matrix
   'OSS: Chart Release':
     when:
       or:

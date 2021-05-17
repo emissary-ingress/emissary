@@ -377,22 +377,29 @@ push: docker/kat-server.docker.push.remote
 
 push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 	@set -e; { \
-		if [ -n "$(IS_DIRTY)" ]; then \
-			echo "push-dev: tree must be clean" >&2 ;\
-			exit 1 ;\
-		fi; \
 		check=$$(echo $(BUILD_VERSION) | grep -c -e -dev || true) ;\
 		if [ $$check -lt 1 ]; then \
-			echo "push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version" >&2 ;\
+			printf "$(RED)push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version$(END)\n" >&2 ;\
 			exit 1 ;\
 		fi ;\
 		suffix=$$(echo $(BUILD_VERSION) | sed -e 's/\+/-/') ;\
+		chartsuffix=$${suffix#*-} ; \
 		for image in $(LCNAME) $(LCNAME)-ea; do \
 			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
-			echo "pushing $$image as $$tag..." ;\
+			printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
 			docker tag $$(cat docker/$$image.docker) $$tag && \
 			docker push $$tag ;\
 		done ;\
+		commit=$$(git rev-parse HEAD) ;\
+		printf "$(CYN)==> $(GRN)recording $(BLU)$$commit$(GRN) => $(BLU)$$suffix$(GRN) in S3...$(END)\n" ;\
+		echo "$$suffix" | aws s3 cp - s3://datawire-static-files/dev-builds/$$commit ;\
+		$(MAKE) \
+			CHART_VERSION_SUFFIX=-$$chartsuffix \
+			IMAGE_TAG=$${suffix} \
+			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
+			chart-push-ci ; \
+		$(MAKE) update-yaml --always-make; \
+		VERSION_OVERRIDE=$$suffix $(OSS_HOME)/manifests/push_manifests.sh ; \
 	}
 .PHONY: push-dev
 
@@ -400,14 +407,14 @@ push-ci: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 	@set -e; { \
 		check=$$(echo $(BUILD_VERSION) | grep -c -e -dev || true) ;\
 		if [ $$check -lt 1 ]; then \
-			echo "push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version" >&2 ;\
+			printf "$(RED)push-ci: BUILD_VERSION $(BUILD_VERSION) is not a dev version$(END)\n" >&2 ;\
 			exit 1 ;\
 		fi ;\
 		suffix=$$(echo $(BUILD_VERSION) | sed -e 's/-dev\.\([0-9][0-9]*\).*$$/-ci.\1/') ;\
 		chartsuffix=$${suffix#*-} ; \
 		for image in $(LCNAME) $(LCNAME)-ea; do \
 			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
-			echo "pushing $$image as $$tag..." ;\
+			printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
 			docker tag $$(cat docker/$$image.docker) $$tag && \
 			docker push $$tag ;\
 		done ;\
@@ -424,7 +431,7 @@ push-ci: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 push-nightly: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 	@set -e; { \
 		if [ -n "$(IS_DIRTY)" ]; then \
-			echo "push-with-datestamp: tree must be clean" >&2 ;\
+			echo "push-nightly: tree must be clean" >&2 ;\
 			exit 1 ;\
 		fi; \
 		now=$$(date +"%Y%m%dT%H%M%S") ;\
@@ -433,14 +440,16 @@ push-nightly: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.l
 		for image in $(LCNAME) $(LCNAME)-ea; do \
 			for suffix in "$$now" "$$today"; do \
 				tag="$(DEV_REGISTRY)/$$image:$${base_version}-nightly.$${suffix}" ;\
-				echo "pushing $$image as $$tag..." ;\
+				printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
 				docker tag $$(cat docker/$$image.docker) $$tag && \
 				docker push $$tag ;\
 			done ;\
 		done ;\
+		CHART_VERSION_SUFFIX=-nightly.$$today ;\
+		IMAGE_TAG=$${base_version}$${CHART_VERSION_SUFFIX} ;\
 		$(MAKE) \
-			CHART_VERSION_SUFFIX=-nightly.$$today \
-			IMAGE_TAG=$${base_version}-nightly.$${suffix} \
+			CHART_VERSION_SUFFIX="$${CHART_VERSION_SUFFIX}" \
+			IMAGE_TAG="$${IMAGE_TAG}" \
 			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
 		$(MAKE) update-yaml --always-make; \
@@ -707,7 +716,7 @@ release/promote-oss/.main:
 	@[[ '$(PROMOTE_FROM_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
 	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
 	@case "$(PROMOTE_CHANNEL)" in \
-		""|early|test) true ;; \
+		""|wip|early|test) true ;; \
 		*) echo "Unknown PROMOTE_CHANNEL $(PROMOTE_CHANNEL)" >&2 ; exit 1;; \
 	esac
 	@printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN) (channel=$(BLU)%s$(GRN))$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(PROMOTE_TO_VERSION)' '$(PROMOTE_CHANNEL)'
@@ -717,11 +726,18 @@ release/promote-oss/.main:
 	docker tag $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
 	docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
 
-	@printf '  $(CYN)https://s3.amazonaws.com/datawire-static-files/ambassador/$(PROMOTE_CHANNEL)stable.txt$(END)\n'
-	printf '%s' "$(RELEASE_VERSION)" | aws s3 cp - s3://datawire-static-files/ambassador/$(PROMOTE_CHANNEL)stable.txt
+	@printf '  $(CYN)https://s3.amazonaws.com/datawire-static-files/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt$(END)\n'
+	printf '%s' "$(RELEASE_VERSION)" | aws s3 cp - s3://datawire-static-files/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt
 
-	@printf '  $(CYN)s3://scout-datawire-io/ambassador/$(PROMOTE_CHANNEL)app.json$(END)\n'
-	printf '{"application":"ambassador","latest_version":"%s","notices":[]}' "$(RELEASE_VERSION)" | aws s3 cp - s3://scout-datawire-io/ambassador/$(PROMOTE_CHANNEL)app.json
+	@printf '  $(CYN)s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json$(END)\n'
+	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(RELEASE_VERSION)" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
+	$(MAKE) \
+		CHART_VERSION_SUFFIX= \
+		IMAGE_TAG=$(PROMOTE_TO_VERSION) \
+		IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
+		chart-push-ga ; \
+	$(MAKE) update-yaml --always-make; \
+	VERSION_OVERRIDE=$$suffix $(OSS_HOME)/manifests/push_manifests.sh
 .PHONY: release/promote-oss/.main
 
 # To be run from a checkout at the tag you are promoting _from_.
@@ -748,21 +764,23 @@ release/promote-oss/to-rc-latest:
 	; }
 .PHONY: release/promote-oss/to-rc-latest
 
-# To be run from a checkout at the tag you are promoting _to_.
+# To be run from a checkout at the tag you are promoting _from_.
 # This is normally run from CI by creating the GA tag.
 release/promote-oss/to-ga:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
 	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(RELEASE_VERSION)"; exit 1)
 	@set -e; { \
-	  rc_latest=$$(curl -sL --fail https://s3.amazonaws.com/datawire-static-files/ambassador/teststable.txt); \
-	  if ! [[ "$$rc_latest" == "$(RELEASE_VERSION)"-rc.* ]]; then \
-	    printf '$(RED)ERROR: https://s3.amazonaws.com/datawire-static-files/ambassador/teststable.txt => %s does not look like a RC of %s\n' "$$rc_latest" "$(RELEASE_VERSION)"; \
-	    exit 1; \
-	  fi; \
+      commit=$$(git rev-parse HEAD) ;\
+	  dev_version=$$(aws s3 cp s3://datawire-static-files/dev-builds/$$commit -) ;\
+	  if [ -z "$$dev_version" ]; then \
+		  printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
+		  exit 1 ;\
+      fi ;\
+ 	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
 	  $(MAKE) release/promote-oss/.main \
-	    PROMOTE_FROM_VERSION="$$rc_latest" \
-	    PROMOTE_TO_VERSION="$(RELEASE_VERSION)" \
-	    PROMOTE_CHANNEL='' \
+	    PROMOTE_FROM_VERSION="$$dev_version" \
+	    PROMOTE_TO_VERSION="$(RELEASE_VERSION)-wip" \
+	    PROMOTE_CHANNEL=wip \
 	    ; \
 	}
 .PHONY: release/promote-oss/to-ga
