@@ -1,6 +1,5 @@
 AMBASSADOR_CHART = $(OSS_HOME)/charts/ambassador
 EMISSARY_CHART = $(OSS_HOME)/charts/emissary-ingress
-YQ := $(OSS_HOME)/.circleci/yq
 
 define _push_chart
 	CHART_NAME=$(1) $(OSS_HOME)/charts/scripts/push_chart.sh

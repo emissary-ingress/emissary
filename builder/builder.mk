@@ -403,7 +403,8 @@ push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
 		$(MAKE) update-yaml --always-make; \
-		VERSION_OVERRIDE=$$suffix $(OSS_HOME)/manifests/push_manifests.sh ; \
+		$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests  ; \
+		$(MAKE) clean-manifests ; \
 	}
 .PHONY: push-dev
 
@@ -428,7 +429,8 @@ push-ci: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
 		$(MAKE) update-yaml --always-make; \
-		VERSION_OVERRIDE=$$suffix $(OSS_HOME)/manifests/push_manifests.sh ; \
+		$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests  ; \
+		$(MAKE) clean-manifests ; \
 	}
 .PHONY: push-ci
 
@@ -457,7 +459,8 @@ push-nightly: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.l
 			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
 		$(MAKE) update-yaml --always-make; \
-		VERSION_OVERRIDE=$${base_version}-nightly.$${suffix} $(OSS_HOME)/manifests/push_manifests.sh ; \
+		$(MAKE) VERSION_OVERRIDE=$${base_version}-nightly.$${suffix} push-manifests  ; \
+		$(MAKE) clean-manifests ; \
 	}
 .PHONY: push-nightly
 
@@ -741,7 +744,8 @@ release/promote-oss/.main:
 		IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
 		chart-push-ga ; \
 	$(MAKE) update-yaml --always-make; \
-	VERSION_OVERRIDE=$$suffix $(OSS_HOME)/manifests/push_manifests.sh
+	$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests ; \
+	$(MAKE) clean-manifests ; \
 .PHONY: release/promote-oss/.main
 
 # To be run from a checkout at the tag you are promoting _from_.
