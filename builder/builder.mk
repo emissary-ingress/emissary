@@ -377,6 +377,10 @@ push: docker/kat-server.docker.push.remote
 
 push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 	@set -e; { \
+		if [ -n "$(IS_DIRTY)" ]; then \
+			echo "push-dev: tree must be clean" >&2 ;\
+			exit 1 ;\
+		fi; \
 		check=$$(echo $(BUILD_VERSION) | grep -c -e -dev || true) ;\
 		if [ $$check -lt 1 ]; then \
 			printf "$(RED)push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version$(END)\n" >&2 ;\
