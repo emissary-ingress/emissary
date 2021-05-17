@@ -40,11 +40,6 @@ chart-push-ga: push-preflight
 	done ;
 .PHONY: chart-push-ga
 
-release/oss/prep:
-	echo "Put entry in changelog for new OSS tag"
-	echo "values.yaml needs new value"
-	echo "README gets generated"
-
 release/changelog:
 	@for chart in $(AMBASSADOR_CHART) $(EMISSARY_CHART) ; do \
 		CHART_NAME=`basename $$chart` $(OSS_HOME)/charts/scripts/update_chart_changelog.sh ; \
@@ -56,13 +51,13 @@ release/chart-bump/revision:
 	@for chart in $(AMBASSADOR_CHART) $(EMISSARY_CHART) ; do \
 		$(OSS_HOME)/charts/scripts/bump_chart_version.sh revision $$chart/Chart.yaml ; \
 	done ;
-.PHONY: chart-bump/revision
+.PHONY: release/chart-bump/revision
 
 release/chart-bump/minor:
 	@for chart in $(AMBASSADOR_CHART) $(EMISSARY_CHART) ; do \
 		$(OSS_HOME)/charts/scripts/bump_chart_version.sh minor $$chart/Chart.yaml ; \
 	done ;
-.PHONY: chart-bump/minor
+.PHONY: release/chart-bump/minor
 
 # This is pretty Draconian. Use with care.
 chart-clean:
