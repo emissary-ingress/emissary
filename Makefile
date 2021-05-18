@@ -27,6 +27,7 @@ include $(OSS_HOME)/builder/builder.mk
 include $(OSS_HOME)/_cxx/envoy.mk
 include $(OSS_HOME)/charts/ambassador/Makefile
 include $(OSS_HOME)/charts/charts.mk
+include $(OSS_HOME)/manifests/manifests.mk
 
 $(call module,ambassador,$(OSS_HOME))
 
