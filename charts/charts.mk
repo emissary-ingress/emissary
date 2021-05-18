@@ -1,5 +1,6 @@
 AMBASSADOR_CHART = $(OSS_HOME)/charts/ambassador
 EMISSARY_CHART = $(OSS_HOME)/charts/emissary-ingress
+YQ := $(OSS_HOME)/.circleci/yq
 
 define _push_chart
 	CHART_NAME=$(1) $(OSS_HOME)/charts/scripts/push_chart.sh
@@ -7,6 +8,16 @@ endef
 
 define _set_tag_and_repo
 	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py $(1) $(2) $(3)
+endef
+
+define _set_tag
+	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py $(1) $(2)
+endef
+
+define _docgen
+	if [[ -f $(1)/doc.yaml ]] ; then \
+		chart-doc-gen -d $(1)/doc.yaml -t $(1)/readme.tpl -v $(1)/values.yaml > $(1)/README.md ; \
+	fi ; \
 endef
 
 push-preflight: create-venv
@@ -45,6 +56,18 @@ release/changelog:
 	done ;
 .PHONY: release/changelog
 
+release/chart/update-images: doc-gen-preflight
+	@[ -n "${IMAGE_TAG}" ] || (echo "IMAGE_TAG must be set" && exit 1)
+	@([[ "${IMAGE_TAG}" =~ .*\.0$$ ]] && $(MAKE) release/chart-bump/minor) || $(MAKE) release/chart-bump/revision
+	@for chart in $(AMBASSADOR_CHART) $(EMISSARY_CHART) ; do \
+		$(call _set_tag,$$chart/values.yaml,${IMAGE_TAG}) ; \
+		$(YQ) w -i $$chart/Chart.yaml 'appVersion' ${IMAGE_TAG} ; \
+		IMAGE_TAG="${IMAGE_TAG}" CHART_NAME=`basename $$chart` $(OSS_HOME)/charts/scripts/image_tag_changelog_update.sh ; \
+		CHART_NAME=`basename $$chart` $(OSS_HOME)/charts/scripts/update_chart_changelog.sh ; \
+		$(call _docgen,$$chart) ; \
+		git add $$chart/README.md $$chart/values.yaml $$chart/CHANGELOG.md $$chart/Chart.yaml ; \
+	done ;
+
 # Both charts should have same versions for now. Just makes things a bit easier if we publish them together for now
 release/chart-bump/revision:
 	@for chart in $(AMBASSADOR_CHART) $(EMISSARY_CHART) ; do \
@@ -63,3 +86,10 @@ chart-clean:
 	git restore $(OSS_HOME)/charts/*/Chart.yaml $(OSS_HOME)/charts/*/values.yaml
 	rm -f $(OSS_HOME)/charts/*/*.tgz $(OSS_HOME)/charts/*/index.yaml $(OSS_HOME)/charts/*/tmp.yaml
 .PHONY: chart-clean
+
+doc-gen-preflight:
+	@if ! command -v chart-doc-gen 2> /dev/null ; then \
+		printf 'chart-doc-gen not installed, see https://github.com/kubepack/chart-doc-gen'; \
+	    false; \
+	fi
+.PHONY: doc-gen-preflight
