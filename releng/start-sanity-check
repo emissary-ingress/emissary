@@ -38,7 +38,7 @@ def main(next_ver: str, quiet: bool = False) -> int:
         if url.endswith("-private"):
             is_private = True
             url = url[:-len("-private")]
-        assert_eq(url, "git@github.com:datawire/ambassador")
+        assert_eq(url, "git@github.com:/datawire/ambassador")
 
     with check("You're in the toplevel of the clone"):
         toplevel = run_capture(['git', 'rev-parse', '--show-toplevel'])
