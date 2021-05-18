@@ -9,6 +9,15 @@ TOP_DIR=$CURR_DIR/..
 # shellcheck source=common.sh
 source "$CURR_DIR/common.sh"
 
+if [[ -z "${CHART_NAME}" ]] ; then
+    abort "Need to specify the chart you wish to publish"
+fi
+chart_dir="${TOP_DIR}/${CHART_NAME}"
+
+if [[ ! -d "${chart_dir}" ]] ; then
+    abort "${chart_dir} is not a directory"
+fi
+
 #########################################################################################
 if ! command -v helm 2> /dev/null ; then
     info "Helm doesn't exist, installing helm"
@@ -22,7 +31,7 @@ thisversion=$(get_chart_version ${TOP_DIR})
 repo_key=
 if [[ -n "${REPO_KEY}" ]] ; then
     repo_key="${REPO_KEY}"
-elif [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
+elif [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
     # repo_key=ambassador
     repo_key=emissary-ingress   # I really don't want this messing with ambassador's stuff now
 else
@@ -31,19 +40,20 @@ else
 fi
 repo_url=https://s3.amazonaws.com/datawire-static-files/${repo_key}/
 
+rm -f ${chart_dir}/*.tgz
 info "Pushing Helm Chart"
-helm package --destination $TOP_DIR $TOP_DIR
+helm package --destination $chart_dir $chart_dir
 
 # Get name of package
-export CHART_PACKAGE=$(ls ${TOP_DIR}/*.tgz)
+export CHART_PACKAGE=$(ls ${chart_dir}/*.tgz)
 
-curl -o ${TOP_DIR}/tmp.yaml -k -L ${repo_url}index.yaml
-if [[ $(grep -c "version: $thisversion$" ${TOP_DIR}/tmp.yaml || true) != 0 ]]; then
+curl -o ${chart_dir}/tmp.yaml -k -L ${repo_url}index.yaml
+if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+$  ]] && [[ $(grep -c "version: $thisversion$" ${chart_dir}/tmp.yaml || true) != 0 ]]; then
 	failed "Chart version $thisversion is already in the index"
 	exit 1
 fi
 
-helm repo index ${TOP_DIR} --url ${repo_url} --merge ${TOP_DIR}/tmp.yaml
+helm repo index ${chart_dir} --url ${repo_url} --merge ${chart_dir}/tmp.yaml
 
 if [ -z "$AWS_BUCKET" ] ; then
     AWS_BUCKET=datawire-static-files
@@ -53,7 +63,7 @@ fi
 [ -n "$AWS_SECRET_ACCESS_KEY" ] || abort "AWS_SECRET_ACCESS_KEY is not set"
 
 info "Pushing chart to S3 bucket $AWS_BUCKET"
-for f in "$CHART_PACKAGE" "${TOP_DIR}/index.yaml" ; do
+for f in "$CHART_PACKAGE" "${chart_dir}/index.yaml" ; do
     fname=`basename $f`
     echo "pushing ${repo_key}/$fname"
     aws s3api put-object \
@@ -64,9 +74,14 @@ done
 
 info "Cleaning up..."
 echo
-rm ${TOP_DIR}/tmp.yaml ${TOP_DIR}/index.yaml "$CHART_PACKAGE"
+rm ${chart_dir}/tmp.yaml ${chart_dir}/index.yaml "$CHART_PACKAGE"
 
-if [[ -n "${PUBLISH_GIT_RELEASE}" ]] ; then
+if [[ `basename ${chart_dir}` != ambassador ]] ; then
+    info "This script only publishes release for the ambassador chart, skipping publishing git release for ${chart_dir}"
+    exit 0
+fi
+
+if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ -n "${PUBLISH_GIT_RELEASE}" ]]; then
     if [[ -z "${CIRCLE_SHA1}" ]] ; then
         echo "CIRCLE_SHA1 not set"
         exit 1
@@ -76,20 +91,11 @@ if [[ -n "${PUBLISH_GIT_RELEASE}" ]] ; then
         exit 1
     fi
     tag="chart-v${thisversion}"
-    title="Ambassador Chart ${thisversion}"
+    export CHART_VERSION=${thisversion}
+    title=`envsubst < ${chart_dir}/RELEASE_TITLE.tpl`
     repo_full_name="datawire/ambassador"
     token="${GH_RELEASE_TOKEN}"
-    description=$(cat <<-END
-## :tada: Ambassador Chart ${thisversion} :tada:
-
-Upgrade Ambassador - https://www.getambassador.io/reference/upgrading#helm.html
-View changelog - https://github.com/datawire/ambassador/blob/master/charts/ambassador/CHANGELOG.md
-
----
-
-END
-)
-    description=`echo "${description}" | awk '{printf "%s\\\n", $0}'`
+    description=`envsubst < ${chart_dir}/RELEASE.tpl | awk '{printf "%s\\\n", $0}'`
     in_changelog=false
     while IFS= read -r line ; do
         if ${in_changelog} ; then
@@ -104,7 +110,7 @@ END
             in_changelog=true
         fi
 
-    done < ${TOP_DIR}/CHANGELOG.md
+    done < ${chart_dir}/CHANGELOG.md
 
     generate_post_data()
     {

@@ -1,4 +1,3 @@
----
 # Default values for ambassador.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
@@ -6,11 +5,11 @@
 # Manually set metadata for the Release.
 #
 # Defaults to .Chart.Name
-nameOverride: ""
+nameOverride: ''
 # Defaults to .Release.Name-.Chart.Name unless .Release.Name contains "ambassador"
-fullnameOverride: ""
+fullnameOverride: ''
 # Defaults to .Release.Namespace
-namespaceOverride: ""
+namespaceOverride: ''
 
 replicaCount: 3
 daemonSet: false
@@ -121,7 +120,7 @@ image:
   tag: 1.13.6
   pullPolicy: IfNotPresent
 
-dnsPolicy: "ClusterFirst"
+dnsPolicy: ClusterFirst
 hostNetwork: false
 
 service:
@@ -130,15 +129,15 @@ service:
   # Note that target http ports need to match your ambassador configurations service_port
   # https://www.getambassador.io/reference/modules/#the-ambassador-module
   ports:
-    - name: http
-      port: 80
-      targetPort: 8080
+  - name: http
+    port: 80
+    targetPort: 8080
       # protocol: TCP
       # nodePort: 30080
       # hostPort: 80
-    - name: https
-      port: 443
-      targetPort: 8443
+  - name: https
+    port: 443
+    targetPort: 8443
       # protocol: TCP
       # nodePort: 30443
       # hostPort: 443
@@ -217,8 +216,7 @@ adminService:
   snapshotPort: 8005
   # NodePort used if type is NodePort
   # nodePort: 38877
-  annotations:
-    {}
+  annotations: {}
 
 rbac:
   # Specifies whether RBAC resources should be created
@@ -268,19 +266,15 @@ volumes: []
 
 volumeMounts: []
 
-podLabels:
-  {}
+podLabels: {}
 
-podAnnotations:
-  {}
+podAnnotations: {}
   # prometheus.io/scrape: "true"
   # prometheus.io/port: "9102"
 
-deploymentLabels:
-  {}
+deploymentLabels: {}
 
-deploymentAnnotations:
-  {}
+deploymentAnnotations: {}
   # configmap.reloader.stakater.com/auto: "true"
 
 resources:
@@ -292,7 +286,7 @@ resources:
     cpu: 200m
     memory: 300Mi
 
-priorityClassName: ""
+priorityClassName: ''
 
 nodeSelector: {}
 
@@ -302,7 +296,7 @@ affinity: {}
 
 topologySpreadConstraints: []
 
-ambassadorConfig: ""
+ambassadorConfig: ''
 
 crds:
   enabled: true
@@ -335,14 +329,13 @@ licenseKey:
   createSecret: true
   secretName:
   # Annotations to attach to the license-key-secret.
-  annotations:
-    {}
+  annotations: {}
 
 # The DevPortal is exposed at /docs/ endpoint in the AES container.
 # Setting this to true will automatically create routes for the DevPortal.
 createDevPortalMappings: true
 devportal:
-  docsPrefix: "/documentation/"
+  docsPrefix: /documentation/
 
 # The Ambassador Edge Stack uses a redis instance for managing authentication,
 # rate limiting, and sharing minor configuration details between pods for
@@ -361,10 +354,8 @@ redis:
     pullPolicy: IfNotPresent
   # Annotations for Ambassador Pro's redis instance.
   annotations:
-    deployment:
-      {}
-    service:
-      {}
+    deployment: {}
+    service: {}
   resources: {}
   # If you want to specify resources, uncomment the following
   # lines and remove the curly braces after 'resources:'.
@@ -422,10 +413,10 @@ registry:
 resolvers:
   endpoint:
     create: false
-    name: "endpoint"
+    name: endpoint
   consul:
     create: false
-    name: "consul-dc1"
+    name: consul-dc1
     spec: {}
     # Configuration for a Consul Resolver
     #   address: consul-server.default.svc.cluster.local:8500
@@ -487,14 +478,14 @@ servicePreview:
       # Leave blank to use image.repository and image.tag
       repository:
       tag:
-    serviceAccountName: "traffic-manager"
+    serviceAccountName: traffic-manager
   trafficAgent:
     image:
       # Leave blank to use image.repository and image.tag
       repository:
       tag:
     singleNamespace: true
-    serviceAccountName: "traffic-agent"
+    serviceAccountName: traffic-agent
     port: 9900
 
     # Configure the ambassador-injector webhook for Service Preview Traffic Agent automatic sidecar injection.
@@ -504,15 +495,15 @@ servicePreview:
       # If no injector.crtPEM and injector.keyPEM are provided, a self-signed certificate will be issued
       # for the Common Name (CN) of `<ambassador-injector>.<namespace>.svc`, which is the cluster-internal DNS name
       # for the service.
-      crtPEM: ""
-      keyPEM: ""
+      crtPEM: ''
+      keyPEM: ''
 
 # Configure the ambassador agent
 agent:
   enabled: true
   # this will be empty when it first gets applied, then the user will edit the agent to
   # make it start reporting
-  cloudConnectToken: ""
+  cloudConnectToken: ''
   rpcAddress: https://app.getambassador.io/
   createArgoRBAC: true
   image:
@@ -520,7 +511,7 @@ agent:
     tag:
     repository:
 
-deploymentTool: ""
+deploymentTool: ''
 
 # configure docker to pull from private registry
 docker: {}
