@@ -798,20 +798,16 @@ release/go:
 	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
 	@$(OSS_HOME)/releng/start-sanity-check --quiet $(VERSION)
 	@$(OSS_HOME)/releng/release-go-changelog-update --quiet $(VERSION)
-	@echo "git tag vX.Y.Z && git push tag"
 
 release/manifests:
+	@set -e; { \
+		if [ -n "$(IS_DIRTY)" ]; then \
+			echo "release/manifests: tree must be clean" >&2 ;\
+			exit 1 ;\
+		fi; \
+	}
 	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
-	echo "Checkout git tag of $(VERSION)"
-	echo "Ensure $(RELEASE_REGISTRY)/$(REPO):$(VERSION) exists in the remote registry"
-	echo "Checkout branch from $(VERSION)"
-	echo "For both charts, Update chart values.yaml, Chart.yaml, CHANGELOG, README"
-	echo "Run `make update-yaml"
-	echo "commit to branch"
-	# this tag will trigger publishes of both helm charts and the manifests
-	# manifests get their versions from doc/yaml/versions.yml
-	echo "git tag chart-v`grep version Chart.yaml`"
-	echo "gh create PR"
+	@$(OSS_HOME)/releng/release-manifest-image-update
 
 release-prep:
 	bash $(OSS_HOME)/releng/release-prep.sh
