@@ -63,7 +63,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## Next Release
+## [2.0.0] (TBD)
 
 ### Emissary Ingress and Ambassador Edge Stack
 
