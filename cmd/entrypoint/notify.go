@@ -13,6 +13,8 @@ import (
 
 	"github.com/datawire/ambassador/pkg/acp"
 	"github.com/datawire/ambassador/pkg/debug"
+
+	"github.com/datawire/dlib/dlog"
 )
 
 type notable interface {
@@ -109,7 +111,7 @@ func notifyWebhookUrl(ctx context.Context, name, xurl string) bool {
 		if errors.Is(err, syscall.ECONNREFUSED) {
 			// We couldn't succesfully connect to the sidecar, probably because it hasn't
 			// started up yet, so we log the error and return false to signal retry.
-			log.Println(err)
+			dlog.Errorf(ctx, err.Error())
 			return false
 		} else {
 			// If either of the sidecars cannot successfully handle a webhook request, we
