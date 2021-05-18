@@ -27,11 +27,6 @@ jobs:
           release: << parameters.release >>
           push_nightly: << parameters.push_nightly >>
 
-  "oss-push-ci":
-    executor: oss-linux
-    steps:
-      - job-push-ci
-
   "oss-gotest":
     executor: oss-linux
     parameters:
@@ -259,16 +254,6 @@ workflows:
               - test: pytest-envoy-v3
                 fast-reconfigure: true
                 legacy-mode: true
-      - "oss-push-ci":
-          name: oss-dev-push-ci
-          requires:
-            - oss-dev-generate
-            - oss-dev-lint
-            - oss-dev-chart
-            - emissary-dev-chart
-            - oss-dev-gotest-matrix
-            - oss-dev-pytest-matrix
-            - oss-dev-envoy-test-matrix
 
 
   "OSS: Chart Release":
