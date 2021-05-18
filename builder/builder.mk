@@ -738,14 +738,6 @@ release/promote-oss/.main:
 
 	@printf '  $(CYN)s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json$(END)\n'
 	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(RELEASE_VERSION)" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
-	$(MAKE) \
-		CHART_VERSION_SUFFIX= \
-		IMAGE_TAG=$(PROMOTE_TO_VERSION) \
-		IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
-		chart-push-ga ; \
-	$(MAKE) update-yaml --always-make; \
-	$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests ; \
-	$(MAKE) clean-manifests ; \
 .PHONY: release/promote-oss/.main
 
 # To be run from a checkout at the tag you are promoting _from_.
@@ -793,9 +785,40 @@ release/promote-oss/to-ga:
 	}
 .PHONY: release/promote-oss/to-ga
 
+release/go:
+	@set -e; { \
+		if [ -n "$(IS_DIRTY)" ]; then \
+			echo "release/go: tree must be clean" >&2 ;\
+			exit 1 ;\
+		fi; \
+	}
+	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
+	@$(OSS_HOME)/releng/start-sanity-check --quiet $(VERSION)
+	@git tag -s -m "Tagging v$(VERSION) for GA" -a v$(VERSION)
+	@git push origin v$(VERSION)
+	@$(OSS_HOME)/releng/release-go-changelog-update --quiet $(VERSION)
+.PHONY: release/go
+
+release/manifests:
+	@set -e; { \
+		if [ -n "$(IS_DIRTY)" ]; then \
+			echo "release/manifests: tree must be clean" >&2 ;\
+			exit 1 ;\
+		fi; \
+	}
+	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
+	@$(OSS_HOME)/releng/release-manifest-image-update
+.PHONY: release/manifests
+
 release-prep:
 	bash $(OSS_HOME)/releng/release-prep.sh
 .PHONY: release-prep
+
+release/start:
+	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
+	@$(OSS_HOME)/releng/start-sanity-check --quiet $(VERSION)
+	@$(OSS_HOME)/releng/start-update-version --quiet --no-commit $(VERSION)
+.PHONY: release/start
 
 clean:
 	@$(BUILDER) clean
