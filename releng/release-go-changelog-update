@@ -66,12 +66,28 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         with checker.check(name) as subcheck:
             # time.sleep(1)  # it's stupid, but honestly the delay makes the output more readable
             yield subcheck
-    with check("Logging into github"):
-        run(["gh", "auth", "login"])
+    run(["gh", "auth", "login"])
+
+    m = re_ga.match(next_ver)
+    assert m
+    release_branch = f"release/v{m[vX]}.{m[vY]}"
+    with check(f"Checking that {release_branch} exists"):
+        run(["git", "rev-parse", "--verify", release_branch])
+    if not checker.ok:
+        checker.ok = True
+        with check(f"Creating {release_branch}"):
+            run(["git", "checkout", "-b", release_branch])
+            run(["git", "push", "origin", release_branch])
+        if not checker.ok:
+            print(f"Could not create {release_branch}")
+            print("Please create this branch then rerun this script")
+            return 1
 
     workbranch = f"rel/{next_ver}/changelog-date-update"
     with check(f"Creating new branch {workbranch}"):
         run(["git", "checkout", "-b", workbranch])
+    if not checker.ok:
+        return 1
 
     with check(f"Updating CHANGELOG.md with date for {next_ver}..."):
         found = False
@@ -94,11 +110,10 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
                 msgfile.write(f"Update for v{next_ver}\n")
             run(['git', 'citool'])
             run(["git", "push", "origin", workbranch])
+        if not checker.ok:
+            return 1
 
         with check(f"Creating PR for branch {workbranch}"):
-            m = re_ga.match(next_ver)
-            assert m
-            release_branch = f"release/v{m[vX]}.{m[vY]}"
             # TODO: dont hardcode owners
             run(["gh", "pr", "create",
                     "--base", release_branch,

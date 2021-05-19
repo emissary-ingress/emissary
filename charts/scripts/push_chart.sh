@@ -26,7 +26,7 @@ if ! command -v helm 2> /dev/null ; then
     ./get_helm.sh --version v3.4.1
     rm -f get_helm.sh
 fi
-thisversion=$(grep version ${chart_dir}/Chart.yaml | awk ' { print $2 }')
+thisversion=$(grep version ${chart_dir}/Chart.yaml | awk '{ print $2 }')
 
 repo_key=
 if [[ -n "${REPO_KEY}" ]] ; then
@@ -48,7 +48,8 @@ helm package --destination $chart_dir $chart_dir
 export CHART_PACKAGE=$(ls ${chart_dir}/*.tgz)
 
 curl -o ${chart_dir}/tmp.yaml -k -L ${repo_url}index.yaml
-if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+$  ]] && [[ $(grep -c "version: $thisversion$" ${chart_dir}/tmp.yaml || true) != 0 ]]; then
+chart_name=`basename ${chart_dir}`
+if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+$  ]] && [[ $(grep -c "${chart_name}-$thisversion\.tgz$" ${chart_dir}/tmp.yaml || true) != 0 ]]; then
 	failed "Chart version $thisversion is already in the index"
 	exit 1
 fi

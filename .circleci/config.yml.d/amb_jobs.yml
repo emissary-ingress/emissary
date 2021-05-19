@@ -28,7 +28,7 @@ commands:
     steps:
       - amb-linux-install
       - amb-checkout
-      - skip-if-no-changes:
+      - amb-skip-if-no-changes-not-release:
           to: charts/ambassador
       - install-k3d
       # We might need to be logged in the registry to pull the Envoy
@@ -49,7 +49,7 @@ commands:
     steps:
       - amb-linux-install
       - amb-checkout
-      - skip-if-no-changes:
+      - amb-skip-if-no-changes-not-release:
           to: charts/emissary-ingress
       - install-k3d
       # We might need to be logged in the registry to pull the Envoy
@@ -71,7 +71,7 @@ commands:
       - amb-config-registry
       # main
       - run: make test-chart
-      - run: charts/ambassador/ci/push_chart.sh
+      - run: make release/ga/chart-push
 
   "job-manifests-publish":
     steps:
@@ -79,21 +79,6 @@ commands:
       - amb-checkout
       - amb-config-registry
       - run:  manifests/push_manifests.sh
-
-  "job-emissary-chart-publish":
-    steps:
-      - amb-linux-install
-      - amb-checkout
-      - amb-skip-if-bad-chart-version
-      - run: |
-          ./charts/ambassador/ci/check_updated_changelog.sh
-      - install-k3d
-      # We might need to be logged in the registry to pull the Envoy
-      # image or the builder-base image.
-      - amb-config-registry
-      # main
-      - run: make test-chart
-      - run: charts/emissary-ingress/ci/push_chart.sh
 
   "job-generate":
     steps:
@@ -316,15 +301,14 @@ commands:
           condition: # Don't do this in the -private repos
             or:
             - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
-            - equal: [ "https://github.com/datawire/apro", << pipeline.project.git_url >> ]
           steps:
             - amb-linux-install
             - amb-checkout
             - run:
-                name: "Promote to -rc-latest"
+                name: "Promote to dev build to RC"
                 command: |
                   docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
-                  DEV_KUBECONFIG="-skip-for-release-" make release/promote-<< parameters.channel >>/to-rc-latest
+                  DEV_KUBECONFIG="-skip-for-release-" make release/promote-<< parameters.channel >>/dev-to-rc
 
   "job-promote-to-ga":
     parameters:

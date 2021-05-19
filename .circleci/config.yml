@@ -26,7 +26,7 @@ commands:
     steps:
     - amb-linux-install
     - amb-checkout
-    - skip-if-no-changes:
+    - amb-skip-if-no-changes-not-release:
         to: charts/ambassador
     - install-k3d
     # We might need to be logged in the registry to pull the Envoy
@@ -45,7 +45,7 @@ commands:
     steps:
     - amb-linux-install
     - amb-checkout
-    - skip-if-no-changes:
+    - amb-skip-if-no-changes-not-release:
         to: charts/emissary-ingress
     - install-k3d
     # We might need to be logged in the registry to pull the Envoy
@@ -66,27 +66,13 @@ commands:
     - amb-config-registry
     - # main
       run: make test-chart
-    - run: charts/ambassador/ci/push_chart.sh
+    - run: make release/ga/chart-push
   "job-manifests-publish":
     steps:
     - amb-linux-install
     - amb-checkout
     - amb-config-registry
     - run: manifests/push_manifests.sh
-  "job-emissary-chart-publish":
-    steps:
-    - amb-linux-install
-    - amb-checkout
-    - amb-skip-if-bad-chart-version
-    - run: |
-        ./charts/ambassador/ci/check_updated_changelog.sh
-    - install-k3d
-    # We might need to be logged in the registry to pull the Envoy
-    # image or the builder-base image.
-    - amb-config-registry
-    - # main
-      run: make test-chart
-    - run: charts/emissary-ingress/ci/push_chart.sh
   "job-generate":
     steps:
     # setup
@@ -296,16 +282,14 @@ commands:
           or:
           - equal: ["https://github.com/datawire/ambassador", << pipeline.project.git_url
                 >>]
-          - equal: ["https://github.com/datawire/apro", << pipeline.project.git_url
-                >>]
         steps:
         - amb-linux-install
         - amb-checkout
         - run:
-            name: "Promote to -rc-latest"
+            name: "Promote to dev build to RC"
             command: |
               docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
-              DEV_KUBECONFIG="-skip-for-release-" make release/promote-<< parameters.channel >>/to-rc-latest
+              DEV_KUBECONFIG="-skip-for-release-" make release/promote-<< parameters.channel >>/dev-to-rc
   "job-promote-to-ga":
     parameters:
       "channel":
@@ -338,9 +322,53 @@ commands:
     steps:
     - attach_workspace:
         at: /home/circleci/project
+  amb-skip-if-no-changes-not-release:
+    parameters:
+      to:
+        description: A POSIX ERE (grep -E regex) that matches which filenames to check
+          for changes in
+        type: string
+    steps:
+    - when:
+        condition:
+          not:
+            or:
+            - equal:
+              - master
+              - << pipeline.git.branch >>
+            - matches:
+                pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+$'
+                value: << pipeline.git.branch >>
+        steps:
+        - skip-if-no-changes:
+            to: << parameters.to >>
+  amb-skip-if-only-changes-not-release:
+    parameters:
+      to:
+        description: A POSIX ERE (grep -E regex) that matches which filenames to check
+          for changes in
+        type: string
+    steps:
+    - when:
+        condition:
+          not:
+            or:
+            - equal:
+              - master
+              - << pipeline.git.branch >>
+            - matches:
+                pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+$'
+                value: << pipeline.git.branch >>
+        steps:
+        - skip-if-only-changes:
+            to: << parameters.to >>
   amb-skip-if-no-code-changes:
     steps:
     - skip-if-only-changes:
+        to: (charts/ambassador\|docs/\|*.md)
+  amb-skip-if-no-code-changes-not-release:
+    steps:
+    - amb-skip-if-only-changes-not-release:
         to: (charts/ambassador\|docs/\|*.md)
   amb-checkout:
     steps:
@@ -841,12 +869,15 @@ jobs:
     steps:
     - job-chart-publish
   oss-manifest-publish:
+    environment:
+      BUMP_STABLE: "true"
     executor: oss-linux
     steps:
     - job-manifests-publish
   oss-chart-changelog:
     executor: oss-linux
     steps:
+    - run: echo 'step'
     - when:
         condition:
           and:
@@ -867,7 +898,7 @@ jobs:
     executor: oss-linux
     steps:
     - job-emissary-chart-publish
-  oss-promote-to-rc-latest:
+  oss-promote-dev-to-rc:
     executor: oss-linux
     steps:
     - job-promote-to-rc-latest:
@@ -941,7 +972,31 @@ _anchors:
         only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
       branches:
         ignore: /.*/
+  filter-master-release-branches-only:
+    filters:
+      branches:
+        only:
+        - master
+        - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
 workflows:
+  'OSS: GA Release':
+    jobs:
+    - oss-promote-to-ga:
+        name: "oss-release-promote-to-ga"
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+          branches:
+            ignore: /.*/
+  'OSS: Release Candidate':
+    jobs:
+    - oss-promote-dev-to-rc:
+        name: "oss-release-promote-dev-to-rc"
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
+          branches:
+            ignore: /.*/
   'OSS: Dev':
     jobs:
     - oss-images:
@@ -965,8 +1020,23 @@ workflows:
             - false
             legacy-mode:
             - false
+    - oss-gotest:
+        name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure
+          >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
+        matrix:
+          alias: "oss-dev-gotest-legacy-matrix"
+          parameters:
+            fast-reconfigure:
+            - false
+            legacy-mode:
+            - true
             # If you enable testing with legacy-mode true as well, you'll also need
             # to add some exclusions -- see the Release workflow for more.
+        filters:
+          branches:
+            only:
+            - master
+            - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
     - oss-chart-changelog:
         name: "oss-chart-changelog"
     - oss-test:
@@ -997,6 +1067,32 @@ workflows:
           - test: pytest
             fast-reconfigure: true
             legacy-mode: true
+    - oss-test:
+        requires:
+        - "oss-dev-images"
+        name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
+          >>"
+        matrix:
+          alias: "oss-dev-pytest-legacy-matrix"
+          parameters:
+            test:
+            - "pytest"
+            # Running the ingresstests would require we install `kind` and
+            # that the test suite supports HTTP to HTTPS redirects (AES
+            # enables cleartext redirection by default, even for fallback
+            # hosts, contrary to A/OSS)
+            #- "ingresstest"
+
+            fast-reconfigure:
+            - false
+            legacy-mode:
+            - true
+        filters:
+          branches:
+            only:
+            - master
+            - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
     - oss-envoy-test:
         requires:
         - "oss-dev-images"
@@ -1023,185 +1119,27 @@ workflows:
           - test: pytest-envoy-v3
             fast-reconfigure: true
             legacy-mode: true
-  'OSS: Chart Release':
-    when:
-      or:
-      - equal:
-        - "https://github.com/datawire/ambassador"
-        - << pipeline.project.git_url >>
-      - equal:
-        - "https://github.com/datawire/ambassador-private"
-        - << pipeline.project.git_url >>
-    jobs:
-    - oss-chart-publish:
-        name: "oss-release-chart"
-        filters:
-          tags:
-            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
-          branches:
-            ignore: /.*/
-  'OSS: Manifests Release':
-    when:
-      or:
-      - equal:
-        - "https://github.com/datawire/ambassador"
-        - << pipeline.project.git_url >>
-      - equal:
-        - "https://github.com/datawire/ambassador-private"
-        - << pipeline.project.git_url >>
-    jobs:
-    - oss-manifest-publish:
-        name: "oss-rc-manifests-publish"
-        filters:
-          tags:
-            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
-          branches:
-            ignore: /.*/
-  'OSS: Release':
-    when:
-      or:
-      - equal:
-        - "https://github.com/datawire/ambassador"
-        - << pipeline.project.git_url >>
-      - equal:
-        - "https://github.com/datawire/ambassador-private"
-        - << pipeline.project.git_url >>
-    jobs:
-    - oss-images:
-        name: "oss-release-images"
-        release: true
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-generate:
-        name: "oss-release-generate"
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-lint:
-        name: "oss-release-lint"
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-gotest:
-        name: "oss-release-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
-          >>"
-        matrix:
-          alias: "oss-release-gotest"
-          parameters:
-            fast-reconfigure:
-            - true
-            - false
-            legacy-mode:
-            - true
-            - false
-          exclude:
-          - fast-reconfigure: true
-            legacy-mode: true
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-test:
-        requires:
-        - "oss-release-images"
-        name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
-          >>"
-        matrix:
-          alias: "oss-release-test"
-          parameters:
-            test:
-            - "pytest"
-            # Running the ingresstests would require we install `kind` and
-            # that the test suite supports HTTP to HTTPS redirects (AES
-            # enables cleartext redirection by default, even for fallback
-            # hosts, contrary to A/OSS)
-            #- "ingresstest"
-
-            fast-reconfigure:
-            - true
-            - false
-            legacy-mode:
-            - true
-            - false
-          exclude:
-          - test: pytest
-            fast-reconfigure: true
-            legacy-mode: true
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
     - oss-envoy-test:
         requires:
-        - "oss-release-images"
-        name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
+        - "oss-dev-images"
+        name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
         matrix:
-          alias: "oss-release-envoy-test"
+          alias: "oss-dev-envoy-test-legacy-matrix"
           parameters:
             test:
             - "pytest-envoy"
             - "pytest-envoy-v3"
             fast-reconfigure:
-            - true
             - false
             legacy-mode:
             - true
-            - false
-          exclude:
-          - test: pytest-envoy
-            fast-reconfigure: true
-            legacy-mode: true
-          - test: pytest-envoy-v3
-            fast-reconfigure: true
-            legacy-mode: true
         filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
           branches:
-            ignore: /.*/
-    - oss-promote-to-rc-latest:
-        name: "oss-release-promote-to-rc-latest"
-        requires:
-        # build
-        - "oss-release-images"
-        # test
-        - "oss-release-generate"
-        - "oss-release-lint"
-        - "oss-release-test"
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-promote-to-ga:
-        name: "oss-release-promote-to-ga"
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-manifest-publish:
-        name: "oss-ga-manifests-publish"
-        requires:
-        - "oss-release-generate"
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
-          branches:
-            ignore: /.*/
+            only:
+            - master
+            - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
   'OSS: Nightly':
     triggers:
     - schedule:
@@ -1288,47 +1226,40 @@ workflows:
           - test: pytest-envoy-v3
             fast-reconfigure: true
             legacy-mode: true
-  'Docs: Dev':
-    jobs:
-    - "website-preview-build"
-    - website-preview-publish:
-        requires:
-        - "website-preview-build"
-        filters:
-          branches:
-            ignore:
-            # Don't bother running on 'master' or the other
-            # branches that we do the "Release" workflow for.
-            - master
-            - /^release\/v1\.[0-9]+$/
-            # Don't bother running on forked PRs (which CircleCI
-            # shows as branch="pull/${number}"); they won't have
-            # GH_TOKEN set to be able to pull getambassador.io.git
-            - /^pull\/[0-9]+$/
-  'Docs: Prerelease':
+  'OSS: Chart Release':
     when:
-      equal:
-      - "https://github.com/datawire/apro"
-      - << pipeline.project.git_url >>
+      or:
+      - equal:
+        - "https://github.com/datawire/ambassador"
+        - << pipeline.project.git_url >>
+      - equal:
+        - "https://github.com/datawire/ambassador-private"
+        - << pipeline.project.git_url >>
     jobs:
-    - website-preview-for-smoketest:
+    - oss-chart-publish:
+        name: "oss-release-chart"
         filters:
           tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
           branches:
             ignore: /.*/
-  'Docs: Release':
+  'OSS: Manifests Release':
     when:
-      equal:
-      - "https://github.com/datawire/ambassador"
-      - << pipeline.project.git_url >>
+      or:
+      - equal:
+        - "https://github.com/datawire/ambassador"
+        - << pipeline.project.git_url >>
+      - equal:
+        - "https://github.com/datawire/ambassador-private"
+        - << pipeline.project.git_url >>
     jobs:
-    - website-prod-publish:
+    - oss-manifest-publish:
+        name: "oss-rc-manifests-publish"
         filters:
+          tags:
+            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
           branches:
-            only:
-            - master
-            - /^release\/v1\.[0-9]+$/
+            ignore: /.*/
 executors:
   oss-linux:
     machine:

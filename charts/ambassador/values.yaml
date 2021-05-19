@@ -118,8 +118,9 @@ security:
 
 image:
   tag: 1.13.4
+  aesTag: 1.13.4
   pullPolicy: IfNotPresent
-
+  ossRepository: docker.io/datawire/ambassador
 dnsPolicy: ClusterFirst
 hostNetwork: false
 

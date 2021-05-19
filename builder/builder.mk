@@ -719,19 +719,28 @@ release/bits: images
 .PHONY: release/bits
 
 release/promote-oss/.main:
-	@[[ "$(RELEASE_VERSION)"      =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
-	@[[ '$(PROMOTE_FROM_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
-	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
-	@case "$(PROMOTE_CHANNEL)" in \
-		""|wip|early|test) true ;; \
-		*) echo "Unknown PROMOTE_CHANNEL $(PROMOTE_CHANNEL)" >&2 ; exit 1;; \
-	esac
-	@printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN) (channel=$(BLU)%s$(GRN))$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(PROMOTE_TO_VERSION)' '$(PROMOTE_CHANNEL)'
-
-	@printf '  $(CYN)$(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_FROM_VERSION)$(END)\n'
-	docker pull $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_FROM_VERSION)
-	docker tag $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
-	docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
+	@[[ "$(RELEASE_VERSION)"      =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET RELEASE_VERSION"; exit 1)
+	@[[ -n "$(PROMOTE_FROM_VERSION)" ]] || (echo "MUST SET PROMOTE_FROM_VERSION"; exit 1)
+	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET PROMOTE_TO_VERSION" ; exit 1)
+	@set -e; { \
+		case "$(PROMOTE_CHANNEL)" in \
+			""|wip|early|test) true ;; \
+			*) echo "Unknown PROMOTE_CHANNEL $(PROMOTE_CHANNEL)" >&2 ; exit 1;; \
+		esac ; \
+		printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN) (channel=$(BLU)%s$(GRN))$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(PROMOTE_TO_VERSION)' '$(PROMOTE_CHANNEL)' ; \
+		pullregistry=$(PROMOTE_FROM_REPO) ; \
+		if [[ -z "$${pullregistry}" ]] ; then \
+			pullregistry=$(RELEASE_REGISTRY) ;\
+		fi ; \
+		if [[ -z "$${pullregistry}" ]] ; then \
+			echo "Must set PROMOTE_FROM_REPO or RELEASE_REGISTRY" ; \
+			exit 1; \
+		fi ; \
+		printf '  $(CYN)$${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION)$(END)\n' ; \
+		docker pull $${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION) && \
+		docker tag $${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) && \
+		docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) ;\
+	}
 
 	@printf '  $(CYN)https://s3.amazonaws.com/datawire-static-files/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt$(END)\n'
 	printf '%s' "$(RELEASE_VERSION)" | aws s3 cp - s3://datawire-static-files/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt
@@ -752,17 +761,52 @@ release/promote-oss/to-ea-latest:
 	; }
 .PHONY: release/promote-oss/to-ea-latest
 
-# To be run from a checkout at the tag you are promoting _from_.
-# At present, this is to be run by-hand.
-release/promote-oss/to-rc-latest:
+release/promote-oss/dev-to-rc:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
 	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
-	@{ $(MAKE) release/promote-oss/.main \
-	  PROMOTE_FROM_VERSION="$(RELEASE_VERSION)" \
-	  PROMOTE_TO_VERSION="$$(echo "$(RELEASE_VERSION)" | sed 's/-rc.*/-rc-latest/')" \
-	  PROMOTE_CHANNEL=test \
-	; }
-.PHONY: release/promote-oss/to-rc-latest
+	@set -e; { \
+		if [ -n "$(IS_DIRTY)" ]; then \
+			echo "release/promote-oss/dev-to-rc: tree must be clean" >&2 ;\
+			exit 1 ;\
+		fi; \
+		commit=$$(git rev-parse HEAD) ;\
+		dev_version=$$(aws s3 cp s3://datawire-static-files/dev-builds/$$commit -) ;\
+		if [ -z "$$dev_version" ]; then \
+			printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
+			exit 1 ;\
+		fi ;\
+		printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
+		veroverride=$(RELEASE_VERSION) ; \
+		$(MAKE) release/promote-oss/.main \
+			PROMOTE_FROM_VERSION="$$dev_version" \
+			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
+			PROMOTE_TO_VERSION=$(RELEASE_VERSION) \
+			PROMOTE_CHANNEL=test ; \
+		chartsuffix=$(RELEASE_VERSION) ; \
+		chartsuffix=$${chartsuffix#*-} ; \
+		$(MAKE) \
+			CHART_VERSION_SUFFIX=-$$chartsuffix \
+			IMAGE_TAG=$${veroverride} \
+			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
+			chart-push-ci ; \
+		$(MAKE) update-yaml --always-make; \
+		$(MAKE) VERSION_OVERRIDE=$${veroverride} push-manifests  ; \
+		$(MAKE) clean-manifests ; \
+		$(MAKE) REGISTRY=$(RELEASE_REGISTRY) \
+			VERSION=$$veroverride \
+			MANIFEST_VERSION=$$veroverride \
+			release/print-test-artifacts ; \
+	}
+.PHONY: release/promote-oss/dev-to-rc
+
+release/print-test-artifacts:
+	@test -n "$(REGISTRY)" || (printf "REGISTRY must be set\n"; exit 1)
+	@test -n "$(VERSION)" || (printf "VERSION must be set\n"; exit 1)
+	@test -n "$(MANIFEST_VERSION)" || (printf "CHART_SUFFIX must be set\n"; exit 1)
+	@echo "export IMAGE_TAG=$(REGISTRY)/$(LCNAME):$(VERSION)"
+	@echo "export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/ambassador/$(MANIFEST_VERSION)"
+	@echo "export HELM_CHART_VERSION=`grep 'version' $(OSS_HOME)/charts/ambassador/Chart.yaml | awk '{ print $$2 }'`"
+.PHONY: release/print-test-artifacts
 
 # To be run from a checkout at the tag you are promoting _from_.
 # This is normally run from CI by creating the GA tag.
@@ -779,11 +823,14 @@ release/promote-oss/to-ga:
  	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
 	  $(MAKE) release/promote-oss/.main \
 	    PROMOTE_FROM_VERSION="$$dev_version" \
+		PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
 	    PROMOTE_TO_VERSION="$(RELEASE_VERSION)-wip" \
 	    PROMOTE_CHANNEL=wip \
 	    ; \
 	}
 .PHONY: release/promote-oss/to-ga
+
+VERSIONS_YAML_VER := $(shell grep 'version:' $(OSS_HOME)/docs/yaml/versions.yml | awk '{ print $$2 }')
 
 release/go:
 	@set -e; { \
@@ -792,27 +839,35 @@ release/go:
 			exit 1 ;\
 		fi; \
 	}
-	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
-	@$(OSS_HOME)/releng/start-sanity-check --quiet $(VERSION)
-	@git tag -s -m "Tagging v$(VERSION) for GA" -a v$(VERSION)
-	@git push origin v$(VERSION)
-	@$(OSS_HOME)/releng/release-go-changelog-update --quiet $(VERSION)
+	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
+	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
+	@$(OSS_HOME)/releng/release-ga-sanity-check --quiet $(VERSIONS_YAML_VER)
+	@git tag -s -m "Tagging v$(VERSIONS_YAML_VER) for GA" -a v$(VERSIONS_YAML_VER)
+	@git push origin v$(VERSIONS_YAML_VER)
+	@$(OSS_HOME)/releng/release-go-changelog-update --quiet $(VERSIONS_YAML_VER)
 .PHONY: release/go
 
 release/manifests:
-	@set -e; { \
-		if [ -n "$(IS_DIRTY)" ]; then \
-			echo "release/manifests: tree must be clean" >&2 ;\
-			exit 1 ;\
-		fi; \
-	}
-	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
-	@$(OSS_HOME)/releng/release-manifest-image-update
+	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
+	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
+	@$(OSS_HOME)/releng/release-manifest-image-update $(VERSIONS_YAML_VER) wip
 .PHONY: release/manifests
 
-release-prep:
-	bash $(OSS_HOME)/releng/release-prep.sh
-.PHONY: release-prep
+release/repatriate:
+	@$(OSS_HOME)/releng/release-repatriate $(VERSIONS_YAML_VER)
+.PHONY: release/repatriate
+
+release/ga-mirror:
+	# TODO: wip and dev bits are so we don't stomp on ourselves.
+	# This should get removed when this is ready to go
+	# This doesn't currently work because of permissions.
+	# We need to setup CI to do this
+	@$(OSS_HOME)/releng/release-mirror-images $(VERSION) $(RELEASE_REGISTRY) dev wip
+
+release/ga-check:
+	# TODO: wip bit is just so we don't stomp on ourselves
+	# this should go away
+	@$(OSS_HOME)/releng/release-ga-check $(VERSION) wip
 
 release/start:
 	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
