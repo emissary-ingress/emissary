@@ -103,6 +103,7 @@ func parseLicenses(name, version, license string) map[License]struct{} {
 		"Apache-2.0 OR MIT":           {Apache2},
 
 		"3-Clause BSD License": {BSD3},
+		"BSD":                  {BSD2},
 		"BSD-2-Clause":         {BSD2},
 		"BSD-3-Clause":         {BSD3},
 
