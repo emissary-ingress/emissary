@@ -961,7 +961,7 @@ workflows:
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
         matrix:
-          alias: "oss-release-tests"
+          alias: "oss-release-test"
           parameters:
             test:
             - "pytest"
@@ -987,6 +987,22 @@ workflows:
             - false
             # If you enable testing with legacy-mode true as well, you'll also need
             # to add some exclusions -- see the Release workflow for more.
+    - oss-gotest:
+        name: "oss-release-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
+          >>"
+        matrix:
+          alias: "oss-release-gotest"
+          parameters:
+            fast-reconfigure:
+            - false
+            legacy-mode:
+            - true
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
     - oss-chart-changelog:
         name: "oss-chart-changelog"
     - oss-test:
@@ -1020,6 +1036,27 @@ workflows:
     - oss-envoy-test:
         requires:
         - "oss-dev-images"
+        name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
+          >>"
+        matrix:
+          alias: "oss-release-envoy-test"
+          parameters:
+            test:
+            - "pytest-envoy"
+            - "pytest-envoy-v3"
+            fast-reconfigure:
+            - false
+            legacy-mode:
+            - true
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-envoy-test:
+        requires:
+        - "oss-dev-images"
         name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
@@ -1043,6 +1080,42 @@ workflows:
           - test: pytest-envoy-v3
             fast-reconfigure: true
             legacy-mode: true
+    - oss-images:
+        name: "oss-release-images"
+        release: true
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-promote-to-rc-latest:
+        name: "oss-release-promote-to-rc-latest"
+        requires:
+        # build
+        - "oss-release-images"
+        # test
+        - "oss-dev-generate"
+        - "oss-dev-lint"
+        - "oss-release-test"
+        - "oss-dev-gotest-matrix"
+        - "oss-release-gotest"
+        - "oss-dev-pytest-matrix"
+        - "oss-release-envoy-test"
+        - "oss-dev-envoy-test-matrix"
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
+          branches:
+            ignore: /.*/
+    - oss-promote-to-ga:
+        name: "oss-release-promote-to-ga"
+        requires:
+        - "oss-release-promote-to-rc-latest"
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+          branches:
+            ignore: /.*/
   'OSS: Chart Release':
     when:
       or:

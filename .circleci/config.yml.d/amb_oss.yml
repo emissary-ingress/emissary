@@ -192,7 +192,7 @@ workflows:
           requires: ["oss-dev-images"]
           name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           matrix:
-            alias: "oss-release-tests"
+            alias: "oss-release-test"
             parameters:
               test:
                 - "pytest"
@@ -212,6 +212,16 @@ workflows:
                 - false
                 # If you enable testing with legacy-mode true as well, you'll also need
                 # to add some exclusions -- see the Release workflow for more.
+      - "oss-gotest":
+          <<: *filter-prerelease-only
+          name: "oss-release-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
+          matrix:
+            alias: "oss-release-gotest"
+            parameters:
+              fast-reconfigure:
+                - false
+              legacy-mode:
+                - true
       - "oss-chart-changelog":
           name: "oss-chart-changelog"
       - "oss-test":
@@ -242,6 +252,20 @@ workflows:
                 fast-reconfigure: true
                 legacy-mode: true
       - "oss-envoy-test":
+          <<: *filter-prerelease-only
+          requires: ["oss-dev-images"]
+          name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
+          matrix:
+            alias: "oss-release-envoy-test"
+            parameters:
+              test:
+                - "pytest-envoy"
+                - "pytest-envoy-v3"
+              fast-reconfigure:
+                - false
+              legacy-mode:
+                - true
+      - "oss-envoy-test":
           requires: ["oss-dev-images"]
           name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           matrix:
@@ -267,6 +291,31 @@ workflows:
               - test: pytest-envoy-v3
                 fast-reconfigure: true
                 legacy-mode: true
+      # note: this is an extra build
+      - "oss-images":
+          <<: *filter-prerelease-only
+          name: "oss-release-images"
+          release: true
+      # promote
+      - "oss-promote-to-rc-latest":
+          <<: *filter-rc-only
+          name: "oss-release-promote-to-rc-latest"
+          requires:
+          # build
+          - "oss-release-images"
+          # test
+          - "oss-dev-generate"
+          - "oss-dev-lint"
+          - "oss-release-test"
+          - "oss-dev-gotest-matrix"
+          - "oss-release-gotest"
+          - "oss-dev-pytest-matrix"
+          - "oss-release-envoy-test"
+          - "oss-dev-envoy-test-matrix"
+      - "oss-promote-to-ga":
+          <<: *filter-ga-only
+          name: "oss-release-promote-to-ga"
+          requires: ["oss-release-promote-to-rc-latest"]
 
   "OSS: Chart Release":
     when: # Don't run this workflow in apro.git
@@ -391,10 +440,6 @@ workflows:
       - "oss-promote-to-ga":
           <<: *filter-ga-only
           name: "oss-release-promote-to-ga"
-      - "oss-manifest-publish":
-          <<: *filter-ga-only
-          name: "oss-ga-manifests-publish"
-          requires: ["oss-release-generate"]
 
   "OSS: Nightly":
     triggers:
