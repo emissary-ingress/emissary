@@ -187,6 +187,17 @@ workflows:
           name: "oss-dev-chart"
       - "emissary-chart":
           name: "emissary-dev-chart"
+      - "oss-test":
+          <<: *filter-prerelease-only
+          requires: ["oss-release-images"]
+          name: "oss-releasestuff-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
+          matrix:
+            alias: "oss-release-test-stuff"
+            parameters:
+              test:
+                - "pytest"
+              legacy-mode:
+                - true
       - "oss-gotest":
           name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           matrix:
