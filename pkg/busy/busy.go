@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 
 	"github.com/sirupsen/logrus"
 
@@ -19,14 +20,36 @@ type Command struct {
 }
 
 var logrusLogger *logrus.Logger
+var logrusFormatter logrus.Formatter
 
-func init() {
-	logrusLogger = logrus.New()
-	logrusFormatter := &logrus.TextFormatter{
-		TimestampFormat: "2006-01-02 15:04:05",
-		FullTimestamp:   true,
+func jsonLoggingEnabled() bool {
+	if v, err := strconv.ParseBool(os.Getenv("AMBASSADOR_JSON_LOGGING")); err == nil && v {
+		return true
 	}
-	logrusLogger.SetFormatter(logrusFormatter)
+
+	return false
+}
+
+// The golang `init` function here just calls the exported Init function below.
+func init() {
+	Init()
+}
+
+// Init initializes our logger. We expose this function for tests.
+func Init() {
+	logrusLogger = logrus.New()
+	if jsonLoggingEnabled() {
+		logrusFormatter = &logrus.JSONFormatter{
+			TimestampFormat: "2006-01-02 15:04:05",
+		}
+		logrusLogger.SetFormatter(logrusFormatter)
+	} else {
+		logrusFormatter = &logrus.TextFormatter{
+			TimestampFormat: "2006-01-02 15:04:05",
+			FullTimestamp:   true,
+		}
+		logrusLogger.SetFormatter(logrusFormatter)
+	}
 	logrusLogger.SetReportCaller(true)
 }
 
@@ -42,6 +65,10 @@ var rootLogger dlog.Logger
 
 func GetRootLogger() dlog.Logger {
 	return rootLogger
+}
+
+func GetLogrusFormatter() logrus.Formatter {
+	return logrusFormatter
 }
 
 func Main(binName, humanName string, version string, cmds map[string]Command) {
