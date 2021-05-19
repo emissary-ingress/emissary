@@ -29,16 +29,16 @@ def main(next_ver: str, quiet: bool = False) -> int:
 
     is_private = False
 
-    with check("You're in a clone of git@github.com:datawire/ambassador[-private].git"):
-        url = run_capture(['git', 'remote', 'get-url', '--push', 'origin'])
-        if url.endswith("/"):
-            url = url[:-len("/")]
-        if url.endswith(".git"):
-            url = url[:-len(".git")]
-        if url.endswith("-private"):
-            is_private = True
-            url = url[:-len("-private")]
-        assert_eq(url, "git@github.com:datawire/ambassador")
+    # with check("You're in a clone of git@github.com:datawire/ambassador[-private].git"):
+        # url = run_capture(['git', 'remote', 'get-url', '--push', 'origin'])
+        # if url.endswith("/"):
+            # url = url[:-len("/")]
+        # if url.endswith(".git"):
+            # url = url[:-len(".git")]
+        # if url.endswith("-private"):
+            # is_private = True
+            # url = url[:-len("-private")]
+        # assert_eq(url, "git@github.com:datawire/ambassador")
 
     with check("You're in the toplevel of the clone"):
         toplevel = run_capture(['git', 'rev-parse', '--show-toplevel'])
