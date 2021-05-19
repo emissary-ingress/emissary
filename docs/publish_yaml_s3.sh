@@ -12,8 +12,8 @@ if [[ -z ${basedir} ]] || [[ ! -d ${basedir} ]]; then
 fi
 basedir=`realpath ${basedir}`/
 
-[ -n "$AWS_ACCESS_KEY_ID"     ] || abort "AWS_ACCESS_KEY_ID is not set"
-[ -n "$AWS_SECRET_ACCESS_KEY" ] || abort "AWS_SECRET_ACCESS_KEY is not set"
+[ -n "$AWS_ACCESS_KEY_ID"     ] || (echo "AWS_ACCESS_KEY_ID is not set" ; exit 1)
+[ -n "$AWS_SECRET_ACCESS_KEY" ] || (echo "AWS_SECRET_ACCESS_KEY is not set" ; exit 1)
 
 ver_yaml=${CURR_DIR}/yaml/versions.yml
 
