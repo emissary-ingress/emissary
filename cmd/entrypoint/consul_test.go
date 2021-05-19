@@ -30,6 +30,12 @@ name:  consultest_k8s_mapping
 prefix: /consultest_k8s/
 service: consultest-http-k8s
 ---
+apiVersion: ambassador/v1
+kind:  TCPMapping
+name:  consultest_k8s_mapping_tcp
+port: 3099
+service: consultest-http-k8s
+---
 apiVersion: getambassador.io/v1
 kind: KubernetesServiceResolver
 name: kubernetes-service
@@ -49,6 +55,13 @@ load_balancer:
   policy: round_robin
 ---
 apiVersion: ambassador/v1
+kind:  TCPMapping
+name:  consultest_consul_mapping_tcp
+port: 3090
+service: consultest-consul-service-tcp
+resolver: consultest-resolver
+---
+apiVersion: ambassador/v1
 kind:  TLSContext
 name:  consultest-client-context
 secret: consultest-client-cert-secret
@@ -57,7 +70,10 @@ secret: consultest-client-cert-secret
 func TestReconcile(t *testing.T) {
 	resolvers, mappings, c, tw := setup(t)
 	c.reconcile(resolvers, mappings)
-	tw.Assert("consultest-resolver.default:consultest-consul-service:watch")
+	tw.Assert(
+		"consultest-resolver.default:consultest-consul-service:watch",
+		"consultest-resolver.default:consultest-consul-service-tcp:watch",
+	)
 	extra := &amb.Mapping{
 		Spec: amb.MappingSpec{
 			Service:  "foo",
@@ -71,6 +87,7 @@ func TestReconcile(t *testing.T) {
 	)
 	c.reconcile(resolvers, nil)
 	tw.Assert(
+		"consultest-resolver.default:consultest-consul-service-tcp:stop",
 		"consultest-resolver.default:consultest-consul-service:stop",
 		"consultest-resolver.default:foo:stop",
 	)
@@ -79,9 +96,15 @@ func TestReconcile(t *testing.T) {
 func TestCleanup(t *testing.T) {
 	resolvers, mappings, c, tw := setup(t)
 	c.reconcile(resolvers, mappings)
-	tw.Assert("consultest-resolver.default:consultest-consul-service:watch")
+	tw.Assert(
+		"consultest-resolver.default:consultest-consul-service:watch",
+		"consultest-resolver.default:consultest-consul-service-tcp:watch",
+	)
 	c.cleanup()
-	tw.Assert("consultest-resolver.default:consultest-consul-service:stop")
+	tw.Assert(
+		"consultest-resolver.default:consultest-consul-service:stop",
+		"consultest-resolver.default:consultest-consul-service-tcp:stop",
+	)
 }
 
 func TestBootstrap(t *testing.T) {
@@ -90,7 +113,11 @@ func TestBootstrap(t *testing.T) {
 	c.reconcile(resolvers, mappings)
 	assert.False(t, c.isBootstrapped())
 	// XXX: break this (maybe use a chan to replace uncoalesced dirties and passing con around?)
+	//
+	// In order for consul to be considered bootstrapped, both the service referenced by
+	// a Mapping and the one refereced by a TCPMapping should have Endpoints{
 	c.endpoints["consultest-consul-service"] = consulwatch.Endpoints{}
+	c.endpoints["consultest-consul-service-tcp"] = consulwatch.Endpoints{}
 	assert.True(t, c.isBootstrapped())
 }
 
@@ -114,7 +141,7 @@ func setup(t *testing.T) (resolvers []*amb.ConsulResolver, mappings []*amb.Mappi
 	}
 
 	assert.Equal(t, 1, len(resolvers))
-	assert.Equal(t, 2, len(mappings))
+	assert.Equal(t, 4, len(mappings))
 
 	tw = &testWatcher{t: t, events: make(map[string]bool)}
 	c = newConsul(context.TODO(), tw)
