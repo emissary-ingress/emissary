@@ -109,7 +109,7 @@ jobs:
       - when:
           condition:
             and:
-              - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+              - equal: [ "https://github.com/acookin/ambassador", << pipeline.project.git_url >> ]
               - not:
                   equal: [ "master", << pipeline.git.branch >>  ]
           steps:
@@ -140,7 +140,7 @@ jobs:
 
 _anchors:
   # All of these filters assume that "Only build pull requests" is turned on at
-  # https://app.circleci.com/settings/project/github/datawire/ambassador/advanced
+  # https://app.circleci.com/settings/project/github/acookin/ambassador/advanced
 
   "filter-prerelease-only": &filter-prerelease-only
     filters:
@@ -320,8 +320,8 @@ workflows:
   "OSS: Chart Release":
     when: # Don't run this workflow in apro.git
       or:
-      - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
-      - equal: [ "https://github.com/datawire/ambassador-private", << pipeline.project.git_url >> ]
+      - equal: [ "https://github.com/acookin/ambassador", << pipeline.project.git_url >> ]
+      - equal: [ "https://github.com/acookin/ambassador-private", << pipeline.project.git_url >> ]
     jobs:
       - "oss-chart-publish":
           <<: *filter-chart-release-only
@@ -329,117 +329,12 @@ workflows:
   "OSS: Manifests Release":
     when: # Don't run this workflow in apro.git
       or:
-      - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
-      - equal: [ "https://github.com/datawire/ambassador-private", << pipeline.project.git_url >> ]
+      - equal: [ "https://github.com/acookin/ambassador", << pipeline.project.git_url >> ]
+      - equal: [ "https://github.com/acookin/ambassador-private", << pipeline.project.git_url >> ]
     jobs:
       - "oss-manifest-publish":
           <<: *filter-chart-release-only
           name: "oss-rc-manifests-publish"
-
-  "OSS: Release":
-    when: # Don't run this workflow in apro.git
-      or:
-      - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
-      - equal: [ "https://github.com/datawire/ambassador-private", << pipeline.project.git_url >> ]
-    # Run this workflow on tags, not branches or PRs.
-    jobs:
-      # build+push
-      - "oss-images":
-          <<: *filter-prerelease-only
-          name: "oss-release-images"
-          release: true
-      # test
-      - "oss-generate":
-          <<: *filter-prerelease-only
-          name: "oss-release-generate"
-      - "oss-lint":
-          <<: *filter-prerelease-only
-          name: "oss-release-lint"
-      - "oss-gotest":
-          <<: *filter-prerelease-only
-          name: "oss-release-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
-          matrix:
-            alias: "oss-release-gotest"
-            parameters:
-              fast-reconfigure:
-                - true
-                - false
-              legacy-mode:
-                - true
-                - false
-            exclude:
-              # It's not meaningful to set fast reconfigure and legacy mode at the same time.
-              # Annoyingly, we have to iterate all the 'test' values that we're using for
-              # this to work.
-              - fast-reconfigure: true
-                legacy-mode: true
-      - "oss-test":
-          <<: *filter-prerelease-only
-          requires: ["oss-release-images"]
-          name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
-          matrix:
-            alias: "oss-release-test"
-            parameters:
-              test:
-                - "pytest"
-                # Running the ingresstests would require we install `kind` and
-                # that the test suite supports HTTP to HTTPS redirects (AES
-                # enables cleartext redirection by default, even for fallback
-                # hosts, contrary to A/OSS)
-                #- "ingresstest"
-              fast-reconfigure:
-                - true
-                - false
-              legacy-mode:
-                - true
-                - false
-            exclude:
-              # It's not meaningful to set fast reconfigure and legacy mode at the same time.
-              # Annoyingly, we have to iterate all the 'test' values that we're using for
-              # this to work.
-              - test: pytest
-                fast-reconfigure: true
-                legacy-mode: true
-      - "oss-envoy-test":
-          <<: *filter-prerelease-only
-          requires: ["oss-release-images"]
-          name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
-          matrix:
-            alias: "oss-release-envoy-test"
-            parameters:
-              test:
-                - "pytest-envoy"
-                - "pytest-envoy-v3"
-              fast-reconfigure:
-                - true
-                - false
-              legacy-mode:
-                - true
-                - false
-            exclude:
-              # It's not meaningful to set fast reconfigure and legacy mode at the same time.
-              # Annoyingly, we have to iterate all the 'test' values that we're using for
-              # this to work.
-              - test: pytest-envoy
-                fast-reconfigure: true
-                legacy-mode: true
-              - test: pytest-envoy-v3
-                fast-reconfigure: true
-                legacy-mode: true
-      # promote
-      - "oss-promote-to-rc-latest":
-          <<: *filter-rc-only
-          name: "oss-release-promote-to-rc-latest"
-          requires:
-          # build
-          - "oss-release-images"
-          # test
-          - "oss-release-generate"
-          - "oss-release-lint"
-          - "oss-release-test"
-      - "oss-promote-to-ga":
-          <<: *filter-ga-only
-          name: "oss-release-promote-to-ga"
 
   "OSS: Nightly":
     triggers:

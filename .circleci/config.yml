@@ -294,9 +294,7 @@ commands:
     - when:
         condition: # Don't do this in the -private repos
           or:
-          - equal: ["https://github.com/datawire/ambassador", << pipeline.project.git_url
-                >>]
-          - equal: ["https://github.com/datawire/apro", << pipeline.project.git_url
+          - equal: ["https://github.com/acookin/ambassador", << pipeline.project.git_url
                 >>]
         steps:
         - amb-linux-install
@@ -348,7 +346,7 @@ commands:
         condition:
           or:
           - equal:
-            - "https://github.com/datawire/ambassador"
+            - "https://github.com/acookin/ambassador"
             - << pipeline.project.git_url >>
           - equal:
             - "https://github.com/datawire/ambassador-private"
@@ -851,7 +849,7 @@ jobs:
         condition:
           and:
           - equal:
-            - "https://github.com/datawire/ambassador"
+            - "https://github.com/acookin/ambassador"
             - << pipeline.project.git_url >>
           - not:
               equal:
@@ -1120,10 +1118,10 @@ workflows:
     when:
       or:
       - equal:
-        - "https://github.com/datawire/ambassador"
+        - "https://github.com/acookin/ambassador"
         - << pipeline.project.git_url >>
       - equal:
-        - "https://github.com/datawire/ambassador-private"
+        - "https://github.com/acookin/ambassador-private"
         - << pipeline.project.git_url >>
     jobs:
     - oss-chart-publish:
@@ -1137,10 +1135,10 @@ workflows:
     when:
       or:
       - equal:
-        - "https://github.com/datawire/ambassador"
+        - "https://github.com/acookin/ambassador"
         - << pipeline.project.git_url >>
       - equal:
-        - "https://github.com/datawire/ambassador-private"
+        - "https://github.com/acookin/ambassador-private"
         - << pipeline.project.git_url >>
     jobs:
     - oss-manifest-publish:
@@ -1148,151 +1146,6 @@ workflows:
         filters:
           tags:
             only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
-          branches:
-            ignore: /.*/
-  'OSS: Release':
-    when:
-      or:
-      - equal:
-        - "https://github.com/datawire/ambassador"
-        - << pipeline.project.git_url >>
-      - equal:
-        - "https://github.com/datawire/ambassador-private"
-        - << pipeline.project.git_url >>
-    jobs:
-    - oss-images:
-        name: "oss-release-images"
-        release: true
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-generate:
-        name: "oss-release-generate"
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-lint:
-        name: "oss-release-lint"
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-gotest:
-        name: "oss-release-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
-          >>"
-        matrix:
-          alias: "oss-release-gotest"
-          parameters:
-            fast-reconfigure:
-            - true
-            - false
-            legacy-mode:
-            - true
-            - false
-          exclude:
-          - fast-reconfigure: true
-            legacy-mode: true
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-test:
-        requires:
-        - "oss-release-images"
-        name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
-          >>"
-        matrix:
-          alias: "oss-release-test"
-          parameters:
-            test:
-            - "pytest"
-            # Running the ingresstests would require we install `kind` and
-            # that the test suite supports HTTP to HTTPS redirects (AES
-            # enables cleartext redirection by default, even for fallback
-            # hosts, contrary to A/OSS)
-            #- "ingresstest"
-
-            fast-reconfigure:
-            - true
-            - false
-            legacy-mode:
-            - true
-            - false
-          exclude:
-          - test: pytest
-            fast-reconfigure: true
-            legacy-mode: true
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-envoy-test:
-        requires:
-        - "oss-release-images"
-        name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
-          >>"
-        matrix:
-          alias: "oss-release-envoy-test"
-          parameters:
-            test:
-            - "pytest-envoy"
-            - "pytest-envoy-v3"
-            fast-reconfigure:
-            - true
-            - false
-            legacy-mode:
-            - true
-            - false
-          exclude:
-          - test: pytest-envoy
-            fast-reconfigure: true
-            legacy-mode: true
-          - test: pytest-envoy-v3
-            fast-reconfigure: true
-            legacy-mode: true
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-promote-to-rc-latest:
-        name: "oss-release-promote-to-rc-latest"
-        requires:
-        # build
-        - "oss-release-images"
-        # test
-        - "oss-release-generate"
-        - "oss-release-lint"
-        - "oss-release-test"
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-promote-to-ga:
-        name: "oss-release-promote-to-ga"
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-manifest-publish:
-        name: "oss-ga-manifests-publish"
-        requires:
-        - "oss-release-generate"
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
           branches:
             ignore: /.*/
   'OSS: Nightly':
