@@ -956,7 +956,7 @@ workflows:
         name: "emissary-dev-chart"
     - oss-test:
         requires:
-        - "oss-release-images"
+        - "oss-images"
         name: "oss-releasestuff-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
@@ -967,6 +967,8 @@ workflows:
             - "pytest"
             legacy-mode:
             - true
+            fast-reconfigure:
+            - false
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
