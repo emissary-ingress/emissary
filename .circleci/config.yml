@@ -921,6 +921,12 @@ _anchors:
         only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
       branches:
         ignore: /.*/
+  filter-prerelease-and-master-only:
+    filters:
+      tags:
+        only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+      branches:
+        only: master
   filter-rc-only:
     filters:
       tags:
@@ -971,7 +977,7 @@ workflows:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
           branches:
-            ignore: /.*/
+            only: master
     - oss-gotest:
         name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure
           >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
@@ -1000,7 +1006,7 @@ workflows:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
           branches:
-            ignore: /.*/
+            only: master
     - oss-chart-changelog:
         name: "oss-chart-changelog"
     - oss-test:
@@ -1051,7 +1057,7 @@ workflows:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
           branches:
-            ignore: /.*/
+            only: master
     - oss-envoy-test:
         requires:
         - "oss-dev-images"

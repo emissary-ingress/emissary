@@ -149,6 +149,13 @@ _anchors:
       branches:
         ignore: /.*/
 
+  "filter-prerelease-and-master-only": &filter-prerelease-and-master-only
+    filters:
+      tags:
+        only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+      branches:
+        only: master
+
   "filter-rc-only": &filter-rc-only
     filters:
       tags:
@@ -188,7 +195,7 @@ workflows:
       - "emissary-chart":
           name: "emissary-dev-chart"
       - "oss-test":
-          <<: *filter-prerelease-only
+          <<: *filter-prerelease-and-master-only
           requires: ["oss-dev-images"]
           name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           matrix:
@@ -213,7 +220,7 @@ workflows:
                 # If you enable testing with legacy-mode true as well, you'll also need
                 # to add some exclusions -- see the Release workflow for more.
       - "oss-gotest":
-          <<: *filter-prerelease-only
+          <<: *filter-prerelease-and-master-only
           name: "oss-release-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           matrix:
             alias: "oss-release-gotest"
@@ -252,7 +259,7 @@ workflows:
                 fast-reconfigure: true
                 legacy-mode: true
       - "oss-envoy-test":
-          <<: *filter-prerelease-only
+          <<: *filter-prerelease-and-master-only
           requires: ["oss-dev-images"]
           name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           matrix:
