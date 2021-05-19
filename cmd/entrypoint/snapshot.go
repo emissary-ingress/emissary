@@ -1,13 +1,14 @@
 package entrypoint
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/pkg/kates"
 	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
+	"github.com/datawire/dlib/dlog"
 )
 
 // NewKubernetesSnapshot creates a new, empty set of Ambassador inputs.
@@ -64,7 +65,7 @@ func GetAmbId(resource kates.Object) amb.AmbassadorID {
 		var id amb.AmbassadorID
 		err := json.Unmarshal([]byte(idstr), &id)
 		if err != nil {
-			log.Printf("%s: error parsing ambassador-id '%s'", location(resource), idstr)
+			dlog.Errorf(context.TODO(), "%s: error parsing ambassador-id '%s'", location(resource), idstr)
 		} else {
 			return id
 		}

@@ -39,6 +39,7 @@ import jsonpatch
 
 from expiringdict import ExpiringDict
 from prometheus_client import CollectorRegistry, ProcessCollector, generate_latest, Info, Gauge
+from pythonjsonlogger import jsonlogger
 
 import concurrent.futures
 
@@ -54,7 +55,7 @@ from ambassador import Cache, Config, IR, EnvoyConfig, Diagnostics, Scout, Versi
 from ambassador.reconfig_stats import ReconfigStats
 from ambassador.ir.irambassador import IRAmbassador
 from ambassador.ir.irbasemapping import IRBaseMapping
-from ambassador.utils import SystemInfo, Timer, PeriodicTrigger, SavedSecret, load_url_contents, parse_json, dump_json
+from ambassador.utils import SystemInfo, Timer, PeriodicTrigger, SavedSecret, load_url_contents, parse_json, dump_json, parse_bool
 from ambassador.utils import SecretHandler, KubewatchSecretHandler, FSSecretHandler, parse_bool
 from ambassador.fetch import ResourceFetcher
 
@@ -72,11 +73,30 @@ boot_time = datetime.datetime.now()
 # allows 10 concurrent users, with a request timeout of 60 seconds
 tvars_cache = ExpiringDict(max_len=10, max_age_seconds=60)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%%(asctime)s diagd %s [P%%(process)dT%%(threadName)s] %%(levelname)s: %%(message)s" % __version__,
-    datefmt="%Y-%m-%d %H:%M:%S"
-)
+logHandler = None
+if parse_bool(os.environ.get("AMBASSADOR_JSON_LOGGING", "false")):
+    jsonFormatter = jsonlogger.JsonFormatter("%%(asctime)s %%(filename)s %%(lineno)d %%(process)d (threadName)s %%(levelname)s %%(message)s")
+    logHandler = logging.StreamHandler()
+    logHandler.setFormatter(jsonFormatter)
+
+    # Set the root logger to INFO level and tell it to use the new log handler.
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    logger.addHandler(logHandler)
+
+    # Update all of the other loggers to also use the new log handler.
+    loggingManager = getattr(logging.root, 'manager', None)
+    if loggingManager is not None:
+        for name in loggingManager.loggerDict:
+            logging.getLogger(name).addHandler(logHandler)
+    else:
+        print("Could not find a logging manager. Some logging may not be properly JSON formatted!")
+else:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%%(asctime)s diagd %s [P%%(process)dT%%(threadName)s] %%(levelname)s: %%(message)s" % __version__,
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
 
 # Shut up Werkzeug's standard request logs -- they're just too noisy.
 logging.getLogger("werkzeug").setLevel(logging.CRITICAL)

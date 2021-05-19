@@ -65,12 +65,22 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
-### DiagD internal tcp idle timeout tuning
-Set the diagd tcp idle timeout (i.e. keepalive timeout) to 300s, up from the gunicorn default of 2s. This should help eliminate race-conditions where probing `/ambassador/v0/check_alive` may intermittently fail.
+- Fix: Set the diagd tcp idle timeout (i.e. keepalive timeout) to 300s, up from the gunicorn default of 2s. This should help eliminate race-conditions where probing `/ambassador/v0/check_alive` may intermittently fail.
+
+- Feature: Add AMBASSADOR_JSON_LOGGING to enable JSON for most of the Ambassador control plane. Some (but few) logs from gunicorn and the Kubernetes client-go package still log text.
+
 ### Emissary Ingress and Ambassador Edge Stack
 
 - Change: `prune_unreachable_routes` now defaults to true, which should reduce Envoy memory requirements for installations with many `Host`s
 - Bugfix: Fixed a regression in detecting the Ambassador Kubernetes service that could cause the wrong IP or hostname to be used in Ingress statuses
+
+## [1.13.5] May 13, 2021
+[1.13.5]: https://github.com/datawire/ambassador/compare/v1.13.4...v1.13.5
+
+### Emissary Ingress and Ambassador Edge Stack
+
+- Bugfix: Fix a regression from 1.8.0 that prevented Ambassador module config keys `proper_case` and `preserve_external_request_id` from working correctly.
+- Bugfix: Fixed a regression in detecting the Ambassador Kubernetes service that could cause the wrong IP or hostname to be used in Ingress statuses (thanks, [Noah Fontes](https://github.com/impl)!
 
 ## [1.13.4] May 11, 2021
 [1.13.4]: https://github.com/datawire/ambassador/compare/v1.13.3...v1.13.4

@@ -25,7 +25,6 @@ logger = logging.getLogger("ambassador")
 ENVOY_PATH = os.environ.get('ENVOY_PATH', '/usr/local/bin/envoy')
 # Assume that both of these are on the PATH if not explicitly set
 KUBESTATUS_PATH = os.environ.get('KUBESTATUS_PATH', 'kubestatus')
-TELEPRESENCE_PATH = os.environ.get('TELEPRESENCE_PATH', 'telepresence')
 
 SUPPORTED_ENVOY_VERSIONS = ["V2", "V3"]
 
@@ -319,13 +318,3 @@ def assert_valid_envoy_config(config_dict):
         f_name = temp.name
         cmd = [ENVOY_PATH, '--config-path', f_name, '--mode', 'validate']
         v_encoded = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
-
-# TODO: Consider removing this now that test_scout.py no longer uses
-# a docker network and therefore does not need to futz with tp
-def telepresence_connect():
-    run_with_retry([TELEPRESENCE_PATH, 'connect'])
-
-# TODO: Consider removing this now that test_scout.py no longer uses
-# a docker network and therefore does not need to futz with tp
-def telepresence_quit():
-    run_and_assert([TELEPRESENCE_PATH, 'quit'])
