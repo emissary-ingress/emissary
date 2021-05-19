@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""Update the directory "tree" for cutting an RC release.  This will
-change the appropriate files, then launch the `git citool` GUI to
-create a commit of it.
+"""Updates version.yml and CHANGELOG.md for next version, then
+launch the `git citool` GUI to create a commit of it.
 """
 
 import datetime
