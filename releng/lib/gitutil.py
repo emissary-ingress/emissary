@@ -1,5 +1,21 @@
 from .uiutil import run
 from .uiutil import run_txtcapture as run_capture
+import http.client
+import json
+
+
+def has_open_pr(gh_repo: str, base: str, branchname: str) -> bool:
+    conn = http.client.HTTPSConnection("api.github.com")
+    conn.request("GET", f"/repos/{gh_repo}/pulls?base={base}", headers={"User-Agent":"python"})
+    r1 = conn.getresponse()
+    body = r1.read()
+    json_body = json.loads(body)
+    for pr_info in json_body:
+        if pr_info.get('head',{}).get('ref') == branchname:
+            # check that it is open
+            if pr_info.get('state') == 'open':
+                return True
+    return False
 
 
 def git_add(filename: str) -> None:

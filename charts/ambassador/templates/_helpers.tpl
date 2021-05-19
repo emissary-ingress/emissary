@@ -35,11 +35,19 @@ Use AES image if AES is enabled, ambassador image if not
 {{- if .Values.image.fullImageOverride }}
 {{- .Values.image.fullImageOverride }}
 {{- else if hasKey .Values.image "repository"  -}}
+{{- if .Values.enableAES }}
+{{- printf "%s:%s" .Values.image.repository .Values.image.aesTag -}}
+{{- else }}
 {{- printf "%s:%s" .Values.image.repository .Values.image.tag -}}
+{{- end -}}
 {{- else if .Values.enableAES -}}
-{{- printf "%s:%s" "docker.io/datawire/aes" .Values.image.tag -}}
+{{- printf "%s:%s" "docker.io/datawire/aes" .Values.image.aesTag -}}
 {{- else -}}
+{{- if .Values.image.ossRepository }}
+{{- printf "%s:%s" .Values.image.ossRepository .Values.image.tag -}}
+{{- else }}
 {{- printf "%s:%s" "docker.io/datawire/ambassador" .Values.image.tag -}}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 

@@ -1,6 +1,4 @@
 deploymentTool: getambassador.io
-image:
-  repository: docker.io/datawire/ambassador
 podAnnotations:
   consul.hashicorp.com/connect-inject: 'false'
   sidecar.istio.io/inject: 'false'
