@@ -231,6 +231,10 @@ raw-version:
 	@$(BUILDER) raw-version
 .PHONY: raw-version
 
+python/ambassador.version:
+	$(BUILDER) raw-version > python/ambassador.version
+.PHONY: python/ambassador.version
+
 compile: sync
 	@$(BUILDER) compile
 .PHONY: compile
@@ -246,7 +250,7 @@ compile: sync
 
 # Give Make a hint about which pattern rules to apply.  Honestly, I'm
 # not sure why Make isn't figuring it out on its own, but it isn't.
-_images = builder-base snapshot base-envoy $(LCNAME) $(LCNAME)-ea kat-client kat-server
+_images = builder-base base-envoy $(LCNAME) $(LCNAME)-ea kat-client kat-server
 $(foreach i,$(_images), docker/$i.docker.tag.local  ): docker/%.docker.tag.local : docker/%.docker
 $(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remote: docker/%.docker
 
@@ -257,18 +261,6 @@ docker/container.txt.stamp: %/container.txt.stamp: %/builder-base.docker.tag.loc
 	@printf "${CYN}==> ${GRN}Bootstrapping builder container${END}\n"
 	@($(BOOTSTRAP_EXTRAS) $(BUILDER) bootstrap > $@)
 
-docker/snapshot.docker.stamp: %/snapshot.docker.stamp: %/container.txt FORCE compile
-	@set -e; { \
-	  if test -e $@ && ! docker exec $$(cat $<) test -e /buildroot/image.dirty; then \
-	    printf "${CYN}==> ${GRN}Snapshot of ${BLU}$$(cat $<)${GRN} container is already up-to-date${END}\n"; \
-	  else \
-	    printf "${CYN}==> ${GRN}Snapshotting ${BLU}$$(cat $<)${GRN} container${END}\n"; \
-	    TIMEFORMAT="     (snapshot took %1R seconds)"; \
-	    time docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $$(cat $<) > $@; \
-	    unset TIMEFORMAT; \
-	    docker exec $$(cat $<) rm -f /buildroot/image.dirty; \
-	  fi; \
-	}
 docker/base-envoy.docker.stamp: FORCE
 	@set -e; { \
 	  if docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@ 2>/dev/null; then \
@@ -281,79 +273,54 @@ docker/base-envoy.docker.stamp: FORCE
 	    docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@; \
 	  fi; \
 	}
-docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
+docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
 	@set -e; { \
-	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
-	    printf "${CYN}==> ${GRN}Image ${BLU}$(LCNAME)${GRN} is already up-to-date${END}\n"; \
-	  else \
 	    printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"; \
-	    printf "    ${BLU}artifacts=$$(cat $*/snapshot.docker)${END}\n"; \
 	    printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"; \
 	    printf "    ${BLU}builderbase=$$(cat $*/builder-base.docker)${END}\n"; \
 	    TIMEFORMAT="     (docker build took %1R seconds)"; \
-	    time ${DBUILD} ${BUILDER_HOME} \
-	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
+	    time ${DBUILD} -f ${BUILDER_HOME}/Dockerfile . \
 	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
 	      --target=ambassador \
 	      --iidfile=$@; \
 	    unset TIMEFORMAT; \
-	  fi; \
 	}
 
 docker/$(LCNAME)-ea.docker.stamp: %/$(LCNAME)-ea.docker.stamp: %/$(LCNAME).docker $(BUILDER_HOME)/Dockerfile-ea FORCE
 	@set -e; { \
-	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
-	    printf "${CYN}==> ${GRN}Image ${BLU}$(LCNAME)-ea${GRN} is already up-to-date${END}\n"; \
-	  else \
-	    printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)-ea${END}\n"; \
-	    printf "    ${BLU}base_ambassador=$$(cat $*/$(LCNAME).docker)${END}\n"; \
-	    TIMEFORMAT="     (docker build took %1R seconds)"; \
-	    echo time ${DBUILD} ${BUILDER_HOME} \
-	      -f $(BUILDER_HOME)/Dockerfile-ea \
-	      --build-arg=base_ambassador="$$(cat $*/$(LCNAME).docker)" \
-	      --target=ambassador-ea \
-	      --iidfile=$@; \
-	    time ${DBUILD} ${BUILDER_HOME} \
-	      -f $(BUILDER_HOME)/Dockerfile-ea \
-	      --build-arg=base_ambassador="$$(cat $*/$(LCNAME).docker)" \
-	      --target=ambassador-ea \
-	      --iidfile=$@; \
-	    unset TIMEFORMAT; \
-	  fi; \
+	  printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)-ea${END}\n"; \
+	  printf "    ${BLU}base_ambassador=$$(cat $*/$(LCNAME).docker)${END}\n"; \
+	  TIMEFORMAT="     (docker build took %1R seconds)"; \
+	  time ${DBUILD} ${BUILDER_HOME} \
+	    -f $(BUILDER_HOME)/Dockerfile-ea \
+	    --build-arg=base_ambassador="$$(cat $*/$(LCNAME).docker)" \
+	    --target=ambassador-ea \
+	    --iidfile=$@; \
+	  unset TIMEFORMAT; \
 	}
 
-docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
+docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
 	@set -e; { \
-	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
-	    printf "${CYN}==> ${GRN}Image ${BLU}kat-client${GRN} is already up-to-date${END}\n"; \
-	  else \
-	    printf "${CYN}==> ${GRN}Building image ${BLU}kat-client${END}\n"; \
-	    TIMEFORMAT="     (kat-client build took %1R seconds)"; \
-	    time ${DBUILD} ${BUILDER_HOME} \
-	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
-	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	      --target=kat-client \
-	      --iidfile=$@; \
-	    unset TIMEFORMAT; \
-	  fi; \
+	  printf "${CYN}==> ${GRN}Building image ${BLU}kat-client${END}\n"; \
+	  TIMEFORMAT="     (kat-client build took %1R seconds)"; \
+	  time ${DBUILD} -f ${BUILDER_HOME}/Dockerfile . \
+	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
+	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	    --target=kat-client \
+	    --iidfile=$@; \
+	  unset TIMEFORMAT; \
 	}
-docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
+docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
 	@set -e; { \
-	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
-	    printf "${CYN}==> ${GRN}Image ${BLU}kat-server${GRN} is already up-to-date${END}\n"; \
-	  else \
-	    printf "${CYN}==> ${GRN}Building image ${BLU}kat-server${END}\n"; \
-	    TIMEFORMAT="     (kat-server build took %1R seconds)"; \
-	    time ${DBUILD} ${BUILDER_HOME} \
-	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
-	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	      --target=kat-server \
-	      --iidfile=$@; \
-	    unset TIMEFORMAT; \
-	  fi; \
+	  printf "${CYN}==> ${GRN}Building image ${BLU}kat-server${END}\n"; \
+	  TIMEFORMAT="     (kat-server build took %1R seconds)"; \
+	  time ${DBUILD} -f ${BUILDER_HOME}/Dockerfile . \
+	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
+	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	    --target=kat-server \
+	    --iidfile=$@; \
+	  unset TIMEFORMAT; \
 	}
 
 REPO=$(BUILDER_NAME)

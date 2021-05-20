@@ -24,11 +24,6 @@ ARG base="docker.io/frolvlad/alpine-glibc:alpine-3.12_glibc-2.32"
 # base image contains only third-party code.
 ARG builderbase="i-forgot-to-set-build-arg-builderbase"
 
-# This argument controls where the release images get their artifacts
-# from. We override it for incremental builds, but default it to the
-# builder stage so this Dockerfile works out of the box.
-ARG artifacts="builder"
-
 # This controls where we copy envoy from.
 ARG envoy="i-forgot-to-set-build-arg-envoy"
 
@@ -65,12 +60,63 @@ USER dw
 
 ENTRYPOINT [ "/bin/bash" ]
 
+########################################
+# The golang build stage
+########################################
+
+FROM ${builderbase} as golang
+
+WORKDIR /go
+
+ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
+
+# Build the golang binaries
+ADD api api
+ADD cmd cmd
+ADD internal internal
+ADD pkg pkg
+ADD go.mod go.mod
+ADD go.sum go.sum
+RUN mkdir -p /go/bin && \
+	time go build -o /go/bin/ ./cmd/...
+
+########################################
+# The artifact build stage
+########################################
+
+FROM ${builderbase} as artifact-stage
+
+WORKDIR /buildroot/ambassador
+
+ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
+
+# Copy in the golang binaries
+COPY --from=golang /go/bin/* /buildroot/bin/
+
+# Setup the python code
+ADD python python
+RUN time pip install --no-deps -e python
+
+# Run post-compile.sh
+ADD build-aux-local build-aux-local
+ADD post-compile.sh post-compile.sh
+RUN bash post-compile.sh
+
+# XXX: this will go away
+RUN mkdir -p /ambassador/sidecars && \
+    ln -s /buildroot/ambassador/python/post_update.py /ambassador/post_update.py && \
+    ln -s /buildroot/ambassador/python/watch_hook.py /ambassador/watch_hook.py && \
+    ln -s /buildroot/ambassador/python/kubewatch.py /ambassador/kubewatch.py
+
+# These will be extracted into the optimized image later
+ADD demo demo
+ADD docs/yaml/ambassador/ambassador-crds.yaml docs/yaml/ambassador/ambassador-crds.yaml
 
 ########################################
 # The optimized images
 ########################################
 
-FROM ${artifacts} as artifacts
+FROM artifact-stage as artifacts
 
 FROM ${base} as ambassador
 
@@ -125,8 +171,8 @@ RUN chgrp -R 0 /ambassador && \
 WORKDIR /ambassador
 
 # Force the HOME environment variable to a directory that'll always be writeable.
-# We use /tmp/ambassador for this, and make sure it exists in our entrypoint, 
-# because trying to create it here in the Dockerfile doesn't always work very 
+# We use /tmp/ambassador for this, and make sure it exists in our entrypoint,
+# because trying to create it here in the Dockerfile doesn't always work very
 # well in the face of situations like KAT volume-mounting /tmp/ambassador or
 # the like.
 ENV HOME=/tmp/ambassador
@@ -148,8 +194,8 @@ FROM ${base} as kat-server
 COPY --from=artifacts /buildroot/bin/kat-server /usr/bin/kat-server
 
 WORKDIR /work
-COPY server.crt server.crt
-COPY server.key server.key
+COPY builder/server.crt server.crt
+COPY builder/server.key server.key
 
 ENV GRPC_VERBOSITY=debug
 ENV GRPC_TRACE=tcp,http,api
