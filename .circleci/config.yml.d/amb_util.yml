@@ -58,7 +58,7 @@ commands:
               or:
                 - equal: [ master, << pipeline.git.branch >> ]
                 - matches:
-                    pattern: "^rel\/v[0-9]+\.[0-9]+\.[0-9]+$"
+                    pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+$'
                     value: << pipeline.git.branch >>
           steps:
             - skip-if-no-changes:
@@ -76,7 +76,7 @@ commands:
               or:
                 - equal: [ master, << pipeline.git.branch >> ]
                 - matches:
-                    pattern: "^rel\/v[0-9]+\.[0-9]+\.[0-9]+$"
+                    pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+$'
                     value: << pipeline.git.branch >>
           steps:
             - skip-if-only-changes:
