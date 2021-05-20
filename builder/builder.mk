@@ -776,6 +776,7 @@ release/promote-oss/dev-to-rc:
 			exit 1 ;\
 		fi ;\
 		printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
+		veroverride=$(RELEASE_VERSION) ; \
 		$(MAKE) release/promote-oss/.main \
 			PROMOTE_FROM_VERSION="$$dev_version" \
 			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
@@ -785,11 +786,11 @@ release/promote-oss/dev-to-rc:
 		chartsuffix=$${chartsuffix#*-} ; \
 		$(MAKE) \
 			CHART_VERSION_SUFFIX=-$$chartsuffix \
-			IMAGE_TAG=$(RELEASE_VERSION) \
+			IMAGE_TAG=$${veroverride} \
 			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
 		$(MAKE) update-yaml --always-make; \
-		$(MAKE) VERSION_OVERRIDE=$(RELEASE_VERSION) push-manifests  ; \
+		$(MAKE) VERSION_OVERRIDE=$${veroverride} push-manifests  ; \
 		$(MAKE) clean-manifests ; \
 	}
 .PHONY: release/promote-oss/dev-to-rc
