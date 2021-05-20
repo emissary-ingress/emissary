@@ -5,6 +5,7 @@ right branch, that all of the subtrees are up-to-date...
 """
 
 import os.path
+from os import getenv
 import sys
 import time
 from contextlib import contextmanager
@@ -15,9 +16,15 @@ from lib.uiutil import Checker, CheckResult
 from lib.uiutil import run_txtcapture as run_capture
 
 
+DEFAULT_REPO = 'git@github.com:datawire/ambassador'
+
+
 def main(next_ver: str, quiet: bool = False) -> int:
     print(f'Starting work on "v{next_ver}"...')
     print()
+    remote_repo = getenv('AMBASSADOR_RELEASE_REPO_OVERRIDE')
+    if remote_repo is None or remote_repo == '':
+        remote_repo = DEFAULT_REPO
 
     checker = Checker()
 
@@ -29,16 +36,16 @@ def main(next_ver: str, quiet: bool = False) -> int:
 
     is_private = False
 
-    # with check("You're in a clone of git@github.com:datawire/ambassador[-private].git"):
-        # url = run_capture(['git', 'remote', 'get-url', '--push', 'origin'])
-        # if url.endswith("/"):
-            # url = url[:-len("/")]
-        # if url.endswith(".git"):
-            # url = url[:-len(".git")]
-        # if url.endswith("-private"):
-            # is_private = True
-            # url = url[:-len("-private")]
-        # assert_eq(url, "git@github.com:datawire/ambassador")
+    with check(f"You're in a clone of {remote_repo}"):
+        url = run_capture(['git', 'remote', 'get-url', '--push', 'origin'])
+        if url.endswith("/"):
+            url = url[:-len("/")]
+        if url.endswith(".git"):
+            url = url[:-len(".git")]
+        if url.endswith("-private"):
+            is_private = True
+            url = url[:-len("-private")]
+        assert_eq(url, remote_repo)
 
     with check("You're in the toplevel of the clone"):
         toplevel = run_capture(['git', 'rev-parse', '--show-toplevel'])
@@ -49,7 +56,7 @@ def main(next_ver: str, quiet: bool = False) -> int:
         git_check_clean()
 
     # Cache the name of our remote...
-    remote_name = 'git@github.com:datawire/ambassador.git' if is_private else 'origin'
+    remote_name = f'{remote_repo}.git' if is_private else 'origin'
 
     # ...make sure the passed-in version is OK...
     m = re_ga.match(next_ver)
@@ -67,7 +74,7 @@ def main(next_ver: str, quiet: bool = False) -> int:
 
     if checker.ok:
         with check("You're up-to-date with ambassador.git"):
-            remote_name = 'git@github.com:datawire/ambassador.git' if is_private else 'origin'
+            remote_name = f'{remote_repo}.git' if is_private else 'origin'
 
             branch_up_to_date(
                 remote=remote_name,
@@ -78,15 +85,15 @@ def main(next_ver: str, quiet: bool = False) -> int:
         if is_private:
             with check("You're up-to-date with ambassador-private.git"):
                 branch_up_to_date(
-                    remote='git@github.com:datawire/ambassador-private.git',
+                    remote='f{remote_repo}-private.git',
                     branch=cur_branch,
-                    update_cmd=f'git pull git@github.com:datawire/ambassador-private.git {cur_branch}',
+                    update_cmd=f'git pull {remote_repo}-private.git {cur_branch}',
                 )
 
     if checker.ok:
         if not quiet:
             print()
-            print("Yep, looks like you're good to proceed to running `rel-01-rc-update-tree`.")
+            print("Yep, looks like you're good to proceed to running `start-update-version`.")
         return 0
     else:
         print()
