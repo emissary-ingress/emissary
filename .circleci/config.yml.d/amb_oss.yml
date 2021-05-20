@@ -106,6 +106,7 @@ jobs:
   "oss-chart-changelog":
     executor: oss-linux
     steps:
+      - run: echo 'step'
       - when:
           condition:
             and:
