@@ -71,7 +71,7 @@ commands:
       - amb-config-registry
       # main
       - run: make test-chart
-      - run: charts/ambassador/ci/push_chart.sh
+      - run: BUMP_STABLE=true charts/ambassador/ci/push_chart.sh
 
   "job-manifests-publish":
     steps:
