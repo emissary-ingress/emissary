@@ -977,7 +977,7 @@ workflows:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
           branches:
-            only: master
+            ignore: /.*/
     - oss-gotest:
         name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure
           >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
@@ -1006,7 +1006,7 @@ workflows:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
           branches:
-            only: master
+            ignore: /.*/
     - oss-chart-changelog:
         name: "oss-chart-changelog"
     - oss-test:
@@ -1057,7 +1057,7 @@ workflows:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
           branches:
-            only: master
+            ignore: /.*/
     - oss-envoy-test:
         requires:
         - "oss-dev-images"
