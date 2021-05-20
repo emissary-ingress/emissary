@@ -22,6 +22,12 @@ commands:
   # (factored out to be commands so that they can be shared between    #
   # "oss-linux" and "aes-linux" executors)                             #
   ######################################################################
+  "job-echo":
+    steps:
+      - run: echo "hi"
+  "job-echo-2":
+    steps:
+      - run: echo "releases only"
   "job-chart":
     steps:
     - amb-linux-install
@@ -828,6 +834,14 @@ jobs:
         test: << parameters.test >>
         fast-reconfigure: << parameters.fast-reconfigure >>
         legacy-mode: << parameters.legacy-mode >>
+  oss-echo:
+    executor: oss-linux
+    steps:
+      - job-echo
+  oss-echo-2:
+    executor: oss-linux
+    steps:
+      - job-echo-2
   oss-chart:
     executor: oss-linux
     steps:
@@ -948,298 +962,15 @@ _anchors:
 workflows:
   'OSS: Dev':
     jobs:
-    - oss-images:
-        name: "oss-dev-images"
-    - oss-generate:
-        name: "oss-dev-generate"
-    - oss-lint:
-        name: "oss-dev-lint"
-    - oss-chart:
-        name: "oss-dev-chart"
-    - emissary-chart:
-        name: "emissary-dev-chart"
-    - oss-test:
-        requires:
-        - "oss-dev-images"
-        name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
-          >>"
-        matrix:
-          alias: "oss-release-test"
-          parameters:
-            test:
-            - "pytest"
-            legacy-mode:
-            - true
-            fast-reconfigure:
-            - false
+    - oss-echo:
+        name: "pr-ci-only"
+    - oss-echo-2:
+        name: "releases-only"
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
           branches:
             ignore: /.*/
-    - oss-gotest:
-        name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure
-          >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
-        matrix:
-          alias: "oss-dev-gotest-matrix"
-          parameters:
-            fast-reconfigure:
-            - true
-            - false
-            legacy-mode:
-            - false
-            # If you enable testing with legacy-mode true as well, you'll also need
-            # to add some exclusions -- see the Release workflow for more.
-    - oss-gotest:
-        name: "oss-release-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
-          >>"
-        matrix:
-          alias: "oss-release-gotest"
-          parameters:
-            fast-reconfigure:
-            - false
-            legacy-mode:
-            - true
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-chart-changelog:
-        name: "oss-chart-changelog"
-    - oss-test:
-        requires:
-        - "oss-dev-images"
-        name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
-          >>"
-        matrix:
-          alias: "oss-dev-pytest-matrix"
-          parameters:
-            test:
-            - "pytest"
-            # Running the ingresstests would require we install `kind` and
-            # that the test suite supports HTTP to HTTPS redirects (AES
-            # enables cleartext redirection by default, even for fallback
-            # hosts, contrary to A/OSS)
-            #- "ingresstest"
-
-            fast-reconfigure:
-            - true
-            - false
-            legacy-mode:
-            # We don't run legacy mode tests in the "Dev" workflow but we do
-            # in the Nightly and Release workflows.
-            - false
-          exclude:
-          - test: pytest
-            fast-reconfigure: true
-            legacy-mode: true
-    - oss-envoy-test:
-        requires:
-        - "oss-dev-images"
-        name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
-          >>"
-        matrix:
-          alias: "oss-release-envoy-test"
-          parameters:
-            test:
-            - "pytest-envoy"
-            - "pytest-envoy-v3"
-            fast-reconfigure:
-            - false
-            legacy-mode:
-            - true
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-envoy-test:
-        requires:
-        - "oss-dev-images"
-        name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
-          >>"
-        matrix:
-          alias: "oss-dev-envoy-test-matrix"
-          parameters:
-            test:
-            - "pytest-envoy"
-            - "pytest-envoy-v3"
-            fast-reconfigure:
-            - true
-            - false
-            legacy-mode:
-            # We don't run legacy mode tests in the "Dev" workflow but we do
-            # in the Nightly and Release workflows.
-            - false
-          exclude:
-          - test: pytest-envoy
-            fast-reconfigure: true
-            legacy-mode: true
-          - test: pytest-envoy-v3
-            fast-reconfigure: true
-            legacy-mode: true
-    - oss-images:
-        name: "oss-release-images"
-        release: true
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-promote-to-rc-latest:
-        name: "oss-release-promote-to-rc-latest"
-        requires:
-        # build
-        - "oss-release-images"
-        # test
-        - "oss-dev-generate"
-        - "oss-dev-lint"
-        - "oss-release-test"
-        - "oss-dev-gotest-matrix"
-        - "oss-release-gotest"
-        - "oss-dev-pytest-matrix"
-        - "oss-release-envoy-test"
-        - "oss-dev-envoy-test-matrix"
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
-          branches:
-            ignore: /.*/
-    - oss-promote-to-ga:
-        name: "oss-release-promote-to-ga"
-        requires:
-        - "oss-release-promote-to-rc-latest"
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
-          branches:
-            ignore: /.*/
-  'OSS: Chart Release':
-    when:
-      or:
-      - equal:
-        - "https://github.com/acookin/ambassador"
-        - << pipeline.project.git_url >>
-      - equal:
-        - "https://github.com/acookin/ambassador-private"
-        - << pipeline.project.git_url >>
-    jobs:
-    - oss-chart-publish:
-        name: "oss-release-chart"
-        filters:
-          tags:
-            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
-          branches:
-            ignore: /.*/
-  'OSS: Manifests Release':
-    when:
-      or:
-      - equal:
-        - "https://github.com/acookin/ambassador"
-        - << pipeline.project.git_url >>
-      - equal:
-        - "https://github.com/acookin/ambassador-private"
-        - << pipeline.project.git_url >>
-    jobs:
-    - oss-manifest-publish:
-        name: "oss-rc-manifests-publish"
-        filters:
-          tags:
-            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
-          branches:
-            ignore: /.*/
-  'OSS: Nightly':
-    triggers:
-    - schedule:
-        cron: "0 6 * * 1-5"
-        filters:
-          branches:
-            only:
-            - master
-    - schedule:
-        cron: "0 5 * * *"
-        filters:
-          branches:
-            only:
-            - shared/emissary
-    jobs:
-    - oss-images:
-        name: "oss-nightly-images"
-        push_nightly: true
-    - oss-gotest:
-        name: "oss-nightly-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
-          >>"
-        matrix:
-          alias: "oss-nightly-gotest"
-          parameters:
-            fast-reconfigure:
-            - true
-            - false
-            legacy-mode:
-            - true
-            - false
-          exclude:
-          - fast-reconfigure: true
-            legacy-mode: true
-    - oss-test:
-        requires:
-        - "oss-nightly-images"
-        name: "oss-nightly-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
-          >>"
-        matrix:
-          alias: "oss-nightly-test"
-          parameters:
-            test:
-            - "pytest"
-            # Running the ingresstests would require we install `kind` and
-            # that the test suite supports HTTP to HTTPS redirects (AES
-            # enables cleartext redirection by default, even for fallback
-            # hosts, contrary to A/OSS)
-            #- "ingresstest"
-
-            fast-reconfigure:
-            - true
-            - false
-            legacy-mode:
-            - true
-            - false
-          exclude:
-          - test: pytest
-            fast-reconfigure: true
-            legacy-mode: true
-    - oss-envoy-test:
-        requires:
-        - "oss-nightly-images"
-        name: "oss-nightly-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
-          >>"
-        matrix:
-          alias: "oss-nightly-envoy-test"
-          parameters:
-            test:
-            - "pytest-envoy"
-            - "pytest-envoy-v3"
-            fast-reconfigure:
-            - true
-            - false
-            legacy-mode:
-            - true
-            - false
-          exclude:
-          - test: pytest-envoy
-            fast-reconfigure: true
-            legacy-mode: true
-          - test: pytest-envoy-v3
-            fast-reconfigure: true
-            legacy-mode: true
 executors:
   oss-linux:
     machine:
