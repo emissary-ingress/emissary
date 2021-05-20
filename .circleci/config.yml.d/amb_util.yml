@@ -46,11 +46,50 @@ commands:
       - attach_workspace:
           at: /home/circleci/project
 
+  "amb-skip-if-no-changes-not-release":
+    parameters:
+      "to":
+        description: A POSIX ERE (grep -E regex) that matches which filenames to check for changes in
+        type: string
+    steps:
+      - when:
+          condition:
+            not:
+              or:
+                - equal: [ master, << pipeline.git.branch >> ]
+                - matches:
+                    pattern: "^rel\/v[0-9]+\.[0-9]+\.[0-9]+$"
+                    value: << pipeline.git.branch >>
+          steps:
+            - skip-if-no-changes:
+                to: << parameters.to >>
+
+  "amb-skip-if-only-changes-not-release":
+    parameters:
+      "to":
+        description: A POSIX ERE (grep -E regex) that matches which filenames to check for changes in
+        type: string
+    steps:
+      - when:
+          condition:
+            not:
+              or:
+                - equal: [ master, << pipeline.git.branch >> ]
+                - matches:
+                    pattern: "^rel\/v[0-9]+\.[0-9]+\.[0-9]+$"
+                    value: << pipeline.git.branch >>
+          steps:
+            - skip-if-only-changes:
+                to: << parameters.to >>
+
   "amb-skip-if-no-code-changes":
     steps:
       - skip-if-only-changes:
           to: (charts/ambassador\|docs/\|*.md)
-
+  "amb-skip-if-no-code-changes-not-release":
+    steps:
+      - amb-skip-if-only-changes-not-release:
+          to: (charts/ambassador\|docs/\|*.md)
   "amb-checkout":
     steps:
       - when:

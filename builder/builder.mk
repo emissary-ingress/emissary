@@ -781,7 +781,7 @@ release/promote-oss/dev-to-rc:
 			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
 			PROMOTE_TO_VERSION=$(RELEASE_VERSION) \
 			PROMOTE_CHANNEL=test ; \
-		chartsuffix=$(RELEASE_VERSION)
+		chartsuffix=$(RELEASE_VERSION) ; \
 		chartsuffix=$${chartsuffix#*-} ; \
 		$(MAKE) \
 			CHART_VERSION_SUFFIX=-$$chartsuffix \
@@ -821,6 +821,7 @@ release/promote-oss/to-ga:
  	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
 	  $(MAKE) release/promote-oss/.main \
 	    PROMOTE_FROM_VERSION="$$dev_version" \
+		PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
 	    PROMOTE_TO_VERSION="$(RELEASE_VERSION)-wip" \
 	    PROMOTE_CHANNEL=wip \
 	    ; \
@@ -849,7 +850,7 @@ release/manifests:
 		fi; \
 	}
 	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
-	@$(OSS_HOME)/releng/release-manifest-image-update
+	@$(OSS_HOME)/releng/release-manifest-image-update $(VERSION)
 .PHONY: release/manifests
 
 release-prep:

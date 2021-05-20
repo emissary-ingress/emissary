@@ -45,29 +45,36 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
 """
     print(f"{ansiterm.sgr.fg_red}{warning}{ansiterm.sgr}")
 
-    with check("Authenticating to GitHub"):
-        run(["gh", "auth", "login"])
+    run(["gh", "auth", "login", "--web"])
 
-    workbranch = f"rel/v{next_ver}/chart-img-updates"
+    workbranch = f"rel/v{next_ver}/chart-image-updates"
     with check(f"Creating new branch {workbranch} off of tag v{next_ver}"):
         run(["git", "fetch", "--tags"])
         run(["git", "checkout", f"v{next_ver}", "-b", workbranch])
+
+    if not checker.ok:
+        return 1
 
     print('TODO: CHECK THAT IMAGE EXISTS')
     with check(f"Updating image tag in charts"):
         run(["make", f"IMAGE_TAG={next_ver}", "release/chart/update-images"])
         git_add("charts/ambassador")
         git_add("charts/emissary-ingress")
+    if not checker.ok:
+        return 1
     with check(f"Updating manifest yaml"):
         run(["make", "update-yaml"])
         git_add("manifests")
         git_add("docs/yaml")
+
     if checker.ok and commit:
         with check(f"Committing changes..."):
             gitdir = run_capture(['git', 'rev-parse', '--git-dir'])
             with open(os.path.join(gitdir, 'GITGUI_MSG'), 'w') as msgfile:
                 msgfile.write(f"Updating and manifest images for v{next_ver}\n")
             run(['git', 'citool'])
+        if not checker.ok:
+            return 1
         with check(f"Creating pull request for chart and manifest changes"):
             m = re_ga.match(next_ver)
             assert m
@@ -78,6 +85,8 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
                     "--title", f"Chart and manifest image updates {next_ver}",
                     "--body", f"Update charts and manifests to use the newly release images for {next_ver}",
                     "--reviewer", "kflynn,rhs,esmet,acookin"])
+        if not checker.ok:
+            return 1
         with check(f"Creating chart tag"):
             run(["make", "release/chart/tag"])
     if checker.ok:
