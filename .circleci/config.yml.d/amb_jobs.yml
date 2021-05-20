@@ -28,7 +28,7 @@ commands:
     steps:
       - amb-linux-install
       - amb-checkout
-      - skip-if-no-changes:
+      - amb-skip-if-no-changes-not-release:
           to: charts/ambassador
       - install-k3d
       # We might need to be logged in the registry to pull the Envoy
@@ -49,7 +49,7 @@ commands:
     steps:
       - amb-linux-install
       - amb-checkout
-      - skip-if-no-changes:
+      - amb-skip-if-no-changes-not-release:
           to: charts/emissary-ingress
       - install-k3d
       # We might need to be logged in the registry to pull the Envoy
