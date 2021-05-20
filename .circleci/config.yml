@@ -969,6 +969,13 @@ workflows:
             only: /.*/
 
     - oss-echo-2:
+        name: "releases-and-master-only"
+        filters:
+          tags:
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
+          branches:
+            only: master
+    - oss-echo-2:
         name: "releases-only"
         filters:
           tags:
