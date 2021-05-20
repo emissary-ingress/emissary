@@ -66,12 +66,13 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         with checker.check(name) as subcheck:
             # time.sleep(1)  # it's stupid, but honestly the delay makes the output more readable
             yield subcheck
-    with check("Logging into github"):
-        run(["gh", "auth", "login"])
+    run(["gh", "auth", "login"])
 
     workbranch = f"rel/{next_ver}/changelog-date-update"
     with check(f"Creating new branch {workbranch}"):
         run(["git", "checkout", "-b", workbranch])
+    if not checker.ok:
+        return 1
 
     with check(f"Updating CHANGELOG.md with date for {next_ver}..."):
         found = False
@@ -94,6 +95,8 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
                 msgfile.write(f"Update for v{next_ver}\n")
             run(['git', 'citool'])
             run(["git", "push", "origin", workbranch])
+        if not checker.ok:
+            return 1
 
         with check(f"Creating PR for branch {workbranch}"):
             m = re_ga.match(next_ver)
