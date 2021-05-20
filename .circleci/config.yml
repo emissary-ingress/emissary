@@ -97,11 +97,11 @@ commands:
     # image or the builder-base image.
     - amb-config-registry
     - # main
-      run: make generate
+      run: echo "hi"
     - dirty-check
     - # Run it again to make sure that it is possible to run it twice
       # in a row.
-      run: make generate
+      run: echo "hi"
     - dirty-check
   "job-lint":
     steps:
