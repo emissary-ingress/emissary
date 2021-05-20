@@ -964,6 +964,10 @@ workflows:
     jobs:
     - oss-echo:
         name: "pr-ci-only"
+        filters:
+          tags:
+            only: /.*/
+
     - oss-echo-2:
         name: "releases-only"
         filters:
