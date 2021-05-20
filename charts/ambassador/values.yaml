@@ -117,7 +117,6 @@ security:
     #     rule: MustRunAsNonRoot
 
 image:
-  repository: docker.io/alixcook11/ambassador
   tag: 1.13.4
   pullPolicy: IfNotPresent
 
@@ -321,7 +320,7 @@ metrics:
 # Go to https://{ambassador-host}/edge_stack/admin/#dashboard to register
 # for a community license key.
 
-enableAES: false
+enableAES: true
 
 # Set createSecret: false is installing multiple releases of The Ambassador
 # Edge Stack in the same namespace.

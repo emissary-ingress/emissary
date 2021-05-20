@@ -116,7 +116,7 @@ security:
 
 image:
   # Emissary Ingress docker repo
-  repository: docker.io/alixcook11/ambassador
+  repository: docker.io/datawire/ambassador
   # Emissary Ingress docker tag
   tag: 1.13.4
   # Pod container image pull policy
