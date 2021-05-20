@@ -99,6 +99,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             run(['git', 'citool'])
 
     if checker.ok:
+        print(f'Update complete. PR your staged changes back to ambassador')
         return 0
     else:
         return 1

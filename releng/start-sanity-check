@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from typing import Generator
 
 from lib import assert_eq, git_check_clean, vX, vY, re_ga
-from lib.uiutil import Checker, CheckResult
+from lib.uiutil import Checker, CheckResult, run
 from lib.uiutil import run_txtcapture as run_capture
 
 
