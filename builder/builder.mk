@@ -719,19 +719,28 @@ release/bits: images
 .PHONY: release/bits
 
 release/promote-oss/.main:
-	@[[ "$(RELEASE_VERSION)"      =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
-	@[[ '$(PROMOTE_FROM_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
-	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
-	@case "$(PROMOTE_CHANNEL)" in \
-		""|wip|early|test) true ;; \
-		*) echo "Unknown PROMOTE_CHANNEL $(PROMOTE_CHANNEL)" >&2 ; exit 1;; \
-	esac
-	@printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN) (channel=$(BLU)%s$(GRN))$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(PROMOTE_TO_VERSION)' '$(PROMOTE_CHANNEL)'
-
-	@printf '  $(CYN)$(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_FROM_VERSION)$(END)\n'
-	docker pull $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_FROM_VERSION)
-	docker tag $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
-	docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
+	@[[ "$(RELEASE_VERSION)"      =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET RELEASE_VERSION"; exit 1)
+	@[[ -n "$(PROMOTE_FROM_VERSION)" ]] || (echo "MUST SET PROMOTE_FROM_VERSION"; exit 1)
+	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET PROMOTE_TO_VERSION" ; exit 1)
+	@set -e; { \
+		case "$(PROMOTE_CHANNEL)" in \
+			""|wip|early|test) true ;; \
+			*) echo "Unknown PROMOTE_CHANNEL $(PROMOTE_CHANNEL)" >&2 ; exit 1;; \
+		esac ; \
+		printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN) (channel=$(BLU)%s$(GRN))$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(PROMOTE_TO_VERSION)' '$(PROMOTE_CHANNEL)' ; \
+		pullregistry=$(PROMOTE_FROM_REPO) ; \
+		if [[ -z "$${pullregistry}" ]] ; then \
+			pullregistry=$(RELEASE_REGISTRY) ;\
+		fi ; \
+		if [[ -z "$${pullregistry}" ]] ; then \
+			echo "Must set PROMOTE_FROM_REPO or RELEASE_REGISTRY" ; \
+			exit 1; \
+		fi ; \
+		printf '  $(CYN)$${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION)$(END)\n' ; \
+		docker pull $${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION) && \
+		docker tag $${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) && \
+		docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) ;\
+	}
 
 	@printf '  $(CYN)https://s3.amazonaws.com/datawire-static-files/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt$(END)\n'
 	printf '%s' "$(RELEASE_VERSION)" | aws s3 cp - s3://datawire-static-files/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt
@@ -751,6 +760,39 @@ release/promote-oss/to-ea-latest:
 	  PROMOTE_CHANNEL=early \
 	; }
 .PHONY: release/promote-oss/to-ea-latest
+
+release/promote-oss/dev-to-rc:
+	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
+	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@set -e; { \
+		if [ -n "$(IS_DIRTY)" ]; then \
+			echo "release/promote-oss/dev-to-rc: tree must be clean" >&2 ;\
+			exit 1 ;\
+		fi; \
+		commit=$$(git rev-parse HEAD) ;\
+		dev_version=$$(aws s3 cp s3://datawire-static-files/dev-builds/$$commit -) ;\
+		if [ -z "$$dev_version" ]; then \
+			printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
+			exit 1 ;\
+		fi ;\
+		printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
+		$(MAKE) release/promote-oss/.main \
+			PROMOTE_FROM_VERSION="$$dev_version" \
+			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
+			PROMOTE_TO_VERSION=$(RELEASE_VERSION) \
+			PROMOTE_CHANNEL=test ; \
+		chartsuffix=$(RELEASE_VERSION)
+		chartsuffix=$${chartsuffix#*-} ; \
+		$(MAKE) \
+			CHART_VERSION_SUFFIX=-$$chartsuffix \
+			IMAGE_TAG=$(RELEASE_VERSION) \
+			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
+			chart-push-ci ; \
+		$(MAKE) update-yaml --always-make; \
+		$(MAKE) VERSION_OVERRIDE=$(RELEASE_VERSION) push-manifests  ; \
+		$(MAKE) clean-manifests ; \
+	}
+.PHONY: release/promote-oss/dev-to-rc
 
 # To be run from a checkout at the tag you are promoting _from_.
 # At present, this is to be run by-hand.

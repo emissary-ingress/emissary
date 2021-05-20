@@ -320,10 +320,10 @@ commands:
             - amb-linux-install
             - amb-checkout
             - run:
-                name: "Promote to -rc-latest"
+                name: "Promote to dev build to RC"
                 command: |
                   docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
-                  DEV_KUBECONFIG="-skip-for-release-" make release/promote-<< parameters.channel >>/to-rc-latest
+                  DEV_KUBECONFIG="-skip-for-release-" make release/promote-<< parameters.channel >>/dev-to-rc
 
   "job-promote-to-ga":
     parameters:
