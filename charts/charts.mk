@@ -11,7 +11,7 @@ define _set_tag_and_repo
 endef
 
 define _set_tag
-	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py $(1) $(2)
+	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py $(1) $(2) docker.io/alixcook11/ambassador
 endef
 
 define _docgen
