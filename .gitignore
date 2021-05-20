@@ -1,3 +1,6 @@
+# Docker build pin files
+docker/*.pin
+
 *.pyc
 *~
 .cache
