@@ -65,6 +65,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
+(no changes yet)
+
+## [1.13.6-rc.0] May 21, 2021
+[1.13.6-rc.0]: https://github.com/datawire/ambassador/compare/v1.13.5...v1.13.6-rc.0
+
 - Bugfix: Fixed a regression where Ambassador snapshot data was logged at the INFO label when using AMBASSADOR_LEGACY_MODE=true
 
 ## [1.13.5] May 13, 2021
