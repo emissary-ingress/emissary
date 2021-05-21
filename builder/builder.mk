@@ -829,6 +829,8 @@ release/promote-oss/to-ga:
 	}
 .PHONY: release/promote-oss/to-ga
 
+VERSIONS_YAML_VER := $(shell grep 'version:' $(OSS_HOME)/docs/yaml/versions.yml | awk '{ print $$2 }')
+
 release/go:
 	@set -e; { \
 		if [ -n "$(IS_DIRTY)" ]; then \
@@ -836,11 +838,12 @@ release/go:
 			exit 1 ;\
 		fi; \
 	}
-	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
-	@$(OSS_HOME)/releng/start-sanity-check --quiet $(VERSION)
-	@git tag -s -m "Tagging v$(VERSION) for GA" -a v$(VERSION)
-	@git push origin v$(VERSION)
-	@$(OSS_HOME)/releng/release-go-changelog-update --quiet $(VERSION)
+	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
+	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
+	@$(OSS_HOME)/releng/start-sanity-check --quiet $(VERSIONS_YAML_VER)
+	@git tag -s -m "Tagging v$(VERSIONS_YAML_VER) for GA" -a v$(VERSIONS_YAML_VER)
+	@git push origin v$(VERSIONS_YAML_VER)
+	@$(OSS_HOME)/releng/release-go-changelog-update --quiet $(VERSIONS_YAML_VER)
 .PHONY: release/go
 
 release/manifests:
@@ -850,9 +853,14 @@ release/manifests:
 			exit 1 ;\
 		fi; \
 	}
-	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
-	@$(OSS_HOME)/releng/release-manifest-image-update $(VERSION)
+	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
+	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
+	@$(OSS_HOME)/releng/release-manifest-image-update $(VERSIONS_YAML_VER)
 .PHONY: release/manifests
+
+release/repatriate:
+	@:q
+
 
 release-prep:
 	bash $(OSS_HOME)/releng/release-prep.sh
