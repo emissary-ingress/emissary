@@ -74,13 +74,10 @@ func TestReconcile(t *testing.T) {
 		"consultest-resolver.default:consultest-consul-service:watch",
 		"consultest-resolver.default:consultest-consul-service-tcp:watch",
 	)
-	extra := &amb.Mapping{
-		Spec: amb.MappingSpec{
-			Service:  "foo",
-			Resolver: "consultest-resolver",
-		},
+	extra := consulMapping{
+		Service:  "foo",
+		Resolver: "consultest-resolver",
 	}
-	extra.SetNamespace("default")
 	c.reconcile(resolvers, append(mappings, extra))
 	tw.Assert(
 		"consultest-resolver.default:foo:watch",
@@ -121,7 +118,7 @@ func TestBootstrap(t *testing.T) {
 	assert.True(t, c.isBootstrapped())
 }
 
-func setup(t *testing.T) (resolvers []*amb.ConsulResolver, mappings []*amb.Mapping, c *consul, tw *testWatcher) {
+func setup(t *testing.T) (resolvers []*amb.ConsulResolver, mappings []consulMapping, c *consul, tw *testWatcher) {
 	objs, err := kates.ParseManifestsToUnstructured(manifests)
 	require.NoError(t, err)
 
@@ -136,7 +133,9 @@ func setup(t *testing.T) (resolvers []*amb.ConsulResolver, mappings []*amb.Mappi
 		case *amb.ConsulResolver:
 			resolvers = append(resolvers, o)
 		case *amb.Mapping:
-			mappings = append(mappings, o)
+			mappings = append(mappings, consulMapping{Service: o.Spec.Service, Resolver: o.Spec.Resolver})
+		case *amb.TCPMapping:
+			mappings = append(mappings, consulMapping{Service: o.Spec.Service, Resolver: o.Spec.Resolver})
 		}
 	}
 
@@ -172,9 +171,8 @@ func (tw *testWatcher) Assert(events ...string) {
 	tw.events = make(map[string]bool)
 }
 
-func (tw *testWatcher) Watch(resolver *amb.ConsulResolver, mapping *amb.Mapping, _ chan consulwatch.Endpoints) Stopper {
+func (tw *testWatcher) Watch(resolver *amb.ConsulResolver, svc string, _ chan consulwatch.Endpoints) Stopper {
 	rname := fmt.Sprintf("%s.%s", resolver.GetName(), resolver.GetNamespace())
-	svc := mapping.Spec.Service
 	tw.Logf("%s:%s:watch", rname, svc)
 	return &testStopper{watcher: tw, resolver: rname, service: svc}
 }
