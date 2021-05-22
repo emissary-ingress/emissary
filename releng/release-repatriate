@@ -48,6 +48,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             yield subcheck
     run(["gh", "auth", "login"])
 
+    m = re_ga.match(next_ver)
     release_branch = f"release/v{m[vX]}.{m[vY]}"
     with check("You're in a clean checkout"):
         git_check_clean()
@@ -85,6 +86,19 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         return 0
     else:
         return 1
+
+
+def branch_up_to_date(remote: str, branch: str, update_cmd: str) -> None:
+    run(['git', 'fetch', remote, f'refs/heads/{branch}'])
+    try:
+        run(['git', 'merge-base', '--is-ancestor', 'FETCH_HEAD', 'HEAD'])
+    except Exception as err:
+        print(f"HEAD is not up-to-date with '{remote}' '{branch}':")
+        print("You need to update it with:")
+        print()
+        print(f"    $ {update_cmd}")
+        print()
+        raise
 
 
 if __name__ == '__main__':
