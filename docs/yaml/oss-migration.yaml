@@ -124,7 +124,7 @@ spec:
           secretName: ambassador-edge-stack
       containers:
       - name: aes
-        image: docker.io/datawire/aes:1.13.4
+        image: docker.io/alixcook11/ambassador:2.3.0
         imagePullPolicy: IfNotPresent
         ports:
         - name: http

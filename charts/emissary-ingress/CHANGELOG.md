@@ -12,6 +12,10 @@ we're packaging and versioning the charts together to make things a bit easier. 
 
 (no changes yet)
 
+## v6.8.0
+
+- Update Ambassador chart image to version v2.3.0: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
+
 ## v6.7.7
 
 (no changes)
