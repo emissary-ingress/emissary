@@ -10,6 +10,7 @@ from .gitutil import git_add as git_add # Stop mypy complaining about implicit r
 
 # These are some regular expressions to validate and parse
 # X.Y.Z[-rc.N] versions.
+re_rc = re.compile(r'^([0-9]+)\.([0-9]+)\.([0-9]+)-rc\.([0-9]+)$')
 re_ga = re.compile(r'^([0-9]+)\.([0-9]+)\.([0-9]+)$')
 vX = 1
 vY = 2
@@ -31,3 +32,15 @@ def assert_eq(actual: Any, expected: Any) -> None:
     """
     if actual != expected:
         raise AssertionError(f"wanted '{expected}', got '{actual}'")
+
+
+def get_is_private() -> bool:
+    """Return whether we're in a "private" Git checkout, for doing
+    embargoed work.
+    """
+    remote_names = run_txtcapture(['git', 'remote']).split()
+    remote_urls: List[str] = []
+    for remote_name in remote_names:
+        remote_urls += run_txtcapture(['git', 'remote', 'get-url', '--all', remote_name]).split()
+    return 'private' in "\n".join(remote_urls)
+

@@ -859,12 +859,11 @@ release/manifests:
 .PHONY: release/manifests
 
 release/repatriate:
-	@:q
+	@$(OSS_HOME)/releng/release-repatriate $(VERSIONS_YAML_VER)
+.PHONY: release/repatriate
 
-
-release-prep:
-	bash $(OSS_HOME)/releng/release-prep.sh
-.PHONY: release-prep
+release/ga-check:
+	@$(OSS_HOME)/releng/release-ga-check $(VERSION)
 
 release/start:
 	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
