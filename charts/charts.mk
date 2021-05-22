@@ -7,13 +7,13 @@ define _push_chart
 endef
 
 define _set_tag_and_repo
-	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py $(1) $(2) $(3)
-	$(YQ) w -i $(1) 'appVersion' $(2)
+	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py $(1) $(2) $(3) && \
+		$(YQ) w -i $(1) 'appVersion' $(2)
 endef
 
 define _set_tag
-	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py $(1) $(2) docker.io/alixcook11/ambassador
-	$(YQ) w -i $(1) 'appVersion' $(2)
+	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py $(1) $(2) docker.io/alixcook11/ambassador && \
+		$(YQ) w -i $(1) 'appVersion' $(2)
 endef
 
 define _docgen
@@ -32,7 +32,7 @@ chart-push-ci: push-preflight
 	@[ -n "${CHART_VERSION_SUFFIX}" ] || (echo "CHART_VERSION_SUFFIX must be set for non-GA pushes" && exit 1)
 	@[ -n "${IMAGE_TAG}" ] || (echo "IMAGE_TAG must be set" && exit 1)
 	@[ -n "${IMAGE_REPO}" ] || (echo "IMAGE_REPO must be set" && exit 1)
-	@for chart in $(AMBASSADOR_CHART) $(EMISSARY_CHART) ; do \
+	for chart in $(AMBASSADOR_CHART) $(EMISSARY_CHART) ; do \
 		sed -i.bak -E "s/version: ([0-9]+\.[0-9]+\.[0-9]+).*/version: \1${CHART_VERSION_SUFFIX}/g" $$chart/Chart.yaml && rm $$chart/Chart.yaml.bak ; \
 		$(call _set_tag_and_repo,$$chart/values.yaml,${IMAGE_TAG},${IMAGE_REPO}) ; \
 		$(call _push_chart,`basename $$chart`) ; \
