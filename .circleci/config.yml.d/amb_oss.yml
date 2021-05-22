@@ -186,14 +186,17 @@ _anchors:
           - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
 
 workflows:
-  "OSS: Release":
+  "OSS: GA Release":
     jobs:
-      - "oss-promote-dev-to-rc":
-          <<: *filter-rc-only
-          name: "oss-release-promote-to-rc-latest"
       - "oss-promote-to-ga":
           <<: *filter-ga-only
           name: "oss-release-promote-to-ga"
+
+  "OSS: Release Candidate":
+    jobs:
+      - "oss-promote-dev-to-rc":
+          <<: *filter-rc-only
+          name: "oss-release-promote-dev-to-rc"
 
   "OSS: Dev":
     # Run this workflow on just 'master' and PRs.

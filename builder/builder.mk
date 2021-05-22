@@ -792,8 +792,23 @@ release/promote-oss/dev-to-rc:
 		$(MAKE) update-yaml --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} push-manifests  ; \
 		$(MAKE) clean-manifests ; \
+		$(MAKE) REGISTRY=$(RELEASE_REGISTRY) \
+			VERSION=$(RELEASE_VERSION) \
+			CHART_SUFFIX=$$chartsuffix \
+			MANIFEST_VERSION=$(RELEASE_VERSION) \
+			release/print-test-artifacts ; \
 	}
 .PHONY: release/promote-oss/dev-to-rc
+
+release/print-test-artifacts:
+	@test -n "$(REGISTRY)" || (printf "REGISTRY must be set\n"; exit 1)
+	@test -n "$(VERSION)" || (printf "VERSION must be set\n"; exit 1)
+	@test -n "$(CHART_SUFFIX)" || (printf "CHART_SUFFIX must be set\n"; exit 1)
+	@test -n "$(MANIFEST_VERSION)" || (printf "CHART_SUFFIX must be set\n"; exit 1)
+	@echo "export IMAGE_TAG=$(REGISTRY)/$(LCNAME):$(VERSION)"
+	@echo "export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/ambassador/$(MANIFEST_VERSION)"
+	@echo "export HELM_CHART_VERSION=`grep 'version:' $(OSS_HOME)/charts/ambassador/Chart.yaml | awk '{ print $2 }'`-$(CHART_SUFFIX)"
+.PHONY: release/print-test-artifacts
 
 # To be run from a checkout at the tag you are promoting _from_.
 # At present, this is to be run by-hand.

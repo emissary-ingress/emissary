@@ -8,10 +8,12 @@ endef
 
 define _set_tag_and_repo
 	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py $(1) $(2) $(3)
+	$(YQ) w -i $(1) 'appVersion' $(2)
 endef
 
 define _set_tag
 	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py $(1) $(2) docker.io/alixcook11/ambassador
+	$(YQ) w -i $(1) 'appVersion' $(2)
 endef
 
 define _docgen
@@ -74,7 +76,6 @@ release/chart/update-images: doc-gen-preflight
 	([[ "${IMAGE_TAG}" =~ .*\.0$$ ]] && $(MAKE) release/chart-bump/minor) || $(MAKE) release/chart-bump/revision
 	for chart in $(AMBASSADOR_CHART) $(EMISSARY_CHART) ; do \
 		$(call _set_tag,$$chart/values.yaml,${IMAGE_TAG}) ; \
-		$(YQ) w -i $$chart/Chart.yaml 'appVersion' ${IMAGE_TAG} ; \
 		IMAGE_TAG="${IMAGE_TAG}" CHART_NAME=`basename $$chart` $(OSS_HOME)/charts/scripts/image_tag_changelog_update.sh ; \
 		CHART_NAME=`basename $$chart` $(OSS_HOME)/charts/scripts/update_chart_changelog.sh ; \
 		$(call _docgen,$$chart) ; \
