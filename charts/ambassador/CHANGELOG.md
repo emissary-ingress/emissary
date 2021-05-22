@@ -7,7 +7,7 @@ numbering uses [semantic versioning](http://semver.org).
 
 (no changes yet)
 
-## v6.8.0
+## v6.9.0
 
 - Update Ambassador chart image to version v2.3.0: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
 
