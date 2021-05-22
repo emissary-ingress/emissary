@@ -870,7 +870,7 @@ release/manifests:
 	}
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
 	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
-	@$(OSS_HOME)/releng/release-manifest-image-update $(VERSIONS_YAML_VER)
+	@$(OSS_HOME)/releng/release-manifest-image-update $(VERSIONS_YAML_VER)-wip
 .PHONY: release/manifests
 
 release/repatriate:
