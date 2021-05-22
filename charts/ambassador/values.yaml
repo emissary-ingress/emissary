@@ -118,7 +118,7 @@ security:
     #     rule: MustRunAsNonRoot
 
 image:
-  tag: 1.13.6-rc.0
+  tag: 1.13.6-rc.1
   pullPolicy: IfNotPresent
 
 dnsPolicy: "ClusterFirst"
