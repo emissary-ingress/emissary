@@ -66,7 +66,7 @@ def do_check_s3(checker: Checker,
             yield (out, body)
 
 
-def main(rc_ver: str, ga: bool, include_latest: bool, include_docker: bool = True) -> int:
+def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = True, release_channel='') -> int:
     warning = """
  ==> Warning: FIXME: While this script is handy in the things that it
      does check, there's still quite a bit that it doesn't check;
@@ -76,7 +76,6 @@ def main(rc_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
 """
     print(f"{ansiterm.sgr.fg_red}{warning}{ansiterm.sgr}")
 
-    ga_ver = build_version(rc_ver)
 
     is_private = get_is_private()
 
@@ -89,9 +88,10 @@ def main(rc_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
                 registries = ['docker.io/datawire', 'quay.io/datawire', 'gcr.io/datawire']
                 registries = ['docker.io/alixcook11']
             for registry in registries:
-                tags = [rc_ver]
-                if ga:
-                    tags = [ga_ver] + tags
+                if release_channel != '':
+                    tags = [f"{ga_ver}-{release_channel}"]
+                else:
+                    tags = [ga_ver]
                 for tag in tags:
                     fulltag = f'{registry}/{name}:{tag}'
                     with check.subcheck(name=fulltag) as subcheck:
@@ -145,78 +145,58 @@ def main(rc_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
     if include_docker:
         do_check_docker(checker, 'ambassador')
         with checker.check('Ambassador S3 files', clear_on_success=False) as checker:
-            with do_check_s3(checker, name='ambassador/teststable.txt') as (subcheck, body):
+            with do_check_s3(checker, name=f'emissary-ingress/{release_channel}stable.txt') as (subcheck, body):
                 if body is not None:
                     subcheck.result = body.decode('UTF-8').strip()
                     if is_private:
-                        assert subcheck.result != rc_ver
+                        assert subcheck.result != ga_ver
                     else:
-                        assert_eq(subcheck.result, rc_ver)
-            if ga or is_private:
-                with do_check_s3(checker, name='ambassador/stable.txt') as (subcheck, body):
-                    if body is not None:
-                        subcheck.result = body.decode('UTF-8').strip()
-                        if is_private:
-                            assert subcheck.result != ga_ver
-                        else:
-                            assert_eq(subcheck.result, ga_ver)
-            with do_check_s3(checker, name='ambassador/testapp.json', bucket='scout-datawire-io',
+                        assert_eq(subcheck.result, ga_ver)
+            with do_check_s3(checker, name=f'emissary-ingress/{release_channel}app.json', bucket='scout-datawire-io',
                              private=True) as (subcheck, body):
                 if body is not None:
                     subcheck.result = json.loads(body.decode('UTF-8')).get('latest_version', '')
                     if is_private:
-                        assert subcheck.result != rc_ver
+                        assert subcheck.result != ga_ver
                     else:
-                        assert_eq(subcheck.result, rc_ver)
-            if ga or is_private:
-                with do_check_s3(checker, name='ambassador/app.json', bucket='scout-datawire-io',
-                                 private=True) as (subcheck, body):
-                    if body is not None:
-                        subcheck.result = json.loads(body.decode('UTF-8')).get('latest_version', '')
-                        if is_private:
-                            assert subcheck.result != ga_ver
-                        else:
-                            assert_eq(subcheck.result, ga_ver)
+                        assert_eq(subcheck.result, ga_ver)
 
-    if not ga:
-        with checker.check(name='Git tags') as check:
-            check.result = 'TODO'
-            raise NotImplementedError()
-        with checker.check(name='Pull Requests') as check:
-            check.result = 'TODO'
-            raise NotImplementedError()
-    else:
-        with checker.check(name='Git tags') as check:
-            check.result = 'TODO'
-            raise NotImplementedError()
-        with checker.check(name='Website YAML') as check:
-            yaml_str = http_cat('https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml').decode('utf-8')
-            images = [
-                line.strip()[len('image:'):].strip() for line in yaml_str.split("\n")
-                if line.strip().startswith('image:')
-            ]
-            assert_eq(len(images), 2)   # One for Ambassador, one for the Agent.
+    with checker.check(name='Git tags') as check:
+        check.result = 'TODO'
+        raise NotImplementedError()
+    with checker.check(name='Website YAML') as check:
+        yaml_str = http_cat('https://app.getambassador.io/yaml/ambassador/latest/ambassador.yaml').decode('utf-8')
+        images = [
+            line.strip()[len('image:'):].strip() for line in yaml_str.split("\n")
+            if line.strip().startswith('image:')
+        ]
+        assert_eq(len(images), 2)   # One for Ambassador, one for the Agent.
 
-            for image in images:
-                assert '/ambassador:' in image
-                check.result = image.split(':', 1)[1]
-                assert_eq(check.result, ga_ver)
-        with checker.check(name='Helm Chart') as check:
-            run(['helm', 'repo', 'add', 'datawire', 'https://getambassador.io'])
-            run(['helm', 'repo', 'update'])
-            yaml_str = run_txtcapture(['helm', 'show', 'chart', 'datawire/ambassador'])
-            versions = [
-                line[len('appVersion:'):].strip() for line in yaml_str.split("\n") if line.startswith('appVersion:')
-            ]
-            assert_eq(len(versions), 1)
-            check.result = versions[0]
+        for image in images:
+            assert '/ambassador:' in image
+            check.result = image.split(':', 1)[1]
             assert_eq(check.result, ga_ver)
-        with checker.check(name='ambassador.git GitHub release for chart') as check:
-            check.result = 'TODO'
-            raise NotImplementedError()
-        with checker.check(name='ambassador.git GitHub release for code') as check:
-            check.result = 'TODO'
-            raise NotImplementedError()
+    with checker.check(name='Adding Helm Chart') as check:
+        run(['helm', 'repo', 'add', 'emissary',
+            'https://s3.amazonaws.com/datawire-static-files/emissary-ingress'])
+    if not checker.ok:
+        with checker.check(name="Updating helm repo"):
+            run(['helm', 'repo', 'update'])
+        checker.ok = True
+    with checker.check(name="Check Helm Chart"):
+        yaml_str = run_txtcapture(['helm', 'show', 'chart', 'emissary/ambassador'])
+        versions = [
+            line[len('appVersion:'):].strip() for line in yaml_str.split("\n") if line.startswith('appVersion:')
+        ]
+        assert_eq(len(versions), 1)
+        check.result = versions[0]
+        assert_eq(check.result, ga_ver)
+    with checker.check(name='ambassador.git GitHub release for chart') as check:
+        check.result = 'TODO'
+        raise NotImplementedError()
+    with checker.check(name='ambassador.git GitHub release for code') as check:
+        check.result = 'TODO'
+        raise NotImplementedError()
 
     if not checker.ok:
         return 1

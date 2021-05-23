@@ -877,8 +877,17 @@ release/repatriate:
 	@$(OSS_HOME)/releng/release-repatriate $(VERSIONS_YAML_VER)
 .PHONY: release/repatriate
 
+release/ga-mirror:
+	# TODO: wip and dev bits are so we don't stomp on ourselves.
+	# This should get removed when this is ready to go
+	# This doesn't currently work because of permissions.
+	# We need to setup CI to do this
+	@$(OSS_HOME)/releng/release-mirror-images $(VERSION) $(RELEASE_REGISTRY) dev wip
+
 release/ga-check:
-	@$(OSS_HOME)/releng/release-ga-check $(VERSION)
+	# TODO: wip bit is just so we don't stomp on ourselves
+	# this should go away
+	@$(OSS_HOME)/releng/release-ga-check $(VERSION) wip
 
 release/start:
 	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)

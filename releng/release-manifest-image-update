@@ -63,7 +63,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
     if not checker.ok:
         return 1
     with check(f"Updating manifest yaml"):
-        run(["make", "update-yaml"])
+        run(["make", "BUMP_STABLE=true", "update-yaml"])
         git_add("manifests")
         git_add("docs/yaml")
 
