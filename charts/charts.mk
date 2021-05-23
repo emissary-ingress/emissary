@@ -96,8 +96,10 @@ release/chart-bump/minor:
 
 # This is pretty Draconian. Use with care.
 chart-clean:
-	git restore $(OSS_HOME)/charts/*/Chart.yaml $(OSS_HOME)/charts/*/values.yaml
-	rm -f $(OSS_HOME)/charts/*/*.tgz $(OSS_HOME)/charts/*/index.yaml $(OSS_HOME)/charts/*/tmp.yaml
+	@for chart in $(AMBASSADOR_CHART) $(EMISSARY_CHART) ; do \
+		git restore $$chart/Chart.yaml $$chart/values.yaml && \
+			rm -f $$chart/*.tgz $$chart/index.yaml $$chart/tmp.yaml; \
+	done ;
 .PHONY: chart-clean
 
 doc-gen-preflight:
