@@ -117,7 +117,7 @@ security:
     #     rule: MustRunAsNonRoot
 
 image:
-  tag: 2.3.0
+  tag: 2.3.0-wip
   pullPolicy: IfNotPresent
 
   repository: docker.io/alixcook11/ambassador

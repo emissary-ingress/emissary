@@ -1,0 +1,2789 @@
+apiVersion: v1
+entries:
+  ambassador:
+  - apiVersion: v1
+    appVersion: 2.3.0
+    created: "2021-05-22T20:21:37.015655225Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: ef34fa73d2f69f8d5c27c48fcf04a34875938d529c81dadcc3f375c3f6572a24
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.9.0-dev.5-gde64d0246.tgz
+    version: 6.9.0-dev.5-gde64d0246
+  - apiVersion: v1
+    appVersion: 2.3.0
+    created: "2021-05-22T20:11:41.239391582Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 5d9a1e1238128bee34a3ddca08e3e0ed3c76905e5a696c8e02462d4480259528
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.9.0-dev.5-g86c6fcd7c.tgz
+    version: 6.9.0-dev.5-g86c6fcd7c
+  - apiVersion: v1
+    appVersion: 2.3.0
+    created: "2021-05-22T19:55:43.680391508Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 2e0739345eb31d3a250477b4e42e79fb033bf2a3f911629e26b3e047d044a543
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.9.0-dev.2-g170543b62.tgz
+    version: 6.9.0-dev.2-g170543b62
+  - apiVersion: v1
+    appVersion: 2.1.0
+    created: "2021-05-20T23:09:09.354514953Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 417b9e2c8cd481ea7a0a061904afc3d3c6a0cae1e3d012eac5f04eadbf45e839
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.8.0-dev.1-g569b9de36.tgz
+    version: 6.8.0-dev.1-g569b9de36
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-15T01:09:29.710799-04:00"
+    description: A Helm chart for Datawire Ambassador
+    digest: 2c2fa85d70157290c315230f08c74dbfdf55a148f907cec7f5eec741d8299e08
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7.tgz
+    version: 6.7.7
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-22T19:06:24.409527011Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: ee8cccf5a6c0ecaec2929b3354e6b5fdcd3c8dd404eb858fa46542bca13a00ee
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-rc.0.tgz
+    version: 6.7.7-rc.0
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-15T01:31:16.375841-04:00"
+    description: A Helm chart for Datawire Ambassador
+    digest: f3cc41ad7077f96228006b7ce9130c8ca82b9f8b046772b15936a8f40c8e1290
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.99-gbd5ee3565.tgz
+    version: 6.7.7-dev.99-gbd5ee3565
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-16T19:24:26.372244933Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 3c6d561c270b540610890de7a85f5b33e3b6cd9661ab9717a19cdcce46a0fc0e
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.99-ga5d51e1ad.tgz
+    version: 6.7.7-dev.99-ga5d51e1ad
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-16T16:49:40.469230367Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 5e5fd06a43b418fb581eab8fb417b20f2b0abafe66fb037e7ced196543812ecf
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.99-g72094fa6e.tgz
+    version: 6.7.7-dev.99-g72094fa6e
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-22T18:23:35.18218244Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: e5ae90022a5c7c1185ccb455bfed4d4e29db707b24135cee01c3e523f5168298
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.7-ge4621ba5f.tgz
+    version: 6.7.7-dev.7-ge4621ba5f
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-22T18:22:34.209451324Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 6b954b204624dafc7b1b1463be389c773dd202d739b3f15e67bd4ff55a156fad
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.6-g879afd76e.tgz
+    version: 6.7.7-dev.6-g879afd76e
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-22T18:20:25.251571427Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 337cd68f937651fa493b62f0550a52085ded538dc7960f4a6a87f1e8b08305f6
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.5-g9a4e7ceea.tgz
+    version: 6.7.7-dev.5-g9a4e7ceea
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-22T18:57:21.438266965Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 6a0829530b90acad9a52d284bed7ea87796400e437357c0675acca15f339c011
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.2-g1b1472d42.tgz
+    version: 6.7.7-dev.2-g1b1472d42
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-20T22:28:56.757625378Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: a89619e059e2df623fac415404938c7863ec300fd8b97da635f7060421391fa2
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.131-ga46fb8a34.tgz
+    version: 6.7.7-dev.131-ga46fb8a34
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-20T22:00:15.523868734Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: bb8cf33e066eb7f84ed5214c578d6ecbff7e7da14f2c242eef7e00b8dab48ea4
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.129-ge933b93cc.tgz
+    version: 6.7.7-dev.129-ge933b93cc
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-20T21:43:03.969592352Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 889550dd3d1184e21cbd306eb6f6a96ce7e42e3bf030e681f860c2720822aa4e
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.128-g36066f42a.tgz
+    version: 6.7.7-dev.128-g36066f42a
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-20T17:57:47.812995046Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: bd52be0a1af29cc674924ea837ac6c107fca0a0ec010a581860338fcd318214d
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.122-gd6e686c1e.tgz
+    version: 6.7.7-dev.122-gd6e686c1e
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-20T17:29:00.469493916Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 2a57a07c291cd22b882e20cf36229cb1a8d4247e0f1a770700932a436bceec04
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.120-g0fb6c1964.tgz
+    version: 6.7.7-dev.120-g0fb6c1964
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-20T15:07:13.560527639Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 727e50e12ae0851732943e08843febae7881458850ec7efcd1df46db1c1f18f6
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.116-g7b750449d.tgz
+    version: 6.7.7-dev.116-g7b750449d
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-19T23:43:50.697281232Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: e6021661d02f3f84abcf360268c81344f6ae83e59aae6e395bbd44b71c3e5f7e
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.115-g5534af9de.tgz
+    version: 6.7.7-dev.115-g5534af9de
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-19T23:21:21.627340712Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 493ca66b2bd8eb9e3bd3d59c9006a54ace6cafa47d989e77cdec5e30f5751559
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.113-g0b5271c89.tgz
+    version: 6.7.7-dev.113-g0b5271c89
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-18T20:54:13.455456421Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: e5400da04be40c698da50ae492a71f09acd4a21881059a08d11f8edbbfc8e69c
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.110-gfcfb698e2.tgz
+    version: 6.7.7-dev.110-gfcfb698e2
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-19T22:03:32.496753178Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 0e6067fea82c0d3feadb5edaaf2ca0deaaddbd868e218db334196944a5fe6311
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.110-gca8b10934.tgz
+    version: 6.7.7-dev.110-gca8b10934
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-19T13:30:42.600724102Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: bf93677c6ddaa3e3946c6c087c8caa50268c46cc75dce1ffc8309b90825114c6
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.106-gf75997e41.tgz
+    version: 6.7.7-dev.106-gf75997e41
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-19T20:22:21.738395626Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 18ea6458d7fd351015d76b86f550d75e0a4410ddf347ed1c01bae4e79d89c2e9
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.106-gec28bae16.tgz
+    version: 6.7.7-dev.106-gec28bae16
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-19T21:34:50.604246593Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 46a347b60183e2a5bbabc1c5e3a2b3a4ddf576eed556e8d5a80e8792e01c143e
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.106-gc48cffa5c.tgz
+    version: 6.7.7-dev.106-gc48cffa5c
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-22T05:11:13.404797271Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: fe1e7c927e67aeaab2b4fb6e52c497fde37118c6da81a4640b423a781420fb19
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.106-ga3b75c4ed.tgz
+    version: 6.7.7-dev.106-ga3b75c4ed
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-19T13:15:21.534480394Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 6374244279e5e07949e20961cdbd78320334bc84275660c580e86551addbed12
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.105-ga7ba28233.tgz
+    version: 6.7.7-dev.105-ga7ba28233
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-17T20:04:08.342060091Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 659522950101dbf12300bac070a49403494af95d4a1742fc76311d5d7e04e906
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.105-g77ee8bdcc.tgz
+    version: 6.7.7-dev.105-g77ee8bdcc
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-17T20:58:10.871733388Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: faa00d5d48607bc18c32a84ded01280f5230a7729b62d30f38b4f2fe93290ccb
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.105-g729b561d8.tgz
+    version: 6.7.7-dev.105-g729b561d8
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-18T21:40:19.20352297Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 1704624e6571c6ac28dc9e43278506c56831d1afdbd875e41e7bb7c92820d4b3
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.104-g98d5e19d3.tgz
+    version: 6.7.7-dev.104-g98d5e19d3
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-17T19:22:23.736723281Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: bfb9d9de261ec459ead20d219a6a3af784bcae5f6391cd26bcb0ba39dbc69d27
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.104-g122eb4f44.tgz
+    version: 6.7.7-dev.104-g122eb4f44
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-19T05:11:15.418836938Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 6e539bb4ed93128781369ff439487f9af10dff6dda5c80e898cf3d8ec6e4810d
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.103-gf1facb2c7.tgz
+    version: 6.7.7-dev.103-gf1facb2c7
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-17T20:24:40.743968941Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 4225c3dd7f0b0701eaa7294eb5ceb64220468c14c217758df1e4205230f1253b
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.101-gccd9a6e15.tgz
+    version: 6.7.7-dev.101-gccd9a6e15
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-17T17:35:59.053904727Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 9e451aee61b6ff8f627bd729ff3fc4b42873fef30274f217fa3f7bde4049a481
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.100-ga1b70bd78.tgz
+    version: 6.7.7-dev.100-ga1b70bd78
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-15T00:33:57.198334-04:00"
+    description: A Helm chart for Datawire Ambassador
+    digest: 4ed90ef6ced19582547e767cb580fe473438ba3e0a32e4cbbf5941e4baadcd00
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/ambassador-dev/ambassador-6.7.7-dev.100-g6d5bf2317.tgz
+    version: 6.7.7-dev.100-g6d5bf2317
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-20T19:54:40.770378594Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: b338b4db1adb27f27c36d1869fd962bb9844900589958101591caf98b9be6274
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.1-geff8efa96.tgz
+    version: 6.7.7-dev.1-geff8efa96
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-22T19:53:25.639422837Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 4a603a1c9dac0f347791fe3db2669d44588a1d9cd6db5977972e77c1fe984ef5
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.1-ge42911115.tgz
+    version: 6.7.7-dev.1-ge42911115
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-20T19:47:53.733633301Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 9143fb271ca2dfcb36eb8ed1496d8fc9f9bd12e04857299ef7cdd922b75e94d0
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-dev.1-g0094b19a5.tgz
+    version: 6.7.7-dev.1-g0094b19a5
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-18T21:20:10.987059151Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 32820ef53a2ba7ccbf2fc2a699f054e6bfbf333889123cb02f6999209a33edd9
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-ci.110.tgz
+    version: 6.7.7-ci.110
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-17T21:25:36.254545165Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: c6adc2e0bfc088e837be3fe975470583a31f31c6ec0b7531ea12f72c0ce6a5e1
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-ci.105.tgz
+    version: 6.7.7-ci.105
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-16T19:48:47.501190036Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 7e445eac329382fd19cbe02f68409dfd4a1c42fb50a6528731e616d89b181c12
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/ambassador-6.7.7-ci.99.tgz
+    version: 6.7.7-ci.99
+  - apiVersion: v1
+    appVersion: 1.13.4
+    created: "2021-05-14T22:37:35.963758301Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: d5d5b84b499561f41049a5b3de7cd48edb451a9f33568022ff9f8ddf273f3d07
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/ambassador-dev/ambassador-6.7.7-ci.90.tgz
+    version: 6.7.7-ci.90
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-13T10:38:45.84803-04:00"
+    description: A Helm chart for Datawire Ambassador
+    digest: 01f2457c8944f8329489a36423fe36fc35c4383af09047cad3c4c64737dcd585
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/ambassador-dev/ambassador-6.7.5-someprerelease.tgz
+    version: 6.7.5-someprerelease
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-14T21:47:14.269395102Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: ef43d9be5c1d79a9576328b7aaaf19ea039596944278014f45a95e6271ac57c2
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/ambassador-dev/ambassador-6.7.5-ci.125.tgz
+    version: 6.7.5-ci.125
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-14T20:46:12.145621445Z"
+    description: A Helm chart for Datawire Ambassador
+    digest: 7b587ca647f2247e4c25701df64479e567efd9d82888179ad15ce506e1e17f68
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/ambassador-dev/ambassador-6.7.5-ci.124.tgz
+    version: 6.7.5-ci.124
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-14T14:50:48.094929-04:00"
+    description: A Helm chart for Datawire Ambassador
+    digest: 2afffbe30abab6f0a552ecaca9cb60957310df241580976358601b156a7168c1
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/ambassador-dev/ambassador-6.7.5-ci.121.tgz
+    version: 6.7.5-ci.121
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-14T14:46:54.246387-04:00"
+    description: A Helm chart for Datawire Ambassador
+    digest: 1c254c9198be1a1a6c55b02047c20348e7cbde778d0b540e136626a432c751c9
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: ambassador
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/ambassador-dev/ambassador-6.7.5-boop.tgz
+    version: 6.7.5-boop
+  emissary-ingress:
+  - apiVersion: v1
+    appVersion: 2.3.0
+    created: "2021-05-22T20:21:39.29400091Z"
+    description: A Helm chart for Emissary Ingress
+    digest: f03ac0d40013706b5e6e9d815a337c217a38539ace52edbf97e9dcbfa957ad54
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.9.0-dev.5-gde64d0246.tgz
+    version: 6.9.0-dev.5-gde64d0246
+  - apiVersion: v1
+    appVersion: 2.3.0
+    created: "2021-05-22T20:11:43.538901381Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 9dc00c037c52515d5182c1b6d0b73ecbe6f9a7662065f564a9d9c8584da98bd7
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.9.0-dev.5-g86c6fcd7c.tgz
+    version: 6.9.0-dev.5-g86c6fcd7c
+  - apiVersion: v1
+    appVersion: 2.3.0
+    created: "2021-05-22T19:55:45.760958536Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 93c881550a43b785fe5f040a753b437fce72f97250a7cee2d3e1a93c4e98f159
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.9.0-dev.2-g170543b62.tgz
+    version: 6.9.0-dev.2-g170543b62
+  - apiVersion: v1
+    appVersion: 2.3.0
+    created: "2021-05-22T15:14:37.583451-07:00"
+    description: A Helm chart for Emissary Ingress
+    digest: adce9fc51bed3877f7e5017d0b8d91236cae31f22c03ec0d64f34015e0617d01
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.9.0-blah.tgz
+    version: 6.9.0-blah
+  - apiVersion: v1
+    appVersion: 2.1.0
+    created: "2021-05-20T23:09:11.633044119Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 9c5ff38f69992cfc09b56c13fb25f3ed0b17d5937d854ed4a73462e02f762394
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.8.0-dev.1-g569b9de36.tgz
+    version: 6.8.0-dev.1-g569b9de36
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-22T19:06:26.602658038Z"
+    description: A Helm chart for Emissary Ingress
+    digest: bc491fd98dd5c9e0d96c48a8598c4697128701bd966e1b867f4c883ab020e42a
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-rc.0.tgz
+    version: 6.7.7-rc.0
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-22T18:23:37.370105872Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 05d6bfba9965394846cc5f9415d2c59de774eb5b4ee42b74887f4b0c716402ef
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.7-ge4621ba5f.tgz
+    version: 6.7.7-dev.7-ge4621ba5f
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-22T18:22:36.183931851Z"
+    description: A Helm chart for Emissary Ingress
+    digest: b28946cd0312fb8eccd9e88558f873bdfbacb1b4fb867b8915de86bfbe54fa06
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.6-g879afd76e.tgz
+    version: 6.7.7-dev.6-g879afd76e
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-22T18:20:27.178019906Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 9fc795b47273fef74ee6578b4f4a04411045fb1e3f25871f5a93801b83250ffd
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.5-g9a4e7ceea.tgz
+    version: 6.7.7-dev.5-g9a4e7ceea
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-22T18:57:23.164932074Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 3d2cbeb6e9d680c709d315b2abd69ed4b325289d6f1e0bd929f248e62d93cdad
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.2-g1b1472d42.tgz
+    version: 6.7.7-dev.2-g1b1472d42
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-20T22:28:59.261514358Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 8e2cf6bdd1e6272248d794e5c82d4b5acb5bb12adb919c8ca60a44a7ebde23fc
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.131-ga46fb8a34.tgz
+    version: 6.7.7-dev.131-ga46fb8a34
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-20T22:00:17.507720206Z"
+    description: A Helm chart for Emissary Ingress
+    digest: d80975b9f6ea2eb225670a162f86e0da2d34e6349e7dfa1760d1447e41092df2
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.129-ge933b93cc.tgz
+    version: 6.7.7-dev.129-ge933b93cc
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-20T21:43:06.299662635Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 8e6ca3118d0478b20af698255a56c0a53954ec6b82f8ca69077d8f77f1016ac0
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.128-g36066f42a.tgz
+    version: 6.7.7-dev.128-g36066f42a
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-20T17:57:49.997945538Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 52e019f211b40ecab0d371d559050cd2a0653040a89e659fd3924c5995c9b235
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.122-gd6e686c1e.tgz
+    version: 6.7.7-dev.122-gd6e686c1e
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-20T17:29:02.76621377Z"
+    description: A Helm chart for Emissary Ingress
+    digest: dff79d8e69d03f072ccc9476a12095c4852f66f01e0b69cf64926a20bb200e5e
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.120-g0fb6c1964.tgz
+    version: 6.7.7-dev.120-g0fb6c1964
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-20T15:07:16.063838018Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 24ac1a9457692c7945d9ef5eea73175ce92ac68c08602dec9cd463925732b969
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.116-g7b750449d.tgz
+    version: 6.7.7-dev.116-g7b750449d
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-19T23:43:52.877502292Z"
+    description: A Helm chart for Emissary Ingress
+    digest: f611e14b976f3b0f23ae08c94fc8986b4f0c840fc5a615ebab60907bc69f6303
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.115-g5534af9de.tgz
+    version: 6.7.7-dev.115-g5534af9de
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-19T23:21:23.788742685Z"
+    description: A Helm chart for Emissary Ingress
+    digest: de3440cee1e34c90049b67597784f9c4ece4bfc769d5bb74dc4bb7ecd12da529
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.113-g0b5271c89.tgz
+    version: 6.7.7-dev.113-g0b5271c89
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-19T22:03:34.642239713Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 7e1420fa260b5f8e986cca37f73900cc36829950b3bc54d5ae9c08dbc840b6f1
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.110-gca8b10934.tgz
+    version: 6.7.7-dev.110-gca8b10934
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-19T13:30:44.491070718Z"
+    description: A Helm chart for Emissary Ingress
+    digest: ed2e3f66984115e2194b35f474fd40b26e2cbd2cd8ec67f83932941bc7d0891a
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.106-gf75997e41.tgz
+    version: 6.7.7-dev.106-gf75997e41
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-22T05:11:15.576629063Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 2963bea8039ac51c6989d44b039f6b530fdaa0da1de0539aa2e303ca10752b3d
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.106-ga3b75c4ed.tgz
+    version: 6.7.7-dev.106-ga3b75c4ed
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-20T19:54:43.164050505Z"
+    description: A Helm chart for Emissary Ingress
+    digest: c772589ec940c51ca9549a743c666572dad6de72c7bcf54ae0cd0c34d6fe861d
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.1-geff8efa96.tgz
+    version: 6.7.7-dev.1-geff8efa96
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-22T19:53:27.634251604Z"
+    description: A Helm chart for Emissary Ingress
+    digest: bb3f52859a7ab89b427b02d7cd3c78c1ea51c43473ec2e26e184ba9e2fce607b
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.1-ge42911115.tgz
+    version: 6.7.7-dev.1-ge42911115
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-20T19:47:55.673914812Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 76b0a727b64889cef62ff247b535eac890955a70bb2b7d6166a0e988e5c342ab
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-6.7.7-dev.1-g0094b19a5.tgz
+    version: 6.7.7-dev.1-g0094b19a5
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-17T12:11:17.659484-04:00"
+    description: A Helm chart for Emissary Ingress
+    digest: 71c8fd8a2d14911de9812dac1f471c8f8b6579da40129f4b597014a71cb4b491
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.3.tgz
+    version: 0.0.3
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-15T01:09:31.604943-04:00"
+    description: A Helm chart for Emissary Ingress
+    digest: 16b2481cf4a9c123237c2df93cdf9ee17d1df534edeafe1f4094509948a6ac95
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2.tgz
+    version: 0.0.2
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-15T01:31:18.3876-04:00"
+    description: A Helm chart for Emissary Ingress
+    digest: 6ddb96498511b2dae5d17683c09a7cb297051098d6a881ff275cd800ab668bc8
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2-dev.99-gbd5ee3565.tgz
+    version: 0.0.2-dev.99-gbd5ee3565
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-16T19:24:28.06448827Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 0aaae31f3d3682747682b8c96471a05f785f8e00b27c86e8c1b1ce6d09a6ecca
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2-dev.99-ga5d51e1ad.tgz
+    version: 0.0.2-dev.99-ga5d51e1ad
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-16T16:49:42.675634967Z"
+    description: A Helm chart for Emissary Ingress
+    digest: b840454da434e1bf5affdeee53d4d5c1d2aeb638fa546e45fdd377b6b770b41f
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2-dev.99-g72094fa6e.tgz
+    version: 0.0.2-dev.99-g72094fa6e
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-18T20:54:15.448216229Z"
+    description: A Helm chart for Emissary Ingress
+    digest: e524a5791e14ea64c49a27fa64857458fd46274ba30054ce832f6a06251a8fdf
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2-dev.110-gfcfb698e2.tgz
+    version: 0.0.2-dev.110-gfcfb698e2
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-19T20:22:23.407950606Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 7b15bd5d8710625c77186264d94bd2555768d53ef3e76e77e137d3c653793dbd
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2-dev.106-gec28bae16.tgz
+    version: 0.0.2-dev.106-gec28bae16
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-19T21:34:52.676781537Z"
+    description: A Helm chart for Emissary Ingress
+    digest: b6e12980189ec8cb299aae7779253ca71236f9776fc0ebc8011b19564ca61a6f
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2-dev.106-gc48cffa5c.tgz
+    version: 0.0.2-dev.106-gc48cffa5c
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-19T13:15:23.576520485Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 375098e50a5e3360c346e92dedbd6dd52c24ab8986450ba8a8ca55f32f4dd7b4
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2-dev.105-ga7ba28233.tgz
+    version: 0.0.2-dev.105-ga7ba28233
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-17T20:04:10.343710846Z"
+    description: A Helm chart for Emissary Ingress
+    digest: bfebedbfe48bf6fd35ee7f9d59cb698c0c3d8f5b47555004a6fe186c0ba6e202
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2-dev.105-g77ee8bdcc.tgz
+    version: 0.0.2-dev.105-g77ee8bdcc
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-17T20:58:12.887831034Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 1039fac5e16bd4d5acc10d31bddc722be11db7a8fe477cca7574e361dc0f93ec
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2-dev.105-g729b561d8.tgz
+    version: 0.0.2-dev.105-g729b561d8
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-18T21:40:21.323349613Z"
+    description: A Helm chart for Emissary Ingress
+    digest: d85baebb02b73e3fda0fa4fbcef565d02085544fc25892f76a963509246108c5
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2-dev.104-g98d5e19d3.tgz
+    version: 0.0.2-dev.104-g98d5e19d3
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-17T19:22:25.697791078Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 167e6930fe680f326a1d5c9b69bc1f32dd62f0aa540fc2fba6f3575649bf4b82
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2-dev.104-g122eb4f44.tgz
+    version: 0.0.2-dev.104-g122eb4f44
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-19T05:11:17.528423907Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 8623443062d11cc1e1bc87af2f1993eef2708cb416b46309f00ea5f0bddec911
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2-dev.103-gf1facb2c7.tgz
+    version: 0.0.2-dev.103-gf1facb2c7
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-17T20:24:42.556952646Z"
+    description: A Helm chart for Emissary Ingress
+    digest: fbcaf5ce0dac8e11fad51c8c7588206f4e1799eee77d9e89b713fb159a1bdafe
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2-dev.101-gccd9a6e15.tgz
+    version: 0.0.2-dev.101-gccd9a6e15
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-17T17:36:01.053526986Z"
+    description: A Helm chart for Emissary Ingress
+    digest: a9483337143871c7d3d5719de8080e1744e203f255dff490d24e1262daef2e5e
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2-dev.100-ga1b70bd78.tgz
+    version: 0.0.2-dev.100-ga1b70bd78
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-15T00:33:58.985038-04:00"
+    description: A Helm chart for Emissary Ingress
+    digest: 74e0e30786a9f9cd3637917cd0c49e1196b662ea3c5c9679609ee60e9398a9a9
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/ambassador-dev/emissary-ingress-0.0.2-dev.100-g6d5bf2317.tgz
+    version: 0.0.2-dev.100-g6d5bf2317
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-14T21:47:16.116694315Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 454bda5d1999837cb719b6e0c02f2c6a5630cdba5a5ca21ad85122fc790a9920
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/ambassador-dev/emissary-ingress-0.0.2-ci.125.tgz
+    version: 0.0.2-ci.125
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-14T20:46:13.952856929Z"
+    description: A Helm chart for Emissary Ingress
+    digest: e74386f49d22669b7ce19bfd53438716e67bbb69cb7a753f0ccb9683482dab86
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/ambassador-dev/emissary-ingress-0.0.2-ci.124.tgz
+    version: 0.0.2-ci.124
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-18T21:20:13.018180918Z"
+    description: A Helm chart for Emissary Ingress
+    digest: e6ca3df0559a23cd287aeddf9ad58dccfcc67508bef439db69b9e4ef9809c148
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2-ci.110.tgz
+    version: 0.0.2-ci.110
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-17T21:25:38.609714309Z"
+    description: A Helm chart for Emissary Ingress
+    digest: f8ed26532b9895768f59281c3afb34def6a67c42ebaa0137f3778538f65fde8d
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2-ci.105.tgz
+    version: 0.0.2-ci.105
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-16T19:48:49.798740336Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 1ab790dd13acc0bbf981e0616aa3db35624fcaac5beed0d8ae9974dc7edf5a6d
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/emissary-ingress/emissary-ingress-0.0.2-ci.99.tgz
+    version: 0.0.2-ci.99
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-14T22:37:37.892471698Z"
+    description: A Helm chart for Emissary Ingress
+    digest: 9a981346b7ed402e23dca14b83ec5bdf7cc84e7fe329f5b7a326e488efb2cb83
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/ambassador-dev/emissary-ingress-0.0.2-ci.90.tgz
+    version: 0.0.2-ci.90
+  - apiVersion: v1
+    appVersion: 1.13.3
+    created: "2021-05-14T14:46:54.248445-04:00"
+    description: A Helm chart for Emissary Ingress
+    digest: 3570c3338d7423329790695c76ecf65d61222b666f0e5ebc105daffca80d8649
+    home: https://www.getambassador.io/
+    icon: https://www.getambassador.io/images/logo.png
+    keywords:
+    - api gateway
+    - ambassador
+    - datawire
+    - envoy
+    - emissary
+    - emissary ingress
+    maintainers:
+    - email: markus@maga.se
+      name: flydiverny
+    - email: flynn@datawire.io
+      name: kflynn
+    - email: nkrause@datawire.io
+      name: nbkrause
+    - email: lukeshu@datawire.io
+      name: lukeshu
+    name: emissary-ingress
+    sources:
+    - https://github.com/datawire/ambassador
+    - https://github.com/prometheus/statsd_exporter
+    urls:
+    - https://s3.amazonaws.com/datawire-static-files/ambassador-dev/emissary-ingress-0.0.2-boop.tgz
+    version: 0.0.2-boop
+generated: "2021-05-22T15:14:37.580713-07:00"

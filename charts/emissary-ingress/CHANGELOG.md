@@ -10,7 +10,7 @@ we're packaging and versioning the charts together to make things a bit easier. 
 
 ## Next Release
 
-(no changes yet)
+- Bugfix: fix image tag
 
 ## v6.9.0
 

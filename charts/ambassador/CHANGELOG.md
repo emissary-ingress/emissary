@@ -5,7 +5,7 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
-(no changes yet)
+- Bugfix: fix image tag
 
 ## v6.9.0
 

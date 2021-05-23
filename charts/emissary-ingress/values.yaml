@@ -118,7 +118,7 @@ image:
   # Emissary Ingress docker repo
   repository: docker.io/alixcook11/ambassador
   # Emissary Ingress docker tag
-  tag: 2.3.0
+  tag: 2.3.0-wip
   # Pod container image pull policy
   pullPolicy: IfNotPresent
 
