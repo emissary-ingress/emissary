@@ -805,7 +805,7 @@ release/print-test-artifacts:
 	@test -n "$(MANIFEST_VERSION)" || (printf "CHART_SUFFIX must be set\n"; exit 1)
 	@echo "export IMAGE_TAG=$(REGISTRY)/$(LCNAME):$(VERSION)"
 	@echo "export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/ambassador/$(MANIFEST_VERSION)"
-	@echo "export HELM_CHART_VERSION=`grep 'version:' $(OSS_HOME)/charts/ambassador/Chart.yaml | awk '{ print $2 }'`"
+	@echo "export HELM_CHART_VERSION=`grep 'version' $(OSS_HOME)/charts/ambassador/Chart.yaml | awk '{ print $$2 }'`"
 .PHONY: release/print-test-artifacts
 
 # To be run from a checkout at the tag you are promoting _from_.
@@ -853,7 +853,7 @@ release/go:
 	}
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
 	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
-	@$(OSS_HOME)/releng/start-sanity-check --quiet $(VERSIONS_YAML_VER)
+	@$(OSS_HOME)/releng/release-ga-sanity-check --quiet $(VERSIONS_YAML_VER)
 	@git tag -s -m "Tagging v$(VERSIONS_YAML_VER) for GA" -a v$(VERSIONS_YAML_VER)
 	@git push origin v$(VERSIONS_YAML_VER)
 	@$(OSS_HOME)/releng/release-go-changelog-update --quiet $(VERSIONS_YAML_VER)
