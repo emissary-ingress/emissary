@@ -69,6 +69,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ### Emissary Ingress and Ambassador Edge Stack
 
 - Bugfix: who cares
+- Bugfix: another thing
 
 ## [2.3.0] May 22, 2021
 [2.3.0]: https://github.com/datawire/ambassador/compare/v1.13.4...v2.3.0
