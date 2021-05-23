@@ -22,7 +22,7 @@ define _docgen
 	fi
 endef
 
-push-preflight: create-venv
+push-preflight: create-venv $(YQ)
 	@$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
 .PHONY: push-preflight
 
@@ -71,7 +71,7 @@ release/changelog:
 	done ;
 .PHONY: release/changelog
 
-release/chart/update-images: doc-gen-preflight
+release/chart/update-images: doc-gen-preflight $(YQ)
 	@[ -n "${IMAGE_TAG}" ] || (echo "IMAGE_TAG must be set" && exit 1)
 	([[ "${IMAGE_TAG}" =~ .*\.0$$ ]] && $(MAKE) release/chart-bump/minor) || $(MAKE) release/chart-bump/revision
 	for chart in $(AMBASSADOR_CHART) $(EMISSARY_CHART) ; do \
