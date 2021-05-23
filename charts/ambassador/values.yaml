@@ -118,9 +118,9 @@ security:
 
 image:
   tag: 2.3.0-wip
+  aesTag: 1.13.4
   pullPolicy: IfNotPresent
-
-  repository: docker.io/alixcook11/ambassador
+  ossRepository: docker.io/alixcook11/ambassador
 dnsPolicy: ClusterFirst
 hostNetwork: false
 
