@@ -108,3 +108,6 @@ doc-gen-preflight:
 	    false; \
 	fi
 .PHONY: doc-gen-preflight
+
+$(OSS_HOME)/.circleci/yq:
+	cd $(OSS_HOME)/.circleci/yq.d/ && go build -o $(abspath $@) github.com/mikefarah/yq/v3
