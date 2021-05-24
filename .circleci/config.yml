@@ -743,7 +743,7 @@ jobs:
         legacy-mode: << parameters.legacy-mode >>
   oss-test:
     executor: oss-linux
-    resource_class: large
+    resource_class: xlarge
     parameters:
       test:
         type: enum
@@ -797,7 +797,7 @@ jobs:
   oss-chart-changelog:
     executor: oss-linux
     steps:
-    - run: "/bin/true"
+    - run: "true" # Always run a no-op step so that this config has non-zero steps even for the "wrong" repo or branch
     - when:
         condition:
           and:

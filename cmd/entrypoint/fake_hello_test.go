@@ -189,41 +189,54 @@ func TestFakeHelloConsul(t *testing.T) {
 	})
 	// Check that the snapshot contains the mapping from the file.
 	assert.Equal(t, "hello", entry.Snapshot.Kubernetes.Mappings[0].Name)
+	// ..and the TCPMapping as well
+	assert.Equal(t, "hello-tcp", entry.Snapshot.Kubernetes.TCPMappings[0].Name)
 
 	// Now let's supply the endpoint data for the hello service referenced by our hello mapping.
 	f.ConsulEndpoint("dc1", "hello", "1.2.3.4", 8080)
+	// And also supply the endpoint data for the hello-tcp service referenced by our hello mapping.
+	f.ConsulEndpoint("dc1", "hello-tcp", "5.6.7.8", 3099)
 	f.Flush()
+
 	// The Fake harness also tracks endpoints that get sent to ambex. We can use the GetEndpoints()
 	// method to access them and check to see that the endpoint we supplied got delivered to ambex.
 	endpoints := f.GetEndpoints(func(endpoints *ambex.Endpoints) bool {
 		_, ok := endpoints.Entries["consul/dc1/hello"]
-		return ok
+		if ok {
+			_, okTcp := endpoints.Entries["consul/dc1/hello-tcp"]
+			return okTcp
+		}
+		return false
 	})
-	assert.Len(t, endpoints.Entries, 1)
+	assert.Len(t, endpoints.Entries, 2)
 	assert.Equal(t, "1.2.3.4", endpoints.Entries["consul/dc1/hello"][0].Ip)
 
-	// Grab the next snapshot that has mappings and a Consul resolver. The bootstrap logic
+	// Grab the next snapshot that has both mappings, tcpmappings, and a Consul resolver. The bootstrap logic
 	// should actually guarantee this is also the first mapping, but we aren't trying to test
 	// that here.
 	snap := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
-		return (len(snap.Kubernetes.Mappings) > 0) && (len(snap.Kubernetes.ConsulResolvers) > 0)
+		return (len(snap.Kubernetes.Mappings) > 0) && (len(snap.Kubernetes.TCPMappings) > 0) && (len(snap.Kubernetes.ConsulResolvers) > 0)
 	})
-	// The first snapshot should contain the one and only mapping we have supplied the control
-	// plane.x
+	// The first snapshot should contain both the mapping and tcpmapping we have supplied the control
+	// plane.
 	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
+	assert.Equal(t, "hello-tcp", snap.Kubernetes.TCPMappings[0].Name)
 
 	// It should also contain one ConsulResolver with a Spec.Address of
 	// "consul-server.default:8500" (where the 8500 came from an environment variable).
 	assert.Equal(t, "consul-server.default:8500", snap.Kubernetes.ConsulResolvers[0].Spec.Address)
 
 	// Check that our deltas are what we expect.
-	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "add Mapping hello"}, deltaSummary(snap))
+	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "add Mapping hello", "add TCPMapping hello-tcp"}, deltaSummary(snap))
 
 	// Create a predicate that will recognize the cluster we care about. The surjection from
 	// Mappings to clusters is a bit opaque, so we just look for a cluster that contains the name
 	// hello.
+	isHelloTCPCluster := func(c *envoy.Cluster) bool {
+		return strings.Contains(c.Name, "hello_tcp")
+	}
 	isHelloCluster := func(c *envoy.Cluster) bool {
-		return strings.Contains(c.Name, "hello")
+		return strings.Contains(c.Name, "hello") && !isHelloTCPCluster(c)
 	}
 
 	// Grab the next envoy config that satisfies our predicate.
@@ -234,6 +247,7 @@ func TestFakeHelloConsul(t *testing.T) {
 	// Now let's check that the cluster produced properly references the endpoints that have already
 	// arrived at ambex.
 	cluster := FindCluster(envoyConfig, isHelloCluster)
+	assert.NotNil(t, cluster)
 	// It uses the consul resolver, so it should not embed the load assignment directly.
 	assert.Nil(t, cluster.LoadAssignment)
 	// It *should* have an EdsConfig.
@@ -244,6 +258,20 @@ func TestFakeHelloConsul(t *testing.T) {
 	require.Len(t, eps, 1)
 	// The endpoint it references *should* have our supplied ip address.
 	assert.Equal(t, "1.2.3.4", eps[0].Ip)
+
+	// Finally, let's check that the TCP cluster is OK too.
+	cluster = FindCluster(envoyConfig, isHelloTCPCluster)
+	assert.NotNil(t, cluster)
+	// It uses the consul resolver, so it should not embed the load assignment directly.
+	assert.Nil(t, cluster.LoadAssignment)
+	// It *should* have an EdsConfig.
+	edsConfig = cluster.GetEdsClusterConfig()
+	require.NotNil(t, edsConfig)
+	// The EdsConfig *should* reference an endpoint.
+	eps = endpoints.Entries[edsConfig.ServiceName]
+	require.Len(t, eps, 1)
+	// The endpoint it references *should* have our supplied ip address.
+	assert.Equal(t, "5.6.7.8", eps[0].Ip)
 
 	// Next up, change the Consul resolver definition.
 	f.UpsertYAML(`
@@ -260,7 +288,7 @@ spec:
 
 	// Repeat the snapshot checks. We must have mappings and consulresolvers...
 	snap = f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
-		return (len(snap.Kubernetes.Mappings) > 0) && (len(snap.Kubernetes.ConsulResolvers) > 0)
+		return (len(snap.Kubernetes.Mappings) > 0) && (len(snap.Kubernetes.TCPMappings) > 0) && (len(snap.Kubernetes.ConsulResolvers) > 0)
 	})
 
 	// ...with one delta, namely the ConsulResolver...
@@ -268,6 +296,7 @@ spec:
 
 	// ...where the mapping name hasn't changed...
 	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
+	assert.Equal(t, "hello-tcp", snap.Kubernetes.TCPMappings[0].Name)
 
 	// ...but the Consul server address has.
 	assert.Equal(t, "consul-1:8500", snap.Kubernetes.ConsulResolvers[0].Spec.Address)
@@ -292,7 +321,7 @@ spec:
 
 	// Repeat all the checks.
 	snap = f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
-		return (len(snap.Kubernetes.Mappings) > 0) && (len(snap.Kubernetes.ConsulResolvers) > 0)
+		return (len(snap.Kubernetes.Mappings) > 0) && (len(snap.Kubernetes.TCPMappings) > 0) && (len(snap.Kubernetes.ConsulResolvers) > 0)
 	})
 
 	// Two deltas here since we've deleted and re-added without a check in between.
@@ -301,6 +330,7 @@ spec:
 
 	// ...one mapping...
 	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
+	assert.Equal(t, "hello-tcp", snap.Kubernetes.TCPMappings[0].Name)
 
 	// ...and one ConsulResolver.
 	assert.Equal(t, "consul-1:9999", snap.Kubernetes.ConsulResolvers[0].Spec.Address)

@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/datawire/dlib/dexec"
+	"github.com/datawire/dlib/dlog"
 )
 
 func envbool(name string) bool {
@@ -76,7 +76,7 @@ func panicExecError(prefix string, err error) {
 	panic(msg)
 }
 
-func logExecError(prefix string, err error) {
+func logExecError(ctx context.Context, prefix string, err error) {
 	if err == nil {
 		return
 	}
@@ -86,7 +86,7 @@ func logExecError(prefix string, err error) {
 		if exerr.Success() {
 			return
 		}
-		log.Printf("%s\n%s", msg, string(exerr.Stderr))
+		dlog.Errorf(ctx, "%s\n%s", msg, string(exerr.Stderr))
 	} else {
 		// This means we didn't even start the subcommand, so this is a programming error, not a
 		// runtime error and we want to panic in this case.

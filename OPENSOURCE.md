@@ -262,6 +262,7 @@ libraries:
     pytest-cov            2.10.1     MIT license
     pytest-rerunfailures  9.1.1      Mozilla Public License 2.0
     python-dateutil       2.8.1      3-clause BSD license, Apache License 2.0
+    python-json-logger    2.0.1      2-clause BSD license
     pytoml                0.1.21     MIT license
     requests              2.25.1     Apache License 2.0
     requests-oauthlib     1.3.0      ISC license

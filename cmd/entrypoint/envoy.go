@@ -82,7 +82,7 @@ func runEnvoy(ctx context.Context, envoyHUP chan os.Signal) error {
 				tctx, _ := context.WithTimeout(ctx, 1*time.Second)
 				wait := subcommand(tctx, "docker", append([]string{"wait"}, cids...)...)
 				wait.Stdout = nil
-				logExecError("docker wait", wait.Run())
+				logExecError(ctx, "docker wait", wait.Run())
 
 				cids = cidsForLabel(ctx, label)
 				if len(cids) == 0 {
@@ -91,7 +91,7 @@ func runEnvoy(ctx context.Context, envoyHUP chan os.Signal) error {
 
 				kill := subcommand(ctx, "docker", append([]string{"kill"}, cids...)...)
 				kill.Stdout = nil
-				logExecError("docker kill", kill.Run())
+				logExecError(ctx, "docker kill", kill.Run())
 			}
 		})
 		return group.Wait()
