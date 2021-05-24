@@ -63,6 +63,13 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [2.5.0] (TBD)
+[2.5.0]: https://github.com/datawire/ambassador/compare/v2.3.0...v2.5.0
+
+### Emissary Ingress and Ambassador Edge Stack
+
+- Feature: i did somethin
+
 ## [2.4.0] (TBD)
 [2.4.0]: https://github.com/datawire/ambassador/compare/v2.3.0...v2.4.0
 
