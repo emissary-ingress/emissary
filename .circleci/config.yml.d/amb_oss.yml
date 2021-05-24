@@ -112,7 +112,7 @@ jobs:
       - when:
           condition:
             and:
-              - equal: [ "https://github.com/acookin/ambassador", << pipeline.project.git_url >> ]
+              - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
               - not:
                   equal: [ "master", << pipeline.git.branch >>  ]
           steps:
@@ -143,7 +143,7 @@ jobs:
 
 _anchors:
   # All of these filters assume that "Only build pull requests" is turned on at
-  # https://app.circleci.com/settings/project/github/acookin/ambassador/advanced
+  # https://app.circleci.com/settings/project/github/datawire/ambassador/advanced
 
   "filter-prerelease-only": &filter-prerelease-only
     filters:
@@ -328,8 +328,8 @@ workflows:
   "OSS: Chart Release":
     when: # Don't run this workflow in apro.git
       or:
-      - equal: [ "https://github.com/acookin/ambassador", << pipeline.project.git_url >> ]
-      - equal: [ "https://github.com/acookin/ambassador-private", << pipeline.project.git_url >> ]
+      - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+      - equal: [ "https://github.com/datawire/ambassador-private", << pipeline.project.git_url >> ]
     jobs:
       - "oss-chart-publish":
           <<: *filter-chart-release-only
@@ -337,8 +337,8 @@ workflows:
   "OSS: Manifests Release":
     when: # Don't run this workflow in apro.git
       or:
-      - equal: [ "https://github.com/acookin/ambassador", << pipeline.project.git_url >> ]
-      - equal: [ "https://github.com/acookin/ambassador-private", << pipeline.project.git_url >> ]
+      - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+      - equal: [ "https://github.com/datawire/ambassador-private", << pipeline.project.git_url >> ]
     jobs:
       - "oss-manifest-publish":
           <<: *filter-chart-release-only
