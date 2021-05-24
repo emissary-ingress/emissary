@@ -879,7 +879,7 @@ release/ga-mirror:
 release/ga-check:
 	# TODO: wip bit is just so we don't stomp on ourselves
 	# this should go away
-	@$(OSS_HOME)/releng/release-ga-check $(VERSION) wip
+	@$(OSS_HOME)/releng/release-ga-check $(VERSIONS_YAML_VER) wip
 
 release/start:
 	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
