@@ -29,6 +29,7 @@ while read -r line; do
     value=`echo ${line} | awk '{split($0,a,":"); print a[2]}'`
     key=`echo ${line} | awk '{split($0,a,":"); print a[1]}'`
     key="\\\$${key}\\\$"
+    value=`echo ${value} | sed 's/ *$//g'`
     sed -i.bak "s/${key}/${value}/g" ${dest_yaml}
     rm ${dest_yaml}.bak
 done < ${ver_yaml}
