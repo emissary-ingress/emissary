@@ -63,56 +63,6 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [2.7.0] May 24, 2021
-[2.7.0]: https://github.com/datawire/ambassador/compare/v2.6.0...v2.7.0
-
-### Emissary Ingress and Ambassador Edge Stack
-
-- Feature: whatever
-
-## [2.6.0] May 24, 2021
-[2.6.0]: https://github.com/datawire/ambassador/compare/v2.5.0...v2.6.0
-
-### Emissary Ingress and Ambassador Edge Stack
-
-- Feature: wahtever
-
-## [2.5.0] May 24, 2021
-[2.5.0]: https://github.com/datawire/ambassador/compare/v2.3.0...v2.5.0
-
-### Emissary Ingress and Ambassador Edge Stack
-
-- Feature: i did somethin
-
-## [2.4.0] (TBD)
-[2.4.0]: https://github.com/datawire/ambassador/compare/v2.3.0...v2.4.0
-
-### Emissary Ingress and Ambassador Edge Stack
-
-- Bugfix: who cares
-- Bugfix: another thing
-
-## [2.3.0] May 22, 2021
-[2.3.0]: https://github.com/datawire/ambassador/compare/v1.13.4...v2.3.0
-
-### Emissary Ingress and Ambassador Edge Stack
-
-- Bugfix: whatever
-
-## [2.2.0] (TBD)
-[2.2.0]: https://github.com/datawire/ambassador/compare/v1.13.4...v2.2.0
-
-### Emissary Ingress and Ambassador Edge Stack
-
-- Bugfix: I fixed a thing
-
-## [2.1.0] (TBD)
-[2.1.0]: https://github.com/datawire/ambassador/compare/v1.13.4...v2.1.0
-
-### Emissary Ingress and Ambassador Edge Stack
-
-(no changes yet)
-
 ## [2.0.0] (TBD)
 
 ### Emissary Ingress and Ambassador Edge Stack

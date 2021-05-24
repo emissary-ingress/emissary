@@ -35,7 +35,7 @@ commands:
       # image or the builder-base image.
       - amb-config-registry
       # main
-      - run: echo 'skippin'
+      - run: make test-chart
 
   "job-chart-changelog":
     steps:
@@ -56,7 +56,7 @@ commands:
       # image or the builder-base image.
       - amb-config-registry
       # main
-      - run: echo 'skippin'
+      - run: make -f charts/emissary-ingress/Makefile test-chart
 
   "job-chart-publish":
     steps:
@@ -70,7 +70,7 @@ commands:
       # image or the builder-base image.
       - amb-config-registry
       # main
-      - run: echo 'skip tests'
+      - run: make test-chart
       - run: make release/ga/chart-push
 
   "job-manifests-publish":
@@ -91,11 +91,11 @@ commands:
       - amb-config-registry
 
       # main
-      - run: echo "hi"
+      - run: make generate
       - dirty-check
       # Run it again to make sure that it is possible to run it twice
       # in a row.
-      - run: echo "hi"
+      - run: make generate
       - dirty-check
 
   "job-lint":
@@ -281,7 +281,7 @@ commands:
             export TEST_XML_DIR=/tmp/test-logs/xml/
             export DEV_KUBECONFIG=~/.kube/kubeception.yaml
             mkdir -p ${TEST_XML_DIR}
-            echo "passed"
+            make << parameters.test >>
 
       # teardown
       - amb-save-logs

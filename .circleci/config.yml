@@ -33,7 +33,7 @@ commands:
     # image or the builder-base image.
     - amb-config-registry
     - # main
-      run: echo 'skippin'
+      run: make test-chart
   "job-chart-changelog":
     steps:
     - amb-linux-install
@@ -52,7 +52,7 @@ commands:
     # image or the builder-base image.
     - amb-config-registry
     - # main
-      run: echo 'skippin'
+      run: make -f charts/emissary-ingress/Makefile test-chart
   "job-chart-publish":
     steps:
     - amb-linux-install
@@ -65,7 +65,7 @@ commands:
     # image or the builder-base image.
     - amb-config-registry
     - # main
-      run: echo 'skip tests'
+      run: make test-chart
     - run: make release/ga/chart-push
   "job-manifests-publish":
     steps:
@@ -83,11 +83,11 @@ commands:
     # image or the builder-base image.
     - amb-config-registry
     - # main
-      run: echo "hi"
+      run: make generate
     - dirty-check
     - # Run it again to make sure that it is possible to run it twice
       # in a row.
-      run: echo "hi"
+      run: make generate
     - dirty-check
   "job-lint":
     steps:
@@ -263,7 +263,7 @@ commands:
           export TEST_XML_DIR=/tmp/test-logs/xml/
           export DEV_KUBECONFIG=~/.kube/kubeception.yaml
           mkdir -p ${TEST_XML_DIR}
-          echo "passed"
+          make << parameters.test >>
     # teardown
     - amb-save-logs
     - store_test_results:
@@ -954,12 +954,6 @@ _anchors:
         only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
       branches:
         ignore: /.*/
-  filter-prerelease-and-master-only:
-    filters:
-      tags:
-        only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-      branches:
-        only: master
   filter-rc-only:
     filters:
       tags:
@@ -1146,6 +1140,92 @@ workflows:
             only:
             - master
             - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
+  'OSS: Nightly':
+    triggers:
+    - schedule:
+        cron: "0 6 * * 1-5"
+        filters:
+          branches:
+            only:
+            - master
+    - schedule:
+        cron: "0 5 * * *"
+        filters:
+          branches:
+            only:
+            - shared/emissary
+    jobs:
+    - oss-images:
+        name: "oss-nightly-images"
+        push_nightly: true
+    - oss-gotest:
+        name: "oss-nightly-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
+          >>"
+        matrix:
+          alias: "oss-nightly-gotest"
+          parameters:
+            fast-reconfigure:
+            - true
+            - false
+            legacy-mode:
+            - true
+            - false
+          exclude:
+          - fast-reconfigure: true
+            legacy-mode: true
+    - oss-test:
+        requires:
+        - "oss-nightly-images"
+        name: "oss-nightly-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
+          >>"
+        matrix:
+          alias: "oss-nightly-test"
+          parameters:
+            test:
+            - "pytest"
+            # Running the ingresstests would require we install `kind` and
+            # that the test suite supports HTTP to HTTPS redirects (AES
+            # enables cleartext redirection by default, even for fallback
+            # hosts, contrary to A/OSS)
+            #- "ingresstest"
+
+            fast-reconfigure:
+            - true
+            - false
+            legacy-mode:
+            - true
+            - false
+          exclude:
+          - test: pytest
+            fast-reconfigure: true
+            legacy-mode: true
+    - oss-envoy-test:
+        requires:
+        - "oss-nightly-images"
+        name: "oss-nightly-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
+          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
+          >>"
+        matrix:
+          alias: "oss-nightly-envoy-test"
+          parameters:
+            test:
+            - "pytest-envoy"
+            - "pytest-envoy-v3"
+            fast-reconfigure:
+            - true
+            - false
+            legacy-mode:
+            - true
+            - false
+          exclude:
+          - test: pytest-envoy
+            fast-reconfigure: true
+            legacy-mode: true
+          - test: pytest-envoy-v3
+            fast-reconfigure: true
+            legacy-mode: true
   'OSS: Chart Release':
     when:
       or:

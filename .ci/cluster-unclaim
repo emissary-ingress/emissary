@@ -21,5 +21,14 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
     [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-exit 0
 
+source ${DIR}/../build-aux/helpers.sh
+
+set -o errexit
+set -o nounset
+set -o xtrace
+
+DEV_KUBECONFIG=~/.kube/kubeception.yaml
+if test -e "$DEV_KUBECONFIG"; then
+    del_cluster ${DEV_KUBECONFIG}
+fi

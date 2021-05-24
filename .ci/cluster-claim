@@ -81,4 +81,4 @@ if [ -n "${KUBECEPTION_TOKEN:-}" ]; then
 fi
 
 echo "Kubernaut is no longer supported; halting run"
-exit 0
+exit 1

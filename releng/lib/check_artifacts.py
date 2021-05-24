@@ -86,7 +86,6 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
                 registries = ['quay.io/datawire-private']
             else:
                 registries = ['docker.io/datawire', 'quay.io/datawire', 'gcr.io/datawire']
-                registries = ['docker.io/alixcook11']
             for registry in registries:
                 if release_channel != '':
                     tags = [f"{ga_ver}-{release_channel}"]
