@@ -172,10 +172,13 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
         ]
         assert_eq(len(images), 2)   # One for Ambassador, one for the Agent.
 
+        check_tag = ga_ver
+        if release_channel != '':
+            check_tag = f"{check_tag}-{release_channel}"
         for image in images:
             assert '/ambassador:' in image
             check.result = image.split(':', 1)[1]
-            assert_eq(check.result, ga_ver)
+            assert_eq(check.result, check_tag)
     with checker.check(name='Adding Helm Chart') as check:
         run(['helm', 'repo', 'add', 'emissary',
             'https://s3.amazonaws.com/datawire-static-files/emissary-ingress'])
