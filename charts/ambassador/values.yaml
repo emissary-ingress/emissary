@@ -117,10 +117,11 @@ security:
     #     rule: MustRunAsNonRoot
 
 image:
-  tag: 2.3.0-wip
+  tag: 2.5.0-wip
   aesTag: 1.13.4
   pullPolicy: IfNotPresent
   ossRepository: docker.io/alixcook11/ambassador
+  repository: docker.io/alixcook11/ambassador
 dnsPolicy: ClusterFirst
 hostNetwork: false
 

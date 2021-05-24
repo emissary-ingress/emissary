@@ -5,6 +5,11 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+(no changes yet)
+
+## v6.9.1
+
+- Update Ambassador chart image to version v2.5.0-wip: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
 - Bugfix: fix image tag
 
 ## v6.9.0
