@@ -872,7 +872,7 @@ release/ga-check:
 release/start:
 	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
 	@$(OSS_HOME)/releng/start-sanity-check --quiet $(VERSION)
-	@$(OSS_HOME)/releng/start-update-version --quiet --no-commit $(VERSION)
+	@$(OSS_HOME)/releng/start-update-version --quiet $(VERSION)
 .PHONY: release/start
 
 clean:
