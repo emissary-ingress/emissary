@@ -71,7 +71,7 @@ commands:
       - amb-config-registry
       # main
       - run: echo 'skip tests'
-      - run: BUMP_STABLE=true charts/ambassador/ci/push_chart.sh
+      - run: make release/ga/chart-push
 
   "job-manifests-publish":
     steps:
@@ -79,21 +79,6 @@ commands:
       - amb-checkout
       - amb-config-registry
       - run:  manifests/push_manifests.sh
-
-  "job-emissary-chart-publish":
-    steps:
-      - amb-linux-install
-      - amb-checkout
-      - amb-skip-if-bad-chart-version
-      - run: |
-          ./charts/ambassador/ci/check_updated_changelog.sh
-      - install-k3d
-      # We might need to be logged in the registry to pull the Envoy
-      # image or the builder-base image.
-      - amb-config-registry
-      # main
-      - run: echo 'skippin'
-      - run: charts/emissary-ingress/ci/push_chart.sh
 
   "job-generate":
     steps:

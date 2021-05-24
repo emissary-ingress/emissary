@@ -24,6 +24,12 @@ push-preflight: create-venv $(YQ)
 	@$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
 .PHONY: push-preflight
 
+release/ga/chart-push:
+	for chart in $(AMBASSADOR_CHART) $(EMISSARY_CHART) ; do \
+		$(call _push_chart,`basename $$chart`) ; \
+	done ;
+.PHONY: release/ga/chart-push
+
 chart-push-ci: push-preflight
 	@echo ">>> This will dirty your local tree and should only be run in CI"
 	@echo ">>> If running locally, you'll probably want to run make chart-clean after running this"
