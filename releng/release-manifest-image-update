@@ -53,8 +53,11 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         image_tag = f"{image_tag}-{promote_path}"
 
     with check(f"Creating new branch {workbranch} off of tag v{next_ver}"):
-        run(["git", "fetch", "--tags"])
-        run(["git", "checkout", f"v{next_ver}", "-b", workbranch])
+        cur_branch = run_capture(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
+
+        if cur_branch != workbranch:
+            run(["git", "fetch", "--tags"])
+            run(["git", "checkout", f"v{next_ver}", "-b", workbranch])
 
     if not checker.ok:
         return 1
