@@ -75,10 +75,11 @@ ADD api api
 ADD cmd cmd
 ADD internal internal
 ADD pkg pkg
+ADD vendor vendor
 ADD go.mod go.mod
 ADD go.sum go.sum
 RUN mkdir -p /go/bin && \
-	time go build -o /go/bin/ ./cmd/...
+	time go build -mod=vendor -o /go/bin/ ./cmd/...
 
 ########################################
 # The artifact build stage
