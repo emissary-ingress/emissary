@@ -26,7 +26,7 @@ if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
         echo "working tree is dirty, aborting"
         exit 1
     fi
-else [[ "${BUMP_STABLE}" ]]
+elif [[ "${BUMP_STABLE}" = "true" ]] ; then
     # if this isn't an X.Y.Z version, don't let allow bumping stable
     echo "Cannot bump stable unless this is an X.Y.Z tag"
     exit 1
@@ -60,7 +60,7 @@ for file in "$@"; do
         --body "$file" &&  echo "... ${s3_key} pushed"
 done
 
-if [[ "${BUMP_STABLE}" ]] ; then
+if [[ "${BUMP_STABLE}" = "true" ]] ; then
     echo "Bumping stable version for yaml/${dir}"
     aws s3api put-object \
         --bucket "$AWS_BUCKET" \
