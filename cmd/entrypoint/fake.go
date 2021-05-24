@@ -409,10 +409,10 @@ type fakeWatcher struct {
 	store *ConsulStore
 }
 
-func (f *fakeWatcher) Watch(resolver *amb.ConsulResolver, mapping *amb.Mapping, endpoints chan consulwatch.Endpoints) Stopper {
+func (f *fakeWatcher) Watch(resolver *amb.ConsulResolver, svc string, endpoints chan consulwatch.Endpoints) Stopper {
 	var sent consulwatch.Endpoints
 	stop := f.fake.consulNotifier.Listen(func() {
-		ep, ok := f.store.Get(resolver.Spec.Datacenter, mapping.Spec.Service)
+		ep, ok := f.store.Get(resolver.Spec.Datacenter, svc)
 		if ok && !reflect.DeepEqual(ep, sent) {
 			endpoints <- ep
 			sent = ep

@@ -65,6 +65,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
+- Feature: Add AMBASSADOR_JSON_LOGGING to enable JSON for most of the Ambassador control plane. Some (but few) logs from gunicorn and the Kubernetes client-go package still log text.
+- Bugfix: Fixed a bug where the Consul resolver would not actually use Consul endpoints with TCPMappings.
+
 ### Emissary Ingress and Ambassador Edge Stack
 
 - Change: `prune_unreachable_routes` now defaults to true, which should reduce Envoy memory requirements for installations with many `Host`s
