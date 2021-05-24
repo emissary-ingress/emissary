@@ -21,11 +21,6 @@ DEFAULT_REPO = 'git@github.com:datawire/ambassador'
 
 
 def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = True) -> int:
-    if which("gh") is None:
-        print("gh tool is not installed.")
-        print("Please install the tool and rerun this script:")
-        print("https://github.com/cli/cli#installation")
-        return 1
 
     warning = """
  ==> Warning: FIXME: This script does not have the property that if
@@ -46,7 +41,6 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         with checker.check(name) as subcheck:
             # time.sleep(1)  # it's stupid, but honestly the delay makes the output more readable
             yield subcheck
-    run(["gh", "auth", "login"])
 
     m = re_ga.match(next_ver)
     release_branch = f"release/v{m[vX]}.{m[vY]}"
