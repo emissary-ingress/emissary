@@ -47,7 +47,8 @@ vendor_bootstrap_hack.go
 *.docker.push.*
 
 *.egg-info
-build
+/build
+/python/build
 dist
 
 *.out
