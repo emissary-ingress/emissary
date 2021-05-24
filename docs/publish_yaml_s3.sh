@@ -26,7 +26,7 @@ if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
         echo "working tree is dirty, aborting"
         exit 1
     fi
-elif [[ "${BUMP_STABLE}" ]]
+elif [[ "${BUMP_STABLE}" ]] ; then
     # if this isn't an X.Y.Z version, don't let allow bumping stable
     echo "Cannot bump stable unless this is an X.Y.Z tag"
     exit 1
