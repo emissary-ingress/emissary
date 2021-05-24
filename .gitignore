@@ -69,8 +69,6 @@ package-lock.json
 node_modules
 unused-e2e
 
-/vendor/
-
 .forge
 forge.yaml
 
