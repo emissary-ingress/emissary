@@ -190,7 +190,10 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
         ]
         assert_eq(len(versions), 1)
         check.result = versions[0]
-        assert_eq(check.result, ga_ver)
+        check_tag = ga_ver
+        if release_channel != '':
+            check_tag = f"{check_tag}-{release_channel}"
+        assert_eq(check.result, check_tag)
     with checker.check(name='ambassador.git GitHub release for chart') as check:
         check.result = 'TODO'
         raise NotImplementedError()

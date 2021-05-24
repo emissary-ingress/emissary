@@ -99,6 +99,8 @@ jobs:
       - job-chart-publish
 
   "oss-manifest-publish":
+    environment:
+      BUMP_STABLE: "true"
     executor: oss-linux
     steps:
       - job-manifests-publish
