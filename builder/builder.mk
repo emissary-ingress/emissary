@@ -860,15 +860,9 @@ release/go:
 .PHONY: release/go
 
 release/manifests:
-	@set -e; { \
-		if [ -n "$(IS_DIRTY)" ]; then \
-			echo "release/manifests: tree must be clean" >&2 ;\
-			exit 1 ;\
-		fi; \
-	}
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
 	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
-	@$(OSS_HOME)/releng/release-manifest-image-update $(VERSIONS_YAML_VER)-wip
+	@$(OSS_HOME)/releng/release-manifest-image-update $(VERSIONS_YAML_VER) wip
 .PHONY: release/manifests
 
 release/repatriate:

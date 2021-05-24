@@ -21,7 +21,7 @@ from lib.uiutil import Checker, CheckResult, run
 from lib.uiutil import run_txtcapture as run_capture
 
 
-def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = True) -> int:
+def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = True, promote_path: str = '') -> int:
     if which("gh") is None:
         print("gh tool is not installed.")
         print("Please install the tool and rerun this script:")
@@ -45,9 +45,13 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
 """
     print(f"{ansiterm.sgr.fg_red}{warning}{ansiterm.sgr}")
 
-    run(["gh", "auth", "login", "--web"])
+    run(["gh", "auth", "login"])
 
     workbranch = f"rel/v{next_ver}/chart-image-updates"
+    image_tag = next_ver
+    if promote_path != '':
+        image_tag = f"{image_tag}-{promote_path}"
+
     with check(f"Creating new branch {workbranch} off of tag v{next_ver}"):
         run(["git", "fetch", "--tags"])
         run(["git", "checkout", f"v{next_ver}", "-b", workbranch])
@@ -57,7 +61,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
 
     print('TODO: CHECK THAT IMAGE EXISTS')
     with check(f"Updating image tag in charts"):
-        run(["make", f"IMAGE_TAG={next_ver}", "release/chart/update-images"])
+        run(["make", f"IMAGE_TAG={image_tag}", "release/chart/update-images"])
         git_add("charts/ambassador")
         git_add("charts/emissary-ingress")
     if not checker.ok:
@@ -110,13 +114,17 @@ if __name__ == '__main__':
             commit = False
             args.pop(0)
 
-    if len(args) != 1 or not re_ga.match(args[0]):
+    if len(args) < 1 or not re_ga.match(args[0]):
         sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z\n")
         sys.exit(2)
+    promote_path = ''
+    if len(args) > 1:
+        promote_path = args[1]
 
     sys.exit(main(
         next_ver=args[0],
         today=datetime.date.today(),
         quiet=quiet,
         commit=commit,
+        promote_path=promote_path,
     ))
