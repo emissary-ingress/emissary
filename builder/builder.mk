@@ -844,6 +844,26 @@ release/promote-oss/to-ga:
 
 VERSIONS_YAML_VER := $(shell grep 'version:' $(OSS_HOME)/docs/yaml/versions.yml | awk '{ print $$2 }')
 
+release/prep-rc:
+	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
+	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: Version in versions.yml %s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
+	@set -e; { \
+		if [ -n "$(IS_DIRTY)" ]; then \
+			echo "release/go: tree must be clean" >&2 ;\
+			exit 1 ;\
+		fi; \
+		commit=$$(git rev-parse HEAD) ;\
+		curl --fail --silent https://datawire-static-files.s3.amazonaws.com/dev-builds/$$commit > /dev/null || \
+			(printf "$(RED)ERROR: $$commit not found in dev builds.\nPlease check that this commit passed oss-dev-images in circle or run \"make images push-dev\"\n" ; exit 1); \
+		rc_tag=v$(VERSIONS_YAML_VER)-rc. ; \
+		if [ -n $(RC_NUMBER) ] ; then \
+			rc_tag=$${rc_tag}$(RC_NUMBER) ;\
+		else \
+			rc_tag=$${rc_tag} ;\
+		fi ;\
+		git tag -m $$rc_tag -a $$rc_tag && git push origin $$rc_tag ; \
+	}
+
 release/go:
 	@set -e; { \
 		if [ -n "$(IS_DIRTY)" ]; then \
