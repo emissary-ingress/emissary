@@ -853,6 +853,7 @@ release/start:
 .PHONY: release/start
 
 clean:
+	@rm -f $(OSS_HOME)/bin/*
 	@$(BUILDER) clean
 .PHONY: clean
 
