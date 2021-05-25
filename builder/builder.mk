@@ -837,20 +837,24 @@ release/prep-rc:
 	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: Version in versions.yml %s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
 	@set -e; { \
 		if [ -n "$(IS_DIRTY)" ]; then \
-			echo "release/go: tree must be clean" >&2 ;\
+			echo "release/prep-rc: tree must be clean" >&2 ;\
 			exit 1 ;\
 		fi; \
 		commit=$$(git rev-parse HEAD) ;\
 		curl --fail --silent https://datawire-static-files.s3.amazonaws.com/dev-builds/$$commit > /dev/null || \
 			(printf "$(RED)ERROR: $$commit not found in dev builds.\nPlease check that this commit passed oss-dev-images in circle or run \"make images push-dev\"\n" ; exit 1); \
 		rc_tag=v$(VERSIONS_YAML_VER)-rc. ; \
-		if [ -n $(RC_NUMBER) ] ; then \
-			rc_tag=$${rc_tag}$(RC_NUMBER) ;\
+		if [[ -n "$${RC_NUMBER}" ]] ; then \
+			rc_tag="$${rc_tag}$(RC_NUMBER)" ;\
 		else \
-			rc_tag=$${rc_tag} ;\
+			rc_tag="$${rc_tag}0" ;\
 		fi ;\
+		read -p "I'm about to tag $${rc_tag}, is this correct? (y/n) " -n 1 -r ; \
+		echo ; \
+		[[ ! $$REPLY =~ ^[Yy]$$ ]] && (printf "$(RED)Exiting without tagging\n" ; exit 1) ; \
 		git tag -m $$rc_tag -a $$rc_tag && git push origin $$rc_tag ; \
 	}
+.PHONY: release/prep-rc
 
 release/go:
 	@set -e; { \
