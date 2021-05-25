@@ -41,7 +41,7 @@ status-proxy: status-cluster
 
 $(KUBECONFIG).clean: unproxy
 
-clean: unproxy
+clean-proxy: unproxy
 	cd $(OSS_HOME) && rm -f $(abspath $(tools/telepresence))
 
 endif
