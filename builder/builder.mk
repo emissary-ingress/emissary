@@ -942,6 +942,7 @@ release/hotfix/start:
 .PHONY: release/hotfix/start
 
 clean:
+	@rm -f $(OSS_HOME)/bin/*
 	@$(BUILDER) clean
 .PHONY: clean
 
