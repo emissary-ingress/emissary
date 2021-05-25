@@ -240,24 +240,24 @@ proto_path += $(OSS_HOME)/vendor # for "k8s.io/..."
 # The "M{FOO}={BAR}" options map from .proto files to Go package names.
 proto_options/go += plugins=grpc
 #proto_options/go += Mgoogle/protobuf/duration.proto=github.com/golang/protobuf/ptypes/duration
-$(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-go) | $(OSS_HOME)/vendor
+$(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-go)
 	$(call protoc,go,$(OSS_HOME)/pkg/api,\
 	    $(tools/protoc-gen-go))
 
 proto_options/python +=
-$(OSS_HOME)/generate.tmp/%_pb2.py: $(OSS_HOME)/api/%.proto $(tools/protoc) | $(OSS_HOME)/vendor
+$(OSS_HOME)/generate.tmp/%_pb2.py: $(OSS_HOME)/api/%.proto $(tools/protoc)
 	mkdir -p $(OSS_HOME)/generate.tmp/getambassador.io
 	mkdir -p $(OSS_HOME)/generate.tmp/getambassador
 	ln -sf ../getambassador.io/ $(OSS_HOME)/generate.tmp/getambassador/io
 	$(call protoc,python,$(OSS_HOME)/generate.tmp)
 
 proto_options/js += import_style=commonjs
-$(OSS_HOME)/generate.tmp/%_pb.js: $(OSS_HOME)/api/%.proto $(tools/protoc) | $(OSS_HOME)/vendor
+$(OSS_HOME)/generate.tmp/%_pb.js: $(OSS_HOME)/api/%.proto $(tools/protoc)
 	$(call protoc,js,$(OSS_HOME)/generate.tmp)
 
 proto_options/grpc-web += import_style=commonjs
 proto_options/grpc-web += mode=grpcwebtext
-$(OSS_HOME)/generate.tmp/%_grpc_web_pb.js: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-grpc-web) | $(OSS_HOME)/vendor
+$(OSS_HOME)/generate.tmp/%_grpc_web_pb.js: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-grpc-web)
 	$(call protoc,grpc-web,$(OSS_HOME)/generate.tmp,\
 	    $(tools/protoc-gen-grpc-web))
 
@@ -268,25 +268,9 @@ $(OSS_HOME)/python/ambassador/proto/%.py: $(OSS_HOME)/generate.tmp/getambassador
 $(OSS_HOME)/tools/sandbox/grpc_web/%.js: $(OSS_HOME)/generate.tmp/kat/%.js
 	cp $< $@
 
-$(OSS_HOME)/vendor: FORCE
-	set -e; { \
-	  cd $(@D); \
-	  GOPATH=/bogus GO111MODULE=off go list -f='{{ range .Imports }}{{ . }}{{ "\n" }}{{ end }}' ./... | \
-	    sort -u | \
-	    sed -E -n 's,^github\.com/datawire/ambassador/pkg/(api|envoy-control-plane),pkg/\1,p' | \
-	      while read -r dir; do \
-	        mkdir -p "$$dir"; \
-	        echo "$$dir" | sed 's,.*/,package ,' > "$${dir}/vendor_bootstrap_hack.go"; \
-	     done; \
-	}
-	cp -a $(@D)/go.mod $(@D)/go.mod.vendor-hack.bak
-	cd $(@D) && GOFLAGS=-mod=mod go mod vendor
-	find $(@D) -name vendor_bootstrap_hack.go -delete
-	mv -f $(@D)/go.mod.vendor-hack.bak $(@D)/go.mod
-
 clean: _makefile_clean
 _makefile_clean:
-	rm -rf $(OSS_HOME)/generate.tmp $(OSS_HOME)/vendor
+	rm -rf $(OSS_HOME)/generate.tmp
 .PHONY: _makefile_clean
 
 #
@@ -388,7 +372,7 @@ $(OSS_HOME)/build-aux-local/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base
 $(OSS_HOME)/build-aux/go1%.src.tar.gz:
 	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
 
-$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux-local/go-version.txt $(OSS_HOME)/build-aux-local/pip-show.txt $(OSS_HOME)/vendor
+$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux-local/go-version.txt $(OSS_HOME)/build-aux-local/pip-show.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz
 	set -e; { \
 		cd $(OSS_HOME); \
