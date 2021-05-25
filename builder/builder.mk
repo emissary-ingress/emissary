@@ -896,9 +896,10 @@ release/repatriate:
 release/ga-mirror:
 	# TODO: wip and dev bits are so we don't stomp on ourselves.
 	# This should get removed when this is ready to go
-	# This doesn't currently work because of permissions.
-	# We need to setup CI to do this
-	@$(OSS_HOME)/releng/release-mirror-images $(VERSION) $(RELEASE_REGISTRY) dev wip
+	@test -n "$(VERSIONS_YAML_VER)" || (printf "$(RED)ERROR: version not found in versions.yml\n"; exit 1)
+	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
+	@test -n "$(RELEASE_REGISTRY)" || (printf "$(RED)ERROR: RELEASE_REGISTRY not set\n"; exit 1)
+	@$(OSS_HOME)/releng/release-mirror-images $(VERSIONS_YAML_VER) $(RELEASE_REGISTRY) dev wip
 
 release/ga-check:
 	# TODO: wip bit is just so we don't stomp on ourselves
