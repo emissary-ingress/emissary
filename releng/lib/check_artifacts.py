@@ -11,6 +11,7 @@ from urllib.request import urlopen
 
 from . import ansiterm, assert_eq, build_version, get_is_private
 from .uiutil import Checker, CheckResult, run, run_bincapture, run_txtcapture
+from .mirror_artifacts import get_images
 
 
 def docker_pull(tag: str) -> str:
@@ -66,7 +67,8 @@ def do_check_s3(checker: Checker,
             yield (out, body)
 
 
-def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = True, release_channel='') -> int:
+def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = True,
+        release_channel: str = "", source_registry: str ="docker.io/datawire", image_append: str = "") -> int:
     warning = """
  ==> Warning: FIXME: While this script is handy in the things that it
      does check, there's still quite a bit that it doesn't check;
@@ -82,20 +84,19 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
     def do_check_docker(checker: Checker, name: str) -> None:
         with checker.check(name=f'Docker image: {name}', clear_on_success=False) as check:
             iids = []
-            if is_private:
-                registries = ['quay.io/datawire-private']
+            if release_channel != '':
+                tags = [f"{ga_ver}-{release_channel}"]
             else:
-                registries = ['docker.io/datawire', 'quay.io/datawire', 'gcr.io/datawire']
-                registries = ['docker.io/alixcook11']
-            for registry in registries:
-                if release_channel != '':
-                    tags = [f"{ga_ver}-{release_channel}"]
+                tags = [ga_ver]
+
+            for tag in tags:
+                if is_private:
+                    images = [f'quay.io/datawire-private/ambassador:{tag}']
                 else:
-                    tags = [ga_ver]
-                for tag in tags:
-                    fulltag = f'{registry}/{name}:{tag}'
-                    with check.subcheck(name=fulltag) as subcheck:
-                        iid = docker_pull(fulltag)
+                    images = get_images(source_registry, "ambassador", tag, image_append)
+                for image in images:
+                    with check.subcheck(name=image) as subcheck:
+                        iid = docker_pull(image)
                         iids += [iid]
                         subcheck.result = iid[len('sha256:'):len('sha256:') + 12]
             with check.subcheck(name='All images match') as subcheck:
