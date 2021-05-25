@@ -294,12 +294,12 @@ module_version() {
         BASE_VERSION=$(grep version: docs/yaml/versions.yml | awk ' { print $2 }')
     else
         # We have... nothing.
-        echo "No base version" >&2 
+        echo "No base version" >&2
         exit 1
     fi
 
     # EXTRA_VERSION gets added to BASE_VERSION (below). Start it out empty.
-    EXTRA_VERSION=    
+    EXTRA_VERSION=
 
     # Get a bunch of git info, starting with the branch.
     echo GIT_BRANCH="\"$(git rev-parse --abbrev-ref HEAD)\""
@@ -320,10 +320,17 @@ module_version() {
     echo GIT_DESCRIPTION="\"$GIT_DESCRIPTION\""
 
     # Do we have a '-' in our GIT_DESCRIPTION?
-    if [[ ${GIT_DESCRIPTION} =~ - ]]; then 
+    if [[ ${GIT_DESCRIPTION} =~ - ]]; then
         # Pull out fields from that.
         GIT_VERSION=$(echo $GIT_DESCRIPTION | cut -d- -f1)
         GIT_REST=$(echo $GIT_DESCRIPTION | cut -d- -f2-)
+        if [[ ${GIT_REST} =~ ^[a-z] ]] && [[ ${GIT_REST} =~ - ]]; then
+            # git describe isn't exactly at an rc or ea tag
+            # so let's filter those out when getting the git description
+            GIT_DESCRIPTION=$(git describe --tags --match 'v*' --exclude '*-*')
+            GIT_VERSION=$(echo $GIT_DESCRIPTION | cut -d- -f1)
+            GIT_REST=$(echo $GIT_DESCRIPTION | cut -d- -f2-)
+        fi
 
         # If the first character of GIT_REST is alphabetic, we should be looking
         # at an "-rc" or "-ea" tag or the like, and there should not be another -
