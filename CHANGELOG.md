@@ -68,7 +68,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary Ingress and Ambassador Edge Stack
 
-(no changes yet)
+- Bugfix: Clean up some more madness.
 
 ## [2.10.1] (TBD)
 [2.10.1]: https://github.com/datawire/ambassador/compare/v2.8.0...v2.10.1
