@@ -29,6 +29,16 @@ def gcr_login() -> Generator[None, None, None]:
     subprocess.run(['docker', 'logout', 'https://gcr.io'], check=True)
 
 
+def get_images(source_registry: str, repo: str, tag: str, image_append: str = ''):
+    images = [f"{source_registry}/{repo}:{tag}",]
+    for registry in ['quay.io/datawire', 'gcr.io/datawire']:
+        dst = f'{registry}/{repo}:{tag}'
+        if image_append != '':
+            dst = f'{registry}/{repo}-{image_append}:{tag}'
+        images.append(dst)
+    return images
+
+
 def main(tags: List[str],
          source_registry: str = 'docker.io/datawire',
          repos: List[str] = ['ambassador',],
@@ -39,13 +49,11 @@ def main(tags: List[str],
     with gcr_login():
         for repo in repos:
             for tag in tags:
-                run(['docker', 'pull', f'{source_registry}/{repo}:{tag}'])
-                for registry in ['quay.io/datawire', 'gcr.io/datawire']:
-                    src = f'{source_registry}/{repo}:{tag}'
-                    dst = f'{registry}/{repo}:{tag}'
+                images = get_images(source_registry, repo, tag, image_append)
+                src = f'{source_registry}/{repo}:{tag}'
+                run(['docker', 'pull', src])
+                for dst in images:
                     if dst == src:
                         continue
-                    if image_append != '':
-                        dst = f'{registry}/{repo}-{image_append}:{tag}'
                     run(['docker', 'tag', src, dst])
                     run(['docker', 'push', dst])
