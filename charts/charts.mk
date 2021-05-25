@@ -16,7 +16,8 @@ endef
 
 define _docgen
 	if [[ -f $(1)/doc.yaml ]] ; then \
-		chart-doc-gen -d $(1)/doc.yaml -t $(1)/readme.tpl -v $(1)/values.yaml > $(1)/README.md ; \
+		GO111MODULE=off go get kubepack.dev/chart-doc-gen ; \
+		GO111MODULE=off go run kubepack.dev/chart-doc-gen -d $(1)/doc.yaml -t $(1)/readme.tpl -v $(1)/values.yaml > $(1)/README.md ; \
 	fi
 endef
 
@@ -77,7 +78,7 @@ release/changelog:
 	done ;
 .PHONY: release/changelog
 
-release/chart/update-images: doc-gen-preflight $(YQ)
+release/chart/update-images: $(YQ)
 	@[ -n "${IMAGE_TAG}" ] || (echo "IMAGE_TAG must be set" && exit 1)
 	([[ "${IMAGE_TAG}" =~ .*\.0$$ ]] && $(MAKE) release/chart-bump/minor) || $(MAKE) release/chart-bump/revision
 	for chart in $(AMBASSADOR_CHART) $(EMISSARY_CHART) ; do \
@@ -108,13 +109,6 @@ chart-clean:
 			rm -f $$chart/*.tgz $$chart/index.yaml $$chart/tmp.yaml; \
 	done ;
 .PHONY: chart-clean
-
-doc-gen-preflight:
-	@if ! command -v chart-doc-gen 2> /dev/null ; then \
-		printf 'chart-doc-gen not installed, see https://github.com/kubepack/chart-doc-gen'; \
-	    false; \
-	fi
-.PHONY: doc-gen-preflight
 
 $(OSS_HOME)/.circleci/yq:
 	cd $(OSS_HOME)/.circleci/yq.d/ && go build -o $(abspath $@) github.com/mikefarah/yq/v3
