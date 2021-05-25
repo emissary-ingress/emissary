@@ -45,6 +45,14 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         with checker.check(name) as subcheck:
             # time.sleep(1)  # it's stupid, but honestly the delay makes the output more readable
             yield subcheck
+    orig_branch = run_capture(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
+
+    workbranch = orig_branch
+    with check(f"Checking out branch {workbranch}"):
+        workbranch = f"release/start/{next_ver}"
+        run(["git", "checkout", "-b", workbranch])
+    if not checker.ok:
+        return 1
 
     # docs/yaml/versions.yml
     with check(f"Updating docs/yaml/versions.yml with {next_ver}..."):
@@ -97,9 +105,19 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             with open(os.path.join(gitdir, 'GITGUI_MSG'), 'w') as msgfile:
                 msgfile.write(f"Update for v{next_ver}\n")
             run(['git', 'citool'])
+            run(["git", "push", "origin", workbranch])
+        if not checker.ok:
+            return 1
+        with check(f"Creating PR for {workbranch}"):
+            run(["gh", "pr", "create",
+                    "--base", orig_branch,
+                    "--title", f"Updates for next version {next_ver}",
+                    "--body", f"Updates for next version {next_ver}",
+                    "--reviewer", "kflynn,rhs,esmet,acookin"])
+
 
     if checker.ok:
-        print(f'Update complete. PR your staged changes back to ambassador')
+        print(f'Update complete. Merge PR back to target branch ASAP')
         return 0
     else:
         return 1
