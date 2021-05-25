@@ -901,6 +901,11 @@ release/ga-mirror:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$(RED)ERROR: RELEASE_REGISTRY not set\n"; exit 1)
 	@$(OSS_HOME)/releng/release-mirror-images $(VERSIONS_YAML_VER) $(RELEASE_REGISTRY) dev wip
 
+release/create-gh-release:
+	@test -n "$(VERSIONS_YAML_VER)" || (printf "$(RED)ERROR: version not found in versions.yml\n"; exit 1)
+	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
+	@$(OSS_HOME)/releng/release-create-github $(VERSIONS_YAML_VER)
+
 release/ga-check:
 	# TODO: wip bit is just so we don't stomp on ourselves
 	# this should go away
