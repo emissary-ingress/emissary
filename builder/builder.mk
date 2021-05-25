@@ -420,6 +420,54 @@ export PYTEST_ARGS
 
 PYTEST_GOLD_DIR ?= $(abspath python/tests/gold)
 
+# Internal target for running a bash shell.
+_bash:
+	@PS1="\u:\w $$ " /bin/bash
+.PHONY: _bash
+
+# Internal runner target that executes an entrypoint after setting up the user's UID/GUID etc.
+_runner:
+	@printf "$(CYN)==>$(END) * Creating group $(BLU)$$INTERACTIVE_GROUP$(END) with GID $(BLU)$$INTERACTIVE_GID$(END)\n"
+	@addgroup -g $$INTERACTIVE_GID $$INTERACTIVE_GROUP
+	@printf "$(CYN)==>$(END) * Creating user $(BLU)$$INTERACTIVE_USER$(END) with UID $(BLU)$$INTERACTIVE_UID$(END)\n"
+	@adduser -u $$INTERACTIVE_UID -G $$INTERACTIVE_GROUP $$INTERACTIVE_USER -D
+	@printf "$(CYN)==>$(END) * Adding user $(BLU)$$INTERACTIVE_USER$(END) to $(BLU)/etc/sudoers$(END)\n"
+	@echo "$$INTERACTIVE_USER ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers
+	@printf "$(CYN)==>$(END) * Switching to user $(BLU)$$INTERACTIVE_USER$(END) with shell $(BLU)/bin/bash$(END)\n"
+	@su -s /bin/bash $$INTERACTIVE_USER -c "$$ENTRYPOINT"
+.PHONY: _runner
+
+# This target is a convenience alias for running the _bash target.
+docker/shell: docker/run/_bash
+.PHONY: docker/shell
+
+# This target runs any existing target inside of the builder base docker image.
+docker/run/%: docker/builder-base.docker
+	docker run --net=host \
+		-e INTERACTIVE_UID=$$(id -u) \
+		-e INTERACTIVE_GID=$$(id -g) \
+		-e INTERACTIVE_USER=$$(id -u -n) \
+		-e INTERACTIVE_GROUP=$$(id -g -n) \
+		-e PYTEST_ARGS="$$PYTEST_ARGS" \
+		-e AMBASSADOR_DOCKER_IMAGE="$$AMBASSADOR_DOCKER_IMAGE" \
+		-e KAT_CLIENT_DOCKER_IMAGE="$$KAT_CLIENT_DOCKER_IMAGE" \
+		-e KAT_SERVER_DOCKER_IMAGE="$$KAT_SERVER_DOCKER_IMAGE" \
+		-e DEV_KUBECONFIG="$$DEV_KUBECONFIG" \
+		-v /etc/resolv.conf:/etc/resolv.conf \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v $${DEV_KUBECONFIG}:$${DEV_KUBECONFIG} \
+		-v $${PWD}:$${PWD} \
+		-it \
+		--init \
+		--cap-add=NET_ADMIN \
+		--entrypoint /bin/bash \
+		$$(cat docker/builder-base.docker) -c "cd $$PWD && ENTRYPOINT=make\ $* make --quiet _runner"
+
+# Don't try running 'make shell' from within docker. That target already tries to run a builder shell.
+# Instead, quietly define 'docker/run/shell' to be an alias for 'docker/shell'.
+docker/run/shell:
+	$(MAKE) --quiet docker/shell
+
 setup-envoy: extract-bin-envoy
 
 pytest: setup-diagd setup-envoy $(OSS_HOME)/bin/kubestatus proxy
@@ -530,10 +578,27 @@ create-venv:
 	[[ -d $(OSS_HOME)/venv ]] || python3 -m venv $(OSS_HOME)/venv
 .PHONY: create-venv
 
+# If we're setting up within Alpine linux, make sure to pin pip and pip-tools
+# to something that is still PEP517 compatible. This allows us to set _manylinux.py
+# and convince pip to install prebuilt wheels. We do this because there's no good
+# rust toolchain to build orjson within Alpine itself.
+setup-venv:
+	@set -e; { \
+		if [ -f /etc/issue ] && grep "Alpine Linux" < /etc/issue ; then \
+			pip3 install -U pip==20.2.4 pip-tools==5.3.1; \
+			echo 'manylinux1_compatible = True' > venv/lib/python3.8/site-packages/_manylinux.py; \
+			pip install orjson==3.3.1; \
+			rm -f venv/lib/python3.8/site-packages/_manylinux.py; \
+		else \
+			pip install orjson==3.3.1; \
+		fi; \
+		pip install -r $(OSS_HOME)/builder/requirements.txt; \
+		pip install -e $(OSS_HOME)/python; \
+	}
+.PHONY: setup-orjson
+
 setup-diagd: create-venv
-	. $(OSS_HOME)/venv/bin/activate && pip install orjson && \
-		pip install -r $(OSS_HOME)/builder/requirements.txt && \
-		pip install -e $(OSS_HOME)/python
+	. $(OSS_HOME)/venv/bin/activate && $(MAKE) setup-venv
 .PHONY: setup-diagd
 
 gotest: setup-diagd
