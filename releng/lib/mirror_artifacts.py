@@ -18,10 +18,13 @@ def run(args: List[str]) -> None:
 def gcr_login() -> Generator[None, None, None]:
     key = run_txtcapture(
         ['keybase', 'fs', 'read', '/keybase/team/datawireio/secrets/googlecloud.gcr-ci-robot.datawire.json.key'])
-    subprocess.run(['docker', 'login', '-u', '_json_key', '--password-stdin', 'https://gcr.io'],
-                   check=True,
-                   text=True,
-                   input=key)
+
+    subprocess.run(
+        ['gcloud', 'auth', 'activate-service-account', '--key-file=-'],
+        check=True,
+        text=True,
+        input=key,)
+    subprocess.run(['gcloud', 'auth', 'configure-docker'], check=True)
     yield
     subprocess.run(['docker', 'logout', 'https://gcr.io'], check=True)
 
@@ -30,6 +33,9 @@ def main(tags: List[str],
          source_registry: str = 'docker.io/datawire',
          repos: List[str] = ['ambassador',],
          image_append: str = '') -> None:
+    print('Note: This script can be rerun.')
+    print('If pushes to registries fail, you can rerun the command in your terminal to debug.')
+    print('If pushes fail, it might be a credentials problem with gcr or quay.io or an issue with your gcloud installation.')
     with gcr_login():
         for repo in repos:
             for tag in tags:
