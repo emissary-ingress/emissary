@@ -792,14 +792,16 @@ release/promote-oss/dev-to-rc:
 		$(MAKE) update-yaml --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} push-manifests  ; \
 		$(MAKE) clean-manifests ; \
-		$(MAKE) chart-clean ; \
 	}
 .PHONY: release/promote-oss/dev-to-rc
 
 release/print-test-artifacts:
-	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
-	@echo "export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/ambassador/$(RELEASE_VERSION)"
-	@echo "export HELM_CHART_VERSION=`grep 'version' $(OSS_HOME)/charts/ambassador/Chart.yaml | awk '{ print $$2 }'`"
+	@set -e; { \
+		manifest_ver=$(RELEASE_VERSION) ; \
+		manifest_ver=$${manifest_ver%"-dirty"} ; \
+		echo "export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/ambassador/$$manifest_ver" ; \
+		echo "export HELM_CHART_VERSION=`grep 'version' $(OSS_HOME)/charts/ambassador/Chart.yaml | awk '{ print $$2 }'`" ; \
+	}
 .PHONY: release/print-test-artifacts
 
 # just push the commit hash to s3
