@@ -331,7 +331,6 @@ workflows:
                 - true
       - "oss-promote-dev-to-passed":
           requires:
-            - oss-envoy-test
             - oss-dev-pytest
             - oss-dev-pytest-envoy
             - oss-dev-pytest-envoy-fastreconfigure
