@@ -8,7 +8,7 @@ import sys
 from contextlib import contextmanager
 from typing import Generator
 
-from lib import re_ga
+from lib import re_ga, get_gh_repo
 from lib.uiutil import Checker, CheckResult, run
 
 
@@ -71,6 +71,7 @@ def main(release_version: str) -> int:
         run([
             "gh", "release", "create",
             f"v{release_version}",
+            "--repo", get_gh_repo(),
             "--title", RELEASE_TITLE_FORMAT.format(release_version=release_version),
             "--notes", RELEASE_BODY_FORMAT.format(release_version=release_version, release_notes=buf)])
     if not checker.ok:

@@ -17,7 +17,7 @@ from contextlib import contextmanager
 from typing import Generator
 from shutil import which
 
-from lib import base_version, build_version, git_add, git_check_clean, re_ga, vX, vY, ansiterm
+from lib import base_version, build_version, git_add, git_check_clean, re_ga, vX, vY, ansiterm, get_gh_repo
 from lib.uiutil import Checker, CheckResult, run
 from lib.uiutil import run_txtcapture as run_capture
 
@@ -93,12 +93,13 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             release_branch = f"release/v{m[vX]}.{m[vY]}"
             # TODO: dont hardcode owners
             run(["gh", "pr", "create",
+                    "--repo", get_gh_repo(),
                     "--base", release_branch,
                     "--title", f"Chart and manifest image updates {next_ver}",
                     "--body", f"Update charts and manifests to use the newly release images for {next_ver}",
                     "--reviewer", "kflynn,rhs,esmet,acookin"])
     if checker.ok:
-        run(["gh", "pr", "view", "--web"])
+        run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo(), "--web"])
         return 0
     else:
         return 1
