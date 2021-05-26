@@ -3,6 +3,7 @@
 import re
 import subprocess
 from typing import Any, List
+from os import getenv
 
 from .gitutil import git_check_clean as git_check_clean  # Stop mypy complaining about implicit reexport
 from .uiutil import run_txtcapture
@@ -14,6 +15,8 @@ re_rc = re.compile(r'^([0-9]+)\.([0-9]+)\.([0-9]+)-rc\.([0-9]+)$')
 re_ga = re.compile(r'^([0-9]+)\.([0-9]+)\.([0-9]+)$')
 vX = 1
 vY = 2
+
+DEFAULT_REPO = "acookin/ambassador"
 
 
 def base_version(release_version: str) -> str:
@@ -44,3 +47,9 @@ def get_is_private() -> bool:
         remote_urls += run_txtcapture(['git', 'remote', 'get-url', '--all', remote_name]).split()
     return 'private' in "\n".join(remote_urls)
 
+
+def get_gh_repo() -> str:
+    repo = os.getenv("REL_GH_REPO")
+    if repo == "" or repo is None:
+        repo = DEFAULT_REPO
+    return repo
