@@ -7,6 +7,7 @@ After that, this will create a `chart-A.B.C` tag, where A.B.C is the version
 in charts/ambassador/Chart.yaml
 """
 
+from os import getenv
 import datetime
 import fileinput
 import os.path
@@ -47,7 +48,10 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
 
     run(["gh", "auth", "login"])
 
-    workbranch = f"rel/v{next_ver}/chart-image-updates"
+    user = getenv("USER")
+    if user is None or user == '':
+        user = 'unknownuser'
+    workbranch = f"{user}/v{next_ver}/chart-image-updates"
     image_tag = next_ver
     if promote_path != '':
         image_tag = f"{image_tag}-{promote_path}"
