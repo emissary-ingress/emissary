@@ -792,10 +792,7 @@ release/promote-oss/dev-to-rc:
 		$(MAKE) update-yaml --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} push-manifests  ; \
 		$(MAKE) clean-manifests ; \
-		$(MAKE) REGISTRY=$(RELEASE_REGISTRY) \
-			VERSION=$$veroverride \
-			MANIFEST_VERSION=$$veroverride \
-			release/print-test-artifacts ; \
+		$(MAKE) chart-clean ; \
 	}
 .PHONY: release/promote-oss/dev-to-rc
 
