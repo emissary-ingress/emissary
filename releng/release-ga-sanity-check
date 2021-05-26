@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+"""Do a sanity check that you're at something that's ready for you to
+cut a GA tag from
+"""
+
+import os.path
+from os import getenv
+import sys
+import time
+from contextlib import contextmanager
+from typing import Generator
+
+from lib import assert_eq, git_check_clean, vX, vY, re_ga
+from lib.uiutil import Checker, CheckResult, run
+from lib.uiutil import run_txtcapture as run_capture
+
+
+DEFAULT_REPO = 'git@github.com:datawire/ambassador'
+
+
+def main(next_ver: str, quiet: bool = False) -> int:
+    print(f'Starting work on "v{next_ver}"...')
+    print()
+    remote_repo = getenv('AMBASSADOR_RELEASE_REPO_OVERRIDE')
+    if remote_repo is None or remote_repo == '':
+        remote_repo = DEFAULT_REPO
+
+    checker = Checker()
+
+    @contextmanager
+    def check(name: str) -> Generator[CheckResult, None, None]:
+        with checker.check(name) as subcheck:
+            # time.sleep(1)  # it's stupid, but honestly the delay makes the output more readable
+            yield subcheck
+
+    is_private = False
+
+    with check(f"You're in a clone of {remote_repo}"):
+        url = run_capture(['git', 'remote', 'get-url', '--push', 'origin'])
+        if url.endswith("/"):
+            url = url[:-len("/")]
+        if url.endswith(".git"):
+            url = url[:-len(".git")]
+        if url.endswith("-private"):
+            is_private = True
+            url = url[:-len("-private")]
+        assert_eq(url, remote_repo)
+
+    with check("You're in the toplevel of the clone"):
+        toplevel = run_capture(['git', 'rev-parse', '--show-toplevel'])
+        if not os.path.samefile(toplevel, '.'):
+            raise Exception(f"Not in {toplevel}")
+
+    with check("You're in a clean checkout"):
+        git_check_clean()
+
+    # Cache the name of our remote...
+    remote_name = f'{remote_repo}.git' if is_private else 'origin'
+
+    # ...make sure the passed-in version is OK...
+    m = re_ga.match(next_ver)
+    assert m
+
+    if checker.ok:
+        if not quiet:
+            print()
+            print("Yep, looks like you're good to tag GA.")
+        return 0
+    else:
+        print()
+        print("Looks like there's something wrong with your tree that you need to address before continuing.")
+        return 1
+
+
+def branch_exists(remote: str, branch: str) -> None:
+    # Allow exceptions to propagate upward
+    run(['git', 'fetch', remote, f'refs/heads/{branch}'])
+
+
+def branch_up_to_date(remote: str, branch: str, update_cmd: str) -> None:
+    run(['git', 'fetch', remote, f'refs/heads/{branch}'])
+    try:
+        run(['git', 'merge-base', '--is-ancestor', 'FETCH_HEAD', 'HEAD'])
+    except Exception as err:
+        print(f"HEAD is not up-to-date with '{remote}' '{branch}':")
+        print("You need to update it with:")
+        print()
+        print(f"    $ {update_cmd}")
+        print()
+        raise
+
+
+subtree_up_to_date = branch_up_to_date
+
+if __name__ == '__main__':
+    args = sys.argv[1:]
+    quiet = False
+
+    if args and (args[0] == '--quiet'):
+        quiet = True
+        args.pop(0)
+
+    if len(args) != 1 or not re_ga.match(args[0]):
+        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z\n")
+        sys.exit(2)
+
+    sys.exit(main(next_ver=args[0], quiet=quiet))

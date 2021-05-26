@@ -63,10 +63,6 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## Next Release
-
-(no changes yet)
-
 ## [1.13.6] May 24, 2021
 [1.13.6]: https://github.com/datawire/ambassador/compare/v1.13.5...v1.13.6
 
@@ -2473,3 +2469,4 @@ Based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/). Ambassador fol
 [Ambassador-Envoy]: https://github.com/datawire/ambassador-envoy
 [Telepresence]: http://telepresence.io
 [Istio]: https://istio.io/
+
