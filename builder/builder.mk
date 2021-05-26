@@ -800,11 +800,8 @@ release/promote-oss/dev-to-rc:
 .PHONY: release/promote-oss/dev-to-rc
 
 release/print-test-artifacts:
-	@test -n "$(REGISTRY)" || (printf "REGISTRY must be set\n"; exit 1)
-	@test -n "$(VERSION)" || (printf "VERSION must be set\n"; exit 1)
-	@test -n "$(MANIFEST_VERSION)" || (printf "CHART_SUFFIX must be set\n"; exit 1)
-	@echo "export IMAGE_TAG=$(REGISTRY)/$(LCNAME):$(VERSION)"
-	@echo "export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/ambassador/$(MANIFEST_VERSION)"
+	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@echo "export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/ambassador/$(RELEASE_VERSION)"
 	@echo "export HELM_CHART_VERSION=`grep 'version' $(OSS_HOME)/charts/ambassador/Chart.yaml | awk '{ print $$2 }'`"
 .PHONY: release/print-test-artifacts
 
