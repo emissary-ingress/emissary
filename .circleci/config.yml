@@ -72,7 +72,11 @@ commands:
     - amb-linux-install
     - amb-checkout
     - amb-config-registry
-    - run: manifests/push_manifests.sh
+    - run:
+        name: "Publishing manifests"
+        command: |
+          make push-manifests
+          make publish-docs-yaml
   "job-generate":
     steps:
     # setup

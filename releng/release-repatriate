@@ -21,6 +21,12 @@ DEFAULT_REPO = 'git@github.com:datawire/ambassador'
 
 
 def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = True) -> int:
+    if which("gh") is None:
+        print("gh tool is not installed.")
+        print("Please install the tool and rerun this script:")
+        print("https://github.com/cli/cli#installation")
+        return 1
+    run(["gh", "auth", "login"])
 
     warning = """
  ==> Warning: FIXME: This script does not have the property that if
@@ -74,9 +80,26 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         return 1
     with check(f"Merging master into {repatriate_branch}"):
         run(["git", "merge", "origin/master"])
+    with check(f"Checking if there was a clean merge"):
+        out = run_capture(["git", "status", "--porcelain"])
+        if out:
+            raise AssertionError(f"Merge conflicts on {repatriate_branch}. Resolve these, then run 'gh pr create --base {release_branch}' to create a PR")
+    if not checker.ok:
+        return 1
+
+    with check(f"Pushing changes to {repatriate_branch}"):
+        run(["git", "push", "origin", repatriate_branch])
+
+    if not checker.ok:
+        return 1
+    with check(f"Creating PR for {repatriate_branch}"):
+        run(["gh", "pr", "create",
+                "--title", f"Repatriate {next_ver}",
+                "--body", f"Repatriate changes from releasing {next_ver}",
+                "--reviewer", "kflynn,rhs,esmet,acookin"])
 
     if checker.ok:
-        print("Resolve merge conflicts (if any), then create a PR back to master for {repatriate_branch}")
+        run(["gh", "pr", "view", "--web"])
         return 0
     else:
         return 1

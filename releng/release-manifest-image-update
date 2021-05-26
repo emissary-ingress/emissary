@@ -98,6 +98,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         with check(f"Creating chart tag"):
             run(["make", "release/chart/tag"])
     if checker.ok:
+        run(["gh", "pr", "view", "--web"])
         return 0
     else:
         return 1
