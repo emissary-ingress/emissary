@@ -63,6 +63,13 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [2.12.1] May 25, 2021
+[2.12.1]: https://github.com/datawire/ambassador/compare/v2.12.0...v2.12.1
+
+### Emissary Ingress and Ambassador Edge Stack
+
+- Bugfix: Diagd now actually logs with John Logging
+
 ## [2.12.0] May 25, 2021
 [2.12.0]: https://github.com/datawire/ambassador/compare/v2.11.0...v2.12.0
 
