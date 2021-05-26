@@ -170,7 +170,7 @@ spec:
             path: labels
       containers:
       - name: ambassador
-        image: docker.io/alixcook11/ambassador:2.14.0-wip
+        image: docker.io/alixcook11/ambassador:1.13.6
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
@@ -359,7 +359,7 @@ spec:
       serviceAccountName: ambassador-agent
       containers:
       - name: agent
-        image: docker.io/alixcook11/ambassador:2.14.0-wip
+        image: docker.io/alixcook11/ambassador:1.13.6
         imagePullPolicy: IfNotPresent
         command: [agent]
         env:

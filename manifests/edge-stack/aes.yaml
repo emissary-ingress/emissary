@@ -406,7 +406,7 @@ spec:
           secretName: ambassador-edge-stack
       containers:
       - name: aes
-        image: docker.io/alixcook11/ambassador:1.13.4
+        image: docker.io/alixcook11/ambassador:1.13.6
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
@@ -608,7 +608,7 @@ spec:
       serviceAccountName: ambassador-agent
       containers:
       - name: agent
-        image: docker.io/alixcook11/ambassador:1.13.4
+        image: docker.io/alixcook11/ambassador:1.13.6
         imagePullPolicy: IfNotPresent
         command: [agent]
         env:
