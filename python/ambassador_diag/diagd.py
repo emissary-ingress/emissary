@@ -74,7 +74,7 @@ tvars_cache = ExpiringDict(max_len=10, max_age_seconds=60)
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%%(asctime)s diagd %s [P%%(process)dT%%(threadName)s] %%(levelname)s: %%(message)s" % __version__,
+    format="%%(asctime)s john's diagd %s [P%%(process)dT%%(threadName)s] %%(levelname)s: %%(message)s" % __version__,
     datefmt="%Y-%m-%d %H:%M:%S"
 )
 
