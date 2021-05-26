@@ -916,6 +916,12 @@ release/start:
 	@$(OSS_HOME)/releng/start-update-version --quiet $(VERSION)
 .PHONY: release/start
 
+release/hotfix/start:
+	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
+	@$(OSS_HOME)/releng/start-sanity-check --quiet $(VERSION)
+	@$(OSS_HOME)/releng/start-hotfix-update-version --quiet $(VERSION)
+.PHONY: release/hotfix/start
+
 clean:
 	@$(BUILDER) clean
 .PHONY: clean
