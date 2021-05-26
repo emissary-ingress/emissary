@@ -114,6 +114,16 @@ commands:
       # main
       - run: make lint
 
+  "job-promote-passed-ci-build":
+    steps:
+      - amb-linux-install
+      - amb-attach-workspace
+      - amb-skip-if-not-master-or-release
+      - run:
+          name: "promote build to passed"
+          run: |
+            make release/promote-oss/dev-to-passed-ci
+
   "job-images":
     parameters:
       "release":
@@ -149,6 +159,15 @@ commands:
                 name: "Clean up dirty chart stuff"
                 command: |
                   make chart-clean
+            - run:
+                name: "Print RC promote info"
+                command: |
+                  echo "To start the release process, you can checkout the following sha"
+                  echo "Then run 'make release/prep-rc'"
+                  echo "See notion page for more details: https://www.notion.so/datawire/X-Y-Z-Emissary-Checklist-eef145314ce4496c8424d15f35595a18"
+                  echo "Commit SHA:"
+                  git rev-parse HEAD
+
       - when:
           condition: << parameters.release >>
           steps:
@@ -228,8 +247,6 @@ commands:
       - amb-linux-install
       - amb-attach-workspace
       - amb-skip-if-no-code-changes-not-release
-      # e2etests can be skipped if the only chances are to
-      # the Ambassador repo and the pytest gold directory
       # pytest-envoy can be skipped unless the envoy.mk file changes, or the ambex control
       # plane changes, or the gold files change.
       - when:
@@ -307,6 +324,13 @@ commands:
                 command: |
                   docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
                   DEV_KUBECONFIG="-skip-for-release-" make release/promote-<< parameters.channel >>/dev-to-rc
+            - run:
+                name: "Print RC artifact info"
+                command: |
+                  export VERSION=`cat docs/yaml/versions.yml`
+                  export MANIFEST_VERSION=`cat docs/yaml/versions.yml`
+                  export REGISTRY=${RELEASE_REGISTRY}
+                  make release/print-test-artifacts
 
   "job-promote-to-ga":
     parameters:

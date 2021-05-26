@@ -135,6 +135,11 @@ jobs:
       - job-promote-to-rc-latest:
           channel: oss
 
+  "oss-promote-dev-to-passed":
+    executor: oss-linux
+    steps:
+      - job-promote-passed-ci-build
+
   "oss-promote-to-ga":
     executor: oss-linux
     steps:
@@ -324,6 +329,26 @@ workflows:
                 - false
               legacy-mode:
                 - true
+      - "oss-promote-dev-to-passed":
+          requires:
+            - oss-envoy-test
+            - oss-dev-pytest
+            - oss-dev-pytest-envoy
+            - oss-dev-pytest-envoy-fastreconfigure
+            - oss-dev-pytest-envoy-legacy
+            - oss-dev-pytest-envoy-v3
+            - oss-dev-pytest-envoy-v3-fastreconfigure
+            - oss-dev-pytest-envoy-v3-legacy
+            - oss-dev-pytest-fastreconfigure
+            - oss-dev-pytest-legacy
+            - oss-dev-chart
+            - emissary-dev-chart
+            - oss-dev-gotest-legacy
+            - oss-dev-gotest-fastreconfigure
+            - oss-dev-gotest
+            - oss-dev-generate
+          name: "oss-dev-promote-to-passed"
+          <<: *filter-master-release-branches-only
 
   "OSS: Chart Release":
     when: # Don't run this workflow in apro.git
