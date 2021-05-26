@@ -327,9 +327,6 @@ commands:
             - run:
                 name: "Print RC artifact info"
                 command: |
-                  export VERSION=`cat docs/yaml/versions.yml`
-                  export MANIFEST_VERSION=`cat docs/yaml/versions.yml`
-                  export REGISTRY=${RELEASE_REGISTRY}
                   make release/print-test-artifacts
 
   "job-promote-to-ga":
