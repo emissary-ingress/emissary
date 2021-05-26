@@ -102,7 +102,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         checker.ok = True
         with check(f"Creating {current_release_branch} (IGNORE PREVIOUS STEP FAILURE)"):
             run(["git", "checkout", f"origin/{release_branch}", "-b", current_release_branch])
-            run(["git", "push", "origin", current_release_branch])
+            run(["git", "push", "-u", "origin", current_release_branch])
         if not checker.ok:
             print(f"Could not create {current_release_branch}.")
             print("Please fix issues then rerun")
@@ -121,8 +121,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             run(['git', 'citool'])
         if not checker.ok:
             return 1
-        print(f'git push origin {current_release_branch}')
-        run(["git", "push", "origin", current_release_branch])
+        run(["git", "push", "-u", "origin", current_release_branch])
         with check(f"Creating PR for {current_release_branch}"):
             run(["gh", "pr", "create",
                     "--base", release_branch,
