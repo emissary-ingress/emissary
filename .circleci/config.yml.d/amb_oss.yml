@@ -220,8 +220,6 @@ workflows:
           name: "oss-dev-lint"
       - "oss-chart":
           name: "oss-dev-chart"
-      - "emissary-chart":
-          name: "emissary-dev-chart"
       - "oss-gotest":
           name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           matrix:
@@ -336,7 +334,6 @@ workflows:
             - oss-dev-pytest-fastreconfigure
             - oss-dev-pytest-legacy
             - oss-dev-chart
-            - emissary-dev-chart
             - oss-dev-gotest-legacy
             - oss-dev-gotest-fastreconfigure
             - oss-dev-gotest

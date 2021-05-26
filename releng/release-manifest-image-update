@@ -70,7 +70,6 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
     with check(f"Updating image tag in charts"):
         run(["make", f"IMAGE_TAG={image_tag}", "release/chart/update-images"])
         git_add("charts/ambassador")
-        git_add("charts/emissary-ingress")
     if not checker.ok:
         return 1
     with check(f"Updating manifest yaml"):
