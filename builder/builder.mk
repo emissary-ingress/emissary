@@ -885,6 +885,9 @@ release/go:
 			echo "release/go: tree must be clean" >&2 ;\
 			exit 1 ;\
 		fi; \
+		commit=$$(git rev-parse HEAD) ;\
+		curl --fail --silent https://datawire-static-files.s3.amazonaws.com/passed-builds/$$commit > /dev/null || \
+			(printf "$(RED)ERROR: $$commit not found in dev builds.\nPlease check that this commit passed OSS: Dev in circle or run \"make release/promote-oss/dev-to-passed-ci\"\n" ; exit 1); \
 	}
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
 	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
