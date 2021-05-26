@@ -121,7 +121,7 @@ commands:
       - amb-skip-if-not-master-or-release
       - run:
           name: "promote build to passed"
-          run: |
+          command: |
             make release/promote-oss/dev-to-passed-ci
 
   "job-images":

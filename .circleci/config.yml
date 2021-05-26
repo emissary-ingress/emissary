@@ -110,7 +110,7 @@ commands:
     - amb-skip-if-not-master-or-release
     - run:
         name: "promote build to passed"
-        run: |
+        command: |
           make release/promote-oss/dev-to-passed-ci
   "job-images":
     parameters:
@@ -1180,7 +1180,6 @@ workflows:
             - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
     - oss-promote-dev-to-passed:
         requires:
-        - oss-envoy-test
         - oss-dev-pytest
         - oss-dev-pytest-envoy
         - oss-dev-pytest-envoy-fastreconfigure
