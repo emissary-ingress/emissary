@@ -93,10 +93,6 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
                     "--title", f"Chart and manifest image updates {next_ver}",
                     "--body", f"Update charts and manifests to use the newly release images for {next_ver}",
                     "--reviewer", "kflynn,rhs,esmet,acookin"])
-        if not checker.ok:
-            return 1
-        with check(f"Creating chart tag"):
-            run(["make", "release/chart/tag"])
     if checker.ok:
         run(["gh", "pr", "view", "--web"])
         return 0

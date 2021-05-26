@@ -808,6 +808,21 @@ release/print-test-artifacts:
 	@echo "export HELM_CHART_VERSION=`grep 'version' $(OSS_HOME)/charts/ambassador/Chart.yaml | awk '{ print $$2 }'`"
 .PHONY: release/print-test-artifacts
 
+# just push the commit hash to s3
+# this should only happen if all tests have passed at a certain commit
+release/promote-oss/dev-to-passed-ci:
+	@set -e; { \
+		commit=$$(git rev-parse HEAD) ;\
+		dev_version=$$(aws s3 cp s3://datawire-static-files/dev-builds/$$commit -) ;\
+		if [ -z "$$dev_version" ]; then \
+			printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
+			exit 1 ;\
+		fi ;\
+		printf "$(CYN)==> $(GRN)Promoting $(BLU)$$commit$(GRN) => $(BLU)$$dev_version$(GRN) in S3...$(END)\n" ;\
+		echo "$$dev_version" | aws s3 cp - s3://datawire-static-files/passed-builds/$$commit ;\
+	}
+.PHONY: release/promote-oss/dev-to-passed-ci
+
 # To be run from a checkout at the tag you are promoting _from_.
 # This is normally run from CI by creating the GA tag.
 release/promote-oss/to-ga:
@@ -815,9 +830,9 @@ release/promote-oss/to-ga:
 	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(RELEASE_VERSION)"; exit 1)
 	@set -e; { \
       commit=$$(git rev-parse HEAD) ;\
-	  dev_version=$$(aws s3 cp s3://datawire-static-files/dev-builds/$$commit -) ;\
+	  dev_version=$$(aws s3 cp s3://datawire-static-files/passed-builds/$$commit -) ;\
 	  if [ -z "$$dev_version" ]; then \
-		  printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
+		  printf "$(RED)==> found no passed dev version for $$commit in S3...$(END)\n" ;\
 		  exit 1 ;\
       fi ;\
  	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
