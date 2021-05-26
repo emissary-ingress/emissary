@@ -864,7 +864,7 @@ release/prep-rc:
 		read -p "I'm about to tag $${rc_tag}, is this correct? (y/n) " -n 1 -r ; \
 		echo ; \
 		[[ ! $$REPLY =~ ^[Yy]$$ ]] && (printf "$(RED)Exiting without tagging\n" ; exit 1) ; \
-		git tag -m $$rc_tag -a $$rc_tag && git push origin $$rc_tag ; \
+		git tag -s -m $$rc_tag -a $$rc_tag && git push origin $$rc_tag ; \
 	}
 .PHONY: release/prep-rc
 

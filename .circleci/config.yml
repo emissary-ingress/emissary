@@ -72,7 +72,11 @@ commands:
     - amb-linux-install
     - amb-checkout
     - amb-config-registry
-    - run: manifests/push_manifests.sh
+    - run:
+        name: "Publishing manifests"
+        command: |
+          make push-manifests
+          make publish-docs-yaml
   "job-generate":
     steps:
     # setup
@@ -114,7 +118,8 @@ commands:
     # setup
     - amb-linux-install
     - amb-checkout
-    - amb-skip-if-no-code-changes
+    - amb-save-workspace
+    - amb-skip-if-no-code-changes-not-release
     - amb-config-registry
     - # main
       run: make images
@@ -167,7 +172,7 @@ commands:
     - amb-linux-install
     - install-gotestsum
     - amb-checkout
-    - amb-skip-if-no-code-changes
+    - amb-skip-if-no-code-changes-not-release
     - amb-config-registry
     - run:
         name: "Test"
@@ -195,7 +200,6 @@ commands:
         - "pytest"
         - "pytest-envoy"
         - "pytest-envoy-v3"
-        - "e2etest"
         default: "test"
       "fast-reconfigure":
         type: boolean
@@ -207,16 +211,10 @@ commands:
     # setup
     - amb-linux-install
     - amb-attach-workspace
-    - amb-skip-if-no-code-changes
+    - amb-skip-if-no-code-changes-not-release
     - # e2etests can be skipped if the only chances are to
       # the Ambassador repo and the pytest gold directory
-      when:
-        condition:
-          equal: ["e2etest", << parameters.test >>]
-        steps:
-        - skip-if-only-changes:
-            to: "(ambassador/|tests/pytest/gold/)"
-    - # pytest-envoy can be skipped unless the envoy.mk file changes, or the ambex control
+      # pytest-envoy can be skipped unless the envoy.mk file changes, or the ambex control
       # plane changes, or the gold files change.
       when:
         condition:
@@ -224,7 +222,7 @@ commands:
           - equal: ["pytest-envoy", << parameters.test >>]
           - equal: ["pytest-envoy-v3", << parameters.test >>]
         steps:
-        - skip-if-no-changes:
+        - amb-skip-if-no-changes-not-release:
             to: "(/envoy\\.mk$|/python/tests/gold/|/pytest/gold/|/cmd/ambex/)"
         - run: |
             if [[ -z "$KUBECEPTION_TOKEN" ]]; then
@@ -365,11 +363,11 @@ commands:
   amb-skip-if-no-code-changes:
     steps:
     - skip-if-only-changes:
-        to: (charts/ambassador\|docs/\|*.md)
+        to: (charts/|manifests/|k8s-config/|docs/|*.md)
   amb-skip-if-no-code-changes-not-release:
     steps:
     - amb-skip-if-only-changes-not-release:
-        to: (charts/ambassador\|docs/\|*.md)
+        to: (charts/|manifests/|k8s-config/|docs/|*.md)
   amb-checkout:
     steps:
     - when:

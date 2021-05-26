@@ -10,10 +10,12 @@ import re
 import sys
 from contextlib import contextmanager
 from typing import Generator
+from shutil import which
 
 from lib import base_version, build_version, git_add, git_check_clean, re_ga
 from lib.uiutil import Checker, CheckResult, run
 from lib.uiutil import run_txtcapture as run_capture
+from lib.start_release_updates import update_versions_yaml, update_changelog_date
 
 
 def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = True) -> int:
@@ -29,6 +31,12 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
     sections and buffering the sections... maybe line-oriented processing wasn't
     the best choice for that file.
     """
+    if which("gh") is None:
+        print("gh tool is not installed.")
+        print("Please install the tool and rerun this script:")
+        print("https://github.com/cli/cli#installation")
+        return 1
+    run(["gh", "auth", "login"])
 
     if not quiet:
         print()
@@ -56,48 +64,10 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
 
     # docs/yaml/versions.yml
     with check(f"Updating docs/yaml/versions.yml with {next_ver}..."):
-        for line in fileinput.FileInput("docs/yaml/versions.yml", inplace=True):
-            if line.startswith("version:"):
-                line = f"version: {next_ver}\n"
-            sys.stdout.write(line)
-        git_add("docs/yaml/versions.yml")
+        update_versions_yaml(next_ver)
 
-    changelog_ver_pattern = re.compile(r"^## \[([0-9]+\.[0-9]+\.[0-9]+(?:-rc\.[0-9]+)?)\] \S+ [0-9]+, [0-9]{4}$")
     with check(f"Updating CHANGELOG.md with {next_ver}..."):
-        in_notes = False
-        buf = ""
-        for line in fileinput.FileInput("CHANGELOG.md", inplace=True):
-            if not in_notes:
-                sys.stdout.write(line)
-                if line.startswith("## RELEASE NOTES"):
-                    in_notes = True
-                continue
-
-            match = changelog_ver_pattern.match(line)
-            if not match:
-                buf += line
-            elif line.startswith(f"## [{next_ver}]"):
-                # Don't do anything, this changelog already has an entry for the next version
-                sys.stdout.write(buf)
-                sys.stdout.write(line)
-                in_notes = False
-            else:
-                prev_ver = match[1]
-                # dope let's get the last version first
-                # this is the beginning of the last version line
-                sys.stdout.write("\n")
-                sys.stdout.write(f"## [{next_ver}] (TBD)\n")
-                sys.stdout.write(
-                        f"[{next_ver}]: https://github.com/datawire/ambassador/compare/v{prev_ver}...v{next_ver}\n")
-                sys.stdout.write("\n")
-                sys.stdout.write("### Emissary Ingress and Ambassador Edge Stack\n")
-                sys.stdout.write("\n")
-                sys.stdout.write("(no changes yet)\n")
-                sys.stdout.write(buf)
-                sys.stdout.write(line)
-                in_notes = False
-
-        git_add("CHANGELOG.md")
+        update_changelog_date(next_ver)
 
     if checker.ok and commit:
         with check(f"Committing changes..."):
@@ -115,9 +85,9 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
                     "--body", f"Updates for next version {next_ver}",
                     "--reviewer", "kflynn,rhs,esmet,acookin"])
 
-
     if checker.ok:
         print(f'Update complete. Merge PR back to target branch ASAP')
+        run(["gh", "pr", "view", "--web"])
         return 0
     else:
         return 1
