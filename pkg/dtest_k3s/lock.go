@@ -1,11 +1,13 @@
 package dtest_k3s
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"os"
 	"syscall"
 	"time"
+
+	"github.com/datawire/dlib/dlog"
 )
 
 const pattern = "/tmp/datawire-machine-scoped-%s.lock"
@@ -17,15 +19,15 @@ func exit(filename string, err error) {
 
 // WithMachineLock executes the supplied body with a guarantee that it
 // is the only code running (via WithMachineLock) on the machine.
-func WithMachineLock(body func()) {
-	WithNamedMachineLock("default", body)
+func WithMachineLock(ctx context.Context, body func(context.Context)) {
+	WithNamedMachineLock(ctx, "default", body)
 }
 
 // WithNamedMachineLock executes the supplied body with a guarantee
 // that it is the only code running (via WithMachineLock) on the
 // machine. The name provides scope so this can be used in multiple
 // independent ways without conflicts.
-func WithNamedMachineLock(name string, body func()) {
+func WithNamedMachineLock(ctx context.Context, name string, body func(context.Context)) {
 	lockAcquireStart := time.Now()
 	filename := fmt.Sprintf(pattern, name)
 	var file *os.File
@@ -65,8 +67,6 @@ func WithNamedMachineLock(name string, body func()) {
 		file.Close()
 	}()
 
-	if !disableLogging {
-		log.Printf("Acquiring machine lock %q took %.2f seconds\n", name, time.Since(lockAcquireStart).Seconds())
-	}
-	body()
+	dlog.Printf(ctx, "Acquiring machine lock %q took %.2f seconds\n", name, time.Since(lockAcquireStart).Seconds())
+	body(ctx)
 }

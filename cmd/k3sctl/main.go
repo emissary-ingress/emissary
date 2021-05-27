@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -45,8 +46,9 @@ func main() {
 	k3s.AddCommand(up)
 
 	up.RunE = func(cmd *cobra.Command, args []string) error {
-		regid := dtest.RegistryUp()
-		k3sid := dtest.K3sUp()
+		ctx := cmd.Context()
+		regid := dtest.RegistryUp(ctx)
+		k3sid := dtest.K3sUp(ctx)
 		fmt.Printf("DOCKER_CONTAINER=%q\n", regid)
 		fmt.Printf("K3S_CONTAINER=%q\n", k3sid)
 		return nil
@@ -60,8 +62,9 @@ func main() {
 	k3s.AddCommand(down)
 
 	down.RunE = func(cmd *cobra.Command, args []string) error {
-		k3sid := dtest.K3sDown()
-		regid := dtest.RegistryDown()
+		ctx := cmd.Context()
+		k3sid := dtest.K3sDown(ctx)
+		regid := dtest.RegistryDown(ctx)
 		fmt.Printf("Shutdown k3s container: %s\n", k3sid)
 		fmt.Printf("Shutdown registry container: %s\n", regid)
 		return nil
@@ -75,7 +78,8 @@ func main() {
 	k3s.AddCommand(registry)
 
 	registry.RunE = func(cmd *cobra.Command, args []string) error {
-		fmt.Println(dtest.DockerRegistry())
+		ctx := cmd.Context()
+		fmt.Println(dtest.DockerRegistry(ctx))
 		return nil
 	}
 
@@ -89,7 +93,8 @@ func main() {
 	k3s.AddCommand(config)
 
 	config.RunE = func(cmd *cobra.Command, args []string) error {
-		kubeconfig := dtest.GetKubeconfig()
+		ctx := cmd.Context()
+		kubeconfig := dtest.GetKubeconfig(ctx)
 		if kubeconfig == "" {
 			return errors.New("no k3s cluster is running")
 		}
@@ -124,7 +129,7 @@ func main() {
 		return nil
 	}
 
-	err := k3s.Execute()
+	err := k3s.ExecuteContext(context.Background())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		logFile.Close()
