@@ -49,7 +49,7 @@ def get_is_private() -> bool:
 
 
 def get_gh_repo() -> str:
-    repo = os.getenv("REL_GH_REPO")
+    repo = getenv("REL_GH_REPO")
     if repo == "" or repo is None:
         repo = DEFAULT_REPO
     return repo

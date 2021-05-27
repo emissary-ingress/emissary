@@ -9,7 +9,7 @@ create a commit of it.
 
 import datetime
 import fileinput
-import os.path
+import os
 import re
 import sys
 from contextlib import contextmanager
