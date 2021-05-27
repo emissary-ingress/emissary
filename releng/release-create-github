@@ -77,7 +77,7 @@ def main(release_version: str) -> int:
     if not checker.ok:
         return 1
     print('Release info from github:')
-    run(["gh", "release", "view", f"v{release_version}"])
+    run(["gh", "release", "view", "--repo", get_gh_repo(), f"v{release_version}"])
     if checker.ok:
         return 0
     else:
