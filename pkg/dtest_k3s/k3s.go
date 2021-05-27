@@ -287,7 +287,7 @@ func DockerRegistry(ctx context.Context) string {
 
 const dtestKubeconfig = "DTEST_KUBECONFIG"
 const k3sPort = "6443"
-const k3sImage = "rancher/k3s:v1.17.3-k3s1"
+const k3sImage = "rancher/k3s:v1.20.4-k3s1"
 
 const k3sMsg = `
 kubeconfig does not exist: %s
@@ -327,9 +327,29 @@ func Kubeconfig(ctx context.Context) string {
 // container running a k3s cluster.
 func K3sUp(ctx context.Context) string {
 	regid := RegistryUp(ctx)
-	return dockerUp(ctx, "k3s", "--privileged", "--network", fmt.Sprintf("container:%s", regid),
-		"-v", "/dev/mapper:/dev/mapper", k3sImage, "server", "--node-name", "localhost",
-		"--no-deploy", "traefik")
+	dlog.Printf(ctx, "Bringing up k3s...")
+	return dockerUp(ctx, "k3s",
+		// `docker run` flags
+		"--privileged",
+		"--network=container:"+regid,
+		"--volume=/dev/mapper:/dev/mapper",
+		"--entrypoint=/bin/sh", // for the cgroup hack below
+		// Docker image
+		k3sImage,
+		// https://github.com/k3s-io/k3s/pull/3237
+		"-c", `
+			if [ -f /sys/fs/cgroup/cgroup.controllers ]; then
+			  mkdir -p /sys/fs/cgroup/init
+			  busybox xargs -rn1 </sys/fs/cgroup/cgroup.procs >/sys/fs/cgroup/init/cgroup.procs
+			  sed -e 's/ / +/g' -e 's/^/+/' </sys/fs/cgroup/cgroup.controllers >/sys/fs/cgroup/cgroup.subtree_control
+			fi
+			exec /bin/k3s "$@"
+		`, "--",
+		// `k3s` args
+		"server",
+		"--node-name=localhost",
+		"--no-deploy=traefik",
+		"--kube-proxy-arg=conntrack-max-per-core=0")
 }
 
 // K3sDown shuts down the k3s cluster.
