@@ -20,6 +20,7 @@ from lib import base_version, build_version, git_add, git_check_clean, re_ga, vX
 from lib.uiutil import Checker, CheckResult, run
 from lib.uiutil import run_txtcapture as run_capture
 from lib import ansiterm
+from lib.gitutil import has_open_pr
 
 
 def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = True) -> int:
@@ -88,7 +89,8 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         user = 'unknownuser'
     workbranch = f"{user}/v{next_ver}/changelog-updates"
     with check(f"Creating new branch {workbranch}"):
-        run(["git", "checkout", "-b", workbranch])
+        run(["git", "fetch", "--tags"])
+        run(["git", "checkout", f"v{next_ver}", "-b", workbranch])
     if not checker.ok:
         return 1
 
@@ -123,9 +125,13 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
 Reviewers: The only changes in this PR should be updating the changelog entry for {next_ver} to the date it was released.
 
 If there are any other changes, the PR creator should note the reason."""
+            curr_release_branch = f"rel/v{next_ver}"
+            target_branch = release_branch
+            if has_open_pr(get_gh_repo(), release_branch, curr_release_branch):
+                target_branch = curr_release_branch
             run(["gh", "pr", "create",
                     "--repo", get_gh_repo(),
-                    "--base", release_branch,
+                    "--base", target_branch,
                     "--title", f"[v{next_ver}] Changelog date update",
                     "--body", pr_body.format(next_ver=next_ver),
                     "--reviewer", "kflynn,rhs,esmet,acookin"])
