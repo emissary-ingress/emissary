@@ -7,10 +7,12 @@ import (
 	"net"
 	"os"
 	"os/user"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/datawire/dlib/dexec"
+	"github.com/datawire/dlib/dlog"
 )
 
 const scope = "dtest"
@@ -31,6 +33,7 @@ func lines(str string) []string {
 func dockerPs(ctx context.Context, args ...string) []string {
 	cmd := dexec.CommandContext(ctx, "docker", append([]string{"ps", "-q", "-f", fmt.Sprintf("label=scope=%s", scope)},
 		args...)...)
+	cmd.DisableLogging = true
 	out, err := cmd.Output()
 	if err != nil {
 		panic(err)
@@ -39,11 +42,14 @@ func dockerPs(ctx context.Context, args ...string) []string {
 }
 
 func tag2id(ctx context.Context, tag string) string {
+	dlog.Printf(ctx, "Resolving Docker label=%q to a container ID...", tag)
 	result := dockerPs(ctx, "-f", fmt.Sprintf("label=%s", tag))
 	switch len(result) {
 	case 0:
+		dlog.Printf(ctx, "no label=%q container", tag)
 		return ""
 	case 1:
+		dlog.Printf(ctx, "label=%q refers to container ID %q", tag, result[0])
 		return result[0]
 	default:
 		panic(fmt.Sprintf("expecting zero or one containers with label scope=%s and label %s", scope, tag))
@@ -54,6 +60,7 @@ func dockerUp(ctx context.Context, tag string, args ...string) string {
 	var id string
 
 	WithNamedMachineLock(ctx, "docker", func(ctx context.Context) {
+		dlog.Printf(ctx, "Bringing up Docker container label=%q...", tag)
 		id = tag2id(ctx, tag)
 
 		if id == "" {
@@ -93,13 +100,18 @@ func isKubeconfigReady(ctx context.Context) bool {
 		return false
 	}
 
-	cmd := dexec.CommandContext(ctx, "docker", "exec", "-i", id, "test", "-e", "/etc/rancher/k3s/k3s.yaml")
-	err := cmd.Start()
+	cmd := dexec.CommandContext(ctx, "docker", "exec", "-i", id, "sh", "-c",
+		"if test -e /etc/rancher/k3s/k3s.yaml; then echo true; else echo false; fi")
+	outBytes, err := cmd.Output()
 	if err != nil {
 		panic(err)
 	}
-	_ = cmd.Wait()
-	return cmd.ProcessState.ExitCode() == 0
+	outString := strings.TrimSpace(string(outBytes))
+	ret, err := strconv.ParseBool(outString)
+	if err != nil {
+		panic(fmt.Errorf("ParseBool: %q: %w", outString, err))
+	}
+	return ret
 }
 
 var requiredResources = []string{
@@ -191,8 +203,7 @@ func isK3sReady(ctx context.Context) bool {
 	if err != nil {
 		panic(err)
 	}
-	_ = get.Wait()
-	return get.ProcessState.ExitCode() == 0
+	return get.Wait() == nil
 }
 
 const k3sConfigPath = "/etc/rancher/k3s/k3s.yaml"
@@ -250,6 +261,7 @@ const registryPort = "5000"
 // RegistryUp will launch if necessary and return the docker id of a
 // container running a docker registry.
 func RegistryUp(ctx context.Context) string {
+	dlog.Printf(ctx, "Bringing up registry...")
 	return dockerUp(ctx, "registry",
 		"-p", fmt.Sprintf("%s:6443", k3sPort),
 		"-p", fmt.Sprintf("%s:%s", registryPort, registryPort),
@@ -298,13 +310,15 @@ func Kubeconfig(ctx context.Context) string {
 
 	K3sUp(ctx)
 
-	for {
+	dlog.Printf(ctx, "Polling for k3s to be ready...")
+	for ctx.Err() == nil {
 		if isK3sReady(ctx) {
 			break
 		} else {
 			time.Sleep(time.Second)
 		}
 	}
+	dlog.Printf(ctx, "k3s is ready!")
 
 	return getKubeconfigPath(ctx)
 }
