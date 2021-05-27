@@ -13,12 +13,24 @@ import (
 	"github.com/datawire/ambassador/pkg/watt"
 )
 
+// consulMapping contains the necessary subset of Ambassador Mapping and TCPMapping
+// definitions needed for consul reconcilation and watching to happen.
+type consulMapping struct {
+	Service  string
+	Resolver string
+}
+
 func ReconcileConsul(ctx context.Context, consul *consul, s *snapshotTypes.KubernetesSnapshot) {
-	var mappings []*amb.Mapping
+	var mappings []consulMapping
 	for _, a := range s.Annotations {
 		m, ok := a.(*amb.Mapping)
 		if ok && include(m.Spec.AmbassadorID) {
-			mappings = append(mappings, m)
+			mappings = append(mappings, consulMapping{Service: m.Spec.Service, Resolver: m.Spec.Resolver})
+		}
+
+		tm, ok := a.(*amb.TCPMapping)
+		if ok && include(tm.Spec.AmbassadorID) {
+			mappings = append(mappings, consulMapping{Service: tm.Spec.Service, Resolver: tm.Spec.Resolver})
 		}
 	}
 
@@ -31,7 +43,13 @@ func ReconcileConsul(ctx context.Context, consul *consul, s *snapshotTypes.Kuber
 
 	for _, m := range s.Mappings {
 		if include(m.Spec.AmbassadorID) {
-			mappings = append(mappings, m)
+			mappings = append(mappings, consulMapping{Service: m.Spec.Service, Resolver: m.Spec.Resolver})
+		}
+	}
+
+	for _, tm := range s.TCPMappings {
+		if include(tm.Spec.AmbassadorID) {
+			mappings = append(mappings, consulMapping{Service: tm.Spec.Service, Resolver: tm.Spec.Resolver})
 		}
 	}
 
@@ -151,7 +169,7 @@ func (c *consul) cleanup() {
 
 // Start and stop consul service watches as needed in order to match the supplied set of resolvers
 // and mappings.
-func (c *consul) reconcile(resolvers []*amb.ConsulResolver, mappings []*amb.Mapping) {
+func (c *consul) reconcile(resolvers []*amb.ConsulResolver, mappings []consulMapping) {
 	// ==First we compute resolvers and their related mappings without actualy changing anything.==
 	resolversByName := make(map[string]*amb.ConsulResolver)
 	for _, cr := range resolvers {
@@ -160,14 +178,14 @@ func (c *consul) reconcile(resolvers []*amb.ConsulResolver, mappings []*amb.Mapp
 		resolversByName[cr.GetName()] = cr
 	}
 
-	mappingsByResolver := make(map[string][]*amb.Mapping)
+	mappingsByResolver := make(map[string][]consulMapping)
 	for _, m := range mappings {
 		// Everything here is keyed off m.Spec.Resolver -- again, it's fine to use a resolver
 		// from any namespace, as long as it was loaded.
 		//
 		// (This implies that if you typo a resolver name, things won't work.)
 
-		rname := m.Spec.Resolver
+		rname := m.Resolver
 
 		if rname == "" {
 			continue
@@ -227,7 +245,7 @@ func (c *consul) reconcile(resolvers []*amb.ConsulResolver, mappings []*amb.Mapp
 		var keysForBootstrap []string
 		for _, mappings := range mappingsByResolver {
 			for _, m := range mappings {
-				keysForBootstrap = append(keysForBootstrap, m.Spec.Service)
+				keysForBootstrap = append(keysForBootstrap, m.Service)
 			}
 		}
 		c.mutex.Lock()
@@ -251,15 +269,15 @@ func (r *resolver) deleted() {
 	}
 }
 
-func (r *resolver) reconcile(watcher Watcher, mappings []*amb.Mapping, endpoints chan consulwatch.Endpoints) {
+func (r *resolver) reconcile(watcher Watcher, mappings []consulMapping, endpoints chan consulwatch.Endpoints) {
 	servicesByName := make(map[string]bool)
 	for _, m := range mappings {
 		// XXX: how to parse this?
-		svc := m.Spec.Service
+		svc := m.Service
 		servicesByName[svc] = true
 		w, ok := r.watches[svc]
 		if !ok {
-			w = watcher.Watch(r.resolver, m, endpoints)
+			w = watcher.Watch(r.resolver, svc, endpoints)
 			r.watches[svc] = w
 		}
 	}
@@ -274,7 +292,7 @@ func (r *resolver) reconcile(watcher Watcher, mappings []*amb.Mapping, endpoints
 }
 
 type Watcher interface {
-	Watch(resolver *amb.ConsulResolver, mapping *amb.Mapping, endpoints chan consulwatch.Endpoints) Stopper
+	Watch(resolver *amb.ConsulResolver, svc string, endpoints chan consulwatch.Endpoints) Stopper
 }
 
 type Stopper interface {
@@ -283,7 +301,7 @@ type Stopper interface {
 
 type consulWatcher struct{}
 
-func (cw *consulWatcher) Watch(resolver *amb.ConsulResolver, mapping *amb.Mapping,
+func (cw *consulWatcher) Watch(resolver *amb.ConsulResolver, svc string,
 	endpointsCh chan consulwatch.Endpoints) Stopper {
 	// XXX: should this part be shared?
 	consulConfig := consulapi.DefaultConfig()
@@ -294,7 +312,6 @@ func (cw *consulWatcher) Watch(resolver *amb.ConsulResolver, mapping *amb.Mappin
 	}
 
 	// this part is per service
-	svc := mapping.Spec.Service
 	w, err := consulwatch.New(consul, resolver.Spec.Datacenter, svc, true)
 	if err != nil {
 		panic(err)

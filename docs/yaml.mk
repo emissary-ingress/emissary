@@ -9,7 +9,7 @@ generate-docs-yaml:
 .PHONY: generate-docs-yaml
 
 publish-docs-yaml: generate-docs-yaml
-	@$(OSS_HOME)/docs/publish_yaml_s3.sh $(GENERATED_YAML_DIR) $(generate-docs-yaml/files)
+	@$(OSS_HOME)/docs/publish_yaml_s3.sh $(GENERATED_YAML_DIR)yaml/ $(generate-docs-yaml/files)
 .PHONY: publish-docs-yaml
 
 $(GENERATED_YAML_DIR)/%.yaml: FORCE

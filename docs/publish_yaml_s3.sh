@@ -12,8 +12,8 @@ if [[ -z ${basedir} ]] || [[ ! -d ${basedir} ]]; then
 fi
 basedir=`realpath ${basedir}`/
 
-[ -n "$AWS_ACCESS_KEY_ID"     ] || abort "AWS_ACCESS_KEY_ID is not set"
-[ -n "$AWS_SECRET_ACCESS_KEY" ] || abort "AWS_SECRET_ACCESS_KEY is not set"
+[ -n "$AWS_ACCESS_KEY_ID"     ] || (echo "AWS_ACCESS_KEY_ID is not set" ; exit 1)
+[ -n "$AWS_SECRET_ACCESS_KEY" ] || (echo "AWS_SECRET_ACCESS_KEY is not set" ; exit 1)
 
 ver_yaml=${CURR_DIR}/yaml/versions.yml
 
@@ -26,7 +26,7 @@ if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
         echo "working tree is dirty, aborting"
         exit 1
     fi
-else [[ "${BUMP_STABLE}" ]]
+elif [[ "${BUMP_STABLE}" = "true" ]] ; then
     # if this isn't an X.Y.Z version, don't let allow bumping stable
     echo "Cannot bump stable unless this is an X.Y.Z tag"
     exit 1
@@ -60,7 +60,7 @@ for file in "$@"; do
         --body "$file" &&  echo "... ${s3_key} pushed"
 done
 
-if [[ "${BUMP_STABLE}" ]] ; then
+if [[ "${BUMP_STABLE}" = "true" ]] ; then
     echo "Bumping stable version for yaml/${dir}"
     aws s3api put-object \
         --bucket "$AWS_BUCKET" \

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math"
 	"os"
 	"sort"
@@ -16,6 +15,7 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/pkg/debug"
+	"github.com/datawire/dlib/dlog"
 )
 
 // The Watch method will check memory usage every 10 seconds and log it if it jumps more than 10Gi
@@ -36,11 +36,11 @@ func (usage *MemoryUsage) Watch(ctx context.Context) {
 			usage.Refresh()
 			memory.Store(usage.ShortString())
 			usage.maybeDo(now, func() {
-				log.Println(usage.String())
+				dlog.Infoln(ctx, usage.String())
 			})
 		case <-ctx.Done():
 			usage.Refresh()
-			log.Println(usage.String())
+			dlog.Infoln(ctx, usage.String())
 			return
 		}
 	}
@@ -220,7 +220,7 @@ func GetCmdline(pid int) []string {
 			// Don't complain if we don't have permission or the info doesn't exist.
 			return nil
 		}
-		log.Printf("couldn't access cmdline for %d: %v", pid, err)
+		dlog.Errorf(context.TODO(), "couldn't access cmdline for %d: %v", pid, err)
 		return nil
 	}
 	return strings.Split(strings.TrimSuffix(string(bytes), "\n"), "\x00")
@@ -234,7 +234,7 @@ func readUsage() (memory, memory) {
 			// Don't complain if we don't have permission or the info doesn't exist.
 			return 0, unlimited
 		}
-		log.Printf("couldn't access memory limit: %v", err)
+		dlog.Errorf(context.TODO(), "couldn't access memory limit: %v", err)
 		return 0, unlimited
 	}
 	usage, err := readMemory("/sys/fs/cgroup/memory/memory.usage_in_bytes")
@@ -243,7 +243,7 @@ func readUsage() (memory, memory) {
 			// Don't complain if we don't have permission or the info doesn't exist.
 			return 0, limit
 		}
-		log.Printf("couldn't access memory usage: %v", err)
+		dlog.Errorf(context.TODO(), "couldn't access memory usage: %v", err)
 		return 0, limit
 	}
 
@@ -267,7 +267,7 @@ func readPerProcess() map[int]*ProcessUsage {
 
 	files, err := ioutil.ReadDir("/proc")
 	if err != nil {
-		log.Printf("could not access memory info: %v", err)
+		dlog.Errorf(context.TODO(), "could not access memory info: %v", err)
 		return nil
 	}
 
@@ -287,7 +287,7 @@ func readPerProcess() map[int]*ProcessUsage {
 				// Don't complain if we don't have permission or the info doesn't exist.
 				continue
 			}
-			log.Printf("couldn't access usage for %d: %v", pid, err)
+			dlog.Errorf(context.TODO(), "couldn't access usage for %d: %v", pid, err)
 			continue
 		}
 
@@ -303,7 +303,7 @@ func readPerProcess() map[int]*ProcessUsage {
 		}
 		rss, err := strconv.ParseUint(rssStr, 10, 64)
 		if err != nil {
-			log.Printf("couldn't parse %s: %v", rssStr, err)
+			dlog.Errorf(context.TODO(), "couldn't parse %s: %v", rssStr, err)
 			continue
 		}
 		rss = rss * 1024
