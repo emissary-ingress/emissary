@@ -122,6 +122,8 @@ image:
   pullPolicy: IfNotPresent
   ossRepository: docker.io/alixcook11/ambassador
   aesRepository: docker.io/alixcook11/aes
+  tag: 1.13.7-wip
+  repository: docker.io/alixcook11/ambassador
 dnsPolicy: ClusterFirst
 hostNetwork: false
 

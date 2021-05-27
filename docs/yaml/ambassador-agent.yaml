@@ -131,7 +131,7 @@ spec:
       serviceAccountName: ambassador-agent
       containers:
       - name: agent
-        image: docker.io/alixcook11/ambassador:1.13.6
+        image: docker.io/alixcook11/ambassador:1.13.7-wip
         imagePullPolicy: IfNotPresent
         command: [agent]
         env:
