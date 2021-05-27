@@ -83,7 +83,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             with open(os.path.join(gitdir, 'GITGUI_MSG'), 'w') as msgfile:
                 msgfile.write(f"Updating and manifest images for v{next_ver}\n")
             run(['git', 'citool'])
-            run(["git", "push", "origin", workbranch])
+            run(["git", "push", "-u", "origin", workbranch])
         if not checker.ok:
             return 1
         with check(f"Creating pull request for chart and manifest changes"):
@@ -94,7 +94,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             run(["gh", "pr", "create",
                     "--repo", get_gh_repo(),
                     "--base", release_branch,
-                    "--title", f"Chart and manifest image updates {next_ver}",
+                    "--title", f"[v{next_ver}] Chart and manifest image updates",
                     "--body", f"Update charts and manifests to use the newly release images for {next_ver}",
                     "--reviewer", "kflynn,rhs,esmet,acookin"])
     if checker.ok:

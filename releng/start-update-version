@@ -3,6 +3,7 @@
 launch the `git citool` GUI to create a commit of it.
 """
 
+from os import getenv
 import datetime
 import fileinput
 import os.path
@@ -55,9 +56,11 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             yield subcheck
     orig_branch = run_capture(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
 
-    workbranch = orig_branch
+    user = getenv("USER")
+    if user is None or user == '':
+        user = 'unknownuser'
+    workbranch = f"{user}/v{next_ver}/start-release"
     with check(f"Checking out branch {workbranch}"):
-        workbranch = f"release/start/{next_ver}"
         run(["git", "checkout", "-b", workbranch])
     if not checker.ok:
         return 1
@@ -75,14 +78,14 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             with open(os.path.join(gitdir, 'GITGUI_MSG'), 'w') as msgfile:
                 msgfile.write(f"Update for v{next_ver}\n")
             run(['git', 'citool'])
-            run(["git", "push", "origin", workbranch])
+            run(["git", "push", "-u", "origin", workbranch])
         if not checker.ok:
             return 1
         with check(f"Creating PR for {workbranch}"):
             run(["gh", "pr", "create",
                     "--repo", get_gh_repo(),
                     "--base", orig_branch,
-                    "--title", f"Updates for next version {next_ver}",
+                    "--title", f"[v{next_ver}] Prep work for next scheduled release",
                     "--body", f"Updates for next version {next_ver}",
                     "--reviewer", "kflynn,rhs,esmet,acookin"])
 

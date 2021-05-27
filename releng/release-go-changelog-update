@@ -77,13 +77,16 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         checker.ok = True
         with check(f"Creating {release_branch}"):
             run(["git", "checkout", "-b", release_branch])
-            run(["git", "push", "origin", release_branch])
+            run(["git", "push", "-u", "origin", release_branch])
         if not checker.ok:
             print(f"Could not create {release_branch}")
             print("Please create this branch then rerun this script")
             return 1
 
-    workbranch = f"rel/{next_ver}/changelog-date-update"
+    user = os.getenv("USER")
+    if user is None or user == '':
+        user = 'unknownuser'
+    workbranch = f"{user}/v{next_ver}/changelog-updates"
     with check(f"Creating new branch {workbranch}"):
         run(["git", "checkout", "-b", workbranch])
     if not checker.ok:
@@ -109,17 +112,22 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             with open(os.path.join(gitdir, 'GITGUI_MSG'), 'w') as msgfile:
                 msgfile.write(f"Update for v{next_ver}\n")
             run(['git', 'citool'])
-            run(["git", "push", "origin", workbranch])
+            run(["git", "push", "-u", "origin", workbranch])
         if not checker.ok:
             return 1
 
         with check(f"Creating PR for branch {workbranch}"):
             # TODO: dont hardcode owners
+            pr_body = """Changelog date updates for {next_ver}
+
+Reviewers: The only changes in this PR should be updating the changelog entry for {next_ver} to the date it was released.
+
+If there are any other changes, the PR creator should note the reason."""
             run(["gh", "pr", "create",
                     "--repo", get_gh_repo(),
                     "--base", release_branch,
-                    "--title", f"Changelog updates for {next_ver}",
-                    "--body", f"Changelog date updates for {next_ver}",
+                    "--title", f"[v{next_ver}] Changelog date update",
+                    "--body", pr_body.format(next_ver=next_ver),
                     "--reviewer", "kflynn,rhs,esmet,acookin"])
 
     if checker.ok:
