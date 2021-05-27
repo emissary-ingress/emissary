@@ -126,7 +126,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             run(["gh", "pr", "create",
                     "--repo", get_gh_repo(),
                     "--base", release_branch,
-                    "--title", f"Hotfix for {next_ver}",
+                    "--title", f"[v{next_ver}] Release Branch",
                     "--body", HOTFIX_MESSAGE.format(next_ver=next_ver, hotfix_branch=current_release_branch, release_train=release_branch),
                     "--reviewer", "kflynn,rhs,esmet,acookin"])
 

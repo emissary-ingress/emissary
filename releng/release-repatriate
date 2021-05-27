@@ -88,14 +88,14 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         return 1
 
     with check(f"Pushing changes to {repatriate_branch}"):
-        run(["git", "push", "origin", repatriate_branch])
+        run(["git", "push", "-u", "origin", repatriate_branch])
 
     if not checker.ok:
         return 1
     with check(f"Creating PR for {repatriate_branch}"):
         run(["gh", "pr", "create",
                 "--repo", get_gh_repo(),
-                "--title", f"Repatriate {next_ver}",
+                "--title", f"[v{next_ver}] Repatriation",
                 "--body", f"Repatriate changes from releasing {next_ver}",
                 "--reviewer", "kflynn,rhs,esmet,acookin"])
 
