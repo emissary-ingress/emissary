@@ -8,6 +8,7 @@ from contextlib import contextmanager
 from typing import Dict, Generator, Optional, Tuple, cast
 from urllib.error import HTTPError
 from urllib.request import urlopen
+import fileinput
 
 from . import ansiterm, assert_eq, build_version, get_is_private
 from .uiutil import Checker, CheckResult, run, run_bincapture, run_txtcapture
@@ -187,8 +188,12 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
         with checker.check(name="Updating helm repo"):
             run(['helm', 'repo', 'update'])
         checker.ok = True
+    chart_version = ""
+    for line in fileinput.FileInput("charts/ambassador/Chart.yaml"):
+        if line.startswith("version:"):
+            chart_version = line.replace('version:', '').strip()
     with checker.check(name="Check Helm Chart"):
-        yaml_str = run_txtcapture(['helm', 'show', 'chart', 'emissary/ambassador'])
+        yaml_str = run_txtcapture(['helm', 'show', 'chart', '--version', chart_version, 'emissary/ambassador'])
         versions = [
             line[len('appVersion:'):].strip() for line in yaml_str.split("\n") if line.startswith('appVersion:')
         ]
