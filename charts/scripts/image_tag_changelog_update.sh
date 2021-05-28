@@ -16,6 +16,10 @@ if [[ -z "${IMAGE_TAG}" ]] ; then
     abort "Need to specify the image tag being updated"
 fi
 
+if [[ -z "${IMAGE_TYPE}" ]] ; then
+    IMAGE_TYPE="API Gateway"
+fi
+
 CHART_DIR="${TOP_DIR}/${CHART_NAME}"
 
 chart_version=$(get_chart_version ${CHART_DIR})
@@ -29,7 +33,7 @@ while IFS= read -r line ; do
         buffering=true
     elif [[ "${buffering}" ]] && [[ "${line}" != "" ]]; then
         buffering=
-        echo "- Update Ambassador chart image to version v${IMAGE_TAG}: [CHANGELOG](${ambassador_changelog_link})" >> ${new_changelog}
+        echo "- Update Ambassador ${IMAGE_TYPE} chart image to version v${IMAGE_TAG}: [CHANGELOG](${ambassador_changelog_link})" >> ${new_changelog}
         if [[ "${line}" =~ (no changes yet) ]] ; then
             continue
         fi
