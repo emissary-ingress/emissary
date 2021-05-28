@@ -106,4 +106,3 @@ class V2Config (EnvoyConfig):
         bootstrap_config = dict(self.bootstrap)
 
         return bootstrap_config, ads_config, self.clustermap
-

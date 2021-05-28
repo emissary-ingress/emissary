@@ -26,6 +26,60 @@ if TYPE_CHECKING:
     from . import V3Config # pragma: no cover
 
 
+DictifiedV3Route = Dict[str, Any]
+
+
+def v3prettyroute(route: DictifiedV3Route) -> str:
+    match = route["match"]
+
+    key = "PFX"
+    value = match.get("prefix", None)
+
+    if not value:
+        key = "SRX"
+        value = match.get("safe_regex", {}).get("regex", None)
+
+    if not value:
+        key = "!!URX!!"
+        value = match.get("unsafe_regex", None)
+
+    if not value:
+        key = "???"
+        value = "-none-"
+
+    match_str = f"{key} {value}"
+
+    headers = match.get("headers", {})
+    xfp = None
+    host = None
+
+    for header in headers:
+        name = header.get("name", None).lower()
+        exact = header.get("exact_match", None)
+
+        if not name or not exact:
+            continue
+
+        if name == "x-forwarded-proto":
+            xfp = bool(exact == "https")
+        elif name == ":authority":
+            host = exact
+
+    match_str += f" {'IN' if not xfp else ''}SECURE"
+
+    if host:
+        match_str += f" HOST {host}"
+
+    target_str = "-none-"
+
+    if route.get("route"):
+        target_str = f"ROUTE {route['route']['cluster']}"
+    elif route.get("redirect"):
+        target_str = f"REDIRECT"
+
+    return f"<V3Route {match_str} -> {target_str}>"
+
+
 def regex_matcher(config: 'V3Config', regex: str, key="regex", safe_key=None) -> Dict[str, Any]:
         max_size = int(config.ir.ambassador_module.get('regex_max_size', 200))
 
@@ -323,8 +377,7 @@ class V3Route(Cacheable):
                         }
                     }
                 }
-
-            ]
+           ]
 
         # Is RateLimit a thing?
         rlsvc = config.ir.ratelimit
