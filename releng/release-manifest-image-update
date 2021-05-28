@@ -151,6 +151,9 @@ if __name__ == '__main__':
     if not re_ga.match(args.oss_version):
         sys.stderr.write("--oss-version must be X.Y.Z")
         sys.exit(2)
+    if args.aes_version != "" and not re_ga.match(args.aes_version):
+        sys.stderr.write("--aes-version must be X.Y.Z")
+        sys.exit(2)
 
     sys.exit(main(
         next_ver=args.oss_version,
