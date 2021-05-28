@@ -55,15 +55,15 @@ class V3Listener(dict):
         # It's important from a performance perspective to wrap debug log statements
         # with this check so we don't end up generating log strings (or even JSON
         # representations) that won't get logged anyway.
-        log_debug = self.config.ir.logger.isEnabledFor(logging.DEBUG)
-        if log_debug:
+        self._log_debug = self.config.ir.logger.isEnabledFor(logging.DEBUG)
+        if self._log_debug:
             self.config.ir.logger.debug(f"V3Listener {self.name} created -- {self._security_model}, l7Depth {self._l7_depth}")
 
         # Start by building our base HTTP config...
-        self._base_http_config = self.base_http_config(log_debug)
+        self._base_http_config = self.base_http_config()
 
     # access_log constructs the access_log configuration for this V3Listener
-    def access_log(self, log_debug: bool) -> List[dict]:
+    def access_log(self) -> List[dict]:
         access_log: List[dict] = []
 
         for al in self.config.ir.log_services.values():
@@ -147,7 +147,7 @@ class V3Listener(dict):
             if not log_format:
                 log_format = 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"'
 
-            if log_debug:
+            if self._log_debug:
                 self.config.ir.logger.debug("V3Listener: Using log_format '%s'" % log_format)
             access_log.append({
                 'name': 'envoy.access_loggers.file',
@@ -162,10 +162,10 @@ class V3Listener(dict):
 
     # base_http_config constructs the starting configuration for this
     # V3Listener's http_connection_manager filter.
-    def base_http_config(self, log_debug: bool) -> Dict[str, Any]:
+    def base_http_config(self) -> Dict[str, Any]:
         base_http_config: Dict[str, Any] = {
             'stat_prefix': 'ingress_http',
-            'access_log': self.access_log(log_debug),
+            'access_log': self.access_log(),
             'http_filters': [],
             'normalize_path': True
         }
@@ -323,7 +323,7 @@ class V3Listener(dict):
         return base_http_config
 
     def finalize(self) -> None:
-        if self.config.ir.logger.isEnabledFor(logging.DEBUG):
+        if self._log_debug:
             self.config.ir.logger.debug(f"V3Listener finalize {self.pretty()}")
 
         # OK. Assemble the high-level stuff for Envoy.
@@ -371,11 +371,6 @@ class V3Listener(dict):
         config.listeners = []
         logger = config.ir.logger
 
-        # It's important from a performance perspective to wrap debug log statements
-        # with this check so we don't end up generating log strings (or even JSON
-        # representations) that won't get logged anyway.
-        log_debug = logger.isEnabledFor(logging.DEBUG)
-
         for key in sorted(config.ir.listeners.keys()):
             irlistener = config.ir.listeners[key]
             v3listener = V3Listener(config, irlistener)
@@ -383,4 +378,5 @@ class V3Listener(dict):
 
             config.listeners.append(v3listener)
 
-            config.ir.logger.debug(f"V3Listener generated: {v3listener.pretty()}")
+            if v3listener._log_debug:
+                config.ir.logger.debug(f"V3Listener generated: {v3listener.pretty()}")
