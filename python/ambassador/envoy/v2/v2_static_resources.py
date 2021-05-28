@@ -23,7 +23,7 @@ class V2StaticResources(dict):
         super().__init__()
 
         self.update({
-            'listeners': config.listeners,
+            'listeners': [ l.as_dict() for l in config.listeners ],
             'clusters': config.clusters,
         })
 
