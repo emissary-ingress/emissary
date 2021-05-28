@@ -472,6 +472,9 @@ def main(k8s_yaml_paths: List[str], debug: bool, force_pod_labels: bool, update:
     with open("/tmp/ambassador/snapshots/econf.json", "w", encoding="utf-8") as outfile:
         outfile.write(dump_json(ads_config, pretty=True))
 
+    with open(f"/tmp/ambassador/snapshots/econf-{Config.ambassador_id}.json", "w", encoding="utf-8") as outfile:
+        outfile.write(dump_json(ads_config, pretty=True))
+
     with open("/tmp/ambassador/snapshots/bootstrap.json", "w", encoding="utf-8") as outfile:
         outfile.write(dump_json(bootstrap_config, pretty=True))
 
