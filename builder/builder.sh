@@ -172,7 +172,7 @@ print("stage2_tag=%s" % stage2)
     local name2="${BASE_REGISTRY}/builder-base:stage2-${stage2_tag}"
 
     msg2 "Using stage-1 base ${BLU}${name1}${GRN}"
-    if ! docker run --rm --entrypoint=true "$name1"; then # skip building if the "$name1" already exists
+    if ! (docker image inspect "$name1" || docker pull "$name2") &>/dev/null; then # skip building if the "$name1" already exists
         TIMEFORMAT="     (stage-1 build took %1R seconds)"
         time ${DBUILD} -f "${DIR}/Dockerfile.base" -t "${name1}" --target builderbase-stage1 "${DIR}"
         unset TIMEFORMAT
@@ -188,7 +188,7 @@ print("stage2_tag=%s" % stage2)
     fi
 
     msg2 "Using stage-2 base ${BLU}${name2}${GRN}"
-    if ! docker run --rm --entrypoint=true "$name2"; then # skip building if the "$name2" already exists
+    if ! (docker image inspect "$name2" || docker pull "$name2") &>/dev/null; then # skip building if the "$name2" already exists
         TIMEFORMAT="     (stage-2 build took %1R seconds)"
         time ${DBUILD} --build-arg=builderbase_stage1="$name1" -f "${DIR}/Dockerfile.base" -t "${name2}" --target builderbase-stage2 "${DIR}"
         unset TIMEFORMAT
@@ -294,12 +294,12 @@ module_version() {
         BASE_VERSION=$(grep version: docs/yaml/versions.yml | awk ' { print $2 }')
     else
         # We have... nothing.
-        echo "No base version" >&2 
+        echo "No base version" >&2
         exit 1
     fi
 
     # EXTRA_VERSION gets added to BASE_VERSION (below). Start it out empty.
-    EXTRA_VERSION=    
+    EXTRA_VERSION=
 
     # Get a bunch of git info, starting with the branch.
     echo GIT_BRANCH="\"$(git rev-parse --abbrev-ref HEAD)\""
@@ -320,7 +320,7 @@ module_version() {
     echo GIT_DESCRIPTION="\"$GIT_DESCRIPTION\""
 
     # Do we have a '-' in our GIT_DESCRIPTION?
-    if [[ ${GIT_DESCRIPTION} =~ - ]]; then 
+    if [[ ${GIT_DESCRIPTION} =~ - ]]; then
         # Pull out fields from that.
         GIT_VERSION=$(echo $GIT_DESCRIPTION | cut -d- -f1)
         GIT_REST=$(echo $GIT_DESCRIPTION | cut -d- -f2-)
