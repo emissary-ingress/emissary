@@ -18,7 +18,7 @@ import logging
 
 from ...utils import dump_json
 
-from .v3route import V3Route
+from .v3route import V3Route, DictifiedV3Route, v3prettyroute
 from .v3tls import V3TLSContext
 
 if TYPE_CHECKING:
@@ -27,62 +27,8 @@ if TYPE_CHECKING:
     from . import V3Config
 
 
-DictifiedV3Route = Dict[str, Any]
-
-
 def jsonify(x) -> str:
     return dump_json(x, pretty=True)
-
-
-def v3prettyroute(route: DictifiedV3Route) -> str:
-    match = route["match"]
-
-    key = "PFX"
-    value = match.get("prefix", None)
-
-    if not value:
-        key = "SRX"
-        value = match.get("safe_regex", {}).get("regex", None)
-
-    if not value:
-        key = "URX"
-        value = match.get("unsafe_regex", None)
-
-    if not value:
-        key = "???"
-        value = "-none-"
-
-    match_str = f"{key} {value}"
-
-    headers = match.get("headers", {})
-    xfp = None
-    host = None
-
-    for header in headers:
-        name = header.get("name", None).lower()
-        exact = header.get("exact_match", None)
-
-        if not name or not exact:
-            continue
-
-        if name == "x-forwarded-proto":
-            xfp = bool(exact == "https")
-        elif name == ":authority":
-            host = exact
-
-    match_str += f" {'IN' if not xfp else ''}SECURE"
-
-    if host:
-        match_str += f" HOST {host}"
-
-    target_str = "-none-"
-
-    if route.get("route"):
-        target_str = f"ROUTE {route['route']['cluster']}"
-    elif route.get("redirect"):
-        target_str = f"REDIRECT"
-
-    return f"<V3Route {match_str} -> {target_str}>"
 
 
 class V3VirtualHost:
@@ -99,7 +45,6 @@ class V3VirtualHost:
         self._secure = secure
         self._action = action
         self._insecure_action = insecure_action
-
         self.tls_context = V3TLSContext(ctx)
         self.routes: List[DictifiedV3Route] = []
 
