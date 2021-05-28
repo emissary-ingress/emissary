@@ -63,19 +63,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [1.13.8] May 27, 2021
-[1.13.8]: https://github.com/datawire/ambassador/compare/v1.13.7...v1.13.8
-
-### Emissary Ingress and Ambassador Edge Stack
+## Next Release
 
 (no changes yet)
-
-## [1.13.7] May 27, 2021
-[1.13.7]: https://github.com/datawire/ambassador/compare/v1.13.6...v1.13.7
-
-### Emissary Ingress and Ambassador Edge Stack
-
-- Bugfix: super legit bugfix
 
 ## [1.13.6] May 24, 2021
 [1.13.6]: https://github.com/datawire/ambassador/compare/v1.13.5...v1.13.6
@@ -2483,4 +2473,3 @@ Based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/). Ambassador fol
 [Ambassador-Envoy]: https://github.com/datawire/ambassador-envoy
 [Telepresence]: http://telepresence.io
 [Istio]: https://istio.io/
-

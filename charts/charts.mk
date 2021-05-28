@@ -6,11 +6,13 @@ define _push_chart
 endef
 
 define _set_tag_and_repo
-	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py $(1) $(2) $(3)
+	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py \
+		--values-file $(1) --tag $(2) --repo $(3) --type $(4)
 endef
 
 define _set_tag
-	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py $(1) $(2) docker.io/alixcook11/ambassador
+	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py \
+		--values-file $(1) --tag $(2) --type $(3)
 endef
 
 define _docgen
@@ -38,8 +40,8 @@ chart-push-ci: push-preflight
 	@[ -n "${IMAGE_REPO}" ] || (echo "IMAGE_REPO must be set" && exit 1)
 	for chart in $(AMBASSADOR_CHART) ; do \
 		sed -i.bak -E "s/version: ([0-9]+\.[0-9]+\.[0-9]+).*/version: \1${CHART_VERSION_SUFFIX}/g" $$chart/Chart.yaml && rm $$chart/Chart.yaml.bak ; \
-		$(call _set_tag_and_repo,$$chart/values.yaml,${IMAGE_TAG},${IMAGE_REPO}) ; \
-		$(YQ) w -i $$chart/Chart.yaml 'appVersion' ${IMAGE_TAG} ; \
+		$(call _set_tag_and_repo,$$chart/values.yaml,${IMAGE_TAG},${IMAGE_REPO},oss) ; \
+		$(YQ) w -i $$chart/Chart.yaml 'ossVersion' ${IMAGE_TAG} ; \
 		$(call _push_chart,`basename $$chart`) ; \
 	done ;
 .PHONY: chart-push-ci
@@ -52,8 +54,8 @@ chart-push-ga: push-preflight
 	@[ -n "${IMAGE_REPO}" ] || (echo "IMAGE_REPO must be set" && exit 1)
 	@for chart in $(AMBASSADOR_CHART) ; do \
 		sed -i.bak -E "s/version: ([0-9]+\.[0-9]+\.[0-9]+).*/version: \1/g" $$chart/Chart.yaml && rm $$chart/Chart.yaml.bak ; \
-		$(call _set_tag_and_repo,$$chart/values.yaml,${IMAGE_TAG},${IMAGE_REPO}) ; \
-		$(YQ) w -i $$chart/Chart.yaml 'appVersion' ${IMAGE_TAG} ; \
+		$(call _set_tag_and_repo,$$chart/values.yaml,${IMAGE_TAG},${IMAGE_REPO},oss) ; \
+		$(YQ) w -i $$chart/Chart.yaml 'ossVersion' ${IMAGE_TAG} ; \
 		$(call _push_chart,`basename $$chart`) ; \
 	done ;
 .PHONY: chart-push-ga
@@ -81,8 +83,8 @@ release/chart/update-images: $(YQ)
 	@[ -n "${IMAGE_TAG}" ] || (echo "IMAGE_TAG must be set" && exit 1)
 	([[ "${IMAGE_TAG}" =~ .*\.0$$ ]] && $(MAKE) release/chart-bump/minor) || $(MAKE) release/chart-bump/revision
 	for chart in $(AMBASSADOR_CHART) ; do \
-		$(call _set_tag,$$chart/values.yaml,${IMAGE_TAG}) ; \
-		$(YQ) w -i $$chart/Chart.yaml 'appVersion' ${IMAGE_TAG} ; \
+		$(call _set_tag,$$chart/values.yaml,${IMAGE_TAG},oss) ; \
+		$(YQ) w -i $$chart/Chart.yaml 'ossVersion' ${IMAGE_TAG} ; \
 		IMAGE_TAG="${IMAGE_TAG}" CHART_NAME=`basename $$chart` $(OSS_HOME)/charts/scripts/image_tag_changelog_update.sh ; \
 		CHART_NAME=`basename $$chart` $(OSS_HOME)/charts/scripts/update_chart_changelog.sh ; \
 		$(call _docgen,$$chart) ; \
