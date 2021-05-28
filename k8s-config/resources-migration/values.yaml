@@ -7,3 +7,4 @@ authService:
     status_on_error:
       code: 504
 deploymentTool: getambassador.io
+enableAES: true

@@ -24,6 +24,20 @@ If release name contains chart name it will be used as a full name.
 {{- end -}}
 {{- end -}}
 
+{{- define "ambassador.imagetag" -}}
+{{- if .Values.image.fullImageOverride }}
+    {{- .Values.image.fullImageOverride }}
+{{- else }}
+    {{- if hasKey .Values.image "tag" -}}
+        {{- .Values.image.tag }}
+    {{- else if .Values.enableAES }}
+        {{- .Values.image.aesTag }}
+    {{- else }}
+        {{- .Values.image.ossTag }}
+    {{- end -}}
+{{- end -}}
+{{- end -}}
+
 {{/*
 Set the image that should be used for ambassador.
 Use fullImageOverride if present,
@@ -33,13 +47,25 @@ Use AES image if AES is enabled, ambassador image if not
 */}}
 {{- define "ambassador.image" -}}
 {{- if .Values.image.fullImageOverride }}
-{{- .Values.image.fullImageOverride }}
-{{- else if hasKey .Values.image "repository"  -}}
-{{- printf "%s:%s" .Values.image.repository .Values.image.tag -}}
-{{- else if .Values.enableAES -}}
-{{- printf "%s:%s" "docker.io/datawire/aes" .Values.image.tag -}}
-{{- else -}}
-{{- printf "%s:%s" "docker.io/datawire/ambassador" .Values.image.tag -}}
+    {{- .Values.image.fullImageOverride }}
+{{- else }}
+    {{- $repoName := "" }}
+    {{- $imageTag := "" }}
+    {{- if hasKey .Values.image "repository"  -}}
+        {{- $repoName = .Values.image.repository }}
+    {{- else if .Values.enableAES }}
+        {{- $repoName = .Values.image.aesRepository }}
+    {{- else }}
+        {{- $repoName = .Values.image.ossRepository }}
+    {{- end -}}
+    {{- if hasKey .Values.image "tag" -}}
+        {{- $imageTag = .Values.image.tag }}
+    {{- else if .Values.enableAES }}
+        {{- $imageTag = .Values.image.aesTag }}
+    {{- else }}
+        {{- $imageTag = .Values.image.ossTag }}
+    {{- end -}}
+    {{- printf "%s:%s" $repoName $imageTag -}}
 {{- end -}}
 {{- end -}}
 

@@ -5,3 +5,4 @@ registry:
   serviceSelector:
     app: registry
 deploymentTool: getambassador.io
+enableAES: true

@@ -1,6 +1,4 @@
 deploymentTool: getambassador.io
-image:
-  tag: "$version$"
 redis:
   serviceSelector:
     service: ambassador-redis
@@ -31,3 +29,4 @@ service:
     product: aes
 enableTestService: true
 deploymentNameOverride: aes
+enableAES: true

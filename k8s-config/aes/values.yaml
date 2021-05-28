@@ -12,8 +12,6 @@ authService:
     status_on_error:
       code: 504
 deploymentTool: getambassador.io
-image:
-  tag: "$version$"
 redis:
   serviceSelector:
     service: ambassador-redis
@@ -45,3 +43,4 @@ service:
   # https://www.getambassador.io/reference/modules/#the-ambassador-module
   selector:
     service: ambassador
+enableAES: true

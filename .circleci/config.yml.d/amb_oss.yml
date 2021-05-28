@@ -17,11 +17,15 @@ jobs:
       "release":
         type: boolean
         default: false
+      "push_nightly":
+        type: boolean
+        default: false
     executor: oss-linux
     resource_class: xlarge
     steps:
       - job-images:
           release: << parameters.release >>
+          push_nightly: << parameters.push_nightly >>
 
   "oss-gotest":
     executor: oss-linux
@@ -39,7 +43,7 @@ jobs:
 
   "oss-test":
     executor: oss-linux
-    resource_class: large
+    resource_class: xlarge
     parameters:
       "test":
         type: enum
@@ -94,10 +98,17 @@ jobs:
     steps:
       - job-chart-publish
 
+  "oss-manifest-publish":
+    environment:
+      BUMP_STABLE: "true"
+    executor: oss-linux
+    steps:
+      - job-manifests-publish
+
   "oss-chart-changelog":
     executor: oss-linux
     steps:
-      - run: "/bin/true"
+      - run: echo 'step'
       - when:
           condition:
             and:
@@ -107,11 +118,16 @@ jobs:
           steps:
             - job-chart-changelog
 
-  "oss-promote-to-rc-latest":
+  "oss-promote-dev-to-rc":
     executor: oss-linux
     steps:
       - job-promote-to-rc-latest:
           channel: oss
+
+  "oss-promote-dev-to-passed":
+    executor: oss-linux
+    steps:
+      - job-promote-passed-ci-build
 
   "oss-promote-to-ga":
     executor: oss-linux
@@ -136,13 +152,6 @@ _anchors:
   # All of these filters assume that "Only build pull requests" is turned on at
   # https://app.circleci.com/settings/project/github/datawire/ambassador/advanced
 
-  "filter-prerelease-only": &filter-prerelease-only
-    filters:
-      tags:
-        only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-      branches:
-        ignore: /.*/
-
   "filter-rc-only": &filter-rc-only
     filters:
       tags:
@@ -164,8 +173,26 @@ _anchors:
         only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
       branches:
         ignore: /.*/
+  "filter-master-release-branches-only": &filter-master-release-branches-only
+    filters:
+      branches:
+        only:
+          - master
+          - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
 
 workflows:
+  "OSS: GA Release":
+    jobs:
+      - "oss-promote-to-ga":
+          <<: *filter-ga-only
+          name: "oss-release-promote-to-ga"
+
+  "OSS: Release Candidate":
+    jobs:
+      - "oss-promote-dev-to-rc":
+          <<: *filter-rc-only
+          name: "oss-release-promote-dev-to-rc"
+
   "OSS: Dev":
     # Run this workflow on just 'master' and PRs.
     jobs:
@@ -182,13 +209,23 @@ workflows:
       - "oss-gotest":
           name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           matrix:
-            alias: "oss-dev-gotest"
+            alias: "oss-dev-gotest-matrix"
             parameters:
               fast-reconfigure:
                 - true
                 - false
               legacy-mode:
                 - false
+      - "oss-gotest":
+          name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
+          <<: *filter-master-release-branches-only
+          matrix:
+            alias: "oss-dev-gotest-legacy-matrix"
+            parameters:
+              fast-reconfigure:
+                - false
+              legacy-mode:
+                - true
                 # If you enable testing with legacy-mode true as well, you'll also need
                 # to add some exclusions -- see the Release workflow for more.
       - "oss-chart-changelog":
@@ -197,7 +234,7 @@ workflows:
           requires: ["oss-dev-images"]
           name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           matrix:
-            alias: "oss-dev-test"
+            alias: "oss-dev-pytest-matrix"
             parameters:
               test:
                 - "pytest"
@@ -213,18 +250,29 @@ workflows:
                 # We don't run legacy mode tests in the "Dev" workflow but we do
                 # in the Nightly and Release workflows.
                 - false
-            exclude:
-              # It's not meaningful to set fast reconfigure and legacy mode at the same time.
-              # Annoyingly, we have to iterate all the 'test' values that we're using for
-              # this to work.
-              - test: pytest
-                fast-reconfigure: true
-                legacy-mode: true
+      - "oss-test":
+          requires: ["oss-dev-images"]
+          name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
+          <<: *filter-master-release-branches-only
+          matrix:
+            alias: "oss-dev-pytest-legacy-matrix"
+            parameters:
+              test:
+                - "pytest"
+                # Running the ingresstests would require we install `kind` and
+                # that the test suite supports HTTP to HTTPS redirects (AES
+                # enables cleartext redirection by default, even for fallback
+                # hosts, contrary to A/OSS)
+                #- "ingresstest"
+              fast-reconfigure:
+                - false
+              legacy-mode:
+                - true
       - "oss-envoy-test":
           requires: ["oss-dev-images"]
           name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           matrix:
-            alias: "oss-dev-envoy-test"
+            alias: "oss-dev-envoy-test-matrix"
             parameters:
               test:
                 - "pytest-envoy"
@@ -246,6 +294,39 @@ workflows:
               - test: pytest-envoy-v3
                 fast-reconfigure: true
                 legacy-mode: true
+      - "oss-envoy-test":
+          requires: ["oss-dev-images"]
+          name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
+          <<: *filter-master-release-branches-only
+          matrix:
+            alias: "oss-dev-envoy-test-legacy-matrix"
+            parameters:
+              test:
+                - "pytest-envoy"
+                - "pytest-envoy-v3"
+              fast-reconfigure:
+                - false
+              legacy-mode:
+                - true
+      - "oss-promote-dev-to-passed":
+          requires:
+            - oss-dev-pytest
+            - oss-dev-pytest-envoy
+            - oss-dev-pytest-envoy-fastreconfigure
+            - oss-dev-pytest-envoy-legacy
+            - oss-dev-pytest-envoy-v3
+            - oss-dev-pytest-envoy-v3-fastreconfigure
+            - oss-dev-pytest-envoy-v3-legacy
+            - oss-dev-pytest-fastreconfigure
+            - oss-dev-pytest-legacy
+            - oss-dev-chart
+            - oss-dev-gotest-legacy
+            - oss-dev-gotest-fastreconfigure
+            - oss-dev-gotest
+            - oss-dev-generate
+          name: "oss-dev-promote-to-passed"
+          <<: *filter-master-release-branches-only
+
   "OSS: Chart Release":
     when: # Don't run this workflow in apro.git
       or:
@@ -255,120 +336,15 @@ workflows:
       - "oss-chart-publish":
           <<: *filter-chart-release-only
           name: "oss-release-chart"
-
-  "OSS: Release":
+  "OSS: Manifests Release":
     when: # Don't run this workflow in apro.git
       or:
       - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
       - equal: [ "https://github.com/datawire/ambassador-private", << pipeline.project.git_url >> ]
-    # Run this workflow on tags, not branches or PRs.
     jobs:
-      # build+push
-      - "oss-images":
-          <<: *filter-prerelease-only
-          name: "oss-release-images"
-          release: true
-      # test
-      - "oss-generate":
-          <<: *filter-prerelease-only
-          name: "oss-release-generate"
-      - "oss-yaml-publish-s3-rc":
-          <<: *filter-prerelease-only
-          name: "oss-yaml-s3-rc"
-          requires: ["oss-release-generate"]
-      - "oss-lint":
-          <<: *filter-prerelease-only
-          name: "oss-release-lint"
-      - "oss-gotest":
-          <<: *filter-prerelease-only
-          name: "oss-release-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
-          matrix:
-            alias: "oss-release-gotest"
-            parameters:
-              fast-reconfigure:
-                - true
-                - false
-              legacy-mode:
-                - true
-                - false
-            exclude:
-              # It's not meaningful to set fast reconfigure and legacy mode at the same time.
-              # Annoyingly, we have to iterate all the 'test' values that we're using for
-              # this to work.
-              - fast-reconfigure: true
-                legacy-mode: true
-      - "oss-test":
-          <<: *filter-prerelease-only
-          requires: ["oss-release-images"]
-          name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
-          matrix:
-            alias: "oss-release-test"
-            parameters:
-              test:
-                - "pytest"
-                # Running the ingresstests would require we install `kind` and
-                # that the test suite supports HTTP to HTTPS redirects (AES
-                # enables cleartext redirection by default, even for fallback
-                # hosts, contrary to A/OSS)
-                #- "ingresstest"
-              fast-reconfigure:
-                - true
-                - false
-              legacy-mode:
-                - true
-                - false
-            exclude:
-              # It's not meaningful to set fast reconfigure and legacy mode at the same time.
-              # Annoyingly, we have to iterate all the 'test' values that we're using for
-              # this to work.
-              - test: pytest
-                fast-reconfigure: true
-                legacy-mode: true
-      - "oss-envoy-test":
-          <<: *filter-prerelease-only
-          requires: ["oss-release-images"]
-          name: "oss-release-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
-          matrix:
-            alias: "oss-release-envoy-test"
-            parameters:
-              test:
-                - "pytest-envoy"
-                - "pytest-envoy-v3"
-              fast-reconfigure:
-                - true
-                - false
-              legacy-mode:
-                - true
-                - false
-            exclude:
-              # It's not meaningful to set fast reconfigure and legacy mode at the same time.
-              # Annoyingly, we have to iterate all the 'test' values that we're using for
-              # this to work.
-              - test: pytest-envoy
-                fast-reconfigure: true
-                legacy-mode: true
-              - test: pytest-envoy-v3
-                fast-reconfigure: true
-                legacy-mode: true
-      # promote
-      - "oss-promote-to-rc-latest":
-          <<: *filter-rc-only
-          name: "oss-release-promote-to-rc-latest"
-          requires:
-          # build
-          - "oss-release-images"
-          # test
-          - "oss-release-generate"
-          - "oss-release-lint"
-          - "oss-release-test"
-      - "oss-promote-to-ga":
-          <<: *filter-ga-only
-          name: "oss-release-promote-to-ga"
-      - "oss-yaml-publish-s3-ga":
-          <<: *filter-ga-only
-          name: "oss-yaml-s3-ga"
-          requires:
-            - "oss-release-generate"
+      - "oss-manifest-publish":
+          <<: *filter-chart-release-only
+          name: "oss-rc-manifests-publish"
 
   "OSS: Nightly":
     triggers:
@@ -451,3 +427,4 @@ workflows:
               - test: pytest-envoy-v3
                 fast-reconfigure: true
                 legacy-mode: true
+
