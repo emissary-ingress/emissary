@@ -1,3 +1,6 @@
+# Docker build pin files
+docker/*.pin
+
 *.pyc
 *~
 .cache
@@ -44,7 +47,8 @@ vendor_bootstrap_hack.go
 *.docker.push.*
 
 *.egg-info
-build
+/build
+/python/build
 dist
 
 *.out
@@ -65,8 +69,6 @@ package-lock.json
 .netlify
 node_modules
 unused-e2e
-
-/vendor/
 
 .forge
 forge.yaml
