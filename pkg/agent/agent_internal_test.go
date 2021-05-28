@@ -333,7 +333,7 @@ func TestProcessSnapshot(t *testing.T) {
 					},
 				},
 			},
-			podStore: NewPodStore([]kates.Pod{
+			podStore: NewPodStore([]*kates.Pod{
 				{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "pod1",
@@ -388,7 +388,7 @@ func TestProcessSnapshot(t *testing.T) {
 		t.Run(testcase.testName, func(innerT *testing.T) {
 			a := NewAgent(nil)
 			ctx, _ := getCtxLog()
-			a.podStore = testcase.podStore
+			a.coreStore = &coreStore{podStore: testcase.podStore}
 			a.connAddress = testcase.address
 
 			actualRet := a.ProcessSnapshot(ctx, testcase.inputSnap, "ambassador-host")
