@@ -11,13 +11,13 @@
 {{- if .Values.image.fullImageOverride }}
   {{- /* Case 1 */ -}}
   {{- $allowAgent = true }}
-{{- else if not (regexMatch "^\\d+\\.\\d+\\.\\d+$" .Values.image.tag) }}
+{{- else if not (regexMatch "^\\d+\\.\\d+\\.\\d+$" (include "ambassador.imagetag" . )) }}
   {{- /* Case 2 above: power user */ -}}
   {{- $allowAgent = true }}
-{{- else if and .Values.enableAES (ne (semver "1.12.0" | (semver .Values.image.tag).Compare) -1) }}
+{{- else if and .Values.enableAES (ne (semver "1.12.0" | (semver (include "ambassador.imagetag" . )).Compare) -1) }}
   {{- /* Case 3 above: Edge Stack 1.12.0+ */ -}}
   {{- $allowAgent = true }}
-{{- else if ne (semver "1.13.0" | (semver .Values.image.tag).Compare) -1 }}
+{{- else if ne (semver "1.13.0" | (semver (include "ambassador.imagetag" . )).Compare) -1 }}
   {{- /* Case 4 above: OSS 1.13.0+ */ -}}
   {{- $allowAgent = true }}
 {{- end }}

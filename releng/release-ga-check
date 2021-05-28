@@ -1,0 +1,33 @@
+#!/usr/bin/env python3
+"""Verify that all GA artifacts got pushed."""
+
+import os.path
+import sys
+
+from lib import check_artifacts, re_ga
+
+if __name__ == '__main__':
+    include_docker = True
+
+    args = sys.argv[1:]
+
+    if args and (args[0] == "--no-docker"):
+        include_docker = False
+        args.pop(0)
+
+    if len(args) < 1 or not re_ga.match(args[0]):
+        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z\n")
+        sys.exit(2)
+    source_registry = 'docker.io/datawire'
+    if len(args) > 1:
+        source_registry = args[1]
+    promote_chan = ''
+    if len(args) > 2:
+        promote_chan = args[2]
+    image_append = ''
+    if len(args) > 3:
+        image_append = args[3]
+
+    sys.exit(check_artifacts.main(ga_ver=args[0], ga=True, include_latest=True,
+        include_docker=include_docker, release_channel=promote_chan,
+        source_registry=source_registry, image_append=image_append))

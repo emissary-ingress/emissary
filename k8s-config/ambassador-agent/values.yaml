@@ -1,4 +1,1 @@
 deploymentTool: getambassador.io
-image:
-  tag: '$version$'
-  repository: docker.io/datawire/ambassador
