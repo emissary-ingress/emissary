@@ -48,7 +48,8 @@ helm package --destination $chart_dir $chart_dir
 export CHART_PACKAGE=$(ls ${chart_dir}/*.tgz)
 
 curl -o ${chart_dir}/tmp.yaml -k -L ${repo_url}index.yaml
-if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+$  ]] && [[ $(grep -c "version: $thisversion$" ${chart_dir}/tmp.yaml || true) != 0 ]]; then
+chart_name=`basename ${chart_dir}`
+if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+$  ]] && [[ $(grep -c "${chart_name}-$thisversion\.tgz$" ${chart_dir}/tmp.yaml || true) != 0 ]]; then
 	failed "Chart version $thisversion is already in the index"
 	exit 1
 fi

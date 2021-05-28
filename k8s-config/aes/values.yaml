@@ -43,3 +43,4 @@ service:
   # https://www.getambassador.io/reference/modules/#the-ambassador-module
   selector:
     service: ambassador
+enableAES: true

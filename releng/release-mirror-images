@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+"""Mirror GA Docker images from one Docker registry to several others.
+"""
+
+import os.path
+import sys
+
+from lib import mirror_artifacts, re_ga
+
+
+def main(ga_ver: str, source_registry: str, image_append: str = '') -> int:
+    mirror_artifacts.main([ga_ver], source_registry=source_registry, image_append=image_append)
+    return 0
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2 or not re_ga.match(sys.argv[1]):
+        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z\n")
+        sys.exit(2)
+    source_registry = 'docker.io/datawire'
+    if len(sys.argv) > 2:
+        source_registry = sys.argv[2]
+    image_append = ''
+    if len(sys.argv) > 3:
+        image_append = sys.argv[3]
+    ga_ver = sys.argv[1]
+    if len(sys.argv) > 4:
+        ga_ver = f"{ga_ver}-{sys.argv[4]}"
+
+
+    sys.exit(main(ga_ver=ga_ver, source_registry=source_registry, image_append=image_append))

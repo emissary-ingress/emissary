@@ -28,7 +28,7 @@ commands:
     steps:
       - amb-linux-install
       - amb-checkout
-      - skip-if-no-changes:
+      - amb-skip-if-no-changes-not-release:
           to: charts/ambassador
       - install-k3d
       # We might need to be logged in the registry to pull the Envoy
@@ -49,7 +49,7 @@ commands:
     steps:
       - amb-linux-install
       - amb-checkout
-      - skip-if-no-changes:
+      - amb-skip-if-no-changes-not-release:
           to: charts/emissary-ingress
       - install-k3d
       # We might need to be logged in the registry to pull the Envoy
@@ -71,27 +71,18 @@ commands:
       - amb-config-registry
       # main
       - run: make test-chart
-      - run: charts/ambassador/ci/push_chart.sh
+      - run: make release/ga/chart-push
 
   "job-manifests-publish":
     steps:
       - amb-linux-install
       - amb-checkout
       - amb-config-registry
-      - run:  manifests/push_manifests.sh
-
-  "job-emissary-chart-publish":
-    steps:
-      - amb-linux-install
-      - amb-checkout
-      - install-k3d
-      # We might need to be logged in the registry to pull the Envoy
-      # image or the builder-base image.
-      - amb-config-registry
-      # main
-      - run: make test-chart
-      - amb-skip-if-bad-chart-version
-      - run: charts/emissary-ingress/ci/push_chart.sh
+      - run:
+          name: "Publishing manifests"
+          command: |
+            make push-manifests
+            make publish-docs-yaml
 
   "job-generate":
     steps:
@@ -140,6 +131,16 @@ commands:
       # main
       - run: make lint
 
+  "job-promote-passed-ci-build":
+    steps:
+      - amb-linux-install
+      - amb-attach-workspace
+      - amb-skip-if-not-master-or-release
+      - run:
+          name: "promote build to passed"
+          command: |
+            make release/promote-oss/dev-to-passed-ci
+
   "job-images":
     parameters:
       "release":
@@ -155,7 +156,8 @@ commands:
       # setup
       - amb-linux-install
       - amb-checkout
-      - amb-skip-if-no-code-changes
+      - amb-save-workspace
+      - amb-skip-if-no-code-changes-not-release
       - amb-config-registry
 
       # main
@@ -172,6 +174,15 @@ commands:
                 name: "Clean up dirty chart stuff"
                 command: |
                   make chart-clean
+            - run:
+                name: "Print RC promote info"
+                command: |
+                  echo "To start the release process, you can checkout the following sha"
+                  echo "Then run 'make release/prep-rc'"
+                  echo "See notion page for more details: https://www.notion.so/datawire/X-Y-Z-Emissary-Checklist-eef145314ce4496c8424d15f35595a18"
+                  echo "Commit SHA:"
+                  git rev-parse HEAD
+
       - when:
           condition: << parameters.release >>
           steps:
@@ -209,7 +220,7 @@ commands:
       - amb-linux-install
       - install-gotestsum
       - amb-checkout
-      - amb-skip-if-no-code-changes
+      - amb-skip-if-no-code-changes-not-release
       - amb-config-registry
       - run:
           name: "Test"
@@ -239,7 +250,6 @@ commands:
           - "pytest"
           - "pytest-envoy"
           - "pytest-envoy-v3"
-          - "e2etest"
         default: "test"
       "fast-reconfigure":
         type: boolean
@@ -251,15 +261,7 @@ commands:
       # setup
       - amb-linux-install
       - amb-attach-workspace
-      - amb-skip-if-no-code-changes
-      # e2etests can be skipped if the only chances are to
-      # the Ambassador repo and the pytest gold directory
-      - when:
-          condition:
-            equal: ["e2etest", << parameters.test >>]
-          steps:
-          - skip-if-only-changes:
-              to: "(ambassador/|tests/pytest/gold/)"
+      - amb-skip-if-no-code-changes-not-release
       # pytest-envoy can be skipped unless the envoy.mk file changes, or the ambex control
       # plane changes, or the gold files change.
       - when:
@@ -268,7 +270,7 @@ commands:
               - equal: [ "pytest-envoy", << parameters.test >> ]
               - equal: [ "pytest-envoy-v3", << parameters.test >> ]
           steps:
-            - skip-if-no-changes:
+            - amb-skip-if-no-changes-not-release:
                 to: "(/envoy\\.mk$|/python/tests/gold/|/pytest/gold/|/cmd/ambex/)"
             - run: |
                 if [[ -z "$KUBECEPTION_TOKEN" ]]; then
@@ -329,15 +331,18 @@ commands:
           condition: # Don't do this in the -private repos
             or:
             - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
-            - equal: [ "https://github.com/datawire/apro", << pipeline.project.git_url >> ]
           steps:
             - amb-linux-install
             - amb-checkout
             - run:
-                name: "Promote to -rc-latest"
+                name: "Promote to dev build to RC"
                 command: |
                   docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
-                  DEV_KUBECONFIG="-skip-for-release-" make release/promote-<< parameters.channel >>/to-rc-latest
+                  DEV_KUBECONFIG="-skip-for-release-" make release/promote-<< parameters.channel >>/dev-to-rc
+            - run:
+                name: "Print RC artifact info"
+                command: |
+                  make release/print-test-artifacts
 
   "job-promote-to-ga":
     parameters:
