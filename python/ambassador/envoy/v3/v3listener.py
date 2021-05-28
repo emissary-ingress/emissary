@@ -77,22 +77,6 @@ class V3Listener(dict):
                 # Start by building our base HTTP config...
                 self._base_http_config = self.base_http_config()
 
-                self._filter_chains.append(
-                    {
-                        "name": "base_http_config",
-                        "filterChainMatch": {},
-                        "filters": [
-                            {
-                                "name": "envoy.filters.network.http_connection_manager",
-                                "typed_config": {
-                                    "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
-                                    **self._base_http_config                
-                                }
-                            }
-                        ]
-                    }
-                )
-
             if proto == "PROXY":
                 self.listener_filters.append({
                     'name': 'envoy.filters.listener.proxy_protocol'
@@ -481,6 +465,7 @@ class V3Listener(dict):
         if self._base_http_config:
             self.finalize_vhosts()
             self.finalize_routes()
+            self.finalize_http()
 
     def finalize_vhosts(self) -> None:
         # Match up Hosts with this Listener, and create VHosts for them.
@@ -604,6 +589,67 @@ class V3Listener(dict):
                         if True or self._log_debug:
                             logger.info("      %s - %s: drop from %s %s%s",
                                         matcher, action, self.name, vhostname, extra_info)
+
+    def finalize_http(self) -> None:
+        for vhostkey, vhost in self._vhosts.items():
+            # Every VHost has a bunch of routes that need to be shoved into its filters.
+            filter_chain_match: Dict[str, Any] = {}
+
+            if vhost._ctx:
+                filter_chain_match["transport_protocol"] = "tls"
+
+            # Make sure we include a server name match if the hostname isn't "*".
+            if vhost._hostname and (vhost._hostname != '*'):
+                    filter_chain_match["server_names"] = [ vhost._hostname ]
+
+            if vhost._hostname == "*":
+                domains = [vhost._hostname]
+            else:
+                if vhost._ctx is not None and vhost._ctx.hosts is not None and len(vhost._ctx.hosts) > 0:
+                    domains = vhost._ctx.hosts
+                else:
+                    domains = [vhost._hostname]
+
+            # ...then build up the Envoy structures around it.
+            filter_chain: Dict[str, Any] = {
+                "filter_chain_match": filter_chain_match,
+            }
+
+            if vhost.tls_context:
+                filter_chain["tls_context"] = vhost.tls_context
+
+            http_config = dict(typecast(dict, self._base_http_config))
+
+            http_config["route_config"] = {
+                "virtual_hosts": [
+                    {
+                        "name": f"{self.name}-{vhost._name}",
+                        "domains": domains,
+                        "routes": vhost.routes
+                    }
+                ]
+            }
+
+            if parse_bool(self.config.ir.ambassador_module.get("strip_matching_host_port", "false")):
+                http_config["strip_matching_host_port"] = True
+
+            if parse_bool(self.config.ir.ambassador_module.get("merge_slashes", "false")):
+                http_config["merge_slashes"] = True
+
+            if parse_bool(self.config.ir.ambassador_module.get("reject_requests_with_escaped_slashes", "false")):
+                http_config["path_with_escaped_slashes_action"] = "REJECT_REQUEST"
+
+            filter_chain["filters"] = [
+                {
+                    "name": "envoy.filters.network.http_connection_manager",
+                    "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                        **http_config
+                    }
+                }
+            ]
+
+            self._filter_chains.append(filter_chain)
 
     def as_dict(self) -> dict:
         return {
