@@ -54,6 +54,19 @@ def run(args: List[str]) -> None:
         subprocess.run(args, check=True)
 
 
+def run_bincapture(args: List[str]) -> bytes:
+    """run is like "subprocess.run(args, capture_out=True, text=False)",
+    but with helpful settings and obeys "with capture_output(out)".
+    """
+    if _capturing:
+        try:
+            return subprocess.run(args, check=True, capture_output=True).stdout
+        except subprocess.CalledProcessError as err:
+            raise Exception(f"{err.stderr.decode('UTF-8')}{err}") from err
+    else:
+        return subprocess.run(args, check=True, stdout=subprocess.PIPE).stdout
+
+
 def run_txtcapture(args: List[str]) -> str:
     """run is like "subprocess.run(args, capture_out=True, text=true)",
     but with helpful settings and obeys "with capture_output(out)".
