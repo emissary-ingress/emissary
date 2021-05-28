@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+"""Creates github release for tag
+"""
+
+import fileinput
+import os.path
+import sys
+from contextlib import contextmanager
+from typing import Generator
+
+from lib import re_ga, get_gh_repo
+from lib.uiutil import Checker, CheckResult, run
+
+
+RELEASE_TITLE_FORMAT = "Ambassador {release_version}"
+
+RELEASE_BODY_FORMAT= """
+## :tada: Ambassador {release_version} :tada:
+
+#### Ambassador is an open source, Kubernetes-native microservices API gateway built on the Envoy Proxy.
+
+Upgrade Ambassador - https://www.getambassador.io/reference/upgrading.html
+View changelog - https://github.com/datawire/ambassador/blob/master/CHANGELOG.md
+Get started with Ambassador on Kubernetes - https://www.getambassador.io/user-guide/getting-started
+
+{release_notes}
+"""
+
+
+def main(release_version: str) -> int:
+    # This context manager and check function are pretty much just to produce
+    # a nice list of steps...
+    checker = Checker()
+
+    @contextmanager
+    def check(name: str) -> Generator[CheckResult, None, None]:
+        with checker.check(name) as subcheck:
+            # time.sleep(1)  # it's stupid, but honestly the delay makes the output more readable
+            yield subcheck
+
+    with check(f"Check that tag v{release_version} exists"):
+        run(['git', 'fetch', '--tags'])
+        run(['git', 'rev-parse', '--verify', f"v{release_version}"])
+    if not checker.ok:
+        return 1
+
+    buf = ""
+    with check(f"Creating release notes for {release_version}"):
+        found = False
+        buffering = False
+        for line in fileinput.FileInput("CHANGELOG.md"):
+            if not found and line.startswith(f"## [{release_version}]"):
+                found = True
+            elif found and not buffering and line.startswith("### Emissary Ingress"):
+                buffering = True
+            elif buffering and line.startswith("## ["):
+                break
+            elif buffering:
+                buf += line
+
+        if not found:
+            raise Exception(f"Changelog entry for {release_version} not found. Are you sure you're trying to release that?")
+
+    print(f"Generated release notes:")
+    print(buf)
+    ok = input("Does this look correct? (y/n)")
+    if ok != 'y':
+        print('Ok, not generating release')
+        return 1
+    with check(f"Creating release for {release_version}"):
+        run([
+            "gh", "release", "create",
+            f"v{release_version}",
+            "--repo", get_gh_repo(),
+            "--title", RELEASE_TITLE_FORMAT.format(release_version=release_version),
+            "--notes", RELEASE_BODY_FORMAT.format(release_version=release_version, release_notes=buf)])
+    if not checker.ok:
+        return 1
+    print('Release info from github:')
+    run(["gh", "release", "view", "--repo", get_gh_repo(), f"v{release_version}"])
+    if checker.ok:
+        return 0
+    else:
+        return 1
+
+
+if __name__ == '__main__':
+    args = sys.argv[1:]
+
+    if len(args) < 1 or not re_ga.match(args[0]):
+        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z\n")
+        sys.exit(2)
+
+    sys.exit(main(
+        release_version=args[0],
+    ))

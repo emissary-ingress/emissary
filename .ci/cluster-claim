@@ -55,7 +55,7 @@ if [ -n "${USE_LOCAL_K3S_CLUSTER:-}" ] ; then
     exit 0
 fi
 
-if [ -n "${KUBECEPTION_TOKEN}" ]; then
+if [ -n "${KUBECEPTION_TOKEN:-}" ]; then
 
     trap push_metrics EXIT
     mkdir -p ~/.kube
