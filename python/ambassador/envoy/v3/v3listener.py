@@ -24,8 +24,9 @@ from ...ir.irtcpmappinggroup import IRTCPMappingGroup
 from ...utils import dump_json, parse_bool
 
 from .v3httpfilter import V3HTTPFilter
+from .v3route import DictifiedV3Route, v3prettyroute
 from .v3tls import V3TLSContext
-from .v3virtualhost import V3VirtualHost, DictifiedV3Route, v3prettyroute
+from .v3virtualhost import V3VirtualHost
 
 if TYPE_CHECKING:
     from ...ir.irtlscontext import IRTLSContext # pragma: no cover
@@ -282,7 +283,7 @@ class V3Listener(dict):
             'normalize_path': True
         }
 
-        # Assemble filters
+        # Assemble base HTTP filters
         for f in self.config.ir.filters:
             v3hf: dict = V3HTTPFilter(f, self.config)
 
@@ -321,7 +322,8 @@ class V3Listener(dict):
             base_http_config["max_request_headers_kb"] = max_request_headers_kb
 
         if 'enable_http10' in self.config.ir.ambassador_module:
-            base_http_config["http_protocol_options"] = { 'accept_http_10': self.config.ir.ambassador_module.enable_http10 }
+            http_options = base_http_config.setdefault("http_protocol_options", {})
+            http_options['accept_http_10'] = self.config.ir.ambassador_module.enable_http10
 
         if 'preserve_external_request_id' in self.config.ir.ambassador_module:
             base_http_config["preserve_external_request_id"] = self.config.ir.ambassador_module.preserve_external_request_id

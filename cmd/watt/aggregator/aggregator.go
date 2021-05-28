@@ -380,6 +380,7 @@ func ExecWatchHook(watchHooks []string) WatchHook {
 
 func invokeHook(ctx context.Context, hook, snapshot string) watchapi.WatchSet {
 	cmd := dexec.CommandContext(ctx, "sh", "-c", hook)
+	cmd.DisableLogging = true
 	cmd.Stdin = strings.NewReader(snapshot)
 	watches, err := cmd.Output()
 	if err != nil {

@@ -71,3 +71,21 @@ def test_reject_requests_with_escaped_slashes_true():
     # If we set the config to true, the action should show up as "REJECT_REQUEST".
     yaml = module_and_mapping_manifests(['reject_requests_with_escaped_slashes: true'], [])
     _test_hcm(yaml, expectations={'path_with_escaped_slashes_action': 'REJECT_REQUEST'})
+
+@pytest.mark.compilertest
+def test_preserve_external_request_id_missing():
+    # If we do not set the config, it should be false
+    yaml = module_and_mapping_manifests(None, [])
+    _test_hcm(yaml, expectations={'preserve_external_request_id': False})
+
+@pytest.mark.compilertest
+def test_preserve_external_request_id_module_false():
+    # If we set the config to false, it should be false
+    yaml = module_and_mapping_manifests(['preserve_external_request_id: false'], [])
+    _test_hcm(yaml, expectations={'preserve_external_request_id': False})
+
+@pytest.mark.compilertest
+def test_preserve_external_request_id_module_true():
+    # If we set the config to true, it should show up as true.
+    yaml = module_and_mapping_manifests(['preserve_external_request_id: true'], [])
+    _test_hcm(yaml, expectations={'preserve_external_request_id': True})
