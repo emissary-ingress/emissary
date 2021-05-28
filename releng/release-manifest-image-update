@@ -70,13 +70,27 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
     print('TODO: CHECK THAT IMAGE EXISTS')
     with check(f"Updating image tag in charts"):
         run(["make", f"IMAGE_TAG={image_tag}", "release/chart/update-images"])
-        git_add("charts/ambassador")
+        git_add("charts/ambassador/Chart.yaml")
+        git_add("charts/ambassador/CHANGELOG.md")
+        git_add("charts/ambassador/README.md")
+        git_add("charts/ambassador/values.yaml")
+
     if not checker.ok:
         return 1
+
     with check(f"Updating manifest yaml"):
         run(["make", "BUMP_STABLE=true", "update-yaml"])
         git_add("manifests")
         git_add("docs/yaml")
+
+    with check('Update charts/ambassador/README.md'):
+        for line in fileinput.FileInput("charts/ambassador/README.md", inplace=True):
+            line_regex = '^\|\s*`image.tag`\s+\|.*\|\s+`\d+\.\d+\.\d+`\s*\|$'
+            if re.match(line_regex, line):
+                replace = "`{}`".format(next_ver)
+                line = re.sub("`\d+\.\d+\.\d+`", replace, line)
+            sys.stdout.write(line)
+        git_add("charts/ambassador/README.md")
 
     if checker.ok and commit:
         with check(f"Committing changes..."):
