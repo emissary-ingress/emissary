@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, TYPE_CHECKING
 
 import os
 
-from ..utils import SavedSecret
+from ..utils import SavedSecret, dump_json
 from ..config import Config
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
@@ -356,48 +356,67 @@ class HostFactory:
 
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:
-        if ir.edge_stack_allowed:
-            # We're running Edge Stack. Figure out how many hosts we have, and whether
-            # we have any termination contexts.
+        # First up: how many Hosts do we have?
+        host_count = len(ir.get_hosts() or [])
+
+        # Do we have any termination contexts for TLS? (If not, we'll need to
+        # bring the fallback cert into play.)
+
+        # This is mostly mypy silliness to deal with the fact that ir.get_tls_contexts()
+        # returns a ValuesView[IRTLSContext] rather than a List[IRTLSContext].
+        empty_contexts: List[IRTLSContext] = []
+        contexts: List[IRTLSContext] = list(ir.get_tls_contexts()) or empty_contexts
+
+        found_termination_context = False
+        for ctx in contexts:
+            if ctx.get('hosts'):  # not None and not the empty list
+                found_termination_context = True
+                break
+
+        ir.logger.info(f"HostFactory: Hosts %d, %s TLS termination contexts" %
+                       (host_count, "with" if found_termination_context else "no"))
+
+        # OK, do we have any Hosts?
+        if host_count == 0:
+            # Nope. First up, scream if we _do_ have termination contexts...
+            if found_termination_context:
+                ir.post_error("No Hosts defined, but TLSContexts exist that terminate TLS. The TLSContexts are being ignored.")
+
+            # If we don't have a fallback secret, don't try to use it. 
             #
-            # If we're running as an intercept agent, there should be a Host in all cases.
-            host_count = len(ir.get_hosts() or [])
+            # We use the Ambassador's namespace here because we'll be creating the 
+            # fallback Host in the Ambassador's namespace.
+            fallback_ss = ir.resolve_secret(ir.ambassador_module, "fallback-self-signed-cert", ir.ambassador_namespace)
 
-            # This is mostly mypy silliness to deal with the fact that ir.get_tls_contexts()
-            # returns a ValuesView[IRTLSContext] rather than a List[IRTLSContext].
-            empty_contexts: List[IRTLSContext] = []
-            contexts: List[IRTLSContext] = list(ir.get_tls_contexts()) or empty_contexts
+            host: IRHost
+        
+            if not fallback_ss:
+                ir.post_error("No fallback cert! Defaulting to cleartext-only.")
+                ir.logger.info("HostFactory: creating cleartext-only default host")
 
-            found_termination_context = False
-            for ctx in contexts:
-                if ctx.get('hosts'):  # not None and not the empty list
-                    found_termination_context = True
-
-            ir.logger.debug(f"HostFactory: FTC {found_termination_context}, host_count {host_count}")
-
-            if (host_count == 0) and not found_termination_context:
-                # We have no Hosts and no termination contexts, so we know that this is an unconfigured
-                # installation. Set up the fallback TLSContext so we can redirect people to the UI.
-                ir.logger.debug("Creating fallback context")
-                ctx_name = "fallback-self-signed-context"
-                tls_name = "fallback-self-signed-cert"
-
-                new_ctx = dict(
-                    rkey=f"{ctx_name}.99999",
-                    name=ctx_name,
+                host = IRHost(ir, aconf,
+                    rkey="-internal",
+                    name="default-host",
                     location="-internal-",
-                    hosts=["*"],
-                    secret=tls_name,
-                    is_fallback=True
+                    hostname="*",
+                    requestPolicy={ "insecure": { "action": "Route" }},
+                )
+            else:
+                ir.logger.info(f"HostFactory: creating TLS-enabled default Host")
+
+                host = IRHost(ir, aconf,
+                    rkey="-internal",
+                    name="default-host",
+                    location="-internal-",
+                    hostname="*",
+                    tlsSecret={ "name": "fallback-self-signed-cert" }
                 )
 
-                if not os.environ.get('AMBASSADOR_NO_TLS_REDIRECT', None):
-                    new_ctx['redirect_cleartext_from'] = 8080
+            if not host.is_active():
+                ir.post_error("Synthesized default host is inactive? %s" % dump_json(host.as_dict()))
+            else:
+                host.referenced_by(ir.ambassador_module)
+                host.sourced_by(ir.ambassador_module)
 
-                # XXX mypy doesn't like Dict[str, object] as the keyword args to IRTLSContext, but so far,
-                # everything I've tried just causes more trouble elsewhere. (Flynn)
-                ctx = IRTLSContext(ir, aconf, **new_ctx)    # type: ignore
-
-                assert ctx.is_active()
-                if ctx.resolve_secret(tls_name):
-                    ir.save_tls_context(ctx)
+                ir.logger.debug(f"HostFactory: saving host {host.pretty()}")
+                ir.save_host(host)
