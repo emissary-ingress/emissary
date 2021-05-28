@@ -32,11 +32,9 @@ repo_key=
 if [[ -n "${REPO_KEY}" ]] ; then
     repo_key="${REPO_KEY}"
 elif [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
-    # repo_key=ambassador
-    repo_key=emissary-ingress   # I really don't want this messing with ambassador's stuff now
+    repo_key=ambassador
 else
-    # repo_key=ambassador-dev
-    repo_key=emissary-ingress   # I really don't want this messing with ambassador's stuff now
+    repo_key=ambassador-dev
 fi
 repo_url=https://s3.amazonaws.com/datawire-static-files/${repo_key}/
 
