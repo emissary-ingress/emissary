@@ -24,8 +24,9 @@ from ...ir.irtcpmappinggroup import IRTCPMappingGroup
 from ...utils import dump_json, parse_bool
 
 from .v3httpfilter import V3HTTPFilter
+from .v3route import DictifiedV3Route, v3prettyroute
 from .v3tls import V3TLSContext
-from .v3virtualhost import V3VirtualHost, DictifiedV3Route, v3prettyroute
+from .v3virtualhost import V3VirtualHost
 
 if TYPE_CHECKING:
     from ...ir.irtlscontext import IRTLSContext # pragma: no cover
@@ -282,7 +283,7 @@ class V3Listener(dict):
             'normalize_path': True
         }
 
-        # Assemble filters
+        # Assemble base HTTP filters
         for f in self.config.ir.filters:
             v3hf: dict = V3HTTPFilter(f, self.config)
 
