@@ -379,6 +379,7 @@ def main(k8s_yaml_paths: List[str], debug: bool, force_pod_labels: bool, update:
             labels.append(kat_amb_id_label)
 
         os.environ['AMBASSADOR_ID'] = kat_name
+        os.environ['AMBASSADOR_LABEL_SELECTOR'] = kat_amb_id_label
 
         # Forcibly override the cached ambassador_id.
         Config.ambassador_id = kat_name
