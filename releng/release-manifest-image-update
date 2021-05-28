@@ -70,8 +70,9 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
     print('TODO: CHECK THAT IMAGE EXISTS')
     with check(f"Updating image tag in charts"):
         run(["make", f"IMAGE_TAG={image_tag}", "release/chart/update-images"])
-        git_add("charts/ambassador")
-        git_add("charts/emissary-ingress")
+        for file_name in ['Chart.yaml', 'CHANGELOG.md', 'README.md', 'values.yaml']:
+            git_add(f"charts/ambassador/{file_name}")
+            git_add(f"charts/emissary-ingress/{file_name}")
     if not checker.ok:
         return 1
     with check(f"Updating manifest yaml"):
