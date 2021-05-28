@@ -298,7 +298,7 @@ commands:
     - when:
         condition: # Don't do this in the -private repos
           or:
-          - equal: ["https://github.com/acookin/ambassador", << pipeline.project.git_url
+          - equal: ["https://github.com/datawire/ambassador", << pipeline.project.git_url
                 >>]
         steps:
         - amb-linux-install
@@ -412,7 +412,7 @@ commands:
         condition:
           or:
           - equal:
-            - "https://github.com/acookin/ambassador"
+            - "https://github.com/datawire/ambassador"
             - << pipeline.project.git_url >>
           - equal:
             - "https://github.com/datawire/ambassador-private"
@@ -918,7 +918,7 @@ jobs:
         condition:
           and:
           - equal:
-            - "https://github.com/acookin/ambassador"
+            - "https://github.com/datawire/ambassador"
             - << pipeline.project.git_url >>
           - not:
               equal:
@@ -1208,10 +1208,10 @@ workflows:
     when:
       or:
       - equal:
-        - "https://github.com/acookin/ambassador"
+        - "https://github.com/datawire/ambassador"
         - << pipeline.project.git_url >>
       - equal:
-        - "https://github.com/acookin/ambassador-private"
+        - "https://github.com/datawire/ambassador-private"
         - << pipeline.project.git_url >>
     jobs:
     - oss-chart-publish:
@@ -1225,10 +1225,10 @@ workflows:
     when:
       or:
       - equal:
-        - "https://github.com/acookin/ambassador"
+        - "https://github.com/datawire/ambassador"
         - << pipeline.project.git_url >>
       - equal:
-        - "https://github.com/acookin/ambassador-private"
+        - "https://github.com/datawire/ambassador-private"
         - << pipeline.project.git_url >>
     jobs:
     - oss-manifest-publish:
