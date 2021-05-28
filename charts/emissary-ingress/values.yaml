@@ -118,7 +118,7 @@ image:
   # Emissary Ingress docker repo
   repository: docker.io/datawire/ambassador
   # Emissary Ingress docker tag
-  tag: 1.13.4
+  tag: 1.13.6
   # Pod container image pull policy
   pullPolicy: IfNotPresent
 
