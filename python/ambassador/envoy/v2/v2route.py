@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Any, Dict, List, Set, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Set, Tuple, Union, TYPE_CHECKING
 from typing import cast as typecast
 
 from ..common import EnvoyRoute
@@ -50,22 +50,29 @@ def v2prettyroute(route: DictifiedV2Route) -> str:
     match_str = f"{key} {value}"
 
     headers = match.get("headers", {})
-    xfp = None
-    host = None
+    xfp: Optional[str] = None
+    host: Optional[str] = None
 
     for header in headers:
         name = header.get("name", None).lower()
         exact = header.get("exact_match", None)
 
-        if not name or not exact:
-            continue
+        if header == ':authority':
+            if exact:
+                host = exact
+            elif 'prefix_match' in header:
+                host = header['prefix_match'] + '*'
+            elif 'suffix_match' in header:
+                host = '*' + header['suffix_match']
+            elif 'safe_regex_match' in header:
+                host = header['safe_regex_match']['regex']
+        elif name == 'x-forwarded-proto':
+            xfp = exact
 
-        if name == "x-forwarded-proto":
-            xfp = bool(exact == "https")
-        elif name == ":authority":
-            host = exact
-
-    match_str += f" {'IN' if not xfp else ''}SECURE"
+    if xfp:
+        match_str += f" XFP {xfp}"
+    else:
+        match_str += " ALWAYS"
 
     if host:
         match_str += f" HOST {host}"
@@ -77,7 +84,7 @@ def v2prettyroute(route: DictifiedV2Route) -> str:
     elif route.get("redirect"):
         target_str = f"REDIRECT"
 
-    return f"<V2Route {match_str} -> {target_str}>"
+    return f"<V2Route {route['_host_constraints']}: {match_str} -> {target_str}>"
 
 
 def regex_matcher(config: 'V2Config', regex: str, key="regex", safe_key=None, re_type=None) -> Dict[str, Any]:
@@ -118,6 +125,136 @@ def hostglob_matches(glob: str, value: str) -> bool:
         return value.endswith(glob[1:])
     else: # exact match
         return value == glob
+
+
+class V2RouteVariants:
+    """
+    A "route variant" is a version of a V2Route that's been modified to
+    enforce a certain kind of match, and to take a particular action if the
+    match is good.
+
+    For example, a V2Route might look like:
+
+    {
+        "match": {
+            "prefix": "/foo/",
+        },
+        "route": {
+            "cluster": "cluster_foo_default",
+        }
+    }
+
+    The variant of that route that redirects to HTTPS if XFP is HTTP would
+    be
+
+    {
+        "match": {
+            "headers": [
+                {
+                    "name": "x-forwarded-proto"
+                    "exact_match": "http",
+                }
+            ],
+            "prefix": "/foo/",
+        },
+        "redirect": {
+            "https_redirect": true
+        }
+    }
+
+    which can be mechanically constructed from the primary V2Route.
+
+    Note that V2Routes and their variants are independent of any Host,
+    Listener, etc. -- they depend only on the matcher and the action, so
+    they can be lazily constructed and then cached. V2RouteVariants is
+    such a lazy collection of route variants for a given V2Route.
+    """
+
+    route: 'V2Route'
+    variants: Dict[str, DictifiedV2Route]
+
+    def __init__(self, route: 'V2Route') -> None:
+        self.route = route
+        self.variants = {}
+
+    def get_variant(self, matcher: str, action: str) -> DictifiedV2Route:
+        matcher = matcher.lower()
+        action = action.lower()
+
+        key = f"{matcher}-{action}"
+
+        variant: Optional[DictifiedV2Route] = self.variants.get(key, None)
+
+        if variant:
+            return variant
+
+        # Handle matchers.
+        matcher_handler = getattr(self, f"matcher_{matcher.replace('-', '_')}")
+
+        if not matcher_handler:
+            raise Exception(f"Invalid route matcher {matcher} requested")
+
+        variant = dict(self.route)
+        matcher_handler(variant)
+
+        # Handle the action.
+        action_handler = getattr(self, f"action_{action.replace('-', '_')}")
+
+        if not action_handler:
+            raise Exception(f"Invalid route action {action} requested")
+
+        action_handler(variant)
+
+        self.variants[key] = { k: v for k, v in variant.items() if k[0] != '_' }
+        return self.variants[key]
+
+    def matcher_always(self, variant: DictifiedV2Route) -> None:
+        pass
+
+    def matcher_xfp_https(self, variant: DictifiedV2Route) -> None:
+        self.matcher_xfp(variant, "https")
+
+    def matcher_xfp_http(self, variant: DictifiedV2Route) -> None:
+        # Yes, I know, this looks weird. Thing is, we want the "http" case to
+        # really be the "not https" case, so that a request without XFP is
+        # assumed to be insecure.
+        self.matcher_xfp(variant, None)
+
+    def matcher_xfp(self, variant: DictifiedV2Route, value: Optional[str]) -> None:
+        # We're going to create a new XFP match, so start by making a
+        # copy of the match struct...
+        match_copy = dict(variant["match"])
+        variant["match"] = match_copy
+
+        # ...then make a copy of match["headers"], but don't include
+        # any existing XFP header match.
+        headers = match_copy.get("headers") or []
+        headers_copy = [ h for h in headers
+                         if h.get("name", "").lower() != "x-forwarded-proto" ]
+
+        # OK, if the new XFP value is anything, write a match for it. If not,
+        # we'll just match any XFP.
+
+        if value:
+            headers_copy.append({
+                "name": "x-forwarded-proto",
+                "exact_match": value
+            })
+
+        # Don't bother writing headers_copy back if it's empty.
+        if headers_copy:
+            match_copy["headers"] = headers_copy
+
+    def action_route(self, variant) -> None:
+        # "Route" really means "do what the rule asks for". If the user asked for a host
+        # redirect, keep that.
+        pass
+
+    def action_redirect(self, variant) -> None:
+        variant.pop("route", None)
+        variant["redirect"] = {
+            "https_redirect": True
+        }
 
 
 class V2Route(Cacheable):
@@ -189,6 +326,9 @@ class V2Route(Cacheable):
             match['query_parameters'] = query_parameters
 
         self['match'] = match
+
+        # Now that we have SNI and match info, save our host constraints.
+        self['_host_constraints'] = self.host_constraints(True)
 
         # `typed_per_filter_config` is used to pass typed configuration to Envoy filters
         typed_per_filter_config = {}
@@ -419,7 +559,6 @@ class V2Route(Cacheable):
 
         self['route'] = route
 
-
     def host_constraints(self, prune_unreachable_routes: bool) -> Set[str]:
         """Return a set of hostglobs that match (a superset of) all hostnames that this route can
         apply to.
@@ -444,34 +583,44 @@ class V2Route(Cacheable):
 
             # Take all the HeaderMatchers...
             header_matchers = self.get("match", {}).get("headers", [])
+
             for header in header_matchers:
-                # ... and look for ones that exact_match on :authority.
-                if header.get("name") == ":authority" and "exact_match" in header:
-                    exact_match = header["exact_match"]
+                # ... and look for exact_match, prefix_match, or suffix_match on :authority.
+                #
+                # Why don't we do any pruning on regex matches? Well, the hostglobs are _globs_, and
+                # if we try to prune on regex matches here, we're left trying to figure out whether
+                # the glob and the regex are equivalent, which is somewhere between horrible and
+                # NP-hard. So, for now, never prune anything if we see a regex match. (Given that
+                # globs are supported, regexes shouldn't be needed much anyway.)
 
-                    if "*" in exact_match:
-                        # A real :authority header will never contain a "*", so if this route has an
-                        # exact_match looking for one, then this route is unreachable.
-                        hostglobs = set()
-                        break # hostglobs is empty, no point in doing more work
+                if header.get("name") == ":authority":
+                    pfx_match = header.get("prefix_match", None)
+                    sfx_match = header.get("suffix_match", None)
+                    exact_match = header.get("exact_match", None)
 
-                    elif any(hostglob_matches(glob, exact_match) for glob in hostglobs):
-                        # The exact_match that this route is looking for is matched by one or more
-                        # of the hostglobs; so this route is reachable (so far).  Set hostglobs to
-                        # just match that route.  Because we already checked if the exact_match
-                        # contains a "*", we don't need to worry about it possibly being interpreted
-                        # incorrectly as a glob.
-                        hostglobs = set([exact_match])
-                        # Don't "break" here--if somehow this route has multiple disagreeing
-                        # HeaderMatchers on :authority, then it's unreachable and we want the next
-                        # iteration of the loop to trigger the "else" clause and prune hostglobs
-                        # down to the empty set.
+                    # Whichever match is set, if we get a match, trim hostglobs down to just
+                    # the matching value.
+                    matching_globs: Set[str] = set()
 
-                    else:
-                        # The exact_match that this route is looking for isn't matched by any of the
-                        # hostglobs; so this route is unreachable.
-                        hostglobs = set()
-                        break # hostglobs is empty, no point in doing more work
+                    if pfx_match:
+                        matching_globs = { glob for glob in hostglobs if glob.startswith(pfx_match) }
+                    elif sfx_match:
+                        matching_globs = { glob for glob in hostglobs if glob.endswith(sfx_match) }
+                    elif exact_match:
+                        matching_globs = { glob for glob in hostglobs if glob == exact_match }
+
+                    if matching_globs:
+                        # Prune hostglobs down to just the matches. Don't break here -- if somehow
+                        # this route has more HeaderMatchers on :authority, take them into account
+                        # too, so that if we have multiple incompatible matchers, we successfully
+                        # filter to the empty set.
+                        #
+                        # Note that if we had _no_ matches, then we get the empty set right away,
+                        # which is OK.
+                        #
+                        # XXX That multiple-:authority-matchers case is "impossible" in Ambassador
+                        # right now, but, well, maybe it won't be later.
+                        hostglobs = matching_globs
 
         return hostglobs
 
@@ -537,6 +686,13 @@ class V2Route(Cacheable):
                 if not route.get('_failed', False):
                     config.routes.append(config.save_element('route', irgroup, route))
 
+        # Once that's done, go build the variants on each route.
+        config.route_variants = []
+
+        for route in config.routes:
+            # Set up a currently-empty set of variants for this route.
+            config.route_variants.append(V2RouteVariants(route))
+
     @staticmethod
     def generate_headers(config: 'V2Config', mapping_group: IRHTTPMappingGroup) -> List[dict]:
         headers = []
@@ -544,12 +700,31 @@ class V2Route(Cacheable):
         group_headers = mapping_group.get('headers', [])
 
         for group_header in group_headers:
-            header = { 'name': group_header.get('name') }
+            header_name = group_header.get('name')
+            header_value = group_header.get('value')
 
+            header = { 'name': header_name }
+
+            # Is this a regex?
             if group_header.get('regex'):
-                header.update(regex_matcher(config, group_header.get('value'), key='regex_match'))
+                header.update(regex_matcher(config, header_value, key='regex_match'))
             else:
-                header['exact_match'] = group_header.get('value')
+                if header_name == ':authority':
+                    # The authority header is special, because its value is a glob.
+                    # (This works without the user marking it as such because '*' isn't
+                    # valid in DNS names, so we know that treating a name with a '*' as
+                    # as exact match will always fail.)
+                    if header_value.startswith('*'):
+                        header['suffix_match'] = header_value[1:]
+                    elif header_value.endswith('*'):
+                        header['prefix_match'] = header_value[:-1]
+                    else:
+                        # But wait! What about 'foo.*.com'?? Turns out Envoy doesn't
+                        # support that in the places it actually does host globbing,
+                        # so we won't either for the moment.
+                        header['exact_match'] = header_value
+                else:
+                    header['exact_match'] = header_value
 
             headers.append(header)
 

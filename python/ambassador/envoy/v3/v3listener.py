@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Set, Tuple, Union, TYPE_CHECKING
 from typing import cast as typecast
 
 from os import environ
@@ -24,7 +24,7 @@ from ...ir.irtcpmappinggroup import IRTCPMappingGroup
 from ...utils import dump_json, parse_bool
 
 from .v3httpfilter import V3HTTPFilter
-from .v3route import DictifiedV3Route, v3prettyroute
+from .v3route import DictifiedV3Route, V3RouteVariants, v3prettyroute, hostglob_matches
 from .v3tls import V3TLSContext
 from .v3virtualhost import V3VirtualHost
 
@@ -32,6 +32,10 @@ if TYPE_CHECKING:
     from ...ir.irhost import IRHost             # pragma: no cover
     from ...ir.irtlscontext import IRTLSContext # pragma: no cover
     from . import V3Config                      # pragma: no cover
+
+
+def route_host_match(route_hosts: Set[str], vhostname: str) -> bool:
+    return any(hostglob_matches(route_glob, vhostname) for route_glob in route_hosts)    
 
 
 class V3Listener(dict):
@@ -476,6 +480,7 @@ class V3Listener(dict):
         # Next, deal with HTTP stuff if this is an HTTP Listener.
         if self._base_http_config:
             self.finalize_vhosts()
+            self.finalize_routes()
 
     def finalize_vhosts(self) -> None:
         # Match up Hosts with this Listener, and create VHosts for them.
@@ -528,6 +533,78 @@ class V3Listener(dict):
                 self.config.ir.logger.info("V3Listener %s: take INSECURE %s", self.name, host)
                 self.add_vhost(name=vhostname, host=host, secure=False)
 
+    def finalize_routes(self) -> None:
+        logger = self.config.ir.logger
+
+        # Walk all the routes we know about, and figure out how routes match up to Hosts.
+        #
+        # Note that the data structure we're walking here is config.route_variants rather
+        # than config.routes. There's a one-to-one correspondence between the two, but
+        # we use the V3RouteVariants to lazily cache some of the work that we're doing
+        # across Hosts.
+        for rv in self.config.route_variants:
+            logger.info("CHECK ROUTE: %s", v3prettyroute(dict(rv.route)))
+
+            # For each route, go walk all our vhosts and match things up.
+            for vhostkey, vhost in self._vhosts.items():
+                logger.info(f"    {vhost.pretty()}")
+
+                # For each vhost, we need to look at things for the secure world as well
+                # as the insecure world, depending on what the action is exactly (and note
+                # that, yes, we can have an action of None for an insecure_only listener).
+                # 
+                # "candidates" is matcher, action, V3RouteVariants
+                candidates: List[Tuple[str, str, V3RouteVariants]] = []
+                vhostname = vhost._hostname
+
+                if (vhost._action is not None) and (self._security_model != "INSECURE"):
+                    # We have a secure action, and we're willing to believe that at least some of
+                    # our requests will be secure.
+                    matcher = 'always' if (self._security_model == 'SECURE') else 'xfp-https'
+
+                    candidates.append(( matcher, 'Route', rv ))
+                
+                if (vhost._insecure_action is not None) and (self._security_model != "SECURE"):
+                    # We have an insecure action, and we're willing to believe that at least some of
+                    # our requests will be insecure.
+                    matcher = 'always' if (self._security_model == 'INSECURE') else 'xfp-http'
+                    action = vhost._insecure_action
+
+                    candidates.append(( matcher, action, rv ))
+
+                for matcher, action, rv in candidates:
+                    route_precedence = rv.route.get('_precedence', None)
+                    route_hosts = rv.route['_host_constraints']
+                    extra_info = ""
+
+                    if rv.route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
+                        # We need to be sure to route ACME challenges, no matter what else is going
+                        # on (this is the infamous ACME hole-puncher mentioned everywhere).
+                        extra_info = " (force Route for ACME challenge)"
+                        action = "Route"
+                    elif ('*' not in route_hosts) and (vhostname != '*') and (not route_host_match(route_hosts, vhostname)):
+                        # Drop this because the host is mismatched.
+                        extra_info = f" (force Reject for mismatched host {sorted(route_hosts)})"
+                        action = "Reject"
+                    elif (self.config.ir.edge_stack_allowed and
+                            (route_precedence == -1000000) and
+                            (rv.route["match"].get("safe_regex", {}).get("regex", None) == "^/$")):
+                        extra_info = " (force Route for fallback Mapping)"
+                        action = "Route"
+
+                    if action != 'Reject':
+                        # Worth noting here that "Route" really means "do what the V3Route really says", which
+                        # might be a host redirect. When we talk about "Redirect", we really mean "redirect to HTTPS".
+
+                        if True or self._log_debug:
+                            logger.info("      %s - %s: accept on %s %s%s",
+                                        matcher, action, self.name, vhostname, extra_info)
+                        vhost.routes.append(rv.get_variant(matcher, action.lower()))
+                    else:
+                        if True or self._log_debug:
+                            logger.info("      %s - %s: drop from %s %s%s",
+                                        matcher, action, self.name, vhostname, extra_info)
+
     def as_dict(self) -> dict:
         return {
             "name": self.name,
@@ -569,6 +646,7 @@ class V3Listener(dict):
             v3listener.finalize()
 
             config.listeners.append(v3listener)
-
-            if v3listener._log_debug:
-                config.ir.logger.debug(f"V3Listener generated: {v3listener}")
+            config.ir.logger.info(f"V3Listener: ==== GENERATED {v3listener}")
+            
+            for k in sorted(v3listener._vhosts.keys()):
+                config.ir.logger.info("    %s", v3listener._vhosts[k].pretty())

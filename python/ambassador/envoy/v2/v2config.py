@@ -21,7 +21,7 @@ from ...cache import Cache, NullCache
 from ..common import EnvoyConfig, sanitize_pre_json
 from .v2admin import V2Admin
 from .v2bootstrap import V2Bootstrap
-from .v2route import V2Route
+from .v2route import V2Route, V2RouteVariants
 from .v2listener import V2Listener
 from .v2cluster import V2Cluster
 from .v2_static_resources import V2StaticResources
@@ -43,6 +43,7 @@ class V2Config (EnvoyConfig):
     ratelimit: Optional[V2RateLimit]
     bootstrap: V2Bootstrap
     routes: List[V2Route]
+    route_variants: List[V2RouteVariants]
     listeners: List[V2Listener]
     clusters: List[V2Cluster]
     static_resources: V2StaticResources
