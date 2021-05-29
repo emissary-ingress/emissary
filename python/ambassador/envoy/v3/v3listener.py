@@ -29,6 +29,7 @@ from .v3tls import V3TLSContext
 from .v3virtualhost import V3VirtualHost
 
 if TYPE_CHECKING:
+    from ...ir.irhost import IRHost             # pragma: no cover
     from ...ir.irtlscontext import IRTLSContext # pragma: no cover
     from . import V3Config                      # pragma: no cover
 
@@ -53,6 +54,7 @@ class V3Listener(dict):
         self._insecure_only: bool = False
         self._filter_chains: List[dict] = []
         self._base_http_config: Optional[Dict[str, Any]] = None
+        self._vhosts: Dict[str, V3VirtualHost] = {}
 
         # It's important from a performance perspective to wrap debug log statements
         # with this check so we don't end up generating log strings (or even JSON
@@ -163,6 +165,39 @@ class V3Listener(dict):
 
         # OK, once that's done, stick this into our filter chains.
         self._filter_chains.append(chain_entry)
+
+    def add_vhost(self, name: str, host: 'IRHost', secure: bool) -> None:
+        # None is OK for a secure action, though not for an insecure action. For real.
+        secure_action = host.secure_action if secure else None
+        insecure_action = host.insecure_action
+
+        if self._log_debug:
+            self.config.ir.logger.debug("V3Listener %s: adding %s '%s' %s)" %
+                                       (self.name, "secure" if secure else "insecure", name, host))
+
+        secure_key = 'secure' if secure else 'insecure'
+        ctx_key = host.context.name if host.context else '<cleartext>'
+        vhost_key = f"{host.hostname}-{secure_key}-{ctx_key}"
+
+        vhost = self._vhosts.get(vhost_key)
+
+        if vhost:
+            if ((host.hostname != vhost._hostname) or
+                (host.context != vhost._ctx) or
+                (secure != vhost._secure) or
+                (secure_action != vhost._action) or
+                (insecure_action != vhost._insecure_action)):
+                raise Exception("V3Listener %s: trying to make vhost %s for %s but one already exists" %
+                                (self.name, name, host.hostname))
+            else:
+                return
+
+        context = host.context if secure else None
+
+        vhost = V3VirtualHost(config=self.config, listener=self,
+                              name=name, hostname=host.hostname, ctx=context,
+                              secure=secure, action=secure_action, insecure_action=insecure_action)
+        self._vhosts[vhost_key] = vhost
 
     # access_log constructs the access_log configuration for this V3Listener
     def access_log(self) -> List[dict]:
@@ -425,8 +460,9 @@ class V3Listener(dict):
         return base_http_config
 
     def finalize(self) -> None:
-        if self._log_debug:
-            self.config.ir.logger.debug(f"V3Listener finalize {self.pretty()}")
+        # if self._log_debug:
+        #     self.config.ir.logger.debug(f"V3Listener finalize {self}")
+        self.config.ir.logger.info(f"V3Listener: ==== finalize {self}")
 
         # OK. Assemble the high-level stuff for Envoy.
         self.address = {
@@ -436,6 +472,61 @@ class V3Listener(dict):
                 "protocol": "TCP"
             }
         }
+
+        # Next, deal with HTTP stuff if this is an HTTP Listener.
+        if self._base_http_config:
+            self.finalize_vhosts()
+
+    def finalize_vhosts(self) -> None:
+        # Match up Hosts with this Listener, and create VHosts for them.
+        for host in self.config.ir.get_hosts():
+            # XXX Reject if labels don't match.
+
+            # OK, if we're still here, then it's a question of matching the Listener's 
+            # SecurityModel with the Host's requestPolicy.
+            # 
+            # First up, if the Listener is marked insecure-only, but the Listener's port
+            # doesn't match the Host's insecure_addl_port, don't take this Host: this 
+            # Listener was synthesized to handle some other Host. (This is a corner case that
+            # will become less and less likely as more people hop on the Listener bandwagon.
+            # Also, remember that Hosts don't specify bind addresses, so only the port matters
+            # here.)
+
+            if self._insecure_only and (self.port != host.insecure_addl_port):
+                self.config.ir.logger.info("V3Listener %s (%s): drop %s, insecure-only port mismatch",
+                                           self.name, self._security_model, host.name)
+                continue
+
+            # OK, we can't drop it for that, so we need to check the actions.
+
+            vhostname = host.hostname or "*"
+
+            security_model = self._security_model
+            secure_action = host.secure_action
+            insecure_action = host.insecure_action
+
+            # If the Listener's securityModel is SECURE, but this host has a secure_action
+            # of Reject (or empty), we'll skip this host, because the only requests this 
+            # Listener can ever produce will be rejected. In any other case, we'll take
+            # this Host on the secure side.
+
+            will_reject_secure = ((not secure_action) or (secure_action == "Reject"))
+
+            if not ((security_model == "SECURE") and will_reject_secure):
+                self.config.ir.logger.info("V3Listener %s: take SECURE %s", self.name, host)
+                self.add_vhost(name=vhostname, host=host, secure=True)
+
+                # We can be done here because there's really only one VHost here -- we don't
+                # need to check the insecure action separately if the secure side worked.
+                continue
+
+            # No hit on the secure side, so check the insecure side. Same idea here: only skip
+            # the Host if the Listener's securityModel is INSECURE but the Host's insecure_action
+            # is Reject.
+
+            if not ((security_model == "INSECURE") and (insecure_action == "Reject")):
+                self.config.ir.logger.info("V3Listener %s: take INSECURE %s", self.name, host)
+                self.add_vhost(name=vhostname, host=host, secure=False)
 
     def as_dict(self) -> dict:
         return {
@@ -451,7 +542,8 @@ class V3Listener(dict):
             "name": self.name,
             "bind_address": self.bind_address,
             "port": self.port,
-            # "use_proxy_proto": self.use_proxy_proto
+            "vhosts": [ self._vhosts[k].verbose_dict() for k in sorted(self._vhosts.keys()) ],
+            #  "use_proxy_proto": self.use_proxy_proto,
         }
 
     def __str__(self) -> str:
