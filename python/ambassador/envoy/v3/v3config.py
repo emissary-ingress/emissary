@@ -49,6 +49,8 @@ class V3Config (EnvoyConfig):
     clustermap: Dict[str, Any]
 
     def __init__(self, ir: 'IR', cache: Optional[Cache]=None) -> None:
+        ir.logger.info("EnvoyConfig: Generating V3")
+
         # Init our superclass...
         super().__init__(ir)
 

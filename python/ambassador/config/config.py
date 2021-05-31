@@ -53,6 +53,20 @@ StringOrList = Union[str, List[str]]
 Validator = Callable[[ACResource], RichStatus]
 
 
+def envoy_api_version():
+    """
+    Return the Envoy API version we should be using.
+    """
+    env_version = os.environ.get('AMBASSADOR_ENVOY_API_VERSION', 'V3')
+
+    version = env_version.upper()
+
+    if version == 'V2' or env_version == 'V3':
+        return version
+
+    return 'V2'
+
+
 class Config:
     # CLASS VARIABLES
     # When using multiple Ambassadors in one cluster, use AMBASSADOR_ID to distinguish them.
@@ -62,6 +76,7 @@ class Config:
     certs_single_namespace: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_CERTS_SINGLE_NAMESPACE', os.environ.get('AMBASSADOR_SINGLE_NAMESPACE')))
     enable_endpoints: ClassVar[bool] = not bool(os.environ.get('AMBASSADOR_DISABLE_ENDPOINTS'))
     legacy_mode: ClassVar[bool] = parse_bool(os.environ.get('AMBASSADOR_LEGACY_MODE'))
+    envoy_api_version: ClassVar[str] = envoy_api_version()
 
     StorageByKind: ClassVar[Dict[str, str]] = {
         'authservice': "auth_configs",

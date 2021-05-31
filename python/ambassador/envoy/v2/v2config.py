@@ -49,6 +49,8 @@ class V2Config (EnvoyConfig):
     clustermap: Dict[str, Any]
 
     def __init__(self, ir: 'IR', cache: Optional[Cache]=None) -> None:
+        ir.logger.info("EnvoyConfig: Generating V2")
+
         # Init our superclass...
         super().__init__(ir)
 
