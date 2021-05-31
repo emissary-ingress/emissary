@@ -102,7 +102,7 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
 
         self.referenced_by(mapping)
 
-        self.ir.logger.debug("%s: group now %s" % (self, self.as_json()))
+        # self.ir.logger.debug("%s: group now %s" % (self, self.as_json()))
 
     # Deliberately matches IRListener.bind_to()
     def bind_to(self) -> str:

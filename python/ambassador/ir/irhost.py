@@ -349,6 +349,9 @@ class IRHost(IRResource):
         return "<Host %s for %s ctx %s ia %s iap %s>" % (self.name, self.hostname or '*', ctx_name,
                                                          insecure_action, insecure_addl_port)
 
+    def __str__(self) -> str:
+        return self.pretty()
+
     def resolve(self, ir: 'IR', secret_name: str) -> SavedSecret:
         # Try to use our namespace for secret resolution. If we somehow have no
         # namespace, fall back to the Ambassador's namespace.
