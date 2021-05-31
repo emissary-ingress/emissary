@@ -880,7 +880,7 @@ class V3Listener(dict):
         config.listeners = []
         logger = config.ir.logger
 
-        for key in sorted(config.ir.listeners.keys()):
+        for key in config.ir.listeners.keys():
             irlistener = config.ir.listeners[key]
             v3listener = V3Listener(config, irlistener)
             v3listener.finalize()
