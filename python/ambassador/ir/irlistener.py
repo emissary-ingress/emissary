@@ -179,7 +179,7 @@ class ListenerFactory:
                 # We use protocol HTTPS here so that the TLS inspector is active; that
                 # lets us make better decisions about the security of a given request.
                 ir.save_listener(IRListener(
-                    ir, aconf, "-internal-", "default-http", "-internal-",
+                    ir, aconf, "-internal-", f"ambassador-listener-8080", "-internal-",
                     port=8080,
                     protocol="HTTPS",   # Not a typo! See above.
                     securityModel="XFP"
@@ -187,7 +187,7 @@ class ListenerFactory:
 
                 # Add the default HTTPS listener.
                 ir.save_listener(IRListener(
-                    ir, aconf, "-internal-", "default-https", "-internal-",
+                    ir, aconf, "-internal-", "ambassador-listener-8443", "-internal-",
                     port=8443,
                     protocol="HTTPS",
                     securityModel="XFP"
@@ -199,7 +199,7 @@ class ListenerFactory:
                 # 
                 # We use protocol HTTP here because no, we don't want TLS active.
                 ir.save_listener(IRListener(
-                    ir, aconf, "-internal-", "default-http", "-internal-",
+                    ir, aconf, "-internal-", "ambassador-listener-8080", "-internal-",
                     port=8080,
                     protocol="HTTP",   # Not a typo! See above.
                     securityModel="XFP"
@@ -248,7 +248,7 @@ class ListenerFactory:
                 group_host = group.get('host', None)
                 protocol = "TLS" if group_host else "TCP"
                 bind_address = group.get('address') or Config.envoy_bind_address
-                name = f"tcplistener-{bind_address}-{group.port}"
+                name = f"listener-{bind_address}-{group.port}"
 
                 ir.logger.debug("ListenerFactory: synthesizing %s listener for TCPMappingGroup on %s:%d" %
                                 (protocol, bind_address, group.port))

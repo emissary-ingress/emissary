@@ -130,7 +130,7 @@ class V2Listener(dict):
         self.bind_to = f"{self.bind_address}-{self.port}"
 
         bindstr = f"-{self.bind_address}" if (self.bind_address != "0.0.0.0") else ""
-        self.name = f"ambassador-listener{bindstr}-{self.port}"
+        self.name = irlistener.name or f"ambassador-listener{bindstr}-{self.port}"
 
         self.use_proxy_proto = False
         self.listener_filters: List[dict] = []
