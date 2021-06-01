@@ -53,7 +53,7 @@ release/chart/tag:
 		fi; \
 		chart_ver=`grep 'version:' $(AMBASSADOR_CHART)/Chart.yaml | awk ' { print $$2 }'` ; \
 		chart_ver=chart-v$${chart_ver} ; \
-		git tag -s -m "Tagging $${chart_ver}" -a $${chart_ver} ; \
+		git tag -m "Tagging $${chart_ver}" -a $${chart_ver} ; \
 		git push origin $${chart_ver} ; \
 	}
 
