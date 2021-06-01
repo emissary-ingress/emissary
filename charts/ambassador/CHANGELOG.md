@@ -5,7 +5,7 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
-(no changes yet)
+- Bugfix: remove duplicate label key in ambassador-agent deployment
 
 ## v6.7.9
 
