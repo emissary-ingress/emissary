@@ -1012,6 +1012,8 @@ workflows:
     jobs:
     - oss-promote-to-ga:
         name: "oss-release-promote-to-ga"
+        context:
+        - ambassador
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
@@ -1021,6 +1023,8 @@ workflows:
     jobs:
     - oss-promote-dev-to-rc:
         name: "oss-release-promote-dev-to-rc"
+        context:
+        - ambassador
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
@@ -1030,10 +1034,12 @@ workflows:
     jobs:
     - oss-images:
         name: "oss-dev-images"
+        context: ambassador
     - oss-generate:
         name: "oss-dev-generate"
     - oss-lint:
         name: "oss-dev-lint"
+        context: ambassador
     - oss-chart:
         name: "oss-dev-chart"
     - emissary-chart:

@@ -184,12 +184,16 @@ workflows:
       - "oss-promote-to-ga":
           <<: *filter-ga-only
           name: "oss-release-promote-to-ga"
+          context:
+            - ambassador
 
   "OSS: Release Candidate":
     jobs:
       - "oss-promote-dev-to-rc":
           <<: *filter-rc-only
           name: "oss-release-promote-dev-to-rc"
+          context:
+            - ambassador
 
   "OSS: Dev":
     # Run this workflow on just 'master' and PRs.
@@ -197,11 +201,13 @@ workflows:
       # build+push
       - "oss-images":
           name: "oss-dev-images"
+          context: ambassador
       # test
       - "oss-generate":
           name: "oss-dev-generate"
       - "oss-lint":
           name: "oss-dev-lint"
+          context: ambassador
       - "oss-chart":
           name: "oss-dev-chart"
       - "emissary-chart":
