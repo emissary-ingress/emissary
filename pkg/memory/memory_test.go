@@ -148,3 +148,51 @@ func TestMemoryUsageGCExited(t *testing.T) {
 	assert.Contains(t, m.perProcess, 5)
 
 }
+
+func TestParseMemoryStat(t *testing.T) {
+	assert := assert.New(t)
+	contents := `
+cache 175247360
+rss 403296256
+rss_huge 65011712
+shmem 0
+mapped_file 93401088
+dirty 0
+writeback 0
+swap 1
+pgpgin 5829351
+pgpgout 5726886
+pgfault 5848359
+pgmajfault 792
+inactive_anon 0
+active_anon 309968896
+inactive_file 222568448
+active_file 46092288
+unevictable 0
+hierarchical_memory_limit 2097152000
+hierarchical_memsw_limit 9223372036854771712
+total_cache 175247360
+total_rss 403296256
+total_rss_huge 65011712
+total_shmem 0
+total_mapped_file 93401088
+total_dirty 0
+total_writeback 0
+total_swap 0
+total_pgpgin 5829351
+total_pgpgout 5726886
+total_pgfault 5848359
+total_pgmajfault 792
+total_inactive_anon 0
+total_active_anon 309968896
+total_inactive_file 222568448
+total_active_file 46092288
+total_unevictable 0
+`
+	result, err := parseMemoryStat(contents)
+	assert.NoError(err)
+	assert.Equal(uint64(403296256), result.Rss)
+	assert.Equal(uint64(175247360), result.Cache)
+	assert.Equal(uint64(1), result.Swap)
+	assert.Equal(uint64(222568448), result.InactiveFile)
+}
