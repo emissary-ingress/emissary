@@ -237,7 +237,8 @@ func readUsage() (memory, memory) {
 		log.Printf("couldn't access memory limit: %v", err)
 		return 0, unlimited
 	}
-	usage, err := readMemory("/sys/fs/cgroup/memory/memory.usage_in_bytes")
+
+	stats, err := readMemoryStat("/sys/fs/cgroup/memory/memory.stat")
 	if err != nil {
 		if errors.Is(err, os.ErrPermission) || errors.Is(err, os.ErrNotExist) {
 			// Don't complain if we don't have permission or the info doesn't exist.
@@ -247,7 +248,19 @@ func readUsage() (memory, memory) {
 		return 0, limit
 	}
 
-	return usage, limit
+	// We calculate memory usage according to the OOMKiller as (rss + cache + swap) - inactive_file.
+	// This is substantiated by this article[1] which claims we need to track container_memory_working_set_bytes.
+	// According to this stack overflow[2], container_memory_working_set_bytes is "total usage" - "inactive file".
+	// Best as I can tell from the cgroup docs[3], "total usage" is computed from memory.stat by
+	// adding (rss + cache + swap), and "inactive file" is just the inactive_file field.
+	//
+	// [1]: https://faun.pub/how-much-is-too-much-the-linux-oomkiller-and-used-memory-d32186f29c9d
+	// [2]: https://stackoverflow.com/questions/65428558/what-is-the-difference-between-container-memory-working-set-bytes-and-contain
+	// [3]: https://www.kernel.org/doc/Documentation/cgroup-v1/memory.txt
+
+	totalUsage := stats.Rss + stats.Cache + stats.Swap
+	OOMUsage := totalUsage - stats.InactiveFile
+	return memory(OOMUsage), limit
 }
 
 // Read an int64 from a file and convert it to memory.
@@ -311,4 +324,49 @@ func readPerProcess() map[int]*ProcessUsage {
 	}
 
 	return result
+}
+
+type memoryStat struct {
+	Rss          uint64 // rss field
+	Cache        uint64 // cache field
+	Swap         uint64 // swap field
+	InactiveFile uint64 // inactive_file field
+}
+
+func readMemoryStat(fpath string) (memoryStat, error) {
+	bytes, err := ioutil.ReadFile(fpath)
+	if err != nil {
+		return memoryStat{}, err
+	}
+
+	return parseMemoryStat(string(bytes))
+}
+
+func parseMemoryStat(content string) (memoryStat, error) {
+	result := memoryStat{}
+	lines := strings.Split(content, "\n")
+	for _, line := range lines {
+		line = strings.TrimSuffix(line, "\n")
+		parts := strings.Fields(line)
+		if len(parts) != 2 {
+			continue
+		}
+
+		n, err := strconv.ParseUint(parts[1], 10, 64)
+		if err != nil {
+			return result, err
+		}
+
+		switch parts[0] {
+		case "rss":
+			result.Rss = n
+		case "swap":
+			result.Swap = n
+		case "cache":
+			result.Cache = n
+		case "inactive_file":
+			result.InactiveFile = n
+		}
+	}
+	return result, nil
 }
