@@ -65,7 +65,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Next Release
 
-(no changes yet)
+- Bugfix: Fixed a bug where the Consul resolver would not actually use Consul endpoints with TCPMappings.
 
 ## [1.13.6] May 24, 2021
 [1.13.6]: https://github.com/datawire/ambassador/compare/v1.13.5...v1.13.6

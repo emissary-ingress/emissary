@@ -31,7 +31,7 @@ class IRTCPMapping (IRBaseMapping):
         "service": True,
         "tls": True,
         "weight": True,
-
+        "resolver": True,
         # Include the serialization, too.
         "serialization": True,
     }
