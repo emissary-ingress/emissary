@@ -122,6 +122,12 @@ jobs:
     steps:
       - job-emissary-chart
 
+  "oss-promote-dev-to-rc":
+    executor: oss-linux
+    steps:
+      - job-promote-to-rc-latest:
+          channel: oss
+
   "oss-promote-dev-to-passed":
     executor: oss-linux
     steps:
@@ -132,13 +138,6 @@ jobs:
     steps:
       - job-promote-to-ga:
           channel: oss
-
-  "oss-yaml-publish-s3-rc":
-    executor: oss-linux
-    steps:
-      - job-yaml-publish-s3:
-          update-stable: false
-
 
 _anchors:
   # All of these filters assume that "Only build pull requests" is turned on at
