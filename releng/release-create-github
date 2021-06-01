@@ -20,7 +20,7 @@ RELEASE_BODY_FORMAT= """
 #### Ambassador is an open source, Kubernetes-native microservices API gateway built on the Envoy Proxy.
 
 Upgrade Ambassador - https://www.getambassador.io/reference/upgrading.html
-View changelog - https://github.com/datawire/ambassador/blob/master/CHANGELOG.md
+View changelog - https://github.com/emissary-ingress/emissary-ingress/blob/master/CHANGELOG.md
 Get started with Ambassador on Kubernetes - https://www.getambassador.io/user-guide/getting-started
 
 {release_notes}

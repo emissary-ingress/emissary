@@ -291,7 +291,7 @@ commands:
     - when:
         condition: # Don't do this in the -private repos
           or:
-          - equal: ["https://github.com/datawire/ambassador", << pipeline.project.git_url
+          - equal: ["https://github.com/emissary-ingress/emissary-ingress", << pipeline.project.git_url
                 >>]
         steps:
         - amb-linux-install
@@ -405,10 +405,10 @@ commands:
         condition:
           or:
           - equal:
-            - "https://github.com/datawire/ambassador"
+            - "https://github.com/emissary-ingress/emissary-ingress"
             - << pipeline.project.git_url >>
           - equal:
-            - "https://github.com/datawire/ambassador-private"
+            - "https://github.com/emissary-ingress/emissary-ingress-private"
             - << pipeline.project.git_url >>
         steps:
         - checkout:
@@ -911,7 +911,7 @@ jobs:
         condition:
           and:
           - equal:
-            - "https://github.com/datawire/ambassador"
+            - "https://github.com/emissary-ingress/emissary-ingress"
             - << pipeline.project.git_url >>
           - not:
               equal:
@@ -1301,10 +1301,10 @@ workflows:
     when:
       or:
       - equal:
-        - "https://github.com/datawire/ambassador"
+        - "https://github.com/emissary-ingress/emissary-ingress"
         - << pipeline.project.git_url >>
       - equal:
-        - "https://github.com/datawire/ambassador-private"
+        - "https://github.com/emissary-ingress/emissary-ingress-private"
         - << pipeline.project.git_url >>
     jobs:
     - oss-chart-publish:
@@ -1319,10 +1319,10 @@ workflows:
     when:
       or:
       - equal:
-        - "https://github.com/datawire/ambassador"
+        - "https://github.com/emissary-ingress/emissary-ingress"
         - << pipeline.project.git_url >>
       - equal:
-        - "https://github.com/datawire/ambassador-private"
+        - "https://github.com/emissary-ingress/emissary-ingress-private"
         - << pipeline.project.git_url >>
     jobs:
     - oss-manifest-publish:

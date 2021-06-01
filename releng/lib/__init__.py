@@ -16,7 +16,7 @@ re_ga = re.compile(r'^([0-9]+)\.([0-9]+)\.([0-9]+)$')
 vX = 1
 vY = 2
 
-DEFAULT_REPO = "datawire/ambassador"
+DEFAULT_REPO = "emissary-ingress/emissary-ingress"
 
 
 def base_version(release_version: str) -> str:

@@ -16,7 +16,7 @@ from lib.uiutil import Checker, CheckResult, run
 from lib.uiutil import run_txtcapture as run_capture
 
 
-DEFAULT_REPO = 'git@github.com:datawire/ambassador'
+DEFAULT_REPO = 'git@github.com:emissary-ingress/emissary-ingress'
 
 
 def main(next_ver: str, quiet: bool = False) -> int:
