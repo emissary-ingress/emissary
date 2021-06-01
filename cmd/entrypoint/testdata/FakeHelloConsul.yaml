@@ -16,3 +16,13 @@ spec:
   prefix: /hello
   service: hello
   resolver: consul-dc1
+---
+apiVersion: getambassador.io/v2
+kind: TCPMapping
+metadata:
+  name: hello-tcp
+  namespace: default
+spec:
+  port: 3099
+  service: hello-tcp
+  resolver: consul-dc1
