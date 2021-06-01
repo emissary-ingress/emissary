@@ -503,24 +503,24 @@ func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Sna
 		if a.coreStore != nil {
 			if a.coreStore.podStore != nil {
 				snapshot.Kubernetes.Pods = a.coreStore.podStore.StateOfWorld()
-				dlog.Infof(ctx, "Found %d pods", len(snapshot.Kubernetes.Pods))
+				dlog.Debugf(ctx, "Found %d pods", len(snapshot.Kubernetes.Pods))
 			}
 			if a.coreStore.configMapStore != nil {
 				snapshot.Kubernetes.ConfigMaps = a.coreStore.configMapStore.StateOfWorld()
-				dlog.Infof(ctx, "Found %d configMaps", len(snapshot.Kubernetes.ConfigMaps))
+				dlog.Debugf(ctx, "Found %d configMaps", len(snapshot.Kubernetes.ConfigMaps))
 			}
 			if a.coreStore.deploymentStore != nil {
 				snapshot.Kubernetes.Deployments = a.coreStore.deploymentStore.StateOfWorld()
-				dlog.Infof(ctx, "Found %d Deployments", len(snapshot.Kubernetes.Deployments))
+				dlog.Debugf(ctx, "Found %d Deployments", len(snapshot.Kubernetes.Deployments))
 			}
 		}
 		if a.rolloutStore != nil {
 			snapshot.Kubernetes.ArgoRollouts = a.rolloutStore.StateOfWorld()
-			dlog.Infof(ctx, "Found %d argo rollouts", len(snapshot.Kubernetes.ArgoRollouts))
+			dlog.Debugf(ctx, "Found %d argo rollouts", len(snapshot.Kubernetes.ArgoRollouts))
 		}
 		if a.applicationStore != nil {
 			snapshot.Kubernetes.ArgoApplications = a.applicationStore.StateOfWorld()
-			dlog.Infof(ctx, "Found %d argo applications", len(snapshot.Kubernetes.ArgoApplications))
+			dlog.Debugf(ctx, "Found %d argo applications", len(snapshot.Kubernetes.ArgoApplications))
 		}
 	}
 
