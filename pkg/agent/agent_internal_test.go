@@ -17,6 +17,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/durationpb"
 
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/datawire/ambassador/pkg/api/agent"
@@ -340,6 +341,9 @@ func TestProcessSnapshot(t *testing.T) {
 						Namespace: "ns",
 						Labels:    map[string]string{"label": "matching", "tag": "1.0"},
 					},
+					Status: v1.PodStatus{
+						Phase: v1.PodRunning,
+					},
 				},
 				{
 					ObjectMeta: metav1.ObjectMeta{
@@ -347,12 +351,18 @@ func TestProcessSnapshot(t *testing.T) {
 						Namespace: "ns",
 						Labels:    map[string]string{"label2": "alsomatching", "tag": "1.0", "label3": "yay"},
 					},
+					Status: v1.PodStatus{
+						Phase: v1.PodFailed,
+					},
 				},
 				{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "pod3",
 						Namespace: "ns",
 						Labels:    map[string]string{"label2": "alsomatching", "tag": "1.0"},
+					},
+					Status: v1.PodStatus{
+						Phase: v1.PodSucceeded,
 					},
 				},
 			}),
