@@ -316,7 +316,7 @@ class V2Listener(dict):
             base_http_config["max_request_headers_kb"] = max_request_headers_kb
 
         if 'enable_http10' in self.config.ir.ambassador_module:
-            http_options = self.base_http_config.setdefault("http_protocol_options", {})
+            http_options = base_http_config.setdefault("http_protocol_options", {})
             http_options['accept_http_10'] = self.config.ir.ambassador_module.enable_http10
 
         if 'preserve_external_request_id' in self.config.ir.ambassador_module:
