@@ -100,7 +100,10 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
                 "--reviewer", "kflynn,rhs,esmet,acookin"])
 
     if checker.ok:
-        run(["gh", "pr", "view", repatriate_branch, "--repo", get_gh_repo(), "--web"])
+        if getenv("AMBASSADOR_RELENG_NO_GUI"):
+            run(["gh", "pr", "view", repatriate_branch, "--repo", get_gh_repo()])
+        else:
+            run(["gh", "pr", "view", repatriate_branch, "--repo", get_gh_repo(), "--web"])
         return 0
     else:
         return 1
