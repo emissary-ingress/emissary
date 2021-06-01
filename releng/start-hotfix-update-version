@@ -5,7 +5,7 @@ launch the `git citool` GUI to create a commit of it.
 
 import datetime
 import fileinput
-import os.path
+import os
 import re
 import sys
 from contextlib import contextmanager
@@ -55,7 +55,8 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         print("Please install the tool and rerun this script:")
         print("https://github.com/cli/cli#installation")
         return 1
-    run(["gh", "auth", "login"])
+    if not os.environ.get("GITHUB_TOKEN", ""):
+        run(["gh", "auth", "login"])
 
     if not quiet:
         print()
