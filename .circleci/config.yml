@@ -1017,6 +1017,7 @@ workflows:
     jobs:
     - oss-promote-to-ga:
         name: "oss-release-promote-to-ga"
+        context: ambassador
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
@@ -1026,6 +1027,7 @@ workflows:
     jobs:
     - oss-promote-dev-to-rc:
         name: "oss-release-promote-dev-to-rc"
+        context: ambassador
         filters:
           tags:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
@@ -1035,15 +1037,20 @@ workflows:
     jobs:
     - oss-images:
         name: "oss-dev-images"
+        context: ambassador
     - oss-generate:
         name: "oss-dev-generate"
+        context: ambassador
     - oss-lint:
         name: "oss-dev-lint"
+        context: ambassador
     - oss-chart:
         name: "oss-dev-chart"
+        context: ambassador
     - oss-gotest:
         name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure
           >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
+        context: ambassador
         matrix:
           alias: "oss-dev-gotest-matrix"
           parameters:
@@ -1055,6 +1062,7 @@ workflows:
     - oss-gotest:
         name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure
           >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
+        context: ambassador
         matrix:
           alias: "oss-dev-gotest-legacy-matrix"
           parameters:
@@ -1071,12 +1079,14 @@ workflows:
             - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
     - oss-chart-changelog:
         name: "oss-chart-changelog"
+        context: ambassador
     - oss-test:
         requires:
         - "oss-dev-images"
         name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
+        context: ambassador
         matrix:
           alias: "oss-dev-pytest-matrix"
           parameters:
@@ -1101,6 +1111,7 @@ workflows:
         name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
+        context: ambassador
         matrix:
           alias: "oss-dev-pytest-legacy-matrix"
           parameters:
@@ -1127,6 +1138,7 @@ workflows:
         name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
+        context: ambassador
         matrix:
           alias: "oss-dev-envoy-test-matrix"
           parameters:
@@ -1153,6 +1165,7 @@ workflows:
         name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
+        context: ambassador
         matrix:
           alias: "oss-dev-envoy-test-legacy-matrix"
           parameters:
@@ -1169,6 +1182,7 @@ workflows:
             - master
             - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
     - oss-promote-dev-to-passed:
+        context: ambassador
         requires:
         - oss-dev-pytest
         - oss-dev-pytest-envoy
@@ -1202,6 +1216,7 @@ workflows:
     jobs:
     - oss-chart-publish:
         name: "oss-release-chart"
+        context: ambassador
         filters:
           tags:
             only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
@@ -1219,6 +1234,7 @@ workflows:
     jobs:
     - oss-manifest-publish:
         name: "oss-rc-manifests-publish"
+        context: ambassador
         filters:
           tags:
             only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
@@ -1235,10 +1251,12 @@ workflows:
     jobs:
     - oss-images:
         name: "oss-nightly-images"
+        context: ambassador
     - oss-gotest:
         name: "oss-nightly-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
+        context: ambassador
         matrix:
           alias: "oss-nightly-gotest"
           parameters:
@@ -1257,6 +1275,7 @@ workflows:
         name: "oss-nightly-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
+        context: ambassador
         matrix:
           alias: "oss-nightly-test"
           parameters:
@@ -1284,6 +1303,7 @@ workflows:
         name: "oss-nightly-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
+        context: ambassador
         matrix:
           alias: "oss-nightly-envoy-test"
           parameters:
