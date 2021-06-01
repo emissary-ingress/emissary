@@ -1221,7 +1221,7 @@ workflows:
         filters:
           branches:
             only:
-            - shared/emissary
+            - master
     jobs:
     - oss-images:
         name: "oss-nightly-images"
