@@ -90,6 +90,15 @@ release/chart/update-images: $(YQ)
 		$(call _docgen,$$chart) ; \
 	done ;
 
+release/chart/aes-image-update: $(YQ)
+	@[ -n "${AES_IMAGE_TAG}" ] || (echo "AES_IMAGE_TAG must be set" && exit 1)
+	for chart in $(AMBASSADOR_CHART) ; do \
+		$(call _set_tag,$$chart/values.yaml,${AES_IMAGE_TAG},aes) ; \
+		$(YQ) w -i $$chart/Chart.yaml 'appVersion' ${AES_IMAGE_TAG} ; \
+		IMAGE_TAG="${AES_IMAGE_TAG}" IMAGE_TYPE="Edge Stack" CHART_NAME=`basename $$chart` $(OSS_HOME)/charts/scripts/image_tag_changelog_update.sh ; \
+	done ;
+.PHONY: release/chart/aes-image-update
+
 # Both charts should have same versions for now. Just makes things a bit easier if we publish them together for now
 release/chart-bump/revision:
 	@for chart in $(AMBASSADOR_CHART) ; do \

@@ -13,6 +13,7 @@ import fileinput
 import os.path
 import re
 import sys
+import argparse
 from contextlib import contextmanager
 from typing import Generator
 from shutil import which
@@ -23,7 +24,7 @@ from lib.uiutil import run_txtcapture as run_capture
 from lib.gitutil import has_open_pr
 
 
-def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = True, promote_path: str = '') -> int:
+def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = True, promote_path: str = '', aes_ver: str = '') -> int:
     if which("gh") is None:
         print("gh tool is not installed.")
         print("Please install the tool and rerun this script:")
@@ -68,6 +69,12 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         return 1
 
     print('TODO: CHECK THAT IMAGE EXISTS')
+    if aes_ver != '':
+        with check(f"Updating AES image tag to {aes_ver}"):
+            run(["make", f"AES_IMAGE_TAG={aes_ver}", "release/chart/aes-image-update"])
+        if not checker.ok:
+            return 1
+
     with check(f"Updating image tag in charts"):
         run(["make", f"IMAGE_TAG={image_tag}", "release/chart/update-images"])
         git_add("charts/ambassador/Chart.yaml")
@@ -125,29 +132,34 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
 
 if __name__ == '__main__':
     args = sys.argv[1:]
+    parser = argparse.ArgumentParser(description='Edit image values for ambassador helm charts.')
+    parser.add_argument('--quiet', dest='quiet', default=False, action='store_true')
+    parser.add_argument('--no-commit', dest='no_commit', default=False, action='store_true')
+    parser.add_argument('--promote-path', default="")
+    parser.add_argument('--oss-version', required=True)
+    parser.add_argument('--aes-version', default="")
+    args = parser.parse_args()
 
     quiet = False
     commit = True
 
-    while args and args[0].startswith("--"):
-        if args[0] == '--quiet':
-            quiet = True
-            args.pop(0)
-        elif args and (args[0] == '--no-commit'):
-            commit = False
-            args.pop(0)
+    if args.quiet:
+        quiet = True
+    if args.no_commit:
+        commit = False
 
-    if len(args) < 1 or not re_ga.match(args[0]):
-        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z\n")
+    if not re_ga.match(args.oss_version):
+        sys.stderr.write("--oss-version must be X.Y.Z")
         sys.exit(2)
-    promote_path = ''
-    if len(args) > 1:
-        promote_path = args[1]
+    if args.aes_version != "" and not re_ga.match(args.aes_version):
+        sys.stderr.write("--aes-version must be X.Y.Z")
+        sys.exit(2)
 
     sys.exit(main(
-        next_ver=args[0],
+        next_ver=args.oss_version,
         today=datetime.date.today(),
         quiet=quiet,
         commit=commit,
-        promote_path=promote_path,
+        promote_path=args.promote_path,
+        aes_ver=args.aes_version,
     ))
