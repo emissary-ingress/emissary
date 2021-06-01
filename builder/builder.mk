@@ -895,7 +895,7 @@ release/prep-rc:
 		read -p "I'm about to tag $${rc_tag}, is this correct? (y/n) " -n 1 -r ; \
 		echo ; \
 		[[ ! $$REPLY =~ ^[Yy]$$ ]] && (printf "$(RED)Exiting without tagging\n" ; exit 1) ; \
-		git tag -s -m $$rc_tag -a $$rc_tag && git push origin $$rc_tag ; \
+		git tag -m $$rc_tag -a $$rc_tag && git push origin $$rc_tag ; \
 	}
 .PHONY: release/prep-rc
 
@@ -914,7 +914,7 @@ release/go:
 	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
 	@git fetch && git checkout v$(VERSIONS_YAML_VER)-rc.$(RC_NUMBER)
 	@$(OSS_HOME)/releng/release-ga-sanity-check --quiet $(VERSIONS_YAML_VER)
-	@git tag -s -m "Tagging v$(VERSIONS_YAML_VER) for GA" -a v$(VERSIONS_YAML_VER)
+	@git tag -m "Tagging v$(VERSIONS_YAML_VER) for GA" -a v$(VERSIONS_YAML_VER)
 	@git push origin v$(VERSIONS_YAML_VER)
 	@$(OSS_HOME)/releng/release-go-changelog-update --quiet $(VERSIONS_YAML_VER)
 .PHONY: release/go
