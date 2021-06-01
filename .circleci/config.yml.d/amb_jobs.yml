@@ -313,7 +313,7 @@ commands:
       - when:
           condition: # Don't do this in the -private repos
             or:
-            - equal: [ "https://github.com/datawire/ambassador", << pipeline.project.git_url >> ]
+            - equal: [ "https://github.com/emissary-ingress/emissary", << pipeline.project.git_url >> ]
           steps:
             - amb-linux-install
             - amb-checkout

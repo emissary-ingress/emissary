@@ -21,7 +21,7 @@ CHART_DIR="${TOP_DIR}/${CHART_NAME}"
 chart_version=$(get_chart_version ${CHART_DIR})
 
 new_changelog=${CHART_DIR}/CHANGELOG.new.md
-ambassador_changelog_link="https://github.com/datawire/ambassador/blob/master/CHANGELOG.md"
+ambassador_changelog_link="https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md"
 rm ${new_changelog} > /dev/null 2>&1 || true
 buffering=
 while IFS= read -r line ; do
