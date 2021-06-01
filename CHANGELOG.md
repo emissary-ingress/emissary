@@ -63,6 +63,13 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [1.13.7] (TBD)
+[1.13.7]: https://github.com/datawire/ambassador/compare/v1.13.6...v1.13.7
+
+### Emissary Ingress and Ambassador Edge Stack
+
+(no changes yet)
+
 ## Next Release
 
 - Feature: Add AMBASSADOR_JSON_LOGGING to enable JSON for most of the Ambassador control plane. Some (but few) logs from gunicorn and the Kubernetes client-go package still log text.
