@@ -136,9 +136,7 @@ commands:
     - amb-skip-if-no-code-changes-not-release
     - amb-config-registry
     - # main
-      run: make images
-    - run: |
-        [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push
+      run: make push
     - when:
         condition:
           not: << parameters.release >>
@@ -146,7 +144,7 @@ commands:
         - run:
             name: "Push dev images"
             command: |
-              [[ "$DEV_REGISTRY" == 127.0.0.1:31000 ]] || make push-dev
+              make push-dev
         - run:
             name: "Clean up dirty chart stuff"
             command: |

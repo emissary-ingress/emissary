@@ -231,6 +231,10 @@ raw-version:
 	@$(BUILDER) raw-version
 .PHONY: raw-version
 
+python/ambassador.version:
+	$(BUILDER) raw-version > python/ambassador.version
+.PHONY: python/ambassador.version
+
 compile: sync
 	@$(BUILDER) compile
 .PHONY: compile
@@ -246,7 +250,7 @@ compile: sync
 
 # Give Make a hint about which pattern rules to apply.  Honestly, I'm
 # not sure why Make isn't figuring it out on its own, but it isn't.
-_images = builder-base snapshot base-envoy $(LCNAME) $(LCNAME)-ea kat-client kat-server
+_images = builder-base base-envoy $(LCNAME) $(LCNAME)-ea kat-client kat-server
 $(foreach i,$(_images), docker/$i.docker.tag.local  ): docker/%.docker.tag.local : docker/%.docker
 $(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remote: docker/%.docker
 
@@ -257,18 +261,6 @@ docker/container.txt.stamp: %/container.txt.stamp: %/builder-base.docker.tag.loc
 	@printf "${CYN}==> ${GRN}Bootstrapping builder container${END}\n"
 	@($(BOOTSTRAP_EXTRAS) $(BUILDER) bootstrap > $@)
 
-docker/snapshot.docker.stamp: %/snapshot.docker.stamp: %/container.txt FORCE compile
-	@set -e; { \
-	  if test -e $@ && ! docker exec $$(cat $<) test -e /buildroot/image.dirty; then \
-	    printf "${CYN}==> ${GRN}Snapshot of ${BLU}$$(cat $<)${GRN} container is already up-to-date${END}\n"; \
-	  else \
-	    printf "${CYN}==> ${GRN}Snapshotting ${BLU}$$(cat $<)${GRN} container${END}\n"; \
-	    TIMEFORMAT="     (snapshot took %1R seconds)"; \
-	    time docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $$(cat $<) > $@; \
-	    unset TIMEFORMAT; \
-	    docker exec $$(cat $<) rm -f /buildroot/image.dirty; \
-	  fi; \
-	}
 docker/base-envoy.docker.stamp: FORCE
 	@set -e; { \
 	  if docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@ 2>/dev/null; then \
@@ -281,79 +273,54 @@ docker/base-envoy.docker.stamp: FORCE
 	    docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@; \
 	  fi; \
 	}
-docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
+docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
 	@set -e; { \
-	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
-	    printf "${CYN}==> ${GRN}Image ${BLU}$(LCNAME)${GRN} is already up-to-date${END}\n"; \
-	  else \
 	    printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"; \
-	    printf "    ${BLU}artifacts=$$(cat $*/snapshot.docker)${END}\n"; \
 	    printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"; \
 	    printf "    ${BLU}builderbase=$$(cat $*/builder-base.docker)${END}\n"; \
 	    TIMEFORMAT="     (docker build took %1R seconds)"; \
-	    time ${DBUILD} ${BUILDER_HOME} \
-	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
+	    time ${DBUILD} -f ${BUILDER_HOME}/Dockerfile . \
 	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
 	      --target=ambassador \
 	      --iidfile=$@; \
 	    unset TIMEFORMAT; \
-	  fi; \
 	}
 
 docker/$(LCNAME)-ea.docker.stamp: %/$(LCNAME)-ea.docker.stamp: %/$(LCNAME).docker $(BUILDER_HOME)/Dockerfile-ea FORCE
 	@set -e; { \
-	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
-	    printf "${CYN}==> ${GRN}Image ${BLU}$(LCNAME)-ea${GRN} is already up-to-date${END}\n"; \
-	  else \
-	    printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)-ea${END}\n"; \
-	    printf "    ${BLU}base_ambassador=$$(cat $*/$(LCNAME).docker)${END}\n"; \
-	    TIMEFORMAT="     (docker build took %1R seconds)"; \
-	    echo time ${DBUILD} ${BUILDER_HOME} \
-	      -f $(BUILDER_HOME)/Dockerfile-ea \
-	      --build-arg=base_ambassador="$$(cat $*/$(LCNAME).docker)" \
-	      --target=ambassador-ea \
-	      --iidfile=$@; \
-	    time ${DBUILD} ${BUILDER_HOME} \
-	      -f $(BUILDER_HOME)/Dockerfile-ea \
-	      --build-arg=base_ambassador="$$(cat $*/$(LCNAME).docker)" \
-	      --target=ambassador-ea \
-	      --iidfile=$@; \
-	    unset TIMEFORMAT; \
-	  fi; \
+	  printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)-ea${END}\n"; \
+	  printf "    ${BLU}base_ambassador=$$(cat $*/$(LCNAME).docker)${END}\n"; \
+	  TIMEFORMAT="     (docker build took %1R seconds)"; \
+	  time ${DBUILD} ${BUILDER_HOME} \
+	    -f $(BUILDER_HOME)/Dockerfile-ea \
+	    --build-arg=base_ambassador="$$(cat $*/$(LCNAME).docker)" \
+	    --target=ambassador-ea \
+	    --iidfile=$@; \
+	  unset TIMEFORMAT; \
 	}
 
-docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
+docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
 	@set -e; { \
-	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
-	    printf "${CYN}==> ${GRN}Image ${BLU}kat-client${GRN} is already up-to-date${END}\n"; \
-	  else \
-	    printf "${CYN}==> ${GRN}Building image ${BLU}kat-client${END}\n"; \
-	    TIMEFORMAT="     (kat-client build took %1R seconds)"; \
-	    time ${DBUILD} ${BUILDER_HOME} \
-	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
-	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	      --target=kat-client \
-	      --iidfile=$@; \
-	    unset TIMEFORMAT; \
-	  fi; \
+	  printf "${CYN}==> ${GRN}Building image ${BLU}kat-client${END}\n"; \
+	  TIMEFORMAT="     (kat-client build took %1R seconds)"; \
+	  time ${DBUILD} -f ${BUILDER_HOME}/Dockerfile . \
+	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
+	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	    --target=kat-client \
+	    --iidfile=$@; \
+	  unset TIMEFORMAT; \
 	}
-docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/snapshot.docker.tag.local %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
+docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
 	@set -e; { \
-	  if test -e $@ && test -z "$$(find $(filter-out FORCE,$^) -newer $@)" && docker image inspect $$(cat $@) >&/dev/null; then \
-	    printf "${CYN}==> ${GRN}Image ${BLU}kat-server${GRN} is already up-to-date${END}\n"; \
-	  else \
-	    printf "${CYN}==> ${GRN}Building image ${BLU}kat-server${END}\n"; \
-	    TIMEFORMAT="     (kat-server build took %1R seconds)"; \
-	    time ${DBUILD} ${BUILDER_HOME} \
-	      --build-arg=artifacts="$$(cat $*/snapshot.docker)" \
-	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	      --target=kat-server \
-	      --iidfile=$@; \
-	    unset TIMEFORMAT; \
-	  fi; \
+	  printf "${CYN}==> ${GRN}Building image ${BLU}kat-server${END}\n"; \
+	  TIMEFORMAT="     (kat-server build took %1R seconds)"; \
+	  time ${DBUILD} -f ${BUILDER_HOME}/Dockerfile . \
+	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
+	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	    --target=kat-server \
+	    --iidfile=$@; \
+	  unset TIMEFORMAT; \
 	}
 
 REPO=$(BUILDER_NAME)
@@ -452,6 +419,54 @@ PYTEST_ARGS ?=
 export PYTEST_ARGS
 
 PYTEST_GOLD_DIR ?= $(abspath python/tests/gold)
+
+# Internal target for running a bash shell.
+_bash:
+	@PS1="\u:\w $$ " /bin/bash
+.PHONY: _bash
+
+# Internal runner target that executes an entrypoint after setting up the user's UID/GUID etc.
+_runner:
+	@printf "$(CYN)==>$(END) * Creating group $(BLU)$$INTERACTIVE_GROUP$(END) with GID $(BLU)$$INTERACTIVE_GID$(END)\n"
+	@addgroup -g $$INTERACTIVE_GID $$INTERACTIVE_GROUP
+	@printf "$(CYN)==>$(END) * Creating user $(BLU)$$INTERACTIVE_USER$(END) with UID $(BLU)$$INTERACTIVE_UID$(END)\n"
+	@adduser -u $$INTERACTIVE_UID -G $$INTERACTIVE_GROUP $$INTERACTIVE_USER -D
+	@printf "$(CYN)==>$(END) * Adding user $(BLU)$$INTERACTIVE_USER$(END) to $(BLU)/etc/sudoers$(END)\n"
+	@echo "$$INTERACTIVE_USER ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers
+	@printf "$(CYN)==>$(END) * Switching to user $(BLU)$$INTERACTIVE_USER$(END) with shell $(BLU)/bin/bash$(END)\n"
+	@su -s /bin/bash $$INTERACTIVE_USER -c "$$ENTRYPOINT"
+.PHONY: _runner
+
+# This target is a convenience alias for running the _bash target.
+docker/shell: docker/run/_bash
+.PHONY: docker/shell
+
+# This target runs any existing target inside of the builder base docker image.
+docker/run/%: docker/builder-base.docker
+	docker run --net=host \
+		-e INTERACTIVE_UID=$$(id -u) \
+		-e INTERACTIVE_GID=$$(id -g) \
+		-e INTERACTIVE_USER=$$(id -u -n) \
+		-e INTERACTIVE_GROUP=$$(id -g -n) \
+		-e PYTEST_ARGS="$$PYTEST_ARGS" \
+		-e AMBASSADOR_DOCKER_IMAGE="$$AMBASSADOR_DOCKER_IMAGE" \
+		-e KAT_CLIENT_DOCKER_IMAGE="$$KAT_CLIENT_DOCKER_IMAGE" \
+		-e KAT_SERVER_DOCKER_IMAGE="$$KAT_SERVER_DOCKER_IMAGE" \
+		-e DEV_KUBECONFIG="$$DEV_KUBECONFIG" \
+		-v /etc/resolv.conf:/etc/resolv.conf \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v $${DEV_KUBECONFIG}:$${DEV_KUBECONFIG} \
+		-v $${PWD}:$${PWD} \
+		-it \
+		--init \
+		--cap-add=NET_ADMIN \
+		--entrypoint /bin/bash \
+		$$(cat docker/builder-base.docker) -c "cd $$PWD && ENTRYPOINT=make\ $* make --quiet _runner"
+
+# Don't try running 'make shell' from within docker. That target already tries to run a builder shell.
+# Instead, quietly define 'docker/run/shell' to be an alias for 'docker/shell'.
+docker/run/shell:
+	$(MAKE) --quiet docker/shell
 
 setup-envoy: extract-bin-envoy
 
@@ -563,10 +578,27 @@ create-venv:
 	[[ -d $(OSS_HOME)/venv ]] || python3 -m venv $(OSS_HOME)/venv
 .PHONY: create-venv
 
+# If we're setting up within Alpine linux, make sure to pin pip and pip-tools
+# to something that is still PEP517 compatible. This allows us to set _manylinux.py
+# and convince pip to install prebuilt wheels. We do this because there's no good
+# rust toolchain to build orjson within Alpine itself.
+setup-venv:
+	@set -e; { \
+		if [ -f /etc/issue ] && grep "Alpine Linux" < /etc/issue ; then \
+			pip3 install -U pip==20.2.4 pip-tools==5.3.1; \
+			echo 'manylinux1_compatible = True' > venv/lib/python3.8/site-packages/_manylinux.py; \
+			pip install orjson==3.3.1; \
+			rm -f venv/lib/python3.8/site-packages/_manylinux.py; \
+		else \
+			pip install orjson==3.3.1; \
+		fi; \
+		pip install -r $(OSS_HOME)/builder/requirements.txt; \
+		pip install -e $(OSS_HOME)/python; \
+	}
+.PHONY: setup-orjson
+
 setup-diagd: create-venv
-	. $(OSS_HOME)/venv/bin/activate && pip install orjson && \
-		pip install -r $(OSS_HOME)/builder/requirements.txt && \
-		pip install -e $(OSS_HOME)/python
+	. $(OSS_HOME)/venv/bin/activate && $(MAKE) setup-venv
 .PHONY: setup-diagd
 
 gotest: setup-diagd
@@ -910,6 +942,7 @@ release/hotfix/start:
 .PHONY: release/hotfix/start
 
 clean:
+	@rm -f $(OSS_HOME)/bin/*
 	@$(BUILDER) clean
 .PHONY: clean
 
