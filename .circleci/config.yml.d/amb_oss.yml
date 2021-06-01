@@ -350,7 +350,7 @@ workflows:
           filters:
             branches:
               only:
-                - shared/emissary
+                - master
     jobs:
       # build+push
       - "oss-images":
