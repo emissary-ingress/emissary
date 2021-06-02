@@ -68,8 +68,7 @@ jobs:
           no_output_timeout: "30m"
 
 workflows:
-  # All of these filters assume that "Only build pull requests" is turned on at
-  # https://app.circleci.com/settings/project/github/datawire/apro/advanced
+  # All of these filters assume that "Only build pull requests" is turned on
   # and that any non-'master' branches that we wish to run on are set up to be
   # triggered by GitHub actions (see ".github/workflows/circleci-branches.yml").
   "Docs: Dev":
@@ -96,20 +95,6 @@ workflows:
                 # shows as branch="pull/${number}"); they won't have
                 # GH_TOKEN set to be able to pull getambassador.io.git
                 - /^pull\/[0-9]+$/
-  "Docs: Prerelease":
-    # Run preview-build+preview-publish on prerelease tags so that we
-    # have a preview for the smoke-testers to use.  Do this in a
-    # separate job from the "Dev" workflow so that people looking at
-    # the PR vs the tag don't get different preview URLs.
-    when:
-      equal: [ "https://github.com/datawire/apro", << pipeline.project.git_url >> ]
-    jobs:
-      - "website-preview-for-smoketest":
-          filters:
-            tags:
-              only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-            branches:
-              ignore: /.*/
   "Docs: Release":
     when:
       equal: [ "https://github.com/emissary-ingress/emissary", << pipeline.project.git_url >> ]

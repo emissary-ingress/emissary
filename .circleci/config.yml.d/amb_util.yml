@@ -115,17 +115,6 @@ commands:
           steps:
             - checkout:
                 path: ~/project/ambassador
-      - when:
-          condition:
-            or:
-            - equal: [ "https://github.com/datawire/apro", << pipeline.project.git_url >> ]
-            - equal: [ "https://github.com/datawire/apro-private", << pipeline.project.git_url >> ]
-          steps:
-            - run:
-                working_directory: ~/project
-                command: "rmdir ~/project/ambassador || true"
-            - checkout:
-                path: ~/project
 
   "amb-login-registry":
     steps:
