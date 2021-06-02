@@ -294,7 +294,6 @@
             ]
           }
         ],
-        "listener_filters": [],
         "name": "ambassador-listener-8080",
         "traffic_direction": "UNSPECIFIED"
       }
