@@ -7,6 +7,8 @@ from kat.harness import Query
 from abstract_tests import AmbassadorTest, ServiceType, HTTP, AHTTP, AGRPC
 from selfsigned import TLSCerts
 
+from ambassador import Config
+
 
 class AuthenticationGRPCTest(AmbassadorTest):
 
@@ -853,7 +855,7 @@ class AuthenticationGRPCV2Test(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
-        if os.environ.get('KAT_USE_ENVOY_V3', '') != '':
+        if Config.envoy_api_version == "V3":
             self.skip_node = True
         self.target = HTTP()
         self.auth = AGRPC(name="auth", protocol_version="v2")
@@ -947,7 +949,7 @@ class AuthenticationGRPCV3Test(AmbassadorTest):
     auth: ServiceType
 
     def init(self):
-        if os.environ.get('KAT_USE_ENVOY_V3', '') == '':
+        if Config.envoy_api_version != "V3":
             self.skip_node = True
         self.target = HTTP()
         self.auth = AGRPC(name="auth", protocol_version="v3")
