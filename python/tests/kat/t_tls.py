@@ -341,7 +341,7 @@ class TLS(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
-        #
+
     def manifests(self) -> str:
         return f"""
 ---
@@ -366,22 +366,36 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["localhost"].k8s_crt}
   tls.key: {TLSCerts["localhost"].k8s_key}
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: tls-host
+  labels:
+    kat-ambassador-id: tls
+spec:
+  ambassador_id: tls
+  tlsSecret:
+    name: test-tls-secret
+  requestPolicy:
+    insecure:
+      action: Reject
 """ + super().manifests()
 
     def config(self):
-        # Use self here, not self.target, because we want the TLS module to
-        # be annotated on the Ambassador itself.
-        yield self, self.format("""
----
-apiVersion: ambassador/v0
-kind: Module
-name: tls
-ambassador_id: {self.ambassador_id}
-config:
-  server:
-    enabled: True
-    secret: test-tls-secret
-""")
+#         # Use self here, not self.target, because we want the TLS module to
+#         # be annotated on the Ambassador itself.
+#         yield self, self.format("""
+# ---
+# apiVersion: ambassador/v0
+# kind: Module
+# name: tls
+# ambassador_id: {self.ambassador_id}
+# config:
+#   server:
+#     enabled: True
+#     secret: test-tls-secret
+# """)
 
         # Use self.target _here_, because we want the httpbin mapping to
         # be annotated on the service, not the Ambassador. Also, you don't
