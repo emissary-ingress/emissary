@@ -96,6 +96,9 @@ type Agent struct {
 	// for secrets is locked down to Ops folks only, and we want to make it easy for regular ol'
 	// engineers to give this whole service catalog thing a go
 	agentCloudResourceConfigName string
+
+	// Field selector for the k8s resources that the agent watches
+	agentWatchFieldSelector string
 }
 
 func getEnvWithDefault(envVarKey string, defaultValue string) string {
@@ -137,6 +140,7 @@ func NewAgent(directiveHandler DirectiveHandler) *Agent {
 		agentCloudResourceConfigName: getEnvWithDefault("AGENT_CONFIG_RESOURCE_NAME", "ambassador-agent-cloud-token"),
 		directiveHandler:             directiveHandler,
 		reportRunning:                atomicBool{value: false},
+		agentWatchFieldSelector:      getEnvWithDefault("AGENT_WATCH_FIELD_SELECTOR", "metadata.namespace!=kube-system"),
 	}
 }
 
@@ -261,23 +265,7 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 	if err != nil {
 		return err
 	}
-
-	ns := kates.NamespaceAll
-	podQuery := kates.Query{
-		Namespace: ns,
-		Name:      "Pods",
-		Kind:      "pods.",
-	}
-	cmQuery := kates.Query{
-		Namespace: ns,
-		Name:      "ConfigMaps",
-		Kind:      "configmaps.",
-	}
-	deployQuery := kates.Query{
-		Namespace: ns,
-		Name:      "Deployments",
-		Kind:      "deployments.",
-	}
+	dlog.Info(ctx, "Agent is running...")
 	agentCMQuery := kates.Query{
 		Namespace:     a.agentNamespace,
 		Name:          "ConfigMaps",
@@ -290,12 +278,39 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 		Kind:          "secrets.",
 		FieldSelector: fmt.Sprintf("metadata.name=%s", a.agentCloudResourceConfigName),
 	}
+	configAcc := client.Watch(ctx, agentCMQuery, agentSecretQuery)
+	err = a.waitForAPIKey(ctx, configAcc)
+	if err != nil {
+		dlog.Errorf(ctx, "Error waiting for api key: %+v", err)
+		return err
+	}
+
+	podQuery := kates.Query{
+		Name:          "Pods",
+		Kind:          "pods.",
+		FieldSelector: a.agentWatchFieldSelector,
+	}
+	cmQuery := kates.Query{
+		Name:          "ConfigMaps",
+		Kind:          "configmaps.",
+		FieldSelector: a.agentWatchFieldSelector,
+	}
+	deployQuery := kates.Query{
+		Name:          "Deployments",
+		Kind:          "deployments.",
+		FieldSelector: a.agentWatchFieldSelector,
+	}
+	endpointQuery := kates.Query{
+		Name:          "Endpoints",
+		Kind:          "endpoints.",
+		FieldSelector: a.agentWatchFieldSelector,
+	}
 
 	// If the user didn't setup RBAC to allow the agent to get pods, the watch will just return
 	// no pods, log that it didn't have permission to get pods, and carry along.
-	coreAcc := client.Watch(ctx, podQuery, cmQuery, deployQuery)
-	configAcc := client.Watch(ctx, agentCMQuery, agentSecretQuery)
+	coreAcc := client.Watch(ctx, podQuery, cmQuery, deployQuery, endpointQuery)
 
+	ns := kates.NamespaceAll
 	dc := NewDynamicClient(client.DynamicInterface(), NewK8sInformer)
 	rolloutGvr, _ := schema.ParseResourceArg("rollouts.v1alpha1.argoproj.io")
 	rolloutCallback := dc.WatchGeneric(ctx, ns, rolloutGvr)
@@ -309,6 +324,31 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 type accumulator interface {
 	Changed() chan struct{}
 	FilteredUpdate(target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool
+}
+
+func (a *Agent) waitForAPIKey(ctx context.Context, configAccumulator accumulator) error {
+	isValid := func(un *kates.Unstructured) bool {
+		return true
+	}
+	configSnapshot := struct {
+		Secrets    []kates.Secret
+		ConfigMaps []kates.ConfigMap
+	}{}
+	// wait until the user installs an api key
+	for a.ambassadorAPIKey == "" {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-configAccumulator.Changed():
+			if !configAccumulator.FilteredUpdate(&configSnapshot, &[]*kates.Delta{}, isValid) {
+				continue
+			}
+			a.handleAPIKeyConfigChange(ctx, configSnapshot.Secrets, configSnapshot.ConfigMaps)
+		case <-time.After(1 * time.Minute):
+			dlog.Debugf(ctx, "Still waiting for api key")
+		}
+	}
+	return nil
 }
 
 func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator accumulator, coreAccumulator accumulator, rolloutCallback <-chan *GenericCallback, applicationCallback <-chan *GenericCallback) error {
@@ -333,7 +373,7 @@ func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator
 		Secrets    []kates.Secret
 		ConfigMaps []kates.ConfigMap
 	}{}
-	dlog.Info(ctx, "Agent is running")
+	dlog.Info(ctx, "Beginning to watch and report resources to ambassador cloud")
 	for {
 		// Wait for an event
 		select {
@@ -512,6 +552,10 @@ func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Sna
 			if a.coreStore.deploymentStore != nil {
 				snapshot.Kubernetes.Deployments = a.coreStore.deploymentStore.StateOfWorld()
 				dlog.Debugf(ctx, "Found %d Deployments", len(snapshot.Kubernetes.Deployments))
+			}
+			if a.coreStore.endpointStore != nil {
+				snapshot.Kubernetes.Endpoints = a.coreStore.endpointStore.StateOfWorld()
+				dlog.Debugf(ctx, "Found %d Endpoints", len(snapshot.Kubernetes.Endpoints))
 			}
 		}
 		if a.rolloutStore != nil {

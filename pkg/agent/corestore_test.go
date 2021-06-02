@@ -5,6 +5,7 @@ import (
 
 	"github.com/datawire/ambassador/pkg/agent"
 	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -18,8 +19,28 @@ func TestCoreStore(t *testing.T) {
 		expectedConfigMaps  int
 		getDeployments      func() []*kates.Deployment
 		expectedDeployments int
+		getEndpoints        func() []*kates.Endpoints
+		expectedEndpoints   int
 	}
 	cases := []*testCases{
+		{
+			name: "will add running endpoints to state of the world",
+			getEndpoints: func() []*kates.Endpoints {
+				return []*kates.Endpoints{
+					{
+						TypeMeta: metav1.TypeMeta{
+							Kind:       "Endpoints",
+							APIVersion: "v1",
+						},
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "some-endpoint",
+							Namespace: "default",
+						},
+					},
+				}
+			},
+			expectedEndpoints: 1,
+		},
 		{
 			name: "will add running pods to state of the world",
 			getPods: func() []*kates.Pod {
@@ -271,6 +292,12 @@ func TestCoreStore(t *testing.T) {
 		c := c
 		t.Run(c.name, func(t *testing.T) {
 			t.Parallel()
+			if c.getEndpoints != nil {
+				endpoints := c.getEndpoints()
+				endpointStore := agent.NewEndpointsStore(endpoints)
+				epSOW := endpointStore.StateOfWorld()
+				assert.Equal(t, c.expectedEndpoints, len(epSOW))
+			}
 			if c.getPods != nil {
 				pods := c.getPods()
 				podStore := agent.NewPodStore(pods)
