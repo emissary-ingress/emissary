@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -84,20 +85,21 @@ func (m *MemoryUsage) maybeDo(now time.Time, f func()) {
 
 // The GetMemoryUsage function returns MemoryUsage info for the entire cgroup.
 func GetMemoryUsage() *MemoryUsage {
-	usage, limit := readUsage()
-	return &MemoryUsage{usage, limit, readPerProcess(), 0, time.Time{}, readUsage, readPerProcess, sync.Mutex{}}
+	usage, limit, inactive := readUsage()
+	return &MemoryUsage{usage, limit, inactive, readPerProcess(), 0, time.Time{}, readUsage, readPerProcess, sync.Mutex{}}
 }
 
 // The MemoryUsage struct to holds memory usage and memory limit information about a cgroup.
 type MemoryUsage struct {
 	usage      memory
 	limit      memory
+	inactive   memory
 	perProcess map[int]*ProcessUsage
 	previous   memory
 	lastAction time.Time
 
 	// these allow mocking for tests
-	readUsage      func() (memory, memory)
+	readUsage      func() (memory, memory, memory)
 	readPerProcess func() map[int]*ProcessUsage
 
 	// Protects the whole structure
@@ -132,9 +134,10 @@ func (m *MemoryUsage) Refresh() {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	usage, limit := m.readUsage()
+	usage, limit, inactive := m.readUsage()
 	m.usage = usage
 	m.limit = limit
+	m.inactive = inactive
 
 	// GC process memory info that has been around for more than 10 refreshes.
 	for pid, usage := range m.perProcess {
@@ -208,7 +211,7 @@ func (m *MemoryUsage) PercentUsed() int {
 // This the same as PercentUsed() but not protected by a lock so we can use it form places where we
 // already have the lock.
 func (m *MemoryUsage) percentUsed() int {
-	return int(float64(m.usage) / float64(m.limit) * 100)
+	return int((float64(m.usage) - float64(m.inactive)) / float64(m.limit) * 100)
 }
 
 // The GetCmdline helper returns the command line for a pid. If the pid does not exist or we don't
@@ -227,27 +230,33 @@ func GetCmdline(pid int) []string {
 }
 
 // Helper to read the usage and limit for the cgroup.
-func readUsage() (memory, memory) {
+func readUsage() (memory, memory, memory) {
 	limit, err := readMemory("/sys/fs/cgroup/memory/memory.limit_in_bytes")
 	if err != nil {
-		if errors.Is(err, os.ErrPermission) || errors.Is(err, os.ErrNotExist) {
-			// Don't complain if we don't have permission or the info doesn't exist.
-			return 0, unlimited
+		limit = unlimited
+		// Don't complain if we don't have permission or the info doesn't exist.
+		if !(errors.Is(err, os.ErrPermission) || errors.Is(err, os.ErrNotExist)) {
+			dlog.Errorf(context.TODO(), "couldn't access memory usage: %v", err)
 		}
-		dlog.Errorf(context.TODO(), "couldn't access memory limit: %v", err)
-		return 0, unlimited
 	}
 	usage, err := readMemory("/sys/fs/cgroup/memory/memory.usage_in_bytes")
 	if err != nil {
-		if errors.Is(err, os.ErrPermission) || errors.Is(err, os.ErrNotExist) {
-			// Don't complain if we don't have permission or the info doesn't exist.
-			return 0, limit
+		usage = 0
+		// Don't complain if we don't have permission or the info doesn't exist.
+		if !(errors.Is(err, os.ErrPermission) || errors.Is(err, os.ErrNotExist)) {
+			dlog.Errorf(context.TODO(), "couldn't access memory usage: %v", err)
 		}
-		dlog.Errorf(context.TODO(), "couldn't access memory usage: %v", err)
-		return 0, limit
+	}
+	inactive, err := readInactiveMemory("/sys/fs/cgroup/memory/memory.stat")
+	if err != nil {
+		inactive = 0
+		// Don't complain if we don't have permission or the info doesn't exist.
+		if !(errors.Is(err, os.ErrPermission) || errors.Is(err, os.ErrNotExist)) {
+			dlog.Errorf(context.TODO(), "couldn't access memory stats: %v", err)
+		}
 	}
 
-	return usage, limit
+	return usage, limit, inactive
 }
 
 // Read an int64 from a file and convert it to memory.
@@ -311,4 +320,37 @@ func readPerProcess() map[int]*ProcessUsage {
 	}
 
 	return result
+}
+
+func readInactiveMemory(path string) (memory, error) {
+	fileReader, err := os.Open(path)
+	if err != nil {
+		return 0, err
+	}
+	scanner := bufio.NewScanner(fileReader)
+	for scanner.Scan() {
+		key, v, err := parseKV(scanner.Text())
+		if err != nil {
+			return 0, err
+		}
+		if key == "inactive_file" {
+			return memory(v), nil
+		}
+	}
+	return 0, errors.New("Key inactive_file not found in memory cgroups")
+
+}
+
+func parseKV(raw string) (string, int64, error) {
+	parts := strings.Fields(raw)
+	switch len(parts) {
+	case 2:
+		v, err := strconv.ParseInt(parts[1], 10, 64)
+		if err != nil {
+			return "", 0, err
+		}
+		return parts[0], v, nil
+	default:
+		return "", 0, errors.New("Unable to parse memory cgroups")
+	}
 }

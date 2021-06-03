@@ -69,8 +69,8 @@ func TestMemoryUsageGCExited(t *testing.T) {
 	m := &MemoryUsage{
 		limit:      unlimited,
 		perProcess: map[int]*ProcessUsage{},
-		readUsage: func() (memory, memory) {
-			return 0, unlimited
+		readUsage: func() (memory, memory, memory) {
+			return 0, unlimited, 0
 		},
 		readPerProcess: func() map[int]*ProcessUsage {
 			defer func() {
@@ -147,4 +147,13 @@ func TestMemoryUsageGCExited(t *testing.T) {
 	assert.Contains(t, m.perProcess, 1)
 	assert.Contains(t, m.perProcess, 5)
 
+}
+
+func TestPercentageUsed(t *testing.T) {
+	memory := &MemoryUsage{}
+	memory.usage = 5
+	memory.limit = 10
+	memory.inactive = 2
+
+	assert.Equal(t, memory.PercentUsed(), 30)
 }
