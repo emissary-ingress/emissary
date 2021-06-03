@@ -20,6 +20,7 @@ from ...cache import Cache, NullCache
 
 from ..common import EnvoyConfig, sanitize_pre_json
 from .v2admin import V2Admin
+from .v2ready import V2Ready
 from .v2bootstrap import V2Bootstrap
 from .v2route import V2Route, V2RouteVariants
 from .v2listener import V2Listener
@@ -67,6 +68,7 @@ class V2Config (EnvoyConfig):
         V2Cluster.generate(self)
         V2StaticResources.generate(self)
         V2Bootstrap.generate(self)
+        V2Ready.generate(self)
 
     def has_listeners(self) -> bool:
         return len(self.listeners) > 0

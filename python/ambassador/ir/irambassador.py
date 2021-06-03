@@ -30,6 +30,7 @@ class IRAmbassador (IRResource):
     AModTransparentKeys: ClassVar = [
         'add_linkerd_headers',
         'admin_port',
+        'ready_port',
         'auth_enabled',
         'allow_chunked_length',
         'buffer_limit_bytes',
@@ -120,6 +121,7 @@ class IRAmbassador (IRResource):
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
             service_port=Constants.SERVICE_PORT_HTTP,
             admin_port=Constants.ADMIN_PORT,
+            ready_port=Constants.READY_PORT,
             auth_enabled=None,
             enable_ipv6=False,
             envoy_log_type="text",
