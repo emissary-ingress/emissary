@@ -7,6 +7,11 @@ numbering uses [semantic versioning](http://semver.org).
 
 (no changes yet)
 
+## v6.7.10
+
+- Update Ambassador API Gateway chart image to version v1.13.7: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+- Update Ambassador Edge Stack chart image to version v1.13.7: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
 ## v6.7.9
 
 - Update Ambassador chart image to version 1.13.6: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
