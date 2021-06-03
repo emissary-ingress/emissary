@@ -39,7 +39,7 @@ fi
 
 # make this something different than ambassador, emissary, or edge-stack
 # so we don't conflict with the new hotness we're doing for 2.0
-unversioned_base_s3_key=yaml/ambassador-docs/
+unversioned_base_s3_key=yaml/v2-docs/
 base_s3_key=${unversioned_base_s3_key}${version}
 aws s3api put-object \
     --bucket "$AWS_BUCKET" \
