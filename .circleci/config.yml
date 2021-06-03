@@ -65,7 +65,6 @@ commands:
     # image or the builder-base image.
     - amb-config-registry
     - # main
-      #- run: make test-chart
       run: make test-chart
     - run: make release/ga/chart-push
   "job-manifests-publish":
