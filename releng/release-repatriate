@@ -2,10 +2,10 @@
 """Merges master into the release branch, then PRs back to master
 """
 
+from os import getenv
 import datetime
 import fileinput
 import os.path
-from os import getenv
 import re
 import sys
 from contextlib import contextmanager
@@ -26,7 +26,9 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         print("Please install the tool and rerun this script:")
         print("https://github.com/cli/cli#installation")
         return 1
-    run(["gh", "auth", "login"])
+
+    if not getenv("GITHUB_TOKEN"):
+        run(["gh", "auth", "login"])
 
     warning = """
  ==> Warning: FIXME: This script does not have the property that if
@@ -100,7 +102,10 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
                 "--reviewer", "kflynn,rhs,esmet,acookin"])
 
     if checker.ok:
-        run(["gh", "pr", "view", repatriate_branch, "--repo", get_gh_repo(), "--web"])
+        if getenv("AMBASSADOR_RELENG_NO_GUI"):
+            run(["gh", "pr", "view", repatriate_branch, "--repo", get_gh_repo()])
+        else:
+            run(["gh", "pr", "view", repatriate_branch, "--repo", get_gh_repo(), "--web"])
         return 0
     else:
         return 1

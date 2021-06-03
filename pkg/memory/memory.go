@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math"
 	"os"
 	"sort"
@@ -16,6 +15,7 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/pkg/debug"
+	"github.com/datawire/dlib/dlog"
 )
 
 // The Watch method will check memory usage every 10 seconds and log it if it jumps more than 10Gi
@@ -36,11 +36,11 @@ func (usage *MemoryUsage) Watch(ctx context.Context) {
 			usage.Refresh()
 			memory.Store(usage.ShortString())
 			usage.maybeDo(now, func() {
-				log.Println(usage.String())
+				dlog.Infoln(ctx, usage.String())
 			})
 		case <-ctx.Done():
 			usage.Refresh()
-			log.Println(usage.String())
+			dlog.Infoln(ctx, usage.String())
 			return
 		}
 	}
@@ -220,7 +220,7 @@ func GetCmdline(pid int) []string {
 			// Don't complain if we don't have permission or the info doesn't exist.
 			return nil
 		}
-		log.Printf("couldn't access cmdline for %d: %v", pid, err)
+		dlog.Errorf(context.TODO(), "couldn't access cmdline for %d: %v", pid, err)
 		return nil
 	}
 	return strings.Split(strings.TrimSuffix(string(bytes), "\n"), "\x00")
@@ -234,20 +234,33 @@ func readUsage() (memory, memory) {
 			// Don't complain if we don't have permission or the info doesn't exist.
 			return 0, unlimited
 		}
-		log.Printf("couldn't access memory limit: %v", err)
+		dlog.Errorf(context.TODO(), "couldn't access memory limit: %v", err)
 		return 0, unlimited
 	}
-	usage, err := readMemory("/sys/fs/cgroup/memory/memory.usage_in_bytes")
+
+	stats, err := readMemoryStat("/sys/fs/cgroup/memory/memory.stat")
 	if err != nil {
 		if errors.Is(err, os.ErrPermission) || errors.Is(err, os.ErrNotExist) {
 			// Don't complain if we don't have permission or the info doesn't exist.
 			return 0, limit
 		}
-		log.Printf("couldn't access memory usage: %v", err)
+		dlog.Errorf(context.TODO(), "couldn't access memory usage: %v", err)
 		return 0, limit
 	}
 
-	return usage, limit
+	// We calculate memory usage according to the OOMKiller as (rss + cache + swap) - inactive_file.
+	// This is substantiated by this article[1] which claims we need to track container_memory_working_set_bytes.
+	// According to this stack overflow[2], container_memory_working_set_bytes is "total usage" - "inactive file".
+	// Best as I can tell from the cgroup docs[3], "total usage" is computed from memory.stat by
+	// adding (rss + cache + swap), and "inactive file" is just the inactive_file field.
+	//
+	// [1]: https://faun.pub/how-much-is-too-much-the-linux-oomkiller-and-used-memory-d32186f29c9d
+	// [2]: https://stackoverflow.com/questions/65428558/what-is-the-difference-between-container-memory-working-set-bytes-and-contain
+	// [3]: https://www.kernel.org/doc/Documentation/cgroup-v1/memory.txt
+
+	totalUsage := stats.Rss + stats.Cache + stats.Swap
+	OOMUsage := totalUsage - stats.InactiveFile
+	return memory(OOMUsage), limit
 }
 
 // Read an int64 from a file and convert it to memory.
@@ -267,7 +280,7 @@ func readPerProcess() map[int]*ProcessUsage {
 
 	files, err := ioutil.ReadDir("/proc")
 	if err != nil {
-		log.Printf("could not access memory info: %v", err)
+		dlog.Errorf(context.TODO(), "could not access memory info: %v", err)
 		return nil
 	}
 
@@ -287,7 +300,7 @@ func readPerProcess() map[int]*ProcessUsage {
 				// Don't complain if we don't have permission or the info doesn't exist.
 				continue
 			}
-			log.Printf("couldn't access usage for %d: %v", pid, err)
+			dlog.Errorf(context.TODO(), "couldn't access usage for %d: %v", pid, err)
 			continue
 		}
 
@@ -303,7 +316,7 @@ func readPerProcess() map[int]*ProcessUsage {
 		}
 		rss, err := strconv.ParseUint(rssStr, 10, 64)
 		if err != nil {
-			log.Printf("couldn't parse %s: %v", rssStr, err)
+			dlog.Errorf(context.TODO(), "couldn't parse %s: %v", rssStr, err)
 			continue
 		}
 		rss = rss * 1024
@@ -311,4 +324,49 @@ func readPerProcess() map[int]*ProcessUsage {
 	}
 
 	return result
+}
+
+type memoryStat struct {
+	Rss          uint64 // rss field
+	Cache        uint64 // cache field
+	Swap         uint64 // swap field
+	InactiveFile uint64 // inactive_file field
+}
+
+func readMemoryStat(fpath string) (memoryStat, error) {
+	bytes, err := ioutil.ReadFile(fpath)
+	if err != nil {
+		return memoryStat{}, err
+	}
+
+	return parseMemoryStat(string(bytes))
+}
+
+func parseMemoryStat(content string) (memoryStat, error) {
+	result := memoryStat{}
+	lines := strings.Split(content, "\n")
+	for _, line := range lines {
+		line = strings.TrimSuffix(line, "\n")
+		parts := strings.Fields(line)
+		if len(parts) != 2 {
+			continue
+		}
+
+		n, err := strconv.ParseUint(parts[1], 10, 64)
+		if err != nil {
+			return result, err
+		}
+
+		switch parts[0] {
+		case "rss":
+			result.Rss = n
+		case "swap":
+			result.Swap = n
+		case "cache":
+			result.Cache = n
+		case "inactive_file":
+			result.InactiveFile = n
+		}
+	}
+	return result, nil
 }

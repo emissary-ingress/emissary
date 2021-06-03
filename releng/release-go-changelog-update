@@ -7,6 +7,7 @@ change the appropriate files, then launch the `git citool` GUI to
 create a commit of it.
 """
 
+from os import getenv
 import datetime
 import fileinput
 import os
@@ -67,7 +68,9 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         with checker.check(name) as subcheck:
             # time.sleep(1)  # it's stupid, but honestly the delay makes the output more readable
             yield subcheck
-    run(["gh", "auth", "login"])
+
+    if not getenv("GITHUB_TOKEN"):
+        run(["gh", "auth", "login"])
 
     m = re_ga.match(next_ver)
     assert m
@@ -113,7 +116,10 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             gitdir = run_capture(['git', 'rev-parse', '--git-dir'])
             with open(os.path.join(gitdir, 'GITGUI_MSG'), 'w') as msgfile:
                 msgfile.write(f"Update for v{next_ver}\n")
-            run(['git', 'citool'])
+            if getenv("AMBASSADOR_RELENG_NO_GUI"):
+                run(['git', 'commit', '-am', f'Update for v{next_ver}'])
+            else:
+                run(['git', 'citool'])
             run(["git", "push", "-u", "origin", workbranch])
         if not checker.ok:
             return 1
@@ -137,7 +143,10 @@ If there are any other changes, the PR creator should note the reason."""
                     "--reviewer", "kflynn,rhs,esmet,acookin"])
 
     if checker.ok:
-        run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo(), "--web"])
+        if getenv("AMBASSADOR_RELENG_NO_GUI"):
+            run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo()])
+        else:
+            run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo(), "--web"])
         return 0
     else:
         return 1

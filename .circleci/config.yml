@@ -399,11 +399,11 @@ commands:
   amb-skip-if-no-code-changes:
     steps:
     - skip-if-only-changes:
-        to: (charts/|manifests/|k8s-config/|docs/|*.md)
+        to: (releng/|charts/|manifests/|k8s-config/|docs/|*.md)
   amb-skip-if-no-code-changes-not-release:
     steps:
     - amb-skip-if-only-changes-not-release:
-        to: (charts/|manifests/|k8s-config/|docs/|*.md)
+        to: (releng/|charts/|manifests/|k8s-config/|docs/|*.md)
   amb-checkout:
     steps:
     - when:
@@ -418,21 +418,6 @@ commands:
         steps:
         - checkout:
             path: ~/project/ambassador
-    - when:
-        condition:
-          or:
-          - equal:
-            - "https://github.com/datawire/apro"
-            - << pipeline.project.git_url >>
-          - equal:
-            - "https://github.com/datawire/apro-private"
-            - << pipeline.project.git_url >>
-        steps:
-        - run:
-            working_directory: ~/project
-            command: "rmdir ~/project/ambassador || true"
-        - checkout:
-            path: ~/project
   amb-login-registry:
     steps:
     - run:
@@ -1320,18 +1305,6 @@ workflows:
             # shows as branch="pull/${number}"); they won't have
             # GH_TOKEN set to be able to pull getambassador.io.git
             - /^pull\/[0-9]+$/
-  'Docs: Prerelease':
-    when:
-      equal:
-      - "https://github.com/datawire/apro"
-      - << pipeline.project.git_url >>
-    jobs:
-    - website-preview-for-smoketest:
-        filters:
-          tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-          branches:
-            ignore: /.*/
   'Docs: Release':
     when:
       equal:
