@@ -23,13 +23,19 @@ fi
 CHART_DIR="${TOP_DIR}/${CHART_NAME}"
 
 chart_version=$(get_chart_version ${CHART_DIR})
+search_str="## Next Release"
+echo "${chart_version}"
+if grep "## v${chart_version}" ${CHART_DIR}/CHANGELOG.md ; then
+    search_str="## v${chart_version}"
+fi
 
 new_changelog=${CHART_DIR}/CHANGELOG.new.md
 ambassador_changelog_link="https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md"
 rm ${new_changelog} > /dev/null 2>&1 || true
 buffering=
 while IFS= read -r line ; do
-    if [[ "${line}" =~ "## Next Release" ]] ; then
+
+    if [[ "${line}" =~ "${search_str}" ]] ; then
         buffering=true
     elif [[ "${buffering}" ]] && [[ "${line}" != "" ]]; then
         buffering=
