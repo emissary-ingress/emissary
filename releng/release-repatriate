@@ -17,7 +17,7 @@ from lib.uiutil import Checker, CheckResult, run
 from lib.uiutil import run_txtcapture as run_capture
 from lib import ansiterm
 
-DEFAULT_REPO = 'git@github.com:datawire/ambassador'
+DEFAULT_REPO = 'git@github.com:emissary-ingress/emissary'
 
 
 def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = True) -> int:
