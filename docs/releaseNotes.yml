@@ -34,7 +34,17 @@ changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.
 items:
   - version: 2.3.0
     date: 'TBD'
-    notes: []
+    notes:
+      - title: Add option to enable envoy readiness endpoint from worker
+        type: feature
+        body: >-
+          /ready endpoint used by emissary is using the admin port (8001 by default).
+          This generates a problem during config reloads with large configs as the
+          admin thread is blocking so the /ready endpoint can be very slow to
+          answer (in the order of several seconds, even more).
+          The new feature allows to enable a specific envoy listener that can answer /ready calls
+          from the workers so the endpoint is always fast and it does not suffers from single threaded
+          admin thread slowness on config reloads and other slow endpoints handled by the admin thread
 
   - version: 2.2.1
     date: '2022-02-22'
