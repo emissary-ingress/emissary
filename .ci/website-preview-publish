@@ -50,4 +50,4 @@ curl --fail \
 	-H "Content-Type: application/json" \
 	-X POST \
 	--data '@/tmp/github-status.json' \
-	"https://${GH_TOKEN}@api.github.com/repos/datawire/${CIRCLE_PROJECT_REPONAME}/statuses/${CIRCLE_SHA1}"
+	"https://${GH_TOKEN}@api.github.com/repos/emissary-ingress/${CIRCLE_PROJECT_REPONAME}/statuses/${CIRCLE_SHA1}"
