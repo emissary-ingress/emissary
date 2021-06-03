@@ -81,6 +81,7 @@ import (
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/buffer/v2"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/ext_authz/v2"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/gzip/v2"
+	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/health_check/v2"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/lua/v2"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/rate_limit/v2"
 	_ "github.com/datawire/ambassador/pkg/api/envoy/config/filter/http/rbac/v2"
