@@ -306,6 +306,9 @@ _generate_controller_gen: $(tools/controller-gen) $(tools/fix-crds) update-yaml-
 	  $(foreach varname,$(sort $(filter controller-gen/output/%,$(.VARIABLES))), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
 	  paths="./pkg/api/getambassador.io/..."
 	@PS4=; set -ex; for file in $(crds_yaml_dir)/getambassador.io_*.yaml; do $(tools/fix-crds) helm 1.11 "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
+	# copy the crds into the emissary chart for now.
+	# hack-ish, but this will keep things in sync for the time being
+	cp $(crds_yaml_dir)/* $(OSS_HOME)/charts/emissary-ingress/crds/
 .PHONY: _generate_controller_gen
 
 $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml: $(OSS_HOME)/manifests/ambassador/ambassador-crds.yaml
@@ -313,6 +316,10 @@ $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml: $(OSS_HOME)/manifests/amb
 	cp $(OSS_HOME)/manifests/ambassador/ambassador-crds.yaml $@
 
 $(OSS_HOME)/manifests/ambassador/ambassador-crds.yaml: _generate_controller_gen $(tools/fix-crds) update-yaml-preflight
+	@printf '  $(CYN)$@$(END)\n'
+	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/getambassador.io_*.yaml)) > $@
+
+$(OSS_HOME)/manifests/emissary/emissary-crds.yaml: _generate_controller_gen $(tools/fix-crds) update-yaml-preflight
 	@printf '  $(CYN)$@$(END)\n'
 	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/getambassador.io_*.yaml)) > $@
 
@@ -328,6 +335,8 @@ update-yaml/files += $(OSS_HOME)/docs/yaml/resources-migration.yaml
 update-yaml/files += $(OSS_HOME)/docs/yaml/projects.yaml
 update-yaml/files += $(OSS_HOME)/docs/yaml/aes.yaml
 update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador-agent.yaml
+update-yaml/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
+update-yaml/files += $(OSS_HOME)/manifests/emissary/emissary-ingress.yaml
 update-yaml/files += $(OSS_HOME)/manifests/ambassador/ambassador-crds.yaml
 update-yaml/files += $(OSS_HOME)/manifests/ambassador/ambassador.yaml
 update-yaml/files += $(OSS_HOME)/manifests/edge-stack/oss-migration.yaml
@@ -385,6 +394,15 @@ define generate_yaml_from_helm
 		$(OSS_HOME)/build/yaml/$(1)/helm-expanded.yaml $(OSS_HOME)/k8s-config/$(1)/require.yaml > $(3)
 endef
 
+define generate_emissary_yaml_from_helm
+	mkdir -p $(OSS_HOME)/build/yaml/$(1) && \
+		helm template emissary-ingress -n $(2) \
+		-f $(OSS_HOME)/k8s-config/$(1)/values.yaml \
+		$(OSS_HOME)/charts/emissary-ingress > $(OSS_HOME)/build/yaml/$(1)/helm-expanded.yaml
+	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/k8s-config/create_yaml.py \
+		$(OSS_HOME)/build/yaml/$(1)/helm-expanded.yaml $(OSS_HOME)/k8s-config/$(1)/require.yaml > $(3)
+endef
+
 $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac.yaml: $(OSS_HOME)/manifests/ambassador/ambassador.yaml
 	@printf '  $(CYN)$@$(END)\n'
 	cp $(OSS_HOME)/manifests/ambassador/ambassador.yaml $@
@@ -392,6 +410,10 @@ $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac.yaml: $(OSS_HOME)/manifests/amb
 $(OSS_HOME)/manifests/ambassador/ambassador.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/ambassador-rbac/require.yaml $(OSS_HOME)/k8s-config/ambassador-rbac/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
 	@printf '  $(CYN)$@$(END)\n'
 	$(call generate_yaml_from_helm,ambassador-rbac,default,$@)
+
+$(OSS_HOME)/manifests/emissary/emissary-ingress.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/ambassador-rbac/require.yaml $(OSS_HOME)/k8s-config/ambassador-rbac/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
+	@printf '  $(CYN)$@$(END)\n'
+	$(call generate_emissary_yaml_from_helm,emissary-ingress,default,$@)
 
 $(OSS_HOME)/docs/yaml/oss-migration.yaml: $(OSS_HOME)/manifests/edge-stack/oss-migration.yaml
 	@printf '  $(CYN)$@$(END)\n'

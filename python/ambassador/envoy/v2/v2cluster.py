@@ -63,8 +63,12 @@ class V2Cluster(Cacheable):
         }
 
         if ctype == 'EDS':
-            fields['eds_cluster_config'] = { 'eds_config': {'ads': {}},
-                                             'service_name': cmap_entry['endpoint_path']}
+            fields['eds_cluster_config'] = {
+                'eds_config': {
+                    'ads': {},
+                },
+                'service_name': cmap_entry['endpoint_path']
+            }
         else:
             fields['load_assignment'] = {
                 'cluster_name': cluster.envoy_name,

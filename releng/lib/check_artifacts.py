@@ -147,14 +147,14 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
     if include_docker:
         do_check_docker(checker, 'ambassador')
         with checker.check('Ambassador S3 files', clear_on_success=False) as checker:
-            with do_check_s3(checker, name=f'ambassador/{release_channel}stable.txt') as (subcheck, body):
+            with do_check_s3(checker, name=f'emissary-ingress/{release_channel}stable.txt') as (subcheck, body):
                 if body is not None:
                     subcheck.result = body.decode('UTF-8').strip()
                     if is_private:
                         assert subcheck.result != ga_ver
                     else:
                         assert_eq(subcheck.result, ga_ver)
-            with do_check_s3(checker, name=f'ambassador/{release_channel}app.json', bucket='scout-datawire-io',
+            with do_check_s3(checker, name=f'emissary-ingress/{release_channel}app.json', bucket='scout-datawire-io',
                              private=True) as (subcheck, body):
                 if body is not None:
                     subcheck.result = json.loads(body.decode('UTF-8')).get('latest_version', '')
@@ -183,7 +183,7 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
             assert_eq(check.result, check_tag)
     with checker.check(name='Adding Helm Chart') as check:
         run(['helm', 'repo', 'add', 'emissary',
-            'https://s3.amazonaws.com/datawire-static-files/ambassador'])
+            'https://s3.amazonaws.com/datawire-static-files/emissary-ingress'])
     if not checker.ok:
         with checker.check(name="Updating helm repo"):
             run(['helm', 'repo', 'update'])
@@ -195,7 +195,7 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
     with checker.check(name="Check Helm Chart"):
         yaml_str = run_txtcapture(['helm', 'show', 'chart', '--version', chart_version, 'emissary/ambassador'])
         versions = [
-            line[len('ossVersion:'):].strip() for line in yaml_str.split("\n") if line.startswith('ossVersion:')
+            line[len('appVersion:'):].strip() for line in yaml_str.split("\n") if line.startswith('appVersion:')
         ]
         assert_eq(len(versions), 1)
         check.result = versions[0]

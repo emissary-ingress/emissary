@@ -17,6 +17,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/durationpb"
 
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/datawire/ambassador/pkg/api/agent"
@@ -333,12 +334,15 @@ func TestProcessSnapshot(t *testing.T) {
 					},
 				},
 			},
-			podStore: NewPodStore([]kates.Pod{
+			podStore: NewPodStore([]*kates.Pod{
 				{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "pod1",
 						Namespace: "ns",
 						Labels:    map[string]string{"label": "matching", "tag": "1.0"},
+					},
+					Status: v1.PodStatus{
+						Phase: v1.PodRunning,
 					},
 				},
 				{
@@ -347,12 +351,18 @@ func TestProcessSnapshot(t *testing.T) {
 						Namespace: "ns",
 						Labels:    map[string]string{"label2": "alsomatching", "tag": "1.0", "label3": "yay"},
 					},
+					Status: v1.PodStatus{
+						Phase: v1.PodFailed,
+					},
 				},
 				{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "pod3",
 						Namespace: "ns",
 						Labels:    map[string]string{"label2": "alsomatching", "tag": "1.0"},
+					},
+					Status: v1.PodStatus{
+						Phase: v1.PodSucceeded,
 					},
 				},
 			}),
@@ -388,7 +398,7 @@ func TestProcessSnapshot(t *testing.T) {
 		t.Run(testcase.testName, func(innerT *testing.T) {
 			a := NewAgent(nil)
 			ctx, _ := getCtxLog()
-			a.podStore = testcase.podStore
+			a.coreStore = &coreStore{podStore: testcase.podStore}
 			a.connAddress = testcase.address
 
 			actualRet := a.ProcessSnapshot(ctx, testcase.inputSnap, "ambassador-host")
