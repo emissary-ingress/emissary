@@ -148,6 +148,15 @@ it will be removed; but as it won't be user-visible this isn't considered a brea
   `Zipkin` and use the [Open Telemetry Collector](https://opentelemetry.io/docs/collector/) to
   collect and forward Observabity data to LightStep.
 
+- Feature: /ready endpoint used by emissary is using the admin port (8001 by default). This
+  generates a problem during config reloads with large configs as the admin thread is blocking so
+  the /ready endpoint can be very slow to answer (in the order of several seconds, even more). The
+  new feature allows to enable a specific envoy listener that can answer /ready calls from the
+  workers so the endpoint is always fast and it does not suffers from single threaded admin thread
+  slowness on config reloads and other slow endpoints handled by the admin thread Configure the
+  listener port using AMBASSADOR_READY_PORT and enable access log using AMBASSADOR_READY_LOG
+  environment variables.
+
 ## [3.3.0] November 02, 2022
 [3.3.0]: https://github.com/emissary-ingress/emissary/compare/v3.2.0...v3.3.0
 
