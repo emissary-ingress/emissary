@@ -27,7 +27,7 @@ commands:
     - amb-linux-install
     - amb-checkout
     - amb-skip-if-no-changes-not-release:
-        to: charts/ambassador
+        to: charts/emissary-ingress
     - install-k3d
     # We might need to be logged in the registry to pull the Envoy
     # image or the builder-base image.
@@ -40,26 +40,14 @@ commands:
     - amb-checkout
     - skip-if-no-new-chart
     - run: |
-        CHART_NAME=ambassador ./charts/scripts/check_updated_changelog.sh
-  "job-emissary-chart":
-    steps:
-    - amb-linux-install
-    - amb-checkout
-    - amb-skip-if-no-changes-not-release:
-        to: charts/emissary-ingress
-    - install-k3d
-    # We might need to be logged in the registry to pull the Envoy
-    # image or the builder-base image.
-    - amb-config-registry
-    - # main
-      run: make -f charts/emissary-ingress/Makefile test-chart
+        CHART_NAME=emissary-ingress ./charts/scripts/check_updated_changelog.sh
   "job-chart-publish":
     steps:
     - amb-linux-install
     - amb-checkout
     - amb-skip-if-bad-chart-version
     - run: |
-        CHART_NAME=ambassador ./charts/scripts/check_updated_changelog.sh
+        CHART_NAME=emissary-ingress ./charts/scripts/check_updated_changelog.sh
     - install-k3d
     # We might need to be logged in the registry to pull the Envoy
     # image or the builder-base image.
@@ -568,7 +556,7 @@ commands:
     - run:
         name: "Diff changes"
         command: |
-          thisversion=$(grep version: charts/ambassador/Chart.yaml | awk ' { print $2 }')
+          thisversion=$(grep version: charts/emissary-ingress/Chart.yaml | awk ' { print $2 }')
 
           if [[ "<< pipeline.git.tag >>" != "chart-v${thisversion}" ]]; then
             echo "Chart version ${thisversion} doesn't match tag << pipeline.git.tag >>; aborting"
@@ -739,8 +727,8 @@ commands:
           fi
           COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
           echo "Commit range: " $COMMIT_RANGE
-          git --no-pager diff $COMMIT_RANGE charts/ambassador/Chart.yaml
-          if ! git --no-pager diff $COMMIT_RANGE charts/ambassador/Chart.yaml | grep -q +version; then
+          git --no-pager diff $COMMIT_RANGE charts/emissary-ingress/Chart.yaml
+          if ! git --no-pager diff $COMMIT_RANGE charts/emissary-ingress/Chart.yaml | grep -q +version; then
             echo "Halting this CircleCI job because the version was not changed in Chart.yaml"
             circleci step halt
           fi
@@ -904,10 +892,6 @@ jobs:
               - << pipeline.git.branch >>
         steps:
         - job-chart-changelog
-  emissary-chart:
-    executor: oss-linux
-    steps:
-    - job-emissary-chart
   oss-promote-dev-to-rc:
     executor: oss-linux
     steps:
@@ -982,8 +966,6 @@ workflows:
         name: "oss-dev-lint"
     - oss-chart:
         name: "oss-dev-chart"
-    - emissary-chart:
-        name: "emissary-dev-chart"
     - oss-gotest:
         name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure
           >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
@@ -1127,7 +1109,6 @@ workflows:
         - oss-dev-pytest-fastreconfigure
         - oss-dev-pytest-legacy
         - oss-dev-chart
-        - emissary-dev-chart
         - oss-dev-gotest-legacy
         - oss-dev-gotest-fastreconfigure
         - oss-dev-gotest
