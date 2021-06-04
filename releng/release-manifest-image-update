@@ -138,7 +138,6 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
 
 
 if __name__ == '__main__':
-    args = sys.argv[1:]
     parser = argparse.ArgumentParser(description='Edit image values for ambassador helm charts.')
     parser.add_argument('--quiet', dest='quiet', default=False, action='store_true')
     parser.add_argument('--no-commit', dest='no_commit', default=False, action='store_true')

@@ -68,7 +68,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary Ingress and Ambassador Edge Stack
 
-(no changes yet)
+- Bugfix: Ambassador Agent now accurately reports up-to-date Endpoint information to Ambassador Cloud
 
 ## [1.13.7] June 03, 2021
 [1.13.7]: https://github.com/datawire/ambassador/compare/v1.13.6...v1.13.7
