@@ -825,6 +825,59 @@ func TestWatchWithSnapshot(t *testing.T) {
 	watchDone := make(chan error)
 	podAcc := &mockAccumulator{
 		changedChan: make(chan struct{}),
+		targetInterface: CoreSnapshot{
+			Pods: []*kates.Pod{
+				{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "Pod",
+						APIVersion: "v1",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "some-pod",
+						Namespace: "default",
+					},
+					Status: v1.PodStatus{
+						Phase: v1.PodRunning,
+					},
+				},
+			},
+			Endpoints: []*kates.Endpoints{
+				{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "Endpoints",
+						APIVersion: "v1",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "some-endpoint",
+						Namespace: "default",
+					},
+				},
+			},
+			Deployments: []*kates.Deployment{
+				{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "Deployment",
+						APIVersion: "apps/v1",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "some-deployment",
+						Namespace: "default",
+					},
+				},
+			},
+			ConfigMaps: []*kates.ConfigMap{
+				{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "ConfigMap",
+						APIVersion: "",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "some-config-map",
+						Namespace: "default",
+					},
+				},
+			},
+		},
 	}
 	configAcc := &mockAccumulator{
 		changedChan: make(chan struct{}),
@@ -844,6 +897,7 @@ func TestWatchWithSnapshot(t *testing.T) {
 	// returning static content
 	reportsSent := 0
 	for reportsSent < 2 {
+		podAcc.changedChan <- struct{}{}
 		select {
 		case err := <-a.reportComplete:
 			assert.Nil(t, err)
@@ -877,7 +931,7 @@ func TestWatchWithSnapshot(t *testing.T) {
 	assert.Equal(t, md[0], apiKey)
 
 	/////// Make sure the raw snapshot that got sent looks like we expect
-	sentSnapshot := sentSnaps[0]
+	sentSnapshot := sentSnaps[1]
 	var actualSnapshot snapshotTypes.Snapshot
 	err = json.Unmarshal(sentSnapshot.RawSnapshot, &actualSnapshot)
 	assert.Nil(t, err)
@@ -905,6 +959,12 @@ func TestWatchWithSnapshot(t *testing.T) {
 	secretData := actualSnapshot.Kubernetes.Secrets[0].Data
 	assert.NotEqual(t, []byte("d293YXNlY3JldA=="), secretData["data1"])
 	assert.NotEqual(t, []byte("d293YW5vdGhlcm9uZQ=="), secretData["data2"])
+
+	// check that the other resources we watch make it into the snapshot
+	assert.Equal(t, len(actualSnapshot.Kubernetes.Endpoints), 1)
+	assert.Equal(t, len(actualSnapshot.Kubernetes.Pods), 1)
+	assert.Equal(t, len(actualSnapshot.Kubernetes.ConfigMaps), 1)
+	assert.Equal(t, len(actualSnapshot.Kubernetes.Deployments), 1)
 
 	/////// Make sure that the timestamp we sent makes sense
 	assert.NotNil(t, sentSnapshot.SnapshotTs)
