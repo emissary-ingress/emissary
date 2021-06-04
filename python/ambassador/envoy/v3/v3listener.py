@@ -11,27 +11,114 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 from typing import cast as typecast
 
 from os import environ
 
 import logging
+import sys
 
+from ...ir.irhost import IRHost
 from ...ir.irlistener import IRListener
 from ...ir.irtcpmappinggroup import IRTCPMappingGroup
 
 from ...utils import dump_json, parse_bool
 
 from .v3httpfilter import V3HTTPFilter
-from .v3route import DictifiedV3Route, v3prettyroute
+from .v3route import V3Route, DictifiedV3Route, V3RouteVariants, v3prettyroute, hostglob_matches
 from .v3tls import V3TLSContext
-from .v3virtualhost import V3VirtualHost
 
 if TYPE_CHECKING:
+    from ...ir.irhost import IRHost             # pragma: no cover
     from ...ir.irtlscontext import IRTLSContext # pragma: no cover
     from . import V3Config                      # pragma: no cover
 
+
+# Model an Envoy filter chain.
+#
+# In Envoy, Listeners contain filter chains, which define the basic processing on a connection.
+# Filters include things like the HTTP connection manager, which handles the HTTP protocol, and
+# the TCP proxy filter, which does L4 routing.
+#
+# An Envoy chain doesn't have a "type": it's just an ordered set of filters. However, it _does_
+# have a filter_chain_match which specifies what input connections will be processed, and it
+# also can have a TLS context to say which certificate to serve if a connection is to be
+# processed by the chain.
+#
+# A basic asymmetry of the chain is that the filter_chain_match can only do hostname matching
+# if TLS (and thus SNI) is in play, which means for our purposes that a chain _with_ TLS enabled
+# is fundamentally different from a chain _without_ TLS enabled. We encapsulate that idea in
+# the "type" parameter, which can be "http", "https", or "tcp" depending on how the chain will
+# be used. (And yes, that implies that at the moment, you can't mix HTTP Mappings and TCP Mappings
+# on the same port. Possible near-future feature.)
+
+class V3Chain(dict):
+    def __init__(self, config: 'V3Config', type: str, host: Optional[IRHost]) -> None:
+        self._config = config
+        self._logger = self._config.ir.logger
+        self._log_debug = self._logger.isEnabledFor(logging.DEBUG)
+
+        self.type = type
+
+        # We can have multiple hosts here, primarily so that HTTP chains can DTRT --
+        # but it would be fine to have multiple HTTPS hosts too, as long as they all
+        # share a TLSContext.
+        self.context: Optional[IRTLSContext]= None
+        self.hosts: Dict[str, IRHost] = {}
+
+        # It's OK if an HTTP chain has no Host.
+        if host:
+            self.add_host(host)
+
+        self.routes: List[DictifiedV3Route] = []
+        self.tcpmappings: List[IRTCPMappingGroup] = []
+
+    def add_host(self, host: IRHost) -> None:
+        self.hosts[host.hostname] = host
+
+        # Don't mess with the context if we're an HTTP chain...
+        if self.type.lower() == "http":
+            return
+
+        # OK, we're some type where TLS makes sense. Do the thing.
+        if host.context:
+            if not self.context:
+                self.context = host.context
+            elif self.context != host.context:
+                self._config.ir.post_error("Chain context mismatch: Host %s cannot combine with %s" %
+                                           (host.name, ", ".join(sorted(self.hosts.keys()))))
+
+    def hostglobs(self) -> List[str]:
+        # Get a list of host globs currently set up for this chain.
+        return list(self.hosts.keys())
+
+    def matching_hosts(self, route: V3Route) -> List[IRHost]:
+        # Get a list of _IRHosts_ that the given route should be matched with.
+        rv: List[IRHost] = [ host for host in self.hosts.values() if route.matches_domains([ host.hostname ])]
+
+        return rv
+
+    def add_route(self, route: DictifiedV3Route) -> None:
+        self.routes.append(route)
+
+    def add_tcpmapping(self, tcpmapping: IRTCPMappingGroup) -> None:
+        self.tcpmappings.append(tcpmapping)
+
+    def __str__(self) -> str:
+        ctxstr = f" ctx {self.context.name}" if self.context else ""
+
+        return "CHAIN: %s%s [ %s ]" % \
+               (self.type.upper(), ctxstr, ", ".join(sorted(self.hostglobs())))
+
+
+# Model an Envoy listener.
+#
+# In Envoy, Listeners are the top-level configuration element defining a port on which we'll 
+# listen; in turn, they contain filter chains which define what will be done with a connection.
+#
+# There is a one-to-one correspondence between an IRListener and an Envoy listener: the logic
+# here is all about constructing the Envoy configuration implied by the IRListener.
 
 class V3Listener(dict):
     def __init__(self, config: 'V3Config', irlistener: IRListener) -> None:
@@ -40,6 +127,7 @@ class V3Listener(dict):
         self.config = config
         self.bind_address = irlistener.bind_address
         self.port = irlistener.port
+        self.bind_to = f"{self.bind_address}-{self.port}"
 
         bindstr = f"-{self.bind_address}" if (self.bind_address != "0.0.0.0") else ""
         self.name = f"ambassador-listener{bindstr}-{self.port}"
@@ -47,10 +135,12 @@ class V3Listener(dict):
         self.use_proxy_proto = False
         self.listener_filters: List[dict] = []
         self.traffic_direction: str = "UNSPECIFIED"
-
         self._security_model: str = irlistener.securityModel
         self._l7_depth: int = irlistener.get('l7Depth', 0)
+        self._filter_chains: List[dict] = []
         self._base_http_config: Optional[Dict[str, Any]] = None
+        self._chains: Dict[str, V3Chain] = {}
+        self._tls_ok: bool = False
 
         # It's important from a performance perspective to wrap debug log statements
         # with this check so we don't end up generating log strings (or even JSON
@@ -59,8 +149,100 @@ class V3Listener(dict):
         if self._log_debug:
             self.config.ir.logger.debug(f"V3Listener {self.name} created -- {self._security_model}, l7Depth {self._l7_depth}")
 
-        # Start by building our base HTTP config...
-        self._base_http_config = self.base_http_config()
+        # Build out our listener filters, and figure out if we're an HTTP listener
+        # in the process.
+        for proto in irlistener.protocolStack:
+            if proto == "HTTP":
+                # Start by building our base HTTP config...
+                self._base_http_config = self.base_http_config()
+
+            if proto == "PROXY":
+                # The PROXY protocol needs a listener filter.
+                self.listener_filters.append({
+                    'name': 'envoy.filters.listener.proxy_protocol'
+                })
+
+            if proto == "TLS":
+                # TLS needs a listener filter _and_ we need to remember that this
+                # listener is OK with TLS-y things like a termination context, SNI,
+                # etc.
+                self._tls_ok = True
+                self.listener_filters.append({
+                    'name': 'envoy.filters.listener.tls_inspector'
+                })
+
+            if proto == "TCP":
+                # TCP doesn't require any specific listener filters, but it
+                # does require stuff in the filter chains. We can go ahead and
+                # tackle that here.
+                for irgroup in self.config.ir.ordered_groups():
+                    # Only look at TCPMappingGroups here...
+                    if not isinstance(irgroup, IRTCPMappingGroup):
+                        continue
+                    
+                    # ...and make sure the group in question wants the same bind
+                    # address that we do.
+                    if irgroup.bind_to() != self.bind_to: 
+                        # self.config.ir.logger.debug("V3Listener %s: skip TCPMappingGroup on %s", self.bind_to, irgroup.bind_to())
+                        continue
+                    
+                    self.add_tcp_group(irgroup)
+
+    def add_chain(self, chain_type: str, host: Optional[IRHost]) -> V3Chain:
+        # Add a chain for a specific Host to this listener, while dealing with the
+        # fundamental asymmetry that filter_chain_match can - and should - use SNI whenever the
+        # chain has TLS available, but that's simply not available for chains without TLS. 
+        # 
+        # The pratical upshot is that we have _only one_ HTTP chain, but we can have HTTPS and
+        # TCP chains for specfic hostnames.
+
+        chain_key = chain_type
+        hoststr = host.hostname if host else '(no host)'
+        hostname = (host.hostname if host else None) or '*'
+
+        if (chain_type != "http")  and host:
+            chain_key = "%s-%s" % (chain_type, hostname)
+
+        chain = self._chains.get(chain_key)
+
+        if chain is not None:
+            if self._log_debug:
+                self.config.ir.logger.debug("V3Listener %s host %s chain_key %s: add to %s", self.name, hoststr, chain_key, chain)
+
+            if host:
+                chain.add_host(host)
+        else:
+            chain = V3Chain(self.config, chain_type, host)
+            self._chains[chain_key] = chain
+            if self._log_debug:
+                self.config.ir.logger.debug("V3Listener %s host %s chain_key %s: create %s", self.name, hoststr, chain_key, self._chains[chain_key])
+
+        return chain
+
+    def add_tcp_group(self, irgroup: IRTCPMappingGroup) -> None:
+        # The TCP analog of add_chain -- it adds a chain, too, but works with a TCP
+        # mapping group rather than a Host. Same deal applies with TLS: you can't do
+        # host-based matching without it.
+
+        group_host = irgroup.get('host', None)
+
+        if self._log_debug:
+            self.config.ir.logger.debug("V3Listener %s on %s: take TCPMappingGroup on %s (%s)", 
+                                        self.name, self.bind_to, irgroup.bind_to(), group_host or "i'*'")
+
+        if not group_host:
+            chain = self.add_chain("tcp", None)
+            chain.add_tcpmapping(irgroup)
+        else:
+            # What matching Hosts do we have?
+            for host in sorted(self.config.ir.get_hosts(), key=lambda h: h.hostname):
+                if self._log_debug:
+                    self.config.ir.logger.debug("V3Listener %s @ %s TCP %s: consider %s", 
+                                                self.name, self.bind_to, group_host, host)
+
+                if hostglob_matches(host.hostname, group_host):
+                    chain = self.add_chain("tcp", host)
+                    chain.add_tcpmapping(irgroup)
 
     # access_log constructs the access_log configuration for this V3Listener
     def access_log(self) -> List[dict]:
@@ -324,7 +506,7 @@ class V3Listener(dict):
 
     def finalize(self) -> None:
         if self._log_debug:
-            self.config.ir.logger.debug(f"V3Listener finalize {self.pretty()}")
+            self.config.ir.logger.debug(f"V3Listener: ==== finalize {self}")
 
         # OK. Assemble the high-level stuff for Envoy.
         self.address = {
@@ -335,23 +517,346 @@ class V3Listener(dict):
             }
         }
 
-        self.filter_chains: List[dict] = []
+        # Next, deal with HTTP stuff if this is an HTTP Listener.
+        if self._base_http_config:
+            self.compute_chains()
+            self.compute_routes()
+            self.finalize_http()
+        else:
+            # TCP is a lot simpler.
+            self.finalize_tcp()
+
+    def finalize_tcp(self) -> None:
+        # Finalize a TCP listener, which amounts to walking all our TCP chains and
+        # setting up Envoy configuration structures for them.
+        logger = self.config.ir.logger
+
+        for chain_key, chain in self._chains.items():
+            if chain.type != "tcp":
+                continue
+
+            if self._log_debug:
+                logger.debug("BUILD CHAIN %s - %s", chain_key, chain)
+
+            for irgroup in chain.tcpmappings:
+                # First up, which clusters do we need to talk to?
+                clusters = [{
+                    'name': mapping.cluster.envoy_name,
+                    'weight': mapping.weight
+                } for mapping in irgroup.mappings]
+
+                # From that, we can sort out a basic tcp_proxy filter config.
+                tcp_filter = {
+                    'name': 'envoy.filters.network.tcp_proxy',
+                    'typed_config': {
+                        '@type': 'type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy',
+                        'stat_prefix': 'ingress_tcp_%d' % irgroup.port,
+                        'weighted_clusters': {
+                            'clusters': clusters
+                        }
+                    }
+                }
+
+                # OK. Basic filter chain entry next.
+                filter_chain: Dict[str, Any] = {
+                    'filters': [
+                        tcp_filter
+                    ]
+                }
+
+                # The chain as a whole has a single matcher.            
+                filter_chain_match: Dict[str, Any] = {}
+
+                chain_hosts = chain.hostglobs()
+
+                # If we have a context...
+                if chain.context:
+                    # ...then we can do TLS...
+                    filter_chain_match["transport_protocol"] = "tls"
+
+                    # ...and match server names.
+                    #
+                    # (The if here is because if chain_hosts is empty, it means '*'. If there are
+                    # no specific names in the list, or if one of the names is actually '*', don't 
+                    # bother matching: just accept everything.)
+                    if (len(chain_hosts) > 0) and ('*' not in chain_hosts):
+                        filter_chain_match['server_names'] = chain_hosts
+
+                    # Note that we're modifying the filter_chain itself here, not 
+                    # filter_chain_match.
+                    envoy_ctx = V3TLSContext(chain.context)
+
+                    filter_chain['transport_socket'] = {
+                        'name': 'envoy.transport_sockets.tls',
+                        'typed_config': {
+                            '@type': 'type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext',
+                            **envoy_ctx
+                        }
+                    }
+
+                # Once all of that is done, hook in the match...
+                filter_chain['filter_chain_match'] = filter_chain_match
+            
+                # ...and stick this chain into our filter.
+                self._filter_chains.append(filter_chain)
+
+    def compute_chains(self) -> None:
+        # Compute the set of chains we need, HTTP version. The core here is matching
+        # up Hosts with this Listener, and creating a chain for each Host.
+
+        for host in sorted(self.config.ir.get_hosts(), key=lambda h: h.hostname):
+            if self._log_debug:
+                self.config.ir.logger.debug("V3Listener %s: consider %s", self.name, host)
+
+            # XXX Reject if labels don't match.
+
+            # OK, if we're still here, then it's a question of matching the Listener's 
+            # SecurityModel with the Host's requestPolicy. It happens that it's actually
+            # pretty hard to reject things at this level. 
+            #
+            # First up, if the Listener is marked insecure-only, but the Listener's port
+            # doesn't match the Host's insecure_addl_port, don't take this Host: this 
+            # Listener was synthesized to handle some other Host. (This is a corner case that
+            # will become less and less likely as more people hop on the Listener bandwagon.
+            # Also, remember that Hosts don't specify bind addresses, so only the port matters
+            # here.)
+
+            if self._insecure_only and (self.port != host.insecure_addl_port):
+                if self._log_debug:
+                    self.config.ir.logger.debug("V3Listener %s (%s): drop %s, insecure-only port mismatch", 
+                                                self.name, self._security_model, host.name)
+                continue
+
+            # OK, we can't drop it for that, so we need to check the actions.
+
+            security_model = self._security_model
+            secure_action = host.secure_action
+            insecure_action = host.insecure_action
+
+            # If the Listener's securityModel is SECURE, but this host has a secure_action
+            # of Reject (or empty), we'll skip this host, because the only requests this 
+            # Listener can ever produce will be rejected. In any other case, we'll set up an
+            # HTTPS chain for this Host, as long as we think TLS is OK.
+
+            will_reject_secure = ((not secure_action) or (secure_action == "Reject"))
+            if self._tls_ok and (not ((security_model == "SECURE") and will_reject_secure)):
+                if self._log_debug:
+                    self.config.ir.logger.debug("V3Listener %s: take SECURE %s", self.name, host)
+
+                self.add_chain("https", host)
+
+            # Same idea on the insecure side: only skip the Host if the Listener's securityModel
+            # is INSECURE but the Host's insecure_action is Reject.
+
+            if not ((security_model == "INSECURE") and (insecure_action == "Reject")):
+                if self._log_debug:
+                    self.config.ir.logger.debug("V3Listener %s: take INSECURE %s", self.name, host)
+
+                self.add_chain("http", host)
+
+    def compute_routes(self) -> None:
+        # Compute the set of valid HTTP routes for _each chain_ in this Listener.
+        # 
+        # Note that a route using XFP can match _any_ chain, whether HTTP or HTTPS.
+
+        logger = self.config.ir.logger
+        
+        for chain_key, chain in self._chains.items():
+            # Only look at HTTP(S) chains.
+            if (chain.type != "http") and (chain.type != "https"):
+                continue
+
+            if self._log_debug:
+                logger.debug("MATCH CHAIN %s - %s", chain_key, chain)
+
+            # The data structure we're walking here is config.route_variants rather than
+            # config.routes. There's a one-to-one correspondence between the two, but we use the
+            # V3RouteVariants to lazily cache some of the work that we're doing across chains.
+            for rv in self.config.route_variants:
+                if self._log_debug:
+                    logger.debug("  CHECK ROUTE: %s", v3prettyroute(dict(rv.route)))
+
+                matching_hosts = chain.matching_hosts(rv.route)
+
+                if self._log_debug:
+                    logger.debug("    = matching_hosts %s", ", ".join([ h.hostname for h in matching_hosts ]))
+
+                if not matching_hosts:
+                    if self._log_debug:
+                        logger.debug(f"    drop outright: no hosts match {sorted(rv.route['_host_constraints'])}")
+                    continue
+
+                for host in matching_hosts:
+                    # For each host, we need to look at things for the secure world as well
+                    # as the insecure world, depending on what the action is exactly (and note
+                    # that, yes, we can have an action of None for an insecure_only listener).
+                    # 
+                    # "candidates" is host, matcher, action, V3RouteVariants
+                    candidates: List[Tuple[IRHost, str, str, V3RouteVariants]] = []
+                    hostname = host.hostname
+
+                    if (host.secure_action is not None) and (self._security_model != "INSECURE"):
+                        # We have a secure action, and we're willing to believe that at least some of
+                        # our requests will be secure.
+                        matcher = 'always' if (self._security_model == 'SECURE') else 'xfp-https'
+
+                        candidates.append(( host, matcher, 'Route', rv ))
+                    
+                    if (host.insecure_action is not None) and (self._security_model != "SECURE"):
+                        # We have an insecure action, and we're willing to believe that at least some of
+                        # our requests will be insecure.
+                        matcher = 'always' if (self._security_model == 'INSECURE') else 'xfp-http'
+                        action = host.insecure_action
+
+                        candidates.append(( host, matcher, action, rv ))
+
+                    for host, matcher, action, rv in candidates:
+                        route_precedence = rv.route.get('_precedence', None)
+                        extra_info = ""
+
+                        if rv.route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
+                            # We need to be sure to route ACME challenges, no matter what else is going
+                            # on (this is the infamous ACME hole-puncher mentioned everywhere).
+                            extra_info = " (force Route for ACME challenge)"
+                            action = "Route"
+                        elif (self.config.ir.edge_stack_allowed and
+                                (route_precedence == -1000000) and
+                                (rv.route["match"].get("safe_regex", {}).get("regex", None) == "^/$")):
+                            extra_info = " (force Route for fallback Mapping)"
+                            action = "Route"
+
+                        if action != 'Reject':
+                            # Worth noting here that "Route" really means "do what the V3Route really
+                            # says", which might be a host redirect. When we talk about "Redirect", we
+                            # really mean "redirect to HTTPS" specifically.
+
+                            if self._log_debug:
+                                logger.debug("      %s - %s: accept on %s %s%s",
+                                             matcher, action, self.name, hostname, extra_info)
+
+                            variant = dict(rv.get_variant(matcher, action.lower()))
+                            variant["_host_constraints"] = set([ hostname ])
+                            chain.add_route(variant)
+                        else:
+                            if self._log_debug:
+                                logger.debug("      %s - %s: drop from %s %s%s",
+                                             matcher, action, self.name, hostname, extra_info)
+
+            if self._log_debug:
+                for route in chain.routes:
+                    logger.debug("  CHAIN ROUTE: %s" % v3prettyroute(route))
+
+    def finalize_http(self) -> None:
+        # Finalize everything HTTP. Like the TCP side of the world, this is about walking
+        # chains and generating Envoy config.
+
+        for chain_key, chain in self._chains.items():
+            if (chain.type != "http") and (chain.type != "https"):
+                continue
+
+            filter_chain: Dict[str, Any] = {}
+
+            # The chain as a whole has a single matcher.            
+            filter_chain_match: Dict[str, Any] = {}
+
+            chain_hosts = chain.hostglobs()
+
+            # For HTTPS chains...
+            if chain.type.lower() == "https":
+                # ...then we can match server names.
+                #
+                # (The if here is because if chain_hosts is empty, it means '*'. If there are
+                # no specific names in the list, or if one of the names is actually '*', don't 
+                # bother matching: just accept everything.)
+                if (len(chain_hosts) > 0) and ('*' not in chain_hosts):
+                    filter_chain_match['server_names'] = chain_hosts
+
+                # Likewise, an HTTPS chain will ask for TLS.
+                filter_chain_match["transport_protocol"] = "tls"
+
+                if chain.context:
+                    # ...uh. How could we not have a context if we're doing TLS?
+                    # Note that we're modifying the filter_chain itself here, not 
+                    # filter_chain_match.
+                    envoy_ctx = V3TLSContext(chain.context)
+
+                    filter_chain['transport_socket'] = {
+                        'name': 'envoy.transport_sockets.tls',
+                        'typed_config': {
+                            '@type': 'type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext',
+                            **envoy_ctx
+                        }
+                    }
+
+            # ...then build up the Envoy structures around it.
+            filter_chain["filter_chain_match"] = filter_chain_match
+
+            # ...then build the Envoy virtual_hosts for this chain.
+            vhosts: List[Dict[str, Any]] = []
+
+            for host in chain.hosts.values():
+                # This bit of rank paranoia is probably unnecessary: it boils down to 
+                # double-checking host constraints, and making sure that no internal keys
+                # from the route make it into the Envoy configuration.
+                routes = []
+                
+                for r in [ route for route in chain.routes if 
+                           any([ hostglob_matches(rhost, host.hostname) for rhost in route["_host_constraints"] ]) ]:
+                    routes.append({ k: v for k, v in r.items() if k[0] != '_' })
+
+                vhost: Dict[str, Any] = {
+                    "name": f"{self.name}-{host.hostname}",
+                    "domains": [ host.hostname ],
+                    "routes": routes
+                }
+
+                vhosts.append(vhost)
+
+            http_config = dict(typecast(dict, self._base_http_config))
+            http_config["route_config"] = {
+                "virtual_hosts": vhosts
+            }
+
+            if parse_bool(self.config.ir.ambassador_module.get("strip_matching_host_port", "false")):
+                http_config["strip_matching_host_port"] = True
+
+            if parse_bool(self.config.ir.ambassador_module.get("merge_slashes", "false")):
+                http_config["merge_slashes"] = True
+
+            if parse_bool(self.config.ir.ambassador_module.get("reject_requests_with_escaped_slashes", "false")):
+                http_config["path_with_escaped_slashes_action"] = "REJECT_REQUEST"
+
+            filter_chain["filters"] = [
+                {
+                    "name": "envoy.filters.network.http_connection_manager",
+                    "typed_config": {
+                        "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                        **http_config
+                    }
+                }
+            ]
+
+            self._filter_chains.append(filter_chain)
 
     def as_dict(self) -> dict:
-        return {
+        odict = {
             "name": self.name,
             "address": self.address,
-            "filter_chains": self.filter_chains,
-            "listener_filters": self.listener_filters,
+            "filter_chains": self._filter_chains,
             "traffic_direction": self.traffic_direction
         }
+
+        if self.listener_filters:
+            odict["listener_filters"] = self.listener_filters
+
+        return odict          
 
     def pretty(self) -> dict:
         return {
             "name": self.name,
             "bind_address": self.bind_address,
             "port": self.port,
-            # "use_proxy_proto": self.use_proxy_proto
+            "chains": self._chains,
         }
 
     def __str__(self) -> str:
@@ -377,6 +882,12 @@ class V3Listener(dict):
             v3listener.finalize()
 
             config.listeners.append(v3listener)
-
+            config.ir.logger.info(f"V3Listener: ==== GENERATED {v3listener}")
+            
             if v3listener._log_debug:
-                config.ir.logger.debug(f"V3Listener generated: {v3listener.pretty()}")
+                for k in sorted(v3listener._chains.keys()):
+                    chain = v3listener._chains[k]
+                    config.ir.logger.debug("    %s", chain)
+
+                    for r in chain.routes:
+                        config.ir.logger.debug("      %s", v3prettyroute(r))
