@@ -22,7 +22,6 @@ affinity:
             service: ambassador
         topologyKey: kubernetes.io/hostname
       weight: 100
-enableAES: false
 
 resources:
   limits:
