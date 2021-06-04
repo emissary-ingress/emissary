@@ -13,7 +13,7 @@ from ambassador import Config
 # Mappings without host attributes (infer via Host resource)
 # Host where a TLSContext with the inferred name already exists
 
-bug_single_insecure_action = True  # Do all Hosts have to have the same insecure.action?
+bug_single_insecure_action = False  # Do all Hosts have to have the same insecure.action?
 bug_forced_star = True             # Do we erroneously send replies in cleartext instead of TLS for unknown hosts?
 bug_404_routes = True              # Do we erroneously send 404 responses directly instead of redirect-to-tls first?
 bug_clientcert_reset = True        # Do we sometimes just close the connection instead of sending back tls certificate_required?
@@ -165,8 +165,7 @@ spec:
 class HostCRDManualContext(AmbassadorTest):
     """
     A single Host with a manually-specified TLS secret and a manually-specified TLSContext,
-    too. Since the Host is _not_ handling the TLSContext, we do _not_ expect automatic redirection
-    on port 8080.
+    too.
     """
     target: ServiceType
 
@@ -236,19 +235,19 @@ spec:
         return "https"
 
     def queries(self):
-        yield Query(self.url("target/"), insecure=True,
+        yield Query(self.url("target/tls-1.2-1.3"), insecure=True,
                     minTLSv="v1.2", maxTLSv="v1.3")
 
-        yield Query(self.url("target/"), insecure=True,
+        yield Query(self.url("target/tls-1.0-1.0"), insecure=True,
                     minTLSv="v1.0",  maxTLSv="v1.0",
                     error=["tls: server selected unsupported protocol version 303",
                            "tls: no supported versions satisfy MinVersion and MaxVersion",
                            "tls: protocol version not supported"])
 
         if EDGE_STACK:
-            yield Query(self.url("target/", scheme="http"), expected=404)
+            yield Query(self.url("target/cleartext", scheme="http"), expected=404)
         else:
-            yield Query(self.url("target/", scheme="http"), error=[ "EOF", "connection refused" ])
+            yield Query(self.url("target/cleartext", scheme="http"), expected=301)
 
 
 class HostCRDSeparateTLSContext(AmbassadorTest):
@@ -451,9 +450,13 @@ spec:
 
 class HostCRDDouble(AmbassadorTest):
     """
-    HostCRDDouble: two Hosts with manually-configured TLS secrets, and Mappings specifying host matches.
-    Since the Hosts are handling TLSContexts, we expect both OSS and Edge Stack to redirect cleartext
-    from 8080 to 8443 here.
+    HostCRDDouble: "double" is actually a misnomer. We have multiple Hosts, each with a
+    manually-configured TLS secrets, and varying insecure actions:
+    - tls-context-host-1: Route
+    - tls-context-host-2: Redirect
+    - tls-context-host-3: Reject
+
+    We also have Mappings that specify Host matches, and we test the various combinations.
 
     XXX In the future, the hostname matches should be unnecessary, as it should use
     metadata.labels.hostname.
@@ -681,13 +684,13 @@ spec:
                     expected=404)
         # 16-20: Host #2 - cleartext (action: Redirect)
         yield Query(self.url("target-1/", scheme="http"), headers={"Host": "tls-context-host-2"},
-                    expected=(404 if bug_single_insecure_action else 301))
+                    expected=404)
         yield Query(self.url("target-2/", scheme="http"), headers={"Host": "tls-context-host-2"},
-                    expected=(200 if bug_single_insecure_action else 301))
+                    expected=301)
         yield Query(self.url("target-3/", scheme="http"), headers={"Host": "tls-context-host-2"},
-                    expected=(404 if bug_single_insecure_action else 301))
+                    expected=404)
         yield Query(self.url("target-shared/", scheme="http"), headers={"Host": "tls-context-host-2"},
-                    expected=(200 if bug_single_insecure_action else 301))
+                    expected=301)
         yield Query(self.url(".well-known/acme-challenge/foo", scheme="http"), headers={"Host": "tls-context-host-2"},
                     expected=404)
 
@@ -708,9 +711,9 @@ spec:
         yield Query(self.url("target-2/", scheme="http"), headers={"Host": "ambassador.example.com"},
                     expected=404)
         yield Query(self.url("target-3/", scheme="http"), headers={"Host": "ambassador.example.com"},
-                    expected=(200 if bug_single_insecure_action else 404))
+                    expected=404)
         yield Query(self.url("target-shared/", scheme="http"), headers={"Host": "ambassador.example.com"},
-                    expected=(200 if bug_single_insecure_action else 404))
+                    expected=404)
         yield Query(self.url(".well-known/acme-challenge/foo", scheme="http"), headers={"Host": "ambassador.example.com"},
                     expected=200)
 
@@ -845,8 +848,7 @@ spec:
         yield Query(**secure_base, headers={'Host': '127.0.0.1'}, expected=200)     # Host=*
 
         yield Query(**insecure_base, headers={'Host': 'a.domain.com'}, expected=301)  # Host=a.domain.com
-        yield Query(**insecure_base, headers={'Host': 'wc.domain.com'},               # Host=*.domain.com
-                    expected=(301 if bug_single_insecure_action else 200))
+        yield Query(**insecure_base, headers={'Host': 'wc.domain.com'}, expected=301) # Host=*.domain.com
         yield Query(**insecure_base, headers={'Host': '127.0.0.1'}, expected=301)     # Host=*
 
     def scheme(self) -> str:
