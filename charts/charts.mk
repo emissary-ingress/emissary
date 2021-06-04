@@ -75,6 +75,12 @@ release/chart/update-images: $(YQ)
 		$(call _docgen,$$chart) ; \
 	done ;
 
+chart/docgen:
+	for chart in $(EMISSARY_CHART) ; do \
+		$(call _docgen,$$chart) ; \
+	done ;
+.PHONY:  docgen
+
 # Both charts should have same versions for now. Just makes things a bit easier if we publish them together for now
 release/chart-bump/revision:
 	@for chart in $(EMISSARY_CHART) ; do \
