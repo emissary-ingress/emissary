@@ -13,6 +13,7 @@ import fileinput
 import os.path
 import re
 import sys
+import argparse
 from contextlib import contextmanager
 from typing import Generator
 from shutil import which
@@ -47,7 +48,8 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
 """
     print(f"{ansiterm.sgr.fg_red}{warning}{ansiterm.sgr}")
 
-    run(["gh", "auth", "login"])
+    if not getenv("GITHUB_TOKEN"):
+        run(["gh", "auth", "login"])
 
     user = getenv("USER")
     if user is None or user == '':
@@ -68,24 +70,32 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         return 1
 
     print('TODO: CHECK THAT IMAGE EXISTS')
+
     with check(f"Updating image tag in charts"):
         run(["make", f"IMAGE_TAG={image_tag}", "release/chart/update-images"])
-        for file_name in ['Chart.yaml', 'CHANGELOG.md', 'README.md', 'values.yaml']:
-            git_add(f"charts/ambassador/{file_name}")
-            git_add(f"charts/emissary-ingress/{file_name}")
+        git_add("charts/ambassador/Chart.yaml")
+        git_add("charts/ambassador/CHANGELOG.md")
+        git_add("charts/ambassador/README.md")
+        git_add("charts/ambassador/values.yaml")
+
     if not checker.ok:
         return 1
+
     with check(f"Updating manifest yaml"):
         run(["make", "BUMP_STABLE=true", "update-yaml"])
         git_add("manifests")
         git_add("docs/yaml")
+
 
     if checker.ok and commit:
         with check(f"Committing changes..."):
             gitdir = run_capture(['git', 'rev-parse', '--git-dir'])
             with open(os.path.join(gitdir, 'GITGUI_MSG'), 'w') as msgfile:
                 msgfile.write(f"Updating and manifest images for v{next_ver}\n")
-            run(['git', 'citool'])
+            if getenv("AMBASSADOR_RELENG_NO_GUI"):
+                run(['git', 'commit', '-am', f'Update for v{next_ver}'])
+            else:
+                run(['git', 'citool'])
             run(["git", "push", "-u", "origin", workbranch])
         if not checker.ok:
             return 1
@@ -105,7 +115,10 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
                     "--body", f"Update charts and manifests to use the newly release images for {next_ver}",
                     "--reviewer", "kflynn,rhs,esmet,acookin"])
     if checker.ok:
-        run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo(), "--web"])
+        if getenv("AMBASSADOR_RELENG_NO_GUI"):
+            run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo()])
+        else:
+            run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo(), "--web"])
         return 0
     else:
         return 1
@@ -113,29 +126,29 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
 
 if __name__ == '__main__':
     args = sys.argv[1:]
+    parser = argparse.ArgumentParser(description='Edit image values for ambassador helm charts.')
+    parser.add_argument('--quiet', dest='quiet', default=False, action='store_true')
+    parser.add_argument('--no-commit', dest='no_commit', default=False, action='store_true')
+    parser.add_argument('--promote-path', default="")
+    parser.add_argument('--oss-version', required=True)
+    args = parser.parse_args()
 
     quiet = False
     commit = True
 
-    while args and args[0].startswith("--"):
-        if args[0] == '--quiet':
-            quiet = True
-            args.pop(0)
-        elif args and (args[0] == '--no-commit'):
-            commit = False
-            args.pop(0)
+    if args.quiet:
+        quiet = True
+    if args.no_commit:
+        commit = False
 
-    if len(args) < 1 or not re_ga.match(args[0]):
-        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z\n")
+    if not re_ga.match(args.oss_version):
+        sys.stderr.write("--oss-version must be X.Y.Z")
         sys.exit(2)
-    promote_path = ''
-    if len(args) > 1:
-        promote_path = args[1]
 
     sys.exit(main(
-        next_ver=args[0],
+        next_ver=args.oss_version,
         today=datetime.date.today(),
         quiet=quiet,
         commit=commit,
-        promote_path=promote_path,
+        promote_path=args.promote_path,
     ))

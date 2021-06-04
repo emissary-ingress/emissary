@@ -394,11 +394,11 @@ commands:
   amb-skip-if-no-code-changes:
     steps:
     - skip-if-only-changes:
-        to: (charts/|manifests/|k8s-config/|docs/|*.md)
+        to: (releng/|charts/|manifests/|k8s-config/|docs/|*.md)
   amb-skip-if-no-code-changes-not-release:
     steps:
     - amb-skip-if-only-changes-not-release:
-        to: (charts/|manifests/|k8s-config/|docs/|*.md)
+        to: (releng/|charts/|manifests/|k8s-config/|docs/|*.md)
   amb-checkout:
     steps:
     - when:
@@ -413,21 +413,6 @@ commands:
         steps:
         - checkout:
             path: ~/project/ambassador
-    - when:
-        condition:
-          or:
-          - equal:
-            - "https://github.com/datawire/apro"
-            - << pipeline.project.git_url >>
-          - equal:
-            - "https://github.com/datawire/apro-private"
-            - << pipeline.project.git_url >>
-        steps:
-        - run:
-            working_directory: ~/project
-            command: "rmdir ~/project/ambassador || true"
-        - checkout:
-            path: ~/project
   amb-login-registry:
     steps:
     - run:
@@ -891,7 +876,7 @@ jobs:
   oss-chart-changelog:
     executor: oss-linux
     steps:
-    - run: "true" # Always run a no-op step so that this config has non-zero steps even for the "wrong" repo or branch
+    - run: echo 'step'
     - when:
         condition:
           and:
@@ -923,12 +908,6 @@ jobs:
     - job-promote-to-ga:
         channel: oss
 _anchors:
-  filter-prerelease-only:
-    filters:
-      tags:
-        only: /^v[0-9]+\.[0-9]+\.[0-9]+-(rc|ea)\.[0-9]+$/
-      branches:
-        ignore: /.*/
   filter-rc-only:
     filters:
       tags:

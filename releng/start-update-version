@@ -3,10 +3,9 @@
 launch the `git citool` GUI to create a commit of it.
 """
 
-from os import getenv
 import datetime
 import fileinput
-import os.path
+import os
 import re
 import sys
 from contextlib import contextmanager
@@ -37,7 +36,9 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         print("Please install the tool and rerun this script:")
         print("https://github.com/cli/cli#installation")
         return 1
-    run(["gh", "auth", "login"])
+
+    if not os.getenv("GITHUB_TOKEN"):
+        run(["gh", "auth", "login"])
 
     if not quiet:
         print()
@@ -56,7 +57,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             yield subcheck
     orig_branch = run_capture(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
 
-    user = getenv("USER")
+    user = os.getenv("USER")
     if user is None or user == '':
         user = 'unknownuser'
     workbranch = f"{user}/v{next_ver}/start-release"
@@ -77,7 +78,10 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             gitdir = run_capture(['git', 'rev-parse', '--git-dir'])
             with open(os.path.join(gitdir, 'GITGUI_MSG'), 'w') as msgfile:
                 msgfile.write(f"Update for v{next_ver}\n")
-            run(['git', 'citool'])
+            if os.getenv("AMBASSADOR_RELENG_NO_GUI"):
+                run(['git', 'commit', '-am', f'Update for v{next_ver}'])
+            else:
+                run(['git', 'citool'])
             run(["git", "push", "-u", "origin", workbranch])
         if not checker.ok:
             return 1
@@ -91,7 +95,10 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
 
     if checker.ok:
         print(f'Update complete. Merge PR back to target branch ASAP')
-        run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo(), "--web"])
+        if os.getenv("AMBASSADOR_RELENG_NO_GUI"):
+            run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo()])
+        else:
+            run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo(), "--web"])
         return 0
     else:
         return 1

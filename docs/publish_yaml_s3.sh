@@ -18,6 +18,9 @@ basedir=`realpath ${basedir}`/
 ver_yaml=${CURR_DIR}/yaml/versions.yml
 
 version=$(grep version ${ver_yaml} | awk ' { print $2 }')
+if [[ -n "${VERSION_OVERRIDE}" ]] ; then
+    version=${VERSION_OVERRIDE}
+fi
 
 if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
     # if this is a stable version, working directory must be clean

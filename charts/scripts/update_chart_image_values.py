@@ -4,11 +4,19 @@
 # This is just a simple script to replace the image tag and repository values in our helm charts so
 # that humanz don't have to do it.
 
+import os.path
 import sys
+import argparse
 import ruamel.yaml
 
 
-def main(values_file, image_tag, repo=None):
+def main(edit_type, values_file, image_tag, repo=None):
+    if edit_type == 'oss':
+        image_key = 'ossTag'
+        repo_key = 'ossRepository'
+    else:
+        image_key = 'aesTag'
+        repo_key = 'aesRepository'
     yaml = ruamel.yaml.YAML()
     yaml.indent(mapping=2)
     with open(values_file, 'r') as f:
@@ -16,22 +24,29 @@ def main(values_file, image_tag, repo=None):
 
     if 'image' not in helm_values:
         helm_values['image'] = {}
-    helm_values['image']['tag'] = image_tag
+    helm_values['image'][image_key] = image_tag
     if repo is not None:
-        helm_values['image']['repository'] = repo
+        helm_values['image'][repo_key] = repo
 
     with open(values_file, 'w') as f:
         yaml.dump(helm_values, f)
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print('USAGE: create_yaml.py [VALUES_FILE] [IMAGE_TAG] ([REPO])')
-        sys.exit(1)
-    repo = None
-    values_file = sys.argv[1]
-    image_tag = sys.argv[2]
-    if len(sys.argv) > 3:
-        repo = sys.argv[3]
+    parser = argparse.ArgumentParser(description='Edit image values for ambassador helm charts.')
 
-    main(values_file, image_tag, repo)
+    parser.add_argument('--type', help='which values to edit. either aes or oss', required=True)
+    parser.add_argument('--values-file', help='values file to edit', required=True)
+    parser.add_argument('--tag', help='value for image tag', required=True)
+    parser.add_argument('--repo', help='value for image repo')
+
+    args = parser.parse_args()
+
+    if args.type not in ['aes', 'oss']:
+        print('--type must be aes or oss')
+        sys.exit(1)
+    if not os.path.isfile(args.values_file):
+        print(f'--values-file {args.values_file} is not a valid file path')
+        sys.exit(1)
+
+    main(args.type, args.values_file, args.tag, args.repo)

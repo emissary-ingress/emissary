@@ -98,11 +98,14 @@ commands:
   "amb-skip-if-no-code-changes":
     steps:
       - skip-if-only-changes:
-          to: (charts/|manifests/|k8s-config/|docs/|*.md)
+          to: (releng/|charts/|manifests/|k8s-config/|docs/|*.md)
+
+
   "amb-skip-if-no-code-changes-not-release":
     steps:
       - amb-skip-if-only-changes-not-release:
-          to: (charts/|manifests/|k8s-config/|docs/|*.md)
+          to: (releng/|charts/|manifests/|k8s-config/|docs/|*.md)
+
   "amb-checkout":
     steps:
       - when:
@@ -113,17 +116,6 @@ commands:
           steps:
             - checkout:
                 path: ~/project/ambassador
-      - when:
-          condition:
-            or:
-            - equal: [ "https://github.com/datawire/apro", << pipeline.project.git_url >> ]
-            - equal: [ "https://github.com/datawire/apro-private", << pipeline.project.git_url >> ]
-          steps:
-            - run:
-                working_directory: ~/project
-                command: "rmdir ~/project/ambassador || true"
-            - checkout:
-                path: ~/project
 
   "amb-login-registry":
     steps:

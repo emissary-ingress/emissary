@@ -7,11 +7,13 @@ define _push_chart
 endef
 
 define _set_tag_and_repo
-	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py $(1) $(2) $(3)
+	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py \
+		--values-file $(1) --tag $(2) --repo $(3) --type $(4)
 endef
 
 define _set_tag
-	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py $(1) $(2)
+	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/charts/scripts/update_chart_image_values.py \
+		--values-file $(1) --tag $(2) --type $(3)
 endef
 
 define _docgen
@@ -67,7 +69,7 @@ release/chart/update-images: $(YQ)
 	@[ -n "${IMAGE_TAG}" ] || (echo "IMAGE_TAG must be set" && exit 1)
 	([[ "${IMAGE_TAG}" =~ .*\.0$$ ]] && $(MAKE) release/chart-bump/minor) || $(MAKE) release/chart-bump/revision
 	for chart in $(AMBASSADOR_CHART) $(EMISSARY_CHART) ; do \
-		$(call _set_tag,$$chart/values.yaml,${IMAGE_TAG}) ; \
+		$(call _set_tag,$$chart/values.yaml,${IMAGE_TAG},oss) ; \
 		$(YQ) w -i $$chart/Chart.yaml 'appVersion' ${IMAGE_TAG} ; \
 		IMAGE_TAG="${IMAGE_TAG}" CHART_NAME=`basename $$chart` $(OSS_HOME)/charts/scripts/image_tag_changelog_update.sh ; \
 		CHART_NAME=`basename $$chart` $(OSS_HOME)/charts/scripts/update_chart_changelog.sh ; \

@@ -375,32 +375,6 @@ push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 	}
 .PHONY: push-dev
 
-push-ci: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
-	@set -e; { \
-		check=$$(echo $(BUILD_VERSION) | grep -c -e -dev || true) ;\
-		if [ $$check -lt 1 ]; then \
-			printf "$(RED)push-ci: BUILD_VERSION $(BUILD_VERSION) is not a dev version$(END)\n" >&2 ;\
-			exit 1 ;\
-		fi ;\
-		suffix=$$(echo $(BUILD_VERSION) | sed -e 's/-dev\.\([0-9][0-9]*\).*$$/-ci.\1/') ;\
-		chartsuffix=$${suffix#*-} ; \
-		for image in $(LCNAME) $(LCNAME)-ea; do \
-			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
-			printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
-			docker tag $$(cat docker/$$image.docker) $$tag && \
-			docker push $$tag ;\
-		done ;\
-		$(MAKE) \
-			CHART_VERSION_SUFFIX=-$$chartsuffix \
-			IMAGE_TAG=$${suffix} \
-			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
-			chart-push-ci ; \
-		$(MAKE) update-yaml --always-make; \
-		$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests  ; \
-		$(MAKE) clean-manifests ; \
-	}
-.PHONY: push-ci
-
 push-nightly: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 	@set -e; { \
 		if [ -n "$(IS_DIRTY)" ]; then \
@@ -922,7 +896,7 @@ release/go:
 release/manifests:
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
 	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
-	@$(OSS_HOME)/releng/release-manifest-image-update $(VERSIONS_YAML_VER) wip
+	@$(OSS_HOME)/releng/release-manifest-image-update --oss-version $(VERSIONS_YAML_VER) --promote-path wip
 .PHONY: release/manifests
 
 release/repatriate:
