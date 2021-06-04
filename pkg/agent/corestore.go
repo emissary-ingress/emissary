@@ -17,6 +17,7 @@ type CoreSnapshot struct {
 	Pods        []*kates.Pod
 	ConfigMaps  []*kates.ConfigMap
 	Deployments []*kates.Deployment
+	Endpoints   []*kates.Endpoints
 }
 
 // coreStore is used to store core k8s resources that are not handled by default
@@ -25,6 +26,7 @@ type coreStore struct {
 	podStore        *podStore
 	configMapStore  *configMapStore
 	deploymentStore *deploymentStore
+	endpointStore   *endpointStore
 }
 
 type configMapStore struct {
@@ -39,12 +41,17 @@ type podStore struct {
 	sotw map[string]*kates.Pod
 }
 
+type endpointStore struct {
+	sotw map[string]*kates.Endpoints
+}
+
 // NewCoreStore will create a new coreStore with the given coreSnapshot.
 func NewCoreStore(snapshot *CoreSnapshot) *coreStore {
 	return &coreStore{
 		podStore:        NewPodStore(snapshot.Pods),
 		configMapStore:  NewConfigMapStore(snapshot.ConfigMaps),
 		deploymentStore: NewDeploymentStore(snapshot.Deployments),
+		endpointStore:   NewEndpointsStore(snapshot.Endpoints),
 	}
 }
 
@@ -90,6 +97,20 @@ func NewDeploymentStore(ds []*kates.Deployment) *deploymentStore {
 	return store
 }
 
+// NewEndpointsStore will create a new endpointStore filtering out undesired resources.
+func NewEndpointsStore(es []*kates.Endpoints) *endpointStore {
+	sotw := make(map[string]*kates.Endpoints)
+	store := &endpointStore{sotw: sotw}
+
+	for _, ep := range es {
+		if allowedNamespace(ep.GetNamespace()) {
+			key := fmt.Sprintf("%s.%s", ep.GetName(), ep.GetNamespace())
+			store.sotw[key] = ep
+		}
+	}
+	return store
+}
+
 // StateOfWorld returns the current state of all pods from the allowed namespaces.
 func (store *podStore) StateOfWorld() []*kates.Pod {
 	pods := []*kates.Pod{}
@@ -97,6 +118,14 @@ func (store *podStore) StateOfWorld() []*kates.Pod {
 		pods = append(pods, v)
 	}
 	return pods
+}
+
+func (store *endpointStore) StateOfWorld() []*kates.Endpoints {
+	eps := []*kates.Endpoints{}
+	for _, ep := range store.sotw {
+		eps = append(eps, ep)
+	}
+	return eps
 }
 
 // StateOfWorld returns the current state of all configmaps from the allowed namespaces.
