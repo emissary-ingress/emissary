@@ -8,6 +8,7 @@ from ..config import Config
 from ..utils import dump_json
 
 from .irresource import IRResource
+from .irutils import hostglob_matches
 
 if TYPE_CHECKING:
     from .ir import IR # pragma: no cover
@@ -238,7 +239,7 @@ class IRBaseMapping (IRResource):
             hosts = context.get('hosts') or []
 
             for context_host in hosts:
-                if context_host == host:
+                if hostglob_matches(context_host, host):
                     ir.logger.debug("Matched host {} with TLSContext {}".format(host, context.get('name')))
                     self.sni = True
                     return context
