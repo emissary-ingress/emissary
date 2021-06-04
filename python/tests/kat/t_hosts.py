@@ -107,6 +107,18 @@ data:
   tls.key: '''+TLSCerts["localhost"].k8s_key+'''
 ---
 apiVersion: getambassador.io/v2
+kind: Listener
+metadata:
+  name: {self.name.k8s}-listener
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  port: 8443
+  protocol: HTTPS
+  securityModel: XFP
+---
+apiVersion: getambassador.io/v2
 kind: Host
 metadata:
   name: {self.name.k8s}-host
@@ -124,7 +136,7 @@ spec:
       hostname: {self.path.fqdn}
   requestPolicy:
     insecure:
-      additionalPort: -1
+      action: Reject
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping

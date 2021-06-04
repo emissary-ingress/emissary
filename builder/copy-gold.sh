@@ -53,11 +53,20 @@ copy_gold globalcorstest
 copy_gold gzipminimumconfigtest
 copy_gold gzipnotsupportedcontenttypetest
 copy_gold gziptest
-# copy_gold hostcrdcleartext
-# copy_gold hostcrddouble
-# copy_gold hostcrdmanualcontext
-# copy_gold hostcrdno8080
-# copy_gold hostcrdsingle
+copy_gold hostcrdwildcards
+copy_gold hostcrdcleartext
+copy_gold hostcrdrootredirectslashmapping
+copy_gold hostcrdtlsconfig
+copy_gold hostcrddouble
+copy_gold hostcrdclientcertsamenamespace
+copy_gold hostcrdrootredirectcongratulations
+copy_gold hostcrdrootredirectre2mapping
+copy_gold hostcrdseparatetlscontext
+copy_gold hostcrdclientcertcrossnamespace
+copy_gold hostcrdmanualcontext
+copy_gold hostcrdno8080
+copy_gold hostcrdsingle
+copy_gold hostcrdforcedstar
 # copy_gold ingressstatustest1
 # copy_gold ingressstatustest2
 # copy_gold ingressstatustestacrossnamespaces
