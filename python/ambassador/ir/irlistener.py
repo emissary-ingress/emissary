@@ -231,24 +231,31 @@ class ListenerFactory:
             if not isinstance(group, IRTCPMappingGroup):
                 continue
 
-            # OK. Do we have a Listener binding here already?
-            # (Note that group.bind_to() cleverly uses the same format as 
-            # IRListener.bind_to().)
+            # OK. If we have a Listener binding here already, use it -- that lets the user override
+            # any choices we might make if they want to. If there's no Listener here, though, we'll
+            # need to create one.
+            #
+            # (Note that group.bind_to() cleverly uses the same format as IRListener.bind_to().)
             group_key = group.bind_to()
 
             if group_key not in ir.listeners:
-                # Nothing already exists, so fab one up. 
-                protocol = "TLS" if group.get('tls_context', None) else "TCP"
+                # Nothing already exists, so fab one up. Use TLS if and only if a host match is specified;
+                # with no host match, use TCP.
+                group_host = group.get('host', None)
+                protocol = "TLS" if group_host else "TCP"
                 bind_address = group.get('address') or Config.envoy_bind_address
                 name = f"tcplistener-{bind_address}-{group.port}"
 
                 ir.logger.debug("ListenerFactory: synthesizing %s listener for TCPMappingGroup on %s:%d" %
                                 (protocol, bind_address, group.port))
 
+                # The securityModel of a TCP listener is kind of a no-op at this point. We'll set it
+                # to SECURE because that seems more rational than anything else. I guess.
+
                 ir.save_listener(IRListener(
                     ir, aconf, '-internal-', name, '-internal-',
                     bind_address=bind_address,
                     port=group.port,
                     protocol=protocol,
-                    securityModel="SECURE"  # XXX Might be wrong
+                    securityModel="SECURE"  # See above.
                 ))
