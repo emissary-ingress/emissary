@@ -108,59 +108,15 @@ class IRHost(IRResource):
                         return False
 
                     if host_tls_context_name:
+                        # They named a TLSContext, so try to use that. self.save_context will check the
+                        # context to make sure it works for us, and save it if so.
                         ir.logger.debug(f"Host {self.name}: resolving spec.tlsContext: {host_tls_context_name}")
 
-                        if not ir.has_tls_context(host_tls_context_name):
-                            self.post_error(f"Host {self.name}: Specified TLSContext does not exist: "
-                                            f"{host_tls_context_name}")
+                        if not self.save_context(ir, host_tls_context_name, tls_ss, tls_name):
                             return False
 
-                        host_tls_context = ir.get_tls_context(host_tls_context_name)
-                        assert(host_tls_context)    # For mypy -- we checked above to be sure it exists.
-
-                        # First make sure that the TLSContext is "compatible" i.e. it at least has the same cert related
-                        # configuration as the one in this Host AND hosts are same as well.
-
-                        if host_tls_context.has_secret():
-                            secret_name = host_tls_context.secret_name()
-                            assert(secret_name)     # For mypy -- we checked above to be sure it exists.
-
-                            context_ss = self.resolve(ir, secret_name)
-
-                            self.logger.debug(f"Host {self.name}, ctx {host_tls_context.name}, secret {secret_name}, resolved {context_ss}")
-
-                            if str(context_ss) != str(tls_ss):
-                                self.post_error(f"Secret info mismatch between Host: {self.name} (secret: {tls_name})"
-                                                f" and TLSContext: {host_tls_context_name} (secret: {secret_name})")
-                                return False
-                        else:
-                            host_tls_context.set_secret_name(tls_name)
-
-                        context_hosts = host_tls_context.get('hosts')
-                        host_hosts = [ self.name ]
-
-                        if self.hostname:
-                            host_hosts.append(self.hostname)
-
-                        if context_hosts:
-                            is_valid_hosts = False
-
-                            for host_tc in context_hosts:
-                                if host_tc in host_hosts:
-                                    is_valid_hosts = True
-
-                            if not is_valid_hosts:
-                                self.post_error(f"Hosts mismatch between Host: {self.name} (accepted hosts: {host_hosts}) and "
-                                                f"TLSContext {host_tls_context_name} (hosts: {context_hosts})")
-                        else:
-                            host_tls_context['hosts'] = [self.hostname or self.name]
-
-                        self.logger.debug(f"Host {self.name}, final ctx {host_tls_context.name}: {host_tls_context.as_json()}")
-
-                        # All seems good, this context belongs to self now!
-                        self.context = host_tls_context
-
                     elif host_tls_config:
+                        # They defined a TLSContext inline, so go set that up if we can.
                         ir.logger.debug(f"Host {self.name}: examining spec.tls {host_tls_config}")
 
                         camel_snake_map = {
@@ -225,8 +181,12 @@ class IRHost(IRResource):
                             return False
 
                     elif implicit_tls_exists:
+                        # They didn't say anything explicitly, but it happens that a context with the
+                        # correct name for this Host already exists. Save that, if it works out for us.
                         ir.logger.debug(f"Host {self.name}: TLSContext {ctx_name} already exists")
 
+                        if not self.save_context(ir, ctx_name, tls_ss, tls_name):
+                            return False
                     else:
                         ir.logger.debug(f"Host {self.name}: creating TLSContext {ctx_name}")
 
@@ -312,6 +272,71 @@ class IRHost(IRResource):
                         ir.logger.error(f"Host {self.name}: continuing with invalid private key secret {pkey_name}")
 
         ir.logger.debug(f"Host setup OK: {self.pretty()}")
+        return True
+
+    # Check a TLSContext name, and save the linked TLSContext if it'll work for us.
+    def save_context(self, ir: 'IR', ctx_name: str, tls_ss: SavedSecret, tls_name: str):
+        # First obvious thing: does a TLSContext with the right name even exist?
+        if not ir.has_tls_context(ctx_name):
+            self.post_error("Host %s: Specified TLSContext does not exist: %s" % (self.name, ctx_name))
+            return False
+
+        ctx = ir.get_tls_context(ctx_name)
+        assert(ctx)    # For mypy -- we checked above to be sure it exists.
+
+        # Make sure that the TLSContext is "compatible" i.e. it at least has the same cert related
+        # configuration as the one in this Host AND hosts are same as well.
+
+        if ctx.has_secret():
+            secret_name = ctx.secret_name()
+            assert(secret_name)     # For mypy -- if has_secret() is true, secret_name() will be there.
+
+            # This is a little weird. Basically we're going to resolve the secret (which should just
+            # be a cache lookup here) so that we can use SavedSecret.__str__() as a serializer to 
+            # compare the configurations.
+            context_ss = self.resolve(ir, secret_name)
+
+            self.logger.debug(f"Host {self.name}, ctx {ctx.name}, secret {secret_name}, resolved {context_ss}")
+
+            if str(context_ss) != str(tls_ss):
+                self.post_error("Secret info mismatch between Host %s (secret: %s) and TLSContext %s: (secret: %s)" % 
+                                (self.name, tls_name, ctx_name, secret_name))
+                return False
+        else:
+            # This will often be a no-op.
+            ctx.set_secret_name(tls_name)
+
+        # TLS config is good, let's make sure the hosts line up too.
+        context_hosts = ctx.get('hosts')
+
+        # XXX WTF? self.name is not OK as a hostname! Leaving this for the moment, but it's
+        # almost certainly getting shredded before 2.0 GAs.
+        host_hosts = [ self.name ]
+
+        if self.hostname:
+            host_hosts.append(self.hostname)
+
+        if context_hosts:
+            is_valid_hosts = False
+
+            # XXX Should we be doing a glob check here? 
+            for host_tc in context_hosts:
+                if host_tc in host_hosts:
+                    is_valid_hosts = True
+
+            if not is_valid_hosts:
+                self.post_error("Hosts mismatch between Host %s (accepted hosts: %s) and TLSContext %s (hosts: %s)" %
+                                (self.name, host_hosts, ctx_name, context_hosts))
+                # XXX Shouldn't we return false here?
+        else:
+            # XXX WTF? self.name is not OK as a hostname!
+            ctx['hosts'] = [self.hostname or self.name]
+
+        self.logger.debug(f"Host {self.name}, final ctx {ctx.name}: {ctx.as_json()}")
+
+        # All seems good, this context belongs to self now!
+        self.context = ctx
+
         return True
 
     def pretty(self) -> str:
