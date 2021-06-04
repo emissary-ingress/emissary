@@ -844,6 +844,7 @@ release/promote-oss/to-ga:
 	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(RELEASE_VERSION)"; exit 1)
 	@set -e; { \
       commit=$$(git rev-parse HEAD) ;\
+	  $(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key passed-builds ; \
 	  dev_version=$$(aws s3 cp s3://datawire-static-files/passed-builds/$$commit -) ;\
 	  if [ -z "$$dev_version" ]; then \
 		  printf "$(RED)==> found no passed dev version for $$commit in S3...$(END)\n" ;\
@@ -856,6 +857,8 @@ release/promote-oss/to-ga:
 	    PROMOTE_TO_VERSION="$(RELEASE_VERSION)" \
 	    PROMOTE_CHANNEL= \
 	    ; \
+	  $(OSS_HOME)/releng/release-wait-for-ga-image --ga-tag $(RELEASE_VERSION) --release-registry $(RELEASE_REGISTRY) ; \
+	  $(MAKE) release/ga-mirror ; \
 	}
 .PHONY: release/promote-oss/to-ga
 
@@ -870,6 +873,7 @@ release/prep-rc:
 			exit 1 ;\
 		fi; \
 		commit=$$(git rev-parse HEAD) ;\
+		$(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key dev-builds ; \
 		curl --fail --silent https://datawire-static-files.s3.amazonaws.com/dev-builds/$$commit > /dev/null || \
 			(printf "$(RED)ERROR: $$commit not found in dev builds.\nPlease check that this commit passed oss-dev-images in circle or run \"make images push-dev\"\n" ; exit 1); \
 		rc_tag=v$(VERSIONS_YAML_VER)-rc. ; \
@@ -882,6 +886,7 @@ release/prep-rc:
 		echo ; \
 		[[ ! $$REPLY =~ ^[Yy]$$ ]] && (printf "$(RED)Exiting without tagging\n" ; exit 1) ; \
 		git tag -m $$rc_tag -a $$rc_tag && git push origin $$rc_tag ; \
+		$(OSS_HOME)/releng/release-wait-for-rc-artifacts --rc-tag $$rc_tag --release-registry $(RELEASE_REGISTRY) ; \
 	}
 .PHONY: release/prep-rc
 
