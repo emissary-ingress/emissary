@@ -191,7 +191,7 @@ commands:
     - amb-config-registry
     - run:
         name: "Test"
-        no_output_timeout: "30m"
+        no_output_timeout: "3m"
         command: |
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900

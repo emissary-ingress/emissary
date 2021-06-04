@@ -701,7 +701,7 @@ case "${cmd}" in
                     if [[ -n "${TEST_XML_DIR}" ]] ; then
                         junitarg="--junitfile ${TEST_XML_DIR}/${modname}-gotest.xml"
                     fi
-                    if ! (cd ${MODDIR} && gotestsum ${junitarg} --rerun-fails=3 --packages="${pkgs}" -- ${GOTEST_ARGS}) ; then
+                    if ! (cd ${MODDIR} && gotestsum ${junitarg} --rerun-fails=3 --format=testname --packages="${pkgs}" -- -v ${GOTEST_ARGS}) ; then
                        fail="yes"
                     fi
                 fi
