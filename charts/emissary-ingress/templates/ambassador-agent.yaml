@@ -5,8 +5,7 @@
   {{- /* Case 1: "fullImageOverride" means don't bother checking the tag. */ -}}
   {{- /* Case 2: Otherwise, if it's not a semver-style version number,    */ -}}
   {{- /*         assume we have a power user and turn the agent on.       */ -}}
-  {{- /* Case 3: Otherwise, if Edge Stack, we need at least 1.12.0.       */ -}}
-  {{- /* Case 4: Otherwise, it's OSS and we need at 1.13.0.               */ -}}
+  {{- /* Case 3: Otherwise, it's OSS and we need at 1.13.0.               */ -}}
 
 {{- if .Values.image.fullImageOverride }}
   {{- /* Case 1 */ -}}
@@ -14,11 +13,8 @@
 {{- else if not (regexMatch "^\\d+\\.\\d+\\.\\d+$" (include "ambassador.imagetag" . )) }}
   {{- /* Case 2 above: power user */ -}}
   {{- $allowAgent = true }}
-{{- else if and .Values.enableAES (ne (semver "1.12.0" | (semver (include "ambassador.imagetag" . )).Compare) -1) }}
-  {{- /* Case 3 above: Edge Stack 1.12.0+ */ -}}
-  {{- $allowAgent = true }}
-{{- else if ne (semver "1.13.0" | (semver (include "ambassador.imagetag" . )).Compare) -1 }}
-  {{- /* Case 4 above: OSS 1.13.0+ */ -}}
+{{- else if ne (semver "1.13.0" | (semver .Values.image.tag).Compare) -1 }}
+  {{- /* Case 3 above: OSS 1.13.0+ */ -}}
   {{- $allowAgent = true }}
 {{- end }}
 
@@ -166,7 +162,7 @@ metadata:
     product: aes
 rules:
 - apiGroups: [""]
-  resources: [ "pods"]
+  resources: [ "pods" ]
   verbs: [ "get", "list", "watch" ]
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1

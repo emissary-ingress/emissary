@@ -1,69 +1,41 @@
-# Ambassador
+# Emissary
 
-The Ambassador Edge Stack is a self-service, comprehensive edge stack that is Kubernetes-native and built on [Envoy Proxy](https://www.envoyproxy.io/).
+[Emissary Ingress](https://github.com/datawire/ambassador) - Emissary Ingress is a self-service, comprehensive API gateway that is Kubernetes-native and built on [Envoy Proxy](https://www.envoyproxy.io/).
 
 ## TL;DR;
 
 ```console
-$ helm repo add datawire https://getambassador.io
-$ helm install ambassador datawire/ambassador
+$ helm repo add emissary-ingress https://s3.amazonaws.com/datawire-static-files/emissary-charts
+$ helm repo update
+$ helm install emissary-ingress emissary-ingress/emissary-ingress -n ambassador --version=v0.0.1
 ```
 
 ## Introduction
 
-This chart bootstraps an [Ambassador](https://www.getambassador.io) deployment on
-a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
+This chart deploys Emissary Ingress on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
 
 ## Prerequisites
 
-- Kubernetes 1.11+
-
-## Add this Helm repository to your Helm client
-
-```console
-helm repo add datawire https://getambassador.io
-```
+- Kubernetes v1.11+
 
 ## Installing the Chart
 
-To install the chart with the release name `my-release`:
+To install the chart with the release name `emissary-ingress`:
 
 ```console
-$ kubectl create namespace ambassador
-$ helm install my-release datawire/ambassador -n ambassador
+$ helm install emissary-ingress emissary-ingress/emissary-ingress -n ambassador --version=v0.0.1
 ```
 
-The command deploys Ambassador Edge Stack in the ambassador namespace on the Kubernetes cluster in the default configuration.
+The command deploys Emissary Ingress on the Kubernetes cluster in the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
 
-It is recommended to use the ambassador namespace for easy upgrades.
-
-The [configuration](#configuration) section lists the parameters that can be configured during installation.
-
-### Ambassador Edge Stack Installation
-
-This chart defaults to installing The Ambassador Edge Stack with all of its configuration objects.
-
-- A Redis instance
-- `AuthService` resource for enabling authentication
-- `RateLimitService` resource for enabling rate limiting
-- `Mapping`s for internal request routing
-
-If installing alongside another deployment of Ambassador, some of these resources can cause configuration errors since only one `AuthService` or `RateLimitService` can be configured at a time.
-
-If you already have one of these resources configured in your cluster, please see the [configuration](#configuration) section below for information on how to disable them in the chart.
-
-### Ambassador OSS Installation
-
-This chart can still be used to install Ambassador OSS.
-
-To install OSS, change the `image` to use the OSS image and set `enableAES: false` to skip the install of any AES resources.
+> **Tip**: List all releases using `helm list`
 
 ## Uninstalling the Chart
 
-To uninstall/delete the `my-release` deployment:
+To uninstall/delete the `emissary-ingress`:
 
 ```console
-$ helm uninstall my-release
+$ helm delete emissary-ingress -n ambassador
 ```
 
 The command removes all the Kubernetes components associated with the chart and deletes the release.
@@ -74,6 +46,7 @@ Notable chart changes are listed in the [CHANGELOG](./CHANGELOG.md)
 
 ## Configuration
 
+<<<<<<< HEAD
 The following tables lists the configurable parameters of the Ambassador chart and their default values.
 
 | Parameter                                          | Description                                                                                                                                                              | Default                                                                                             |
@@ -292,187 +265,78 @@ Please see Ambassador's [monitoring with Prometheus](https://www.getambassador.i
 ### Specifying Values
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
+=======
+The following table lists the configurable parameters of the `emissary-ingress` chart and their default values.
+
+|               Parameter               |                                                                                                                                                 Description                                                                                                                                                  |                                                                                                                                    Default                                                                                                                                     |
+|---------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| nameOverride                          | Override the generated chart name. Defaults to .Chart.Name.                                                                                                                                                                                                                                                  | `''`                                                                                                                                                                                                                                                                           |
+| fullnameOverride                      | Override the generated release name. Defaults to .Release.Name.                                                                                                                                                                                                                                              | `''`                                                                                                                                                                                                                                                                           |
+| namespaceOverride                     | Override the generated release namespace. Defaults to .Release.Namespace.                                                                                                                                                                                                                                    | `''`                                                                                                                                                                                                                                                                           |
+| replicaCount                          | Number of Ambassador replicas                                                                                                                                                                                                                                                                                | `3`                                                                                                                                                                                                                                                                            |
+| daemonSet                             | If true, Create a DaemonSet. By default Deployment controller will be created                                                                                                                                                                                                                                | `false`                                                                                                                                                                                                                                                                        |
+| test.enabled                          | If true, Create test Pod to verify the Ambassador service works correctly (Only created on helm test)                                                                                                                                                                                                        | `true`                                                                                                                                                                                                                                                                         |
+| test.image                            | Image to use for the test Pod                                                                                                                                                                                                                                                                                | `busybox`                                                                                                                                                                                                                                                                      |
+| autoscaling                           | Enable autoscaling using HorizontalPodAutoscaler daemonSet: true, autoscaling will be disabled                                                                                                                                                                                                               | `{"enabled":false,"maxReplicas":5,"metrics":[{"resource":{"name":"cpu","target":{"averageUtilization":60,"type":"Utilization"}},"type":"Resource"},{"resource":{"name":"memory","target":{"averageUtilization":60,"type":"Utilization"}},"type":"Resource"}],"minReplicas":2}` |
+| namespace.name                        | Explicitly set the AMBASSADOR_NAMESPACE environment variable                                                                                                                                                                                                                                                 | ``                                                                                                                                                                                                                                                                             |
+| security.podSecurityContext           | Security Context for all containers in the pod. https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#podsecuritycontext-v1-core                                                                                                                                                              | `{"runAsUser":8888}`                                                                                                                                                                                                                                                           |
+| security.containerSecurityContext     | Security Context for the Ambassador container specifically https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#securitycontext-v1-core                                                                                                                                                      | `{"allowPrivilegeEscalation":false}`                                                                                                                                                                                                                                           |
+| image.repository                      | Emissary Ingress docker repo                                                                                                                                                                                                                                                                                 | `docker.io/datawire/ambassador`                                                                                                                                                                                                                                                |
+| image.tag                             | Emissary Ingress docker tag                                                                                                                                                                                                                                                                                  | `1.13.6`                                                                                                                                                                                                                                                                       |
+| image.pullPolicy                      | Pod container image pull policy                                                                                                                                                                                                                                                                              | `IfNotPresent`                                                                                                                                                                                                                                                                 |
+| dnsPolicy                             | Dns policy, when hostNetwork set to ClusterFirstWithHostNet                                                                                                                                                                                                                                                  | `ClusterFirst`                                                                                                                                                                                                                                                                 |
+| hostNetwork                           | If true, uses the host network, useful for on-premise setups                                                                                                                                                                                                                                                 | `false`                                                                                                                                                                                                                                                                        |
+| service.type                          |                                                                                                                                                                                                                                                                                                              | `LoadBalancer`                                                                                                                                                                                                                                                                 |
+| service.externalTrafficPolicy         |                                                                                                                                                                                                                                                                                                              | ``                                                                                                                                                                                                                                                                             |
+| service.sessionAffinity               |                                                                                                                                                                                                                                                                                                              | ``                                                                                                                                                                                                                                                                             |
+| service.sessionAffinityConfig         |                                                                                                                                                                                                                                                                                                              | ``                                                                                                                                                                                                                                                                             |
+| service.nameOverride                  | Manually set the name of the generated Service                                                                                                                                                                                                                                                               | ``                                                                                                                                                                                                                                                                             |
+| adminService.create                   | If true, create a service for Ambassador's admin UI                                                                                                                                                                                                                                                          | `true`                                                                                                                                                                                                                                                                         |
+| adminService.type                     | Ambassador's admin service type to be used                                                                                                                                                                                                                                                                   | `ClusterIP`                                                                                                                                                                                                                                                                    |
+| adminService.port                     |                                                                                                                                                                                                                                                                                                              | `8877`                                                                                                                                                                                                                                                                         |
+| adminService.snapshotPort             |                                                                                                                                                                                                                                                                                                              | `8005`                                                                                                                                                                                                                                                                         |
+| adminService.nodePort                 | If explicit NodePort for admin service is required                                                                                                                                                                                                                                                           | ``                                                                                                                                                                                                                                                                             |
+| adminService.loadBalancerIP           | IP address to assign (if cloud provider supports it)                                                                                                                                                                                                                                                         | ``                                                                                                                                                                                                                                                                             |
+| adminService.loadBalancerSourceRanges | Passed to cloud provider load balancer if created (e.g: AWS ELB)                                                                                                                                                                                                                                             | ``                                                                                                                                                                                                                                                                             |
+| rbac.create                           | Specifies whether RBAC resources should be created                                                                                                                                                                                                                                                           | `true`                                                                                                                                                                                                                                                                         |
+| rbac.nameOverride                     | Name of the RBAC resources defaults to the name of the release. Set nameOverride when installing Ambassador with cluster-wide scope in different namespaces with the same release name to avoid conflicts.                                                                                                   | ``                                                                                                                                                                                                                                                                             |
+| scope.singleNamespace                 | Set the AMBASSADOR_SINGLE_NAMESPACE environment variable and create namespaced RBAC if rbac.enabled: true                                                                                                                                                                                                    | `false`                                                                                                                                                                                                                                                                        |
+| serviceAccount.create                 | Specifies whether a service account should be created                                                                                                                                                                                                                                                        | `true`                                                                                                                                                                                                                                                                         |
+| serviceAccount.name                   | The name of the service account to use. If not set and create is true, a name is generated using the fullname template                                                                                                                                                                                       | ``                                                                                                                                                                                                                                                                             |
+| deploymentStrategy.type               |                                                                                                                                                                                                                                                                                                              | `RollingUpdate`                                                                                                                                                                                                                                                                |
+| restartPolicy                         |                                                                                                                                                                                                                                                                                                              | ``                                                                                                                                                                                                                                                                             |
+| terminationGracePeriodSeconds         |                                                                                                                                                                                                                                                                                                              | ``                                                                                                                                                                                                                                                                             |
+| livenessProbe                         | Liveness probe for emissary pods                                                                                                                                                                                                                                                                             | `{"failureThreshold":3,"initialDelaySeconds":30,"periodSeconds":3}`                                                                                                                                                                                                            |
+| readinessProbe                        | Liveness probe for emissary pods                                                                                                                                                                                                                                                                             | `{"failureThreshold":3,"initialDelaySeconds":30,"periodSeconds":3}`                                                                                                                                                                                                            |
+| resources                             | CPU/memory resource requests/limits                                                                                                                                                                                                                                                                          | `{"limits":{"cpu":"1000m","memory":"600Mi"},"requests":{"cpu":"200m","memory":"300Mi"}}`                                                                                                                                                                                       |
+| priorityClassName                     | The name of the priorityClass for the ambassador DaemonSet/Deployment                                                                                                                                                                                                                                        | `''`                                                                                                                                                                                                                                                                           |
+| ambassadorConfig                      | Config thats mounted to `/ambassador/ambassador-config`                                                                                                                                                                                                                                                      | `''`                                                                                                                                                                                                                                                                           |
+| crds.enabled                          | If `true`, enables CRD resources for the installation.                                                                                                                                                                                                                                                       | `true`                                                                                                                                                                                                                                                                         |
+| crds.create                           | If true, Creates CRD resources                                                                                                                                                                                                                                                                               | `true`                                                                                                                                                                                                                                                                         |
+| crds.keep                             | If true, if the ambassador CRDs should be kept when the chart is deleted                                                                                                                                                                                                                                     | `true`                                                                                                                                                                                                                                                                         |
+| metrics.serviceMonitor.enabled        |                                                                                                                                                                                                                                                                                                              | `false`                                                                                                                                                                                                                                                                        |
+| resolvers                             | Resolvers are used to configure the discovery service strategy for Ambasador See: https://www.getambassador.io/docs/edge-stack/latest/topics/running/resolvers/ <br> Example: <br> `Configuration for a Consul Resolver` <br> `address: consul-server.default.svc.cluster.local:8500` <br> `datacenter: dc1` | `{"consul":{"create":false,"name":"consul-dc1","spec":{}},"endpoint":{"create":false,"name":"endpoint"}}`                                                                                                                                                                      |
+| prometheusExporter                    | DEPRECATED: Enabling the prometheus exporter creates a sidecar and configures ambassador to use it Ambassador now exposes the /metrics endpoint in Envoy. See https://www.getambassador.io/user-guide/monitoring#deployment for more information on how to use the /metrics endpoint                         | `{"enabled":false,"pullPolicy":"IfNotPresent","repository":"prom/statsd-exporter","resources":{},"tag":"v0.8.1"}`                                                                                                                                                              |
+| agent.enabled                         |                                                                                                                                                                                                                                                                                                              | `true`                                                                                                                                                                                                                                                                         |
+| agent.cloudConnectToken               | this will be empty when it first gets applied, then the user will edit the agent to make it start reporting                                                                                                                                                                                                  | `''`                                                                                                                                                                                                                                                                           |
+| agent.rpcAddress                      |                                                                                                                                                                                                                                                                                                              | `https://app.getambassador.io/`                                                                                                                                                                                                                                                |
+| agent.createArgoRBAC                  |                                                                                                                                                                                                                                                                                                              | `true`                                                                                                                                                                                                                                                                         |
+| agent.image.tag                       | Leave blank to use image.repository and image.tag                                                                                                                                                                                                                                                            | ``                                                                                                                                                                                                                                                                             |
+| agent.image.repository                |                                                                                                                                                                                                                                                                                                              | ``                                                                                                                                                                                                                                                                             |
+| deploymentTool                        |                                                                                                                                                                                                                                                                                                              | `''`                                                                                                                                                                                                                                                                           |
+| createNamespace                       |                                                                                                                                                                                                                                                                                                              | `false`                                                                                                                                                                                                                                                                        |
+
+
+Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example:
+>>>>>>> make chart emissary only
 
 ```console
-$ helm install --wait my-release \
-    --set adminService.type=NodePort \
-    datawire/ambassador
+$ helm install emissary-ingress emissary-ingress/emissary-ingress -n ambassador --version=v0.0.1 --set nameOverride=''
 ```
 
-Alternatively, a YAML file that specifies the values for the above parameters can be provided while installing the chart. For example,
+Alternatively, a YAML file that specifies the values for the parameters can be provided while
+installing the chart. For example:
 
 ```console
-$ helm install --wait my-release -f values.yaml datawire/ambassador
+$ helm install emissary-ingress emissary-ingress/emissary-ingress -n ambassador --version=v0.0.1 --values values.yaml
 ```
-
----
-
-# Upgrading
-
-## To 6.0.0
-
-Introduces Ambassador Edge Stack being installed by default.
-
-### Breaking changes
-
-Ambassador Pro support has been removed in 6.0.0. Please [upgrade to the Ambassador Edge Stack](https://www.getambassador.io/user-guide/helm).
-
-## To 5.0.0
-
-### Breaking changes
-
-**Note** If upgrading an existing helm 2 installation no action is needed, previously installed CRDs will not be modified.
-
-- Helm 3 support for CRDs was added. Specifically, the CRD templates were moved to non-templated files in the `/crds` directory, and to keep Helm 2 support they are globbed from there by `/templates/crds.yaml`. However, because Helm 3 CRDs are not templated, the labels for new installations have necessarily changed
-
-## To 4.0.0
-
-The 4.0.0 chart contains a number of changes to the way Ambassador Pro is installed.
-
-- Introduces the performance tuned and certified build of open source Ambassador, Ambassador core
-- The license key is now stored and read from a Kubernetes secret by default
-- Added `.Values.pro.licenseKey.secret.enabled` `.Values.pro.licenseKey.secret.create` fields to allow multiple releases in the same namespace to use the same license key secret.
-- Introduces the ability to configure resource limits for both Ambassador Pro and it's redis instance
-- Introduces the ability to configure additional `AuthService` options (see [AuthService documentation](https://www.getambassador.io/reference/services/auth-service/))
-- The ambassador-pro-auth `AuthService` and ambassador-pro-ratelimit `RateLimitService` and now created as CRDs when `.Values.crds.enabled: true`
-- Fixed misnamed selector for redis instance that failed in an edge case
-- Exposes annotations for redis deployment and service
-
-### Breaking changes
-
-The value of `.Values.pro.image.tag` has been shortened to assume `amb-sidecar` (and `amb-core` for Ambassador core)
-`values.yaml`
-```diff
-<3.0.0>
-  image:
-    repository: quay.io/datawire/ambassador_pro
--    tag: amb-sidecar-0.6.0
-
-<4.0.0+>
-  image:
-    repository: quay.io/datawire/ambassador_pro
-+    tag: 0.7.0
-```
-
-Method for creating a Kubernetes secret to hold the license key has been changed
-
-`values.yaml`
-```diff
-<3.0.0>
--    secret: false
-<4.0.0>
-+    secret:
-+      enabled: true
-+      create: true
-```
-
-## To 3.0.0
-
-### Service Ports
-
-The way ports are assigned has been changed for a more dynamic method.
-
-Now, instead of setting the port assignments for only the http and https, any port can be open on the load balancer using a list like you would in a standard Kubernetes YAML manifest.
-
-`pre-3.0.0`
-```yaml
-service:
-  http:
-    enabled: true
-    port: 80
-    targetPort: 8080
-  https:
-    enabled: true
-    port: 443
-    targetPort: 8443
-```
-
-`3.0.0`
-```yaml
-service:
-  ports:
-  - name: http
-    port: 80
-    targetPort: 8080
-  - name: https
-    port: 443
-    targetPort: 8443
-```
-
-This change has also replaced the `.additionalTCPPorts` configuration. Additional TCP ports can be created the same as the http and https ports above.
-
-### Annotations and `service_port`
-
-The below Ambassador `Module` annotation is no longer being applied by default.
-
-```yaml
-getambassador.io/config: |
-  ---
-  apiVersion: ambassador/v1
-  kind: Module
-  name: ambassador
-  config:
-    service_port: 8080
-```
-This was causing confusion with the `service_port` being hard-coded when enabling TLS termination in Ambassador.
-
-Ambassador has been listening on port 8080 for HTTP and 8443 for HTTPS by default since version `0.60.0` (chart version 2.2.0).
-
-### RBAC and CRDs
-
-A `ClusterRole` and `ClusterRoleBinding` named `{{release name}}-crd` will be created to watch for the Ambassador Custom Resource Definitions. This will be created regardless of the value of `scope.singleNamespace` since CRDs are created the cluster scope.
-
-`rbac.namespaced` has been removed. For namespaced RBAC, set `scope.singleNamespace: true` and `rbac.enabled: true`.
-
-`crds.enabled` will indicate that you are using CRDs and will create the rbac resources regardless of the value of `crds.create`. This allows for multiple deployments to use the CRDs.
-
-## To 2.0.0
-
-### Ambassador ID
-
-ambassador.id has been removed in favor of setting it via an environment variable in `env`. `AMBASSADOR_ID` defaults to `default` if not set in the environment. This is mainly used for [running multiple Ambassadors](https://www.getambassador.io/reference/running#ambassador_id) in the same cluster.
-
-| Parameter       | Env variables   |
-| --------------- | --------------- |
-| `ambassador.id` | `AMBASSADOR_ID` |
-
-## Migrating from `datawire/ambassador` chart (chart version 0.40.0 or 0.50.0)
-
-Chart now runs ambassador as non-root by default, so you might need to update your ambassador module config to match this.
-
-### Timings
-
-Timings values have been removed in favor of setting the env variables using `env´
-
-| Parameter         | Env variables              |
-| ----------------- | -------------------------- |
-| `timing.restart`  | `AMBASSADOR_RESTART_TIME`  |
-| `timing.drain`    | `AMBASSADOR_DRAIN_TIME`    |
-| `timing.shutdown` | `AMBASSADOR_SHUTDOWN_TIME` |
-
-### Single namespace
-
-| Parameter          | Env variables                 |
-| ------------------ | ----------------------------- |
-| `namespace.single` | `AMBASSADOR_SINGLE_NAMESPACE` |
-
-### Renamed values
-
-Service ports values have changed names and target ports have new defaults.
-
-| Previous parameter          | New parameter              | New default value |
-| --------------------------- | -------------------------- | ----------------- |
-| `service.enableHttp`        | `service.http.enabled`     |                   |
-| `service.httpPort`          | `service.http.port`        |                   |
-| `service.httpNodePort`      | `service.http.nodePort`    |                   |
-| `service.targetPorts.http`  | `service.http.targetPort`  | `8080`            |
-| `service.enableHttps`       | `service.https.enabled`    |                   |
-| `service.httpsPort`         | `service.https.port`       |                   |
-| `service.httpsNodePort`     | `service.https.nodePort`   |                   |
-| `service.targetPorts.https` | `service.https.targetPort` | `8443`            |
-
-### Exporter sidecar
-
-Pre version `0.50.0` ambassador was using socat and required a sidecar to export statsd metrics. In `0.50.0` ambassador no longer uses socat and doesn't need a sidecar anymore to export its statsd metrics. Statsd metrics are disabled by default and can be enabled by setting environment `STATSD_ENABLED`, this will (in 0.50) send metrics to a service named `statsd-sink`, if you want to send it to another service or namespace it can be changed by setting `STATSD_HOST`
-
-If you are using prometheus the chart allows you to enable a sidecar which can export to prometheus see the `prometheusExporter` values.

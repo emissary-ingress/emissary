@@ -1,7 +1,7 @@
-## :tada: Ambassador Chart $CHART_VERSION :tada:
+## :tada: Emissary Ingress Chart $CHART_VERSION :tada:
 
-Upgrade Ambassador - https://www.getambassador.io/reference/upgrading#helm.html
-View changelog - https://github.com/datawire/ambassador/blob/master/charts/ambassador/CHANGELOG.md
+Upgrade Emissary - https://www.getambassador.io/reference/upgrading#helm.html
+View changelog - https://github.com/emissary-ingress/emissary/blob/master/charts/emissary-ingress/CHANGELOG.md
 
 ---
 

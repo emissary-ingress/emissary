@@ -3,6 +3,11 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+Note: some releases may not have any changes. This is okay.
+
+In the interim period where we're still supporting the emissary and ambassador charts,
+we're packaging and versioning the charts together to make things a bit easier. Since the ambassador chart also contains AES resources, some changes to that chart may not be relevant to emissary.
+
 ## Next Release
 
 (no changes yet)

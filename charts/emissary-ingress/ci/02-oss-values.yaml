@@ -1,8 +1,0 @@
-# install the Ambassador API Gateway
-image:
-  pullPolicy: IfNotPresent
-
-enableAES: false
-
-deploymentStrategy:
-  type: Recreate
