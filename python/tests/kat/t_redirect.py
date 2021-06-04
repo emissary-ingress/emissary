@@ -23,6 +23,8 @@ class RedirectTests(AmbassadorTest):
         if EDGE_STACK:
             self.xfail = "Not yet supported in Edge Stack"
 
+        self.xfail = "FIXME: IHA"
+
         self.target = HTTP()
 
     def requirements(self):
@@ -102,6 +104,7 @@ class RedirectTestsWithProxyProto(AmbassadorTest):
     target: ServiceType
 
     def init(self):
+        self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def requirements(self):
@@ -162,6 +165,7 @@ class RedirectTestsInvalidSecret(AmbassadorTest):
         if EDGE_STACK:
             self.xfail = "Not yet supported in Edge Stack"
 
+        self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def requirements(self):
