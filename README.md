@@ -50,7 +50,7 @@ You can also use Helm to install Ambassador. For more information, see the instr
 Community
 =========
 
-Ambassador is an open-source project, and welcomes any and all contributors. To get started:
+Ambassador is an open-source project and welcomes any and all contributors. To get started:
 
 * Join our [Slack channel](https://d6e.co/slack)
 * Check out the [Ambassador documentation](https://www.getambassador.io/docs/edge-stack/latest)
