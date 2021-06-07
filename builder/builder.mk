@@ -797,6 +797,7 @@ release/promote-oss/dev-to-rc:
 			chart-push-ci ; \
 		$(MAKE) update-yaml --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} push-manifests  ; \
+		$(MAKE) VERSION_OVERRIDE=$${veroverride} publish-docs-yaml ; \
 		$(MAKE) clean-manifests ; \
 	}
 .PHONY: release/promote-oss/dev-to-rc
@@ -866,6 +867,7 @@ VERSIONS_YAML_VER := $(shell grep 'version:' $(OSS_HOME)/docs/yaml/versions.yml 
 
 release/prep-rc:
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
+	@test -n "$(RELEASE_REGISTRY)" || (printf "RELEASE_REGISTRY must be set\n"; exit 1)
 	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: Version in versions.yml %s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
 	@set -e; { \
 		if [ -n "$(IS_DIRTY)" ]; then \
@@ -876,16 +878,16 @@ release/prep-rc:
 		$(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key dev-builds ; \
 		curl --fail --silent https://datawire-static-files.s3.amazonaws.com/dev-builds/$$commit > /dev/null || \
 			(printf "$(RED)ERROR: $$commit not found in dev builds.\nPlease check that this commit passed oss-dev-images in circle or run \"make images push-dev\"\n" ; exit 1); \
-		rc_tag=v$(VERSIONS_YAML_VER)-rc. ; \
+		rc_tag=$(VERSIONS_YAML_VER)-rc. ; \
 		if [[ -n "$${RC_NUMBER}" ]] ; then \
 			rc_tag="$${rc_tag}$(RC_NUMBER)" ;\
 		else \
 			rc_tag="$${rc_tag}0" ;\
 		fi ;\
-		read -p "I'm about to tag $${rc_tag}, is this correct? (y/n) " -n 1 -r ; \
+		read -p "I'm about to tag v$${rc_tag}, is this correct? (y/n) " -n 1 -r ; \
 		echo ; \
 		[[ ! $$REPLY =~ ^[Yy]$$ ]] && (printf "$(RED)Exiting without tagging\n" ; exit 1) ; \
-		git tag -m $$rc_tag -a $$rc_tag && git push origin $$rc_tag ; \
+		git tag -m v$$rc_tag -a v$$rc_tag && git push origin v$$rc_tag ; \
 		$(OSS_HOME)/releng/release-wait-for-rc-artifacts --rc-tag $$rc_tag --release-registry $(RELEASE_REGISTRY) ; \
 	}
 .PHONY: release/prep-rc
