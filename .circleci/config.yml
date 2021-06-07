@@ -564,21 +564,6 @@ commands:
             echo "Chart version ${thisversion} doesn't match tag << pipeline.git.tag >>; aborting"
             exit 1
           fi
-  website-setup:
-    steps:
-    - install-node:
-        version: "14"
-    - install-yarn
-    - install-python:
-        executor-key: "202008-01"
-        version: "3.7.0"
-    - run:
-        name: "Show environment"
-        command: |
-          env | grep -e GIT -e TRAVIS -e CIRCLE | sort
-    - amb-checkout
-    - skip-if-no-changes:
-        to: docs/
   install-gotestsum:
     steps:
     - run:
@@ -933,45 +918,6 @@ jobs:
     steps:
     - job-yaml-publish-s3:
         update-stable: false
-  website-preview-build:
-    executor: oss-linux
-    steps:
-    - website-setup
-    - run: ./.ci/website-preview-build
-    - run: "test -d /tmp/getambassador.io/public || circleci step halt"
-    - persist_to_workspace:
-        root: /tmp/getambassador.io
-        paths:
-        - public
-  website-preview-publish:
-    executor: oss-linux
-    steps:
-    - website-setup
-    - attach_workspace:
-        at: /tmp/getambassador.io
-    - run:
-        command: ./.ci/website-preview-publish
-        no_output_timeout: "30m"
-  website-preview-for-smoketest:
-    executor: oss-linux
-    steps:
-    - website-setup
-    - run: ./.ci/website-preview-build
-    - run:
-        command: ./.ci/website-preview-publish
-        no_output_timeout: "30m"
-  website-prod-publish:
-    executor: oss-linux
-    steps:
-    - website-setup
-    - run:
-        name: "Configure Git user"
-        command: |
-          git config --global user.name 'ambassador.git CircleCI user'
-          git config --global user.email dev@datawire.io
-    - run:
-        command: ./.ci/website-prod-publish
-        no_output_timeout: "30m"
 _anchors:
   filter-rc-only:
     filters:
@@ -1288,35 +1234,6 @@ workflows:
           - test: pytest-envoy-v3
             fast-reconfigure: true
             legacy-mode: true
-  'Docs: Dev':
-    jobs:
-    - "website-preview-build"
-    - website-preview-publish:
-        requires:
-        - "website-preview-build"
-        filters:
-          branches:
-            ignore:
-            # Don't bother running on 'master' or the other
-            # branches that we do the "Release" workflow for.
-            - master
-            - /^release\/v1\.[0-9]+$/
-            # Don't bother running on forked PRs (which CircleCI
-            # shows as branch="pull/${number}"); they won't have
-            # GH_TOKEN set to be able to pull getambassador.io.git
-            - /^pull\/[0-9]+$/
-  'Docs: Release':
-    when:
-      equal:
-      - "https://github.com/emissary-ingress/emissary"
-      - << pipeline.project.git_url >>
-    jobs:
-    - website-prod-publish:
-        filters:
-          branches:
-            only:
-            - master
-            - /^release\/v1\.[0-9]+$/
 executors:
   oss-linux:
     machine:
