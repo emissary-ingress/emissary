@@ -5,7 +5,7 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
-(no changes yet)
+- Change: Support 'imagePullSecrets' for Redis image
 
 ## v6.7.10
 
