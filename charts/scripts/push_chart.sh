@@ -74,7 +74,7 @@ info "Cleaning up..."
 echo
 rm ${chart_dir}/tmp.yaml "$CHART_PACKAGE"
 
-if [[ `basename ${chart_dir}` != emsisary-ingress ]] ; then
+if [[ `basename ${chart_dir}` != emissary-ingress ]] ; then
     info "This script only publishes release for the emissary-ingress chart, skipping publishing git release for ${chart_dir}"
     exit 0
 fi
