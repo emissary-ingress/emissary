@@ -1185,14 +1185,6 @@ workflows:
             fast-reconfigure: true
             legacy-mode: true
   'OSS: Chart Release':
-    when:
-      or:
-      - equal:
-        - "https://github.com/emissary-ingress/emissary"
-        - << pipeline.project.git_url >>
-      - equal:
-        - "https://github.com/emissary-ingress/emissary-private"
-        - << pipeline.project.git_url >>
     jobs:
     - oss-chart-publish:
         name: "oss-release-chart"
@@ -1202,14 +1194,6 @@ workflows:
           branches:
             ignore: /.*/
   'OSS: Manifests Release':
-    when:
-      or:
-      - equal:
-        - "https://github.com/emissary-ingress/emissary"
-        - << pipeline.project.git_url >>
-      - equal:
-        - "https://github.com/emissary-ingress/emissary-private"
-        - << pipeline.project.git_url >>
     jobs:
     - oss-manifest-publish:
         name: "oss-rc-manifests-publish"

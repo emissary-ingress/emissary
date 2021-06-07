@@ -425,19 +425,11 @@ workflows:
                 legacy-mode: true
 
   "OSS: Chart Release":
-    when: # Don't run this workflow in apro.git
-      or:
-      - equal: [ "https://github.com/emissary-ingress/emissary", << pipeline.project.git_url >> ]
-      - equal: [ "https://github.com/emissary-ingress/emissary-private", << pipeline.project.git_url >> ]
     jobs:
       - "oss-chart-publish":
           <<: *filter-chart-release-only
           name: "oss-release-chart"
   "OSS: Manifests Release":
-    when: # Don't run this workflow in apro.git
-      or:
-      - equal: [ "https://github.com/emissary-ingress/emissary", << pipeline.project.git_url >> ]
-      - equal: [ "https://github.com/emissary-ingress/emissary-private", << pipeline.project.git_url >> ]
     jobs:
       - "oss-manifest-publish":
           <<: *filter-chart-release-only
