@@ -92,11 +92,11 @@ type KubernetesSnapshot struct {
 
 	Annotations []kates.Object `json:"-"`
 
-	// this is only for the saas app agent com and ambassador agent to communicate about service
-	// backends. yes, i know this isn't an ambassador input techinically, but putting this here
-	// makes things _much_ easier when giving the mothership (aka saas app's agent com) a single
-	// source of the state of the cluster
-	Pods []*kates.Pod `json:"Pods,omitempty"`
+	// Pods, Deployments and ConfigMaps were added to be used by Ambassador Agent so it can
+	// report to AgentCom in Ambassador Cloud.
+	Pods        []*kates.Pod        `json:"Pods,omitempty"`
+	Deployments []*kates.Deployment `json:"Deployments,omitempty"`
+	ConfigMaps  []*kates.ConfigMap  `json:"ConfigMaps,omitempty"`
 
 	// ArgoRollouts represents the argo-rollout CRD state of the world that may or may not be present
 	// in the client's cluster. For this reason, Rollouts resources are fetched making use of the

@@ -78,8 +78,8 @@ type Agent struct {
 	reportRunning  atomicBool      // Is a report being sent right now?
 	reportComplete chan error      // Report() finished with this error
 
-	// current pod state in cluster
-	podStore *podStore
+	// current cluster state of core resources
+	coreStore *coreStore
 
 	// rolloutStore holds Argo Rollouts state from cluster
 	rolloutStore *RolloutStore
@@ -96,6 +96,9 @@ type Agent struct {
 	// for secrets is locked down to Ops folks only, and we want to make it easy for regular ol'
 	// engineers to give this whole service catalog thing a go
 	agentCloudResourceConfigName string
+
+	// Field selector for the k8s resources that the agent watches
+	agentWatchFieldSelector string
 }
 
 func getEnvWithDefault(envVarKey string, defaultValue string) string {
@@ -137,6 +140,7 @@ func NewAgent(directiveHandler DirectiveHandler) *Agent {
 		agentCloudResourceConfigName: getEnvWithDefault("AGENT_CONFIG_RESOURCE_NAME", "ambassador-agent-cloud-token"),
 		directiveHandler:             directiveHandler,
 		reportRunning:                atomicBool{value: false},
+		agentWatchFieldSelector:      getEnvWithDefault("AGENT_WATCH_FIELD_SELECTOR", "metadata.namespace!=kube-system"),
 	}
 }
 
@@ -261,30 +265,52 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 	if err != nil {
 		return err
 	}
-
-	ns := kates.NamespaceAll
-	query := kates.Query{
-		Namespace: ns,
-		Name:      "Pods",
-		Kind:      "pods.",
-	}
-	cmQuery := kates.Query{
+	dlog.Info(ctx, "Agent is running...")
+	agentCMQuery := kates.Query{
 		Namespace:     a.agentNamespace,
 		Name:          "ConfigMaps",
 		Kind:          "configmaps.",
 		FieldSelector: fmt.Sprintf("metadata.name=%s", a.agentCloudResourceConfigName),
 	}
-	secretQuery := kates.Query{
+	agentSecretQuery := kates.Query{
 		Namespace:     a.agentNamespace,
 		Name:          "Secrets",
 		Kind:          "secrets.",
 		FieldSelector: fmt.Sprintf("metadata.name=%s", a.agentCloudResourceConfigName),
 	}
+	configAcc := client.Watch(ctx, agentCMQuery, agentSecretQuery)
+	err = a.waitForAPIKey(ctx, configAcc)
+	if err != nil {
+		dlog.Errorf(ctx, "Error waiting for api key: %+v", err)
+		return err
+	}
+
+	podQuery := kates.Query{
+		Name:          "Pods",
+		Kind:          "pods.",
+		FieldSelector: a.agentWatchFieldSelector,
+	}
+	cmQuery := kates.Query{
+		Name:          "ConfigMaps",
+		Kind:          "configmaps.",
+		FieldSelector: a.agentWatchFieldSelector,
+	}
+	deployQuery := kates.Query{
+		Name:          "Deployments",
+		Kind:          "deployments.",
+		FieldSelector: a.agentWatchFieldSelector,
+	}
+	endpointQuery := kates.Query{
+		Name:          "Endpoints",
+		Kind:          "endpoints.",
+		FieldSelector: a.agentWatchFieldSelector,
+	}
+
 	// If the user didn't setup RBAC to allow the agent to get pods, the watch will just return
 	// no pods, log that it didn't have permission to get pods, and carry along.
-	acc := client.Watch(ctx, query)
-	configAcc := client.Watch(ctx, cmQuery, secretQuery)
+	coreAcc := client.Watch(ctx, podQuery, cmQuery, deployQuery, endpointQuery)
 
+	ns := kates.NamespaceAll
 	dc := NewDynamicClient(client.DynamicInterface(), NewK8sInformer)
 	rolloutGvr, _ := schema.ParseResourceArg("rollouts.v1alpha1.argoproj.io")
 	rolloutCallback := dc.WatchGeneric(ctx, ns, rolloutGvr)
@@ -292,7 +318,7 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 	applicationGvr, _ := schema.ParseResourceArg("applications.v1alpha1.argoproj.io")
 	applicationCallback := dc.WatchGeneric(ctx, ns, applicationGvr)
 
-	return a.watch(ctx, snapshotURL, configAcc, acc, rolloutCallback, applicationCallback)
+	return a.watch(ctx, snapshotURL, configAcc, coreAcc, rolloutCallback, applicationCallback)
 }
 
 type accumulator interface {
@@ -300,7 +326,32 @@ type accumulator interface {
 	FilteredUpdate(target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool
 }
 
-func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator accumulator, podAccumulator accumulator, rolloutCallback <-chan *GenericCallback, applicationCallback <-chan *GenericCallback) error {
+func (a *Agent) waitForAPIKey(ctx context.Context, configAccumulator accumulator) error {
+	isValid := func(un *kates.Unstructured) bool {
+		return true
+	}
+	configSnapshot := struct {
+		Secrets    []kates.Secret
+		ConfigMaps []kates.ConfigMap
+	}{}
+	// wait until the user installs an api key
+	for a.ambassadorAPIKey == "" {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-configAccumulator.Changed():
+			if !configAccumulator.FilteredUpdate(&configSnapshot, &[]*kates.Delta{}, isValid) {
+				continue
+			}
+			a.handleAPIKeyConfigChange(ctx, configSnapshot.Secrets, configSnapshot.ConfigMaps)
+		case <-time.After(1 * time.Minute):
+			dlog.Debugf(ctx, "Still waiting for api key")
+		}
+	}
+	return nil
+}
+
+func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator accumulator, coreAccumulator accumulator, rolloutCallback <-chan *GenericCallback, applicationCallback <-chan *GenericCallback) error {
 	var err error
 	// for the watch
 	// we're not watching CRDs or anything special, so i'm pretty sure it's okay just to say all
@@ -317,7 +368,12 @@ func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator
 
 	applicationStore := NewApplicationStore()
 	rolloutStore := NewRolloutStore()
-	dlog.Info(ctx, "Agent is running")
+	coreSnapshot := CoreSnapshot{}
+	configSnapshot := struct {
+		Secrets    []kates.Secret
+		ConfigMaps []kates.ConfigMap
+	}{}
+	dlog.Info(ctx, "Beginning to watch and report resources to ambassador cloud")
 	for {
 		// Wait for an event
 		select {
@@ -330,23 +386,15 @@ func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator
 		case <-time.After(1 * time.Second):
 			// just a ticker, this will fallthru to the snapshot getting thing
 		case <-configAccumulator.Changed():
-			configSnapshot := struct {
-				Secrets    []kates.Secret
-				ConfigMaps []kates.ConfigMap
-			}{}
 			if !configAccumulator.FilteredUpdate(&configSnapshot, &[]*kates.Delta{}, isValid) {
 				continue
 			}
 			a.handleAPIKeyConfigChange(ctx, configSnapshot.Secrets, configSnapshot.ConfigMaps)
-		case <-podAccumulator.Changed():
-			var deltas []*kates.Delta
-			podSnapshot := struct {
-				Pods []kates.Pod
-			}{}
-			if !podAccumulator.FilteredUpdate(&podSnapshot, &deltas, isValid) {
+		case <-coreAccumulator.Changed():
+			if !coreAccumulator.FilteredUpdate(&coreSnapshot, &[]*kates.Delta{}, isValid) {
 				continue
 			}
-			a.podStore = NewPodStore(podSnapshot.Pods)
+			a.coreStore = NewCoreStore(&coreSnapshot)
 		case callback, ok := <-rolloutCallback:
 			if ok {
 				dlog.Debugf(ctx, "argo rollout callback: %v", callback.EventType)
@@ -492,17 +540,31 @@ func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Sna
 	}
 
 	if snapshot.Kubernetes != nil {
-		if a.podStore != nil {
-			snapshot.Kubernetes.Pods = a.podStore.GetPodsForServices(snapshot.Kubernetes.Services)
-			dlog.Debugf(ctx, "Found %d pods and %d services", len(snapshot.Kubernetes.Pods), len(snapshot.Kubernetes.Services))
+		if a.coreStore != nil {
+			if a.coreStore.podStore != nil {
+				snapshot.Kubernetes.Pods = a.coreStore.podStore.StateOfWorld()
+				dlog.Debugf(ctx, "Found %d pods", len(snapshot.Kubernetes.Pods))
+			}
+			if a.coreStore.configMapStore != nil {
+				snapshot.Kubernetes.ConfigMaps = a.coreStore.configMapStore.StateOfWorld()
+				dlog.Debugf(ctx, "Found %d configMaps", len(snapshot.Kubernetes.ConfigMaps))
+			}
+			if a.coreStore.deploymentStore != nil {
+				snapshot.Kubernetes.Deployments = a.coreStore.deploymentStore.StateOfWorld()
+				dlog.Debugf(ctx, "Found %d Deployments", len(snapshot.Kubernetes.Deployments))
+			}
+			if a.coreStore.endpointStore != nil {
+				snapshot.Kubernetes.Endpoints = a.coreStore.endpointStore.StateOfWorld()
+				dlog.Debugf(ctx, "Found %d Endpoints", len(snapshot.Kubernetes.Endpoints))
+			}
 		}
 		if a.rolloutStore != nil {
 			snapshot.Kubernetes.ArgoRollouts = a.rolloutStore.StateOfWorld()
-			dlog.Infof(ctx, "Found %d argo rollouts", len(snapshot.Kubernetes.ArgoRollouts))
+			dlog.Debugf(ctx, "Found %d argo rollouts", len(snapshot.Kubernetes.ArgoRollouts))
 		}
 		if a.applicationStore != nil {
 			snapshot.Kubernetes.ArgoApplications = a.applicationStore.StateOfWorld()
-			dlog.Infof(ctx, "Found %d argo applications", len(snapshot.Kubernetes.ArgoApplications))
+			dlog.Debugf(ctx, "Found %d argo applications", len(snapshot.Kubernetes.ArgoApplications))
 		}
 	}
 
