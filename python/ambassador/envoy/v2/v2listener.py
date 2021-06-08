@@ -135,6 +135,7 @@ class V2Listener(dict):
         self.use_proxy_proto = False
         self.listener_filters: List[dict] = []
         self.traffic_direction: str = "UNSPECIFIED"
+        self._irlistener = irlistener   # We cache the IRListener to use its match method later
         self._security_model: str = irlistener.securityModel
         self._l7_depth: int = irlistener.get('l7Depth', 0)
         self._insecure_only: bool = False
@@ -608,13 +609,18 @@ class V2Listener(dict):
         # Compute the set of chains we need, HTTP version. The core here is matching
         # up Hosts with this Listener, and creating a chain for each Host.
 
+        self.config.ir.logger.debug("V2Listener %s: checking hosts for %s", self.name, self)
+
         for host in sorted(self.config.ir.get_hosts(), key=lambda h: h.hostname):
             if self._log_debug:
-                self.config.ir.logger.debug("V2Listener %s: consider %s", self.name, host)
+                self.config.ir.logger.debug("  consider %s", host)
 
-            # XXX Reject if labels don't match.
+            # First up: drop this host if nothing matches at all.
+            if not self._irlistener.matches_host(host):
+                # Bzzzt.
+                continue
 
-            # OK, if we're still here, then it's a question of matching the Listener's 
+            # OK, if we're still here, then it's a question of matching the Listener's
             # SecurityModel with the Host's requestPolicy. It happens that it's actually
             # pretty hard to reject things at this level. 
             #

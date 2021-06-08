@@ -16,6 +16,7 @@ class IRHost(IRResource):
     AllowedKeys = {
         'acmeProvider',
         'hostname',
+        'metadata_labels',
         'matchLabels',
         'requestPolicy',
         'selector',
