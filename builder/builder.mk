@@ -882,9 +882,6 @@ release/prep-rc:
 		else \
 			rc_tag="$${rc_tag}0" ;\
 		fi ;\
-		read -p "I'm about to tag v$${rc_tag}, is this correct? (y/n) " -n 1 -r ; \
-		echo ; \
-		[[ ! $$REPLY =~ ^[Yy]$$ ]] && (printf "$(RED)Exiting without tagging\n" ; exit 1) ; \
 		git tag -m v$$rc_tag -a v$$rc_tag && git push origin v$$rc_tag ; \
 		$(OSS_HOME)/releng/release-wait-for-rc-artifacts --rc-tag $$rc_tag --release-registry $(RELEASE_REGISTRY) ; \
 	}
@@ -908,8 +905,12 @@ release/go:
 	@git tag -m "Tagging v$(VERSIONS_YAML_VER) for GA" -a v$(VERSIONS_YAML_VER)
 	@git push origin v$(VERSIONS_YAML_VER)
 	@$(OSS_HOME)/releng/release-go-changelog-update --quiet $(VERSIONS_YAML_VER)
-	$(OSS_HOME)/releng/release-wait-for-ga-image --ga-tag $(RELEASE_VERSION) --release-registry $(RELEASE_REGISTRY)
-	$(MAKE) release/ga-mirror
+	@$(OSS_HOME)/releng/release-wait-for-ga-image --ga-tag $(RELEASE_VERSION) --release-registry $(RELEASE_REGISTRY)
+	@$(MAKE) release/ga-mirror
+	@git checkout v$(VERSIONS_YAML_VER)
+	@$(MAKE) release/manifests
+	@$(MAKE) release/chart/tag
+	@$(AES_HOME)/releng/release-wait-for-ga-artifacts --ga-tag $(VERSIONS_YAML_VER)
 .PHONY: release/go
 
 release/manifests:
