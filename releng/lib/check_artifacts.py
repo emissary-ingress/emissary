@@ -9,6 +9,7 @@ from typing import Dict, Generator, Optional, Tuple, cast
 from urllib.error import HTTPError
 from urllib.request import urlopen
 import fileinput
+import subprocess
 
 from . import ansiterm, assert_eq, build_version, get_is_private
 from .uiutil import Checker, CheckResult, run, run_bincapture, run_txtcapture
@@ -181,13 +182,11 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
             assert '/ambassador:' in image
             check.result = image.split(':', 1)[1]
             assert_eq(check.result, check_tag)
-    with checker.check(name='Adding Helm Chart') as check:
-        run(['helm', 'repo', 'add', 'emissary',
-            'https://s3.amazonaws.com/datawire-static-files/ambassador'])
-    if not checker.ok:
-        with checker.check(name="Updating helm repo"):
-            run(['helm', 'repo', 'update'])
-        checker.ok = True
+    subprocess.run(['helm', 'repo', 'rm', 'emissary'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    subprocess.run(['helm', 'repo', 'add', 'emissary',
+            'https://s3.amazonaws.com/datawire-static-files/ambassador'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    with checker.check(name="Updating helm repo"):
+        run(['helm', 'repo', 'update'])
     chart_version = ""
     for line in fileinput.FileInput("charts/ambassador/Chart.yaml"):
         if line.startswith("version:"):
@@ -195,7 +194,7 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
     with checker.check(name="Check Helm Chart"):
         yaml_str = run_txtcapture(['helm', 'show', 'chart', '--version', chart_version, 'emissary/ambassador'])
         versions = [
-            line[len('ossVersion:'):].strip() for line in yaml_str.split("\n") if line.startswith('ossVersion:')
+            line[len('appVersion:'):].strip() for line in yaml_str.split("\n") if line.startswith('appVersion:')
         ]
         assert_eq(len(versions), 1)
         check.result = versions[0]
