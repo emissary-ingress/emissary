@@ -120,14 +120,6 @@ def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
 
 
-def envoy_api_version():
-    env_version = os.environ.get('AMBASSADOR_ENVOY_API_VERSION', 'V2')
-    version = env_version.upper()
-    if version == 'V2' or env_version == 'V3':
-        return version
-    return 'V2'
-
-
 class DiagApp (Flask):
     cache: Optional[Cache]
     ambex_pid: int
@@ -468,7 +460,7 @@ class DiagApp (Flask):
         cache = Cache(self.logger)
         scc = SecretHandler(app.logger, "check_cache", app.snapshot_path, "check")
         ir = IR(self.aconf, secret_handler=scc, cache=cache)
-        econf = EnvoyConfig.generate(ir, envoy_api_version(), cache=cache)
+        econf = EnvoyConfig.generate(ir, Config.envoy_api_version, cache=cache)
 
         # This is testing code.
         # name = list(ir.clusters.keys())[0]
@@ -1592,9 +1584,8 @@ class AmbassadorEventWatcher(threading.Thread):
         open(ir_path, "w").write(ir.as_json())
 
         with self.app.econf_timer:
-            econf_api_version = envoy_api_version()
-            self.logger.debug("generating envoy configuration with api version %s" % econf_api_version)
-            econf = EnvoyConfig.generate(ir, econf_api_version, cache=self.app.cache)
+            self.logger.debug("generating envoy configuration with api version %s" % Config.envoy_api_version)
+            econf = EnvoyConfig.generate(ir, Config.envoy_api_version, cache=self.app.cache)
 
         # DON'T generate the Diagnostics here, because that turns out to be expensive.
         # Instead, we'll just reset app.diag to None, then generate it on-demand when

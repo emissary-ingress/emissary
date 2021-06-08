@@ -88,7 +88,7 @@ class EnvoyConfig:
             from . import V3Config
             return V3Config(ir, cache=cache)
 
-        from . import V2Config, V3Config
+        from . import V2Config
         return V2Config(ir, cache=cache)
 
 

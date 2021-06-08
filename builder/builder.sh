@@ -692,6 +692,8 @@ case "${cmd}" in
     gotest-local)
         [ -n "${TEST_XML_DIR}" ] && mkdir -p ${TEST_XML_DIR}
         fail=""
+        # TEMPORARY HACK
+        export AMBASSADOR_ENVOY_API_VERSION=V2
         for MODDIR in ${GOTEST_MODDIRS} ; do
             if [ -e "${MODDIR}/go.mod" ]; then
                 pkgs=$(cd ${MODDIR} && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' ${GOTEST_PKGS})
@@ -701,7 +703,7 @@ case "${cmd}" in
                     if [[ -n "${TEST_XML_DIR}" ]] ; then
                         junitarg="--junitfile ${TEST_XML_DIR}/${modname}-gotest.xml"
                     fi
-                    if ! (cd ${MODDIR} && gotestsum ${junitarg} --rerun-fails=3 --packages="${pkgs}" -- ${GOTEST_ARGS}) ; then
+                    if ! (cd ${MODDIR} && gotestsum ${junitarg} --rerun-fails=3 --format=testname --packages="${pkgs}" -- -v ${GOTEST_ARGS}) ; then
                        fail="yes"
                     fi
                 fi

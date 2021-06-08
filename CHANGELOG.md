@@ -26,6 +26,13 @@ Edge Stack documentation refer both to the Ambassador Edge Stack and Emissary In
 
 ## UPCOMING BREAKING CHANGES
 
+#### TLS Termination and the `Host` CRD
+
+As of Ambassador 2.0.0, you _must_ supply a `Host` CRD to terminate TLS: it is not sufficient
+to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS configuration 
+information to be shared across multiple `Host`s). The minimal configuration for TLS termination is
+now a certificate stored in a Kubernetes `Secret`, and a `Host` referring to that `Secret`.
+
 #### `Ingress` Resources and Namespaces
 
 In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, TLS secrets
@@ -67,8 +74,15 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary Ingress and Ambassador Edge Stack
 
+- Feature: The `Listener` CRD allows explicit definition of ports to listen on, and the protocols and security model for each port
+- Bugfix: `requestPolicy.insecure.action` works independently across `Host`s ([#2888])
+- Bugfix: Fixed a regression in detecting the Ambassador Kubernetes service that could cause the wrong IP or hostname to be used in Ingress statuses.
+- Change: Envoy V3 is now the default.
+- Change: The `Host` CRD is now required when terminating TLS.
+- Change: `redirect_cleartext_from` in a `TLSContext` is no longer supported -- use an extra 'Listener' instead!
 - Change: `prune_unreachable_routes` now defaults to true, which should reduce Envoy memory requirements for installations with many `Host`s
-- Bugfix: Fixed a regression in detecting the Ambassador Kubernetes service that could cause the wrong IP or hostname to be used in Ingress statuses
+
+[#2888]: https://github.com/datawire/ambassador/issues/2888
 
 ## [1.13.7] June 03, 2021
 [1.13.7]: https://github.com/datawire/ambassador/compare/v1.13.6...v1.13.7

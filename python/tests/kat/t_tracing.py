@@ -9,6 +9,8 @@ from kat.harness import sanitize, variants, Query, Runner
 from abstract_tests import AmbassadorTest, HTTP, AHTTP
 from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
 
+from ambassador import Config
+
 # The phase that we should wait until before performing test checks. Normally
 # this would be phase 2, which is 10 seconds after the first wave of queries,
 # but we increase it to phase 3 here to make sure that Zipkin and other tracers
@@ -662,7 +664,7 @@ class TracingTestZipkinV1(AmbassadorTest):
     """
 
     def init(self):
-        if os.environ.get('KAT_USE_ENVOY_V3', '') != '':
+        if Config.envoy_api_version == "V3":
             self.skip_node = True
         self.target = HTTP()
 
