@@ -18,12 +18,12 @@ if __name__ == '__main__':
     if len(args) < 1 or not re_ga.match(args[0]):
         sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z\n")
         sys.exit(2)
-    source_registry = 'docker.io/datawire'
-    if len(args) > 1:
-        source_registry = args[1]
     promote_chan = ''
+    if len(args) > 1:
+        promote_chan = args[1]
+    source_registry = 'docker.io/datawire'
     if len(args) > 2:
-        promote_chan = args[2]
+        source_registry = args[2]
     image_append = ''
     if len(args) > 3:
         image_append = args[3]

@@ -148,14 +148,14 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
     if include_docker:
         do_check_docker(checker, 'ambassador')
         with checker.check('Ambassador S3 files', clear_on_success=False) as checker:
-            with do_check_s3(checker, name=f'ambassador/{release_channel}stable.txt') as (subcheck, body):
+            with do_check_s3(checker, name=f'emissary-ingress/{release_channel}stable.txt') as (subcheck, body):
                 if body is not None:
                     subcheck.result = body.decode('UTF-8').strip()
                     if is_private:
                         assert subcheck.result != ga_ver
                     else:
                         assert_eq(subcheck.result, ga_ver)
-            with do_check_s3(checker, name=f'ambassador/{release_channel}app.json', bucket='scout-datawire-io',
+            with do_check_s3(checker, name=f'emissary-ingress/{release_channel}app.json', bucket='scout-datawire-io',
                              private=True) as (subcheck, body):
                 if body is not None:
                     subcheck.result = json.loads(body.decode('UTF-8')).get('latest_version', '')
@@ -184,7 +184,7 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
             assert_eq(check.result, check_tag)
     subprocess.run(['helm', 'repo', 'rm', 'emissary'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     subprocess.run(['helm', 'repo', 'add', 'emissary',
-            'https://s3.amazonaws.com/datawire-static-files/ambassador'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            'https://s3.amazonaws.com/datawire-static-files/emissary-ingress'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     with checker.check(name="Updating helm repo"):
         run(['helm', 'repo', 'update'])
     chart_version = ""

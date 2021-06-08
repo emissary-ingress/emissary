@@ -4,10 +4,8 @@
       {
         "name": "static_layer",
         "static_layer": {
-          "envoy.deprecated_features:envoy.api.v2.route.HeaderMatcher.regex_match": true,
-          "envoy.deprecated_features:envoy.api.v2.route.RouteMatch.regex": true,
-          "envoy.deprecated_features:envoy.config.trace.v2.ZipkinConfig.HTTP_JSON_V1": true,
-          "envoy.reloadable_features.ext_authz_http_service_enable_case_sensitive_string_matcher": false
+          "envoy.reloadable_features.ext_authz_http_service_enable_case_sensitive_string_matcher": false,
+          "re2.max_program_size.error_level": 200
         }
       }
     ]
@@ -2310,7 +2308,7 @@
         "transport_socket": {
           "name": "envoy.transport_sockets.tls",
           "typed_config": {
-            "@type": "type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext",
+            "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext",
             "common_tls_context": {}
           }
         },
@@ -2344,7 +2342,7 @@
         "transport_socket": {
           "name": "envoy.transport_sockets.tls",
           "typed_config": {
-            "@type": "type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext",
+            "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext",
             "common_tls_context": {}
           }
         },
@@ -2540,7 +2538,7 @@
         "transport_socket": {
           "name": "envoy.transport_sockets.tls",
           "typed_config": {
-            "@type": "type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext",
+            "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext",
             "common_tls_context": {}
           }
         },
@@ -2574,7 +2572,7 @@
         "transport_socket": {
           "name": "envoy.transport_sockets.tls",
           "typed_config": {
-            "@type": "type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext",
+            "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext",
             "common_tls_context": {}
           }
         },
@@ -2624,12 +2622,12 @@
               {
                 "name": "envoy.filters.network.http_connection_manager",
                 "typed_config": {
-                  "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
+                  "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
                   "access_log": [
                     {
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
-                        "@type": "type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog",
+                        "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
                         "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
                         "path": "/dev/fd/1"
                       }
@@ -5146,7 +5144,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_h-2",
-                              "host_rewrite": "canary.2.example.com",
+                              "host_rewrite_literal": "canary.2.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5166,7 +5164,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_h-2",
-                              "host_rewrite": "canary.2.example.com",
+                              "host_rewrite_literal": "canary.2.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5192,7 +5190,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_h-3",
-                              "host_rewrite": "canary.1.example.com",
+                              "host_rewrite_literal": "canary.1.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5212,7 +5210,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_h-3",
-                              "host_rewrite": "canary.1.example.com",
+                              "host_rewrite_literal": "canary.1.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5238,7 +5236,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_g-2",
-                              "host_rewrite": "canary.2.example.com",
+                              "host_rewrite_literal": "canary.2.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5258,7 +5256,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_g-2",
-                              "host_rewrite": "canary.2.example.com",
+                              "host_rewrite_literal": "canary.2.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5284,7 +5282,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_g-3",
-                              "host_rewrite": "canary.1.example.com",
+                              "host_rewrite_literal": "canary.1.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5304,7 +5302,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_g-3",
-                              "host_rewrite": "canary.1.example.com",
+                              "host_rewrite_literal": "canary.1.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5666,7 +5664,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_h-6",
-                              "host_rewrite": "canary.2.example.com",
+                              "host_rewrite_literal": "canary.2.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5686,7 +5684,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_h-6",
-                              "host_rewrite": "canary.2.example.com",
+                              "host_rewrite_literal": "canary.2.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5712,7 +5710,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_h-7",
-                              "host_rewrite": "canary.1.example.com",
+                              "host_rewrite_literal": "canary.1.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5732,7 +5730,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_h-7",
-                              "host_rewrite": "canary.1.example.com",
+                              "host_rewrite_literal": "canary.1.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5758,7 +5756,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_h-4",
-                              "host_rewrite": "canary.2.example.com",
+                              "host_rewrite_literal": "canary.2.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5778,7 +5776,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_h-4",
-                              "host_rewrite": "canary.2.example.com",
+                              "host_rewrite_literal": "canary.2.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5804,7 +5802,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_h-5",
-                              "host_rewrite": "canary.1.example.com",
+                              "host_rewrite_literal": "canary.1.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5824,7 +5822,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_h-5",
-                              "host_rewrite": "canary.1.example.com",
+                              "host_rewrite_literal": "canary.1.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5850,7 +5848,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_g-6",
-                              "host_rewrite": "canary.2.example.com",
+                              "host_rewrite_literal": "canary.2.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5870,7 +5868,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_g-6",
-                              "host_rewrite": "canary.2.example.com",
+                              "host_rewrite_literal": "canary.2.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5896,7 +5894,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_g-7",
-                              "host_rewrite": "canary.1.example.com",
+                              "host_rewrite_literal": "canary.1.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5916,7 +5914,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_g-7",
-                              "host_rewrite": "canary.1.example.com",
+                              "host_rewrite_literal": "canary.1.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5942,7 +5940,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_g-4",
-                              "host_rewrite": "canary.2.example.com",
+                              "host_rewrite_literal": "canary.2.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5962,7 +5960,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_g-4",
-                              "host_rewrite": "canary.2.example.com",
+                              "host_rewrite_literal": "canary.2.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5988,7 +5986,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_g-5",
-                              "host_rewrite": "canary.1.example.com",
+                              "host_rewrite_literal": "canary.1.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -6008,7 +6006,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_g-5",
-                              "host_rewrite": "canary.1.example.com",
+                              "host_rewrite_literal": "canary.1.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -6330,7 +6328,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_h-0",
-                              "host_rewrite": "canary.2.example.com",
+                              "host_rewrite_literal": "canary.2.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -6350,7 +6348,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_h-0",
-                              "host_rewrite": "canary.2.example.com",
+                              "host_rewrite_literal": "canary.2.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -6376,7 +6374,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_h-1",
-                              "host_rewrite": "canary.1.example.com",
+                              "host_rewrite_literal": "canary.1.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -6396,7 +6394,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_h-1",
-                              "host_rewrite": "canary.1.example.com",
+                              "host_rewrite_literal": "canary.1.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -6422,7 +6420,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_g-0",
-                              "host_rewrite": "canary.2.example.com",
+                              "host_rewrite_literal": "canary.2.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -6442,7 +6440,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_g-0",
-                              "host_rewrite": "canary.2.example.com",
+                              "host_rewrite_literal": "canary.2.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -6468,7 +6466,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_g-1",
-                              "host_rewrite": "canary.1.example.com",
+                              "host_rewrite_literal": "canary.1.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -6488,7 +6486,7 @@
                             },
                             "route": {
                               "cluster": "cluster_http___plain_canarydiffmapping_g-1",
-                              "host_rewrite": "canary.1.example.com",
+                              "host_rewrite_literal": "canary.1.example.com",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -8311,7 +8309,6 @@
             ]
           }
         ],
-        "listener_filters": [],
         "name": "ambassador-listener-8080",
         "traffic_direction": "UNSPECIFIED"
       }

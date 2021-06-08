@@ -41,6 +41,18 @@ commands:
     - skip-if-no-new-chart
     - run: |
         CHART_NAME=ambassador ./charts/scripts/check_updated_changelog.sh
+  "job-emissary-chart":
+    steps:
+    - amb-linux-install
+    - amb-checkout
+    - amb-skip-if-no-changes-not-release:
+        to: charts/emissary-ingress
+    - install-k3d
+    # We might need to be logged in the registry to pull the Envoy
+    # image or the builder-base image.
+    - amb-config-registry
+    - # main
+      run: make -f charts/emissary-ingress/Makefile test-chart
   "job-chart-publish":
     steps:
     - amb-linux-install
@@ -53,7 +65,6 @@ commands:
     # image or the builder-base image.
     - amb-config-registry
     - # main
-      #- run: make test-chart
       run: make test-chart
     - run: make release/ga/chart-push
   "job-manifests-publish":
@@ -82,22 +93,6 @@ commands:
       # in a row.
       run: make generate
     - dirty-check
-  "job-yaml-publish-s3":
-    parameters:
-      "update-stable":
-        type: boolean
-        default: false
-    steps:
-    # setup
-    - amb-linux-install
-    - amb-checkout
-    - amb-config-registry
-    - # main
-      run:
-        name: "Publish to S3"
-        command: |
-          export BUMP_STABLE=<< parameters.update-stable >>
-          make publish-docs-yaml
   "job-lint":
     steps:
     # setup
@@ -196,7 +191,7 @@ commands:
     - amb-config-registry
     - run:
         name: "Test"
-        no_output_timeout: "30m"
+        no_output_timeout: "3m"
         command: |
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
@@ -894,6 +889,10 @@ jobs:
               - << pipeline.git.branch >>
         steps:
         - job-chart-changelog
+  emissary-chart:
+    executor: oss-linux
+    steps:
+    - job-emissary-chart
   oss-promote-dev-to-rc:
     executor: oss-linux
     steps:
@@ -908,16 +907,6 @@ jobs:
     steps:
     - job-promote-to-ga:
         channel: oss
-  oss-yaml-publish-s3-ga:
-    executor: oss-linux
-    steps:
-    - job-yaml-publish-s3:
-        update-stable: true
-  oss-yaml-publish-s3-rc:
-    executor: oss-linux
-    steps:
-    - job-yaml-publish-s3:
-        update-stable: false
 _anchors:
   filter-rc-only:
     filters:
@@ -972,6 +961,8 @@ workflows:
         name: "oss-dev-lint"
     - oss-chart:
         name: "oss-dev-chart"
+    - emissary-chart:
+        name: "emissary-dev-chart"
     - oss-gotest:
         name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure
           >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
@@ -1026,6 +1017,10 @@ workflows:
             # We don't run legacy mode tests in the "Dev" workflow but we do
             # in the Nightly and Release workflows.
             - false
+          exclude:
+          - test: pytest
+            fast-reconfigure: true
+            legacy-mode: true
     - oss-test:
         requires:
         - "oss-dev-images"
@@ -1111,6 +1106,7 @@ workflows:
         - oss-dev-pytest-fastreconfigure
         - oss-dev-pytest-legacy
         - oss-dev-chart
+        - emissary-dev-chart
         - oss-dev-gotest-legacy
         - oss-dev-gotest-fastreconfigure
         - oss-dev-gotest
@@ -1121,40 +1117,6 @@ workflows:
             only:
             - master
             - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
-  'OSS: Chart Release':
-    when:
-      or:
-      - equal:
-        - "https://github.com/emissary-ingress/emissary"
-        - << pipeline.project.git_url >>
-      - equal:
-        - "https://github.com/emissary-ingress/emissary-private"
-        - << pipeline.project.git_url >>
-    jobs:
-    - oss-chart-publish:
-        name: "oss-release-chart"
-        filters:
-          tags:
-            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
-          branches:
-            ignore: /.*/
-  'OSS: Manifests Release':
-    when:
-      or:
-      - equal:
-        - "https://github.com/emissary-ingress/emissary"
-        - << pipeline.project.git_url >>
-      - equal:
-        - "https://github.com/emissary-ingress/emissary-private"
-        - << pipeline.project.git_url >>
-    jobs:
-    - oss-manifest-publish:
-        name: "oss-rc-manifests-publish"
-        filters:
-          tags:
-            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
-          branches:
-            ignore: /.*/
   'OSS: Nightly':
     triggers:
     - schedule:
@@ -1163,9 +1125,16 @@ workflows:
           branches:
             only:
             - master
+    - schedule:
+        cron: "0 5 * * *"
+        filters:
+          branches:
+            only:
+            - master
     jobs:
     - oss-images:
         name: "oss-nightly-images"
+        push_nightly: true
     - oss-gotest:
         name: "oss-nightly-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
@@ -1234,6 +1203,40 @@ workflows:
           - test: pytest-envoy-v3
             fast-reconfigure: true
             legacy-mode: true
+  'OSS: Chart Release':
+    when:
+      or:
+      - equal:
+        - "https://github.com/emissary-ingress/emissary"
+        - << pipeline.project.git_url >>
+      - equal:
+        - "https://github.com/emissary-ingress/emissary-private"
+        - << pipeline.project.git_url >>
+    jobs:
+    - oss-chart-publish:
+        name: "oss-release-chart"
+        filters:
+          tags:
+            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+          branches:
+            ignore: /.*/
+  'OSS: Manifests Release':
+    when:
+      or:
+      - equal:
+        - "https://github.com/emissary-ingress/emissary"
+        - << pipeline.project.git_url >>
+      - equal:
+        - "https://github.com/emissary-ingress/emissary-private"
+        - << pipeline.project.git_url >>
+    jobs:
+    - oss-manifest-publish:
+        name: "oss-rc-manifests-publish"
+        filters:
+          tags:
+            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+          branches:
+            ignore: /.*/
 executors:
   oss-linux:
     machine:

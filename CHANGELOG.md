@@ -26,6 +26,13 @@ Edge Stack documentation refer both to the Ambassador Edge Stack and Emissary In
 
 ## UPCOMING BREAKING CHANGES
 
+#### TLS Termination and the `Host` CRD
+
+As of Ambassador 2.0.0, you _must_ supply a `Host` CRD to terminate TLS: it is not sufficient
+to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS configuration
+information to be shared across multiple `Host`s). The minimal configuration for TLS termination is
+now a certificate stored in a Kubernetes `Secret`, and a `Host` referring to that `Secret`.
+
 #### `Ingress` Resources and Namespaces
 
 In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, TLS secrets
@@ -62,6 +69,20 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 [HTTP_JSON_V1]: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version
 
 ## RELEASE NOTES
+
+## [2.0.0] (TBD)
+
+### Emissary Ingress and Ambassador Edge Stack
+
+- Feature: The `Listener` CRD allows explicit definition of ports to listen on, and the protocols and security model for each port
+- Bugfix: `requestPolicy.insecure.action` works independently across `Host`s ([#2888])
+- Bugfix: Fixed a regression in detecting the Ambassador Kubernetes service that could cause the wrong IP or hostname to be used in Ingress statuses.
+- Change: Envoy V3 is now the default.
+- Change: The `Host` CRD is now required when terminating TLS.
+- Change: `redirect_cleartext_from` in a `TLSContext` is no longer supported -- use an extra 'Listener' instead!
+- Change: `prune_unreachable_routes` now defaults to true, which should reduce Envoy memory requirements for installations with many `Host`s
+
+[#2888]: https://github.com/datawire/ambassador/issues/2888
 
 ## [1.13.8] June 08, 2021
 [1.13.8]: https://github.com/emissary-ingress/emissary/compare/v1.13.7...v1.13.8
@@ -2486,3 +2507,4 @@ Based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/). Ambassador fol
 [Ambassador-Envoy]: https://github.com/datawire/ambassador-envoy
 [Telepresence]: http://telepresence.io
 [Istio]: https://istio.io/
+

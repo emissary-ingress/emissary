@@ -105,10 +105,12 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 		findSecretRefs(ctx, resource, secretNamespacing, action)
 	}
 
+	// We _always_ have an implicit references to the fallback cert secret...
+	secretRef(GetAmbassadorNamespace(), "fallback-self-signed-cert", false, action)
+
 	if IsEdgeStack() {
-		// For Edge Stack, we _always_ have implicit references to the fallback
-		// cert secret and the license secret.
-		secretRef(GetAmbassadorNamespace(), "fallback-self-signed-cert", false, action)
+		// ...and for Edge Stack, we _always_ have an implicit reference to the
+		// license secret.
 		secretRef(GetLicenseSecretNamespace(), GetLicenseSecretName(), false, action)
 	}
 

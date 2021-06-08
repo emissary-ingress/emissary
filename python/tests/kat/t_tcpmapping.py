@@ -49,6 +49,73 @@ type: kubernetes.io/tls
 data:
   tls.crt: {TLSCerts["tls-context-host-2"].k8s_crt}
   tls.key: {TLSCerts["tls-context-host-2"].k8s_key}
+---
+apiVersion: getambassador.io/v2
+kind: Listener
+metadata:
+  name: {self.path.k8s}-listener
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ "{self.ambassador_id}" ]
+  port: 8443
+  protocol: HTTPS
+  securityModel: XFP
+---
+# In most real-world cases, we'd just use a single wildcard Host instead
+# of using three. For this test, though, we need three because we aren't
+# using real domain names, and you can't do wildcards like tls-context-*
+# (because the '*' has to be a domain part on its own).
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}-host
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ "{self.ambassador_id}" ]
+  hostname: tls-context-host-1
+  tlsContext:
+    name: {self.name}-tlscontext
+  tlsSecret:
+    name: supersecret
+  requestPolicy:
+    insecure:
+      action: Reject
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}-host-2
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ "{self.ambassador_id}" ]
+  hostname: tls-context-host-2
+  tlsContext:
+    name: {self.name}-tlscontext
+  tlsSecret:
+    name: supersecret
+  requestPolicy:
+    insecure:
+      action: Reject
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: {self.path.k8s}-host-3
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ "{self.ambassador_id}" ]
+  hostname: tls-context-host-3
+  tlsContext:
+    name: {self.name}-tlscontext
+  tlsSecret:
+    name: supersecret
+  requestPolicy:
+    insecure:
+      action: Reject
 """ + super().manifests()
 
     # config() must _yield_ tuples of Node, Ambassador-YAML where the

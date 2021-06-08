@@ -52,10 +52,10 @@ class IRAuth (IRFilter):
                 self._load_auth(config, ir)
 
         if not self.hosts:
-            self.logger.debug("IRAuth: found no hosts! going inactive")
+            self.logger.debug("IRAuth: no AuthServices, going inactive")
             return False
 
-        self.logger.debug("IRAuth: found some hosts! going active")
+        self.logger.debug("IRAuth: going active")
 
         return True
 
