@@ -139,7 +139,7 @@ func GetEnvoyConfigFile() string {
 }
 
 func GetEnvoyAPIVersion() string {
-	return env("AMBASSADOR_ENVOY_API_VERSION", "V2")
+	return env("AMBASSADOR_ENVOY_API_VERSION", "V3")
 }
 
 func GetAmbassadorDebug() string {

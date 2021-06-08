@@ -120,6 +120,14 @@ def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
 
 
+def envoy_api_version():
+    env_version = os.environ.get('AMBASSADOR_ENVOY_API_VERSION', 'V3')
+    version = env_version.upper()
+    if version == 'V2' or env_version == 'V3':
+        return version
+    return 'V2'
+
+
 class DiagApp (Flask):
     cache: Optional[Cache]
     ambex_pid: int
@@ -2127,7 +2135,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     :param report_action_keys: Report action keys when chiming
     """
 
-    enable_fast_reconfigure = parse_bool(os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "false"))
+    enable_fast_reconfigure = parse_bool(os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "true"))
     legacy_mode = parse_bool(os.environ.get("AMBASSADOR_LEGACY_MODE", "false"))
 
     if port < 0:

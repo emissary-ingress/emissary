@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/datawire/ambassador/cmd/entrypoint"
-	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
+	v3bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v3"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,7 +28,7 @@ func TestFakeCollision(t *testing.T) {
 	assert.NotNil(t, snap)
 
 	// Grab the next envoy config that satisfies our predicate.
-	envoyConfig := f.GetEnvoyConfig(func(config *bootstrap.Bootstrap) bool {
+	envoyConfig := f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
 		// The first time we look at the Envoy config, we should find only two clusters.
 		//
 		// First up, a cluster named cluster_subway_staging_stable_staging_30-0,
@@ -81,7 +81,7 @@ func TestFakeCollision(t *testing.T) {
 	assert.NotNil(t, snap)
 
 	// Grab the next envoy config that satisfies our predicate.
-	envoyConfig = f.GetEnvoyConfig(func(config *bootstrap.Bootstrap) bool {
+	envoyConfig = f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
 		// The second time we look at the Envoy config, we need to see three
 		// clusters, but note that some of the contents of the clusters will have
 		// changed.
@@ -92,10 +92,12 @@ func TestFakeCollision(t *testing.T) {
 		c0 := FindCluster(config, ClusterNameContains("cluster_subway_staging_stable_staging_30-0"))
 
 		if c0 == nil {
+			fmt.Printf("c0 nil\n")
 			return false
 		}
 
 		if c0.EdsClusterConfig.ServiceName != "k8s/staging/subway-staging-stable/3000" {
+			fmt.Printf("c0 bad service\n")
 			return false
 		}
 
@@ -105,10 +107,12 @@ func TestFakeCollision(t *testing.T) {
 		c1 := FindCluster(config, ClusterNameContains("cluster_subway_staging_stable_staging_30-1"))
 
 		if c1 == nil {
+			fmt.Printf("c1 nil\n")
 			return false
 		}
 
 		if c1.EdsClusterConfig.ServiceName != "k8s/staging/subway-staging-stable/3000" {
+			fmt.Printf("c1 bad svc got %v wanted %v\n", c1.EdsClusterConfig.ServiceName, "k8s/staging/subway-staging-stable/3000")
 			return false
 		}
 
@@ -118,13 +122,16 @@ func TestFakeCollision(t *testing.T) {
 		c2 := FindCluster(config, ClusterNameContains("cluster_subway_staging_stable_staging_30-2"))
 
 		if c2 == nil {
+			fmt.Printf("c2 nil\n")
 			return false
 		}
 
 		if c2.EdsClusterConfig.ServiceName != "k8s/staging/subway-staging-stable/3001" {
+			fmt.Printf("c2 bad svc\n")
 			return false
 		}
 
+		fmt.Printf("all good\n")
 		return true
 	})
 
