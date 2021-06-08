@@ -858,8 +858,6 @@ release/promote-oss/to-ga:
 	    PROMOTE_TO_VERSION="$(RELEASE_VERSION)" \
 	    PROMOTE_CHANNEL= \
 	    ; \
-	  $(OSS_HOME)/releng/release-wait-for-ga-image --ga-tag $(RELEASE_VERSION) --release-registry $(RELEASE_REGISTRY) ; \
-	  $(MAKE) release/ga-mirror ; \
 	}
 .PHONY: release/promote-oss/to-ga
 
@@ -910,6 +908,8 @@ release/go:
 	@git tag -m "Tagging v$(VERSIONS_YAML_VER) for GA" -a v$(VERSIONS_YAML_VER)
 	@git push origin v$(VERSIONS_YAML_VER)
 	@$(OSS_HOME)/releng/release-go-changelog-update --quiet $(VERSIONS_YAML_VER)
+	$(OSS_HOME)/releng/release-wait-for-ga-image --ga-tag $(RELEASE_VERSION) --release-registry $(RELEASE_REGISTRY)
+	$(MAKE) release/ga-mirror
 .PHONY: release/go
 
 release/manifests:
