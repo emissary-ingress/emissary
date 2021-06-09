@@ -170,7 +170,7 @@ spec:
             path: labels
       containers:
       - name: ambassador
-        image: docker.io/datawire/ambassador:1.13.7
+        image: docker.io/datawire/emissary:2.0.0-dev.200-gebec99b36
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
@@ -359,7 +359,7 @@ spec:
       serviceAccountName: ambassador-agent
       containers:
       - name: agent
-        image: docker.io/datawire/ambassador:1.13.7
+        image: docker.io/datawire/emissary:2.0.0-dev.200-gebec99b36
         imagePullPolicy: IfNotPresent
         command: [agent]
         env:
