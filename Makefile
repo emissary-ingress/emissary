@@ -19,7 +19,7 @@ unexport IFS      # should not be exported, but some people do
 unexport SSH_CLIENT
 unexport SSH2_CLIENT
 
-NAME ?= ambassador
+NAME ?= emissary
 
 OSS_HOME := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 

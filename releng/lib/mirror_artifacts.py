@@ -41,7 +41,7 @@ def get_images(source_registry: str, repo: str, tag: str, image_append: str = ''
 
 def main(tags: List[str],
          source_registry: str = 'docker.io/datawire',
-         repos: List[str] = ['ambassador',],
+         repos: List[str] = ['emissary',],
          image_append: str = '') -> None:
     print('Note: This script can be rerun.')
     print('If pushes to registries fail, you can rerun the command in your terminal to debug.')

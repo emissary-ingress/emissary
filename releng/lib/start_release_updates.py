@@ -11,7 +11,7 @@ def update_versions_yaml(next_ver):
     git_add("docs/yaml/versions.yml")
 
 def update_changelog_date(next_ver):
-    changelog_ver_pattern = re.compile(r"^## \[([0-9]+\.[0-9]+\.[0-9]+(?:-rc\.[0-9]+)?)\] \S+ [0-9]+, [0-9]{4}$")
+    changelog_ver_pattern = re.compile(r"^## \[([0-9]+\.[0-9]+\.[0-9]+(-ea)?)\]")
     in_notes = False
     buf = ""
     for line in fileinput.FileInput("CHANGELOG.md", inplace=True):
