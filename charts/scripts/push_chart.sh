@@ -32,11 +32,10 @@ repo_key=
 if [[ -n "${REPO_KEY}" ]] ; then
     repo_key="${REPO_KEY}"
 elif [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
-    # repo_key=ambassador
-    repo_key=emissary-ingress   # I really don't want this messing with ambassador's stuff now
+    repo_key=charts
 else
     # repo_key=ambassador-dev
-    repo_key=emissary-ingress   # I really don't want this messing with ambassador's stuff now
+    repo_key=charts-dev
 fi
 repo_url=https://s3.amazonaws.com/datawire-static-files/${repo_key}/
 
@@ -54,8 +53,6 @@ if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+$  ]] && [[ $(grep -c "${chart_name
 	exit 1
 fi
 
-helm repo index ${chart_dir} --url ${repo_url} --merge ${chart_dir}/tmp.yaml
-
 if [ -z "$AWS_BUCKET" ] ; then
     AWS_BUCKET=datawire-static-files
 fi
@@ -64,7 +61,7 @@ fi
 [ -n "$AWS_SECRET_ACCESS_KEY" ] || abort "AWS_SECRET_ACCESS_KEY is not set"
 
 info "Pushing chart to S3 bucket $AWS_BUCKET"
-for f in "$CHART_PACKAGE" "${chart_dir}/index.yaml" ; do
+for f in "$CHART_PACKAGE" ; do
     fname=`basename $f`
     echo "pushing ${repo_key}/$fname"
     aws s3api put-object \
@@ -75,10 +72,10 @@ done
 
 info "Cleaning up..."
 echo
-rm ${chart_dir}/tmp.yaml ${chart_dir}/index.yaml "$CHART_PACKAGE"
+rm ${chart_dir}/tmp.yaml "$CHART_PACKAGE"
 
-if [[ `basename ${chart_dir}` != ambassador ]] ; then
-    info "This script only publishes release for the ambassador chart, skipping publishing git release for ${chart_dir}"
+if [[ `basename ${chart_dir}` != emissary-ingress ]] ; then
+    info "This script only publishes release for the emissary-ingress chart, skipping publishing git release for ${chart_dir}"
     exit 0
 fi
 
