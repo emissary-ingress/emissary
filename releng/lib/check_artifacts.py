@@ -70,7 +70,7 @@ def do_check_s3(checker: Checker,
 
 
 def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = True,
-        release_channel: str = "", source_registry: str ="docker.io/datawire", image_append: str = "") -> int:
+        release_channel: str = "", source_registry: str ="docker.io/datawire", image_append: str = "", image_name: str = "emissary") -> int:
     warning = """
  ==> Warning: FIXME: While this script is handy in the things that it
      does check, there's still quite a bit that it doesn't check;
@@ -95,7 +95,7 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
                 if is_private:
                     images = [f'quay.io/datawire-private/ambassador:{tag}']
                 else:
-                    images = get_images(source_registry, "ambassador", tag, image_append)
+                    images = get_images(source_registry, image_name, tag, image_append)
                 for image in images:
                     with check.subcheck(name=image) as subcheck:
                         iid = docker_pull(image)
