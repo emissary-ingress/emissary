@@ -1,0 +1,8 @@
+registry:
+  create: true
+  resourceNameOverride: registry
+  projectControllerName: projectcontroller
+  serviceSelector:
+    app: registry
+deploymentTool: getambassador.io
+enableAES: true

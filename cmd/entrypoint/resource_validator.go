@@ -60,9 +60,9 @@ func (v *resourceValidator) getInvalid() []*kates.Unstructured {
 func findCRDFilename() string {
 	searchPath := []string{
 		"/opt/ambassador/etc/crds.yaml",
-		"manifests/emissary/emissary-crds.yaml",
-		"ambassador/manifests/emissary/emissary-crds.yaml",
-		"../../manifests/emissary/emissary-crds.yaml",
+		"docs/yaml/ambassador/ambassador-crds.yaml",
+		"../../docs/yaml/ambassador/ambassador-crds.yaml",
+		"ambassador/docs/yaml/ambassador/ambassador-crds.yaml",
 	}
 
 	for _, candidate := range searchPath {
