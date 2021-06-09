@@ -17,4 +17,4 @@ ${CURR_DIR}/release-wait-for-commit --commit $commit --s3-key dev-builds
 git tag -m v$rc_tag -a v$rc_tag
 git push origin v$rc_tag
 
-${CURR_DIR}/release-wait-for-rc-artifacts --rc-tag $rc_tag --release-registry ${RELEASE_REGISTRY}
+${CURR_DIR}/release-wait-for-rc-artifacts --rc-tag $rc_tag --release-registry ${RELEASE_REGISTRY} --image-name ${IMAGE_NAME}

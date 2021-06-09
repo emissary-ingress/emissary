@@ -85,7 +85,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Wait for commit to show up in s3')
     parser.add_argument('--rc-tag', required=True)
     parser.add_argument('--release-registry', default="docker.io/datawire")
-    parser.add_argument('--image-name', default="ambassador")
+    parser.add_argument('--image-name', default="emissary")
     parser.add_argument('--helm-s3-key', default="charts-dev")
     args = parser.parse_args()
 

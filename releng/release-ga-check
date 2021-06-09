@@ -13,6 +13,7 @@ if __name__ == '__main__':
     parser.add_argument('--promote-path', default="")
     parser.add_argument('--ga-version', required=True)
     parser.add_argument('--source-registry', default='docker.io/datawire')
+    parser.add_argument('--image-name', default='emissary')
     parser.add_argument('--image-append', default='')
     args = parser.parse_args()
 
@@ -26,4 +27,4 @@ if __name__ == '__main__':
 
     sys.exit(check_artifacts.main(ga_ver=ga_ver, ga=True, include_latest=True,
         include_docker=args.docker, release_channel=args.promote_path,
-        source_registry=args.source_registry, image_append=args.image_append))
+        source_registry=args.source_registry, image_append=args.image_append, image_name=args.image_name))
