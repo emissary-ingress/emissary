@@ -79,6 +79,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: Fixed a regression in detecting the Ambassador Kubernetes service that could cause the wrong IP or hostname to be used in Ingress statuses.
 - Change: Envoy V3 is now the default.
 - Change: The `Host` CRD is now required when terminating TLS.
+- Change: The AGENT_SERVICE environment variable has been deprecated.
 - Change: `redirect_cleartext_from` in a `TLSContext` is no longer supported -- use an extra 'Listener' instead!
 - Change: `prune_unreachable_routes` now defaults to true, which should reduce Envoy memory requirements for installations with many `Host`s
 - Change: The edgectl CLI tool has been deprecated, please use the `emissary-ingress` helm chart instead.

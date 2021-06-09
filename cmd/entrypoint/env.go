@@ -14,7 +14,9 @@ import (
 )
 
 func GetAgentService() string {
-	return env("AGENT_SERVICE", "")
+	// Using an agent service is no longer supported, so return empty.
+	// For good measure, we also set AGENT_SERVICE to empty in the entrypoint.
+	return ""
 }
 
 func GetAmbassadorId() string {
