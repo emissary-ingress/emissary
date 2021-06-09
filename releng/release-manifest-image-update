@@ -4,7 +4,7 @@ This must be run with an already pushed GA tag `vX.Y.Z`.
 This creates a branch from vX.Y.Z, updates all the helm chart/manifest files,
 commits, pushes and creates a pull request.
 After that, this will create a `chart-A.B.C` tag, where A.B.C is the version
-in charts/emissary-ingress/Chart.yaml
+in charts/ambassador/Chart.yaml
 """
 
 from os import getenv
@@ -73,8 +73,11 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
 
     with check(f"Updating image tag in charts"):
         run(["make", f"IMAGE_TAG={image_tag}", "release/chart/update-images"])
-        for file_name in ['Chart.yaml', 'CHANGELOG.md', 'README.md', 'values.yaml']:
-            git_add(f"charts/emissary-ingress/{file_name}")
+        git_add("charts/ambassador/Chart.yaml")
+        git_add("charts/ambassador/CHANGELOG.md")
+        git_add("charts/ambassador/README.md")
+        git_add("charts/ambassador/values.yaml")
+
     if not checker.ok:
         return 1
 

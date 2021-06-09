@@ -118,7 +118,7 @@ image:
   # Emissary Ingress docker repo
   repository: docker.io/datawire/ambassador
   # Emissary Ingress docker tag
-  tag: 1.13.7
+  tag: 1.13.6
   # Pod container image pull policy
   pullPolicy: IfNotPresent
 
@@ -353,12 +353,10 @@ prometheusExporter: # +doc-gen:break
 
 # Configure the ambassador agent
 agent:
-  # If `true`, installs the ambassador-agent Deployment, ServiceAccount and ClusterRole in the ambassador namespace, enabling the Service Catalog
   enabled: true
-  # API token for reporting snapshots to the [Service Catalog](https://app.getambassador.io/cloud/catalog/);
-  # If empty, agent will not report snapshots
+  # this will be empty when it first gets applied, then the user will edit the agent to
+  # make it start reporting
   cloudConnectToken: ''
-  # Address of the ambassador Service Catalog rpc server.
   rpcAddress: https://app.getambassador.io/
   createArgoRBAC: true
   image:

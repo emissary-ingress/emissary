@@ -167,7 +167,7 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
         check.result = 'TODO'
         raise NotImplementedError()
     with checker.check(name='Website YAML') as check:
-        yaml_str = http_cat('https://app.getambassador.io/yaml/emissary/latest/emissary-ingress.yaml').decode('utf-8')
+        yaml_str = http_cat('https://app.getambassador.io/yaml/ambassador/latest/ambassador.yaml').decode('utf-8')
         images = [
             line.strip()[len('image:'):].strip() for line in yaml_str.split("\n")
             if line.strip().startswith('image:')
@@ -189,11 +189,11 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
             run(['helm', 'repo', 'update'])
         checker.ok = True
     chart_version = ""
-    for line in fileinput.FileInput("charts/emissary-ingress/Chart.yaml"):
+    for line in fileinput.FileInput("charts/ambassador/Chart.yaml"):
         if line.startswith("version:"):
             chart_version = line.replace('version:', '').strip()
     with checker.check(name="Check Helm Chart"):
-        yaml_str = run_txtcapture(['helm', 'show', 'chart', '--version', chart_version, 'emissary/emissary-ingress'])
+        yaml_str = run_txtcapture(['helm', 'show', 'chart', '--version', chart_version, 'emissary/ambassador'])
         versions = [
             line[len('appVersion:'):].strip() for line in yaml_str.split("\n") if line.startswith('appVersion:')
         ]
