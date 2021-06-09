@@ -77,7 +77,8 @@ def main(rc_tag: str, release_registry: str, image_name: str, helm_s3_key: str) 
 
     print(f"{ansiterm.sgr.bold.fg_cyn}Environment variables for RC testing:{ansiterm.sgr}")
     print("")
-    print(f"{ansiterm.sgr.bold.fg_wht}export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/ambassador-docs/{rc_tag}")
+    print(f"{ansiterm.sgr.bold.fg_wht}export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/emissary/{rc_tag}")
+    print(f"{ansiterm.sgr.bold.fg_wht}export DOCS_MANIFEST_URL=https://datawire-static-files.s3.amazonaws.com/yaml/v2-docs/{rc_tag}")
     print(f"export HELM_CHART_VERSION={chart_version}{ansiterm.sgr}")
 
 
