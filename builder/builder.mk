@@ -141,8 +141,8 @@ INGRESS_TEST_LOCAL_ADMIN_PORT = 8877
 
 # directory with the manifests for loading Ambassador for running the Ingress Conformance tests
 # NOTE: these manifests can be slightly different to the regular ones asd they include
-INGRESS_TEST_MANIF_DIR = $(BUILDER_HOME)/../docs/yaml/ambassador/
-INGRESS_TEST_MANIFS = ambassador-crds.yaml ambassador-rbac.yaml
+INGRESS_TEST_MANIF_DIR = $(BUILDER_HOME)/../manifests/emissary/
+INGRESS_TEST_MANIFS = ambassador-crds.yaml ambassador.yaml
 
 all: help
 .PHONY: all
@@ -806,8 +806,8 @@ release/print-test-artifacts:
 	@set -e; { \
 		manifest_ver=$(RELEASE_VERSION) ; \
 		manifest_ver=$${manifest_ver%"-dirty"} ; \
-		echo "export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/ambassador/$$manifest_ver" ; \
-		echo "export HELM_CHART_VERSION=`grep 'version' $(OSS_HOME)/charts/ambassador/Chart.yaml | awk '{ print $$2 }'`" ; \
+		echo "export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/emissary/$$manifest_ver" ; \
+		echo "export HELM_CHART_VERSION=`grep 'version' $(OSS_HOME)/charts/emissary-ingress/Chart.yaml | awk '{ print $$2 }'`" ; \
 	}
 .PHONY: release/print-test-artifacts
 

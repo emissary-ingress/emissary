@@ -3,14 +3,20 @@
 This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
-Note: some releases may not have any changes. This is okay.
-
-In the interim period where we're still supporting the emissary and ambassador charts,
-we're packaging and versioning the charts together to make things a bit easier. Since the ambassador chart also contains AES resources, some changes to that chart may not be relevant to emissary.
-
 ## Next Release
 
 (no changes yet)
+
+## v6.7.11
+
+- Update Ambassador API Gateway chart image to version v1.13.8: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+- Update Ambassador Edge Stack chart image to version v1.13.8: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+- Bugfix: remove duplicate label key in ambassador-agent deployment
+
+## v6.7.10
+
+- Update Ambassador API Gateway chart image to version v1.13.7: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+- Update Ambassador Edge Stack chart image to version v1.13.7: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 
 ## v6.7.9
 

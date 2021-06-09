@@ -1,6 +1,6 @@
 # GENERATED FILE: edits made by hand will not be preserved.
 ---
-# Source: ambassador/templates/admin-service.yaml
+# Source: emissary-ingress/templates/admin-service.yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -34,7 +34,7 @@ spec:
   selector:
     service: ambassador
 ---
-# Source: ambassador/templates/rbac.yaml
+# Source: emissary-ingress/templates/rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
@@ -47,7 +47,7 @@ aggregationRule:
       rbac.getambassador.io/role-group: ambassador
 rules: []
 ---
-# Source: ambassador/templates/serviceaccount.yaml
+# Source: emissary-ingress/templates/serviceaccount.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -56,7 +56,7 @@ metadata:
   labels:
     product: aes
 ---
-# Source: ambassador/templates/rbac.yaml
+# Source: emissary-ingress/templates/rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
@@ -72,7 +72,7 @@ subjects:
   namespace: default
   kind: ServiceAccount
 ---
-# Source: ambassador/templates/rbac.yaml
+# Source: emissary-ingress/templates/rbac.yaml
 # CRDs are cluster scoped resources, so they need to be in a cluster role,
 # even if ambassador is running in single namespace mode
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -87,7 +87,7 @@ rules:
   resources: [customresourcedefinitions]
   verbs: [get, list, watch, delete]
 ---
-# Source: ambassador/templates/rbac.yaml
+# Source: emissary-ingress/templates/rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
@@ -132,7 +132,7 @@ rules:
   resources: [ingresses/status]
   verbs: [update]
 ---
-# Source: ambassador/templates/deployment.yaml
+# Source: emissary-ingress/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -228,7 +228,7 @@ spec:
       dnsPolicy: ClusterFirst
       hostNetwork: false
 ---
-# Source: ambassador/templates/ambassador-agent.yaml
+# Source: emissary-ingress/templates/ambassador-agent.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -237,7 +237,7 @@ metadata:
   labels:
     product: aes
 ---
-# Source: ambassador/templates/ambassador-agent.yaml
+# Source: emissary-ingress/templates/ambassador-agent.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
@@ -253,7 +253,7 @@ subjects:
   name: ambassador-agent
   namespace: default
 ---
-# Source: ambassador/templates/ambassador-agent.yaml
+# Source: emissary-ingress/templates/ambassador-agent.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
@@ -266,7 +266,7 @@ aggregationRule:
       rbac.getambassador.io/role-group: ambassador-agent
 rules: []
 ---
-# Source: ambassador/templates/ambassador-agent.yaml
+# Source: emissary-ingress/templates/ambassador-agent.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
@@ -279,7 +279,7 @@ rules:
   resources: [pods]
   verbs: [get, list, watch]
 ---
-# Source: ambassador/templates/ambassador-agent.yaml
+# Source: emissary-ingress/templates/ambassador-agent.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
@@ -292,7 +292,7 @@ rules:
   resources: [rollouts]
   verbs: [get, list, watch]
 ---
-# Source: ambassador/templates/ambassador-agent.yaml
+# Source: emissary-ingress/templates/ambassador-agent.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
@@ -305,7 +305,7 @@ rules:
   resources: [applications]
   verbs: [get, list, watch]
 ---
-# Source: ambassador/templates/ambassador-agent.yaml
+# Source: emissary-ingress/templates/ambassador-agent.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: Role
 metadata:
@@ -318,7 +318,7 @@ rules:
   resources: [configmaps]
   verbs: [get, list, watch]
 ---
-# Source: ambassador/templates/ambassador-agent.yaml
+# Source: emissary-ingress/templates/ambassador-agent.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: RoleBinding
 metadata:
@@ -335,7 +335,7 @@ subjects:
   name: ambassador-agent
   namespace: default
 ---
-# Source: ambassador/templates/ambassador-agent.yaml
+# Source: emissary-ingress/templates/ambassador-agent.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:

@@ -111,7 +111,7 @@ RUN mkdir -p /ambassador/sidecars && \
 
 # These will be extracted into the optimized image later
 ADD demo demo
-ADD docs/yaml/ambassador/ambassador-crds.yaml docs/yaml/ambassador/ambassador-crds.yaml
+ADD manifests/emissary/emissary-crds.yaml manifests/emissary/emissary-crds.yaml
 
 ########################################
 # The optimized images
@@ -159,7 +159,7 @@ RUN cd /buildroot/ambassador/python && python setup.py install
 COPY --from=artifacts /ambassador /ambassador
 COPY --from=artifacts /buildroot/ambassador/demo/config /ambassador/ambassador-demo-config
 COPY --from=artifacts /buildroot/ambassador/demo/services /ambassador/demo-services
-COPY --from=artifacts /buildroot/ambassador/docs/yaml/ambassador/ambassador-crds.yaml /opt/ambassador/etc/crds.yaml
+COPY --from=artifacts /buildroot/ambassador/manifests/emissary/emissary-crds.yaml /opt/ambassador/etc/crds.yaml
 
 # Fix permissions to allow correctly running as a non root user
 # XXX: We could combine everything into one tree in the builder, fix permissions
