@@ -42,7 +42,7 @@ def http_cat(url: str) -> bytes:
 @contextmanager
 def do_check_s3(checker: Checker,
                 name: str,
-                bucket: str = 'datawire-static-files-dev',
+                bucket: str = 'datawire-static-files',
                 private: bool = False) -> Generator[Tuple[CheckResult, Optional[bytes]], None, None]:
     prefix: Dict[bool, str] = {
         True: f's3://{bucket}/',

@@ -68,15 +68,6 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 [HTTP_JSON_V1]: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version
 
-## RELEASE NOTES
-
-## [2.0.0-ea] (TBD)
-[2.0.0-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.0...v2.0.0-ea
-
-### Emissary Ingress and Ambassador Edge Stack
-
-(no changes yet)
-
 ## [2.0.0] (TBD)
 
 ### Emissary Ingress and Ambassador Edge Stack
