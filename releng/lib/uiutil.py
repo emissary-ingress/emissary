@@ -41,6 +41,11 @@ from . import ansiterm
 _capturing = False
 
 
+def check_command(args) -> int:
+    p = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    return p.returncode == 0
+
+
 def run(args: List[str]) -> None:
     """run is like "subprocess.run(args)", but with helpful settings and
     obeys "with capture_output(out)".

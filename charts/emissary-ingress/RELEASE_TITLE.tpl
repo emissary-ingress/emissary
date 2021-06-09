@@ -1,1 +1,1 @@
-Ambassador Chart $CHART_VERSION
+Emissary Ingress Chart $CHART_VERSION

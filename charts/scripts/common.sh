@@ -148,7 +148,7 @@ create_chart_release() {
     chart_dir=$2
     export CHART_VERSION=$1
     title=`envsubst < ${chart_dir}/RELEASE_TITLE.tpl`
-    repo_full_name="emissary-ingress/emissary"
+    repo_full_name="acookin/emissary"
     token="${GH_RELEASE_TOKEN}"
     description=`envsubst < ${chart_dir}/RELEASE.tpl`
     description=`envsubst < ${chart_dir}/RELEASE.tpl | awk '{printf "%s\\n", $0}'`

@@ -111,7 +111,7 @@ commands:
       - when:
           condition:
             or:
-            - equal: [ "https://github.com/emissary-ingress/emissary", << pipeline.project.git_url >> ]
+            - equal: [ "https://github.com/acookin/emissary", << pipeline.project.git_url >> ]
             - equal: [ "https://github.com/emissary-ingress/emissary-private", << pipeline.project.git_url >> ]
           steps:
             - checkout:
