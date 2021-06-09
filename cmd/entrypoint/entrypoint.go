@@ -88,6 +88,11 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		}
 	}
 
+	// The agent service is no longer supported, so clear it out.
+	// For good measure, we also unconditionally return the empty
+	// string in GetAgentService().
+	os.Unsetenv("AGENT_SERVICE")
+
 	dlog.Infof(ctx, "Started Ambassador")
 
 	demoMode := false
