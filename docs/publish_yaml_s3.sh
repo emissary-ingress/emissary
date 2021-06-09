@@ -37,7 +37,7 @@ fi
 
 echo ${version} > stable.txt
 if [ -z "$AWS_BUCKET" ] ; then
-    AWS_BUCKET=datawire-static-files-dev
+    AWS_BUCKET=datawire-static-files
 fi
 
 # make this something different than ambassador, emissary, or edge-stack

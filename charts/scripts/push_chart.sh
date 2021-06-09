@@ -37,7 +37,7 @@ else
     repo_key=charts-dev
 fi
 if [ -z "$AWS_BUCKET" ] ; then
-    AWS_BUCKET=datawire-static-files-dev
+    AWS_BUCKET=datawire-static-files
 fi
 
 repo_url=https://s3.amazonaws.com/${AWS_BUCKET}/${repo_key}/
@@ -91,7 +91,7 @@ if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ -n "${PUBLISH_GIT_RELEAS
     tag="chart-v${thisversion}"
     export CHART_VERSION=${thisversion}
     title=`envsubst < ${chart_dir}/RELEASE_TITLE.tpl`
-    repo_full_name="acookin/emissary"
+    repo_full_name="emissary-ingress/emissary"
     token="${GH_RELEASE_TOKEN}"
     description=`envsubst < ${chart_dir}/RELEASE.tpl | awk '{printf "%s\\\n", $0}'`
     in_changelog=false

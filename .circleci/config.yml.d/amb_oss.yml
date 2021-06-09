@@ -112,7 +112,7 @@ jobs:
       - when:
           condition:
             and:
-              - equal: [ "https://github.com/acookin/emissary", << pipeline.project.git_url >> ]
+              - equal: [ "https://github.com/emissary-ingress/emissary", << pipeline.project.git_url >> ]
               - not:
                   equal: [ "master", << pipeline.git.branch >>  ]
           steps:

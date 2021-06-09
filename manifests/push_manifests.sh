@@ -36,7 +36,7 @@ elif [[ "${BUMP_STABLE}" ]] ; then
     abort "Cannot bump stable unless this is an X.Y.Z tag"
 fi
 if [ -z "$AWS_BUCKET" ] ; then
-    AWS_BUCKET=datawire-static-files-dev
+    AWS_BUCKET=datawire-static-files
 fi
 
 [ -n "$AWS_ACCESS_KEY_ID"     ] || abort "AWS_ACCESS_KEY_ID is not set"
