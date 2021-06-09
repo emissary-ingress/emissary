@@ -87,6 +87,14 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 [#2888]: https://github.com/datawire/ambassador/issues/2888
 
+## [1.13.8] June 08, 2021
+[1.13.8]: https://github.com/emissary-ingress/emissary/compare/v1.13.7...v1.13.8
+
+### Emissary Ingress and Ambassador Edge Stack
+
+- Bugfix: Ambassador Agent now accurately reports up-to-date Endpoint information to Ambassador Cloud
+- Feature: Ambassador Agent reports ConfigMaps and Deployments to Ambassador Cloud to provide a better Argo Rollouts experience. See [Argo+Ambassador documentation](https://www.getambassador.io/docs/argo) for more info.
+
 ## [1.13.7] June 03, 2021
 [1.13.7]: https://github.com/datawire/ambassador/compare/v1.13.6...v1.13.7
 
