@@ -114,6 +114,8 @@ BUILDER = BUILDER_NAME=$(BUILDER_NAME) $(abspath $(BUILDER_HOME)/builder.sh)
 DBUILD = $(abspath $(BUILDER_HOME)/dbuild.sh)
 COPY_GOLD = $(abspath $(BUILDER_HOME)/copy-gold.sh)
 
+AWS_S3_BUCKET = datawire-static-files-dev
+
 # the image used for running the Ingress v1 tests with KIND.
 # the current, official image does not support Ingress v1, so we must build our own image with k8s 1.18.
 # build this image with:
@@ -363,7 +365,7 @@ push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 		done ;\
 		commit=$$(git rev-parse HEAD) ;\
 		printf "$(CYN)==> $(GRN)recording $(BLU)$$commit$(GRN) => $(BLU)$$suffix$(GRN) in S3...$(END)\n" ;\
-		echo "$$suffix" | aws s3 cp - s3://datawire-static-files/dev-builds/$$commit ;\
+		echo "$$suffix" | aws s3 cp - s3://$(AWS_S3_BUCKET)/dev-builds/$$commit ;\
 		$(MAKE) \
 			CHART_VERSION_SUFFIX=-$$chartsuffix \
 			IMAGE_TAG=$${suffix} \
@@ -744,8 +746,8 @@ release/promote-oss/.main:
 		docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) ;\
 	}
 
-	@printf '  $(CYN)https://s3.amazonaws.com/datawire-static-files/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt$(END)\n'
-	printf '%s' "$(RELEASE_VERSION)" | aws s3 cp - s3://datawire-static-files/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt
+	@printf '  $(CYN)https://s3.amazonaws.com/$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt$(END)\n'
+	printf '%s' "$(RELEASE_VERSION)" | aws s3 cp - s3://$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt
 
 	@printf '  $(CYN)s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json$(END)\n'
 	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(RELEASE_VERSION)" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
@@ -772,13 +774,13 @@ release/promote-oss/dev-to-rc:
 			exit 1 ;\
 		fi; \
 		commit=$$(git rev-parse HEAD) ;\
-		dev_version=$$(aws s3 cp s3://datawire-static-files/dev-builds/$$commit -) ;\
+		dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
 		if [ -z "$$dev_version" ]; then \
 			printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
 			exit 1 ;\
 		fi ;\
 		printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
-		veroverride=$(RELEASE_VERSION) ; \
+		veroverride=$(RELEASE_VERSION); \
 		$(MAKE) release/promote-oss/.main \
 			PROMOTE_FROM_VERSION="$$dev_version" \
 			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
@@ -812,13 +814,13 @@ release/print-test-artifacts:
 release/promote-oss/dev-to-passed-ci:
 	@set -e; { \
 		commit=$$(git rev-parse HEAD) ;\
-		dev_version=$$(aws s3 cp s3://datawire-static-files/dev-builds/$$commit -) ;\
+		dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
 		if [ -z "$$dev_version" ]; then \
 			printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
 			exit 1 ;\
 		fi ;\
 		printf "$(CYN)==> $(GRN)Promoting $(BLU)$$commit$(GRN) => $(BLU)$$dev_version$(GRN) in S3...$(END)\n" ;\
-		echo "$$dev_version" | aws s3 cp - s3://datawire-static-files/passed-builds/$$commit ;\
+		echo "$$dev_version" | aws s3 cp - s3://$(AWS_S3_BUCKET)/passed-builds/$$commit ;\
 	}
 .PHONY: release/promote-oss/dev-to-passed-ci
 
@@ -826,11 +828,11 @@ release/promote-oss/dev-to-passed-ci:
 # This is normally run from CI by creating the GA tag.
 release/promote-oss/to-ga:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(RELEASE_VERSION)"; exit 1)
 	@set -e; { \
       commit=$$(git rev-parse HEAD) ;\
 	  $(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key passed-builds ; \
-	  dev_version=$$(aws s3 cp s3://datawire-static-files/passed-builds/$$commit -) ;\
+	  dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/passed-builds/$$commit -) ;\
 	  if [ -z "$$dev_version" ]; then \
 		  printf "$(RED)==> found no passed dev version for $$commit in S3...$(END)\n" ;\
 		  exit 1 ;\
@@ -839,68 +841,36 @@ release/promote-oss/to-ga:
 	  $(MAKE) release/promote-oss/.main \
 	    PROMOTE_FROM_VERSION="$$dev_version" \
 		PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
-	    PROMOTE_TO_VERSION="$(RELEASE_VERSION)-wip" \
-	    PROMOTE_CHANNEL=wip \
+	    PROMOTE_TO_VERSION="$(RELEASE_VERSION)" \
 	    ; \
 	}
 .PHONY: release/promote-oss/to-ga
 
 VERSIONS_YAML_VER := $(shell grep 'version:' $(OSS_HOME)/docs/yaml/versions.yml | awk '{ print $$2 }')
+VERSIONS_YAML_VER_STRIPPED := $(subst -ea,,$(VERSIONS_YAML_VER))
+RC_NUMBER ?= 0
 
 release/prep-rc:
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
 	@test -n "$(RELEASE_REGISTRY)" || (printf "RELEASE_REGISTRY must be set\n"; exit 1)
-	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: Version in versions.yml %s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
-	@set -e; { \
-		if [ -n "$(IS_DIRTY)" ]; then \
-			echo "release/prep-rc: tree must be clean" >&2 ;\
-			exit 1 ;\
-		fi; \
-		commit=$$(git rev-parse HEAD) ;\
-		$(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key dev-builds ; \
-		curl --fail --silent https://datawire-static-files.s3.amazonaws.com/dev-builds/$$commit > /dev/null || \
-			(printf "$(RED)ERROR: $$commit not found in dev builds.\nPlease check that this commit passed oss-dev-images in circle or run \"make images push-dev\"\n" ; exit 1); \
-		rc_tag=$(VERSIONS_YAML_VER)-rc. ; \
-		if [[ -n "$${RC_NUMBER}" ]] ; then \
-			rc_tag="$${rc_tag}$(RC_NUMBER)" ;\
-		else \
-			rc_tag="$${rc_tag}0" ;\
-		fi ;\
-		git tag -m v$$rc_tag -a v$$rc_tag && git push origin v$$rc_tag ; \
-		$(OSS_HOME)/releng/release-wait-for-rc-artifacts --rc-tag $$rc_tag --release-registry $(RELEASE_REGISTRY) ; \
-	}
+	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: Version in versions.yml %s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
+	@[[ -z "$(IS_DIRTY)" ]] || (printf '$(RED)ERROR: tree must be clean\n'; exit 1)
+	@AWS_S3_BUCKET=$(AWS_S3_BUCKET) RELEASE_REGISTRY=$(RELEASE_REGISTRY) \
+		$(OSS_HOME)/releng/01-release-prep-rc $(VERSIONS_YAML_VER_STRIPPED)-rc.$(RC_NUMBER)
 .PHONY: release/prep-rc
 
 release/go:
-	@set -e; { \
-		if [ -n "$(IS_DIRTY)" ]; then \
-			echo "release/go: tree must be clean" >&2 ;\
-			exit 1 ;\
-		fi; \
-		commit=$$(git rev-parse HEAD) ;\
-		curl --fail --silent https://datawire-static-files.s3.amazonaws.com/passed-builds/$$commit > /dev/null || \
-			(printf "$(RED)ERROR: $$commit not found in dev builds.\nPlease check that this commit passed OSS: Dev in circle or run \"make release/promote-oss/dev-to-passed-ci\"\n" ; exit 1); \
-	}
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
 	@test -n "$${RC_NUMBER}" || (printf "RC_NUMBER must be set.\n"; exit 1)
-	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
-	@git fetch && git checkout v$(VERSIONS_YAML_VER)-rc.$(RC_NUMBER)
-	@$(OSS_HOME)/releng/release-ga-sanity-check --quiet $(VERSIONS_YAML_VER)
-	@git tag -m "Tagging v$(VERSIONS_YAML_VER) for GA" -a v$(VERSIONS_YAML_VER)
-	@git push origin v$(VERSIONS_YAML_VER)
-	@$(OSS_HOME)/releng/release-go-changelog-update --quiet $(VERSIONS_YAML_VER)
-	@$(OSS_HOME)/releng/release-wait-for-ga-image --ga-tag $(RELEASE_VERSION) --release-registry $(RELEASE_REGISTRY)
-	@$(MAKE) release/ga-mirror
-	@git checkout v$(VERSIONS_YAML_VER)
-	@$(MAKE) release/manifests
-	@$(MAKE) release/chart/tag
-	@$(AES_HOME)/releng/release-wait-for-ga-artifacts --ga-tag $(VERSIONS_YAML_VER)
+	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
+	@[[ -z "$(IS_DIRTY)" ]] || (printf '$(RED)ERROR: tree must be clean\n'; exit 1)
+	@RELEASE_REGISTRY=$(RELEASE_REGISTRY) $(OSS_HOME)/releng/02-release-ga $(VERSIONS_YAML_VER)
 .PHONY: release/go
 
 release/manifests:
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
-	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
-	@$(OSS_HOME)/releng/release-manifest-image-update --oss-version $(VERSIONS_YAML_VER) --promote-path wip
+	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
+	@$(OSS_HOME)/releng/release-manifest-image-update --oss-version $(VERSIONS_YAML_VER)
 .PHONY: release/manifests
 
 release/repatriate:
@@ -908,33 +878,29 @@ release/repatriate:
 .PHONY: release/repatriate
 
 release/ga-mirror:
-	# TODO: wip and dev bits are so we don't stomp on ourselves.
-	# This should get removed when this is ready to go
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "$(RED)ERROR: version not found in versions.yml\n"; exit 1)
-	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
+	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$(RED)ERROR: RELEASE_REGISTRY not set\n"; exit 1)
-	@$(OSS_HOME)/releng/release-mirror-images $(VERSIONS_YAML_VER) $(RELEASE_REGISTRY) dev wip
+	@$(OSS_HOME)/releng/release-mirror-images --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY) --image-append dev
 
 release/create-gh-release:
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "$(RED)ERROR: version not found in versions.yml\n"; exit 1)
-	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
+	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
 	@$(OSS_HOME)/releng/release-create-github $(VERSIONS_YAML_VER)
 
 release/ga-check:
-	# TODO: wip bit is just so we don't stomp on ourselves
-	# this should go away
-	@$(OSS_HOME)/releng/release-ga-check $(VERSIONS_YAML_VER) wip $(RELEASE_REGISTRY) dev
+	@$(OSS_HOME)/releng/release-ga-check --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY)
 
 release/start:
 	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
 	@$(OSS_HOME)/releng/start-sanity-check --quiet $(VERSION)
-	@$(OSS_HOME)/releng/start-update-version --quiet $(VERSION)
+	@$(OSS_HOME)/releng/00-release-start --next-version $(VERSION)
 .PHONY: release/start
 
 release/hotfix/start:
 	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
 	@$(OSS_HOME)/releng/start-sanity-check --quiet $(VERSION)
-	@$(OSS_HOME)/releng/start-hotfix-update-version --quiet $(VERSION)
+	@$(OSS_HOME)/releng/00-release-start --next-version $(VERSION) --hotfix
 .PHONY: release/hotfix/start
 
 clean:

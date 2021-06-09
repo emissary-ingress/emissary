@@ -70,6 +70,13 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [2.0.0-ea] (TBD)
+[2.0.0-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.0...v2.0.0-ea
+
+### Emissary Ingress and Ambassador Edge Stack
+
+(no changes yet)
+
 ## [2.0.0] (TBD)
 
 ### Emissary Ingress and Ambassador Edge Stack

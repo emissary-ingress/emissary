@@ -292,6 +292,9 @@ module_version() {
 
     if [ -f docs/yaml/versions.yml ]; then
         BASE_VERSION=$(grep version: docs/yaml/versions.yml | awk ' { print $2 }')
+        if [[ "${BASE_VERSION}" =~ -ea$ ]] ; then
+            BASE_VERSION=${BASE_VERSION%-ea}
+        fi
     else
         # We have... nothing.
         echo "No base version" >&2

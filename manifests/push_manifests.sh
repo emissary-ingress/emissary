@@ -25,7 +25,7 @@ fi
 [ -n ${version} ] || abort "could not read version from docs/yaml/versions.yml"
 log "Publishing manifest version ${version}"
 
-if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
+if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] ; then
     # if this is a stable version, working directory must be clean
     # otherwise this is an rc, ea or test version and we don't care
     if [ -n "$(git status --porcelain)" ] ; then
@@ -36,7 +36,7 @@ elif [[ "${BUMP_STABLE}" ]] ; then
     abort "Cannot bump stable unless this is an X.Y.Z tag"
 fi
 if [ -z "$AWS_BUCKET" ] ; then
-    AWS_BUCKET=datawire-static-files
+    AWS_BUCKET=datawire-static-files-dev
 fi
 
 [ -n "$AWS_ACCESS_KEY_ID"     ] || abort "AWS_ACCESS_KEY_ID is not set"

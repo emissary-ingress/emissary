@@ -22,7 +22,7 @@ if [[ -n "${VERSION_OVERRIDE}" ]] ; then
     version=${VERSION_OVERRIDE}
 fi
 
-if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
+if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] ; then
     # if this is a stable version, working directory must be clean
     # otherwise this is an rc, ea or test version and we don't care
     if [ -n "$(git status --porcelain)" ] ; then
@@ -37,7 +37,7 @@ fi
 
 echo ${version} > stable.txt
 if [ -z "$AWS_BUCKET" ] ; then
-    AWS_BUCKET=datawire-static-files
+    AWS_BUCKET=datawire-static-files-dev
 fi
 
 # make this something different than ambassador, emissary, or edge-stack
