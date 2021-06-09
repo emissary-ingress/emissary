@@ -29,7 +29,7 @@ Edge Stack documentation refer both to the Ambassador Edge Stack and Emissary In
 #### TLS Termination and the `Host` CRD
 
 As of Ambassador 2.0.0, you _must_ supply a `Host` CRD to terminate TLS: it is not sufficient
-to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS configuration 
+to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS configuration
 information to be shared across multiple `Host`s). The minimal configuration for TLS termination is
 now a certificate stored in a Kubernetes `Secret`, and a `Host` referring to that `Secret`.
 
@@ -81,6 +81,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Change: The `Host` CRD is now required when terminating TLS.
 - Change: `redirect_cleartext_from` in a `TLSContext` is no longer supported -- use an extra 'Listener' instead!
 - Change: `prune_unreachable_routes` now defaults to true, which should reduce Envoy memory requirements for installations with many `Host`s
+- Change: The edgectl CLI tool has been deprecated, please use the `emissary-ingress` helm chart instead.
 
 [#2888]: https://github.com/datawire/ambassador/issues/2888
 
