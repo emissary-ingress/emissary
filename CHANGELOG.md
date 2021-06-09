@@ -29,7 +29,7 @@ Edge Stack documentation refer both to the Ambassador Edge Stack and Emissary In
 #### TLS Termination and the `Host` CRD
 
 As of Ambassador 2.0.0, you _must_ supply a `Host` CRD to terminate TLS: it is not sufficient
-to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS configuration
+to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS configuration 
 information to be shared across multiple `Host`s). The minimal configuration for TLS termination is
 now a certificate stored in a Kubernetes `Secret`, and a `Host` referring to that `Secret`.
 
@@ -67,6 +67,8 @@ collectors before using V3 APIs.
 Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version) for more information.
 
 [HTTP_JSON_V1]: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version
+
+## RELEASE NOTES
 
 ## [2.0.0] (TBD)
 
