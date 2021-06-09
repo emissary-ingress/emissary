@@ -42,7 +42,6 @@ Free and Open Source software:
     github.com/datawire/pf                                         v0.0.0-20180510150411-31a823f9495a                          2-clause BSD license
     github.com/davecgh/go-spew                                     v1.1.1                                                      ISC license
     github.com/deislabs/oras                                       v0.10.0                                                     MIT license
-    github.com/dgrijalva/jwt-go                                    v3.2.0+incompatible                                         MIT license
     github.com/docker/cli                                          v20.10.3+incompatible                                       Apache License 2.0
     github.com/docker/distribution                                 v0.0.0-20191216044856-a8371794149d                          Apache License 2.0
     github.com/moby/moby (modified from github.com/docker/docker)  v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible  Apache License 2.0
@@ -81,7 +80,6 @@ Free and Open Source software:
     github.com/google/shlex                                        v0.0.0-20191202100458-e7afc7fbc510                          Apache License 2.0
     github.com/google/uuid                                         v1.1.2                                                      3-clause BSD license
     github.com/googleapis/gnostic                                  v0.5.1                                                      Apache License 2.0
-    github.com/gookit/color                                        v1.2.3                                                      MIT license
     github.com/gorilla/mux                                         v1.7.3                                                      3-clause BSD license
     github.com/gorilla/websocket                                   v1.4.2                                                      2-clause BSD license
     github.com/gosuri/uitable                                      v0.0.4                                                      MIT license
@@ -97,7 +95,6 @@ Free and Open Source software:
     github.com/inconshreveable/mousetrap                           v1.0.0                                                      Apache License 2.0
     github.com/jmoiron/sqlx                                        v1.2.0                                                      MIT license
     github.com/json-iterator/go                                    v1.1.10                                                     MIT license
-    github.com/kballard/go-shellquote                              v0.0.0-20180428030007-95032a82bc51                          MIT license
     github.com/klauspost/compress                                  v1.9.2                                                      3-clause BSD license, MIT license
     github.com/klauspost/pgzip                                     v1.2.1                                                      MIT license
     github.com/lann/builder                                        v0.0.0-20180802200727-47ae307949d0                          MIT license
@@ -167,7 +164,6 @@ Free and Open Source software:
     google.golang.org/protobuf                                     v1.25.0                                                     3-clause BSD license
     gopkg.in/gorp.v1                                               v1.7.2                                                      MIT license
     gopkg.in/inf.v0                                                v0.9.1                                                      3-clause BSD license
-    gopkg.in/natefinch/lumberjack.v2                               v2.0.0                                                      MIT license
     gopkg.in/yaml.v2                                               v2.3.0                                                      Apache License 2.0, MIT license
     gopkg.in/yaml.v3                                               v3.0.0-20200615113413-eeeca48fe776                          Apache License 2.0, MIT license
     helm.sh/helm/v3                                                v3.5.3                                                      Apache License 2.0
