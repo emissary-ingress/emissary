@@ -135,19 +135,6 @@ jobs:
       - job-promote-to-ga:
           channel: oss
 
-  "oss-yaml-publish-s3-ga":
-    executor: oss-linux
-    steps:
-      - job-yaml-publish-s3:
-          update-stable: true
-
-  "oss-yaml-publish-s3-rc":
-    executor: oss-linux
-    steps:
-      - job-yaml-publish-s3:
-          update-stable: false
-
-
 _anchors:
   # All of these filters assume that "Only build pull requests" is turned on at
   # https://app.circleci.com/settings/project/github/emissary-ingress/emissary/advanced
@@ -225,7 +212,6 @@ workflows:
                 - false
       - "oss-gotest":
           name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
-
           <<: *filter-master-release-branches-only
           matrix:
             alias: "oss-dev-gotest-legacy-matrix"
@@ -260,10 +246,16 @@ workflows:
                 # We don't run legacy mode tests in the "Dev" workflow but we do
                 # in the Nightly and Release workflows.
                 - false
+            exclude:
+              # It's not meaningful to set fast reconfigure and legacy mode at the same time.
+              # Annoyingly, we have to iterate all the 'test' values that we're using for
+              # this to work.
+              - test: pytest
+                fast-reconfigure: true
+                legacy-mode: true
       - "oss-test":
           requires: ["oss-dev-images"]
           name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
-
           <<: *filter-master-release-branches-only
           matrix:
             alias: "oss-dev-pytest-legacy-matrix"
@@ -282,7 +274,6 @@ workflows:
       - "oss-envoy-test":
           requires: ["oss-dev-images"]
           name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
-
           matrix:
             alias: "oss-dev-envoy-test-matrix"
             parameters:
@@ -310,7 +301,6 @@ workflows:
           requires: ["oss-dev-images"]
           name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           <<: *filter-master-release-branches-only
-
           matrix:
             alias: "oss-dev-envoy-test-legacy-matrix"
             parameters:
@@ -341,27 +331,6 @@ workflows:
           name: "oss-dev-promote-to-passed"
           <<: *filter-master-release-branches-only
 
-  "OSS: Chart Release":
-    when:
-      or:
-      - equal: [ "https://github.com/emissary-ingress/emissary", << pipeline.project.git_url >> ]
-      - equal: [ "https://github.com/emissary-ingress/emissary-private", << pipeline.project.git_url >> ]
-    jobs:
-      - "oss-chart-publish":
-          <<: *filter-chart-release-only
-          name: "oss-release-chart"
-
-  "OSS: Manifests Release":
-    when:
-      or:
-      - equal: [ "https://github.com/emissary-ingress/emissary", << pipeline.project.git_url >> ]
-      - equal: [ "https://github.com/emissary-ingress/emissary-private", << pipeline.project.git_url >> ]
-    jobs:
-      - "oss-manifest-publish":
-          <<: *filter-chart-release-only
-          name: "oss-rc-manifests-publish"
-
-
   "OSS: Nightly":
     triggers:
       - schedule:
@@ -371,11 +340,18 @@ workflows:
             branches:
               only:
                 - master
+      - schedule:
+          # Time is in UTC: 1AM EDT every day
+          cron: "0 5 * * *"
+          filters:
+            branches:
+              only:
+                - master
     jobs:
       # build+push
       - "oss-images":
           name: "oss-nightly-images"
-
+          push_nightly: true
       - "oss-gotest":
           name: "oss-nightly-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
 
@@ -448,3 +424,13 @@ workflows:
                 fast-reconfigure: true
                 legacy-mode: true
 
+  "OSS: Chart Release":
+    jobs:
+      - "oss-chart-publish":
+          <<: *filter-chart-release-only
+          name: "oss-release-chart"
+  "OSS: Manifests Release":
+    jobs:
+      - "oss-manifest-publish":
+          <<: *filter-chart-release-only
+          name: "oss-rc-manifests-publish"

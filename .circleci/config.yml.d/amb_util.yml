@@ -100,6 +100,7 @@ commands:
       - skip-if-only-changes:
           to: (releng/|charts/|manifests/|k8s-config/|docs/|*.md)
 
+
   "amb-skip-if-no-code-changes-not-release":
     steps:
       - amb-skip-if-only-changes-not-release:
@@ -261,7 +262,7 @@ commands:
       - run:
           name: "Diff changes"
           command: |
-            thisversion=$(grep version: charts/ambassador/Chart.yaml | awk ' { print $2 }')
+            thisversion=$(grep version: charts/emissary-ingress/Chart.yaml | awk ' { print $2 }')
 
             if [[ "<< pipeline.git.tag >>" != "chart-v${thisversion}" ]]; then
               echo "Chart version ${thisversion} doesn't match tag << pipeline.git.tag >>; aborting"

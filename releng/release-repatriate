@@ -2,10 +2,10 @@
 """Merges master into the release branch, then PRs back to master
 """
 
-from os import getenv
 import datetime
 import fileinput
 import os.path
+from os import getenv
 import re
 import sys
 from contextlib import contextmanager

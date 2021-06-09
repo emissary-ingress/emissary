@@ -23,6 +23,8 @@ class RedirectTests(AmbassadorTest):
         if EDGE_STACK:
             self.xfail = "Not yet supported in Edge Stack"
 
+        self.xfail = "FIXME: IHA"
+
         self.target = HTTP()
 
     def requirements(self):
@@ -102,6 +104,7 @@ class RedirectTestsWithProxyProto(AmbassadorTest):
     target: ServiceType
 
     def init(self):
+        self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def requirements(self):
@@ -162,6 +165,7 @@ class RedirectTestsInvalidSecret(AmbassadorTest):
         if EDGE_STACK:
             self.xfail = "Not yet supported in Edge Stack"
 
+        self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def requirements(self):
@@ -220,14 +224,37 @@ class XFPRedirect(AmbassadorTest):
 
         self.target = HTTP()
 
+    def manifests(self):
+        return self.format('''
+---
+apiVersion: getambassador.io/v2
+kind: Listener
+metadata:
+  name: ambassador-listener-8080
+spec:
+  ambassador_id: {self.ambassador_id}
+  port: 8080
+  protocol: HTTP
+  securityModel: XFP
+  l7Depth: 1
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: weird-xfp-test-host
+spec:
+  ambassador_id: {self.ambassador_id}
+  requestPolicy:
+    insecure:
+      action: Redirect
+''') + super().manifests()
+
+
     def config(self):
         yield self.target, self.format("""
----
-apiVersion: ambassador/v1
 kind: Module
 name: ambassador
 config:
-  x_forwarded_proto_redirect: true
   use_remote_address: false
 ---
 apiVersion: ambassador/v1

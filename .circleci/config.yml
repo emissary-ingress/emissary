@@ -27,7 +27,7 @@ commands:
     - amb-linux-install
     - amb-checkout
     - amb-skip-if-no-changes-not-release:
-        to: charts/ambassador
+        to: charts/emissary-ingress
     - install-k3d
     # We might need to be logged in the registry to pull the Envoy
     # image or the builder-base image.
@@ -40,20 +40,19 @@ commands:
     - amb-checkout
     - skip-if-no-new-chart
     - run: |
-        CHART_NAME=ambassador ./charts/scripts/check_updated_changelog.sh
+        CHART_NAME=emissary-ingress ./charts/scripts/check_updated_changelog.sh
   "job-chart-publish":
     steps:
     - amb-linux-install
     - amb-checkout
     - amb-skip-if-bad-chart-version
     - run: |
-        CHART_NAME=ambassador ./charts/scripts/check_updated_changelog.sh
+        CHART_NAME=emissary-ingress ./charts/scripts/check_updated_changelog.sh
     - install-k3d
     # We might need to be logged in the registry to pull the Envoy
     # image or the builder-base image.
     - amb-config-registry
     - # main
-      #- run: make test-chart
       run: make test-chart
     - run: make release/ga/chart-push
   "job-manifests-publish":
@@ -82,22 +81,6 @@ commands:
       # in a row.
       run: make generate
     - dirty-check
-  "job-yaml-publish-s3":
-    parameters:
-      "update-stable":
-        type: boolean
-        default: false
-    steps:
-    # setup
-    - amb-linux-install
-    - amb-checkout
-    - amb-config-registry
-    - # main
-      run:
-        name: "Publish to S3"
-        command: |
-          export BUMP_STABLE=<< parameters.update-stable >>
-          make publish-docs-yaml
   "job-lint":
     steps:
     # setup
@@ -196,7 +179,7 @@ commands:
     - amb-config-registry
     - run:
         name: "Test"
-        no_output_timeout: "30m"
+        no_output_timeout: "3m"
         command: |
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
@@ -558,7 +541,7 @@ commands:
     - run:
         name: "Diff changes"
         command: |
-          thisversion=$(grep version: charts/ambassador/Chart.yaml | awk ' { print $2 }')
+          thisversion=$(grep version: charts/emissary-ingress/Chart.yaml | awk ' { print $2 }')
 
           if [[ "<< pipeline.git.tag >>" != "chart-v${thisversion}" ]]; then
             echo "Chart version ${thisversion} doesn't match tag << pipeline.git.tag >>; aborting"
@@ -729,8 +712,8 @@ commands:
           fi
           COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
           echo "Commit range: " $COMMIT_RANGE
-          git --no-pager diff $COMMIT_RANGE charts/ambassador/Chart.yaml
-          if ! git --no-pager diff $COMMIT_RANGE charts/ambassador/Chart.yaml | grep -q +version; then
+          git --no-pager diff $COMMIT_RANGE charts/emissary-ingress/Chart.yaml
+          if ! git --no-pager diff $COMMIT_RANGE charts/emissary-ingress/Chart.yaml | grep -q +version; then
             echo "Halting this CircleCI job because the version was not changed in Chart.yaml"
             circleci step halt
           fi
@@ -908,16 +891,6 @@ jobs:
     steps:
     - job-promote-to-ga:
         channel: oss
-  oss-yaml-publish-s3-ga:
-    executor: oss-linux
-    steps:
-    - job-yaml-publish-s3:
-        update-stable: true
-  oss-yaml-publish-s3-rc:
-    executor: oss-linux
-    steps:
-    - job-yaml-publish-s3:
-        update-stable: false
 _anchors:
   filter-rc-only:
     filters:
@@ -1026,6 +999,10 @@ workflows:
             # We don't run legacy mode tests in the "Dev" workflow but we do
             # in the Nightly and Release workflows.
             - false
+          exclude:
+          - test: pytest
+            fast-reconfigure: true
+            legacy-mode: true
     - oss-test:
         requires:
         - "oss-dev-images"
@@ -1121,40 +1098,6 @@ workflows:
             only:
             - master
             - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
-  'OSS: Chart Release':
-    when:
-      or:
-      - equal:
-        - "https://github.com/emissary-ingress/emissary"
-        - << pipeline.project.git_url >>
-      - equal:
-        - "https://github.com/emissary-ingress/emissary-private"
-        - << pipeline.project.git_url >>
-    jobs:
-    - oss-chart-publish:
-        name: "oss-release-chart"
-        filters:
-          tags:
-            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
-          branches:
-            ignore: /.*/
-  'OSS: Manifests Release':
-    when:
-      or:
-      - equal:
-        - "https://github.com/emissary-ingress/emissary"
-        - << pipeline.project.git_url >>
-      - equal:
-        - "https://github.com/emissary-ingress/emissary-private"
-        - << pipeline.project.git_url >>
-    jobs:
-    - oss-manifest-publish:
-        name: "oss-rc-manifests-publish"
-        filters:
-          tags:
-            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
-          branches:
-            ignore: /.*/
   'OSS: Nightly':
     triggers:
     - schedule:
@@ -1163,9 +1106,16 @@ workflows:
           branches:
             only:
             - master
+    - schedule:
+        cron: "0 5 * * *"
+        filters:
+          branches:
+            only:
+            - master
     jobs:
     - oss-images:
         name: "oss-nightly-images"
+        push_nightly: true
     - oss-gotest:
         name: "oss-nightly-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
@@ -1234,6 +1184,24 @@ workflows:
           - test: pytest-envoy-v3
             fast-reconfigure: true
             legacy-mode: true
+  'OSS: Chart Release':
+    jobs:
+    - oss-chart-publish:
+        name: "oss-release-chart"
+        filters:
+          tags:
+            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+          branches:
+            ignore: /.*/
+  'OSS: Manifests Release':
+    jobs:
+    - oss-manifest-publish:
+        name: "oss-rc-manifests-publish"
+        filters:
+          tags:
+            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+          branches:
+            ignore: /.*/
 executors:
   oss-linux:
     machine:

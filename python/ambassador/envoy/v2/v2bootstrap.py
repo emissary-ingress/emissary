@@ -1,7 +1,7 @@
-import os
-
 from typing import TYPE_CHECKING
 from typing import cast as typecast
+
+import os
 
 from ...ir.ircluster import IRCluster
 from ...ir.irlogservice import IRLogService
