@@ -986,12 +986,6 @@ class V3Listener(dict):
         )
 
     @classmethod
-    def dump_listeners(cls, logger, listeners_by_port) -> None:
-        pretty = { k: v.pretty() for k, v in listeners_by_port.items() }
-
-        logger.debug(f"V3Listeners: {dump_json(pretty, pretty=True)}")
-
-    @classmethod
     def generate(cls, config: 'V3Config') -> None:
         config.listeners = []
         logger = config.ir.logger
