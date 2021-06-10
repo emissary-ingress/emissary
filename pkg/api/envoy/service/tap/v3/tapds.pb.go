@@ -9,8 +9,8 @@ package envoy_service_tap_v3
 import (
 	context "context"
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v3 "github.com/datawire/ambassador/pkg/api/envoy/config/tap/v3"
-	v31 "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v3"
+	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/tap/v3"
+	v31 "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"

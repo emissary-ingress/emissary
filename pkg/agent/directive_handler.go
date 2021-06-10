@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/api/agent"
+	"github.com/datawire/ambassador/v2/pkg/api/agent"
 	"github.com/datawire/dlib/dlog"
 )
 

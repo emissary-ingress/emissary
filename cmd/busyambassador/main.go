@@ -6,15 +6,15 @@
 package main
 
 import (
-	"github.com/datawire/ambassador/pkg/busy"
-	"github.com/datawire/ambassador/pkg/environment"
+	"github.com/datawire/ambassador/v2/pkg/busy"
+	"github.com/datawire/ambassador/v2/pkg/environment"
 
-	amb_agent "github.com/datawire/ambassador/cmd/agent"
-	"github.com/datawire/ambassador/cmd/ambex"
-	"github.com/datawire/ambassador/cmd/entrypoint"
-	"github.com/datawire/ambassador/cmd/kubestatus"
-	"github.com/datawire/ambassador/cmd/reproducer"
-	"github.com/datawire/ambassador/cmd/watt"
+	amb_agent "github.com/datawire/ambassador/v2/cmd/agent"
+	"github.com/datawire/ambassador/v2/cmd/ambex"
+	"github.com/datawire/ambassador/v2/cmd/entrypoint"
+	"github.com/datawire/ambassador/v2/cmd/kubestatus"
+	"github.com/datawire/ambassador/v2/cmd/reproducer"
+	"github.com/datawire/ambassador/v2/cmd/watt"
 )
 
 // Version is inserted at build-time using --ldflags -X

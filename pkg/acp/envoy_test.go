@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/datawire/ambassador/pkg/acp"
+	"github.com/datawire/ambassador/v2/pkg/acp"
 )
 
 type fakeReadyMode string

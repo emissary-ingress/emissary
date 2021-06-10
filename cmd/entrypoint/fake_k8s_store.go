@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
 // A K8sStore is implement just enough data structures to mock the watch aspect of kubernetes for

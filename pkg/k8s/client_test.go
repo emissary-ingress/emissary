@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/datawire/ambassador/pkg/dtest"
-	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/dtest"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
 )
 
 func TestMain(m *testing.M) {

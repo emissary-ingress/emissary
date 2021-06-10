@@ -1,4 +1,4 @@
-module github.com/datawire/ambassador
+module github.com/datawire/ambassador/v2
 
 go 1.13
 

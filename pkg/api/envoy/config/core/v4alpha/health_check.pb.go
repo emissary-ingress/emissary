@@ -8,9 +8,9 @@ package envoy_config_core_v4alpha
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/annotations"
-	v4alpha "github.com/datawire/ambassador/pkg/api/envoy/type/matcher/v4alpha"
-	v3 "github.com/datawire/ambassador/pkg/api/envoy/type/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/annotations"
+	v4alpha "github.com/datawire/ambassador/v2/pkg/api/envoy/type/matcher/v4alpha"
+	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/type/v3"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	any "github.com/golang/protobuf/ptypes/any"

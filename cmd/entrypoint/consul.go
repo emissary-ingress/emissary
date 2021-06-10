@@ -7,10 +7,10 @@ import (
 
 	consulapi "github.com/hashicorp/consul/api"
 
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/pkg/consulwatch"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
-	"github.com/datawire/ambassador/pkg/watt"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	"github.com/datawire/ambassador/v2/pkg/consulwatch"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	"github.com/datawire/ambassador/v2/pkg/watt"
 )
 
 // consulMapping contains the necessary subset of Ambassador Mapping and TCPMapping

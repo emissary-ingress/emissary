@@ -8,8 +8,8 @@ package envoy_config_common_tap_v2alpha
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
-	v2alpha "github.com/datawire/ambassador/pkg/api/envoy/service/tap/v2alpha"
+	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
+	v2alpha "github.com/datawire/ambassador/v2/pkg/api/envoy/service/tap/v2alpha"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
