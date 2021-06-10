@@ -697,7 +697,10 @@ class V2Route(Cacheable):
                     # (This works without the user marking it as such because '*' isn't
                     # valid in DNS names, so we know that treating a name with a '*' as
                     # as exact match will always fail.)
-                    if header_value.startswith('*'):
+                    if header_value == "*":
+                        # This is actually a noop, so just don't include this header.
+                        continue
+                    elif header_value.startswith('*'):
                         header['suffix_match'] = header_value[1:]
                     elif header_value.endswith('*'):
                         header['prefix_match'] = header_value[:-1]
