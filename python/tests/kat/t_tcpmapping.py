@@ -65,6 +65,9 @@ spec:
   port: 8443
   protocol: HTTPS
   securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
 ---
 # In most real-world cases, we'd just use a single wildcard Host instead
 # of using three. For this test, though, we need three because we aren't

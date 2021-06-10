@@ -147,6 +147,7 @@ metadata:
   name:  qotm-mapping
   namespace: {namespace}
 spec:
+  host: "*"
   prefix: /qotm/
   service: qotm
 """
@@ -162,6 +163,7 @@ metadata:
   name:  httpbin-mapping
   namespace: {namespace}
 spec:
+  host: "*"
   prefix: /httpbin/
   rewrite: /
   service: httpbin
@@ -226,6 +228,7 @@ metadata:
   name: ambassador
   namespace: default
 spec:
+  host: "*"
   prefix: /httpbin/
   service: httpbin"""
     if mapping_confs:

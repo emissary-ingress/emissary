@@ -72,6 +72,7 @@ config:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.path.k8s}-{prefix}
+host: "*"
 prefix: /{prefix}/
 service: {self.target.path.fqdn}
 ambassador_id: {amb_id}
@@ -107,6 +108,7 @@ metadata:
   name:  {self.path.k8s}-m-good-<<WHICH>>
 spec:
   ambassador_id: {self.ambassador_id}
+  host: "*"
   prefix: /good-<<WHICH>>/
   service: {self.target.path.fqdn}
 """, """
@@ -116,6 +118,7 @@ metadata:
   name:  {self.path.k8s}-m-bad-<<WHICH>>
 spec:
   ambassador_id: {self.ambassador_id}
+  host: "*"
   prefix_bad: /bad-<<WHICH>>/
   service: {self.target.path.fqdn}
 """, """
@@ -266,6 +269,7 @@ config:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.path.k8s}/server-name
+host: "*"
 prefix: /server-name
 service: {self.target.path.fqdn}
 """)
