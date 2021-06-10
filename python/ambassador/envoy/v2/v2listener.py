@@ -249,6 +249,15 @@ class V2Listener(dict):
         else:
             # What matching Hosts do we have?
             for host in sorted(self.config.ir.get_hosts(), key=lambda h: h.hostname):
+                # They're asking for a hostname match here, which _cannot happen_ without
+                # SNI -- so don't take any hosts that don't have a TLSContext.
+
+                if not host.context:
+                    if self._log_debug:
+                        self.config.ir.logger.debug("V2Listener %s @ %s TCP %s: skip %s", 
+                                                    self.name, self.bind_to, group_host, host)
+                    continue
+                
                 if self._log_debug:
                     self.config.ir.logger.debug("V2Listener %s @ %s TCP %s: consider %s", 
                                                 self.name, self.bind_to, group_host, host)
@@ -815,7 +824,7 @@ class V2Listener(dict):
                         
                 # Finally, stash the match in the chain...
                 filter_chain["filter_chain_match"] = filter_chain_match
-                            
+
                 # ...and save it.
                 filter_chains[chain_key] = filter_chain
             else:
