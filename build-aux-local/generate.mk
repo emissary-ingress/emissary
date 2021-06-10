@@ -372,7 +372,7 @@ endef
 
 $(OSS_HOME)/manifests/emissary/emissary-ingress.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/emissary-ingress/require.yaml $(OSS_HOME)/k8s-config/emissary-ingress/values.yaml $(OSS_HOME)/charts/emissary-ingress/templates/*.yaml $(OSS_HOME)/charts/emissary-ingress/values.yaml python-setup
 	@printf '  $(CYN)$@$(END)\n'
-	$(call generate_emissary_yaml_from_helm,emissary-ingress,default,$@,emissary-ingress)
+	$(call generate_emissary_yaml_from_helm,emissary-ingress,emissary,$@,emissary-ingress)
 
 $(OSS_HOME)/manifests/emissary/ambassador.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/ambassador/require.yaml $(OSS_HOME)/k8s-config/ambassador/values.yaml $(OSS_HOME)/charts/emissary-ingress/templates/*.yaml $(OSS_HOME)/charts/emissary-ingress/values.yaml python-setup
 	@printf '  $(CYN)$@$(END)\n'

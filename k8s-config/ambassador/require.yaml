@@ -2,6 +2,9 @@ resources:
   - kind: Service
     name: ambassador-admin
     namespace: default
+  - kind: Service
+    name: ambassador
+    namespace: default
   - kind: ClusterRole
     name: ambassador
   - kind: ServiceAccount

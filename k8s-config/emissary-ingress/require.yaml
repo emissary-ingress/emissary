@@ -1,12 +1,15 @@
 resources:
   - kind: Service
     name: emissary-ingress-admin
-    namespace: default
+    namespace: emissary
+  - kind: Service
+    name: emissary-ingress
+    namespace: emissary
   - kind: ClusterRole
     name: emissary-ingress
   - kind: ServiceAccount
     name: emissary-ingress
-    namespace: default
+    namespace: emissary
   - kind: ClusterRoleBinding
     name: emissary-ingress
   - kind: ClusterRole
@@ -15,10 +18,10 @@ resources:
     name: emissary-ingress-watch
   - kind: Deployment
     name: emissary-ingress
-    namespace: default
+    namespace: emissary
   - kind: ServiceAccount
     name: emissary-ingress-agent
-    namespace: default
+    namespace: emissary
   - kind: ClusterRoleBinding
     name: emissary-ingress-agent
   - kind: ClusterRole
@@ -31,10 +34,10 @@ resources:
     name: emissary-ingress-agent-applications
   - kind: Role
     name: emissary-ingress-agent-config
-    namespace: default
+    namespace: emissary
   - kind: RoleBinding
     name: emissary-ingress-agent-config
-    namespace: default
+    namespace: emissary
   - kind: Deployment
     name: emissary-ingress-agent
-    namespace: default
+    namespace: emissary
