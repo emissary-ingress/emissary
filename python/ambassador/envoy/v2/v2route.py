@@ -284,8 +284,9 @@ class V2Route(Cacheable):
     def __init__(self, config: 'V2Config', group: IRHTTPMappingGroup, mapping: IRBaseMapping) -> None:
         super().__init__()
 
-        # Save the logger.
+        # Save the logger and the group.
         self.logger = group.logger
+        self._group = group
 
         # Passing a list to set is _very important_ here, lest you get a set of
         # the individual characters in group.host!

@@ -7,9 +7,11 @@ from ..utils import SavedSecret, dump_json
 from ..config import Config
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
+from .irutils import hostglob_matches, selector_matches
 
 if TYPE_CHECKING:
     from .ir import IR # pragma: no cover
+    from .irhttpmappinggroup import IRHTTPMappingGroup
 
 
 class IRHost(IRResource):
@@ -17,7 +19,6 @@ class IRHost(IRResource):
         'acmeProvider',
         'hostname',
         'metadata_labels',
-        'matchLabels',
         'requestPolicy',
         'selector',
         'tlsSecret',
@@ -164,9 +165,9 @@ class IRHost(IRResource):
 
                         tls_config_context = IRTLSContext(ir, aconf, **tls_context_init, **host_tls_config)
 
-                        match_labels = self.get('matchLabels')
-                        if not match_labels:
-                            match_labels = self.get('match_labels')
+                        # XXX This seems kind of pointless -- nothing looks at the context's labels?
+                        match_labels = self.get('selector', {}).get('matchLabels')
+
                         if match_labels:
                             tls_config_context['metadata_labels'] = match_labels
 
@@ -339,6 +340,36 @@ class IRHost(IRResource):
         self.context = ctx
 
         return True
+
+    def matches_httpgroup(self, group: 'IRHTTPMappingGroup') -> bool:
+        """
+        Make sure a given IRHTTPMappingGroup is a match for this Host, meaning
+        that at least one of the following is true:
+
+        - The Host specifies matchLabels, and the group has matching labels
+        - The group specifies a host glob, and the Host has a matching domain.
+
+        A Mapping that specifies no host can never match a Host that specifies
+        no selectors.
+        """
+
+        host_match = False
+        sel_match = False
+
+        group_glob = group.get('host') or None
+
+        if group_glob:
+            host_match = hostglob_matches(self.hostname, group_glob)
+            self.logger.info("-- hostname %s group glob %s => %s", self.hostname, group_glob, host_match)
+
+        selector = self.get('selector')
+
+        if selector:
+            sel_match = selector_matches(self.logger, selector, group.get('metadata_labels', {}))
+            self.logger.info("-- host sel %s group labels %s => %s", 
+                             dump_json(selector), dump_json(group.get('metadata_labels')), sel_match)
+
+        return host_match or sel_match
 
     def __str__(self) -> str:
         request_policy = self.get('requestPolicy', {})

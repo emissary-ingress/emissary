@@ -95,7 +95,7 @@ class V3Chain(dict):
 
     def matching_hosts(self, route: V3Route) -> List[IRHost]:
         # Get a list of _IRHosts_ that the given route should be matched with.
-        rv: List[IRHost] = [ host for host in self.hosts.values() if route.matches_domains([ host.hostname ])]
+        rv: List[IRHost] = [ host for host in self.hosts.values() if host.matches_httpgroup(route._group) ]
 
         return rv
 
