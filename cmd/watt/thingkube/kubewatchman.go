@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/datawire/ambassador/cmd/watt/watchapi"
-	"github.com/datawire/ambassador/pkg/k8s"
-	"github.com/datawire/ambassador/pkg/supervisor"
-	"github.com/datawire/ambassador/pkg/watt"
+	"github.com/datawire/ambassador/v2/cmd/watt/watchapi"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/supervisor"
+	"github.com/datawire/ambassador/v2/pkg/watt"
 )
 
 type K8sEvent struct {

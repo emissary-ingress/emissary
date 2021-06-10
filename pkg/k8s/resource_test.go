@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
 )
 
 func TestQKind(t *testing.T) {

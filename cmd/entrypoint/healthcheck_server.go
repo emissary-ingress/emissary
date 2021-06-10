@@ -8,8 +8,8 @@ import (
 	"net/http/pprof"
 	"net/url"
 
-	"github.com/datawire/ambassador/pkg/acp"
-	"github.com/datawire/ambassador/pkg/debug"
+	"github.com/datawire/ambassador/v2/pkg/acp"
+	"github.com/datawire/ambassador/v2/pkg/debug"
 	"github.com/datawire/dlib/dhttp"
 )
 

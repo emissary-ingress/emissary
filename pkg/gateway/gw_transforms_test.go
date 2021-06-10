@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/envoy"
-	"github.com/datawire/ambassador/pkg/gateway"
-	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/envoy"
+	"github.com/datawire/ambassador/v2/pkg/gateway"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

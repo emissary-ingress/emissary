@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/acp"
+	"github.com/datawire/ambassador/v2/pkg/acp"
 	"github.com/datawire/dlib/dtime"
 )
 

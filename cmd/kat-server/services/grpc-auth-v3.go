@@ -13,9 +13,9 @@ import (
 	"strconv"
 	"strings"
 
-	core "github.com/datawire/ambassador/pkg/api/envoy/config/core/v3"
-	pb "github.com/datawire/ambassador/pkg/api/envoy/service/auth/v3"
-	envoy_type "github.com/datawire/ambassador/pkg/api/envoy/type/v3"
+	core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
+	pb "github.com/datawire/ambassador/v2/pkg/api/envoy/service/auth/v3"
+	envoy_type "github.com/datawire/ambassador/v2/pkg/api/envoy/type/v3"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/genproto/googleapis/rpc/code"

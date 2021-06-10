@@ -17,7 +17,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 
-	v3 "github.com/datawire/ambassador/pkg/api/envoy/config/cluster/v3"
+	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
 )
 
 // ensure the imports are used

@@ -16,7 +16,7 @@ import (
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 	"sigs.k8s.io/yaml"
 
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
 )
 
 var sch = runtime.NewScheme()
