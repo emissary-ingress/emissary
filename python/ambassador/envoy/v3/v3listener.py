@@ -650,8 +650,8 @@ class V3Listener(dict):
 
             if self._insecure_only and (self.port != host.insecure_addl_port):
                 if self._log_debug:
-                    self.config.ir.logger.debug("V3Listener %s (%s): drop %s, insecure-only port mismatch", 
-                                                self.name, self._security_model, host.name)
+                    self.config.ir.logger.debug("      drop %s, insecure-only port mismatch", host.name)
+
                 continue
 
             # OK, we can't drop it for that, so we need to check the actions.
@@ -668,7 +668,7 @@ class V3Listener(dict):
             will_reject_secure = ((not secure_action) or (secure_action == "Reject"))
             if self._tls_ok and (not ((security_model == "SECURE") and will_reject_secure)):
                 if self._log_debug:
-                    self.config.ir.logger.debug("V3Listener %s: take SECURE %s", self.name, host)
+                    self.config.ir.logger.debug("      take SECURE %s", host)
 
                 self.add_chain("https", host)
 
@@ -677,7 +677,7 @@ class V3Listener(dict):
 
             if not ((security_model == "INSECURE") and (insecure_action == "Reject")):
                 if self._log_debug:
-                    self.config.ir.logger.debug("V3Listener %s: take INSECURE %s", self.name, host)
+                    self.config.ir.logger.debug("      take INSECURE %s", host)
 
                 self.add_chain("http", host)
 

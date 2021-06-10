@@ -219,14 +219,14 @@ class IRListener (IRResource):
         nsmatch = (self.namespace_literal == "*") or (self.namespace_literal == host.namespace)
 
         if not nsmatch:
-            self.ir.logger.info("    namespace mismatch (we're %s), DROP %s", self.namespace_literal, host)
+            self.ir.logger.debug("    namespace mismatch (we're %s), DROP %s", self.namespace_literal, host)
             return False
 
         if not selector_matches(self.ir.logger, self.host_selector, host.metadata_labels):
-            self.ir.logger.info("    selector mismatch, DROP %s", host)
+            self.ir.logger.debug("    selector mismatch, DROP %s", host)
             return False
 
-        self.ir.logger.info("     TAKE %s", host)
+        self.ir.logger.debug("    TAKE %s", host)
         return True
 
     def __str__(self) -> str:
