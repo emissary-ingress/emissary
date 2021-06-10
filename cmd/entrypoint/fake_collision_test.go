@@ -92,12 +92,10 @@ func TestFakeCollision(t *testing.T) {
 		c0 := FindCluster(config, ClusterNameContains("cluster_subway_staging_stable_staging_30-0"))
 
 		if c0 == nil {
-			fmt.Printf("c0 nil\n")
 			return false
 		}
 
 		if c0.EdsClusterConfig.ServiceName != "k8s/staging/subway-staging-stable/3000" {
-			fmt.Printf("c0 bad service\n")
 			return false
 		}
 
@@ -107,12 +105,10 @@ func TestFakeCollision(t *testing.T) {
 		c1 := FindCluster(config, ClusterNameContains("cluster_subway_staging_stable_staging_30-1"))
 
 		if c1 == nil {
-			fmt.Printf("c1 nil\n")
 			return false
 		}
 
 		if c1.EdsClusterConfig.ServiceName != "k8s/staging/subway-staging-stable/3000" {
-			fmt.Printf("c1 bad svc got %v wanted %v\n", c1.EdsClusterConfig.ServiceName, "k8s/staging/subway-staging-stable/3000")
 			return false
 		}
 
@@ -122,16 +118,13 @@ func TestFakeCollision(t *testing.T) {
 		c2 := FindCluster(config, ClusterNameContains("cluster_subway_staging_stable_staging_30-2"))
 
 		if c2 == nil {
-			fmt.Printf("c2 nil\n")
 			return false
 		}
 
 		if c2.EdsClusterConfig.ServiceName != "k8s/staging/subway-staging-stable/3001" {
-			fmt.Printf("c2 bad svc\n")
 			return false
 		}
 
-		fmt.Printf("all good\n")
 		return true
 	})
 

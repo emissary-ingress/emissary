@@ -120,14 +120,6 @@ def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
 
 
-def envoy_api_version():
-    env_version = os.environ.get('AMBASSADOR_ENVOY_API_VERSION', 'V3')
-    version = env_version.upper()
-    if version == 'V2' or env_version == 'V3':
-        return version
-    return 'V2'
-
-
 class DiagApp (Flask):
     cache: Optional[Cache]
     ambex_pid: int
