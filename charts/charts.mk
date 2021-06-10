@@ -17,8 +17,7 @@ endef
 
 define _docgen
 	if [[ -f $(1)/doc.yaml ]] ; then \
-		GO111MODULE=off go get kubepack.dev/chart-doc-gen ; \
-		GO111MODULE=off go run kubepack.dev/chart-doc-gen -d $(1)/doc.yaml -t $(1)/readme.tpl -v $(1)/values.yaml > $(1)/README.md ; \
+		go run kubepack.dev/chart-doc-gen -d $(1)/doc.yaml -t $(1)/readme.tpl -v $(1)/values.yaml > $(1)/README.md ; \
 	fi
 endef
 
