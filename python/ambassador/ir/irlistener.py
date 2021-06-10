@@ -122,7 +122,7 @@ class IRListener (IRResource):
 
         return True
 
-    def pretty(self) -> str:
+    def __str__(self) -> str:
         pstack = "????"
 
         if self.get("protocolStack"):
@@ -155,10 +155,10 @@ class ListenerFactory:
                     listener.referenced_by(config)
                     listener.sourced_by(config)
 
-                    ir.logger.debug(f"ListenerFactory: saving Listener {listener.pretty()}")
+                    ir.logger.debug(f"ListenerFactory: saving Listener {listener}")
                     ir.save_listener(listener)
                 else:
-                    ir.logger.debug(f"ListenerFactory: not saving inactive Listener {listener.pretty()}")
+                    ir.logger.debug(f"ListenerFactory: not saving inactive Listener {listener}")
 
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:

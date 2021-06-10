@@ -89,7 +89,7 @@ def v3prettyroute(route: DictifiedV3Route) -> str:
     elif route.get("redirect"):
         target_str = f"REDIRECT"
 
-    hcstr = route.get("_host_constraints") or "{ i'*' }"
+    hcstr = route.get("_host_constraints") or "{i'*'}"
 
     return f"<V3Route {hcstr}: {match_str} -> {target_str}>"
 

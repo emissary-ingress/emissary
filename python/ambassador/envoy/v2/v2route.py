@@ -89,7 +89,7 @@ def v2prettyroute(route: DictifiedV2Route) -> str:
     elif route.get("redirect"):
         target_str = f"REDIRECT"
 
-    hcstr = route.get("_host_constraints") or "{ i'*' }"
+    hcstr = route.get("_host_constraints") or "{i'*'}"
 
     return f"<V2Route {hcstr}: {match_str} -> {target_str}>"
 

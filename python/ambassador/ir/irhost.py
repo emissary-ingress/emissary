@@ -271,7 +271,7 @@ class IRHost(IRResource):
                     if not pkey_ss:
                         ir.logger.error(f"Host {self.name}: continuing with invalid private key secret {pkey_name}")
 
-        ir.logger.debug(f"Host setup OK: {self.pretty()}")
+        ir.logger.debug(f"Host setup OK: {self}")
         return True
 
     # Check a TLSContext name, and save the linked TLSContext if it'll work for us.
@@ -339,18 +339,17 @@ class IRHost(IRResource):
 
         return True
 
-    def pretty(self) -> str:
+    def __str__(self) -> str:
         request_policy = self.get('requestPolicy', {})
         insecure_policy = request_policy.get('insecure', {})
         insecure_action = insecure_policy.get('action', 'Redirect')
         insecure_addl_port = insecure_policy.get('additionalPort', None)
 
         ctx_name = self.context.name if self.context else "-none-"
-        return "<Host %s for %s ctx %s ia %s iap %s>" % (self.name, self.hostname or '*', ctx_name,
-                                                         insecure_action, insecure_addl_port)
-
-    def __str__(self) -> str:
-        return self.pretty()
+        return "<Host %s for %s ns %s ctx %s ia %s iap %s>" % (
+            self.name, self.hostname or '*', self.namespace, ctx_name,
+            insecure_action, insecure_addl_port
+        )
 
     def resolve(self, ir: 'IR', secret_name: str) -> SavedSecret:
         # Try to use our namespace for secret resolution. If we somehow have no
@@ -377,10 +376,10 @@ class HostFactory:
                     host.referenced_by(config)
                     host.sourced_by(config)
 
-                    ir.logger.debug(f"HostFactory: saving host {host.pretty()}")
+                    ir.logger.debug(f"HostFactory: saving host {host}")
                     ir.save_host(host)
                 else:
-                    ir.logger.debug(f"HostFactory: not saving inactive host {host.pretty()}")
+                    ir.logger.debug(f"HostFactory: not saving inactive host {host}")
 
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:
@@ -446,5 +445,5 @@ class HostFactory:
                 host.referenced_by(ir.ambassador_module)
                 host.sourced_by(ir.ambassador_module)
 
-                ir.logger.debug(f"HostFactory: saving host {host.pretty()}")
+                ir.logger.debug(f"HostFactory: saving host {host}")
                 ir.save_host(host)
