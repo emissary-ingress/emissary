@@ -242,6 +242,8 @@ class V3Listener(dict):
                                         self.name, self.bind_to, irgroup.bind_to(), group_host or "i'*'")
 
         if not group_host:
+            # Special case. No Host in a TCPMapping means an unconditional forward,
+            # so just add this immediately as a "*" chain.
             chain = self.add_chain("tcp", None)
             chain.add_tcpmapping(irgroup)
         else:
@@ -582,16 +584,8 @@ class V3Listener(dict):
 
                 # If we have a context...
                 if chain.context:
-                    # ...then we can do TLS...
+                    # ...then we can ask for TLS.
                     filter_chain_match["transport_protocol"] = "tls"
-
-                    # ...and match server names.
-                    #
-                    # (The if here is because if chain_hosts is empty, it means '*'. If there are
-                    # no specific names in the list, or if one of the names is actually '*', don't 
-                    # bother matching: just accept everything.)
-                    if (len(chain_hosts) > 0) and ('*' not in chain_hosts):
-                        filter_chain_match['server_names'] = chain_hosts
 
                     # Note that we're modifying the filter_chain itself here, not 
                     # filter_chain_match.
@@ -604,6 +598,13 @@ class V3Listener(dict):
                             **envoy_ctx
                         }
                     }
+
+                # We do server-name matching whether or not we have TLS, just to help
+                # make sure that we don't have two chains with an empty filter_match
+                # criterion (since Envoy will reject such a configuration).
+
+                if len(chain_hosts) > 0:
+                    filter_chain_match['server_names'] = chain_hosts
 
                 # Once all of that is done, hook in the match...
                 filter_chain['filter_chain_match'] = filter_chain_match
