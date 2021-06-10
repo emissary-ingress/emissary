@@ -690,6 +690,9 @@ class V3Listener(dict):
             if self._log_debug:
                 logger.debug("MATCH CHAIN %s - %s", chain_key, chain)
 
+            # Remember whether we found an ACME route.
+            found_acme = False
+
             # The data structure we're walking here is config.route_variants rather than
             # config.routes. There's a one-to-one correspondence between the two, but we use the
             # V3RouteVariants to lazily cache some of the work that we're doing across chains.
@@ -740,6 +743,7 @@ class V3Listener(dict):
                             # on (this is the infamous ACME hole-puncher mentioned everywhere).
                             extra_info = " (force Route for ACME challenge)"
                             action = "Route"
+                            found_acme = True
                         elif (self.config.ir.edge_stack_allowed and
                                 (route_precedence == -1000000) and
                                 (rv.route["match"].get("safe_regex", {}).get("regex", None) == "^/$")):
@@ -762,6 +766,36 @@ class V3Listener(dict):
                             if self._log_debug:
                                 logger.debug("      %s - %s: drop from %s %s%s",
                                              matcher, action, self.name, hostname, extra_info)
+
+            # If we're on Edge Stack and we don't already have an ACME route, add one.
+            if self.config.ir.edge_stack_allowed and not found_acme:
+                # The target cluster doesn't actually matter -- the auth service grabs the
+                # challenge and does the right thing. But we do need a cluster that actually
+                # exists, so use the sidecar cluster.
+
+                if not self.config.ir.sidecar_cluster_name:
+                    # Uh whut? how is Edge Stack running exactly?
+                    raise Exception("Edge Stack claims to be running, but we have no sidecar cluster??")
+
+                if self._log_debug:
+                    logger.debug("      punching a hole for ACME")
+
+                # Make sure to include _host_constraints in here for now.
+                #
+                # XXX This is needed only because we're dictifying the V3Route too early.
+
+                chain.routes.insert(0, {
+                    "_host_constraints": set(),
+                    "match": {
+                        "case_sensitive": True,
+                        "prefix": "/.well-known/acme-challenge/"
+                    },
+                    "route": {
+                        "cluster": self.config.ir.sidecar_cluster_name,
+                        "prefix_rewrite": "/.well-known/acme-challenge/",
+                        "timeout": "3.000s"
+                    }
+                })
 
             if self._log_debug:
                 for route in chain.routes:
