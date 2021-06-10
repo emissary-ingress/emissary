@@ -893,13 +893,11 @@ class V3Listener(dict):
             # OK, we have the filter_chain variable set -- build the Envoy virtual_hosts for it.
 
             for host in chain.hosts.values():
-                # This bit of rank paranoia is probably unnecessary: it boils down to 
-                # double-checking host constraints, and making sure that no internal keys
-                # from the route make it into the Envoy configuration.
+                # Make certain that no internal keys from the route make it into the Envoy 
+                # configuration.
                 routes = []
                 
-                for r in [ route for route in chain.routes if 
-                           any([ hostglob_matches(rhost, host.hostname) for rhost in route["_host_constraints"] ]) ]:
+                for r in chain.routes:
                     routes.append({ k: v for k, v in r.items() if k[0] != '_' })
 
                 # Do we - somehow - already have a vhost for this hostname? (This should
