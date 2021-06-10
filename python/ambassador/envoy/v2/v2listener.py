@@ -193,33 +193,40 @@ class V2Listener(dict):
                     self.add_tcp_group(irgroup)
 
     def add_chain(self, chain_type: str, host: Optional[IRHost]) -> V2Chain:
-        # Add a chain for a specific Host to this listener, while dealing with the
-        # fundamental asymmetry that filter_chain_match can - and should - use SNI whenever the
-        # chain has TLS available, but that's simply not available for chains without TLS. 
+        # Add a chain for a specific Host to this listener, while dealing with the fundamental
+        # asymmetry that filter_chain_match can - and should - use SNI whenever the chain has
+        # TLS available, but that's simply not available for chains without TLS. 
         # 
-        # The pratical upshot is that we have _only one_ HTTP chain, but we can have HTTPS and
-        # TCP chains for specfic hostnames.
+        # The pratical upshot is that we can generate _only one_ HTTP chain, but we can have
+        # HTTPS and TCP chains for specfic hostnames. HOWEVER, we still track HTTP chains by
+        # hostname, because we can - and do - separate HTTP chains into specific domains.
+        #
+        # But wait, I hear you cry, why don't we have a separate domain data structure??! The
+        # answer is just that it would needlessly add nesting to all our loops and such (this
+        # is also why there's no vhost data structure).
 
         chain_key = chain_type
         hoststr = host.hostname if host else '(no host)'
         hostname = (host.hostname if host else None) or '*'
 
-        if (chain_type != "http")  and host:
+        if host:
             chain_key = "%s-%s" % (chain_type, hostname)
 
         chain = self._chains.get(chain_key)
 
         if chain is not None:
-            if self._log_debug:
-                self.config.ir.logger.debug("V2Listener %s host %s chain_key %s: add to %s", self.name, hoststr, chain_key, chain)
-
             if host:
                 chain.add_host(host)
+                if self._log_debug:
+                    self.config.ir.logger.debug("      CHAIN ADD: host %s chain_key %s -- %s", hoststr, chain_key, chain)
+            else:
+                if self._log_debug:
+                    self.config.ir.logger.debug("      CHAIN NOOP: host %s chain_key %s -- %s", hoststr, chain_key, chain)
         else:
             chain = V2Chain(self.config, chain_type, host)
             self._chains[chain_key] = chain
             if self._log_debug:
-                self.config.ir.logger.debug("V2Listener %s host %s chain_key %s: create %s", self.name, hoststr, chain_key, self._chains[chain_key])
+                self.config.ir.logger.debug("      CHAIN CREATE: host %s chain_key %s -- %s", hoststr, chain_key, chain)
 
         return chain
 
@@ -736,26 +743,64 @@ class V2Listener(dict):
     def finalize_http(self) -> None:
         # Finalize everything HTTP. Like the TCP side of the world, this is about walking
         # chains and generating Envoy config.
+        #
+        # All of our HTTP chains get collapsed into a single chain with (likely) multiple
+        # domains here.
+
+        filter_chains: Dict[str, Dict[str, Any]] = {}
 
         for chain_key, chain in self._chains.items():
-            if (chain.type != "http") and (chain.type != "https"):
-                continue
+            if self._log_debug:
+                self._irlistener.logger.debug("FHTTP %s / %s / %s", self, chain_key, chain)
 
-            filter_chain: Dict[str, Any] = {}
+            filter_chain: Optional[Dict[str, Any]] = None
 
-            # The chain as a whole has a single matcher.            
-            filter_chain_match: Dict[str, Any] = {}
+            if chain.type == "http":
+                # All HTTP chains get collapsed into one here, using domains to separate them.
+                # This works because we don't need to offer TLS certs (we can't anyway), and 
+                # because of that, SNI (and thus filter server_names matches) aren't things.
+                chain_key = "http"
 
-            chain_hosts = chain.hostglobs()
+                filter_chain = filter_chains.get(chain_key, None)
 
-            # For HTTPS chains...
-            if chain.type.lower() == "https":
-                # ...then we can match server names.
+                if not filter_chain:
+                    if self._log_debug:
+                        self._irlistener.logger.debug("FHTTP   create filter_chain %s / empty match", chain_key)
+                    filter_chain = {
+                        "filter_chain_match": {},
+                        "_vhosts": {}
+                    }
+
+                    filter_chains[chain_key] = filter_chain
+                else:
+                    if self._log_debug:
+                        self._irlistener.logger.debug("FHTTP   use filter_chain %s: vhosts %d", chain_key, len(filter_chain["_vhosts"]))
+            elif chain.type == "https":
+                # Since chain_key is a dictionary key in its own right, we can't already
+                # have a matching chain for this.
+
+                filter_chain = {
+                    "_vhosts": {}
+                }
+                filter_chain_match: Dict[str, Any] = {}
+
+                chain_hosts = chain.hostglobs()
+
+                # Set up the server_names part of the match, if we have any names.
                 #
-                # (The if here is because if chain_hosts is empty, it means '*'. If there are
-                # no specific names in the list, or if one of the names is actually '*', don't 
-                # bother matching: just accept everything.)
-                if (len(chain_hosts) > 0) and ('*' not in chain_hosts):
+                # Note that "*" is _not allowed_ in server_names, though e.g. "*.example.com" 
+                # is. So we need to filter out the "*" itself... which is ugly, because 
+                # 
+                # server_names: [ "*", "foo.example.com" ] 
+                #
+                # is very different from 
+                # 
+                # server_names: [ "foo.example.com" ]
+                #
+                # So, if "*" is present at all in our chain_hosts, we can't match server_names
+                # at all.
+
+                if (len(chain_hosts) > 0) and ("*" not in chain_hosts):
                     filter_chain_match['server_names'] = chain_hosts
 
                 # Likewise, an HTTPS chain will ask for TLS.
@@ -766,12 +811,17 @@ class V2Listener(dict):
                     # Note that we're modifying the filter_chain itself here, not 
                     # filter_chain_match.
                     filter_chain["tls_context"] = V2TLSContext(chain.context)
+                        
+                # Finally, stash the match in the chain...
+                filter_chain["filter_chain_match"] = filter_chain_match
+                            
+                # ...and save it.
+                filter_chains[chain_key] = filter_chain
+            else:
+                # The chain type is neither HTTP nor HTTPS -- must be a TCP chain. Skip it.
+                continue
 
-            # Save the filter_chain_match...
-            filter_chain["filter_chain_match"] = filter_chain_match
-
-            # ...then build the Envoy virtual_hosts for this chain.
-            vhosts: List[Dict[str, Any]] = []
+            # OK, we have the filter_chain variable set -- build the Envoy virtual_hosts for it.
 
             for host in chain.hosts.values():
                 # This bit of rank paranoia is probably unnecessary: it boils down to 
@@ -783,19 +833,36 @@ class V2Listener(dict):
                            any([ hostglob_matches(rhost, host.hostname) for rhost in route["_host_constraints"] ]) ]:
                     routes.append({ k: v for k, v in r.items() if k[0] != '_' })
 
-                vhost: Dict[str, Any] = {
-                    "name": f"{self.name}-{host.hostname}",
-                    "domains": [ host.hostname ],
-                    "routes": routes
-                }
+                # Do we - somehow - already have a vhost for this hostname? (This should
+                # be "impossible".)
 
-                vhosts.append(vhost)
+                vhost: Dict[str, Any] = filter_chain["_vhosts"].get(host.hostname, None)
 
+                if not vhost:
+                    vhost = {
+                        "name": f"{self.name}-{host.hostname}",
+                        "domains": [ host.hostname ],
+                        "routes": []
+                    }
+
+                    filter_chain["_vhosts"][host.hostname] = vhost
+
+                vhost["routes"] += routes
+
+        # Once that's all done, walk the filter_chains dict...
+        for fc_key, filter_chain in filter_chains.items():
+            # ...set up our HTTP config...
             http_config = dict(typecast(dict, self._base_http_config))
+
+            # ...and unfold our vhosts dict into a list for Envoy.
             http_config["route_config"] = {
-                "virtual_hosts": vhosts
+                "virtual_hosts": list(filter_chain["_vhosts"].values())
             }
 
+            # Now that we've saved our vhosts as a list, drop the dict version.
+            del(filter_chain["_vhosts"])
+
+            # Finish up config for this filter chain...
             if parse_bool(self.config.ir.ambassador_module.get("strip_matching_host_port", "false")):
                 http_config["strip_matching_host_port"] = True
 
@@ -815,6 +882,7 @@ class V2Listener(dict):
                 }
             ]
 
+            # ...and save it.
             self._filter_chains.append(filter_chain)
 
     def as_dict(self) -> dict:
