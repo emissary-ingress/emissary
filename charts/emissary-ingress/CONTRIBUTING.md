@@ -1,6 +1,6 @@
 # Contributing to the Emissary Ingress Helm Chart
 
-This Helm chart is used to install The Emissary Ingress.
+This Helm chart is used to install the Emissary Ingress.
 
 ## Developing
 
