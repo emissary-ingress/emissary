@@ -19,6 +19,13 @@ generate:
 	cd .circleci && ./generate --always-make
 _generate:
 	@echo '$(MAKE) $$(generate/files)'; $(MAKE) $(generate/files)
+	# TODO: this should be done better probably, but i just don't have time for that right now.
+	@PS4=; set -ex; { \
+	  find "$(OSS_HOME)/pkg/api/" -name '*.go' -exec sed -E -i.bak \
+	    -e 's,github\.com/datawire/ambassador/pkg/api,github.com/datawire/ambassador/v2/pkg/api,g' \
+	    -- {} +; \
+	  find "$(OSS_HOME)" -name '*.go.bak' -delete; \
+	}
 generate-clean: ## Delete generated sources that get committed to git
 generate-clean:
 	rm -rf $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb

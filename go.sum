@@ -875,6 +875,7 @@ github.com/telepresenceio/telepresence/rpc/v2 v2.1.1-rc.0 h1:bHTmS8e7jP3fv3+lf9u
 github.com/telepresenceio/telepresence/rpc/v2 v2.1.1-rc.0/go.mod h1:NAQYJQqVQ0VbD+DKh4MpRQo/iUtE14chPSo6krZoNGo=
 github.com/telepresenceio/telepresence/v2 v2.1.1-rc.0 h1:Dwk5H2RtIJURa05w/+WVLdNEfX3sePvGG+WdGImQjSo=
 github.com/telepresenceio/telepresence/v2 v2.1.1-rc.0/go.mod h1:KXGckf3vQRSpFIZZWIyD/x8SDVbtAFn8pQRCcJyzT/4=
+github.com/tidwall/pretty v1.0.0 h1:HsD+QiTn7sK6flMKIvNmpqz1qrpP3Ps6jOKIKMooyg4=
 github.com/tidwall/pretty v1.0.0/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhVysOjyk=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20170815181823-89b8d40f7ca8/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=

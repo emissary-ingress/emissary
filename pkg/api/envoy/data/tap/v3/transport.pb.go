@@ -8,7 +8,7 @@ package envoy_data_tap_v3
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v3 "github.com/datawire/ambassador/pkg/api/envoy/config/core/v3"
+	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
 	proto "github.com/golang/protobuf/proto"
 	timestamp "github.com/golang/protobuf/ptypes/timestamp"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
