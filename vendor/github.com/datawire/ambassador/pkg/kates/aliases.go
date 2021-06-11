@@ -4,6 +4,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	netv1beta1 "k8s.io/api/networking/v1beta1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	xv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -55,6 +56,7 @@ type ConfigMap = corev1.ConfigMap
 
 type Secret = corev1.Secret
 
+const SecretTypeServiceAccountToken = corev1.SecretTypeServiceAccountToken
 const SecretTypeTLS = corev1.SecretTypeTLS
 
 type Ingress = netv1beta1.Ingress
@@ -64,13 +66,31 @@ type Service = corev1.Service
 type ServiceSpec = corev1.ServiceSpec
 type ServicePort = corev1.ServicePort
 type Endpoints = corev1.Endpoints
+type EndpointSubset = corev1.EndpointSubset
+type EndpointAddress = corev1.EndpointAddress
+type EndpointPort = corev1.EndpointPort
+
+type Protocol = corev1.Protocol
+
+var ProtocolTCP = corev1.ProtocolTCP
+var ProtocolUDP = corev1.ProtocolUDP
+var ProtocolSCTP = corev1.ProtocolSCTP
 
 var ServiceTypeLoadBalancer = corev1.ServiceTypeLoadBalancer
 var ServiceTypeClusterIP = corev1.ServiceTypeClusterIP
 
+type ServiceAccount = corev1.ServiceAccount
+
+type Role = rbacv1.Role
+type RoleBinding = rbacv1.RoleBinding
+type ClusterRole = rbacv1.ClusterRole
+type ClusterRoleBinding = rbacv1.ClusterRoleBinding
+
 type Pod = corev1.Pod
 type PodSpec = corev1.PodSpec
+type PodTemplateSpec = corev1.PodTemplateSpec
 type Container = corev1.Container
+type EnvVar = corev1.EnvVar
 type SecurityContext = corev1.SecurityContext
 type PodCondition = corev1.PodCondition
 type PodLogOptions = corev1.PodLogOptions
@@ -103,6 +123,8 @@ const ResourceMemory = corev1.ResourceMemory
 type PersistentVolumeClaim = corev1.PersistentVolumeClaim
 
 type Deployment = appsv1.Deployment
+type ReplicaSet = appsv1.ReplicaSet
+type StatefulSet = appsv1.StatefulSet
 
 type CustomResourceDefinition = xv1.CustomResourceDefinition
 
@@ -120,6 +142,7 @@ var MustParseQuantity = resource.MustParse
 
 type Quantity = resource.Quantity
 type IntOrString = intstr.IntOrString
+type Time = metav1.Time
 
 var Int = intstr.Int
 

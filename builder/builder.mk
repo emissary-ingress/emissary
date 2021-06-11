@@ -557,7 +557,7 @@ mypy: mypy-server
 	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal check
 .PHONY: mypy
 
-GOTEST_PKGS = github.com/datawire/ambassador/...
+GOTEST_PKGS = github.com/datawire/ambassador/v2/...
 GOTEST_MODDIRS = $(OSS_HOME)
 export GOTEST_PKGS
 export GOTEST_MODDIRS
