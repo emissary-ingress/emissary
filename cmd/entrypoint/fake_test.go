@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/datawire/ambassador/cmd/entrypoint"
-	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
+	v3bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v3"
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/snapshot/v1"
 )
@@ -15,7 +15,7 @@ func AnySnapshot(_ *snapshot.Snapshot) bool {
 	return true
 }
 
-func AnyConfig(_ *bootstrap.Bootstrap) bool {
+func AnyConfig(_ *v3bootstrap.Bootstrap) bool {
 	return true
 }
 

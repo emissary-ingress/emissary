@@ -2127,7 +2127,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     :param report_action_keys: Report action keys when chiming
     """
 
-    enable_fast_reconfigure = parse_bool(os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "false"))
+    enable_fast_reconfigure = parse_bool(os.environ.get("AMBASSADOR_FAST_RECONFIGURE", "true"))
     legacy_mode = parse_bool(os.environ.get("AMBASSADOR_LEGACY_MODE", "false"))
 
     if port < 0:
