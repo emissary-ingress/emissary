@@ -108,17 +108,17 @@ $(tools/controller-gen): $(OSS_HOME)/go.mod
 tools/fix-crds = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/fix-crds
 $(tools/fix-crds): FORCE
 	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/cmd/fix-crds
+	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/v2/cmd/fix-crds
 
 tools/go-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/go-mkopensource
 $(tools/go-mkopensource): FORCE
 	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/cmd/go-mkopensource
+	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/v2/cmd/go-mkopensource
 
 tools/py-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/py-mkopensource
 $(tools/py-mkopensource): FORCE
 	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/cmd/py-mkopensource
+	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/v2/cmd/py-mkopensource
 
 #
 # `make generate` vendor rules
@@ -158,8 +158,8 @@ $(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
 	  cd $(OSS_HOME)/_cxx/go-control-plane; \
 	  cp -r $$(git ls-files ':[A-Z]*' ':!Dockerfile*' ':!Makefile') pkg/* "$$tmpdir"; \
 	  find "$$tmpdir" -name '*.go' -exec sed -E -i.bak \
-	    -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/datawire/ambassador/pkg/envoy-control-plane,g' \
-	    -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/datawire/ambassador/pkg/api/envoy,g' \
+	    -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/datawire/ambassador/v2/pkg/envoy-control-plane,g' \
+	    -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/datawire/ambassador/v2/pkg/api/envoy,g' \
 	    -- {} +; \
 	  find "$$tmpdir" -name '*.bak' -delete; \
 	  mv "$$tmpdir" $(abspath $@); \

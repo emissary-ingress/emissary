@@ -1,5 +1,5 @@
-The Go module "github.com/datawire/ambassador" incorporates the following
-Free and Open Source software:
+The Go module "github.com/datawire/ambassador/v2" incorporates the
+following Free and Open Source software:
 
     Name                                                           Version                                                     License(s)
     ----                                                           -------                                                     ----------
@@ -38,6 +38,7 @@ Free and Open Source software:
     github.com/containerd/containerd                               v1.4.3                                                      Apache License 2.0
     github.com/containerd/continuity                               v0.0.0-20201208142359-180525291bb7                          Apache License 2.0
     github.com/cyphar/filepath-securejoin                          v0.2.2                                                      3-clause BSD license
+    github.com/datawire/ambassador                                 v1.11.1                                                     Apache License 2.0
     github.com/datawire/dlib                                       v1.2.0                                                      Apache License 2.0
     github.com/datawire/pf                                         v0.0.0-20180510150411-31a823f9495a                          2-clause BSD license
     github.com/davecgh/go-spew                                     v1.1.1                                                      ISC license
@@ -62,10 +63,17 @@ Free and Open Source software:
     github.com/fsnotify/fsnotify                                   v1.4.9                                                      3-clause BSD license
     github.com/ghodss/yaml                                         v1.0.0                                                      3-clause BSD license, MIT license
     github.com/go-logr/logr                                        v0.3.0                                                      Apache License 2.0
+    github.com/go-openapi/analysis                                 v0.19.5                                                     Apache License 2.0
+    github.com/go-openapi/errors                                   v0.19.2                                                     Apache License 2.0
     github.com/go-openapi/jsonpointer                              v0.19.3                                                     Apache License 2.0
     github.com/go-openapi/jsonreference                            v0.19.3                                                     Apache License 2.0
+    github.com/go-openapi/loads                                    v0.19.4                                                     Apache License 2.0
+    github.com/go-openapi/runtime                                  v0.19.4                                                     Apache License 2.0
     github.com/go-openapi/spec                                     v0.19.3                                                     Apache License 2.0
+    github.com/go-openapi/strfmt                                   v0.19.3                                                     Apache License 2.0
     github.com/go-openapi/swag                                     v0.19.5                                                     Apache License 2.0
+    github.com/go-openapi/validate                                 v0.19.5                                                     Apache License 2.0
+    github.com/go-stack/stack                                      v1.8.0                                                      MIT license
     github.com/gobuffalo/flect                                     v0.2.0                                                      MIT license
     github.com/gobwas/glob                                         v0.2.3                                                      MIT license
     github.com/godbus/dbus/v5                                      v5.0.4-0.20201218172701-b3768b321399                        2-clause BSD license
@@ -146,6 +154,7 @@ Free and Open Source software:
     github.com/xeipuuv/gojsonreference                             v0.0.0-20180127040603-bd5ef7bd5415                          Apache License 2.0
     github.com/xeipuuv/gojsonschema                                v1.2.0                                                      Apache License 2.0
     github.com/xi2/xz                                              v0.0.0-20171230120015-48954b6210f8                          public domain
+    go.mongodb.org/mongo-driver                                    v1.1.2                                                      Apache License 2.0
     go.opencensus.io                                               v0.22.3                                                     Apache License 2.0
     golang.org/x/crypto                                            v0.0.0-20201221181555-eec23a3978ad                          3-clause BSD license
     golang.org/x/mod                                               v0.3.0                                                      3-clause BSD license
