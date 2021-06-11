@@ -54,12 +54,10 @@ spec:
                 type: string
               type: array
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             auth_service:
               type: string
             failure_mode_allow:
@@ -150,12 +148,10 @@ spec:
             address:
               type: string
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             datacenter:
               type: string
           type: object
@@ -204,12 +200,10 @@ spec:
           description: DevPortalSpec defines the desired state of DevPortal
           properties:
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             content:
               description: Content specifies where the content shown in the DevPortal come from
               properties:
@@ -351,16 +345,12 @@ spec:
               description: Common to all Ambassador objects (and optional).
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             ambassadorId:
               description: A compatibility alias for "ambassador_id"; because Host used to be specified with protobuf, and jsonpb allowed either "ambassador_id" or "ambassadorId", and even though we didn't tell people about "ambassadorId" it's what the web policy console generated because of jsonpb.  So Hosts with 'ambassadorId' exist in the wild.
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             hostname:
               description: Hostname by which the Ambassador can be reached.
               type: string
@@ -555,12 +545,10 @@ spec:
           description: KubernetesEndpointResolver tells Ambassador to use Kubernetes Endpoints resources to resolve services. It actually has no spec other than the AmbassadorID.
           properties:
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
           type: object
       type: object
   version: null
@@ -607,12 +595,10 @@ spec:
           description: KubernetesServiceResolver tells Ambassador to use Kubernetes Service resources to resolve services. It actually has no spec other than the AmbassadorID.
           properties:
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
           type: object
       type: object
   version: null
@@ -676,12 +662,10 @@ spec:
           description: ListenerSpec defines the desired state of this Port
           properties:
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             hostBinding:
               description: HostBinding allows restricting which Hosts will be used for this Listener.
               properties:
@@ -810,12 +794,10 @@ spec:
           description: LogServiceSpec defines the desired state of LogService
           properties:
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             driver:
               enum:
               - tcp
@@ -930,12 +912,10 @@ spec:
                 type: string
               type: array
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             auth_context_extensions:
               additionalProperties:
                 type: string
@@ -1319,12 +1299,10 @@ spec:
         spec:
           properties:
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             config:
               description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
               type: object
@@ -1377,9 +1355,7 @@ spec:
               description: Common to all Ambassador objects.
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             domain:
               type: string
             protocol_version:
@@ -1446,12 +1422,10 @@ spec:
             address:
               type: string
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             circuit_breakers:
               items:
                 properties:
@@ -1546,12 +1520,10 @@ spec:
             alpn_protocols:
               type: string
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             ca_secret:
               type: string
             cacert_chain_file:
@@ -1642,12 +1614,10 @@ spec:
           description: TracingServiceSpec defines the desired state of TracingService
           properties:
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             config:
               properties:
                 access_token_file:
