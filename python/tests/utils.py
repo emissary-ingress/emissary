@@ -17,8 +17,8 @@ from ambassador.compile import Compile
 from ambassador.utils import NullSecretHandler
 from kat.utils import namespace_manifest
 from kat.harness import load_manifest
+from tests.manifests import cleartext_host_manifest
 from tests.kubeutils import apply_kube_artifacts
-from tests.runutils import run_and_assert, run_with_retry
 
 logger = logging.getLogger("ambassador")
 
@@ -27,30 +27,6 @@ ENVOY_PATH = os.environ.get('ENVOY_PATH', '/usr/local/bin/envoy')
 KUBESTATUS_PATH = os.environ.get('KUBESTATUS_PATH', 'kubestatus')
 
 SUPPORTED_ENVOY_VERSIONS = ["V2", "V3"]
-
-CLEARTEXT_HOST_YAML = '''
----
-apiVersion: getambassador.io/v2
-kind: Host
-metadata:
-  name: cleartext-host-{self.path.k8s}
-  labels:
-    scope: AmbassadorTest
-  namespace: %s
-spec:
-  ambassador_id: [ "{self.ambassador_id}" ]
-  hostname: "*"
-  selector:
-    matchLabels:
-      hostname: {self.path.k8s}
-  acmeProvider:
-    authority: none
-  requestPolicy:
-    insecure:
-      action: Route
-      # additionalPort: 8080
-'''
-
 
 def install_ambassador(namespace, single_namespace=True, envs=None):
     """
@@ -114,7 +90,7 @@ imagePullSecrets:
     ambassador_yaml = list(yaml.safe_load_all((
         load_manifest(rbac_manifest_name) +
         load_manifest('ambassador') +
-        (CLEARTEXT_HOST_YAML % namespace)
+        (cleartext_host_manifest % namespace)
     ).format(
         capabilities_block="",
         envs="",
