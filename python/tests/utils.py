@@ -28,7 +28,8 @@ KUBESTATUS_PATH = os.environ.get('KUBESTATUS_PATH', 'kubestatus')
 
 SUPPORTED_ENVOY_VERSIONS = ["V2", "V3"]
 
-def install_ambassador(namespace, single_namespace=True, envs=None):
+
+def install_ambassador(namespace, single_namespace=True, envs=None, debug=None):
     """
     Install Ambassador into a given namespace. NOTE WELL that although there
     is a 'single_namespace' parameter, this function probably needs work to do
@@ -49,20 +50,11 @@ def install_ambassador(namespace, single_namespace=True, envs=None):
     if envs is None:
         envs = []
 
-    found_single_namespace = False
-
     if single_namespace:
-        for e in envs:
-            if e['name'] == 'AMBASSADOR_SINGLE_NAMESPACE':
-                e['value'] = 'true'
-                found_single_namespace = True
-                break
+        update_envs(envs, "AMBASSADOR_SINGLE_NAMESPACE", "true")
 
-        if not found_single_namespace:
-            envs.append({
-                'name': 'AMBASSADOR_SINGLE_NAMESPACE',
-                'value': 'true'
-            })
+    if debug:
+        update_envs(envs, "AMBASSADOR_DEBUG", debug)
 
     # Create namespace to install Ambassador
     create_namespace(namespace)
@@ -120,7 +112,26 @@ imagePullSecrets:
             # add new envs, if any
             manifest['spec']['containers'][0]['env'].extend(envs)
 
+    print("INSTALLING AMBASSADOR: manifests:")
+    print(yaml.safe_dump_all(ambassador_yaml))
+
     apply_kube_artifacts(namespace=namespace, artifacts=yaml.safe_dump_all(ambassador_yaml))
+
+
+def update_envs(envs, name, value):
+    found = False
+        
+    for e in envs:
+        if e['name'] == name:
+            e['value'] = value
+            found = True
+            break
+
+    if not found:
+        envs.append({
+            'name': name,
+            'value': value
+        })
 
 
 def create_namespace(namespace):
