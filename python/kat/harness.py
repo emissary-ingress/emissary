@@ -1383,7 +1383,7 @@ class Runner:
                         if n.ambassador_id:
                             for obj in yaml:
                                 if "ambassador_id" not in obj:
-                                    obj["ambassador_id"] = n.ambassador_id
+                                    obj["ambassador_id"] = [n.ambassador_id]
 
                         configs[n].append((target, yaml))
                     except YAMLScanError as e:
