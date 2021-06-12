@@ -4264,6 +4264,94 @@
                           },
                           {
                             "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/SimpleIngressWithAnnotations-HTTP/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_plain_simpleingresswithannotatio-1"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_plain_simpleingresswithannotatio-1",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/SimpleIngressWithAnnotations-HTTP/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_plain_simpleingresswithannotatio-1"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_plain_simpleingresswithannotatio-1",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/SimpleIngressWithAnnotations-GRPC/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_plain_simpleingresswithannotatio-0"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_plain_simpleingresswithannotatio-0",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/SimpleIngressWithAnnotations-GRPC/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_plain_simpleingresswithannotatio-0"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_plain_simpleingresswithannotatio-0",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
                               "case_sensitive": false,
                               "headers": [
                                 {
@@ -5321,6 +5409,94 @@
                             ],
                             "route": {
                               "cluster": "cluster_httpbin_default_plain_namespace",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/SimpleMappingIngress-HTTP/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_plain_simplemappingingress_http_-0"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_plain_simplemappingingress_http_-0",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/SimpleMappingIngress-HTTP/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_plain_simplemappingingress_http_-0"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_plain_simplemappingingress_http_-0",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/SimpleMappingIngress-GRPC/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_plain_simplemappingingress_grpc_-0"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_plain_simplemappingingress_grpc_-0",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/SimpleMappingIngress-GRPC/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_plain_simplemappingingress_grpc_-0"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_plain_simplemappingingress_grpc_-0",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
