@@ -875,6 +875,7 @@ config:
 ---
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
+hostname: "*"
 name:  {self.name}-other-mapping
 prefix: /{self.name}/
 service: https://{self.target.path.fqdn}
