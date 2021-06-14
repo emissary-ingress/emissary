@@ -3,7 +3,7 @@
 # h2.example.com HTTP to HTTPS. So it won't actually function, but sure, you can 
 # set things tup that way.
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
   name: cleartext-listener
@@ -15,7 +15,7 @@ spec:
     namespace:
       from: SELF
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
   name: h1-host
@@ -27,7 +27,7 @@ spec:
     insecure:
       action: Route
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
   name: h2-host
@@ -39,7 +39,7 @@ spec:
     insecure:
       action: Redirect
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: qotm-mapping

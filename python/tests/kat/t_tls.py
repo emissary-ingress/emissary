@@ -218,7 +218,7 @@ data:
   tls.crt: {TLSCerts["ambassador.example.com"].k8s_crt}
   tls.key: {TLSCerts["ambassador.example.com"].k8s_key}
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 metadata:
   name: ccauthctx-tls
@@ -373,7 +373,7 @@ data:
   tls.crt: {TLSCerts["localhost"].k8s_crt}
   tls.key: {TLSCerts["localhost"].k8s_key}
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
   name: tls-host
@@ -1444,7 +1444,7 @@ class TLSInheritFromModule(AmbassadorTest):
         # These are annotations instead of resources because the name matters.
         yield self, self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: tls
 ambassador_id: {self.ambassador_id}
@@ -1457,7 +1457,7 @@ config:
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 metadata:
   name: {self.name.k8s}
@@ -1479,7 +1479,7 @@ data:
   tls.crt: '''+TLSCerts["a.domain.com"].k8s_crt+'''
   tls.key: '''+TLSCerts["a.domain.com"].k8s_key+'''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: {self.name.k8s}-target-mapping

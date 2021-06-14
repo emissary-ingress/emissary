@@ -6,7 +6,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: getambassador.io/v2
+      apiVersion: getambassador.io/v3alpha1
       kind:  AuthService
       name:  authentication
       auth_service: "example-auth:3000"

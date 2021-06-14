@@ -12,7 +12,7 @@ class ClusterTagTest(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: cluster-tag-1
@@ -22,7 +22,7 @@ spec:
   prefix: /mapping-1/
   service: {self.target_1.path.fqdn}
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: cluster-tag-2
@@ -33,7 +33,7 @@ spec:
   service: {self.target_1.path.fqdn}
   cluster_tag: tag-1
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: cluster-tag-3
@@ -44,7 +44,7 @@ spec:
   service: {self.target_1.path.fqdn}
   cluster_tag: tag-2
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: cluster-tag-4
@@ -55,7 +55,7 @@ spec:
   service: {self.target_2.path.fqdn}
   cluster_tag: tag-2
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: cluster-tag-5
@@ -66,7 +66,7 @@ spec:
   service: {self.target_1.path.fqdn}
   cluster_tag: some-really-long-tag-that-is-really-long
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: cluster-tag-6

@@ -161,7 +161,7 @@ class ErrorResponseOnStatusCodeMappingCRD(AmbassadorTest):
     def manifests(self) -> str:
         return super().manifests() + f'''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name:  {self.target.path.k8s}-crd
@@ -197,7 +197,7 @@ spec:
       text_format: 'took too long, sorry'
       content_type: 'apology'
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: {self.target.path.k8s}-invalidservice-crd
@@ -207,7 +207,7 @@ spec:
   prefix: /target/invalidservice
   service: {self.target.path.fqdn}-invalidservice
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: {self.target.path.k8s}-invalidservice-override-crd
@@ -956,7 +956,7 @@ class ErrorResponseSeveralMappings(AmbassadorTest):
     def manifests(self) -> str:
         return super().manifests() + f'''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name:  {self.target.path.k8s}-one
@@ -973,7 +973,7 @@ spec:
     body:
       text_format: 'a custom 504 response'
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: {self.target.path.k8s}-two
@@ -990,7 +990,7 @@ spec:
     body:
       text_format: 'a custom 429 response'
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: {self.target.path.k8s}-three
@@ -1000,7 +1000,7 @@ spec:
   prefix: /target-three/
   service: {self.target.path.fqdn}
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: {self.target.path.k8s}-four

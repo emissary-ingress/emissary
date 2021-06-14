@@ -73,6 +73,13 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ## [2.0.0-ea] (TBD)
 [2.0.0-ea]: https://github.com/emissary-ingress/emissary/compare/v1.13.8...v2.0.0-ea
 
+### Caution!
+
+All of Ambassador's CRDs have been switched to `apiVersion: getambassador.io/v3alpha1`, and
+**your resources will be upgraded when you apply the new CRDs**. We recommend that you
+follow the [migration instructions](https://getambassador.io/early-access/user-guide/upgrade-to-edge-stack/) and check your installation's
+behavior before upgrading your CRDs.
+
 ### Emissary Ingress
 
 - Feature: The `Listener` CRD allows explicit definition of ports to listen on, the protocols and security model for each port, and which `Host`s should be associated with which `Listener`.

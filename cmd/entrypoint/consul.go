@@ -7,7 +7,7 @@ import (
 
 	consulapi "github.com/hashicorp/consul/api"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/ambassador/v2/pkg/watt"

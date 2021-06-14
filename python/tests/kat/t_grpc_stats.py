@@ -9,7 +9,7 @@ class AcceptanceGrpcStatsTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 config:
@@ -20,7 +20,7 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
 grpc: True
 host: "*"
@@ -31,7 +31,7 @@ service: {self.target.path.k8s}
 """)
 
         yield self, self.format("""
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
 name:  metrics
 host: "*"
@@ -104,7 +104,7 @@ class GrpcStatsTestOnlySelectedServices(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 config:
@@ -118,7 +118,7 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
 grpc: True
 host: "*"
@@ -129,7 +129,7 @@ service: {self.target.path.k8s}
 """)
 
         yield self, self.format("""
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
 name:  metrics
 host: "*"
@@ -197,7 +197,7 @@ class GrpcStatsTestNoUpstreamAllMethodsFalseInvalidKeys(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 config:
@@ -209,7 +209,7 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
 grpc: True
 host: "*"
@@ -220,7 +220,7 @@ service: {self.target.path.k8s}
 """)
 
         yield self, self.format("""
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
 name:  metrics
 host: "*"

@@ -31,7 +31,7 @@ class AmbassadorProcessor (ManagedKubernetesProcessor):
         ]
 
         return frozenset([
-            KubernetesGVK.for_ambassador(kind, version=version) for (kind, version) in itertools.product(kinds, ['v1', 'v2'])
+            KubernetesGVK.for_ambassador(kind, version=version) for (kind, version) in itertools.product(kinds, ['v1', 'v2', 'v3alpha1'])
         ])
 
     def _process(self, obj: KubernetesObject) -> None:

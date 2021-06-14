@@ -141,7 +141,7 @@ def create_namespace(namespace):
 def create_qotm_mapping(namespace):
     qotm_mapping = f"""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name:  qotm-mapping
@@ -157,7 +157,7 @@ spec:
 def create_httpbin_mapping(namespace):
     httpbin_mapping = f"""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name:  httpbin-mapping
@@ -191,7 +191,7 @@ def get_code_with_retry(req, headers={}):
 def zipkin_tracing_service_manifest():
     return """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 metadata:
   name: tracing
@@ -205,7 +205,7 @@ spec:
 def module_and_mapping_manifests(module_confs, mapping_confs):
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   name: ambassador
@@ -222,7 +222,7 @@ spec:
 
     yaml = yaml + """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: ambassador

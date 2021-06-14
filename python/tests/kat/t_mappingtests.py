@@ -1051,7 +1051,7 @@ class SameMappingDifferentNamespaces(AmbassadorTest):
             namespace_manifest('same-mapping-2') + \
             self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: {self.target.path.k8s}
@@ -1062,7 +1062,7 @@ spec:
   prefix: /{self.name}-1/
   service: {self.target.path.fqdn}.default
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: {self.target.path.k8s}
@@ -1096,7 +1096,7 @@ spec:
   type: ExternalName
   externalName: httpbin.default.svc.cluster.local
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: {self.target.path.k8s}

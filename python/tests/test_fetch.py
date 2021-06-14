@@ -90,7 +90,7 @@ spec:
 
 valid_mapping = k8s_object_from_yaml('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: test
@@ -129,7 +129,7 @@ class TestKubernetesGVK:
     def test_group(self):
         gvk = KubernetesGVK.for_ambassador('Mapping')
 
-        assert gvk.api_version == 'getambassador.io/v2'
+        assert gvk.api_version == 'getambassador.io/v3alpha1'
         assert gvk.kind == 'Mapping'
         assert gvk.api_group == 'getambassador.io'
         assert gvk.version == 'v2'

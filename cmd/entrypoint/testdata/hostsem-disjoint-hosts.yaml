@@ -3,7 +3,7 @@
 # h2.example.com HTTP to HTTPS. So it won't actually function, but sure, you can 
 # set things tup that way.
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
   name: listener-8888
@@ -16,7 +16,7 @@ spec:
       matchLabels:
         listener-8888: yes
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
   name: listener-9999
@@ -29,7 +29,7 @@ spec:
       matchLabels:
         listener-9999: yes
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
   name: h1-host
@@ -47,7 +47,7 @@ spec:
     matchLabels:
       h1-host: yes
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
   name: h2-host
@@ -64,7 +64,7 @@ spec:
     matchLabels:
       h2-host: yes
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
   name: h3-host
@@ -79,7 +79,7 @@ spec:
     matchLabels:
       h3-host: yes
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: qotm-mapping
@@ -91,7 +91,7 @@ spec:
   prefix: /quote/
   service: quote.ambassador
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: mapping-to-ignore

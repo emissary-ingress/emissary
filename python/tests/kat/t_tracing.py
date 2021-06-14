@@ -312,7 +312,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing-64
 service: zipkin-64:9411
@@ -507,7 +507,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing-65
 service: zipkin-65:9411

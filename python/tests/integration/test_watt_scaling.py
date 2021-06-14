@@ -18,7 +18,7 @@ class WattTesting:
 
     def apply_qotm_endpoint_manifests(self, namespace):
         qotm_resolver = f"""
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: KubernetesEndpointResolver
 metadata:
   name: qotm-resolver
@@ -31,7 +31,7 @@ metadata:
     def create_qotm_mapping(self, namespace):
         qotm_mapping = f"""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name:  qotm-mapping
@@ -50,7 +50,7 @@ spec:
     def delete_qotm_mapping(self, namespace):
         qotm_mapping = f"""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name:  qotm-mapping

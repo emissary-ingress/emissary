@@ -94,7 +94,7 @@ class InvalidResources(AmbassadorTest):
         self.resource_names = []
 
         self.models = [ """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  AuthService
 metadata:
   name:  {self.path.k8s}-as-bad1-<<WHICH>>
@@ -102,7 +102,7 @@ spec:
   ambassador_id: ["{self.ambassador_id}"]
   service_bad: {self.target.path.fqdn}
 ""","""
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
 metadata:
   name:  {self.path.k8s}-m-good-<<WHICH>>
@@ -112,7 +112,7 @@ spec:
   prefix: /good-<<WHICH>>/
   service: {self.target.path.fqdn}
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
 metadata:
   name:  {self.path.k8s}-m-bad-<<WHICH>>
@@ -122,7 +122,7 @@ spec:
   prefix_bad: /bad-<<WHICH>>/
   service: {self.target.path.fqdn}
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 metadata:
   name:  {self.path.k8s}-md-bad-<<WHICH>>
@@ -130,7 +130,7 @@ spec:
   ambassador_id: ["{self.ambassador_id}"]
   config_bad: []
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  RateLimitService
 metadata:
   name:  {self.path.k8s}-r-bad-<<WHICH>>
@@ -138,7 +138,7 @@ spec:
   ambassador_id: ["{self.ambassador_id}"]
   service_bad: {self.target.path.fqdn}
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  TCPMapping
 metadata:
   name:  {self.path.k8s}-tm-bad1-<<WHICH>>
@@ -147,7 +147,7 @@ spec:
   service: {self.target.path.fqdn}
   port_bad: 8888
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  TCPMapping
 metadata:
   name:  {self.path.k8s}-tm-bad2-<<WHICH>>
@@ -156,7 +156,7 @@ spec:
   service_bad: {self.target.path.fqdn}
   port: 8888
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  TracingService
 metadata:
   name:  {self.path.k8s}-ts-bad1-<<WHICH>>
@@ -165,7 +165,7 @@ spec:
   driver_bad: zipkin
   service: {self.target.path.fqdn}
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  TracingService
 metadata:
   name:  {self.path.k8s}-ts-bad2-<<WHICH>>

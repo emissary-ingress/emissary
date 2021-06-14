@@ -33,7 +33,7 @@
         "ConsulResolver": null,
         "Host": [
             {
-                "apiVersion": "getambassador.io/v2",
+                "apiVersion": "getambassador.io/v3alpha1",
                 "kind": "Host",
                 "metadata": {
                     "creationTimestamp": "2019-10-30T20:42:29Z",
@@ -44,7 +44,7 @@
                     "name": "cluster-2elukeshu-2ecom",
                     "namespace": "default",
                     "resourceVersion": "76857",
-                    "selfLink": "/apis/getambassador.io/v2/namespaces/default/hosts/cluster-2elukeshu-2ecom",
+                    "selfLink": "/apis/getambassador.io/v3alpha1/namespaces/default/hosts/cluster-2elukeshu-2ecom",
                     "uid": "c9f50e8a-fb55-11e9-a908-42010a9600a7"
                 },
                 "spec": {

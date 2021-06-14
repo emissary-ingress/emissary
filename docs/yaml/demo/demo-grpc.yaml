@@ -8,7 +8,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: getambassador.io/v2
+      apiVersion: getambassador.io/v3alpha1
       kind: Mapping
       name: grpc_mapping
       grpc: true

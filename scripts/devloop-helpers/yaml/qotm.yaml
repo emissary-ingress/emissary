@@ -30,11 +30,11 @@ metadata:
       Address: consul:8500
       datacenter: dc1
       ---
-      apiVersion: getambassador.io/v2
+      apiVersion: getambassador.io/v3alpha1
       kind: KubernetesServiceResolver
       name: kubernetes-service
       ---
-      apiVersion: getambassador.io/v2
+      apiVersion: getambassador.io/v3alpha1
       kind: KubernetesEndpointResolver
       name: endpoint
 spec:

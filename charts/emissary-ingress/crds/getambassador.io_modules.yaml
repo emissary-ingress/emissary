@@ -44,11 +44,13 @@ spec:
               type: object
           type: object
       type: object
-  version: null
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true
+  - name: v2
+    served: true
+    storage: false
   - name: v1
     served: true
     storage: false

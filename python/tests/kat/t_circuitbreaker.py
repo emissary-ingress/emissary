@@ -69,7 +69,7 @@ class CircuitBreakingTest(AmbassadorTest):
 
         return """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
   name: cleartext-host
@@ -206,7 +206,7 @@ class GlobalCircuitBreakingTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 name: cleartext-host
 port: 8080

@@ -86,7 +86,7 @@ metadata:
   name: consul-test-namespace
 """) + super().manifests() + consul_manifest + self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: ConsulResolver
 metadata:
   name: {self.path.k8s}-resolver
@@ -95,7 +95,7 @@ spec:
   address: {self.path.k8s}-consul:$CONSUL_WATCHER_PORT
   datacenter: {self.datacenter}
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
 metadata:
   name:  {self.path.k8s}-consul-ns-mapping

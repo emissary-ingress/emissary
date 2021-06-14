@@ -65,7 +65,7 @@ spec:
 def create_headerecho_mapping(namespace):
     headerecho_mapping = f"""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name:  headerecho-mapping
@@ -82,7 +82,7 @@ spec:
 def _ambassador_module_config():
     return '''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 config:
@@ -116,7 +116,7 @@ def _test_headercaseoverrides(yaml, expectations, expect_norules=False, version=
 
     yaml = yaml + '''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name: httpbin-mapping
 service: httpbin
@@ -277,7 +277,7 @@ class HeaderCaseOverridesTesting:
     def create_module(self, namespace):
         manifest = f"""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   name: ambassador

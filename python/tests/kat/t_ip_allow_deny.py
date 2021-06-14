@@ -44,7 +44,7 @@ class IPAllow(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: {self.path.k8s}-target-mapping
@@ -54,7 +54,7 @@ spec:
   prefix: /target/
   service: {self.target.path.fqdn}
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: {self.path.k8s}-localhost-mapping
@@ -69,7 +69,7 @@ spec:
     def config(self):
         yield self, self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 ambassador_id: {self.ambassador_id}
@@ -113,7 +113,7 @@ class IPDeny(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: {self.path.k8s}-target-mapping
@@ -123,7 +123,7 @@ spec:
   prefix: /target/
   service: {self.target.path.fqdn}
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: {self.path.k8s}-localhost-mapping
@@ -138,7 +138,7 @@ spec:
     def config(self):
         yield self, self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 ambassador_id: {self.ambassador_id}

@@ -54,7 +54,7 @@ data:
   tls.crt: {TLSCerts["tls-context-host-2"].k8s_crt}
   tls.key: {TLSCerts["tls-context-host-2"].k8s_key}
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
   name: {self.path.k8s}-listener
@@ -73,7 +73,7 @@ spec:
 # of using three. For this test, though, we need three because we aren't
 # using real domain names, and you can't do wildcards like tls-context-*
 # (because the '*' has to be a domain part on its own).
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
   name: {self.path.k8s}-host
@@ -90,7 +90,7 @@ spec:
     insecure:
       action: Reject
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
   name: {self.path.k8s}-host-2
@@ -107,7 +107,7 @@ spec:
     insecure:
       action: Reject
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
   name: {self.path.k8s}-host-3

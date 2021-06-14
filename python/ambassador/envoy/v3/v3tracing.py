@@ -62,7 +62,7 @@ class V3Tracing(dict):
             driver_config['@type'] = 'type.googleapis.com/envoy.config.trace.v3.LightstepConfig'
         else:
             # This should be impossible, because we ought to have validated the input driver
-            # in ambassador/pkg/api/getambassador.io/v2/tracingservice_types.go:47
+            # in ambassador/pkg/api/getambassador.io/v3alpha1/tracingservice_types.go:47
             raise Exception("Unsupported tracing driver \"%s\"" % name.lower())
 
         self['http'] = {

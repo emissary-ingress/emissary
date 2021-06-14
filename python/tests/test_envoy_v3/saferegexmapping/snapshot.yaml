@@ -6,11 +6,11 @@
         "DevPortal": null,
         "Host": [
             {
-                "apiVersion": "getambassador.io/v2",
+                "apiVersion": "getambassador.io/v3alpha1alpha1",
                 "kind": "Host",
                 "metadata": {
                     "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Host\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"saferegexmapping\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-host-saferegexmapping\",\"namespace\":\"default\"},\"spec\":{\"acmeProvider\":{\"authority\":\"none\"},\"ambassador_id\":[\"saferegexmapping\"],\"hostname\":\"*\",\"requestPolicy\":{\"insecure\":{\"action\":\"Route\"}},\"selector\":{\"matchLabels\":{\"hostname\":\"saferegexmapping\"}}}}\n"
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v3alpha1\",\"kind\":\"Host\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"saferegexmapping\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-host-saferegexmapping\",\"namespace\":\"default\"},\"spec\":{\"acmeProvider\":{\"authority\":\"none\"},\"ambassador_id\":[\"saferegexmapping\"],\"hostname\":\"*\",\"requestPolicy\":{\"insecure\":{\"action\":\"Route\"}},\"selector\":{\"matchLabels\":{\"hostname\":\"saferegexmapping\"}}}}\n"
                     },
                     "creationTimestamp": "2020-12-23T16:59:04Z",
                     "generation": 2,
@@ -21,7 +21,7 @@
                     "name": "cleartext-host-saferegexmapping",
                     "namespace": "default",
                     "resourceVersion": "6900",
-                    "selfLink": "/apis/getambassador.io/v2/namespaces/default/hosts/cleartext-host-saferegexmapping",
+                    "selfLink": "/apis/getambassador.io/v3alpha1alpha1/namespaces/default/hosts/cleartext-host-saferegexmapping",
                     "uid": "8f763157-4b74-4912-9647-d33f1c7f6435"
                 },
                 "spec": {
@@ -59,11 +59,11 @@
         "TCPMapping": null,
         "TLSContext": [
             {
-                "apiVersion": "getambassador.io/v2",
+                "apiVersion": "getambassador.io/v3alpha1alpha1",
                 "kind": "TLSContext",
                 "metadata": {
                     "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"TLSContext\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdmanualcontext\",\"scope\":\"AmbassadorTest\"},\"name\":\"hostcrdmanualcontext-manual-host-context\",\"namespace\":\"default\"},\"spec\":{\"ambassador_id\":[\"hostcrdmanualcontext\"],\"hosts\":[\"hostcrdmanualcontext\"],\"max_tls_version\":\"v1.3\",\"min_tls_version\":\"v1.2\",\"secret\":\"hostcrdmanualcontext-manual-secret\"}}\n"
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v3alpha1\",\"kind\":\"TLSContext\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdmanualcontext\",\"scope\":\"AmbassadorTest\"},\"name\":\"hostcrdmanualcontext-manual-host-context\",\"namespace\":\"default\"},\"spec\":{\"ambassador_id\":[\"hostcrdmanualcontext\"],\"hosts\":[\"hostcrdmanualcontext\"],\"max_tls_version\":\"v1.3\",\"min_tls_version\":\"v1.2\",\"secret\":\"hostcrdmanualcontext-manual-secret\"}}\n"
                     },
                     "creationTimestamp": "2020-12-23T16:59:40Z",
                     "generation": 1,
@@ -74,7 +74,7 @@
                     "name": "hostcrdmanualcontext-manual-host-context",
                     "namespace": "default",
                     "resourceVersion": "2949",
-                    "selfLink": "/apis/getambassador.io/v2/namespaces/default/tlscontexts/hostcrdmanualcontext-manual-host-context",
+                    "selfLink": "/apis/getambassador.io/v3alpha1alpha1/namespaces/default/tlscontexts/hostcrdmanualcontext-manual-host-context",
                     "uid": "fa19bc5d-236f-46f9-b1f1-0c10c8b2ed3f"
                 },
                 "spec": {
@@ -90,11 +90,11 @@
                 }
             },
             {
-                "apiVersion": "getambassador.io/v2",
+                "apiVersion": "getambassador.io/v3alpha1alpha1",
                 "kind": "TLSContext",
                 "metadata": {
                     "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"TLSContext\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdseparatetlscontext\",\"scope\":\"AmbassadorTest\"},\"name\":\"hostcrdseparatetlscontext-separate-tls-context\",\"namespace\":\"default\"},\"spec\":{\"ambassador_id\":[\"hostcrdseparatetlscontext\"],\"max_tls_version\":\"v1.3\",\"min_tls_version\":\"v1.2\",\"secret\":\"hostcrdseparatetlscontext-secret\"}}\n"
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v3alpha1\",\"kind\":\"TLSContext\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcrdseparatetlscontext\",\"scope\":\"AmbassadorTest\"},\"name\":\"hostcrdseparatetlscontext-separate-tls-context\",\"namespace\":\"default\"},\"spec\":{\"ambassador_id\":[\"hostcrdseparatetlscontext\"],\"max_tls_version\":\"v1.3\",\"min_tls_version\":\"v1.2\",\"secret\":\"hostcrdseparatetlscontext-secret\"}}\n"
                     },
                     "creationTimestamp": "2020-12-23T16:59:41Z",
                     "generation": 1,
@@ -105,7 +105,7 @@
                     "name": "hostcrdseparatetlscontext-separate-tls-context",
                     "namespace": "default",
                     "resourceVersion": "2995",
-                    "selfLink": "/apis/getambassador.io/v2/namespaces/default/tlscontexts/hostcrdseparatetlscontext-separate-tls-context",
+                    "selfLink": "/apis/getambassador.io/v3alpha1alpha1/namespaces/default/tlscontexts/hostcrdseparatetlscontext-separate-tls-context",
                     "uid": "e10bdb3b-8605-4f27-8943-5767c5e99f8b"
                 },
                 "spec": {
@@ -118,11 +118,11 @@
                 }
             },
             {
-                "apiVersion": "getambassador.io/v2",
+                "apiVersion": "getambassador.io/v3alpha1alpha1",
                 "kind": "TLSContext",
                 "metadata": {
                     "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"TLSContext\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tlsinheritfrommodule\",\"scope\":\"AmbassadorTest\"},\"name\":\"tlsinheritfrommodule\",\"namespace\":\"default\"},\"spec\":{\"alpn_protocols\":\"h2,http/1.1\",\"ambassador_id\":[\"tlsinheritfrommodule\"],\"hosts\":[\"a.domain.com\"],\"secret\":\"tlsinheritfrommodule\"}}\n"
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v3alpha1\",\"kind\":\"TLSContext\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tlsinheritfrommodule\",\"scope\":\"AmbassadorTest\"},\"name\":\"tlsinheritfrommodule\",\"namespace\":\"default\"},\"spec\":{\"alpn_protocols\":\"h2,http/1.1\",\"ambassador_id\":[\"tlsinheritfrommodule\"],\"hosts\":[\"a.domain.com\"],\"secret\":\"tlsinheritfrommodule\"}}\n"
                     },
                     "creationTimestamp": "2020-12-23T17:01:08Z",
                     "generation": 1,
@@ -133,7 +133,7 @@
                     "name": "tlsinheritfrommodule",
                     "namespace": "default",
                     "resourceVersion": "6438",
-                    "selfLink": "/apis/getambassador.io/v2/namespaces/default/tlscontexts/tlsinheritfrommodule",
+                    "selfLink": "/apis/getambassador.io/v3alpha1alpha1/namespaces/default/tlscontexts/tlsinheritfrommodule",
                     "uid": "d4f4da8f-82b8-4c31-b484-3effd73b669f"
                 },
                 "spec": {

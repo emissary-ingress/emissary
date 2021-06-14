@@ -6,11 +6,11 @@
         "DevPortal": null,
         "Host": [
             {
-                "apiVersion": "getambassador.io/v2",
+                "apiVersion": "getambassador.io/v3alpha1alpha1",
                 "kind": "Host",
                 "metadata": {
                     "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Host\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tcpmappingtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-host-tcpmappingtest\",\"namespace\":\"tcp-namespace\"},\"spec\":{\"acmeProvider\":{\"authority\":\"none\"},\"ambassador_id\":[\"tcpmappingtest\"],\"hostname\":\"*\",\"requestPolicy\":{\"insecure\":{\"action\":\"Route\"}},\"selector\":{\"matchLabels\":{\"hostname\":\"tcpmappingtest\"}}}}\n"
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v3alpha1\",\"kind\":\"Host\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tcpmappingtest\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-host-tcpmappingtest\",\"namespace\":\"tcp-namespace\"},\"spec\":{\"acmeProvider\":{\"authority\":\"none\"},\"ambassador_id\":[\"tcpmappingtest\"],\"hostname\":\"*\",\"requestPolicy\":{\"insecure\":{\"action\":\"Route\"}},\"selector\":{\"matchLabels\":{\"hostname\":\"tcpmappingtest\"}}}}\n"
                     },
                     "creationTimestamp": "2020-12-23T20:40:07Z",
                     "generation": 2,
@@ -21,7 +21,7 @@
                     "name": "cleartext-host-tcpmappingtest",
                     "namespace": "tcp-namespace",
                     "resourceVersion": "307159",
-                    "selfLink": "/apis/getambassador.io/v2/namespaces/tcp-namespace/hosts/cleartext-host-tcpmappingtest",
+                    "selfLink": "/apis/getambassador.io/v3alpha1alpha1/namespaces/tcp-namespace/hosts/cleartext-host-tcpmappingtest",
                     "uid": "cb3f84d7-0718-479f-a172-57831ff32681"
                 },
                 "spec": {

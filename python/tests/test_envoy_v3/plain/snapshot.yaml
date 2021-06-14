@@ -6,11 +6,11 @@
         "DevPortal": null,
         "Host": [
             {
-                "apiVersion": "getambassador.io/v2",
+                "apiVersion": "getambassador.io/v3alpha1alpha1",
                 "kind": "Host",
                 "metadata": {
                     "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Host\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"plain\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-host-plain\",\"namespace\":\"plain-namespace\"},\"spec\":{\"acmeProvider\":{\"authority\":\"none\"},\"ambassador_id\":[\"plain\"],\"hostname\":\"*\",\"requestPolicy\":{\"insecure\":{\"action\":\"Route\"}},\"selector\":{\"matchLabels\":{\"hostname\":\"plain\"}}}}\n"
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v3alpha1\",\"kind\":\"Host\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"plain\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-host-plain\",\"namespace\":\"plain-namespace\"},\"spec\":{\"acmeProvider\":{\"authority\":\"none\"},\"ambassador_id\":[\"plain\"],\"hostname\":\"*\",\"requestPolicy\":{\"insecure\":{\"action\":\"Route\"}},\"selector\":{\"matchLabels\":{\"hostname\":\"plain\"}}}}\n"
                     },
                     "creationTimestamp": "2020-12-23T18:38:53Z",
                     "generation": 2,
@@ -21,7 +21,7 @@
                     "name": "cleartext-host-plain",
                     "namespace": "plain-namespace",
                     "resourceVersion": "231084",
-                    "selfLink": "/apis/getambassador.io/v2/namespaces/plain-namespace/hosts/cleartext-host-plain",
+                    "selfLink": "/apis/getambassador.io/v3alpha1alpha1/namespaces/plain-namespace/hosts/cleartext-host-plain",
                     "uid": "73abf79a-f7cd-4b81-83cb-0183f7902afb"
                 },
                 "spec": {
@@ -4367,8 +4367,8 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "getambassador.io/config": "---\napiVersion: getambassador.io/v2\nkind: Host\nname: cleartext-host-plain\nambassador_id: [ \"plain\" ]\nhostname: \"*\"\nselector:\n  matchLabels:\n    hostname: plain\nacmeProvider:\n  authority: none\nrequestPolicy:\n  insecure:\n    action: Route\n    # Since this is cleartext already, additionalPort: 8080 is technically\n    # an error. Leave it in to make sure it's a harmless no-op error.\n    additionalPort: 8080\n",
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: getambassador.io/v2\\nkind: Host\\nname: cleartext-host-plain\\nambassador_id: [ \\\"plain\\\" ]\\nhostname: \\\"*\\\"\\nselector:\\n  matchLabels:\\n    hostname: plain\\nacmeProvider:\\n  authority: none\\nrequestPolicy:\\n  insecure:\\n    action: Route\\n    # Since this is cleartext already, additionalPort: 8080 is technically\\n    # an error. Leave it in to make sure it's a harmless no-op error.\\n    additionalPort: 8080\\n\"},\"labels\":{\"kat-ambassador-id\":\"plain\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-host-plain\",\"namespace\":\"plain-namespace\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"backend\":\"plain-simplemapping-http-all-http\"}}}\n"
+                        "getambassador.io/config": "---\napiVersion: getambassador.io/v3alpha1alpha1\nkind: Host\nname: cleartext-host-plain\nambassador_id: [ \"plain\" ]\nhostname: \"*\"\nselector:\n  matchLabels:\n    hostname: plain\nacmeProvider:\n  authority: none\nrequestPolicy:\n  insecure:\n    action: Route\n    # Since this is cleartext already, additionalPort: 8080 is technically\n    # an error. Leave it in to make sure it's a harmless no-op error.\n    additionalPort: 8080\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: getambassador.io/v3alpha1alpha1\\nkind: Host\\nname: cleartext-host-plain\\nambassador_id: [ \\\"plain\\\" ]\\nhostname: \\\"*\\\"\\nselector:\\n  matchLabels:\\n    hostname: plain\\nacmeProvider:\\n  authority: none\\nrequestPolicy:\\n  insecure:\\n    action: Route\\n    # Since this is cleartext already, additionalPort: 8080 is technically\\n    # an error. Leave it in to make sure it's a harmless no-op error.\\n    additionalPort: 8080\\n\"},\"labels\":{\"kat-ambassador-id\":\"plain\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-host-plain\",\"namespace\":\"plain-namespace\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"backend\":\"plain-simplemapping-http-all-http\"}}}\n"
                     },
                     "creationTimestamp": "2020-12-23T18:38:52Z",
                     "labels": {

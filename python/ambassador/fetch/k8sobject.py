@@ -38,7 +38,7 @@ class KubernetesGVK:
             return self.kind.lower()
 
     @classmethod
-    def for_ambassador(cls, kind: str, version: str = 'v2') -> KubernetesGVK:
+    def for_ambassador(cls, kind: str, version: str = 'v3alpha1') -> KubernetesGVK:
         return cls(f'getambassador.io/{version}', kind)
 
     @classmethod

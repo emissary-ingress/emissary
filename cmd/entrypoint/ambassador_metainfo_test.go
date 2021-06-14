@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
-	v2 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	v2 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/stretchr/testify/assert"

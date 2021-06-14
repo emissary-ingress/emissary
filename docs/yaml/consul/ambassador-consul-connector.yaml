@@ -28,7 +28,7 @@ subjects:
     name: ambassador-consul-connect
     namespace: ambassador
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 metadata:
   name: ambassador-consul

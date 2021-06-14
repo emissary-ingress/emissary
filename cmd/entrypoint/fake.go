@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/v2/cmd/ambex"
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"

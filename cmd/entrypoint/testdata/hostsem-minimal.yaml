@@ -1,5 +1,5 @@
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
   name: test-host
@@ -9,7 +9,7 @@ spec:
       host: minimal
     
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   name: test-mapping

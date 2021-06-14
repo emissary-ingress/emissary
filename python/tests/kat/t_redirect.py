@@ -230,7 +230,7 @@ class XFPRedirect(AmbassadorTest):
     def manifests(self):
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
   name: ambassador-listener-8080
@@ -244,7 +244,7 @@ spec:
     namespace:
       from: ALL
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Host
 metadata:
   name: weird-xfp-test-host

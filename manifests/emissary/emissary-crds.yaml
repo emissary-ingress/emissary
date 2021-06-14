@@ -102,11 +102,13 @@ spec:
           - auth_service
           type: object
       type: object
-  version: null
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true
+  - name: v2
+    served: true
+    storage: false
   - name: v1
     served: true
     storage: false
@@ -156,11 +158,13 @@ spec:
               type: string
           type: object
       type: object
-  version: null
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true
+  - name: v2
+    served: true
+    storage: false
   - name: v1
     served: true
     storage: false
@@ -264,11 +268,13 @@ spec:
               type: object
           type: object
       type: object
-  version: null
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true
+  - name: v2
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -504,11 +510,13 @@ spec:
               type: string
           type: object
       type: object
-  version: null
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true
+  - name: v2
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -551,11 +559,13 @@ spec:
               type: array
           type: object
       type: object
-  version: null
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true
+  - name: v2
+    served: true
+    storage: false
   - name: v1
     served: true
     storage: false
@@ -601,11 +611,13 @@ spec:
               type: array
           type: object
       type: object
-  version: null
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true
+  - name: v2
+    served: true
+    storage: false
   - name: v1
     served: true
     storage: false
@@ -753,11 +765,13 @@ spec:
               type: string
           type: object
       type: object
-  version: null
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true
+  - name: v2
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -829,11 +843,13 @@ spec:
               type: string
           type: object
       type: object
-  version: null
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true
+  - name: v2
+    served: true
+    storage: false
   - name: v1
     served: true
     storage: false
@@ -1238,11 +1254,13 @@ spec:
               type: string
           type: object
       type: object
-  version: null
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true
+  - name: v2
+    served: true
+    storage: false
   - name: v1
     served: true
     storage: false
@@ -1290,11 +1308,13 @@ spec:
               type: object
           type: object
       type: object
-  version: null
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true
+  - name: v2
+    served: true
+    storage: false
   - name: v1
     served: true
     storage: false
@@ -1358,11 +1378,13 @@ spec:
           - service
           type: object
       type: object
-  version: null
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true
+  - name: v2
+    served: true
+    storage: false
   - name: v1
     served: true
     storage: false
@@ -1456,11 +1478,13 @@ spec:
           - service
           type: object
       type: object
-  version: null
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true
+  - name: v2
+    served: true
+    storage: false
   - name: v1
     served: true
     storage: false
@@ -1552,11 +1576,13 @@ spec:
               type: string
           type: object
       type: object
-  version: null
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true
+  - name: v2
+    served: true
+    storage: false
   - name: v1
     served: true
     storage: false
@@ -1649,11 +1675,13 @@ spec:
           - service
           type: object
       type: object
-  version: null
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true
+  - name: v2
+    served: true
+    storage: false
   - name: v1
     served: true
     storage: false

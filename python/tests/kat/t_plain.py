@@ -36,7 +36,7 @@ metadata:
       service: http://plain-simplemapping-http-all-http.plain
       ambassador_id: plain      
       ---
-      apiVersion: getambassador.io/v2
+      apiVersion: getambassador.io/v3alpha1
       kind: Host
       name: cleartext-host-{self.path.k8s}
       ambassador_id: [ "plain" ]
@@ -77,7 +77,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: getambassador.io/v2
+      apiVersion: getambassador.io/v3alpha1
       kind: Host
       name: cleartext-host-{self.path.k8s}
       ambassador_id: [ "plain" ]

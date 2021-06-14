@@ -1,5 +1,5 @@
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   namespace: default
@@ -9,7 +9,7 @@ spec:
   service: foo-0.example.com
 
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   namespace: default
@@ -19,7 +19,7 @@ spec:
   service: foo-1.example.com
 
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   namespace: default
@@ -29,7 +29,7 @@ spec:
   service: httpbin.org
 
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   namespace: default
@@ -39,7 +39,7 @@ spec:
   service: foo-3.example.com
 
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   namespace: default
@@ -49,7 +49,7 @@ spec:
   service: foo-4.example.com
 
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   namespace: default
@@ -59,7 +59,7 @@ spec:
   service: foo-5.example.com
 
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   namespace: default
@@ -69,7 +69,7 @@ spec:
   service: foo-6.example.com
 
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   namespace: default
@@ -79,7 +79,7 @@ spec:
   service: foo-7.example.com
 
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   namespace: default
@@ -89,7 +89,7 @@ spec:
   service: foo-8.example.com
 
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 metadata:
   namespace: default

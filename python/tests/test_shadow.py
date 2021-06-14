@@ -140,14 +140,14 @@ def test_shadow_v3():
 
     yaml = '''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name: httpbin-mapping
 service: httpbin
 host: "*"
 prefix: /httpbin/
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name: httpbin-mapping-shadow
 service: httpbin-shadow
@@ -189,14 +189,14 @@ def test_shadow_v2():
 
     yaml = '''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name: httpbin-mapping
 service: httpbin
 host: "*"
 prefix: /httpbin/
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name: httpbin-mapping-shadow
 service: httpbin-shadow

@@ -18,7 +18,7 @@ kind: Namespace
 metadata:
   name: no-ui-namespace
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   name: ambassador

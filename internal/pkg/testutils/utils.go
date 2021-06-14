@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
+	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/pkg/kates"
 )
 
