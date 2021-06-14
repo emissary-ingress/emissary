@@ -23,6 +23,7 @@ config:
 apiVersion: getambassador.io/v2
 kind:  Mapping
 grpc: True
+host: "*"
 prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
@@ -33,6 +34,7 @@ service: {self.target.path.k8s}
 apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  metrics
+host: "*"
 prefix: /metrics
 rewrite: /metrics
 service: http://127.0.0.1:8877
@@ -119,6 +121,7 @@ config:
 apiVersion: getambassador.io/v2
 kind:  Mapping
 grpc: True
+host: "*"
 prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
@@ -129,6 +132,7 @@ service: {self.target.path.k8s}
 apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  metrics
+host: "*"
 prefix: /metrics
 rewrite: /metrics
 service: http://127.0.0.1:8877
@@ -208,6 +212,7 @@ config:
 apiVersion: getambassador.io/v2
 kind:  Mapping
 grpc: True
+host: "*"
 prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
@@ -218,6 +223,7 @@ service: {self.target.path.k8s}
 apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  metrics
+host: "*"
 prefix: /metrics
 rewrite: /metrics
 service: http://127.0.0.1:8877

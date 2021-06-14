@@ -95,7 +95,7 @@ class V3Chain(dict):
 
     def matching_hosts(self, route: V3Route) -> List[IRHost]:
         # Get a list of _IRHosts_ that the given route should be matched with.
-        rv: List[IRHost] = [ host for host in self.hosts.values() if route.matches_domains([ host.hostname ])]
+        rv: List[IRHost] = [ host for host in self.hosts.values() if host.matches_httpgroup(route._group) ]
 
         return rv
 
@@ -135,6 +135,7 @@ class V3Listener(dict):
         self.use_proxy_proto = False
         self.listener_filters: List[dict] = []
         self.traffic_direction: str = "UNSPECIFIED"
+        self._irlistener = irlistener   # We cache the IRListener to use its match method later
         self._security_model: str = irlistener.securityModel
         self._l7_depth: int = irlistener.get('l7Depth', 0)
         self._insecure_only: bool = False
@@ -193,33 +194,40 @@ class V3Listener(dict):
                     self.add_tcp_group(irgroup)
 
     def add_chain(self, chain_type: str, host: Optional[IRHost]) -> V3Chain:
-        # Add a chain for a specific Host to this listener, while dealing with the
-        # fundamental asymmetry that filter_chain_match can - and should - use SNI whenever the
-        # chain has TLS available, but that's simply not available for chains without TLS. 
+        # Add a chain for a specific Host to this listener, while dealing with the fundamental
+        # asymmetry that filter_chain_match can - and should - use SNI whenever the chain has
+        # TLS available, but that's simply not available for chains without TLS. 
         # 
-        # The pratical upshot is that we have _only one_ HTTP chain, but we can have HTTPS and
-        # TCP chains for specfic hostnames.
+        # The pratical upshot is that we can generate _only one_ HTTP chain, but we can have
+        # HTTPS and TCP chains for specfic hostnames. HOWEVER, we still track HTTP chains by
+        # hostname, because we can - and do - separate HTTP chains into specific domains.
+        #
+        # But wait, I hear you cry, why don't we have a separate domain data structure??! The
+        # answer is just that it would needlessly add nesting to all our loops and such (this
+        # is also why there's no vhost data structure).
 
         chain_key = chain_type
         hoststr = host.hostname if host else '(no host)'
         hostname = (host.hostname if host else None) or '*'
 
-        if (chain_type != "http")  and host:
+        if host:
             chain_key = "%s-%s" % (chain_type, hostname)
 
         chain = self._chains.get(chain_key)
 
         if chain is not None:
-            if self._log_debug:
-                self.config.ir.logger.debug("V3Listener %s host %s chain_key %s: add to %s", self.name, hoststr, chain_key, chain)
-
             if host:
                 chain.add_host(host)
+                if self._log_debug:
+                    self.config.ir.logger.debug("      CHAIN ADD: host %s chain_key %s -- %s", hoststr, chain_key, chain)
+            else:
+                if self._log_debug:
+                    self.config.ir.logger.debug("      CHAIN NOOP: host %s chain_key %s -- %s", hoststr, chain_key, chain)
         else:
             chain = V3Chain(self.config, chain_type, host)
             self._chains[chain_key] = chain
             if self._log_debug:
-                self.config.ir.logger.debug("V3Listener %s host %s chain_key %s: create %s", self.name, hoststr, chain_key, self._chains[chain_key])
+                self.config.ir.logger.debug("      CHAIN CREATE: host %s chain_key %s -- %s", hoststr, chain_key, chain)
 
         return chain
 
@@ -235,11 +243,22 @@ class V3Listener(dict):
                                         self.name, self.bind_to, irgroup.bind_to(), group_host or "i'*'")
 
         if not group_host:
+            # Special case. No Host in a TCPMapping means an unconditional forward,
+            # so just add this immediately as a "*" chain.
             chain = self.add_chain("tcp", None)
             chain.add_tcpmapping(irgroup)
         else:
             # What matching Hosts do we have?
             for host in sorted(self.config.ir.get_hosts(), key=lambda h: h.hostname):
+                # They're asking for a hostname match here, which _cannot happen_ without
+                # SNI -- so don't take any hosts that don't have a TLSContext.
+
+                if not host.context:
+                    if self._log_debug:
+                        self.config.ir.logger.debug("V3Listener %s @ %s TCP %s: skip %s", 
+                                                    self.name, self.bind_to, group_host, host)
+                    continue
+                
                 if self._log_debug:
                     self.config.ir.logger.debug("V3Listener %s @ %s TCP %s: consider %s", 
                                                 self.name, self.bind_to, group_host, host)
@@ -575,16 +594,8 @@ class V3Listener(dict):
 
                 # If we have a context...
                 if chain.context:
-                    # ...then we can do TLS...
+                    # ...then we can ask for TLS.
                     filter_chain_match["transport_protocol"] = "tls"
-
-                    # ...and match server names.
-                    #
-                    # (The if here is because if chain_hosts is empty, it means '*'. If there are
-                    # no specific names in the list, or if one of the names is actually '*', don't 
-                    # bother matching: just accept everything.)
-                    if (len(chain_hosts) > 0) and ('*' not in chain_hosts):
-                        filter_chain_match['server_names'] = chain_hosts
 
                     # Note that we're modifying the filter_chain itself here, not 
                     # filter_chain_match.
@@ -598,6 +609,13 @@ class V3Listener(dict):
                         }
                     }
 
+                # We do server-name matching whether or not we have TLS, just to help
+                # make sure that we don't have two chains with an empty filter_match
+                # criterion (since Envoy will reject such a configuration).
+
+                if len(chain_hosts) > 0:
+                    filter_chain_match['server_names'] = chain_hosts
+
                 # Once all of that is done, hook in the match...
                 filter_chain['filter_chain_match'] = filter_chain_match
             
@@ -608,13 +626,18 @@ class V3Listener(dict):
         # Compute the set of chains we need, HTTP version. The core here is matching
         # up Hosts with this Listener, and creating a chain for each Host.
 
+        self.config.ir.logger.debug("V3Listener %s: checking hosts for %s", self.name, self)
+
         for host in sorted(self.config.ir.get_hosts(), key=lambda h: h.hostname):
             if self._log_debug:
-                self.config.ir.logger.debug("V3Listener %s: consider %s", self.name, host)
+                self.config.ir.logger.debug("  consider %s", host)
 
-            # XXX Reject if labels don't match.
+            # First up: drop this host if nothing matches at all.
+            if not self._irlistener.matches_host(host):
+                # Bzzzt.
+                continue
 
-            # OK, if we're still here, then it's a question of matching the Listener's 
+            # OK, if we're still here, then it's a question of matching the Listener's
             # SecurityModel with the Host's requestPolicy. It happens that it's actually
             # pretty hard to reject things at this level. 
             #
@@ -627,8 +650,8 @@ class V3Listener(dict):
 
             if self._insecure_only and (self.port != host.insecure_addl_port):
                 if self._log_debug:
-                    self.config.ir.logger.debug("V3Listener %s (%s): drop %s, insecure-only port mismatch", 
-                                                self.name, self._security_model, host.name)
+                    self.config.ir.logger.debug("      drop %s, insecure-only port mismatch", host.name)
+
                 continue
 
             # OK, we can't drop it for that, so we need to check the actions.
@@ -645,7 +668,7 @@ class V3Listener(dict):
             will_reject_secure = ((not secure_action) or (secure_action == "Reject"))
             if self._tls_ok and (not ((security_model == "SECURE") and will_reject_secure)):
                 if self._log_debug:
-                    self.config.ir.logger.debug("V3Listener %s: take SECURE %s", self.name, host)
+                    self.config.ir.logger.debug("      take SECURE %s", host)
 
                 self.add_chain("https", host)
 
@@ -654,7 +677,7 @@ class V3Listener(dict):
 
             if not ((security_model == "INSECURE") and (insecure_action == "Reject")):
                 if self._log_debug:
-                    self.config.ir.logger.debug("V3Listener %s: take INSECURE %s", self.name, host)
+                    self.config.ir.logger.debug("      take INSECURE %s", host)
 
                 self.add_chain("http", host)
 
@@ -672,6 +695,9 @@ class V3Listener(dict):
 
             if self._log_debug:
                 logger.debug("MATCH CHAIN %s - %s", chain_key, chain)
+
+            # Remember whether we found an ACME route.
+            found_acme = False
 
             # The data structure we're walking here is config.route_variants rather than
             # config.routes. There's a one-to-one correspondence between the two, but we use the
@@ -723,6 +749,7 @@ class V3Listener(dict):
                             # on (this is the infamous ACME hole-puncher mentioned everywhere).
                             extra_info = " (force Route for ACME challenge)"
                             action = "Route"
+                            found_acme = True
                         elif (self.config.ir.edge_stack_allowed and
                                 (route_precedence == -1000000) and
                                 (rv.route["match"].get("safe_regex", {}).get("regex", None) == "^/$")):
@@ -746,6 +773,36 @@ class V3Listener(dict):
                                 logger.debug("      %s - %s: drop from %s %s%s",
                                              matcher, action, self.name, hostname, extra_info)
 
+            # If we're on Edge Stack and we don't already have an ACME route, add one.
+            if self.config.ir.edge_stack_allowed and not found_acme:
+                # The target cluster doesn't actually matter -- the auth service grabs the
+                # challenge and does the right thing. But we do need a cluster that actually
+                # exists, so use the sidecar cluster.
+
+                if not self.config.ir.sidecar_cluster_name:
+                    # Uh whut? how is Edge Stack running exactly?
+                    raise Exception("Edge Stack claims to be running, but we have no sidecar cluster??")
+
+                if self._log_debug:
+                    logger.debug("      punching a hole for ACME")
+
+                # Make sure to include _host_constraints in here for now.
+                #
+                # XXX This is needed only because we're dictifying the V3Route too early.
+
+                chain.routes.insert(0, {
+                    "_host_constraints": set(),
+                    "match": {
+                        "case_sensitive": True,
+                        "prefix": "/.well-known/acme-challenge/"
+                    },
+                    "route": {
+                        "cluster": self.config.ir.sidecar_cluster_name,
+                        "prefix_rewrite": "/.well-known/acme-challenge/",
+                        "timeout": "3.000s"
+                    }
+                })
+
             if self._log_debug:
                 for route in chain.routes:
                     logger.debug("  CHAIN ROUTE: %s" % v3prettyroute(route))
@@ -753,26 +810,64 @@ class V3Listener(dict):
     def finalize_http(self) -> None:
         # Finalize everything HTTP. Like the TCP side of the world, this is about walking
         # chains and generating Envoy config.
+        #
+        # All of our HTTP chains get collapsed into a single chain with (likely) multiple
+        # domains here.
+
+        filter_chains: Dict[str, Dict[str, Any]] = {}
 
         for chain_key, chain in self._chains.items():
-            if (chain.type != "http") and (chain.type != "https"):
-                continue
+            if self._log_debug:
+                self._irlistener.logger.debug("FHTTP %s / %s / %s", self, chain_key, chain)
 
-            filter_chain: Dict[str, Any] = {}
+            filter_chain: Optional[Dict[str, Any]] = None
 
-            # The chain as a whole has a single matcher.            
-            filter_chain_match: Dict[str, Any] = {}
+            if chain.type == "http":
+                # All HTTP chains get collapsed into one here, using domains to separate them.
+                # This works because we don't need to offer TLS certs (we can't anyway), and 
+                # because of that, SNI (and thus filter server_names matches) aren't things.
+                chain_key = "http"
 
-            chain_hosts = chain.hostglobs()
+                filter_chain = filter_chains.get(chain_key, None)
 
-            # For HTTPS chains...
-            if chain.type.lower() == "https":
-                # ...then we can match server names.
+                if not filter_chain:
+                    if self._log_debug:
+                        self._irlistener.logger.debug("FHTTP   create filter_chain %s / empty match", chain_key)
+                    filter_chain = {
+                        "filter_chain_match": {},
+                        "_vhosts": {}
+                    }
+
+                    filter_chains[chain_key] = filter_chain
+                else:
+                    if self._log_debug:
+                        self._irlistener.logger.debug("FHTTP   use filter_chain %s: vhosts %d", chain_key, len(filter_chain["_vhosts"]))
+            elif chain.type == "https":
+                # Since chain_key is a dictionary key in its own right, we can't already
+                # have a matching chain for this.
+
+                filter_chain = {
+                    "_vhosts": {}
+                }
+                filter_chain_match: Dict[str, Any] = {}
+
+                chain_hosts = chain.hostglobs()
+
+                # Set up the server_names part of the match, if we have any names.
                 #
-                # (The if here is because if chain_hosts is empty, it means '*'. If there are
-                # no specific names in the list, or if one of the names is actually '*', don't 
-                # bother matching: just accept everything.)
-                if (len(chain_hosts) > 0) and ('*' not in chain_hosts):
+                # Note that "*" is _not allowed_ in server_names, though e.g. "*.example.com" 
+                # is. So we need to filter out the "*" itself... which is ugly, because 
+                # 
+                # server_names: [ "*", "foo.example.com" ] 
+                #
+                # is very different from 
+                # 
+                # server_names: [ "foo.example.com" ]
+                #
+                # So, if "*" is present at all in our chain_hosts, we can't match server_names
+                # at all.
+
+                if (len(chain_hosts) > 0) and ("*" not in chain_hosts):
                     filter_chain_match['server_names'] = chain_hosts
 
                 # Likewise, an HTTPS chain will ask for TLS.
@@ -792,35 +887,55 @@ class V3Listener(dict):
                         }
                     }
 
-            # ...then build up the Envoy structures around it.
-            filter_chain["filter_chain_match"] = filter_chain_match
+                # Finally, stash the match in the chain...
+                filter_chain["filter_chain_match"] = filter_chain_match
 
-            # ...then build the Envoy virtual_hosts for this chain.
-            vhosts: List[Dict[str, Any]] = []
+                # ...and save it.
+                filter_chains[chain_key] = filter_chain
+            else:
+                # The chain type is neither HTTP nor HTTPS -- must be a TCP chain. Skip it.
+                continue
+
+            # OK, we have the filter_chain variable set -- build the Envoy virtual_hosts for it.
 
             for host in chain.hosts.values():
-                # This bit of rank paranoia is probably unnecessary: it boils down to 
-                # double-checking host constraints, and making sure that no internal keys
-                # from the route make it into the Envoy configuration.
+                # Make certain that no internal keys from the route make it into the Envoy 
+                # configuration.
                 routes = []
                 
-                for r in [ route for route in chain.routes if 
-                           any([ hostglob_matches(rhost, host.hostname) for rhost in route["_host_constraints"] ]) ]:
+                for r in chain.routes:
                     routes.append({ k: v for k, v in r.items() if k[0] != '_' })
 
-                vhost: Dict[str, Any] = {
-                    "name": f"{self.name}-{host.hostname}",
-                    "domains": [ host.hostname ],
-                    "routes": routes
-                }
+                # Do we - somehow - already have a vhost for this hostname? (This should
+                # be "impossible".)
 
-                vhosts.append(vhost)
+                vhost: Dict[str, Any] = filter_chain["_vhosts"].get(host.hostname, None)
 
+                if not vhost:
+                    vhost = {
+                        "name": f"{self.name}-{host.hostname}",
+                        "domains": [ host.hostname ],
+                        "routes": []
+                    }
+
+                    filter_chain["_vhosts"][host.hostname] = vhost
+
+                vhost["routes"] += routes
+
+        # Once that's all done, walk the filter_chains dict...
+        for fc_key, filter_chain in filter_chains.items():
+            # ...set up our HTTP config...
             http_config = dict(typecast(dict, self._base_http_config))
+
+            # ...and unfold our vhosts dict into a list for Envoy.
             http_config["route_config"] = {
-                "virtual_hosts": vhosts
+                "virtual_hosts": list(filter_chain["_vhosts"].values())
             }
 
+            # Now that we've saved our vhosts as a list, drop the dict version.
+            del(filter_chain["_vhosts"])
+
+            # Finish up config for this filter chain...
             if parse_bool(self.config.ir.ambassador_module.get("strip_matching_host_port", "false")):
                 http_config["strip_matching_host_port"] = True
 
@@ -840,6 +955,7 @@ class V3Listener(dict):
                 }
             ]
 
+            # ...and save it.
             self._filter_chains.append(filter_chain)
 
     def as_dict(self) -> dict:
@@ -868,12 +984,6 @@ class V3Listener(dict):
             "HTTP" if self._base_http_config else "TCP",
             self.name, self.bind_address, self.port, self._security_model
         )
-
-    @classmethod
-    def dump_listeners(cls, logger, listeners_by_port) -> None:
-        pretty = { k: v.pretty() for k, v in listeners_by_port.items() }
-
-        logger.debug(f"V3Listeners: {dump_json(pretty, pretty=True)}")
 
     @classmethod
     def generate(cls, config: 'V3Config') -> None:

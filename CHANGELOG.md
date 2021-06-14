@@ -74,9 +74,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary Ingress and Ambassador Edge Stack
 
-- Feature: The `Listener` CRD allows explicit definition of ports to listen on, and the protocols and security model for each port
+- Feature: The `Listener` CRD allows explicit definition of ports to listen on, the protocols and security model for each port, and which `Host`s should be associated with which `Listener`.
 - Bugfix: `requestPolicy.insecure.action` works independently across `Host`s ([#2888])
 - Bugfix: Fixed a regression in detecting the Ambassador Kubernetes service that could cause the wrong IP or hostname to be used in Ingress statuses.
+- Change: `Host`s and `Mapping`s will not be associated unless a `Host` selector or a `Mapping`'s `host` element explicitly agree.
 - Change: The `tls` field on the Ambassador module is now deprecated. Please use TLSContexts instead https://www.getambassador.io/docs/edge-stack/latest/topics/running/tls/#tlscontext.
 - Change: Envoy V3 is now the default.
 - Change: The `Host` CRD is now required when terminating TLS.

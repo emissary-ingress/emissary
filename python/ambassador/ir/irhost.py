@@ -7,16 +7,18 @@ from ..utils import SavedSecret, dump_json
 from ..config import Config
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
+from .irutils import hostglob_matches, selector_matches
 
 if TYPE_CHECKING:
     from .ir import IR # pragma: no cover
+    from .irhttpmappinggroup import IRHTTPMappingGroup
 
 
 class IRHost(IRResource):
     AllowedKeys = {
         'acmeProvider',
         'hostname',
-        'matchLabels',
+        'metadata_labels',
         'requestPolicy',
         'selector',
         'tlsSecret',
@@ -163,9 +165,9 @@ class IRHost(IRResource):
 
                         tls_config_context = IRTLSContext(ir, aconf, **tls_context_init, **host_tls_config)
 
-                        match_labels = self.get('matchLabels')
-                        if not match_labels:
-                            match_labels = self.get('match_labels')
+                        # XXX This seems kind of pointless -- nothing looks at the context's labels?
+                        match_labels = self.get('selector', {}).get('matchLabels')
+
                         if match_labels:
                             tls_config_context['metadata_labels'] = match_labels
 
@@ -271,7 +273,7 @@ class IRHost(IRResource):
                     if not pkey_ss:
                         ir.logger.error(f"Host {self.name}: continuing with invalid private key secret {pkey_name}")
 
-        ir.logger.debug(f"Host setup OK: {self.pretty()}")
+        ir.logger.debug(f"Host setup OK: {self}")
         return True
 
     # Check a TLSContext name, and save the linked TLSContext if it'll work for us.
@@ -339,18 +341,47 @@ class IRHost(IRResource):
 
         return True
 
-    def pretty(self) -> str:
+    def matches_httpgroup(self, group: 'IRHTTPMappingGroup') -> bool:
+        """
+        Make sure a given IRHTTPMappingGroup is a match for this Host, meaning
+        that at least one of the following is true:
+
+        - The Host specifies matchLabels, and the group has matching labels
+        - The group specifies a host glob, and the Host has a matching domain.
+
+        A Mapping that specifies no host can never match a Host that specifies
+        no selectors.
+        """
+
+        host_match = False
+        sel_match = False
+
+        group_glob = group.get('host') or None
+
+        if group_glob:
+            host_match = hostglob_matches(self.hostname, group_glob)
+            self.logger.info("-- hostname %s group glob %s => %s", self.hostname, group_glob, host_match)
+
+        selector = self.get('selector')
+
+        if selector:
+            sel_match = selector_matches(self.logger, selector, group.get('metadata_labels', {}))
+            self.logger.info("-- host sel %s group labels %s => %s", 
+                             dump_json(selector), dump_json(group.get('metadata_labels')), sel_match)
+
+        return host_match or sel_match
+
+    def __str__(self) -> str:
         request_policy = self.get('requestPolicy', {})
         insecure_policy = request_policy.get('insecure', {})
         insecure_action = insecure_policy.get('action', 'Redirect')
         insecure_addl_port = insecure_policy.get('additionalPort', None)
 
         ctx_name = self.context.name if self.context else "-none-"
-        return "<Host %s for %s ctx %s ia %s iap %s>" % (self.name, self.hostname or '*', ctx_name,
-                                                         insecure_action, insecure_addl_port)
-
-    def __str__(self) -> str:
-        return self.pretty()
+        return "<Host %s for %s ns %s ctx %s ia %s iap %s>" % (
+            self.name, self.hostname or '*', self.namespace, ctx_name,
+            insecure_action, insecure_addl_port
+        )
 
     def resolve(self, ir: 'IR', secret_name: str) -> SavedSecret:
         # Try to use our namespace for secret resolution. If we somehow have no
@@ -377,10 +408,10 @@ class HostFactory:
                     host.referenced_by(config)
                     host.sourced_by(config)
 
-                    ir.logger.debug(f"HostFactory: saving host {host.pretty()}")
+                    ir.logger.debug(f"HostFactory: saving host {host}")
                     ir.save_host(host)
                 else:
-                    ir.logger.debug(f"HostFactory: not saving inactive host {host.pretty()}")
+                    ir.logger.debug(f"HostFactory: not saving inactive host {host}")
 
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:
@@ -446,5 +477,5 @@ class HostFactory:
                 host.referenced_by(ir.ambassador_module)
                 host.sourced_by(ir.ambassador_module)
 
-                ir.logger.debug(f"HostFactory: saving host {host.pretty()}")
+                ir.logger.debug(f"HostFactory: saving host {host}")
                 ir.save_host(host)

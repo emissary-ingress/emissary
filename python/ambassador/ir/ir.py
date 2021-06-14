@@ -460,11 +460,11 @@ class IR:
             host.referenced_by(self.ambassador_module)
             host.sourced_by(self.ambassador_module)
 
-            self.logger.debug(f"Intercept agent: saving host {host.pretty()}")
+            self.logger.debug(f"Intercept agent: saving host {host}")
             # self.logger.debug(host.as_json())
             self.save_host(host)
         else:
-            self.logger.debug(f"Intercept agent: not saving inactive host {host.pretty()}")
+            self.logger.debug(f"Intercept agent: not saving inactive host {host}")
 
         # How about originating TLS?
         agent_origination_secret = os.environ.get("AGENT_TLS_ORIG_SECRET", None)

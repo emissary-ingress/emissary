@@ -94,7 +94,7 @@ type HostSpec struct {
 	// Hostname by which the Ambassador can be reached.
 	Hostname string `json:"hostname,omitempty"`
 
-	// Selector by which we can find further configuration. Defaults to hostname=$hostname
+	// Selector by which we can find further configuration.
 	Selector *metav1.LabelSelector `json:"selector,omitempty"`
 
 	// Specifies whether/who to talk ACME with to automatically manage the $tlsSecret.

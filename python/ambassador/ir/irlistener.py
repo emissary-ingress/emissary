@@ -6,9 +6,11 @@ import json
 from ..config import Config
 from ..utils import dump_json
 
+from .irhost import IRHost
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
 from .irtcpmappinggroup import IRTCPMappingGroup
+from .irutils import selector_matches
 
 if TYPE_CHECKING:
     from .ir import IR # pragma: no cover
@@ -25,11 +27,14 @@ class IRListener (IRResource):
     hostname: str
     context: Optional[IRTLSContext]
     insecure_only: bool     # Was this synthesized solely due to an insecure_addl_port?
+    namespace_literal: str  # Literal namespace to be matched
+    namespace_selector: Dict[str, str]  # Namespace selector
+    host_selector: Dict[str, str]   # Host selector
 
     AllowedKeys = {
         'bind_address',
         'l7Depth',
-        'hostSelector',
+        'hostBinding',  # Note that hostBinding gets processed and deleted in setup.
         'port',
         'protocol',
         'protocolStack',
@@ -70,6 +75,10 @@ class IRListener (IRResource):
                  **kwargs) -> None:
         ir.logger.debug("IRListener __init__ (%s %s %s)" % (kind, name, kwargs))
 
+        # A note: we copy hostBinding from kwargs in this loop, but we end up processing
+        # and deleting it in setup(). This is arranged this way because __init__ can't
+        # return an error, but setup() can.
+
         new_args = {
             x: kwargs[x] for x in kwargs.keys()
             if x in IRListener.AllowedKeys
@@ -83,6 +92,13 @@ class IRListener (IRResource):
         )
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
+        # Default hostBinding information early, so that we don't have to worry about it
+        # ever being unset. We default to only looking for Hosts in our own namespace, and
+        # to not using selectors beyond that.
+        self.namespace_literal = self.namespace
+        self.namespace_selector = {}
+        self.host_selector = {}
+
         # Was a bind address specified?
         if not self.get('bind_address', None):
             # Nope, use the default.
@@ -120,9 +136,100 @@ class IRListener (IRResource):
             self.post_error("securityModel is required")
             return False
 
+        # Deal with hostBinding. First up, namespaces.
+        hostbinding = self.get("hostBinding", None)
+
+        if not hostbinding:
+            self.post_error("hostBinding is required")
+            return False
+        
+        # We don't want self.hostBinding any more: the relevant stuff will be stored elsewhere
+        # for ease of use.
+        # 
+        # XXX You can't do del(self.hostBinding) here, because underneath everything, an
+        # IRListener is a Resource, and Resources are really much more like dicts than we
+        # like to admit.
+        del(self["hostBinding"])
+
+        # We are going to require at least one of 'namespace' and 'selector' in the
+        # hostBinding. (Really, K8s validation should be enforcing this before we get
+        # here, anyway.)
+
+        hb_namespace = hostbinding.get("namespace", None)
+        hb_selector = hostbinding.get("selector", None)
+
+        if not hb_namespace and not hb_selector:
+            # Bzzt.
+            self.post_error("hostBinding must have at least one of namespace or selector")
+            return False
+
+        if hb_namespace:
+            # Again, technically K8s validation should enforce this, but just in case...
+            nsfrom = hb_namespace.get("from", None)
+
+            if not nsfrom:
+                self.post_error("hostBinding.namespace.from is required")
+                return False
+
+            if nsfrom.lower() == 'all':
+                self.namespace_literal = "*"    # Special, obviously.
+            elif nsfrom.lower() == 'self':
+                self.namespace_literal = self.namespace
+            elif nsfrom.lower() == 'selector':
+                # Augh. We can't actually support this yet, since the Python side of
+                # Ambassador has no sense of Namespace objects, so it can't look at the
+                # namespace labels!
+                #
+                # (K8s validation should prevent this from happening.)
+                self.post_error("hostBinding.namespace.from=selector is not yet supported")
+
+                # # When nsfrom == SELECTOR, we must have a selector.
+                # nsselector: Optional[Dict[str, Any]] = hb_namespace.get("selector", None)
+
+                # if not nsselector:
+                #     self.post_error("hostBinding.namespace.selector is required when hostBinding.namespace.from is SELECTOR")
+                #     return False
+                
+                # match: Optional[Dict[str, str]] = nsselector.get("matchLabels", None)
+
+                # if not match:
+                #     self.post_error("hostBinding.namespace.selector currently supports only matchLabels")
+                #     return False
+
+                # self.namespace_literal = "*"
+                # self.namespace_selector = match
+
+        # OK, after all that, look at the host selector itself.
+        if hb_selector:
+            if not "matchLabels" in hb_selector:
+                self.post_error("hostBinding.selector currently supports only matchLabels")
+                return False
+
+            # This is not a typo -- save hb_selector here. The selector_matches function
+            # takes it this way for whenever we want to add to it.
+            self.host_selector = hb_selector
+
         return True
 
-    def pretty(self) -> str:
+    def matches_host(self, host: IRHost) -> bool:
+        """
+        Returns True IFF this Listener wants to take the given IRHost -- meaning,
+        the Host's namespace and selectors match what we want.
+        """
+        nsmatch = (self.namespace_literal == "*") or (self.namespace_literal == host.namespace)
+
+        if not nsmatch:
+            self.ir.logger.debug("    namespace mismatch (we're %s), DROP %s", self.namespace_literal, host)
+            return False
+
+        if not selector_matches(self.ir.logger, self.host_selector, host.metadata_labels):
+            self.ir.logger.debug("    selector mismatch, DROP %s", host)
+            return False
+
+        self.ir.logger.debug("    TAKE %s", host)
+        return True
+
+    def __str__(self) -> str:
         pstack = "????"
 
         if self.get("protocolStack"):
@@ -130,8 +237,19 @@ class IRListener (IRResource):
 
         securityModel = self.get("securityModel") or "????"
 
-        return "<Listener %s on %s:%d (%s -- %s)>" % \
-               (self.name, self.bind_address, self.port, securityModel, pstack)
+        hsstr = ""
+
+        if self.host_selector:
+            hsstr = "; ".join([ f"{k}={v}" for k, v in self.host_selector.items() ])
+
+        nsstr = ""
+
+        if self.namespace_selector:
+            nsstr = "; ".join([ f"{k}={v}" for k, v in self.namespace_selector.items() ])
+
+        return "<Listener %s on %s:%d (%s -- %s) ns %s sel %s, host sel %s>" % \
+               (self.name, self.bind_address, self.port, securityModel, pstack,
+                self.namespace_literal, nsstr, hsstr)
 
     # Deliberately matches IRTCPMappingGroup.bind_to()
     def bind_to(self) -> str:
@@ -155,10 +273,10 @@ class ListenerFactory:
                     listener.referenced_by(config)
                     listener.sourced_by(config)
 
-                    ir.logger.debug(f"ListenerFactory: saving Listener {listener.pretty()}")
+                    ir.logger.debug(f"ListenerFactory: saving Listener {listener}")
                     ir.save_listener(listener)
                 else:
-                    ir.logger.debug(f"ListenerFactory: not saving inactive Listener {listener.pretty()}")
+                    ir.logger.debug(f"ListenerFactory: not saving inactive Listener {listener}")
 
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:
@@ -182,7 +300,12 @@ class ListenerFactory:
                     ir, aconf, "-internal-", f"ambassador-listener-8080", "-internal-",
                     port=8080,
                     protocol="HTTPS",   # Not a typo! See above.
-                    securityModel="XFP"
+                    securityModel="XFP",
+                    hostBinding={
+                        "namespace": {
+                            "from": "SELF"
+                        }
+                    }
                 ))
 
                 # Add the default HTTPS listener.
@@ -190,7 +313,12 @@ class ListenerFactory:
                     ir, aconf, "-internal-", "ambassador-listener-8443", "-internal-",
                     port=8443,
                     protocol="HTTPS",
-                    securityModel="XFP"
+                    securityModel="XFP",
+                    hostBinding={
+                        "namespace": {
+                            "from": "SELF"
+                        }
+                    }
                 ))
             else:
                 ir.logger.debug("ListenerFactory: synthesizing default listener (cleartext)")
@@ -202,7 +330,12 @@ class ListenerFactory:
                     ir, aconf, "-internal-", "ambassador-listener-8080", "-internal-",
                     port=8080,
                     protocol="HTTP",   # Not a typo! See above.
-                    securityModel="XFP"
+                    securityModel="XFP",
+                    hostBinding={
+                        "namespace": {
+                            "from": "SELF"
+                        }
+                    }
                 ))
 
         # After that, cycle over our Hosts and see if any refer to 
@@ -226,7 +359,12 @@ class ListenerFactory:
                         port=host.insecure_addl_port,
                         protocol="HTTPS",   # Not a typo! See "Add the default HTTP listener" above.
                         securityModel="INSECURE",
-                        insecure_only=True
+                        insecure_only=True,
+                        hostBinding={
+                            "namespace": {
+                                "from": "SELF"
+                            }
+                        }
                     ))
 
         # Finally, cycle over our TCPMappingGroups and make sure we have
@@ -261,5 +399,10 @@ class ListenerFactory:
                     bind_address=bind_address,
                     port=group.port,
                     protocol=protocol,
-                    securityModel="SECURE"  # See above.
+                    securityModel="SECURE",  # See above.
+                    hostBinding={
+                        "namespace": {
+                            "from": "SELF"
+                        }
+                    }
                 ))
