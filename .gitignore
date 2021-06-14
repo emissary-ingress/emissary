@@ -24,6 +24,7 @@ __pycache__
 # binaries
 /bin
 /bin_*/
+/charts/docgen
 
 # helm chart
 charts/emissary-ingress/ci/tests/values
