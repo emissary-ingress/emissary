@@ -91,7 +91,7 @@ kind: ConsulResolver
 metadata:
   name: {self.path.k8s}-resolver
 spec:
-  ambassador_id: consultest
+  ambassador_id: [consultest]
   address: {self.path.k8s}-consul:$CONSUL_WATCHER_PORT
   datacenter: {self.datacenter}
 ---
@@ -101,7 +101,7 @@ metadata:
   name:  {self.path.k8s}-consul-ns-mapping
   namespace: consul-test-namespace
 spec:
-  ambassador_id: consultest
+  ambassador_id: [consultest]
   host: "*"
   prefix: /{self.path.k8s}_consul_ns/
   service: {self.path.k8s}-consul-ns-service

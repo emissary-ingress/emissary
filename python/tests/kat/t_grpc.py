@@ -71,7 +71,7 @@ kind: KubernetesEndpointResolver
 metadata:
     name: my-endpoint
 spec:    
-    ambassador_id: endpointgrpctest 
+    ambassador_id: ["endpointgrpctest"]
 ''') + super().manifests()
 
     def config(self):

@@ -16,7 +16,7 @@ class ErrorResponseOnStatusCode(AmbassadorTest):
 apiVersion: getambassador.io/v1
 kind: Module
 name: ambassador
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 config:
   error_response_overrides:
   - on_status_code: 401
@@ -48,7 +48,7 @@ config:
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
@@ -56,7 +56,7 @@ service: {self.target.path.fqdn}
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-invalidservice
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /target/invalidservice
 service: {self.target.path.fqdn}-invalidservice
@@ -64,7 +64,7 @@ service: {self.target.path.fqdn}-invalidservice
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-invalidservice-empty
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /target/invalidservice/empty
 service: {self.target.path.fqdn}-invalidservice-empty
@@ -166,7 +166,7 @@ kind: Mapping
 metadata:
   name:  {self.target.path.k8s}-crd
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   host: "*"
   prefix: /target/
   service: {self.target.path.fqdn}
@@ -202,7 +202,7 @@ kind: Mapping
 metadata:
   name: {self.target.path.k8s}-invalidservice-crd
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   host: "*"
   prefix: /target/invalidservice
   service: {self.target.path.fqdn}-invalidservice
@@ -212,7 +212,7 @@ kind: Mapping
 metadata:
   name: {self.target.path.k8s}-invalidservice-override-crd
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   host: "*"
   prefix: /target/invalidservice/override
   service: {self.target.path.fqdn}-invalidservice
@@ -320,7 +320,7 @@ class ErrorResponseReturnBodyFormattedText(AmbassadorTest):
 apiVersion: getambassador.io/v1
 kind: Module
 name: ambassador
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 config:
   error_response_overrides:
   - on_status_code: 404
@@ -338,7 +338,7 @@ config:
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
@@ -387,7 +387,7 @@ class ErrorResponseReturnBodyFormattedJson(AmbassadorTest):
 apiVersion: getambassador.io/v1
 kind: Module
 name: ambassador
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 config:
   error_response_overrides:
   - on_status_code: 401
@@ -409,7 +409,7 @@ config:
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
@@ -455,7 +455,7 @@ class ErrorResponseReturnBodyTextSource(AmbassadorTest):
 apiVersion: getambassador.io/v1
 kind: Module
 name: ambassador
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 config:
   error_response_overrides:
   - on_status_code: 500
@@ -476,7 +476,7 @@ config:
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
@@ -525,7 +525,7 @@ class ErrorResponseMappingBypass(AmbassadorTest):
 apiVersion: getambassador.io/v1
 kind: Module
 name: ambassador
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 config:
   error_response_overrides:
   - on_status_code: 404
@@ -542,6 +542,7 @@ config:
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
+ambassador_id: ["{self.ambassador_id}"]
 ambassador_id: {self.ambassador_id}
 host: "*"
 prefix: /target/
@@ -550,7 +551,7 @@ service: {self.target.path.fqdn}
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-invalidservice
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /target/invalidservice
 service: {self.target.path.fqdn}-invalidservice
@@ -558,7 +559,7 @@ service: {self.target.path.fqdn}-invalidservice
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-bypass
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /bypass/
 service: {self.target.path.fqdn}
@@ -567,7 +568,7 @@ bypass_error_response_overrides: true
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-target-bypass
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /target/bypass/
 service: {self.target.path.fqdn}
@@ -576,7 +577,7 @@ bypass_error_response_overrides: true
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-bypass-invalidservice
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /bypass/invalidservice
 service: {self.target.path.fqdn}-invalidservice
@@ -666,7 +667,7 @@ class ErrorResponseMappingBypassAlternate(AmbassadorTest):
 apiVersion: getambassador.io/v1
 kind: Module
 name: ambassador
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 config:
   error_response_overrides:
   - on_status_code: 404
@@ -677,7 +678,7 @@ config:
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
@@ -685,7 +686,7 @@ service: {self.target.path.fqdn}
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-invalidservice
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /target/invalidservice
 service: {self.target.path.fqdn}-invalidservice
@@ -693,7 +694,7 @@ service: {self.target.path.fqdn}-invalidservice
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-bypass
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /bypass/
 service: {self.target.path.fqdn}
@@ -738,7 +739,7 @@ class ErrorResponseMapping404Body(AmbassadorTest):
 apiVersion: getambassador.io/v1
 kind: Module
 name: ambassador
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 config:
   error_response_overrides:
   - on_status_code: 401
@@ -749,7 +750,7 @@ config:
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
@@ -757,7 +758,7 @@ service: {self.target.path.fqdn}
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-bypass
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /bypass/
 service: {self.target.path.fqdn}
@@ -766,7 +767,7 @@ bypass_error_response_overrides: true
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-overrides
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /overrides/
 service: {self.target.path.fqdn}
@@ -818,7 +819,7 @@ class ErrorResponseMappingOverride(AmbassadorTest):
 apiVersion: getambassador.io/v1
 kind: Module
 name: ambassador
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 config:
   error_response_overrides:
   - on_status_code: 401
@@ -835,7 +836,7 @@ config:
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
@@ -843,7 +844,7 @@ service: {self.target.path.fqdn}
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-override-401
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /override/401/
 service: {self.target.path.fqdn}
@@ -857,7 +858,7 @@ error_response_overrides:
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-override-503
-ambassador_id: {self.ambassador_id}
+ambassador_id: ["{self.ambassador_id}"]
 host: "*"
 prefix: /override/503/
 service: {self.target.path.fqdn}
@@ -960,7 +961,7 @@ kind: Mapping
 metadata:
   name:  {self.target.path.k8s}-one
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   host: "*"
   prefix: /target-one/
   service: {self.target.path.fqdn}
@@ -977,7 +978,7 @@ kind: Mapping
 metadata:
   name: {self.target.path.k8s}-two
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   host: "*"
   prefix: /target-two/
   service: {self.target.path.fqdn}
@@ -994,7 +995,7 @@ kind: Mapping
 metadata:
   name: {self.target.path.k8s}-three
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   host: "*"
   prefix: /target-three/
   service: {self.target.path.fqdn}
@@ -1004,7 +1005,7 @@ kind: Mapping
 metadata:
   name: {self.target.path.k8s}-four
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   host: "*"
   prefix: /target-four/
   service: {self.target.path.fqdn}
