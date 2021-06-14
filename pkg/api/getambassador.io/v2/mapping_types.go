@@ -67,8 +67,8 @@ type MappingSpec struct {
 	Priority                       string                  `json:"priority,omitempty"`
 	Precedence                     *int                    `json:"precedence,omitempty"`
 	ClusterTag                     string                  `json:"cluster_tag,omitempty"`
-	RemoveRequestHeaders           StringOrStringList      `json:"remove_request_headers,omitempty"`
-	RemoveResponseHeaders          StringOrStringList      `json:"remove_response_headers,omitempty"`
+	RemoveRequestHeaders           []string                `json:"remove_request_headers,omitempty"`
+	RemoveResponseHeaders          []string                `json:"remove_response_headers,omitempty"`
 	Resolver                       string                  `json:"resolver,omitempty"`
 	Rewrite                        *string                 `json:"rewrite,omitempty"`
 	RegexRewrite                   map[string]BoolOrString `json:"regex_rewrite,omitempty"`
@@ -337,12 +337,12 @@ type KeepAlive struct {
 }
 
 type CORS struct {
-	Origins        StringOrStringList `json:"origins,omitempty"`
-	Methods        StringOrStringList `json:"methods,omitempty"`
-	Headers        StringOrStringList `json:"headers,omitempty"`
-	Credentials    *bool              `json:"credentials,omitempty"`
-	ExposedHeaders StringOrStringList `json:"exposed_headers,omitempty"`
-	MaxAge         string             `json:"max_age,omitempty"`
+	Origins        []string `json:"origins,omitempty"`
+	Methods        []string `json:"methods,omitempty"`
+	Headers        []string `json:"headers,omitempty"`
+	Credentials    *bool    `json:"credentials,omitempty"`
+	ExposedHeaders []string `json:"exposed_headers,omitempty"`
+	MaxAge         string   `json:"max_age,omitempty"`
 }
 
 type RetryPolicy struct {
