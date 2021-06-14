@@ -2663,68 +2663,6 @@
                                   "name": "x-forwarded-proto"
                                 }
                               ],
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                }
-                              },
-                              "safe_regex": {
-                                "google_re2": {
-                                  "max_program_size": 200
-                                },
-                                "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
-                              }
-                            },
-                            "redirect": {
-                              "host_redirect": "foobar.com",
-                              "regex_rewrite": {
-                                "pattern": {
-                                  "google_re2": {},
-                                  "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
-                                },
-                                "substitution": "/images/\\1"
-                              },
-                              "response_code": 4
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                }
-                              },
-                              "safe_regex": {
-                                "google_re2": {
-                                  "max_program_size": 200
-                                },
-                                "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
-                              }
-                            },
-                            "redirect": {
-                              "host_redirect": "foobar.com",
-                              "regex_rewrite": {
-                                "pattern": {
-                                  "google_re2": {},
-                                  "regex": "/HostRedirectMapping-5/assets/([a-f0-9]{12})/images"
-                                },
-                                "substitution": "/images/\\1"
-                              },
-                              "response_code": 4
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "headers": [
-                                {
-                                  "exact_match": "https",
-                                  "name": "x-forwarded-proto"
-                                }
-                              ],
                               "prefix": "/SimpleMapping-HTTP-AddResponseHeaders-zoo-bar/",
                               "runtime_fraction": {
                                 "default_value": {
@@ -4326,94 +4264,6 @@
                           },
                           {
                             "match": {
-                              "case_sensitive": true,
-                              "headers": [
-                                {
-                                  "exact_match": "https",
-                                  "name": "x-forwarded-proto"
-                                }
-                              ],
-                              "prefix": "/SimpleIngressWithAnnotations-HTTP/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_simpleingresswithannotatio-1"
-                              }
-                            },
-                            "route": {
-                              "cluster": "cluster_plain_simpleingresswithannotatio-1",
-                              "prefix_rewrite": "/",
-                              "priority": null,
-                              "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "prefix": "/SimpleIngressWithAnnotations-HTTP/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_simpleingresswithannotatio-1"
-                              }
-                            },
-                            "route": {
-                              "cluster": "cluster_plain_simpleingresswithannotatio-1",
-                              "prefix_rewrite": "/",
-                              "priority": null,
-                              "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "headers": [
-                                {
-                                  "exact_match": "https",
-                                  "name": "x-forwarded-proto"
-                                }
-                              ],
-                              "prefix": "/SimpleIngressWithAnnotations-GRPC/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_simpleingresswithannotatio-0"
-                              }
-                            },
-                            "route": {
-                              "cluster": "cluster_plain_simpleingresswithannotatio-0",
-                              "prefix_rewrite": "/",
-                              "priority": null,
-                              "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "prefix": "/SimpleIngressWithAnnotations-GRPC/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_simpleingresswithannotatio-0"
-                              }
-                            },
-                            "route": {
-                              "cluster": "cluster_plain_simpleingresswithannotatio-0",
-                              "prefix_rewrite": "/",
-                              "priority": null,
-                              "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
                               "case_sensitive": false,
                               "headers": [
                                 {
@@ -4498,46 +4348,6 @@
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "headers": [
-                                {
-                                  "exact_match": "https",
-                                  "name": "x-forwarded-proto"
-                                }
-                              ],
-                              "prefix": "/HostRedirectMapping-4/foo/bar/baz",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                }
-                              }
-                            },
-                            "redirect": {
-                              "host_redirect": "foobar.com",
-                              "prefix_rewrite": "/foobar/baz",
-                              "response_code": 3
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "prefix": "/HostRedirectMapping-4/foo/bar/baz",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                }
-                              }
-                            },
-                            "redirect": {
-                              "host_redirect": "foobar.com",
-                              "prefix_rewrite": "/foobar/baz",
-                              "response_code": 3
                             }
                           },
                           {
@@ -5525,134 +5335,6 @@
                                   "name": "x-forwarded-proto"
                                 }
                               ],
-                              "prefix": "/SimpleMappingIngress-HTTP/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_simplemappingingress_http_-0"
-                              }
-                            },
-                            "route": {
-                              "cluster": "cluster_plain_simplemappingingress_http_-0",
-                              "prefix_rewrite": "/",
-                              "priority": null,
-                              "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "prefix": "/SimpleMappingIngress-HTTP/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_simplemappingingress_http_-0"
-                              }
-                            },
-                            "route": {
-                              "cluster": "cluster_plain_simplemappingingress_http_-0",
-                              "prefix_rewrite": "/",
-                              "priority": null,
-                              "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "headers": [
-                                {
-                                  "exact_match": "https",
-                                  "name": "x-forwarded-proto"
-                                }
-                              ],
-                              "prefix": "/SimpleMappingIngress-GRPC/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_simplemappingingress_grpc_-0"
-                              }
-                            },
-                            "route": {
-                              "cluster": "cluster_plain_simplemappingingress_grpc_-0",
-                              "prefix_rewrite": "/",
-                              "priority": null,
-                              "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "prefix": "/SimpleMappingIngress-GRPC/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_simplemappingingress_grpc_-0"
-                              }
-                            },
-                            "route": {
-                              "cluster": "cluster_plain_simplemappingingress_grpc_-0",
-                              "prefix_rewrite": "/",
-                              "priority": null,
-                              "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "headers": [
-                                {
-                                  "exact_match": "https",
-                                  "name": "x-forwarded-proto"
-                                }
-                              ],
-                              "prefix": "/HostRedirectMapping-3/foo/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                }
-                              }
-                            },
-                            "redirect": {
-                              "host_redirect": "foobar.com",
-                              "path_redirect": "/redirect/",
-                              "response_code": 1
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "prefix": "/HostRedirectMapping-3/foo/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                }
-                              }
-                            },
-                            "redirect": {
-                              "host_redirect": "foobar.com",
-                              "path_redirect": "/redirect/",
-                              "response_code": 1
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "headers": [
-                                {
-                                  "exact_match": "https",
-                                  "name": "x-forwarded-proto"
-                                }
-                              ],
                               "prefix": "/CanaryDiffMapping-HTTP-50/",
                               "runtime_fraction": {
                                 "default_value": {
@@ -6523,7 +6205,7 @@
                                     "denominator": "HUNDRED",
                                     "numerator": 100
                                   },
-                                  "runtime_key": "routing.cors_enabled.b6dbc25782c1d9ac4f2081e2289ac2dcae15d7c5"
+                                  "runtime_key": "routing.cors_enabled.476520c34e52fe0f4a156e407f6dd618bf70be95"
                                 }
                               },
                               "prefix_rewrite": "/",
@@ -6556,7 +6238,7 @@
                                     "denominator": "HUNDRED",
                                     "numerator": 100
                                   },
-                                  "runtime_key": "routing.cors_enabled.b6dbc25782c1d9ac4f2081e2289ac2dcae15d7c5"
+                                  "runtime_key": "routing.cors_enabled.476520c34e52fe0f4a156e407f6dd618bf70be95"
                                 }
                               },
                               "prefix_rewrite": "/",
@@ -6595,7 +6277,7 @@
                                     "denominator": "HUNDRED",
                                     "numerator": 100
                                   },
-                                  "runtime_key": "routing.cors_enabled.09eeb3b6514195bb1e8da9c1552e50bf17ed7b02"
+                                  "runtime_key": "routing.cors_enabled.d421480cc7b54e2fffcaf6eaa9d450ce1a47ae7b"
                                 }
                               },
                               "prefix_rewrite": "/",
@@ -6628,7 +6310,7 @@
                                     "denominator": "HUNDRED",
                                     "numerator": 100
                                   },
-                                  "runtime_key": "routing.cors_enabled.09eeb3b6514195bb1e8da9c1552e50bf17ed7b02"
+                                  "runtime_key": "routing.cors_enabled.d421480cc7b54e2fffcaf6eaa9d450ce1a47ae7b"
                                 }
                               },
                               "prefix_rewrite": "/",
@@ -6993,7 +6675,7 @@
                                     "denominator": "HUNDRED",
                                     "numerator": 100
                                   },
-                                  "runtime_key": "routing.cors_enabled.76b2c7674a43dbae2926cfa90d3ae576fa5cea64"
+                                  "runtime_key": "routing.cors_enabled.902c76f895ba2a196a2a5ef7bdf8d65ff084ca0d"
                                 }
                               },
                               "prefix_rewrite": "/foo",
@@ -7053,7 +6735,7 @@
                                     "denominator": "HUNDRED",
                                     "numerator": 100
                                   },
-                                  "runtime_key": "routing.cors_enabled.76b2c7674a43dbae2926cfa90d3ae576fa5cea64"
+                                  "runtime_key": "routing.cors_enabled.902c76f895ba2a196a2a5ef7bdf8d65ff084ca0d"
                                 }
                               },
                               "prefix_rewrite": "/foo",
@@ -7119,7 +6801,7 @@
                                     "denominator": "HUNDRED",
                                     "numerator": 100
                                   },
-                                  "runtime_key": "routing.cors_enabled.d12a2a9c8dfc4947dfaf1f5a0ebadedf55eec10c"
+                                  "runtime_key": "routing.cors_enabled.da49eaad849b28f0bef0411b7bda5477ad5ca118"
                                 }
                               },
                               "prefix_rewrite": "/foo",
@@ -7179,7 +6861,7 @@
                                     "denominator": "HUNDRED",
                                     "numerator": 100
                                   },
-                                  "runtime_key": "routing.cors_enabled.d12a2a9c8dfc4947dfaf1f5a0ebadedf55eec10c"
+                                  "runtime_key": "routing.cors_enabled.da49eaad849b28f0bef0411b7bda5477ad5ca118"
                                 }
                               },
                               "prefix_rewrite": "/foo",
@@ -7562,42 +7244,6 @@
                                   "upgrade_type": "websocket"
                                 }
                               ]
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": false,
-                              "headers": [
-                                {
-                                  "exact_match": "https",
-                                  "name": "x-forwarded-proto"
-                                }
-                              ],
-                              "prefix": "/HostRedirectMapping-2/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                }
-                              }
-                            },
-                            "redirect": {
-                              "host_redirect": "foobar.com"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": false,
-                              "prefix": "/HostRedirectMapping-2/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                }
-                              }
-                            },
-                            "redirect": {
-                              "host_redirect": "foobar.com"
                             }
                           },
                           {
@@ -8126,42 +7772,6 @@
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "headers": [
-                                {
-                                  "exact_match": "https",
-                                  "name": "x-forwarded-proto"
-                                }
-                              ],
-                              "prefix": "/HostRedirectMapping/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                }
-                              }
-                            },
-                            "redirect": {
-                              "host_redirect": "foobar.com"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "prefix": "/HostRedirectMapping/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                }
-                              }
-                            },
-                            "redirect": {
-                              "host_redirect": "foobar.com"
                             }
                           },
                           {

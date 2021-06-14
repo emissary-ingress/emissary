@@ -96,6 +96,7 @@ metadata:
   name: test
   namespace: default
 spec:
+  host: "*"
   prefix: /test/
   service: test.default
 ''')
@@ -108,6 +109,7 @@ metadata:
   name: test
   namespace: default
 spec:
+  host: "*"
   prefix: /test/
   service: test.default
 ''')
@@ -360,6 +362,7 @@ class TestServiceAnnotations:
                     'getambassador.io/config': """apiVersion: getambassador.io/v1
 kind: Mapping
 name: test_mapping
+host: "*"
 prefix: /test/
 service: test:9999""",
                 },
@@ -372,6 +375,7 @@ service: test:9999""",
             'apiVersion': 'getambassador.io/v1',
             'kind': 'Mapping',
             'name': 'test_mapping',
+            'host': "*",
             'prefix': '/test/',
             'service': 'test:9999',
             'namespace': 'default',

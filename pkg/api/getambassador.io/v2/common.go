@@ -223,18 +223,11 @@ type ErrorResponseOverride struct {
 }
 
 // AmbassadorID declares which Ambassador instances should pay
-// attention to this resource.  May either be a string or a list of
-// strings.  If no value is provided, the default is:
+// attention to this resource. If no value is provided, the default is:
 //
 //    ambassador_id:
 //    - "default"
-//
-// +kubebuilder:validation:Type="d6e-union:string,array"
 type AmbassadorID []string
-
-func (aid *AmbassadorID) UnmarshalJSON(data []byte) error {
-	return (*StringOrStringList)(aid).UnmarshalJSON(data)
-}
 
 // StringOrStringList is just what it says on the tin, but note that it will always
 // marshal as a list of strings right now.

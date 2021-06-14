@@ -85,6 +85,7 @@ flush_interval_byte_size: 1
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  config__dump
+host: "*"
 prefix: /config_dump
 rewrite: /config_dump
 service: http://127.0.0.1:8001
@@ -223,6 +224,7 @@ flush_interval_byte_size: 1
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  config__dump-longservicename
+host: "*"
 prefix: /config_dump
 rewrite: /config_dump
 service: http://127.0.0.1:8001

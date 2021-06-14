@@ -25,7 +25,7 @@ from yaml.scanner import ScannerError as YAMLScanError
 
 from multi import multi
 from .parser import dump, load, Tag
-from tests.manifests import httpbin_manifests, websocket_echo_server_manifests
+from tests.manifests import httpbin_manifests, websocket_echo_server_manifests, cleartext_host_manifest
 from tests.kubeutils import apply_kube_artifacts
 
 import yaml as pyyaml
@@ -1137,28 +1137,6 @@ class Superpod:
 
         return list(manifest)
 
-CLEARTEXT_HOST_YAML = '''
----
-apiVersion: getambassador.io/v2
-kind: Host
-metadata:
-  name: cleartext-host-{self.path.k8s}
-  labels:
-    scope: AmbassadorTest
-  namespace: %s
-spec:
-  ambassador_id: [ "{self.ambassador_id}" ]
-  hostname: "*"
-  selector:
-    matchLabels:
-      hostname: {self.path.k8s}
-  acmeProvider:
-    authority: none
-  requestPolicy:
-    insecure:
-      action: Route
-      # additionalPort: 8080
-'''
 
 class Runner:
 
@@ -1320,7 +1298,7 @@ class Runner:
                     if EDGE_STACK and n.is_ambassador and add_cleartext_host and not is_plain_test:
                         # print(f"{n.path.k8s} adding Host")
 
-                        host_yaml = CLEARTEXT_HOST_YAML % nsp
+                        host_yaml = cleartext_host_manifest % nsp
                         yaml += host_yaml
 
                     yaml = n.format(yaml)
@@ -1405,7 +1383,7 @@ class Runner:
                         if n.ambassador_id:
                             for obj in yaml:
                                 if "ambassador_id" not in obj:
-                                    obj["ambassador_id"] = n.ambassador_id
+                                    obj["ambassador_id"] = [n.ambassador_id]
 
                         configs[n].append((target, yaml))
                     except YAMLScanError as e:

@@ -39,6 +39,7 @@ func (v *resourceValidator) isValid(ctx context.Context, un *kates.Unstructured)
 	key := string(un.GetUID())
 	err := v.katesValidator.Validate(ctx, un)
 	if err != nil {
+		fmt.Printf("validation error: %s %s/%s -- %s\n", un.GetKind(), un.GetNamespace(), un.GetName(), err.Error())
 		copy := un.DeepCopy()
 		copy.Object["errors"] = err.Error()
 		v.invalid[key] = copy

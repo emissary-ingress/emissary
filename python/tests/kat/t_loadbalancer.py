@@ -40,12 +40,14 @@ class LoadBalancerTest(AmbassadorTest):
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-0
+host: "*"
 prefix: /{self.name}-0/
 service: {self.target.path.fqdn}
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-1
+host: "*"
 prefix: /{self.name}-1/
 service: {self.target.path.fqdn}
 resolver:  endpoint
@@ -55,6 +57,7 @@ load_balancer:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-2
+host: "*"
 prefix: /{self.name}-2/
 service: {self.target.path.fqdn}
 resolver: endpoint
@@ -65,6 +68,7 @@ load_balancer:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-3
+host: "*"
 prefix: /{self.name}-3/
 service: {self.target.path.fqdn}
 resolver: endpoint
@@ -75,6 +79,7 @@ load_balancer:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-4
+host: "*"
 prefix: /{self.name}-4/
 service: {self.target.path.fqdn}
 resolver: endpoint
@@ -86,6 +91,7 @@ load_balancer:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-5
+host: "*"
 prefix: /{self.name}-5/
 service: {self.target.path.fqdn}
 resolver: endpoint
@@ -99,6 +105,7 @@ load_balancer:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-6
+host: "*"
 prefix: /{self.name}-6/
 service: {self.target.path.fqdn}
 resolver: endpoint
@@ -110,6 +117,7 @@ load_balancer:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-7
+host: "*"
 prefix: /{self.name}-7/
 service: {self.target.path.fqdn}
 resolver: endpoint
@@ -119,6 +127,7 @@ load_balancer:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-8
+host: "*"
 prefix: /{self.name}-8/
 service: {self.target.path.fqdn}
 resolver: endpoint
@@ -128,6 +137,7 @@ load_balancer:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-9
+host: "*"
 prefix: /{self.name}-9/
 service: {self.target.path.fqdn}
 resolver: endpoint
@@ -193,6 +203,7 @@ config:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-header
+host: "*"
 prefix: /{self.name}-header/
 service: globalloadbalancing-service
 load_balancer:
@@ -203,6 +214,7 @@ load_balancer:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-generic
+host: "*"
 prefix: /{self.name}-generic/
 service: globalloadbalancing-service
 """)
@@ -334,6 +346,7 @@ spec:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-header-{self.policy}
+host: "*"
 prefix: /{self.name}-header-{self.policy}/
 service: permappingloadbalancing-service
 resolver: endpoint
@@ -344,6 +357,7 @@ load_balancer:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-sourceip-{self.policy}
+host: "*"
 prefix: /{self.name}-sourceip-{self.policy}/
 service: permappingloadbalancing-service
 resolver: endpoint
@@ -354,6 +368,7 @@ load_balancer:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-cookie-{self.policy}
+host: "*"
 prefix: /{self.name}-cookie-{self.policy}/
 service: permappingloadbalancing-service
 resolver: endpoint
@@ -367,6 +382,7 @@ load_balancer:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-cookie-no-ttl-{self.policy}
+host: "*"
 prefix: /{self.name}-cookie-no-ttl-{self.policy}/
 service: permappingloadbalancing-service
 resolver: endpoint

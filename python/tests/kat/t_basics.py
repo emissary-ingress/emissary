@@ -62,16 +62,17 @@ name:  ambassador
 config: 
   use_ambassador_namespace_for_service_resolution: true
 """
-        for prefix, amb_id in (("findme", "{self.ambassador_id}"),
+        for prefix, amb_id in (("findme", "[{self.ambassador_id}]"),
                                ("findme-array", "[{self.ambassador_id}, missme]"),
                                ("findme-array2", "[missme, {self.ambassador_id}]"),
-                               ("missme", "missme"),
+                               ("missme", "[missme]"),
                                ("missme-array", "[missme1, missme2]")):
             yield self.target, self.format("""
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.path.k8s}-{prefix}
+host: "*"
 prefix: /{prefix}/
 service: {self.target.path.fqdn}
 ambassador_id: {amb_id}
@@ -98,7 +99,7 @@ kind:  AuthService
 metadata:
   name:  {self.path.k8s}-as-bad1-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   service_bad: {self.target.path.fqdn}
 ""","""
 apiVersion: getambassador.io/v2
@@ -106,7 +107,8 @@ kind:  Mapping
 metadata:
   name:  {self.path.k8s}-m-good-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
+  host: "*"
   prefix: /good-<<WHICH>>/
   service: {self.target.path.fqdn}
 """, """
@@ -115,7 +117,8 @@ kind:  Mapping
 metadata:
   name:  {self.path.k8s}-m-bad-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
+  host: "*"
   prefix_bad: /bad-<<WHICH>>/
   service: {self.target.path.fqdn}
 """, """
@@ -124,7 +127,7 @@ kind:  Module
 metadata:
   name:  {self.path.k8s}-md-bad-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   config_bad: []
 """, """
 apiVersion: getambassador.io/v2
@@ -132,7 +135,7 @@ kind:  RateLimitService
 metadata:
   name:  {self.path.k8s}-r-bad-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   service_bad: {self.target.path.fqdn}
 """, """
 apiVersion: getambassador.io/v2
@@ -140,7 +143,7 @@ kind:  TCPMapping
 metadata:
   name:  {self.path.k8s}-tm-bad1-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   service: {self.target.path.fqdn}
   port_bad: 8888
 """, """
@@ -149,7 +152,7 @@ kind:  TCPMapping
 metadata:
   name:  {self.path.k8s}-tm-bad2-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   service_bad: {self.target.path.fqdn}
   port: 8888
 """, """
@@ -158,7 +161,7 @@ kind:  TracingService
 metadata:
   name:  {self.path.k8s}-ts-bad1-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   driver_bad: zipkin
   service: {self.target.path.fqdn}
 """, """
@@ -167,7 +170,7 @@ kind:  TracingService
 metadata:
   name:  {self.path.k8s}-ts-bad2-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   driver: zipkin
   service_bad: {self.target.path.fqdn}
 """
@@ -266,6 +269,7 @@ config:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.path.k8s}/server-name
+host: "*"
 prefix: /server-name
 service: {self.target.path.fqdn}
 """)

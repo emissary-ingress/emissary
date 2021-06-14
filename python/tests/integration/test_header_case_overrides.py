@@ -71,6 +71,7 @@ metadata:
   name:  headerecho-mapping
   namespace: {namespace}
 spec:
+  host: "*"
   prefix: /headerecho/
   rewrite: /
   service: headerecho
@@ -119,6 +120,7 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 name: httpbin-mapping
 service: httpbin
+host: "*"
 prefix: /httpbin/
 '''
 

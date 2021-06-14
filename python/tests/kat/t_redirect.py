@@ -75,6 +75,7 @@ config:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  tls_target_mapping
+host: "*"
 prefix: /tls-target/
 service: {self.target.path.fqdn}
 """)
@@ -127,6 +128,7 @@ config:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  tls_target_mapping
+host: "*"
 prefix: /tls-target/
 service: {self.target.path.fqdn}
 """)
@@ -191,6 +193,7 @@ config:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  tls_target_mapping
+host: "*"
 prefix: /tls-target/
 service: {self.target.path.fqdn}
 """)
@@ -237,6 +240,9 @@ spec:
   protocol: HTTP
   securityModel: XFP
   l7Depth: 1
+  hostBinding:
+    namespace:
+      from: ALL
 ---
 apiVersion: getambassador.io/v2
 kind: Host
@@ -260,6 +266,7 @@ config:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}
+host: "*"
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
 """)
