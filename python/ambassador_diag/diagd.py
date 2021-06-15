@@ -1549,6 +1549,7 @@ class AmbassadorEventWatcher(threading.Thread):
                         metadata = typecast(Dict[str, str], delta.get("metadata", {}))
                         name = metadata.get("name", "")
                         namespace = metadata.get("namespace", "")
+                        apiVersion = metadata.get("apiVersion", "")
 
                         if not name or not namespace:
                             # This is an error.
@@ -1556,7 +1557,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
                             self.logger.error(f"Delta object needs name and namespace: {delta}")
                         else:
-                            key = IRBaseMapping.make_cache_key(delta_kind, name, namespace)
+                            key = IRBaseMapping.make_cache_key(delta_kind, name, namespace, apiVersion)
                             to_invalidate.append(key)
 
                 # OK. If we have things to invalidate, and we have NO ERRORS...

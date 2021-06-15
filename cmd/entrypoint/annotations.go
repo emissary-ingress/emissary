@@ -80,7 +80,7 @@ func convertAnnotation(ctx context.Context, parent kates.Object, kobj kates.Obje
 	// This version munging is only kosher because right now we only care about preserving enough
 	// fidelty to find secrets. (The v2 schema is a superset of the v1 schema for reasons, but the
 	// semantics may not be the same non-secret fields, and who knows about v0.)
-	if gvk.Version == "v0" || gvk.Version == "v1" {
+	if gvk.Version == "v0" || gvk.Version == "v1" || gvk.Version == "v3alpha1" {
 		gvk.Version = "v2"
 	}
 

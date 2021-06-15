@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v3alpha1"
-	"github.com/datawire/ambassador/pkg/kates"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
 func JSONify(obj interface{}) string {
