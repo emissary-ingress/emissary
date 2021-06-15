@@ -17,7 +17,7 @@
 // this file.
 ///////////////////////////////////////////////////////////////////////////
 
-package v3
+package v3alpha1
 
 // This file is support code for enum types.  I'm disappointed that
 // controller-gen doesn't generate this.

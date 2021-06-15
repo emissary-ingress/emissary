@@ -99,7 +99,7 @@
 //     5. provides clarity on which things a user is expected to know
 //        how to fill in
 
-package v3
+package v3alpha1
 
 import (
 	"encoding/json"

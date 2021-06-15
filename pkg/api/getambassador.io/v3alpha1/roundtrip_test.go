@@ -1,4 +1,4 @@
-package v3
+package v3alpha1
 
 import (
 	"encoding/json"

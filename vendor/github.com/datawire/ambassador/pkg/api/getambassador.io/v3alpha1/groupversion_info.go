@@ -62,8 +62,8 @@
 // explicitly marked as required):
 // +kubebuilder:validation:Optional
 
-// Package v3 contains API Schema definitions for the getambassador.io v3 API group
-package v3
+// Package v3alpha1 contains API Schema definitions for the getambassador.io v3alpha1 API group
+package v3alpha1
 
 import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -72,7 +72,7 @@ import (
 
 var (
 	// GroupVersion is group version used to register these objects
-	GroupVersion = schema.GroupVersion{Group: "getambassador.io", Version: "v3"}
+	GroupVersion = schema.GroupVersion{Group: "getambassador.io", Version: "v3alpha1"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}
