@@ -132,7 +132,7 @@ class TestKubernetesGVK:
         assert gvk.api_version == 'getambassador.io/v3alpha1'
         assert gvk.kind == 'Mapping'
         assert gvk.api_group == 'getambassador.io'
-        assert gvk.version == 'v2'
+        assert gvk.version == 'v3alpha1'
         assert gvk.domain == 'mapping.getambassador.io'
 
 
