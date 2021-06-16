@@ -107,16 +107,8 @@ github.com/containerd/continuity/pathdriver
 # github.com/cyphar/filepath-securejoin v0.2.2
 github.com/cyphar/filepath-securejoin
 # github.com/datawire/ambassador v1.11.1 => ./
-github.com/datawire/ambassador/cmd/entrypoint
-github.com/datawire/ambassador/internal/pkg/testutils
-github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v3
-github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3
-github.com/datawire/ambassador/pkg/api/getambassador.io/v2
-github.com/datawire/ambassador/pkg/envoy-control-plane/resource/v3
-github.com/datawire/ambassador/pkg/envoy-control-plane/wellknown
 github.com/datawire/ambassador/pkg/kates
 github.com/datawire/ambassador/pkg/metriton
-github.com/datawire/ambassador/pkg/snapshot/v1
 # github.com/datawire/dlib v1.2.0
 github.com/datawire/dlib/dcontext
 github.com/datawire/dlib/derrgroup

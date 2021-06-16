@@ -8,7 +8,7 @@ package ambex
  * go-control-plane, several different classes manage this stuff:
  *
  * - The root of the world is a SnapshotCache.
- *   - import github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v2, then refer
+ *   - import the package github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v2, then refer
  *     to cache.SnapshotCache.
  *   - A collection of internally consistent configuration objects is a
  *     Snapshot (cache.Snapshot).
@@ -19,7 +19,7 @@ package ambex
  * - The SnapshotCache can only hold go-control-plane configuration objects,
  *   so you have to build these up to hand to the SnapshotCache.
  * - The gRPC stuff is handled by a Server.
- *   - import github.com/datawire/ambassador/pkg/envoy-control-plane/server, then refer
+ *   - import the package github.com/datawire/ambassador/pkg/envoy-control-plane/server, then refer
  *     to server.Server.
  *   - Our runManagementServer (largely ripped off from the go-control-plane
  *     tests) gets this running. It takes a SnapshotCache (cleverly called a
