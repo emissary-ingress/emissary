@@ -34,7 +34,7 @@ metadata:
   name: lua-target-mapping
 spec:
   ambassador_id: {self.ambassador_id}
-  host: "*"
+  hostname: "*"
   prefix: /target/
   service: {self.target.path.fqdn}
 ''') + super().manifests()

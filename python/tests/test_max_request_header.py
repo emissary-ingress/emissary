@@ -44,7 +44,7 @@ config:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name: ambassador
-host: "*"
+hostname: "*"
 prefix: /test/
 service: test:9999
 """
@@ -81,7 +81,7 @@ config:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name: ambassador
-host: "*"
+hostname: "*"
 prefix: /test/
 service: test:9999
 """

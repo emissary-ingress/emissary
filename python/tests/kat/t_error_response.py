@@ -49,7 +49,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
@@ -57,7 +57,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}-invalidservice
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /target/invalidservice
 service: {self.target.path.fqdn}-invalidservice
 ---
@@ -65,7 +65,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}-invalidservice-empty
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /target/invalidservice/empty
 service: {self.target.path.fqdn}-invalidservice-empty
 error_response_overrides:
@@ -167,7 +167,7 @@ metadata:
   name:  {self.target.path.k8s}-crd
 spec:
   ambassador_id: ["{self.ambassador_id}"]
-  host: "*"
+  hostname: "*"
   prefix: /target/
   service: {self.target.path.fqdn}
   error_response_overrides:
@@ -203,7 +203,7 @@ metadata:
   name: {self.target.path.k8s}-invalidservice-crd
 spec:
   ambassador_id: ["{self.ambassador_id}"]
-  host: "*"
+  hostname: "*"
   prefix: /target/invalidservice
   service: {self.target.path.fqdn}-invalidservice
 ---
@@ -213,7 +213,7 @@ metadata:
   name: {self.target.path.k8s}-invalidservice-override-crd
 spec:
   ambassador_id: ["{self.ambassador_id}"]
-  host: "*"
+  hostname: "*"
   prefix: /target/invalidservice/override
   service: {self.target.path.fqdn}-invalidservice
   error_response_overrides:
@@ -339,7 +339,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 '''
@@ -410,7 +410,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 '''
@@ -477,7 +477,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 '''
@@ -544,7 +544,7 @@ kind: AmbassadorMapping
 name:  {self.target.path.k8s}
 ambassador_id: ["{self.ambassador_id}"]
 ambassador_id: {self.ambassador_id}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
@@ -552,7 +552,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}-invalidservice
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /target/invalidservice
 service: {self.target.path.fqdn}-invalidservice
 ---
@@ -560,7 +560,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}-bypass
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /bypass/
 service: {self.target.path.fqdn}
 bypass_error_response_overrides: true
@@ -569,7 +569,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}-target-bypass
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /target/bypass/
 service: {self.target.path.fqdn}
 bypass_error_response_overrides: true
@@ -578,7 +578,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}-bypass-invalidservice
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /bypass/invalidservice
 service: {self.target.path.fqdn}-invalidservice
 bypass_error_response_overrides: true
@@ -679,7 +679,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
@@ -687,7 +687,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}-invalidservice
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /target/invalidservice
 service: {self.target.path.fqdn}-invalidservice
 ---
@@ -695,7 +695,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}-bypass
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /bypass/
 service: {self.target.path.fqdn}
 bypass_error_response_overrides: true
@@ -751,7 +751,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
@@ -759,7 +759,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}-bypass
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /bypass/
 service: {self.target.path.fqdn}
 bypass_error_response_overrides: true
@@ -768,7 +768,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}-overrides
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /overrides/
 service: {self.target.path.fqdn}
 error_response_overrides:
@@ -837,7 +837,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
@@ -845,7 +845,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}-override-401
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /override/401/
 service: {self.target.path.fqdn}
 error_response_overrides:
@@ -859,7 +859,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}-override-503
 ambassador_id: ["{self.ambassador_id}"]
-host: "*"
+hostname: "*"
 prefix: /override/503/
 service: {self.target.path.fqdn}
 error_response_overrides:
@@ -962,7 +962,7 @@ metadata:
   name:  {self.target.path.k8s}-one
 spec:
   ambassador_id: ["{self.ambassador_id}"]
-  host: "*"
+  hostname: "*"
   prefix: /target-one/
   service: {self.target.path.fqdn}
   error_response_overrides:
@@ -979,7 +979,7 @@ metadata:
   name: {self.target.path.k8s}-two
 spec:
   ambassador_id: ["{self.ambassador_id}"]
-  host: "*"
+  hostname: "*"
   prefix: /target-two/
   service: {self.target.path.fqdn}
   error_response_overrides:
@@ -996,7 +996,7 @@ metadata:
   name: {self.target.path.k8s}-three
 spec:
   ambassador_id: ["{self.ambassador_id}"]
-  host: "*"
+  hostname: "*"
   prefix: /target-three/
   service: {self.target.path.fqdn}
 ---
@@ -1006,7 +1006,7 @@ metadata:
   name: {self.target.path.k8s}-four
 spec:
   ambassador_id: ["{self.ambassador_id}"]
-  host: "*"
+  hostname: "*"
   prefix: /target-four/
   service: {self.target.path.fqdn}
   error_response_overrides:

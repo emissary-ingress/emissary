@@ -19,7 +19,7 @@ config:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.name}-target
-host: "*"
+hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """)
@@ -48,7 +48,7 @@ name:  ambassador
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.name}-target
-host: "*"
+hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """)
@@ -73,7 +73,7 @@ class EnvoyHeadersTest(AmbassadorTest):
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.name}-target
-host: "*"
+hostname: "*"
 prefix: /target/
 rewrite: /rewrite/
 timeout_ms: 5001
@@ -111,7 +111,7 @@ config:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.name}-target
-host: "*"
+hostname: "*"
 prefix: /target/
 rewrite: /rewrite/
 timeout_ms: 5001

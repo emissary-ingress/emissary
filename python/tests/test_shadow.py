@@ -144,14 +144,14 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name: httpbin-mapping
 service: httpbin
-host: "*"
+hostname: "*"
 prefix: /httpbin/
 ---
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name: httpbin-mapping-shadow
 service: httpbin-shadow
-host: "*"
+hostname: "*"
 prefix: /httpbin/
 shadow: true
 weight: 10
@@ -193,14 +193,14 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name: httpbin-mapping
 service: httpbin
-host: "*"
+hostname: "*"
 prefix: /httpbin/
 ---
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name: httpbin-mapping-shadow
 service: httpbin-shadow
-host: "*"
+hostname: "*"
 prefix: /httpbin/
 shadow: true
 weight: 10

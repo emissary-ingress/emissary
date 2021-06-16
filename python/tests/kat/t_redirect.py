@@ -75,7 +75,7 @@ config:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  tls_target_mapping
-host: "*"
+hostname: "*"
 prefix: /tls-target/
 service: {self.target.path.fqdn}
 """)
@@ -128,7 +128,7 @@ config:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  tls_target_mapping
-host: "*"
+hostname: "*"
 prefix: /tls-target/
 service: {self.target.path.fqdn}
 """)
@@ -193,7 +193,7 @@ config:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  tls_target_mapping
-host: "*"
+hostname: "*"
 prefix: /tls-target/
 service: {self.target.path.fqdn}
 """)
@@ -266,7 +266,7 @@ config:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
 """)

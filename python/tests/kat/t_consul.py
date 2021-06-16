@@ -102,7 +102,7 @@ metadata:
   namespace: consul-test-namespace
 spec:
   ambassador_id: [consultest]
-  host: "*"
+  hostname: "*"
   prefix: /{self.path.k8s}_consul_ns/
   service: {self.path.k8s}-consul-ns-service
   resolver: {self.path.k8s}-resolver
@@ -116,14 +116,14 @@ spec:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.path.k8s}_k8s_mapping
-host: "*"
+hostname: "*"
 prefix: /{self.path.k8s}_k8s/
 service: {self.k8s_target.path.k8s}
 ---
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.path.k8s}_consul_mapping
-host: "*"
+hostname: "*"
 prefix: /{self.path.k8s}_consul/
 service: {self.path.k8s}-consul-service
 # tls: {self.path.k8s}-client-context # this doesn't seem to work... ambassador complains with "no private key in secret ..."
@@ -134,7 +134,7 @@ load_balancer:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.path.k8s}_consul_node_mapping
-host: "*"
+hostname: "*"
 prefix: /{self.path.k8s}_consul_node/ # this is testing that Ambassador correctly falls back to the `Address` if `Service.Address` does not exist
 service: {self.path.k8s}-consul-node
 # tls: {self.path.k8s}-client-context # this doesn't seem to work... ambassador complains with "no private key in secret ..."

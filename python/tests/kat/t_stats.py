@@ -118,14 +118,14 @@ class StatsdTest(AmbassadorTest):
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 ---
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.name}-reset
-host: "*"
+hostname: "*"
 case_sensitive: false
 prefix: /reset/
 rewrite: /RESET/
@@ -134,7 +134,7 @@ service: statsd-sink
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  metrics
-host: "*"
+hostname: "*"
 prefix: /metrics
 rewrite: /metrics
 service: http://127.0.0.1:8877
@@ -198,7 +198,7 @@ class DogstatsdTest(AmbassadorTest):
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 ---
@@ -206,7 +206,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.name}-reset
 case_sensitive: false
-host: "*"
+hostname: "*"
 prefix: /reset/
 rewrite: /RESET/
 service: dogstatsd-sink

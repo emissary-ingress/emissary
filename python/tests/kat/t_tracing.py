@@ -72,7 +72,7 @@ spec:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  tracing_target_mapping
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -191,7 +191,7 @@ spec:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  tracing_target_mapping_longclustername
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -304,7 +304,7 @@ spec:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  tracing_target_mapping_64
-host: "*"
+hostname: "*"
 prefix: /target-64/
 service: {self.target.path.fqdn}
 """)
@@ -396,7 +396,7 @@ spec:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  tracing_target_mapping
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -499,7 +499,7 @@ spec:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  tracing_target_mapping_65
-host: "*"
+hostname: "*"
 prefix: /target-65/
 service: {self.target.path.fqdn}
 """)
@@ -601,7 +601,7 @@ spec:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  tracing_target_mapping
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -723,7 +723,7 @@ spec:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  tracing_target_mapping
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)

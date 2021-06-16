@@ -72,7 +72,7 @@ config:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.path.k8s}-{prefix}
-host: "*"
+hostname: "*"
 prefix: /{prefix}/
 service: {self.target.path.fqdn}
 ambassador_id: {amb_id}
@@ -108,7 +108,7 @@ metadata:
   name:  {self.path.k8s}-m-good-<<WHICH>>
 spec:
   ambassador_id: ["{self.ambassador_id}"]
-  host: "*"
+  hostname: "*"
   prefix: /good-<<WHICH>>/
   service: {self.target.path.fqdn}
 """, """
@@ -118,7 +118,7 @@ metadata:
   name:  {self.path.k8s}-m-bad-<<WHICH>>
 spec:
   ambassador_id: ["{self.ambassador_id}"]
-  host: "*"
+  hostname: "*"
   prefix_bad: /bad-<<WHICH>>/
   service: {self.target.path.fqdn}
 """, """
@@ -269,7 +269,7 @@ config:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.path.k8s}/server-name
-host: "*"
+hostname: "*"
 prefix: /server-name
 service: {self.target.path.fqdn}
 """)

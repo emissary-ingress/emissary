@@ -25,7 +25,7 @@ class RateLimitV0Test(AmbassadorTest):
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  ratelimit_target_mapping
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 labels:
@@ -41,7 +41,7 @@ labels:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  ratelimit_label_mapping
-host: "*"
+hostname: "*"
 prefix: /labels/
 service: {self.target.path.fqdn}
 labels:
@@ -120,7 +120,7 @@ class RateLimitV1Test(AmbassadorTest):
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  ratelimit_target_mapping
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 labels:
@@ -207,7 +207,7 @@ alpn_protocols: h2
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  ratelimit_target_mapping
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 labels:
@@ -275,7 +275,7 @@ class RateLimitV2Test(AmbassadorTest):
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  ratelimit_target_mapping
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 labels:
@@ -347,7 +347,7 @@ class RateLimitV3Test(AmbassadorTest):
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  ratelimit_target_mapping
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 labels:

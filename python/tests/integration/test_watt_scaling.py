@@ -37,7 +37,7 @@ metadata:
   name:  qotm-mapping
   namespace: {namespace}
 spec:
-  host: "*"
+  hostname: "*"
   prefix: /qotm/
   service: qotm.{namespace}
   resolver: qotm-resolver
@@ -56,7 +56,7 @@ metadata:
   name:  qotm-mapping
   namespace: {namespace}
 spec:
-  host: "*"
+  hostname: "*"
   prefix: /qotm/
   service: qotm.{namespace}
   resolver: qotm-resolver

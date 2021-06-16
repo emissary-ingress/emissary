@@ -636,7 +636,7 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  host: "*"
+  hostname: "*"
   prefix: /target-shared/
   service: {self.targetshared.path.fqdn}
 ''') + super().manifests()
@@ -824,7 +824,7 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  host: "*"
+  hostname: "*"
   prefix: /foo/
   service: {self.target.path.fqdn}
 ''') + super().manifests()
@@ -928,7 +928,7 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  host: "*"
+  hostname: "*"
   prefix: /
   service: {self.target.path.fqdn}
 ''') +  super().manifests()
@@ -1053,7 +1053,7 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  host: "*"
+  hostname: "*"
   prefix: /
   service: {self.target.path.fqdn}
 ''') +  super().manifests()
@@ -1474,7 +1474,7 @@ metadata:
   name: {self.name.k8s}-target-mapping
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  host: "*"
+  hostname: "*"
   prefix: /foo/
   service: {self.target.path.fqdn}
 ''') + super().manifests()

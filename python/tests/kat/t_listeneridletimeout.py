@@ -23,7 +23,7 @@ config:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  config__dump
-host: "*"
+hostname: "*"
 prefix: /config_dump
 rewrite: /config_dump
 service: http://127.0.0.1:8001

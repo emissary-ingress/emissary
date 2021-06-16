@@ -15,7 +15,7 @@ class RegexRewriteForwardingTest(AmbassadorTest):
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  regex_rewrite_mapping
-host: "*"
+hostname: "*"
 prefix: /foo/
 service: http://{self.target.path.fqdn}
 regex_rewrite:
@@ -46,7 +46,7 @@ class RegexRewriteForwardingWithExtractAndSubstituteTest(AmbassadorTest):
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  regex_rewrite_mapping
-host: "*"
+hostname: "*"
 prefix: /foo/
 service: http://{self.target.path.fqdn}
 regex_rewrite:

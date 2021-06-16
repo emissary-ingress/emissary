@@ -22,10 +22,6 @@ class IngressStatusTest1(AmbassadorTest):
     }
 
     def init(self):
-        self.xfail = "IHA FIXME (Ingress)"
-        self.skip_node = True
-        return
-
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -49,7 +45,7 @@ spec:
 """ + super().manifests()
 
     def queries(self):
-        if sys.platform != 'darwin':
+        if True or sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
             update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
@@ -66,7 +62,7 @@ spec:
         if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
-        if sys.platform == 'darwin':
+        if False and sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
         for r in self.results:
@@ -92,10 +88,6 @@ class IngressStatusTest2(AmbassadorTest):
     }
 
     def init(self):
-        self.xfail = "IHA FIXME (Ingress)"
-        self.skip_node = True
-        return
-
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -119,7 +111,7 @@ spec:
 """ + super().manifests()
 
     def queries(self):
-        if sys.platform != 'darwin':
+        if True or sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
             update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
@@ -136,7 +128,7 @@ spec:
         if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
-        if sys.platform == 'darwin':
+        if False and sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
         for r in self.results:
@@ -162,10 +154,6 @@ class IngressStatusTestAcrossNamespaces(AmbassadorTest):
     }
 
     def init(self):
-        self.xfail = "IHA FIXME (Ingress)"
-        self.skip_node = True
-        return
-
         self.target = HTTP(namespace="alt-namespace")
 
     def manifests(self) -> str:
@@ -190,7 +178,7 @@ spec:
 """ + super().manifests()
 
     def queries(self):
-        if sys.platform != 'darwin':
+        if True or sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
             update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
@@ -207,7 +195,7 @@ spec:
         if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
-        if sys.platform == 'darwin':
+        if False and sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
         for r in self.results:
@@ -233,10 +221,6 @@ class IngressStatusTestWithAnnotations(AmbassadorTest):
     }
 
     def init(self):
-        self.xfail = "IHA FIXME (Ingress)"
-        self.skip_node = True
-        return
-
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -251,7 +235,7 @@ metadata:
       apiVersion: x.getambassador.io/v3alpha1
       kind: AmbassadorMapping
       name:  {self.name}-nested
-      host: "*"
+      hostname: "*"
       prefix: /{self.name}-nested/
       service: http://{self.target.path.fqdn}
       ambassador_id: {self.ambassador_id}
@@ -304,10 +288,6 @@ class SameIngressMultipleNamespaces(AmbassadorTest):
     }
 
     def init(self):
-        self.xfail = "IHA FIXME (Ingress)"
-        self.skip_node = True
-        return
-
         self.target = HTTP()
         self.target1 = HTTP(name="target1", namespace="same-ingress-1")
         self.target2 = HTTP(name="target2", namespace="same-ingress-2")
@@ -352,7 +332,7 @@ spec:
 """ + super().manifests()
 
     def queries(self):
-        if sys.platform != 'darwin':
+        if True or sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
             update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
@@ -369,7 +349,7 @@ spec:
         if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
-        if sys.platform == 'darwin':
+        if False and sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
         for namespace in ['same-ingress-1', 'same-ingress-2']:
@@ -391,10 +371,6 @@ class IngressStatusTestWithIngressClass(AmbassadorTest):
     }
 
     def init(self):
-        self.xfail = "IHA FIXME (Ingress)"
-        self.skip_node = True
-        return
-
         self.target = HTTP()
 
         if not is_ingress_class_compatible():
@@ -452,7 +428,7 @@ spec:
 """ + super().manifests()
 
     def queries(self):
-        if sys.platform != 'darwin':
+        if True or sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
             update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
@@ -469,7 +445,7 @@ spec:
         if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
-        if sys.platform == 'darwin':
+        if False and sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
         for r in self.results:
