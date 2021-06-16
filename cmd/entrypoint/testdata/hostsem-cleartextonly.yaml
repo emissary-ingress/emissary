@@ -1,9 +1,9 @@
 # This is actually nonsensical -- we till the system that we want ONLY CLEARTEXT,
 # then we say we're configuring TLS termination, and that we want to redirect
-# h2.example.com HTTP to HTTPS. So it won't actually function, but sure, you can 
+# h2.example.com HTTP to HTTPS. So it won't actually function, but sure, you can
 # set things tup that way.
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
   name: cleartext-listener

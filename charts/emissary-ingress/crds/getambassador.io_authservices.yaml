@@ -103,11 +103,8 @@ spec:
           - auth_service
           type: object
       type: object
-  version: null
+  version: v2
   versions:
   - name: v2
     served: true
     storage: true
-  - name: v1
-    served: true
-    storage: false

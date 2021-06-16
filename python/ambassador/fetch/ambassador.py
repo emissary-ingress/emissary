@@ -30,8 +30,10 @@ class AmbassadorProcessor (ManagedKubernetesProcessor):
             'TracingService',
         ]
 
+        # This will, in theory, accept all of the above kinds as v3alpha1. But in practice we only support the Listener in the v3alpha1
+        # group using fix-crds.
         return frozenset([
-            KubernetesGVK.for_ambassador(kind, version=version) for (kind, version) in itertools.product(kinds, ['v1', 'v2'])
+            KubernetesGVK.for_ambassador(kind, version=version) for (kind, version) in itertools.product(kinds, ['v1', 'v2', 'v3alpha1'])
         ])
 
     def _process(self, obj: KubernetesObject) -> None:
