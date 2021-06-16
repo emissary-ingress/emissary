@@ -20,7 +20,7 @@ class RetryPolicyTest(AmbassadorTest):
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}-normal
-host: "*"
+hostname: "*"
 prefix: /{self.name}-normal/
 service: {self.target.path.fqdn}
 timeout_ms: 3000
@@ -31,7 +31,7 @@ timeout_ms: 3000
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-target
-host: "*"
+hostname: "*"
 prefix: /{self.name}-retry/
 service: {self.target.path.fqdn}
 timeout_ms: 3000

@@ -26,7 +26,7 @@ config:
 apiVersion: ambassador/v0
 kind:  Mapping
 grpc: True
-host: "*"
+hostname: "*"
 prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}

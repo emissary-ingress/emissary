@@ -19,7 +19,7 @@ config:
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.name}-target
-host: "*"
+hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """)
@@ -48,7 +48,7 @@ name:  ambassador
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.name}-target
-host: "*"
+hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """)
@@ -73,7 +73,7 @@ class EnvoyHeadersTest(AmbassadorTest):
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.name}-target
-host: "*"
+hostname: "*"
 prefix: /target/
 rewrite: /rewrite/
 timeout_ms: 5001
@@ -111,7 +111,7 @@ config:
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.name}-target
-host: "*"
+hostname: "*"
 prefix: /target/
 rewrite: /rewrite/
 timeout_ms: 5001

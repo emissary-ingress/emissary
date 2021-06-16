@@ -15,7 +15,7 @@ class QueryParameterRoutingTest(AmbassadorTest):
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.name}-target1
-host: "*"
+hostname: "*"
 prefix: /target/
 service: http://{self.target1.path.fqdn}
 """)
@@ -24,7 +24,7 @@ service: http://{self.target1.path.fqdn}
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.name}-target2
-host: "*"
+hostname: "*"
 prefix: /target/
 service: http://{self.target2.path.fqdn}
 query_parameters:
@@ -51,7 +51,7 @@ class QueryParameterRoutingWithRegexTest(AmbassadorTest):
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.name}-target
-host: "*"
+hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 regex_query_parameters:
@@ -80,7 +80,7 @@ class QueryParameterPresentRoutingTest(AmbassadorTest):
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.name}-target
-host: "*"
+hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 query_parameters:

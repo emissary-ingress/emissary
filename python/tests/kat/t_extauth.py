@@ -29,7 +29,7 @@ metadata:
 spec:
   ambassador_id: {self.ambassador_id}
   service: {self.target.path.fqdn}
-  host: "*"
+  hostname: "*"
   prefix: /context-extensions-crd/
   auth_context_extensions:
     context: "auth-context-name"
@@ -51,14 +51,14 @@ proto: grpc
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-context-extensions
-host: "*"
+hostname: "*"
 prefix: /context-extensions/
 service: {self.target.path.fqdn}
 auth_context_extensions:
@@ -212,7 +212,7 @@ include_body:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -316,7 +316,7 @@ include_body:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -442,7 +442,7 @@ failure_mode_allow: true
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -532,14 +532,14 @@ status_on_error:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.target.path.fqdn}-unauthed
-host: "*"
+hostname: "*"
 prefix: /target/unauthed/
 service: {self.target.path.fqdn}
 bypass_auth: true
@@ -719,7 +719,7 @@ allowed_headers:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -843,7 +843,7 @@ allow_request_body: true
 apiVersion: ambassador/v0
 kind:  Mapping
 name: {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: websocket-echo-server.default
 use_websocket: true
@@ -886,7 +886,7 @@ proto: grpc
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -981,7 +981,7 @@ proto: grpc
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
