@@ -78,6 +78,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: `requestPolicy.insecure.action` works independently across `Host`s ([#2888])
 - Bugfix: Fixed a regression in detecting the Ambassador Kubernetes service that could cause the wrong IP or hostname to be used in Ingress statuses.
 - Change: `Host`s and `Mapping`s will not be associated unless a `Host` selector or a `Mapping`'s `host` element explicitly agree.
+- Change: `Mapping`'s `host` field is either an exact match or (with `host_regex` set) a regex. `Mapping` now has a new `hostname` element that is functionally the same as `host`, but is always a DNS glob.
 - Change: The `tls` field on the Ambassador module is now deprecated. Please use TLSContexts instead https://www.getambassador.io/docs/edge-stack/latest/topics/running/tls/#tlscontext.
 - Change: Envoy V3 is now the default.
 - Change: The `Host` CRD is now required when terminating TLS.
