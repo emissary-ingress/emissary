@@ -182,6 +182,7 @@ spec:
   selector:
     matchLabels:
       service: ambassador
+      profile: main
   strategy:
     type: RollingUpdate
   template:
