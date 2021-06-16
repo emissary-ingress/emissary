@@ -5,12 +5,12 @@ import (
 	"sort"
 	"strings"
 
-	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v3"
-	http "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/resource/v3"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/wellknown"
-	"github.com/datawire/ambassador/pkg/kates"
+	bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
+	http "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v3"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
 type RenderedRoute struct {
