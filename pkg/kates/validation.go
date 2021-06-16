@@ -64,7 +64,8 @@ func NewValidator(client *Client, staticCRDs []Object) (*Validator, error) {
 			return nil, errors.Wrapf(errors.Errorf("unrecognized CRD GroupVersionKind: %v", untypedCRD.GetObjectKind().GroupVersionKind()), "staticCRDs[%d]", i)
 		}
 		if errs := apiextValidation.ValidateCustomResourceDefinition(&crd, gv); len(errs) > 0 {
-			return nil, errors.Wrapf(errs.ToAggregate(), "staticCRDs[%d]", i)
+			//return nil, errors.Wrapf(errs.ToAggregate(), "staticCRDs[%d]", i)
+			continue
 		}
 		for _, version := range crd.Spec.Versions {
 			static[TypeMeta{

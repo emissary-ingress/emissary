@@ -160,7 +160,7 @@ type MappingLabelsArray []MappingLabelSpecifier
 // kinds of label, so this is more complex than we'd like it to be. See the remarks
 // about schema on custom types in `./common.go`.
 //
-// +kubebuilder:validation:Type=""
+// +kubebuilder:validation:Type="object"
 type MappingLabelSpecifier struct {
 	String  *string                  `json:"-"` // source-cluster, destination-cluster, remote-address, or shorthand generic
 	Header  MappingLabelSpecHeader   `json:"-"` // header (NB: no need to make this a pointer because MappingLabelSpecHeader is already nil-able)
@@ -277,7 +277,7 @@ func (o *MappingLabelSpecifier) UnmarshalJSON(data []byte) error {
 	return errors.New("could not unmarshal MappingLabelSpecifier: invalid input")
 }
 
-// +kubebuilder:validation:Type="d6e-union:string,boolean,object"
+// +kubebuilder:validation:Type="string"
 type AddedHeader struct {
 	String *string      `json:"-"`
 	Bool   *bool        `json:"-"`

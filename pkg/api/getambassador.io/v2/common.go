@@ -231,7 +231,7 @@ type AmbassadorID []string
 
 // BoolOrString is a type that can hold a Boolean or a string.
 //
-// +kubebuilder:validation:Type="d6e-union:string,boolean"
+// +kubebuilder:validation:Type="object"
 type BoolOrString struct {
 	String *string `json:"-"`
 	Bool   *bool   `json:"-"`
