@@ -59,7 +59,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  thing-rest
 case_sensitive: false
-host: "*"
+hostname: "*"
 prefix: /reset/
 rewrite: /RESET/
 service: beepboop
@@ -106,7 +106,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  thing-rest
 case_sensitive: false
-host: "*"
+hostname: "*"
 prefix: /reset/
 rewrite: /RESET/
 service: beepboop
@@ -154,7 +154,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  thing-rest
 case_sensitive: false
-host: "*"
+hostname: "*"
 prefix: /reset/
 rewrite: /RESET/
 service: beepboop

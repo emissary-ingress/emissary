@@ -875,6 +875,7 @@ config:
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
+hostname: "*"
 name:  {self.name}-other-mapping
 prefix: /{self.name}/
 service: https://{self.target.path.fqdn}

@@ -27,7 +27,7 @@ class HeaderRoutingTest(MappingTest):
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}-target1
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 """)
@@ -36,7 +36,7 @@ service: http://{self.target.path.fqdn}
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}-target2
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target2.path.fqdn}
 headers:
@@ -132,7 +132,7 @@ allowed_authorization_headers:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}-target1
-host: "*"
+hostname: "*"
 prefix: /target/
 service: http://{self.target1.path.fqdn}
 """)
@@ -141,7 +141,7 @@ service: http://{self.target1.path.fqdn}
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}-target2
-host: "*"
+hostname: "*"
 prefix: /target/
 service: http://{self.target2.path.fqdn}
 headers:

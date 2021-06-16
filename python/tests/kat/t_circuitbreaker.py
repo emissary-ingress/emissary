@@ -95,7 +95,7 @@ spec:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.target.path.k8s}-pr
-host: "*"
+hostname: "*"
 prefix: /{self.name}-pr/
 service: {self.target.path.fqdn}
 circuit_breakers:
@@ -107,7 +107,7 @@ apiVersion: ambassador/v1
 kind: Mapping
 name: {self.name}-reset
 case_sensitive: false
-host: "*"
+hostname: "*"
 prefix: /reset/
 rewrite: /RESET/
 service: cbstatsd-sink
@@ -116,7 +116,7 @@ apiVersion: ambassador/v1
 kind: Mapping
 name: {self.name}-dump
 case_sensitive: false
-host: "*"
+hostname: "*"
 prefix: /dump/
 rewrite: /DUMP/
 service: cbstatsd-sink
@@ -219,7 +219,7 @@ requestPolicy:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.target.path.k8s}-pr
-host: "*"
+hostname: "*"
 prefix: /{self.name}-pr/
 service: {self.target.path.fqdn}
 circuit_breakers:
@@ -230,7 +230,7 @@ circuit_breakers:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.target.path.k8s}-normal
-host: "*"
+hostname: "*"
 prefix: /{self.name}-normal/
 service: {self.target.path.fqdn}
 ---

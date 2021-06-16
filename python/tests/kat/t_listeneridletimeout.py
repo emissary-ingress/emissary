@@ -23,7 +23,7 @@ config:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  config__dump
-host: "*"
+hostname: "*"
 prefix: /config_dump
 rewrite: /config_dump
 service: http://127.0.0.1:8001

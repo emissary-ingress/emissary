@@ -77,7 +77,7 @@ def normalize_service_name(ir: 'IR', in_service: str, mapping_namespace: Optiona
 
 class IRBaseMapping (IRResource):
     group_id: str
-    host: str
+    host: Optional[str]
     route_weight: List[Union[str, int]]
     cached_status: Optional[Dict[str, str]]
     status_update: Optional[Dict[str, str]]
