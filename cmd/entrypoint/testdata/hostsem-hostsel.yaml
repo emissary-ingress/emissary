@@ -1,6 +1,6 @@
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: h1-host
 spec:
@@ -14,8 +14,8 @@ spec:
     matchLabels:
       host: h1      
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: h2-host
 spec:
@@ -29,8 +29,8 @@ spec:
     matchLabels:
       host: h2
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: qotm-mapping-1
   labels:
@@ -39,8 +39,8 @@ spec:
   prefix: /quote-1/
   service: quote.ambassador
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: qotm-mapping-2
   labels:
