@@ -17,7 +17,7 @@
 // this file.
 ///////////////////////////////////////////////////////////////////////////
 
-package v2
+package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,7 +40,6 @@ type RateLimitServiceSpec struct {
 // RateLimitService is the Schema for the ratelimitservices API
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type RateLimitService struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -51,7 +50,6 @@ type RateLimitService struct {
 // RateLimitServiceList contains a list of RateLimitServices.
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type RateLimitServiceList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`

@@ -17,7 +17,7 @@
 // this file.
 ///////////////////////////////////////////////////////////////////////////
 
-package v2
+package v1
 
 import (
 	"encoding/json"
@@ -379,7 +379,6 @@ type MappingStatus struct {
 // Mapping is the Schema for the mappings API
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Source Host",type=string,JSONPath=`.spec.host`
 // +kubebuilder:printcolumn:name="Source Prefix",type=string,JSONPath=`.spec.prefix`
@@ -397,7 +396,6 @@ type Mapping struct {
 // MappingList contains a list of Mappings.
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type MappingList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`

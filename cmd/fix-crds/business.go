@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
 const (
@@ -131,9 +131,6 @@ func FixCRD(args Args, crd *CRD) error {
 	}
 
 	for _, v := range crd.Spec.Versions {
-		if v.Schema == nil {
-			continue
-		}
 		VisitAllSchemaProps(v.Schema.OpenAPIV3Schema, func(node *apiext.JSONSchemaProps) {
 			if strings.HasPrefix(node.Type, "d6e-union:") {
 				types := strings.Split(strings.TrimPrefix(node.Type, "d6e-union:"), ",")

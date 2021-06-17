@@ -50,7 +50,7 @@
 //
 // The group name to use for the CRDs in the generated YAML:
 // +groupName=getambassador.io
-// +versionName=v3alpha1
+// +versionName=v1
 //
 // By default, mark all types in this package to have DeepCopy methods
 // generated (so we don't need to specify this for every type):
@@ -63,8 +63,8 @@
 // explicitly marked as required):
 // +kubebuilder:validation:Optional
 
-// Package v3alpha1 contains API Schema definitions for the getambassador.io v3alpha1 API group
-package v3alpha1
+// Package v1 contains API Schema definitions for the getambassador.io v1 API group
+package v1
 
 import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -73,7 +73,7 @@ import (
 
 var (
 	// GroupVersion is group version used to register these objects
-	GroupVersion = schema.GroupVersion{Group: "getambassador.io", Version: "v3alpha1"}
+	GroupVersion = schema.GroupVersion{Group: "getambassador.io", Version: "v1"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}

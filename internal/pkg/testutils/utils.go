@@ -32,6 +32,10 @@ func LoadYAML(path string) []kates.Object {
 		panic(err)
 	}
 
+	for _, obj := range objs {
+		fmt.Println(obj)
+	}
+
 	return objs
 }
 

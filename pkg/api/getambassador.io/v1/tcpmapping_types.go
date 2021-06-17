@@ -17,47 +17,55 @@
 // this file.
 ///////////////////////////////////////////////////////////////////////////
 
-package v2
+package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// RateLimitServiceSpec defines the desired state of RateLimitService
-type RateLimitServiceSpec struct {
-	// Common to all Ambassador objects.
+// TCPMappingSpec defines the desired state of TCPMapping
+type TCPMappingSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
+	// Port isn't a pointer because it's required.
 	// +kubebuilder:validation:Required
-	Service   string        `json:"service,omitempty"`
-	TimeoutMs *int          `json:"timeout_ms,omitempty"`
-	Domain    string        `json:"domain,omitempty"`
-	TLS       *BoolOrString `json:"tls,omitempty"`
-	// +kubebuilder:validation:Enum={"v2","v3"}
-	ProtocolVersion string `json:"protocol_version,omitempty"`
+	Port    int    `json:"port,omitempty"`
+	Host    string `json:"host,omitempty"`
+	Address string `json:"address,omitempty"`
+	// +kubebuilder:validation:Required
+	Service         string           `json:"service,omitempty"`
+	EnableIPv4      *bool            `json:"enable_ipv4,omitempty"`
+	EnableIPv6      *bool            `json:"enable_ipv6,omitempty"`
+	CircuitBreakers []CircuitBreaker `json:"circuit_breakers,omitempty"`
+
+	// FIXME(lukeshu): Surely this should be an 'int'?
+	IdleTimeoutMs string `json:"idle_timeout_ms,omitempty"`
+
+	Resolver   string        `json:"resolver,omitempty"`
+	TLS        *BoolOrString `json:"tls,omitempty"`
+	Weight     *int          `json:"weight,omitempty"`
+	ClusterTag string        `json:"cluster_tag,omitempty"`
 }
 
-// RateLimitService is the Schema for the ratelimitservices API
+// TCPMapping is the Schema for the tcpmappings API
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
-type RateLimitService struct {
+type TCPMapping struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec RateLimitServiceSpec `json:"spec,omitempty"`
+	Spec TCPMappingSpec `json:"spec,omitempty"`
 }
 
-// RateLimitServiceList contains a list of RateLimitServices.
+// TCPMappingList contains a list of TCPMappings.
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
-type RateLimitServiceList struct {
+type TCPMappingList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []RateLimitService `json:"items"`
+	Items           []TCPMapping `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&RateLimitService{}, &RateLimitServiceList{})
+	SchemeBuilder.Register(&TCPMapping{}, &TCPMappingList{})
 }

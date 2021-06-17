@@ -302,7 +302,7 @@ update-yaml-preflight:
 #controller-gen/options/rbac        += roleName=ambassador
 controller-gen/options/object      += # headerFile=hack/boilerplate.go.txt
 controller-gen/options/crd         += trivialVersions=false # change this to "false" once we're OK with requiring Kubernetes 1.13+
-controller-gen/options/crd         += crdVersions=v1beta1 # change this to "v1" once we're OK with requiring Kubernetes 1.16+
+controller-gen/options/crd         += crdVersions=v1 # change this to "v1" once we're OK with requiring Kubernetes 1.16+
 controller-gen/output/crd           = dir=$(crds_yaml_dir)
 _generate_controller_gen: $(tools/controller-gen) $(tools/fix-crds) update-yaml-preflight
 	@printf '  $(CYN)Running controller-gen$(END)\n'

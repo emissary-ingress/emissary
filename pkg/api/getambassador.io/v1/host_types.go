@@ -17,7 +17,7 @@
 // this file.
 ///////////////////////////////////////////////////////////////////////////
 
-package v2
+package v1
 
 import (
 	corev1 "k8s.io/api/core/v1"
@@ -192,7 +192,6 @@ type HostTLSCertificateSource string
 // Host is the Schema for the hosts API
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Hostname",type=string,JSONPath=`.spec.hostname`
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`

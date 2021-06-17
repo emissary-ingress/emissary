@@ -17,7 +17,7 @@
 // this file.
 ///////////////////////////////////////////////////////////////////////////
 
-package v2
+package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,7 +33,6 @@ type KubernetesServiceResolverSpec struct {
 // KubernetesServiceResolver is the Schema for the kubernetesserviceresolver API
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type KubernetesServiceResolver struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -44,7 +43,6 @@ type KubernetesServiceResolver struct {
 // KubernetesServiceResolverList contains a list of KubernetesServiceResolvers.
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type KubernetesServiceResolverList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
@@ -61,7 +59,6 @@ type KubernetesEndpointResolverSpec struct {
 // KubernetesEndpointResolver is the Schema for the kubernetesendpointresolver API
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type KubernetesEndpointResolver struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -72,7 +69,6 @@ type KubernetesEndpointResolver struct {
 // KubernetesEndpointResolverList contains a list of KubernetesEndpointResolvers.
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type KubernetesEndpointResolverList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
@@ -92,7 +88,6 @@ type ConsulResolverSpec struct {
 // ConsulResolver is the Schema for the ConsulResolver API
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type ConsulResolver struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -103,7 +98,6 @@ type ConsulResolver struct {
 // ConsulResolverList contains a list of ConsulResolvers.
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type ConsulResolverList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`

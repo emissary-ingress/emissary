@@ -17,7 +17,7 @@
 // this file.
 ///////////////////////////////////////////////////////////////////////////
 
-package v2
+package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,7 +49,6 @@ type TLSContextSpec struct {
 // TLSContext is the Schema for the tlscontexts API
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type TLSContext struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -60,7 +59,6 @@ type TLSContext struct {
 // TLSContextList contains a list of TLSContexts.
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type TLSContextList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`

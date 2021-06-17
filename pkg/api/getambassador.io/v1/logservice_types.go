@@ -17,7 +17,7 @@
 // this file.
 ///////////////////////////////////////////////////////////////////////////
 
-package v2
+package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,7 +50,6 @@ type LogServiceSpec struct {
 // LogService is the Schema for the logservices API
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type LogService struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

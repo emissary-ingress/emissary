@@ -17,7 +17,7 @@
 // this file.
 ///////////////////////////////////////////////////////////////////////////
 
-package v2
+package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -110,7 +110,6 @@ type DevPortalSpec struct {
 // (served at `/docs/` by default).
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 // +kubebuilder:resource:path=devportals,scope=Namespaced
 type DevPortal struct {
 	metav1.TypeMeta   `json:""`
@@ -124,7 +123,6 @@ type DevPortal struct {
 // DevPortalList contains a list of DevPortals.
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type DevPortalList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`

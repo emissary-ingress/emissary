@@ -17,7 +17,7 @@
 // this file.
 ///////////////////////////////////////////////////////////////////////////
 
-package v2
+package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -37,7 +37,6 @@ type ModuleSpec struct {
 // https://www.getambassador.io/docs/edge-stack/latest/topics/running/tls/#tls-module-deprecated
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type Module struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -48,7 +47,6 @@ type Module struct {
 // ModuleList contains a list of Modules.
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type ModuleList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
@@ -193,7 +191,6 @@ type AmbassadorConfigStatus struct {
 // AmbassadorConfig is the Schema for the ambassadorconfigs API
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type AmbassadorConfig struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -205,7 +202,6 @@ type AmbassadorConfig struct {
 // AmbassadorConfigList contains a list of AmbassadorConfigs.
 //
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 type AmbassadorConfigList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
