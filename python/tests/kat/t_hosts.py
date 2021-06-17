@@ -109,7 +109,7 @@ data:
   tls.key: '''+TLSCerts["localhost"].k8s_key+'''
 ---
 apiVersion: x.getambassador.io/v3alpha1
-kind: Listener
+kind: AmbassadorListener
 metadata:
   name: {self.name.k8s}-listener
   labels:
@@ -987,7 +987,7 @@ class HostCRDClientCertSameNamespace(AmbassadorTest):
         return namespace_manifest("alt2-namespace") + self.format('''
 ---
 apiVersion: x.getambassador.io/v3alpha1
-kind: Listener
+kind: AmbassadorListener
 metadata:
   name: ambassador-listener-8443    # This name is to match existing test stuff
   namespace: alt2-namespace
