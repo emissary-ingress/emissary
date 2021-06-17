@@ -145,6 +145,7 @@ spec:
   selector:
     matchLabels:
       service: ambassador
+      profile: main
   strategy:
     type: RollingUpdate
   template:
@@ -152,6 +153,7 @@ spec:
       labels:
         service: ambassador
         app.kubernetes.io/managed-by: getambassador.io
+        profile: main
       annotations:
         consul.hashicorp.com/connect-inject: 'false'
         sidecar.istio.io/inject: 'false'
