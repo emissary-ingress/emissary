@@ -3,7 +3,7 @@
 # h2.example.com HTTP to HTTPS. So it won't actually function, but sure, you can 
 # set things tup that way.
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
   name: listener-8888
@@ -14,9 +14,9 @@ spec:
   hostBinding:
     selector:
       matchLabels:
-        listener-8888: yes
+        listener-8888: "yes"
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
   name: listener-9999
@@ -27,15 +27,15 @@ spec:
   hostBinding:
     selector:
       matchLabels:
-        listener-9999: yes
+        listener-9999: "yes"
 ---
 apiVersion: getambassador.io/v2
 kind: Host
 metadata:
   name: h1-host
   labels:
-    listener-8888: yes
-    listener-9999: yes
+    listener-8888: "yes"
+    listener-9999: "yes"
 spec:
   hostname: h1.example.com
   tlsSecret:
@@ -45,14 +45,14 @@ spec:
       action: Route
   selector:
     matchLabels:
-      h1-host: yes
+      h1-host: "yes"
 ---
 apiVersion: getambassador.io/v2
 kind: Host
 metadata:
   name: h2-host
   labels:
-    listener-8888: yes
+    listener-8888: "yes"
 spec:
   hostname: h2.example.com
   tlsSecret:
@@ -62,7 +62,7 @@ spec:
       action: Redirect
   selector:
     matchLabels:
-      h2-host: yes
+      h2-host: "yes"
 ---
 apiVersion: getambassador.io/v2
 kind: Host
@@ -77,16 +77,16 @@ spec:
       action: Reject
   selector:
     matchLabels:
-      h3-host: yes
+      h3-host: "yes"
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: qotm-mapping
   labels:
-    h1-host: yes
-    h2-host: yes
-    h3-host: yes
+    h1-host: "yes"
+    h2-host: "yes"
+    h3-host: "yes"
 spec:
   prefix: /quote/
   service: quote.ambassador
@@ -96,7 +96,7 @@ kind: Mapping
 metadata:
   name: mapping-to-ignore
   labels:
-    ignore-this-mapping: yes
+    ignore-this-mapping: "yes"
 spec:
   prefix: /ignore-this-mapping/
   service: quote.ambassador
