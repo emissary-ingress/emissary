@@ -3,7 +3,7 @@
 # h2.example.com HTTP to HTTPS. So it won't actually function, but sure, you can 
 # set things tup that way.
 ---
-apiVersion: getambassador.io/v3alpha1
+apiVersion: x.getambassador.io/v3alpha1
 kind: Listener
 metadata:
   name: listener-8888
@@ -16,7 +16,7 @@ spec:
       matchLabels:
         listener-8888: "yes"
 ---
-apiVersion: getambassador.io/v3alpha1
+apiVersion: x.getambassador.io/v3alpha1
 kind: Listener
 metadata:
   name: listener-9999

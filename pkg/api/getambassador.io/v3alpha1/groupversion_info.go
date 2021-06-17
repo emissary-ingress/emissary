@@ -49,7 +49,7 @@
 // Package-level markers:
 //
 // The group name to use for the CRDs in the generated YAML:
-// +groupName=getambassador.io
+// +groupName=x.getambassador.io
 // +versionName=v3alpha1
 //
 // By default, mark all types in this package to have DeepCopy methods

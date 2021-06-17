@@ -70,7 +70,7 @@ class IRListener (IRResource):
                  location: str,  # REQUIRED
                  namespace: Optional[str]=None,
                  kind: str="IRListener",
-                 apiVersion: str="getambassador.io/v3alpha1",
+                 apiVersion: str="x.getambassador.io/v3alpha1",
                  insecure_only: bool=False,
                  **kwargs) -> None:
         ir.logger.debug("IRListener __init__ (%s %s %s)" % (kind, name, kwargs))
