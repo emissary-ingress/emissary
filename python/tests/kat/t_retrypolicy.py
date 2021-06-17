@@ -28,7 +28,7 @@ timeout_ms: 3000
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-target
 host: "*"

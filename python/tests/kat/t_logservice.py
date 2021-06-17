@@ -60,7 +60,7 @@ spec:
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: LogService
 name: custom-http-logging
 service: stenography:25565
@@ -199,7 +199,7 @@ spec:
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: LogService
 name: custom-http-logging
 service: stenographylongservicenamewithnearly60characterss:25565

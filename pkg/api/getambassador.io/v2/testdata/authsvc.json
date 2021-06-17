@@ -1,6 +1,6 @@
 [
     {
-        "apiVersion": "ambassador/v1",
+        "apiVersion": "getambassador.io/v2",
         "kind": "AuthService",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -13,7 +13,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v1",
+        "apiVersion": "getambassador.io/v2",
         "kind": "AuthService",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -27,7 +27,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v1",
+        "apiVersion": "getambassador.io/v2",
         "kind": "AuthService",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -41,7 +41,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v1",
+        "apiVersion": "getambassador.io/v2",
         "kind": "AuthService",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -57,7 +57,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v1",
+        "apiVersion": "getambassador.io/v2",
         "kind": "AuthService",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -73,7 +73,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v1",
+        "apiVersion": "getambassador.io/v2",
         "kind": "AuthService",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -89,7 +89,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v1",
+        "apiVersion": "getambassador.io/v2",
         "kind": "AuthService",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",

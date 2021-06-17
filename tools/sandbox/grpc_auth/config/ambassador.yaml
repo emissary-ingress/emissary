@@ -1,10 +1,10 @@
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config: {}
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: AuthService
 name: authentication
 auth_service: "auth-service:8080"
@@ -12,14 +12,14 @@ path_prefix: "/extauth"
 proto: grpc
 allow_request_body: false    
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name: echo-service
 prefix: /
 service: http://echo-service:8080
 host_rewrite: echo-service
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TracingService
 name: tracing
 service: "zipkin:9411"

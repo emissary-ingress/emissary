@@ -1,11 +1,11 @@
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config:
     enable_grpc_web: True
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 grpc: True
 prefix: /echo.EchoService/

@@ -34,7 +34,7 @@ rate_limits:
   - "x-ambassador-test-allow"
   - "x-ambassador-test-headers-append"
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  ratelimit_label_mapping
 host: "*"
@@ -113,7 +113,7 @@ class RateLimitV1Test(AmbassadorTest):
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  ratelimit_target_mapping
 host: "*"
@@ -132,7 +132,7 @@ labels:
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"
@@ -194,13 +194,13 @@ type: kubernetes.io/tls
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 name: ratelimit-tls-context
 secret: ratelimit-tls-secret
 alpn_protocols: h2
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  ratelimit_target_mapping
 host: "*"
@@ -219,7 +219,7 @@ labels:
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"
