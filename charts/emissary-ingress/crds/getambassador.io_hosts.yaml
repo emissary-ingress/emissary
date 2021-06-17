@@ -235,7 +235,7 @@ spec:
               type: string
           type: object
       type: object
-  version: null
+  version: v2
   versions:
   - name: v2
     served: true
