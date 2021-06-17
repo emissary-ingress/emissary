@@ -13,7 +13,7 @@ class ErrorResponseOnStatusCode(AmbassadorTest):
     def config(self):
         yield self, f'''
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 ambassador_id: ["{self.ambassador_id}"]
@@ -317,7 +317,7 @@ class ErrorResponseReturnBodyFormattedText(AmbassadorTest):
     def config(self):
         yield self, f'''
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 ambassador_id: ["{self.ambassador_id}"]
@@ -384,7 +384,7 @@ class ErrorResponseReturnBodyFormattedJson(AmbassadorTest):
     def config(self):
         yield self, f'''
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 ambassador_id: ["{self.ambassador_id}"]
@@ -452,7 +452,7 @@ class ErrorResponseReturnBodyTextSource(AmbassadorTest):
     def config(self):
         yield self, f'''
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 ambassador_id: ["{self.ambassador_id}"]
@@ -522,7 +522,7 @@ class ErrorResponseMappingBypass(AmbassadorTest):
     def config(self):
         yield self, f'''
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 ambassador_id: ["{self.ambassador_id}"]
@@ -664,7 +664,7 @@ class ErrorResponseMappingBypassAlternate(AmbassadorTest):
     def config(self):
         yield self, f'''
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 ambassador_id: ["{self.ambassador_id}"]
@@ -736,7 +736,7 @@ class ErrorResponseMapping404Body(AmbassadorTest):
     def config(self):
         yield self, f'''
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 ambassador_id: ["{self.ambassador_id}"]
@@ -816,7 +816,7 @@ class ErrorResponseMappingOverride(AmbassadorTest):
     def config(self):
         yield self, f'''
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 ambassador_id: ["{self.ambassador_id}"]
