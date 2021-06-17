@@ -17,9 +17,12 @@
 // this file.
 ///////////////////////////////////////////////////////////////////////////
 
-package v2
+package v3alpha1
 
-import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+import (
+	ambv2 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
 
 // ProtocolStackElement defines specific layers that may be combined in a protocol
 // stack for processing connections to a port.
@@ -134,7 +137,7 @@ type HostBindingType struct {
 
 // ListenerSpec defines the desired state of this Port
 type ListenerSpec struct {
-	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
+	AmbassadorID ambv2.AmbassadorID `json:"ambassador_id,omitempty"`
 
 	// Port is the network port. Only one Listener can use a given port.
 	// +kubebuilder:validation:Minimum=1

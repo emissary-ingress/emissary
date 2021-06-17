@@ -108,7 +108,7 @@ data:
   tls.crt: '''+TLSCerts["localhost"].k8s_crt+'''
   tls.key: '''+TLSCerts["localhost"].k8s_key+'''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
   name: {self.name.k8s}-listener
@@ -986,7 +986,7 @@ class HostCRDClientCertSameNamespace(AmbassadorTest):
         # namespace when a ".{namespace}" suffix isn't specified.
         return namespace_manifest("alt2-namespace") + self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
   name: ambassador-listener-8443    # This name is to match existing test stuff

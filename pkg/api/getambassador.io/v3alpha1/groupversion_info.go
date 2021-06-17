@@ -63,7 +63,7 @@
 // explicitly marked as required):
 // +kubebuilder:validation:Optional
 
-// Package v2 contains API Schema definitions for the getambassador.io v2 API group
+// Package v3alpha1 contains API Schema definitions for the getambassador.io v3alpha1 API group
 package v3alpha1
 
 import (
