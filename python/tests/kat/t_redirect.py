@@ -231,7 +231,7 @@ class XFPRedirect(AmbassadorTest):
         return self.format('''
 ---
 apiVersion: x.getambassador.io/v3alpha1
-kind: Listener
+kind: AmbassadorListener
 metadata:
   name: ambassador-listener-8080
 spec:

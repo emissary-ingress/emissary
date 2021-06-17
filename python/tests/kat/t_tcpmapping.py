@@ -55,7 +55,7 @@ data:
   tls.key: {TLSCerts["tls-context-host-2"].k8s_key}
 ---
 apiVersion: x.getambassador.io/v3alpha1
-kind: Listener
+kind: AmbassadorListener
 metadata:
   name: {self.path.k8s}-listener
   labels:
