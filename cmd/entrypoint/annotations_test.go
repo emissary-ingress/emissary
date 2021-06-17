@@ -9,6 +9,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -88,7 +89,7 @@ kind: Mapping
 name: dont-parse
 prefix: /blah/`
 
-	ignoredHost := &amb.Host{
+	ignoredHost := &v3alpha1.AmbassadorHost{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ambassador",
 			Namespace: "ambassador",
@@ -101,7 +102,7 @@ prefix: /blah/`
 	ks := &snapshotTypes.KubernetesSnapshot{
 		Services:  []*kates.Service{svc, ambSvc},
 		Ingresses: []*kates.Ingress{ingress},
-		Hosts:     []*amb.Host{ignoredHost},
+		Hosts:     []*v3alpha1.AmbassadorHost{ignoredHost},
 	}
 
 	ctx := context.Background()

@@ -15,8 +15,8 @@ spec:
     namespace:
       from: SELF
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: h1-host
 spec:
@@ -27,8 +27,8 @@ spec:
     insecure:
       action: Route
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: h2-host
 spec:
@@ -39,8 +39,8 @@ spec:
     insecure:
       action: Redirect
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: qotm-mapping
 spec:
