@@ -1,20 +1,15 @@
-# GENERATED FILE: edits made by hand will not be preserved.
+
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
-    helm.sh/hook: crd-install
-  labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
-  name: foos.getambassador.io
+  creationTimestamp: null
+  name: foos.x.getambassador.io
 spec:
-  group: getambassador.io
+  group: x.getambassador.io
   names:
-    categories:
-    - ambassador-crds
     kind: Foo
     listKind: FooList
     plural: foos
@@ -51,3 +46,9 @@ spec:
   - name: v3alpha1
     served: true
     storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

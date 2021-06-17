@@ -1,15 +1,12 @@
-# GENERATED FILE: edits made by hand will not be preserved.
+
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
-    helm.sh/hook: crd-install
-  labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
-  name: listeners.getambassador.io
+  creationTimestamp: null
+  name: listeners.x.getambassador.io
 spec:
   additionalPrinterColumns:
   - JSONPath: .spec.port
@@ -27,10 +24,8 @@ spec:
   - JSONPath: .spec.l7Depth
     name: L7Depth
     type: string
-  group: getambassador.io
+  group: x.getambassador.io
   names:
-    categories:
-    - ambassador-crds
     kind: Listener
     listKind: ListenerList
     plural: listeners
@@ -149,3 +144,9 @@ spec:
   - name: v3alpha1
     served: true
     storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
