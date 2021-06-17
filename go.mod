@@ -57,9 +57,10 @@ require (
 	git.lukeshu.com/go/libsystemd v0.5.3
 	github.com/Masterminds/semver v1.4.2
 	github.com/Masterminds/sprig v2.17.1+incompatible
+	github.com/aokoli/goutils v1.1.1 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.2.1
 	github.com/cncf/udpa/go v0.0.0-20200629203442-efcf912fb354
-	github.com/datawire/ambassador v1.11.1
+	github.com/datawire/ambassador v0.0.0-00010101000000-000000000000 // indirect
 	github.com/datawire/dlib v1.2.0
 	github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a
 	github.com/ecodia/golang-awaitility v0.0.0-20180710094957-fb55e59708c7
@@ -80,7 +81,6 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
-	github.com/telepresenceio/telepresence/v2 v2.1.1-rc.0
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
 	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c
 	google.golang.org/genproto v0.0.0-20201110150050-8816d57aaa9a
