@@ -4,7 +4,7 @@
 # set things tup that way.
 ---
 apiVersion: x.getambassador.io/v3alpha1
-kind: Listener
+kind: AmbassadorListener
 metadata:
   name: listener-8888
 spec:
@@ -17,7 +17,7 @@ spec:
         listener-8888: "yes"
 ---
 apiVersion: x.getambassador.io/v3alpha1
-kind: Listener
+kind: AmbassadorListener
 metadata:
   name: listener-9999
 spec:
