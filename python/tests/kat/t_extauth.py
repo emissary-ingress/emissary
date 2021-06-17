@@ -48,7 +48,7 @@ proto: grpc
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"
@@ -209,7 +209,7 @@ include_body:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"
@@ -274,7 +274,7 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
@@ -313,7 +313,7 @@ include_body:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"
@@ -439,7 +439,7 @@ failure_mode_allow: true
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"
@@ -529,7 +529,7 @@ status_on_error:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"
@@ -698,7 +698,7 @@ class AuthenticationTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -716,7 +716,7 @@ allowed_headers:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"
@@ -840,7 +840,7 @@ allowed_request_headers:
 - Requested-Status
 allow_request_body: true
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name: {self.name}
 host: "*"
@@ -883,7 +883,7 @@ proto: grpc
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"
@@ -978,7 +978,7 @@ proto: grpc
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"

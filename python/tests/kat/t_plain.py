@@ -114,7 +114,7 @@ spec:
     def config(self) -> Union[str, Tuple[Node, str]]:
         yield self, """
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config: {}

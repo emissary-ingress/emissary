@@ -471,7 +471,7 @@ class WebSocketMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -496,7 +496,7 @@ class TLSOrigination(MappingTest):
 
     IMPLICIT = """
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -506,7 +506,7 @@ service: https://{self.target.path.fqdn}
 
     EXPLICIT = """
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -679,7 +679,7 @@ class CanaryMapping(MappingTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -688,7 +688,7 @@ service: http://{self.target.path.fqdn}
 """)
         yield self.canary, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-canary
 host: "*"
@@ -742,7 +742,7 @@ class CanaryDiffMapping(MappingTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -752,7 +752,7 @@ host_rewrite: canary.1.example.com
 """)
         yield self.canary, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-canary
 host: "*"
@@ -846,7 +846,7 @@ class EdgeStackMapping(MappingTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -958,7 +958,7 @@ class LinkerdHeaderMapping(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:

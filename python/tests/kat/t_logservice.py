@@ -82,7 +82,7 @@ flush_interval_byte_size: 1
       """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  config__dump
 host: "*"
@@ -221,7 +221,7 @@ flush_interval_byte_size: 1
       """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  config__dump-longservicename
 host: "*"

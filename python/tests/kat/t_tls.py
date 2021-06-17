@@ -43,7 +43,7 @@ type: Opaque
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: Module
 name: tls
 ambassador_id: {self.ambassador_id}
@@ -55,7 +55,7 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 prefix: /{self.name}/
@@ -106,7 +106,7 @@ data:
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config:
@@ -114,7 +114,7 @@ config:
   set_current_client_cert_details:
     subject: true
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: Module
 ambassador_id: {self.ambassador_id}
 name: tls
@@ -130,7 +130,7 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 prefix: /{self.name}/
@@ -299,7 +299,7 @@ data:
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 ambassador_id: {self.ambassador_id}
 name: tls
@@ -313,7 +313,7 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 prefix: /{self.name}/
@@ -323,7 +323,7 @@ tls: upstream
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-files
 prefix: /{self.name}-files/
@@ -393,7 +393,7 @@ spec:
 #         # be annotated on the Ambassador itself.
 #         yield self, self.format("""
 # ---
-# apiVersion: ambassador/v0
+# apiVersion: getambassador.io/v2
 # kind: Module
 # name: tls
 # ambassador_id: {self.ambassador_id}
@@ -413,7 +413,7 @@ spec:
         # it's not necessary.
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tls_target_mapping
 prefix: /tls-target/
@@ -438,7 +438,7 @@ class TLSInvalidSecret(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: Module
 name: tls
 ambassador_id: {self.ambassador_id}
@@ -459,7 +459,7 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tls_target_mapping
 prefix: /tls-target/
@@ -543,7 +543,7 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-same-prefix-1
 prefix: /tls-context-same/
@@ -1027,14 +1027,14 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
   defaults:
     tls_secret_namespacing: False
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-same-prefix-1
 prefix: /tls-context-same/
@@ -1146,7 +1146,7 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-same-prefix-1
 prefix: /tls-context-same/
@@ -1245,7 +1245,7 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-same-prefix-1
 prefix: /tls-context-same/
@@ -1345,7 +1345,7 @@ type: istio.io/key-and-cert
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-istio-prefix-1
 prefix: /tls-context-istio/

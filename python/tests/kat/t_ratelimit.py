@@ -22,7 +22,7 @@ class RateLimitV0Test(AmbassadorTest):
         # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  ratelimit_target_mapping
 host: "*"
@@ -59,7 +59,7 @@ labels:
         # For self.with_tracing, we want to configure the TracingService.
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"

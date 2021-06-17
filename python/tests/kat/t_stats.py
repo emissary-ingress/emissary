@@ -131,7 +131,7 @@ prefix: /reset/
 rewrite: /RESET/
 service: statsd-sink
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  metrics
 host: "*"
@@ -195,7 +195,7 @@ class DogstatsdTest(AmbassadorTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
