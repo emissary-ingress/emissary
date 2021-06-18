@@ -2130,6 +2130,8 @@ spec:
               type: boolean
             host_rewrite:
               type: string
+            hostname:
+              type: string
             idle_timeout_ms:
               type: integer
             keepalive:
