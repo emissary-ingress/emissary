@@ -28,11 +28,15 @@ name:  ratelimit_target_mapping
 host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
-rate_limits:
-- descriptor: A test case
-  headers:
-  - "x-ambassador-test-allow"
-  - "x-ambassador-test-headers-append"
+labels:
+  ambassador:
+    - request_label_group:
+      - x-ambassador-test-allow:
+          header: "x-ambassador-test-allow"
+          omit_if_not_present: true
+      - x-ambassador-test-headers-append:
+          header: "x-ambassador-test-headers-append"
+          omit_if_not_present: true
 ---
 apiVersion: getambassador.io/v2
 kind:  Mapping
