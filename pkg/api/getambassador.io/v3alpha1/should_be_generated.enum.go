@@ -37,21 +37,21 @@ import (
 )
 
 const (
-	HostState_Initial = HostState(iota)
-	HostState_Pending
-	HostState_Ready
-	HostState_Error
+	AmbassadorHostState_Initial = AmbassadorHostState(iota)
+	AmbassadorHostState_Pending
+	AmbassadorHostState_Ready
+	AmbassadorHostState_Error
 )
 
 var (
-	hostState_name = map[HostState]string{
+	hostState_name = map[AmbassadorHostState]string{
 		0: "Initial",
 		1: "Pending",
 		2: "Ready",
 		3: "Error",
 	}
 
-	hostState_value = map[string]HostState{
+	hostState_value = map[string]AmbassadorHostState{
 		"Initial": 0,
 		"Pending": 1,
 		"Ready":   2,
@@ -59,15 +59,15 @@ var (
 	}
 )
 
-func (o HostState) MarshalJSON() ([]byte, error) {
+func (o AmbassadorHostState) MarshalJSON() ([]byte, error) {
 	return json.Marshal(o.String())
 }
 
-func (o HostState) String() string {
+func (o AmbassadorHostState) String() string {
 	return hostState_name[o]
 }
 
-func (o *HostState) UnmarshalJSON(data []byte) error {
+func (o *AmbassadorHostState) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
 		*o = 0
 		return nil
@@ -83,40 +83,40 @@ func (o *HostState) UnmarshalJSON(data []byte) error {
 }
 
 const (
-	HostPhase_NA = HostPhase(iota)
-	HostPhase_DefaultsFilled
-	HostPhase_ACMEUserPrivateKeyCreated
-	HostPhase_ACMEUserRegistered
-	HostPhase_ACMECertificateChallenge
+	AmbassadorHostPhase_NA = AmbassadorHostPhase(iota)
+	AmbassadorHostPhase_DefaultsFilled
+	AmbassadorHostPhase_ACMEUserPrivateKeyCreated
+	AmbassadorHostPhase_ACMEUserRegistered
+	AmbassadorHostPhase_ACMECertificateChallenge
 )
 
 var (
-	hostPhase_name = map[HostPhase]string{
-		HostPhase_NA:                        "NA",
-		HostPhase_DefaultsFilled:            "DefaultsFilled",
-		HostPhase_ACMEUserPrivateKeyCreated: "ACMEUserPrivateKeyCreated",
-		HostPhase_ACMEUserRegistered:        "ACMEUserRegistered",
-		HostPhase_ACMECertificateChallenge:  "ACMECertificateChallenge",
+	hostPhase_name = map[AmbassadorHostPhase]string{
+		AmbassadorHostPhase_NA:                        "NA",
+		AmbassadorHostPhase_DefaultsFilled:            "DefaultsFilled",
+		AmbassadorHostPhase_ACMEUserPrivateKeyCreated: "ACMEUserPrivateKeyCreated",
+		AmbassadorHostPhase_ACMEUserRegistered:        "ACMEUserRegistered",
+		AmbassadorHostPhase_ACMECertificateChallenge:  "ACMECertificateChallenge",
 	}
 
-	hostPhase_value = map[string]HostPhase{
-		"NA":                        HostPhase_NA,
-		"DefaultsFilled":            HostPhase_DefaultsFilled,
-		"ACMEUserPrivateKeyCreated": HostPhase_ACMEUserPrivateKeyCreated,
-		"ACMEUserRegistered":        HostPhase_ACMEUserRegistered,
-		"ACMECertificateChallenge":  HostPhase_ACMECertificateChallenge,
+	hostPhase_value = map[string]AmbassadorHostPhase{
+		"NA":                        AmbassadorHostPhase_NA,
+		"DefaultsFilled":            AmbassadorHostPhase_DefaultsFilled,
+		"ACMEUserPrivateKeyCreated": AmbassadorHostPhase_ACMEUserPrivateKeyCreated,
+		"ACMEUserRegistered":        AmbassadorHostPhase_ACMEUserRegistered,
+		"ACMECertificateChallenge":  AmbassadorHostPhase_ACMECertificateChallenge,
 	}
 )
 
-func (o HostPhase) MarshalJSON() ([]byte, error) {
+func (o AmbassadorHostPhase) MarshalJSON() ([]byte, error) {
 	return json.Marshal(o.String())
 }
 
-func (o HostPhase) String() string {
+func (o AmbassadorHostPhase) String() string {
 	return hostPhase_name[o]
 }
 
-func (o *HostPhase) UnmarshalJSON(data []byte) error {
+func (o *AmbassadorHostPhase) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
 		*o = 0
 		return nil
