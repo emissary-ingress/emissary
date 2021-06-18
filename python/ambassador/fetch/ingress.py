@@ -157,14 +157,14 @@ class IngressProcessor (ManagedKubernetesProcessor):
                     }
 
                     ingress_host = NormalizedResource.from_data(
-                        'Host',
+                        'AmbassadorHost',
                         tls_unique_identifier,
                         namespace=obj.namespace,
                         labels=obj.labels,
                         spec=spec,
                     )
 
-                    self.logger.debug(f"Generated Host from ingress {obj.name}: {ingress_host}")
+                    self.logger.debug(f"Generated AmbassadorHost from ingress {obj.name}: {ingress_host}")
                     self.manager.emit(ingress_host)
 
         # parse ingress.spec.defaultBackend
@@ -181,18 +181,19 @@ class IngressProcessor (ManagedKubernetesProcessor):
                 mapping_labels["a10r-k8s-ingress"] = ingress_id
 
             default_backend_mapping = NormalizedResource.from_data(
-                'Mapping',
+                'AmbassadorMapping',
                 db_mapping_identifier,
                 namespace=obj.namespace,
                 labels=mapping_labels,
                 spec={
                     'ambassador_id': obj.ambassador_id,
+                    'hostname': '*',
                     'prefix': '/',
                     'service': f'{db_service_name}.{obj.namespace}:{db_service_port}'
                 },
             )
 
-            self.logger.debug(f"Generated mapping from Ingress {obj.name}: {default_backend_mapping}")
+            self.logger.debug(f"Generated AmbassadorMapping from Ingress {obj.name}: {default_backend_mapping}")
             self.manager.emit(default_backend_mapping)
 
         # parse ingress.spec.rules
@@ -253,14 +254,14 @@ class IngressProcessor (ManagedKubernetesProcessor):
                     mapping_labels["a10r-k8s-ingress"] = ingress_id
 
                 path_mapping = NormalizedResource.from_data(
-                    'Mapping',
+                    'AmbassadorMapping',
                     mapping_identifier,
                     namespace=obj.namespace,
                     labels=mapping_labels,
                     spec=spec,
                 )
 
-                self.logger.debug(f"Generated mapping from Ingress {obj.name}: {path_mapping}")
+                self.logger.debug(f"Generated AmbassadorMapping from Ingress {obj.name}: {path_mapping}")
                 self.manager.emit(path_mapping)
 
         # let's make arrangements to update Ingress' status now
