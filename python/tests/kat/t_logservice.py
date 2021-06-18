@@ -60,7 +60,7 @@ spec:
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: LogService
 name: custom-http-logging
 service: stenography:25565
@@ -82,7 +82,7 @@ flush_interval_byte_size: 1
       """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  config__dump
 host: "*"
@@ -199,7 +199,7 @@ spec:
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: LogService
 name: custom-http-logging
 service: stenographylongservicenamewithnearly60characterss:25565
@@ -221,7 +221,7 @@ flush_interval_byte_size: 1
       """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  config__dump-longservicename
 host: "*"

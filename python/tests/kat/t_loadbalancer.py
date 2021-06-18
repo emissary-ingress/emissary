@@ -37,14 +37,14 @@ class LoadBalancerTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-0
 host: "*"
 prefix: /{self.name}-0/
 service: {self.target.path.fqdn}
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-1
 host: "*"
@@ -54,7 +54,7 @@ resolver:  endpoint
 load_balancer:
   policy: round_robin
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-2
 host: "*"
@@ -65,7 +65,7 @@ load_balancer:
   policy: ring_hash
   header: test-header
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-3
 host: "*"
@@ -76,7 +76,7 @@ load_balancer:
   policy: ring_hash
   source_ip: True
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-4
 host: "*"
@@ -88,7 +88,7 @@ load_balancer:
   cookie:
     name: test-cookie
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-5
 host: "*"
@@ -102,7 +102,7 @@ load_balancer:
   header: test-header
   source_ip: True
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-6
 host: "*"
@@ -114,7 +114,7 @@ load_balancer:
   cookie:
     name: test-cookie
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-7
 host: "*"
@@ -124,7 +124,7 @@ resolver: endpoint
 load_balancer:
   policy: rr
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-8
 host: "*"
@@ -134,7 +134,7 @@ resolver: endpoint
 load_balancer:
   policy: least_request
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-9
 host: "*"
@@ -191,7 +191,7 @@ spec:
 
     def config(self):
         yield self, self.format("""
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
@@ -200,7 +200,7 @@ config:
     policy: ring_hash
     header: LB-HEADER
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-header
 host: "*"
@@ -211,7 +211,7 @@ load_balancer:
   cookie:
     name: lb-cookie
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-generic
 host: "*"
@@ -343,7 +343,7 @@ spec:
             self.policy = policy
             yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-header-{self.policy}
 host: "*"
@@ -354,7 +354,7 @@ load_balancer:
   policy: {self.policy}
   header: LB-HEADER
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-sourceip-{self.policy}
 host: "*"
@@ -365,7 +365,7 @@ load_balancer:
   policy: {self.policy}
   source_ip: true
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-cookie-{self.policy}
 host: "*"
@@ -379,7 +379,7 @@ load_balancer:
     ttl: 125s
     path: /foo
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-cookie-no-ttl-{self.policy}
 host: "*"

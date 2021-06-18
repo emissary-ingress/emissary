@@ -39,7 +39,7 @@ spec:
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -48,7 +48,7 @@ proto: grpc
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"
@@ -179,7 +179,7 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 name: {self.name}-same-context-1
 secret: auth-partial-secret
@@ -209,7 +209,7 @@ include_body:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"
@@ -274,7 +274,7 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
@@ -282,12 +282,12 @@ config:
   buffer:
     max_request_bytes: 16384
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 name: {self.name}-same-context-1
 secret: auth-buffered-secret
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -313,7 +313,7 @@ include_body:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"
@@ -417,13 +417,13 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 name: {self.name}-failure-context
 secret: auth-failure-secret
 
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -439,7 +439,7 @@ failure_mode_allow: true
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"
@@ -480,7 +480,7 @@ class AuthenticationTestV1(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: AuthService
 name:  {self.auth1.path.k8s}
 auth_service: "{self.auth1.path.fqdn}"
@@ -503,7 +503,7 @@ status_on_error:
   code: 503
 
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: AuthService
 name:  {self.auth2.path.k8s}
 auth_service: "{self.auth2.path.fqdn}"
@@ -529,14 +529,14 @@ status_on_error:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.fqdn}-unauthed
 host: "*"
@@ -698,25 +698,28 @@ class AuthenticationTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
 path_prefix: "/extauth"
 
-allowed_headers:
+allowed_request_headers:
 - X-Foo
 - X-Bar
 - Requested-Location
 - Requested-Status
 - Requested-Header
+
+allowed_authorization_headers:
 - X-Foo
+- X-Bar
 - Extauth
 
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"
@@ -830,7 +833,7 @@ class AuthenticationWebsocketTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -840,7 +843,7 @@ allowed_request_headers:
 - Requested-Status
 allow_request_body: true
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name: {self.name}
 host: "*"
@@ -883,7 +886,7 @@ proto: grpc
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"
@@ -978,7 +981,7 @@ proto: grpc
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"

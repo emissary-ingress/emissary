@@ -38,7 +38,7 @@ class SimpleMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -153,7 +153,7 @@ metadata:
     getambassador.io/ambassador-id: plain
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Mapping
       name:  {self.name}-nested
       host: "*"
@@ -231,7 +231,7 @@ class HostHeaderMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -438,7 +438,7 @@ class InvalidPortMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -471,7 +471,7 @@ class WebSocketMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -496,7 +496,7 @@ class TLSOrigination(MappingTest):
 
     IMPLICIT = """
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -506,7 +506,7 @@ service: https://{self.target.path.fqdn}
 
     EXPLICIT = """
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -679,7 +679,7 @@ class CanaryMapping(MappingTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -688,7 +688,7 @@ service: http://{self.target.path.fqdn}
 """)
         yield self.canary, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-canary
 host: "*"
@@ -742,7 +742,7 @@ class CanaryDiffMapping(MappingTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -752,7 +752,7 @@ host_rewrite: canary.1.example.com
 """)
         yield self.canary, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}-canary
 host: "*"
@@ -801,7 +801,7 @@ class AddRespHeadersMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -846,7 +846,7 @@ class EdgeStackMapping(MappingTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -874,7 +874,7 @@ class RemoveReqHeadersMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -912,7 +912,7 @@ class AddReqHeadersMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"
@@ -958,7 +958,7 @@ class LinkerdHeaderMapping(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
@@ -972,7 +972,7 @@ config:
         remove_request_headers:
         - x-evil-header
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: {self.target_add_linkerd_header_only.path.k8s}
 host: "*"
@@ -981,7 +981,7 @@ service: {self.target_add_linkerd_header_only.path.fqdn}
 add_request_headers: {{}}
 remove_request_headers: []
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: {self.target_no_header.path.k8s}
 host: "*"
@@ -989,7 +989,7 @@ prefix: /target_no_header/
 service: {self.target_no_header.path.fqdn}
 add_linkerd_headers: false
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: {self.target.path.k8s}
 host: "*"

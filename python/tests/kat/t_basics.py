@@ -56,7 +56,7 @@ class AmbassadorIDTest(AmbassadorTest):
     def config(self) -> Union[str, Tuple[Node, str]]:
         yield self, """
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config: 
@@ -69,7 +69,7 @@ config:
                                ("missme-array", "[missme1, missme2]")):
             yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.path.k8s}-{prefix}
 host: "*"
@@ -260,13 +260,13 @@ class ServerNameTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
   server_name: "test-server"
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.path.k8s}/server-name
 host: "*"
@@ -291,7 +291,7 @@ class SafeRegexMapping(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/

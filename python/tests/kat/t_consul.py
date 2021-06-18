@@ -113,14 +113,14 @@ spec:
     def config(self):
         yield self.k8s_target, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.path.k8s}_k8s_mapping
 host: "*"
 prefix: /{self.path.k8s}_k8s/
 service: {self.k8s_target.path.k8s}
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.path.k8s}_consul_mapping
 host: "*"
@@ -131,7 +131,7 @@ resolver: {self.path.k8s}-resolver
 load_balancer:
   policy: round_robin
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.path.k8s}_consul_node_mapping
 host: "*"
@@ -146,7 +146,7 @@ kind:  TLSContext
 name:  {self.path.k8s}-client-context
 secret: {self.path.k8s}-client-cert-secret
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Host
 name:  {self.path.k8s}-client-host
 requestPolicy:

@@ -316,11 +316,11 @@ _generate_controller_gen: $(tools/controller-gen) $(tools/fix-crds) update-yaml-
 
 $(OSS_HOME)/manifests/emissary/emissary-crds.yaml: _generate_controller_gen $(tools/fix-crds) update-yaml-preflight
 	@printf '  $(CYN)$@$(END)\n'
-	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/getambassador.io_*.yaml)) > $@
+	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/*getambassador.io_*.yaml)) > $@
 
 $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml: _generate_controller_gen $(tools/fix-crds) update-yaml-preflight
 	@printf '  $(CYN)$@$(END)\n'
-	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/getambassador.io_*.yaml)) > $@
+	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/*getambassador.io_*.yaml)) > $@
 
 update-yaml/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
 update-yaml/files += $(OSS_HOME)/manifests/emissary/emissary-ingress.yaml
