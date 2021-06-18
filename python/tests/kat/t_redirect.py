@@ -72,8 +72,8 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tls_target_mapping
 host: "*"
 prefix: /tls-target/
@@ -125,8 +125,8 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tls_target_mapping
 host: "*"
 prefix: /tls-target/
@@ -190,8 +190,8 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tls_target_mapping
 host: "*"
 prefix: /tls-target/
@@ -244,8 +244,8 @@ spec:
     namespace:
       from: ALL
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: weird-xfp-test-host
 spec:
@@ -263,8 +263,8 @@ name: ambassador
 config:
   use_remote_address: false
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
 host: "*"
 prefix: /{self.name}/

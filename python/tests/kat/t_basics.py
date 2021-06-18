@@ -69,8 +69,8 @@ config:
                                ("missme-array", "[missme1, missme2]")):
             yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.path.k8s}-{prefix}
 host: "*"
 prefix: /{prefix}/
@@ -102,8 +102,8 @@ spec:
   ambassador_id: ["{self.ambassador_id}"]
   service_bad: {self.target.path.fqdn}
 ""","""
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name:  {self.path.k8s}-m-good-<<WHICH>>
 spec:
@@ -112,8 +112,8 @@ spec:
   prefix: /good-<<WHICH>>/
   service: {self.target.path.fqdn}
 """, """
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name:  {self.path.k8s}-m-bad-<<WHICH>>
 spec:
@@ -138,8 +138,8 @@ spec:
   ambassador_id: ["{self.ambassador_id}"]
   service_bad: {self.target.path.fqdn}
 """, """
-apiVersion: getambassador.io/v2
-kind:  TCPMapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorTCPMapping
 metadata:
   name:  {self.path.k8s}-tm-bad1-<<WHICH>>
 spec:
@@ -147,8 +147,8 @@ spec:
   service: {self.target.path.fqdn}
   port_bad: 8888
 """, """
-apiVersion: getambassador.io/v2
-kind:  TCPMapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorTCPMapping
 metadata:
   name:  {self.path.k8s}-tm-bad2-<<WHICH>>
 spec:
@@ -266,8 +266,8 @@ name:  ambassador
 config:
   server_name: "test-server"
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.path.k8s}/server-name
 host: "*"
 prefix: /server-name
@@ -291,8 +291,8 @@ class SafeRegexMapping(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
 prefix: /{self.name}/
 prefix_regex: true
@@ -326,8 +326,8 @@ class UnsafeRegexMapping(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
 prefix: /{self.name}/
 prefix_regex: true

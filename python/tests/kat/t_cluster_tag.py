@@ -12,8 +12,8 @@ class ClusterTagTest(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: cluster-tag-1
 spec:
@@ -22,8 +22,8 @@ spec:
   prefix: /mapping-1/
   service: {self.target_1.path.fqdn}
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: cluster-tag-2
 spec:
@@ -33,8 +33,8 @@ spec:
   service: {self.target_1.path.fqdn}
   cluster_tag: tag-1
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: cluster-tag-3
 spec:
@@ -44,8 +44,8 @@ spec:
   service: {self.target_1.path.fqdn}
   cluster_tag: tag-2
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: cluster-tag-4
 spec:
@@ -55,8 +55,8 @@ spec:
   service: {self.target_2.path.fqdn}
   cluster_tag: tag-2
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: cluster-tag-5
 spec:
@@ -66,8 +66,8 @@ spec:
   service: {self.target_1.path.fqdn}
   cluster_tag: some-really-long-tag-that-is-really-long
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: cluster-tag-6
 spec:
