@@ -57,7 +57,9 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             auth_service:
               type: string
             failure_mode_allow:
@@ -148,7 +150,9 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             datacenter:
               type: string
           type: object
@@ -197,7 +201,9 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             content:
               description: Content specifies where the content shown in the DevPortal come from
               properties:
@@ -339,12 +345,16 @@ spec:
               description: Common to all Ambassador objects (and optional).
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             ambassadorId:
               description: A compatibility alias for "ambassador_id"; because Host used to be specified with protobuf, and jsonpb allowed either "ambassador_id" or "ambassadorId", and even though we didn't tell people about "ambassadorId" it's what the web policy console generated because of jsonpb.  So Hosts with 'ambassadorId' exist in the wild.
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             hostname:
               description: Hostname by which the Ambassador can be reached.
               type: string
@@ -542,7 +552,9 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
           type: object
       type: object
   version: v2
@@ -589,7 +601,9 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
           type: object
       type: object
   version: v2
@@ -636,7 +650,9 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             driver:
               enum:
               - tcp
@@ -751,7 +767,9 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             auth_context_extensions:
               additionalProperties:
                 type: string
@@ -796,23 +814,35 @@ spec:
                 credentials:
                   type: boolean
                 exposed_headers:
+                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
                 headers:
+                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
                 max_age:
                   type: string
                 methods:
+                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
                 origins:
+                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
               type: object
             docs:
               description: DocsInfo provides some extra information about the docs for the Mapping (used by the Dev Portal)
@@ -1013,13 +1043,19 @@ spec:
                 - type: boolean
               type: object
             remove_request_headers:
+              description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             remove_response_headers:
+              description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             resolver:
               type: string
             retry_policy:
@@ -1117,7 +1153,9 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             config:
               description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
               type: object
@@ -1167,7 +1205,9 @@ spec:
               description: Common to all Ambassador objects.
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             domain:
               type: string
             protocol_version:
@@ -1234,7 +1274,9 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             circuit_breakers:
               items:
                 properties:
@@ -1329,7 +1371,9 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             ca_secret:
               type: string
             cacert_chain_file:
@@ -1420,7 +1464,9 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             config:
               properties:
                 access_token_file:

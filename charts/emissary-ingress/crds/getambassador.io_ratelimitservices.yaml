@@ -39,7 +39,9 @@ spec:
               description: Common to all Ambassador objects.
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             domain:
               type: string
             protocol_version:
