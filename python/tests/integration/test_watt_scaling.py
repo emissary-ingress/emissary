@@ -31,8 +31,8 @@ metadata:
     def create_qotm_mapping(self, namespace):
         qotm_mapping = f"""
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name:  qotm-mapping
   namespace: {namespace}
@@ -50,8 +50,8 @@ spec:
     def delete_qotm_mapping(self, namespace):
         qotm_mapping = f"""
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name:  qotm-mapping
   namespace: {namespace}

@@ -90,8 +90,8 @@ spec:
 
 valid_mapping = k8s_object_from_yaml('''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: test
   namespace: default
@@ -103,8 +103,8 @@ spec:
 
 valid_mapping_v1 = k8s_object_from_yaml('''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: test
   namespace: default
@@ -359,8 +359,8 @@ class TestServiceAnnotations:
                 'name': 'test',
                 'namespace': 'default',
                 'annotations': {
-                    'getambassador.io/config': """apiVersion: getambassador.io/v2
-kind: Mapping
+                    'getambassador.io/config': """apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name: test_mapping
 host: "*"
 prefix: /test/

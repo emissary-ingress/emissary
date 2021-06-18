@@ -141,8 +141,8 @@ def create_namespace(namespace):
 def create_qotm_mapping(namespace):
     qotm_mapping = f"""
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name:  qotm-mapping
   namespace: {namespace}
@@ -157,8 +157,8 @@ spec:
 def create_httpbin_mapping(namespace):
     httpbin_mapping = f"""
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name:  httpbin-mapping
   namespace: {namespace}
@@ -222,8 +222,8 @@ spec:
 
     yaml = yaml + """
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: ambassador
   namespace: default
