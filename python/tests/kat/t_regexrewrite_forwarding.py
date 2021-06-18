@@ -12,8 +12,8 @@ class RegexRewriteForwardingTest(AmbassadorTest):
     def config(self):
         yield self.target, self.format(r"""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  regex_rewrite_mapping
 host: "*"
 prefix: /foo/
@@ -43,8 +43,8 @@ class RegexRewriteForwardingWithExtractAndSubstituteTest(AmbassadorTest):
     def config(self):
         yield self.target, self.format(r"""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  regex_rewrite_mapping
 host: "*"
 prefix: /foo/

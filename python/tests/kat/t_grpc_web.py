@@ -23,8 +23,8 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 grpc: True
 host: "*"
 prefix: /echo.EchoService/
