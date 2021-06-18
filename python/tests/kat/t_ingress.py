@@ -248,8 +248,8 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: getambassador.io/v2
-      kind:  Mapping
+      apiVersion: x.getambassador.io/v3alpha1
+      kind: AmbassadorMapping
       name:  {self.name}-nested
       host: "*"
       prefix: /{self.name}-nested/

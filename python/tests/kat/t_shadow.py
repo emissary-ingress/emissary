@@ -61,24 +61,24 @@ spec:
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-target
 host: "*"
 prefix: /{self.name}/mark/
 rewrite: /mark/
 service: https://{self.target.path.fqdn}
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-weighted-target
 host: "*"
 prefix: /{self.name}/weighted-mark/
 rewrite: /mark/
 service: https://{self.target.path.fqdn}
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-shadow
 host: "*"
 prefix: /{self.name}/mark/
@@ -86,8 +86,8 @@ rewrite: /mark/
 service: shadow.plain-namespace
 shadow: true
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-weighted-shadow
 host: "*"
 prefix: /{self.name}/weighted-mark/
@@ -96,8 +96,8 @@ service: shadow.plain-namespace
 weight: 10
 shadow: true
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-checkshadow
 host: "*"
 prefix: /{self.name}/check/
