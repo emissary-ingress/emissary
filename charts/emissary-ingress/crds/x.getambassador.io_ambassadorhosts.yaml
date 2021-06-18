@@ -71,7 +71,7 @@ spec:
               description: Common to all Ambassador objects (and optional).
               items:
                 type: string
-              type: array
+              type: d6e-union:string,array
             hostname:
               description: Hostname by which the Ambassador can be reached.
               type: string

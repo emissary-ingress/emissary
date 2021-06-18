@@ -1597,7 +1597,9 @@ spec:
               description: Common to all Ambassador objects (and optional).
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             hostname:
               description: Hostname by which the Ambassador can be reached.
               type: string
@@ -1812,7 +1814,9 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             hostBinding:
               description: HostBinding allows restricting which Hosts will be used for this AmbassadorListener.
               properties:
@@ -1983,7 +1987,9 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             auth_context_extensions:
               additionalProperties:
                 type: string
@@ -2352,7 +2358,9 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             circuit_breakers:
               items:
                 properties:
@@ -2445,7 +2453,9 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             auth_service:
               type: string
           required:
