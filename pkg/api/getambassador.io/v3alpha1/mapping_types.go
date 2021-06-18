@@ -119,6 +119,7 @@ type AmbassadorMappingSpec struct {
 	ErrorResponseOverrides []ambv2.ErrorResponseOverride `json:"error_response_overrides,omitempty"`
 	Modules                []ambv2.UntypedDict           `json:"modules,omitempty"`
 	Host                   string                        `json:"host,omitempty"`
+	Hostname               string                        `json:"hostname,omitempty"`
 	HostRegex              *bool                         `json:"host_regex,omitempty"`
 	Headers                map[string]ambv2.BoolOrString `json:"headers,omitempty"`
 	RegexHeaders           map[string]ambv2.BoolOrString `json:"regex_headers,omitempty"`
