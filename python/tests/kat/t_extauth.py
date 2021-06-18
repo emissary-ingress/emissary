@@ -704,13 +704,16 @@ name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
 path_prefix: "/extauth"
 
-allowed_headers:
+allowed_request_headers:
 - X-Foo
 - X-Bar
 - Requested-Location
 - Requested-Status
 - Requested-Header
+
+allowed_authorization_headers:
 - X-Foo
+- X-Bar
 - Extauth
 
 """)
