@@ -78,7 +78,9 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             auth_context_extensions:
               additionalProperties:
                 type: string
@@ -123,23 +125,35 @@ spec:
                 credentials:
                   type: boolean
                 exposed_headers:
+                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
                 headers:
+                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
                 max_age:
                   type: string
                 methods:
+                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
                 origins:
+                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
               type: object
             docs:
               description: DocsInfo provides some extra information about the docs for the Mapping (used by the Dev Portal)
@@ -340,13 +354,19 @@ spec:
                 - type: boolean
               type: object
             remove_request_headers:
+              description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             remove_response_headers:
+              description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             resolver:
               type: string
             retry_policy:
