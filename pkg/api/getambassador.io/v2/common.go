@@ -227,7 +227,41 @@ type ErrorResponseOverride struct {
 //
 //    ambassador_id:
 //    - "default"
+//
+// +kubebuilder:validation:Type="d6e-union:string,array"
 type AmbassadorID []string
+
+func (aid *AmbassadorID) UnmarshalJSON(data []byte) error {
+	return (*StringOrStringList)(aid).UnmarshalJSON(data)
+}
+
+// StringOrStringList is just what it says on the tin, but note that it will always
+// marshal as a list of strings right now.
+// +kubebuilder:validation:Type="d6e-union:string,array"
+type StringOrStringList []string
+
+func (sl *StringOrStringList) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		*sl = nil
+		return nil
+	}
+
+	var err error
+	var list []string
+	var single string
+
+	if err = json.Unmarshal(data, &single); err == nil {
+		*sl = StringOrStringList([]string{single})
+		return nil
+	}
+
+	if err = json.Unmarshal(data, &list); err == nil {
+		*sl = StringOrStringList(list)
+		return nil
+	}
+
+	return err
+}
 
 // BoolOrString is a type that can hold a Boolean or a string.
 //
