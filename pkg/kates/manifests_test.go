@@ -84,7 +84,7 @@ func TestMergeUpdate(t *testing.T) {
 }
 
 const mapping = `---
-apiVersion: getambassador.io/v3alpha1
+apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 metadata:
   name:  mapping-name
@@ -101,7 +101,7 @@ func TestParseManifestsResultTypes(t *testing.T) {
 	m := objs[0]
 	t.Log(m)
 	t.Log(reflect.TypeOf(m))
-	_, ok := m.(*amb.Mapping)
+	_, ok := m.(*amb.AmbassadorMapping)
 	require.True(t, ok)
 }
 

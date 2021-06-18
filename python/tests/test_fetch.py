@@ -127,13 +127,13 @@ class TestKubernetesGVK:
         assert gvk.domain == 'service'
 
     def test_group(self):
-        gvk = KubernetesGVK.for_ambassador('Mapping')
+        gvk = KubernetesGVK.for_ambassador('AmbassadorMapping', version='v3alpha1')
 
-        assert gvk.api_version == 'getambassador.io/v2'
-        assert gvk.kind == 'Mapping'
-        assert gvk.api_group == 'getambassador.io'
-        assert gvk.version == 'v2'
-        assert gvk.domain == 'mapping.getambassador.io'
+        assert gvk.api_version == 'x.getambassador.io/v3alpha1'
+        assert gvk.kind == 'AmbassadorMapping'
+        assert gvk.api_group == 'x.getambassador.io'
+        assert gvk.version == 'v3alpha1'
+        assert gvk.domain == 'ambassadormapping.x.getambassador.io'
 
 
 class TestKubernetesObject:
@@ -248,6 +248,7 @@ class TestAmbassadorProcessor:
 
         assert AmbassadorProcessor(mgr).try_process(valid_mapping_v1)
         assert len(mgr.elements) == 1
+        print(f"mgr.elements[0]={mgr.elements[0].apiVersion}")
 
         aconf.load_all(mgr.elements)
         assert len(aconf.errors) == 0
@@ -372,8 +373,8 @@ service: test:9999""",
         assert len(self.manager.elements) == 1
 
         expected = {
-            'apiVersion': 'getambassador.io/v2',
-            'kind': 'Mapping',
+            'apiVersion': 'x.getambassador.io/v3alpha1',
+            'kind': 'AmbassadorMapping',
             'name': 'test_mapping',
             'host': "*",
             'prefix': '/test/',
