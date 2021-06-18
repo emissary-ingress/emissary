@@ -417,7 +417,7 @@ kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
 path_prefix: "/extauth"
-allowed_headers:
+allowed_request_headers:
 - Requested-Status
 - Requested-Header
 """)
