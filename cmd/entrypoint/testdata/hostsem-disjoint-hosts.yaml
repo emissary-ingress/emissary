@@ -29,8 +29,8 @@ spec:
       matchLabels:
         listener-9999: "yes"
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: h1-host
   labels:
@@ -47,8 +47,8 @@ spec:
     matchLabels:
       h1-host: "yes"
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: h2-host
   labels:
@@ -64,8 +64,8 @@ spec:
     matchLabels:
       h2-host: "yes"
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: h3-host
 spec:
@@ -79,8 +79,8 @@ spec:
     matchLabels:
       h3-host: "yes"
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: qotm-mapping
   labels:
@@ -91,8 +91,8 @@ spec:
   prefix: /quote/
   service: quote.ambassador
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: mapping-to-ignore
   labels:

@@ -38,10 +38,10 @@ class SimpleMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 """)
@@ -153,10 +153,10 @@ metadata:
     getambassador.io/ambassador-id: plain
     getambassador.io/config: |
       ---
-      apiVersion: getambassador.io/v2
-      kind:  Mapping
+      apiVersion: x.getambassador.io/v3alpha1
+      kind: AmbassadorMapping
       name:  {self.name}-nested
-      host: "*"
+      hostname: "*"
       prefix: /{self.name}-nested/
       service: http://{self.target.path.fqdn}
       ambassador_id: plain
@@ -231,10 +231,9 @@ class HostHeaderMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 host: inspector.external
@@ -267,10 +266,9 @@ name:  ambassador
 config:
   strip_matching_host_port: true
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 host: myhostname.com
@@ -301,10 +299,10 @@ class MergeSlashesDisabled(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
 service: httpbin.default
@@ -337,10 +335,10 @@ name:  ambassador
 config:
   merge_slashes: true
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
 service: httpbin.default
@@ -366,10 +364,10 @@ class RejectRequestsWithEscapedSlashesDisabled(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
 service: httpbin
@@ -405,10 +403,10 @@ name:  ambassador
 config:
   reject_requests_with_escaped_slashes: true
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
 service: httpbin
@@ -438,10 +436,10 @@ class InvalidPortMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}:80.invalid
 """)
@@ -471,10 +469,10 @@ class WebSocketMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: websocket-echo-server.default
 use_websocket: true
@@ -496,20 +494,20 @@ class TLSOrigination(MappingTest):
 
     IMPLICIT = """
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: https://{self.target.path.fqdn}
 """
 
     EXPLICIT = """
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
 tls: true
@@ -549,47 +547,47 @@ class HostRedirectMapping(MappingTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: foobar.com
 host_redirect: true
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-2
-host: "*"
+hostname: "*"
 prefix: /{self.name}-2/
 case_sensitive: false
 service: foobar.com
 host_redirect: true
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-3
-host: "*"
+hostname: "*"
 prefix: /{self.name}-3/foo/
 service: foobar.com
 host_redirect: true
 path_redirect: /redirect/
 redirect_response_code: 302
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-4
-host: "*"
+hostname: "*"
 prefix: /{self.name}-4/foo/bar/baz
 service: foobar.com
 host_redirect: true
 prefix_redirect: /foobar/baz
 redirect_response_code: 307
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-5
-host: "*"
+hostname: "*"
 prefix: /{self.name}-5/assets/([a-f0-9]{{12}})/images
 prefix_regex: true
 service: foobar.com
@@ -679,19 +677,19 @@ class CanaryMapping(MappingTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 """)
         yield self.canary, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-canary
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: http://{self.canary.path.fqdn}
 weight: {self.weight}
@@ -742,20 +740,20 @@ class CanaryDiffMapping(MappingTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 host_rewrite: canary.1.example.com
 """)
         yield self.canary, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-canary
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: http://{self.canary.path.fqdn}
 host_rewrite: canary.2.example.com
@@ -801,10 +799,10 @@ class AddRespHeadersMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: httpbin.default
 add_response_headers:
@@ -846,10 +844,10 @@ class EdgeStackMapping(MappingTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 """)
@@ -874,10 +872,10 @@ class RemoveReqHeadersMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: httpbin.default
 remove_request_headers:
@@ -912,10 +910,10 @@ class AddReqHeadersMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 add_request_headers:
@@ -972,27 +970,27 @@ config:
         remove_request_headers:
         - x-evil-header
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name: {self.target_add_linkerd_header_only.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target_add_linkerd_header_only/
 service: {self.target_add_linkerd_header_only.path.fqdn}
 add_request_headers: {{}}
 remove_request_headers: []
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name: {self.target_no_header.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target_no_header/
 service: {self.target_no_header.path.fqdn}
 add_linkerd_headers: false
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name: {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 add_request_headers:
@@ -1051,25 +1049,25 @@ class SameMappingDifferentNamespaces(AmbassadorTest):
             namespace_manifest('same-mapping-2') + \
             self.format('''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.target.path.k8s}
   namespace: same-mapping-1
 spec:
   ambassador_id: {self.ambassador_id}
-  host: "*"
+  hostname: "*"
   prefix: /{self.name}-1/
   service: {self.target.path.fqdn}.default
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.target.path.k8s}
   namespace: same-mapping-2
 spec:
   ambassador_id: {self.ambassador_id}
-  host: "*"
+  hostname: "*"
   prefix: /{self.name}-2/
   service: {self.target.path.fqdn}.default
 ''') + super().manifests()
@@ -1096,13 +1094,13 @@ spec:
   type: ExternalName
   externalName: httpbin.default.svc.cluster.local
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.target.path.k8s}
 spec:
   ambassador_id: {self.ambassador_id}
-  host: "*"
+  hostname: "*"
   prefix: /{self.name}-1/
   service: thisisaverylongservicenameoverwithsixythreecharacters123456789
 ''') + super().manifests()

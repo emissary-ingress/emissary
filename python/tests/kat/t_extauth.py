@@ -22,14 +22,14 @@ class AuthenticationGRPCTest(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: auth-context-mapping
 spec:
   ambassador_id: {self.ambassador_id}
   service: {self.target.path.fqdn}
-  host: "*"
+  hostname: "*"
   prefix: /context-extensions-crd/
   auth_context_extensions:
     context: "auth-context-name"
@@ -48,17 +48,17 @@ proto: grpc
 """)
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.target.path.k8s}-context-extensions
-host: "*"
+hostname: "*"
 prefix: /context-extensions/
 service: {self.target.path.fqdn}
 auth_context_extensions:
@@ -209,10 +209,10 @@ include_body:
 """)
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -313,10 +313,10 @@ include_body:
 """)
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -439,10 +439,10 @@ failure_mode_allow: true
 """)
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -529,17 +529,17 @@ status_on_error:
 """)
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.target.path.fqdn}-unauthed
-host: "*"
+hostname: "*"
 prefix: /target/unauthed/
 service: {self.target.path.fqdn}
 bypass_auth: true
@@ -719,10 +719,10 @@ allowed_authorization_headers:
 """)
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -843,10 +843,10 @@ allowed_request_headers:
 - Requested-Status
 allow_request_body: true
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name: {self.name}
-host: "*"
+hostname: "*"
 prefix: /{self.name}/
 service: websocket-echo-server.default
 use_websocket: true
@@ -886,10 +886,10 @@ proto: grpc
 """)
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -981,10 +981,10 @@ proto: grpc
 """)
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)

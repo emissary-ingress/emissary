@@ -69,8 +69,8 @@ class CircuitBreakingTest(AmbassadorTest):
 
         return """
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: cleartext-host
   labels:
@@ -92,10 +92,10 @@ spec:
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.target.path.k8s}-pr
-host: "*"
+hostname: "*"
 prefix: /{self.name}-pr/
 service: {self.target.path.fqdn}
 circuit_breakers:
@@ -103,20 +103,20 @@ circuit_breakers:
   max_pending_requests: 1
   max_connections: 1
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name: {self.name}-reset
 case_sensitive: false
-host: "*"
+hostname: "*"
 prefix: /reset/
 rewrite: /RESET/
 service: cbstatsd-sink
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name: {self.name}-dump
 case_sensitive: false
-host: "*"
+hostname: "*"
 prefix: /dump/
 rewrite: /DUMP/
 service: cbstatsd-sink
@@ -206,8 +206,8 @@ class GlobalCircuitBreakingTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 name: cleartext-host
 port: 8080
 protocol: HTTP
@@ -216,10 +216,10 @@ requestPolicy:
   insecure:
     action: Route
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.target.path.k8s}-pr
-host: "*"
+hostname: "*"
 prefix: /{self.name}-pr/
 service: {self.target.path.fqdn}
 circuit_breakers:
@@ -227,10 +227,10 @@ circuit_breakers:
   max_pending_requests: 1024
   max_connections: 1024
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.target.path.k8s}-normal
-host: "*"
+hostname: "*"
 prefix: /{self.name}-normal/
 service: {self.target.path.fqdn}
 ---
@@ -312,16 +312,16 @@ class CircuitBreakingTCPTest(AmbassadorTest):
     def config(self):
         yield self.target1, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  TCPMapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorTCPMapping
 name:  {self.name}-1
 port: 6789
 service: {self.target1.path.fqdn}:80
 """)
         yield self.target2, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  TCPMapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorTCPMapping
 name:  {self.name}-2
 port: 6790
 service: {self.target2.path.fqdn}:80

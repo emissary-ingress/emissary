@@ -37,7 +37,7 @@ class IRHost(IRResource):
                  location: str,  # REQUIRED
                  namespace: Optional[str]=None,
                  kind: str="IRHost",
-                 apiVersion: str="getambassador.io/v2",   # Not a typo! See below.
+                 apiVersion: str="x.getambassador.io/v3alpha1",   # Not a typo! See below.
                  **kwargs) -> None:
 
         new_args = {
@@ -356,11 +356,18 @@ class IRHost(IRResource):
         host_match = False
         sel_match = False
 
-        group_glob = group.get('host') or None
+        group_regex = group.get('host_regex') or False
 
-        if group_glob:
-            host_match = hostglob_matches(self.hostname, group_glob)
-            self.logger.info("-- hostname %s group glob %s => %s", self.hostname, group_glob, host_match)
+        if group_regex:
+            # It matches.
+            host_match = True
+            self.logger.info("-- hostname %s group regex => %s", self.hostname, host_match)
+        else:
+            group_glob = group.get('host') or None
+
+            if group_glob:
+                host_match = hostglob_matches(self.hostname, group_glob)
+                self.logger.info("-- hostname %s group glob %s => %s", self.hostname, group_glob, host_match)
 
         selector = self.get('selector')
 

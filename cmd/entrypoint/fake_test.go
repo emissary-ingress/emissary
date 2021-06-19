@@ -26,7 +26,7 @@ func TestFake(t *testing.T) {
 	fmt.Println(Jsonify(f.GetSnapshot(AnySnapshot)))
 	fmt.Println(Jsonify(f.GetEnvoyConfig(AnyConfig)))
 
-	f.Delete("Mapping", "default", "foo")
+	f.Delete("AmbassadorMapping", "default", "foo")
 
 	fmt.Println(Jsonify(f.GetSnapshot(AnySnapshot)))
 	fmt.Println(Jsonify(f.GetEnvoyConfig(AnyConfig)))

@@ -42,23 +42,23 @@ def require_errors(ir: IR, errors: List[Tuple[str, str]]):
 def test_hr_good_1():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-1
     namespace: default
 spec:
-    host: "*"
+    hostname: "*"
     prefix: /
     service: svc1
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-2
     namespace: default
 spec:
-    host: "*"
+    hostname: "*"
     prefix: /
     service: svc2
 """
@@ -76,24 +76,24 @@ spec:
 def test_hr_error_1():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-1
     namespace: default
 spec:
-    host: "*"
+    hostname: "*"
     prefix: /
     service: svc1
     host_redirect: true
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-2
     namespace: default
 spec:
-    host: "*"
+    hostname: "*"
     prefix: /
     service: svc2
     host_redirect: true
@@ -116,24 +116,24 @@ spec:
 def test_hr_error_2():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-1
     namespace: default
 spec:
-    host: "*"
+    hostname: "*"
     prefix: /
     service: svc1
     host_redirect: true
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-2
     namespace: default
 spec:
-    host: "*"
+    hostname: "*"
     prefix: /
     service: svc2
 """
@@ -155,23 +155,23 @@ spec:
 def test_hr_error_3():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-1
     namespace: default
 spec:
-    host: "*"
+    hostname: "*"
     prefix: /
     service: svc1
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-2
     namespace: default
 spec:
-    host: "*"
+    hostname: "*"
     prefix: /
     service: svc2
     host_redirect: true
@@ -194,26 +194,26 @@ spec:
 def test_hr_error_4():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-1
     namespace: default
 spec:
-    host: "*"
+    hostname: "*"
     prefix: /svc1
     service: svc1
     host_redirect: true
     path_redirect: /path/
     prefix_redirect: /prefix/
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-2
     namespace: default
 spec:
-    host: "*"
+    hostname: "*"
     prefix: /svc2
     service: svc2
     host_redirect: true
@@ -222,13 +222,13 @@ spec:
       pattern: /regex/
       substitution: /substitution/
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-3
     namespace: default
 spec:
-    host: "*"
+    hostname: "*"
     prefix: /svc3
     service: svc3
     host_redirect: true

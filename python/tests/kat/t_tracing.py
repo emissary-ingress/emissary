@@ -69,10 +69,10 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tracing_target_mapping
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -188,10 +188,10 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tracing_target_mapping_longclustername
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -301,10 +301,10 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tracing_target_mapping_64
-host: "*"
+hostname: "*"
 prefix: /target-64/
 service: {self.target.path.fqdn}
 """)
@@ -393,10 +393,10 @@ spec:
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tracing_target_mapping
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -496,10 +496,10 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tracing_target_mapping_65
-host: "*"
+hostname: "*"
 prefix: /target-65/
 service: {self.target.path.fqdn}
 """)
@@ -598,10 +598,10 @@ spec:
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tracing_target_mapping
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -720,10 +720,10 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tracing_target_mapping
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)

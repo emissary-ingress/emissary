@@ -16,10 +16,10 @@ name:  ambassador
 config:
   preserve_external_request_id: true
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-target
-host: "*"
+hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """)
@@ -45,10 +45,10 @@ kind:  Module
 name:  ambassador
 
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-target
-host: "*"
+hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """)
@@ -70,10 +70,10 @@ class EnvoyHeadersTest(AmbassadorTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-target
-host: "*"
+hostname: "*"
 prefix: /target/
 rewrite: /rewrite/
 timeout_ms: 5001
@@ -108,10 +108,10 @@ name:  ambassador
 config:
   suppress_envoy_headers: true
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-target
-host: "*"
+hostname: "*"
 prefix: /target/
 rewrite: /rewrite/
 timeout_ms: 5001

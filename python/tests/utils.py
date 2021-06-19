@@ -141,13 +141,13 @@ def create_namespace(namespace):
 def create_qotm_mapping(namespace):
     qotm_mapping = f"""
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name:  qotm-mapping
   namespace: {namespace}
 spec:
-  host: "*"
+  hostname: "*"
   prefix: /qotm/
   service: qotm
 """
@@ -157,13 +157,13 @@ spec:
 def create_httpbin_mapping(namespace):
     httpbin_mapping = f"""
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name:  httpbin-mapping
   namespace: {namespace}
 spec:
-  host: "*"
+  hostname: "*"
   prefix: /httpbin/
   rewrite: /
   service: httpbin
@@ -222,13 +222,13 @@ spec:
 
     yaml = yaml + """
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: ambassador
   namespace: default
 spec:
-  host: "*"
+  hostname: "*"
   prefix: /httpbin/
   service: httpbin"""
     if mapping_confs:
@@ -245,23 +245,29 @@ def _secret_handler():
     cache_dir = tempfile.TemporaryDirectory(prefix="null-secret-", suffix="-cache")
     return NullSecretHandler(logger, source_root.name, cache_dir.name, "fake")
 
-def econf_compile(yaml, envoy_version="V2"):
+def compile_with_cachecheck(yaml, envoy_version="V2", errors_ok=False):
     # Compile with and without a cache. Neither should produce errors.
     cache = Cache(logger)
     secret_handler = _secret_handler()
     r1 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, envoy_version=envoy_version)
     r2 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, cache=cache,
             envoy_version=envoy_version)
-    _require_no_errors(r1["ir"])
-    _require_no_errors(r2["ir"])
+
+    if not errors_ok:
+        _require_no_errors(r1["ir"])
+        _require_no_errors(r2["ir"])
 
     # Both should produce equal Envoy config as sorted json.
     r1j = json.dumps(r1[envoy_version.lower()].as_dict(), sort_keys=True, indent=2)
     r2j = json.dumps(r2[envoy_version.lower()].as_dict(), sort_keys=True, indent=2)
     assert r1j == r2j
 
-    # Now we can return the Envoy config as a dictionary
-    return r1[envoy_version.lower()].as_dict()
+    # All good.
+    return r1
+
+def econf_compile(yaml, envoy_version="V2"):
+    compiled = compile_with_cachecheck(yaml, envoy_version=envoy_version)
+    return compiled[envoy_version.lower()].as_dict()
 
 def econf_foreach_hcm(econf, fn, envoy_version='V2', chain_count=2):
     found_hcm = False

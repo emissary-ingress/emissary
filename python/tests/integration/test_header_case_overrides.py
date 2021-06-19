@@ -65,13 +65,13 @@ spec:
 def create_headerecho_mapping(namespace):
     headerecho_mapping = f"""
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name:  headerecho-mapping
   namespace: {namespace}
 spec:
-  host: "*"
+  hostname: "*"
   prefix: /headerecho/
   rewrite: /
   service: headerecho
@@ -116,11 +116,11 @@ def _test_headercaseoverrides(yaml, expectations, expect_norules=False, version=
 
     yaml = yaml + '''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name: httpbin-mapping
 service: httpbin
-host: "*"
+hostname: "*"
 prefix: /httpbin/
 '''
 
