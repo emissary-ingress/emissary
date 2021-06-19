@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 )
@@ -133,9 +134,9 @@ func setup(t *testing.T) (resolvers []*amb.ConsulResolver, mappings []consulMapp
 		switch o := newobj.(type) {
 		case *amb.ConsulResolver:
 			resolvers = append(resolvers, o)
-		case *amb.Mapping:
+		case *v3alpha1.Mapping:
 			mappings = append(mappings, consulMapping{Service: o.Spec.Service, Resolver: o.Spec.Resolver})
-		case *amb.TCPMapping:
+		case *v3alpha1.TCPMapping:
 			mappings = append(mappings, consulMapping{Service: o.Spec.Service, Resolver: o.Spec.Resolver})
 		}
 	}
