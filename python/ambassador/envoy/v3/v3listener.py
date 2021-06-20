@@ -995,9 +995,8 @@ class V3Listener(dict):
             v3listener = V3Listener(config, irlistener)
             v3listener.finalize()
 
-            config.listeners.append(v3listener)
             config.ir.logger.info(f"V3Listener: ==== GENERATED {v3listener}")
-            
+
             if v3listener._log_debug:
                 for k in sorted(v3listener._chains.keys()):
                     chain = v3listener._chains[k]
@@ -1005,3 +1004,9 @@ class V3Listener(dict):
 
                     for r in chain.routes:
                         config.ir.logger.debug("      %s", v3prettyroute(r))
+
+            # Does this listener have any filter chains?
+            if v3listener._filter_chains:
+                config.listeners.append(v3listener)
+            else:
+                irlistener.post_error("No matching AmbassadorHosts found, disabling!")

@@ -68,6 +68,9 @@ class V3Config (EnvoyConfig):
         V3StaticResources.generate(self)
         V3Bootstrap.generate(self)
 
+    def has_listeners(self) -> bool:
+        return len(self.listeners) > 0
+
     def as_dict(self) -> Dict[str, Any]:
         bootstrap_config, ads_config, clustermap = self.split_config()
 
