@@ -306,12 +306,12 @@ controller-gen/options/crd         += crdVersions=v1beta1 # change this to "v1" 
 controller-gen/output/crd           = dir=$(crds_yaml_dir)
 _generate_controller_gen: $(tools/controller-gen) $(tools/fix-crds) update-yaml-preflight
 	@printf '  $(CYN)Running controller-gen$(END)\n'
-	rm -f $(crds_yaml_dir)/getambassador.io_*
+	rm -f $(crds_yaml_dir)/*getambassador.io_*
 	cd $(OSS_HOME) && $(tools/controller-gen) \
 	  $(foreach varname,$(sort $(filter controller-gen/options/%,$(.VARIABLES))), $(patsubst controller-gen/options/%,%,$(varname))$(if $(strip $($(varname))),:$(call joinlist,$(comma),$($(varname)))) ) \
 	  $(foreach varname,$(sort $(filter controller-gen/output/%,$(.VARIABLES))), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
 	  paths="./pkg/api/getambassador.io/..."
-	@PS4=; set -ex; for file in $(crds_yaml_dir)/getambassador.io_*.yaml; do $(tools/fix-crds) helm 1.11 "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
+	@PS4=; set -ex; for file in $(crds_yaml_dir)/*getambassador.io_*.yaml; do $(tools/fix-crds) helm 1.11 "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
 .PHONY: _generate_controller_gen
 
 $(OSS_HOME)/manifests/emissary/emissary-crds.yaml: _generate_controller_gen $(tools/fix-crds) update-yaml-preflight

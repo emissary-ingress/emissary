@@ -1,11 +1,14 @@
-
+# GENERATED FILE: edits made by hand will not be preserved.
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
-  creationTimestamp: null
+    helm.sh/hook: crd-install
+  labels:
+    app.kubernetes.io/name: ambassador
+    product: aes
   name: ambassadormappings.x.getambassador.io
 spec:
   additionalPrinterColumns:
@@ -26,6 +29,8 @@ spec:
     type: string
   group: x.getambassador.io
   names:
+    categories:
+    - ambassador-crds
     kind: AmbassadorMapping
     listKind: AmbassadorMappingList
     plural: ambassadormappings
@@ -52,11 +57,17 @@ spec:
               type: boolean
             add_request_headers:
               additionalProperties:
-                type: d6e-union:string,boolean,object
+                oneOf:
+                - type: string
+                - type: boolean
+                - type: object
               type: object
             add_response_headers:
               additionalProperties:
-                type: d6e-union:string,boolean,object
+                oneOf:
+                - type: string
+                - type: boolean
+                - type: object
               type: object
             allow_upgrade:
               description: "A case-insensitive list of the non-HTTP protocols to allow \"upgrading\" to from HTTP via the \"Connection: upgrade\" mechanism[1].  After the upgrade, Ambassador does not interpret the traffic, and behaves similarly to how it does for TCPMappings. \n [1]: https://tools.ietf.org/html/rfc7230#section-6.7 \n For example, if your upstream service supports WebSockets, you would write \n    allow_upgrade:    - websocket \n Or if your upstream service supports upgrading from HTTP to SPDY (as the Kubernetes apiserver does for `kubectl exec` functionality), you would write \n    allow_upgrade:    - spdy/3.1"
@@ -67,7 +78,9 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: d6e-union:string,array
+              oneOf:
+              - type: string
+              - type: array
             auth_context_extensions:
               additionalProperties:
                 type: string
@@ -192,7 +205,9 @@ spec:
             headers:
               additionalProperties:
                 description: BoolOrString is a type that can hold a Boolean or a string.
-                type: d6e-union:string,boolean
+                oneOf:
+                - type: string
+                - type: boolean
               type: object
             host:
               type: string
@@ -286,7 +301,9 @@ spec:
             query_parameters:
               additionalProperties:
                 description: BoolOrString is a type that can hold a Boolean or a string.
-                type: d6e-union:string,boolean
+                oneOf:
+                - type: string
+                - type: boolean
               type: object
             redirect_response_code:
               description: The response code to use when generating an HTTP redirect. Defaults to 301. Used with `host_redirect`.
@@ -300,23 +317,31 @@ spec:
             regex_headers:
               additionalProperties:
                 description: BoolOrString is a type that can hold a Boolean or a string.
-                type: d6e-union:string,boolean
+                oneOf:
+                - type: string
+                - type: boolean
               type: object
             regex_query_parameters:
               additionalProperties:
                 description: BoolOrString is a type that can hold a Boolean or a string.
-                type: d6e-union:string,boolean
+                oneOf:
+                - type: string
+                - type: boolean
               type: object
             regex_redirect:
               additionalProperties:
                 description: BoolOrString is a type that can hold a Boolean or a string.
-                type: d6e-union:string,boolean
+                oneOf:
+                - type: string
+                - type: boolean
               description: Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
               type: object
             regex_rewrite:
               additionalProperties:
                 description: BoolOrString is a type that can hold a Boolean or a string.
-                type: d6e-union:string,boolean
+                oneOf:
+                - type: string
+                - type: boolean
               type: object
             remove_request_headers:
               items:
@@ -355,7 +380,9 @@ spec:
               type: integer
             tls:
               description: BoolOrString is a type that can hold a Boolean or a string.
-              type: d6e-union:string,boolean
+              oneOf:
+              - type: string
+              - type: boolean
             use_websocket:
               description: 'use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: ["websocket"]`'
               type: boolean
@@ -383,9 +410,3 @@ spec:
   - name: v3alpha1
     served: true
     storage: true
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []

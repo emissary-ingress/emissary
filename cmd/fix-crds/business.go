@@ -75,66 +75,10 @@ func FixCRD(args Args, crd *CRD) error {
 		return errors.Errorf("not a CRD: %#v", crd)
 	}
 
-	if false {
-
-		// fix apiVersion
-		if args.HaveKubeversion("1.16") {
-			crd.APIVersion = "apiextensions.k8s.io/v1"
-		} else {
-			crd.APIVersion = "apiextensions.k8s.io/v1beta1"
-		}
-
-		// fix CRD versions
-		if crd.APIVersion == "apiextensions.k8s.io/v1" {
-			crd.Spec.Version = nil
-		} else {
-			// Set it explicitly to null, instead of just omiting it,
-			// because some apiserver versions (like 1.14.10-gke.27)
-			// will auto-populate it, and that makes upgrades
-			// troublesome if `.versions[0]` changes.
-			crd.Spec.Version = ExplicitNil
-		}
-		// Note: versions are sorted newest-first/oldest-last.
-		if inArray(crd.Spec.Names.Kind, old_pro_crds) {
-			crd.Spec.Versions = []apiext.CustomResourceDefinitionVersion{
-				{Name: "v2", Served: true, Storage: true},
-				{Name: "v1beta2", Served: true, Storage: false},
-				{Name: "v1beta1", Served: true, Storage: false},
-			}
-		} else if inArray(crd.Spec.Names.Kind, old_oss_crds) {
-			crd.Spec.Versions = []apiext.CustomResourceDefinitionVersion{
-				{Name: "v2", Served: true, Storage: true},
-				{Name: "v1", Served: true, Storage: false},
-			}
-		} else {
-			crd.Spec.Versions = []apiext.CustomResourceDefinitionVersion{
-				{Name: "v2", Served: true, Storage: true},
-			}
-		}
-	}
-
 	// hack around limitations in `controller-gen`; see the comments in
 	// `pkg/api/getambassdor.io/v2/common.go`.
 	if crd.Spec.Validation != nil {
 		VisitAllSchemaProps(crd.Spec.Validation.OpenAPIV3Schema, func(node *apiext.JSONSchemaProps) {
-			if strings.HasPrefix(node.Type, "d6e-union:") {
-				types := strings.Split(strings.TrimPrefix(node.Type, "d6e-union:"), ",")
-				node.Type = ""
-				node.OneOf = nil
-				for _, typ := range types {
-					node.OneOf = append(node.OneOf, apiext.JSONSchemaProps{
-						Type: typ,
-					})
-				}
-			}
-		})
-	}
-
-	for _, v := range crd.Spec.Versions {
-		if v.Schema == nil {
-			continue
-		}
-		VisitAllSchemaProps(v.Schema.OpenAPIV3Schema, func(node *apiext.JSONSchemaProps) {
 			if strings.HasPrefix(node.Type, "d6e-union:") {
 				types := strings.Split(strings.TrimPrefix(node.Type, "d6e-union:"), ",")
 				node.Type = ""
