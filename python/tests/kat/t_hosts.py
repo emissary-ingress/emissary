@@ -160,11 +160,7 @@ spec:
 
     def queries(self):
         yield Query(self.url("target/"), insecure=True)
-
-        if EDGE_STACK:
-            yield Query(self.url("target/", scheme="http"), expected=404)
-        else:
-            yield Query(self.url("target/", scheme="http"), error=[ "EOF", "connection refused" ])
+        yield Query(self.url("target/", scheme="http"), error=[ "EOF", "connection refused" ])
 
 
 class HostCRDManualContext(AmbassadorTest):
@@ -249,10 +245,7 @@ spec:
                            "tls: no supported versions satisfy MinVersion and MaxVersion",
                            "tls: protocol version not supported"])
 
-        if EDGE_STACK:
-            yield Query(self.url("target/cleartext", scheme="http"), expected=404)
-        else:
-            yield Query(self.url("target/cleartext", scheme="http"), expected=301)
+        yield Query(self.url("target/cleartext", scheme="http"), expected=301)
 
 
 class HostCRDSeparateTLSContext(AmbassadorTest):

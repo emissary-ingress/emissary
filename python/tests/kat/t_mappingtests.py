@@ -853,7 +853,7 @@ service: http://{self.target.path.fqdn}
 """)
 
     def queries(self):
-        yield Query(self.parent.url("edge_stack/admin/"), expected=200)
+        yield Query(self.parent.url("edge_stack/admin/"), expected=404)
         yield Query(self.parent.url(self.name + "/"), expected=200)
 
     def check(self):
