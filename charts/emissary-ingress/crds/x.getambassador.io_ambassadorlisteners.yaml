@@ -144,6 +144,10 @@ spec:
               - SECURE
               - INSECURE
               type: string
+          required:
+          - hostBinding
+          - port
+          - securityModel
           type: object
       type: object
   version: v3alpha1
