@@ -118,6 +118,7 @@ metadata:
     product: aes
     ambassador_diag_class: private
 spec:
+  hostname: "*"
   ambassador_id: [ "_automatic_" ]
   prefix: /.ambassador/
   rewrite: ""
