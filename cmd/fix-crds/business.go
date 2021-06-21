@@ -21,25 +21,25 @@ var Products = []Product{
 }
 
 var (
-	old_pro_crds = []string{
-		"Filter",
-		"FilterPolicy",
-		"RateLimit",
-	}
+// old_pro_crds = []string{
+// 	"Filter",
+// 	"FilterPolicy",
+// 	"RateLimit",
+// }
 
-	old_oss_crds = []string{
-		"AuthService",
-		"ConsulResolver",
-		"KubernetesEndpointResolver",
-		"KubernetesServiceResolver",
-		"LogService",
-		"Mapping",
-		"Module",
-		"RateLimitService",
-		"TCPMapping",
-		"TLSContext",
-		"TracingService",
-	}
+// old_oss_crds = []string{
+// 	"AuthService",
+// 	"ConsulResolver",
+// 	"KubernetesEndpointResolver",
+// 	"KubernetesServiceResolver",
+// 	"LogService",
+// 	"Mapping",
+// 	"Module",
+// 	"RateLimitService",
+// 	"TCPMapping",
+// 	"TLSContext",
+// 	"TracingService",
+// }
 )
 
 // Like apiext.CustomResourceDefinition, but we have a little more
