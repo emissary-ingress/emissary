@@ -32,6 +32,12 @@ resources:
     name: ambassador-agent-rollouts
   - kind: ClusterRole
     name: ambassador-agent-applications
+  - kind: ClusterRole
+    name: ambassador-agent-deployments
+  - kind: ClusterRole
+    name: ambassador-agent-endpoints
+  - kind: ClusterRole
+    name: ambassador-agent-configmaps
   - kind: Role
     name: ambassador-agent-config
     namespace: default
