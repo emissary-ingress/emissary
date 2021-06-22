@@ -226,6 +226,8 @@ class XFPRedirect(AmbassadorTest):
             self.xfail = "Not yet supported in Edge Stack"
 
         self.target = HTTP()
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
 
     def manifests(self):
         return self.format('''
