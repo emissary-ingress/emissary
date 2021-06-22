@@ -84,4 +84,3 @@ spec:
   externalIPs:
     {{- toYaml .Values.service.externalIPs | nindent 4 }}
   {{- end }}
-  
