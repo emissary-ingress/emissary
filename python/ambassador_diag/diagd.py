@@ -1603,8 +1603,10 @@ class AmbassadorEventWatcher(threading.Thread):
             # No listeners == something in the Ambassador config is totally horked.
             # Probably this is the user not defining any AmbassadorHosts that match
             # the AmbassadorListeners in the system.
-            econf_is_valid = False
-            econf_bad_reason = "Envoy configuration has no listeners at all; check your AmbassadorListener and AmbassadorHost configuration"
+            #
+            # As it happens, Envoy is OK running a config with no listeners, and it'll
+            # answer on port 8001 for readiness checks, so... log a notice, but run with it.
+            self.logger.warning("No active listeners at all; check your AmbassadorListener and AmbassadorHost configuration")
         elif not self.validate_envoy_config(ir, config=ads_config, retries=self.app.validation_retries):
             # Invalid Envoy config probably indicates a bug in Emissary itself. Sigh.
             econf_is_valid = False
