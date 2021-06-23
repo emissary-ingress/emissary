@@ -115,6 +115,10 @@ type KubernetesSnapshot struct {
 	ArgoApplications []*kates.Unstructured `json:"ArgoApplications,omitempty"`
 }
 
+// Custom Unmarshaller for the kubernetes snapshot
+// TODO: This should be REMOVED once LEGACY_MODE is removed.
+// This unmarshall will take a snapshot that comes from watt, and translate the mis-named fields
+// into the correct fields in KubernetesSnapshot
 func (a *KubernetesSnapshot) UnmarshalJSON(data []byte) error {
 	legacyK8sTranslator := struct {
 		LegacyModeListeners   []*ambv3alpha1.AmbassadorListener   `json:"AmbassadorListener"`
