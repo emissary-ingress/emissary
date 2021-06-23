@@ -115,7 +115,7 @@
                         "domains": [
                           "*"
                         ],
-                        "name": "ambassador-listener-8080-*",
+                        "name": "listener-8080-hostcrdforcedstar-*",
                         "routes": [
                           {
                             "match": {
@@ -329,7 +329,7 @@
                         "domains": [
                           "*"
                         ],
-                        "name": "ambassador-listener-8080-*",
+                        "name": "listener-8080-hostcrdforcedstar-*",
                         "routes": [
                           {
                             "match": {
@@ -501,7 +501,7 @@
                         "domains": [
                           "tls-context-host-1"
                         ],
-                        "name": "ambassador-listener-8080-tls-context-host-1",
+                        "name": "listener-8080-hostcrdforcedstar-tls-context-host-1",
                         "routes": [
                           {
                             "match": {
@@ -732,7 +732,7 @@
                         "domains": [
                           "tls-context-host-1"
                         ],
-                        "name": "ambassador-listener-8080-tls-context-host-1",
+                        "name": "listener-8080-hostcrdforcedstar-tls-context-host-1",
                         "routes": [
                           {
                             "match": {
@@ -946,7 +946,7 @@
             "name": "envoy.filters.listener.tls_inspector"
           }
         ],
-        "name": "ambassador-listener-8080",
+        "name": "listener-8080-hostcrdforcedstar",
         "traffic_direction": "UNSPECIFIED"
       },
       {
@@ -996,7 +996,7 @@
                         "domains": [
                           "*"
                         ],
-                        "name": "ambassador-listener-8443-*",
+                        "name": "listener-8443-hostcrdforcedstar-*",
                         "routes": [
                           {
                             "match": {
@@ -1210,7 +1210,7 @@
                         "domains": [
                           "*"
                         ],
-                        "name": "ambassador-listener-8443-*",
+                        "name": "listener-8443-hostcrdforcedstar-*",
                         "routes": [
                           {
                             "match": {
@@ -1382,7 +1382,7 @@
                         "domains": [
                           "tls-context-host-1"
                         ],
-                        "name": "ambassador-listener-8443-tls-context-host-1",
+                        "name": "listener-8443-hostcrdforcedstar-tls-context-host-1",
                         "routes": [
                           {
                             "match": {
@@ -1613,7 +1613,7 @@
                         "domains": [
                           "tls-context-host-1"
                         ],
-                        "name": "ambassador-listener-8443-tls-context-host-1",
+                        "name": "listener-8443-hostcrdforcedstar-tls-context-host-1",
                         "routes": [
                           {
                             "match": {
@@ -1827,7 +1827,7 @@
             "name": "envoy.filters.listener.tls_inspector"
           }
         ],
-        "name": "ambassador-listener-8443",
+        "name": "listener-8443-hostcrdforcedstar",
         "traffic_direction": "UNSPECIFIED"
       }
     ]

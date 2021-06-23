@@ -112,8 +112,8 @@ imagePullSecrets:
             # add new envs, if any
             manifest['spec']['containers'][0]['env'].extend(envs)
 
-    print("INSTALLING AMBASSADOR: manifests:")
-    print(yaml.safe_dump_all(ambassador_yaml))
+    # print("INSTALLING AMBASSADOR: manifests:")
+    # print(yaml.safe_dump_all(ambassador_yaml))
 
     apply_kube_artifacts(namespace=namespace, artifacts=yaml.safe_dump_all(ambassador_yaml))
 
@@ -202,8 +202,38 @@ spec:
   config: {}
 """
 
+def default_listener_manifests():
+    return """
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
+metadata:
+  name: listener-8080
+  namespace: default
+spec:
+  port: 8080
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
+metadata:
+  name: listener-8443
+  namespace: default
+spec:
+  port: 8443
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
+"""
+
 def module_and_mapping_manifests(module_confs, mapping_confs):
-    yaml = """
+    yaml = default_listener_manifests() + """
 ---
 apiVersion: getambassador.io/v2
 kind: Module

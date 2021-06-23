@@ -92,6 +92,8 @@ class HostCRDNo8080(AmbassadorTest):
 
     def init(self):
         self.edge_stack_cleartext_host = False
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -402,6 +404,11 @@ class HostCRDClearText(AmbassadorTest):
 
     def init(self):
         self.edge_stack_cleartext_host = False
+
+        # Only add the default HTTP listener (we're mimicking the no-TLS case here.)
+        self.add_default_http_listener = True
+        self.add_default_https_listener = False
+
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -970,6 +977,8 @@ class HostCRDClientCertSameNamespace(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
 
     def manifests(self) -> str:
         # Same as HostCRDClientCertCrossNamespace, all of the things
