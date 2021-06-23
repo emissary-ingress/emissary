@@ -112,8 +112,8 @@ imagePullSecrets:
             # add new envs, if any
             manifest['spec']['containers'][0]['env'].extend(envs)
 
-    print("INSTALLING AMBASSADOR: manifests:")
-    print(yaml.safe_dump_all(ambassador_yaml))
+    # print("INSTALLING AMBASSADOR: manifests:")
+    # print(yaml.safe_dump_all(ambassador_yaml))
 
     apply_kube_artifacts(namespace=namespace, artifacts=yaml.safe_dump_all(ambassador_yaml))
 
