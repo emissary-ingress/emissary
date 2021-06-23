@@ -143,7 +143,7 @@ spec:
   hostname: "*"
   prefix: /httpbin/
 '''
-
+ 
     fetcher = ResourceFetcher(logger, aconf)
     fetcher.parse_yaml(yaml, k8s=True)
 
@@ -189,6 +189,7 @@ spec:
                     rule = rules[hdr]
                     assert rule == e, f"unexpected rule {rule} in {rules}"
                 found_module_rules = True
+
     for cluster in conf['static_resources']['clusters']:
         if 'httpbin' not in cluster['name']:
             continue
@@ -310,6 +311,24 @@ spec:
 
         apply_kube_artifacts(namespace=namespace, artifacts=manifest)
 
+    def create_listeners(self, namespace):
+        manifest = f"""
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
+metadata:
+  name: listener-8080
+spec:
+  port: 8080
+  protocol: HTTP
+  securityModel: INSECURE
+  hostBinding:
+    namespace:
+      from: SELF
+"""
+
+        apply_kube_artifacts(namespace=namespace, artifacts=manifest)
+
     def test_header_case_overrides(self):
         # Is there any reason not to use the default namespace?
         namespace = 'header-case-overrides'
@@ -322,6 +341,9 @@ spec:
 
         # Install headerecho
         apply_kube_artifacts(namespace=namespace, artifacts=headerecho_manifests)
+
+        # Install listeners.
+        self.create_listeners(namespace)
 
         # Install module
         self.create_module(namespace)
