@@ -115,6 +115,28 @@ type KubernetesSnapshot struct {
 	ArgoApplications []*kates.Unstructured `json:"ArgoApplications,omitempty"`
 }
 
+func (a *KubernetesSnapshot) UnmarshalJSON(data []byte) error {
+	legacyK8sTranslator := struct {
+		LegacyModeListeners   []*ambv3alpha1.AmbassadorListener   `json:"AmbassadorListener"`
+		LegacyModeHosts       []*ambv3alpha1.AmbassadorHost       `json:"AmbassadorHost"`
+		LegacyModeMappings    []*ambv3alpha1.AmbassadorMapping    `json:"AmbassadorMapping"`
+		LegacyModeTCPMappings []*ambv3alpha1.AmbassadorTCPMapping `json:"AmbassadorTCPMapping"`
+	}{}
+
+	if err := json.Unmarshal(data, &legacyK8sTranslator); err != nil {
+		return err
+	}
+	type k8ssnap2 KubernetesSnapshot
+	if err := json.Unmarshal(data, (*k8ssnap2)(a)); err != nil {
+		return err
+	}
+	a.Listeners = append(a.Listeners, legacyK8sTranslator.LegacyModeListeners...)
+	a.Hosts = append(a.Hosts, legacyK8sTranslator.LegacyModeHosts...)
+	a.Mappings = append(a.Mappings, legacyK8sTranslator.LegacyModeMappings...)
+	a.TCPMappings = append(a.TCPMappings, legacyK8sTranslator.LegacyModeTCPMappings...)
+	return nil
+}
+
 func (a *KubernetesSnapshot) Render() string {
 	result := &strings.Builder{}
 	v := reflect.ValueOf(a)
