@@ -5,6 +5,11 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
+(no changes yet)
+
+## v6.7.12-ea
+
+- Update Ambassador chart image to version v2.0.0-ea: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 - Change: removed helm 2 support
 - Feature: Add an option to create default HTTP and HTTPS listeners
 
