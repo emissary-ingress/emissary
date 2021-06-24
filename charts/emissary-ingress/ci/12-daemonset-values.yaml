@@ -5,3 +5,5 @@ deploymentStrategy:
   type: RollingUpdate
 
 daemonSet: true
+
+createDefaultListeners: true

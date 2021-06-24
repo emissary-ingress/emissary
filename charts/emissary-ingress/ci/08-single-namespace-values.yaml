@@ -6,3 +6,4 @@ deploymentStrategy:
 
 scope:
   singleNamespace: true
+createDefaultListeners: true
