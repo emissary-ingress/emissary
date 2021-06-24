@@ -6,6 +6,7 @@ numbering uses [semantic versioning](http://semver.org).
 ## Next Release
 
 - Change: removed helm 2 support
+- Feature: Add an option to create default HTTP and HTTPS listeners
 
 ## v6.7.11
 
