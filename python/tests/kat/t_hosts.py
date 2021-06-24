@@ -1,9 +1,11 @@
 from kat.harness import Query, EDGE_STACK
 from kat.utils import namespace_manifest
 
+import pytest
+import os
+
 from abstract_tests import AmbassadorTest, ServiceType, HTTP
 from selfsigned import TLSCerts
-import os
 
 from ambassador import Config
 
@@ -44,8 +46,8 @@ data:
   tls.crt: '''+TLSCerts["localhost"].k8s_crt+'''
   tls.key: '''+TLSCerts["localhost"].k8s_key+'''
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.name.k8s}-host
   labels:
@@ -61,8 +63,8 @@ spec:
     matchLabels:
       hostname: {self.path.fqdn}
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.name.k8s}-target-mapping
   labels:
@@ -90,6 +92,8 @@ class HostCRDNo8080(AmbassadorTest):
 
     def init(self):
         self.edge_stack_cleartext_host = False
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -106,8 +110,8 @@ data:
   tls.crt: '''+TLSCerts["localhost"].k8s_crt+'''
   tls.key: '''+TLSCerts["localhost"].k8s_key+'''
 ---
-apiVersion: getambassador.io/v2
-kind: Listener
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
 metadata:
   name: {self.name.k8s}-listener
   labels:
@@ -117,9 +121,12 @@ spec:
   port: 8443
   protocol: HTTPS
   securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.name.k8s}-host
   labels:
@@ -138,8 +145,8 @@ spec:
     insecure:
       action: Reject
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.name.k8s}-target-mapping
   labels:
@@ -155,11 +162,7 @@ spec:
 
     def queries(self):
         yield Query(self.url("target/"), insecure=True)
-
-        if EDGE_STACK:
-            yield Query(self.url("target/", scheme="http"), expected=404)
-        else:
-            yield Query(self.url("target/", scheme="http"), error=[ "EOF", "connection refused" ])
+        yield Query(self.url("target/", scheme="http"), error=[ "EOF", "connection refused" ])
 
 
 class HostCRDManualContext(AmbassadorTest):
@@ -188,8 +191,8 @@ data:
   tls.crt: '''+TLSCerts["localhost"].k8s_crt+'''
   tls.key: '''+TLSCerts["localhost"].k8s_key+'''
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}-manual-host
   labels:
@@ -219,8 +222,8 @@ spec:
   min_tls_version: v1.2
   max_tls_version: v1.3
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.path.k8s}-target-mapping
   labels:
@@ -244,10 +247,7 @@ spec:
                            "tls: no supported versions satisfy MinVersion and MaxVersion",
                            "tls: protocol version not supported"])
 
-        if EDGE_STACK:
-            yield Query(self.url("target/cleartext", scheme="http"), expected=404)
-        else:
-            yield Query(self.url("target/cleartext", scheme="http"), expected=301)
+        yield Query(self.url("target/cleartext", scheme="http"), expected=301)
 
 
 class HostCRDSeparateTLSContext(AmbassadorTest):
@@ -271,8 +271,8 @@ data:
   tls.crt: '''+TLSCerts["localhost"].k8s_crt+'''
   tls.key: '''+TLSCerts["localhost"].k8s_key+'''
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}-manual-host-separate
   labels:
@@ -302,8 +302,8 @@ spec:
   min_tls_version: v1.2
   max_tls_version: v1.3
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.path.k8s}-target-mapping-separate
   labels:
@@ -349,8 +349,8 @@ data:
   tls.crt: '''+TLSCerts["localhost"].k8s_crt+'''
   tls.key: '''+TLSCerts["localhost"].k8s_key+'''
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}-manual-host-tls
   labels:
@@ -369,8 +369,8 @@ spec:
     min_tls_version: v1.2
     max_tls_version: v1.3
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.path.k8s}-target-mapping
   labels:
@@ -404,13 +404,18 @@ class HostCRDClearText(AmbassadorTest):
 
     def init(self):
         self.edge_stack_cleartext_host = False
+
+        # Only add the default HTTP listener (we're mimicking the no-TLS case here.)
+        self.add_default_http_listener = True
+        self.add_default_https_listener = False
+
         self.target = HTTP()
 
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}-cleartext-host
   labels:
@@ -427,8 +432,8 @@ spec:
     insecure:
       action: Route
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.path.k8s}-cleartext-target-mapping
   labels:
@@ -476,8 +481,8 @@ class HostCRDDouble(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}-host-1
   labels:
@@ -507,8 +512,8 @@ data:
   tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
   tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.path.k8s}-host-1-mapping
   labels:
@@ -521,8 +526,8 @@ spec:
   service: {self.target1.path.fqdn}
 
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}-host-2
   labels:
@@ -532,9 +537,6 @@ spec:
   hostname: tls-context-host-2
   acmeProvider:
     authority: none
-  selector:
-    matchLabels:
-      hostname: tls-context-host-2
   tlsSecret:
     name: {self.path.k8s}-test-tlscontext-secret-2
   requestPolicy:
@@ -552,8 +554,8 @@ data:
   tls.crt: '''+TLSCerts["tls-context-host-2"].k8s_crt+'''
   tls.key: '''+TLSCerts["tls-context-host-2"].k8s_key+'''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.path.k8s}-host-2-mapping
   labels:
@@ -566,8 +568,8 @@ spec:
   service: {self.target2.path.fqdn}
 
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}-host-3
   labels:
@@ -597,8 +599,8 @@ data:
   tls.crt: '''+TLSCerts["ambassador.example.com"].k8s_crt+'''
   tls.key: '''+TLSCerts["ambassador.example.com"].k8s_key+'''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.path.k8s}-host-3-mapping
   labels:
@@ -612,8 +614,8 @@ spec:
 ---
 # Add a bogus ACME mapping so that we can distinguish "invalid
 # challenge" from "rejected".
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.path.k8s}-host-3-acme
   labels:
@@ -626,14 +628,15 @@ spec:
   service: {self.target3.path.fqdn}
 
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.path.k8s}-host-shared-mapping
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*"
   prefix: /target-shared/
   service: {self.targetshared.path.fqdn}
 ''') + super().manifests()
@@ -751,13 +754,14 @@ class HostCRDWildcards(AmbassadorTest):
     target: ServiceType
 
     def init(self):
+        self.xfail = "IHA FIXME (swap glob)"
         self.target = HTTP()
 
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}-wc
   labels:
@@ -767,14 +771,11 @@ spec:
   hostname: "*"
   acmeProvider:
     authority: none
-  selector:
-    matchLabels:
-      hostname: "wc"
   tlsSecret:
     name: {self.path.k8s}-tls
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}-wc.domain.com
   labels:
@@ -784,17 +785,14 @@ spec:
   hostname: "*.domain.com"
   acmeProvider:
     authority: none
-  selector:
-    matchLabels:
-      hostname: "wc.domain.com"
   tlsSecret:
     name: {self.path.k8s}-tls
   requestPolicy:
     insecure:
       action: Route
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}-a.domain.com
   labels:
@@ -804,9 +802,6 @@ spec:
   hostname: "a.domain.com"
   acmeProvider:
     authority: none
-  selector:
-    matchLabels:
-      hostname: "a.domain.com"
   tlsSecret:
     name: {self.path.k8s}-tls
 ---
@@ -821,35 +816,39 @@ data:
   tls.crt: '''+TLSCerts["a.domain.com"].k8s_crt+'''
   tls.key: '''+TLSCerts["a.domain.com"].k8s_key+'''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.path.k8s}
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  prefix: /foo
+  hostname: "*"
+  prefix: /foo/
   service: {self.target.path.fqdn}
 ''') + super().manifests()
 
-    def queries(self):
-        insecure_base = {
-            'url': self.url('foo', scheme='http'),
+    def insecure(self, suffix):
+        return {
+            'url': self.url('foo/%s' % suffix, scheme='http'),
         }
-        secure_base = {
-            'url': self.url('foo', scheme='https'),
+
+    def secure(self, suffix):
+        return {
+            'url': self.url('foo/%s' % suffix, scheme='https'),
             'ca_cert': TLSCerts["*.domain.com"].pubcert,
             'sni': True,
         }
 
-        yield Query(**secure_base, headers={'Host': 'a.domain.com'}, expected=200)  # Host=a.domain.com
-        yield Query(**secure_base, headers={'Host': 'wc.domain.com'}, expected=200) # Host=*.domain.com
-        yield Query(**secure_base, headers={'Host': '127.0.0.1'}, expected=200)     # Host=*
+    def queries(self):
+        yield Query(**self.secure("0-200"), headers={'Host': 'a.domain.com'}, expected=200)  # Host=a.domain.com
+        yield Query(**self.secure("1-200"), headers={'Host': 'wc.domain.com'}, expected=200) # Host=*.domain.com
+        yield Query(**self.secure("2-200"), headers={'Host': '127.0.0.1'}, expected=200)     # Host=*
 
-        yield Query(**insecure_base, headers={'Host': 'a.domain.com'}, expected=301)  # Host=a.domain.com
-        yield Query(**insecure_base, headers={'Host': 'wc.domain.com'}, expected=301) # Host=*.domain.com
-        yield Query(**insecure_base, headers={'Host': '127.0.0.1'}, expected=301)     # Host=*
+        yield Query(**self.insecure("3-301"), headers={'Host': 'a.domain.com'}, expected=301)  # Host=a.domain.com
+        yield Query(**self.insecure("4-200"), headers={'Host': 'wc.domain.com'}, expected=200) # Host=*.domain.com
+        yield Query(**self.insecure("5-301"), headers={'Host': '127.0.0.1'}, expected=301)     # Host=*
 
     def scheme(self) -> str:
         return "https"
@@ -880,8 +879,8 @@ class HostCRDClientCertCrossNamespace(AmbassadorTest):
         # as the separator.
         return namespace_manifest("alt-namespace") + self.format('''
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}
   labels:
@@ -921,14 +920,15 @@ data:
   tls.crt: '''+TLSCerts["ambassador.example.com"].k8s_crt+'''
   tls.key: '''+TLSCerts["ambassador.example.com"].k8s_key+'''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.path.k8s}
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*"
   prefix: /
   service: {self.target.path.fqdn}
 ''') +  super().manifests()
@@ -977,6 +977,8 @@ class HostCRDClientCertSameNamespace(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
 
     def manifests(self) -> str:
         # Same as HostCRDClientCertCrossNamespace, all of the things
@@ -986,8 +988,24 @@ class HostCRDClientCertSameNamespace(AmbassadorTest):
         # namespace when a ".{namespace}" suffix isn't specified.
         return namespace_manifest("alt2-namespace") + self.format('''
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
+metadata:
+  name: ambassador-listener-8443    # This name is to match existing test stuff
+  namespace: alt2-namespace
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  port: 8443
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: SELF
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}
   namespace: alt2-namespace
@@ -1029,14 +1047,15 @@ data:
   tls.crt: '''+TLSCerts["ambassador.example.com"].k8s_crt+'''
   tls.key: '''+TLSCerts["ambassador.example.com"].k8s_key+'''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.path.k8s}
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
+  hostname: "*"
   prefix: /
   service: {self.target.path.fqdn}
 ''') +  super().manifests()
@@ -1086,8 +1105,8 @@ class HostCRDRootRedirectCongratulations(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}
   labels:
@@ -1150,8 +1169,8 @@ class HostCRDRootRedirectSlashMapping(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}
   labels:
@@ -1181,8 +1200,8 @@ data:
   tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
   tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.name.k8s}-target-mapping
   labels:
@@ -1225,8 +1244,8 @@ class HostCRDRootRedirectRE2Mapping(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}
   labels:
@@ -1256,8 +1275,8 @@ data:
   tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
   tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.name.k8s}-target-mapping
   labels:
@@ -1317,8 +1336,8 @@ config:
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}
   labels:
@@ -1348,8 +1367,8 @@ data:
   tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
   tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.name.k8s}-target-mapping
   labels:
@@ -1391,7 +1410,6 @@ spec:
 class HostCRDForcedStar(AmbassadorTest):
     """This test verifies that Ambassador responds properly if we try
     talking to it on a hostname that it doesn't recognize.
-
     """
     target: ServiceType
 
@@ -1409,8 +1427,8 @@ class HostCRDForcedStar(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}-cleartext-host
   labels:
@@ -1418,17 +1436,14 @@ metadata:
 spec:
   ambassador_id: [ "{self.ambassador_id}" ]
   hostname: "*"
-  selector:
-    matchLabels:
-      hostname: {self.path.k8s}
   acmeProvider:
     authority: none
   requestPolicy:
     insecure:
-      action: Route
+      action: Redirect
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: {self.path.k8s}-tls-host
   labels:
@@ -1438,9 +1453,6 @@ spec:
   hostname: tls-context-host-1
   acmeProvider:
     authority: none
-  selector:
-    matchLabels:
-      hostname: tls-context-host-1
   tlsSecret:
     name: {self.path.k8s}-test-tlscontext-secret-1
   requestPolicy:
@@ -1458,13 +1470,14 @@ data:
   tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
   tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.name.k8s}-target-mapping
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  prefix: /foo
+  hostname: "*"
+  prefix: /foo/
   service: {self.target.path.fqdn}
 ''') + super().manifests()
 
@@ -1476,28 +1489,28 @@ spec:
         # sanity check, and then we'll try the same query for an unrecongized hostname
         # ("nonmatching-host") to make sure that it is handled the same way.
 
-        # 0-1: cleartext 200
-        yield Query(self.url("foo", scheme="http"), headers={"Host": "tls-context-host-1"},
+        # 0-1: cleartext 200/301
+        yield Query(self.url("foo/0-200", scheme="http"), headers={"Host": "tls-context-host-1"},
                     expected=200)
-        yield Query(self.url("foo", scheme="http"), headers={"Host": "nonmatching-hostname"},
-                    expected=(200 if bug_single_insecure_action else 301))
+        yield Query(self.url("foo/1-301", scheme="http"), headers={"Host": "nonmatching-hostname"},
+                    expected=301)
 
         # 2-3: cleartext 404
-        yield Query(self.url("bar", scheme="http"), headers={"Host": "tls-context-host-1"},
+        yield Query(self.url("bar/2-404", scheme="http"), headers={"Host": "tls-context-host-1"},
                     expected=404)
-        yield Query(self.url("bar", scheme="http"), headers={"Host": "nonmatching-hostname"},
-                    expected=(404 if bug_single_insecure_action else 301))
+        yield Query(self.url("bar/3-301-or-404", scheme="http"), headers={"Host": "nonmatching-hostname"},
+                    expected=404 if bug_404_routes else 301)
 
         # 4-5: TLS 200
-        yield Query(self.url("foo", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+        yield Query(self.url("foo/4-200", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
                     expected=200)
-        yield Query(self.url("foo", scheme="https"), headers={"Host": "nonmatching-hostname"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True, insecure=True,
+        yield Query(self.url("foo/5-200", scheme="https"), headers={"Host": "nonmatching-hostname"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True, insecure=True,
                     expected=200, error=("http: server gave HTTP response to HTTPS client" if bug_forced_star else None))
 
         # 6-7: TLS 404
-        yield Query(self.url("bar", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+        yield Query(self.url("bar/6-404", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
                     expected=404)
-        yield Query(self.url("bar", scheme="https"), headers={"Host": "nonmatching-hostname"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True, insecure=True,
+        yield Query(self.url("bar/7-404", scheme="https"), headers={"Host": "nonmatching-hostname"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True, insecure=True,
                     expected=404, error=("http: server gave HTTP response to HTTPS client" if bug_forced_star else None))
 
     def requirements(self):

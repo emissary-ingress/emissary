@@ -8,7 +8,7 @@ package envoy_config_endpoint_v3
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v3 "github.com/datawire/ambassador/pkg/api/envoy/type/v3"
+	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/type/v3"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	duration "github.com/golang/protobuf/ptypes/duration"

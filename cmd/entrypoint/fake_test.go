@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/datawire/ambassador/cmd/entrypoint"
-	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
-	"github.com/datawire/ambassador/pkg/kates"
-	"github.com/datawire/ambassador/pkg/snapshot/v1"
+	"github.com/datawire/ambassador/v2/cmd/entrypoint"
+	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 )
 
 func AnySnapshot(_ *snapshot.Snapshot) bool {
 	return true
 }
 
-func AnyConfig(_ *bootstrap.Bootstrap) bool {
+func AnyConfig(_ *v3bootstrap.Bootstrap) bool {
 	return true
 }
 
@@ -26,7 +26,7 @@ func TestFake(t *testing.T) {
 	fmt.Println(Jsonify(f.GetSnapshot(AnySnapshot)))
 	fmt.Println(Jsonify(f.GetEnvoyConfig(AnyConfig)))
 
-	f.Delete("Mapping", "default", "foo")
+	f.Delete("AmbassadorMapping", "default", "foo")
 
 	fmt.Println(Jsonify(f.GetSnapshot(AnySnapshot)))
 	fmt.Println(Jsonify(f.GetEnvoyConfig(AnyConfig)))

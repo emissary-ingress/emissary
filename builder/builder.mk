@@ -289,17 +289,10 @@ docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag
 	    unset TIMEFORMAT; \
 	}
 
-docker/$(LCNAME)-ea.docker.stamp: %/$(LCNAME)-ea.docker.stamp: %/$(LCNAME).docker $(BUILDER_HOME)/Dockerfile-ea FORCE
+docker/$(LCNAME)-ea.docker.stamp: %/$(LCNAME)-ea.docker.stamp: %/$(LCNAME).docker FORCE
 	@set -e; { \
-	  printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)-ea${END}\n"; \
-	  printf "    ${BLU}base_ambassador=$$(cat $*/$(LCNAME).docker)${END}\n"; \
-	  TIMEFORMAT="     (docker build took %1R seconds)"; \
-	  time ${DBUILD} ${BUILDER_HOME} \
-	    -f $(BUILDER_HOME)/Dockerfile-ea \
-	    --build-arg=base_ambassador="$$(cat $*/$(LCNAME).docker)" \
-	    --target=ambassador-ea \
-	    --iidfile=$@; \
-	  unset TIMEFORMAT; \
+	  printf "${CYN}==> ${GRN}Promoting ${BLU}$$(cat docker/$(LCNAME).docker)${END} to EA as ${BLU}$(LCNAME)-ea${END}\n"; \
+	  cat docker/$(LCNAME).docker > $@; \
 	}
 
 docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
@@ -512,13 +505,13 @@ pytest-envoy-builder:
 	$(MAKE) pytest-builder KAT_RUN_MODE=envoy
 .PHONY: pytest-envoy-builder
 
-pytest-envoy-v3:
-	$(MAKE) pytest KAT_RUN_MODE=envoy KAT_USE_ENVOY_V3=true
-.PHONY: pytest-envoy-v3
+pytest-envoy-v2:
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2
+.PHONY: pytest-envoy-v2
 
-pytest-envoy-v3-builder:
-	$(MAKE) pytest-builder KAT_RUN_MODE=envoy KAT_USE_ENVOY_V3=true
-.PHONY: pytest-envoy-v3-builder
+pytest-envoy-v2-builder:
+	$(MAKE) pytest-builder KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2
+.PHONY: pytest-envoy-v2-builder
 
 pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests in builder shell$(END)\n"
@@ -531,7 +524,6 @@ pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remot
 		-e DOCKER_NETWORK=$(DOCKER_NETWORK) \
 		-e KAT_REQ_LIMIT \
 		-e KAT_RUN_MODE \
-		-e KAT_USE_ENVOY_V3 \
 		-e KAT_VERBOSE \
 		-e PYTEST_ARGS \
 		-e TEST_SERVICE_REGISTRY \
@@ -540,6 +532,7 @@ pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remot
 		-e DEV_REGISTRY \
 		-e DOCKER_BUILD_USERNAME \
 		-e DOCKER_BUILD_PASSWORD \
+		-e AMBASSADOR_ENVOY_API_VERSION \
 		-e AMBASSADOR_LEGACY_MODE \
 		-e AMBASSADOR_FAST_RECONFIGURE \
 		-e AWS_SECRET_ACCESS_KEY \
@@ -564,7 +557,7 @@ mypy: mypy-server
 	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal check
 .PHONY: mypy
 
-GOTEST_PKGS = github.com/datawire/ambassador/...
+GOTEST_PKGS = github.com/datawire/ambassador/v2/...
 GOTEST_MODDIRS = $(OSS_HOME)
 export GOTEST_PKGS
 export GOTEST_MODDIRS

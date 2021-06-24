@@ -5,7 +5,7 @@
   {{- /* Case 1: "fullImageOverride" means don't bother checking the tag. */ -}}
   {{- /* Case 2: Otherwise, if it's not a semver-style version number,    */ -}}
   {{- /*         assume we have a power user and turn the agent on.       */ -}}
-  {{- /* Case 3: Otherwise, it's OSS and we need at 1.13.0.               */ -}}
+  {{- /* Case 3: Otherwise, it's OSS and we need at least 1.13.0.         */ -}}
 
 {{- if .Values.image.fullImageOverride }}
   {{- /* Case 1 */ -}}

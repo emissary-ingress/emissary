@@ -11,11 +11,13 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger("ambassador")
+# logger.setLevel(logging.DEBUG)
 
 from ambassador import Config, IR, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
 
+from utils import default_listener_manifests
 
 def _get_ext_auth_config(yaml):
     for listener in yaml['static_resources']['listeners']:
@@ -30,7 +32,7 @@ def _get_ext_auth_config(yaml):
 def _get_envoy_config(yaml, version='V3'):
     aconf = Config()
     fetcher = ResourceFetcher(logger, aconf)
-    fetcher.parse_yaml(yaml)
+    fetcher.parse_yaml(default_listener_manifests() + yaml, k8s=True)
 
     aconf.load_all(fetcher.sorted())
 
@@ -47,12 +49,15 @@ def _get_envoy_config(yaml, version='V3'):
 def test_irauth_grpcservice_version_v2():
     yaml = """
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v2
 kind: AuthService
-name:  mycoolauthservice
-auth_service: someservice
-protocol_version: "v2"
-proto: grpc
+metadata:
+  name:  mycoolauthservice
+  namespace: default
+spec:
+  auth_service: someservice
+  protocol_version: "v2"
+  proto: grpc
 """
     econf = _get_envoy_config(yaml, version='V2')
 
@@ -68,12 +73,15 @@ proto: grpc
 def test_irauth_grpcservice_version_v3():
     yaml = """
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v2
 kind: AuthService
-name:  mycoolauthservice
-auth_service: someservice
-protocol_version: "v3"
-proto: grpc
+metadata:
+  name:  mycoolauthservice
+  namespace: default
+spec:
+  auth_service: someservice
+  protocol_version: "v3"
+  proto: grpc
 """
     econf = _get_envoy_config(yaml, version='V3')
 
@@ -90,11 +98,14 @@ proto: grpc
 def test_irauth_grpcservice_version_default():
     yaml = """
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v2
 kind: AuthService
-name:  mycoolauthservice
-auth_service: someservice
-proto: grpc
+metadata:
+  name:  mycoolauthservice
+  namespace: default
+spec:
+  auth_service: someservice
+  proto: grpc
 """
     econf = _get_envoy_config(yaml, version='V2')
 
@@ -110,11 +121,14 @@ proto: grpc
 def test_irauth_grpcservice_version_default_v3():
     yaml = """
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v2
 kind: AuthService
-name:  mycoolauthservice
-auth_service: someservice
-proto: grpc
+metadata:
+  name:  mycoolauthservice
+  namespace: default
+spec:
+  auth_service: someservice
+  proto: grpc
 """
     econf = _get_envoy_config(yaml, version='V3')
 

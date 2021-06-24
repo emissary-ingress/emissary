@@ -29,7 +29,7 @@ Edge Stack documentation refer both to the Ambassador Edge Stack and Emissary In
 #### TLS Termination and the `Host` CRD
 
 As of Ambassador 2.0.0, you _must_ supply a `Host` CRD to terminate TLS: it is not sufficient
-to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS configuration 
+to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS configuration
 information to be shared across multiple `Host`s). The minimal configuration for TLS termination is
 now a certificate stored in a Kubernetes `Secret`, and a `Host` referring to that `Secret`.
 
@@ -47,7 +47,7 @@ matching. Note that `safe_regex` matching has been Ambassador's default since Am
 This change is being made because the `regex` field for `HeaderMatcher`, `RouteMatch`, and `StringMatcher` was
 [deprecated in favor of safe_regex] in Envoy v1.12.0, then removed entirely from the Envoy V3 APIs. Additionally,
 setting [max_program_size was deprecated] in Envoy v1.15.0. As such, `regex_type: unsafe` and setting
-`regex_max_size` are not supported when `AMBASSADOR_ENVOY_API_VERSION` is set to `V3`.
+`regex_max_size` are no longer supported unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`.
 
 Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/type/matcher/v3/regex.proto.html) for more information.
 
@@ -60,9 +60,9 @@ In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, support f
 collector version will be removed.
 
 This change is being made because the HTTP_JSON_V1 collector was deprecated in Envoy v1.12.0, then removed
-entirely from the Envoy V3 APIs. As such, the HTTP_JSON_V1 collector is not supported when
-`AMBASSADOR_ENVOY_API_VERSION` is set to `V3`: you will need to migrate to the HTTP_JSON or HTTP_PROTO
-collectors before using V3 APIs.
+entirely from the Envoy V3 APIs. As such, the HTTP_JSON_V1 collector is no longer supported unless
+`AMBASSADOR_ENVOY_API_VERSION` is set to `V2`. You must migrate to either the HTTP_JSON or the HTTP_PROTO
+collector unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`.
 
 Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version) for more information.
 
@@ -70,13 +70,18 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [2.0.0] (TBD)
+## [2.0.0-ea] June 24, 2021
+[2.0.0-ea]: https://github.com/emissary-ingress/emissary/compare/v1.13.8...v2.0.0-ea
 
-### Emissary Ingress and Ambassador Edge Stack
+We're pleased to introduce Emissary 2.0.0 as a developer preview. The 2.X family introduces a number of changes to allow Emissary to more gracefully handle larger installations, reduce global configuration to better handle multitenant or multiorganizational installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
 
-- Feature: The `Listener` CRD allows explicit definition of ports to listen on, and the protocols and security model for each port
+### Emissary Ingress
+
+- Feature: The `Listener` CRD allows explicit definition of ports to listen on, the protocols and security model for each port, and which `Host`s should be associated with which `Listener`.
 - Bugfix: `requestPolicy.insecure.action` works independently across `Host`s ([#2888])
 - Bugfix: Fixed a regression in detecting the Ambassador Kubernetes service that could cause the wrong IP or hostname to be used in Ingress statuses.
+- Change: `Host`s and `Mapping`s will not be associated unless a `Host` selector or a `Mapping`'s `host` element explicitly agree.
+- Change: `Mapping`'s `host` field is either an exact match or (with `host_regex` set) a regex. `Mapping` now has a new `hostname` element that is functionally the same as `host`, but is always a DNS glob.
 - Change: The `tls` field on the Ambassador module is now deprecated. Please use TLSContexts instead https://www.getambassador.io/docs/edge-stack/latest/topics/running/tls/#tlscontext.
 - Change: Envoy V3 is now the default.
 - Change: The `Host` CRD is now required when terminating TLS.

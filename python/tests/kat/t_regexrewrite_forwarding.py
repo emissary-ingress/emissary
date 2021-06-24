@@ -12,9 +12,10 @@ class RegexRewriteForwardingTest(AmbassadorTest):
     def config(self):
         yield self.target, self.format(r"""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  regex_rewrite_mapping
+hostname: "*"
 prefix: /foo/
 service: http://{self.target.path.fqdn}
 regex_rewrite:
@@ -42,9 +43,10 @@ class RegexRewriteForwardingWithExtractAndSubstituteTest(AmbassadorTest):
     def config(self):
         yield self.target, self.format(r"""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  regex_rewrite_mapping
+hostname: "*"
 prefix: /foo/
 service: http://{self.target.path.fqdn}
 regex_rewrite:

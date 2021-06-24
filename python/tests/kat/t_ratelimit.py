@@ -22,20 +22,26 @@ class RateLimitV0Test(AmbassadorTest):
         # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  ratelimit_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
-rate_limits:
-- descriptor: A test case
-  headers:
-  - "x-ambassador-test-allow"
-  - "x-ambassador-test-headers-append"
+labels:
+  ambassador:
+    - request_label_group:
+      - x-ambassador-test-allow:
+          header: "x-ambassador-test-allow"
+          omit_if_not_present: true
+      - x-ambassador-test-headers-append:
+          header: "x-ambassador-test-headers-append"
+          omit_if_not_present: true
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  ratelimit_label_mapping
+hostname: "*"
 prefix: /labels/
 service: {self.target.path.fqdn}
 labels:
@@ -57,7 +63,7 @@ labels:
         # For self.with_tracing, we want to configure the TracingService.
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"
@@ -111,9 +117,10 @@ class RateLimitV1Test(AmbassadorTest):
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  ratelimit_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 labels:
@@ -129,7 +136,7 @@ labels:
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"
@@ -191,15 +198,16 @@ type: kubernetes.io/tls
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 name: ratelimit-tls-context
 secret: ratelimit-tls-secret
 alpn_protocols: h2
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  ratelimit_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 labels:
@@ -215,7 +223,7 @@ labels:
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"
@@ -264,9 +272,10 @@ class RateLimitV2Test(AmbassadorTest):
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  ratelimit_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 labels:
@@ -335,9 +344,10 @@ class RateLimitV3Test(AmbassadorTest):
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  ratelimit_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 labels:

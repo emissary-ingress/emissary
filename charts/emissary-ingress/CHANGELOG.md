@@ -7,6 +7,16 @@ numbering uses [semantic versioning](http://semver.org).
 
 (no changes yet)
 
+## v7.0.0-ea
+
+We're pleased to introduce Emissary 2.0.0 as a developer preview.
+
+Emissary Ingress chart v7.0.0-ea provides early access to Emissary 2.0 features. [Learn more in our docs](https://www.getambassador.io/docs/emissary/latest/about/changes-2.0.0/)
+
+- Update Ambassador chart image to version v2.0.0-ea: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+- Change: removed helm 2 support
+- Feature: Add an option to create default HTTP and HTTPS listeners
+
 ## v6.7.11
 
 - Update Ambassador API Gateway chart image to version v1.13.8: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)

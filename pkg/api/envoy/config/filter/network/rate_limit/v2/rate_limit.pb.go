@@ -8,8 +8,8 @@ package envoy_config_filter_network_rate_limit_v2
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	ratelimit "github.com/datawire/ambassador/pkg/api/envoy/api/v2/ratelimit"
-	v2 "github.com/datawire/ambassador/pkg/api/envoy/config/ratelimit/v2"
+	ratelimit "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/ratelimit"
+	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/ratelimit/v2"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	duration "github.com/golang/protobuf/ptypes/duration"

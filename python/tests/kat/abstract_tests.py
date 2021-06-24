@@ -118,10 +118,10 @@ class AmbassadorTest(Test):
       value: "true"
 """
 
-        if os.environ.get('AMBASSADOR_FAST_RECONFIGURE', 'false').lower() == 'true':
+        if os.environ.get('AMBASSADOR_FAST_RECONFIGURE', 'false').lower() == 'false':
             self.manifest_envs += """
     - name: AMBASSADOR_FAST_RECONFIGURE
-      value: "true"
+      value: "false"
 """
 
         amb_debug = []
@@ -133,6 +133,8 @@ class AmbassadorTest(Test):
             self.manifest_envs += """
     - name: AMBASSADOR_DEBUG
       value: "%s"
+    - name: AES_LOG_LEVEL
+      value: "debug"
 """ % ":".join(amb_debug)
 
         if self.ambassador_id:

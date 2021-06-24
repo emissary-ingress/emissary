@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/datawire/ambassador/cmd/watt/watchapi"
-	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/v2/cmd/watt/watchapi"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
 )
 
 var (

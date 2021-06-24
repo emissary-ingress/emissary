@@ -19,8 +19,8 @@ import (
 	"context"
 	"fmt"
 
-	discovery "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
+	discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
 	"github.com/golang/protobuf/ptypes/any"
 )
 

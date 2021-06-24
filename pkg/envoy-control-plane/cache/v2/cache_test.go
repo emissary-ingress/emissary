@@ -3,11 +3,11 @@ package cache_test
 import (
 	"testing"
 
-	discovery "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	route "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v2"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/resource/v2"
+	discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
+	route "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v2"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/stretchr/testify/assert"

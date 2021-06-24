@@ -55,10 +55,11 @@ def test_statsd_default():
         body='{"origin": "127.0.0.1"}'
     )
     yaml = """
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  thing-rest
 case_sensitive: false
+hostname: "*"
 prefix: /reset/
 rewrite: /RESET/
 service: beepboop
@@ -101,10 +102,11 @@ def test_statsd_default():
         body='{"origin": "127.0.0.1"}'
     )
     yaml = """
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  thing-rest
 case_sensitive: false
+hostname: "*"
 prefix: /reset/
 rewrite: /RESET/
 service: beepboop
@@ -148,10 +150,11 @@ def test_dogstatsd():
         body='{"origin": "127.0.0.1"}'
     )
     yaml = """
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  thing-rest
 case_sensitive: false
+hostname: "*"
 prefix: /reset/
 rewrite: /RESET/
 service: beepboop

@@ -18,10 +18,10 @@ package cache_test
 import (
 	"testing"
 
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v3"
-	rsrc "github.com/datawire/ambassador/pkg/envoy-control-plane/resource/v3"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/test/resource/v3"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v3"
+	rsrc "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v3"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/test/resource/v3"
 )
 
 func TestSnapshotConsistent(t *testing.T) {

@@ -24,6 +24,9 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 TEST_DATA_DIR=/tmp/test-data/
+if [[ -n "${TEST_XML_DIR}" ]] ; then
+    TEST_DATA_DIR=${TEST_XML_DIR}
+fi
 
 DBUILD=${DIR}/dbuild.sh
 
@@ -695,8 +698,6 @@ case "${cmd}" in
     gotest-local)
         [ -n "${TEST_XML_DIR}" ] && mkdir -p ${TEST_XML_DIR}
         fail=""
-        # TEMPORARY HACK
-        export AMBASSADOR_ENVOY_API_VERSION=V2
         for MODDIR in ${GOTEST_MODDIRS} ; do
             if [ -e "${MODDIR}/go.mod" ]; then
                 pkgs=$(cd ${MODDIR} && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' ${GOTEST_PKGS})

@@ -59,7 +59,7 @@ data:
         # be annotated on the Ambassador itself.
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: tls
 ambassador_id: {self.ambassador_id}
@@ -72,9 +72,10 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tls_target_mapping
+hostname: "*"
 prefix: /tls-target/
 service: {self.target.path.fqdn}
 """)
@@ -114,7 +115,7 @@ class RedirectTestsWithProxyProto(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
@@ -124,9 +125,10 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tls_target_mapping
+hostname: "*"
 prefix: /tls-target/
 service: {self.target.path.fqdn}
 """)
@@ -175,7 +177,7 @@ class RedirectTestsInvalidSecret(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: tls
 ambassador_id: {self.ambassador_id}
@@ -188,9 +190,10 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tls_target_mapping
+hostname: "*"
 prefix: /tls-target/
 service: {self.target.path.fqdn}
 """)
@@ -223,12 +226,14 @@ class XFPRedirect(AmbassadorTest):
             self.xfail = "Not yet supported in Edge Stack"
 
         self.target = HTTP()
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
 
     def manifests(self):
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
-kind: Listener
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
 metadata:
   name: ambassador-listener-8080
 spec:
@@ -237,9 +242,12 @@ spec:
   protocol: HTTP
   securityModel: XFP
   l7Depth: 1
+  hostBinding:
+    namespace:
+      from: ALL
 ---
-apiVersion: getambassador.io/v2
-kind: Host
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
 metadata:
   name: weird-xfp-test-host
 spec:
@@ -257,9 +265,10 @@ name: ambassador
 config:
   use_remote_address: false
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
+hostname: "*"
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
 """)

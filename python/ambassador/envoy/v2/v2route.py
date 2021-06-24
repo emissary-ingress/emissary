@@ -89,7 +89,7 @@ def v2prettyroute(route: DictifiedV2Route) -> str:
     elif route.get("redirect"):
         target_str = f"REDIRECT"
 
-    hcstr = route.get("_host_constraints") or "{ i'*' }"
+    hcstr = route.get("_host_constraints") or "{i'*'}"
 
     return f"<V2Route {hcstr}: {match_str} -> {target_str}>"
 
@@ -284,8 +284,9 @@ class V2Route(Cacheable):
     def __init__(self, config: 'V2Config', group: IRHTTPMappingGroup, mapping: IRBaseMapping) -> None:
         super().__init__()
 
-        # Save the logger.
+        # Save the logger and the group.
         self.logger = group.logger
+        self._group = group
 
         # Passing a list to set is _very important_ here, lest you get a set of
         # the individual characters in group.host!
@@ -696,7 +697,10 @@ class V2Route(Cacheable):
                     # (This works without the user marking it as such because '*' isn't
                     # valid in DNS names, so we know that treating a name with a '*' as
                     # as exact match will always fail.)
-                    if header_value.startswith('*'):
+                    if header_value == "*":
+                        # This is actually a noop, so just don't include this header.
+                        continue
+                    elif header_value.startswith('*'):
                         header['suffix_match'] = header_value[1:]
                     elif header_value.endswith('*'):
                         header['prefix_match'] = header_value[:-1]

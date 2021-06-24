@@ -118,7 +118,7 @@
                         "domains": [
                           "hostcrdsingle"
                         ],
-                        "name": "ambassador-listener-8080-hostcrdsingle",
+                        "name": "listener-8080-hostcrdsingle-hostcrdsingle",
                         "routes": [
                           {
                             "match": {
@@ -350,7 +350,7 @@
                         "domains": [
                           "hostcrdsingle"
                         ],
-                        "name": "ambassador-listener-8080-hostcrdsingle",
+                        "name": "listener-8080-hostcrdsingle-hostcrdsingle",
                         "routes": [
                           {
                             "match": {
@@ -534,7 +534,7 @@
             "name": "envoy.filters.listener.tls_inspector"
           }
         ],
-        "name": "ambassador-listener-8080",
+        "name": "listener-8080-hostcrdsingle",
         "traffic_direction": "UNSPECIFIED"
       },
       {
@@ -587,7 +587,7 @@
                         "domains": [
                           "hostcrdsingle"
                         ],
-                        "name": "ambassador-listener-8443-hostcrdsingle",
+                        "name": "listener-8443-hostcrdsingle-hostcrdsingle",
                         "routes": [
                           {
                             "match": {
@@ -819,7 +819,7 @@
                         "domains": [
                           "hostcrdsingle"
                         ],
-                        "name": "ambassador-listener-8443-hostcrdsingle",
+                        "name": "listener-8443-hostcrdsingle-hostcrdsingle",
                         "routes": [
                           {
                             "match": {
@@ -1003,7 +1003,7 @@
             "name": "envoy.filters.listener.tls_inspector"
           }
         ],
-        "name": "ambassador-listener-8443",
+        "name": "listener-8443-hostcrdsingle",
         "traffic_direction": "UNSPECIFIED"
       }
     ]

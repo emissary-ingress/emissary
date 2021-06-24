@@ -26,16 +26,16 @@ import (
 	"os"
 	"time"
 
-	cachev2 "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v2"
-	cachev3 "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v3"
-	serverv2 "github.com/datawire/ambassador/pkg/envoy-control-plane/server/v2"
-	serverv3 "github.com/datawire/ambassador/pkg/envoy-control-plane/server/v3"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/test"
-	testv2 "github.com/datawire/ambassador/pkg/envoy-control-plane/test/v2"
-	testv3 "github.com/datawire/ambassador/pkg/envoy-control-plane/test/v3"
+	cachev2 "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
+	cachev3 "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v3"
+	serverv2 "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v2"
+	serverv3 "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v3"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/test"
+	testv2 "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/test/v2"
+	testv3 "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/test/v3"
 
-	resourcev2 "github.com/datawire/ambassador/pkg/envoy-control-plane/test/resource/v2"
-	resourcev3 "github.com/datawire/ambassador/pkg/envoy-control-plane/test/resource/v3"
+	resourcev2 "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/test/resource/v2"
+	resourcev3 "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/test/resource/v3"
 )
 
 var (

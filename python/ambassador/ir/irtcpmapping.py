@@ -26,6 +26,7 @@ class IRTCPMapping (IRBaseMapping):
         "enable_ipv6": True,
         "host": True,
         "idle_timeout_ms": True,
+        "metadata_labels": True,
         "port": True,
         "service": True,
         "tls": True,
@@ -44,7 +45,7 @@ class IRTCPMapping (IRBaseMapping):
                  metadata_labels: Optional[Dict[str, str]] = None,
 
                  kind: str="IRTCPMapping",
-                 apiVersion: str="getambassador.io/v2",   # Not a typo! See below.
+                 apiVersion: str="x.getambassador.io/v3alpha1",   # Not a typo! See below.
                  precedence: int=0,
                  cluster_tag: Optional[str]=None,
                  **kwargs) -> None:

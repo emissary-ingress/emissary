@@ -91,7 +91,7 @@
                         "domains": [
                           "tls-context-host-1"
                         ],
-                        "name": "ambassador-listener-8080-tls-context-host-1",
+                        "name": "listener-8080-hostcrdrootredirectcongratulations-tls-context-host-1",
                         "routes": [
                           {
                             "match": {
@@ -282,7 +282,7 @@
                         "domains": [
                           "tls-context-host-1"
                         ],
-                        "name": "ambassador-listener-8080-tls-context-host-1",
+                        "name": "listener-8080-hostcrdrootredirectcongratulations-tls-context-host-1",
                         "routes": [
                           {
                             "match": {
@@ -425,7 +425,7 @@
             "name": "envoy.filters.listener.tls_inspector"
           }
         ],
-        "name": "ambassador-listener-8080",
+        "name": "listener-8080-hostcrdrootredirectcongratulations",
         "traffic_direction": "UNSPECIFIED"
       },
       {
@@ -478,7 +478,7 @@
                         "domains": [
                           "tls-context-host-1"
                         ],
-                        "name": "ambassador-listener-8443-tls-context-host-1",
+                        "name": "listener-8443-hostcrdrootredirectcongratulations-tls-context-host-1",
                         "routes": [
                           {
                             "match": {
@@ -669,7 +669,7 @@
                         "domains": [
                           "tls-context-host-1"
                         ],
-                        "name": "ambassador-listener-8443-tls-context-host-1",
+                        "name": "listener-8443-hostcrdrootredirectcongratulations-tls-context-host-1",
                         "routes": [
                           {
                             "match": {
@@ -812,7 +812,7 @@
             "name": "envoy.filters.listener.tls_inspector"
           }
         ],
-        "name": "ambassador-listener-8443",
+        "name": "listener-8443-hostcrdrootredirectcongratulations",
         "traffic_direction": "UNSPECIFIED"
       }
     ]

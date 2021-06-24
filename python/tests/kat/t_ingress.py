@@ -45,7 +45,7 @@ spec:
 """ + super().manifests()
 
     def queries(self):
-        if sys.platform != 'darwin':
+        if True or sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
             update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
@@ -62,7 +62,7 @@ spec:
         if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
-        if sys.platform == 'darwin':
+        if False and sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
         for r in self.results:
@@ -111,7 +111,7 @@ spec:
 """ + super().manifests()
 
     def queries(self):
-        if sys.platform != 'darwin':
+        if True or sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
             update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
@@ -128,7 +128,7 @@ spec:
         if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
-        if sys.platform == 'darwin':
+        if False and sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
         for r in self.results:
@@ -178,7 +178,7 @@ spec:
 """ + super().manifests()
 
     def queries(self):
-        if sys.platform != 'darwin':
+        if True or sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
             update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
@@ -195,7 +195,7 @@ spec:
         if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
-        if sys.platform == 'darwin':
+        if False and sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
         for r in self.results:
@@ -232,9 +232,10 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
-      kind:  Mapping
+      apiVersion: x.getambassador.io/v3alpha1
+      kind: AmbassadorMapping
       name:  {self.name}-nested
+      hostname: "*"
       prefix: /{self.name}-nested/
       service: http://{self.target.path.fqdn}
       ambassador_id: {self.ambassador_id}
@@ -331,7 +332,7 @@ spec:
 """ + super().manifests()
 
     def queries(self):
-        if sys.platform != 'darwin':
+        if True or sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
             update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
@@ -348,7 +349,7 @@ spec:
         if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
-        if sys.platform == 'darwin':
+        if False and sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
         for namespace in ['same-ingress-1', 'same-ingress-2']:
@@ -427,7 +428,7 @@ spec:
 """ + super().manifests()
 
     def queries(self):
-        if sys.platform != 'darwin':
+        if True or sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
             update_cmd = [KUBESTATUS_PATH, 'Service', '-n', 'default', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
@@ -444,7 +445,7 @@ spec:
         if not parse_bool(os.environ.get("AMBASSADOR_PYTEST_INGRESS_TEST", "false")):
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
-        if sys.platform == 'darwin':
+        if False and sys.platform == 'darwin':
             pytest.xfail('not supported on Darwin')
 
         for r in self.results:

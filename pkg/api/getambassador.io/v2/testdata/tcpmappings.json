@@ -1,6 +1,6 @@
 [
     {
-        "apiVersion": "ambassador/v2",
+        "apiVersion": "getambassador.io/v2",
         "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -13,7 +13,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v2",
+        "apiVersion": "getambassador.io/v2",
         "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -33,7 +33,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v2",
+        "apiVersion": "getambassador.io/v2",
         "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -47,7 +47,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v2",
+        "apiVersion": "getambassador.io/v2",
         "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -63,7 +63,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v2",
+        "apiVersion": "getambassador.io/v2",
         "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -80,7 +80,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v2",
+        "apiVersion": "getambassador.io/v2",
         "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -98,7 +98,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v1",
+        "apiVersion": "getambassador.io/v2",
         "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -112,7 +112,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v1",
+        "apiVersion": "getambassador.io/v2",
         "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -126,7 +126,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v1",
+        "apiVersion": "getambassador.io/v2",
         "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -141,7 +141,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v1",
+        "apiVersion": "getambassador.io/v2",
         "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -156,7 +156,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v1",
+        "apiVersion": "getambassador.io/v2",
         "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -170,7 +170,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v1",
+        "apiVersion": "getambassador.io/v2",
         "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
@@ -184,7 +184,7 @@
         }
     },
     {
-        "apiVersion": "ambassador/v1",
+        "apiVersion": "getambassador.io/v2",
         "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",

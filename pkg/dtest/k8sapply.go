@@ -5,9 +5,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/k8s"
-	"github.com/datawire/ambassador/pkg/kubeapply"
-	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/kubeapply"
+	"github.com/datawire/ambassador/v2/pkg/supervisor"
 )
 
 const prefix = "DTEST"

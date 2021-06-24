@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/datawire/ambassador/cmd/watt/watchapi"
-	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/v2/cmd/watt/watchapi"
+	"github.com/datawire/ambassador/v2/pkg/supervisor"
 )
 
 func createDoNothingWorker(name string) *supervisor.Worker {

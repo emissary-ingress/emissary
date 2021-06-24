@@ -38,7 +38,7 @@ def update_changelog_date(next_ver):
             sys.stdout.write(
                     f"[{next_ver}]: https://github.com/emissary-ingress/emissary/compare/v{prev_ver}...v{next_ver}\n")
             sys.stdout.write("\n")
-            sys.stdout.write("### Emissary Ingress and Ambassador Edge Stack\n")
+            sys.stdout.write("### Emissary Ingress\n")
             sys.stdout.write("\n")
             sys.stdout.write("(no changes yet)\n")
             sys.stdout.write(buf)

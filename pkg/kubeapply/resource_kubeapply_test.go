@@ -5,8 +5,8 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/datawire/ambassador/pkg/dtest"
-	"github.com/datawire/ambassador/pkg/kubeapply"
+	"github.com/datawire/ambassador/v2/pkg/dtest"
+	"github.com/datawire/ambassador/v2/pkg/kubeapply"
 )
 
 func TestDocker(t *testing.T) {

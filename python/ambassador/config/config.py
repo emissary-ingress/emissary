@@ -82,14 +82,14 @@ class Config:
     StorageByKind: ClassVar[Dict[str, str]] = {
         'authservice': "auth_configs",
         'consulresolver': "resolvers",
-        'host': "hosts",
-        'listener': "listeners",
-        'mapping': "mappings",
+        'ambassadorhost': "hosts",
+        'ambassadorlistener': "listeners",
+        'ambassadormapping': "mappings",
         'kubernetesendpointresolver': "resolvers",
         'kubernetesserviceresolver': "resolvers",
         'ratelimitservice': "ratelimit_configs",
         'devportal': "devportals",
-        'tcpmapping': "tcpmappings",
+        'ambassadortcpmapping': "tcpmappings",
         'tlscontext': "tls_contexts",
         'tracingservice': "tracing_configs",
         'logservice': "log_services",
@@ -466,7 +466,7 @@ class Config:
 
         # OK. If it really starts with getambassador.io/, we're good, and we can strip
         # that off to make comparisons and keying easier.
-        if apiVersion.startswith("getambassador.io/"):
+        if apiVersion.startswith("getambassador.io/") or apiVersion.startswith("x.getambassador.io/"):
             is_ambassador = True
             apiVersion = apiVersion.split('/')[1]
         elif apiVersion.startswith('networking.internal.knative.dev'):

@@ -56,22 +56,23 @@ class AmbassadorIDTest(AmbassadorTest):
     def config(self) -> Union[str, Tuple[Node, str]]:
         yield self, """
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config: 
   use_ambassador_namespace_for_service_resolution: true
 """
-        for prefix, amb_id in (("findme", "{self.ambassador_id}"),
+        for prefix, amb_id in (("findme", "[{self.ambassador_id}]"),
                                ("findme-array", "[{self.ambassador_id}, missme]"),
                                ("findme-array2", "[missme, {self.ambassador_id}]"),
-                               ("missme", "missme"),
+                               ("missme", "[missme]"),
                                ("missme-array", "[missme1, missme2]")):
             yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.path.k8s}-{prefix}
+hostname: "*"
 prefix: /{prefix}/
 service: {self.target.path.fqdn}
 ambassador_id: {amb_id}
@@ -98,24 +99,26 @@ kind:  AuthService
 metadata:
   name:  {self.path.k8s}-as-bad1-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   service_bad: {self.target.path.fqdn}
 ""","""
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name:  {self.path.k8s}-m-good-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
+  hostname: "*"
   prefix: /good-<<WHICH>>/
   service: {self.target.path.fqdn}
 """, """
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name:  {self.path.k8s}-m-bad-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
+  hostname: "*"
   prefix_bad: /bad-<<WHICH>>/
   service: {self.target.path.fqdn}
 """, """
@@ -124,7 +127,7 @@ kind:  Module
 metadata:
   name:  {self.path.k8s}-md-bad-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   config_bad: []
 """, """
 apiVersion: getambassador.io/v2
@@ -132,24 +135,24 @@ kind:  RateLimitService
 metadata:
   name:  {self.path.k8s}-r-bad-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   service_bad: {self.target.path.fqdn}
 """, """
-apiVersion: getambassador.io/v2
-kind:  TCPMapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorTCPMapping
 metadata:
   name:  {self.path.k8s}-tm-bad1-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   service: {self.target.path.fqdn}
   port_bad: 8888
 """, """
-apiVersion: getambassador.io/v2
-kind:  TCPMapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorTCPMapping
 metadata:
   name:  {self.path.k8s}-tm-bad2-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   service_bad: {self.target.path.fqdn}
   port: 8888
 """, """
@@ -158,7 +161,7 @@ kind:  TracingService
 metadata:
   name:  {self.path.k8s}-ts-bad1-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   driver_bad: zipkin
   service: {self.target.path.fqdn}
 """, """
@@ -167,7 +170,7 @@ kind:  TracingService
 metadata:
   name:  {self.path.k8s}-ts-bad2-<<WHICH>>
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: ["{self.ambassador_id}"]
   driver: zipkin
   service_bad: {self.target.path.fqdn}
 """
@@ -257,15 +260,16 @@ class ServerNameTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
   server_name: "test-server"
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.path.k8s}/server-name
+hostname: "*"
 prefix: /server-name
 service: {self.target.path.fqdn}
 """)
@@ -287,8 +291,8 @@ class SafeRegexMapping(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
 prefix: /{self.name}/
 prefix_regex: true
@@ -322,8 +326,8 @@ class UnsafeRegexMapping(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
 prefix: /{self.name}/
 prefix_regex: true

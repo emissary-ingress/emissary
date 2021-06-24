@@ -65,12 +65,13 @@ spec:
 def create_headerecho_mapping(namespace):
     headerecho_mapping = f"""
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name:  headerecho-mapping
   namespace: {namespace}
 spec:
+  hostname: "*"
   prefix: /headerecho/
   rewrite: /
   service: headerecho
@@ -83,30 +84,33 @@ def _ambassador_module_config():
 ---
 apiVersion: getambassador.io/v2
 kind: Module
-name: ambassador
-config:
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  config:
 '''
 
 def _ambassador_module_header_case_overrides(overrides, proper_case=False):
     mod = _ambassador_module_config()
     if len(overrides) == 0:
         mod = mod + '''
-  header_case_overrides: []
+    header_case_overrides: []
 '''
         return mod
 
     mod = mod + '''
-  header_case_overrides:
+    header_case_overrides:
 '''
     for override in overrides:
         mod = mod + f'''
-  - {override}
+    - {override}
 '''
     # proper case isn't valid if header_case_overrides are set, but we do
     # it here for tests that want to test that this is in fact invalid.
     if proper_case:
         mod = mod + f'''
-    proper_case: true
+      proper_case: true
 '''
     return mod
 
@@ -115,15 +119,33 @@ def _test_headercaseoverrides(yaml, expectations, expect_norules=False, version=
 
     yaml = yaml + '''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
-name: httpbin-mapping
-service: httpbin
-prefix: /httpbin/
-'''
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
+metadata:
+  name: ambassador-listener-8080
+  namespace: default
+spec:
+  port: 8080
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
 
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
+metadata:
+  name: httpbin-mapping
+  namespace: default
+spec:
+  service: httpbin
+  hostname: "*"
+  prefix: /httpbin/
+'''
+ 
     fetcher = ResourceFetcher(logger, aconf)
-    fetcher.parse_yaml(yaml)
+    fetcher.parse_yaml(yaml, k8s=True)
 
     aconf.load_all(fetcher.sorted())
 
@@ -167,6 +189,7 @@ prefix: /httpbin/
                     rule = rules[hdr]
                     assert rule == e, f"unexpected rule {rule} in {rules}"
                 found_module_rules = True
+
     for cluster in conf['static_resources']['clusters']:
         if 'httpbin' not in cluster['name']:
             continue
@@ -288,6 +311,24 @@ spec:
 
         apply_kube_artifacts(namespace=namespace, artifacts=manifest)
 
+    def create_listeners(self, namespace):
+        manifest = f"""
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
+metadata:
+  name: listener-8080
+spec:
+  port: 8080
+  protocol: HTTP
+  securityModel: INSECURE
+  hostBinding:
+    namespace:
+      from: SELF
+"""
+
+        apply_kube_artifacts(namespace=namespace, artifacts=manifest)
+
     def test_header_case_overrides(self):
         # Is there any reason not to use the default namespace?
         namespace = 'header-case-overrides'
@@ -300,6 +341,9 @@ spec:
 
         # Install headerecho
         apply_kube_artifacts(namespace=namespace, artifacts=headerecho_manifests)
+
+        # Install listeners.
+        self.create_listeners(namespace)
 
         # Install module
         self.create_module(namespace)

@@ -44,21 +44,23 @@ class IPAllow(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.path.k8s}-target-mapping
 spec:
   ambassador_id: {self.ambassador_id}
+  hostname: "*"
   prefix: /target/
   service: {self.target.path.fqdn}
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.path.k8s}-localhost-mapping
 spec:
   ambassador_id: {self.ambassador_id}
+  hostname: "*"
   prefix: /localhost/
   rewrite: /target/             # See NOTE above
   service: 127.0.0.1:8080       # See NOTE above
@@ -111,21 +113,23 @@ class IPDeny(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.path.k8s}-target-mapping
 spec:
   ambassador_id: {self.ambassador_id}
+  hostname: "*"
   prefix: /target/
   service: {self.target.path.fqdn}
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: {self.path.k8s}-localhost-mapping
 spec:
   ambassador_id: {self.ambassador_id}
+  hostname: "*"
   prefix: /localhost/
   rewrite: /target/             # See NOTE above
   service: 127.0.0.1:8080       # See NOTE above

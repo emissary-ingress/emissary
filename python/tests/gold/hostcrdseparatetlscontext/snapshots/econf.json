@@ -118,7 +118,7 @@
                         "domains": [
                           "hostcrdseparatetlscontext"
                         ],
-                        "name": "ambassador-listener-8080-hostcrdseparatetlscontext",
+                        "name": "listener-8080-hostcrdseparatetlscontext-hostcrdseparatetlscontext",
                         "routes": [
                           {
                             "match": {
@@ -354,7 +354,7 @@
                         "domains": [
                           "hostcrdseparatetlscontext"
                         ],
-                        "name": "ambassador-listener-8080-hostcrdseparatetlscontext",
+                        "name": "listener-8080-hostcrdseparatetlscontext-hostcrdseparatetlscontext",
                         "routes": [
                           {
                             "match": {
@@ -538,7 +538,7 @@
             "name": "envoy.filters.listener.tls_inspector"
           }
         ],
-        "name": "ambassador-listener-8080",
+        "name": "listener-8080-hostcrdseparatetlscontext",
         "traffic_direction": "UNSPECIFIED"
       },
       {
@@ -591,7 +591,7 @@
                         "domains": [
                           "hostcrdseparatetlscontext"
                         ],
-                        "name": "ambassador-listener-8443-hostcrdseparatetlscontext",
+                        "name": "listener-8443-hostcrdseparatetlscontext-hostcrdseparatetlscontext",
                         "routes": [
                           {
                             "match": {
@@ -827,7 +827,7 @@
                         "domains": [
                           "hostcrdseparatetlscontext"
                         ],
-                        "name": "ambassador-listener-8443-hostcrdseparatetlscontext",
+                        "name": "listener-8443-hostcrdseparatetlscontext-hostcrdseparatetlscontext",
                         "routes": [
                           {
                             "match": {
@@ -1011,7 +1011,7 @@
             "name": "envoy.filters.listener.tls_inspector"
           }
         ],
-        "name": "ambassador-listener-8443",
+        "name": "listener-8443-hostcrdseparatetlscontext",
         "traffic_direction": "UNSPECIFIED"
       }
     ]

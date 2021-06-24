@@ -50,6 +50,7 @@
 //
 // The group name to use for the CRDs in the generated YAML:
 // +groupName=getambassador.io
+// +versionName=v2
 //
 // By default, mark all types in this package to have DeepCopy methods
 // generated (so we don't need to specify this for every type):

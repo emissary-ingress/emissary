@@ -199,7 +199,7 @@
                         "domains": [
                           "ambassador.example.com"
                         ],
-                        "name": "ambassador-listener-8080-ambassador.example.com",
+                        "name": "listener-8080-hostcrddouble-ambassador.example.com",
                         "routes": [
                           {
                             "match": {
@@ -450,7 +450,7 @@
                         "domains": [
                           "ambassador.example.com"
                         ],
-                        "name": "ambassador-listener-8080-ambassador.example.com",
+                        "name": "listener-8080-hostcrddouble-ambassador.example.com",
                         "routes": [
                           {
                             "match": {
@@ -641,7 +641,7 @@
                         "domains": [
                           "tls-context-host-1"
                         ],
-                        "name": "ambassador-listener-8080-tls-context-host-1",
+                        "name": "listener-8080-hostcrddouble-tls-context-host-1",
                         "routes": [
                           {
                             "match": {
@@ -879,7 +879,7 @@
                         "domains": [
                           "tls-context-host-2"
                         ],
-                        "name": "ambassador-listener-8080-tls-context-host-2",
+                        "name": "listener-8080-hostcrddouble-tls-context-host-2",
                         "routes": [
                           {
                             "match": {
@@ -1149,7 +1149,7 @@
                         "domains": [
                           "tls-context-host-1"
                         ],
-                        "name": "ambassador-listener-8080-tls-context-host-1",
+                        "name": "listener-8080-hostcrddouble-tls-context-host-1",
                         "routes": [
                           {
                             "match": {
@@ -1452,7 +1452,7 @@
                         "domains": [
                           "tls-context-host-2"
                         ],
-                        "name": "ambassador-listener-8080-tls-context-host-2",
+                        "name": "listener-8080-hostcrddouble-tls-context-host-2",
                         "routes": [
                           {
                             "match": {
@@ -1705,7 +1705,7 @@
             "name": "envoy.filters.listener.tls_inspector"
           }
         ],
-        "name": "ambassador-listener-8080",
+        "name": "listener-8080-hostcrddouble",
         "traffic_direction": "UNSPECIFIED"
       },
       {
@@ -1758,7 +1758,7 @@
                         "domains": [
                           "ambassador.example.com"
                         ],
-                        "name": "ambassador-listener-8443-ambassador.example.com",
+                        "name": "listener-8443-hostcrddouble-ambassador.example.com",
                         "routes": [
                           {
                             "match": {
@@ -2009,7 +2009,7 @@
                         "domains": [
                           "ambassador.example.com"
                         ],
-                        "name": "ambassador-listener-8443-ambassador.example.com",
+                        "name": "listener-8443-hostcrddouble-ambassador.example.com",
                         "routes": [
                           {
                             "match": {
@@ -2200,7 +2200,7 @@
                         "domains": [
                           "tls-context-host-1"
                         ],
-                        "name": "ambassador-listener-8443-tls-context-host-1",
+                        "name": "listener-8443-hostcrddouble-tls-context-host-1",
                         "routes": [
                           {
                             "match": {
@@ -2438,7 +2438,7 @@
                         "domains": [
                           "tls-context-host-2"
                         ],
-                        "name": "ambassador-listener-8443-tls-context-host-2",
+                        "name": "listener-8443-hostcrddouble-tls-context-host-2",
                         "routes": [
                           {
                             "match": {
@@ -2708,7 +2708,7 @@
                         "domains": [
                           "tls-context-host-1"
                         ],
-                        "name": "ambassador-listener-8443-tls-context-host-1",
+                        "name": "listener-8443-hostcrddouble-tls-context-host-1",
                         "routes": [
                           {
                             "match": {
@@ -3011,7 +3011,7 @@
                         "domains": [
                           "tls-context-host-2"
                         ],
-                        "name": "ambassador-listener-8443-tls-context-host-2",
+                        "name": "listener-8443-hostcrddouble-tls-context-host-2",
                         "routes": [
                           {
                             "match": {
@@ -3264,7 +3264,7 @@
             "name": "envoy.filters.listener.tls_inspector"
           }
         ],
-        "name": "ambassador-listener-8443",
+        "name": "listener-8443-hostcrddouble",
         "traffic_direction": "UNSPECIFIED"
       }
     ]
