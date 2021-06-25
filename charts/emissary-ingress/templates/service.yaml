@@ -71,10 +71,8 @@ spec:
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     {{- end }}
-    {{- if hasKey .Values "canary.mixPods"}}
-    {{- if eq .Values.canary.mixPods false }}
+    {{- if or (not (hasKey .Values "canary.mixPods")) (eq .Values.canary.mixPods false) }}
     profile: main
-    {{- end }}
     {{- end }}
   {{- with .Values.service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
