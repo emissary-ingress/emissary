@@ -8,12 +8,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/datawire/ambassador/cmd/ambex"
-	"github.com/datawire/ambassador/cmd/entrypoint"
-	v3bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v3"
-	v3cluster "github.com/datawire/ambassador/pkg/api/envoy/config/cluster/v3"
-	"github.com/datawire/ambassador/pkg/kates"
-	"github.com/datawire/ambassador/pkg/snapshot/v1"
+	"github.com/datawire/ambassador/v2/cmd/ambex"
+	"github.com/datawire/ambassador/v2/cmd/entrypoint"
+	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
+	v3cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -227,7 +227,7 @@ func TestFakeHelloConsul(t *testing.T) {
 	assert.Equal(t, "consul-server.default:8500", snap.Kubernetes.ConsulResolvers[0].Spec.Address)
 
 	// Check that our deltas are what we expect.
-	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "add Mapping hello", "add TCPMapping hello-tcp"}, deltaSummary(snap))
+	assert.Equal(t, []string{"add AmbassadorMapping hello", "add AmbassadorTCPMapping hello-tcp", "add ConsulResolver consul-dc1"}, deltaSummary(snap))
 
 	// Create a predicate that will recognize the cluster we care about. The surjection from
 	// Mappings to clusters is a bit opaque, so we just look for a cluster that contains the name

@@ -25,6 +25,7 @@ class NormalizedResource:
     @classmethod
     def from_data(cls, kind: str, name: str, namespace: Optional[str] = None,
                   generation: Optional[int] = None, version: str = 'v2',
+                  api_group = 'getambassador.io',
                   labels: Optional[Dict[str, Any]] = None,
                   spec: Dict[str, Any] = None, errors: Optional[str] = None,
                   rkey: Optional[str] = None) -> NormalizedResource:
@@ -35,7 +36,7 @@ class NormalizedResource:
         if spec:
             ir_obj.update(spec)
 
-        ir_obj['apiVersion'] = f'getambassador.io/{version}'
+        ir_obj['apiVersion'] = f'{api_group}/{version}'
         ir_obj['kind'] = kind
         ir_obj['name'] = name
 
@@ -54,7 +55,7 @@ class NormalizedResource:
 
     @classmethod
     def from_kubernetes_object(cls, obj: KubernetesObject) -> NormalizedResource:
-        if obj.gvk.api_group != 'getambassador.io':
+        if obj.gvk.api_group not in ('getambassador.io', 'x.getambassador.io'):
             raise ValueError(f'Cannot construct resource from non-Ambassador Kubernetes object with API version {obj.gvk.api_version}')
         if obj.namespace is None:
             raise ValueError(f'Cannot construct resource from Kubernetes object {obj.key} without namespace')
@@ -73,6 +74,7 @@ class NormalizedResource:
             namespace=obj.namespace,
             generation=obj.generation,
             version=obj.gvk.version,
+            api_group=obj.gvk.api_group,
             labels=labels,
             spec=obj.spec,
         )

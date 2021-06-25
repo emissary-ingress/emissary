@@ -21,7 +21,7 @@ from ambassador.ir.irbasemapping import normalize_service_name
 
 yaml = '''
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config: {}

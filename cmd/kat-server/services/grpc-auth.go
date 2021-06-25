@@ -18,9 +18,9 @@ import (
 	"google.golang.org/grpc"
 
 	// first party (protobuf)
-	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
-	pb "github.com/datawire/ambassador/pkg/api/envoy/service/auth/v2"
-	envoy_type "github.com/datawire/ambassador/pkg/api/envoy/type"
+	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
+	pb "github.com/datawire/ambassador/v2/pkg/api/envoy/service/auth/v2"
+	envoy_type "github.com/datawire/ambassador/v2/pkg/api/envoy/type"
 
 	// first party
 	"github.com/datawire/dlib/dgroup"

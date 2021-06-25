@@ -1590,18 +1590,39 @@ class AmbassadorEventWatcher(threading.Thread):
         # DON'T generate the Diagnostics here, because that turns out to be expensive.
         # Instead, we'll just reset app.diag to None, then generate it on-demand when
         # we need it.
-
+        #
+        # DO go ahead and split the Envoy config into its components for later, though.
         bootstrap_config, ads_config, clustermap = econf.split_config()
 
-        if not self.validate_envoy_config(ir, config=ads_config, retries=self.app.validation_retries):
-            self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
+        # OK. Assume that the Envoy config is valid...
+        econf_is_valid = True
+        econf_bad_reason = ""
+
+        # ...then look for reasons it's not valid.
+        if not econf.has_listeners():
+            # No listeners == something in the Ambassador config is totally horked.
+            # Probably this is the user not defining any AmbassadorHosts that match
+            # the AmbassadorListeners in the system.
+            #
+            # As it happens, Envoy is OK running a config with no listeners, and it'll
+            # answer on port 8001 for readiness checks, so... log a notice, but run with it.
+            self.logger.warning("No active listeners at all; check your AmbassadorListener and AmbassadorHost configuration")
+        elif not self.validate_envoy_config(ir, config=ads_config, retries=self.app.validation_retries):
+            # Invalid Envoy config probably indicates a bug in Emissary itself. Sigh.
+            econf_is_valid = False
+            econf_bad_reason = "invalid envoy configuration generated"
+
+        # OK. Is the config invalid?
+        if not econf_is_valid:
+            # BZzzt. Don't post this update.
+            self.logger.info("no update performed (%s), continuing with current configuration..." % econf_bad_reason)
 
             # Don't use app.check_scout; it will deadlock.
             self.check_scout("attempted bad update")
 
             # DO stop the reconfiguration timer before leaving.
             self.app.config_timer.stop()
-            self._respond(rqueue, 500, 'ignoring: invalid Envoy configuration in snapshot %s' % snapshot)
+            self._respond(rqueue, 500, 'ignoring (%s) in snapshot %s' % (econf_bad_reason, snapshot))
             return
 
         snapcount = int(os.environ.get('AMBASSADOR_SNAPSHOT_COUNT', "4"))

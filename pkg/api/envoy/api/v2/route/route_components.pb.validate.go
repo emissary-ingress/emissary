@@ -17,7 +17,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 
-	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
+	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
 )
 
 // ensure the imports are used

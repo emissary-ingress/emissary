@@ -8,7 +8,7 @@ package envoy_extensions_filters_network_thrift_proxy_filters_ratelimit_v3
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v3 "github.com/datawire/ambassador/pkg/api/envoy/config/ratelimit/v3"
+	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/ratelimit/v3"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	duration "github.com/golang/protobuf/ptypes/duration"

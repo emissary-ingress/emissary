@@ -118,7 +118,7 @@
                         "domains": [
                           "ambassador.example.com"
                         ],
-                        "name": "ambassador-listener-8080-ambassador.example.com",
+                        "name": "listener-8080-hostcrdclientcertcrossnamespace-ambassador.example.com",
                         "routes": [
                           {
                             "match": {
@@ -356,7 +356,7 @@
                         "domains": [
                           "ambassador.example.com"
                         ],
-                        "name": "ambassador-listener-8080-ambassador.example.com",
+                        "name": "listener-8080-hostcrdclientcertcrossnamespace-ambassador.example.com",
                         "routes": [
                           {
                             "match": {
@@ -540,7 +540,7 @@
             "name": "envoy.filters.listener.tls_inspector"
           }
         ],
-        "name": "ambassador-listener-8080",
+        "name": "listener-8080-hostcrdclientcertcrossnamespace",
         "traffic_direction": "UNSPECIFIED"
       },
       {
@@ -593,7 +593,7 @@
                         "domains": [
                           "ambassador.example.com"
                         ],
-                        "name": "ambassador-listener-8443-ambassador.example.com",
+                        "name": "listener-8443-hostcrdclientcertcrossnamespace-ambassador.example.com",
                         "routes": [
                           {
                             "match": {
@@ -831,7 +831,7 @@
                         "domains": [
                           "ambassador.example.com"
                         ],
-                        "name": "ambassador-listener-8443-ambassador.example.com",
+                        "name": "listener-8443-hostcrdclientcertcrossnamespace-ambassador.example.com",
                         "routes": [
                           {
                             "match": {
@@ -1015,7 +1015,7 @@
             "name": "envoy.filters.listener.tls_inspector"
           }
         ],
-        "name": "ambassador-listener-8443",
+        "name": "listener-8443-hostcrdclientcertcrossnamespace",
         "traffic_direction": "UNSPECIFIED"
       }
     ]

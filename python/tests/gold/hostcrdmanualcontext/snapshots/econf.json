@@ -118,7 +118,7 @@
                         "domains": [
                           "hostcrdmanualcontext"
                         ],
-                        "name": "ambassador-listener-8080-hostcrdmanualcontext",
+                        "name": "listener-8080-hostcrdmanualcontext-hostcrdmanualcontext",
                         "routes": [
                           {
                             "match": {
@@ -354,7 +354,7 @@
                         "domains": [
                           "hostcrdmanualcontext"
                         ],
-                        "name": "ambassador-listener-8080-hostcrdmanualcontext",
+                        "name": "listener-8080-hostcrdmanualcontext-hostcrdmanualcontext",
                         "routes": [
                           {
                             "match": {
@@ -538,7 +538,7 @@
             "name": "envoy.filters.listener.tls_inspector"
           }
         ],
-        "name": "ambassador-listener-8080",
+        "name": "listener-8080-hostcrdmanualcontext",
         "traffic_direction": "UNSPECIFIED"
       },
       {
@@ -591,7 +591,7 @@
                         "domains": [
                           "hostcrdmanualcontext"
                         ],
-                        "name": "ambassador-listener-8443-hostcrdmanualcontext",
+                        "name": "listener-8443-hostcrdmanualcontext-hostcrdmanualcontext",
                         "routes": [
                           {
                             "match": {
@@ -827,7 +827,7 @@
                         "domains": [
                           "hostcrdmanualcontext"
                         ],
-                        "name": "ambassador-listener-8443-hostcrdmanualcontext",
+                        "name": "listener-8443-hostcrdmanualcontext-hostcrdmanualcontext",
                         "routes": [
                           {
                             "match": {
@@ -1011,7 +1011,7 @@
             "name": "envoy.filters.listener.tls_inspector"
           }
         ],
-        "name": "ambassador-listener-8443",
+        "name": "listener-8443-hostcrdmanualcontext",
         "traffic_direction": "UNSPECIFIED"
       }
     ]

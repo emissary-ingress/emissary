@@ -4,7 +4,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/v2/pkg/supervisor"
 )
 
 type searchDomains struct {

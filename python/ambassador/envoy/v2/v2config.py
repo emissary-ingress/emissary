@@ -68,6 +68,9 @@ class V2Config (EnvoyConfig):
         V2StaticResources.generate(self)
         V2Bootstrap.generate(self)
 
+    def has_listeners(self) -> bool:
+        return len(self.listeners) > 0
+
     def as_dict(self) -> Dict[str, Any]:
         bootstrap_config, ads_config, clustermap = self.split_config()
 

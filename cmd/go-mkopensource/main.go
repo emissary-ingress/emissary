@@ -18,8 +18,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
-	"github.com/datawire/ambassador/pkg/mkopensource/detectlicense"
-	"github.com/datawire/ambassador/pkg/mkopensource/golist"
+	"github.com/datawire/ambassador/v2/pkg/mkopensource/detectlicense"
+	"github.com/datawire/ambassador/v2/pkg/mkopensource/golist"
 )
 
 type CLIArgs struct {
@@ -250,7 +250,7 @@ func Main(args *CLIArgs) error {
     the license is.  (This is a good thing, because it is reminding you
     to check the license of libraries before using them.)
 
-    You need to update the "github.com/datawire/ambassador/pkg/mkopensource/detectlicense/licenses.go"
+    You need to update the "github.com/datawire/ambassador/v2/pkg/mkopensource/detectlicense/licenses.go"
     file to correctly detect the license.`,
 				errors.Wrapf(err, "package %q", pkgName))
 		}

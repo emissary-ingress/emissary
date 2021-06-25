@@ -17,8 +17,8 @@ class RetryPolicyTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-normal
 hostname: "*"
 prefix: /{self.name}-normal/
@@ -28,8 +28,8 @@ timeout_ms: 3000
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-target
 hostname: "*"
 prefix: /{self.name}-retry/
@@ -42,7 +42,7 @@ retry_policy:
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:

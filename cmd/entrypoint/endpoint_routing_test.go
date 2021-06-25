@@ -7,13 +7,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/datawire/ambassador/cmd/ambex"
-	"github.com/datawire/ambassador/cmd/entrypoint"
-	v3bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v3"
-	v3cluster "github.com/datawire/ambassador/pkg/api/envoy/config/cluster/v3"
-	v2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/pkg/kates"
-	"github.com/datawire/ambassador/pkg/snapshot/v1"
+	"github.com/datawire/ambassador/v2/cmd/ambex"
+	"github.com/datawire/ambassador/v2/cmd/entrypoint"
+	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
+	v3cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
+	v2 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -45,8 +45,8 @@ func TestEndpointRoutingMappingAnnotations(t *testing.T) {
 	svc.ObjectMeta.Annotations = map[string]string{
 		"getambassador.io/config": `
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name: foo
 prefix: /foo
 service: foo
@@ -147,8 +147,8 @@ func TestEndpointRoutingMappingCreation(t *testing.T) {
 	f.AssertEndpointsEmpty(timeout)
 	f.UpsertYAML(`
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: foo
   namespace: default
@@ -201,7 +201,7 @@ func HasEndpoints(path string) func(endpoints *ambex.Endpoints) bool {
 
 func makeMapping(namespace, name, prefix, service, resolver string) *v2.Mapping {
 	return &v2.Mapping{
-		TypeMeta:   kates.TypeMeta{Kind: "Mapping"},
+		TypeMeta:   kates.TypeMeta{Kind: "AmbassadorMapping"},
 		ObjectMeta: kates.ObjectMeta{Namespace: namespace, Name: name},
 		Spec: v2.MappingSpec{
 			Prefix:   prefix,

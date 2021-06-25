@@ -9,8 +9,8 @@ package envoy_service_route_v3
 import (
 	context "context"
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/annotations"
-	v3 "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/annotations"
+	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
 	proto "github.com/golang/protobuf/proto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"

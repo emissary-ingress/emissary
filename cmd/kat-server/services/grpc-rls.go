@@ -15,8 +15,8 @@ import (
 	"google.golang.org/grpc"
 
 	// first party (protobuf)
-	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
-	pb "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v2"
+	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
+	pb "github.com/datawire/ambassador/v2/pkg/api/envoy/service/ratelimit/v2"
 
 	// first party
 	"github.com/datawire/dlib/dgroup"

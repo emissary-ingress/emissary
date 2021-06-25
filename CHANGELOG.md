@@ -29,7 +29,7 @@ Edge Stack documentation refer both to the Ambassador Edge Stack and Emissary In
 #### TLS Termination and the `Host` CRD
 
 As of Ambassador 2.0.0, you _must_ supply a `Host` CRD to terminate TLS: it is not sufficient
-to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS configuration 
+to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS configuration
 information to be shared across multiple `Host`s). The minimal configuration for TLS termination is
 now a certificate stored in a Kubernetes `Secret`, and a `Host` referring to that `Secret`.
 
@@ -70,9 +70,12 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [2.0.0] (TBD)
+## [2.0.0-ea] June 24, 2021
+[2.0.0-ea]: https://github.com/emissary-ingress/emissary/compare/v1.13.8...v2.0.0-ea
 
-### Emissary Ingress and Ambassador Edge Stack
+We're pleased to introduce Emissary 2.0.0 as a developer preview. The 2.X family introduces a number of changes to allow Emissary to more gracefully handle larger installations, reduce global configuration to better handle multitenant or multiorganizational installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
+
+### Emissary Ingress
 
 - Feature: The `Listener` CRD allows explicit definition of ports to listen on, the protocols and security model for each port, and which `Host`s should be associated with which `Listener`.
 - Bugfix: `requestPolicy.insecure.action` works independently across `Host`s ([#2888])

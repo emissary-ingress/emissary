@@ -20,15 +20,15 @@ import (
 	"git.lukeshu.com/go/libsystemd/sd_daemon"
 	"github.com/pkg/errors"
 
-	"github.com/datawire/ambassador/pkg/k8s"
-	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/supervisor"
 
-	"github.com/datawire/ambassador/internal/pkg/api"
-	"github.com/datawire/ambassador/internal/pkg/dns"
-	"github.com/datawire/ambassador/internal/pkg/docker"
-	"github.com/datawire/ambassador/internal/pkg/interceptor"
-	"github.com/datawire/ambassador/internal/pkg/proxy"
-	"github.com/datawire/ambassador/internal/pkg/route"
+	"github.com/datawire/ambassador/v2/internal/pkg/api"
+	"github.com/datawire/ambassador/v2/internal/pkg/dns"
+	"github.com/datawire/ambassador/v2/internal/pkg/docker"
+	"github.com/datawire/ambassador/v2/internal/pkg/interceptor"
+	"github.com/datawire/ambassador/v2/internal/pkg/proxy"
+	"github.com/datawire/ambassador/v2/internal/pkg/route"
 )
 
 func dnsListeners(p *supervisor.Process, port string) (listeners []string) {

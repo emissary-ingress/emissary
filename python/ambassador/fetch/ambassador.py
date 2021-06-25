@@ -16,22 +16,22 @@ class AmbassadorProcessor (ManagedKubernetesProcessor):
         kinds = [
             'AuthService',
             'ConsulResolver',
-            'Host',
+            'AmbassadorHost',
             'KubernetesEndpointResolver',
             'KubernetesServiceResolver',
-            'Listener',
+            'AmbassadorListener',
             'LogService',
-            'Mapping',
+            'AmbassadorMapping',
             'Module',
             'RateLimitService',
             'DevPortal',
-            'TCPMapping',
+            'AmbassadorTCPMapping',
             'TLSContext',
             'TracingService',
         ]
 
         return frozenset([
-            KubernetesGVK.for_ambassador(kind, version=version) for (kind, version) in itertools.product(kinds, ['v1', 'v2'])
+            KubernetesGVK.for_ambassador(kind, version=version) for (kind, version) in itertools.product(kinds, ['v1', 'v2', 'v3alpha1'])
         ])
 
     def _process(self, obj: KubernetesObject) -> None:

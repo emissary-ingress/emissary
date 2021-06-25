@@ -11,8 +11,8 @@ import (
 
 	"strings"
 
-	core "github.com/datawire/ambassador/pkg/api/envoy/config/core/v3"
-	pb "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v3"
+	core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
+	pb "github.com/datawire/ambassador/v2/pkg/api/envoy/service/ratelimit/v3"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/grpc"

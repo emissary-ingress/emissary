@@ -24,6 +24,9 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 TEST_DATA_DIR=/tmp/test-data/
+if [[ -n "${TEST_XML_DIR}" ]] ; then
+    TEST_DATA_DIR=${TEST_XML_DIR}
+fi
 
 DBUILD=${DIR}/dbuild.sh
 

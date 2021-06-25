@@ -16,6 +16,24 @@ class WattTesting:
     def apply_manifests(self):
         pass
 
+    def create_listeners(self, namespace):
+        manifest = f"""
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
+metadata:
+  name: listener-8080
+spec:
+  port: 8080
+  protocol: HTTP
+  securityModel: INSECURE
+  hostBinding:
+    namespace:
+      from: SELF
+"""
+
+        apply_kube_artifacts(namespace=namespace, artifacts=manifest)
+
     def apply_qotm_endpoint_manifests(self, namespace):
         qotm_resolver = f"""
 apiVersion: getambassador.io/v2
@@ -31,8 +49,8 @@ metadata:
     def create_qotm_mapping(self, namespace):
         qotm_mapping = f"""
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name:  qotm-mapping
   namespace: {namespace}
@@ -50,8 +68,8 @@ spec:
     def delete_qotm_mapping(self, namespace):
         qotm_mapping = f"""
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name:  qotm-mapping
   namespace: {namespace}
@@ -71,6 +89,9 @@ spec:
 
         # Install Ambassador
         install_ambassador(namespace=namespace)
+
+        # Set up our listener.
+        self.create_listeners(namespace)
 
         # Install QOTM
         apply_kube_artifacts(namespace=namespace, artifacts=qotm_manifests)

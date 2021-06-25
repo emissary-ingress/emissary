@@ -16,9 +16,9 @@
 package resource
 
 import (
-	core "github.com/datawire/ambassador/pkg/api/envoy/config/core/v3"
-	auth "github.com/datawire/ambassador/pkg/api/envoy/extensions/transport_sockets/tls/v3"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
+	core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
+	auth "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/transport_sockets/tls/v3"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
 )
 
 const (

@@ -115,15 +115,15 @@ class StatsdTest(AmbassadorTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-reset
 hostname: "*"
 case_sensitive: false
@@ -131,8 +131,8 @@ prefix: /reset/
 rewrite: /RESET/
 service: statsd-sink
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  metrics
 hostname: "*"
 prefix: /metrics
@@ -195,15 +195,15 @@ class DogstatsdTest(AmbassadorTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-reset
 case_sensitive: false
 hostname: "*"

@@ -8,9 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/pkg/consulwatch"
-	"github.com/datawire/ambassador/pkg/kates"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/consulwatch"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
 const manifests = `
@@ -25,14 +26,14 @@ spec:
   address: consultest-consul:8500
   datacenter: dc1
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  consultest_k8s_mapping
 prefix: /consultest_k8s/
 service: consultest-http-k8s
 ---
-apiVersion: ambassador/v1
-kind:  TCPMapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorTCPMapping
 name:  consultest_k8s_mapping_tcp
 port: 3099
 service: consultest-http-k8s
@@ -45,8 +46,8 @@ apiVersion: getambassador.io/v1
 kind: KubernetesEndpointResolver
 name: endpoint
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  consultest_consul_mapping
 prefix: /consultest_consul/
 service: consultest-consul-service
@@ -55,14 +56,14 @@ resolver: consultest-resolver
 load_balancer:
   policy: round_robin
 ---
-apiVersion: ambassador/v1
-kind:  TCPMapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorTCPMapping
 name:  consultest_consul_mapping_tcp
 port: 3090
 service: consultest-consul-service-tcp
 resolver: consultest-resolver
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  TLSContext
 name:  consultest-client-context
 secret: consultest-client-cert-secret
@@ -133,9 +134,9 @@ func setup(t *testing.T) (resolvers []*amb.ConsulResolver, mappings []consulMapp
 		switch o := newobj.(type) {
 		case *amb.ConsulResolver:
 			resolvers = append(resolvers, o)
-		case *amb.Mapping:
+		case *v3alpha1.AmbassadorMapping:
 			mappings = append(mappings, consulMapping{Service: o.Spec.Service, Resolver: o.Spec.Resolver})
-		case *amb.TCPMapping:
+		case *v3alpha1.AmbassadorTCPMapping:
 			mappings = append(mappings, consulMapping{Service: o.Spec.Service, Resolver: o.Spec.Resolver})
 		}
 	}

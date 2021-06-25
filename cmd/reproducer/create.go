@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
