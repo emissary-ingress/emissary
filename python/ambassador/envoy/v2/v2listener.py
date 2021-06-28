@@ -664,14 +664,14 @@ class V2TCPListener(dict):
             # Apply the context to the chain...
             chain_entry['tls_context'] = self.tls_context
 
-            # Do we have a host match?
-            host_wanted = group.get('host') or '*'
+        # Do we have a host match?
+        host_wanted = group.get('host') or '*'
 
-            if host_wanted != '*':
-                # Yup. Hook it in.
-                chain_entry['filter_chain_match'] = {
-                    'server_names': [ host_wanted ]
-                }
+        if host_wanted != '*':
+            # Yup. Hook it in.
+            chain_entry['filter_chain_match'] = {
+                'server_names': [ host_wanted ]
+            }
 
         # OK, once that's done, stick this into our filter chains.
         self['filter_chains'].append(chain_entry)
