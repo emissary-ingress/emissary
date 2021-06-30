@@ -230,7 +230,7 @@ commands:
     steps:
       # setup
       - amb-linux-install
-      - amb-attach-workspace
+      - amb-checkout
       - amb-skip-if-no-code-changes-not-release
       # pytest-envoy can be skipped unless the envoy.mk file changes, or the ambex control
       # plane changes, or the gold files change.

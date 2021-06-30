@@ -1302,7 +1302,7 @@ class Runner:
                         if add_default_http_listener:
                             print(f"{n.path.k8s} adding default HTTP AmbassadorListener")
                             yaml += default_listener_manifest % {
-                                "namespace": nsp, 
+                                "namespace": nsp,
                                 "port": 8080,
                                 "protocol": "HTTPS",
                                 "securityModel": "XFP"
@@ -1311,7 +1311,7 @@ class Runner:
                         if add_default_https_listener:
                             print(f"{n.path.k8s} adding default HTTPS AmbassadorListener")
                             yaml += default_listener_manifest % {
-                                "namespace": nsp, 
+                                "namespace": nsp,
                                 "port": 8443,
                                 "protocol": "HTTPS",
                                 "securityModel": "XFP"
@@ -1720,7 +1720,7 @@ class Runner:
         kinds = [ "pod", "url" ]
         delay = 5
         start = time.time()
-        limit = int(os.environ.get("KAT_REQ_LIMIT", "600"))
+        limit = int(os.environ.get("KAT_REQ_LIMIT", "900"))
 
         print("Starting requirements check (limit %ds)... " % limit)
 
