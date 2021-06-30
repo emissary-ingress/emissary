@@ -213,7 +213,7 @@ commands:
     steps:
     # setup
     - amb-linux-install
-    - amb-attach-workspace
+    - amb-checkout
     - amb-skip-if-no-code-changes-not-release
     - # pytest-envoy can be skipped unless the envoy.mk file changes, or the ambex control
       # plane changes, or the gold files change.
@@ -976,8 +976,6 @@ workflows:
     - oss-chart-changelog:
         name: "oss-chart-changelog"
     - oss-test:
-        requires:
-        - "oss-dev-images"
         name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
@@ -1004,8 +1002,6 @@ workflows:
             fast-reconfigure: true
             legacy-mode: true
     - oss-test:
-        requires:
-        - "oss-dev-images"
         name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
@@ -1030,8 +1026,6 @@ workflows:
             - master
             - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/
     - oss-envoy-test:
-        requires:
-        - "oss-dev-images"
         name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
@@ -1056,8 +1050,6 @@ workflows:
             fast-reconfigure: true
             legacy-mode: true
     - oss-envoy-test:
-        requires:
-        - "oss-dev-images"
         name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
@@ -1133,8 +1125,6 @@ workflows:
           - fast-reconfigure: true
             legacy-mode: true
     - oss-test:
-        requires:
-        - "oss-nightly-images"
         name: "oss-nightly-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
@@ -1160,8 +1150,6 @@ workflows:
             fast-reconfigure: true
             legacy-mode: true
     - oss-envoy-test:
-        requires:
-        - "oss-nightly-images"
         name: "oss-nightly-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"

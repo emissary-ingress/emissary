@@ -281,7 +281,6 @@ docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag
 	    printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"; \
 	    printf "    ${BLU}builderbase=$$(cat $*/builder-base.docker)${END}\n"; \
 	    TIMEFORMAT="     (docker build took %1R seconds)"; \
-		([[ -f $(OSS_HOME)/docker/$(LCNAME).docker.push.remote ]] && docker pull `tail -1 $(OSS_HOME)/docker/emissary.docker.push.remote`) || true ; \
 	    time ${DBUILD} -f ${BUILDER_HOME}/Dockerfile . \
 	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
