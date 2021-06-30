@@ -281,6 +281,7 @@ docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag
 	    printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"; \
 	    printf "    ${BLU}builderbase=$$(cat $*/builder-base.docker)${END}\n"; \
 	    TIMEFORMAT="     (docker build took %1R seconds)"; \
+		([[ -f $(OSS_HOME)/docker/$(LCNAME).docker.push.remote ]] && docker pull `tail -1 $(OSS_HOME)/docker/emissary.docker.push.remote`) || true ; \
 	    time ${DBUILD} -f ${BUILDER_HOME}/Dockerfile . \
 	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
@@ -461,7 +462,10 @@ docker/run/shell:
 
 setup-envoy: extract-bin-envoy
 
-pytest: setup-diagd setup-envoy $(OSS_HOME)/bin/kubestatus proxy docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
+pytest: docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote $(OSS_HOME)/bin/kubestatus
+	@$(MAKE) setup-diagd
+	@$(MAKE) setup-envoy
+	@$(MAKE) proxy
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
 	@echo "KAT_CLIENT_DOCKER_IMAGE=$$KAT_CLIENT_DOCKER_IMAGE"
