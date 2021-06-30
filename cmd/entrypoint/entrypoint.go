@@ -94,6 +94,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	os.Unsetenv("AGENT_SERVICE")
 
 	dlog.Infof(ctx, "Started Ambassador")
+	dlog.Infof(ctx, "bumpin")
 
 	demoMode := false
 
