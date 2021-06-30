@@ -44,3 +44,8 @@ SHELL = bash
 .SECONDARY:
 .DELETE_ON_ERROR:
 .PHONY: FORCE
+
+.git/hooks/prepare-commit-msg:
+	ln -s $(OSS_HOME)/tools/hooks/prepare-commit-msg $(OSS_HOME)/.git/hooks/prepare-commit-msg
+
+githooks: .git/hooks/prepare-commit-msg

@@ -317,4 +317,7 @@ def assert_valid_envoy_config(config_dict):
         temp.flush()
         f_name = temp.name
         cmd = [ENVOY_PATH, '--config-path', f_name, '--mode', 'validate']
-        v_encoded = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+        p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if p.returncode != 0:
+            print(p.stdout)
+        p.check_returncode()
