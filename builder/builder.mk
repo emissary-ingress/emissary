@@ -275,7 +275,7 @@ docker/base-envoy.docker.stamp: FORCE
 	    docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@; \
 	  fi; \
 	}
-docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
+docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker python/ambassador.version $(BUILDER_HOME)/Dockerfile FORCE
 	@set -e; { \
 	    printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"; \
 	    printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"; \
@@ -461,7 +461,7 @@ docker/run/shell:
 
 setup-envoy: extract-bin-envoy
 
-pytest: setup-diagd setup-envoy $(OSS_HOME)/bin/kubestatus proxy
+pytest: setup-diagd setup-envoy $(OSS_HOME)/bin/kubestatus proxy docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
 	@echo "KAT_CLIENT_DOCKER_IMAGE=$$KAT_CLIENT_DOCKER_IMAGE"
