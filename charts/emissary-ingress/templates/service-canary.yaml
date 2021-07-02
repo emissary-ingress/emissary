@@ -1,4 +1,5 @@
-{{- if .Values.canary.enabled }}
+{{- if .Values.canary }}
+{{- if .Values.canary.enabled}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -80,5 +81,6 @@ spec:
   {{- if .Values.service.externalIPs }}
   externalIPs:
     {{- toYaml .Values.service.externalIPs | nindent 4 }}
+  {{- end }}
   {{- end }}
   {{- end }}
