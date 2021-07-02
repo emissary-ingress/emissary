@@ -12,6 +12,7 @@ metadata:
     {{- else }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- end }}
+    profile: main
   annotations:
     "helm.sh/hook": test-success
 spec:
