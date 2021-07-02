@@ -65,6 +65,7 @@ spec:
     targetPort: 8443
   selector:
     service: ambassador
+    profile: main
 ---
 # Source: emissary-ingress/templates/rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -181,7 +182,6 @@ spec:
   selector:
     matchLabels:
       service: ambassador
-      profile: main
   strategy:
     type: RollingUpdate
   template:
