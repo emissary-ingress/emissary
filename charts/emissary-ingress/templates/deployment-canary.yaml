@@ -1,3 +1,4 @@
+{{- if .Values.canary}}
 {{- if .Values.canary.enabled }}
 apiVersion: apps/v1
 kind: Deployment
@@ -256,4 +257,5 @@ spec:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       dnsPolicy: {{ .Values.dnsPolicy }}
       hostNetwork: {{ .Values.hostNetwork }}
+{{- end -}}
 {{- end -}}

@@ -43,7 +43,6 @@ spec:
       app.kubernetes.io/name: {{ include "ambassador.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
       {{- end }}
-      profile: main
   {{- if .Values.daemonSet }}
   updateStrategy:
   {{- else }}
