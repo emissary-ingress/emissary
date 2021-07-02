@@ -68,12 +68,16 @@ spec:
     {{- end}}
   selector:
     {{- if .Values.service.selector }}
-    {{ toYaml .Values.service.selector | nindent 6 }}
+    {{ toYaml .Values.service.selector | nindent 4 }}
     {{- else }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     {{- end }}
+    {{- if .Values.service.selector -}}
+    {{- nindent 4 "profile: canary" -}}
+    {{- else }}
     profile: canary
+    {{- end }}
   {{- with .Values.service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
     {{- toYaml . | nindent 4 }}
