@@ -79,7 +79,7 @@ if [[ `basename ${chart_dir}` != emissary-ingress ]] ; then
     exit 0
 fi
 
-if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ -n "${PUBLISH_GIT_RELEASE}" ]]; then
+if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] && [[ -n "${PUBLISH_GIT_RELEASE}" ]]; then
     if [[ -z "${CIRCLE_SHA1}" ]] ; then
         echo "CIRCLE_SHA1 not set"
         exit 1
