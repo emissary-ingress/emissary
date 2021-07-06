@@ -184,7 +184,7 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
             assert_eq(check.result, check_tag)
     subprocess.run(['helm', 'repo', 'rm', 'emissary'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     subprocess.run(['helm', 'repo', 'add', 'emissary',
-            'https://s3.amazonaws.com/datawire-static-files/ambassador'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            'https://s3.amazonaws.com/datawire-static-files/charts'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     with checker.check(name="Updating helm repo"):
         run(['helm', 'repo', 'update'])
     chart_version = ""
