@@ -240,7 +240,6 @@ workflows:
           name: "oss-chart-changelog"
 
       - "oss-test":
-          requires: ["oss-dev-images"]
           name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
 
           matrix:
@@ -261,7 +260,6 @@ workflows:
                 # in the Nightly and Release workflows.
                 - false
       - "oss-test":
-          requires: ["oss-dev-images"]
           name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
 
           <<: *filter-master-release-branches-only
@@ -280,7 +278,6 @@ workflows:
               legacy-mode:
                 - true
       - "oss-envoy-test":
-          requires: ["oss-dev-images"]
           name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
 
           matrix:
@@ -307,7 +304,6 @@ workflows:
                 fast-reconfigure: true
                 legacy-mode: true
       - "oss-envoy-test":
-          requires: ["oss-dev-images"]
           name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
           <<: *filter-master-release-branches-only
 
@@ -395,7 +391,6 @@ workflows:
               - fast-reconfigure: true
                 legacy-mode: true
       - "oss-test":
-          requires: ["oss-nightly-images"]
           name: "oss-nightly-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
 
           matrix:
@@ -422,7 +417,6 @@ workflows:
                 fast-reconfigure: true
                 legacy-mode: true
       - "oss-envoy-test":
-          requires: ["oss-nightly-images"]
           name: "oss-nightly-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
 
           matrix:
