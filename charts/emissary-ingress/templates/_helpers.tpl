@@ -78,7 +78,7 @@ disabled if fullImageOverride is present
 {{- if hasKey .Values.image "repository" -}}
 {{- printf "%s:%s" .Values.image.repository .Values.canary.image.tag -}}
 {{- else -}}
-{{- printf "%s:%s" "docker.io/datawire/ambassador" .Values.canary.image.tag -}}
+{{- printf "%s:%s" "docker.io/datawire/emissary" .Values.canary.image.tag -}}
 {{- end -}}
 {{- else -}}
 {{- printf "%s" "" -}}
