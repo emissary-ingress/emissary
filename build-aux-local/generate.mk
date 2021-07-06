@@ -330,9 +330,6 @@ update-yaml/files += $(OSS_HOME)/docs/yaml/aes.yaml
 update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador-agent.yaml
 update-yaml/files += $(OSS_HOME)/manifests/ambassador/ambassador-crds.yaml
 update-yaml/files += $(OSS_HOME)/manifests/ambassador/ambassador.yaml
-update-yaml/files += $(OSS_HOME)/manifests/edge-stack/oss-migration.yaml
-update-yaml/files += $(OSS_HOME)/manifests/edge-stack/resources-migration.yaml
-update-yaml/files += $(OSS_HOME)/manifests/edge-stack/aes.yaml
 
 generate/files += $(update-yaml/files)
 update-yaml:
@@ -393,19 +390,11 @@ $(OSS_HOME)/manifests/ambassador/ambassador.yaml: $(OSS_HOME)/k8s-config/create_
 	@printf '  $(CYN)$@$(END)\n'
 	$(call generate_yaml_from_helm,ambassador-rbac,default,$@)
 
-$(OSS_HOME)/docs/yaml/oss-migration.yaml: $(OSS_HOME)/manifests/edge-stack/oss-migration.yaml
-	@printf '  $(CYN)$@$(END)\n'
-	cp $(OSS_HOME)/manifests/edge-stack/oss-migration.yaml $@
-
-$(OSS_HOME)/manifests/edge-stack/oss-migration.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/oss-migration/require.yaml $(OSS_HOME)/k8s-config/oss-migration/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
+$(OSS_HOME)/docs/yaml/oss-migration.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/oss-migration/require.yaml $(OSS_HOME)/k8s-config/oss-migration/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
 	@printf '  $(CYN)$@$(END)\n'
 	$(call generate_yaml_from_helm,oss-migration,default,$@)
 
-$(OSS_HOME)/docs/yaml/resources-migration.yaml: $(OSS_HOME)/manifests/edge-stack/resources-migration.yaml
-	@printf '  $(CYN)$@$(END)\n'
-	cp $(OSS_HOME)/manifests/edge-stack/resources-migration.yaml $@
-
-$(OSS_HOME)/manifests/edge-stack/resources-migration.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/resources-migration/require.yaml $(OSS_HOME)/k8s-config/resources-migration/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
+$(OSS_HOME)/docs/yaml/resources-migration.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/resources-migration/require.yaml $(OSS_HOME)/k8s-config/resources-migration/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
 	@printf '  $(CYN)$@$(END)\n'
 	$(call generate_yaml_from_helm,resources-migration,default,$@)
 
@@ -413,11 +402,7 @@ $(OSS_HOME)/docs/yaml/projects.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS
 	@printf '  $(CYN)$@$(END)\n'
 	$(call generate_yaml_from_helm,projects,ambassador,$@)
 
-$(OSS_HOME)/docs/yaml/aes.yaml: $(OSS_HOME)/manifests/edge-stack/aes.yaml
-	@printf '  $(CYN)$@$(END)\n'
-	cp $(OSS_HOME)/manifests/edge-stack/aes.yaml $@
-
-$(OSS_HOME)/manifests/edge-stack/aes.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/aes/require.yaml $(OSS_HOME)/k8s-config/aes/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
+$(OSS_HOME)/docs/yaml/aes.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/aes/require.yaml $(OSS_HOME)/k8s-config/aes/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
 	@printf '  $(CYN)$@$(END)\n'
 	$(call generate_yaml_from_helm,aes,ambassador,$@)
 
