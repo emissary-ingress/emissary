@@ -1084,6 +1084,9 @@ workflows:
         - oss-dev-gotest-fastreconfigure
         - oss-dev-gotest
         - oss-dev-generate
+        - oss-dev-images
+        - oss-chart-changelog
+        - oss-dev-lint
         name: "oss-dev-promote-to-passed"
         filters:
           branches:
