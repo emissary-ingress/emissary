@@ -1,0 +1,7 @@
+canary:
+  enabled: true
+  mixPods: true
+  replicaCount: 0
+  envRaw: |
+    - name: AES_LOG_LEVEL
+      value: "debug"

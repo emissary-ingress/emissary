@@ -1,10 +1,12 @@
+{{- if .Values.canary }}
+{{- if .Values.canary.enabled}}
 apiVersion: v1
 kind: Service
 metadata:
   {{- if .Values.service.nameOverride }}
-  name: {{ .Values.service.nameOverride }}
+  name: {{ .Values.service.nameOverride }}-canary
   {{- else }}
-  name: {{ include "ambassador.fullname" . }}
+  name: {{ include "ambassador.fullname" . }}-canary
   {{- end }}
   namespace: {{ include "ambassador.namespace" . }}
   labels:
@@ -71,14 +73,10 @@ spec:
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     {{- end }}
-    {{- if  .Values.canary}}
-    {{- if or (not (hasKey .Values.canary "mixPods")) (eq .Values.canary.mixPods false) }}
     {{- if .Values.service.selector -}}
-    {{- nindent 4 "profile: main" -}}
+    {{- nindent 4 "profile: canary" -}}
     {{- else }}
-    profile: main
-    {{- end }}
-    {{- end }}
+    profile: canary
     {{- end }}
   {{- with .Values.service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
@@ -87,4 +85,6 @@ spec:
   {{- if .Values.service.externalIPs }}
   externalIPs:
     {{- toYaml .Values.service.externalIPs | nindent 4 }}
-{{- end }}
+  {{- end }}
+  {{- end }}
+  {{- end }}

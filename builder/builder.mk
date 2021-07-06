@@ -275,7 +275,7 @@ docker/base-envoy.docker.stamp: FORCE
 	    docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@; \
 	  fi; \
 	}
-docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
+docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker python/ambassador.version $(BUILDER_HOME)/Dockerfile FORCE
 	@set -e; { \
 	    printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"; \
 	    printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"; \
@@ -461,7 +461,10 @@ docker/run/shell:
 
 setup-envoy: extract-bin-envoy
 
-pytest: setup-diagd setup-envoy $(OSS_HOME)/bin/kubestatus proxy
+pytest: docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote $(OSS_HOME)/bin/kubestatus
+	@$(MAKE) setup-diagd
+	@$(MAKE) setup-envoy
+	@$(MAKE) proxy
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
 	@echo "KAT_CLIENT_DOCKER_IMAGE=$$KAT_CLIENT_DOCKER_IMAGE"
@@ -481,13 +484,14 @@ pytest-kat:
 	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
 .PHONY: pytest-kat
 
-extract-bin-envoy:
+extract-bin-envoy: docker/base-envoy.docker.tag.local
 	@mkdir -p $(OSS_HOME)/bin/
 	@rm -f $(OSS_HOME)/bin/envoy
 	@printf "Extracting envoy binary to $(OSS_HOME)/bin/envoy\n"
-	# Note that the call to `id -u` and `id -g` below are run in _this_ shell, not the docker container.
-	# That has the desired effect of chown'ing the output binary to the calling user/group.
-	@docker run -v $(OSS_HOME)/bin/:/output/ --rm -it --entrypoint /bin/bash $$AMBASSADOR_DOCKER_IMAGE -c "cp /usr/local/bin/envoy /output/envoy && chown $$(id -u):$$(id -g) /output/envoy"
+	@echo "#!/bin/bash" > $(OSS_HOME)/bin/envoy
+	@echo "" >> $(OSS_HOME)/bin/envoy
+	@echo "docker run -v $(OSS_HOME):$(OSS_HOME) -v /var/:/var/ -v /tmp/:/tmp/ -t --entrypoint /usr/local/bin/envoy-static-stripped $$(cat docker/base-envoy.docker) \"\$$@\"" >> $(OSS_HOME)/bin/envoy
+	@chmod +x $(OSS_HOME)/bin/envoy
 .PHONY: extract-bin-envoy
 
 $(OSS_HOME)/bin/kubestatus:
