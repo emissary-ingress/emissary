@@ -363,5 +363,10 @@ spec:
           value: {{ .Values.agent.rpcAddress }}
         - name: AES_SNAPSHOT_URL
           value: "http://{{ include "ambassador.fullname" . }}-admin.{{ include "ambassador.namespace" . }}:{{ .Values.adminService.snapshotPort }}/snapshot-external"
+  {{ if .Values.progressDeadlines }}
+  {{ if hasKey .Values.progressDeadlines "agent" }}
+  progressDeadlineSeconds: {{ .Values.progressDeadlines.agent }}
+  {{- end }}
+  {{- end }}
 {{- end }}
 {{- end }}
