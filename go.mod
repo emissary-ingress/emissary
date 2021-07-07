@@ -86,6 +86,7 @@ require (
 	google.golang.org/grpc v1.34.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/yaml.v2 v2.3.0
+	gotest.tools/gotestsum v1.6.4 // indirect
 	helm.sh/helm/v3 v3.5.3
 	k8s.io/api v0.20.2
 	k8s.io/apiextensions-apiserver v0.20.2
