@@ -707,9 +707,14 @@ case "${cmd}" in
                     if [[ -n "${TEST_XML_DIR}" ]] ; then
                         junitarg="--junitfile ${TEST_XML_DIR}/${modname}-gotest.xml"
                     fi
-                    if ! (cd ${MODDIR} && gotestsum ${junitarg} --rerun-fails=3 --format=standard-verbose --packages="${pkgs}" -- -v ${GOTEST_ARGS}) ; then
-                       fail="yes"
-                    fi
+                    # TODO(acookin): NO GOOD, REVERT THIS IT WAS FOR DEBUGGING
+                    while IFS= read -r line; do
+                        echo "RUNNING GOTEST ON ${line}"
+                        gotestsum ${junitarg} --rerun-fails=3 --format=standard-verbose --packages="${line}" -- -v ${GOTEST_ARGS}
+                    done <<< "$pkgs"
+                    #if ! (cd ${MODDIR} && gotestsum ${junitarg} --rerun-fails=3 --format=standard-verbose --packages="${pkgs}" -- -v ${GOTEST_ARGS}) ; then
+                       #fail="yes"
+                    #fi
                 fi
             fi
         done
