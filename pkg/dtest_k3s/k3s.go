@@ -30,6 +30,8 @@ func lines(str string) []string {
 }
 
 func dockerPs(args ...string) []string {
+	cmd1 := dexec.CommandContext(context.Background(), "docker", "ps", "-a")
+	cmd1.Output()
 	cmd := dexec.CommandContext(context.Background(), "docker", append([]string{"ps", "-q", "-f", fmt.Sprintf("label=scope=%s", scope)},
 		args...)...)
 	cmd.DisableLogging = disableLogging
@@ -174,20 +176,20 @@ func isK3sReady() bool {
 		return false
 	}
 
-	cmd := dexec.CommandContext(context.Background(), "kubectl", "--kubeconfig", kubeconfig, "api-resources", "-o", "name")
-	cmd.DisableLogging = disableLogging
-	output, _ := cmd.Output()
-	resources := make(map[string]bool)
-	for _, line := range strings.Split(string(output), "\n") {
-		resources[strings.TrimSpace(line)] = true
-	}
+	//cmd := dexec.CommandContext(context.Background(), "kubectl", "--kubeconfig", kubeconfig, "api-resources", "-o", "name")
+	//cmd.DisableLogging = disableLogging
+	//output, _ := cmd.Output()
+	//resources := make(map[string]bool)
+	//for _, line := range strings.Split(string(output), "\n") {
+	//resources[strings.TrimSpace(line)] = true
+	//}
 
-	for _, req := range requiredResources {
-		_, exists := resources[req]
-		if !exists {
-			return false
-		}
-	}
+	//for _, req := range requiredResources {
+	//_, exists := resources[req]
+	//if !exists {
+	//return false
+	//}
+	//}
 
 	get := dexec.CommandContext(context.Background(), "kubectl", "--kubeconfig", kubeconfig, "get", "namespace", "default")
 	get.DisableLogging = disableLogging

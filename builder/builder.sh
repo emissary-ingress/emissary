@@ -701,6 +701,7 @@ case "${cmd}" in
         for MODDIR in ${GOTEST_MODDIRS} ; do
             if [ -e "${MODDIR}/go.mod" ]; then
                 pkgs=$(cd ${MODDIR} && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' ${GOTEST_PKGS})
+                pkgs=github.com/datawire/ambassador/v2/pkg/k8s
                 if [ -n "${pkgs}" ]; then
                     modname=`basename ${MODDIR}`
                     junitarg=
