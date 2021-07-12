@@ -14,7 +14,7 @@ import (
 )
 
 const scope = "dtest"
-const disableLogging = true
+const disableLogging = false
 
 func lines(str string) []string {
 	var result []string
@@ -306,12 +306,14 @@ func Kubeconfig() string {
 
 	K3sUp()
 
-	for {
+	count := 0
+	for count < 300 {
 		if isK3sReady() {
 			break
 		} else {
 			time.Sleep(time.Second)
 		}
+		count += 1
 	}
 
 	return getKubeconfigPath()
