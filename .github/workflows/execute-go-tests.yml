@@ -50,7 +50,9 @@ jobs:
         name: "Install Python requirements with pip"
       - uses: azure/setup-kubectl@v1
         id: install
-        name: "Install kubectl" # maybe not?
+        with:
+          version: 'v1.19.12'
+        name: "Install kubectl (v1.19.12)" # maybe not?
       - uses: actions/setup-go@v2
         with:
           go-version: '^1.15.0' # The Go version to download (if necessary) and use.
@@ -62,14 +64,14 @@ jobs:
         name: "Install gotestsum (latest)"
       - name: make gotest (legacy-mode:${{ matrix.gotest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.gotest-settings.fast-reconfigure }} )
         # todo - idle timeout here!  3m
-        timeout-minutes: 40
+        timeout-minutes: 30
         run: |
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
           export AMBASSADOR_LEGACY_MODE=${{ matrix.gotest-settings.legacy-mode }}
           export AMBASSADOR_FAST_RECONFIGURE=${{ matrix.gotest-settings.fast-reconfigure }}
           export TEST_XML_DIR=/tmp/test-logs/xml/
-          export GOTEST_ARGS='-timeout 40m'
+          export GOTEST_ARGS='-timeout 30m'
           mkdir -p ${TEST_XML_DIR}
           make gotest
       # teardown
