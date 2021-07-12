@@ -714,6 +714,7 @@ case "${cmd}" in
                         echo "RUNNING GOTEST ON ${line}"
                         gotestsum ${junitarg} --rerun-fails=3 --format=standard-verbose --packages="${line}" -- -v ${GOTEST_ARGS}
                     done <<< "$pkgs"
+                    docker ps -a
                     #if ! (cd ${MODDIR} && gotestsum ${junitarg} --rerun-fails=3 --format=standard-verbose --packages="${pkgs}" -- -v ${GOTEST_ARGS}) ; then
                        #fail="yes"
                     #fi

@@ -239,7 +239,9 @@ func getKubeconfigPath() string {
 		panic(err)
 	}
 
-	kubeconfig := fmt.Sprintf("/tmp/dtest-kubeconfig-%s-%s.yaml", user.Username, id)
+	path, _ := os.Getwd()
+
+	kubeconfig := fmt.Sprintf("%s/dtest-kubeconfig-%s-%s.yaml", path, user.Username, id)
 	contents := GetKubeconfig()
 
 	err = ioutil.WriteFile(kubeconfig, []byte(contents), 0644)
