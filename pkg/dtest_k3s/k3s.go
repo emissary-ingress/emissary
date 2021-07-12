@@ -314,6 +314,7 @@ func Kubeconfig() string {
 		}
 		count += 1
 	}
+	time.Sleep(30 * time.Second)
 
 	return getKubeconfigPath()
 }
