@@ -14,8 +14,6 @@ BLU=$'\033[1;34m'
 CYN=$'\033[1;36m'
 END=$'\033[0m'
 
-set -e
-
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
     DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
