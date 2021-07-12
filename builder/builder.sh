@@ -698,6 +698,7 @@ case "${cmd}" in
     gotest-local)
         [ -n "${TEST_XML_DIR}" ] && mkdir -p ${TEST_XML_DIR}
         fail=""
+        docker version
         for MODDIR in ${GOTEST_MODDIRS} ; do
             if [ -e "${MODDIR}/go.mod" ]; then
                 pkgs=$(cd ${MODDIR} && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' ${GOTEST_PKGS})
