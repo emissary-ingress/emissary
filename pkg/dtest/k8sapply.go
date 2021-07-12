@@ -2,6 +2,7 @@ package dtest
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"time"
 
@@ -20,6 +21,18 @@ func K8sApply(files ...string) {
 	}
 	kubeconfig := Kubeconfig()
 	err := kubeapply.Kubeapply(k8s.NewKubeInfo(kubeconfig, "", ""), 300*time.Second, false, false, files...)
+	kc, err := os.Open(kubeconfig)
+	if err != nil {
+		fmt.Println()
+		fmt.Println("Error getting kubeconfig contents")
+		fmt.Println(err)
+	} else {
+		defer kc.Close()
+		b, _ := ioutil.ReadAll(kc)
+		fmt.Println()
+		fmt.Println("KUBECONFIG:")
+		fmt.Println(string(b))
+	}
 	if err != nil {
 		fmt.Println()
 		fmt.Println(err)
