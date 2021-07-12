@@ -697,6 +697,7 @@ case "${cmd}" in
         [ -n "${TEST_XML_DIR}" ] && mkdir -p ${TEST_XML_DIR}
         fail=""
         docker version
+        docker run -t --label=scope=dtest --label=k3s --name=dtest-k3s --privileged -v /dev/mapper:/dev/mapper rancher/k3s:v1.17.3-k3s1 server --node-name localhost --no-deploy traefik
         for MODDIR in ${GOTEST_MODDIRS} ; do
             if [ -e "${MODDIR}/go.mod" ]; then
                 pkgs=$(cd ${MODDIR} && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' ${GOTEST_PKGS})
