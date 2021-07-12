@@ -169,11 +169,11 @@ var requiredResources = []string{
 	"volumeattachments.storage.k8s.io",
 }
 
-func isK3sReady() bool {
+func isK3sReady() (bool, string) {
 	kubeconfig := getKubeconfigPath()
 
 	if kubeconfig == "" {
-		return false
+		return false, kubeconfig
 	}
 
 	//cmd := dexec.CommandContext(context.Background(), "kubectl", "--kubeconfig", kubeconfig, "api-resources", "-o", "name")
@@ -198,7 +198,7 @@ func isK3sReady() bool {
 		panic(err)
 	}
 	_ = get.Wait()
-	return get.ProcessState.ExitCode() == 0
+	return get.ProcessState.ExitCode() == 0, kubeconfig
 }
 
 const k3sConfigPath = "/etc/rancher/k3s/k3s.yaml"
@@ -306,8 +306,10 @@ func Kubeconfig() string {
 	K3sUp()
 
 	count := 0
+	var isReady bool
 	for count < 300 {
-		if isK3sReady() {
+		isReady, kubeconfig = isK3sReady()
+		if isReady {
 			break
 		} else {
 			time.Sleep(time.Second)
@@ -316,7 +318,7 @@ func Kubeconfig() string {
 	}
 	time.Sleep(30 * time.Second)
 
-	return getKubeconfigPath()
+	return kubeconfig
 }
 
 // K3sUp will launch if necessary and return the docker id of a
