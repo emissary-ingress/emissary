@@ -176,10 +176,7 @@ func isK3sReady() bool {
 
 	cmd := dexec.CommandContext(context.Background(), "kubectl", "--kubeconfig", kubeconfig, "api-resources", "-o", "name")
 	cmd.DisableLogging = disableLogging
-	output, err := cmd.Output()
-	if err != nil {
-		return false
-	}
+	output, _ := cmd.Output()
 	resources := make(map[string]bool)
 	for _, line := range strings.Split(string(output), "\n") {
 		resources[strings.TrimSpace(line)] = true
@@ -194,7 +191,7 @@ func isK3sReady() bool {
 
 	get := dexec.CommandContext(context.Background(), "kubectl", "--kubeconfig", kubeconfig, "get", "namespace", "default")
 	get.DisableLogging = disableLogging
-	err = get.Start()
+	err := get.Start()
 	if err != nil {
 		panic(err)
 	}
