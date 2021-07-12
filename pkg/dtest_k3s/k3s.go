@@ -64,7 +64,6 @@ func dockerUp(tag string, args ...string) string {
 			runArgs := []string{
 				"run",
 				"-d",
-				"--rm",
 				fmt.Sprintf("--label=scope=%s", scope),
 				fmt.Sprintf("--label=%s", tag),
 				fmt.Sprintf("--name=%s-%s", scope, tag),

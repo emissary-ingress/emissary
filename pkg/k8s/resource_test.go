@@ -8,7 +8,6 @@ import (
 )
 
 func TestQKind(t *testing.T) {
-	t.Parallel()
 	testcases := []struct {
 		Resource k8s.Resource
 		QKind    string

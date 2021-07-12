@@ -712,9 +712,10 @@ case "${cmd}" in
                     # TODO(acookin): NO GOOD, REVERT THIS IT WAS FOR DEBUGGING
                     while IFS= read -r line; do
                         echo "RUNNING GOTEST ON ${line}"
-                        gotestsum ${junitarg} --rerun-fails=3 --format=standard-verbose --packages="${line}" -- -v ${GOTEST_ARGS} -run TestList
+                        gotestsum ${junitarg} --format=standard-verbose --packages="${line}" -- -v ${GOTEST_ARGS} -run TestList
                     done <<< "$pkgs"
                     docker ps -a
+                    docker logs $(docker ps -aq -f label=scope=dtest -f label=k3s)
                     #if ! (cd ${MODDIR} && gotestsum ${junitarg} --rerun-fails=3 --format=standard-verbose --packages="${pkgs}" -- -v ${GOTEST_ARGS}) ; then
                        #fail="yes"
                     #fi
