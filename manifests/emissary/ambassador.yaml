@@ -184,6 +184,9 @@ spec:
       service: ambassador
   strategy:
     type: RollingUpdate
+
+
+  progressDeadlineSeconds: 600
   template:
     metadata:
       labels:
@@ -450,3 +453,4 @@ spec:
           value: https://app.getambassador.io/
         - name: AES_SNAPSHOT_URL
           value: http://ambassador-admin.default:8005/snapshot-external
+  progressDeadlineSeconds: 600
