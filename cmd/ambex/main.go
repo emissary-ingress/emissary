@@ -70,8 +70,9 @@ import (
 	ecp_v2_server "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v2"
 	ecp_v3_server "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v3"
 
-	// envoy protobuf v2 -- Be sure to import the package of any types that the Python emits a
-	// "@type" of in the generated config, even if that package is otherwise not used by ambex.
+	// Envoy API v2
+	// Be sure to import the package of any types that're referenced with "@type" in our
+	// generated Envoy config, even if that package is otherwise not used by ambex.
 	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/auth"
 	v2core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
