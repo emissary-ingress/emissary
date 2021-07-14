@@ -37,6 +37,10 @@ type Snapshot struct {
 	// portion of the snapshot. Changes in the Consul endpoint data are not
 	// reflected in this field.
 	Deltas []*kates.Delta
+
+	// TODO(alexgervais): document this
+	APIDocs []*APIDoc `json:"APIDocs,omitempty"`
+
 	// The Invalid field contains any kubernetes resources that have failed
 	// validation.
 	Invalid []*kates.Unstructured
@@ -113,6 +117,14 @@ type KubernetesSnapshot struct {
 	// ArgoApplications represents the argo-rollout CRD state of the world that may or may not be present
 	// in the client's cluster. For reasons why this is defined as unstructured see ArgoRollouts attribute.
 	ArgoApplications []*kates.Unstructured `json:"ArgoApplications,omitempty"`
+}
+
+// TODO(alexgervais): document this
+type APIDoc struct {
+	*kates.TypeMeta
+	Metadata  *kates.ObjectMeta      `json:"metadata,omitempty"`
+	TargetRef *kates.ObjectReference `json:"targetRef,omitempty"`
+	Data      []byte                 `json:"data,omitempty"`
 }
 
 // Custom Unmarshaller for the kubernetes snapshot
