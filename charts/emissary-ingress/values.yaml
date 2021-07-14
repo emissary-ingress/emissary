@@ -17,16 +17,18 @@ test:
   image: busybox
 
 canary:
-  # Creates a Canary deployment and service using the following settings. Other settings inherited from main deployment
+  # Creates a Canary deployment and service using the following canary settings. Other settings inherited from main deployment
   enabled: false
-  # When true allows for requests to the main ambassador to hit either the pods from the main deployment, or the canary deployment
+  # When true allows for requests to the main ambassador to hit either the pods from the main deployment or the canary deployment.
   # Requests to the canary service will still only hit the canary pods
   mixPods: false
   # Similar to 'replicaCount', but controls the number of pods for the Canary deployment. 0 by default
   replicaCount: 0
   # If a value is supplied, then the canary deployment will use the following image for Ambassador instead of using the image from the main deployment
   image:
+    # Controlls the image repository for the canary deployment.
     repository: ""
+    # Controlls the tag for the canary deployments image.repository. Uses the repository from the main deployment if the canay.image.repository is not set.
     tag: ""
   # Environment variables to be used for the canary deployment, see `envRaw` for usage example
   envRaw: {}
