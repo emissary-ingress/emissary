@@ -919,10 +919,12 @@ jobs:
     - job-yaml-publish-s3:
         update-stable: false
 _anchors:
-  filter-rc-only:
+  filter-rc-hf-only:
     filters:
       tags:
-        only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
+        only:
+        - /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
+        - /^v[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$/
       branches:
         ignore: /.*/
   filter-ga-only:
@@ -953,13 +955,15 @@ workflows:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
           branches:
             ignore: /.*/
-  'OSS: Release Candidate':
+  'OSS: Release Candidate or Hotfix':
     jobs:
     - oss-promote-dev-to-rc:
         name: "oss-release-promote-dev-to-rc"
         filters:
           tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
+            only:
+            - /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
+            - /^v[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$/
           branches:
             ignore: /.*/
   'OSS: Dev':
