@@ -1,3 +1,4 @@
+name: gotest
 on:
   push:
     branches:
@@ -42,7 +43,7 @@ jobs:
         exclude:
           - isMasterOrRelease: false # if we are not master/release then we exclude legacy mode
             gotest-settings: {legacy-mode: true, fast-reconfigure: false}
-    name: go-tests (legacy-mode:${{ matrix.gotest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.gotest-settings.fast-reconfigure }} )
+    name: (legacy-mode:${{ matrix.gotest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.gotest-settings.fast-reconfigure }} )
     steps:
       - run: echo "PREFIX=legacy-mode.${{ matrix.gotest-settings.legacy-mode }}-fast-reconfigure.${{ matrix.gotest-settings.fast-reconfigure }}" >> $GITHUB_ENV
         name: Set Unique Test prefix (legacy-mode.${{ matrix.gotest-settings.legacy-mode }}-fast-reconfigure.${{ matrix.gotest-settings.fast-reconfigure }})
