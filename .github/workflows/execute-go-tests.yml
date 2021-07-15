@@ -72,7 +72,7 @@ jobs:
       - run: go version
         name: "Check go version"
       - run: |
-          go get gotest.tools/gotestsum
+          go install gotest.tools/gotestsum@latest
         name: "Install gotestsum (latest)"
       - name: make gotest (legacy-mode:${{ matrix.gotest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.gotest-settings.fast-reconfigure }} )
         # todo - idle timeout here!  3m
