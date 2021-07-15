@@ -789,10 +789,11 @@ release/promote-oss/dev-to-rc:
 		fi ;\
 		printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
 		veroverride=$(RELEASE_VERSION) ; \
+		tag=$$(echo $(RELEASE_VERSION) | tr '+' '-') ; \
 		$(MAKE) release/promote-oss/.main \
 			PROMOTE_FROM_VERSION="$$dev_version" \
 			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
-			PROMOTE_TO_VERSION=$(RELEASE_VERSION) \
+			PROMOTE_TO_VERSION="$$tag" \
 			PROMOTE_CHANNEL=test ; \
 		chartsuffix=$(RELEASE_VERSION) ; \
 		chartsuffix=$${chartsuffix#*-} ; \
