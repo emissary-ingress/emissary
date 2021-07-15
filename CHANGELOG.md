@@ -71,6 +71,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Change: Envoy-configuration snapshots get saved (as ambex-#.json) in /ambassador/snapshots. The number of snapshots is 
   controlled by the `AMBASSADOR_AMBEX_SNAPSHOT_COUNT` environment variable; set it to 0 to disable. The default is 30.
 
+### Ambassador Edge Stack
+
+- Change: Consul certificate-rotation logging now includes the fingerprints and validity timestamps of certificates
+  being rotated.
+
 ## [1.13.9] June 30, 2021
 [1.13.9]: https://github.com/emissary-ingress/emissary/compare/v1.13.8...v1.13.9
 
