@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"sync/atomic"
 
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dhttp"
+	"github.com/datawire/dlib/dlog"
 )
 
 // take the next port in the range of ambassador ports.
@@ -29,6 +31,26 @@ func externalSnapshotServer(ctx context.Context, snapshot *atomic.Value) error {
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
+		}
+		if snapDecoded.AmbassadorMeta != nil && IsEdgeStack() {
+			sidecarProcessInfoUrl := fmt.Sprintf("%s/process-info/", GetSidecarHost())
+			dlog.Debugf(ctx, "loading sidecard process-info using [%s]...", sidecarProcessInfoUrl)
+			resp, err := http.DefaultClient.Get(sidecarProcessInfoUrl)
+			if err != nil {
+				dlog.Error(ctx, err.Error())
+			} else {
+				defer resp.Body.Close()
+				if resp.StatusCode == 200 {
+					bodyBytes, err := ioutil.ReadAll(resp.Body)
+					if err != nil {
+						dlog.Warnf(ctx, "error reading response body: %v", err)
+					} else {
+						snapDecoded.AmbassadorMeta.Sidecar = bodyBytes
+					}
+				} else {
+					dlog.Warnf(ctx, "unexpected status code %v", resp.StatusCode)
+				}
+			}
 		}
 		sanitizedSnap, err := json.Marshal(snapDecoded)
 		if err != nil {
