@@ -39,6 +39,7 @@ class IRListener (IRResource):
         'protocol',
         'protocolStack',
         'securityModel',
+        'statsPrefix',
     }
 
     ProtocolStacks: Dict[str, List[str]] = {
@@ -135,6 +136,22 @@ class IRListener (IRResource):
         if not securityModel:
             self.post_error("securityModel is required")
             return False
+
+        # Deal with statsPrefix, if it's not set.
+        if not self.get("statsPrefix", ""):
+            # OK, we need to default the thing per the protocolStack...
+            tlsActive = "TLS" in self.protocolStack
+            httpActive = "HTTP" in self.protocolStack
+
+            if httpActive:
+                if tlsActive:
+                    self.statsPrefix = "ingress_https"
+                else:
+                    self.statsPrefix = "ingress_http"
+            elif tlsActive:
+                self.statsPrefix = f"ingress_tls_{self.port}"
+            else:
+                self.statsPrefix = f"ingress_tcp_{self.port}"
 
         # Deal with hostBinding. First up, namespaces.
         hostbinding = self.get("hostBinding", None)
@@ -247,9 +264,9 @@ class IRListener (IRResource):
         if self.namespace_selector:
             nsstr = "; ".join([ f"{k}={v}" for k, v in self.namespace_selector.items() ])
 
-        return "<Listener %s on %s:%d (%s -- %s) ns %s sel %s, host sel %s>" % \
+        return "<Listener %s on %s:%d (%s -- %s) ns %s sel %s, host sel %s (statsPrefix %s)>" % \
                (self.name, self.bind_address, self.port, securityModel, pstack,
-                self.namespace_literal, nsstr, hsstr)
+                self.namespace_literal, nsstr, hsstr, self.statsPrefix)
 
     # Deliberately matches IRTCPMappingGroup.bind_to()
     def bind_to(self) -> str:
