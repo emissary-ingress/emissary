@@ -662,6 +662,30 @@
             },
             "creationTimestamp": "2020-08-11T20:54:27Z",
             "generation": 1,
+            "name": "cors-origins-string",
+            "namespace": "ambassador",
+            "resourceVersion": "4462591",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/load-testing-base",
+            "uid": "d5ef2932-a6a3-439b-bca8-d80f195cd9f6"
+        },
+        "spec": {
+            "prefix": "/load-testing/",
+            "service": "load-http-echo.default",
+            "cors": {
+                "origins": "ffs,ffs2",
+                "credentials": true
+            }
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"load-testing-base\",\"namespace\":\"ambassador\"},\"spec\":{\"prefix\":\"/load-testing/\",\"service\":\"load-http-echo.default\"}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:27Z",
+            "generation": 1,
             "name": "load-testing-base",
             "namespace": "ambassador",
             "resourceVersion": "4462591",
@@ -824,7 +848,7 @@
             "service": "https://a",
             "timeout_ms": 10000
         }
-    },    
+    },
     {
         "apiVersion": "getambassador.io/v2",
         "kind": "Mapping",

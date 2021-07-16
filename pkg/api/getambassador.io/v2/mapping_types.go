@@ -357,12 +357,12 @@ type KeepAlive struct {
 }
 
 type CORS struct {
-	Origins        StringOrStringList `json:"origins,omitempty"`
-	Methods        StringOrStringList `json:"methods,omitempty"`
-	Headers        StringOrStringList `json:"headers,omitempty"`
-	Credentials    *bool              `json:"credentials,omitempty"`
-	ExposedHeaders StringOrStringList `json:"exposed_headers,omitempty"`
-	MaxAge         string             `json:"max_age,omitempty"`
+	Origins        *StringLiteralOrStringList `json:"origins,omitempty"`
+	Methods        StringOrStringList         `json:"methods,omitempty"`
+	Headers        StringOrStringList         `json:"headers,omitempty"`
+	Credentials    *bool                      `json:"credentials,omitempty"`
+	ExposedHeaders StringOrStringList         `json:"exposed_headers,omitempty"`
+	MaxAge         string                     `json:"max_age,omitempty"`
 }
 
 type RetryPolicy struct {

@@ -844,9 +844,7 @@ spec:
                   - type: string
                   - type: array
                 origins:
-                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
-                  items:
-                    type: string
+                  description: StringLiteralOrStringList is mostly like StringOrStringList, but instead of always forcing a list of strings, it will marshal a string literal as a string.
                   oneOf:
                   - type: string
                   - type: array

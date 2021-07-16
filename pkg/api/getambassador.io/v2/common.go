@@ -263,6 +263,52 @@ func (sl *StringOrStringList) UnmarshalJSON(data []byte) error {
 	return err
 }
 
+// StringLiteralOrStringList is mostly like StringOrStringList,
+// but instead of always forcing a list of strings, it will
+// marshal a string literal as a string.
+// +kubebuilder:validation:Type="d6e-union:string,array"
+type StringLiteralOrStringList struct {
+	String        *string   `json:"-"`
+	ListOfStrings *[]string `json:"-"`
+}
+
+func (sl *StringLiteralOrStringList) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		*sl = StringLiteralOrStringList{}
+		return nil
+	}
+
+	var err error
+	var list []string
+	var single string
+
+	if err = json.Unmarshal(data, &single); err == nil {
+		*sl = StringLiteralOrStringList{String: &single}
+		return nil
+	}
+
+	if err = json.Unmarshal(data, &list); err == nil {
+		*sl = StringLiteralOrStringList{ListOfStrings: &list}
+		return nil
+	}
+
+	return err
+}
+
+func (sl *StringLiteralOrStringList) MarshalJSON() ([]byte, error) {
+	switch {
+	case sl.String == nil && sl.ListOfStrings == nil:
+		return json.Marshal(nil)
+	case sl.String == nil && sl.ListOfStrings != nil:
+		return json.Marshal(sl.ListOfStrings)
+	case sl.String != nil && sl.ListOfStrings == nil:
+		return json.Marshal(sl.String)
+	case sl.String != nil && sl.ListOfStrings != nil:
+		panic("invalid StringLiteralOrStringList")
+	}
+	panic("not reached")
+}
+
 // BoolOrString is a type that can hold a Boolean or a string.
 //
 // +kubebuilder:validation:Type="d6e-union:string,boolean"
