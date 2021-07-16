@@ -68,8 +68,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary Ingress and Ambassador Edge Stack
 
-- Change: Envoy-configuration snapshots get saved (as ambex-#.json) in /ambassador/snapshots. The number of snapshots is 
+- Change: Envoy-configuration snapshots get saved (as ambex-#.json) in /ambassador/snapshots. The number of snapshots is
   controlled by the `AMBASSADOR_AMBEX_SNAPSHOT_COUNT` environment variable; set it to 0 to disable. The default is 30.
+- Bugfix: Fixed a regression when specifying a comma separated string for `cors.origins` on the `Mapping` resource
 
 ### Ambassador Edge Stack
 
