@@ -158,6 +158,11 @@ type AmbassadorListenerSpec struct {
 	// +kubebuilder:validation:Required
 	SecurityModel SecurityModelType `json:"securityModel"`
 
+	// StatsPrefix specifies the prefix for statistics sent by Envoy about this
+	// AmbassadorListener. The default depends on the protocol: "ingress-http",
+	// "ingress-https", "ingress-tls-$port", or "ingress-$port".
+	StatsPrefix string `json:"statsPrefix,omitempty"`
+
 	// L7Depth specifies how many layer 7 load balancers are between us and the edge of
 	// the network.
 	L7Depth int32 `json:"l7Depth,omitempty"`
@@ -173,6 +178,7 @@ type AmbassadorListenerSpec struct {
 // +kubebuilder:printcolumn:name="Port",type=string,JSONPath=`.spec.port`
 // +kubebuilder:printcolumn:name="Protocol",type=string,JSONPath=`.spec.protocol`
 // +kubebuilder:printcolumn:name="Stack",type=string,JSONPath=`.spec.protocolStack`
+// +kubebuilder:printcolumn:name="StatsPrefix",type=string,JSONPath=`.spec.statsPrefix`
 // +kubebuilder:printcolumn:name="Security",type=string,JSONPath=`.spec.securityModel`
 // +kubebuilder:printcolumn:name="L7Depth",type=string,JSONPath=`.spec.l7Depth`
 type AmbassadorListener struct {
