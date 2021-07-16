@@ -245,6 +245,12 @@ serviceAccount:
 deploymentStrategy:
   type: RollingUpdate
 
+progressDeadlines:
+  # Configures progressDeadlineSeconds for the Ambassador Deployment
+  ambassador: 600
+  # Configures progressDeadlineSeconds for the Ambassador Agent Deployment
+  agent: 600
+
 restartPolicy:
 
 terminationGracePeriodSeconds:
