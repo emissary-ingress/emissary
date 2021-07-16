@@ -12,6 +12,7 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMappingCORSOriginsSlice(t *testing.T) {
@@ -26,10 +27,23 @@ metadata:
 spec:
   prefix: /foo
   service: foo.default
+  hostname: '*'
   cors:
     origins:
      - foo.example.com
      - bar.example.com
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
+metadata:
+  name: ambassador-listener-8080
+spec:
+  port: 8080
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
 `)
 	f.Upsert(makeService("default", "foo"))
 	f.Flush()
@@ -37,14 +51,16 @@ spec:
 	assert.NotNil(t, snap)
 
 	config := f.GetEnvoyConfig(func(config *bootstrap.Bootstrap) bool {
-		return FindCluster(config, ClusterNameContains("cluster_foo_default_default")) != nil
+		return findListener(config, func(l *v3listener.Listener) bool {
+			return l.Name == "ambassador-listener-8080"
+		}) != nil
 	})
 
 	listener := findListener(config, func(l *v3listener.Listener) bool {
 		return l.Name == "ambassador-listener-8080"
 	})
 
-	assert.NotNil(t, listener)
+	require.NotNil(t, listener)
 
 	routeAction := findVirtualHostRoute(listener, func(r *route.RouteAction) bool {
 		return r.GetCluster() == "cluster_foo_default_default"
