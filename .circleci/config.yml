@@ -240,6 +240,14 @@ commands:
     - install-helm
     - install-k3d
     - amb-config-cluster-and-registry
+    - run:
+        name: "Configure Telepresence"
+        command: |
+          mkdir -p ${HOME}/.config/telepresence
+          cat >${HOME}/.config/telepresence/config.yml <<EOL
+          timeouts:
+            trafficManagerAPI: 60s
+          EOL
     - # main
       run:
         name: "Ensure CI configuration is up-to-date"
