@@ -1,0 +1,21 @@
+name: 'Dirty git Check'
+description: |
+  On Windows, `git status` doesn't record no-op
+  line-ending changes in to the index, so things show as
+  dirty even if they aren't.  Trying to `add` them does
+  trigger the appropriate index update.  So do a `git add`
+  *before* the `git status --porcelain` to work around
+  Windows being terrible; we'd otherwise put the `git add`
+  inside of the `if` block to help generate better output
+  for `git diff`.
+runs:
+  using: "composite"
+  steps:
+    - name: "Dirty git Check"
+      shell: bash
+      run: |
+        git add .
+        if [[ -n "$(git status --porcelain)" ]]; then
+           PAGER= git diff --cached
+           exit 1
+        fi
