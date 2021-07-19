@@ -295,41 +295,82 @@ def compile_with_cachecheck(yaml, envoy_version="V2", errors_ok=False):
     # All good.
     return r1
 
+EnvoyFilterInfo = namedtuple('EnvoyFilterInfo', [ 'name', 'type' ])
+
+EnvoyHCMInfo = {
+    "V2": EnvoyFilterInfo(
+        name="envoy.filters.network.http_connection_manager",
+        type="type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager"
+    ),
+    "V3": EnvoyFilterInfo(
+        name="envoy.filters.network.http_connection_manager",
+        type="type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
+    ),
+}
+
+EnvoyTCPInfo = {
+    "V2": EnvoyFilterInfo(
+        name="envoy.filters.network.tcp_proxy",
+        type="type.googleapis.com/envoy.config.filter.network.tcp_proxy.v2.TcpProxy"
+    ),
+    "V3": EnvoyFilterInfo(
+        name="envoy.filters.network.tcp_proxy",
+        type="type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy"
+    ),
+}
+
 def econf_compile(yaml, envoy_version="V2"):
     compiled = compile_with_cachecheck(yaml, envoy_version=envoy_version)
     return compiled[envoy_version.lower()].as_dict()
 
+def econf_foreach_listener(econf, fn, envoy_version='V2', listener_count=1):
+    listeners = econf['static_resources']['listeners']
+
+    wanted_plural = "" if (listener_count == 1) else "s"
+    assert len(listeners) == listener_count, f"Expected {listener_count} listener{wanted_plural}, got {len(listeners)}"
+
+    for listener in listeners:
+        fn(listener, envoy_version)
+
+def econf_foreach_listener_chain(listener, fn, chain_count=2, need_name=None, need_type=None, dump_info=None):
+    # We need a specific number of filter chains. Normally it's 2,
+    # since the compiler tests don't generally supply Listeners or Hosts,
+    # so we get secure and insecure chains.
+    filter_chains = listener['filter_chains']
+
+    if dump_info:
+        dump_info(filter_chains)
+
+    wanted_plural = "" if (chain_count == 1) else "s"
+    assert len(filter_chains) == chain_count, f"Expected {chain_count} filter chain{wanted_plural}, got {len(filter_chains)}"
+
+    for chain in filter_chains:
+        # We expect one filter on this chain.
+        filters = chain['filters']
+        got_count = len(filters)
+        got_plural = "" if (got_count == 1) else "s"
+        assert got_count == 1, f"Expected just one filter, got {got_count} filter{got_plural}"
+
+        # The http connection manager is the only filter on the chain from the one and only vhost.
+        filter = filters[0]
+
+        if need_name:
+            assert filter['name'] == need_name
+
+        typed_config = filter['typed_config']
+
+        if need_type:
+            assert typed_config['@type'] == need_type, f"bad type: {typed_config['@type']}"
+
+        fn(typed_config)
+
 def econf_foreach_hcm(econf, fn, envoy_version='V2', chain_count=2):
-    found_hcm = False
     for listener in econf['static_resources']['listeners']:
-        # We need a specific number of filter chains. Normally it's 2,
-        # since the compiler tests don't generally supply Listeners or Hosts,
-        # so we get secure and insecure chains.
-        filter_chains = listener['filter_chains']
-        assert len(filter_chains) == chain_count
+        hcm_info = EnvoyHCMInfo[envoy_version]
 
-        for chain in filter_chains:
-            # We expect one filter on that chain (the http_connection_manager).
-            filters = chain['filters']
-            assert len(filters) == 1
-
-            # The http connection manager is the only filter on the chain from the one and only vhost.
-            hcm = filters[0]
-            assert hcm['name'] == 'envoy.filters.network.http_connection_manager'
-            typed_config = hcm['typed_config']
-            envoy_version_type_map = {
-                'V3': 'type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager',
-                'V2': 'type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager',
-            }
-            assert typed_config['@type'] == envoy_version_type_map[envoy_version], "bad type: %s" % typed_config['@type']
-
-            found_hcm = True
-
-            r = fn(typed_config)
-            if not r:
-                break
-
-    assert found_hcm
+        econf_foreach_listener_chain(
+            listener, fn, chain_count=chain_count,
+            need_name=hcm_info.name, need_type=hcm_info.type)
 
 def econf_foreach_cluster(econf, fn, name='cluster_httpbin_default'):
     for cluster in econf['static_resources']['clusters']:
