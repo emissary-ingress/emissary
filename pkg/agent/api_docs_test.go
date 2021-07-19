@@ -75,7 +75,7 @@ func TestAPIDocsStore(t *testing.T) {
 					Spec: v3alpha1.AmbassadorMappingSpec{
 						Prefix:  "",
 						Rewrite: &mappingRewrite,
-						Service: "some-svc",
+						Service: "https://some-svc.fqdn:443",
 						Docs: &v3alpha1.DocsInfo{
 							DisplayName: "docs-display-name",
 							Path:        "/docs-location",
@@ -95,7 +95,7 @@ func TestAPIDocsStore(t *testing.T) {
 
 			rawJSONDocsContent: "this is not JSON",
 
-			expectedRequestURL:     "http://some-svc/internal-path/docs-location",
+			expectedRequestURL:     "https://some-svc.fqdn:443/internal-path/docs-location",
 			expectedRequestHost:    "",
 			expectedRequestHeaders: []agent.Header{{Name: "header-key", Value: "header-value"}},
 			expectedSOTW:           []*snapshotTypes.APIDoc{},
@@ -109,7 +109,7 @@ func TestAPIDocsStore(t *testing.T) {
 					},
 					Spec: v3alpha1.AmbassadorMappingSpec{
 						Prefix:  "/prefix",
-						Service: "some-svc",
+						Service: "some-svc:8080",
 						Docs: &v3alpha1.DocsInfo{
 							DisplayName: "docs-display-name",
 							Path:        "/docs-location",
@@ -125,7 +125,7 @@ func TestAPIDocsStore(t *testing.T) {
 
 			rawJSONDocsContent: `{"openapi":"3.0.0", "info":{"title": "Sample API", "version":"0.0"}, "paths":{}}`,
 
-			expectedRequestURL:     "http://some-svc/docs-location",
+			expectedRequestURL:     "http://some-svc.default:8080/docs-location",
 			expectedRequestHost:    "mapping-hostname",
 			expectedRequestHeaders: []agent.Header{},
 			expectedSOTW: []*snapshotTypes.APIDoc{{

@@ -122,12 +122,8 @@ func (a *APIDocsStore) scrape(ctx context.Context, mappings []*v3alpha1.Ambassad
 		if displayName == "" {
 			displayName = fmt.Sprintf("%s.%s", mapping.GetName(), mapping.GetNamespace())
 		}
-		mappingHeaders := a.buildMappingRequestHeaders(mapping.Spec.Headers)
+		mappingHeaders := buildMappingRequestHeaders(mapping.Spec.Headers)
 		mappingPrefix := mapping.Spec.Prefix
-		mappingRewrite := "/"
-		if mapping.Spec.Rewrite != nil {
-			mappingRewrite = *mapping.Spec.Rewrite
-		}
 		mappingHost := mapping.Spec.Host
 
 		dm := &docMappingRef{
@@ -150,25 +146,14 @@ func (a *APIDocsStore) scrape(ctx context.Context, mappings []*v3alpha1.Ambassad
 				dlog.Errorf(ctx, "could not parse URL or path in 'docs' %q", mappingDocs.URL)
 				continue
 			}
-
 			dlog.Debugf(ctx, "'url' specified: querying %s", parsedURL)
 			doc = a.getDoc(ctx, parsedURL, "", mappingHeaders, mappingHost, "", false)
 		} else {
-			mappingDocsPath := mappingDocs.Path
-			if mappingDocsPath != "" {
-				// note: filepath.Join() does not work, because it removes any trailing `/`
-				mappingDocsPath = strings.ReplaceAll(mappingRewrite+mappingDocsPath, "//", "/")
-				dlog.Debugf(ctx, "'path' specified: resulting in %s", mappingDocsPath)
-			}
-
-			// TODO(alexgervais): Improve the way mappingsDocsURL is built, according to namespaces, ports and whatnot
-			mappingsDocsURL, err := url.Parse(mapping.Spec.Service + mappingDocsPath)
+			mappingsDocsURL, err := extractQueryableDocsURL(mapping)
 			if err != nil {
-				dlog.Errorf(ctx, "could not parse URL or path in 'docs' %q", mappingsDocsURL)
+				dlog.Errorf(ctx, "could not parse URL or path in 'docs': %v", err)
 				continue
 			}
-			mappingsDocsURL.Scheme = "http"
-
 			dlog.Debugf(ctx, "'url' specified: querying %s", mappingsDocsURL)
 			doc = a.getDoc(ctx, mappingsDocsURL, mappingHost, mappingHeaders, mappingHost, mappingPrefix, true)
 		}
@@ -177,6 +162,45 @@ func (a *APIDocsStore) scrape(ctx context.Context, mappings []*v3alpha1.Ambassad
 			a.store.add(dm, doc)
 		}
 	}
+}
+
+func extractQueryableDocsURL(mapping *v3alpha1.AmbassadorMapping) (*url.URL, error) {
+	mappingDocsPath := mapping.Spec.Docs.Path
+	mappingRewrite := "/"
+	if mapping.Spec.Rewrite != nil {
+		mappingRewrite = *mapping.Spec.Rewrite
+	}
+	if mappingDocsPath != "" {
+		mappingDocsPath = strings.ReplaceAll(mappingRewrite+mappingDocsPath, "//", "/")
+	}
+
+	mappingsDocsURL, err := url.Parse(mapping.Spec.Service + mappingDocsPath)
+	if err != nil {
+		return nil, err
+	}
+	if mappingsDocsURL.Host == "" {
+		// We did our best to parse the service+path, but failed to actually extract a Host.
+		// Now, be more explicit about which is which.
+		mappingsDocsURL.Host = mapping.Spec.Service
+		mappingsDocsURL.Path = mappingDocsPath
+		mappingsDocsURL.Scheme = ""
+		mappingsDocsURL.Opaque = ""
+		mappingsDocsURL = mappingsDocsURL.ResolveReference(mappingsDocsURL)
+	}
+	if !strings.Contains(mappingsDocsURL.Hostname(), ".") {
+		// The host does not appear to be a TLD, append the namespace
+		servicePort := mappingsDocsURL.Port()
+		mappingsDocsURL.Host = fmt.Sprintf("%s.%s", mappingsDocsURL.Hostname(), mapping.Namespace)
+		if servicePort != "" {
+			mappingsDocsURL.Host = fmt.Sprintf("%s:%s", mappingsDocsURL.Hostname(), servicePort)
+		}
+	}
+	if mappingsDocsURL.Scheme == "" {
+		// Assume plain-text if the mapping.Spec.Service did not specify https
+		mappingsDocsURL.Scheme = "http"
+	}
+
+	return mappingsDocsURL, nil
 }
 
 func (a *APIDocsStore) getDoc(ctx context.Context, queryURL *url.URL, queryHost string, queryHeaders []Header, publicHost string, prefix string, keepExistingPrefix bool) *openAPIDoc {
@@ -265,7 +289,7 @@ func newOpenAPI(ctx context.Context, docBytes []byte, baseURL string, prefix str
 	}
 }
 
-func (a *APIDocsStore) buildMappingRequestHeaders(mappingHeaders map[string]amb.BoolOrString) []Header {
+func buildMappingRequestHeaders(mappingHeaders map[string]amb.BoolOrString) []Header {
 	headers := []Header{}
 
 	for key, headerValue := range mappingHeaders {
