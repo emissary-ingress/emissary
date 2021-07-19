@@ -192,21 +192,21 @@ class V2Route(Cacheable):
         if len(typed_per_filter_config) > 0:
             self['typed_per_filter_config'] = typed_per_filter_config
 
-        request_headers_to_add = group.get('add_request_headers', None)
+        request_headers_to_add = mapping.get('add_request_headers', None)
         if request_headers_to_add:
             self['request_headers_to_add'] = self.generate_headers_to_add(request_headers_to_add)
 
-        response_headers_to_add = group.get('add_response_headers', None)
+        response_headers_to_add = mapping.get('add_response_headers', None)
         if response_headers_to_add:
             self['response_headers_to_add'] = self.generate_headers_to_add(response_headers_to_add)
 
-        request_headers_to_remove = group.get('remove_request_headers', None)
+        request_headers_to_remove = mapping.get('remove_request_headers', None)
         if request_headers_to_remove:
             if type(request_headers_to_remove) != list:
                 request_headers_to_remove = [ request_headers_to_remove ]
             self['request_headers_to_remove'] = request_headers_to_remove
 
-        response_headers_to_remove = group.get('remove_response_headers', None)
+        response_headers_to_remove = mapping.get('remove_response_headers', None)
         if response_headers_to_remove:
             if type(response_headers_to_remove) != list:
                 response_headers_to_remove = [ response_headers_to_remove ]

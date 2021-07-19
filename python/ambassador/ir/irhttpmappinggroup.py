@@ -21,8 +21,6 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
     host_redirect: Optional[IRBaseMapping]
     shadow: List[IRBaseMapping]
     rewrite: str
-    add_request_headers: Dict[str, str]
-    add_response_headers: Dict[str, str]
 
     CoreMappingKeys: ClassVar[Dict[str, bool]] = {
         'bypass_auth': True,
@@ -53,15 +51,17 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
 
     DoNotFlattenKeys: ClassVar[Dict[str, bool]] = dict(CoreMappingKeys)
     DoNotFlattenKeys.update({
-        'add_request_headers': True,    # do this manually.
-        'add_response_headers': True,   # do this manually.
+        'add_request_headers': True,       # use per-mapping.
+        'add_response_headers': True,      # use per-mapping.
+        'remove_request_headers': True,    # use per-mapping.
+        'remove_response_headers': True,   # use per-mapping.
         'cluster': True,
         'cluster_key': True,
         'host': True,
         'kind': True,
         'location': True,
         'name': True,
-        'resolver': True,               # can't flatten the resolver...
+        'resolver': True,                  # can't flatten the resolver...
         'rkey': True,
         'route_weight': True,
         'service': True,
@@ -289,8 +289,6 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         :return: a list of the IRClusters this Group uses
         """
 
-        add_request_headers: Dict[str, Any] = {}
-        add_response_headers: Dict[str, Any] = {}
         metadata_labels: Dict[str, str] = {}
 
         for mapping in sorted(self.mappings, key=lambda m: m.route_weight):
@@ -308,17 +306,9 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
 
                 self[k] = mapping[k]
 
-            add_request_headers.update(mapping.get('add_request_headers', {}))
-            add_response_headers.update(mapping.get('add_response_headers', {}))
-
             # Should we have higher weights win over lower if there are conflicts?
             # Should we disallow conflicts?
             metadata_labels.update(mapping.get('metadata_labels') or {})
-
-        if add_request_headers:
-            self.add_request_headers = add_request_headers
-        if add_response_headers:
-            self.add_response_headers = add_response_headers
 
         if metadata_labels:
             self.metadata_labels = metadata_labels

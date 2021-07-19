@@ -63,6 +63,13 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [1.13.11] (TBD)
+[1.13.11]: https://github.com/emissary-ingress/emissary/compare/v1.13.10...v1.13.11
+
+### Emissary Ingress and Ambassador Edge Stack
+
+- Bugfix: Headers added or removed as part of `Mapping`s in a canary configuration will no longer clobber each other.
+
 ## [1.13.10] July 28, 2021
 [1.13.10]: https://github.com/emissary-ingress/emissary/compare/v1.13.9...v1.13.10
 
@@ -80,7 +87,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Ambassador Edge Stack only
 
-- Bugfix: The `Mapping` resource can now specify `docs.timeout_ms` to set the timeout when the 
+- Bugfix: The `Mapping` resource can now specify `docs.timeout_ms` to set the timeout when the
   Dev Portal is fetching API specifications.
 - Bugfix: The Dev Portal will now strip HTML tags when displaying search results, showing just
   the actual content of the search result.
