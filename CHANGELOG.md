@@ -88,6 +88,11 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 
 - Feature: The environment variable `AES_LOG_LEVEL` now also sets the log level for the `diagd` logger.
 
+- Bugfix: Headers added or removed as part of `Mapping`s in a canary configuration will no longer
+  clobber each other ([#3769]).
+
+[#3769]: https://github.com/emissary-ingress/emissary/issues/3769
+
 ## [2.0.2-ea] (2021-08-24)
 [2.0.2-ea]: https://github.com/emissary-ingress/emissary/releases/v2.0.2-ea
 

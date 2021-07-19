@@ -768,3 +768,56 @@ add_request_headers:
                 assert r.backend.request.headers['boo'] == ['BooB','boo']
                 assert r.backend.request.headers['foo'] == ['FooF','Foo']
 
+
+class CanaryAddReqHeadersMapping(MappingTest):
+
+    parent: AmbassadorTest
+    target: ServiceType
+    canary: ServiceType
+
+    @classmethod
+    def variants(cls):
+        for v in variants(ServiceType):
+            yield cls(v, v.clone("canary"), name="{self.target.name}")
+
+    def init(self, target: ServiceType, canary: ServiceType):
+        MappingTest.init(self, target)
+        self.canary = canary
+
+    def config(self):
+        yield self.target, self.format("""
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
+name:  {self.name}
+hostname: "*"
+prefix: /{self.name}/
+service: http://{self.target.path.fqdn}
+add_request_headers:
+    zoo: lions
+""")
+        yield self.canary, self.format("""
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
+name:  {self.name}-canary
+hostname: "*"
+prefix: /{self.name}/
+service: http://{self.canary.path.fqdn}
+weight: 50
+add_request_headers:
+    zoo: tigers
+""")
+
+    def queries(self):
+        for i in range(100):
+            yield Query(self.parent.url(self.name + "/"))
+
+    def check(self):
+        expected_zoo_header_values = {
+            self.target.path.k8s: ['lions'],
+            self.canary.path.k8s: ['tigers'],
+        }
+
+        for r in self.results:
+            assert r.backend.request.headers['zoo'] == expected_zoo_header_values.get(r.backend.name), f'#{r.backend.name} does not have the correct header value'
