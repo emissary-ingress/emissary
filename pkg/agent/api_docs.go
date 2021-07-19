@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/pkg/errors"
 
@@ -27,47 +28,72 @@ import (
 type APIDocsStore struct {
 	// Client is used to scrape all Mappings for API documentation
 	Client APIDocsHTTPClient
+	// DontProcessSnapshotBeforeTime keeps track of the moment the next received snapshot should be processed
+	DontProcessSnapshotBeforeTime time.Time
+
 	// store hold the state of the world, with all Mappings and their API docs
 	store *inMemoryStore
 	// docsDiff helps calculate whether an API doc should be kept or discarded after processing a snapshot
 	docsDiff *docsDiffCalculator
+	// processingSnapshotMutex holds a lock so that a single snapshot gets processed at a time
+	processingSnapshotMutex sync.RWMutex
 }
 
 // NewAPIDocsStore is the main APIDocsStore constructor.
 func NewAPIDocsStore() *APIDocsStore {
 	return &APIDocsStore{
-		Client:   newAPIDocsHTTPClient(),
+		Client:                        newAPIDocsHTTPClient(),
+		DontProcessSnapshotBeforeTime: time.Unix(0, 0),
+
 		store:    newInMemoryStore(),
-		docsDiff: newMappingDocsCalculator([]mappingDoc{}),
+		docsDiff: newMappingDocsCalculator([]docMappingRef{}),
 	}
 }
 
 // ProcessSnapshot will query the required services to retrieve the API documentation for each
-// of the Mappings in the snapshot
+// of the Mappings in the snapshot. It will execute at most once every minute.
 func (a *APIDocsStore) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Snapshot) {
+	a.processingSnapshotMutex.Lock()
+	defer a.processingSnapshotMutex.Unlock()
+
+	emptyStore := len(a.store.getAll()) == 0
+	mappings := getProcessableMappingsFromSnapshot(snapshot)
+	if len(mappings) == 0 && emptyStore {
+		dlog.Debug(ctx, "Skipping apidocs snapshot processing until a mapping with documentation is found")
+		return
+	}
+
+	now := time.Now()
+	if now.Before(a.DontProcessSnapshotBeforeTime) {
+		dlog.Debugf(ctx, "Skipping apidocs snapshot processing until %v", a.DontProcessSnapshotBeforeTime)
+		return
+	}
+
 	dlog.Debug(ctx, "Processing snapshot...")
-	a.retrieve(ctx, snapshot)
+	a.DontProcessSnapshotBeforeTime = now.Add(1 * time.Minute)
+
+	if emptyStore {
+		// We don't have anything in memory...
+		// Retrieve API docs synchronously so it appears snappy to the first-time user,
+		// or when the agent starts.
+		a.scrape(ctx, mappings)
+	} else {
+		// This is just an update, it can be processed asynchronously.
+		go a.scrape(ctx, mappings)
+	}
 }
 
 // StateOfWorld returns the current state of all discovered API docs.
 func (a *APIDocsStore) StateOfWorld() []*snapshotTypes.APIDoc {
-	return toAPIDocs(a.store.getAllMappingDocs())
+	return toAPIDocs(a.store.getAll())
 }
 
-func (a *APIDocsStore) retrieve(ctx context.Context, snapshot *snapshotTypes.Snapshot) {
-	defer func() {
-		// Once we are finished retrieving mapping docs, delete anything we
-		// don't need anymore
-		a.docsDiff.deleteOld(ctx, a.store)
-
-		dlog.Debug(ctx, "Iteration done")
-	}()
-
+func getProcessableMappingsFromSnapshot(snapshot *snapshotTypes.Snapshot) []*v3alpha1.AmbassadorMapping {
+	processableMappings := []*v3alpha1.AmbassadorMapping{}
 	if snapshot == nil || snapshot.Kubernetes == nil {
-		return
+		return processableMappings
 	}
 
-	dlog.Debugf(ctx, "Found %d Mappings", len(snapshot.Kubernetes.Mappings))
 	for _, mapping := range snapshot.Kubernetes.Mappings {
 		if mapping == nil {
 			continue
@@ -76,6 +102,22 @@ func (a *APIDocsStore) retrieve(ctx context.Context, snapshot *snapshotTypes.Sna
 		if mappingDocs == nil || (mappingDocs.Ignored != nil && *mappingDocs.Ignored == true) {
 			continue
 		}
+		processableMappings = append(processableMappings, mapping)
+	}
+	return processableMappings
+}
+
+func (a *APIDocsStore) scrape(ctx context.Context, mappings []*v3alpha1.AmbassadorMapping) {
+	defer func() {
+		// Once we are finished retrieving mapping docs, delete anything we
+		// don't need anymore
+		a.docsDiff.deleteOld(ctx, a.store)
+		dlog.Debug(ctx, "Iteration done")
+	}()
+
+	dlog.Debugf(ctx, "Found %d Mappings", len(mappings))
+	for _, mapping := range mappings {
+		mappingDocs := mapping.Spec.Docs
 		displayName := mappingDocs.DisplayName
 		if displayName == "" {
 			displayName = fmt.Sprintf("%s.%s", mapping.GetName(), mapping.GetNamespace())
@@ -87,6 +129,19 @@ func (a *APIDocsStore) retrieve(ctx context.Context, snapshot *snapshotTypes.Sna
 			mappingRewrite = *mapping.Spec.Rewrite
 		}
 		mappingHost := mapping.Spec.Host
+
+		dm := &docMappingRef{
+			Ref: &kates.ObjectReference{
+				Kind:            mapping.Kind,
+				Namespace:       mapping.Namespace,
+				Name:            mapping.Name,
+				UID:             mapping.UID,
+				APIVersion:      mapping.APIVersion,
+				ResourceVersion: mapping.ResourceVersion,
+			},
+			Name: displayName,
+		}
+		a.docsDiff.add(ctx, dm)
 
 		var doc *openAPIDoc
 		if mappingDocs.URL != "" {
@@ -119,27 +174,12 @@ func (a *APIDocsStore) retrieve(ctx context.Context, snapshot *snapshotTypes.Sna
 		}
 
 		if doc != nil {
-			dlog.Debugf(ctx, "Adding mapping docs")
-			md := mappingDoc{
-				Ref: &kates.ObjectReference{
-					Kind:            mapping.Kind,
-					Namespace:       mapping.Namespace,
-					Name:            mapping.Name,
-					UID:             mapping.UID,
-					APIVersion:      mapping.APIVersion,
-					ResourceVersion: mapping.ResourceVersion,
-				},
-				Name: displayName,
-			}
-			err := a.store.add(md, doc)
-			if err == nil {
-				a.docsDiff.add(md)
-			}
+			a.store.add(dm, doc)
 		}
 	}
 }
 
-func (a *APIDocsStore) getDoc(ctx context.Context, queryURL *url.URL, queryHost string, queryHeaders []Header, publicHost string, prefix string, keep bool) *openAPIDoc {
+func (a *APIDocsStore) getDoc(ctx context.Context, queryURL *url.URL, queryHost string, queryHeaders []Header, publicHost string, prefix string, keepExistingPrefix bool) *openAPIDoc {
 	b, err := a.Client.Get(ctx, queryURL, queryHost, queryHeaders)
 	if err != nil {
 		dlog.Errorf(ctx, "get failed %s: %v", queryURL, err)
@@ -147,7 +187,7 @@ func (a *APIDocsStore) getDoc(ctx context.Context, queryURL *url.URL, queryHost 
 	}
 
 	if b != nil {
-		return newOpenAPI(ctx, b, publicHost, prefix, keep)
+		return newOpenAPI(ctx, b, publicHost, prefix, keepExistingPrefix)
 	}
 	return nil
 }
@@ -164,7 +204,7 @@ type openAPIDoc struct {
 
 // openAPIDoc constructor from raw bytes.
 // The baseURL and prefix are used to edit the original document with server information to query the API publicly
-func newOpenAPI(ctx context.Context, docBytes []byte, baseURL string, prefix string, keep bool) *openAPIDoc {
+func newOpenAPI(ctx context.Context, docBytes []byte, baseURL string, prefix string, keepExistingPrefix bool) *openAPIDoc {
 	dlog.Debugf(ctx, "Trying to create new OpenAPI doc: base_url=%q prefix=%q", baseURL, prefix)
 
 	loader := openapi3.NewLoader()
@@ -198,7 +238,7 @@ func newOpenAPI(ctx context.Context, docBytes []byte, baseURL string, prefix str
 		dlog.Debugf(ctx, "could not parse URL %q", baseURL)
 	} else {
 		if prefix != "" {
-			if existingPrefix != "" && keep {
+			if existingPrefix != "" && keepExistingPrefix {
 				base.Path = path.Join(base.Path, prefix, existingPrefix)
 			} else {
 				base.Path = path.Join(base.Path, prefix)
@@ -316,13 +356,13 @@ func (c *apiDocsHTTPClient) Get(ctx context.Context, requestURL *url.URL, reques
 	return buf, nil
 }
 
-// mappingDoc holds a reference to a Mapping with a 'docs' attribute, for a given display name.
-type mappingDoc struct {
+// docMappingRef holds a reference to a Mapping with a 'docs' attribute, for a given display name.
+type docMappingRef struct {
 	Ref  *kates.ObjectReference
 	Name string
 }
 
-type mappingDocMap map[mappingDoc]bool
+type mappingDocMap map[string]bool
 
 // Figure out which Mapping and API doc no longer exist and need to be deleted.
 type docsDiffCalculator struct {
@@ -331,92 +371,107 @@ type docsDiffCalculator struct {
 }
 
 // newMappingDocsCalculator creates a new diff calculator for mapping docs
-func newMappingDocsCalculator(known []mappingDoc) *docsDiffCalculator {
+func newMappingDocsCalculator(known []docMappingRef) *docsDiffCalculator {
 	knownMap := make(mappingDocMap)
 	for _, m := range known {
-		knownMap[m] = true
+		knownMap[string(m.Ref.UID)] = true
 	}
 	return &docsDiffCalculator{current: make(mappingDocMap), previous: knownMap}
 }
 
 // After retrieving all known mappings, newRound will return list of mapping docs to delete
-func (d *docsDiffCalculator) newRound() []mappingDoc {
-	toDelete := make([]mappingDoc, 0)
-	for md := range d.previous {
-		if !d.current[md] {
-			toDelete = append(toDelete, md)
+func (d *docsDiffCalculator) newRound() []string {
+	mappingUIDsToDelete := make([]string, 0)
+
+	for previousRef := range d.previous {
+		if !d.current[previousRef] {
+			mappingUIDsToDelete = append(mappingUIDsToDelete, string(previousRef))
 		}
 	}
 	d.previous = d.current
 	d.current = make(mappingDocMap)
-	return toDelete
+
+	return mappingUIDsToDelete
 }
 
 // add a MappingDoc that was successfully retrieved this round
-func (d *docsDiffCalculator) add(md mappingDoc) {
-	d.current[md] = true
+func (d *docsDiffCalculator) add(ctx context.Context, dm *docMappingRef) {
+	if dm != nil && dm.Ref != nil {
+		dlog.Debugf(ctx, "Adding Mapping Docs diff reference %s", dm)
+		d.current[string(dm.Ref.UID)] = true
+	}
 }
 
 // deleteOld deletes old MappingDocs that are no longer present
 func (d *docsDiffCalculator) deleteOld(ctx context.Context, store *inMemoryStore) {
-	for _, md := range d.newRound() {
-		dlog.Debugf(ctx, "Deleting old Mapping Docs %s", md)
-		store.delete(md)
+	for _, mappingUID := range d.newRound() {
+		dlog.Debugf(ctx, "Deleting old Mapping Docs %s", mappingUID)
+		store.deleteRefUID(mappingUID)
 	}
 }
 
-type mappingDocsMap map[mappingDoc]*openAPIDoc
+type docsRef struct {
+	docMappingRef *docMappingRef
+	openAPIDoc    *openAPIDoc
+}
+type docsRefMap map[string]*docsRef
 
 type inMemoryStore struct {
 	entriesMutex sync.RWMutex
-	entries      mappingDocsMap
+	entries      docsRefMap
 }
 
 func newInMemoryStore() *inMemoryStore {
 	res := &inMemoryStore{
-		entries: make(mappingDocsMap),
+		entries: make(docsRefMap),
 	}
 
 	return res
 }
 
-func (s *inMemoryStore) add(md mappingDoc, openAPIDoc *openAPIDoc) error {
+func (s *inMemoryStore) add(dm *docMappingRef, openAPIDoc *openAPIDoc) {
 	s.entriesMutex.Lock()
 	defer s.entriesMutex.Unlock()
 
-	s.entries[md] = openAPIDoc
-	return nil
+	s.entries[string(dm.Ref.UID)] = &docsRef{docMappingRef: dm, openAPIDoc: openAPIDoc}
 }
 
-func (s *inMemoryStore) delete(md mappingDoc) error {
+func (s *inMemoryStore) deleteRefUID(mappingRefUID string) {
 	s.entriesMutex.Lock()
 	defer s.entriesMutex.Unlock()
 
-	delete(s.entries, md)
-	return nil
+	for entryUID := range s.entries {
+		if mappingRefUID == entryUID {
+			delete(s.entries, entryUID)
+		}
+	}
 }
 
-func (s *inMemoryStore) getAllMappingDocs() mappingDocsMap {
+func (s *inMemoryStore) getAll() []*docsRef {
 	s.entriesMutex.RLock()
 	defer s.entriesMutex.RUnlock()
 
-	return s.entries
+	var dr []*docsRef
+	for _, e := range s.entries {
+		dr = append(dr, e)
+	}
+	return dr
 }
 
-func toAPIDocs(mappingDocsMap mappingDocsMap) []*snapshotTypes.APIDoc {
+func toAPIDocs(docsRefs []*docsRef) []*snapshotTypes.APIDoc {
 	results := make([]*snapshotTypes.APIDoc, 0)
-	for md, openAPIDocs := range mappingDocsMap {
-		if openAPIDocs != nil {
+	for _, doc := range docsRefs {
+		if doc != nil && doc.docMappingRef != nil && doc.openAPIDoc != nil {
 			apiDoc := &snapshotTypes.APIDoc{
-				Data: openAPIDocs.JSON,
+				Data: doc.openAPIDoc.JSON,
 				TypeMeta: &kates.TypeMeta{
-					Kind:       openAPIDocs.Type,
-					APIVersion: openAPIDocs.Version,
+					Kind:       doc.openAPIDoc.Type,
+					APIVersion: doc.openAPIDoc.Version,
 				},
 				Metadata: &kates.ObjectMeta{
-					Name: md.Name,
+					Name: doc.docMappingRef.Name,
 				},
-				TargetRef: md.Ref,
+				TargetRef: doc.docMappingRef.Ref,
 			}
 			results = append(results, apiDoc)
 		}

@@ -203,15 +203,14 @@ func TestAPIDocsStore(t *testing.T) {
 
 			store := agent.NewAPIDocsStore()
 			store.Client = NewMockAPIDocsHTTPClient(t, c.expectedRequestURL, c.expectedRequestHost, c.expectedRequestHeaders, c.rawJSONDocsContent, c.JSONDocsErr)
-			store.ProcessSnapshot(ctx, snapshot)
-			result := store.StateOfWorld()
 
 			// Processing the test case snapshot should yield the expected state of the world
-			assert.Equal(t, c.expectedSOTW, result)
+			store.ProcessSnapshot(ctx, snapshot)
+			assert.Equal(t, c.expectedSOTW, store.StateOfWorld())
 
-			// Processing an empty snapshot should clear the state of the world
+			// Processing an empty snapshot should be ignored and not change the state of the world
 			store.ProcessSnapshot(ctx, &snapshotTypes.Snapshot{})
-			assert.Equal(t, []*snapshotTypes.APIDoc{}, store.StateOfWorld())
+			assert.Equal(t, c.expectedSOTW, store.StateOfWorld())
 		})
 	}
 }
