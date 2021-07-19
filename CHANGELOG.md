@@ -71,6 +71,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Change: Envoy-configuration snapshots get saved (as ambex-#.json) in /ambassador/snapshots. The number of snapshots is
   controlled by the `AMBASSADOR_AMBEX_SNAPSHOT_COUNT` environment variable; set it to 0 to disable. The default is 30.
 - Bugfix: Fixed a regression when specifying a comma separated string for `cors.origins` on the `Mapping` resource
+- Bugfix: Headers added or removed as part of `Mapping`s in a canary configuration will no longer clobber each other.
 
 ### Ambassador Edge Stack
 
