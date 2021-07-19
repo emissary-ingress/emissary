@@ -25,12 +25,10 @@ import (
 
 // APIDocsStore is responsible for collecting the API docs from Mapping resources in a k8s cluster.
 type APIDocsStore struct {
-	// snapshot holding the Mapping resources from which API docs will be scraped
-	snapshot *CoreSnapshot
+	// Client is used to scrape all Mappings for API documentation
+	Client APIDocsHTTPClient
 	// store hold the state of the world, with all Mappings and their API docs
 	store *inMemoryStore
-	// client is used to scrape all Mappings for API documentation
-	client *apiDocsHTTPClient
 	// docsDiff helps calculate whether an API doc should be kept or discarded after processing a snapshot
 	docsDiff *docsDiffCalculator
 }
@@ -38,7 +36,7 @@ type APIDocsStore struct {
 // NewAPIDocsStore is the main APIDocsStore constructor.
 func NewAPIDocsStore() *APIDocsStore {
 	return &APIDocsStore{
-		client:   newAPIDocsHTTPClient(),
+		Client:   newAPIDocsHTTPClient(),
 		store:    newInMemoryStore(),
 		docsDiff: newMappingDocsCalculator([]mappingDoc{}),
 	}
@@ -64,6 +62,10 @@ func (a *APIDocsStore) retrieve(ctx context.Context, snapshot *snapshotTypes.Sna
 
 		dlog.Debug(ctx, "Iteration done")
 	}()
+
+	if snapshot == nil || snapshot.Kubernetes == nil {
+		return
+	}
 
 	dlog.Debugf(ctx, "Found %d Mappings", len(snapshot.Kubernetes.Mappings))
 	for _, mapping := range snapshot.Kubernetes.Mappings {
@@ -137,8 +139,8 @@ func (a *APIDocsStore) retrieve(ctx context.Context, snapshot *snapshotTypes.Sna
 	}
 }
 
-func (a *APIDocsStore) getDoc(ctx context.Context, queryURL *url.URL, queryHost string, queryHeaders []header, publicHost string, prefix string, keep bool) *openAPIDoc {
-	b, err := a.client.get(ctx, queryURL, queryHost, queryHeaders)
+func (a *APIDocsStore) getDoc(ctx context.Context, queryURL *url.URL, queryHost string, queryHeaders []Header, publicHost string, prefix string, keep bool) *openAPIDoc {
+	b, err := a.Client.Get(ctx, queryURL, queryHost, queryHeaders)
 	if err != nil {
 		dlog.Errorf(ctx, "get failed %s: %v", queryURL, err)
 		return nil
@@ -223,8 +225,8 @@ func newOpenAPI(ctx context.Context, docBytes []byte, baseURL string, prefix str
 	}
 }
 
-func (a *APIDocsStore) buildMappingRequestHeaders(mappingHeaders map[string]amb.BoolOrString) []header {
-	headers := []header{}
+func (a *APIDocsStore) buildMappingRequestHeaders(mappingHeaders map[string]amb.BoolOrString) []Header {
+	headers := []Header{}
 
 	for key, headerValue := range mappingHeaders {
 		if key == ":authority" {
@@ -237,15 +239,19 @@ func (a *APIDocsStore) buildMappingRequestHeaders(mappingHeaders map[string]amb.
 		if headerValue.Bool != nil {
 			value = strconv.FormatBool(*headerValue.Bool)
 		}
-		headers = append(headers, header{name: key, value: value})
+		headers = append(headers, Header{Name: key, Value: value})
 	}
 
 	return headers
 }
 
-type header struct {
-	name  string
-	value string
+type Header struct {
+	Name  string
+	Value string
+}
+
+type APIDocsHTTPClient interface {
+	Get(ctx context.Context, requestURL *url.URL, requestHost string, requestHeaders []Header) ([]byte, error)
 }
 
 type apiDocsHTTPClient struct {
@@ -254,10 +260,10 @@ type apiDocsHTTPClient struct {
 
 func newAPIDocsHTTPClient() *apiDocsHTTPClient {
 	dialer := &net.Dialer{
-		Timeout: time.Second * 2,
+		Timeout: time.Second * 10,
 	}
 	c := &http.Client{
-		Timeout: time.Second * 2,
+		Timeout: time.Second * 10,
 		Transport: &http.Transport{
 			/* #nosec */
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -267,7 +273,7 @@ func newAPIDocsHTTPClient() *apiDocsHTTPClient {
 	return &apiDocsHTTPClient{c}
 }
 
-func (c *apiDocsHTTPClient) get(ctx context.Context, requestURL *url.URL, requestHost string, requestHeaders []header) ([]byte, error) {
+func (c *apiDocsHTTPClient) Get(ctx context.Context, requestURL *url.URL, requestHost string, requestHeaders []Header) ([]byte, error) {
 	ctx = dlog.WithField(ctx, "url", requestURL)
 	ctx = dlog.WithField(ctx, "host", requestHost)
 
@@ -285,8 +291,8 @@ func (c *apiDocsHTTPClient) get(ctx context.Context, requestURL *url.URL, reques
 
 	if requestHeaders != nil {
 		for _, queryHeader := range requestHeaders {
-			dlog.Debugf(ctx, "Adding header %s=%s", queryHeader.name, queryHeader.value)
-			req.Header.Set(queryHeader.name, queryHeader.value)
+			dlog.Debugf(ctx, "Adding header %s=%s", queryHeader.Name, queryHeader.Value)
+			req.Header.Set(queryHeader.Name, queryHeader.Value)
 		}
 	}
 
