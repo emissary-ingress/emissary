@@ -34,7 +34,7 @@ func externalSnapshotServer(ctx context.Context, snapshot *atomic.Value) error {
 		}
 		if snapDecoded.AmbassadorMeta != nil && IsEdgeStack() {
 			sidecarProcessInfoUrl := fmt.Sprintf("%s/process-info/", GetSidecarHost())
-			dlog.Debugf(ctx, "loading sidecard process-info using [%s]...", sidecarProcessInfoUrl)
+			dlog.Debugf(ctx, "loading sidecar process-info using [%s]...", sidecarProcessInfoUrl)
 			resp, err := http.DefaultClient.Get(sidecarProcessInfoUrl)
 			if err != nil {
 				dlog.Error(ctx, err.Error())
