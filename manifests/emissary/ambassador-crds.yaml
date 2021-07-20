@@ -221,6 +221,9 @@ spec:
                   service:
                     description: Service is the service being documented
                     type: string
+                  timeout_ms:
+                    description: Timeout specifies the amount of time devportal will wait for the downstream service to report an openapi spec back
+                    type: integer
                   url:
                     description: URL is the URL used for obtaining docs
                     type: string
@@ -1021,6 +1024,8 @@ spec:
                   type: boolean
                 path:
                   type: string
+                timeout_ms:
+                  type: integer
                 url:
                   type: string
               type: object
