@@ -155,6 +155,7 @@ type DocsInfo struct {
 	URL         string `json:"url,omitempty"`
 	Ignored     *bool  `json:"ignored,omitempty"`
 	DisplayName string `json:"display_name,omitempty"`
+	Timeout     int    `json:"timeout_ms,omitempty"`
 }
 
 // These are separate types partly because it makes it easier to think about
