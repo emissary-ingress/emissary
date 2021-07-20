@@ -1,7 +1,7 @@
 import json
 import pytest
 
-from utils import compile_with_cachecheck
+from tests.utils import compile_with_cachecheck
 
 @pytest.mark.compilertest
 def test_mapping_host_star_error():
