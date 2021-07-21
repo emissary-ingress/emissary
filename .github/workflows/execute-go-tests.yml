@@ -42,7 +42,9 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_BUILD_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_BUILD_PASSWORD }}
       - name: "Configure Kubernetes cluster and Docker registry"
+        env:
+          DOCKER_BUILD_USERNAME: ${{ secrets.DOCKER_BUILD_USERNAME }}
+          DOCKER_BUILD_PASSWORD: ${{ secrets.DOCKER_BUILD_PASSWORD }}
+          DEV_REGISTRY: docker.io/datawiredev
         run: |
-          docker pull busybox
-          docker tag busybox docker.io/datawiredev/busybox:boop
-          docker push docker.io/datawiredev/busybox:boop
+          make push
