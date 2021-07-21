@@ -18,8 +18,6 @@ jobs:
         #   - no legacy + reconfigure (false, false)
         pytest-settings:
           - {legacy-mode: true, fast-reconfigure: false}
-          - {legacy-mode: false, fast-reconfigure: true}
-          - {legacy-mode: false, fast-reconfigure: false}
         isMasterOrRelease:
           # is this close enough to release branch being /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/ ?
           - ${{ contains(github.ref, 'master') || startsWith(github.ref, 'refs/heads/rel/v') }}
@@ -32,37 +30,14 @@ jobs:
         name: Set Unique Test prefix (legacy-mode.${{ matrix.pytest-settings.legacy-mode }}-fast-reconfigure.${{ matrix.pytest-settings.fast-reconfigure }})
       - run: echo "USE_LOCAL_K3S_CLUSTER=1" >> $GITHUB_ENV
         name: "Set USE_LOCAL_K3S_CLUSTER=1"
-      - run: |
-          sudo sysctl -w fs.file-max=1600000
-          sudo sysctl -w fs.inotify.max_user_instances=4096
-        name: "Configure system file and inotify maximums (1600000/4096)"
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '^3.9.5'
-        name: "Install Python (^3.9.5)"
-      - run: python --version
-        name: "Check python installed"
-      - uses: BSFishy/pip-action@v1
-        with:
-          packages: |
-            awscli
-            packaging
-        name: "Install Python requirements with pip"
-      - uses: azure/setup-kubectl@v1
-        id: install
-        with:
-          version: 'v1.19.12'
-        name: "Install kubectl (v1.19.12)" # maybe not?
-      - name: "Install/Setup K3d/K3s"
-        uses: nolar/setup-k3d-k3s@v1.0.7
       - name: "Docker Login"
         uses: docker/login-action@v1
         env:
-          password: ${{ secrets.DOCKER_BUILD_USERNAME }}
-          username: ${{ secrets.DOCKER_BUILD_PASSWORD }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_BUILD_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_BUILD_PASSWORD }}
       - name: "Configure Kubernetes cluster and Docker registry"
         run: |
           docker pull busybox
