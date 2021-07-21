@@ -47,10 +47,11 @@ type Snapshot struct {
 }
 
 type AmbassadorMetaInfo struct {
-	ClusterID         string `json:"cluster_id"`
-	AmbassadorID      string `json:"ambassador_id"`
-	AmbassadorVersion string `json:"ambassador_version"`
-	KubeVersion       string `json:"kube_version"`
+	ClusterID         string          `json:"cluster_id"`
+	AmbassadorID      string          `json:"ambassador_id"`
+	AmbassadorVersion string          `json:"ambassador_version"`
+	KubeVersion       string          `json:"kube_version"`
+	Sidecar           json.RawMessage `json:"sidecar"`
 }
 
 type KubernetesSnapshot struct {
