@@ -133,6 +133,7 @@ class IRAuth (IRFilter):
         self["connect_timeout_ms"] = module.get("connect_timeout_ms", 3000)
         self["cluster_idle_timeout_ms"] = module.get("cluster_idle_timeout_ms", None)
         self["cluster_max_connection_lifetime_ms"] = module.get("cluster_max_connection_lifetime_ms", None)
+        self["initial_metadata"] = module.get("initial_metadata", {})
         self["add_auth_headers"] = module.get("add_auth_headers", {})
         self["protocol_version"] = module.get("protocol_version", "v2")
         self.__to_header_list('allowed_headers', module)
