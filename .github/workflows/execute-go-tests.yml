@@ -1,12 +1,6 @@
+name: pytest
 on:
   push:
-    paths-ignore:
-      - 'releng/**'
-      - 'charts/**'
-      - 'manifests/**'
-      - 'k8s-config/**'
-      - 'docs/**'
-      - '*.md$'
 
 jobs:
   execute-go-tests:
@@ -22,18 +16,29 @@ jobs:
         # other branches (no legacy testing)
         #   - no legacy + no reconfigure (false, true)
         #   - no legacy + reconfigure (false, false)
-        gotest-settings:
+        pytest-settings:
+          - {legacy-mode: true, fast-reconfigure: false}
           - {legacy-mode: false, fast-reconfigure: true}
+          - {legacy-mode: false, fast-reconfigure: false}
         isMasterOrRelease:
           # is this close enough to release branch being /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/ ?
           - ${{ contains(github.ref, 'master') || startsWith(github.ref, 'refs/heads/rel/v') }}
         exclude:
           - isMasterOrRelease: false # if we are not master/release then we exclude legacy mode
-            gotest-settings: {legacy-mode: true, fast-reconfigure: false}
-
-    name: go-tests (legacy-mode:${{ matrix.gotest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.gotest-settings.fast-reconfigure }} )
+            pytest-settings: {legacy-mode: true, fast-reconfigure: false}
+    name: (legacy-mode:${{ matrix.pytest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.pytest-settings.fast-reconfigure }} )
     steps:
+      - run: echo "PREFIX=legacy-mode.${{ matrix.pytest-settings.legacy-mode }}-fast-reconfigure.${{ matrix.pytest-settings.fast-reconfigure }}" >> $GITHUB_ENV
+        name: Set Unique Test prefix (legacy-mode.${{ matrix.pytest-settings.legacy-mode }}-fast-reconfigure.${{ matrix.pytest-settings.fast-reconfigure }})
+      - run: echo "USE_LOCAL_K3S_CLUSTER=1" >> $GITHUB_ENV
+        name: "Set USE_LOCAL_K3S_CLUSTER=1"
+      - run: |
+          sudo sysctl -w fs.file-max=1600000
+          sudo sysctl -w fs.inotify.max_user_instances=4096
+        name: "Configure system file and inotify maximums (1600000/4096)"
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v2
         with:
           python-version: '^3.9.5'
@@ -51,30 +56,15 @@ jobs:
         with:
           version: 'v1.19.12'
         name: "Install kubectl (v1.19.12)" # maybe not?
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '^1.15.0' # The Go version to download (if necessary) and use.
-        name: "Install go (^1.15.0)"
-      - run: go version
-        name: "Check go version"
-      - run: |
-          go get gotest.tools/gotestsum
-        name: "Install gotestsum (latest)"
-      - name: make gotest (legacy-mode:${{ matrix.gotest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.gotest-settings.fast-reconfigure }} )
-        # todo - idle timeout here!  3m
-        timeout-minutes: 30
+      - name: "Install/Setup K3d/K3s"
+        uses: nolar/setup-k3d-k3s@v1.0.7
+      - name: "Docker Login"
+        uses: docker/login-action@v1
+        env:
+          password: ${{ secrets.DOCKER_BUILD_USERNAME }}
+          username: ${{ secrets.DOCKER_BUILD_PASSWORD }}
+      - name: "Configure Kubernetes cluster and Docker registry"
         run: |
-          export DEV_KUBE_NO_PVC=yes
-          export KAT_REQ_LIMIT=900
-          export AMBASSADOR_LEGACY_MODE=${{ matrix.gotest-settings.legacy-mode }}
-          export AMBASSADOR_FAST_RECONFIGURE=${{ matrix.gotest-settings.fast-reconfigure }}
-          export TEST_XML_DIR=/tmp/test-logs/xml/
-          export GOTEST_ARGS='-timeout 30m'
-          mkdir -p ${TEST_XML_DIR}
-          make gotest
-      # teardown
-      # "TODO - save logs, amb-save-logs"
-      # "TODO - store_test_results"
-      #   path: /tmp/test-logs/xml/
-      # "TODO - dirty-check"
-
+          docker pull busybox
+          docker tag busybox docker.io/datawiredev/busybox:boop
+          docker push docker.io/datawiredev/busybox:boop
