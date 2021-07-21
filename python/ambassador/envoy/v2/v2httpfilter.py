@@ -319,11 +319,11 @@ def V2HTTPFilter_authv1(auth: IRAuth, v2config: 'V2Config'):
         }
 
     if auth.proto == "grpc":
-        metadata_to_add = []
+        initial_metadata = []
         protocol_version = auth.get('protocol_version', 'v2')
 
         for k, v in auth.get('initial_metadata', {}).items():
-            metadata_to_add.append({
+            initial_metadata.append({
                 'key': k,
                 'value': v,
             })
@@ -337,7 +337,7 @@ def V2HTTPFilter_authv1(auth: IRAuth, v2config: 'V2Config'):
                         'cluster_name': cluster.envoy_name
                     },
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0),
-                    'initial_metadata': metadata_to_add
+                    'initial_metadata': initial_metadata
                 }
             }
         }
