@@ -54,6 +54,10 @@ type DevPortalDocsSpec struct {
 
 	// URL is the URL used for obtaining docs
 	URL string `json:"url,omitempty"`
+
+	// Timeout specifies the amount of time devportal will wait
+	// for the downstream service to report an openapi spec back
+	Timeout int `json:"timeout_ms,omitempty"`
 }
 
 // DevPortalSearchSpec allows configuration over search functionality for the DevPortal
