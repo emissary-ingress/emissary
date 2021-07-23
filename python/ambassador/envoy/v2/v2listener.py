@@ -136,6 +136,7 @@ class V2Listener(dict):
         self.listener_filters: List[dict] = []
         self.traffic_direction: str = "UNSPECIFIED"
         self._irlistener = irlistener   # We cache the IRListener to use its match method later
+        self._stats_prefix = irlistener.statsPrefix
         self._security_model: str = irlistener.securityModel
         self._l7_depth: int = irlistener.get('l7Depth', 0)
         self._insecure_only: bool = False
@@ -369,7 +370,7 @@ class V2Listener(dict):
     # V2Listener's http_connection_manager filter.
     def base_http_config(self) -> Dict[str, Any]:
         base_http_config: Dict[str, Any] = {
-            'stat_prefix': 'ingress_http',
+            'stat_prefix': self._stats_prefix,
             'access_log': self.access_log(),
             'http_filters': [],
             'normalize_path': True
@@ -564,7 +565,7 @@ class V2Listener(dict):
                     'name': 'envoy.filters.network.tcp_proxy',
                     'typed_config': {
                         '@type': 'type.googleapis.com/envoy.config.filter.network.tcp_proxy.v2.TcpProxy',
-                        'stat_prefix': 'ingress_tcp_%d' % irgroup.port,
+                        'stat_prefix': self._stats_prefix,
                         'weighted_clusters': {
                             'clusters': clusters
                         }
