@@ -70,6 +70,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 - Change: Envoy-configuration snapshots get saved (as ambex-#.json) in /ambassador/snapshots. The number of snapshots is
   controlled by the `AMBASSADOR_AMBEX_SNAPSHOT_COUNT` environment variable; set it to 0 to disable. The default is 30.
+- Change: Set `AMBASSADOR_AMBEX_NO_RATELIMIT` to `true` to completely disable ratelimiting Envoy
+  reconfiguration under memory pressure. This can help performance with the endpoint or Consul resolvers,
+  but could make OOMkills more likely with large configurations. The default is `false`, meaning that
+  the rate limiter is active.
 - Bugfix: Fixed a regression when specifying a comma separated string for `cors.origins` on the `Mapping` resource
 
 ### Ambassador Edge Stack
