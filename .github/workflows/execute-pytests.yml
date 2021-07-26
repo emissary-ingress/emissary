@@ -37,7 +37,7 @@ jobs:
           - {legacy-mode: true, fast-reconfigure: false}
           - {legacy-mode: false, fast-reconfigure: true}
           - {legacy-mode: false, fast-reconfigure: false}
-        test: [integration, unit]
+        test: [envoy-ah, envoy-v2-ah, envoy-ip, envoy-v2-ip, envoy-qz, envoy-v2-qz, kat, integration, unit]
         isMasterOrRelease:
           # is this close enough to release branch being /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/ ?
           - ${{ contains(github.ref, 'master') || startsWith(github.ref, 'refs/heads/rel/v') }}
