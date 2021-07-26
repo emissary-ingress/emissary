@@ -66,6 +66,8 @@ ENTRYPOINT [ "/bin/bash" ]
 
 FROM ${builderbase} as golang
 
+ARG version="i-forgot-to-set-build-arg-version"
+
 WORKDIR /go
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
