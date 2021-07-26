@@ -66,6 +66,8 @@ ENTRYPOINT [ "/bin/bash" ]
 
 FROM ${builderbase} as golang
 
+ARG version="i-forgot-to-set-version"
+
 WORKDIR /go
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
@@ -79,7 +81,7 @@ ADD vendor vendor
 ADD go.mod go.mod
 ADD go.sum go.sum
 RUN mkdir -p /go/bin && \
-	time go build -mod=vendor -o /go/bin/ ./cmd/...
+	time go build -ldflags="-X 'main.Version=${version}'" -mod=vendor -o /go/bin/ ./cmd/...
 
 ########################################
 # The artifact build stage
