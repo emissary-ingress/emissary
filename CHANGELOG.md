@@ -70,12 +70,14 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 - Change: Envoy-configuration snapshots get saved (as ambex-#.json) in /ambassador/snapshots. The number of snapshots is
   controlled by the `AMBASSADOR_AMBEX_SNAPSHOT_COUNT` environment variable; set it to 0 to disable. The default is 30.
+- Change: A new field is added to the `Docs` field in the `Mapping` resource: `timeout_ms` is an optional integer that, when present, configures the number of milliseconds the Devportal HTTP client will wait to access the docs endpoint of the service mapping. 
 - Bugfix: Fixed a regression when specifying a comma separated string for `cors.origins` on the `Mapping` resource
 
 ### Ambassador Edge Stack
 
 - Change: Consul certificate-rotation logging now includes the fingerprints and validity timestamps of certificates
   being rotated.
+- Change: Devportal leverages the `timeout_ms` field in the `docs` field of the `Mapping` resource to configure the HTTP client it uses to fetch API specifications.
 
 ## [1.13.9] June 30, 2021
 [1.13.9]: https://github.com/emissary-ingress/emissary/compare/v1.13.8...v1.13.9
