@@ -54,6 +54,8 @@ type DiagdWatcher struct {
 	// When does our grace period end? The grace period is ten minutes after
 	// the most recent event (boot, or the last time a snapshot was sent).
 	GraceEnd time.Time
+
+	IsBootstrapped bool
 }
 
 // NewDiagdWatcher creates a new DiagdWatcher.
@@ -106,10 +108,12 @@ func (w *DiagdWatcher) NoteSnapshotSent() {
 }
 
 // NoteSnapshotProcessed marks the time at which we have processed a snapshot.
-func (w *DiagdWatcher) NoteSnapshotProcessed() {
+func (w *DiagdWatcher) NoteSnapshotProcessed(bootstrapped bool) {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
 	w.LastProcessed = w.fetchTime()
+	// we really only care if we were able to do this at least once
+	w.IsBootstrapped = (w.IsBootstrapped || bootstrapped)
 }
 
 // IsAlive returns true IFF diagd should be considered alive.
@@ -136,6 +140,9 @@ func (w *DiagdWatcher) IsAlive() bool {
 func (w *DiagdWatcher) IsReady() bool {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
+	if !w.IsBootstrapped {
+		return false
+	}
 
 	// If we haven't sent and processed a snapshot, diagd isn't ready.
 	if w.LastSent.IsZero() || w.LastProcessed.IsZero() {

@@ -70,7 +70,7 @@ func TestDiagdHappyPath(t *testing.T) {
 	m.stepSec(30)
 
 	// Mark the snapshot processed. We should now be ready.
-	m.dw.NoteSnapshotProcessed()
+	m.dw.NoteSnapshotProcessed(true)
 	m.check(3, 40, true, true)
 }
 
@@ -101,7 +101,7 @@ func TestDiagdVerySlowlySent(t *testing.T) {
 	// Not very useful, but if we mark the snapshot processed, we should snap
 	// to alive and ready.
 	m.stepSec(1)
-	m.dw.NoteSnapshotProcessed()
+	m.dw.NoteSnapshotProcessed(true)
 	m.check(2, 602, true, true)
 }
 
@@ -142,7 +142,7 @@ func TestDiagdSlowlyProcessed(t *testing.T) {
 	// Mark the snapshot processed after another 10s. This should take
 	// us to alive and ready.
 	m.stepSec(10)
-	m.dw.NoteSnapshotProcessed()
+	m.dw.NoteSnapshotProcessed(true)
 	m.check(3, 20, true, true)
 
 	// Send another snapshot after 40s (to take us to an even minute).

@@ -338,6 +338,9 @@ push: docker/kat-client.docker.push.remote
 push: docker/kat-server.docker.push.remote
 .PHONY: push
 
+push-em: docker/$(LCNAME).docker.push.remote
+.PHONY: push-em
+
 push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 	@set -e; { \
 		if [ -n "$(IS_DIRTY)" ]; then \

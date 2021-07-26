@@ -2,6 +2,7 @@ package entrypoint
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -11,6 +12,12 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/acp"
 	"github.com/datawire/ambassador/v2/pkg/debug"
 	"github.com/datawire/dlib/dhttp"
+)
+
+const (
+	HealthCheckPort          = "8877"
+	HealthCheckLivenessPath  = "/ambassador/v0/check_alive"
+	HealthCheckReadinessPath = "/ambassador/v0/check_ready"
 )
 
 func handleCheckAlive(w http.ResponseWriter, r *http.Request, ambwatch *acp.AmbassadorWatcher) {
@@ -55,13 +62,13 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) er
 	// off to our functions.
 
 	livenessTimer := dbg.Timer("check_alive")
-	sm.HandleFunc("/ambassador/v0/check_alive",
+	sm.HandleFunc(HealthCheckLivenessPath,
 		livenessTimer.TimedHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			handleCheckAlive(w, r, ambwatch)
 		}))
 
 	readinessTimer := dbg.Timer("check_ready")
-	sm.HandleFunc("/ambassador/v0/check_ready",
+	sm.HandleFunc(HealthCheckReadinessPath,
 		readinessTimer.TimedHandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			handleCheckReady(w, r, ambwatch)
 		}))
@@ -107,7 +114,7 @@ func healthCheckHandler(ctx context.Context, ambwatch *acp.AmbassadorWatcher) er
 	// without this.
 	//
 	// XXX In fact, should we set up another Listener for v6??
-	listener, err := net.Listen("tcp4", ":8877")
+	listener, err := net.Listen("tcp4", fmt.Sprintf(":%s", HealthCheckPort))
 	if err != nil {
 		return err
 	}

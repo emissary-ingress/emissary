@@ -116,11 +116,11 @@ func (w *AmbassadorWatcher) NoteSnapshotSent() {
 }
 
 // NoteSnapshotProcessed will note that a snapshot has been processed.
-func (w *AmbassadorWatcher) NoteSnapshotProcessed() {
+func (w *AmbassadorWatcher) NoteSnapshotProcessed(bootstrapped bool) {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
 
-	w.dw.NoteSnapshotProcessed()
+	w.dw.NoteSnapshotProcessed(bootstrapped)
 
 	// Is this is the very first time we've processed a snapshot?
 	if w.state == envoyNotStarted {

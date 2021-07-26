@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"sync"
 	"sync/atomic"
@@ -18,6 +19,17 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/watt"
 	"github.com/datawire/dlib/dlog"
 )
+
+func iamready(ctx context.Context) bool {
+	url := fmt.Sprintf("http://localhost:%s%s", HealthCheckPort, HealthCheckLivenessPath)
+	resp, err := http.Get(url)
+	if err != nil {
+		dlog.Errorf(ctx, "Error checking liveness endpoint: %+v", err)
+		return false
+	}
+	dlog.Infof(ctx, "Response code from liveness probe is %d", resp.StatusCode)
+	return resp.StatusCode == http.StatusOK
+}
 
 func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atomic.Value,
 	fastpathCh chan<- *ambex.FastpathSnapshot, clusterID string, version string) {
@@ -41,8 +53,8 @@ func watcher(ctx context.Context, ambwatch *acp.AmbassadorWatcher, encoded *atom
 	// **** SETUP DONE for the Kubernetes Watcher
 
 	notify := func(ctx context.Context, disposition SnapshotDisposition, _ []byte) {
-		if disposition == SnapshotReady {
-			notifyReconfigWebhooks(ctx, ambwatch)
+		if disposition == SnapshotReady || disposition == SnapshotEmpty {
+			notifyReconfigWebhooks(ctx, ambwatch, (disposition == SnapshotReady))
 		}
 	}
 
@@ -84,6 +96,8 @@ const (
 	SnapshotDrop
 	// Indicates that the snapshot is ready to be processed.
 	SnapshotReady
+
+	SnapshotEmpty
 )
 
 type FastpathProcessor func(context.Context, *ambex.FastpathSnapshot)
@@ -180,6 +194,20 @@ func watcherLoop(ctx context.Context, encoded *atomic.Value, k8sSrc K8sSource, q
 	// information. This is deliberately nil to begin with as we have nothing to send yet.
 	var out chan *SnapshotHolder
 	notifyCh := make(chan *SnapshotHolder)
+	for {
+		sn := &snapshot.Snapshot{
+			Kubernetes: &snapshot.KubernetesSnapshot{},
+			Consul:     &watt.ConsulSnapshot{},
+			Invalid:    []*kates.Unstructured{},
+			Deltas:     []*kates.Delta{},
+		}
+
+		snapshotJSON, _ := json.MarshalIndent(sn, "", "  ")
+		snapshots.notify(ctx, encoded, snapshotJSON, snapshotProcessor, SnapshotEmpty)
+		if iamready(ctx) {
+			break
+		}
+	}
 	go func() {
 		for {
 			select {
@@ -454,12 +482,22 @@ func (sh *SnapshotHolder) IstioUpdate(ctx context.Context, istio *istioCertWatch
 	return true
 }
 
-func (sh *SnapshotHolder) Notify(ctx context.Context, encoded *atomic.Value, consul *consul,
-	snapshotProcessor SnapshotProcessor) {
+func (sh *SnapshotHolder) notify(ctx context.Context, encoded *atomic.Value, snapshotJSON []byte, snapshotProcessor SnapshotProcessor, disposition SnapshotDisposition) {
 	dbg := debug.FromContext(ctx)
 
 	notifyWebhooksTimer := dbg.Timer("notifyWebhooks")
 
+	encoded.Store(snapshotJSON)
+
+	// Finally, use the reconfigure webhooks to let the rest of Ambassador
+	// know about the new configuration.
+	notifyWebhooksTimer.Time(func() {
+		snapshotProcessor(ctx, disposition, snapshotJSON)
+	})
+}
+
+func (sh *SnapshotHolder) Notify(ctx context.Context, encoded *atomic.Value, consul *consul,
+	snapshotProcessor SnapshotProcessor) {
 	// If the change is solely endpoints we don't bother making a snapshot.
 	var snapshotJSON []byte
 	var bootstrapped bool
@@ -504,14 +542,7 @@ func (sh *SnapshotHolder) Notify(ctx context.Context, encoded *atomic.Value, con
 	}
 
 	if bootstrapped {
-		// ...then stash this snapshot and fire off webhooks.
-		encoded.Store(snapshotJSON)
-
-		// Finally, use the reconfigure webhooks to let the rest of Ambassador
-		// know about the new configuration.
-		notifyWebhooksTimer.Time(func() {
-			snapshotProcessor(ctx, SnapshotReady, snapshotJSON)
-		})
+		sh.notify(ctx, encoded, snapshotJSON, snapshotProcessor, SnapshotReady)
 	} else {
 		snapshotProcessor(ctx, SnapshotIncomplete, snapshotJSON)
 		return

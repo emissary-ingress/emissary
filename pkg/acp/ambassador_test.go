@@ -72,7 +72,7 @@ func TestAmbassadorHappyPath(t *testing.T) {
 
 	// Mark the snapshot processed.
 	m.stepSec(10)
-	m.aw.NoteSnapshotProcessed()
+	m.aw.NoteSnapshotProcessed(true)
 	m.check(3, 30, true, false)
 
 	// Fetch readiness.
@@ -98,7 +98,7 @@ func TestAmbassadorUnrealisticallyHappy(t *testing.T) {
 	// try it. We expect to see alive and ready here.
 	m.stepSec(10)
 	m.aw.NoteSnapshotSent()
-	m.aw.NoteSnapshotProcessed()
+	m.aw.NoteSnapshotProcessed(true)
 	m.aw.FetchEnvoyReady(context.Background())
 	m.check(2, 20, true, true)
 

@@ -232,7 +232,7 @@ type SnapshotEntry struct {
 func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, snapJSON []byte) {
 	if disp == SnapshotReady {
 		if f.config.EnvoyConfig {
-			notifyReconfigWebhooksFunc(ctx, &noopNotable{}, false)
+			notifyReconfigWebhooksFunc(ctx, &noopNotable{}, false, true)
 			f.appendEnvoyConfig()
 		}
 	}

@@ -13,7 +13,8 @@ import (
 func TestNotifyWebhookUrlConnectionRefused(t *testing.T) {
 	ctx := context.Background()
 
-	assert.False(t, notifyWebhookUrl(ctx, "test", "http://localhost:5555"))
+	ok, _ := notifyWebhookUrl(ctx, "test", "http://localhost:5555")
+	assert.False(t, ok)
 }
 
 // Check that we panic if we do not get a properly formed http response of some kind such as an EOF.

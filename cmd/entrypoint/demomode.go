@@ -42,7 +42,7 @@ func bootDemoMode(ctx context.Context, group *dgroup.Group, ambwatch *acp.Ambass
 					// a snapshot, so that it'll actually take Ambassador to ready status.
 					ambwatch.NoteSnapshotSent()
 					time.Sleep(5 * time.Millisecond)
-					ambwatch.NoteSnapshotProcessed()
+					ambwatch.NoteSnapshotProcessed(true)
 					break
 				}
 			}
