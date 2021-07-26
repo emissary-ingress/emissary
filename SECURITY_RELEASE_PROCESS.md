@@ -21,7 +21,7 @@ we may change the membership of the EMST, or the communication mechanism.
 
 ## Private Disclosure Process
 
-The Envoy community asks that all suspected vulnerabilities be privately and responsibly disclosed
+The Emissary community asks that all suspected vulnerabilities be privately and responsibly disclosed
 via email to [secalert@datawire.io](mailto:secalert@datawire.io).
 
 ## Public Disclosure Processes
