@@ -88,7 +88,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		}
 	}
 
-	dlog.Infof(ctx, "Started Ambassador")
+	dlog.Infof(ctx, "Started Ambassador (version %s)", Version)
 
 	demoMode := false
 
