@@ -180,6 +180,9 @@
                 "per_try_timeout": {
                     "type": "string"
                 },
+                "timeout_ms": {
+                    "type": "integer"
+                },
                 "url": {
                     "type": "string"
                 }
