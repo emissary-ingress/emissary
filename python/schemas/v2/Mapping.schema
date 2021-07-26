@@ -85,7 +85,9 @@
             "properties": {
                 "path": { "type": "string" },
                 "url": { "type": "string" },
-                "ignored": { "type": "boolean" }
+                "ignored": { "type": "boolean" },
+                "timeout_ms": { "type": "integer" },
+                "display_name": { "type": "string" }
             },
             "additionalProperties": false
         },
