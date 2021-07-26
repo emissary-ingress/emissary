@@ -6,18 +6,18 @@ responsibly handle critical issues.
 
 This disclosure process draws heavily from that of the Envoy Proxy -- many thanks!
 
-## Emissary Security Team (EST)
+## Emissary Security Team (EMST)
 
 Security vulnerabilities should be handled quickly and sometimes privately. The primary goal of this
 process is to reduce the total time users are vulnerable to publicly known exploits.
 
-The Emissary Security Team (EST) is responsible for organizing the entire response including internal
+The Emissary Security Team (EMST) is responsible for organizing the entire response including internal
 communication and external disclosure but will need help from relevant developers to successfully
 run this process.
 
 The initial Emissary Security Team will consist of all [maintainers](MAINTAINERS.md), with communications
 initially handled via email to [secalert@datawire.io](mailto:secalert@datawire.io). In the future,
-we may change the membership of the EST, or the communication mechanism.
+we may change the membership of the EMST, or the communication mechanism.
 
 ## Private Disclosure Process
 
@@ -27,25 +27,25 @@ via email to [secalert@datawire.io](mailto:secalert@datawire.io).
 ## Public Disclosure Processes
 
 If you know of a publicly disclosed security vulnerability please IMMEDIATELY email
-[secalert@datawire.io](mailto:secalert@datawire.io) to inform the Emissary Security Team (EST)
+[secalert@datawire.io](mailto:secalert@datawire.io) to inform the Emissary Security Team (EMST)
 about the vulnerability so they may start the patch, release, and communication process.
 
-If possible the EST will ask the person making the public report if the issue can be handled via a
+If possible the EMST will ask the person making the public report if the issue can be handled via a
 private disclosure process (for example if the full exploit details have not yet been published). If
-the reporter denies the request for private disclosure, the EST will move swiftly with the fix and
+the reporter denies the request for private disclosure, the EMST will move swiftly with the fix and
 release process. In extreme cases GitHub can be asked to delete the issue but this generally isn't
 necessary and is unlikely to make a public disclosure less damaging.
 
 ## Patch, Release, and Public Communication
 
-For each vulnerability a member of the EST will volunteer to lead coordination with the "Fix Team"
-and is responsible for sending disclosure emails to the rest of the community. This lead will be
-referred to as the "Fix Lead."
+For each vulnerability a member of the Emissary Security Team (EMST) will volunteer to lead
+coordination with the "Fix Team" and is responsible for sending disclosure emails to the rest of
+the community. This lead will be referred to as the "Fix Lead."
 
-The role of Fix Lead should rotate round-robin across the EST.
+The role of Fix Lead should rotate round-robin across the EMST.
 
-Note that, at present, it is likely that the Fix Team and the EST are identical (all maintainers).
-The EST may decide to bring in additional contributors for added expertise depending on the area
+Note that, at present, it is likely that the Fix Team and the EMST are identical (all maintainers).
+The EMST may decide to bring in additional contributors for added expertise depending on the area
 of the code that contains the vulnerability.
 
 All of the timelines below are suggestions and assume a private disclosure. The Fix Lead drives the
