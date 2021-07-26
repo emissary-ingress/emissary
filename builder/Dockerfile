@@ -66,7 +66,7 @@ ENTRYPOINT [ "/bin/bash" ]
 
 FROM ${builderbase} as golang
 
-ARG version="i-forgot-to-set-version"
+ARG version="i-forgot-to-set-build-arg-version"
 
 WORKDIR /go
 
