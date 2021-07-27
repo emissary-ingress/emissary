@@ -75,7 +75,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary Ingress
 
-(no changes yet)
+- Feature: Support passing metadata to external authentication services.
 
 ## [2.0.0-ea] June 24, 2021
 [2.0.0-ea]: https://github.com/emissary-ingress/emissary/compare/v1.13.8...v2.0.0-ea
