@@ -78,7 +78,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   resolvers, but could make OOMkills more likely with large configurations. The default is `false`,
   meaning that the rate limiter is active.
 
-### Ambassador Edge Stack
+### Ambassador Edge Stack only
 
 - Bugfix: The `Mapping` resource can now specify `docs.timeout_ms` to set the timeout when the 
   Dev Portal is fetching API specifications.
