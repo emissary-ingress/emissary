@@ -46,7 +46,7 @@ auth_service: "{self.auth.path.fqdn}"
 timeout_ms: 5000
 proto: grpc
 initial_metadata:
-    abc: xyz
+  X-Init-Meta: init-meta
 """)
         yield self, self.format("""
 ---
@@ -106,7 +106,7 @@ auth_context_extensions:
         assert self.results[0].backend.request.headers["x-forwarded-proto"]== ["http"]
         assert "user-agent" in self.results[0].backend.request.headers
         assert "baz" in self.results[0].backend.request.headers
-        assert self.results[0].backend.metadata["abc"]== ["xyz"]
+        assert self.results[0].backend.metadata["x-init-meta"]== ["init-meta"]
         assert self.results[0].status == 401
         assert self.results[0].headers["Server"] == ["envoy"]
         assert self.results[0].headers['X-Grpc-Service-Protocol-Version'] == ['v2']
@@ -981,6 +981,8 @@ auth_service: "{self.auth.path.fqdn}"
 timeout_ms: 5000
 protocol_version: "v3"
 proto: grpc
+initial_metadata:
+  X-Init-Meta: init-meta
 """)
         yield self, self.format("""
 ---
@@ -1024,6 +1026,7 @@ service: {self.target.path.fqdn}
         assert self.results[0].status == 401
         assert self.results[0].headers["Server"] == ["envoy"]
         assert self.results[0].headers['X-Grpc-Service-Protocol-Version'] == ['v3']
+        assert self.results[0].backend.metadata["x-init-meta"]== ["init-meta"]
 
         # [1] Verifies that Location header is returned from Envoy.
         assert self.results[1].backend.name == self.auth.path.k8s
