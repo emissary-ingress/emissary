@@ -21,7 +21,7 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
-  "google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/metadata"
 )
 
 // GRPCAUTHV3 server object (all fields are required).
@@ -165,11 +165,10 @@ func (g *GRPCAUTHV3) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckRe
 	if rs.GetHTTPHeaderMap() != nil {
 		results["headers"] = *rs.GetHTTPHeaderMap()
 	}
-  md, ok := metadata.FromIncomingContext(ctx)
-  if ok {
-    results["metadata"] = md
-  }
-  results["animal"] = "turtle"
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		results["metadata"] = md
+	}
 	body, err := json.MarshalIndent(results, "", "  ")
 	if err != nil {
 		body = []byte(fmt.Sprintf("Error: %v", err))
