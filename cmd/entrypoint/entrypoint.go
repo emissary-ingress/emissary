@@ -92,8 +92,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	// For good measure, we also unconditionally return the empty
 	// string in GetAgentService().
 	os.Unsetenv("AGENT_SERVICE")
-
-	dlog.Infof(ctx, "Started Ambassador")
+	dlog.Infof(ctx, "Started Ambassador (Version %s)", Version)
 
 	demoMode := false
 

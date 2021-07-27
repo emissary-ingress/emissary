@@ -284,6 +284,7 @@ docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag
 	    time ${DBUILD} -f ${BUILDER_HOME}/Dockerfile . \
 	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	      --build-arg=version=$(BUILD_VERSION) \
 	      --target=ambassador \
 	      --iidfile=$@; \
 	    unset TIMEFORMAT; \
@@ -473,6 +474,14 @@ pytest: docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote
 	. $(OSS_HOME)/venv/bin/activate; \
 		$(OSS_HOME)/builder/builder.sh pytest-local
 .PHONY: pytest
+
+pytest-unit:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
+	@$(MAKE) setup-envoy
+	@$(MAKE) setup-diagd
+	. $(OSS_HOME)/venv/bin/activate; \
+		PYTEST_ARGS="$$PYTEST_ARGS python/tests/unit" $(OSS_HOME)/builder/builder.sh pytest-local-unit
+.PHONY: pytest-unit
 
 pytest-integration:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) integration tests$(END)\n"

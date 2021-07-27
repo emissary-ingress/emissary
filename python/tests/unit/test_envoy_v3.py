@@ -4,7 +4,7 @@ import sys
 import json
 import os
 from typing import Optional
-from utils import assert_valid_envoy_config
+from tests.utils import assert_valid_envoy_config
 
 import pytest
 

@@ -17,7 +17,7 @@ from ambassador import Config, IR, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
 
-from utils import default_listener_manifests
+from tests.utils import default_listener_manifests
 
 SERVICE_NAME = 'coolsvcname'
 
