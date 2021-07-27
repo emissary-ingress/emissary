@@ -16,6 +16,7 @@ import (
 	"google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
+  "google.golang.org/grpc/metadata"
 
 	// first party (protobuf)
 	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
@@ -164,6 +165,10 @@ func (g *GRPCAUTH) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResp
 	if rs.GetHTTPHeaderMap() != nil {
 		results["headers"] = *rs.GetHTTPHeaderMap()
 	}
+  md, ok := metadata.FromIncomingContext(ctx)
+  if ok {
+    results["metadata"] = md
+  }
 	body, err := json.MarshalIndent(results, "", "  ")
 	if err != nil {
 		body = []byte(fmt.Sprintf("Error: %v", err))

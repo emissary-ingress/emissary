@@ -1008,6 +1008,7 @@ class BackendResult:
 
         if isinstance(bres, dict):
             self.name = bres.get("backend")
+            self.metadata = bres.get("metadata")
             self.request = BackendRequest(bres["request"]) if "request" in bres else None
             self.response = BackendResponse(bres["response"]) if "response" in bres else None
 
@@ -1015,6 +1016,9 @@ class BackendResult:
         od = {
             'name': self.name
         }
+
+        if self.metadata:
+            od['metadata'] = self.metadata
 
         if self.request:
             od['request'] = dictify(self.request)
