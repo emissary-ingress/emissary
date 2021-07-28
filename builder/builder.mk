@@ -595,7 +595,7 @@ setup-venv:
 			pip install orjson==3.3.1; \
 			rm -f venv/lib/python3.8/site-packages/_manylinux.py; \
 		else \
-			pip install orjson==3.3.1; \
+			pip install orjson; \
 		fi; \
 		pip install -r $(OSS_HOME)/builder/requirements.txt; \
 		pip install -e $(OSS_HOME)/python; \
@@ -774,7 +774,8 @@ release/promote-oss/to-ea-latest:
 
 release/promote-oss/dev-to-rc:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@[[ ( "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ) || \
+	    ( "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$$ ) ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
 	@set -e; { \
 		if [ -n "$(IS_DIRTY)" ]; then \
 			echo "release/promote-oss/dev-to-rc: tree must be clean" >&2 ;\
@@ -788,10 +789,11 @@ release/promote-oss/dev-to-rc:
 		fi ;\
 		printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
 		veroverride=$(RELEASE_VERSION) ; \
+		tag=$$(echo $(RELEASE_VERSION) | tr '+' '-') ; \
 		$(MAKE) release/promote-oss/.main \
 			PROMOTE_FROM_VERSION="$$dev_version" \
 			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
-			PROMOTE_TO_VERSION=$(RELEASE_VERSION) \
+			PROMOTE_TO_VERSION="$$tag" \
 			PROMOTE_CHANNEL=test ; \
 		chartsuffix=$(RELEASE_VERSION) ; \
 		chartsuffix=$${chartsuffix#*-} ; \
