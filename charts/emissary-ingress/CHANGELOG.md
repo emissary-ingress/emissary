@@ -34,6 +34,11 @@ Emissary Ingress chart v7.0.0-ea provides early access to Emissary 2.0 features.
 - Change: removed helm 2 support
 - Feature: Add an option to create default HTTP and HTTPS listeners
 
+## v6.7.13
+
+- Update Ambassador API Gateway chart image to version v1.13.10: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+- Update Ambassador Edge Stack chart image to version v1.13.10: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
 ## v6.7.12
 
 - Update Ambassador API Gateway chart image to version v1.13.9: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
