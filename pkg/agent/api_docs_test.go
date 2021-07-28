@@ -114,7 +114,8 @@ func TestAPIDocsStore(t *testing.T) {
 							DisplayName: "docs-display-name",
 							Path:        "/docs-location",
 						},
-						Host: "mapping-hostname",
+						Host:     "mapping-host",
+						Hostname: "mapping-hostname",
 					},
 					ObjectMeta: kates.ObjectMeta{
 						Name:      "some-endpoint",
@@ -157,6 +158,7 @@ func TestAPIDocsStore(t *testing.T) {
 						Docs: &v3alpha1.DocsInfo{
 							URL: "https://external-url",
 						},
+						Hostname: "*",
 					},
 					ObjectMeta: kates.ObjectMeta{
 						Name:      "some-endpoint",

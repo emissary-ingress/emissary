@@ -124,7 +124,11 @@ func (a *APIDocsStore) scrape(ctx context.Context, mappings []*v3alpha1.Ambassad
 		}
 		mappingHeaders := buildMappingRequestHeaders(mapping.Spec.Headers)
 		mappingPrefix := mapping.Spec.Prefix
-		mappingHost := mapping.Spec.Host
+		// Lookup the Hostname first since it is more restrictive, otherwise fallback on the Host attribute
+		mappingHostname := mapping.Spec.Hostname
+		if mappingHostname == "" || mappingHostname == "*" {
+			mappingHostname = mapping.Spec.Host
+		}
 
 		dm := &docMappingRef{
 			Ref: &kates.ObjectReference{
@@ -147,7 +151,7 @@ func (a *APIDocsStore) scrape(ctx context.Context, mappings []*v3alpha1.Ambassad
 				continue
 			}
 			dlog.Debugf(ctx, "'url' specified: querying %s", parsedURL)
-			doc = a.getDoc(ctx, parsedURL, "", mappingHeaders, mappingHost, "", false)
+			doc = a.getDoc(ctx, parsedURL, "", mappingHeaders, mappingHostname, "", false)
 		} else {
 			mappingsDocsURL, err := extractQueryableDocsURL(mapping)
 			if err != nil {
@@ -155,7 +159,7 @@ func (a *APIDocsStore) scrape(ctx context.Context, mappings []*v3alpha1.Ambassad
 				continue
 			}
 			dlog.Debugf(ctx, "'url' specified: querying %s", mappingsDocsURL)
-			doc = a.getDoc(ctx, mappingsDocsURL, mappingHost, mappingHeaders, mappingHost, mappingPrefix, true)
+			doc = a.getDoc(ctx, mappingsDocsURL, mappingHostname, mappingHeaders, mappingHostname, mappingPrefix, true)
 		}
 
 		if doc != nil {
