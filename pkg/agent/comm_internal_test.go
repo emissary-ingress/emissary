@@ -78,6 +78,18 @@ func (m *MockClient) Retrieve(ctx context.Context, in *agent.Identity, opts ...g
 	return m, nil
 }
 
+type retrvsnapshotclient struct {
+	grpc.ClientStream
+}
+
+func (r *retrvsnapshotclient) Recv() (*agent.RawSnapshotChunk, error) {
+	return nil, nil
+}
+
+func (m *MockClient) RetrieveSnapshot(context.Context, *agent.Identity, ...grpc.CallOption) (agent.Director_RetrieveSnapshotClient, error) {
+	return &retrvsnapshotclient{}, nil
+}
+
 func TestComm(t *testing.T) {
 	llog := logrus.New()
 	llog.SetLevel(logrus.DebugLevel)
