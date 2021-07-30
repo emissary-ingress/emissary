@@ -37,7 +37,7 @@ jobs:
           - {legacy-mode: true, fast-reconfigure: false}
           - {legacy-mode: false, fast-reconfigure: true}
           - {legacy-mode: false, fast-reconfigure: false}
-        test: [integration, unit]
+        test: [envoy-ah, envoy-v2-ah, envoy-ip, envoy-v2-ip, envoy-qz, envoy-v2-qz, kat, integration, unit]
         isMasterOrRelease:
           # is this close enough to release branch being /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/ ?
           - ${{ contains(github.ref, 'master') || startsWith(github.ref, 'refs/heads/rel/v') }}
@@ -96,17 +96,20 @@ jobs:
             echo 'DEV_KUBECONFIG=~/.kube/kubeception.yaml' >> $GITHUB_ENV
           fi
       - name: make pytest-${{ matrix.test }} (legacy-mode:${{ matrix.pytest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.pytest-settings.fast-reconfigure }} )
-        timeout-minutes: 30
-        run: |
-          export DEV_KUBE_NO_PVC=yes
-          export KAT_REQ_LIMIT=900
-          export AMBASSADOR_LEGACY_MODE=${{ matrix.pytest-settings.legacy-mode }}
-          export AMBASSADOR_FAST_RECONFIGURE=${{ matrix.pytest-settings.fast-reconfigure }}
-          export TEST_XML_DIR=/tmp/test-logs/xml/
-          export DEV_KUBECONFIG=~/.kube/kubeception.yaml
-          export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
-          mkdir -p ${TEST_XML_DIR}
-          make pytest-${{ matrix.test }}
+        uses: nick-invision/retry@v2.4.0
+        with:
+          max_attempts: 3
+          timeout_minutes: 20
+          command: |
+            export DEV_KUBE_NO_PVC=yes
+            export KAT_REQ_LIMIT=900
+            export AMBASSADOR_LEGACY_MODE=${{ matrix.pytest-settings.legacy-mode }}
+            export AMBASSADOR_FAST_RECONFIGURE=${{ matrix.pytest-settings.fast-reconfigure }}
+            export TEST_XML_DIR=/tmp/test-logs/xml/
+            export DEV_KUBECONFIG=~/.kube/kubeception.yaml
+            export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
+            mkdir -p ${TEST_XML_DIR}
+            make pytest-${{ matrix.test }}
 
       # teardown
       - run: |

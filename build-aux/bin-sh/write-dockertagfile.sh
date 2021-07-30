@@ -30,11 +30,6 @@ else
 	# have been made.  We do the rm check late, so that that any
 	# image IDs pointed to by tag names that haven't changed are
 	# un-pinned by then, and we don't leak orphaned images.
-	if [[ -n "$CI" && -e "$outfile" ]]; then
-		echo "error: This should not happen in CI: ${outfile} should not change" >&2
-		diff -u "$outfile" "$tmpfile" >&2
-		exit 1
-	fi
 	set -e
 	IFS=''
 	{
