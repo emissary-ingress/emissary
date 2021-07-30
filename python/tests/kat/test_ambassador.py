@@ -32,10 +32,10 @@ elif letter_range in ["all","ip"]:
 	import t_loadbalancer
 	import t_logservice
 	import t_lua_scripts
-	import t_mappingtests
 	import t_max_req_header_kb
 	import t_no_ui
-	import t_optiontests
+    # t_plain include t_mappingtests and t_optiontests as imports
+    # these tests require each other and need to be executed as a set
 	import t_plain
 elif letter_range in ["all","qz"]:
 	import t_queryparameter_routing
