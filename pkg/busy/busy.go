@@ -82,7 +82,7 @@ func Main(binName, humanName string, version string, cmds map[string]Command) {
 		WithField("PID", os.Getpid()).
 		WithField("CMD", name)
 	ctx := dlog.WithLogger(context.Background(), logger)
-	dlog.SetFallbackLogger(logger.WithField("oops-i-did-not-pass-context-correctly", true))
+	dlog.SetFallbackLogger(logger.WithField("oops-i-did-not-pass-context-correctly", "THIS IS A BUG"))
 
 	if cmdOk {
 		if err := cmd.Run(ctx, version, os.Args[1:]...); err != nil {
