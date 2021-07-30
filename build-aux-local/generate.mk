@@ -388,7 +388,7 @@ $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac.yaml: $(OSS_HOME)/manifests/amb
 
 $(OSS_HOME)/manifests/ambassador/ambassador.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/ambassador-rbac/require.yaml $(OSS_HOME)/k8s-config/ambassador-rbac/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
 	@printf '  $(CYN)$@$(END)\n'
-	$(call generate_yaml_from_helm,ambassador-rbac,default,$@)
+	helm template ambassador -n default -f $(OSS_HOME)/k8s-config/ambassador-rbac/values.yaml $(OSS_HOME)/charts/ambassador > $@
 
 $(OSS_HOME)/docs/yaml/oss-migration.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/oss-migration/require.yaml $(OSS_HOME)/k8s-config/oss-migration/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
 	@printf '  $(CYN)$@$(END)\n'
