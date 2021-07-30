@@ -404,7 +404,7 @@ $(OSS_HOME)/docs/yaml/projects.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS
 
 $(OSS_HOME)/docs/yaml/aes.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/aes/require.yaml $(OSS_HOME)/k8s-config/aes/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
 	@printf '  $(CYN)$@$(END)\n'
-	$(call generate_yaml_from_helm,aes,ambassador,$@)
+	helm template ambassador -n ambassador -f $(OSS_HOME)/k8s-config/aes/values.yaml $(OSS_HOME)/charts/ambassador >$@
 
 $(OSS_HOME)/docs/yaml/ambassador-agent.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/ambassador-agent/require.yaml $(OSS_HOME)/k8s-config/ambassador-agent/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
 	@printf '  $(CYN)$@$(END)\n'
