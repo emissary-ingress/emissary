@@ -96,17 +96,21 @@ jobs:
             echo 'DEV_KUBECONFIG=~/.kube/kubeception.yaml' >> $GITHUB_ENV
           fi
       - name: make pytest-${{ matrix.test }} (legacy-mode:${{ matrix.pytest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.pytest-settings.fast-reconfigure }} )
-        timeout-minutes: 30
-        run: |
-          export DEV_KUBE_NO_PVC=yes
-          export KAT_REQ_LIMIT=900
-          export AMBASSADOR_LEGACY_MODE=${{ matrix.pytest-settings.legacy-mode }}
-          export AMBASSADOR_FAST_RECONFIGURE=${{ matrix.pytest-settings.fast-reconfigure }}
-          export TEST_XML_DIR=/tmp/test-logs/xml/
-          export DEV_KUBECONFIG=~/.kube/kubeception.yaml
-          export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
-          mkdir -p ${TEST_XML_DIR}
-          make pytest-${{ matrix.test }}
+        uses: nick-invision/retry@v2.4.0
+        with:
+          max_attempts: 3
+          timeout_minutes: 20
+          on_retry_command: unset CI
+          command: |
+            export DEV_KUBE_NO_PVC=yes
+            export KAT_REQ_LIMIT=900
+            export AMBASSADOR_LEGACY_MODE=${{ matrix.pytest-settings.legacy-mode }}
+            export AMBASSADOR_FAST_RECONFIGURE=${{ matrix.pytest-settings.fast-reconfigure }}
+            export TEST_XML_DIR=/tmp/test-logs/xml/
+            export DEV_KUBECONFIG=~/.kube/kubeception.yaml
+            export DEV_REGISTRY=${{ secrets.DEV_REGISTRY }}
+            mkdir -p ${TEST_XML_DIR}
+            make pytest-${{ matrix.test }}
 
       # teardown
       - run: |
