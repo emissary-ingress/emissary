@@ -16,7 +16,7 @@ func TestLoggingTextFormatterDefault(t *testing.T) {
 	if !assert.True(t, isTextFormatter) {
 		return
 	}
-	assert.Equal(t, "2006-01-02 15:04:05", fm.TimestampFormat)
+	assert.Equal(t, "2006-01-02 15:04:05.0000", fm.TimestampFormat)
 	assert.True(t, fm.FullTimestamp)
 }
 
@@ -28,5 +28,5 @@ func TestLoggingJsonFormatter(t *testing.T) {
 	if !assert.True(t, isJSONFormatter) {
 		return
 	}
-	assert.Equal(t, "2006-01-02 15:04:05", fm.TimestampFormat)
+	assert.Equal(t, "2006-01-02 15:04:05.0000", fm.TimestampFormat)
 }
