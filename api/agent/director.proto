@@ -7,10 +7,7 @@ syntax = "proto3";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
-import "envoy/service/metrics/v2/metrics_service.proto";
-
-import "udpa/annotations/status.proto";
-import "udpa/annotations/versioning.proto";
+import "prometheus/metrics.proto";
 
 package agent;
 
@@ -106,8 +103,6 @@ message Command {
 }
 
 message StreamMetricsMessage {
-  option (udpa.annotations.versioning).previous_message_type = "envoy.service.metrics.v2.StreamMetricsMessage";
-
   Identity identity = 1;
 
   // A list of metric entries
@@ -115,5 +110,5 @@ message StreamMetricsMessage {
 }
 
 message StreamMetricsResponse {
-  option (udpa.annotations.versioning).previous_message_type = "envoy.service.metrics.v2.StreamMetricsResponse";
+
 }
