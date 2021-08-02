@@ -883,7 +883,7 @@ release/promote-oss/to-hotfix:
 		chartsuffix=$$hotfix_tag ;\
 		chartsuffix=$${chartsuffix#*-} ;\
 		export AWS_ACCESS_KEY_ID=`keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials | grep 'aws_access_key_id' | sed 's/aws_access_key_id=//g'` ;\
-		export AWS_SECRET_ACCESS_KEY=`keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials  | grep 'aws_secret_access_key' ;\
+		export AWS_SECRET_ACCESS_KEY=`keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials  | grep 'aws_secret_access_key'` ;\
 		$(MAKE) \
 			CHART_VERSION_SUFFIX=-$$chartsuffix \
 			IMAGE_TAG=$${hotfix_tag} \
