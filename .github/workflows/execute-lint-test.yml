@@ -1,0 +1,33 @@
+name: lint-test
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - 'releng/**'
+      - 'charts/**'
+      - 'manifests/**'
+      - 'k8s-config/**'
+      - 'docs/**'
+      - '*.md$'
+  pull_request:
+    paths-ignore:
+      - 'releng/**'
+      - 'charts/**'
+      - 'manifests/**'
+      - 'k8s-config/**'
+      - 'docs/**'
+      - '*.md$'
+
+jobs:
+  execute-lint-test:
+    runs-on: ubuntu-latest
+    name: lint-test
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: make lint
+        run: |
+          make lint
+

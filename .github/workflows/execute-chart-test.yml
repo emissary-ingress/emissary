@@ -1,0 +1,33 @@
+name: chart-test
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - 'releng/**'
+      - 'charts/**'
+      - 'manifests/**'
+      - 'k8s-config/**'
+      - 'docs/**'
+      - '*.md$'
+  pull_request:
+    paths-ignore:
+      - 'releng/**'
+      - 'charts/**'
+      - 'manifests/**'
+      - 'k8s-config/**'
+      - 'docs/**'
+      - '*.md$'
+
+jobs:
+  execute-chart-test:
+    runs-on: ubuntu-latest
+    name: chart-test
+    steps:
+      - uses: actions/checkout@v2
+      - name: "Install/Setup K3d/K3s"
+        uses: nolar/setup-k3d-k3s@v1.0.7
+      - name: make test-chart
+        run: |
+          make test-chart
+

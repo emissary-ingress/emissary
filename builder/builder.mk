@@ -590,15 +590,15 @@ pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
 
 mypy-server-stop: sync
-	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal stop
+	test -t 1 && USE_TTY="-t"; docker exec -i ${USE_TTY} $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal stop
 .PHONY: mypy
 
 mypy-server: sync
-	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal start
+	 test -t 1 && USE_TTY="-t"; docker exec -i ${USE_TTY} $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal start
 .PHONY: mypy
 
 mypy: mypy-server
-	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal check
+	test -t 1 && USE_TTY="-t"; docker exec -i ${USE_TTY} $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal check
 .PHONY: mypy
 
 GOTEST_PKGS = github.com/datawire/ambassador/v2/...
