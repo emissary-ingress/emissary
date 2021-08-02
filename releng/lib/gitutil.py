@@ -58,13 +58,20 @@ def git_add(filename: str) -> None:
     run(['git', 'add', '--', filename])
 
 
-def git_check_clean(allow_staged: bool = False) -> None:
+def git_check_clean(allow_staged: bool = False, allow_untracked: bool = False) -> None:
     """
     Use `git status --porcelain` to check if the working tree is dirty.
     If allow_staged is True, allow staged files, but no unstaged changes.
+    If allow_untracked is True, allow untracked files.
     """
 
-    out = run_capture(['git', 'status', '--porcelain'])
+    cmdvec = [ 'git', 'status', '--porcelain' ]
+
+    if allow_untracked:
+        cmdvec += [ "--untracked-files=no" ]
+
+    out = run_capture(cmdvec)
+
     if out:
         # Can we allow staged changes?
         if not allow_staged:
