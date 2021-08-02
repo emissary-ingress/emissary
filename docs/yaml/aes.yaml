@@ -532,6 +532,45 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
+  name: ambassador-agent-deployments
+  labels:
+    rbac.getambassador.io/role-group: ambassador-agent
+    product: aes
+rules:
+- apiGroups: [apps, extensions]
+  resources: [deployments]
+  verbs: [get, list, watch]
+---
+# Source: ambassador/templates/ambassador-agent.yaml
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-agent-endpoints
+  labels:
+    rbac.getambassador.io/role-group: ambassador-agent
+    product: aes
+rules:
+- apiGroups: ['']
+  resources: [endpoints]
+  verbs: [get, list, watch]
+---
+# Source: ambassador/templates/ambassador-agent.yaml
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-agent-configmaps
+  labels:
+    rbac.getambassador.io/role-group: ambassador-agent
+    product: aes
+rules:
+- apiGroups: ['']
+  resources: [configmaps]
+  verbs: [get, list, watch]
+---
+# Source: ambassador/templates/ambassador-agent.yaml
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
   name: ambassador-agent-rollouts
   labels:
     rbac.getambassador.io/role-group: ambassador-agent
