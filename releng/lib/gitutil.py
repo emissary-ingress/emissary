@@ -1,8 +1,10 @@
-from .uiutil import run
-from .uiutil import run_txtcapture as run_capture
+from typing import Optional, Union
+
 import http.client
 import json
 
+from .uiutil import run
+from .uiutil import run_txtcapture as run_capture
 
 def has_open_pr(gh_repo: str, base: str, branchname: str) -> bool:
     conn = http.client.HTTPSConnection("api.github.com")
