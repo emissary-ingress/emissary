@@ -862,10 +862,10 @@ release/promote-oss/pr-to-passed-ci:
 
 release/promote-oss/to-hotfix:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@set -e; { \
-		docker login -u `keybase fs read /keybase/team/datawireio/secrets/dockerhub.webui.d6eautomaton.username` \
-					 -p `keybase fs read /keybase/team/datawireio/secrets/dockerhub.webui.d6eautomaton.password` ;\
-		hotfix_tag=`git describe --tags --exact --match '*-hf*' | sed 's/^v//g'` ;\
+	@set -ex; { \
+		docker login -u $$(keybase fs read /keybase/team/datawireio/secrets/dockerhub.webui.d6eautomaton.username) \
+					 -p $$(keybase fs read /keybase/team/datawireio/secrets/dockerhub.webui.d6eautomaton.password) ;\
+		hotfix_tag=$$(git describe --tags --exact --match '*-hf*' | sed 's/^v//g') ;\
 		[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-hf\.\[0-9]+\+[0-9]+$$ ]] || (printf '$(RED)ERROR: tag %s does not look like a hotfix tag\n' "$$hotfix_tag"; exit 1) ;\
 		commit=$$(git rev-parse HEAD) ;\
 		$(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key passed-pr ;\
@@ -882,8 +882,8 @@ release/promote-oss/to-hotfix:
 			PROMOTE_CHANNEL=hotfix \
 		chartsuffix=$$hotfix_tag ;\
 		chartsuffix=$${chartsuffix#*-} ;\
-		export AWS_ACCESS_KEY_ID=`keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials | grep 'aws_access_key_id' | sed 's/aws_access_key_id=//g'` ;\
-		export AWS_SECRET_ACCESS_KEY=`keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials  | grep 'aws_secret_access_key'` ;\
+		export AWS_ACCESS_KEY_ID=$$(keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials | grep 'aws_access_key_id' | sed 's/aws_access_key_id=//g') ;\
+		export AWS_SECRET_ACCESS_KEY=$$(keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials  | grep 'aws_secret_access_key') ;\
 		$(MAKE) \
 			CHART_VERSION_SUFFIX=-$$chartsuffix \
 			IMAGE_TAG=$${hotfix_tag} \
