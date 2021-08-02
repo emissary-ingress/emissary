@@ -4,12 +4,15 @@ cut an RC from; that you're in the right repo, that you're on the
 right branch, that all of the subtrees are up-to-date...
 """
 
-import os.path
-from os import getenv
+from typing import Generator
+
 import sys
 import time
+
+import os.path
+
+from os import getenv
 from contextlib import contextmanager
-from typing import Generator
 
 from lib import assert_eq, git_check_clean, vX, vY, re_ga, re_ea
 from lib.uiutil import Checker, CheckResult, run
