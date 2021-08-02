@@ -92,7 +92,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
                     "--base", orig_branch,
                     "--title", f"[v{next_ver}] Prep work for next scheduled release",
                     "--body", f"Updates for next version {next_ver}",
-                    "--reviewer", "kflynn,rhs,esmet,acookin"])
+                    "--reviewer", "emissary-ingress/emissary-maintainers"])
 
     if checker.ok:
         print(f'Update complete. Merge PR back to target branch ASAP')
