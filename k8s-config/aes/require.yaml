@@ -59,6 +59,12 @@ resources:
   - kind: ClusterRole
     name: ambassador-agent-pods
   - kind: ClusterRole
+    name: ambassador-agent-deployments
+  - kind: ClusterRole
+    name: ambassador-agent-endpoints
+  - kind: ClusterRole
+    name: ambassador-agent-configmaps
+  - kind: ClusterRole
     name: ambassador-agent-rollouts
   - kind: ClusterRole
     name: ambassador-agent-applications
