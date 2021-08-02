@@ -114,6 +114,8 @@ class V2Bootstrap(dict):
         #     assert ratelimit.cluster
         #     clusters.append(V2Cluster(config, ratelimit.cluster))
 
+        stats_sinks = []
+
         if config.ir.statsd['enabled']:
             if config.ir.statsd['dogstatsd']:
                 name = 'envoy.stat_sinks.dog_statsd'
@@ -129,28 +131,90 @@ class V2Bootstrap(dict):
                 name = 'envoy.stats_sinks.statsd'
                 typename = 'type.googleapis.com/envoy.config.metrics.v2.StatsdSink'
 
-            self['stats_sinks'] = [
-                {
-                    'name': name,
-                    'typed_config': {
-                        '@type': typename,
-                        'address': {
-                            'socket_address': {
-                                'protocol': 'UDP',
-                                'address': config.ir.statsd['ip'],
-                                'port_value': 8125
-                            }
+            stats_sinks.append({
+                'name': name,
+                'typed_config': {
+                    '@type': typename,
+                    'address': {
+                        'socket_address': {
+                            'protocol': 'UDP',
+                            'address': config.ir.statsd['ip'],
+                            'port_value': 8125
                         }
                     }
                 }
-            ]
+            })
 
             self['stats_flush_interval'] = {
                 'seconds': config.ir.statsd['interval']
             }
 
+        grpcSink = os.environ.get("AMBASSADOR_GRPC_METRICS_SINK")
+        if grpcSink:
+            try:
+                host, port = split_host_port(grpcSink)
+                valid = True
+            except ValueError as ex:
+                config.ir.logger.error("AMBASSADOR_GRPC_METRICS_SINK value %s is invalid: %s" % (grpcSink, ex))
+                valid = False
+
+            if valid:
+                stats_sinks.append({
+                    'name': "envoy.metrics_service",
+                    'typed_config': {
+                        '@type': 'type.googleapis.com/envoy.config.metrics.v2.MetricsServiceConfig',
+                        'grpc_service': {
+                            'envoy_grpc': {
+                                'cluster_name': 'envoy_metrics_service'
+                            }
+                        }
+                    }
+                })
+
+                clusters.append({
+                    "name": "envoy_metrics_service",
+                    "type": "strict_dns",
+                    "connect_timeout": "1s",
+                    "http2_protocol_options": {},
+                    "lb_policy": "ROUND_ROBIN",
+                    "load_assignment": {
+                        "cluster_name": "envoy_metrics_service",
+                        "endpoints": [
+                            {
+                                "lb_endpoints": [
+                                    {
+                                        "endpoint": {
+                                            "address": {
+                                                "socket_address": {
+                                                    "address": host,
+                                                    "port_value": port,
+                                                    "protocol": "TCP"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                })
+
+        if stats_sinks:
+            self['stats_sinks'] = stats_sinks
         self['static_resources']['clusters'] = clusters
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:
         config.bootstrap = V2Bootstrap(config)
+
+def split_host_port(value):
+    parts = value.split(":")
+    if len(parts) == 1:
+        host = parts[0]
+        port = 80
+    elif len(parts) == 2:
+        host = parts[0]
+        port = int(parts[1])
+    else:
+        raise ValueError("too many colons")
+    return host, port
