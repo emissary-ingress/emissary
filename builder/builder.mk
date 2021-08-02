@@ -735,7 +735,7 @@ release/promote-oss/.main:
 	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET PROMOTE_TO_VERSION" ; exit 1)
 	@set -e; { \
 		case "$(PROMOTE_CHANNEL)" in \
-			""|wip|early|test) true ;; \
+			""|wip|early|test|hotfix) true ;; \
 			*) echo "Unknown PROMOTE_CHANNEL $(PROMOTE_CHANNEL)" >&2 ; exit 1;; \
 		esac ; \
 		printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN) (channel=$(BLU)%s$(GRN))$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(PROMOTE_TO_VERSION)' '$(PROMOTE_CHANNEL)' ; \
@@ -844,6 +844,44 @@ release/promote-oss/dev-to-passed-ci:
 		echo "$$dev_version" | aws s3 cp - s3://datawire-static-files/passed-builds/$$commit ;\
 	}
 .PHONY: release/promote-oss/dev-to-passed-ci
+
+release/promote-oss/to-hotfix:
+	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
+	@set -e; { \
+	  docker login -u `keybase fs read /keybase/team/datawireio/secrets/dockerhub.webui.d6eautomaton.username` \
+		-p `keybase fs read /keybase/team/datawireio/secrets/dockerhub.webui.d6eautomaton.password` ; \
+	  hotfix_tag=`git describe --tags --exact --match '*-hf*' | sed 's/^v//g'` ; \
+	  [[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-hf\.\[0-9]+\+[0-9]+$$ ]] || (printf '$(RED)ERROR: tag %s does not look like a hotfix tag\n' "$$hotfix_tag"; exit 1) ;\
+	  commit=$$(git rev-parse HEAD) ;\
+	  $(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key passed-builds ; \
+	  dev_version=$$(aws s3 cp s3://datawire-static-files/passed-builds/$$commit -) ;\
+	  if [ -z "$$dev_version" ]; then \
+		  printf "$(RED)==> found no passed dev version for $$commit in S3...$(END)\n" ;\
+		  exit 1 ;\
+      fi ;\
+ 	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
+	  $(MAKE) release/promote-oss/.main \
+	    PROMOTE_FROM_VERSION="$$dev_version" \
+		PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
+	    PROMOTE_TO_VERSION="$$hotfix_tag" \
+	    PROMOTE_CHANNEL=hotfix \
+		chartsuffix=$$hotfix_tag ; \
+		chartsuffix=$${chartsuffix#*-} ; \
+		export AWS_ACCESS_KEY_ID=`keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials | grep 'aws_access_key_id' | sed 's/aws_access_key_id=//g'`; \
+		export AWS_SECRET_ACCESS_KEY=`keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials  | grep 'aws_secret_access_key' ; \
+		$(MAKE) \
+			CHART_VERSION_SUFFIX=-$$chartsuffix \
+			IMAGE_TAG=$${hotfix_tag} \
+			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
+			chart-push-ci ; \
+		$(MAKE) update-yaml --always-make; \
+		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} push-manifests  ; \
+		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} publish-docs-yaml ; \
+		$(MAKE) clean-manifests ; \
+	    ; \
+		docker logout ; \
+	}
+.PHONY: release/promote-oss/to-hotfix
 
 # To be run from a checkout at the tag you are promoting _from_.
 # This is normally run from CI by creating the GA tag.
