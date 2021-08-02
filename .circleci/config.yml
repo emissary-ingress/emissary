@@ -117,6 +117,14 @@ commands:
         name: "promote build to passed"
         command: |
           make release/promote-oss/dev-to-passed-ci
+  "job-promote-pr-ci-build":
+    steps:
+    - amb-linux-install
+    - amb-attach-workspace
+    - run:
+        name: "promote pr build to passed"
+        command: |
+          make release/promote-oss/pr-to-passed-ci
   "job-images":
     parameters:
       "release":
@@ -903,6 +911,10 @@ jobs:
     executor: oss-linux
     steps:
     - job-promote-passed-ci-build
+  oss-promote-pr-to-passed:
+    executor: oss-linux
+    steps:
+    - job-promote-pr-ci-build
   oss-promote-to-ga:
     executor: oss-linux
     steps:
@@ -1090,6 +1102,25 @@ workflows:
             - false
             legacy-mode:
             - true
+        filters:
+          branches:
+            only:
+            - master
+            - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
+    - oss-promote-pr-to-passed:
+        requires:
+        - oss-dev-pytest
+        - oss-dev-pytest-envoy
+        - oss-dev-pytest-envoy-fastreconfigure
+        - oss-dev-pytest-envoy-v3
+        - oss-dev-pytest-envoy-v3-fastreconfigure
+        - oss-dev-pytest-fastreconfigure
+        - oss-dev-chart
+        - oss-dev-gotest-fastreconfigure
+        - oss-dev-gotest
+        - oss-dev-generate
+        - oss-dev-images
+        name: "oss-dev-promote-pr-to-passed"
         filters:
           branches:
             only:

@@ -845,6 +845,21 @@ release/promote-oss/dev-to-passed-ci:
 	}
 .PHONY: release/promote-oss/dev-to-passed-ci
 
+# should run on every PR once the builds have passed
+# this is less strong than "release/promote-oss/dev-to-passed-ci"
+release/promote-oss/pr-to-passed-ci:
+	@set -e; { \
+		commit=$$(git rev-parse HEAD) ;\
+		dev_version=$$(aws s3 cp s3://datawire-static-files/dev-builds/$$commit -) ;\
+		if [ -z "$$dev_version" ]; then \
+			printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
+			exit 1 ;\
+		fi ;\
+		printf "$(CYN)==> $(GRN)Promoting $(BLU)$$commit$(GRN) => $(BLU)$$dev_version$(GRN) in S3...$(END)\n" ;\
+		echo "$$dev_version" | aws s3 cp - s3://datawire-static-files/passed-pr/$$commit ;\
+	}
+.PHONY: release/promote-oss/dev-to-passed-ci
+
 release/promote-oss/to-hotfix:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
 	@set -e; { \
@@ -853,8 +868,8 @@ release/promote-oss/to-hotfix:
 	  hotfix_tag=`git describe --tags --exact --match '*-hf*' | sed 's/^v//g'` ; \
 	  [[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-hf\.\[0-9]+\+[0-9]+$$ ]] || (printf '$(RED)ERROR: tag %s does not look like a hotfix tag\n' "$$hotfix_tag"; exit 1) ;\
 	  commit=$$(git rev-parse HEAD) ;\
-	  $(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key passed-builds ; \
-	  dev_version=$$(aws s3 cp s3://datawire-static-files/passed-builds/$$commit -) ;\
+	  $(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key passed-pr ; \
+	  dev_version=$$(aws s3 cp s3://datawire-static-files/passed-pr/$$commit -) ;\
 	  if [ -z "$$dev_version" ]; then \
 		  printf "$(RED)==> found no passed dev version for $$commit in S3...$(END)\n" ;\
 		  exit 1 ;\
