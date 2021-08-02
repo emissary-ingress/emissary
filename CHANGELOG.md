@@ -68,7 +68,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary Ingress and Ambassador Edge Stack
 
-(no changes yet)
+- Change: Logs now include subsecond time resolutions, rather than just seconds.
 
 ## [1.13.10] July 28, 2021
 [1.13.10]: https://github.com/emissary-ingress/emissary/compare/v1.13.9...v1.13.10
