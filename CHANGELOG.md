@@ -63,6 +63,13 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [1.13.11] (TBD)
+[1.13.11]: https://github.com/emissary-ingress/emissary/compare/v1.13.10...v1.13.11
+
+### Emissary Ingress and Ambassador Edge Stack
+
+(no changes yet)
+
 ## [1.13.10] July 28, 2021
 [1.13.10]: https://github.com/emissary-ingress/emissary/compare/v1.13.9...v1.13.10
 
