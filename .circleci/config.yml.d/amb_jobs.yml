@@ -129,6 +129,15 @@ commands:
           command: |
             make release/promote-oss/dev-to-passed-ci
 
+  "job-promote-pr-ci-build":
+    steps:
+      - amb-linux-install
+      - amb-attach-workspace
+      - run:
+          name: "promote pr build to passed"
+          command: |
+            make release/promote-oss/pr-to-passed-ci
+
   "job-images":
     parameters:
       "release":
