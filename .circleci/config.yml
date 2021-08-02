@@ -1121,11 +1121,6 @@ workflows:
         - oss-dev-generate
         - oss-dev-images
         name: "oss-dev-promote-pr-to-passed"
-        filters:
-          branches:
-            only:
-            - master
-            - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
     - oss-promote-dev-to-passed:
         requires:
         - oss-dev-pytest

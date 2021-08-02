@@ -858,7 +858,7 @@ release/promote-oss/pr-to-passed-ci:
 		printf "$(CYN)==> $(GRN)Promoting $(BLU)$$commit$(GRN) => $(BLU)$$dev_version$(GRN) in S3...$(END)\n" ;\
 		echo "$$dev_version" | aws s3 cp - s3://datawire-static-files/passed-pr/$$commit ;\
 	}
-.PHONY: release/promote-oss/dev-to-passed-ci
+.PHONY: release/promote-oss/pr-to-passed-ci
 
 release/promote-oss/to-hotfix:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)

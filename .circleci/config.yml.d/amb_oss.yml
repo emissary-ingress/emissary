@@ -339,7 +339,6 @@ workflows:
             - oss-dev-generate
             - oss-dev-images
           name: "oss-dev-promote-pr-to-passed"
-          <<: *filter-master-release-branches-only
       - "oss-promote-dev-to-passed":
 
           requires:
