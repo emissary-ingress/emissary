@@ -893,7 +893,6 @@ release/promote-oss/to-hotfix:
 		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} push-manifests ;\
 		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} publish-docs-yaml ;\
 		$(MAKE) clean-manifests ;\
-	    ;\
 		docker logout ;\
 	}
 .PHONY: release/promote-oss/to-hotfix
