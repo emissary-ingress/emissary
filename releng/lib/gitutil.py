@@ -1,8 +1,8 @@
-from .uiutil import run, check_command
-from .uiutil import run_txtcapture as run_capture
 import http.client
 import json
 
+from .uiutil import run, check_command
+from .uiutil import run_txtcapture as run_capture
 
 def branch_exists(branch_name: str) -> bool:
     return check_command(["git", "rev-parse", "--verify", branch_name])
