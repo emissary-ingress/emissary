@@ -882,7 +882,7 @@ release/promote-oss/to-hotfix:
 		$(MAKE) release/promote-oss/.main \
 			PROMOTE_FROM_VERSION="$$dev_version" \
 			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
-			PROMOTE_TO_VERSION="$$hotfix_tag" \
+			PROMOTE_TO_VERSION=$$(echo "$$hotfix_tag" | tr '+' '-') \
 			PROMOTE_CHANNEL=hotfix ;\
 		chartsuffix=$$hotfix_tag ;\
 		chartsuffix=$${chartsuffix#*-} ;\
