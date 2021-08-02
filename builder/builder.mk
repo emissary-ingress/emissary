@@ -879,7 +879,7 @@ release/promote-oss/to-hotfix:
 			PROMOTE_FROM_VERSION="$$dev_version" \
 			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
 			PROMOTE_TO_VERSION="$$hotfix_tag" \
-			PROMOTE_CHANNEL=hotfix \
+			PROMOTE_CHANNEL=hotfix ;\
 		chartsuffix=$$hotfix_tag ;\
 		chartsuffix=$${chartsuffix#*-} ;\
 		export AWS_ACCESS_KEY_ID=$$(keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials | grep 'aws_access_key_id' | sed 's/aws_access_key_id=//g') ;\
