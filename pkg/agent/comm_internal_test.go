@@ -90,6 +90,10 @@ func (m *MockClient) RetrieveSnapshot(context.Context, *agent.Identity, ...grpc.
 	return &retrvsnapshotclient{}, nil
 }
 
+func (m *MockClient) StreamMetrics(ctx context.Context, opts ...grpc.CallOption) (agent.Director_StreamMetricsClient, error) {
+	panic("implement me")
+}
+
 func TestComm(t *testing.T) {
 	llog := logrus.New()
 	llog.SetLevel(logrus.DebugLevel)

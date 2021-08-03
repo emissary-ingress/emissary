@@ -48,6 +48,12 @@ func run(cmd *cobra.Command, args []string) error {
 		snapshotURL = fmt.Sprintf(DefaultSnapshotURLFmt, entrypoint.ExternalSnapshotPort)
 	}
 
+	metricsServer := agent.NewMetricsServer(ambAgent.MetricsRelayHandler)
+	go func() {
+		if err := metricsServer.StartServer(ctx); err != nil {
+			dlog.Error(ctx, err)
+		}
+	}()
 	ambAgent.Watch(ctx, snapshotURL)
 
 	return nil

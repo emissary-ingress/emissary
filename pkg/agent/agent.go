@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	envoyMetrics "github.com/datawire/ambassador/v2/pkg/api/envoy/service/metrics/v2"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -30,6 +31,7 @@ type Comm interface {
 	Close() error
 	Report(context.Context, *agent.Snapshot, string) error
 	Directives() <-chan *agent.Directive
+	StreamMetrics(context.Context, *agent.StreamMetricsMessage, string) error
 }
 
 type atomicBool struct {
@@ -596,6 +598,24 @@ func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Sna
 	a.reportToSend = report
 
 	return nil
+}
+
+func (a *Agent) MetricsRelayHandler(in *envoyMetrics.StreamMetricsMessage) {
+	ctx := context.Background()
+	dlog.Debugf(ctx, "received %d metrics", len(in.GetEnvoyMetrics()))
+	if a.comm != nil && !a.reportingStopped {
+		a.ambassadorAPIKeyMutex.Lock()
+		apikey := a.ambassadorAPIKey
+		a.ambassadorAPIKeyMutex.Unlock()
+		outStream := &agent.StreamMetricsMessage{
+			Identity:     a.agentID,
+			EnvoyMetrics: in.EnvoyMetrics,
+		}
+		dlog.Debugf(ctx, "relaying %d metrics", len(outStream.GetEnvoyMetrics()))
+		if err := a.comm.StreamMetrics(ctx, outStream, apikey); err != nil {
+			dlog.Errorf(ctx, "Error streaming metrics: %+v", err)
+		}
+	}
 }
 
 // ClearComm ends the current connection to the Director, if it exists, thereby
