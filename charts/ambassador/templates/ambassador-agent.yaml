@@ -330,6 +330,11 @@ metadata:
     {{- end }}
 spec:
   replicas: 1
+  {{ if .Values.progressDeadlines }}
+  {{ if hasKey .Values.progressDeadlines "agent" }}
+  progressDeadlineSeconds: {{ .Values.progressDeadlines.agent }}
+  {{- end }}
+  {{- end }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-agent

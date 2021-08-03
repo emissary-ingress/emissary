@@ -43,6 +43,11 @@ spec:
       app.kubernetes.io/name: {{ include "ambassador.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
       {{- end }}
+  {{ if and .Values.progressDeadlines (not .Values.daemonSet) }}
+  {{ if hasKey .Values.progressDeadlines "ambassador" }}
+  progressDeadlineSeconds: {{ .Values.progressDeadlines.ambassador }}
+  {{- end }}
+  {{- end }}
   {{- if .Values.daemonSet }}
   updateStrategy:
   {{- else }}
