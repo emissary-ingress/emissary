@@ -219,6 +219,8 @@ spec:
         - name: admin
           containerPort: 8877
         env:
+        - name: AMBASSADOR_GRPC_METRICS_SINK
+          value: emissary-ingress:8123
         - name: HOST_IP
           valueFrom:
             fieldRef:
@@ -440,6 +442,9 @@ spec:
         image: docker.io/datawire/emissary:2.0.0-ea
         imagePullPolicy: IfNotPresent
         command: [agent]
+        ports:
+        - containerPort: 8123
+          name: grpc
         env:
         - name: AGENT_NAMESPACE
           valueFrom:
