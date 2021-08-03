@@ -292,9 +292,9 @@ func (in *AuthServiceSpec) DeepCopyInto(out *AuthServiceSpec) {
 	}
 	if in.InitialMetadata != nil {
 		in, out := &in.InitialMetadata, &out.InitialMetadata
-		*out = make(map[string]BoolOrString, len(*in))
+		*out = make(map[string]string, len(*in))
 		for key, val := range *in {
-			(*out)[key] = *val.DeepCopy()
+			(*out)[key] = val
 		}
 	}
 	if in.AllowRequestBody != nil {

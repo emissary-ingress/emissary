@@ -51,7 +51,7 @@ type AuthServiceSpec struct {
 	AllowedRequestHeaders       []string                  `json:"allowed_request_headers,omitempty"`
 	AllowedAuthorizationHeaders []string                  `json:"allowed_authorization_headers,omitempty"`
 	AddAuthHeaders              map[string]BoolOrString   `json:"add_auth_headers,omitempty"`
-	InitialMetadata             map[string]BoolOrString   `json:"initial_metadata,omitempty"`
+	InitialMetadata             map[string]string         `json:"initial_metadata,omitempty"`
 	AllowRequestBody            *bool                     `json:"allow_request_body,omitempty"`
 	AddLinkerdHeaders           *bool                     `json:"add_linkerd_headers,omitempty"`
 	FailureModeAllow            *bool                     `json:"failure_mode_allow,omitempty"`

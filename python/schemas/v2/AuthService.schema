@@ -42,7 +42,7 @@
         },
         "initial_metadata": {
             "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
+            "additionalProperties": { "type": "string" }
         },
         "allow_request_body": { "type": "boolean" },
         "add_linkerd_headers": { "type": "boolean" },

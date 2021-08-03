@@ -77,10 +77,7 @@ spec:
               type: object
             initial_metadata:
               additionalProperties:
-                description: BoolOrString is a type that can hold a Boolean or a string.
-                oneOf:
-                - type: string
-                - type: boolean
+                type: string
               type: object
             path_prefix:
               type: string
