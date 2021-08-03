@@ -16,14 +16,15 @@ type metricsServer struct {
 	handler streamHandler
 }
 
-// TODO(alexgervais): document
+// NewMetricsServer is the main metricsServer constructor.
 func NewMetricsServer(handler streamHandler) *metricsServer {
 	return &metricsServer{
 		handler: handler,
 	}
 }
 
-// TODO(alexgervais): document
+// StartServer will start the metrics gRPC server, listening on :8123
+// It is a blocking call until grpcServer.Serve returns.
 func (s *metricsServer) StartServer(ctx context.Context) error {
 	grpcServer := grpc.NewServer()
 	envoyMetrics.RegisterMetricsServiceServer(grpcServer, s)
@@ -37,7 +38,8 @@ func (s *metricsServer) StartServer(ctx context.Context) error {
 	return grpcServer.Serve(listener)
 }
 
-// TODO(alexgervais): document
+// StreamMetrics implements the StreamMetrics rpc call by calling the stream handler on each
+// message received.
 func (s *metricsServer) StreamMetrics(stream envoyMetrics.MetricsService_StreamMetricsServer) error {
 	ctx := stream.Context()
 	dlog.Debug(ctx, "started stream")
