@@ -96,6 +96,9 @@ spec:
   selector:
     matchLabels:
       product: aes
+
+
+  progressDeadlineSeconds: 600
   strategy:
     type: RollingUpdate
   template:
