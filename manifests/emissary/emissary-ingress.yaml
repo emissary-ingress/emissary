@@ -416,6 +416,24 @@ subjects:
   namespace: emissary
 ---
 # Source: emissary-ingress/templates/ambassador-agent.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: emissary-ingress-agent
+  namespace: emissary
+  labels:
+    product: aes
+spec:
+  ports:
+  - port: 8123
+    targetPort: grpc
+    protocol: TCP
+    name: grpc
+  selector:
+    app.kubernetes.io/name: emissary-ingress-agent
+    app.kubernetes.io/instance: emissary-ingress
+---
+# Source: emissary-ingress/templates/ambassador-agent.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:

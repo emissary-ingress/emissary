@@ -44,6 +44,9 @@ resources:
   - kind: RoleBinding
     name: emissary-ingress-agent-config
     namespace: emissary
+  - kind: Service
+    name: emissary-ingress-agent
+    namespace: emissary
   - kind: Deployment
     name: emissary-ingress-agent
     namespace: emissary

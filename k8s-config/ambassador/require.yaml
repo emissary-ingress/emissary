@@ -44,6 +44,9 @@ resources:
   - kind: RoleBinding
     name: ambassador-agent-config
     namespace: default
+  - kind: Service
+    name: ambassador-agent
+    namespace: default
   - kind: Deployment
     name: ambassador-agent
     namespace: default
