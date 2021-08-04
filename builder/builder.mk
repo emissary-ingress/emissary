@@ -595,7 +595,7 @@ setup-venv:
 			pip install orjson==3.3.1; \
 			rm -f venv/lib/python3.8/site-packages/_manylinux.py; \
 		else \
-			pip install orjson; \
+			pip install orjson==3.6.0; \
 		fi; \
 		pip install -r $(OSS_HOME)/builder/requirements.txt; \
 		pip install -e $(OSS_HOME)/python; \
@@ -914,7 +914,7 @@ release/promote-oss/to-ga:
 		  printf "$(RED)==> found no passed dev version for $$commit in S3...$(END)\n" ;\
 		  exit 1 ;\
       fi ;\
- 	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
+	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
 	  $(MAKE) release/promote-oss/.main \
 	    PROMOTE_FROM_VERSION="$$dev_version" \
 		PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
