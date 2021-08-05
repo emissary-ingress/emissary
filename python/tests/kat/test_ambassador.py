@@ -8,6 +8,10 @@ from abstract_tests import AmbassadorTest
 
 # Import all the real tests from other files, to make it easier to pick and choose during development.
 
+if letter_range not in ["all", "ah", "ip", "qz"]:
+    print("Unknown test file name letter range: %s!" % letter_range)
+    sys.exit(1)
+
 if letter_range in ["all","ah"]:
 	import t_basics
 	import t_circuitbreaker
@@ -51,9 +55,6 @@ if letter_range in ["all","qz"]:
 	import t_tcpmapping
 	import t_tls
 	import t_tracing
-else:
-  print("Unknown test file name letter range: %s!" % letter_range)
-  sys.exit(1)
 
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.
