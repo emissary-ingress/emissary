@@ -471,6 +471,8 @@ pytest: docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote
 	@echo "KAT_CLIENT_DOCKER_IMAGE=$$KAT_CLIENT_DOCKER_IMAGE"
 	@echo "KAT_SERVER_DOCKER_IMAGE=$$KAT_SERVER_DOCKER_IMAGE"
 	@echo "DEV_KUBECONFIG=$$DEV_KUBECONFIG"
+	@echo "KAT_RUN_MODE=$$KAT_RUN_MODE"
+	@echo "PYTEST_ARGS=$$PYTEST_ARGS"
 	. $(OSS_HOME)/venv/bin/activate; \
 		$(OSS_HOME)/builder/builder.sh pytest-local
 .PHONY: pytest

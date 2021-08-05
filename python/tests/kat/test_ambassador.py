@@ -25,7 +25,8 @@ if letter_range in ["all","ah"]:
 	import t_headerrouting
 	import t_headerswithunderscoresaction
 	import t_hosts
-elif letter_range in ["all","ip"]:
+
+if letter_range in ["all","ip"]:
 	import t_ingress
 	import t_ip_allow_deny
 	import t_listeneridletimeout
@@ -37,7 +38,8 @@ elif letter_range in ["all","ip"]:
     # t_plain include t_mappingtests and t_optiontests as imports
     # these tests require each other and need to be executed as a set
 	import t_plain
-elif letter_range in ["all","qz"]:
+
+if letter_range in ["all","qz"]:
 	import t_queryparameter_routing
 	import t_ratelimit
 	import t_redirect
