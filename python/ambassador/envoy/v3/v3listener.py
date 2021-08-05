@@ -1256,7 +1256,7 @@ class V3Listener(dict):
             "filter_chains": self.filter_chains,
             "listener_filters": self.listener_filters,
             "traffic_direction": self.traffic_direction,
-            "per_connection_buffer_limit_bytes": self.buffer_limit_bytes
+            "per_connection_buffer_limit_bytes": self.per_connection_buffer_limit_bytes
         }
 
     def pretty(self) -> dict:
