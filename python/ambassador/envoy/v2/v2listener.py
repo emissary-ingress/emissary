@@ -836,9 +836,6 @@ class V2Listener(dict):
         self.http_filters: List[dict] = []
         self.listener_filters: List[dict] = []
         self.traffic_direction: str = "UNSPECIFIED"
-        # Envoy has a default value of 1 MiB for per_connection_buffer_limit_bytes ion the background
-        # Use the default unless specified in the Module
-        self.per_connection_buffer_limit_bytes = 1048576
 
         # It's important from a performance perspective to wrap debug log statements
         # with this check so we don't end up generating log strings (or even JSON
@@ -971,10 +968,6 @@ class V2Listener(dict):
 
         if 'server_name' in self.config.ir.ambassador_module:
             self.base_http_config["server_name"] = self.config.ir.ambassador_module.server_name
-
-        # Modify the default value of buffer_limit_bytes for later use if found in the module
-        if 'buffer_limit_bytes' in self.config.ir.ambassador_module:
-            self.per_connection_buffer_limit_bytes = self.config.ir.ambassador_module.buffer_limit_bytes
 
         listener_idle_timeout_ms = self.config.ir.ambassador_module.get('listener_idle_timeout_ms', None)
         if listener_idle_timeout_ms:
@@ -1222,14 +1215,18 @@ class V2Listener(dict):
             })
 
     def as_dict(self) -> dict:
-        return {
+        listener = {
             "name": self.name,
             "address": self.address,
             "filter_chains": self.filter_chains,
             "listener_filters": self.listener_filters,
             "traffic_direction": self.traffic_direction,
-            "per_connection_buffer_limit_bytes": self.per_connection_buffer_limit_bytes
         }
+        # We only want to add the buffer limit setting to the listener if specified in the module. Otherwise, we want to leave it unset and allow Envoys Default 1MiB setting.
+        if 'buffer_limit_bytes' in self.config.ir.ambassador_module and self.config.ir.ambassador_module.buffer_limit_bytes != None:
+            listener.__setitem__("per_connection_buffer_limit_bytes", self.config.ir.ambassador_module.buffer_limit_bytes)
+        return listener
+
 
     def pretty(self) -> dict:
         return { "name": self.name,
