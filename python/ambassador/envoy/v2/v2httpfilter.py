@@ -319,7 +319,15 @@ def V2HTTPFilter_authv1(auth: IRAuth, v2config: 'V2Config'):
         }
 
     if auth.proto == "grpc":
+        initial_metadata = []
         protocol_version = auth.get('protocol_version', 'v2')
+
+        for k, v in auth.get('initial_metadata', {}).items():
+            initial_metadata.append({
+                'key': k,
+                'value': v,
+            })
+
         auth_info = {
             'name': 'envoy.filters.http.ext_authz',
             'typed_config': {
@@ -328,7 +336,8 @@ def V2HTTPFilter_authv1(auth: IRAuth, v2config: 'V2Config'):
                     'envoy_grpc': {
                         'cluster_name': cluster.envoy_name
                     },
-                    'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
+                    'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0),
+                    'initial_metadata': initial_metadata
                 }
             }
         }

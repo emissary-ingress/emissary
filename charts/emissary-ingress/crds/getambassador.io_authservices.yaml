@@ -76,6 +76,10 @@ spec:
               - allow_partial
               - max_bytes
               type: object
+            initial_metadata:
+              additionalProperties:
+                type: string
+              type: object
             path_prefix:
               type: string
             proto:
