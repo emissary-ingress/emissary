@@ -1248,7 +1248,7 @@ class V3Listener(dict):
             "address": self.address,
             "filter_chains": self.filter_chains,
             "listener_filters": self.listener_filters,
-            "traffic_direction": self.traffic_direction,
+            "traffic_direction": self.traffic_direction
         }
         # We only want to add the buffer limit setting to the listener if specified in the module. Otherwise, we want to leave it unset and allow Envoys Default 1MiB setting.
         if 'buffer_limit_bytes' in self.config.ir.ambassador_module and self.config.ir.ambassador_module.buffer_limit_bytes != None:
