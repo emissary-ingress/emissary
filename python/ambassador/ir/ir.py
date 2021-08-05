@@ -920,7 +920,7 @@ class IR:
 
         od['custom_ambassador_id'] = bool(self.ambassador_id != 'default')
 
-        od['buffer_limit_bytes'] = self.ambassador_module.get('buffer_limit_bytes', 1048576) # The default Envoy size is 1 MiB if not defined
+        od['buffer_limit_bytes'] = self.ambassador_module.get('buffer_limit_bytes', None)
 
         default_port = Constants.SERVICE_PORT_HTTPS if tls_termination_count else Constants.SERVICE_PORT_HTTP
 
