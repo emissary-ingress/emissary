@@ -93,7 +93,7 @@ service: test:9999
             "per_connection_buffer_limit_bytes must equal the value set on the ambassador Module"
     assert key_found, 'per_connection_buffer_limit_bytes must be found in the envoy config'
 
-# Tests that the default value of per_connection_buffer_limit_bytes is 1MiB when no Module config
+# Tests that the default value of per_connection_buffer_limit_bytes is disabled when there is not Module config for it.
 @pytest.mark.compilertest
 def test_default_buffer_limit():
     yaml = """
@@ -105,20 +105,16 @@ prefix: /test/
 service: test:9999
 """
     econf = _get_envoy_config(yaml, version='V2')
-    expected = 1048576
     key_found = False
 
     conf = econf.as_dict()
 
     for listener in conf['static_resources']['listeners']:
         per_connection_buffer_limit_bytes = listener.get('per_connection_buffer_limit_bytes', None)
-        assert per_connection_buffer_limit_bytes is not None, \
-            f"per_connection_buffer_limit_bytes not found on listener: {listener.name}"
-        print(f"Found per_connection_buffer_limit_bytes = {per_connection_buffer_limit_bytes}")
+        assert per_connection_buffer_limit_bytes is None, \
+            f"per_connection_buffer_limit_bytes WRONGLY found on listener (should not exist): {listener.name}"
         key_found = True
-        assert expected == int(per_connection_buffer_limit_bytes), \
-            "per_connection_buffer_limit_bytes must equal the value set on the ambassador Module"
-    assert key_found, 'per_connection_buffer_limit_bytes must be found in the envoy config'
+    assert not key_found, 'per_connection_buffer_limit_bytes should not exist in the envoy config when disabled'
 
 
 @pytest.mark.compilertest
@@ -132,17 +128,13 @@ prefix: /test/
 service: test:9999
 """
     econf = _get_envoy_config(yaml)
-    expected = 1048576
     key_found = False
 
     conf = econf.as_dict()
 
     for listener in conf['static_resources']['listeners']:
         per_connection_buffer_limit_bytes = listener.get('per_connection_buffer_limit_bytes', None)
-        assert per_connection_buffer_limit_bytes is not None, \
-            f"per_connection_buffer_limit_bytes not found on listener: {listener.name}"
-        print(f"Found per_connection_buffer_limit_bytes = {per_connection_buffer_limit_bytes}")
-        key_found = True
-        assert expected == int(per_connection_buffer_limit_bytes), \
-            "per_connection_buffer_limit_bytes must equal the value set on the ambassador Module"
-    assert key_found, 'per_connection_buffer_limit_bytes must be found in the envoy config'
+        assert per_connection_buffer_limit_bytes is None, \
+            f"per_connection_buffer_limit_bytes WRONGLY found on listener (should not exist): {listener.name}"
+        key_found = True"
+    assert not key_found, 'per_connection_buffer_limit_bytes should not exist in the envoy config when disabled'
