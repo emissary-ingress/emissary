@@ -136,5 +136,5 @@ service: test:9999
         per_connection_buffer_limit_bytes = listener.get('per_connection_buffer_limit_bytes', None)
         assert per_connection_buffer_limit_bytes is None, \
             f"per_connection_buffer_limit_bytes WRONGLY found on listener (should not exist): {listener.name}"
-        key_found = True"
+        key_found = True
     assert not key_found, 'per_connection_buffer_limit_bytes should not exist in the envoy config when disabled'
