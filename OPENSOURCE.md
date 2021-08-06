@@ -62,7 +62,7 @@ Free and Open Source software:
     github.com/form3tech-oss/jwt-go                                v3.2.2+incompatible                                         MIT license
     github.com/fsnotify/fsnotify                                   v1.4.9                                                      3-clause BSD license
     github.com/ghodss/yaml                                         v1.0.0                                                      3-clause BSD license, MIT license
-    github.com/go-logr/logr                                        v0.3.0                                                      Apache License 2.0
+    github.com/go-logr/logr                                        v0.4.0                                                      Apache License 2.0
     github.com/go-openapi/jsonpointer                              v0.19.3                                                     Apache License 2.0
     github.com/go-openapi/jsonreference                            v0.19.3                                                     Apache License 2.0
     github.com/go-openapi/spec                                     v0.19.3                                                     Apache License 2.0
@@ -179,8 +179,7 @@ Free and Open Source software:
     k8s.io/client-go                                               v0.20.2                                                     Apache License 2.0
     k8s.io/component-base                                          v0.20.2                                                     Apache License 2.0
     k8s.io/helm                                                    v2.16.9+incompatible                                        Apache License 2.0
-    k8s.io/klog                                                    v1.0.0                                                      Apache License 2.0
-    k8s.io/klog/v2                                                 v2.4.0                                                      Apache License 2.0
+    k8s.io/klog/v2                                                 v2.10.0                                                     Apache License 2.0
     k8s.io/kube-openapi                                            v0.0.0-20201113171705-d219536bb9fd                          Apache License 2.0
     k8s.io/kubectl                                                 v0.20.2                                                     Apache License 2.0
     k8s.io/metrics                                                 v0.20.2                                                     Apache License 2.0
