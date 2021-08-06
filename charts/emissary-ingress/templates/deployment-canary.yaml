@@ -1,14 +1,12 @@
+{{- if .Values.canary}}
+{{- if .Values.canary.enabled }}
 apiVersion: apps/v1
-{{- if .Values.daemonSet }}
-kind: DaemonSet
-{{- else }}
 kind: Deployment
-{{- end }}
 metadata:
   {{- if .Values.deploymentNameOverride }}
-  name: {{ .Values.deploymentNameOverride }}
+  name: {{ .Values.deploymentNameOverride }}-canary
   {{- else }}
-  name: {{ include "ambassador.fullname" . }}
+  name: {{ include "ambassador.fullname" . }}-canary
   {{- end }}
   namespace: {{ include "ambassador.namespace" . }}
   labels:
@@ -32,9 +30,7 @@ metadata:
       {{- toYaml .Values.deploymentAnnotations | nindent 4 }}
     {{- end }}
 spec:
-{{- if and (not .Values.autoscaling.enabled) (not .Values.daemonSet) }}
-  replicas: {{ .Values.replicaCount }}
-{{- end }}
+  replicas: {{ .Values.canary.replicaCount }}
   selector:
     matchLabels:
       {{- if .Values.service.selector }}
@@ -43,17 +39,13 @@ spec:
       app.kubernetes.io/name: {{ include "ambassador.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
       {{- end }}
+      profile: canary
   {{- if .Values.daemonSet }}
   updateStrategy:
   {{- else }}
   strategy:
   {{- end }}
     {{- toYaml .Values.deploymentStrategy | nindent 4}}
-  {{ if and .Values.progressDeadlines (not .Values.daemonSet) }}
-  {{ if hasKey .Values.progressDeadlines "ambassador" }}
-  progressDeadlineSeconds: {{ .Values.progressDeadlines.ambassador }}
-  {{- end }}
-  {{- end }}
   template:
     metadata:
       labels:
@@ -71,7 +63,7 @@ spec:
         {{- else }}
         app.kubernetes.io/managed-by: {{ .Release.Service }}
         {{- end }}
-        profile: main
+        profile: canary
       {{- if .Values.podLabels }}
         {{- toYaml .Values.podLabels | nindent 8 }}
       {{- end }}
@@ -160,7 +152,11 @@ spec:
             {{- toYaml .Values.prometheusExporter.resources | nindent 12 }}
         {{- end }}
         - name: {{ if .Values.containerNameOverride }}{{ .Values.containerNameOverride }}{{ else }}{{ .Chart.Name }}{{ end }}
+          {{- if ne (include "ambassador.canaryImage" .)  "" }}
+          image: {{ include "ambassador.canaryImage" . }}
+          {{- else }}
           image: {{ include "ambassador.image" . }}
+          {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             {{- range .Values.service.ports }}
@@ -204,8 +200,8 @@ spec:
               value: {{ $value | quote}}
             {{- end }}
             {{- end }}
-            {{- if .Values.envRaw }}
-              {{- tpl .Values.envRaw . | nindent 12 }}
+            {{- if .Values.canary.envRaw  }}
+              {{- tpl .Values.canary.envRaw . | nindent 12 }}
             {{- end }}
           {{- with .Values.security.containerSecurityContext }}
           securityContext:
@@ -261,3 +257,5 @@ spec:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       dnsPolicy: {{ .Values.dnsPolicy }}
       hostNetwork: {{ .Values.hostNetwork }}
+{{- end -}}
+{{- end -}}
