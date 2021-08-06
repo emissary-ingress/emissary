@@ -9,7 +9,6 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## v6.7.14
 
-- Update Ambassador API Gateway chart image to version v1.13.10: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
 - Feature: New Values to expose `progressDeadlineSeconds` for the Ambassador and Ambassador-agent Deployments.
 
 ## v6.7.13
