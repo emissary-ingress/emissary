@@ -305,7 +305,7 @@ name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
-service: httpbin.plain-namespace
+service: httpbin.default
 """)
 
     def queries(self):
@@ -341,7 +341,7 @@ name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
-service: httpbin.plain-namespace
+service: httpbin.default
 """)
 
     def queries(self):
@@ -370,7 +370,7 @@ name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
-service: httpbin.plain-namespace
+service: httpbin.default
 """)
 
     def queries(self):
@@ -474,7 +474,7 @@ kind: AmbassadorMapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
-service: websocket-echo-server.plain-namespace
+service: websocket-echo-server.default
 use_websocket: true
 """)
 
@@ -804,7 +804,7 @@ kind: AmbassadorMapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
-service: httpbin.plain-namespace
+service: httpbin.default
 add_response_headers:
     koo:
         append: False
@@ -877,7 +877,7 @@ kind: AmbassadorMapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
-service: httpbin.plain-namespace
+service: httpbin.default
 remove_request_headers:
 - zoo
 - aoo
@@ -1092,7 +1092,7 @@ metadata:
   name: thisisaverylongservicenameoverwithsixythreecharacters123456789
 spec:
   type: ExternalName
-  externalName: httpbin.plain-namespace.svc.cluster.local
+  externalName: httpbin.default.svc.cluster.local
 ---
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
