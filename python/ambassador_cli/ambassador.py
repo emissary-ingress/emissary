@@ -262,7 +262,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         with v3_timer:
             if dump_v3:
                 v3config = V3Config(ir)
-                diagconfig = v3config
+                diagconfigv3 = v3config
                 od['v3'] = v3config.as_dict()
         diag_timer = Timer("diag")
         with diag_timer:
@@ -275,9 +275,11 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
                 diag = Diagnostics(ir, econf)
                 diagv3 = Diagnostics(ir, econfv3)
                 od['diag'] = diag.as_dict()
-                od['elements'] = econf.elements
+                # Something in here is of type set which really upsets the json dumper
+                # od['elements'] = econf.elements
                 od['diagv3'] = diagv3.as_dict()
-                od['elementsv3'] = econfv3.elements
+                # Something in here is of type set which really upsets the json dumper
+                # od['elementsv3'] = econfv3.elements
 
         features_timer = Timer("features")
         with features_timer:
