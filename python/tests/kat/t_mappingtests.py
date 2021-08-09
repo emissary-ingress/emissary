@@ -341,7 +341,7 @@ name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
-service: httpbin.default
+service: httpbin
 """)
 
     def queries(self):
@@ -370,7 +370,7 @@ name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
-service: httpbin.default
+service: httpbin
 """)
 
     def queries(self):
@@ -804,7 +804,7 @@ kind: AmbassadorMapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
-service: httpbin.default
+service: httpbin
 add_response_headers:
     koo:
         append: False
@@ -877,7 +877,7 @@ kind: AmbassadorMapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
-service: httpbin.default
+service: httpbin
 remove_request_headers:
 - zoo
 - aoo
@@ -1092,7 +1092,7 @@ metadata:
   name: thisisaverylongservicenameoverwithsixythreecharacters123456789
 spec:
   type: ExternalName
-  externalName: httpbin.default.svc.cluster.local
+  externalName: httpbin
 ---
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
