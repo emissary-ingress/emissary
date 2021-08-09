@@ -12,17 +12,17 @@ class BufferLimitBytesTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind:  Module
 name:  ambassador
 config:
   buffer_limit_bytes: 5242880
-    lua_scripts: |
-      function envoy_on_request(request_handle)
-        request_handle:headers():add("request_body_size", request_handle:body():length())
-      end
+  lua_scripts: |
+    function envoy_on_request(request_handle)
+      request_handle:headers():add("request_body_size", request_handle:body():length())
+    end
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-foo
 prefix: /foo/
