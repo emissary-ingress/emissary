@@ -13,6 +13,7 @@
   "static_resources": {
     "clusters": [
       {
+        "alt_stat_name": "127_0_0_1_8877",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -40,6 +41,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "127_0_0_1_8001",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",

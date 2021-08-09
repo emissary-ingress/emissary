@@ -13,6 +13,7 @@
   "static_resources": {
     "clusters": [
       {
+        "alt_stat_name": "127_0_0_1_8877",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -40,6 +41,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_addreqheadersmapping_grpc_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -67,6 +69,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_addreqheadersmapping_http_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -94,6 +97,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarydiffmapping_grpc_0_grpc_canary_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -121,6 +125,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarydiffmapping_grpc_0_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -148,6 +153,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarydiffmapping_grpc_100_grpc_canary_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -175,6 +181,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarydiffmapping_grpc_100_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -202,6 +209,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarydiffmapping_grpc_10_grpc_canary_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -229,6 +237,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarydiffmapping_grpc_10_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -256,6 +265,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarydiffmapping_grpc_50_grpc_canary_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -283,6 +293,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarydiffmapping_grpc_50_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -310,6 +321,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarydiffmapping_http_0_http_canary_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -337,6 +349,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarydiffmapping_http_0_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -364,6 +377,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarydiffmapping_http_100_http_canary_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -391,6 +405,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarydiffmapping_http_100_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -418,6 +433,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarydiffmapping_http_10_http_canary_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -445,6 +461,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarydiffmapping_http_10_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -472,6 +489,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarydiffmapping_http_50_http_canary_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -499,6 +517,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarydiffmapping_http_50_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -526,6 +545,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarymapping_grpc_0_grpc_canary_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -553,6 +573,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarymapping_grpc_0_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -580,6 +601,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarymapping_grpc_100_grpc_canary_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -607,6 +629,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarymapping_grpc_100_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -634,6 +657,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarymapping_grpc_10_grpc_canary_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -661,6 +685,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarymapping_grpc_10_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -688,6 +713,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarymapping_grpc_50_grpc_canary_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -715,6 +741,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarymapping_grpc_50_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -742,6 +769,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarymapping_http_0_http_canary_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -769,6 +797,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarymapping_http_0_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -796,6 +825,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarymapping_http_100_http_canary_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -823,6 +853,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarymapping_http_100_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -850,6 +881,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarymapping_http_10_http_canary_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -877,6 +909,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarymapping_http_10_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -904,6 +937,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarymapping_http_50_http_canary_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -931,6 +965,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_canarymapping_http_50_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -958,6 +993,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_headerroutingtest_grpc_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -985,6 +1021,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_headerroutingtest_grpc_grpc_target2_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1012,6 +1049,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_headerroutingtest_http_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1039,6 +1077,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_headerroutingtest_http_http_target2_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1066,6 +1105,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_hostheadermapping_grpc_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1093,6 +1133,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_hostheadermapping_http_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1120,6 +1161,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_invalidportmapping_grpc_grpc_plain_namespace_80_invalid",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1147,6 +1189,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_invalidportmapping_http_http_plain_namespace_80_invalid",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1174,6 +1217,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simpleingresswithannotations_grpc_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1201,6 +1245,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simpleingresswithannotations_http_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1228,6 +1273,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_addrequestheaders_aoo_tyu_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1255,6 +1301,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_addrequestheaders_foo_bar_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1282,6 +1329,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_all_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1309,6 +1357,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_autohostrewrite_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1336,6 +1385,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_casesensitive_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1363,6 +1413,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_cors_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1390,6 +1441,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1417,6 +1469,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_removeresponseheaders_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1444,6 +1497,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_rewrite_foo_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1471,6 +1525,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_rewrite_slash_foo_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1498,6 +1553,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_usewebsocket_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1525,6 +1581,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_addrequestheaders_moo_arf_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1552,6 +1609,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_addrequestheaders_xoo_dwe_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1579,6 +1637,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_addrequestheaders_zoo_bar_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1606,6 +1665,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_addresponseheaders_aoo_tyu_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1633,6 +1693,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_addresponseheaders_foo_bar_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1660,6 +1721,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_addresponseheaders_moo_arf_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1687,6 +1749,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_addresponseheaders_xoo_dwe_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1714,6 +1777,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_grpc_addresponseheaders_zoo_bar_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1741,6 +1805,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_addrequestheaders_aoo_tyu_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1768,6 +1833,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_addrequestheaders_foo_bar_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1795,6 +1861,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_all_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1822,6 +1889,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_autohostrewrite_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1849,6 +1917,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_casesensitive_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1876,6 +1945,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_cors_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1903,6 +1973,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1930,6 +2001,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_removeresponseheaders_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1957,6 +2029,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_rewrite_foo_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -1984,6 +2057,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_rewrite_slash_foo_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2011,6 +2085,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_usewebsocket_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2038,6 +2113,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_addrequestheaders_moo_arf_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2065,6 +2141,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_addrequestheaders_xoo_dwe_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2092,6 +2169,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_addrequestheaders_zoo_bar_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2119,6 +2197,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_addresponseheaders_aoo_tyu_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2146,6 +2225,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_addresponseheaders_foo_bar_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2173,6 +2253,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_addresponseheaders_moo_arf_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2200,6 +2281,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_addresponseheaders_xoo_dwe_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2227,6 +2309,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemapping_http_addresponseheaders_zoo_bar_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2254,6 +2337,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "httpbin_default",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2281,6 +2365,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_tlsorigination_grpc_implicit_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2315,6 +2400,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_tlsorigination_http_implicit_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2349,6 +2435,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_hostheadermappingingress_grpc_grpc_plain_namespace_80",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2376,6 +2463,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_hostheadermappingingress_http_http_plain_namespace_80",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2403,6 +2491,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simpleingresswithannotations_grpc_grpc_plain_namespace_80",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2430,6 +2519,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simpleingresswithannotations_http_http_plain_namespace_80",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2457,6 +2547,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemappingingress_grpc_grpc_plain_namespace_80",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2484,6 +2575,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_simplemappingingress_http_http_plain_namespace_80",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2511,6 +2603,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_tlsorigination_grpc_explicit_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2545,6 +2638,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "plain_tlsorigination_http_explicit_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2579,6 +2673,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "websocket_echo_server_default",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
