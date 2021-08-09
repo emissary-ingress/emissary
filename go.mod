@@ -77,27 +77,27 @@ require (
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_model v0.2.0
-	github.com/sirupsen/logrus v1.7.0
-	github.com/spf13/cobra v1.1.1
+	github.com/sirupsen/logrus v1.8.1
+	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
-	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
-	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c
+	golang.org/x/net v0.0.0-20210224082022-3d97a244fca7
+	golang.org/x/sys v0.0.0-20210225134936-a50acf3fe073
 	google.golang.org/genproto v0.0.0-20201110150050-8816d57aaa9a
 	google.golang.org/grpc v1.34.0
 	google.golang.org/protobuf v1.25.0
-	gopkg.in/yaml.v2 v2.3.0
-	helm.sh/helm/v3 v3.5.3
-	k8s.io/api v0.20.2
-	k8s.io/apiextensions-apiserver v0.20.2
-	k8s.io/apimachinery v0.20.2
-	k8s.io/cli-runtime v0.20.2
-	k8s.io/client-go v0.20.2
+	gopkg.in/yaml.v2 v2.4.0
+	helm.sh/helm/v3 v3.6.1
+	k8s.io/api v0.21.0
+	k8s.io/apiextensions-apiserver v0.21.0
+	k8s.io/apimachinery v0.21.0
+	k8s.io/cli-runtime v0.21.0
+	k8s.io/client-go v0.21.0
 	k8s.io/helm v2.16.9+incompatible
 	k8s.io/klog/v2 v2.10.0
-	k8s.io/kube-openapi v0.0.0-20201113171705-d219536bb9fd
-	k8s.io/kubectl v0.20.2
-	k8s.io/metrics v0.20.2
+	k8s.io/kube-openapi v0.0.0-20210305001622-591a79e4bda7
+	k8s.io/kubectl v0.21.0
+	k8s.io/metrics v0.21.0
 	sigs.k8s.io/controller-runtime v0.8.0
 	sigs.k8s.io/controller-tools v0.4.1
 	sigs.k8s.io/gateway-api v0.2.0
