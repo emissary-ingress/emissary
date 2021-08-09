@@ -30,9 +30,11 @@ service: {self.target.path.fqdn}
 """)
 
     def queries(self):
-        yield Query(self.url("target/"))
+        yield Query(self.url("foo/"))
+        yield Query(self.url("ambassador/v0/diag/")      
 
     def check(self):
         assert self.results[0].status == 200
         assert "buffered" in self.results[0].headers
+        assert self.results[1].status == 200
 
