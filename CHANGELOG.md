@@ -77,7 +77,8 @@ We're pleased to introduce Emissary 2.0.1 as a developer preview. The 2.X family
 
 ### Emissary Ingress
 
-- Feature: The optional `statsPrefix` element of the `AmbassadorListener` CRD now determines the prefix of HTTP statistics emitted for a specific `AmbassadorListener`.
+- Feature: The optional `stats_prefix` element of the `AmbassadorListener` CRD now determines the prefix of HTTP statistics emitted for a specific `AmbassadorListener`.
+- Feature: The optional `stats_name` element of `AmbassadorMapping`, `AmbassadorTCPMapping`, `AuthService`, `LogService`, `RateLimitService`, and `TracingService` now sets the name under which cluster statistics will be logged. The default is the `service`, with non-alphanumeric characters replaced by underscores.
 - Feature: Ambassador Agent reports sidecar process information and Mapping OpenAPI documentation to Ambassador Cloud to provide more visibility into services and clusters.
 - Change: Logs now include subsecond time resolutions, rather than just seconds.
 - Change: Envoy-configuration snapshots get saved (as `ambex-#.json`) in `/ambassador/snapshots`.
