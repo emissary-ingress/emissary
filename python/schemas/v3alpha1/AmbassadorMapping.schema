@@ -235,7 +235,8 @@
             "additionalProperties": false
         },
         "query_parameters": { "$ref": "#/definitions/mapStrStr" },
-        "regex_query_parameters": { "$ref": "#/definitions/mapStrStr" }
+        "regex_query_parameters": { "$ref": "#/definitions/mapStrStr" },
+        "stats_name": { "type": "string" }
     },
     "definitions": {
         "mapStrStr": {
