@@ -1300,7 +1300,7 @@ class Runner:
                         add_cleartext_host = getattr(n, 'edge_stack_cleartext_host', False)
 
                         if add_default_http_listener:
-                            print(f"{n.path.k8s} adding default HTTP AmbassadorListener")
+                            # print(f"{n.path.k8s} adding default HTTP AmbassadorListener")
                             yaml += default_listener_manifest % {
                                 "namespace": nsp,
                                 "port": 8080,
@@ -1309,7 +1309,7 @@ class Runner:
                             }
 
                         if add_default_https_listener:
-                            print(f"{n.path.k8s} adding default HTTPS AmbassadorListener")
+                            # print(f"{n.path.k8s} adding default HTTPS AmbassadorListener")
                             yaml += default_listener_manifest % {
                                 "namespace": nsp,
                                 "port": 8443,
