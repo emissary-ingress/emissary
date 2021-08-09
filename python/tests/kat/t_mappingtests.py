@@ -474,7 +474,7 @@ kind: AmbassadorMapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
-service: websocket-echo-server.default
+service: websocket-echo-server.plain-namespace
 use_websocket: true
 """)
 
