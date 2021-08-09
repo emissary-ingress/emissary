@@ -20,7 +20,7 @@ import logging
 import os
 import socket
 
-__version__ = '0.1.0'
+__version__ = '0.0.14'
 
 logging.basicConfig(
     level=logging.DEBUG if os.environ.get('STATSD_TEST_DEBUG') else logging.INFO,
@@ -38,27 +38,37 @@ sock.bind((UDP_IP, UDP_PORT))
 logging.info("Listening on %d" % UDP_PORT)
 
 interesting_clusters = {
-    os.environ.get('STATSD_TEST_CLUSTER')
+    cname for cname in os.environ.get('STATSD_TEST_CLUSTER').split(":")
 }
 
 logging.info(f"Interesting clusters: {interesting_clusters}")
 
 interesting = {}
 
-last_stats = datetime.datetime.now()
+last_summary = datetime.datetime.now()
+
+def summary():
+    r = ""
+
+    for cluster_name in interesting_clusters:
+        cluster = interesting.get(cluster_name, {})
+        trq = cluster.get(f'upstream_rq_total', -1)
+        grq = cluster.get(f'upstream_rq_2xx', -1)
+        ttm = cluster.get(f'upstream_rq_time', -1)
+
+        if (trq > 0) and (trq > 0):
+            ttm = ", %.1f ms avg" % (ttm / trq)
+
+            r += f'{cluster_name}: {trq} req, {grq} good{ttm}\n'
+
+    return r
 
 while True:
     now = datetime.datetime.now()
 
-    if (now - last_stats) > datetime.timedelta(seconds=30):
-        for cluster in interesting_clusters:
-            trq = interesting.get(f'envoy.cluster.{cluster}.upstream_rq_total', -1)
-            grq = interesting.get(f'envoy.cluster.{cluster}.upstream_rq_2xx', -1)
-            ttm = interesting.get(f'envoy.cluster.{cluster}.upstream_rq_time', -1)
-
-            if (trq > 0) and (trq > 0):
-                ttm = ", %.1f ms avg" % (ttm / trq)
-                logging.info(f'{cluster}: {trq} req, {grq} good{ttm}')
+    if (now - last_summary) > datetime.timedelta(seconds=30):
+        logging.info(f"30sec\n{summary()}")
+        last_summary = datetime.datetime.now()
 
     data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
 
@@ -76,7 +86,16 @@ while True:
     elif data == 'DUMP':
         logging.info('DUMP')
 
-        sock.sendto(json.dumps(interesting).encode("utf-8"), addr)
+        contents = json.dumps(interesting).encode("utf-8")
+        logging.info(f"SEND {contents}")
+
+        sock.sendto(contents, addr)
+    elif data == 'SUMMARY':
+
+        contents = summary().encode("utf-8")
+        logging.info('SUMMARY:\n{contents}')
+
+        sock.sendto(contents, addr)
     else:
         # Here's a sample 'normal' line:
         # envoy.cluster.cluster_http___statsdtest_http.upstream_rq_200:310|c
@@ -91,7 +110,10 @@ while True:
         # So first, it needs to start with 'envoy.cluster.'.
 
         if not data.startswith('envoy.cluster.'):
+            # logging.info(f"SKIP: {data}")
             continue
+
+        logging.info(f"CLUSTER: {data}")
 
         # Strip the leading 'envoy.cluster.'...
         data = data[len('envoy.cluster.'):]
@@ -147,7 +169,7 @@ while True:
                 rclass = dog_elements["envoy.response_code_class"]
                 key = key.replace('_xx', f'_{rclass}xx')
 
-        logging.debug(f'{cluster_name}: {key} += {value}')
+        # logging.info(f'{cluster_name}: {key} += {value} {data_type}')
 
         cluster_stats = interesting.setdefault(cluster_name, {})
 

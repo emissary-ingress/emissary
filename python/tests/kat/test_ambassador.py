@@ -51,7 +51,7 @@ if letter_range in ["all","qz"]:
 	import t_request_header
 	import t_retrypolicy
 	#import t_shadow
-	#import t_stats
+	import t_stats
 	import t_tcpmapping
 	import t_tls
 	import t_tracing
