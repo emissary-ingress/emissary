@@ -17,9 +17,9 @@ kind:  Module
 name:  ambassador
 config:
   buffer_limit_bytes: 5242880
-  lua_scripts: |
+    lua_scripts: |
       function envoy_on_request(request_handle)
-        request_handle:headers():add("buffered", "true")
+        request_handle:headers():add("request_body_size", request_handle:body():length())
       end
 ---
 apiVersion: ambassador/v1
@@ -35,6 +35,5 @@ service: {self.target.path.fqdn}
 
     def check(self):
         assert self.results[0].status == 200
-        assert "buffered" in self.results[0].headers
         assert self.results[1].status == 200
 
