@@ -86,7 +86,8 @@ class IRRateLimit (IRFilter):
                 service=self.service,
                 grpc=True,
                 host_rewrite=self.get('host_rewrite', None),
-                ctx_name=self.get('ctx_name', None)
+                ctx_name=self.get('ctx_name', None),
+                stats_name=self.get("stats_name", None)
             )
         )
 
