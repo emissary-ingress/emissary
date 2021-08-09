@@ -69,6 +69,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ### Emissary Ingress and Ambassador Edge Stack
 
 - Change: Logs now include subsecond time resolutions, rather than just seconds.
+- Change: Envoy's default 1MiB buffer limit can now be changed by setting `buffer_limit_bytes`
+  in the `Module` resource.
 
 ## [1.13.10] July 28, 2021
 [1.13.10]: https://github.com/emissary-ingress/emissary/compare/v1.13.9...v1.13.10
