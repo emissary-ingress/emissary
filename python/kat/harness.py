@@ -85,7 +85,7 @@ class TestImage:
         self.images: Dict[str, str] = {}
 
         default_registry = os.environ.get('TEST_SERVICE_REGISTRY', 'docker.io/datawire/test_services')
-        default_version = os.environ.get('TEST_SERVICE_VERSION', '0.0.3')
+        default_version = os.environ.get('TEST_SERVICE_VERSION', '0.0.4')
 
         for svc in ['auth', 'auth-tls', 'ratelimit', 'shadow', 'stats']:
             key = svc.replace('-', '_').upper()

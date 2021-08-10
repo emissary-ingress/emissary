@@ -20,7 +20,7 @@ import logging
 import os
 import socket
 
-__version__ = '0.0.14'
+__version__ = '0.0.4'
 
 logging.basicConfig(
     level=logging.DEBUG if os.environ.get('STATSD_TEST_DEBUG') else logging.INFO,
@@ -113,7 +113,7 @@ while True:
             # logging.info(f"SKIP: {data}")
             continue
 
-        logging.info(f"CLUSTER: {data}")
+        # logging.info(f"CLUSTER: {data}")
 
         # Strip the leading 'envoy.cluster.'...
         data = data[len('envoy.cluster.'):]

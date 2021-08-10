@@ -156,6 +156,19 @@ How do I update the python test cache?
 - Once that succeeds, use `make pytest-gold` to update the cache from
   the passing tests.
 
+How do I update the KAT test services?
+--------------------------------------
+
+There are four test services, which are in `docker/test-$svc`. They are versioned in
+lockstep: if you want to bump one, bump 'em all.
+
+To bump the version:
+
+- Edit all the Python source files in `docker/test-*` to have the new version.
+- Edit docker/Makefile to have the new version.
+- `cd docker && make` and stand back.
+   - You'll need permissions to push to `docker.io/datawire/test-services` for this.
+
 My editor is changing `go.mod` or `go.sum`, should I commit that?
 -----------------------------------------------------------------
 

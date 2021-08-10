@@ -30,7 +30,7 @@ logging.basicConfig(
 
 from flask import Flask, Response, jsonify, request
 
-__version__ = "?.?.?"
+__version__ = "0.0.4"
 
 app = Flask(__name__)
 
