@@ -71,6 +71,8 @@ spec:
               type: boolean
             service:
               type: string
+            stats_name:
+              type: string
           type: object
       type: object
   version: v2

@@ -47,6 +47,7 @@ type AmbassadorTCPMappingSpec struct {
 	TLS        *ambv2.BoolOrString `json:"tls,omitempty"`
 	Weight     *int                `json:"weight,omitempty"`
 	ClusterTag string              `json:"cluster_tag,omitempty"`
+	StatsName  string              `json:"stats_name,omitempty"`
 }
 
 // AmbassadorTCPMapping is the Schema for the tcpmappings API

@@ -137,7 +137,9 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
                                 enable_ipv6=mapping.get('enable_ipv6', None),
                                 circuit_breakers=mapping.get('circuit_breakers', None),
                                 marker=marker,
-                                allow_scheme=False)
+                                allow_scheme=False,
+                                stats_name=self.get("stats_name", None)
+            )
 
         # Make sure that the cluster is really in our IR...
         stored = self.ir.add_cluster(cluster)

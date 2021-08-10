@@ -82,6 +82,8 @@ spec:
               type: object
             service:
               type: string
+            stats_name:
+              type: string
             tag_headers:
               items:
                 type: string

@@ -128,6 +128,7 @@ type AmbassadorMappingSpec struct {
 	LoadBalancer           *ambv2.LoadBalancer           `json:"load_balancer,omitempty"`
 	QueryParameters        map[string]ambv2.BoolOrString `json:"query_parameters,omitempty"`
 	RegexQueryParameters   map[string]ambv2.BoolOrString `json:"regex_query_parameters,omitempty"`
+	StatsName              string                        `json:"stats_name,omitempty"`
 }
 
 // DocsInfo provides some extra information about the docs for the AmbassadorMapping

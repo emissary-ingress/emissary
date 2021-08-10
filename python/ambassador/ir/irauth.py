@@ -77,7 +77,8 @@ class IRAuth (IRFilter):
                 host_rewrite=self.get('host_rewrite', False),
                 ctx_name=ctx_name,
                 grpc=grpc,
-                marker='extauth'
+                marker='extauth',
+                stats_name=self.get("stats_name", None)
             )
 
             cluster.referenced_by(self)

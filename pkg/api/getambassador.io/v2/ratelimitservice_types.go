@@ -35,6 +35,7 @@ type RateLimitServiceSpec struct {
 	TLS       *BoolOrString `json:"tls,omitempty"`
 	// +kubebuilder:validation:Enum={"v2","v3"}
 	ProtocolVersion string `json:"protocol_version,omitempty"`
+	StatsName       string `json:"stats_name,omitempty"`
 }
 
 // RateLimitService is the Schema for the ratelimitservices API

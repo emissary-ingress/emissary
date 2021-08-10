@@ -13,6 +13,7 @@
   "static_resources": {
     "clusters": [
       {
+        "alt_stat_name": "127_0_0_1_8877",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -40,6 +41,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "tcpmappingtest_http_target1_tcp_namespace_443",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -67,6 +69,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "tcpmappingtest_http_target1_tcp_namespace_80",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -94,6 +97,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "tcpmappingtest_http_target2_other_namespace_443",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -128,6 +132,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "tcpmappingtest_http_target2_other_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -173,6 +178,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "tcpmappingtest_http_target3_tcp_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",

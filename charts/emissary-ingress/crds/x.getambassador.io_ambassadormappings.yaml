@@ -375,6 +375,8 @@ spec:
               type: string
             shadow:
               type: boolean
+            stats_name:
+              type: string
             timeout_ms:
               description: The timeout for requests that use this AmbassadorMapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
               type: integer

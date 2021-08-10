@@ -53,6 +53,7 @@ type TracingServiceSpec struct {
 	Sampling   *TraceSampling `json:"sampling,omitempty"`
 	TagHeaders []string       `json:"tag_headers,omitempty"`
 	Config     *TraceConfig   `json:"config,omitempty"`
+	StatsName  string         `json:"stats_name,omitempty"`
 }
 
 // TracingService is the Schema for the tracingservices API
