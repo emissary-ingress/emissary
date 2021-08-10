@@ -165,8 +165,8 @@ service: http://127.0.0.1:8877
             yield Query(self.url(self.name + "/"), phase=1)
             yield Query(self.url(self.name + "-alt/"), phase=1)
 
-        yield Query("http://statsd-sink/DUMP/", phase=2)
-        yield Query(self.url("metrics"), phase=2)
+        yield Query("http://statsd-sink/DUMP/", phase=5)
+        yield Query(self.url("metrics"), phase=5)
 
     def check(self):
         # self.results[-2] is the JSON dump from our test statsd-sink service.
@@ -260,7 +260,7 @@ service: dogstatsd-sink
         for i in range(1000):
             yield Query(self.url(self.name + "/"), phase=1)
 
-        yield Query("http://dogstatsd-sink/DUMP/", phase=2)
+        yield Query("http://dogstatsd-sink/DUMP/", phase=5)
 
     def check(self):
         stats = self.results[-1].json or {}

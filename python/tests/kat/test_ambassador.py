@@ -47,18 +47,17 @@ if letter_range in ["all","ip"]:
     import t_plain
 
 if letter_range in ["all","qz"]:
-    import t_queryparameter_routing
-    import t_ratelimit
-    import t_redirect
-    import t_regexrewrite_forwarding
-    import t_request_header
-    import t_retrypolicy
-    #import t_shadow
-    # t_stats has tests for statsd and dogstatsd. It's too flaky to run all the time.
-    # import t_stats
-    import t_tcpmapping
-    import t_tls
-    import t_tracing
+	import t_queryparameter_routing
+	import t_ratelimit
+	import t_redirect
+	import t_regexrewrite_forwarding
+	import t_request_header
+	import t_retrypolicy
+	#import t_shadow
+	import t_stats
+	import t_tcpmapping
+	import t_tls
+	import t_tracing
 
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.
