@@ -69,6 +69,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 [HTTP_JSON_V1]: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version
 
 ## RELEASE NOTES
+- Bugfix: A singleNamespace version of emissary can now be installed alongside a standard installation in the same cluster.
 
 ## [2.0.1-ea] (TBD)
 [2.0.1-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.0-ea...v2.0.1-ea

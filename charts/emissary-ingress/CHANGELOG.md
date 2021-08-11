@@ -4,8 +4,7 @@ This file documents all notable changes to Ambassador Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
-
-(no changes yet)
+- Bugfix: A singleNamespace version of emissary can now be installed alongside a standard installation in the same cluster.
 
 ## v7.1.0-ea
 
