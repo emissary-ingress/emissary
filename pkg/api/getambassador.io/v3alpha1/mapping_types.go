@@ -42,6 +42,7 @@ type AmbassadorMappingSpec struct {
 	AddLinkerdHeaders  *bool                   `json:"add_linkerd_headers,omitempty"`
 	AutoHostRewrite    *bool                   `json:"auto_host_rewrite,omitempty"`
 	CaseSensitive      *bool                   `json:"case_sensitive,omitempty"`
+	// Docs is used by both the agent and the DevPortal.
 	Docs               *DocsInfo               `json:"docs,omitempty"`
 	EnableIPv4         *bool                   `json:"enable_ipv4,omitempty"`
 	EnableIPv6         *bool                   `json:"enable_ipv6,omitempty"`
