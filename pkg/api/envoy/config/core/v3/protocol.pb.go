@@ -257,7 +257,6 @@ type Http1ProtocolOptions struct {
 
 	AllowAbsoluteUrl      *wrappers.BoolValue                   `protobuf:"bytes,1,opt,name=allow_absolute_url,json=allowAbsoluteUrl,proto3" json:"allow_absolute_url,omitempty"`
 	AcceptHttp_10         bool                                  `protobuf:"varint,2,opt,name=accept_http_10,json=acceptHttp10,proto3" json:"accept_http_10,omitempty"`
-	AllowChunkedLength    bool									`protobuf:"varint,2,opt,name=allow_chunked_length,json=allowChunkedLength,proto3" json:"allow_chunked_length,omitempty"`
 	DefaultHostForHttp_10 string                                `protobuf:"bytes,3,opt,name=default_host_for_http_10,json=defaultHostForHttp10,proto3" json:"default_host_for_http_10,omitempty"`
 	HeaderKeyFormat       *Http1ProtocolOptions_HeaderKeyFormat `protobuf:"bytes,4,opt,name=header_key_format,json=headerKeyFormat,proto3" json:"header_key_format,omitempty"`
 	EnableTrailers        bool                                  `protobuf:"varint,5,opt,name=enable_trailers,json=enableTrailers,proto3" json:"enable_trailers,omitempty"`
@@ -305,13 +304,6 @@ func (x *Http1ProtocolOptions) GetAllowAbsoluteUrl() *wrappers.BoolValue {
 func (x *Http1ProtocolOptions) GetAcceptHttp_10() bool {
 	if x != nil {
 		return x.AcceptHttp_10
-	}
-	return false
-}
-
-func (x *Http1ProtocolOptions) GetAllowChunkedLength() bool {
-	if x != nil {
-		return x.AllowChunkedLength
 	}
 	return false
 }

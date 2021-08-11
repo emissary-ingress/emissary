@@ -157,10 +157,6 @@ message Http1ProtocolOptions {
   // This is a no-op if *accept_http_10* is not true.
   string default_host_for_http_10 = 3;
 
-  // Allows request with both the content-length and transfer-encoding headers
-  // This is off by default, and not fully standards compliant. Introduced in Envoy API V3.
-  bool allow_chunked_length = 2;
-  
   // Describes how the keys for response headers should be formatted. By default, all header keys
   // are lower cased.
   HeaderKeyFormat header_key_format = 4;
