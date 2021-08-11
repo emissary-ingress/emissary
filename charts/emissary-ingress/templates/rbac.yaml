@@ -3,10 +3,18 @@
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
+  {{- if .Values.scope.singleNamespace }}
+  name: {{ include "ambassador.rbacName" . }}-{{ include "ambassador.namespace" . }}
+  {{- else }}
   name: {{ include "ambassador.rbacName" . }}
+  {{- end }}
   labels:
     {{- if ne .Values.deploymentTool "getambassador.io" }}
+    {{- if .Values.scope.singleNamespace }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-{{ include "ambassador.namespace" . }}
+    {{- else }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    {{- end }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -28,10 +36,18 @@ rules: []
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
+  {{- if .Values.scope.singleNamespace }}
+  name: {{ include "ambassador.rbacName" . }}-{{ include "ambassador.namespace" . }}-crd
+  {{- else }}
   name: {{ include "ambassador.rbacName" . }}-crd
+  {{- end }}
   labels:
     {{- if ne .Values.deploymentTool "getambassador.io" }}
+    {{- if .Values.scope.singleNamespace }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}-{{ include "ambassador.namespace" . }}
+    {{- else }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    {{- end }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -131,10 +147,18 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
+  {{- if .Values.scope.singleNamespace }}
+  name: {{ include "ambassador.rbacName" . }}-{{ include "ambassador.namespace" . }}-crd
+  {{- else }}
   name: {{ include "ambassador.rbacName" . }}
+  {{- end }}
   labels:
     {{- if ne .Values.deploymentTool "getambassador.io" }}
+    {{- if .Values.scope.singleNamespace }}
+    app.kubernetes.io/name: {{ include "ambassador.fullname" . }}-{{ include "ambassador.namespace" . }}
+    {{- else }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    {{- end }}
     app.kubernetes.io/part-of: {{ .Release.Name }}
     helm.sh/chart: {{ include "ambassador.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -148,7 +172,11 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
+  {{- if .Values.scope.singleNamespace }}
+  name: {{ include "ambassador.rbacName" . }}-{{ include "ambassador.namespace" . }}-crd
+  {{- else }}
   name: {{ include "ambassador.rbacName" . }}
+  {{- end }}
 subjects:
   - name: {{ include "ambassador.serviceAccountName" . }}
     namespace: {{ include "ambassador.namespace" . }}
