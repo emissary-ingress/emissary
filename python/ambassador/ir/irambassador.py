@@ -32,6 +32,7 @@ class IRAmbassador (IRResource):
         'admin_port',
         'auth_enabled',
         'allow_chunked_length',
+        'buffer_limit_bytes',
         'circuit_breakers',
         'cluster_idle_timeout_ms',
         'cluster_max_connection_lifetime_ms',

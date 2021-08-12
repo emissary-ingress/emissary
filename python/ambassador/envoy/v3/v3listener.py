@@ -975,6 +975,9 @@ class V3Listener(dict):
         if self.listener_filters:
             odict["listener_filters"] = self.listener_filters
 
+        if 'buffer_limit_bytes' in self.config.ir.ambassador_module and self.config.ir.ambassador_module.buffer_limit_bytes != None:
+            odict['per_connection_buffer_limit_bytes'] = self.config.ir.ambassador_module.buffer_limit_bytes)
+
         return odict          
 
     def pretty(self) -> dict:
