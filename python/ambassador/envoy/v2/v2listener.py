@@ -946,7 +946,7 @@ class V2Listener(dict):
             odict["listener_filters"] = self.listener_filters
 
         if 'buffer_limit_bytes' in self.config.ir.ambassador_module and self.config.ir.ambassador_module.buffer_limit_bytes != None:
-            odict['per_connection_buffer_limit_bytes'] = self.config.ir.ambassador_module.buffer_limit_bytes)
+            odict['per_connection_buffer_limit_bytes'] = self.config.ir.ambassador_module.buffer_limit_bytes
 
         return odict          
 
