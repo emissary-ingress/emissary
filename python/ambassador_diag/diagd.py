@@ -199,9 +199,8 @@ class DiagApp (Flask):
         self.enable_fast_reconfigure = enable_fast_reconfigure
         self.legacy_mode = legacy_mode
 
-        # This feels like overkill.
+        # Init logger, inherits settings from default
         self.logger = logging.getLogger("ambassador.diagd")
-        # self.logger.setLevel(logging.INFO) # overrides default
 
         # Initialize the Envoy stats manager...
         self.estatsmgr = EnvoyStatsMgr(self.logger)
