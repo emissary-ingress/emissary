@@ -70,6 +70,9 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [?] (TBD)
+- Bugfix: Diagd logs level settable by AES_LOG_LEVEL
+
 ## [2.0.1-ea] (TBD)
 [2.0.1-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.0-ea...v2.0.1-ea
 
