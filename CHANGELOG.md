@@ -70,10 +70,13 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [?] (TBD)
-- Bugfix: Diagd logs level settable by AES_LOG_LEVEL
+## [2.0.2-ea] (TBD)
+[2.0.2-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.1-ea...v2.0.2-ea
 
-## [2.0.1-ea] (TBD)
+### Emissary Ingress
+- Feature: The environment variable "AES_LOG_LEVEL" now also sets the log level for the diagd logger.
+
+## [2.0.1-ea] August 12, 2021
 [2.0.1-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.0-ea...v2.0.1-ea
 
 We're pleased to introduce Emissary 2.0.1 as a developer preview. The 2.X family introduces a number of changes to allow Emissary to more gracefully handle larger installations, reduce global configuration to better handle multitenant or multiorganizational installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
