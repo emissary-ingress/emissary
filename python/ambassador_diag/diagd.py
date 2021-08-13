@@ -92,8 +92,19 @@ if parse_bool(os.environ.get("AMBASSADOR_JSON_LOGGING", "false")):
     else:
         print("Could not find a logging manager. Some logging may not be properly JSON formatted!")
 else:
+    # Default log level
+    level = logging.INFO
+
+    # Check for env var log level
+    if level_name := os.getenv("AES_LOG_LEVEL"):
+        level_number = logging.getLevelName(level_name.upper())
+        
+        if isinstance(level_number, int):
+            level = level_number
+
+    # Set defauts for all loggers
     logging.basicConfig(
-        level=logging.INFO,
+        level=level,
         format="%%(asctime)s diagd %s [P%%(process)dT%%(threadName)s] %%(levelname)s: %%(message)s" % __version__,
         datefmt="%Y-%m-%d %H:%M:%S"
     )
@@ -190,7 +201,7 @@ class DiagApp (Flask):
 
         # This feels like overkill.
         self.logger = logging.getLogger("ambassador.diagd")
-        self.logger.setLevel(logging.INFO)
+        # self.logger.setLevel(logging.INFO) # overrides defult
 
         # Initialize the Envoy stats manager...
         self.estatsmgr = EnvoyStatsMgr(self.logger)
