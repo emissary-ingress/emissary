@@ -201,7 +201,7 @@ class DiagApp (Flask):
 
         # This feels like overkill.
         self.logger = logging.getLogger("ambassador.diagd")
-        # self.logger.setLevel(logging.INFO) # overrides defult
+        # self.logger.setLevel(logging.INFO) # overrides default
 
         # Initialize the Envoy stats manager...
         self.estatsmgr = EnvoyStatsMgr(self.logger)
