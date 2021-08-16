@@ -164,10 +164,10 @@ class AmbassadorTest(Test):
     - name: AMBASSADOR_ENVOY_API_VERSION
       value: "{self.envoy_api_version}"
 """
-        elif os.environ.get('KAT_USE_ENVOY_V3', '') != '':
+        elif os.environ.get('KAT_USE_ENVOY_V2', '') != '':
             self.manifest_envs += """
     - name: AMBASSADOR_ENVOY_API_VERSION
-      value: "V3"
+      value: "V2"
 """
 
         eports = ""

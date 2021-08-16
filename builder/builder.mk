@@ -523,13 +523,13 @@ pytest-envoy-builder:
 	$(MAKE) pytest-builder KAT_RUN_MODE=envoy
 .PHONY: pytest-envoy-builder
 
-pytest-envoy-v3:
-	$(MAKE) pytest KAT_RUN_MODE=envoy KAT_USE_ENVOY_V3=true
-.PHONY: pytest-envoy-v3
+pytest-envoy-v2:
+	$(MAKE) pytest KAT_RUN_MODE=envoy KAT_USE_ENVOY_V2=true
+.PHONY: pytest-envoy-v2
 
-pytest-envoy-v3-builder:
-	$(MAKE) pytest-builder KAT_RUN_MODE=envoy KAT_USE_ENVOY_V3=true
-.PHONY: pytest-envoy-v3-builder
+pytest-envoy-v2-builder:
+	$(MAKE) pytest-builder KAT_RUN_MODE=envoy KAT_USE_ENVOY_V2=true
+.PHONY: pytest-envoy-v2-builder
 
 pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests in builder shell$(END)\n"
@@ -542,7 +542,7 @@ pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remot
 		-e DOCKER_NETWORK=$(DOCKER_NETWORK) \
 		-e KAT_REQ_LIMIT \
 		-e KAT_RUN_MODE \
-		-e KAT_USE_ENVOY_V3 \
+		-e KAT_USE_ENVOY_V2 \
 		-e KAT_VERBOSE \
 		-e PYTEST_ARGS \
 		-e TEST_SERVICE_REGISTRY \
