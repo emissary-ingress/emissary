@@ -118,7 +118,7 @@ class AmbassadorTest(Test):
       value: "true"
 """
 
-        if os.environ.get('AMBASSADOR_FAST_RECONFIGURE', 'false').lower() == 'false':
+        if os.environ.get('AMBASSADOR_FAST_RECONFIGURE', 'true').lower() == 'false':
             self.manifest_envs += """
     - name: AMBASSADOR_FAST_RECONFIGURE
       value: "false"
