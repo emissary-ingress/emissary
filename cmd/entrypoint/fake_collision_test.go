@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/datawire/ambassador/cmd/entrypoint"
-	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
+	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v3"
 	"github.com/stretchr/testify/assert"
 )
 
