@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _transcoder_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on GrpcJsonTranscoder with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -68,6 +65,13 @@ func (m *GrpcJsonTranscoder) Validate() error {
 	// no validation rules for IgnoreUnknownQueryParameters
 
 	// no validation rules for ConvertGrpcStatus
+
+	if _, ok := GrpcJsonTranscoder_UrlUnescapeSpec_name[int32(m.GetUrlUnescapeSpec())]; !ok {
+		return GrpcJsonTranscoderValidationError{
+			field:  "UrlUnescapeSpec",
+			reason: "value must be one of the defined enum values",
+		}
+	}
 
 	switch m.DescriptorSet.(type) {
 

@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _regex_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on RegexMatcher with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -44,10 +41,10 @@ func (m *RegexMatcher) Validate() error {
 		return nil
 	}
 
-	if len(m.GetRegex()) < 1 {
+	if utf8.RuneCountInString(m.GetRegex()) < 1 {
 		return RegexMatcherValidationError{
 			field:  "Regex",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 

@@ -33,7 +33,7 @@ Free and Open Source software:
     github.com/blang/semver                                        v3.5.1+incompatible                                         MIT license
     github.com/census-instrumentation/opencensus-proto             v0.2.1                                                      Apache License 2.0
     github.com/cespare/xxhash/v2                                   v2.1.1                                                      MIT license
-    github.com/cncf/udpa/go                                        v0.0.0-20200629203442-efcf912fb354                          Apache License 2.0
+    github.com/cncf/udpa/go                                        v0.0.0-20210322005330-6414d713912e                          Apache License 2.0
     github.com/containerd/cgroups                                  v0.0.0-20200531161412-0dbf7f05ba59                          Apache License 2.0
     github.com/containerd/containerd                               v1.4.3                                                      Apache License 2.0
     github.com/containerd/continuity                               v0.0.0-20201208142359-180525291bb7                          Apache License 2.0
