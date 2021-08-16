@@ -142,12 +142,21 @@ We're pleased to introduce Emissary 2.0.0 as a developer preview. The 2.X family
 
 ### Ambassador Edge Stack only
 
-- Bugfix: The `Mapping` resource can now specify `docs.timeout_ms` to set the timeout when the 
+- Bugfix: The `Mapping` resource can now specify `docs.timeout_ms` to set the timeout when the
   Dev Portal is fetching API specifications.
 - Bugfix: The Dev Portal will now strip HTML tags when displaying search results, showing just
   the actual content of the search result.
 - Change: Consul certificate-rotation logging now includes the fingerprints and validity
   timestamps of certificates being rotated.
+
+[#3609]: https://github.com/emissary-ingress/emissary/issues/3609
+
+## [1.13.9] June 30, 2021
+[1.13.9]: https://github.com/emissary-ingress/emissary/compare/v1.13.8...v1.13.9
+
+### Emissary Ingress and Ambassador Edge Stack
+
+- Bugfix: Configuring multiple TCPMappings with the same ports (but different hosts) no longer generates invalid Envoy configuration.
 
 ## [1.13.8] June 08, 2021
 [1.13.8]: https://github.com/emissary-ingress/emissary/compare/v1.13.7...v1.13.8
@@ -2572,4 +2581,3 @@ Based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/). Ambassador fol
 [Ambassador-Envoy]: https://github.com/datawire/ambassador-envoy
 [Telepresence]: http://telepresence.io
 [Istio]: https://istio.io/
-
