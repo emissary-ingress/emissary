@@ -831,6 +831,10 @@ release/promote-oss/dev-to-rc:
 			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
 			PROMOTE_TO_VERSION="$$tag" \
 			PROMOTE_CHANNEL=test ; \
+		if [ $(IS_PRIVATE) ] ; then \
+			echo "Not publishing charts or manifests because in a private repo" ;\
+			exit 0 ; \
+		fi ; \
 		chartsuffix=$(RELEASE_VERSION) ; \
 		chartsuffix=$${chartsuffix#*-} ; \
 		$(MAKE) \
