@@ -88,6 +88,7 @@ class V3Config (EnvoyConfig):
                             # Envoy 1.14.1 disabled the use of lowercase string matcher for headers matching in HTTP-based.
                             # Following setting toggled it to be consistent with old behavior.
                             # AuthenticationTest (v0) is a good example that expects the old behavior.
+                            'envoy.reloadable_features.enable_deprecated_v2_api': True,
                             'envoy.reloadable_features.ext_authz_http_service_enable_case_sensitive_string_matcher': False,
                             're2.max_program_size.error_level': 200,
                         }
