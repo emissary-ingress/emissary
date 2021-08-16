@@ -121,6 +121,7 @@ commands:
     steps:
     - amb-linux-install
     - amb-attach-workspace
+    - amb-skip-if-no-code-changes-not-release
     - run:
         name: "promote pr build to passed"
         command: |
