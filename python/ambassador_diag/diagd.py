@@ -121,11 +121,11 @@ def number_of_workers():
 
 
 def envoy_api_version():
-    env_version = os.environ.get('AMBASSADOR_ENVOY_API_VERSION', 'V2')
+    env_version = os.environ.get('AMBASSADOR_ENVOY_API_VERSION', 'V3')
     version = env_version.upper()
     if version == 'V2' or env_version == 'V3':
         return version
-    return 'V2'
+    return 'V3'
 
 
 class DiagApp (Flask):
