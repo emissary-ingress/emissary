@@ -9,8 +9,8 @@ import (
 
 	"github.com/datawire/ambassador/cmd/ambex"
 	"github.com/datawire/ambassador/cmd/entrypoint"
-	envoy "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
+	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v3"
+	cluster "github.com/datawire/ambassador/pkg/api/envoy/config/cluster/v3"
 	v2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/snapshot/v1"
@@ -164,8 +164,8 @@ spec:
 	assert.Equal(t, "1.2.3.4", endpoints.Entries["k8s/default/foo/80"][0].Ip)
 }
 
-func ClusterNameContains(substring string) func(*envoy.Cluster) bool {
-	return func(c *envoy.Cluster) bool {
+func ClusterNameContains(substring string) func(*cluster.Cluster) bool {
+	return func(c *cluster.Cluster) bool {
 		return strings.Contains(c.Name, substring)
 	}
 }
