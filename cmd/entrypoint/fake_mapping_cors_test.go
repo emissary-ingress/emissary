@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
-	envoy "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	route "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/route"
-	bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v2"
-	http "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v2"
+	bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
+	v3listener "github.com/datawire/ambassador/v2/pkg/api/envoy/config/listener/v3"
+	route "github.com/datawire/ambassador/v2/pkg/api/envoy/config/route/v3"
+	http "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v3"
 	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
 
 	"github.com/stretchr/testify/assert"
@@ -40,7 +40,7 @@ spec:
 		return FindCluster(config, ClusterNameContains("cluster_foo_default_default")) != nil
 	})
 
-	listener := findListener(config, func(l *envoy.Listener) bool {
+	listener := findListener(config, func(l *v3listener.Listener) bool {
 		return l.Name == "ambassador-listener-8080"
 	})
 
@@ -82,7 +82,7 @@ spec:
 		return FindCluster(config, ClusterNameContains("cluster_foo_default_default")) != nil
 	})
 
-	listener := findListener(config, func(l *envoy.Listener) bool {
+	listener := findListener(config, func(l *v3listener.Listener) bool {
 		return l.Name == "ambassador-listener-8080"
 	})
 
@@ -100,7 +100,7 @@ spec:
 	}
 }
 
-func findVirtualHostRoute(listener *envoy.Listener, predicate func(*route.RouteAction) bool) *route.RouteAction {
+func findVirtualHostRoute(listener *v3listener.Listener, predicate func(*route.RouteAction) bool) *route.RouteAction {
 	for _, fc := range listener.FilterChains {
 		for _, filter := range fc.Filters {
 			if filter.Name != wellknown.HTTPConnectionManager {
@@ -129,7 +129,7 @@ func findVirtualHostRoute(listener *envoy.Listener, predicate func(*route.RouteA
 
 }
 
-func findListener(envoyConfig *bootstrap.Bootstrap, predicate func(*envoy.Listener) bool) *envoy.Listener {
+func findListener(envoyConfig *bootstrap.Bootstrap, predicate func(*v3listener.Listener) bool) *v3listener.Listener {
 	for _, listener := range envoyConfig.StaticResources.Listeners {
 		if predicate(listener) {
 			return listener
