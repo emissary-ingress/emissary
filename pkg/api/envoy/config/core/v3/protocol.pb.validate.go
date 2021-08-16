@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _protocol_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on TcpProtocolOptions with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -319,6 +316,18 @@ func (m *Http1ProtocolOptions) Validate() error {
 
 	// no validation rules for EnableTrailers
 
+	// no validation rules for AllowChunkedLength
+
+	if v, ok := interface{}(m.GetOverrideStreamErrorOnInvalidHttpMessage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Http1ProtocolOptionsValidationError{
+				field:  "OverrideStreamErrorOnInvalidHttpMessage",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -377,6 +386,139 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = Http1ProtocolOptionsValidationError{}
+
+// Validate checks the field values on KeepaliveSettings with the rules defined
+// in the proto definition for this message. If any rules are violated, an
+// error is returned.
+func (m *KeepaliveSettings) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetInterval() == nil {
+		return KeepaliveSettingsValidationError{
+			field:  "Interval",
+			reason: "value is required",
+		}
+	}
+
+	if d := m.GetInterval(); d != nil {
+		dur, err := ptypes.Duration(d)
+		if err != nil {
+			return KeepaliveSettingsValidationError{
+				field:  "Interval",
+				reason: "value is not a valid duration",
+				cause:  err,
+			}
+		}
+
+		gte := time.Duration(0*time.Second + 1000000*time.Nanosecond)
+
+		if dur < gte {
+			return KeepaliveSettingsValidationError{
+				field:  "Interval",
+				reason: "value must be greater than or equal to 1ms",
+			}
+		}
+
+	}
+
+	if m.GetTimeout() == nil {
+		return KeepaliveSettingsValidationError{
+			field:  "Timeout",
+			reason: "value is required",
+		}
+	}
+
+	if d := m.GetTimeout(); d != nil {
+		dur, err := ptypes.Duration(d)
+		if err != nil {
+			return KeepaliveSettingsValidationError{
+				field:  "Timeout",
+				reason: "value is not a valid duration",
+				cause:  err,
+			}
+		}
+
+		gte := time.Duration(0*time.Second + 1000000*time.Nanosecond)
+
+		if dur < gte {
+			return KeepaliveSettingsValidationError{
+				field:  "Timeout",
+				reason: "value must be greater than or equal to 1ms",
+			}
+		}
+
+	}
+
+	if v, ok := interface{}(m.GetIntervalJitter()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return KeepaliveSettingsValidationError{
+				field:  "IntervalJitter",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// KeepaliveSettingsValidationError is the validation error returned by
+// KeepaliveSettings.Validate if the designated constraints aren't met.
+type KeepaliveSettingsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e KeepaliveSettingsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e KeepaliveSettingsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e KeepaliveSettingsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e KeepaliveSettingsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e KeepaliveSettingsValidationError) ErrorName() string {
+	return "KeepaliveSettingsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e KeepaliveSettingsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sKeepaliveSettings.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = KeepaliveSettingsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = KeepaliveSettingsValidationError{}
 
 // Validate checks the field values on Http2ProtocolOptions with the rules
 // defined in the proto definition for this message. If any rules are
@@ -488,6 +630,16 @@ func (m *Http2ProtocolOptions) Validate() error {
 
 	// no validation rules for StreamErrorOnInvalidHttpMessaging
 
+	if v, ok := interface{}(m.GetOverrideStreamErrorOnInvalidHttpMessage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Http2ProtocolOptionsValidationError{
+				field:  "OverrideStreamErrorOnInvalidHttpMessage",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	for idx, item := range m.GetCustomSettingsParameters() {
 		_, _ = idx, item
 
@@ -501,6 +653,16 @@ func (m *Http2ProtocolOptions) Validate() error {
 			}
 		}
 
+	}
+
+	if v, ok := interface{}(m.GetConnectionKeepalive()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Http2ProtocolOptionsValidationError{
+				field:  "ConnectionKeepalive",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	return nil
