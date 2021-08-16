@@ -1,0 +1,51 @@
+name: job-image
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - 'releng/**'
+      - 'charts/**'
+      - 'manifests/**'
+      - 'k8s-config/**'
+      - 'docs/**'
+      - '*.md$'
+  pull_request:
+    paths-ignore:
+      - 'releng/**'
+      - 'charts/**'
+      - 'manifests/**'
+      - 'k8s-config/**'
+      - 'docs/**'
+      - '*.md$'
+
+jobs:
+  execute-generate:
+    runs-on: ubuntu-latest
+    name: job-image
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_EC2_METADATA_DISABLED: true
+      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: "Docker Login"
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_BUILD_USERNAME }}
+          password: ${{ secrets.DOCKER_BUILD_PASSWORD }}
+      - name: "make push"
+        run: |
+          make push
+      - name: "make push-dev"
+        run: |
+          make push-dev
+      - name: "Clean up dirty chart stuff"
+        run: |
+          make chart-clean
+      - uses: ./.github/actions/git-dirty-check
+        name: "Check git not dirty (from make push + make push-dev)"
+
