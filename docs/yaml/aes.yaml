@@ -378,6 +378,9 @@ spec:
   selector:
     matchLabels:
       service: ambassador
+
+
+  progressDeadlineSeconds: 600
   strategy:
     type: RollingUpdate
   template:
@@ -634,6 +637,9 @@ metadata:
     app.kubernetes.io/instance: ambassador
 spec:
   replicas: 1
+
+
+  progressDeadlineSeconds: 600
   selector:
     matchLabels:
       app.kubernetes.io/name: ambassador-agent
