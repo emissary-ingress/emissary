@@ -4,9 +4,6 @@ include $(OSS_HOME)/build-aux/prelude.mk
 YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
 ENVOY_TEST_LABEL ?= //test/...
 
-_git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
-IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
-
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
   ENVOY_COMMIT ?= d4dd111f1143f413f0ffb6cddbffffc3a863038c
