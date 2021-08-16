@@ -63,8 +63,8 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [1.13.11] (TBD)
-[1.13.11]: https://github.com/emissary-ingress/emissary/compare/v1.13.10...v1.13.11
+## [1.14.0] (TBD)
+[1.14.0]: https://github.com/emissary-ingress/emissary/compare/v1.13.10...v1.14.0
 
 ### Emissary Ingress and Ambassador Edge Stack
 
@@ -87,7 +87,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Ambassador Edge Stack only
 
-- Bugfix: The `Mapping` resource can now specify `docs.timeout_ms` to set the timeout when the 
+- Bugfix: The `Mapping` resource can now specify `docs.timeout_ms` to set the timeout when the
   Dev Portal is fetching API specifications.
 - Bugfix: The Dev Portal will now strip HTML tags when displaying search results, showing just
   the actual content of the search result.
