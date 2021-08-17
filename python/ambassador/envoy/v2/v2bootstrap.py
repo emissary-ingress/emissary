@@ -48,6 +48,7 @@ class V2Bootstrap(dict):
                             # We haven't yet told users that we'll be deprecating `regex_type: unsafe`.
                             'envoy.deprecated_features:envoy.api.v2.route.RouteMatch.regex': True,         # HTTP path
                             'envoy.deprecated_features:envoy.api.v2.route.HeaderMatcher.regex_match': True, # HTTP header,
+                            'envoy.reloadable_features.enable_deprecated_v2_api': True,
                             # Envoy 1.14.1 disabled the use of lowercase string matcher for headers matching in HTTP-based.
                             # Following setting toggled it to be consistent with old behavior.
                             # AuthenticationTest (v0) is a good example that expects the old behavior.
