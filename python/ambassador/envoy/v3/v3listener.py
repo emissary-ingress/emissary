@@ -360,7 +360,11 @@ class V3Listener(dict):
                 'typed_config': {
                     '@type': 'type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog',
                     'path': self.config.ir.ambassador_module.envoy_log_path,
-                    'format': log_format + '\n'
+                    'log_format': {
+                        'text_format_source': {
+                            'inline_string': log_format + '\n'
+                        }
+                    }
                 }
             })
 
