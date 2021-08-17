@@ -281,6 +281,8 @@ commands:
           or:
           - equal: ["https://github.com/emissary-ingress/emissary", << pipeline.project.git_url
                 >>]
+          - equal: ["https://github.com/datawire/emissary-private", << pipeline.project.git_url
+                >>]
         steps:
         - amb-linux-install
         - amb-checkout
