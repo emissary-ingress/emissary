@@ -90,12 +90,8 @@ import (
 	v2discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v2"
 
 	// Envoy API v3
-	//
-	// XXX TODO Is this actually true and necessary?
-	// yes it is true and necessary. need to import all types so they can be decoded by `decode`
-	// Be sure to import the package of any types that the Python
-	// emits a "@type" of in the generated config, even if that package is otherwise
-	// not used by ambex.
+	// Be sure to import the package of any types that're referenced with "@type" in our
+	// generated Envoy config, even if that package is otherwise not used by ambex.
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/accesslog/v3"
 	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
 	v3clusterconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
@@ -105,7 +101,9 @@ import (
 	v3routeconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/route/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/access_loggers/file/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/access_loggers/grpc/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/compression/gzip/compressor/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/buffer/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/compressor/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/ext_authz/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/grpc_stats/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/gzip/v3"
