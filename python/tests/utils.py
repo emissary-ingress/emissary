@@ -255,7 +255,7 @@ def _secret_handler():
     cache_dir = tempfile.TemporaryDirectory(prefix="null-secret-", suffix="-cache")
     return NullSecretHandler(logger, source_root.name, cache_dir.name, "fake")
 
-def econf_compile(yaml, envoy_version="V2"):
+def econf_compile(yaml, envoy_version="V3"):
     # Compile with and without a cache. Neither should produce errors.
     cache = Cache(logger)
     secret_handler = _secret_handler()
@@ -311,12 +311,14 @@ def econf_foreach_cluster(econf, fn, name='cluster_httpbin_default'):
             break
     assert found_cluster
 
-def assert_valid_envoy_config(config_dict):
+def assert_valid_envoy_config(config_dict, v2=False):
     with tempfile.NamedTemporaryFile() as temp:
         temp.write(bytes(json.dumps(config_dict), encoding = 'utf-8'))
         temp.flush()
         f_name = temp.name
         cmd = [ENVOY_PATH, '--config-path', f_name, '--mode', 'validate']
+        if v2:
+            cmd.append('--bootstrap-version 2')
         p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if p.returncode != 0:
             print(p.stdout)
