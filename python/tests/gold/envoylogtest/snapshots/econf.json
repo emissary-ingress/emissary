@@ -65,7 +65,11 @@
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
-                        "format": "MY_REQUEST %RESPONSE_CODE% \"%REQ(:AUTHORITY)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%UPSTREAM_HOST%\"\n",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "MY_REQUEST %RESPONSE_CODE% \"%REQ(:AUTHORITY)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
                         "path": "/tmp/ambassador/ambassador.log"
                       }
                     }
@@ -247,7 +251,11 @@
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
-                        "format": "MY_REQUEST %RESPONSE_CODE% \"%REQ(:AUTHORITY)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%UPSTREAM_HOST%\"\n",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "MY_REQUEST %RESPONSE_CODE% \"%REQ(:AUTHORITY)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
                         "path": "/tmp/ambassador/ambassador.log"
                       }
                     }
@@ -449,7 +457,11 @@
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
-                        "format": "MY_REQUEST %RESPONSE_CODE% \"%REQ(:AUTHORITY)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%UPSTREAM_HOST%\"\n",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "MY_REQUEST %RESPONSE_CODE% \"%REQ(:AUTHORITY)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
                         "path": "/tmp/ambassador/ambassador.log"
                       }
                     }
@@ -631,7 +643,11 @@
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
-                        "format": "MY_REQUEST %RESPONSE_CODE% \"%REQ(:AUTHORITY)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%UPSTREAM_HOST%\"\n",
+                        "log_format": {
+                          "text_format_source": {
+                            "inline_string": "MY_REQUEST %RESPONSE_CODE% \"%REQ(:AUTHORITY)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%UPSTREAM_HOST%\"\n"
+                          }
+                        },
                         "path": "/tmp/ambassador/ambassador.log"
                       }
                     }
