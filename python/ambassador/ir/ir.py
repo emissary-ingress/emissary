@@ -370,6 +370,7 @@ class IR:
                 # XXX This is doubly a hack because it's duplicating this magic format from
                 # v2cluster.py.
                 self.cache.invalidate(f"V2-{cluster.cache_key}")
+                self.cache.invalidate(f"V3-{cluster.cache_key}")
 
                 # OK. Finally, we can update the envoy_name.
                 cluster['envoy_name'] = mangled_name
