@@ -685,7 +685,6 @@ class AuthenticationTest(AmbassadorTest):
         self.target = HTTP()
         self.auth = AHTTP(name="auth")
 
-    # User-Agent and X-Forwarded-Proto added to allowed_headers when switching default Envoy API to V3
     def config(self):
         yield self, self.format("""
 ---
@@ -696,8 +695,6 @@ auth_service: "{self.auth.path.fqdn}"
 path_prefix: "/extauth"
 
 allowed_headers:
-- User-Agent
-- X-Forwarded-Proto
 - X-Foo
 - X-Bar
 - Requested-Location
