@@ -39,10 +39,8 @@ service: {self.target.path.fqdn}
         })
 
     def check(self):
-        # We expect 501 when sending both these headers because it service probably doesnt support gzip transfer encoding
         # Not getting a 400 bad request is confirmation that this setting works as long as the request can reach the upstream
         assert self.results[0].status == 200
         assert self.results[1].status == 200
-        # TODO: the second /foo/ request returns a 200 status
-        # assert self.results[2].status == 501
-        # assert self.results[3].status == 501
+        assert self.results[2].status == 200
+        assert self.results[3].status == 200
