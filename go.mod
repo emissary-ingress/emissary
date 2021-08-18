@@ -60,7 +60,7 @@ require (
 	github.com/census-instrumentation/opencensus-proto v0.2.1
 	github.com/cncf/udpa/go v0.0.0-20210322005330-6414d713912e
 	github.com/datawire/dlib v1.2.0
-	github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a
+	github.com/datawire/pf v0.0.0-20201130213120-827bb98f7ed5
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/ecodia/golang-awaitility v0.0.0-20180710094957-fb55e59708c7
 	github.com/envoyproxy/protoc-gen-validate v0.3.0-java.0.20200609174644-bd816e4522c1
