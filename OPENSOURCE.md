@@ -39,7 +39,7 @@ Free and Open Source software:
     github.com/containerd/continuity                               v0.0.0-20201208142359-180525291bb7                          Apache License 2.0
     github.com/cyphar/filepath-securejoin                          v0.2.2                                                      3-clause BSD license
     github.com/datawire/dlib                                       v1.2.0                                                      Apache License 2.0
-    github.com/datawire/pf                                         v0.0.0-20180510150411-31a823f9495a                          2-clause BSD license
+    github.com/datawire/pf                                         v0.0.0-20201130213120-827bb98f7ed5                          2-clause BSD license
     github.com/davecgh/go-spew                                     v1.1.1                                                      ISC license
     github.com/deislabs/oras                                       v0.10.0                                                     MIT license
     github.com/dgrijalva/jwt-go                                    v3.2.0+incompatible                                         MIT license
