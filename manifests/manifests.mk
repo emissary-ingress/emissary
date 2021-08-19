@@ -1,5 +1,8 @@
 push-manifests:
-	@([ "$(IS_PRIVATE)" ] && (echo "Private repo, not pushing manifests" && exit 1)) || true
+	if [ ! -z $(IS_PRIVATE) ]; then \
+		echo "Private repo, not pushing chart" ;\
+		exit 1 ;\
+	fi;
 	$(OSS_HOME)/manifests/push_manifests.sh
 .PHONY: push-manifests
 
