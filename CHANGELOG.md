@@ -63,12 +63,15 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [1.14.0] (TBD)
+## [1.14.0] August 19, 2021
 [1.14.0]: https://github.com/emissary-ingress/emissary/compare/v1.13.10...v1.14.0
 
 ### Emissary Ingress and Ambassador Edge Stack
 
 - Change: Logs now include subsecond time resolutions, rather than just seconds.
+- Change: Update from Envoy 1.15 to 1.17.3
+- Change: `AMBASSADOR_ENVOY_API_VERSION` now defaults to `V3`
+- Feature: You can now set `allow_chunked_length` in the Ambassador Module to configure the same value in Envoy.
 
 ## [1.13.10] July 28, 2021
 [1.13.10]: https://github.com/emissary-ingress/emissary/compare/v1.13.9...v1.13.10
