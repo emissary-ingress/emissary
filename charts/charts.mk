@@ -1,3 +1,4 @@
+
 AMBASSADOR_CHART = $(OSS_HOME)/charts/ambassador
 YQ := $(OSS_HOME)/.circleci/yq
 
@@ -33,7 +34,10 @@ release/ga/chart-push:
 .PHONY: release/ga/chart-push
 
 chart-push-ci: push-preflight
-	@[ $(IS_PRIVATE) ] && (echo "Private repo, not pushing chart" && exit 1)
+	if [ ! -z $(IS_PRIVATE) ]; then \
+		echo "Private repo, not pushing chart" ;\
+		exit 1 ;\
+	fi;
 	@echo ">>> This will dirty your local tree and should only be run in CI"
 	@echo ">>> If running locally, you'll probably want to run make chart-clean after running this"
 	@[ -n "${CHART_VERSION_SUFFIX}" ] || (echo "CHART_VERSION_SUFFIX must be set for non-GA pushes" && exit 1)
