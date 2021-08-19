@@ -69,7 +69,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ### Emissary Ingress and Ambassador Edge Stack
 
 - Change: Logs now include subsecond time resolutions, rather than just seconds.
-- Change: Update from Envoy 1.15 to 1.17
+- Change: Update from Envoy 1.15 to 1.17.3
 - Change: `AMBASSADOR_ENVOY_API_VERSION` now defaults to `V3`
 - Feature: You can now set `allow_chunked_length` in the Ambassador Module to configure the same value in Envoy.
 
