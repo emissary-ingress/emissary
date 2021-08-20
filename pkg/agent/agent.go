@@ -30,6 +30,7 @@ type Comm interface {
 	Close() error
 	Report(context.Context, *agent.Snapshot, string) error
 	Directives() <-chan *agent.Directive
+	ReportStream(context.Context, *agent.Snapshot, string) error
 }
 
 type atomicBool struct {
@@ -497,7 +498,7 @@ func (a *Agent) MaybeReport(ctx context.Context) {
 		apikey := a.ambassadorAPIKey
 		a.ambassadorAPIKeyMutex.Unlock()
 		dlog.Info(ctx, "Report Called AYYY")
-		err = a.comm.Report(ctx, report, apikey)
+		err = a.comm.ReportStream(ctx, report, apikey)
 
 	}(ctx, a.reportToSend, a.minReportPeriod)
 
