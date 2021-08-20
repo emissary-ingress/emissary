@@ -497,7 +497,6 @@ func (a *Agent) MaybeReport(ctx context.Context) {
 		a.ambassadorAPIKeyMutex.Lock()
 		apikey := a.ambassadorAPIKey
 		a.ambassadorAPIKeyMutex.Unlock()
-		dlog.Info(ctx, "Report Called AYYY")
 		err = a.comm.ReportStream(ctx, report, apikey)
 
 	}(ctx, a.reportToSend, a.minReportPeriod)
