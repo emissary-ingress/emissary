@@ -44,6 +44,12 @@ items:
           The release now shows its actual released version number, rather than
           the internal development version number.
 
+      - type: bugfix
+        bugfix: Agent handles large configurations
+        body: >-
+          Large configurations no longer cause the agent to be unable
+          to communicate with Ambassador Cloud.
+
   - version: 2.0.3-ea
     date: "TBD"
     notes:

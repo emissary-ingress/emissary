@@ -3,6 +3,8 @@ package agent
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
+	"fmt"
 	"io"
 	"net/url"
 
@@ -147,9 +149,44 @@ func (c *RPCComm) Report(ctx context.Context, report *agent.Snapshot, apiKey str
 	}
 	ctx = metadata.AppendToOutgoingContext(ctx, APIKeyMetadataKey, apiKey)
 
-	_, err := c.client.Report(ctx, report)
+	// marshal snapshot
+	data, err := json.Marshal(report)
+	if err != nil {
+		return fmt.Errorf("json.Marshal: %w", err)
+	}
 
-	return err
+	const CHUNKSIZE = (64 * 1024) - 4 // 64KiB-4B; gRPC adds 4 bytes of overhead
+	dlog.Debugf(ctx, "Report is %dB; will take %d chunks",
+		len(data),
+		(len(data)+CHUNKSIZE-1)/CHUNKSIZE)
+
+	// make stream
+	stream, err := c.client.ReportStream(ctx)
+	if err != nil {
+		return fmt.Errorf("ReportStream.Open: %w", err)
+	}
+
+	// send chunks
+	msg := &agent.RawSnapshotChunk{}
+	for i := 0; i < len(data); i += CHUNKSIZE {
+		j := i + CHUNKSIZE
+
+		if j < len(data) {
+			msg.Chunk = data[i:j]
+		} else {
+			msg.Chunk = data[i:]
+		}
+
+		if err := stream.Send(msg); err != nil {
+			return fmt.Errorf("ReportStream.Send: %w", err)
+		}
+	}
+
+	if _, err = stream.CloseAndRecv(); err != nil {
+		return fmt.Errorf("ReportStream.Close: %w", err)
+	}
+
+	return nil
 }
 
 func (c *RPCComm) Directives() <-chan *agent.Directive {

@@ -667,12 +667,12 @@ func TestWatchErrorSendingSnapshot(t *testing.T) {
 		w.Write(enSnapshot)
 	}))
 	defer ts.Close()
-	expectedErrorMessage := "Error sending report"
+	mockError := errors.New("MockClient: Error sending report")
 
 	client := &MockClient{
 		// force an error
 		reportFunc: func(ctx context.Context, in *agent.Snapshot) (*agent.SnapshotResponse, error) {
-			return nil, errors.New(expectedErrorMessage)
+			return nil, mockError
 		},
 	}
 	c := &RPCComm{
@@ -706,8 +706,7 @@ func TestWatchErrorSendingSnapshot(t *testing.T) {
 	case err := <-a.reportComplete:
 		// make sure that we got an error and that error is the same one we configured the
 		// mock client to send
-		assert.NotNil(t, err)
-		assert.Equal(t, expectedErrorMessage, err.Error())
+		assert.ErrorIs(t, err, mockError)
 		assert.False(t, a.reportRunning.Value())
 		cancel()
 	case err := <-watchDone:
