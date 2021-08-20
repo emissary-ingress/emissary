@@ -118,7 +118,7 @@ security:
 
 image:
   ossTag: 1.14.0
-  aesTag: 1.13.10
+  aesTag: 1.14.0
   pullPolicy: IfNotPresent
   ossRepository: docker.io/datawire/ambassador
   aesRepository: docker.io/datawire/aes
