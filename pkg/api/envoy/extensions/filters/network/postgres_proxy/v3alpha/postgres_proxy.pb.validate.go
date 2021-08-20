@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _postgres_proxy_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on PostgresProxy with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -48,6 +45,16 @@ func (m *PostgresProxy) Validate() error {
 		return PostgresProxyValidationError{
 			field:  "StatPrefix",
 			reason: "value length must be at least 1 runes",
+		}
+	}
+
+	if v, ok := interface{}(m.GetEnableSqlParsing()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PostgresProxyValidationError{
+				field:  "EnableSqlParsing",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
 		}
 	}
 

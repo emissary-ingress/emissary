@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _tap_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on TapRequest with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *TapRequest) Validate() error {
@@ -43,10 +40,10 @@ func (m *TapRequest) Validate() error {
 		return nil
 	}
 
-	if len(m.GetConfigId()) < 1 {
+	if utf8.RuneCountInString(m.GetConfigId()) < 1 {
 		return TapRequestValidationError{
 			field:  "ConfigId",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 

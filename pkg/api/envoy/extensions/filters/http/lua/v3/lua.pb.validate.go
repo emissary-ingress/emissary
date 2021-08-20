@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _lua_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on Lua with the rules defined in the proto
 // definition for this message. If any rules are violated, an error is returned.
 func (m *Lua) Validate() error {
@@ -43,10 +40,10 @@ func (m *Lua) Validate() error {
 		return nil
 	}
 
-	if len(m.GetInlineCode()) < 1 {
+	if utf8.RuneCountInString(m.GetInlineCode()) < 1 {
 		return LuaValidationError{
 			field:  "InlineCode",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -149,6 +146,18 @@ func (m *LuaPerRoute) Validate() error {
 			return LuaPerRouteValidationError{
 				field:  "Name",
 				reason: "value length must be at least 1 runes",
+			}
+		}
+
+	case *LuaPerRoute_SourceCode:
+
+		if v, ok := interface{}(m.GetSourceCode()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return LuaPerRouteValidationError{
+					field:  "SourceCode",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
 			}
 		}
 
