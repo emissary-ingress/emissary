@@ -603,7 +603,7 @@ var file_agent_director_proto_rawDesc = []byte{
 	0x0e, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x52,
 	0x08, 0x63, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x73, 0x22, 0x23, 0x0a, 0x07, 0x43, 0x6f, 0x6d,
 	0x6d, 0x61, 0x6e, 0x64, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x32, 0xb5,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x32, 0xfb,
 	0x01, 0x0a, 0x08, 0x44, 0x69, 0x72, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x12, 0x34, 0x0a, 0x06, 0x52,
 	0x65, 0x70, 0x6f, 0x72, 0x74, 0x12, 0x0f, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x53, 0x6e,
 	0x61, 0x70, 0x73, 0x68, 0x6f, 0x74, 0x1a, 0x17, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x53,
@@ -615,7 +615,12 @@ var file_agent_director_proto_rawDesc = []byte{
 	0x53, 0x6e, 0x61, 0x70, 0x73, 0x68, 0x6f, 0x74, 0x12, 0x0f, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74,
 	0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x1a, 0x17, 0x2e, 0x61, 0x67, 0x65, 0x6e,
 	0x74, 0x2e, 0x52, 0x61, 0x77, 0x53, 0x6e, 0x61, 0x70, 0x73, 0x68, 0x6f, 0x74, 0x43, 0x68, 0x75,
-	0x6e, 0x6b, 0x22, 0x00, 0x30, 0x01, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6e, 0x6b, 0x22, 0x00, 0x30, 0x01, 0x12, 0x44, 0x0a, 0x0c, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74,
+	0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x12, 0x17, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x52,
+	0x61, 0x77, 0x53, 0x6e, 0x61, 0x70, 0x73, 0x68, 0x6f, 0x74, 0x43, 0x68, 0x75, 0x6e, 0x6b, 0x1a,
+	0x17, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x53, 0x6e, 0x61, 0x70, 0x73, 0x68, 0x6f, 0x74,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x28, 0x01, 0x62, 0x06, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -655,11 +660,13 @@ var file_agent_director_proto_depIdxs = []int32{
 	1,  // 7: agent.Director.Report:input_type -> agent.Snapshot
 	0,  // 8: agent.Director.Retrieve:input_type -> agent.Identity
 	0,  // 9: agent.Director.RetrieveSnapshot:input_type -> agent.Identity
-	4,  // 10: agent.Director.Report:output_type -> agent.SnapshotResponse
-	5,  // 11: agent.Director.Retrieve:output_type -> agent.Directive
-	2,  // 12: agent.Director.RetrieveSnapshot:output_type -> agent.RawSnapshotChunk
-	10, // [10:13] is the sub-list for method output_type
-	7,  // [7:10] is the sub-list for method input_type
+	2,  // 10: agent.Director.ReportStream:input_type -> agent.RawSnapshotChunk
+	4,  // 11: agent.Director.Report:output_type -> agent.SnapshotResponse
+	5,  // 12: agent.Director.Retrieve:output_type -> agent.Directive
+	2,  // 13: agent.Director.RetrieveSnapshot:output_type -> agent.RawSnapshotChunk
+	4,  // 14: agent.Director.ReportStream:output_type -> agent.SnapshotResponse
+	11, // [11:15] is the sub-list for method output_type
+	7,  // [7:11] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name
 	7,  // [7:7] is the sub-list for extension extendee
 	0,  // [0:7] is the sub-list for field type_name
@@ -793,6 +800,7 @@ type DirectorClient interface {
 	// Retrieve Directives from the CEPC
 	Retrieve(ctx context.Context, in *Identity, opts ...grpc.CallOption) (Director_RetrieveClient, error)
 	RetrieveSnapshot(ctx context.Context, in *Identity, opts ...grpc.CallOption) (Director_RetrieveSnapshotClient, error)
+	ReportStream(ctx context.Context, opts ...grpc.CallOption) (Director_ReportStreamClient, error)
 }
 
 type directorClient struct {
@@ -876,6 +884,40 @@ func (x *directorRetrieveSnapshotClient) Recv() (*RawSnapshotChunk, error) {
 	return m, nil
 }
 
+func (c *directorClient) ReportStream(ctx context.Context, opts ...grpc.CallOption) (Director_ReportStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Director_serviceDesc.Streams[2], "/agent.Director/ReportStream", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &directorReportStreamClient{stream}
+	return x, nil
+}
+
+type Director_ReportStreamClient interface {
+	Send(*RawSnapshotChunk) error
+	CloseAndRecv() (*SnapshotResponse, error)
+	grpc.ClientStream
+}
+
+type directorReportStreamClient struct {
+	grpc.ClientStream
+}
+
+func (x *directorReportStreamClient) Send(m *RawSnapshotChunk) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *directorReportStreamClient) CloseAndRecv() (*SnapshotResponse, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(SnapshotResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // DirectorServer is the server API for Director service.
 type DirectorServer interface {
 	// Report a consistent Snapshot of information to the CEPC
@@ -883,6 +925,7 @@ type DirectorServer interface {
 	// Retrieve Directives from the CEPC
 	Retrieve(*Identity, Director_RetrieveServer) error
 	RetrieveSnapshot(*Identity, Director_RetrieveSnapshotServer) error
+	ReportStream(Director_ReportStreamServer) error
 }
 
 // UnimplementedDirectorServer can be embedded to have forward compatible implementations.
@@ -897,6 +940,9 @@ func (*UnimplementedDirectorServer) Retrieve(*Identity, Director_RetrieveServer)
 }
 func (*UnimplementedDirectorServer) RetrieveSnapshot(*Identity, Director_RetrieveSnapshotServer) error {
 	return status.Errorf(codes.Unimplemented, "method RetrieveSnapshot not implemented")
+}
+func (*UnimplementedDirectorServer) ReportStream(Director_ReportStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method ReportStream not implemented")
 }
 
 func RegisterDirectorServer(s *grpc.Server, srv DirectorServer) {
@@ -963,6 +1009,32 @@ func (x *directorRetrieveSnapshotServer) Send(m *RawSnapshotChunk) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _Director_ReportStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(DirectorServer).ReportStream(&directorReportStreamServer{stream})
+}
+
+type Director_ReportStreamServer interface {
+	SendAndClose(*SnapshotResponse) error
+	Recv() (*RawSnapshotChunk, error)
+	grpc.ServerStream
+}
+
+type directorReportStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *directorReportStreamServer) SendAndClose(m *SnapshotResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *directorReportStreamServer) Recv() (*RawSnapshotChunk, error) {
+	m := new(RawSnapshotChunk)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 var _Director_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "agent.Director",
 	HandlerType: (*DirectorServer)(nil),
@@ -982,6 +1054,11 @@ var _Director_serviceDesc = grpc.ServiceDesc{
 			StreamName:    "RetrieveSnapshot",
 			Handler:       _Director_RetrieveSnapshot_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "ReportStream",
+			Handler:       _Director_ReportStream_Handler,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "agent/director.proto",

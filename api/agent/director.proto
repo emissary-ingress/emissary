@@ -18,6 +18,8 @@ service Director {
   rpc Retrieve(Identity) returns (stream Directive) {}
 
   rpc RetrieveSnapshot(Identity) returns (stream RawSnapshotChunk) {}
+
+  rpc ReportStream(stream RawSnapshotChunk) returns (SnapshotResponse) {}
 }
 
 // How Ambassador's Agent identifies itself to the CEPC

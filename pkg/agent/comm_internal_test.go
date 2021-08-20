@@ -59,6 +59,10 @@ func (m *MockClient) Report(ctx context.Context, in *agent.Snapshot, opts ...grp
 	return nil, nil
 }
 
+func (m *MockClient) ReportStream(ctx context.Context, opts ...grpc.CallOption) (agent.Director_ReportStreamClient, error) {
+	return nil, nil
+}
+
 func (m *MockClient) Recv() (*agent.Directive, error) {
 	counter := atomic.AddInt64(&m.Counter, 1)
 

@@ -3,6 +3,7 @@ package agent
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"io"
 	"net/url"
 
@@ -154,4 +155,45 @@ func (c *RPCComm) Report(ctx context.Context, report *agent.Snapshot, apiKey str
 
 func (c *RPCComm) Directives() <-chan *agent.Directive {
 	return c.directives
+}
+
+func (c *RPCComm) ReportStream(ctx context.Context, report *agent.Snapshot, apiKey string) error {
+	select {
+	case c.rptWake <- struct{}{}:
+	default:
+	}
+	ctx = metadata.AppendToOutgoingContext(ctx, APIKeyMetadataKey, apiKey)
+
+	// make stream
+	stream, err := c.client.ReportStream(ctx)
+	if err != nil {
+		return err
+	}
+
+	// marshal snapshot
+	data, err := json.Marshal(report)
+	if err != nil {
+		return err
+	}
+
+	// send chunks
+	CHUNKSIZE := 1024 * 64 // 64KiB
+	msg := &agent.RawSnapshotChunk{}
+	for i := 0; i < len(data); i += CHUNKSIZE {
+		j := i + CHUNKSIZE
+
+		if j < len(data) {
+			msg.Chunk = data[i:j]
+		} else {
+			msg.Chunk = data[i:]
+		}
+
+		err = stream.Send(msg)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = stream.CloseAndRecv()
+	return err
 }
