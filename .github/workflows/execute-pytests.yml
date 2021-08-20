@@ -83,8 +83,8 @@ jobs:
         if: ${{ matrix.test != 'unit' }}
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKER_BUILD_USERNAME }}
-          password: ${{ secrets.DOCKER_BUILD_PASSWORD }}
+          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
       - name: "Configure Kubernetes cluster and Docker registry"
         if: ${{ matrix.test != 'unit' }}
         run: |
