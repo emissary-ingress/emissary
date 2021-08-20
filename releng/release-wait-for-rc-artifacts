@@ -12,6 +12,7 @@ import fileinput
 
 from lib import ansiterm
 from lib import vN, re_rc
+from lib.uiutil import run_txtcapture as run_capture
 
 
 def check_docker(image: str) -> bool:
@@ -37,6 +38,12 @@ def main(rc_tag: str, release_registry: str, image_name: str, helm_s3_key: str) 
             time.sleep(30)
     if not docker_found:
         return 1
+    url = run_capture(['git', 'remote', 'get-url', '--push', 'origin'])
+    if url.endswith(".git"):
+        url = url[:-len(".git")]
+    if url.endswith("-private"):
+        print("{ansiterm.sgr.bold.fg_grn}Running an embargoed release, not waiting for chart or YAML artifacts{ansiterm.sgr}")
+        return 0
     m = re_rc.match(rc_tag)
     assert m
     chart_version = ""

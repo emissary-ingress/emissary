@@ -1283,7 +1283,7 @@ class HostCRDRootRedirectECMARegexMapping(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        if os.environ.get('KAT_USE_ENVOY_V3', '') != '':
+        if os.environ.get('KAT_USE_ENVOY_V2', '') == '':
             self.skip_node = True
         self.target = HTTP()
 

@@ -263,12 +263,12 @@ def v2filter_authv0(auth: IRAuth, v2config: 'V2Config'):
     allowed_authorization_headers = []
 
     for key in sorted(hdrs):
-        allowed_authorization_headers.append({"exact": key})
+        allowed_authorization_headers.append({"exact": key, "ignore_case": True})
 
     allowed_request_headers = []
 
     for key in sorted(request_headers.keys()):
-        allowed_request_headers.append({"exact": key})
+        allowed_request_headers.append({"exact": key, "ignore_case": True})
 
     return {
         'name': 'envoy.filters.http.ext_authz',

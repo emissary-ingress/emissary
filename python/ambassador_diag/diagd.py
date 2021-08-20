@@ -121,11 +121,11 @@ def number_of_workers():
 
 
 def envoy_api_version():
-    env_version = os.environ.get('AMBASSADOR_ENVOY_API_VERSION', 'V2')
+    env_version = os.environ.get('AMBASSADOR_ENVOY_API_VERSION', 'V3')
     version = env_version.upper()
     if version == 'V2' or env_version == 'V3':
         return version
-    return 'V2'
+    return 'V3'
 
 
 class DiagApp (Flask):
@@ -2016,6 +2016,8 @@ class AmbassadorEventWatcher(threading.Thread):
             output.write(config_json)
 
         command = ['envoy', '--service-node', 'test-id', '--service-cluster', ir.ambassador_nodename, '--config-path', econf_validation_path, '--mode', 'validate']
+        if envoy_api_version() == "V2":
+            command.extend(["--bootstrap-version", "2"])
 
         v_exit = 0
         v_encoded = ''.encode('utf-8')

@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _tls_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on UpstreamTlsContext with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -190,6 +187,13 @@ func (m *DownstreamTlsContext) Validate() error {
 			}
 		}
 
+	}
+
+	if _, ok := DownstreamTlsContext_OcspStaplePolicy_name[int32(m.GetOcspStaplePolicy())]; !ok {
+		return DownstreamTlsContextValidationError{
+			field:  "OcspStaplePolicy",
+			reason: "value must be one of the defined enum values",
+		}
 	}
 
 	switch m.SessionTicketKeysType.(type) {
@@ -347,6 +351,26 @@ func (m *CommonTlsContext) Validate() error {
 		}
 	}
 
+	if v, ok := interface{}(m.GetTlsCertificateCertificateProviderInstance()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CommonTlsContextValidationError{
+				field:  "TlsCertificateCertificateProviderInstance",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetCustomHandshaker()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CommonTlsContextValidationError{
+				field:  "CustomHandshaker",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	switch m.ValidationContextType.(type) {
 
 	case *CommonTlsContext_ValidationContext:
@@ -391,6 +415,18 @@ func (m *CommonTlsContext) Validate() error {
 			if err := v.Validate(); err != nil {
 				return CommonTlsContextValidationError{
 					field:  "ValidationContextCertificateProvider",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *CommonTlsContext_ValidationContextCertificateProviderInstance:
+
+		if v, ok := interface{}(m.GetValidationContextCertificateProviderInstance()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CommonTlsContextValidationError{
+					field:  "ValidationContextCertificateProviderInstance",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -464,10 +500,10 @@ func (m *CommonTlsContext_CertificateProvider) Validate() error {
 		return nil
 	}
 
-	if len(m.GetName()) < 1 {
+	if utf8.RuneCountInString(m.GetName()) < 1 {
 		return CommonTlsContext_CertificateProviderValidationError{
 			field:  "Name",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -554,6 +590,79 @@ var _ interface {
 } = CommonTlsContext_CertificateProviderValidationError{}
 
 // Validate checks the field values on
+// CommonTlsContext_CertificateProviderInstance with the rules defined in the
+// proto definition for this message. If any rules are violated, an error is returned.
+func (m *CommonTlsContext_CertificateProviderInstance) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for InstanceName
+
+	// no validation rules for CertificateName
+
+	return nil
+}
+
+// CommonTlsContext_CertificateProviderInstanceValidationError is the
+// validation error returned by
+// CommonTlsContext_CertificateProviderInstance.Validate if the designated
+// constraints aren't met.
+type CommonTlsContext_CertificateProviderInstanceValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CommonTlsContext_CertificateProviderInstanceValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CommonTlsContext_CertificateProviderInstanceValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CommonTlsContext_CertificateProviderInstanceValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CommonTlsContext_CertificateProviderInstanceValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CommonTlsContext_CertificateProviderInstanceValidationError) ErrorName() string {
+	return "CommonTlsContext_CertificateProviderInstanceValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CommonTlsContext_CertificateProviderInstanceValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCommonTlsContext_CertificateProviderInstance.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CommonTlsContext_CertificateProviderInstanceValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CommonTlsContext_CertificateProviderInstanceValidationError{}
+
+// Validate checks the field values on
 // CommonTlsContext_CombinedCertificateValidationContext with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -606,6 +715,18 @@ func (m *CommonTlsContext_CombinedCertificateValidationContext) Validate() error
 			if err := v.Validate(); err != nil {
 				return CommonTlsContext_CombinedCertificateValidationContextValidationError{
 					field:  "ValidationContextCertificateProvider",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *CommonTlsContext_CombinedCertificateValidationContext_ValidationContextCertificateProviderInstance:
+
+		if v, ok := interface{}(m.GetValidationContextCertificateProviderInstance()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CommonTlsContext_CombinedCertificateValidationContextValidationError{
+					field:  "ValidationContextCertificateProviderInstance",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}

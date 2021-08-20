@@ -227,7 +227,7 @@ commands:
         - "ingresstest"
         - "pytest"
         - "pytest-envoy"
-        - "pytest-envoy-v3"
+        - "pytest-envoy-v2"
         default: "test"
       "fast-reconfigure":
         type: boolean
@@ -246,10 +246,10 @@ commands:
         condition:
           or:
           - equal: ["pytest-envoy", << parameters.test >>]
-          - equal: ["pytest-envoy-v3", << parameters.test >>]
+          - equal: ["pytest-envoy-v2", << parameters.test >>]
         steps:
         - amb-skip-if-no-changes-not-release:
-            to: "(/envoy\\.mk$|/python/tests/gold/|/pytest/gold/|/cmd/ambex/)"
+            to: "(/envoy\\.mk$|python/tests/gold/|pytest/gold/|cmd/ambex|python/ambassador/envoy/)"
         - run: |
             if [[ -z "$KUBECEPTION_TOKEN" ]]; then
               circleci step halt
@@ -305,6 +305,8 @@ commands:
         condition: # Don't do this in the -private repos
           or:
           - equal: ["https://github.com/emissary-ingress/emissary", << pipeline.project.git_url
+                >>]
+          - equal: ["https://github.com/datawire/emissary-private", << pipeline.project.git_url
                 >>]
         steps:
         - amb-linux-install
@@ -421,7 +423,7 @@ commands:
             - "https://github.com/emissary-ingress/emissary"
             - << pipeline.project.git_url >>
           - equal:
-            - "https://github.com/emissary-ingress/emissary-private"
+            - "https://github.com/datawire/emissary-private"
             - << pipeline.project.git_url >>
         steps:
         - checkout:
@@ -857,7 +859,7 @@ jobs:
         type: enum
         enum:
         - "pytest-envoy"
-        - "pytest-envoy-v3"
+        - "pytest-envoy-v2"
         default: "pytest-envoy"
       fast-reconfigure:
         type: boolean
@@ -1073,7 +1075,7 @@ workflows:
           parameters:
             test:
             - "pytest-envoy"
-            - "pytest-envoy-v3"
+            - "pytest-envoy-v2"
             fast-reconfigure:
             - true
             - false
@@ -1085,7 +1087,7 @@ workflows:
           - test: pytest-envoy
             fast-reconfigure: true
             legacy-mode: true
-          - test: pytest-envoy-v3
+          - test: pytest-envoy-v2
             fast-reconfigure: true
             legacy-mode: true
     - oss-envoy-test:
@@ -1097,7 +1099,7 @@ workflows:
           parameters:
             test:
             - "pytest-envoy"
-            - "pytest-envoy-v3"
+            - "pytest-envoy-v2"
             fast-reconfigure:
             - false
             legacy-mode:
@@ -1112,8 +1114,8 @@ workflows:
         - oss-dev-pytest
         - oss-dev-pytest-envoy
         - oss-dev-pytest-envoy-fastreconfigure
-        - oss-dev-pytest-envoy-v3
-        - oss-dev-pytest-envoy-v3-fastreconfigure
+        - oss-dev-pytest-envoy-v2
+        - oss-dev-pytest-envoy-v2-fastreconfigure
         - oss-dev-pytest-fastreconfigure
         - oss-dev-chart
         - oss-dev-gotest-fastreconfigure
@@ -1127,9 +1129,9 @@ workflows:
         - oss-dev-pytest-envoy
         - oss-dev-pytest-envoy-fastreconfigure
         - oss-dev-pytest-envoy-legacy
-        - oss-dev-pytest-envoy-v3
-        - oss-dev-pytest-envoy-v3-fastreconfigure
-        - oss-dev-pytest-envoy-v3-legacy
+        - oss-dev-pytest-envoy-v2
+        - oss-dev-pytest-envoy-v2-fastreconfigure
+        - oss-dev-pytest-envoy-v2-legacy
         - oss-dev-pytest-fastreconfigure
         - oss-dev-pytest-legacy
         - oss-dev-chart
@@ -1239,7 +1241,7 @@ workflows:
           parameters:
             test:
             - "pytest-envoy"
-            - "pytest-envoy-v3"
+            - "pytest-envoy-v2"
             fast-reconfigure:
             - true
             - false
@@ -1250,7 +1252,7 @@ workflows:
           - test: pytest-envoy
             fast-reconfigure: true
             legacy-mode: true
-          - test: pytest-envoy-v3
+          - test: pytest-envoy-v2
             fast-reconfigure: true
             legacy-mode: true
 executors:
