@@ -4,12 +4,12 @@ import (
 	"testing"
 
 	"github.com/datawire/ambassador/cmd/entrypoint"
-	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v3"
-	v3listener "github.com/datawire/ambassador/pkg/api/envoy/config/listener/v3"
-	route "github.com/datawire/ambassador/pkg/api/envoy/config/route/v3"
-	http "github.com/datawire/ambassador/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/resource/v3"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/wellknown"
+	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
+	v3listener "github.com/datawire/ambassador/v2/pkg/api/envoy/config/listener/v3"
+	route "github.com/datawire/ambassador/v2/pkg/api/envoy/config/route/v3"
+	http "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v3"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -36,7 +36,7 @@ spec:
 	snap := f.GetSnapshot(HasMapping("default", "foo"))
 	assert.NotNil(t, snap)
 
-	config := f.GetEnvoyConfig(func(config *bootstrap.Bootstrap) bool {
+	config := f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
 		return FindCluster(config, ClusterNameContains("cluster_foo_default_default")) != nil
 	})
 
@@ -78,7 +78,7 @@ spec:
 	snap := f.GetSnapshot(HasMapping("default", "foo"))
 	assert.NotNil(t, snap)
 
-	config := f.GetEnvoyConfig(func(config *bootstrap.Bootstrap) bool {
+	config := f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
 		return FindCluster(config, ClusterNameContains("cluster_foo_default_default")) != nil
 	})
 
@@ -129,7 +129,7 @@ func findVirtualHostRoute(listener *v3listener.Listener, predicate func(*route.R
 
 }
 
-func findListener(envoyConfig *bootstrap.Bootstrap, predicate func(*v3listener.Listener) bool) *v3listener.Listener {
+func findListener(envoyConfig *v3bootstrap.Bootstrap, predicate func(*v3listener.Listener) bool) *v3listener.Listener {
 	for _, listener := range envoyConfig.StaticResources.Listeners {
 		if predicate(listener) {
 			return listener
