@@ -57,6 +57,7 @@ require (
 	git.lukeshu.com/go/libsystemd v0.5.3
 	github.com/Masterminds/semver v1.4.2
 	github.com/Masterminds/sprig v2.17.1+incompatible
+	github.com/aokoli/goutils v1.1.1 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.2.1
 	github.com/cncf/udpa/go v0.0.0-20210322005330-6414d713912e
 	github.com/datawire/ambassador v0.0.0-00010101000000-000000000000
