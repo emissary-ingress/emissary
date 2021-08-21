@@ -654,66 +654,66 @@ func warn(err error) bool {
 
 // OnStreamOpen is called once an xDS stream is open with a stream ID and the type URL (or "" for ADS).
 func (l loggerv2) OnStreamOpen(_ context.Context, sid int64, stype string) error {
-	l.Infof("V2 Stream open[%v]: %v", sid, stype)
+	l.Debugf("V2 Stream open[%v]: %v", sid, stype)
 	return nil
 }
 
 func (l loggerv3) OnStreamOpen(_ context.Context, sid int64, stype string) error {
-	l.Infof("V3 Stream open[%v]: %v", sid, stype)
+	l.Debugf("V3 Stream open[%v]: %v", sid, stype)
 	return nil
 }
 
 // OnStreamClosed is called immediately prior to closing an xDS stream with a stream ID.
 func (l loggerv2) OnStreamClosed(sid int64) {
-	l.Infof("V2 Stream closed[%v]", sid)
+	l.Debugf("V2 Stream closed[%v]", sid)
 }
 
 func (l loggerv3) OnStreamClosed(sid int64) {
-	l.Infof("V3 Stream closed[%v]", sid)
+	l.Debugf("V3 Stream closed[%v]", sid)
 }
 
 // OnStreamRequest is called once a request is received on a stream.
 func (l loggerv2) OnStreamRequest(sid int64, req *v2.DiscoveryRequest) error {
-	l.Infof("V2 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
+	l.Debugf("V2 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
 	l.Debugf("V2 Stream request[%v] dump: %v", sid, req)
 	return nil
 }
 
 func (l loggerv3) OnStreamRequest(sid int64, req *v3discovery.DiscoveryRequest) error {
-	l.Infof("V3 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
+	l.Debugf("V3 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
 	l.Debugf("V3 Stream request[%v] dump: %v", sid, req)
 	return nil
 }
 
 // OnStreamResponse is called immediately prior to sending a response on a stream.
 func (l loggerv2) OnStreamResponse(sid int64, req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
-	l.Infof("V2 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
+	l.Debugf("V2 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
 	l.Debugf("V2 Stream dump response[%v]: %v -> %v", sid, req, res)
 }
 
 func (l loggerv3) OnStreamResponse(sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
-	l.Infof("V3 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
+	l.Debugf("V3 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
 	l.Debugf("V3 Stream dump response[%v]: %v -> %v", sid, req, res)
 }
 
 // OnFetchRequest is called for each Fetch request
 func (l loggerv2) OnFetchRequest(_ context.Context, r *v2.DiscoveryRequest) error {
-	l.Infof("V2 Fetch request: %v", r)
+	l.Debugf("V2 Fetch request: %v", r)
 	return nil
 }
 
 func (l loggerv3) OnFetchRequest(_ context.Context, r *v3discovery.DiscoveryRequest) error {
-	l.Infof("V3 Fetch request: %v", r)
+	l.Debugf("V3 Fetch request: %v", r)
 	return nil
 }
 
 // OnFetchResponse is called immediately prior to sending a response.
 func (l loggerv2) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
-	l.Infof("V2 Fetch response: %v -> %v", req, res)
+	l.Debugf("V2 Fetch response: %v -> %v", req, res)
 }
 
 func (l loggerv3) OnFetchResponse(req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
-	l.Infof("V3 Fetch response: %v -> %v", req, res)
+	l.Debugf("V3 Fetch response: %v -> %v", req, res)
 }
 
 // NOTE WELL: this Main() does NOT RUN from entrypoint! This one is only relevant if you
@@ -734,7 +734,7 @@ func Main2(ctx context.Context, Version string, getUsage MemoryGetter, fastpathC
 	if args.debug {
 		log.SetLevel(logrus.DebugLevel)
 	} else {
-		log.SetLevel(logrus.WarnLevel)
+		log.SetLevel(logrus.InfoLevel)
 	}
 
 	// ambex logs its own snapshots, separately from the ones provided by the Python
