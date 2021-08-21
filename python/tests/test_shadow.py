@@ -223,5 +223,5 @@ weight: 10
     assert mirror_policy['cluster'] == 'cluster_shadow_httpbin_shadow_default'
     assert mirror_policy['runtime_fraction']['default_value']['numerator'] == 10
     assert mirror_policy['runtime_fraction']['default_value']['denominator'] == 'HUNDRED'
-    assert_valid_envoy_config(ads_config)
-    assert_valid_envoy_config(bootstrap_config)
+    assert_valid_envoy_config(ads_config, v2=True)
+    assert_valid_envoy_config(bootstrap_config, v2=True)

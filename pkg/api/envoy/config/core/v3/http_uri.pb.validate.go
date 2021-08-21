@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _http_uri_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on HttpUri with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *HttpUri) Validate() error {
@@ -43,10 +40,10 @@ func (m *HttpUri) Validate() error {
 		return nil
 	}
 
-	if len(m.GetUri()) < 1 {
+	if utf8.RuneCountInString(m.GetUri()) < 1 {
 		return HttpUriValidationError{
 			field:  "Uri",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -82,10 +79,10 @@ func (m *HttpUri) Validate() error {
 
 	case *HttpUri_Cluster:
 
-		if len(m.GetCluster()) < 1 {
+		if utf8.RuneCountInString(m.GetCluster()) < 1 {
 			return HttpUriValidationError{
 				field:  "Cluster",
-				reason: "value length must be at least 1 bytes",
+				reason: "value length must be at least 1 runes",
 			}
 		}
 

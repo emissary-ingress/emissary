@@ -370,6 +370,7 @@ class IR:
                 # XXX This is doubly a hack because it's duplicating this magic format from
                 # v2cluster.py.
                 self.cache.invalidate(f"V2-{cluster.cache_key}")
+                self.cache.invalidate(f"V3-{cluster.cache_key}")
 
                 # OK. Finally, we can update the envoy_name.
                 cluster['envoy_name'] = mangled_name
@@ -923,6 +924,8 @@ class IR:
         default_port = Constants.SERVICE_PORT_HTTPS if tls_termination_count else Constants.SERVICE_PORT_HTTP
 
         od['custom_listener_port'] = bool(self.ambassador_module.service_port != default_port)
+
+        od['allow_chunked_length'] = self.ambassador_module.get('allow_chunked_length', None)
 
         cluster_count = 0
         cluster_grpc_count = 0      # clusters using GRPC upstream

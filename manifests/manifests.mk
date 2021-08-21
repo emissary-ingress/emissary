@@ -1,4 +1,5 @@
 push-manifests:
+	@[ $(IS_PRIVATE) ] && (echo "Private repo, not pushing manifests" && exit 1)
 	$(OSS_HOME)/manifests/push_manifests.sh
 .PHONY: push-manifests
 

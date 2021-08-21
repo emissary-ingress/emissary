@@ -10,8 +10,8 @@ import (
 
 	"github.com/datawire/ambassador/cmd/ambex"
 	"github.com/datawire/ambassador/cmd/entrypoint"
-	envoy "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
+	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v3"
+	cluster "github.com/datawire/ambassador/pkg/api/envoy/config/cluster/v3"
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/snapshot/v1"
 	"github.com/stretchr/testify/assert"
@@ -89,7 +89,7 @@ func TestFakeHelloWithEnvoyConfig(t *testing.T) {
 	// Create a predicate that will recognize the cluster we care about. The surjection from
 	// Mappings to clusters is a bit opaque, so we just look for a cluster that contains the name
 	// hello.
-	isHelloCluster := func(c *envoy.Cluster) bool {
+	isHelloCluster := func(c *cluster.Cluster) bool {
 		return strings.Contains(c.Name, "hello")
 	}
 
@@ -116,7 +116,7 @@ func TestFakeHelloWithEnvoyConfig(t *testing.T) {
 	assert.Equal(t, "hello", address)
 }
 
-func FindCluster(envoyConfig *bootstrap.Bootstrap, predicate func(*envoy.Cluster) bool) *envoy.Cluster {
+func FindCluster(envoyConfig *bootstrap.Bootstrap, predicate func(*cluster.Cluster) bool) *cluster.Cluster {
 	for _, cluster := range envoyConfig.StaticResources.Clusters {
 		if predicate(cluster) {
 			return cluster
@@ -232,10 +232,10 @@ func TestFakeHelloConsul(t *testing.T) {
 	// Create a predicate that will recognize the cluster we care about. The surjection from
 	// Mappings to clusters is a bit opaque, so we just look for a cluster that contains the name
 	// hello.
-	isHelloTCPCluster := func(c *envoy.Cluster) bool {
+	isHelloTCPCluster := func(c *cluster.Cluster) bool {
 		return strings.Contains(c.Name, "hello_tcp")
 	}
-	isHelloCluster := func(c *envoy.Cluster) bool {
+	isHelloCluster := func(c *cluster.Cluster) bool {
 		return strings.Contains(c.Name, "hello") && !isHelloTCPCluster(c)
 	}
 

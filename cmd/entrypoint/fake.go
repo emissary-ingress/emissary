@@ -18,7 +18,7 @@ import (
 	"github.com/datawire/ambassador/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dgroup"
 
-	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
+	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v3"
 )
 
 // The Fake struct is a test harness for edgestack. Its goals are to help us fill out our test

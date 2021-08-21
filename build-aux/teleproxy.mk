@@ -23,7 +23,8 @@ $(tools/telepresence): CGO_ENABLED = 1
 endif
 $(tools/telepresence): $(abspath $@)
 	mkdir -p $(@D)
-	cd $(OSS_HOME) && curl -s --fail -L https://app.getambassador.io/download/tel2/linux/amd64/latest/telepresence -o $(abspath $@) && chmod a+x $(abspath $@)
+	cd $(OSS_HOME) && curl -s --fail -L https://app.getambassador.io/download/tel2/$$(go env GOOS)/$$(go env GOARCH)/latest/telepresence -o $(abspath $@) && chmod a+x $(abspath $@)
+
 
 proxy: ## (Telepresence) Launch telepresence in the background
 proxy: $(KUBECONFIG) $(tools/telepresence)
