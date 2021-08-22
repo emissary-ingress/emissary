@@ -75,7 +75,13 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary Ingress
 
-(no changes yet)
+- Change: Logs now include subsecond time resolutions, rather than just seconds.
+- Change: Update from Envoy 1.15 to 1.17.3
+- Change: `AMBASSADOR_ENVOY_API_VERSION` now defaults to `V3`
+- Feature: You can now set `allow_chunked_length` in the Ambassador Module to configure the same value in Envoy.
+- Change: Envoy-configuration snapshots get saved (as `ambex-#.json`) in `/ambassador/snapshots`.
+  The number of snapshots is controlled by the `AMBASSADOR_AMBEX_SNAPSHOT_COUNT` environment
+  variable; set it to 0 to disable. The default is 30.
 
 ## [2.0.1-ea] August 12, 2021
 [2.0.1-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.0-ea...v2.0.1-ea
@@ -88,9 +94,6 @@ We're pleased to introduce Emissary 2.0.1 as a developer preview. The 2.X family
 - Feature: The optional `stats_name` element of `AmbassadorMapping`, `AmbassadorTCPMapping`, `AuthService`, `LogService`, `RateLimitService`, and `TracingService` now sets the name under which cluster statistics will be logged. The default is the `service`, with non-alphanumeric characters replaced by underscores.
 - Feature: Ambassador Agent reports sidecar process information and Mapping OpenAPI documentation to Ambassador Cloud to provide more visibility into services and clusters.
 - Change: Logs now include subsecond time resolutions, rather than just seconds.
-- Change: Envoy-configuration snapshots get saved (as `ambex-#.json`) in `/ambassador/snapshots`.
-  The number of snapshots is controlled by the `AMBASSADOR_AMBEX_SNAPSHOT_COUNT` environment
-  variable; set it to 0 to disable. The default is 30.
 - Change: Set `AMBASSADOR_AMBEX_NO_RATELIMIT` to `true` to completely disable ratelimiting Envoy
   reconfiguration under memory pressure. This can help performance with the endpoint or Consul
   resolvers, but could make OOMkills more likely with large configurations. The default is `false`,
@@ -118,12 +121,15 @@ We're pleased to introduce Emissary 2.0.0 as a developer preview. The 2.X family
 
 [#2888]: https://github.com/datawire/ambassador/issues/2888
 
-## [1.13.11] (TBD)
-[1.13.11]: https://github.com/emissary-ingress/emissary/compare/v1.13.10...v1.13.11
+## [1.14.0] August 19, 2021
+[1.14.0]: https://github.com/emissary-ingress/emissary/compare/v1.13.10...v1.14.0
 
 ### Emissary Ingress and Ambassador Edge Stack
 
 - Change: Logs now include subsecond time resolutions, rather than just seconds.
+- Change: Update from Envoy 1.15 to 1.17.3
+- Change: `AMBASSADOR_ENVOY_API_VERSION` now defaults to `V3`
+- Feature: You can now set `allow_chunked_length` in the Ambassador Module to configure the same value in Envoy.
 
 ## [1.13.10] July 28, 2021
 [1.13.10]: https://github.com/emissary-ingress/emissary/compare/v1.13.9...v1.13.10
