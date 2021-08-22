@@ -17,10 +17,11 @@ name:  ambassador
 config:
   allow_chunked_length: true
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind:  AmbassadorMapping
 name:  {self.target.path.k8s}-foo
 prefix: /foo/
+hostname: "*"
 service: {self.target.path.fqdn}
 """)
 
