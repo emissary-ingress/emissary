@@ -4,13 +4,8 @@
       {
         "name": "static_layer",
         "static_layer": {
-          "envoy.deprecated_features.allow_deprecated_gzip_http_filter": true,
-          "envoy.deprecated_features:envoy.api.v2.route.HeaderMatcher.regex_match": true,
-          "envoy.deprecated_features:envoy.api.v2.route.RouteMatch.regex": true,
-          "envoy.deprecated_features:envoy.config.trace.v2.ZipkinConfig.HTTP_JSON_V1": true,
-          "envoy.features.enable_all_deprecated_feature": true,
           "envoy.reloadable_features.enable_deprecated_v2_api": true,
-          "envoy.reloadable_features.ext_authz_http_service_enable_case_sensitive_string_matcher": false
+          "re2.max_program_size.error_level": 200
         }
       }
     ]
@@ -107,19 +102,35 @@
                     {
                       "name": "envoy.filters.http.gzip",
                       "typed_config": {
-                        "@type": "type.googleapis.com/envoy.extensions.filters.http.gzip.v3.Gzip",
-                        "compression_level": null,
-                        "compression_strategy": null,
-                        "compressor": {
-                          "content_length": 32,
-                          "content_type": [
-                            "application/json"
-                          ],
+                        "@type": "type.googleapis.com/envoy.extensions.filters.http.compressor.v3.Compressor",
+                        "compressor_library": {
+                          "name": "envoy.compression.gzip.compressor",
+                          "typed_config": {
+                            "@type": "type.googleapis.com/envoy.extensions.compression.gzip.compressor.v3.Gzip",
+                            "compression_level": null,
+                            "compression_strategy": null,
+                            "memory_level": null,
+                            "window_bits": null
+                          }
+                        },
+                        "request_direction_config": {
+                          "common_config": {
+                            "content_type": [
+                              "application/json"
+                            ],
+                            "min_content_length": 32
+                          }
+                        },
+                        "response_direction_config": {
+                          "common_config": {
+                            "content_type": [
+                              "application/json"
+                            ],
+                            "min_content_length": 32
+                          },
                           "disable_on_etag_header": null,
                           "remove_accept_encoding_header": null
-                        },
-                        "memory_level": null,
-                        "window_bits": null
+                        }
                       }
                     },
                     {
@@ -351,19 +362,35 @@
                     {
                       "name": "envoy.filters.http.gzip",
                       "typed_config": {
-                        "@type": "type.googleapis.com/envoy.extensions.filters.http.gzip.v3.Gzip",
-                        "compression_level": null,
-                        "compression_strategy": null,
-                        "compressor": {
-                          "content_length": 32,
-                          "content_type": [
-                            "application/json"
-                          ],
+                        "@type": "type.googleapis.com/envoy.extensions.filters.http.compressor.v3.Compressor",
+                        "compressor_library": {
+                          "name": "envoy.compression.gzip.compressor",
+                          "typed_config": {
+                            "@type": "type.googleapis.com/envoy.extensions.compression.gzip.compressor.v3.Gzip",
+                            "compression_level": null,
+                            "compression_strategy": null,
+                            "memory_level": null,
+                            "window_bits": null
+                          }
+                        },
+                        "request_direction_config": {
+                          "common_config": {
+                            "content_type": [
+                              "application/json"
+                            ],
+                            "min_content_length": 32
+                          }
+                        },
+                        "response_direction_config": {
+                          "common_config": {
+                            "content_type": [
+                              "application/json"
+                            ],
+                            "min_content_length": 32
+                          },
                           "disable_on_etag_header": null,
                           "remove_accept_encoding_header": null
-                        },
-                        "memory_level": null,
-                        "window_bits": null
+                        }
                       }
                     },
                     {
@@ -615,19 +642,35 @@
                     {
                       "name": "envoy.filters.http.gzip",
                       "typed_config": {
-                        "@type": "type.googleapis.com/envoy.extensions.filters.http.gzip.v3.Gzip",
-                        "compression_level": null,
-                        "compression_strategy": null,
-                        "compressor": {
-                          "content_length": 32,
-                          "content_type": [
-                            "application/json"
-                          ],
+                        "@type": "type.googleapis.com/envoy.extensions.filters.http.compressor.v3.Compressor",
+                        "compressor_library": {
+                          "name": "envoy.compression.gzip.compressor",
+                          "typed_config": {
+                            "@type": "type.googleapis.com/envoy.extensions.compression.gzip.compressor.v3.Gzip",
+                            "compression_level": null,
+                            "compression_strategy": null,
+                            "memory_level": null,
+                            "window_bits": null
+                          }
+                        },
+                        "request_direction_config": {
+                          "common_config": {
+                            "content_type": [
+                              "application/json"
+                            ],
+                            "min_content_length": 32
+                          }
+                        },
+                        "response_direction_config": {
+                          "common_config": {
+                            "content_type": [
+                              "application/json"
+                            ],
+                            "min_content_length": 32
+                          },
                           "disable_on_etag_header": null,
                           "remove_accept_encoding_header": null
-                        },
-                        "memory_level": null,
-                        "window_bits": null
+                        }
                       }
                     },
                     {
@@ -859,19 +902,35 @@
                     {
                       "name": "envoy.filters.http.gzip",
                       "typed_config": {
-                        "@type": "type.googleapis.com/envoy.extensions.filters.http.gzip.v3.Gzip",
-                        "compression_level": null,
-                        "compression_strategy": null,
-                        "compressor": {
-                          "content_length": 32,
-                          "content_type": [
-                            "application/json"
-                          ],
+                        "@type": "type.googleapis.com/envoy.extensions.filters.http.compressor.v3.Compressor",
+                        "compressor_library": {
+                          "name": "envoy.compression.gzip.compressor",
+                          "typed_config": {
+                            "@type": "type.googleapis.com/envoy.extensions.compression.gzip.compressor.v3.Gzip",
+                            "compression_level": null,
+                            "compression_strategy": null,
+                            "memory_level": null,
+                            "window_bits": null
+                          }
+                        },
+                        "request_direction_config": {
+                          "common_config": {
+                            "content_type": [
+                              "application/json"
+                            ],
+                            "min_content_length": 32
+                          }
+                        },
+                        "response_direction_config": {
+                          "common_config": {
+                            "content_type": [
+                              "application/json"
+                            ],
+                            "min_content_length": 32
+                          },
                           "disable_on_etag_header": null,
                           "remove_accept_encoding_header": null
-                        },
-                        "memory_level": null,
-                        "window_bits": null
+                        }
                       }
                     },
                     {
