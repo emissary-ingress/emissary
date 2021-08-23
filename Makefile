@@ -23,6 +23,9 @@ NAME ?= emissary
 
 OSS_HOME := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
+_git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
+IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
+
 images: python/ambassador.version
 push: python/ambassador.version
 

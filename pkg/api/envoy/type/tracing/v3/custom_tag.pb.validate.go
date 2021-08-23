@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _custom_tag_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on CustomTag with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *CustomTag) Validate() error {
@@ -43,10 +40,10 @@ func (m *CustomTag) Validate() error {
 		return nil
 	}
 
-	if len(m.GetTag()) < 1 {
+	if utf8.RuneCountInString(m.GetTag()) < 1 {
 		return CustomTagValidationError{
 			field:  "Tag",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -173,10 +170,10 @@ func (m *CustomTag_Literal) Validate() error {
 		return nil
 	}
 
-	if len(m.GetValue()) < 1 {
+	if utf8.RuneCountInString(m.GetValue()) < 1 {
 		return CustomTag_LiteralValidationError{
 			field:  "Value",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -247,10 +244,10 @@ func (m *CustomTag_Environment) Validate() error {
 		return nil
 	}
 
-	if len(m.GetName()) < 1 {
+	if utf8.RuneCountInString(m.GetName()) < 1 {
 		return CustomTag_EnvironmentValidationError{
 			field:  "Name",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -323,10 +320,10 @@ func (m *CustomTag_Header) Validate() error {
 		return nil
 	}
 
-	if len(m.GetName()) < 1 {
+	if utf8.RuneCountInString(m.GetName()) < 1 {
 		return CustomTag_HeaderValidationError{
 			field:  "Name",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
