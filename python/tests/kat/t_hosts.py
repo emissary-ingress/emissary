@@ -954,7 +954,7 @@ spec:
         # so we get a generic alert=40 ("handshake_failure").
         yield Query(**base, maxTLSv="v1.2", error="tls: handshake failure")
         # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario.
-        yield Query(**base, minTLSv="v1.3", error=(["tls: certificate required"] + (["write: connection reset by peer"] if bug_clientcert_reset else [])))
+        yield Query(**base, minTLSv="v1.3", error=(["tls: certificate required"] + (["write: connection reset by peer", "write: broken pipe"] if bug_clientcert_reset else [])))
 
         # Check that it's validating the client cert against the CA cert.
         yield Query(**base,
@@ -1081,7 +1081,7 @@ spec:
         # so we get a generic alert=40 ("handshake_failure").
         yield Query(**base, maxTLSv="v1.2", error="tls: handshake failure")
         # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario.
-        yield Query(**base, minTLSv="v1.3", error=(["tls: certificate required"] + (["write: connection reset by peer"] if bug_clientcert_reset else [])))
+        yield Query(**base, minTLSv="v1.3", error=(["tls: certificate required"] + (["write: connection reset by peer", "write: broken pipe"] if bug_clientcert_reset else [])))
 
         # Check that it's validating the client cert against the CA cert.
         yield Query(**base,
