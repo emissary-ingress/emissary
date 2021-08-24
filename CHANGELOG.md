@@ -63,7 +63,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [1.14.1] (TBD)
+## [1.14.1] August 24, 2021
 [1.14.1]: https://github.com/emissary-ingress/emissary/compare/v1.14.0...v1.14.1
 
 ### Emissary Ingress and Ambassador Edge Stack
@@ -73,7 +73,6 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   - CVE-2021-32779
   - CVE-2021-32781
   - CVE-2021-32778
-  - CVE-2021-32780
 
 ## [1.14.0] August 19, 2021
 [1.14.0]: https://github.com/emissary-ingress/emissary/compare/v1.13.10...v1.14.0
