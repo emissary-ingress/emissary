@@ -75,9 +75,12 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary Ingress
 
-- Change: Logs now include subsecond time resolutions, rather than just seconds.
-- Change: Update from Envoy 1.15 to 1.17.3
-- Change: `AMBASSADOR_ENVOY_API_VERSION` now defaults to `V3`
+- - Change: Update Envoy from 1.15 to 1.17.4 with security patches to fix the following CVEs
+  - CVE-2021-32777
+  - CVE-2021-32779
+  - CVE-2021-32781
+  - CVE-2021-32778
+  - CVE-2021-32780
 - Feature: You can now set `allow_chunked_length` in the Ambassador Module to configure the same value in Envoy.
 - Change: Envoy-configuration snapshots get saved (as `ambex-#.json`) in `/ambassador/snapshots`.
   The number of snapshots is controlled by the `AMBASSADOR_AMBEX_SNAPSHOT_COUNT` environment
