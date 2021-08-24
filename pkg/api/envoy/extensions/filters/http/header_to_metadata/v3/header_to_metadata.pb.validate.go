@@ -33,6 +33,9 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _header_to_metadata_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on Config with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *Config) Validate() error {
@@ -137,10 +140,10 @@ func (m *Config_KeyValuePair) Validate() error {
 
 	// no validation rules for MetadataNamespace
 
-	if utf8.RuneCountInString(m.GetKey()) < 1 {
+	if len(m.GetKey()) < 1 {
 		return Config_KeyValuePairValidationError{
 			field:  "Key",
-			reason: "value length must be at least 1 runes",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 
@@ -156,12 +159,7 @@ func (m *Config_KeyValuePair) Validate() error {
 		}
 	}
 
-	if _, ok := Config_ValueType_name[int32(m.GetType())]; !ok {
-		return Config_KeyValuePairValidationError{
-			field:  "Type",
-			reason: "value must be one of the defined enum values",
-		}
-	}
+	// no validation rules for Type
 
 	// no validation rules for Encode
 
@@ -232,16 +230,16 @@ func (m *Config_Rule) Validate() error {
 		return nil
 	}
 
-	if !_Config_Rule_Header_Pattern.MatchString(m.GetHeader()) {
+	if len(m.GetHeader()) < 1 {
 		return Config_RuleValidationError{
 			field:  "Header",
-			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 
-	if !_Config_Rule_Cookie_Pattern.MatchString(m.GetCookie()) {
+	if !_Config_Rule_Header_Pattern.MatchString(m.GetHeader()) {
 		return Config_RuleValidationError{
-			field:  "Cookie",
+			field:  "Header",
 			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
 		}
 	}
@@ -326,5 +324,3 @@ var _ interface {
 } = Config_RuleValidationError{}
 
 var _Config_Rule_Header_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
-
-var _Config_Rule_Cookie_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")

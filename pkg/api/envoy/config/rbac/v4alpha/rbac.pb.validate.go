@@ -33,6 +33,9 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _rbac_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on RBAC with the rules defined in the proto
 // definition for this message. If any rules are violated, an error is returned.
 func (m *RBAC) Validate() error {
@@ -40,12 +43,7 @@ func (m *RBAC) Validate() error {
 		return nil
 	}
 
-	if _, ok := RBAC_Action_name[int32(m.GetAction())]; !ok {
-		return RBACValidationError{
-			field:  "Action",
-			reason: "value must be one of the defined enum values",
-		}
-	}
+	// no validation rules for Action
 
 	for key, val := range m.GetPolicies() {
 		_ = val
@@ -172,32 +170,14 @@ func (m *Policy) Validate() error {
 
 	}
 
-	switch m.ExpressionSpecifier.(type) {
-
-	case *Policy_Condition:
-
-		if v, ok := interface{}(m.GetCondition()).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return PolicyValidationError{
-					field:  "Condition",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+	if v, ok := interface{}(m.GetCondition()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PolicyValidationError{
+				field:  "Condition",
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
-
-	case *Policy_CheckedCondition:
-
-		if v, ok := interface{}(m.GetCheckedCondition()).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return PolicyValidationError{
-					field:  "CheckedCondition",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
 	}
 
 	return nil

@@ -18,6 +18,8 @@ const (
 	DirectionOut Direction = C.PF_OUT
 	// DirectionInOut InOut any direction (ingress/egress) traffic
 	DirectionInOut Direction = C.PF_INOUT
+	// DirectionFwd Forward
+	// Does not exist on Darwin: // DirectionFwd Direction = C.PF_FWD
 )
 
 func (d Direction) String() string {
@@ -28,6 +30,11 @@ func (d Direction) String() string {
 		return "out"
 	case DirectionInOut:
 		return "inout"
+// Deos not exist on Darwin:
+/*
+	case DirectionFwd:
+		return "fwd"
+*/
 	default:
 		return fmt.Sprintf("Direction(%d)", d)
 	}

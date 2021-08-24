@@ -33,6 +33,9 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _route_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on RouteConfiguration with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -351,10 +354,10 @@ func (m *RouteAction) Validate() error {
 
 	case *RouteAction_Cluster:
 
-		if utf8.RuneCountInString(m.GetCluster()) < 1 {
+		if len(m.GetCluster()) < 1 {
 			return RouteActionValidationError{
 				field:  "Cluster",
-				reason: "value length must be at least 1 runes",
+				reason: "value length must be at least 1 bytes",
 			}
 		}
 
@@ -372,17 +375,10 @@ func (m *RouteAction) Validate() error {
 
 	case *RouteAction_ClusterHeader:
 
-		if utf8.RuneCountInString(m.GetClusterHeader()) < 1 {
+		if len(m.GetClusterHeader()) < 1 {
 			return RouteActionValidationError{
 				field:  "ClusterHeader",
-				reason: "value length must be at least 1 runes",
-			}
-		}
-
-		if !_RouteAction_ClusterHeader_Pattern.MatchString(m.GetClusterHeader()) {
-			return RouteActionValidationError{
-				field:  "ClusterHeader",
-				reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+				reason: "value length must be at least 1 bytes",
 			}
 		}
 
@@ -450,8 +446,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RouteActionValidationError{}
-
-var _RouteAction_ClusterHeader_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
 
 // Validate checks the field values on WeightedCluster with the rules defined
 // in the proto definition for this message. If any rules are violated, an
@@ -548,10 +542,10 @@ func (m *WeightedCluster_ClusterWeight) Validate() error {
 		return nil
 	}
 
-	if utf8.RuneCountInString(m.GetName()) < 1 {
+	if len(m.GetName()) < 1 {
 		return WeightedCluster_ClusterWeightValidationError{
 			field:  "Name",
-			reason: "value length must be at least 1 runes",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 

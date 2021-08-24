@@ -33,6 +33,9 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _scoped_route_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on ScopedRouteConfiguration with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -41,19 +44,17 @@ func (m *ScopedRouteConfiguration) Validate() error {
 		return nil
 	}
 
-	// no validation rules for OnDemand
-
-	if utf8.RuneCountInString(m.GetName()) < 1 {
+	if len(m.GetName()) < 1 {
 		return ScopedRouteConfigurationValidationError{
 			field:  "Name",
-			reason: "value length must be at least 1 runes",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 
-	if utf8.RuneCountInString(m.GetRouteConfigurationName()) < 1 {
+	if len(m.GetRouteConfigurationName()) < 1 {
 		return ScopedRouteConfigurationValidationError{
 			field:  "RouteConfigurationName",
-			reason: "value length must be at least 1 runes",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 

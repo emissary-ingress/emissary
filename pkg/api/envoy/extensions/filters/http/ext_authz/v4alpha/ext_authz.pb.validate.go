@@ -37,6 +37,9 @@ var (
 	_ = v4alpha.ApiVersion(0)
 )
 
+// define the regex for a UUID once up-front
+var _ext_authz_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on ExtAuthz with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *ExtAuthz) Validate() error {
@@ -85,16 +88,6 @@ func (m *ExtAuthz) Validate() error {
 		}
 	}
 
-	if v, ok := interface{}(m.GetFilterEnabledMetadata()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return ExtAuthzValidationError{
-				field:  "FilterEnabledMetadata",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
 	if v, ok := interface{}(m.GetDenyAtDisable()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return ExtAuthzValidationError{
@@ -106,8 +99,6 @@ func (m *ExtAuthz) Validate() error {
 	}
 
 	// no validation rules for IncludePeerCertificate
-
-	// no validation rules for StatPrefix
 
 	switch m.Services.(type) {
 
@@ -210,8 +201,6 @@ func (m *BufferSettings) Validate() error {
 	}
 
 	// no validation rules for AllowPartialMessage
-
-	// no validation rules for PackAsBytes
 
 	return nil
 }
@@ -668,8 +657,6 @@ func (m *CheckSettings) Validate() error {
 	}
 
 	// no validation rules for ContextExtensions
-
-	// no validation rules for DisableRequestBodyBuffering
 
 	return nil
 }

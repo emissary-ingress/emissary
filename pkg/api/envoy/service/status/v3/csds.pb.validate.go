@@ -33,6 +33,9 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _csds_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on ClientStatusRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -54,16 +57,6 @@ func (m *ClientStatusRequest) Validate() error {
 			}
 		}
 
-	}
-
-	if v, ok := interface{}(m.GetNode()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return ClientStatusRequestValidationError{
-				field:  "Node",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
 	}
 
 	return nil
@@ -134,8 +127,6 @@ func (m *PerXdsConfig) Validate() error {
 	}
 
 	// no validation rules for Status
-
-	// no validation rules for ClientStatus
 
 	switch m.PerXdsConfig.(type) {
 

@@ -33,6 +33,9 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _aws_request_signing_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on AwsRequestSigning with the rules defined
 // in the proto definition for this message. If any rules are violated, an
 // error is returned.
@@ -41,17 +44,17 @@ func (m *AwsRequestSigning) Validate() error {
 		return nil
 	}
 
-	if utf8.RuneCountInString(m.GetServiceName()) < 1 {
+	if len(m.GetServiceName()) < 1 {
 		return AwsRequestSigningValidationError{
 			field:  "ServiceName",
-			reason: "value length must be at least 1 runes",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 
-	if utf8.RuneCountInString(m.GetRegion()) < 1 {
+	if len(m.GetRegion()) < 1 {
 		return AwsRequestSigningValidationError{
 			field:  "Region",
-			reason: "value length must be at least 1 runes",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 

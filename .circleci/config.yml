@@ -224,7 +224,7 @@ commands:
           - equal: ["pytest-envoy-v2", << parameters.test >>]
         steps:
         - amb-skip-if-no-changes-not-release:
-            to: "(/envoy\\.mk$|python/tests/gold/|pytest/gold/|cmd/ambex|python/ambassador/envoy/)"
+            to: "(/envoy\\.mk$|/python/tests/gold/|/pytest/gold/|/cmd/ambex/)"
         - run: |
             if [[ -z "$KUBECEPTION_TOKEN" ]]; then
               circleci step halt
@@ -280,8 +280,6 @@ commands:
         condition: # Don't do this in the -private repos
           or:
           - equal: ["https://github.com/emissary-ingress/emissary", << pipeline.project.git_url
-                >>]
-          - equal: ["https://github.com/datawire/emissary-private", << pipeline.project.git_url
                 >>]
         steps:
         - amb-linux-install
@@ -398,7 +396,7 @@ commands:
             - "https://github.com/emissary-ingress/emissary"
             - << pipeline.project.git_url >>
           - equal:
-            - "https://github.com/datawire/emissary-private"
+            - "https://github.com/emissary-ingress/emissary-private"
             - << pipeline.project.git_url >>
         steps:
         - checkout:
@@ -894,12 +892,10 @@ jobs:
     - job-promote-to-ga:
         channel: oss
 _anchors:
-  filter-rc-hf-only:
+  filter-rc-only:
     filters:
       tags:
-        only:
-        - /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
-        - /^v[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$/
+        only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
       branches:
         ignore: /.*/
   filter-ga-only:
@@ -930,15 +926,13 @@ workflows:
             only: /^v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/
           branches:
             ignore: /.*/
-  'OSS: Release Candidate or Hotfix':
+  'OSS: Release Candidate':
     jobs:
     - oss-promote-dev-to-rc:
         name: "oss-release-promote-dev-to-rc"
         filters:
           tags:
-            only:
-            - /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
-            - /^v[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$/
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
           branches:
             ignore: /.*/
   'OSS: Dev':

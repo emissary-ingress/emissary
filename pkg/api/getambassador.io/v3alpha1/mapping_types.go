@@ -131,8 +131,8 @@ type AmbassadorMappingSpec struct {
 	StatsName              string                        `json:"stats_name,omitempty"`
 }
 
-// DocsInfo provides some extra information about the docs for the AmbassadorMapping.
-// Docs is used by both the agent and the DevPortal.
+// DocsInfo provides some extra information about the docs for the AmbassadorMapping
+// (used by the Dev Portal)
 type DocsInfo struct {
 	Path        string `json:"path,omitempty"`
 	URL         string `json:"url,omitempty"`

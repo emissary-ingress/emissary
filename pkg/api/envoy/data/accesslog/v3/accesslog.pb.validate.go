@@ -37,6 +37,9 @@ var (
 	_ = v3.RequestMethod(0)
 )
 
+// define the regex for a UUID once up-front
+var _accesslog_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on TCPAccessLogEntry with the rules defined
 // in the proto definition for this message. If any rules are violated, an
 // error is returned.
@@ -606,10 +609,6 @@ func (m *ResponseFlags) Validate() error {
 	// no validation rules for UpstreamMaxStreamDurationReached
 
 	// no validation rules for ResponseFromCacheFilter
-
-	// no validation rules for NoFilterConfigFound
-
-	// no validation rules for DurationTimeout
 
 	return nil
 }

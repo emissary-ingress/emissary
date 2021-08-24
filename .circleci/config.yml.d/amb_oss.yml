@@ -139,12 +139,10 @@ _anchors:
   # All of these filters assume that "Only build pull requests" is turned on at
   # https://app.circleci.com/settings/project/github/emissary-ingress/emissary/advanced
 
-  "filter-rc-hf-only": &filter-rc-hf-only
+  "filter-rc-only": &filter-rc-only
     filters:
       tags:
-        only:
-          - /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
-          - /^v[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$/
+        only: /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
       branches:
         ignore: /.*/
 
@@ -177,10 +175,10 @@ workflows:
           name: "oss-release-promote-to-ga"
 
 
-  "OSS: Release Candidate or Hotfix":
+  "OSS: Release Candidate":
     jobs:
       - "oss-promote-dev-to-rc":
-          <<: *filter-rc-hf-only
+          <<: *filter-rc-only
           name: "oss-release-promote-dev-to-rc"
 
 

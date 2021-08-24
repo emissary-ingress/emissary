@@ -33,6 +33,9 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _adaptive_concurrency_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on GradientControllerConfig with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -393,12 +396,12 @@ func (m *GradientControllerConfig_MinimumRTTCalculationParams) Validate() error 
 			}
 		}
 
-		gte := time.Duration(0*time.Second + 1000000*time.Nanosecond)
+		gt := time.Duration(0*time.Second + 0*time.Nanosecond)
 
-		if dur < gte {
+		if dur <= gt {
 			return GradientControllerConfig_MinimumRTTCalculationParamsValidationError{
 				field:  "Interval",
-				reason: "value must be greater than or equal to 1ms",
+				reason: "value must be greater than 0s",
 			}
 		}
 

@@ -144,7 +144,7 @@ spec:
                   type: array
               type: object
             docs:
-              description: DocsInfo provides some extra information about the docs for the AmbassadorMapping. Docs is used by both the agent and the DevPortal.
+              description: DocsInfo provides some extra information about the docs for the AmbassadorMapping (used by the Dev Portal)
               properties:
                 display_name:
                   type: string

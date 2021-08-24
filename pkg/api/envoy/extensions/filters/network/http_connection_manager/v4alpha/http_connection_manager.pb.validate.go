@@ -33,6 +33,9 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _http_connection_manager_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on HttpConnectionManager with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -48,10 +51,10 @@ func (m *HttpConnectionManager) Validate() error {
 		}
 	}
 
-	if utf8.RuneCountInString(m.GetStatPrefix()) < 1 {
+	if len(m.GetStatPrefix()) < 1 {
 		return HttpConnectionManagerValidationError{
 			field:  "StatPrefix",
-			reason: "value length must be at least 1 runes",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 
@@ -120,12 +123,7 @@ func (m *HttpConnectionManager) Validate() error {
 		}
 	}
 
-	if !_HttpConnectionManager_ServerName_Pattern.MatchString(m.GetServerName()) {
-		return HttpConnectionManagerValidationError{
-			field:  "ServerName",
-			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
-		}
-	}
+	// no validation rules for ServerName
 
 	if _, ok := HttpConnectionManager_ServerHeaderTransformation_name[int32(m.GetServerHeaderTransformation())]; !ok {
 		return HttpConnectionManagerValidationError{
@@ -163,27 +161,6 @@ func (m *HttpConnectionManager) Validate() error {
 				cause:  err,
 			}
 		}
-	}
-
-	if d := m.GetRequestHeadersTimeout(); d != nil {
-		dur, err := ptypes.Duration(d)
-		if err != nil {
-			return HttpConnectionManagerValidationError{
-				field:  "RequestHeadersTimeout",
-				reason: "value is not a valid duration",
-				cause:  err,
-			}
-		}
-
-		gte := time.Duration(0*time.Second + 0*time.Nanosecond)
-
-		if dur < gte {
-			return HttpConnectionManagerValidationError{
-				field:  "RequestHeadersTimeout",
-				reason: "value must be greater than or equal to 0s",
-			}
-		}
-
 	}
 
 	if v, ok := interface{}(m.GetDrainTimeout()).(interface{ Validate() error }); ok {
@@ -331,15 +308,7 @@ func (m *HttpConnectionManager) Validate() error {
 		}
 	}
 
-	if v, ok := interface{}(m.GetStreamErrorOnInvalidHttpMessage()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return HttpConnectionManagerValidationError{
-				field:  "StreamErrorOnInvalidHttpMessage",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	// no validation rules for StripMatchingHostPort
 
 	switch m.RouteSpecifier.(type) {
 
@@ -384,16 +353,6 @@ func (m *HttpConnectionManager) Validate() error {
 			field:  "RouteSpecifier",
 			reason: "value is required",
 		}
-
-	}
-
-	switch m.StripPortMode.(type) {
-
-	case *HttpConnectionManager_StripMatchingHostPort:
-		// no validation rules for StripMatchingHostPort
-
-	case *HttpConnectionManager_StripAnyHostPort:
-		// no validation rules for StripAnyHostPort
 
 	}
 
@@ -455,8 +414,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = HttpConnectionManagerValidationError{}
-
-var _HttpConnectionManager_ServerName_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
 
 // Validate checks the field values on LocalReplyConfig with the rules defined
 // in the proto definition for this message. If any rules are violated, an
@@ -604,28 +561,6 @@ func (m *ResponseMapper) Validate() error {
 		}
 	}
 
-	if len(m.GetHeadersToAdd()) > 1000 {
-		return ResponseMapperValidationError{
-			field:  "HeadersToAdd",
-			reason: "value must contain no more than 1000 item(s)",
-		}
-	}
-
-	for idx, item := range m.GetHeadersToAdd() {
-		_, _ = idx, item
-
-		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return ResponseMapperValidationError{
-					field:  fmt.Sprintf("HeadersToAdd[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
-
 	return nil
 }
 
@@ -707,7 +642,24 @@ func (m *Rds) Validate() error {
 		}
 	}
 
-	// no validation rules for RouteConfigName
+	switch m.NameSpecifier.(type) {
+
+	case *Rds_RouteConfigName:
+		// no validation rules for RouteConfigName
+
+	case *Rds_RdsResourceLocator:
+
+		if v, ok := interface{}(m.GetRdsResourceLocator()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RdsValidationError{
+					field:  "RdsResourceLocator",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
 
 	return nil
 }
@@ -864,10 +816,10 @@ func (m *ScopedRoutes) Validate() error {
 		return nil
 	}
 
-	if utf8.RuneCountInString(m.GetName()) < 1 {
+	if len(m.GetName()) < 1 {
 		return ScopedRoutesValidationError{
 			field:  "Name",
-			reason: "value length must be at least 1 runes",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 
@@ -1084,10 +1036,10 @@ func (m *HttpFilter) Validate() error {
 		return nil
 	}
 
-	if utf8.RuneCountInString(m.GetName()) < 1 {
+	if len(m.GetName()) < 1 {
 		return HttpFilterValidationError{
 			field:  "Name",
-			reason: "value length must be at least 1 runes",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 
@@ -1105,12 +1057,12 @@ func (m *HttpFilter) Validate() error {
 			}
 		}
 
-	case *HttpFilter_ConfigDiscovery:
+	case *HttpFilter_FilterConfigDs:
 
-		if v, ok := interface{}(m.GetConfigDiscovery()).(interface{ Validate() error }); ok {
+		if v, ok := interface{}(m.GetFilterConfigDs()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return HttpFilterValidationError{
-					field:  "ConfigDiscovery",
+					field:  "FilterConfigDs",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -1837,10 +1789,10 @@ func (m *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor) Vali
 		return nil
 	}
 
-	if utf8.RuneCountInString(m.GetName()) < 1 {
+	if len(m.GetName()) < 1 {
 		return ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractorValidationError{
 			field:  "Name",
-			reason: "value length must be at least 1 runes",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 
@@ -1943,17 +1895,17 @@ func (m *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_KvEle
 		return nil
 	}
 
-	if utf8.RuneCountInString(m.GetSeparator()) < 1 {
+	if len(m.GetSeparator()) < 1 {
 		return ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_KvElementValidationError{
 			field:  "Separator",
-			reason: "value length must be at least 1 runes",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 
-	if utf8.RuneCountInString(m.GetKey()) < 1 {
+	if len(m.GetKey()) < 1 {
 		return ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_KvElementValidationError{
 			field:  "Key",
-			reason: "value length must be at least 1 runes",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 
@@ -2025,3 +1977,93 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_KvElementValidationError{}
+
+// Validate checks the field values on HttpFilter_HttpFilterConfigSource with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, an error is returned.
+func (m *HttpFilter_HttpFilterConfigSource) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if v, ok := interface{}(m.GetConfigSource()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HttpFilter_HttpFilterConfigSourceValidationError{
+				field:  "ConfigSource",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetDefaultConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HttpFilter_HttpFilterConfigSourceValidationError{
+				field:  "DefaultConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for ApplyDefaultConfigWithoutWarming
+
+	return nil
+}
+
+// HttpFilter_HttpFilterConfigSourceValidationError is the validation error
+// returned by HttpFilter_HttpFilterConfigSource.Validate if the designated
+// constraints aren't met.
+type HttpFilter_HttpFilterConfigSourceValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e HttpFilter_HttpFilterConfigSourceValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e HttpFilter_HttpFilterConfigSourceValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e HttpFilter_HttpFilterConfigSourceValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e HttpFilter_HttpFilterConfigSourceValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e HttpFilter_HttpFilterConfigSourceValidationError) ErrorName() string {
+	return "HttpFilter_HttpFilterConfigSourceValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e HttpFilter_HttpFilterConfigSourceValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sHttpFilter_HttpFilterConfigSource.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = HttpFilter_HttpFilterConfigSourceValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = HttpFilter_HttpFilterConfigSourceValidationError{}

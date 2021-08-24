@@ -33,6 +33,9 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _substitution_format_string_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on SubstitutionFormatString with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -41,14 +44,12 @@ func (m *SubstitutionFormatString) Validate() error {
 		return nil
 	}
 
-	// no validation rules for OmitEmptyValues
-
 	// no validation rules for ContentType
 
 	switch m.Format.(type) {
 
-	case *SubstitutionFormatString_HiddenEnvoyDeprecatedTextFormat:
-		// no validation rules for HiddenEnvoyDeprecatedTextFormat
+	case *SubstitutionFormatString_TextFormat:
+		// no validation rules for TextFormat
 
 	case *SubstitutionFormatString_JsonFormat:
 

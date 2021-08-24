@@ -33,6 +33,9 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _admission_control_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on AdmissionControl with the rules defined
 // in the proto definition for this message. If any rules are violated, an
 // error is returned.
@@ -61,20 +64,10 @@ func (m *AdmissionControl) Validate() error {
 		}
 	}
 
-	if v, ok := interface{}(m.GetAggression()).(interface{ Validate() error }); ok {
+	if v, ok := interface{}(m.GetAggressionCoefficient()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return AdmissionControlValidationError{
-				field:  "Aggression",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if v, ok := interface{}(m.GetSrThreshold()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return AdmissionControlValidationError{
-				field:  "SrThreshold",
+				field:  "AggressionCoefficient",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}

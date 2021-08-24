@@ -33,6 +33,9 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
+// define the regex for a UUID once up-front
+var _grpc_service_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on GrpcService with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -165,31 +168,10 @@ func (m *GrpcService_EnvoyGrpc) Validate() error {
 		return nil
 	}
 
-	if utf8.RuneCountInString(m.GetClusterName()) < 1 {
+	if len(m.GetClusterName()) < 1 {
 		return GrpcService_EnvoyGrpcValidationError{
 			field:  "ClusterName",
-			reason: "value length must be at least 1 runes",
-		}
-	}
-
-	if utf8.RuneCountInString(m.GetAuthority()) < 0 {
-		return GrpcService_EnvoyGrpcValidationError{
-			field:  "Authority",
-			reason: "value length must be at least 0 runes",
-		}
-	}
-
-	if len(m.GetAuthority()) > 16384 {
-		return GrpcService_EnvoyGrpcValidationError{
-			field:  "Authority",
-			reason: "value length must be at most 16384 bytes",
-		}
-	}
-
-	if !_GrpcService_EnvoyGrpc_Authority_Pattern.MatchString(m.GetAuthority()) {
-		return GrpcService_EnvoyGrpcValidationError{
-			field:  "Authority",
-			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 
@@ -252,8 +234,6 @@ var _ interface {
 	ErrorName() string
 } = GrpcService_EnvoyGrpcValidationError{}
 
-var _GrpcService_EnvoyGrpc_Authority_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
-
 // Validate checks the field values on GrpcService_GoogleGrpc with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -262,10 +242,10 @@ func (m *GrpcService_GoogleGrpc) Validate() error {
 		return nil
 	}
 
-	if utf8.RuneCountInString(m.GetTargetUri()) < 1 {
+	if len(m.GetTargetUri()) < 1 {
 		return GrpcService_GoogleGrpcValidationError{
 			field:  "TargetUri",
-			reason: "value length must be at least 1 runes",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 
@@ -294,10 +274,10 @@ func (m *GrpcService_GoogleGrpc) Validate() error {
 
 	}
 
-	if utf8.RuneCountInString(m.GetStatPrefix()) < 1 {
+	if len(m.GetStatPrefix()) < 1 {
 		return GrpcService_GoogleGrpcValidationError{
 			field:  "StatPrefix",
-			reason: "value length must be at least 1 runes",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 
@@ -1195,17 +1175,17 @@ func (m *GrpcService_GoogleGrpc_CallCredentials_StsService) Validate() error {
 
 	// no validation rules for RequestedTokenType
 
-	if utf8.RuneCountInString(m.GetSubjectTokenPath()) < 1 {
+	if len(m.GetSubjectTokenPath()) < 1 {
 		return GrpcService_GoogleGrpc_CallCredentials_StsServiceValidationError{
 			field:  "SubjectTokenPath",
-			reason: "value length must be at least 1 runes",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 
-	if utf8.RuneCountInString(m.GetSubjectTokenType()) < 1 {
+	if len(m.GetSubjectTokenType()) < 1 {
 		return GrpcService_GoogleGrpc_CallCredentials_StsServiceValidationError{
 			field:  "SubjectTokenType",
-			reason: "value length must be at least 1 runes",
+			reason: "value length must be at least 1 bytes",
 		}
 	}
 
