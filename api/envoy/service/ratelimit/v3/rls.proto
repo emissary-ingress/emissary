@@ -5,6 +5,7 @@ package envoy.service.ratelimit.v3;
 import "envoy/config/core/v3/base.proto";
 import "envoy/extensions/common/ratelimit/v3/ratelimit.proto";
 
+import "google/protobuf/duration.proto";
 import "google/protobuf/struct.proto";
 
 import "udpa/annotations/status.proto";
@@ -22,7 +23,7 @@ option (udpa.annotations.file_status).package_version_status = ACTIVE;
 service RateLimitService {
   // For use_alpha to work as expected, we need to convince
   // proto_sync.py that the legacy package is the previous version of
-  // either this package or the v2 package.  And to do that, you'd
+  // either this package or the v2 package. And to do that, you'd
   // "normally" use the
   // "(udpa.annotations.versioning).previous_message_type" option; but
   // we don't have a 'message' to put it on, we only have a 'service'.
@@ -131,6 +132,9 @@ message RateLimitResponse {
 
     // The limit remaining in the current time unit.
     uint32 limit_remaining = 3;
+
+    // Duration until reset of the current limit window.
+    google.protobuf.Duration duration_until_reset = 4;
   }
 
   // The overall response code which takes into account all of the descriptors that were passed
@@ -157,5 +161,6 @@ message RateLimitResponse {
   //
   // - :ref:`envoy.filters.http.ratelimit <config_http_filters_ratelimit_dynamic_metadata>` for HTTP filter.
   // - :ref:`envoy.filters.network.ratelimit <config_network_filters_ratelimit_dynamic_metadata>` for network filter.
+  // - :ref:`envoy.filters.thrift.rate_limit <config_thrift_filters_rate_limit_dynamic_metadata>` for Thrift filter.
   google.protobuf.Struct dynamic_metadata = 6;
 }

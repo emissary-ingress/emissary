@@ -70,6 +70,19 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [2.0.2-ea] (TBD)
+[2.0.2-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.1-ea...v2.0.2-ea
+
+### Emissary Ingress
+
+- Change: Logs now include subsecond time resolutions, rather than just seconds.
+- Change: Update from Envoy 1.15 to 1.17.3
+- Change: `AMBASSADOR_ENVOY_API_VERSION` now defaults to `V3`
+- Feature: You can now set `allow_chunked_length` in the Ambassador Module to configure the same value in Envoy.
+- Change: Envoy-configuration snapshots get saved (as `ambex-#.json`) in `/ambassador/snapshots`.
+  The number of snapshots is controlled by the `AMBASSADOR_AMBEX_SNAPSHOT_COUNT` environment
+  variable; set it to 0 to disable. The default is 30.
+
 ## [2.0.1-ea] August 12, 2021
 [2.0.1-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.0-ea...v2.0.1-ea
 
@@ -81,9 +94,6 @@ We're pleased to introduce Emissary 2.0.1 as a developer preview. The 2.X family
 - Feature: The optional `stats_name` element of `AmbassadorMapping`, `AmbassadorTCPMapping`, `AuthService`, `LogService`, `RateLimitService`, and `TracingService` now sets the name under which cluster statistics will be logged. The default is the `service`, with non-alphanumeric characters replaced by underscores.
 - Feature: Ambassador Agent reports sidecar process information and Mapping OpenAPI documentation to Ambassador Cloud to provide more visibility into services and clusters.
 - Change: Logs now include subsecond time resolutions, rather than just seconds.
-- Change: Envoy-configuration snapshots get saved (as `ambex-#.json`) in `/ambassador/snapshots`.
-  The number of snapshots is controlled by the `AMBASSADOR_AMBEX_SNAPSHOT_COUNT` environment
-  variable; set it to 0 to disable. The default is 30.
 - Change: Set `AMBASSADOR_AMBEX_NO_RATELIMIT` to `true` to completely disable ratelimiting Envoy
   reconfiguration under memory pressure. This can help performance with the endpoint or Consul
   resolvers, but could make OOMkills more likely with large configurations. The default is `false`,
@@ -111,12 +121,15 @@ We're pleased to introduce Emissary 2.0.0 as a developer preview. The 2.X family
 
 [#2888]: https://github.com/datawire/ambassador/issues/2888
 
-## [1.13.11] (TBD)
-[1.13.11]: https://github.com/emissary-ingress/emissary/compare/v1.13.10...v1.13.11
+## [1.14.0] August 19, 2021
+[1.14.0]: https://github.com/emissary-ingress/emissary/compare/v1.13.10...v1.14.0
 
 ### Emissary Ingress and Ambassador Edge Stack
 
 - Change: Logs now include subsecond time resolutions, rather than just seconds.
+- Change: Update from Envoy 1.15 to 1.17.3
+- Change: `AMBASSADOR_ENVOY_API_VERSION` now defaults to `V3`
+- Feature: You can now set `allow_chunked_length` in the Ambassador Module to configure the same value in Envoy.
 
 ## [1.13.10] July 28, 2021
 [1.13.10]: https://github.com/emissary-ingress/emissary/compare/v1.13.9...v1.13.10
@@ -135,12 +148,21 @@ We're pleased to introduce Emissary 2.0.0 as a developer preview. The 2.X family
 
 ### Ambassador Edge Stack only
 
-- Bugfix: The `Mapping` resource can now specify `docs.timeout_ms` to set the timeout when the 
+- Bugfix: The `Mapping` resource can now specify `docs.timeout_ms` to set the timeout when the
   Dev Portal is fetching API specifications.
 - Bugfix: The Dev Portal will now strip HTML tags when displaying search results, showing just
   the actual content of the search result.
 - Change: Consul certificate-rotation logging now includes the fingerprints and validity
   timestamps of certificates being rotated.
+
+[#3609]: https://github.com/emissary-ingress/emissary/issues/3609
+
+## [1.13.9] June 30, 2021
+[1.13.9]: https://github.com/emissary-ingress/emissary/compare/v1.13.8...v1.13.9
+
+### Emissary Ingress and Ambassador Edge Stack
+
+- Bugfix: Configuring multiple TCPMappings with the same ports (but different hosts) no longer generates invalid Envoy configuration.
 
 ## [1.13.8] June 08, 2021
 [1.13.8]: https://github.com/emissary-ingress/emissary/compare/v1.13.7...v1.13.8
@@ -2565,4 +2587,3 @@ Based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/). Ambassador fol
 [Ambassador-Envoy]: https://github.com/datawire/ambassador-envoy
 [Telepresence]: http://telepresence.io
 [Istio]: https://istio.io/
-

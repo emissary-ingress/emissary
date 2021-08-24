@@ -241,7 +241,7 @@ commands:
               - equal: [ "pytest-envoy-v2", << parameters.test >> ]
           steps:
             - amb-skip-if-no-changes-not-release:
-                to: "(/envoy\\.mk$|/python/tests/gold/|/pytest/gold/|/cmd/ambex/)"
+                to: "(/envoy\\.mk$|python/tests/gold/|pytest/gold/|cmd/ambex|python/ambassador/envoy/)"
             - run: |
                 if [[ -z "$KUBECEPTION_TOKEN" ]]; then
                   circleci step halt
@@ -301,6 +301,7 @@ commands:
           condition: # Don't do this in the -private repos
             or:
             - equal: [ "https://github.com/emissary-ingress/emissary", << pipeline.project.git_url >> ]
+            - equal: [ "https://github.com/datawire/emissary-private", << pipeline.project.git_url >> ]
           steps:
             - amb-linux-install
             - amb-checkout

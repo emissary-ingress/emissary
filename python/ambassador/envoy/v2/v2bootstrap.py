@@ -45,13 +45,18 @@ class V2Bootstrap(dict):
                             # non-deprecated options HTTP_JSON and HTTP_PROTO are the Zipkin v2 API; switching
                             # top one of them would change how Envoy talks to the outside world.
                             'envoy.deprecated_features:envoy.config.trace.v2.ZipkinConfig.HTTP_JSON_V1': True,
+                            'envoy.deprecated_features.allow_deprecated_gzip_http_filter': True,
                             # We haven't yet told users that we'll be deprecating `regex_type: unsafe`.
                             'envoy.deprecated_features:envoy.api.v2.route.RouteMatch.regex': True,         # HTTP path
                             'envoy.deprecated_features:envoy.api.v2.route.HeaderMatcher.regex_match': True, # HTTP header,
+                            'envoy.reloadable_features.enable_deprecated_v2_api': True,
                             # Envoy 1.14.1 disabled the use of lowercase string matcher for headers matching in HTTP-based.
                             # Following setting toggled it to be consistent with old behavior.
                             # AuthenticationTest (v0) is a good example that expects the old behavior.
-                            'envoy.reloadable_features.ext_authz_http_service_enable_case_sensitive_string_matcher': False
+                            'envoy.reloadable_features.ext_authz_http_service_enable_case_sensitive_string_matcher': False,
+                            # enable all deprecated features for v2 since we're also EOL-ing it in
+                            # edigissary
+                            'envoy.features.enable_all_deprecated_feature': True
                         }
                     }
                 ]
