@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _local_rate_limit_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on LocalRateLimit with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -44,10 +41,10 @@ func (m *LocalRateLimit) Validate() error {
 		return nil
 	}
 
-	if len(m.GetStatPrefix()) < 1 {
+	if utf8.RuneCountInString(m.GetStatPrefix()) < 1 {
 		return LocalRateLimitValidationError{
 			field:  "StatPrefix",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 

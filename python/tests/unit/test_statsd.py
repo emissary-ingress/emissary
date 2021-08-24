@@ -20,7 +20,7 @@ from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
 
 
-def _get_envoy_config(yaml, version='V2'):
+def _get_envoy_config(yaml, version='V3'):
     aconf = Config()
     fetcher = ResourceFetcher(logger, aconf)
     fetcher.parse_yaml(yaml)

@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _address_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on Pipe with the rules defined in the proto
 // definition for this message. If any rules are violated, an error is returned.
 func (m *Pipe) Validate() error {
@@ -43,10 +40,10 @@ func (m *Pipe) Validate() error {
 		return nil
 	}
 
-	if len(m.GetPath()) < 1 {
+	if utf8.RuneCountInString(m.GetPath()) < 1 {
 		return PipeValidationError{
 			field:  "Path",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -114,6 +111,86 @@ var _ interface {
 	ErrorName() string
 } = PipeValidationError{}
 
+// Validate checks the field values on EnvoyInternalAddress with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *EnvoyInternalAddress) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	switch m.AddressNameSpecifier.(type) {
+
+	case *EnvoyInternalAddress_ServerListenerName:
+		// no validation rules for ServerListenerName
+
+	default:
+		return EnvoyInternalAddressValidationError{
+			field:  "AddressNameSpecifier",
+			reason: "value is required",
+		}
+
+	}
+
+	return nil
+}
+
+// EnvoyInternalAddressValidationError is the validation error returned by
+// EnvoyInternalAddress.Validate if the designated constraints aren't met.
+type EnvoyInternalAddressValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EnvoyInternalAddressValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EnvoyInternalAddressValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EnvoyInternalAddressValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EnvoyInternalAddressValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EnvoyInternalAddressValidationError) ErrorName() string {
+	return "EnvoyInternalAddressValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EnvoyInternalAddressValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEnvoyInternalAddress.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EnvoyInternalAddressValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EnvoyInternalAddressValidationError{}
+
 // Validate checks the field values on SocketAddress with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -129,10 +206,10 @@ func (m *SocketAddress) Validate() error {
 		}
 	}
 
-	if len(m.GetAddress()) < 1 {
+	if utf8.RuneCountInString(m.GetAddress()) < 1 {
 		return SocketAddressValidationError{
 			field:  "Address",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -453,6 +530,18 @@ func (m *Address) Validate() error {
 			}
 		}
 
+	case *Address_EnvoyInternalAddress:
+
+		if v, ok := interface{}(m.GetEnvoyInternalAddress()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return AddressValidationError{
+					field:  "EnvoyInternalAddress",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		return AddressValidationError{
 			field:  "Address",
@@ -525,10 +614,10 @@ func (m *CidrRange) Validate() error {
 		return nil
 	}
 
-	if len(m.GetAddressPrefix()) < 1 {
+	if utf8.RuneCountInString(m.GetAddressPrefix()) < 1 {
 		return CidrRangeValidationError{
 			field:  "AddressPrefix",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 

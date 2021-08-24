@@ -114,7 +114,7 @@ jobs:
       # teardown
       - run: |
           ./.ci/cluster-unclaim
-        if: always() && ${{ matrix.test != 'unit' }}
+        if: always() && matrix.test != 'unit'
         name: "Teardown Kubernetes cluster"
       # collect logs
       - uses: ./.github/actions/collect-testing-logs
@@ -123,22 +123,25 @@ jobs:
       # upload artifacts
       - name: "Upload Test Logs (test-logs)"
         uses: actions/upload-artifact@v2
+        if: always()
         with:
           name: ${{ env.PREFIX }}--test-logs
           path: /tmp/test-logs
       - name: "Upload Cov Logs (cov_html)"
         uses: actions/upload-artifact@v2
+        if: always()
         with:
           name: ${{ env.PREFIX }}--cov_html
           path: /tmp/cov_html
       - name: "Upload Pod Logs (pod-logs)"
-        if: ${{ matrix.test != 'unit' }}
         uses: actions/upload-artifact@v2
+        if: always() && matrix.test != 'unit'
         with:
           name: ${{ env.PREFIX }}--pod-logs
           path: /tmp/pod-logs
       - name: "Upload XML Logs (xml)"
         uses: actions/upload-artifact@v2
+        if: always()
         with:
           name: ${{ env.PREFIX }}--xml
           path: /tmp/test-logs/xml/

@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _base_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on Locality with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *Locality) Validate() error {
@@ -321,13 +318,13 @@ func (m *Node) Validate() error {
 
 	}
 
-	for idx, item := range m.GetListeningAddresses() {
+	for idx, item := range m.GetHiddenEnvoyDeprecatedListeningAddresses() {
 		_, _ = idx, item
 
 		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return NodeValidationError{
-					field:  fmt.Sprintf("ListeningAddresses[%v]", idx),
+					field:  fmt.Sprintf("HiddenEnvoyDeprecatedListeningAddresses[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -503,10 +500,10 @@ func (m *RuntimeUInt32) Validate() error {
 
 	// no validation rules for DefaultValue
 
-	if len(m.GetRuntimeKey()) < 1 {
+	if utf8.RuneCountInString(m.GetRuntimeKey()) < 1 {
 		return RuntimeUInt32ValidationError{
 			field:  "RuntimeKey",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -567,6 +564,88 @@ var _ interface {
 	ErrorName() string
 } = RuntimeUInt32ValidationError{}
 
+// Validate checks the field values on RuntimePercent with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *RuntimePercent) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if v, ok := interface{}(m.GetDefaultValue()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RuntimePercentValidationError{
+				field:  "DefaultValue",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if utf8.RuneCountInString(m.GetRuntimeKey()) < 1 {
+		return RuntimePercentValidationError{
+			field:  "RuntimeKey",
+			reason: "value length must be at least 1 runes",
+		}
+	}
+
+	return nil
+}
+
+// RuntimePercentValidationError is the validation error returned by
+// RuntimePercent.Validate if the designated constraints aren't met.
+type RuntimePercentValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RuntimePercentValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RuntimePercentValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RuntimePercentValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RuntimePercentValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RuntimePercentValidationError) ErrorName() string { return "RuntimePercentValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RuntimePercentValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRuntimePercent.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RuntimePercentValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RuntimePercentValidationError{}
+
 // Validate checks the field values on RuntimeDouble with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -577,10 +656,10 @@ func (m *RuntimeDouble) Validate() error {
 
 	// no validation rules for DefaultValue
 
-	if len(m.GetRuntimeKey()) < 1 {
+	if utf8.RuneCountInString(m.GetRuntimeKey()) < 1 {
 		return RuntimeDoubleValidationError{
 			field:  "RuntimeKey",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -666,10 +745,10 @@ func (m *RuntimeFeatureFlag) Validate() error {
 		}
 	}
 
-	if len(m.GetRuntimeKey()) < 1 {
+	if utf8.RuneCountInString(m.GetRuntimeKey()) < 1 {
 		return RuntimeFeatureFlagValidationError{
 			field:  "RuntimeKey",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -740,10 +819,17 @@ func (m *HeaderValue) Validate() error {
 		return nil
 	}
 
-	if l := len(m.GetKey()); l < 1 || l > 16384 {
+	if utf8.RuneCountInString(m.GetKey()) < 1 {
 		return HeaderValueValidationError{
 			field:  "Key",
-			reason: "value length must be between 1 and 16384 bytes, inclusive",
+			reason: "value length must be at least 1 runes",
+		}
+	}
+
+	if len(m.GetKey()) > 16384 {
+		return HeaderValueValidationError{
+			field:  "Key",
+			reason: "value length must be at most 16384 bytes",
 		}
 	}
 
@@ -1002,6 +1088,78 @@ var _ interface {
 	ErrorName() string
 } = HeaderMapValidationError{}
 
+// Validate checks the field values on WatchedDirectory with the rules defined
+// in the proto definition for this message. If any rules are violated, an
+// error is returned.
+func (m *WatchedDirectory) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if utf8.RuneCountInString(m.GetPath()) < 1 {
+		return WatchedDirectoryValidationError{
+			field:  "Path",
+			reason: "value length must be at least 1 runes",
+		}
+	}
+
+	return nil
+}
+
+// WatchedDirectoryValidationError is the validation error returned by
+// WatchedDirectory.Validate if the designated constraints aren't met.
+type WatchedDirectoryValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e WatchedDirectoryValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e WatchedDirectoryValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e WatchedDirectoryValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e WatchedDirectoryValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e WatchedDirectoryValidationError) ErrorName() string { return "WatchedDirectoryValidationError" }
+
+// Error satisfies the builtin error interface
+func (e WatchedDirectoryValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sWatchedDirectory.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = WatchedDirectoryValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = WatchedDirectoryValidationError{}
+
 // Validate checks the field values on DataSource with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *DataSource) Validate() error {
@@ -1013,30 +1171,18 @@ func (m *DataSource) Validate() error {
 
 	case *DataSource_Filename:
 
-		if len(m.GetFilename()) < 1 {
+		if utf8.RuneCountInString(m.GetFilename()) < 1 {
 			return DataSourceValidationError{
 				field:  "Filename",
-				reason: "value length must be at least 1 bytes",
+				reason: "value length must be at least 1 runes",
 			}
 		}
 
 	case *DataSource_InlineBytes:
-
-		if len(m.GetInlineBytes()) < 1 {
-			return DataSourceValidationError{
-				field:  "InlineBytes",
-				reason: "value length must be at least 1 bytes",
-			}
-		}
+		// no validation rules for InlineBytes
 
 	case *DataSource_InlineString:
-
-		if len(m.GetInlineString()) < 1 {
-			return DataSourceValidationError{
-				field:  "InlineString",
-				reason: "value length must be at least 1 bytes",
-			}
-		}
+		// no validation rules for InlineString
 
 	default:
 		return DataSourceValidationError{
@@ -1213,10 +1359,10 @@ func (m *RemoteDataSource) Validate() error {
 		}
 	}
 
-	if len(m.GetSha256()) < 1 {
+	if utf8.RuneCountInString(m.GetSha256()) < 1 {
 		return RemoteDataSourceValidationError{
 			field:  "Sha256",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -1394,10 +1540,10 @@ func (m *TransportSocket) Validate() error {
 		return nil
 	}
 
-	if len(m.GetName()) < 1 {
+	if utf8.RuneCountInString(m.GetName()) < 1 {
 		return TransportSocketValidationError{
 			field:  "Name",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 

@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _header_to_metadata_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on Config with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *Config) Validate() error {
@@ -140,14 +137,19 @@ func (m *Config_KeyValuePair) Validate() error {
 
 	// no validation rules for MetadataNamespace
 
-	if len(m.GetKey()) < 1 {
+	if utf8.RuneCountInString(m.GetKey()) < 1 {
 		return Config_KeyValuePairValidationError{
 			field:  "Key",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
-	// no validation rules for Type
+	if _, ok := Config_ValueType_name[int32(m.GetType())]; !ok {
+		return Config_KeyValuePairValidationError{
+			field:  "Type",
+			reason: "value must be one of the defined enum values",
+		}
+	}
 
 	// no validation rules for Encode
 
@@ -237,34 +239,20 @@ func (m *Config_Rule) Validate() error {
 		return nil
 	}
 
-	if len(m.GetHeader()) < 1 {
-		return Config_RuleValidationError{
-			field:  "Header",
-			reason: "value length must be at least 1 bytes",
-		}
-	}
-
-	if !_Config_Rule_Header_Pattern.MatchString(m.GetHeader()) {
-		return Config_RuleValidationError{
-			field:  "Header",
-			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
-		}
-	}
-
-	if v, ok := interface{}(m.GetOnHeaderPresent()).(interface{ Validate() error }); ok {
+	if v, ok := interface{}(m.GetOnPresent()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return Config_RuleValidationError{
-				field:  "OnHeaderPresent",
+				field:  "OnPresent",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
 		}
 	}
 
-	if v, ok := interface{}(m.GetOnHeaderMissing()).(interface{ Validate() error }); ok {
+	if v, ok := interface{}(m.GetOnMissing()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return Config_RuleValidationError{
-				field:  "OnHeaderMissing",
+				field:  "OnMissing",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -272,6 +260,28 @@ func (m *Config_Rule) Validate() error {
 	}
 
 	// no validation rules for Remove
+
+	switch m.HeaderCookieSpecifier.(type) {
+
+	case *Config_Rule_Header:
+
+		if !_Config_Rule_Header_Pattern.MatchString(m.GetHeader()) {
+			return Config_RuleValidationError{
+				field:  "Header",
+				reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+			}
+		}
+
+	case *Config_Rule_Cookie:
+
+		if !_Config_Rule_Cookie_Pattern.MatchString(m.GetCookie()) {
+			return Config_RuleValidationError{
+				field:  "Cookie",
+				reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+			}
+		}
+
+	}
 
 	return nil
 }
@@ -331,3 +341,5 @@ var _ interface {
 } = Config_RuleValidationError{}
 
 var _Config_Rule_Header_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")
+
+var _Config_Rule_Cookie_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")

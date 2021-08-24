@@ -5,9 +5,9 @@
 ## TL;DR;
 
 ```console
-$ helm repo add emissary-ingress https://s3.amazonaws.com/datawire-static-files/emissary-charts
+$ helm repo add emissary-ingress https://app.getambassador.io
 $ helm repo update
-$ helm install emissary-ingress emissary-ingress/emissary-ingress -n ambassador --version=v0.0.1
+$ helm install emissary-ingress --devel emissary-ingress/emissary-ingress -n ambassador
 ```
 
 ## Introduction
@@ -23,7 +23,7 @@ This chart deploys Emissary Ingress on a [Kubernetes](http://kubernetes.io) clus
 To install the chart with the release name `emissary-ingress`:
 
 ```console
-$ helm install emissary-ingress emissary-ingress/emissary-ingress -n ambassador --version=v0.0.1
+$ helm install emissary-ingress --devel emissary-ingress/emissary-ingress -n ambassador
 ```
 
 The command deploys Emissary Ingress on the Kubernetes cluster in the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
@@ -142,12 +142,12 @@ The following table lists the configurable parameters of the `emissary-ingress` 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example:
 
 ```console
-$ helm install emissary-ingress emissary-ingress/emissary-ingress -n ambassador --version=v0.0.1 --set nameOverride=''
+$ helm install emissary-ingress --devel emissary-ingress/emissary-ingress -n ambassador --set nameOverride=''
 ```
 
 Alternatively, a YAML file that specifies the values for the parameters can be provided while
 installing the chart. For example:
 
 ```console
-$ helm install emissary-ingress emissary-ingress/emissary-ingress -n ambassador --version=v0.0.1 --values values.yaml
+$ helm install emissary-ingress --devel emissary-ingress/emissary-ingress -n ambassador --values values.yaml
 ```
