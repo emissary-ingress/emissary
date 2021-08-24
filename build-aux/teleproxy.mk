@@ -27,7 +27,7 @@ $(tools/telepresence): $(abspath $@)
 
 proxy: ## (Telepresence) Launch telepresence in the background
 proxy: $(KUBECONFIG) $(tools/telepresence)
-	$(tools/telepresence) connect
+	$(tools/telepresence) connect || ($(MAKE) unproxy && $(tools/telepresence) connect)
 .PHONY: proxy
 
 unproxy: ## (Telepresence) Shut down 'proxy'

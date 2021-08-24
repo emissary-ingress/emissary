@@ -466,6 +466,10 @@ pytest: docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote
 	@$(MAKE) setup-diagd
 	@$(MAKE) setup-envoy
 	@$(MAKE) proxy
+	@$(MAKE) _pytest-only
+.PHONY: pytest
+
+_pytest-only:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
 	@echo "KAT_CLIENT_DOCKER_IMAGE=$$KAT_CLIENT_DOCKER_IMAGE"
@@ -475,7 +479,7 @@ pytest: docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote
 	@echo "PYTEST_ARGS=$$PYTEST_ARGS"
 	. $(OSS_HOME)/venv/bin/activate; \
 		$(OSS_HOME)/builder/builder.sh pytest-local
-.PHONY: pytest
+.PHONY: _pytest-only
 
 pytest-unit:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
