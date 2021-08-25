@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _discovery_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on DiscoveryRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, an
 // error is returned.
@@ -247,36 +244,6 @@ func (m *DeltaDiscoveryRequest) Validate() error {
 
 	// no validation rules for TypeUrl
 
-	for idx, item := range m.GetUdpaResourcesSubscribe() {
-		_, _ = idx, item
-
-		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return DeltaDiscoveryRequestValidationError{
-					field:  fmt.Sprintf("UdpaResourcesSubscribe[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
-
-	for idx, item := range m.GetUdpaResourcesUnsubscribe() {
-		_, _ = idx, item
-
-		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return DeltaDiscoveryRequestValidationError{
-					field:  fmt.Sprintf("UdpaResourcesUnsubscribe[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
-
 	// no validation rules for InitialResourceVersions
 
 	// no validation rules for ResponseNonce
@@ -377,21 +344,6 @@ func (m *DeltaDiscoveryResponse) Validate() error {
 
 	// no validation rules for TypeUrl
 
-	for idx, item := range m.GetUdpaRemovedResources() {
-		_, _ = idx, item
-
-		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return DeltaDiscoveryResponseValidationError{
-					field:  fmt.Sprintf("UdpaRemovedResources[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
-
 	// no validation rules for Nonce
 
 	return nil
@@ -462,22 +414,32 @@ func (m *Resource) Validate() error {
 
 	// no validation rules for Name
 
-	if v, ok := interface{}(m.GetUdpaResourceName()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return ResourceValidationError{
-				field:  "UdpaResourceName",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
 	// no validation rules for Version
 
 	if v, ok := interface{}(m.GetResource()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return ResourceValidationError{
 				field:  "Resource",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetTtl()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ResourceValidationError{
+				field:  "Ttl",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetCacheControl()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ResourceValidationError{
+				field:  "CacheControl",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -540,3 +502,72 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ResourceValidationError{}
+
+// Validate checks the field values on Resource_CacheControl with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *Resource_CacheControl) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for DoNotCache
+
+	return nil
+}
+
+// Resource_CacheControlValidationError is the validation error returned by
+// Resource_CacheControl.Validate if the designated constraints aren't met.
+type Resource_CacheControlValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e Resource_CacheControlValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e Resource_CacheControlValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e Resource_CacheControlValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e Resource_CacheControlValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e Resource_CacheControlValidationError) ErrorName() string {
+	return "Resource_CacheControlValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e Resource_CacheControlValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sResource_CacheControl.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = Resource_CacheControlValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = Resource_CacheControlValidationError{}
