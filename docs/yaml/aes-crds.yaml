@@ -871,6 +871,8 @@ spec:
                 url:
                   type: string
               type: object
+            dns_type:
+              type: string
             enable_ipv4:
               type: boolean
             enable_ipv6:
