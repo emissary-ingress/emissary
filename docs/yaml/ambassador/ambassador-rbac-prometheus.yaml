@@ -924,6 +924,8 @@ spec:
                   - type: string
                   - type: array
               type: object
+            dns_type:
+              type: string
             docs:
               description: DocsInfo provides some extra information about the docs for the Mapping (used by the Dev Portal)
               properties:

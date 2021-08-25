@@ -51,6 +51,17 @@ class V2Cluster(Cacheable):
         cmap_entry = cluster.clustermap_entry()
         if Config.legacy_mode or (cmap_entry['kind'] == 'KubernetesServiceResolver'):
             ctype = cluster.type.upper()
+            # For now we are only allowing Logical_dns for the cluster since it is similar enough to strict_dns that we dont need any other config changes
+            # It should be easy to add the other dns_types here in the future if we decide to support them
+            allowedDnsTypes = ['STRICT_DNS', 'LOGICAL_DNS']
+            isTypeAllowed = False
+            for dnsType in allowedDnsTypes:
+                if ctype == dnsType:
+                    isTypeAllowed = True
+                    break
+            if not isTypeAllowed:
+                cluster.ir.logger.error("dns_type %s, is an invalid type. Options are STRICT_DNS or LOGICAL_DNS. Using default of STRICT_DNS" % (ctype))
+                ctype = "STRICT_DNS"
         else:
             ctype = 'EDS'
 

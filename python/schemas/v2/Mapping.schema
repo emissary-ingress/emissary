@@ -110,6 +110,7 @@
         "method_regex": { "type": "boolean" },
         "outlier_detection": { "type": "string" },
         "path_redirect": { "type": "string" },
+        "dns_type": { "type": "string" },
         "prefix_redirect": { "type": "string" },
         "regex_redirect": {
             "type": "object",
