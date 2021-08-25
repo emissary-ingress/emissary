@@ -70,7 +70,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-# Next Release
+## [2.0.3-ea] (TBD)
+[2.0.3-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.2-ea...v2.0.3-ea
+
+### Emissary Ingress
 
 - Feature: The environment variable "AES_LOG_LEVEL" now also sets the log level for the diagd logger.
 
