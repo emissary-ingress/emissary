@@ -871,8 +871,6 @@ release/promote-oss/pr-to-passed-ci:
 release/promote-oss/to-hotfix:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
 	@set -e; { \
-		docker login -u $$(keybase fs read /keybase/team/datawireio/secrets/dockerhub.webui.d6eautomaton.username) \
-					 -p $$(keybase fs read /keybase/team/datawireio/secrets/dockerhub.webui.d6eautomaton.password) ;\
 		HOTFIX_COMMIT=$$(git rev-parse $${HOTFIX_COMMIT:-HEAD}) ;\
 		hotfix_tag=$$(git describe --tags --exact --match '*-hf*' $$HOTFIX_COMMIT | sed 's/^v//g') ;\
 		if [ -z "$$hotfix_tag" ]; then \
@@ -894,8 +892,6 @@ release/promote-oss/to-hotfix:
 			PROMOTE_CHANNEL=hotfix ;\
 		chartsuffix=$$hotfix_tag ;\
 		chartsuffix=$${chartsuffix#*-} ;\
-		export AWS_ACCESS_KEY_ID=$$(keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials | grep 'aws_access_key_id' | sed 's/aws_access_key_id=//g') ;\
-		export AWS_SECRET_ACCESS_KEY=$$(keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials  | grep 'aws_secret_access_key' | sed 's/aws_secret_access_key=//g') ;\
 		$(MAKE) \
 			CHART_VERSION_SUFFIX=-$$chartsuffix \
 			IMAGE_TAG=$${hotfix_tag} \
@@ -905,7 +901,6 @@ release/promote-oss/to-hotfix:
 		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} push-manifests ;\
 		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} publish-docs-yaml ;\
 		$(MAKE) clean-manifests ;\
-		docker logout ;\
 	}
 .PHONY: release/promote-oss/to-hotfix
 

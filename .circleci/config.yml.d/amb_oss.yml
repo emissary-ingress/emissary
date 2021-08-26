@@ -140,6 +140,11 @@ jobs:
       - job-promote-to-ga:
           channel: oss
 
+  "oss-promote-to-hf":
+    executor: oss-linux
+    steps:
+      - job-promote-to-hf
+
   "oss-yaml-publish-s3-ga":
     executor: oss-linux
     steps:
@@ -162,6 +167,13 @@ _anchors:
       tags:
         only:
           - /^v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$/
+      branches:
+        ignore: /.*/
+
+  "filter-hf-only": &filter-hf-only
+    filters:
+      tags:
+        only:
           - /^v[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$/
       branches:
         ignore: /.*/
@@ -200,6 +212,12 @@ workflows:
       - "oss-promote-dev-to-rc":
           <<: *filter-rc-hf-only
           name: "oss-release-promote-dev-to-rc"
+
+  "OSS: Hotfix":
+    jobs:
+      - "oss-promote-to-hf":
+          <<: *filter-hf-only
+          name: "oss-release-promote-to-hf"
 
 
   "OSS: Dev":

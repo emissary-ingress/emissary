@@ -355,3 +355,13 @@ commands:
           command: |
             docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
             DEV_KUBECONFIG="-skip-for-release-" make release/promote-<< parameters.channel >>/to-ga
+
+  "job-promote-to-hf":
+    steps:
+      - amb-linux-install
+      - amb-checkout
+      - run:
+          name: "Promote to Hotfix"
+          command: |
+            docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" "${RELEASE_REGISTRY%%/*}"
+            DEV_KUBECONFIG="-skip-for-release-" make release/promote-oss/to-hotfix
