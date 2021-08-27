@@ -1,5 +1,6 @@
 #!/hint/python3
 
+import os
 import shlex
 import subprocess
 from contextlib import contextmanager
@@ -16,8 +17,10 @@ def run(args: List[str]) -> None:
 
 @contextmanager
 def gcr_login() -> Generator[None, None, None]:
-    key = run_txtcapture(
-        ['keybase', 'fs', 'read', '/keybase/team/datawireio/secrets/googlecloud.gcr-ci-robot.datawire.json.key'])
+    key = os.getenv('GCLOUD_SA_KEY')
+    if key == '':
+        key = run_txtcapture(
+            ['keybase', 'fs', 'read', '/keybase/team/datawireio/secrets/googlecloud.gcr-ci-robot.datawire.json.key'])
 
     subprocess.run(
         ['gcloud', 'auth', 'activate-service-account', '--key-file=-'],
@@ -31,7 +34,7 @@ def gcr_login() -> Generator[None, None, None]:
 
 def get_images(source_registry: str, repo: str, tag: str, image_append: str = ''):
     images = [f"{source_registry}/{repo}:{tag}",]
-    for registry in ['quay.io/datawire', 'gcr.io/datawire']:
+    for registry in ['gcr.io/datawire']:
         dst = f'{registry}/{repo}:{tag}'
         if image_append != '':
             dst = f'{registry}/{repo}-{image_append}:{tag}'
