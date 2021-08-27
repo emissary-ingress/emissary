@@ -19,24 +19,6 @@ from lib.start_release_updates import update_versions_yaml, update_changelog_dat
 from lib.gitutil import branch_exists, has_open_pr
 
 
-HOTFIX_MESSAGE = """
-All commits that are going out in {next_ver} release **must** be on {hotfix_branch}.
-This will allow the appropriate CI to run.
-
-To get the hotfix changes onto this branch you can do one of the following:
-    * use {hotfix_branch} as the development branch for the fix
-    * land (or have already landed) hotfix changes on {release_train} branch, and merge {release_train} into {hotfix_branch}
-    * cherry-pick hotfix commits from ambassador.git to {hotfix_branch}
-
-It is okay if you've already landed the hotfix changes on {release_train} branch,
-reviewers just need to validate that the hotfix commits are in the tree for {hotfix_branch},
-and all the appropriate changelog updates exist.
-
-## REVIEWERS MUST CHECK THAT:
-* hotfix commits are on {hotfix_branch}
-* CHANGELOG updates are on {hotfix_branch}
-"""
-
 PR_MESSAGE = """
 All commits that are going out in {next_ver} release **must** be on {pr_branch}.
 This will allow the appropriate CI to run.
@@ -163,7 +145,6 @@ if __name__ == '__main__':
 
     parser.add_argument('--next-version', help='Next version to prep for', required=True)
     parser.add_argument('--no-commit', dest='commit', action='store_false', default=True)
-    parser.add_argument('--hotfix', action='store_true', default=False)
 
     args = parser.parse_args()
 
@@ -173,7 +154,6 @@ if __name__ == '__main__':
 
     sys.exit(main(
         next_ver=args.next_version,
-        commit=args.commit,
-        hotfix=args.hotfix,
+        commit=args.commit
     ))
 
