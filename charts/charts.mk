@@ -1,5 +1,5 @@
 EMISSARY_CHART = $(OSS_HOME)/charts/emissary-ingress
-YQ := $(OSS_HOME)/.circleci/yq
+YQ := $(OSS_HOME)/charts/yq
 thisdir := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 
 
