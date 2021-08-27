@@ -8,7 +8,7 @@ def update_versions_yaml(next_ver):
         if line.startswith("version:"):
             line = f"version: {next_ver}\n"
         sys.stdout.write(line)
-    # git_add("docs/yaml/versions.yml")
+    git_add("docs/yaml/versions.yml")
 
 def update_changelog_date(next_ver):
     changelog_ver_pattern = re.compile(r"^## \[([0-9]+\.[0-9]+\.[0-9]+(-ea)?)\]")
@@ -45,4 +45,4 @@ def update_changelog_date(next_ver):
             sys.stdout.write(line)
             in_notes = False
 
-    #git_add("CHANGELOG.md")
+    git_add("CHANGELOG.md")
