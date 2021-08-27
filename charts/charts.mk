@@ -110,5 +110,5 @@ chart-clean:
 	done ;
 .PHONY: chart-clean
 
-$(OSS_HOME)/.circleci/yq:
-	cd $(OSS_HOME)/.circleci/yq.d/ && go build -o $(abspath $@) github.com/mikefarah/yq/v3
+$(OSS_HOME)/charts/yq:
+	cd $(OSS_HOME)/charts/yq.d/ && go build -o $(abspath $@) github.com/mikefarah/yq/v3
