@@ -70,8 +70,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [2.0.3-ea] (TBD)
-[2.0.3-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.2-ea...v2.0.3-ea
+## Next Release
 
 ### Emissary Ingress
 
