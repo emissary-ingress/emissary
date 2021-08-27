@@ -114,7 +114,7 @@ BUILDER = BUILDER_NAME=$(BUILDER_NAME) $(abspath $(BUILDER_HOME)/builder.sh)
 DBUILD = $(abspath $(BUILDER_HOME)/dbuild.sh)
 COPY_GOLD = $(abspath $(BUILDER_HOME)/copy-gold.sh)
 
-AWS_S3_BUCKET = datawire-static-files
+AWS_S3_BUCKET ?= datawire-static-files
 
 # the image used for running the Ingress v1 tests with KIND.
 # the current, official image does not support Ingress v1, so we must build our own image with k8s 1.18.
@@ -890,13 +890,13 @@ release/promote-oss/dev-to-passed-ci:
 release/promote-oss/pr-to-passed-ci:
 	@set -e; { \
 		commit=$$(git rev-parse HEAD) ;\
-		dev_version=$$(aws s3 cp s3://datawire-static-files/dev-builds/$$commit -) ;\
+		dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
 		if [ -z "$$dev_version" ]; then \
 			printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
 			exit 1 ;\
 		fi ;\
 		printf "$(CYN)==> $(GRN)Promoting $(BLU)$$commit$(GRN) => $(BLU)$$dev_version$(GRN) in S3...$(END)\n" ;\
-		echo "$$dev_version" | aws s3 cp - s3://datawire-static-files/passed-pr/$$commit ;\
+		echo "$$dev_version" | aws s3 cp - s3://$(AWS_S3_BUCKET)/passed-pr/$$commit ;\
 	}
 .PHONY: release/promote-oss/pr-to-passed-ci
 
@@ -913,7 +913,7 @@ release/promote-oss/to-hotfix:
 		fi ;\
 		[[ "$$hotfix_tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$$ ]] || (printf '$(RED)ERROR: tag %s does not look like a hotfix tag\n' "$$hotfix_tag"; exit 1) ;\
 		$(OSS_HOME)/releng/release-wait-for-commit --commit $$HOTFIX_COMMIT --s3-key passed-pr ;\
-		dev_version=$$(aws s3 cp s3://datawire-static-files/passed-pr/$$HOTFIX_COMMIT -) ;\
+		dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/passed-pr/$$HOTFIX_COMMIT -) ;\
 		if [ -z "$$dev_version" ]; then \
 			printf "$(RED)==> found no passed dev version for $$HOTFIX_COMMIT in S3...$(END)\n" ;\
 			exit 1 ;\

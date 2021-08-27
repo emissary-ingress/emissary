@@ -70,7 +70,7 @@ def do_check_s3(checker: Checker,
 
 
 def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = True,
-        release_channel: str = "", source_registry: str ="docker.io/datawire", image_append: str = "", image_name: str = "emissary") -> int:
+        release_channel: str = "", source_registry: str ="docker.io/datawire", image_append: str = "", image_name: str = "emissary", s3_bucket: str = "datawire-static-files") -> int:
     warning = """
  ==> Warning: FIXME: While this script is handy in the things that it
      does check, there's still quite a bit that it doesn't check;
@@ -114,18 +114,18 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
             for platform in ['linux/amd64/{}', 'darwin/amd64/{}', 'windows/amd64/{}.exe']:
                 rc_body: Optional[bytes] = None
                 with do_check_s3(checker, f'{name}/{rc_ver}/{platform.format(name)}',
-                                 private=private) as (subcheck, body):
+                                 private=private, bucket=s3_bucket) as (subcheck, body):
                     if body is not None:
                         rc_body = body
                         # TODO: Validate the binary somehow
                 if ga:
                     with do_check_s3(checker, f'{name}/{ga_ver}/{platform.format(name)}',
-                                     private=private) as (subcheck, body):
+                                     private=private, bucket=s3_bucket) as (subcheck, body):
                         if body is not None:
                             assert body == rc_body
             if txt:
                 if include_latest:
-                    with do_check_s3(checker, f'{name}/latest.txt', private=private) as (subcheck, body):
+                    with do_check_s3(checker, f'{name}/latest.txt', private=private, bucket=s3_bucket) as (subcheck, body):
                         if body is not None:
                             subcheck.result = body.decode('UTF-8').strip()
                             if is_private:
@@ -133,7 +133,7 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
                             else:
                                 assert_eq(subcheck.result, rc_ver)
                 if ga or is_private:
-                    with do_check_s3(checker, f'{name}/stable.txt', private=private) as (subcheck, body):
+                    with do_check_s3(checker, f'{name}/stable.txt', private=private, bucket=s3_bucket) as (subcheck, body):
                         if body is not None:
                             subcheck.result = body.decode('UTF-8').strip()
                             if is_private:
@@ -148,7 +148,7 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
     if include_docker:
         do_check_docker(checker, 'ambassador')
         with checker.check('Ambassador S3 files', clear_on_success=False) as checker:
-            with do_check_s3(checker, name=f'emissary-ingress/{release_channel}stable.txt') as (subcheck, body):
+            with do_check_s3(checker, name=f'emissary-ingress/{release_channel}stable.txt', bucket=s3_bucket) as (subcheck, body):
                 if body is not None:
                     subcheck.result = body.decode('UTF-8').strip()
                     if is_private:
@@ -184,7 +184,7 @@ def main(ga_ver: str, ga: bool, include_latest: bool, include_docker: bool = Tru
             assert_eq(check.result, check_tag)
     subprocess.run(['helm', 'repo', 'rm', 'emissary'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     subprocess.run(['helm', 'repo', 'add', 'emissary',
-            'https://s3.amazonaws.com/datawire-static-files/charts'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            'https://s3.amazonaws.com/{}/charts'.format(s3_bucket)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     with checker.check(name="Updating helm repo"):
         run(['helm', 'repo', 'update'])
     chart_version = ""
