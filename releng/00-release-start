@@ -76,22 +76,18 @@ def main(next_ver: str, commit: bool = True) -> int:
         with check(f"Checking out {current_release_branch} and making it up to date with {release_branch}"):
             run(["git", "checkout", current_release_branch])
             run(["git", "pull", "origin", current_release_branch])
-            run(["git", "merge", f"origin/{release_branch}"])
-        if not checker.ok:
-            return 1
-        with check(f"Checking if there are conflicts in merge"):
-            out = run_capture(["git", "status", "--porcelain"])
-            if out:
-                raise AssertionError(f"Merge conflicts on {current_release_branch}. Resolve these, then rerun this scrip")
-        if not checker.ok:
-            return 1
-
     else:
-        with check(f"Creating {current_release_branch} (IGNORE PREVIOUS STEP FAILURE)"):
-            run(["git", "checkout", f"origin/{release_branch}", "-b", current_release_branch])
-            run(["git", "push", "-u", "origin", current_release_branch])
-        if not checker.ok:
-            return 1
+        with check(f"Creating {current_release_branch}"):
+            run(["git", "checkout", "-b", current_release_branch])
+    if not checker.ok:
+        return 1
+    run(["git", "merge", f"origin/{release_branch}"])
+    with check(f"Checking if there are conflicts in merge"):
+        out = run_capture(["git", "status", "--porcelain"])
+        if out:
+            raise AssertionError(f"Merge conflicts on {current_release_branch}. Resolve these, then rerun this scrip")
+    if not checker.ok:
+        return 1
     # docs/yaml/versions.yml
     with check(f"Updating docs/yaml/versions.yml with {next_ver}..."):
         update_versions_yaml(next_ver)
