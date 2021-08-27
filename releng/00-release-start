@@ -68,6 +68,9 @@ def main(next_ver: str, commit: bool = True) -> int:
 
     workbranch = current_release_branch
     base_branch = release_branch
+    # just delete any local branches because it makes things easier
+    subprocess.run(["git", "branch", "-D", current_release_branch], capture_output=True)
+    subprocess.run(["git", "branch", "-D", release_branch], capture_output=True)
 
     if branch_exists('origin/' + current_release_branch):
         with check(f"Checking out {current_release_branch} and making it up to date with {release_branch}"):
