@@ -922,6 +922,7 @@ release/prep-rc:
 	@[[ -z "$(IS_DIRTY)" ]] || (printf '$(RED)ERROR: tree must be clean\n'; exit 1)
 	@AWS_S3_BUCKET=$(AWS_S3_BUCKET) RELEASE_REGISTRY=$(RELEASE_REGISTRY) IMAGE_NAME=$(LCNAME) \
 		$(OSS_HOME)/releng/01-release-prep-rc $(VERSIONS_YAML_VER_STRIPPED)-rc.$(RC_NUMBER)
+	$(OSS_HOME)/releng/01-release-rc-update-apro v$(VERSIONS_YAML_VER_STRIPPED)-rc.$(RC_NUMBER) v$(VERSIONS_YAML_VER_STRIPPED)
 .PHONY: release/prep-rc
 
 release/go:
