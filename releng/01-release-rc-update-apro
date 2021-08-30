@@ -10,6 +10,10 @@ if [ -z "$2" ]; then
     exit -1
 fi
 
+if [ -z "$APRO_REPO_TARGET" ]; then
+    echo "APRO_REPO_TARGET not set. This should be set in the environment"
+fi
+
 # remove existing apro-prep-rc in case this is being run
 # locally on a long lived dev machine
 if [ -d "/tmp/apro-prep-rc" ]; then
@@ -17,7 +21,7 @@ if [ -d "/tmp/apro-prep-rc" ]; then
 fi
 
 # get a fresh copy of apro
-git clone git@github.com:datawire/apro.git /tmp/apro-prep-rc
+git clone git@github.com:$APRO_REPO_TARGET /tmp/apro-prep-rc
 pushd /tmp/apro-prep-rc
 
 # checkout or create proper rel branch
@@ -29,6 +33,9 @@ if [ ! $(git checkout rel/$2) ]; then
         *"v2."*)
             git checkout master
             ;;
+        *)
+            echo "Not intelligent enough to find branch that tracks $2 parent releases"
+            exit 1
     esac
 
     git checkout -b rel/$2
@@ -38,7 +45,4 @@ fi
 CURRENT_EMISSARY_TAG=$(grep 'imageTag' emissaryInfo.yml | sed 's/imageTag://g' | xargs)
 sed 's/$CURRENT_EMISSARY_TAG/$1/g' emissaryInfo.yml
 git commit -s -m "(from CI) bump emissary version to latest RC"
-# TODO: use that cool push hook
-
-# launch PR
-# TODO: maybe another hook for this?
+git --set-upstream push origin rel/$2
