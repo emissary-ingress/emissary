@@ -69,7 +69,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             # time.sleep(1)  # it's stupid, but honestly the delay makes the output more readable
             yield subcheck
 
-    if not getenv("GITHUB_TOKEN"):
+    if not getenv("GIT_TOKEN"):
         run(["gh", "auth", "login"])
 
     m = re_ga.match(next_ver)
@@ -145,9 +145,7 @@ If there are any other changes, the PR creator should note the reason."""
                     "--reviewer", "kflynn,rhs,esmet,acookin"])
 
     if checker.ok:
-        if getenv("AMBASSADOR_RELENG_NO_GUI"):
-            run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo()])
-        else:
+        if not getenv("AMBASSADOR_RELENG_NO_GUI"):
             run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo(), "--web"])
         return 0
     else:

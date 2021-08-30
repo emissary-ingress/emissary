@@ -48,7 +48,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
 """
     print(f"{ansiterm.sgr.fg_red}{warning}{ansiterm.sgr}")
 
-    if not getenv("GITHUB_TOKEN"):
+    if not getenv("GIT_TOKEN"):
         run(["gh", "auth", "login"])
 
     user = getenv("USER")
@@ -68,8 +68,6 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
 
     if not checker.ok:
         return 1
-
-    print('TODO: CHECK THAT IMAGE EXISTS')
 
     with check(f"Updating image tag in charts"):
         run(["make", f"IMAGE_TAG={image_tag}", "release/chart/update-images"])
@@ -114,9 +112,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
                     "--body", f"Update charts and manifests to use the newly release images for {next_ver}",
                     "--reviewer", "kflynn,rhs,esmet,acookin"])
     if checker.ok:
-        if getenv("AMBASSADOR_RELENG_NO_GUI"):
-            run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo()])
-        else:
+        if not getenv("AMBASSADOR_RELENG_NO_GUI"):
             run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo(), "--web"])
         return 0
     else:

@@ -13,3 +13,12 @@ release/start:
 # CI commands
 # These commands are run in CI in a normal release process
 ########################################################################
+
+release/ga/changelog-update:
+	$(OSS_HOME)/releng/release-go-changelog-update --quiet $(VERSIONS_YAML_VER)
+.PHONY: release/ga/changelog-update
+
+release/ga/manifest-update:
+	$(OSS_HOME)/release-manifest-image-update --oss-version $(VERSIONS_YAML_VER)
+.PHONY: release/ga/manifest-update
+
