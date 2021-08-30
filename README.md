@@ -63,3 +63,4 @@ If you're interested in contributing, here are some ways:
 * Add [more tests](https://github.com/datawire/ambassador/tree/master/ambassador/tests)
 
 The Ambassador Edge Stack is a superset of the Ambassador API Gateway that provides additional functionality including OAuth/OpenID Connect, advanced rate limiting, Swagger/OpenAPI support, integrated ACME support for automatic TLS certificate management, and a UI. For more information, visit https://www.getambassador.io/editions/.
+
