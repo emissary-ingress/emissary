@@ -1,0 +1,21 @@
+name: testing-ish
+on:
+  pull_request:
+jobs:
+  testing-ish:
+    runs-on: ubuntu-latest
+    name: testing-ish
+    env:
+      GIT_API_KEY: ${{ secrets.API_KEY }}
+      GIT_TOKEN: ${{ secrets.API_KEY }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: "setup git config"
+        run: |
+          git config --global "url.https://$GIT_API_KEY@github.com.insteadOf" https://github.com
+          git checkout -b automated-stuff
+          touch blah
+          git add blah
+          git commit -am 'im commiting this from CI'
+          git push origin automated-stuff
+

@@ -33,6 +33,13 @@ jobs:
       - name: "make release/ga-mirror"
         run: |
           make release/ga-mirror
+      - name: "make release/ga/changelog-update"
+        run: |
+          make release/ga/changelog-update
+      - name: "manifest image update"
+        run: |
+          make release/ga/manifest-update
+
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master
