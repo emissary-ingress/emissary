@@ -38,7 +38,7 @@ release/ga/chart-push:
 .PHONY: release/ga/chart-push
 
 release/promote-chart-passed:
-	@set -e; { \
+	@set -ex; { \
 		commit=$$(git rev-parse HEAD) ;\
 		printf "$(CYN)==> $(GRN)Promoting $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
 		echo "PASSED" | aws s3 cp - s3://$(AWS_S3_BUCKET)/chart-builds/$$commit ; \
