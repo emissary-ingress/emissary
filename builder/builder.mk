@@ -322,7 +322,6 @@ docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/base-envoy.docker.t
 REPO=$(BUILDER_NAME)
 
 images: docker/$(LCNAME).docker.tag.local
-images: docker/$(LCNAME)-ea.docker.tag.local
 images: docker/kat-client.docker.tag.local
 images: docker/kat-server.docker.tag.local
 .PHONY: images
@@ -333,12 +332,11 @@ REGISTRY_ERR += $(NL)       you would like to use for development
 REGISTRY_ERR += $(END)
 
 push: docker/$(LCNAME).docker.push.remote
-push: docker/$(LCNAME)-ea.docker.push.remote
 push: docker/kat-client.docker.push.remote
 push: docker/kat-server.docker.push.remote
 .PHONY: push
 
-push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
+push-dev: docker/$(LCNAME).docker.tag.local
 	@set -e; { \
 		if [ -n "$(IS_DIRTY)" ]; then \
 			echo "push-dev: tree must be clean" >&2 ;\
@@ -351,7 +349,7 @@ push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 		fi ;\
 		suffix=$$(echo $(BUILD_VERSION) | sed -e 's/\+/-/') ;\
 		chartsuffix=$${suffix#*-} ; \
-		for image in $(LCNAME) $(LCNAME)-ea; do \
+		for image in $(LCNAME) ; do \
 			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
 			printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
 			docker tag $$(cat docker/$$image.docker) $$tag && \
@@ -374,36 +372,6 @@ push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 		$(MAKE) clean-manifests ; \
 	}
 .PHONY: push-dev
-
-push-nightly: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
-	@set -e; { \
-		if [ -n "$(IS_DIRTY)" ]; then \
-			echo "push-nightly: tree must be clean" >&2 ;\
-			exit 1 ;\
-		fi; \
-		now=$$(date +"%Y%m%dT%H%M%S") ;\
-		today=$$(date +"%Y%m%d") ;\
-		base_version=$$(echo $(BUILD_VERSION) | cut -d- -f1) ;\
-		for image in $(LCNAME) $(LCNAME)-ea; do \
-			for suffix in "$$now" "$$today"; do \
-				tag="$(DEV_REGISTRY)/$$image:$${base_version}-nightly.$${suffix}" ;\
-				printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
-				docker tag $$(cat docker/$$image.docker) $$tag && \
-				docker push $$tag ;\
-			done ;\
-		done ;\
-		CHART_VERSION_SUFFIX=-nightly.$$today ;\
-		IMAGE_TAG=$${base_version}$${CHART_VERSION_SUFFIX} ;\
-		$(MAKE) \
-			CHART_VERSION_SUFFIX="$${CHART_VERSION_SUFFIX}" \
-			IMAGE_TAG="$${IMAGE_TAG}" \
-			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
-			chart-push-ci ; \
-		$(MAKE) update-yaml --always-make; \
-		$(MAKE) VERSION_OVERRIDE=$${base_version}-nightly.$${suffix} push-manifests  ; \
-		$(MAKE) clean-manifests ; \
-	}
-.PHONY: push-nightly
 
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
 export KUBECTL_ERR=$(RED)ERROR: preflight kubectl check failed$(END)
@@ -753,18 +721,6 @@ RELEASE_VERSION=$$($(BUILDER) release-version)
 BUILD_VERSION=$$($(BUILDER) version)
 IS_DIRTY=$$($(BUILDER) is-dirty)
 
-# 'rc' is a deprecated alias for 'release/bits', kept around for the
-# moment to avoid pain with needing to update apro.git in lockstep.
-rc: release/bits
-.PHONY: rc
-
-release/bits: images
-	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@printf "$(CYN)==> $(GRN)Pushing $(BLU)$(REPO)$(GRN) Docker image$(END)\n"
-	docker tag $$(cat docker/$(LCNAME).docker) $(AMB_IMAGE_RC)
-	docker push $(AMB_IMAGE_RC)
-.PHONY: release/bits
-
 release/promote-oss/.main:
 	@[[ "$(RELEASE_VERSION)"      =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET RELEASE_VERSION"; exit 1)
 	@[[ -n "$(PROMOTE_FROM_VERSION)" ]] || (echo "MUST SET PROMOTE_FROM_VERSION"; exit 1)
@@ -796,18 +752,6 @@ release/promote-oss/.main:
 	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(RELEASE_VERSION)" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
 .PHONY: release/promote-oss/.main
 
-# To be run from a checkout at the tag you are promoting _from_.
-# At present, this is to be run by-hand.
-release/promote-oss/to-ea-latest:
-	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-ea\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an EA tag\n' "$(RELEASE_VERSION)"; exit 1)
-	@{ $(MAKE) release/promote-oss/.main \
-	  PROMOTE_FROM_VERSION="$(RELEASE_VERSION)" \
-	  PROMOTE_TO_VERSION="$$(echo "$(RELEASE_VERSION)" | sed 's/-ea.*/-ea-latest/')" \
-	  PROMOTE_CHANNEL=early \
-	; }
-.PHONY: release/promote-oss/to-ea-latest
-
 release/promote-oss/dev-to-rc:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
 	@[[ ( "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ) || \
@@ -818,6 +762,7 @@ release/promote-oss/dev-to-rc:
 			exit 1 ;\
 		fi; \
 		commit=$$(git rev-parse HEAD) ;\
+		$(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key dev-builds ;\
 		dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
 		if [ -z "$$dev_version" ]; then \
 			printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
@@ -1172,17 +1117,6 @@ define _help.targets
     $(BLD)DO NOT$(END) run $(BLD)$(MAKE) $(BLU)pytest-gold$(END) if you have failing tests.
 
   $(BLD)$(MAKE) $(BLU)shell$(END)        -- starts a shell in the build container
-
-  $(BLD)$(MAKE) $(BLU)release/bits$(END) -- do the 'push some bits' part of a release
-
-    The current commit must be tagged for this to work, and your tree must be clean.
-    If the tag is of the form 'vX.Y.Z-(ea|rc).[0-9]*'.
-
-  $(BLD)$(MAKE) $(BLU)release/promote-oss/to-ea-latest$(END) -- promote an early-access '-ea.N' release to '-ea-latest'
-
-    The current commit must be tagged for this to work, and your tree must be clean.
-    Additionally, the tag must be of the form 'vX.Y.Z-ea.N'. You must also have previously
-    built an EA for the same tag using $(BLD)release/bits$(END).
 
   $(BLD)$(MAKE) $(BLU)release/promote-oss/to-rc-latest$(END) -- promote a release candidate '-rc.N' release to '-rc-latest'
 
