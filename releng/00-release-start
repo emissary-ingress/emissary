@@ -120,8 +120,7 @@ def main(next_ver: str, commit: bool = True) -> int:
                 "--repo", get_gh_repo(),
                 "--base", base_branch,
                 "--title", pr_message,
-                "--body", pr_body,
-                "--reviewer", "emissary-ingress/emissary-maintainers"])
+                "--body", pr_body])
 
     if checker.ok:
         if commit:

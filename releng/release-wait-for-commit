@@ -12,13 +12,13 @@ from datetime import datetime, timedelta
 
 
 def main(commit: str, s3_key: str, timeout: int) -> int:
-    print(f"{ansiterm.sgr.bold.fg_cyn}==> Waiting for commit {commit} to show up in s3://datawire-static-files/{s3_key}/")
-    print(f"    Check Circle CI if you would like to check progress:")
-    print(f"        https://app.circleci.com/pipelines/github/emissary-ingress/emissary{ansiterm.sgr.reset}")
     s3_bucket = os.getenv("AWS_S3_BUCKET")
 
     if s3_bucket == '':
         s3_bucket = 'datawire-static-files'
+    print(f"{ansiterm.sgr.bold.fg_cyn}==> Waiting for commit {commit} to show up in s3://{s3_bucket}/{s3_key}/")
+    print(f"    Check Circle CI if you would like to check progress:")
+    print(f"        https://app.circleci.com/pipelines/github/emissary-ingress/emissary{ansiterm.sgr.reset}")
     s3_url = f"{s3_bucket}.s3.amazonaws.com"
     started = datetime.now()
     stop_time = started + timedelta(minutes=timeout)
