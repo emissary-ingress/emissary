@@ -1,0 +1,14 @@
+name: chart-publish
+on:
+  push:
+    tags:
+      - 'chart-v**'
+jobs:
+  chart-publish:
+    runs-on: ubuntu-latest
+    name: chart-publish
+    steps:
+      - uses: actions/checkout@v2
+      - name: make release/ga/chart-push
+        run: |
+          make release/ga/chart-push
