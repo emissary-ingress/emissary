@@ -25,5 +25,5 @@ jobs:
           git commit -am 'im commiting this from CI'
           git push origin $branch
           echo "${GIT_TOKEN}" | gh auth login --with-token
-          gh pr create --reviewer @emissary-ingress/emissary-maintainers --title '[wip] this pr was generated from CI' --body 'hey look i did it'
+          gh pr create  --title '[wip] this pr was generated from CI' --body 'hey look i did it'
 
