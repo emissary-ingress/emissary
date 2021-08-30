@@ -14,6 +14,8 @@ jobs:
       AWS_EC2_METADATA_DISABLED: true
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
       RELEASE_REGISTRY: ${{ secrets.RELEASE_REGISTRY }}
+      APRO_REPO_TARGET: ${{ secrets.APRO_REPO_TARGET }}
+      GIT_API_KEY: ${{ secrets.GH_API_KEY }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -23,6 +25,12 @@ jobs:
         with:
           username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
           password: ${{ secrets.GH_DOCKER_RELEASE_PASSWORD }}
+      - name: "make release/prep-rc"
+        run: |
+          git config --global user.email "dev@datawire.io"
+          git contig --global user.name "d6e-automaton"
+          git config --global "url.https://$GIT_API_KEY@github.com.insteadOf" https://github.com
+          make release/prep-rc
       - name: "make release/promote-oss/dev-to-rc"
         run: |
           make release/promote-oss/dev-to-rc
