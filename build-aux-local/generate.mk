@@ -18,7 +18,6 @@ generate:
 	$(MAKE) generate-clean
 	$(MAKE) $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb
 	$(MAKE) _generate
-	cd .circleci && ./generate --always-make
 	$(MAKE) chart/docgen
 
 _generate:
