@@ -23,6 +23,7 @@ jobs:
   execute-pytests:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         # NOTES:
         # legacy mode does not do fast reconfigure - never test state true, true
