@@ -1,0 +1,21 @@
+name: manifest-publish
+on:
+  push:
+    tags:
+      - 'chart-v**'
+jobs:
+  manifest-publish:
+    runs-on: ubuntu-latest
+    name: manifest-publish
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
+      AWS_EC2_METADATA_DISABLED: true
+    steps:
+      - uses: actions/checkout@v2
+      - name: make push-manifests
+        run: |
+          make push-manifests
+      - name: make publish-docs-yaml
+        run: |
+          make publish-docs-yaml
