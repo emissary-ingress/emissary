@@ -116,6 +116,8 @@ COPY_GOLD = $(abspath $(BUILDER_HOME)/copy-gold.sh)
 
 AWS_S3_BUCKET ?= datawire-static-files
 
+GCR_RELEASE_REGISTRY ?= gcr.io/datawire
+
 # the image used for running the Ingress v1 tests with KIND.
 # the current, official image does not support Ingress v1, so we must build our own image with k8s 1.18.
 # build this image with:
@@ -944,7 +946,7 @@ release/ga-mirror:
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "$(RED)ERROR: version not found in versions.yml\n"; exit 1)
 	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$(RED)ERROR: RELEASE_REGISTRY not set\n"; exit 1)
-	@$(OSS_HOME)/releng/release-mirror-images --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY) --image-name $(LCNAME)
+	@$(OSS_HOME)/releng/release-mirror-images --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY) --image-name $(LCNAME) --repo-list $(GCR_RELEASE_REGISTRY)
 
 release/create-gh-release:
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "$(RED)ERROR: version not found in versions.yml\n"; exit 1)

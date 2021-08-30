@@ -32,9 +32,9 @@ def gcr_login() -> Generator[None, None, None]:
     subprocess.run(['docker', 'logout', 'https://gcr.io'], check=True)
 
 
-def get_images(source_registry: str, repo: str, tag: str, image_append: str = ''):
+def get_images(source_registry: str, repo: str, tag: str, image_append: str = '', registries: List[str] = ['gcr.io/datawire']):
     images = [f"{source_registry}/{repo}:{tag}",]
-    for registry in ['gcr.io/datawire']:
+    for registry in registries:
         dst = f'{registry}/{repo}:{tag}'
         if image_append != '':
             dst = f'{registry}/{repo}-{image_append}:{tag}'
