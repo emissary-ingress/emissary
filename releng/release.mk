@@ -13,3 +13,12 @@ release/start:
 # CI commands
 # These commands are run in CI in a normal release process
 ########################################################################
+
+release/ga/changelog-update:
+.PHONY: release/ga/changelog-update
+
+release/ga/manifest-update:
+	$(MAKE) release/chart/update-images
+	$(MAKE) update-yaml
+.PHONY: release/ga/manifest-update
+
