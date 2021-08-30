@@ -12,6 +12,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: "setup git config"
         run: |
+          git config --global user.email "dev@datawire.io"
+          git config --global user.name "d6e-automaton"
           git config --global "url.https://$GIT_API_KEY@github.com.insteadOf" https://github.com
           git checkout -b automated-stuff
           touch blah
