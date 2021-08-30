@@ -1,0 +1,28 @@
+name: testing-ish
+on:
+  pull_request:
+jobs:
+  testing-ish:
+    runs-on: ubuntu-latest
+    name: testing-ish
+    env:
+      GIT_API_KEY: ${{ secrets.GH_API_KEY }}
+      GIT_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: "setup git config"
+        run: |
+          git config --global user.email "dev@datawire.io"
+          git config --global user.name "d6e-automaton"
+          git config --global "url.https://$GIT_API_KEY@github.com.insteadOf" https://github.com
+          branch=automated-stuff-`date +%s`
+          git checkout -b $branch
+          touch blah
+          git add blah
+          git commit -am 'im commiting this from CI'
+          git push origin $branch
+          echo "${GH_TOKEN}" | gh auth login --with-token
+          gh pr create --reviewer emissary-ingress/emissary-maintainers --title '[wip] this pr was generated from CI' --body 'hey look i did it'
+
