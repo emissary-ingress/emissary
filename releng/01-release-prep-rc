@@ -12,7 +12,7 @@ fi
 
 commit=$(git rev-parse HEAD)
 
-${CURR_DIR}/release-wait-for-commit --commit $commit --s3-key dev-builds
+#${CURR_DIR}/release-wait-for-commit --commit $commit --s3-key dev-builds
 
 git tag -m v$rc_tag -a v$rc_tag
 git push origin v$rc_tag
