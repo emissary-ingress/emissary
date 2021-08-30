@@ -1,0 +1,18 @@
+name: pr-tests
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+jobs:
+  check-a-thing:
+    runs-on: ubuntu-latest
+    name: checkin
+    needs: [execute-lint-test]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: "install bsdtar (libarchive-tools)"
+        run: |
+          echo 'hi'
