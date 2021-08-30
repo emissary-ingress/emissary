@@ -34,6 +34,7 @@ include $(OSS_HOME)/_cxx/envoy.mk
 include $(OSS_HOME)/charts/emissary-ingress/Makefile
 include $(OSS_HOME)/charts/charts.mk
 include $(OSS_HOME)/manifests/manifests.mk
+include $(OSS_HOME)/releng/release.mk
 
 $(call module,ambassador,$(OSS_HOME))
 
