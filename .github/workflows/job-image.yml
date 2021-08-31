@@ -20,7 +20,7 @@ on:
       - '*.md$'
 
 jobs:
-  execute-generate:
+  job-image:
     runs-on: ubuntu-latest
     name: job-image
     env:
@@ -47,4 +47,37 @@ jobs:
           make chart-clean
       - uses: ./.github/actions/git-dirty-check
         name: "Check git not dirty (from make push + make push-dev)"
-
+  tag-rc:
+    runs-on: ubuntu-latest
+    name: tag-rc
+    needs: [job-image]
+    if: ${{ startsWith(github.ref, 'refs/heads/rel/v') }}
+    env:
+      GIT_API_KEY: ${{ secrets.GH_API_KEY }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: "setup git config"
+        run: |
+          set -x
+          git config --global user.email "dev@datawire.io"
+          git config --global user.name "d6e-automaton"
+          git config --global "url.https://$GIT_API_KEY@github.com.insteadOf" https://github.com
+      - name: "tag rc"
+        run: |
+          make release/rc/tag
+      - name: Slack notification
+        if: ${{ failure() }}
+        uses: edge/simple-slack-notify@master
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        with:
+          status: ${{ job.status }}
+          failure_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build failed'
+          fields: |
+            [{ "title": "Repository", "value": "${env.GITHUB_REPOSITORY}", "short": true },
+             { "title": "Branch", "value": "${env.GITHUB_REF}", "short": true },
+             { "title": "Action URL", "value": "${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}"}
+            ]
