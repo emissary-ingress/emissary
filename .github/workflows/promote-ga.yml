@@ -114,9 +114,7 @@ jobs:
       - name: "Make changelog changes"
         run: |
           make release/ga/manifest-update
-      - name: "Extract PR URL"
-        run
-      - name: Extract branch name
+      - name: Extract PR URL
         shell: bash
         run: echo "::set-env name=PR_URL::$(gh pr view --json url --jq .url)"
       - name: Slack notification
