@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     name: tag-rc
     needs: [job-image]
-    if: ${{ startsWith(github.ref, 'refs/heads/rel/v') }}
+    if: ${{ startsWith(github.head_ref, 'refs/heads/rel/v') }}
     env:
       GIT_API_KEY: ${{ secrets.GH_API_KEY }}
     steps:
