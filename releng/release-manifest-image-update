@@ -63,7 +63,8 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         cur_branch = run_capture(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
 
         if cur_branch != workbranch:
-            run(["git", "fetch", "--tags"])
+            if getenv('CI') == '':
+                run(["git", "fetch", "--tags"])
             run(["git", "checkout", f"v{next_ver}", "-b", workbranch])
 
     if not checker.ok:

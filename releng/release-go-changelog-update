@@ -94,7 +94,8 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         user = 'unknownuser'
     workbranch = f"{user}/v{next_ver}/changelog-updates"
     with check(f"Creating new branch {workbranch}"):
-        run(["git", "fetch", "--tags"])
+        if getenv('CI') == '':
+            run(["git", "fetch", "--tags"])
         run(["git", "checkout", f"v{next_ver}", "-b", workbranch])
     if not checker.ok:
         return 1
