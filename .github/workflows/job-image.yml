@@ -68,6 +68,11 @@ jobs:
     env:
       GIT_API_KEY: ${{ secrets.GH_API_KEY }}
       AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
+      AWS_EC2_METADATA_DISABLED: true
+      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
+      RELEASE_REGISTRY: ${{ secrets.RELEASE_REGISTRY }}
     steps:
       - uses: actions/checkout@v2
         with:
