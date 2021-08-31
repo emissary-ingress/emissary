@@ -79,17 +79,31 @@ jobs:
           git config --global user.email "dev@datawire.io"
           git config --global user.name "d6e-automaton"
           git config --global "url.https://$GIT_API_KEY@github.com.insteadOf" https://github.com
+      - name: "Docker Login"
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_RELEASE_PASSWORD }}
       - name: "tag rc"
         run: |
           make release/rc/tag
+      - name: "make release/promote-oss/dev-to-rc"
+        run: |
+          make release/promote-oss/dev-to-rc
+      - name: Extract RC Info
+        shell: bash
+        run: |
+          make release/rc/print-test-artifacts >> $GITHUB_ENV
       - name: Slack notification
-        if: ${{ failure() }}
+        if: always()
         uses: edge/simple-slack-notify@master
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           status: ${{ job.status }}
+          success_text: 'Emissary RC for ${env.GITHUB_REF} successfully built:\n\`\`\`export AMBASSADOR_MANIFEST_URL=${env.AMBASSADOR_MANIFEST_URL}\nexport HELM_CHART_VERSION=${env.HELM_CHART_VERSION}\`\`\`'
           failure_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build failed'
+          cancelled_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build was cancelled'
           fields: |
             [{ "title": "Repository", "value": "${env.GITHUB_REPOSITORY}", "short": true },
              { "title": "Branch", "value": "${env.GITHUB_REF}", "short": true },
