@@ -67,6 +67,7 @@ jobs:
     if: ${{ startsWith(github.head_ref, 'rel/v') }}
     env:
       GIT_API_KEY: ${{ secrets.GH_API_KEY }}
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
     steps:
       - uses: actions/checkout@v2
         with:
