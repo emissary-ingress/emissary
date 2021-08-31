@@ -3,10 +3,10 @@ on:
   workflow_run:
     workflows:
       - chart-test
-      - gotest
-      - generate
+        #- gotest
+        #- generate
       - lint-test
-      - pytest
+        #- pytest
       - job-image
     types: [completed]
 
