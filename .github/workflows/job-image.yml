@@ -57,7 +57,7 @@ jobs:
           failure_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build failed'
           fields: |
             [{ "title": "Repository", "value": "${env.GITHUB_REPOSITORY}", "short": true },
-             { "title": "Branch", "value": "${env.GITHUB_REF}", "short": true },
+             { "title": "Branch", "value": "${env.GITHUB_HEAD_REF}", "short": true },
              { "title": "Action URL", "value": "${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}"}
             ]
   tag-rc:
@@ -106,11 +106,11 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           status: ${{ job.status }}
-          success_text: 'Emissary RC for ${env.GITHUB_REF} successfully built:\n\`\`\`export AMBASSADOR_MANIFEST_URL=${env.AMBASSADOR_MANIFEST_URL}\nexport HELM_CHART_VERSION=${env.HELM_CHART_VERSION}\`\`\`'
+          success_text: 'Emissary RC for ${env.RC_TAG} successfully built:\n\`\`\`export AMBASSADOR_MANIFEST_URL=${env.AMBASSADOR_MANIFEST_URL}\nexport HELM_CHART_VERSION=${env.HELM_CHART_VERSION}\`\`\`'
           failure_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build failed'
           cancelled_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build was cancelled'
           fields: |
             [{ "title": "Repository", "value": "${env.GITHUB_REPOSITORY}", "short": true },
-             { "title": "Branch", "value": "${env.GITHUB_REF}", "short": true },
+             { "title": "Branch", "value": "${env.GITHUB_HEAD_REF}", "short": true },
              { "title": "Action URL", "value": "${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}"}
             ]
