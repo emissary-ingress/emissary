@@ -53,9 +53,9 @@ def get_is_private() -> bool:
 
 
 def get_gh_repo() -> str:
-    remote_url = run_txtcapture(['git', 'remote', 'get-url', 'origin'])
+    remote_url = run_txtcapture(['git', 'remote', 'get-url', 'origin']).strip()
     re_repo = re.compile(r'github\.com[:\/]([a-z\d-]+\/[a-z]+)(\.git)?$')
-    m = re_repo.match(remote_url)
+    m = re_repo.search(remote_url)
     if not m:
         raise Exception(f"Could not find repo from {remote_url}")
     return m[1]
