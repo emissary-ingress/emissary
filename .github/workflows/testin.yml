@@ -1,0 +1,15 @@
+name: testin
+on:
+  pull_request:
+jobs:
+  testin-ish:
+    runs-on: ubuntu-latest
+    name: testin-ish
+    env:
+    steps:
+      - name: "make release/promote-oss/to-ga"
+        run: |
+          export WHATEVER=blah
+      - name: "make release/promote-oss/to-ga"
+        run: |
+          echo $WHATEVER
