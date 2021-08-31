@@ -76,6 +76,13 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 (no changes yet)
 
+## [2.0.11-ea] (TBD)
+[2.0.11-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.10-ea...v2.0.11-ea
+
+### Emissary Ingress
+
+(no changes yet)
+
 ## [2.0.10-ea] (TBD)
 [2.0.10-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.2-ea...v2.0.10-ea
 
