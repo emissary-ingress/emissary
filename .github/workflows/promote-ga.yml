@@ -2,10 +2,7 @@ name: promote-to-ga
 on:
   push:
     tags:
-      - v*.*.*.*
-      - '!v*.*.*-rc.*'
-      - '!v*.*.*-hf.*'
-      - '!chart-**'
+      - v*
 jobs:
   promote-to-ga:
     runs-on: ubuntu-latest
@@ -19,15 +16,23 @@ jobs:
       RELEASE_REGISTRY: ${{ secrets.RELEASE_REGISTRY }}
       GCLOUD_SA_KEY: ${{ secrets.GCLOUD_SA_KEY }}
     steps:
+      - name: Check Tag
+        id: check-tag
+        run: |
+          if [[ ${{ github.event.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]]; then
+              echo ::set-output name=match::true
+          fi
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - name: "Docker Login"
         uses: docker/login-action@v1
+        if: steps.check-tag.outputs.match == 'true'
         with:
           username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
           password: ${{ secrets.GH_DOCKER_RELEASE_PASSWORD }}
       - name: "make release/promote-oss/to-ga"
+        if: steps.check-tag.outputs.match == 'true'
         run: |
           make release/promote-oss/to-ga
       # TODO: need to get dev mirror to test
@@ -35,7 +40,7 @@ jobs:
         #run: |
           #make release/ga-mirror
       - name: Slack notification
-        if: always()
+        if: ${{ always() && steps.check-tag.outputs.match == 'true' }}
         uses: edge/simple-slack-notify@master
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
