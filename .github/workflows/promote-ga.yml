@@ -30,9 +30,10 @@ jobs:
       - name: "make release/promote-oss/to-ga"
         run: |
           make release/promote-oss/to-ga
-      - name: "make release/ga-mirror"
-        run: |
-          make release/ga-mirror
+      # TODO: need to get dev mirror to test
+      #- name: "make release/ga-mirror"
+        #run: |
+          #make release/ga-mirror
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master
@@ -73,9 +74,9 @@ jobs:
       - name: Extract branch name
         shell: bash
         run: echo "::set-env name=PR_URL::$(gh pr view --json url --jq .url)"
-      - name: Create github release
-        run: |
-          make release/ga/create-gh-release
+      #- name: Create github release
+        #run: |
+          #make release/ga/create-gh-release
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master
