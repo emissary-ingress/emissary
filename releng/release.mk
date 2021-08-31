@@ -12,8 +12,8 @@ release/start:
 release/rc/tag:
 	@set -e; { \
 		$(OSS_HOME)/releng/release-wait-for-commit --commit $$(git rev-parse HEAD) --s3-key dev-builds ; \
-		rc_num=$$(PAGER= git tag --sort=-version:refname -l 'v$(VERSIONS_YAML_VER)-rc.*' | wc -l) ; \
-		rc_tag=v$(VERSIONS_YAML_VER)-rc.$$rc_num ; \
+		rc_num=$$(PAGER= git tag --sort=-version:refname -l 'v$(VERSIONS_YAML_VER_STRIPPED)-rc.*' | wc -l) ; \
+		rc_tag=v$(VERSIONS_YAML_VER_STRIPPED)-rc.$$rc_num ; \
 		echo "Tagging $$rc_tag" ; \
 		git tag -m $$rc_tag -a $$rc_tag ; \
 		git push origin $$rc_tag ; \
