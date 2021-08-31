@@ -37,8 +37,8 @@ release/rc/print-test-artifacts:
 	@set -e; { \
 		manifest_ver=$(RELEASE_VERSION) ; \
 		manifest_ver=$${manifest_ver%"-dirty"} ; \
-		echo "export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/emissary/$$manifest_ver" ; \
-		echo "export HELM_CHART_VERSION=`grep 'version' $(OSS_HOME)/charts/emissary-ingress/Chart.yaml | awk '{ print $$2 }'`" ; \
+		echo "AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/emissary/$$manifest_ver" ; \
+		echo "HELM_CHART_VERSION=`grep 'version' $(OSS_HOME)/charts/emissary-ingress/Chart.yaml | awk '{ print $$2 }'`" ; \
 	}
 .PHONY: release/print-test-artifacts
 
