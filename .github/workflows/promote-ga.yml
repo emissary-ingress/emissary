@@ -67,9 +67,9 @@ jobs:
           git config --global user.name "d6e-automaton"
           git config --global "url.https://$GIT_API_KEY@github.com.insteadOf" https://github.com
           echo "${GIT_TOKEN}" | gh auth login --with-token
-       - name: "Make changelog changes"
-         run: |
-           make release/ga/changelog-update
+      - name: "Make changelog changes"
+        run: |
+          make release/ga/changelog-update
       - name: Extract branch name
         shell: bash
         run: echo "::set-env name=PR_URL::$(gh pr view --json url --jq .url)"
