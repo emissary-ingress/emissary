@@ -104,12 +104,26 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             target_branch = long_lived_release_branch
             if has_open_pr(get_gh_repo(), long_lived_release_branch, curr_release_branch):
                 target_branch = curr_release_branch
+            # In theory, one could trigger a github action on a pull request review event,
+            # but that seems a bit excessive for now so let's just do this.
+            pr_body = """
+Chart updates for {ga_version}.
+
+Once this pull request has been reviewed, the release engineer can run the following:
+
+```
+git fetch
+git checkout {workbranch}
+git pull origin {workbranch}
+make release/chart/tag
+```
+"""
             # TODO: dont hardcode owners
             run(["gh", "pr", "create",
                     "--repo", get_gh_repo(),
                     "--base", target_branch,
                     "--title", f"[v{next_ver}] Chart and manifest image updates",
-                    "--body", f"Update charts and manifests to use the newly release images for {next_ver}",
+                    "--body", pr_body.format(ga_version=next_ver, workbranch=workbranch),
                     "--reviewer", "kflynn,rhs,esmet,acookin"])
     if checker.ok:
         if not getenv("AMBASSADOR_RELENG_NO_GUI"):
