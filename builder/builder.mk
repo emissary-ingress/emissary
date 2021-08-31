@@ -793,10 +793,12 @@ release/promote-oss/dev-to-rc:
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} push-manifests  ; \
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} publish-docs-yaml ; \
 		$(MAKE) clean-manifests ; \
-		gavers=$$(echo $(RELEASE_VERSION) | sed 's/-rc.*//'); \
-		$(OSS_HOME)/releng/01-release-rc-update-apro v$(RELEASE_VERSION) $${gavers}; \
 	}
 .PHONY: release/promote-oss/dev-to-rc
+
+release/promote-oss/rc-update-apro:
+	$(OSS_HOME)/releng/01-release-rc-update-apro v$(RELEASE_VERSION) v$(VERSIONS_YAML_VERSION)
+.PHONY: release/promote-oss/rc-update-apro
 
 release/print-test-artifacts:
 	@set -e; { \

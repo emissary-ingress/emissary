@@ -31,11 +31,11 @@ jobs:
           git config --global user.name "d6e-automaton"
           git config --global "url.https://$GIT_API_KEY@github.com.insteadOf" https://github.com
           make release/promote-oss/dev-to-rc
+          make release/promote-oss/rc-update-apro
       - name: Extract RC Info
         shell: bash
         run: |
           make release/rc/print-test-artifacts >> $GITHUB_ENV
-
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master
