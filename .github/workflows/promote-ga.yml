@@ -76,7 +76,7 @@ jobs:
           make release/ga/changelog-update
       - name: Extract branch name
         shell: bash
-        run: echo "::set-env name=PR_URL::$(gh pr view --json url --jq .url)"
+        run: echo "PR_URL=$(gh pr view --json url --jq .url)" >> $GITHUB_ENV
       #- name: Create github release
         #run: |
           #make release/ga/create-gh-release
@@ -119,7 +119,7 @@ jobs:
           make release/ga/manifest-update
       - name: Extract PR URL
         shell: bash
-        run: echo "::set-env name=PR_URL::$(gh pr view --json url --jq .url)"
+        run: echo "PR_URL=$(gh pr view --json url --jq .url)" >> $GITHUB_ENV
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master
