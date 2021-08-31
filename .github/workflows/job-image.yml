@@ -29,6 +29,8 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
       AWS_EC2_METADATA_DISABLED: true
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
+      HEAD_THING: ${{ github.head_ref }}
+      BASE_THING: ${{ github.ref }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -39,6 +41,10 @@ jobs:
         with:
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
           password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+      - name: "echo things"
+        run: |
+          echo ${HEAD_THING}
+          echo ${BASE_THING}
       - name: "make push-dev"
         run: |
           make push-dev
@@ -47,6 +53,19 @@ jobs:
           make chart-clean
       - uses: ./.github/actions/git-dirty-check
         name: "Check git not dirty (from make push + make push-dev)"
+      - name: Slack notification
+        if: ${{ failure() && startsWith(github.head_ref, 'refs/heads/rel/v') }}
+        uses: edge/simple-slack-notify@master
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        with:
+          status: ${{ job.status }}
+          failure_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build failed'
+          fields: |
+            [{ "title": "Repository", "value": "${env.GITHUB_REPOSITORY}", "short": true },
+             { "title": "Branch", "value": "${env.GITHUB_REF}", "short": true },
+             { "title": "Action URL", "value": "${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}"}
+            ]
   tag-rc:
     runs-on: ubuntu-latest
     name: tag-rc
