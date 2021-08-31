@@ -26,6 +26,9 @@ jobs:
       - name: "make release/promote-oss/dev-to-rc"
         run: |
           make release/promote-oss/dev-to-rc
+      - name: Extract RC Info
+        shell: bash
+        run: echo "::set-env name=RC_INFO::$(make release/rc/print-test-artifacts)"
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master
@@ -34,7 +37,7 @@ jobs:
         with:
           # TODO: actually put the RC info in the slack message
           status: ${{ job.status }}
-          success_text: 'Emissary RC for ${env.GITHUB_REF} successfully built'
+          success_text: 'Emissary RC for ${env.GITHUB_REF} successfully built:\n```${env.RC_INFO}```'
           failure_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build failed'
           cancelled_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build was cancelled'
           fields: |
