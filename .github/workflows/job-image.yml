@@ -29,8 +29,6 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
       AWS_EC2_METADATA_DISABLED: true
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
-      HEAD_THING: ${{ github.head_ref }}
-      BASE_THING: ${{ github.ref }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -41,10 +39,6 @@ jobs:
         with:
           username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
           password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
-      - name: "echo things"
-        run: |
-          echo ${HEAD_THING}
-          echo ${BASE_THING}
       - name: "make push-dev"
         run: |
           make push-dev
@@ -54,7 +48,7 @@ jobs:
       - uses: ./.github/actions/git-dirty-check
         name: "Check git not dirty (from make push + make push-dev)"
       - name: Slack notification
-        if: ${{ failure() && startsWith(github.head_ref, 'refs/heads/rel/v') }}
+        if: ${{ failure() && startsWith(github.head_ref, 'rel/v') }}
         uses: edge/simple-slack-notify@master
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -70,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     name: tag-rc
     needs: [job-image]
-    if: ${{ startsWith(github.head_ref, 'refs/heads/rel/v') }}
+    if: ${{ startsWith(github.head_ref, 'rel/v') }}
     env:
       GIT_API_KEY: ${{ secrets.GH_API_KEY }}
     steps:
