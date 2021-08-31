@@ -28,7 +28,9 @@ jobs:
           make release/promote-oss/dev-to-rc
       - name: Extract RC Info
         shell: bash
-        run: echo "::set-env name=RC_INFO::$(make release/rc/print-test-artifacts)"
+        run: |
+          echo "RC_INFO=`make release/rc/print-test-artifacts`" >> $GITHUB_ENV
+
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master
