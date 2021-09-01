@@ -12,6 +12,7 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
       AWS_EC2_METADATA_DISABLED: true
+      PUBLISH_GIT_RELEASE: true
     steps:
       - uses: actions/checkout@v2
       - name: make release/ga/chart-push
