@@ -131,6 +131,5 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
       - name: "promote build to passed"
-        run:
-          command: |
-              make release/promote-oss/dev-to-passed-ci
+        run: |
+          make release/promote-oss/dev-to-passed-ci
