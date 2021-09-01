@@ -12,6 +12,7 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
       AWS_EC2_METADATA_DISABLED: true
+      BUMP_STABLE: true
     steps:
       - uses: actions/checkout@v2
       - name: make push-manifests
@@ -20,6 +21,8 @@ jobs:
       - name: make publish-docs-yaml
         run: |
           make publish-docs-yaml
+          ver_yaml_version=`grep 'version:' docs/yaml/versions.yml | sed 's/version://g'`
+          echo "RELEASED_VERSION=${ver_yaml_version}" >> $GITHUB_ENV
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master
@@ -27,7 +30,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           status: ${{ job.status }}
-          success_text: 'Manifests successfully published for ${env.GITHUB_REF}'
+          success_text: 'Manifests successfully published for ${env.RELEASED_VERSION}'
           failure_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build failed'
           cancelled_text: '${env.GITHUB_WORKFLOW} (${env.GITHUB_RUN_NUMBER}) build was cancelled'
           fields: |
