@@ -19,6 +19,9 @@ jobs:
   "trigger":
     runs-on: ubuntu-latest
     steps:
+    - name: short circuit
+      run: |
+        exit 1
     - name: Trigger CircleCI pipeline
       env:
         CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}

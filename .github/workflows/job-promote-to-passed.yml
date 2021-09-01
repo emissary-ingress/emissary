@@ -2,7 +2,7 @@ name: job-promote-to-passed
 on:
   workflow_run:
     workflows:
-      - chart-test
+      # - chart-test
         #- gotest
         #- generate
       - lint-test
@@ -25,7 +25,7 @@ jobs:
           fetch-depth: 0
       - name: Workflow Run Wait (Execute if all dependent workflows complete)
         uses: ahmadnassri/action-workflow-run-wait@v1.4.2
-        timeout: 1800000 #half an hour in ms
+          #timeout: 1800000 #half an hour in ms
       - run:
           name: "promote build to passed"
           command: |
