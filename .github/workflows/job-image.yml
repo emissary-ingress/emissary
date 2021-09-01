@@ -20,7 +20,7 @@ on:
       - '*.md$'
 
 jobs:
-  execute-generate:
+  job-image:
     runs-on: ubuntu-latest
     name: job-image
     env:
