@@ -31,6 +31,7 @@ Get started with Emissary on Kubernetes - https://www.getambassador.io/user-guid
 def main(release_version: str) -> int:
     # This context manager and check function are pretty much just to produce
     # a nice list of steps...
+    in_ci = os.getenv('CI') != ''
     checker = Checker()
 
     @contextmanager
@@ -40,7 +41,9 @@ def main(release_version: str) -> int:
             yield subcheck
 
     with check(f"Check that tag v{release_version} exists"):
-        run(['git', 'fetch', '--tags'])
+
+        if not in_ci:
+            run(['git', 'fetch', '--tags'])
         run(['git', 'rev-parse', '--verify', f"v{release_version}"])
     if not checker.ok:
         return 1
@@ -64,7 +67,6 @@ def main(release_version: str) -> int:
 
     print(f"Generated release notes:")
     print(buf)
-    in_ci = os.getenv('CI') != ''
     if not in_ci:
         ok = input("Does this look correct? (y/n)")
         if ok != 'y':

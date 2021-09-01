@@ -77,9 +77,9 @@ jobs:
       - name: Extract branch name
         shell: bash
         run: echo "PR_URL=$(gh pr view --json url --jq .url)" >> $GITHUB_ENV
-      #- name: Create github release
-        #run: |
-          #make release/ga/create-gh-release
+      - name: Create github release
+        run: |
+          make release/ga/create-gh-release
       - name: Slack notification
         if: always()
         uses: edge/simple-slack-notify@master
