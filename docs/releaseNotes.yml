@@ -1,0 +1,230 @@
+# -*- fill-column: 100 -*-
+
+# This file should be placed in the folder for the version of the
+# product that's meant to be documented. A `/release-notes` page will
+# be automatically generated and populated at build time.
+#
+# Note that an entry needs to be added to the `doc-links.yml` file in
+# order to surface the release notes in the table of contents.
+#
+# The YAML in this file should contain:
+#
+# changelog: An (optional) URL to the CHANGELOG for the product.
+# items: An array of releases with the following attributes:
+#     - version: The (optional) version number of the release, if applicable.
+#     - date: The date of the release in the format YYYY-MM-DD.
+#     - notes: An array of noteworthy changes included in the release, each having the following attributes:
+#         - type: The type of change, one of `bugfix`, `feature`, `security` or `change`.
+#         - title: A short title of the noteworthy change.
+#         - body: >-
+#             Two or three sentences describing the change and why it
+#             is noteworthy.  This is HTML, not plain text or
+#             markdown.  It is handy to use YAML's ">-" feature to
+#             allow line-wrapping.
+#         - image: >-
+#             The URL of an image that visually represents the
+#             noteworthy change.  This path is relative to the
+#             `release-notes` directory; if this file is
+#             `FOO/releaseNotes.yml`, then the image paths are
+#             relative to `FOO/release-notes/`.
+#         - docs: The path to the documentation page where additional information can be found.
+
+changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
+items:
+  - version: 1.14.2
+    date: '2021-09-29'
+    notes:
+      - title: Mappings support controlling DNS refresh with DNS TTL
+        type: feature
+        body: >-
+          You can now set <code>respect_dns_ttl</code> in Ambassador Mappings. When true it
+          configures that upstream's refresh rate to be set to resource record’s TTL
+        docs: topics/using/mappings/#dns-configuration-for-mappings
+
+      - title: Mappings support configuring strict or logical DNS
+        type: feature
+        body: >-
+          You can now set <code>dns_type</code> to in Ambassador Mappings to use Envoy's
+          <code>logical_dns</code> resolution instead of the default <code>strict_dns</code>.
+        docs: topics/using/mappings/#dns-configuration-for-mappings
+    edgeStackNotes:
+      - type: feature
+        body: >-
+          You can now set <code>preserve_servers</code> in Ambassador Edge Stack's
+          <code>DevPortal</code> resource to configure the DevPortal to use server definitions from
+          the OpenAPI document when displaying connection information for services in the DevPortal.
+
+  - version: 1.14.1
+    date: '2021-08-24'
+    notes:
+      - title: Envoy security updates
+        type: change
+        body: >-
+          Upgraded Envoy to 1.17.4 to address security vulnerabilities CVE-2021-32777,
+          CVE-2021-32778, CVE-2021-32779, and CVE-2021-32781.
+        docs: https://groups.google.com/g/envoy-announce/c/5xBpsEZZDfE
+
+  - version: 1.14.0
+    date: "2021-08-19"
+    notes:
+      - title: Subsecond time resolution in logs
+        type: change
+        body: >-
+          Logs now include subsecond time resolutions, rather than just seconds.
+        docs: https://github.com/emissary-ingress/emissary/pull/3650
+
+      - title: Envoy upgraded to 1.17.3!
+        type: change
+        body: >-
+          Update from Envoy 1.15 to 1.17.3
+        docs: https://www.envoyproxy.io/docs/envoy/latest/version_history/version_history
+
+      - title: Default Envoy API version is now V3
+        type: change
+        body: >-
+          <code>AMBASSADOR_ENVOY_API_VERSION</code> now defaults to <code>V3</code>
+        docs: https://www.getambassador.io/docs/edge-stack/latest/topics/running/running/#ambassador_envoy_api_version
+
+      - title: Expose Envoy's allow_chunked_length HTTPProtocolOption
+        type: feature
+        body: >-
+          You can now set <code>allow_chunked_length</code> in the Ambassador Module to configure
+          the same value in Envoy.
+        docs: topics/running/ambassador/#content-length-headers
+
+  - version: 1.13.10
+    date: '2021-07-28'
+    notes:
+      - title: Fix for CORS origins configuration on the Mapping resource
+        type: bugfix
+        body: >-
+          Fixed a regression when specifying a comma separated string for <code>cors.origins</code>
+          on the <code>Mapping</code> resource.
+          ([#3609](https://github.com/emissary-ingress/emissary/issues/3609))
+        docs: topics/using/cors
+        image: ../images/emissary-1.13.10-cors-origin.png
+
+      - title: New Envoy-configuration snapshots for debugging
+        body: "Envoy-configuration snapshots get saved (as <code>ambex-#.json</code>) in <code>/ambassador/snapshots</code>. The number of snapshots is controlled by the <code>AMBASSADOR_AMBEX_SNAPSHOT_COUNT</code> environment variable; set it to 0 to disable. The default is 30."
+        type: change
+        docs: topics/running/environment/
+
+      - title: Optionally remove ratelimiting for Envoy reconfiguration
+        body: >-
+          Set <code>AMBASSADOR_AMBEX_NO_RATELIMIT</code> to <code>true</code> to completely disable
+          ratelimiting Envoy reconfiguration under memory pressure. This can help performance with
+          the endpoint or Consul resolvers, but could make OOMkills more likely with large
+          configurations. The default is <code>false</code>, meaning that the rate limiter is
+          active.
+        type: change
+        docs: topics/running/environment/
+    edgeStackNotes:
+      - type: bugfix
+        body: >-
+          The <code>Mapping</code> resource can now specify <code>docs.timeout_ms</code> to set the
+          timeout when the Dev Portal is fetching API specifications.
+      - type: bugfix
+        body: >-
+          The Dev Portal will now strip HTML tags when displaying search results, showing just the
+          actual content of the search result.
+      - type: change
+        body: >-
+          Consul certificate-rotation logging now includes the fingerprints and validity timestamps
+          of certificates being rotated.
+
+  - version: 1.13.9
+    date: '2021-06-30'
+    notes:
+      - title: Fix for TCPMappings
+        body: >-
+          Configuring multiple TCPMappings with the same ports (but different hosts) no longer
+          generates invalid Envoy configuration.
+        type: bugfix
+        docs: topics/using/tcpmappings/
+
+  - version: 1.13.8
+    date: '2021-06-08'
+    notes:
+      - title: Fix Ambassador Cloud Service Details
+        body: >-
+          Ambassador Agent now accurately reports up-to-date Endpoint information to Ambassador
+          Cloud
+        type: bugfix
+        docs: tutorials/getting-started/#3-connect-your-cluster-to-ambassador-cloud
+        image: ../images/edge-stack-1.13.8-cloud-bugfix.png
+
+      - title: Improved Argo Rollouts Experience with Ambassador Cloud
+        body: >-
+          Ambassador Agent reports ConfigMaps and Deployments to Ambassador Cloud to provide a
+          better Argo Rollouts experience. See [Argo+Ambassador
+          documentation](https://www.getambassador.io/docs/argo) for more info.
+        type: feature
+        docs: https://www.getambassador.io/docs/argo
+
+  - version: 1.13.7
+    date: '2021-06-03'
+    notes:
+      - title: JSON logging support
+        body: >-
+          Add AMBASSADOR_JSON_LOGGING to enable JSON for most of the Ambassador control plane. Some
+          (but few) logs from gunicorn and the Kubernetes client-go package still log text.
+        image: ../images/edge-stack-1.13.7-json-logging.png
+        docs: topics/running/running/#log-format
+        type: feature
+
+      - title: Consul resolver bugfix with TCPMappings
+        body: >-
+          Fixed a bug where the Consul resolver would not actually use Consul endpoints with
+          TCPMappings.
+        image: ../images/edge-stack-1.13.7-tcpmapping-consul.png
+        docs: topics/running/resolvers/#the-consul-resolver
+        type: bugfix
+
+      - title: Memory usage calculation improvements
+        body: >-
+          Ambassador now calculates its own memory usage in a way that is more similar to how the
+          kernel OOMKiller tracks memory.
+        image: ../images/edge-stack-1.13.7-memory.png
+        docs: topics/running/scaling/#inspecting-ambassador-performance
+        type: change
+
+  - version: 1.13.6
+    date: '2021-05-24'
+    notes:
+      - title: Quieter logs in legacy mode
+        type: bugfix
+        body: >-
+          Fixed a regression where Ambassador snapshot data was logged at the INFO label
+          when using AMBASSADOR_LEGACY_MODE=true
+
+  - version: 1.13.5
+    date: '2021-05-13'
+    notes:
+      - title: Correctly support proper_case and preserve_external_request_id
+        type: bugfix
+        body: >-
+          Fix a regression from 1.8.0 that prevented Ambassador module config keys
+          <code>proper_case</code> and <code>preserve_external_request_id</code> from working
+          correctly.
+        docs: topics/running/ambassador/#header-case
+
+      - title: Correctly support Ingress statuses in all cases
+        type: bugfix
+        body: >-
+          Fixed a regression in detecting the Ambassador Kubernetes service that could cause the
+          wrong IP or hostname to be used in Ingress statuses (thanks, [Noah
+          Fontes](https://github.com/impl)!
+        docs: topics/running/ingress-controller
+
+  - version: 1.13.4
+    date: '2021-05-11'
+    notes:
+      - title: Envoy 1.15.5
+        body: >-
+          Incorporate the Envoy 1.15.5 security update by adding the
+          <code>reject_requests_with_escaped_slashes</code> option to the Ambassador module.
+        image: ../images/edge-stack-1.13.4.png
+        docs: topics/running/ambassador/#rejecting-client-requests-with-escaped-slashes
+        type: bugfix
+
+# Don't go any further back than 1.13.4.
