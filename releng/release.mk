@@ -43,6 +43,18 @@ release/rc/print-test-artifacts:
 	}
 .PHONY: release/print-test-artifacts
 
+release/rc/check:
+	@set -ex; { \
+		rc_num=$$(PAGER= git tag --sort=-version:refname -l 'v$(VERSIONS_YAML_VER_STRIPPED)-rc.*' | head -n -1 | wc -l) ; \
+		rc_tag=$(VERSIONS_YAML_VER_STRIPPED)-rc.$$rc_num ; \
+		chart_version=$$(grep 'version:' $(OSS_HOME)/charts/emissary-ingress/Chart.yaml | awk '{ print $$2 }' | sed 's/-ea//g') ; \
+		$(OSS_HOME)/releng/release-rc-check \
+			--rc-version $$rc_tag --s3-bucket $(AWS_S3_BUCKET) --s3-key charts-dev \
+			--helm-version $$chart_version-rc.$$rc_num \
+			--docker-image $(RELEASE_REGISTRY)/$(LCNAME):$$rc_tag ; \
+	}
+.PHONY: release/rc/check
+
 release/ga/changelog-update:
 	$(OSS_HOME)/releng/release-go-changelog-update --quiet $(VERSIONS_YAML_VER)
 .PHONY: release/ga/changelog-update
