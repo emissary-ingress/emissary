@@ -150,22 +150,3 @@ jobs:
              { "title": "Branch", "value": "${env.GITHUB_HEAD_REF}", "short": true },
              { "title": "Action URL", "value": "${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}"}
             ]
-  # TODO: THIS NEEDS TO DEPEND ON ALL THINGS PASSING
-  promote-to-passed:
-    runs-on: ubuntu-latest
-    name: promote-to-passed
-    needs: [tag-rc]
-    if: ${{ startsWith(github.head_ref, 'rel/v') }}
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
-      AWS_EC2_METADATA_DISABLED: true
-      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
-      - name: "promote build to passed"
-        run: |
-          make release/promote-oss/dev-to-passed-ci
