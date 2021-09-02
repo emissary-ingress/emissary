@@ -1,0 +1,30 @@
+name: job-chart-changelog
+on:
+  pull_request:
+    paths:
+      - 'charts/emissary-ingress/Chart.yaml'
+
+jobs:
+  job-chart-changelog:
+    runs-on: ubuntu-latest
+    name: job-chart-changelog
+    env:
+      BASE_REF: ${{ github.base_ref }}
+      SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: "check that chart version was updated"
+        run: |
+          git fetch origin master:master
+          COMMIT_RANGE="$BASE_REF $SHA"
+          echo "Commit range: " $COMMIT_RANGE
+          git --no-pager diff $COMMIT_RANGE charts/emissary-ingress/Chart.yaml
+          if ! git --no-pager diff $COMMIT_RANGE charts/emissary-ingress/Chart.yaml | grep -q +version; then
+            echo "Halting this job because the version was not changed in Chart.yaml"
+            exit 0
+          else
+            echo "Checking changelog was correctly updated to reflect Chart.yaml"
+            CHART_NAME=emissary-ingress ./charts/scripts/check_updated_changelog.sh
+          fi
