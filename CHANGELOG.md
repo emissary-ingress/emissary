@@ -10,7 +10,7 @@ Ambassador Edge Stack is a comprehensive, self-service solution for exposing,
 securing, and managing the boundary between end users and your Kubernetes services.
 The core of Ambassador Edge Stack is Emissary-ingress.
 
-**Note well:**
+*Note well:*
 
 - Ambassador Edge Stack provides all the capabilities of Emissary-ingress,
   as well as additional capabilities including:
@@ -91,7 +91,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 ## [2.0.2-ea] (2021-08-24)
 [2.0.2-ea]: https://github.com/emissary-ingress/emissary/releases/v2.0.2-ea
 
-We're pleased to introduce Emissary-ingress 2.0.1 as a _developer preview_. The 2.X family
+We're pleased to introduce Emissary-ingress 2.0.2 as a _developer preview_. The 2.X family
 introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
 installations, reduce global configuration to better handle multitenant or multiorganizational
 installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on
