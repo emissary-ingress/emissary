@@ -55,9 +55,15 @@ jobs:
       GIT_API_KEY: ${{ secrets.GH_API_KEY }}
       APRO_REPO_TARGET: ${{ secrets.APRO_REPO_TARGET }}
     steps:
-      - name: Update emissary tag in apro
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: "setup git config"
         run: |
+          set -x
           git config --global user.email "dev@datawire.io"
           git config --global user.name "d6e-automaton"
           git config --global "url.https://$GIT_API_KEY@github.com.insteadOf" https://github.com
+      - name: Update emissary tag in apro
+        run: |
           make release/promote-oss/rc-update-apro
