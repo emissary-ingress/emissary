@@ -1,0 +1,10 @@
+name: lint-test-action
+description: "Execute emissary lint tests"
+
+runs:
+  using: "composite"
+  steps:
+    - name: make lint
+      shell: bash
+      run: |
+        make lint

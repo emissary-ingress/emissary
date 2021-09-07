@@ -52,3 +52,28 @@ runs:
           outfile=${nsdir}/${name}-pod.log
           (kubectl logs -n $ns $name > $outfile || echo "FAILED, status $ret, continuing...") || true
         done
+    # upload artifacts
+    - name: "Upload Test Logs (test-logs)"
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ env.PREFIX }}--test-logs
+        path: /tmp/test-logs
+        if-no-files-found: ignore
+    - name: "Upload Cov Logs (cov_html)"
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ env.PREFIX }}--cov_html
+        path: /tmp/cov_html
+        if-no-files-found: ignore
+    - name: "Upload Pod Logs (pod-logs)"
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ env.PREFIX }}--pod-logs
+        path: /tmp/pod-logs
+        if-no-files-found: ignore
+    - name: "Upload XML Logs (xml)"
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ env.PREFIX }}--xml
+        path: /tmp/test-logs/xml/
+        if-no-files-found: ignore
