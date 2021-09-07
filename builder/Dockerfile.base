@@ -16,7 +16,7 @@
 
 # This argument controls the base image that is used for our build
 # container.
-ARG builderbase_stage0="docker.io/frolvlad/alpine-glibc:alpine-3.12_glibc-2.32"
+ARG builderbase_stage0="docker.io/frolvlad/alpine-glibc:alpine-3.14_glibc-2.33"
 ARG builderbase_stage1="builderbase-stage1"
 
 ########################################
@@ -53,17 +53,19 @@ RUN apk --no-cache add \
     py3-pip-bash-completion \
     python3 \
     python3-dev \
+    rust \
+    cargo \
     rsync \
     sudo \
     yaml-dev \
     && ln -s /usr/bin/python3 /usr/bin/python \
     && chmod u+s $(which docker)
-# We _must_ pin pip to a version before 20.3 because orjson appears to only have
-# PEP513 compatible wheels, which are supported before 20.3 but (apparently)
-# not in 20.3. We can only upgrade pip to 20.3 after we verify that orjson has
-# PEP600 compatible wheels for our linux platform, or we start building orjson
-# from source using a rust toolchain.
-RUN pip3 install -U pip==20.2.4 pip-tools==5.3.1
+# # We _must_ pin pip to a version before 20.3 because orjson appears to only have
+# # PEP513 compatible wheels, which are supported before 20.3 but (apparently)
+# # not in 20.3. We can only upgrade pip to 20.3 after we verify that orjson has
+# # PEP600 compatible wheels for our linux platform, or we start building orjson
+# # from source using a rust toolchain.
+# RUN pip3 install -U pip==20.2.4 pip-tools==5.3.1
 RUN npm config set user 0 && \
     npm config set unsafe-perm true && \
     npm install -g rollup@2.9.1 rollup-plugin-terser@5.3.0
@@ -95,16 +97,16 @@ RUN mkdir /tmp/pyyaml && \
 
 FROM ${builderbase_stage1} as builderbase-stage2
 
-# orjson is also special. It relies on glibc, so we need to temporarily convince
-# python that our linux is 'manylinux1_compatible' so it will fetch a prebuilt
-# binary instead of unsucessfully attempting to build using a rust toolchain.
-#
-# We can't leave this trick in place for the entire pip install, because other
-# packages we depend on (eg: protobuf) have binary packages that do _not_ work
-# on our linux.
-RUN echo 'manylinux1_compatible = True' > /usr/lib/python3.8/_manylinux.py && \
-	pip3 install orjson==3.3.1 && \
-	rm -f /usr/lib/python3.8/_manylinux.py
+# # orjson is also special. It relies on glibc, so we need to temporarily convince
+# # python that our linux is 'manylinux1_compatible' so it will fetch a prebuilt
+# # binary instead of unsucessfully attempting to build using a rust toolchain.
+# #
+# # We can't leave this trick in place for the entire pip install, because other
+# # packages we depend on (eg: protobuf) have binary packages that do _not_ work
+# # on our linux.
+# RUN echo 'manylinux1_compatible = True' > /usr/lib/python3.8/_manylinux.py && \
+# 	pip3 install orjson==3.3.1 && \
+# 	rm -f /usr/lib/python3.8/_manylinux.py
 
 # Then we can do the rest of the Python stuff.
 COPY requirements.txt .
