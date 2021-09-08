@@ -21,10 +21,11 @@ if __name__ == '__main__':
     parser.add_argument('--source-registry', help='docker registry of source image', default="docker.io/datawire")
     parser.add_argument('--image-name', default="emissary")
     parser.add_argument('--image-append', default='')
+    parser.add_argument("--repo-list", nargs="+", default=["gcr.io/datawire"])
 
     args = parser.parse_args()
     if not re_ga.match(args.ga_version) and not re_ea.match(args.ga_version):
         sys.stderr.write(f"--ga-version must matchX.Y.Z(-ea)?\n")
         sys.exit(2)
 
-    sys.exit(main(ga_ver=args.ga_version, source_registry=args.source_registry, image_append=args.image_append, img_name=args.image_name))
+    sys.exit(main(ga_ver=args.ga_version, source_registry=args.source_registry, image_append=args.image_append, img_name=args.image_name, registries=args.repo_list))

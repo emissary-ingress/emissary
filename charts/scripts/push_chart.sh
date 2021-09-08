@@ -36,11 +36,11 @@ elif [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] ; then
 else
     repo_key=charts-dev
 fi
-if [ -z "$AWS_BUCKET" ] ; then
-    AWS_BUCKET=datawire-static-files
+if [ -z "$AWS_S3_BUCKET" ] ; then
+    AWS_S3_BUCKET=datawire-static-files
 fi
 
-repo_url=https://s3.amazonaws.com/${AWS_BUCKET}/${repo_key}/
+repo_url=https://s3.amazonaws.com/${AWS_S3_BUCKET}/${repo_key}/
 
 rm -f ${chart_dir}/*.tgz
 info "Pushing Helm Chart"
@@ -60,12 +60,12 @@ fi
 [ -n "$AWS_ACCESS_KEY_ID"     ] || abort "AWS_ACCESS_KEY_ID is not set"
 [ -n "$AWS_SECRET_ACCESS_KEY" ] || abort "AWS_SECRET_ACCESS_KEY is not set"
 
-info "Pushing chart to S3 bucket $AWS_BUCKET"
+info "Pushing chart to S3 bucket $AWS_S3_BUCKET"
 for f in "$CHART_PACKAGE" ; do
     fname=`basename $f`
     echo "pushing ${repo_key}/$fname"
     aws s3api put-object \
-        --bucket "$AWS_BUCKET" \
+        --bucket "$AWS_S3_BUCKET" \
         --key "${repo_key}/$fname" \
         --body "$f" && passed "... ${repo_key}/$fname pushed"
 done

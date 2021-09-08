@@ -13,11 +13,20 @@ jobs:
   execute-chart-test:
     runs-on: ubuntu-latest
     name: chart-test
+    env:
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
+      AWS_EC2_METADATA_DISABLED: true
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: "Install/Setup K3d/K3s"
         uses: nolar/setup-k3d-k3s@v1.0.7
       - name: make test-chart
         run: |
           make test-chart
-
+      - name: make release/promote-chart-passed
+        run: |
+          make release/promote-chart-passed

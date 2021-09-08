@@ -1,5 +1,5 @@
 EMISSARY_CHART = $(OSS_HOME)/charts/emissary-ingress
-YQ := $(OSS_HOME)/.circleci/yq
+YQ := $(OSS_HOME)/charts/yq
 thisdir := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 
 
@@ -31,10 +31,19 @@ push-preflight: create-venv $(YQ)
 .PHONY: push-preflight
 
 release/ga/chart-push:
+	$(OSS_HOME)/releng/release-wait-for-commit --commit $$(git rev-parse HEAD) --s3-key chart-builds
 	for chart in $(EMISSARY_CHART) ; do \
 		$(call _push_chart,`basename $$chart`) ; \
 	done ;
 .PHONY: release/ga/chart-push
+
+release/promote-chart-passed:
+	@set -ex; { \
+		commit=$$(git rev-parse HEAD) ;\
+		printf "$(CYN)==> $(GRN)Promoting $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
+		echo "PASSED" | aws s3 cp - s3://$(AWS_S3_BUCKET)/chart-builds/$$commit ; \
+	}
+.PHONY: release/promote-chart-passed
 
 chart-push-ci: push-preflight
 	@([ $(IS_PRIVATE) ] && (echo "Private repo, not pushing chart" && exit 1)) || true
@@ -110,5 +119,5 @@ chart-clean:
 	done ;
 .PHONY: chart-clean
 
-$(OSS_HOME)/.circleci/yq:
-	cd $(OSS_HOME)/.circleci/yq.d/ && go build -o $(abspath $@) github.com/mikefarah/yq/v3
+$(OSS_HOME)/charts/yq:
+	cd $(OSS_HOME)/charts/yq.d/ && go build -o $(abspath $@) github.com/mikefarah/yq/v3
