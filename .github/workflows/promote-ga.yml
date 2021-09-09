@@ -28,7 +28,7 @@ jobs:
         if: steps.check-tag.outputs.match == 'true'
         with:
           username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_RELEASE_PASSWORD }}
+          password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
       - name: "make release/promote-oss/to-ga"
         if: steps.check-tag.outputs.match == 'true'
         run: |
@@ -57,8 +57,9 @@ jobs:
     needs: [promote-to-ga]
     name: "Update date in changelog"
     env:
-      GIT_API_KEY: ${{ secrets.GH_API_KEY }}
-      GIT_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
+      GIT_TOKEN: ${{ secrets.GH_GITHUB_API_KEY }}
+      AUTO_USER: ${{ secrets.GH_AUTO_USER }}
+      AUTO_EMAIL: ${{ secrets.GH_AUTO_EMAIL }}
       AMBASSADOR_RELENG_NO_GUI: "1"
     steps:
       - uses: actions/checkout@v2
@@ -67,9 +68,9 @@ jobs:
       - name: "setup git config"
         run: |
           set -x
-          git config --global user.email "dev@datawire.io"
-          git config --global user.name "d6e-automaton"
-          git config --global "url.https://$GIT_API_KEY@github.com.insteadOf" https://github.com
+          git config --global user.email "$AUTO_EMAIL"
+          git config --global user.name "$AUTO_USER"
+          git config --global "url.https://$GIT_TOKEN@github.com.insteadOf" https://github.com
           echo "${GIT_TOKEN}" | gh auth login --with-token
       - name: "Make changelog changes"
         run: |
@@ -100,8 +101,9 @@ jobs:
     needs: [promote-to-ga]
     name: "Update manifests and chart with new version"
     env:
-      GIT_API_KEY: ${{ secrets.GH_API_KEY }}
-      GIT_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
+      GIT_TOKEN: ${{ secrets.GH_GITHUB_API_KEY }}
+      AUTO_USER: ${{ secrets.GH_AUTO_USER }}
+      AUTO_EMAIL: ${{ secrets.GH_AUTO_EMAIL }}
       AMBASSADOR_RELENG_NO_GUI: "1"
     steps:
       - uses: actions/checkout@v2
@@ -110,9 +112,9 @@ jobs:
       - name: "setup git config"
         run: |
           set -x
-          git config --global user.email "dev@datawire.io"
-          git config --global user.name "d6e-automaton"
-          git config --global "url.https://$GIT_API_KEY@github.com.insteadOf" https://github.com
+          git config --global user.email "$AUTO_EMAIL"
+          git config --global user.name "$AUTO_USER"
+          git config --global "url.https://$GIT_TOKEN@github.com.insteadOf" https://github.com
           echo "${GIT_TOKEN}" | gh auth login --with-token
       - name: "Make changelog changes"
         run: |
