@@ -160,13 +160,13 @@ func (ex *Extraction) CaptureLogs(ctx context.Context, pods []*kates.Pod) func()
 	byID := map[string]string{}
 	for _, pod := range pods {
 		byID[string(pod.GetUID())] = QName(pod)
-		err := ex.client.PodLogs(ctx, pod, &kates.PodLogOptions{Previous: true}, previousEvents)
+		err := ex.client.PodLogs(ctx, pod, &kates.PodLogOptions{Previous: true}, true, previousEvents)
 		if err != nil {
 			ex.Warnf(ctx, err, "error listing previous logs for pod %s in namespaces %s", pod.Name, pod.Namespace)
 		} else {
 			wg.Add(1)
 		}
-		err = ex.client.PodLogs(ctx, pod, &kates.PodLogOptions{}, currentEvents)
+		err = ex.client.PodLogs(ctx, pod, &kates.PodLogOptions{}, true, currentEvents)
 		if err != nil {
 			ex.Warnf(ctx, err, "error listing current logs for pod %s in namespaces %s", pod.Name, pod.Namespace)
 		} else {

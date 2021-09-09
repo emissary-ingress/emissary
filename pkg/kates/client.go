@@ -1025,20 +1025,19 @@ func parseLogLine(line string) (timestamp string, output string) {
 // single channel in order to multiplex log output from many pods, e.g.:
 //
 //   events := make(chan LogEvent)
-//   client.PodLogs(ctx, pod1, options, events)
-//   client.PodLogs(ctx, pod2, options, events)
-//   client.PodLogs(ctx, pod3, options, events)
+//   client.PodLogs(ctx, pod1, options, true, events)
+//   client.PodLogs(ctx, pod2, options, true, events)
+//   client.PodLogs(ctx, pod3, options, false, events)
 //
 //   for event := range events {
 //       fmt.Printf("%s: %s: %s", event.PodId, event.Timestamp, event.Output)
 //   }
 //
 // The above code will print log output from all 3 pods.
-func (c *Client) PodLogs(ctx context.Context, pod *Pod, options *PodLogOptions, events chan<- LogEvent) error {
+func (c *Client) PodLogs(ctx context.Context, pod *Pod, options *PodLogOptions, allContainers bool, events chan<- LogEvent) error {
 	// always use timestamps
 	options.Timestamps = true
 	timeout := 10 * time.Second
-	allContainers := true
 
 	requests, err := polymorphichelpers.LogsForObjectFn(c.config, pod, options, timeout,
 		allContainers)
