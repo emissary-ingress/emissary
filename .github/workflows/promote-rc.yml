@@ -22,7 +22,7 @@ jobs:
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.GH_DOCKER_RELEASE_USERNAME }}
-          password: ${{ secrets.GH_DOCKER_RELEASE_PASSWORD }}
+          password: ${{ secrets.GH_DOCKER_RELEASE_TOKEN }}
       - name: "make release/promote-oss/dev-to-rc"
         run: |
           make release/promote-oss/dev-to-rc
@@ -52,10 +52,10 @@ jobs:
     needs: promote-to-rc
     name: update-apro-with-rc
     env:
-      GIT_API_KEY: ${{ secrets.GH_API_KEY }}
+      GIT_TOKEN: ${{ secrets.GH_GITHUB_API_KEY }}
       APRO_REPO_TARGET: ${{ secrets.APRO_REPO_TARGET }}
-      GIT_USER_NAME: ${{ secrets.GH_AUTO_USER }}
-      GIT_USER_EMAIL: ${{ secrets.GH_AUTO_EMAIL }}
+      AUTO_USER: ${{ secrets.GH_AUTO_USER }}
+      AUTO_EMAIL: ${{ secrets.GH_AUTO_EMAIL }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -63,9 +63,9 @@ jobs:
       - name: "setup git config"
         run: |
           set -x
-          git config --global user.email "$GIT_USER_EMAIL"
-          git config --global user.name "$GIT_USER_NAME"
-          git config --global "url.https://$GIT_API_KEY@github.com.insteadOf" https://github.com
+          git config --global user.email "$AUTO_EMAIL"
+          git config --global user.name "$AUTO_USER"
+          git config --global "url.https://$GIT_TOKEN@github.com.insteadOf" https://github.com
       - name: Update emissary tag in apro
         run: |
           make release/promote-oss/rc-update-apro
