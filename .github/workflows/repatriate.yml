@@ -46,8 +46,8 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           status: ${{ job.status }}
-          success_text: 'Created repatriation PR for push to master: ${PUSH_ID}'
-          failure_text: 'Couldn't cleanly repatriate changes for push to master: ${PUSH_ID}'
+          success_text: 'Created repatriation PR for push to master: ${{ github.event.push_id }}'
+          failure_text: 'Couldn\'t cleanly repatriate changes for push to master: ${{ github.event.push_id }}'
           fields: |
             [{ "title": "Repository", "value": "${env.GITHUB_REPOSITORY}", "short": true },
              { "title": "Branch", "value": "${env.GITHUB_REF}", "short": true}]
