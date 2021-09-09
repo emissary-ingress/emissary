@@ -61,11 +61,13 @@ jobs:
         with:
           fetch-depth: 0
       - name: "setup git config"
+        shell: bash
         run: |
           set -x
           git config --global user.email "$GIT_USER_EMAIL"
           git config --global user.name "$GIT_USER_NAME"
           git config --global "url.https://$GIT_API_KEY@github.com.insteadOf" https://github.com
       - name: Update emissary tag in apro
+        shell: bash
         run: |
           make release/promote-oss/rc-update-apro

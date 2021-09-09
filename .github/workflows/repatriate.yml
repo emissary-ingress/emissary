@@ -1,0 +1,53 @@
+name: repatriate-to-lts
+on:
+  push:
+    branches:
+      - master
+      - aidanhahn/ci-repatriate-pr
+
+jobs:
+  repatriate-to-lts:
+    runs-on: ubuntu-latest
+    name: repatriate-to-lts
+    env:
+      JOB_ID: ${{ github.job }}
+      PUSH_ID: ${{ github.event.push_id }}
+      GH_TAIL_REF: ${{ github.event.before }}
+      GIT_API_KEY: ${{ secrets.GH_API_KEY }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GIT_USER_NAME: ${{ secrets.GH_AUTO_USER }}
+      GIT_USER_EMAIL: ${{ secrets.GH_AUTO_EMAIL }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Make repatriate branch
+        shell: bash
+        run: |
+          set -x
+          git config --global user.email "$GIT_USER_EMAIL"
+          git config --global user.name "$GIT_USER_NAME"
+          git config --global "url.https://$GIT_API_KEY@github.com.insteadof" https://github.com
+          git checkout -b ci-repatriate-changes-to-master-${JOB_ID} release/v1.14
+          git cherry-pick ${GITHUB_REF}..${GH_TAIL_REF}
+          git push --set-upstream origin ci-repatriate-changes-to-master-${JOB_ID}
+      - name: Repatriate branch PR
+        shell: bash
+        run: |
+          set -x
+          echo "${GITHUB_TOKEN}" | gh auth login --with-token
+          gh pr create --reviewer emissary-ingress/emissary-maintainers \
+                       --title '[CI] repatriate changes from push ${PUSH_ID}' \
+                       --body 'This PR contains chhanges from push to master ${PUSH_ID}'
+      - name: Slack notification
+        if: always()
+        uses: edge/simple-slack-notify@master
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        with:
+          status: ${{ job.status }}
+          success_text: 'Created repatriation PR for push to master: ${PUSH_ID}'
+          failure_text: 'Couldn't cleanly repatriate changes for push to master: ${PUSH_ID}'
+          fields: |
+            [{ "title": "Repository", "value": "${env.GITHUB_REPOSITORY}", "short": true },
+             { "title": "Branch", "value": "${env.GITHUB_REF}", "short": true}]
