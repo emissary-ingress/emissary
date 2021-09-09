@@ -28,7 +28,7 @@ jobs:
           git config --global user.email "$GIT_USER_EMAIL"
           git config --global user.name "$GIT_USER_NAME"
           git config --global "url.https://$GIT_API_KEY@github.com.insteadof" https://github.com
-          git checkout -b ci-repatriate-changes-to-master-${JOB_ID} release/v1.14
+          git checkout -b ci-repatriate-changes-to-master-${JOB_ID} origin/release/v1.14
           git cherry-pick ${GITHUB_REF}..${GH_TAIL_REF}
           git push --set-upstream origin ci-repatriate-changes-to-master-${JOB_ID}
       - name: Repatriate branch PR
