@@ -358,11 +358,11 @@ generate-clean: update-yaml-clean
 #
 # Generate report on dependencies
 
-$(OSS_HOME)/build-aux-local/pip-show.txt: sync
-	docker exec $$($(BUILDER)) sh -c 'pip freeze --exclude-editable | cut -d= -f1 | xargs pip show' > $@
+$(OSS_HOME)/build-aux-local/pip-show.txt: setup-diagd python-setup
+	source venv/bin/activate && pip freeze --exclude-editable | cut -d= -f1 | xargs pip show > $@
 
-$(OSS_HOME)/builder/requirements.txt: %.txt: %.in FORCE
-	$(BUILDER) pip-compile
+$(OSS_HOME)/builder/requirements.txt: $(OSS_HOME)/builder/requirements.in setup-diagd FORCE
+	source venv/bin/activate && cd "$(OSS_HOME)" && pip-compile -q --no-allow-unsafe -o builder/requirements.txt builder/requirements.in
 .PRECIOUS: $(OSS_HOME)/builder/requirements.txt
 
 $(OSS_HOME)/build-aux-local/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base
@@ -371,7 +371,7 @@ $(OSS_HOME)/build-aux-local/go-version.txt: $(OSS_HOME)/builder/Dockerfile.base
 $(OSS_HOME)/build-aux/go1%.src.tar.gz:
 	curl -o $@ --fail -L https://dl.google.com/go/$(@F)
 
-$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux-local/go-version.txt $(OSS_HOME)/build-aux-local/pip-show.txt
+$(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(OSS_HOME)/build-aux-local/go-version.txt $(OSS_HOME)/builder/requirements.txt $(OSS_HOME)/build-aux-local/pip-show.txt
 	$(MAKE) $(OSS_HOME)/build-aux/go$$(cat $(OSS_HOME)/build-aux-local/go-version.txt).src.tar.gz
 	set -e; { \
 		cd $(OSS_HOME); \
