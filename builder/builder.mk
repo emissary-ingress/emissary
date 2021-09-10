@@ -565,16 +565,22 @@ pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remot
 pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
 
-mypy-server-stop: sync
-	test -t 1 && USE_TTY="-t"; docker exec -i ${USE_TTY} $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal stop
-.PHONY: mypy
+mypy-server-stop: setup-diagd
+	@venv/bin/dmypy stop
+	@printf "${CYN}==> ${GRN}Stopped mypy server${END}\n"
+.PHONY: mypy-server-stop
 
-mypy-server: sync
-	 test -t 1 && USE_TTY="-t"; docker exec -i ${USE_TTY} $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal start
-.PHONY: mypy
+mypy-server: setup-diagd
+	@if ! venv/bin/dmypy status >/dev/null; then \
+		venv/bin/dmypy start -- --use-fine-grained-cache ;\
+		printf "${CYN}==> ${GRN}Started mypy server${END}\n" ;\
+	else \
+		printf "${CYN}==> ${GRN}mypy server already running${END}\n" ;\
+	fi
+.PHONY: mypy-server
 
 mypy: mypy-server
-	test -t 1 && USE_TTY="-t"; docker exec -i ${USE_TTY} $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal check
+	time venv/bin/dmypy check python/ambassador
 .PHONY: mypy
 
 GOTEST_PKGS = github.com/datawire/ambassador/v2/...
