@@ -18,7 +18,7 @@
 
 # This argument controls the base image that is used for the release
 # containers.
-ARG base="docker.io/frolvlad/alpine-glibc:alpine-3.12_glibc-2.32"
+ARG base="docker.io/frolvlad/alpine-glibc:alpine-3.14_glibc-2.33"
 
 # This argument sets the base image for the build container image. This
 # base image contains only third-party code.
@@ -139,7 +139,7 @@ COPY --from=artifacts /opt/image-build /opt/image-build
 RUN /opt/image-build/install.sh
 
 # External Python packages we use
-COPY --from=artifacts /usr/lib/python3.8/site-packages /usr/lib/python3.8/site-packages
+COPY --from=artifacts /usr/lib/python3.9/site-packages /usr/lib/python3.9/site-packages
 
 # Our envoy. The capabilities here grant the wrapper the ability to use the
 # cap_net_bind_service cap and for Envoy to inherit it.

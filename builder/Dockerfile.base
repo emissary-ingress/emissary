@@ -16,7 +16,7 @@
 
 # This argument controls the base image that is used for our build
 # container.
-ARG builderbase_stage0="docker.io/frolvlad/alpine-glibc:alpine-3.12_glibc-2.32"
+ARG builderbase_stage0="docker.io/frolvlad/alpine-glibc:alpine-3.14_glibc-2.33"
 ARG builderbase_stage1="builderbase-stage1"
 
 ########################################
