@@ -190,84 +190,76 @@ libraries:
 
     Name                  Version    License(s)
     ----                  -------    ----------
-    CacheControl          0.12.6     Apache License 2.0
-    Cython                0.29.19    Apache License 2.0
-    Flask                 1.1.2      3-clause BSD license
-    GitPython             3.1.11     3-clause BSD license
-    Jinja2                2.11.2     3-clause BSD license
-    MarkupSafe            1.1.1      3-clause BSD license
+    Flask                 2.0.1      3-clause BSD license
+    GitPython             3.1.18     2-clause BSD license
+    Jinja2                3.0.1      3-clause BSD license
+    MarkupSafe            2.0.1      3-clause BSD license
     PyYAML                5.4.1      MIT license
-    Werkzeug              1.0.1      3-clause BSD license
-    appdirs               1.4.4      MIT license
-    attrs                 19.3.0     MIT license
-    cachetools            4.1.1      MIT license
-    certifi               2020.6.20  Mozilla Public License 2.0
-    chardet               3.0.4      GNU Lesser General Public License Version 2.1
-    click                 7.1.2      3-clause BSD license
-    clize                 4.1.1      MIT license
-    colorama              0.4.3      3-clause BSD license
-    contextlib2           0.6.0      Python Software Foundation license
-    coverage              5.3        Apache License 2.0
-    decorator             4.4.2      2-clause BSD license
-    distlib               0.3.0      Python Software Foundation license
-    distro                1.5.0      Apache License 2.0
-    docutils              0.15.2     2-clause BSD license, GNU General Public License Version 3, Python Software Foundation license, public domain
+    Werkzeug              2.0.1      3-clause BSD license
+    attrs                 21.2.0     MIT license
+    cachetools            4.2.2      MIT license
+    certifi               2021.5.30  Mozilla Public License 2.0
+    charset-normalizer    2.0.4      MIT license
+    click                 8.0.1      3-clause BSD license
+    clize                 4.2.0      MIT license
+    coverage              5.5        Apache License 2.0
+    decorator             5.0.9      2-clause BSD license
+    docutils              0.17.1     2-clause BSD license, GNU General Public License Version 3, Python Software Foundation license, public domain
     dpath                 2.0.1      MIT license
     durationpy            0.5        MIT license
     expiringdict          1.2.1      Apache License 2.0
-    gitdb                 4.0.5      3-clause BSD license
-    google-auth           1.23.0     Apache License 2.0
-    gunicorn              20.0.4     MIT license
-    html5lib              1.0.1      MIT license
-    httpretty             1.0.4      MIT license
-    idna                  2.7        3-clause BSD license, Python Software Foundation license, Unicode License Agreement for Data Files and Software (2015)
+    gitdb                 4.0.7      3-clause BSD license
+    google-auth           2.0.2      Apache License 2.0
+    gunicorn              20.1.0     MIT license
+    httpretty             1.1.4      MIT license
+    idna                  3.2        3-clause BSD license
     iniconfig             1.1.1      MIT license
-    itsdangerous          1.1.0      3-clause BSD license
-    jsonpatch             1.30       3-clause BSD license
-    jsonpointer           2.0        3-clause BSD license
+    itsdangerous          2.0.1      3-clause BSD license
+    jsonpatch             1.32       3-clause BSD license
+    jsonpointer           2.1        3-clause BSD license
     jsonschema            3.2.0      MIT license
     k8s-proto             0.0.3      Apache License 2.0
-    kubernetes            9.0.0      Apache License 2.0
-    lockfile              0.12.2     MIT license
-    msgpack               1.0.0      Apache License 2.0
-    mypy                  0.790      MIT license
+    kubernetes            18.20.0    Apache License 2.0
+    mypy                  0.910      MIT license
     mypy-extensions       0.4.3      MIT license
-    oauthlib              3.1.0      3-clause BSD license
+    oauthlib              3.1.1      2-clause BSD license
     od                    1.0        MIT license
-    ordered-set           4.0.1      MIT license
-    orjson                3.3.1      Apache License 2.0
-    packaging             20.4       2-clause BSD license, Apache License 2.0
-    pep517                0.8.2      MIT license
+    orjson                3.6.3      Apache License 2.0
+    packaging             20.9       2-clause BSD license, Apache License 2.0
+    pep517                0.11.0     MIT license
     pexpect               4.8.0      ISC license
-    pip-tools             5.3.1      3-clause BSD license
-    pluggy                0.13.1     MIT license
-    progress              1.5        ISC license
-    prometheus-client     0.9.0      Apache License 2.0
-    protobuf              3.13.0     3-clause BSD license
-    ptyprocess            0.6.0      ISC license
-    py                    1.9.0      MIT license
+    pip-tools             6.2.0      3-clause BSD license
+    pluggy                1.0.0      MIT license
+    prometheus-client     0.11.0     Apache License 2.0
+    protobuf              3.17.3     3-clause BSD license
+    ptyprocess            0.7.0      ISC license
+    py                    1.10.0     MIT license
     pyasn1                0.4.8      2-clause BSD license
     pyasn1-modules        0.2.8      2-clause BSD license
     pyparsing             2.4.7      MIT license
-    pyrsistent            0.17.3     MIT license
-    pytest                6.1.2      MIT license
-    pytest-cov            2.10.1     MIT license
-    pytest-rerunfailures  9.1.1      Mozilla Public License 2.0
-    python-dateutil       2.8.1      3-clause BSD license, Apache License 2.0
-    python-json-logger    2.0.1      2-clause BSD license
-    pytoml                0.1.21     MIT license
-    requests              2.25.1     Apache License 2.0
+    pyrsistent            0.18.0     MIT license
+    pytest                6.2.5      MIT license
+    pytest-cov            2.12.1     MIT license
+    pytest-rerunfailures  10.1       Mozilla Public License 2.0
+    python-dateutil       2.8.2      3-clause BSD license, Apache License 2.0
+    python-json-logger    2.0.2      2-clause BSD license
+    requests              2.26.0     Apache License 2.0
     requests-oauthlib     1.3.0      ISC license
     retry                 0.9.2      Apache License 2.0
-    retrying              1.3.3      Apache License 2.0
-    rsa                   4.6        Apache License 2.0
+    rsa                   4.7.2      Apache License 2.0
+    ruamel.yaml           0.17.16    MIT license
+    ruamel.yaml.clib      0.2.6      MIT license
     semantic-version      2.8.5      2-clause BSD license
     sigtools              2.0.2      MIT license
     six                   1.15.0     MIT license
-    smmap                 3.0.4      3-clause BSD license
+    smmap                 4.0.0      2-clause BSD license
     toml                  0.10.2     MIT license
-    typed-ast             1.4.1      Apache License 2.0
-    typing-extensions     3.7.4.3    Python Software Foundation license
-    urllib3               1.26.3     MIT license
-    webencodings          0.5.1      3-clause BSD license
-    websocket-client      0.57.0     3-clause BSD license
+    tomli                 1.2.1      MIT license
+    types-PyYAML          5.4.10     Apache License 2.0
+    types-futures         3.3.0      Apache License 2.0
+    types-protobuf        3.17.4     Apache License 2.0
+    types-requests        2.25.6     Apache License 2.0
+    types-setuptools      57.0.2     Apache License 2.0
+    typing-extensions     3.10.0.2   Python Software Foundation license
+    urllib3               1.26.6     MIT license
+    websocket-client      1.2.1      Apache License 2.0
