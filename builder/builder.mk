@@ -599,20 +599,22 @@ create-venv:
 # to something that is still PEP517 compatible. This allows us to set _manylinux.py
 # and convince pip to install prebuilt wheels. We do this because there's no good
 # rust toolchain to build orjson within Alpine itself.
+#
+# if [ -f /etc/issue ] && grep "Alpine Linux" < /etc/issue ; then \
+# 	pip3 install -U pip==20.2.4 pip-tools==5.3.1; \
+# 	echo 'manylinux1_compatible = True' > venv/lib/python3.8/site-packages/_manylinux.py; \
+# 	pip install orjson==3.3.1; \
+# 	rm -f venv/lib/python3.8/site-packages/_manylinux.py; \
+# else \
+# 	pip install orjson==3.6.0; \
+# fi; \
+
 setup-venv:
 	@set -e; { \
-		if [ -f /etc/issue ] && grep "Alpine Linux" < /etc/issue ; then \
-			pip3 install -U pip==20.2.4 pip-tools==5.3.1; \
-			echo 'manylinux1_compatible = True' > venv/lib/python3.8/site-packages/_manylinux.py; \
-			pip install orjson==3.3.1; \
-			rm -f venv/lib/python3.8/site-packages/_manylinux.py; \
-		else \
-			pip install orjson==3.6.0; \
-		fi; \
 		pip install -r $(OSS_HOME)/builder/requirements.txt; \
 		pip install -e $(OSS_HOME)/python; \
 	}
-.PHONY: setup-orjson
+.PHONY: setup-venv
 
 setup-diagd: create-venv
 	. $(OSS_HOME)/venv/bin/activate && $(MAKE) setup-venv
