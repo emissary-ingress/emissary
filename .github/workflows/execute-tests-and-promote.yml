@@ -159,6 +159,7 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
       AWS_EC2_METADATA_DISABLED: true
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
       DOCKER_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
