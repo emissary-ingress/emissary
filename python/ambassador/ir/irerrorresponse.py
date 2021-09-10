@@ -7,7 +7,7 @@ from .irfilter import IRFilter
 
 if TYPE_CHECKING:
     from .ir import IR # pragma: no cover
-    from .ir.irresource import IRResource # pragma: no cover
+    from .irresource import IRResource # pragma: no cover
 
 # IRErrorResponse implements custom error response bodies using Envoy's HTTP response_map filter.
 #

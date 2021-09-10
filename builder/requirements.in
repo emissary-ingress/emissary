@@ -30,3 +30,8 @@ pytest-cov
 retry
 httpretty
 pytest-rerunfailures
+types-pyyaml
+types-futures
+types-protobuf
+types-requests
+types-setuptools

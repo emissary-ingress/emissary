@@ -24,7 +24,7 @@ from ..utils import dump_json
 if TYPE_CHECKING:
     from ..ir import IR, IRResource # pragma: no cover
     from ..ir.irhttpmappinggroup import IRHTTPMappingGroup # pragma: no cover
-    from ...ir.irserviceresolver import ClustermapEntry # pragma: no cover
+    from ..ir.irserviceresolver import ClustermapEntry # pragma: no cover
 
 def sanitize_pre_json(input):
     # Removes all potential null values
