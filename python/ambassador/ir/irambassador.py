@@ -31,10 +31,7 @@ class IRAmbassador (IRResource):
         'add_linkerd_headers',
         'admin_port',
         'auth_enabled',
-<<<<<<< HEAD
         'allow_chunked_length',
-=======
->>>>>>> f8b8d32ea45c423a785f97b514d8089b6b50c8dc
         'buffer_limit_bytes',
         'circuit_breakers',
         'cluster_idle_timeout_ms',
