@@ -58,9 +58,9 @@ require (
 	github.com/Masterminds/semver v1.4.2
 	github.com/Masterminds/sprig v2.17.1+incompatible
 	github.com/aokoli/goutils v1.1.1 // indirect
+	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.2.1
 	github.com/cncf/udpa/go v0.0.0-20210322005330-6414d713912e
-	github.com/datawire/ambassador v0.0.0-00010101000000-000000000000
 	github.com/datawire/dlib v1.2.0
 	github.com/datawire/pf v0.0.0-20201130213120-827bb98f7ed5
 	github.com/ecodia/golang-awaitility v0.0.0-20180710094957-fb55e59708c7
@@ -73,7 +73,8 @@ require (
 	github.com/google/uuid v1.1.2
 	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/consul/api v1.3.0
-	github.com/mholt/archiver/v3 v3.3.0
+	github.com/huandu/xstrings v1.3.1 // indirect
+	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/miekg/dns v1.1.35
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/pkg/errors v0.9.1
@@ -82,19 +83,19 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
+	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
+	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a // indirect
 	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c
 	google.golang.org/genproto v0.0.0-20201110150050-8816d57aaa9a
 	google.golang.org/grpc v1.34.0
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/yaml.v2 v2.3.0
-	helm.sh/helm/v3 v3.5.3
 	k8s.io/api v0.20.2
 	k8s.io/apiextensions-apiserver v0.20.2
 	k8s.io/apimachinery v0.20.2
 	k8s.io/cli-runtime v0.20.2
 	k8s.io/client-go v0.20.2
-	k8s.io/helm v2.16.9+incompatible
 	k8s.io/klog/v2 v2.10.0
 	k8s.io/kube-openapi v0.0.0-20201113171705-d219536bb9fd
 	k8s.io/kubectl v0.20.2
@@ -103,13 +104,6 @@ require (
 	sigs.k8s.io/controller-tools v0.4.1
 	sigs.k8s.io/gateway-api v0.2.0
 	sigs.k8s.io/yaml v1.2.0
-)
-
-// We need to inherit this from helm.sh/helm/v3
-replace (
-	github.com/datawire/ambassador => ./
-	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d
-	github.com/docker/docker => github.com/moby/moby v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
 )
 
 // The issue doesn't trigger with the current versions of our
@@ -137,4 +131,4 @@ replace (
 // it in `./pkg/ignore/pin.go`, but there are actually no packages in
 // it to import; it's entirely nested modules.
 //
-replace github.com/Azure/go-autorest v10.8.1+incompatible => github.com/Azure/go-autorest v13.3.2+incompatible
+//replace github.com/Azure/go-autorest v10.8.1+incompatible => github.com/Azure/go-autorest v13.3.2+incompatible
