@@ -86,6 +86,7 @@ class IRHTTPMapping (IRBaseMapping):
         "connect_timeout_ms": False,
         "cors": False,
         "docs": False,
+        "dns_type": False,
         "enable_ipv4": False,
         "enable_ipv6": False,
         "error_response_overrides": False,
