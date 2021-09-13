@@ -1273,7 +1273,7 @@ class V3Listener(dict):
         }
         # We only want to add the buffer limit setting to the listener if specified in the module. Otherwise, we want to leave it unset and allow Envoys Default 1MiB setting.
         if 'buffer_limit_bytes' in self.config.ir.ambassador_module and self.config.ir.ambassador_module.buffer_limit_bytes != None:
-            listener.__setitem__("per_connection_buffer_limit_bytes", self.config.ir.ambassador_module.buffer_limit_bytes)
+            listener["per_connection_buffer_limit_bytes"] = self.config.ir.ambassador_module.buffer_limit_bytes
         return listener
 
     def pretty(self) -> dict:
