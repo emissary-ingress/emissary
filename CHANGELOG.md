@@ -88,6 +88,9 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 
 - Feature: The environment variable `AES_LOG_LEVEL` now also sets the log level for the `diagd` logger.
 
+- Feature: You can now set `dns_tpye` in the `AmbassadorMapping` to configure the same value in
+  Envoy.
+
 ## [2.0.2-ea] (2021-08-24)
 [2.0.2-ea]: https://github.com/emissary-ingress/emissary/releases/v2.0.2-ea
 
