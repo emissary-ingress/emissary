@@ -43,6 +43,11 @@ items:
         type: feature
         docs: topics/running/running/
 
+      - title: AmbassadorMapping supports setting the DNS type
+        body: You can now set <code>dns_type</code> in the <code>AmbassadorMapping</code> to configure how Envoy will use the DNS for the service.
+        type: feature
+        docs: topics/using/intro-mappings/
+
   - version: 2.0.2-ea
     date: '2021-08-24'
     notes:
