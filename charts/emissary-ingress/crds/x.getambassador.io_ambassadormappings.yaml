@@ -143,6 +143,8 @@ spec:
                     type: string
                   type: array
               type: object
+            dns_type:
+              type: string
             docs:
               description: DocsInfo provides some extra information about the docs for the AmbassadorMapping. Docs is used by both the agent and the DevPortal.
               properties:

@@ -42,6 +42,7 @@ type MappingSpec struct {
 	AutoHostRewrite    *bool                  `json:"auto_host_rewrite,omitempty"`
 	CaseSensitive      *bool                  `json:"case_sensitive,omitempty"`
 	Docs               *DocsInfo              `json:"docs,omitempty"`
+	DNSType            string                 `json:"dns_type,omitempty"`
 	EnableIPv4         *bool                  `json:"enable_ipv4,omitempty"`
 	EnableIPv6         *bool                  `json:"enable_ipv6,omitempty"`
 	CircuitBreakers    []*CircuitBreaker      `json:"circuit_breakers,omitempty"`
