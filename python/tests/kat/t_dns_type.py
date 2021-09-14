@@ -13,11 +13,12 @@ class LogicalDnsType(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.target.path.k8s}-foo
 prefix: /foo/
 service: {self.target.path.fqdn}
+hostname: "*"
 dns_type: logical_dns
 """)
 
