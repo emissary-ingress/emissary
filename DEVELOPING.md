@@ -94,7 +94,6 @@ What are all these directories?
     │ # Go
     ├── cmd/                   - The source code of the various Go executables that make up Emissary and
     │                            build system and test suite.
-    ├── internal/pkg/          - Go libraries that make up Emissary.
     ├── pkg/                   - Go libraries that make up Emissary.
     │   ├── api/                  - The generated Go files generated from the gRPC protobuf in `./api/`,
     │   │   │                       except for...

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
-	"github.com/datawire/ambassador/v2/internal/pkg/testutils"
+	"github.com/datawire/ambassador/v2/pkg/testutils"
 	bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
