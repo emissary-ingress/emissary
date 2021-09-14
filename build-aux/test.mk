@@ -57,9 +57,9 @@ export PYTEST_ARGS
 
 PYTEST_GOLD_DIR ?= $(abspath python/tests/gold)
 
-pytest: docker/$(LCNAME).docker.push.remote
-pytest: docker/kat-client.docker.push.remote
-pytest: docker/kat-server.docker.push.remote
+pytest: docker/$(LCNAME).docker.push.remote-devloop
+pytest: docker/kat-client.docker.push.remote-devloop
+pytest: docker/kat-server.docker.push.remote-devloop
 pytest: $(tools/kubestatus)
 	@$(MAKE) setup-diagd
 	@$(MAKE) setup-envoy
@@ -144,12 +144,15 @@ pytest-envoy-v2-builder:
 	$(MAKE) pytest-builder KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2
 .PHONY: pytest-envoy-v2-builder
 
-pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
+pytest-builder-only: sync preflight-cluster
+pytest-builder-only: | docker/$(LCNAME).docker.push.remote-devloop
+pytest-builder-only: | docker/kat-client.docker.push.remote-devloop
+pytest-builder-only: | docker/kat-server.docker.push.remote-devloop
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests in builder shell$(END)\n"
 	docker exec \
-		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) \
-		-e KAT_CLIENT_DOCKER_IMAGE=$$(sed -n 2p docker/kat-client.docker.push.remote) \
-		-e KAT_SERVER_DOCKER_IMAGE=$$(sed -n 2p docker/kat-server.docker.push.remote) \
+		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p docker/$(LCNAME).docker.push.remote-devloop) \
+		-e KAT_CLIENT_DOCKER_IMAGE=$$(sed -n 2p docker/kat-client.docker.push.remote-devloop) \
+		-e KAT_SERVER_DOCKER_IMAGE=$$(sed -n 2p docker/kat-server.docker.push.remote-devloop) \
 		-e KAT_IMAGE_PULL_POLICY=Always \
 		-e DOCKER_NETWORK=$(DOCKER_NETWORK) \
 		-e KAT_REQ_LIMIT \
@@ -191,7 +194,7 @@ gotest: setup-diagd
 .PHONY: gotest
 
 # Ingress v1 conformance tests, using KIND and the Ingress Conformance Tests suite.
-ingresstest: | docker/$(LCNAME).docker.push.remote
+ingresstest: | docker/$(LCNAME).docker.push.remote-devloop
 	@printf "$(CYN)==> $(GRN)Running $(BLU)Ingress v1$(GRN) tests$(END)\n"
 	@[ -n "$(INGRESS_TEST_IMAGE)" ] || { printf "$(RED)ERROR: no INGRESS_TEST_IMAGE defined$(END)\n"; exit 1; }
 	@[ -n "$(INGRESS_TEST_MANIF_DIR)" ] || { printf "$(RED)ERROR: no INGRESS_TEST_MANIF_DIR defined$(END)\n"; exit 1; }
@@ -217,10 +220,10 @@ ingresstest: | docker/$(LCNAME).docker.push.remote
 	@kubectl --kubeconfig=$(KIND_KUBECONFIG) cluster-info || { printf "$(RED)ERROR: kubernetes cluster not ready $(END)\n"; exit 1 ; }
 	@kubectl --kubeconfig=$(KIND_KUBECONFIG) version || { printf "$(RED)ERROR: kubernetes cluster not ready $(END)\n"; exit 1 ; }
 
-	@printf "$(CYN)==> $(GRN)Loading Ambassador (from the Ingress conformance tests) with image=$$(sed -n 2p docker/$(LCNAME).docker.push.remote)$(END)\n"
+	@printf "$(CYN)==> $(GRN)Loading Ambassador (from the Ingress conformance tests) with image=$$(sed -n 2p docker/$(LCNAME).docker.push.remote-devloop)$(END)\n"
 	@for f in $(INGRESS_TEST_MANIFS) ; do \
 		printf "$(CYN)==> $(GRN)... $$f $(END)\n" ; \
-		cat $(INGRESS_TEST_MANIF_DIR)/$$f | sed -e "s|image:.*ambassador\:.*|image: $$(sed -n 2p docker/$(LCNAME).docker.push.remote)|g" | tee /dev/tty | kubectl apply -f - ; \
+		cat $(INGRESS_TEST_MANIF_DIR)/$$f | sed -e "s|image:.*ambassador\:.*|image: $$(sed -n 2p docker/$(LCNAME).docker.push.remote-devloop)|g" | tee /dev/tty | kubectl apply -f - ; \
 	done
 
 	@printf "$(CYN)==> $(GRN)Waiting for Ambassador to be ready$(END)\n"

@@ -73,12 +73,12 @@ deploy-only: preflight-dev-kubeconfig
 		--set service.selector.service=ambassador \
 		--set replicaCount=1 \
 		--set enableAES=false \
-		--set image.fullImageOverride=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) && \
+		--set image.fullImageOverride=$$(sed -n 2p docker/$(LCNAME).docker.push.remote-devloop) && \
 	kubectl --kubeconfig $(DEV_KUBECONFIG) apply -f $(OSS_HOME)/build/helm/emissary-ingress/crds/ && \
 	kubectl --kubeconfig $(DEV_KUBECONFIG) apply -f $(OSS_HOME)/build/helm/emissary-ingress/templates && \
 	rm -rf $(OSS_HOME)/build/helm
 	kubectl --kubeconfig $(DEV_KUBECONFIG) -n ambassador wait --for condition=available --timeout=90s deploy --all
 	@printf "$(GRN)Your ambassador service IP:$(END) $(BLD)$$(kubectl --kubeconfig $(DEV_KUBECONFIG) get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}')$(END)\n"
 	@printf "$(GRN)Your ambassador image:$(END) $(BLD)$$(kubectl --kubeconfig $(DEV_KUBECONFIG) get -n ambassador deploy ambassador -o 'go-template={{(index .spec.template.spec.containers 0).image}}')$(END)\n"
-	@printf "$(GRN)Your built image:$(END) $(BLD)$$(sed -n 2p docker/$(LCNAME).docker.push.remote)$(END)\n"
+	@printf "$(GRN)Your built image:$(END) $(BLD)$$(sed -n 2p docker/$(LCNAME).docker.push.remote-devloop)$(END)\n"
 .PHONY: deploy-only

@@ -96,12 +96,18 @@ BUILDER_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 LCNAME := $(shell echo $(NAME) | tr '[:upper:]' '[:lower:]')
 BUILDER_NAME ?= $(LCNAME)
 
+_check.DEV_REGISTRY = $(if $(DEV_REGISTRY),,$(error $(_check.DEV_REGISTRY.err)))
+_check.DEV_REGISTRY.err  = $(RED)
+_check.DEV_REGISTRY.err += $(NL)ERROR: please set the DEV_REGISTRY make/env variable to the docker registry
+_check.DEV_REGISTRY.err += $(NL)       you would like to use for development
+_check.DEV_REGISTRY.err += $(END)
+
 .DEFAULT_GOAL = all
 include $(OSS_HOME)/build-aux/prelude.mk
 include $(OSS_HOME)/build-aux/colors.mk
 
 docker.tag.local = $(BUILDER_NAME).local/$(*F)
-docker.tag.remote = $(if $(DEV_REGISTRY),,$(error $(REGISTRY_ERR)))$(DEV_REGISTRY)/$(*F):$(shell docker image inspect --format='{{slice (index (split .Id ":") 1) 0 12}}' $$(cat $<))
+docker.tag.remote-devloop = $(_check.DEV_REGISTRY)$(DEV_REGISTRY)/$(*F):$(shell docker image inspect --format='{{slice (index (split .Id ":") 1) 0 12}}' $$(cat $<))
 include $(OSS_HOME)/build-aux/docker.mk
 
 MODULES :=
@@ -203,8 +209,8 @@ compile: sync
 # Give Make a hint about which pattern rules to apply.  Honestly, I'm
 # not sure why Make isn't figuring it out on its own, but it isn't.
 _images = builder-base base-envoy $(LCNAME) $(LCNAME)-ea kat-client kat-server
-$(foreach i,$(_images), docker/$i.docker.tag.local  ): docker/%.docker.tag.local : docker/%.docker
-$(foreach i,$(_images), docker/$i.docker.tag.remote ): docker/%.docker.tag.remote: docker/%.docker
+$(foreach i,$(_images), docker/$i.docker.tag.local          ): docker/%.docker.tag.local         : docker/%.docker
+$(foreach i,$(_images), docker/$i.docker.tag.remote-devloop ): docker/%.docker.tag.remote-devloop: docker/%.docker
 
 docker/builder-base.docker.stamp: FORCE preflight
 	@printf "${CYN}==> ${GRN}Bootstrapping builder base image${END}\n"
@@ -261,14 +267,10 @@ images: docker/kat-client.docker.tag.local
 images: docker/kat-server.docker.tag.local
 .PHONY: images
 
-REGISTRY_ERR  = $(RED)
-REGISTRY_ERR += $(NL)ERROR: please set the DEV_REGISTRY make/env variable to the docker registry
-REGISTRY_ERR += $(NL)       you would like to use for development
-REGISTRY_ERR += $(END)
 
-push: docker/$(LCNAME).docker.push.remote
-push: docker/kat-client.docker.push.remote
-push: docker/kat-server.docker.push.remote
+push: docker/$(LCNAME).docker.push.remote-devloop
+push: docker/kat-client.docker.push.remote-devloop
+push: docker/kat-server.docker.push.remote-devloop
 .PHONY: push
 
 push-dev: docker/$(LCNAME).docker.tag.local
@@ -655,11 +657,11 @@ clobber:
 	@$(BUILDER) clobber
 .PHONY: clobber
 
-AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME).docker.push.remote 2>/dev/null)
+AMBASSADOR_DOCKER_IMAGE = $(shell sed -n 2p docker/$(LCNAME).docker.push.remote-devloop 2>/dev/null)
 export AMBASSADOR_DOCKER_IMAGE
-KAT_CLIENT_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-client.docker.push.remote 2>/dev/null)
+KAT_CLIENT_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-client.docker.push.remote-devloop 2>/dev/null)
 export KAT_CLIENT_DOCKER_IMAGE
-KAT_SERVER_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-server.docker.push.remote 2>/dev/null)
+KAT_SERVER_DOCKER_IMAGE = $(shell sed -n 2p docker/kat-server.docker.push.remote-devloop 2>/dev/null)
 export KAT_SERVER_DOCKER_IMAGE
 
 _user-vars  = BUILDER_NAME
