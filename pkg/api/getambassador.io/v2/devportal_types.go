@@ -93,7 +93,7 @@ type DevPortalSpec struct {
 
 	// Configures this DevPortal to use server definitions from the openAPI doc instead of
 	// rewriting them based on the url used for the connection.
-	PreserveServers bool `json:"preserve_servers,omitempty"`
+	PreserveServers *bool `json:"preserve_servers,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
