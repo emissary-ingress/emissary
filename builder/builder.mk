@@ -148,6 +148,8 @@ INGRESS_TEST_LOCAL_ADMIN_PORT = 8877
 INGRESS_TEST_MANIF_DIR = $(BUILDER_HOME)/../manifests/emissary/
 INGRESS_TEST_MANIFS = ambassador-crds.yaml ambassador.yaml
 
+export DOCKER_BUILDKIT := 0
+
 all: help
 .PHONY: all
 
