@@ -66,6 +66,60 @@ create a separate kubeconfig file dedicated for ambassador development
 and point DEV_KUBECONFIG to this file instead of using the default
 `~/.kube/config` location.
 
+What are all these directories?
+-------------------------------
+
+    ./
+    │
+    │ # The build system
+    ├── Makefile               - The entry-point to the build system.
+    ├── build-aux/             - Auxiliary build files; i.e. things the Makefile uses.
+    ├── build-aux-local/       - Auxiliary build files; i.e. things the Makefile uses.
+    ├── builder/               - Auxiliary build files; i.e. things the Makefile uses.
+    ├── releng/                - Auxiliary build files; i.e. things the Makefile uses.
+    ├── scripts/               - Auxiliary build files; i.e. things the Makefile uses.
+    ├── docker/*/Dockerfile    - The Dockerfiles of images used by parts of the build system or test suite.
+    ├── docker/*.docker        - Files tracking the state of images built from those Dockerfiles.
+    │
+    ├── tools/                 - Tools that may be useful to those working on Emissary.
+    │
+    │ # C++
+    ├── _cxx/                  - C++ stuff; i.e. Envoy.  This directory name starts with "_" so that
+    │   │                        the `go` tool knows to ignore it.
+    │   ├── envoy/                - A clone of https://github.com/envoyproxy/envoy.git
+    │   └── go-control-plane/     - A clone of https://github.com/envoyproxy/go-control-plane.git; this
+    │                               is not used directly, but is instead used to generate the modified
+    │                               copy at `./pkg/envoy-control-plante`.
+    │
+    │ # Go
+    ├── cmd/                   - The source code of the various Go executables that make up Emissary and
+    │                            build system and test suite.
+    ├── pkg/                   - Go libraries that make up Emissary.
+    │   ├── api/                  - The generated Go files generated from the gRPC protobuf in `./api/`,
+    │   │   │                       except for...
+    │   │   └── getambassador.io/    - kubebuilder (Go-language) definitions of the Emissary CRDs.  Why is
+    │   │                              this in in `pkg/api/` with all of the gRPC stuff?  Because in the
+    │   │                              dark old days before kubebuilder, some of the CRDs were specified as
+    │   │                              protobuf, and no one as the courage to move the directory.
+    │   └── envoy-control-plane/  - A modified copy of github.com/envoyproxy/go-control-plane.
+    ├── vendor/                - Unmodified copies of the Go libraries that Emissary uses; as downloaded by
+    │                            `go mod vendor`.
+    │
+    │ # Python
+    ├── python/                - The source code of the parts of Emissary that are written in Python.
+    │   └── schemas/              - The JSON-Schema files that define the Emissary CRDs (legacy).
+    │
+    │ # Other
+    ├── api/                   - The .proto gRPC specs by Emissary, except for...
+    │   └── getambassador.io/     - The .proto specs that define the Emissary CRDs (not gRPC) (legacy).
+    ├── charts/                - TODO
+    ├── demo/                  - TODO
+    ├── deployments/           - TODO
+    ├── docs/                  - TODO
+    ├── k8s/                   - TODO
+    ├── k8s-config/            - TODO
+    └── manifests/             - TODO
+
 How do I find out what build targets are available?
 ---------------------------------------------------
 
