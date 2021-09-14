@@ -561,7 +561,7 @@ case "${cmd}" in
                     echo_on
                     mkdir -p /buildroot/bin
                     TIMEFORMAT="     (go build took %1R seconds)"
-                    (cd ${MODDIR} && time go build -trimpath ${BUILD_VERSION:+ -ldflags "-X main.Version=$BUILD_VERSION" } -o /buildroot/bin ./cmd/...) || exit 1
+                    (cd ${MODDIR} && time go build -trimpath -o /buildroot/bin ./cmd/...) || exit 1
                     TIMEFORMAT="     (${MODDIR}/post-compile took %1R seconds)"
                     if [ -e ${MODDIR}/post-compile.sh ]; then (cd ${MODDIR} && time bash post-compile.sh); fi
                     unset TIMEFORMAT
