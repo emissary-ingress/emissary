@@ -108,6 +108,7 @@ include $(OSS_HOME)/build-aux/colors.mk
 
 docker.tag.local = $(BUILDER_NAME).local/$(*F)
 docker.tag.remote-devloop = $(_check.DEV_REGISTRY)$(DEV_REGISTRY)/$(*F):$(shell docker image inspect --format='{{slice (index (split .Id ":") 1) 0 12}}' $$(cat $<))
+docker.tag.remote-cidev   = $(_check.DEV_REGISTRY)$(DEV_REGISTRY)/$(*F):$(subst +,-,$(BUILD_VERSION))
 include $(OSS_HOME)/build-aux/docker.mk
 
 MODULES :=
@@ -211,6 +212,7 @@ compile: sync
 _images = builder-base base-envoy $(LCNAME) $(LCNAME)-ea kat-client kat-server
 $(foreach i,$(_images), docker/$i.docker.tag.local          ): docker/%.docker.tag.local         : docker/%.docker
 $(foreach i,$(_images), docker/$i.docker.tag.remote-devloop ): docker/%.docker.tag.remote-devloop: docker/%.docker
+$(foreach i,$(_images), docker/$i.docker.tag.remote-cidev   ): docker/%.docker.tag.remote-cidev  : docker/%.docker
 
 docker/builder-base.docker.stamp: FORCE preflight
 	@printf "${CYN}==> ${GRN}Bootstrapping builder base image${END}\n"
@@ -284,14 +286,7 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			printf "$(RED)push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version$(END)\n" >&2 ;\
 			exit 1 ;\
 		fi ;\
-		suffix=$$(echo $(BUILD_VERSION) | sed -e 's/\+/-/') ;\
-		chartsuffix=$${suffix#*-} ; \
-		for image in $(LCNAME) ; do \
-			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
-			printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
-			docker tag $$(cat docker/$$image.docker) $$tag && \
-			docker push $$tag ;\
-		done ;\
+		$(MAKE) docker/$(LCNAME).docker.push.remote-cidev ;\
 		commit=$$(git rev-parse HEAD) ;\
 		printf "$(CYN)==> $(GRN)recording $(BLU)$$commit$(GRN) => $(BLU)$$suffix$(GRN) in S3...$(END)\n" ;\
 		echo "$$suffix" | aws s3 cp - s3://$(AWS_S3_BUCKET)/dev-builds/$$commit ;\
@@ -300,7 +295,7 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			exit 0 ; \
 		fi ; \
 		$(MAKE) \
-			CHART_VERSION_SUFFIX=-$$chartsuffix \
+			CHART_VERSION_SUFFIX=$$(echo $(BUILD_VERSION) | sed -e 's/^[^+-]*//' -e 's/\+/-/g') \
 			IMAGE_TAG=$${suffix} \
 			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
