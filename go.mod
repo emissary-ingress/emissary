@@ -54,7 +54,6 @@ go 1.13
 //     this).
 
 require (
-	git.lukeshu.com/go/libsystemd v0.5.3
 	github.com/Masterminds/semver v1.4.2
 	github.com/Masterminds/sprig v2.17.1+incompatible
 	github.com/aokoli/goutils v1.1.1 // indirect
@@ -62,7 +61,6 @@ require (
 	github.com/census-instrumentation/opencensus-proto v0.2.1
 	github.com/cncf/udpa/go v0.0.0-20210322005330-6414d713912e
 	github.com/datawire/dlib v1.2.0
-	github.com/datawire/pf v0.0.0-20201130213120-827bb98f7ed5
 	github.com/ecodia/golang-awaitility v0.0.0-20180710094957-fb55e59708c7
 	github.com/envoyproxy/protoc-gen-validate v0.3.0-java.0.20200609174644-bd816e4522c1
 	github.com/fsnotify/fsnotify v1.4.9
@@ -75,7 +73,7 @@ require (
 	github.com/hashicorp/consul/api v1.3.0
 	github.com/huandu/xstrings v1.3.1 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
-	github.com/miekg/dns v1.1.35
+	github.com/miekg/dns v1.1.35 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_model v0.2.0
@@ -84,7 +82,6 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
-	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a // indirect
 	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c
 	google.golang.org/genproto v0.0.0-20201110150050-8816d57aaa9a
