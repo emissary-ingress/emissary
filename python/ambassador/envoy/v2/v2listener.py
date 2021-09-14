@@ -935,12 +935,15 @@ class V2Listener(dict):
             self._filter_chains.append(filter_chain)
 
     def as_dict(self) -> dict:
-        odict = {
+        listener = {
             "name": self.name,
             "address": self.address,
             "filter_chains": self._filter_chains,
             "traffic_direction": self.traffic_direction
         }
+        # We only want to add the buffer limit setting to the listener if specified in the module. Otherwise, we want to leave it unset and allow Envoys Default 1MiB setting.
+        if 'buffer_limit_bytes' in self.config.ir.ambassador_module and self.config.ir.ambassador_module.buffer_limit_bytes != None:
+            odict["per_connection_buffer_limit_bytes"] = self.config.ir.ambassador_module.buffer_limit_bytes
 
         if self.listener_filters:
             odict["listener_filters"] = self.listener_filters
