@@ -235,9 +235,8 @@ raw-version:
 	@$(BUILDER) raw-version
 .PHONY: raw-version
 
-python/ambassador.version:
-	$(BUILDER) raw-version > python/ambassador.version
-.PHONY: python/ambassador.version
+python/ambassador.version: $(tools/write-ifchanged) FORCE
+	$(BUILDER) raw-version | $(tools/write-ifchanged) python/ambassador.version
 
 compile: sync
 	@$(BUILDER) compile
