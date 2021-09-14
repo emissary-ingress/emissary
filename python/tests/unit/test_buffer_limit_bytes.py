@@ -38,8 +38,8 @@ name: ambassador
 config:
   buffer_limit_bytes: 5242880
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind:  AmbassadorMapping
 name: ambassador
 prefix: /test/
 service: test:9999
