@@ -34,15 +34,22 @@ def test_setting_buffer_limit():
 ---
 apiVersion: getambassador.io/v2
 kind: Module
-name: ambassador
-config:
-  buffer_limit_bytes: 5242880
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  config:
+    buffer_limit_bytes: 5242880
 ---
 apiVersion: x.getambassador.io/v3alpha1
-kind:  AmbassadorMapping
-name: ambassador
-prefix: /test/
-service: test:9999
+kind: AmbassadorMapping
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  prefix: /test/
+  hostname: "*"
+  service: test:9999
 """
     econf = _get_envoy_config(yaml, version='V2')
     expected = 5242880
@@ -67,15 +74,22 @@ def test_setting_buffer_limit_V3():
 ---
 apiVersion: getambassador.io/v2
 kind: Module
-name: ambassador
-config:
-  buffer_limit_bytes: 5242880
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  config:
+    buffer_limit_bytes: 5242880
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
-name: ambassador
-prefix: /test/
-service: test:9999
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  prefix: /test/
+  hostname: "*"
+  service: test:9999
 """
     econf = _get_envoy_config(yaml)
     expected = 5242880
@@ -98,11 +112,15 @@ service: test:9999
 def test_default_buffer_limit():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
-name: ambassador
-prefix: /test/
-service: test:9999
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  prefix: /test/
+  hostname: "*"
+  service: test:9999
 """
     econf = _get_envoy_config(yaml, version='V2')
 
@@ -118,11 +136,15 @@ service: test:9999
 def test_default_buffer_limit_V3():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
-name: ambassador
-prefix: /test/
-service: test:9999
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  prefix: /test/
+  hostname: "*"
+  service: test:9999
 """
     econf = _get_envoy_config(yaml)
 
