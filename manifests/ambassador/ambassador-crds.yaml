@@ -245,6 +245,9 @@ spec:
               - namespace.name
               - name.prefix
               type: string
+            preserve_servers:
+              description: Configures this DevPortal to use server definitions from the openAPI doc instead of rewriting them based on the url used for the connection.
+              type: boolean
             search:
               description: DevPortalSearchSpec allows configuration over search functionality for the DevPortal
               properties:
