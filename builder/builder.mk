@@ -248,8 +248,8 @@ compile: sync
 # ".stamp" should NEVER appear in a dependency list (that is, it
 # should never be on the right-side of the ":"), save for in this rule
 # itself.
-%: %.stamp $(COPY_IFCHANGED)
-	@$(COPY_IFCHANGED) $< $@
+%: %.stamp $(tools/copy-ifchanged)
+	@$(tools/copy-ifchanged) $< $@
 
 # Give Make a hint about which pattern rules to apply.  Honestly, I'm
 # not sure why Make isn't figuring it out on its own, but it isn't.
@@ -435,7 +435,10 @@ docker/run/shell:
 
 setup-envoy: extract-bin-envoy
 
-pytest: docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote $(OSS_HOME)/bin/kubestatus
+pytest: docker/$(LCNAME).docker.push.remote
+pytest: docker/kat-client.docker.push.remote
+pytest: docker/kat-server.docker.push.remote
+pytest: $(tools/kubestatus)
 	@$(MAKE) setup-diagd
 	@$(MAKE) setup-envoy
 	@$(MAKE) proxy
@@ -477,9 +480,6 @@ extract-bin-envoy: docker/base-envoy.docker.tag.local
 	@echo "docker run -v $(OSS_HOME):$(OSS_HOME) -v /var/:/var/ -v /tmp/:/tmp/ -t --entrypoint /usr/local/bin/envoy-static-stripped $$(cat docker/base-envoy.docker) \"\$$@\"" >> $(OSS_HOME)/bin/envoy
 	@chmod +x $(OSS_HOME)/bin/envoy
 .PHONY: extract-bin-envoy
-
-$(OSS_HOME)/bin/kubestatus:
-	@(cd $(OSS_HOME) && mkdir -p bin && go build -o bin/kubestatus ./cmd/busyambassador)
 
 pytest-builder: test-ready
 	$(MAKE) pytest-builder-only
@@ -951,7 +951,6 @@ release/ga-check:
 	@$(OSS_HOME)/releng/release-ga-check --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY) --image-name $(LCNAME)
 
 clean:
-	@rm -f $(OSS_HOME)/bin/*
 	@$(BUILDER) clean
 .PHONY: clean
 

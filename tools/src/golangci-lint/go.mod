@@ -1,4 +1,4 @@
-module github.com/datawire/build-aux/bin-go/golangci-lint
+module local
 
 go 1.15
 
