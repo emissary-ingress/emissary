@@ -25,7 +25,8 @@ following Free and Open Source software:
     github.com/census-instrumentation/opencensus-proto       v0.2.1                                     Apache License 2.0
     github.com/cespare/xxhash/v2                             v2.1.1                                     MIT license
     github.com/cncf/udpa/go                                  v0.0.0-20210322005330-6414d713912e         Apache License 2.0
-    github.com/datawire/dlib                                 v1.2.0                                     Apache License 2.0
+    github.com/datawire/dlib                                 v1.2.4-0.20210629021142-e221f3b9c3b8       Apache License 2.0
+    github.com/datawire/dtest                                v0.0.0-20210914162017-6f63de0a5718         Apache License 2.0
     github.com/davecgh/go-spew                               v1.1.1                                     ISC license
     github.com/docker/spdystream                             v0.0.0-20160310174837-449fdfce4d96         Apache License 2.0
     github.com/ecodia/golang-awaitility                      v0.0.0-20180710094957-fb55e59708c7         MIT license
@@ -90,9 +91,9 @@ following Free and Open Source software:
     github.com/stretchr/testify                              v1.7.0                                     MIT license
     golang.org/x/crypto                                      v0.0.0-20201221181555-eec23a3978ad         3-clause BSD license
     golang.org/x/mod                                         v0.3.0                                     3-clause BSD license
-    golang.org/x/net                                         v0.0.0-20210119194325-5f4716e94777         3-clause BSD license
+    golang.org/x/net                                         v0.0.0-20210226172049-e18ecbb05110         3-clause BSD license
     golang.org/x/oauth2                                      v0.0.0-20200107190931-bf48bf16ab8d         3-clause BSD license
-    golang.org/x/sys                                         v0.0.0-20210124154548-22da62e12c0c         3-clause BSD license
+    golang.org/x/sys                                         v0.0.0-20210630005230-0f9fa26af87c         3-clause BSD license
     golang.org/x/term                                        v0.0.0-20201126162022-7de9c90e9dd1         3-clause BSD license
     golang.org/x/text                                        v0.3.4                                     3-clause BSD license
     golang.org/x/time                                        v0.0.0-20200630173020-3af7569d3a1e         3-clause BSD license
