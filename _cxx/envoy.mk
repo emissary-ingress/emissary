@@ -298,6 +298,12 @@ clobber: _clobber-envoy
 
 _clean-envoy: _clean-envoy-old
 _clean-envoy: $(OSS_HOME)/_cxx/envoy-build-container.txt.clean
+	@PS4=; set -e; { \
+		if docker volume inspect envoy-build >/dev/null 2>&1; then \
+			set -x ;\
+			docker volume rm envoy-build >/dev/null ;\
+		fi ;\
+	}
 	rm -f $(OSS_HOME)/_cxx/envoy-build-image.txt
 _clobber-envoy: _clean-envoy
 	rm -f $(OSS_HOME)/docker/base-envoy/envoy-static
