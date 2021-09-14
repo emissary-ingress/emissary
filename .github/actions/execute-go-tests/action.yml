@@ -28,8 +28,8 @@ runs:
       name: "Install kubectl (v1.19.12)" # maybe not?
     - uses: actions/setup-go@v2
       with:
-        go-version: '1.15.2' # The Go version to download (if necessary) and use.
-      name: "Install go (1.15.2)"
+        go-version: '^1.15.0' # The Go version to download (if necessary) and use.
+      name: "Install go (^1.15.0)"
     - run: go version
       shell: bash
       name: "Check go version"
