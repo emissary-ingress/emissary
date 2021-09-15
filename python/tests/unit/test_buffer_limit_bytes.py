@@ -10,7 +10,7 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import Config, IR, 
+from ambassador import Config, IR 
 from ambassador.envoy import EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
