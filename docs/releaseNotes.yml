@@ -42,11 +42,24 @@ items:
         body: The environment variable <code>AES_LOG_LEVEL</code> now also sets the log level for the <code>diagd</code> logger.
         type: feature
         docs: topics/running/running/
+        github:
+        - title: "#3686"
+          link: https://github.com/emissary-ingress/emissary/issues/3686
+        - title: "#3666"
+          link: https://github.com/emissary-ingress/emissary/issues/3666
 
       - title: AmbassadorMapping supports setting the DNS type
         body: You can now set <code>dns_type</code> in the <code>AmbassadorMapping</code> to configure how Envoy will use the DNS for the service.
         type: feature
         docs: topics/using/intro-mappings/
+
+      - title: Building Emissary no longer requires setting DOCKER_BUILDKIT
+        body: It is no longer necessary to set <code>DOCKER_BUILDKIT=0</code> when building Emissary. A future change will fully support BuildKit.
+        type: bugfix
+        docs: https://github.com/emissary-ingress/emissary/issues/3707
+        github:
+        - title: "#3707"
+          link: https://github.com/emissary-ingress/emissary/issues/3707
 
   - version: 2.0.2-ea
     date: '2021-08-24'
@@ -149,7 +162,7 @@ items:
         body: Each <code>AmbassadorHost</code> can specify its <code>requestPolicy.insecure.action</code> independently of any other <code>AmbassadorHost</code>, allowing for HTTP routing as flexible as HTTPS routing.
         docs: topics/running/host-crd/#secure-and-insecure-requests
         github:
-          title: 2888
+        - title: "#2888"
           link: https://github.com/datawire/ambassador/issues/2888
         image: ./edge-stack-2.0.0-insecure_action_hosts.png
         type: bugfix
