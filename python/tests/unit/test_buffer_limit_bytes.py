@@ -50,6 +50,20 @@ spec:
   prefix: /test/
   hostname: "*"
   service: test:9999
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
+metadata:
+  name: ambassador-listener-8080
+  namespace: default
+spec:
+  port: 8080
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
+
 """
     econf = _get_envoy_config(yaml, version='V2')
     expected = 5242880
@@ -90,6 +104,20 @@ spec:
   prefix: /test/
   hostname: "*"
   service: test:9999
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
+metadata:
+  name: ambassador-listener-8080
+  namespace: default
+spec:
+  port: 8080
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
+
 """
     econf = _get_envoy_config(yaml)
     expected = 5242880
@@ -121,6 +149,19 @@ spec:
   prefix: /test/
   hostname: "*"
   service: test:9999
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
+metadata:
+  name: ambassador-listener-8080
+  namespace: default
+spec:
+  port: 8080
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
 """
     econf = _get_envoy_config(yaml, version='V2')
 
@@ -134,6 +175,67 @@ spec:
 
 @pytest.mark.compilertest
 def test_default_buffer_limit_V3():
+    yaml = """
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  prefix: /test/
+  hostname: "*"
+  service: test:9999
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
+metadata:
+  name: ambassador-listener-8080
+  namespace: default
+spec:
+  port: 8080
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
+"""
+    econf = _get_envoy_config(yaml)
+
+    conf = econf.as_dict()
+
+    for listener in conf['static_resources']['listeners']:
+        per_connection_buffer_limit_bytes = listener.get('per_connection_buffer_limit_bytes', None)
+        assert per_connection_buffer_limit_bytes is None, \
+            f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener.name}" 
+
+# Tests that the default value of per_connection_buffer_limit_bytes is disabled when there is not Module config for it (and that there are no issues when we dont make a listener).
+@pytest.mark.compilertest
+def test_buffer_limit_no_listener():
+    yaml = """
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  prefix: /test/
+  hostname: "*"
+  service: test:9999
+"""
+    econf = _get_envoy_config(yaml, version='V2')
+
+    conf = econf.as_dict()
+
+    for listener in conf['static_resources']['listeners']:
+        per_connection_buffer_limit_bytes = listener.get('per_connection_buffer_limit_bytes', None)
+        assert per_connection_buffer_limit_bytes is None, \
+            f"per_connection_buffer_limit_bytes found on listener (should not exist unless configured in the module): {listener.name}"
+
+
+@pytest.mark.compilertest
+def test_buffer_limit_no_listener_V3():
     yaml = """
 ---
 apiVersion: x.getambassador.io/v3alpha1
