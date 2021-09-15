@@ -35,16 +35,19 @@ type APIDocsStore struct {
 	docsDiff *docsDiffCalculator
 	// processingSnapshotMutex holds a lock so that a single snapshot gets processed at a time
 	processingSnapshotMutex sync.RWMutex
+	// apiDocsPullPeriod duration between two executions of scrape
+	apiDocsPullPeriod time.Duration
 }
 
 // NewAPIDocsStore is the main APIDocsStore constructor.
-func NewAPIDocsStore() *APIDocsStore {
+func NewAPIDocsStore(apiDocsPullPeriod time.Duration) *APIDocsStore {
 	return &APIDocsStore{
 		Client:                        newAPIDocsHTTPClient(),
 		DontProcessSnapshotBeforeTime: time.Unix(0, 0),
 
-		store:    newInMemoryStore(),
-		docsDiff: newMappingDocsCalculator([]docMappingRef{}),
+		apiDocsPullPeriod: apiDocsPullPeriod,
+		store:             newInMemoryStore(),
+		docsDiff:          newMappingDocsCalculator([]docMappingRef{}),
 	}
 }
 
@@ -53,6 +56,11 @@ func NewAPIDocsStore() *APIDocsStore {
 func (a *APIDocsStore) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Snapshot) {
 	a.processingSnapshotMutex.Lock()
 	defer a.processingSnapshotMutex.Unlock()
+
+	if a.apiDocsPullPeriod <= 0 {
+		dlog.Debug(ctx, "Skipping apidocs scraping process since the polling is disabled")
+		return
+	}
 
 	emptyStore := len(a.store.getAll()) == 0
 	mappings := getProcessableMappingsFromSnapshot(snapshot)
@@ -68,7 +76,7 @@ func (a *APIDocsStore) ProcessSnapshot(ctx context.Context, snapshot *snapshotTy
 	}
 
 	dlog.Debug(ctx, "Processing snapshot...")
-	a.DontProcessSnapshotBeforeTime = now.Add(1 * time.Minute)
+	a.DontProcessSnapshotBeforeTime = now.Add(a.apiDocsPullPeriod)
 
 	if emptyStore {
 		// We don't have anything in memory...

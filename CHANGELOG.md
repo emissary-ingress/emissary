@@ -92,6 +92,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Feature: The Agent environment variable `API_DOCS_POLLING_PERIOD` lets you control the frequency
+  at which the Agent will fetch API docs update from configured AmbassadorMappings. Default is
+  `60s`. Set to `0` to completely turn off API docs polling from the Agent.
+
 ## [2.2.1] February 22, 2022
 [2.2.1]: https://github.com/emissary-ingress/emissary/compare/v2.2.0...v2.2.1
 

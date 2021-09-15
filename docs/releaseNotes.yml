@@ -34,7 +34,10 @@ changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.
 items:
   - version: 2.3.0
     date: 'TBD'
-    notes: []
+    notes:
+      - title: Agent supports API_DOCS_POLLING_PERIOD configuration
+        body: The Agent environment variable `API_DOCS_POLLING_PERIOD` lets you control the frequency at which the Agent will fetch API docs update from configured AmbassadorMappings. Default is `60s`. Set to `0` to completely turn off API docs polling from the Agent.
+        type: feature
 
   - version: 2.2.1
     date: '2022-02-22'

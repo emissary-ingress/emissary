@@ -24,6 +24,7 @@ import (
 )
 
 const defaultMinReportPeriod = 30 * time.Second
+const defaultAPIDocsPollingPeriod = 60 * time.Second
 const cloudConnectTokenKey = "CLOUD_CONNECT_TOKEN"
 
 type Comm interface {
@@ -84,7 +85,8 @@ type Agent struct {
 	coreStore *coreStore
 
 	// apiDocsStore holds OpenAPI documents from cluster Mappings
-	apiDocsStore *APIDocsStore
+	apiDocsStore      *APIDocsStore
+	apiDocsPollPeriod time.Duration
 
 	// rolloutStore holds Argo Rollouts state from cluster
 	rolloutStore *RolloutStore
@@ -135,10 +137,23 @@ func NewAgent(directiveHandler DirectiveHandler, rolloutsGetterFactory rolloutsG
 		}
 	}
 
+	apiDocsPollPeriodFromEnv := os.Getenv("API_DOCS_POLLING_PERIOD")
+	var apiDocsPollPeriod time.Duration
+	if apiDocsPollPeriodFromEnv != "" {
+		var err error
+		apiDocsPollPeriod, err = time.ParseDuration(apiDocsPollPeriodFromEnv)
+		if err != nil {
+			apiDocsPollPeriod = defaultAPIDocsPollingPeriod
+		}
+	} else {
+		apiDocsPollPeriod = defaultAPIDocsPollingPeriod
+	}
+
 	return &Agent{
-		minReportPeriod:  reportPeriod,
-		reportComplete:   make(chan error),
-		ambassadorAPIKey: os.Getenv(cloudConnectTokenKey),
+		minReportPeriod:   reportPeriod,
+		apiDocsPollPeriod: apiDocsPollPeriod,
+		reportComplete:    make(chan error),
+		ambassadorAPIKey:  os.Getenv(cloudConnectTokenKey),
 		// store this same value in a different variable, so that if ambassadorAPIKey gets
 		// changed by some other configuration, we know what to change it back to. See
 		// comment on the struct for more detail
@@ -375,7 +390,7 @@ func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator
 		return err
 	}
 
-	a.apiDocsStore = NewAPIDocsStore()
+	a.apiDocsStore = NewAPIDocsStore(a.apiDocsPollPeriod)
 	applicationStore := NewApplicationStore()
 	rolloutStore := NewRolloutStore()
 	coreSnapshot := CoreSnapshot{}

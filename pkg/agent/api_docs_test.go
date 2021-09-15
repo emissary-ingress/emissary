@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -202,7 +203,7 @@ func TestAPIDocsStore(t *testing.T) {
 				},
 			}
 
-			store := agent.NewAPIDocsStore()
+			store := agent.NewAPIDocsStore(1 * time.Minute)
 			store.Client = NewMockAPIDocsHTTPClient(t, c.expectedRequestURL, c.expectedRequestHost, c.expectedRequestHeaders, c.rawJSONDocsContent, c.JSONDocsErr)
 
 			// Processing the test case snapshot should yield the expected state of the world
