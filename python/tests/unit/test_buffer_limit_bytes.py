@@ -10,7 +10,8 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import Config, IR, EnvoyConfig
+from ambassador import Config, IR, 
+from ambassador.envoy import EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
 
@@ -25,7 +26,10 @@ def _get_envoy_config(yaml, version='V3'):
 
     assert ir
 
-    return EnvoyConfig.generate(ir, version)
+    econf = EnvoyConfig.generate(ir, version)
+    assert econf, "could not create an econf"
+
+    return econf
 
 
 @pytest.mark.compilertest
