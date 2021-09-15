@@ -276,33 +276,27 @@ push: docker/kat-server.docker.push.remote-devloop
 .PHONY: push
 
 push-dev: docker/$(LCNAME).docker.tag.local
+	$(if $(IS_DIRTY),$(error push-dev: tree must be clean))
+	$(if $(findstring -dev,$(IS_DIRTY)),,$(error push-dev: BUILD_VERSION=$(BUILD_VERSION) is not a dev version))
+
+	$(MAKE) docker/$(LCNAME).docker.push.remote-cidev
 	@set -e; { \
-		if [ -n "$(IS_DIRTY)" ]; then \
-			echo "push-dev: tree must be clean" >&2 ;\
-			exit 1 ;\
-		fi; \
-		check=$$(echo $(BUILD_VERSION) | grep -c -e -dev || true) ;\
-		if [ $$check -lt 1 ]; then \
-			printf "$(RED)push-dev: BUILD_VERSION $(BUILD_VERSION) is not a dev version$(END)\n" >&2 ;\
-			exit 1 ;\
-		fi ;\
-		$(MAKE) docker/$(LCNAME).docker.push.remote-cidev ;\
 		commit=$$(git rev-parse HEAD) ;\
 		printf "$(CYN)==> $(GRN)recording $(BLU)$$commit$(GRN) => $(BLU)$$suffix$(GRN) in S3...$(END)\n" ;\
 		echo "$$suffix" | aws s3 cp - s3://$(AWS_S3_BUCKET)/dev-builds/$$commit ;\
-		if [ $(IS_PRIVATE) ] ; then \
-			echo "push-dev: not pushing manifests because this is a private repo" ;\
-			exit 0 ; \
-		fi ; \
-		$(MAKE) \
-			CHART_VERSION_SUFFIX=$$(echo $(BUILD_VERSION) | sed -e 's/^[^+-]*//' -e 's/\+/-/g') \
-			IMAGE_TAG=$${suffix} \
-			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
-			chart-push-ci ; \
-		$(MAKE) update-yaml --always-make; \
-		$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests  ; \
-		$(MAKE) clean-manifests ; \
 	}
+ifneq ($(IS_PRIVATE),)
+	@echo "push-dev: not pushing manifests because this is a private repo"
+else
+	$(MAKE) \
+	  CHART_VERSION_SUFFIX=$$(echo $(BUILD_VERSION) | sed -e 's/^[^+-]*//' -e 's/\+/-/g') \
+	  IMAGE_TAG=$${suffix} \
+	  IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
+	  chart-push-ci
+	$(MAKE) update-yaml --always-make
+	$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests
+	$(MAKE) clean-manifests
+endif
 .PHONY: push-dev
 
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
