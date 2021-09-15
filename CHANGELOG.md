@@ -86,10 +86,17 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 
 ## Emissary-ingress
 
-- Feature: The environment variable `AES_LOG_LEVEL` now also sets the log level for the `diagd` logger.
+- Feature: The environment variable `AES_LOG_LEVEL` now also sets the log level for the `diagd` logger. [#3686] [#3666]
 
 - Feature: You can now set `dns_type` in the `AmbassadorMapping` to configure how Envoy will use the DNS for
   the service.
+
+- Bugfix: It is no longer necessary to set `DOCKER_BUILDKIT=0` when building Emissary. A future change will
+  fully support BuildKit. [#3707]
+
+[#3686]: https://github.com/emissary-ingress/emissary/issues/3686
+[#3666]: https://github.com/emissary-ingress/emissary/issues/3666
+[#3707]: https://github.com/emissary-ingress/emissary/issues/3707
 
 ## [2.0.2-ea] (2021-08-24)
 [2.0.2-ea]: https://github.com/emissary-ingress/emissary/releases/v2.0.2-ea
@@ -173,7 +180,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
   should reduce Envoy memory requirements for installations with many `AmbassadorHost`s
 
 - Bugfix: Each `AmbassadorHost` can specify its `requestPolicy.insecure.action` independently of any other
-  `AmbassadorHost`, allowing for HTTP routing as flexible as HTTPS routing.
+  `AmbassadorHost`, allowing for HTTP routing as flexible as HTTPS routing. [#2888]
 
 - Bugfix: Emissary-ingress 2.0.0 fixes a regression in detecting the Ambassador Kubernetes service that
   could cause the wrong IP or hostname to be used in Ingress statuses -- thanks, <a
@@ -217,6 +224,8 @@ installations, reduce memory footprint, and improve performance. We welcome feed
   Telepresence product replaces this functionality.
 
 - Change: The `edgectl` CLI tool has been deprecated; please use the `emissary-ingress` helm chart instead.
+
+[#2888]: https://github.com/datawire/ambassador/issues/2888
 
 ## [1.14.1] (2021-08-24)
 [1.14.1]: https://github.com/emissary-ingress/emissary/releases/v1.14.1

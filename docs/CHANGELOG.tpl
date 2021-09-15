@@ -85,9 +85,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## Emissary-ingress
 {{ range .notes -}}{{ if not (index . "isHeadline") }}
-- {{ .type | strings.Title }}: {{ .body | strings.ReplaceAll "$productName$" "Emissary-ingress" | strings.ReplaceAll "<b>" "_" | strings.ReplaceAll "</b>" "_" | strings.ReplaceAll "<code>" "`" | strings.ReplaceAll "</code>" "`" | strings.WordWrap 98 "\n  " }}
+- {{ .type | strings.Title }}: {{ .body | strings.ReplaceAll "$productName$" "Emissary-ingress" | strings.ReplaceAll "<b>" "_" | strings.ReplaceAll "</b>" "_" | strings.ReplaceAll "<code>" "`" | strings.ReplaceAll "</code>" "`" | strings.WordWrap 98 "\n  " }}{{ if index . "github" }}{{ range .github }} [{{.title}}]{{ end }}{{ end }}
+{{ end }}{{ end }}{{ $anyGitLinks := false }}{{ range .notes -}}{{- if index . "github" -}}{{- range .github }}{{ $anyGitLinks = true }}
+[{{.title}}]: {{.link}}{{ end -}}{{- end -}}{{- end }}
+{{ if $anyGitLinks }}
 {{ end }}{{ end }}
-{{ end }}
 
 ## [1.13.11] (TBD)
 [1.13.11]: https://github.com/emissary-ingress/emissary/compare/v1.13.10...v1.13.11
