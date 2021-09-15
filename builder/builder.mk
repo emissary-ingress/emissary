@@ -275,6 +275,7 @@ push: docker/kat-client.docker.push.remote-devloop
 push: docker/kat-server.docker.push.remote-devloop
 .PHONY: push
 
+push-dev: ##
 push-dev: docker/$(LCNAME).docker.tag.local
 	$(if $(IS_DIRTY),$(error push-dev: tree must be clean))
 	$(if $(findstring -dev,$(IS_DIRTY)),,$(error push-dev: BUILD_VERSION=$(BUILD_VERSION) is not a dev version))
