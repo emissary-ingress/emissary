@@ -5,7 +5,6 @@ following Free and Open Source software:
     ----                                                     -------                                    ----------
     the Go language standard library ("std")                 v1.15                                      3-clause BSD license
     cloud.google.com/go                                      v0.54.0                                    Apache License 2.0
-    git.lukeshu.com/go/libsystemd                            v0.5.3                                     Apache License 2.0
     github.com/Azure/go-ansiterm                             v0.0.0-20170929234023-d6e3b3328b78         MIT license
     github.com/Azure/go-autorest                             v14.2.0+incompatible                       Apache License 2.0
     github.com/Azure/go-autorest/autorest                    v0.11.1                                    Apache License 2.0
@@ -27,7 +26,6 @@ following Free and Open Source software:
     github.com/cespare/xxhash/v2                             v2.1.1                                     MIT license
     github.com/cncf/udpa/go                                  v0.0.0-20210322005330-6414d713912e         Apache License 2.0
     github.com/datawire/dlib                                 v1.2.0                                     Apache License 2.0
-    github.com/datawire/pf                                   v0.0.0-20201130213120-827bb98f7ed5         2-clause BSD license
     github.com/davecgh/go-spew                               v1.1.1                                     ISC license
     github.com/docker/spdystream                             v0.0.0-20160310174837-449fdfce4d96         Apache License 2.0
     github.com/ecodia/golang-awaitility                      v0.0.0-20180710094957-fb55e59708c7         MIT license
@@ -72,7 +70,6 @@ following Free and Open Source software:
     github.com/mattn/go-colorable                            v0.1.2                                     MIT license
     github.com/mattn/go-isatty                               v0.0.8                                     MIT license
     github.com/matttproud/golang_protobuf_extensions         v1.0.2-0.20181231171920-c182affec369       Apache License 2.0
-    github.com/miekg/dns                                     v1.1.35                                    3-clause BSD license
     github.com/mitchellh/go-homedir                          v1.1.0                                     MIT license
     github.com/mitchellh/go-wordwrap                         v1.0.0                                     MIT license
     github.com/mitchellh/mapstructure                        v1.1.2                                     MIT license

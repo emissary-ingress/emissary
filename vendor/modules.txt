@@ -1,7 +1,5 @@
 # cloud.google.com/go v0.54.0
 cloud.google.com/go/compute/metadata
-# git.lukeshu.com/go/libsystemd v0.5.3
-git.lukeshu.com/go/libsystemd/sd_daemon
 # github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78
 github.com/Azure/go-ansiterm
 github.com/Azure/go-ansiterm/winterm
@@ -55,10 +53,6 @@ github.com/datawire/dlib/dgroup
 github.com/datawire/dlib/dhttp
 github.com/datawire/dlib/dlog
 github.com/datawire/dlib/dtime
-# github.com/datawire/pf v0.0.0-20201130213120-827bb98f7ed5
-github.com/datawire/pf
-github.com/datawire/pf/libkern
-github.com/datawire/pf/net
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/docker/spdystream v0.0.0-20160310174837-449fdfce4d96
@@ -173,8 +167,6 @@ github.com/mattn/go-colorable
 github.com/mattn/go-isatty
 # github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369
 github.com/matttproud/golang_protobuf_extensions/pbutil
-# github.com/miekg/dns v1.1.35
-github.com/miekg/dns
 # github.com/mitchellh/go-homedir v1.1.0
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/go-wordwrap v1.0.0
@@ -220,8 +212,6 @@ github.com/spf13/pflag
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
 # golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
-golang.org/x/crypto/ed25519
-golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/pkcs12
 golang.org/x/crypto/pkcs12/internal/rc2
@@ -230,20 +220,13 @@ golang.org/x/crypto/ssh/terminal
 # golang.org/x/mod v0.3.0
 golang.org/x/mod/semver
 # golang.org/x/net v0.0.0-20210119194325-5f4716e94777
-golang.org/x/net/bpf
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
-golang.org/x/net/internal/iana
-golang.org/x/net/internal/socket
-golang.org/x/net/internal/socks
 golang.org/x/net/internal/timeseries
-golang.org/x/net/ipv4
-golang.org/x/net/ipv6
-golang.org/x/net/proxy
 golang.org/x/net/trace
 # golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 golang.org/x/oauth2
