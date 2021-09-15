@@ -1,9 +1,0 @@
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
-  namespace: default
-  name: long-foo-1
-spec:
-  prefix: /long-foo-1/
-  service: myverylongservicenameoverfourtycharacterslong

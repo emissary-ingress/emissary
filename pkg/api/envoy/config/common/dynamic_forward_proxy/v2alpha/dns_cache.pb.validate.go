@@ -17,7 +17,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 
-	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
+	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
 )
 
 // ensure the imports are used
@@ -36,9 +36,6 @@ var (
 
 	_ = v2.Cluster_DnsLookupFamily(0)
 )
-
-// define the regex for a UUID once up-front
-var _dns_cache_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 
 // Validate checks the field values on DnsCacheConfig with the rules defined in
 // the proto definition for this message. If any rules are violated, an error

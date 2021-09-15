@@ -9,6 +9,8 @@ from kat.harness import sanitize, variants, Query, Runner
 from abstract_tests import AmbassadorTest, HTTP, AHTTP
 from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
 
+from ambassador import Config
+
 # The phase that we should wait until before performing test checks. Normally
 # this would be phase 2, which is 10 seconds after the first wave of queries,
 # but we increase it to phase 3 here to make sure that Zipkin and other tracers
@@ -67,9 +69,10 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tracing_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -77,7 +80,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: TracingService
 name: tracing
 service: zipkin:9411
@@ -185,9 +188,10 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tracing_target_mapping_longclustername
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -195,7 +199,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: TracingService
 name: tracing-longclustername
 service: zipkinservicenamewithoversixtycharacterstoforcenamecompression:9411
@@ -297,9 +301,10 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tracing_target_mapping_64
+hostname: "*"
 prefix: /target-64/
 service: {self.target.path.fqdn}
 """)
@@ -388,16 +393,17 @@ spec:
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tracing_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: TracingService
 name: tracing-auth
 service: zipkin-auth:9411
@@ -406,12 +412,12 @@ driver: zipkin
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
 path_prefix: "/extauth"
-allowed_headers:
+allowed_request_headers:
 - Requested-Status
 - Requested-Header
 """)
@@ -490,9 +496,10 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tracing_target_mapping_65
+hostname: "*"
 prefix: /target-65/
 service: {self.target.path.fqdn}
 """)
@@ -591,9 +598,10 @@ spec:
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tracing_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -662,7 +670,7 @@ class TracingTestZipkinV1(AmbassadorTest):
     """
 
     def init(self):
-        if os.environ.get('KAT_USE_ENVOY_V3', '') != '':
+        if Config.envoy_api_version == "V3":
             self.skip_node = True
         self.target = HTTP()
 
@@ -712,9 +720,10 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tracing_target_mapping
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)

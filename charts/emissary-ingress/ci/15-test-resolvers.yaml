@@ -1,0 +1,12 @@
+resolvers:
+  endpoint:
+    create: true
+    name: endpoint-foo
+
+  consul:
+    create: true
+    name: consul-foo
+    spec:
+      address: ${HOST_IP}
+      datacenter: dc1
+createDefaultListeners: true

@@ -1,0 +1,9 @@
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
+metadata:
+  namespace: default
+  name: foo-0
+spec:
+  prefix: /foo-0/
+  service: httpbin.org

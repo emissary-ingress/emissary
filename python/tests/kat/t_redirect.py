@@ -23,6 +23,8 @@ class RedirectTests(AmbassadorTest):
         if EDGE_STACK:
             self.xfail = "Not yet supported in Edge Stack"
 
+        self.xfail = "FIXME: IHA"
+
         self.target = HTTP()
 
     def requirements(self):
@@ -57,7 +59,7 @@ data:
         # be annotated on the Ambassador itself.
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: tls
 ambassador_id: {self.ambassador_id}
@@ -70,9 +72,10 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tls_target_mapping
+hostname: "*"
 prefix: /tls-target/
 service: {self.target.path.fqdn}
 """)
@@ -102,6 +105,7 @@ class RedirectTestsWithProxyProto(AmbassadorTest):
     target: ServiceType
 
     def init(self):
+        self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def requirements(self):
@@ -111,7 +115,7 @@ class RedirectTestsWithProxyProto(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
@@ -121,9 +125,10 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tls_target_mapping
+hostname: "*"
 prefix: /tls-target/
 service: {self.target.path.fqdn}
 """)
@@ -162,6 +167,7 @@ class RedirectTestsInvalidSecret(AmbassadorTest):
         if EDGE_STACK:
             self.xfail = "Not yet supported in Edge Stack"
 
+        self.xfail = "FIXME: IHA"
         self.target = HTTP()
 
     def requirements(self):
@@ -171,7 +177,7 @@ class RedirectTestsInvalidSecret(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: tls
 ambassador_id: {self.ambassador_id}
@@ -184,9 +190,10 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  tls_target_mapping
+hostname: "*"
 prefix: /tls-target/
 service: {self.target.path.fqdn}
 """)
@@ -219,20 +226,49 @@ class XFPRedirect(AmbassadorTest):
             self.xfail = "Not yet supported in Edge Stack"
 
         self.target = HTTP()
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
+
+    def manifests(self):
+        return self.format('''
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
+metadata:
+  name: ambassador-listener-8080
+spec:
+  ambassador_id: {self.ambassador_id}
+  port: 8080
+  protocol: HTTP
+  securityModel: XFP
+  l7Depth: 1
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
+metadata:
+  name: weird-xfp-test-host
+spec:
+  ambassador_id: {self.ambassador_id}
+  requestPolicy:
+    insecure:
+      action: Redirect
+''') + super().manifests()
+
 
     def config(self):
         yield self.target, self.format("""
----
-apiVersion: ambassador/v1
 kind: Module
 name: ambassador
 config:
-  x_forwarded_proto_redirect: true
   use_remote_address: false
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
+hostname: "*"
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
 """)

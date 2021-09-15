@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _common_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on CommonExtensionConfig with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -64,18 +61,6 @@ func (m *CommonExtensionConfig) Validate() error {
 			if err := v.Validate(); err != nil {
 				return CommonExtensionConfigValidationError{
 					field:  "StaticConfig",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	case *CommonExtensionConfig_TapdsConfig:
-
-		if v, ok := interface{}(m.GetTapdsConfig()).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return CommonExtensionConfigValidationError{
-					field:  "TapdsConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -220,95 +205,3 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = AdminConfigValidationError{}
-
-// Validate checks the field values on CommonExtensionConfig_TapDSConfig with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, an error is returned.
-func (m *CommonExtensionConfig_TapDSConfig) Validate() error {
-	if m == nil {
-		return nil
-	}
-
-	if m.GetConfigSource() == nil {
-		return CommonExtensionConfig_TapDSConfigValidationError{
-			field:  "ConfigSource",
-			reason: "value is required",
-		}
-	}
-
-	if v, ok := interface{}(m.GetConfigSource()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return CommonExtensionConfig_TapDSConfigValidationError{
-				field:  "ConfigSource",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if len(m.GetName()) < 1 {
-		return CommonExtensionConfig_TapDSConfigValidationError{
-			field:  "Name",
-			reason: "value length must be at least 1 bytes",
-		}
-	}
-
-	return nil
-}
-
-// CommonExtensionConfig_TapDSConfigValidationError is the validation error
-// returned by CommonExtensionConfig_TapDSConfig.Validate if the designated
-// constraints aren't met.
-type CommonExtensionConfig_TapDSConfigValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e CommonExtensionConfig_TapDSConfigValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e CommonExtensionConfig_TapDSConfigValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e CommonExtensionConfig_TapDSConfigValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e CommonExtensionConfig_TapDSConfigValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e CommonExtensionConfig_TapDSConfigValidationError) ErrorName() string {
-	return "CommonExtensionConfig_TapDSConfigValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e CommonExtensionConfig_TapDSConfigValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sCommonExtensionConfig_TapDSConfig.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = CommonExtensionConfig_TapDSConfigValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = CommonExtensionConfig_TapDSConfigValidationError{}

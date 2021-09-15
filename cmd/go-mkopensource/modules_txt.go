@@ -3,22 +3,15 @@ package main
 import (
 	"bufio"
 	"os"
-	"os/exec"
 	"path"
 	"strings"
 
 	"github.com/pkg/errors"
 
-	"github.com/datawire/ambassador/pkg/mkopensource/golist"
+	"github.com/datawire/ambassador/v2/pkg/mkopensource/golist"
 )
 
 func VendorList() ([]golist.Package, error) {
-	cmd := exec.Command("go", "mod", "vendor")
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return nil, errors.Wrapf(err, "%q", []string{"go", "mod", "vendor"})
-	}
-
 	file, err := os.Open("vendor/modules.txt")
 	if err != err {
 		return nil, err

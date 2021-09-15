@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/consulwatch"
+	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 
-	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
 )
 
 type ConsulSnapshot struct {

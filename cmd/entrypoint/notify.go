@@ -11,8 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/acp"
-	"github.com/datawire/ambassador/pkg/debug"
+	"github.com/datawire/ambassador/v2/pkg/acp"
+	"github.com/datawire/ambassador/v2/pkg/debug"
 
 	"github.com/datawire/dlib/dlog"
 )
@@ -111,7 +111,7 @@ func notifyWebhookUrl(ctx context.Context, name, xurl string) bool {
 		if errors.Is(err, syscall.ECONNREFUSED) {
 			// We couldn't succesfully connect to the sidecar, probably because it hasn't
 			// started up yet, so we log the error and return false to signal retry.
-			dlog.Errorf(ctx, err.Error())
+			dlog.Error(ctx, err.Error())
 			return false
 		} else {
 			// If either of the sidecars cannot successfully handle a webhook request, we

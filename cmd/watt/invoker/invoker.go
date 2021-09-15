@@ -9,8 +9,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/datawire/ambassador/pkg/supervisor"
-	"github.com/datawire/ambassador/pkg/tpu"
+	"github.com/datawire/ambassador/v2/pkg/supervisor"
+	"github.com/datawire/ambassador/v2/pkg/tpu"
 	"github.com/datawire/dlib/dhttp"
 )
 

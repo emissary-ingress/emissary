@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/stretchr/testify/assert"
 )
 

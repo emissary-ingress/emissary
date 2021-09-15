@@ -114,6 +114,10 @@ BUILDER = BUILDER_NAME=$(BUILDER_NAME) $(abspath $(BUILDER_HOME)/builder.sh)
 DBUILD = $(abspath $(BUILDER_HOME)/dbuild.sh)
 COPY_GOLD = $(abspath $(BUILDER_HOME)/copy-gold.sh)
 
+AWS_S3_BUCKET ?= datawire-static-files
+
+GCR_RELEASE_REGISTRY ?= gcr.io/datawire
+
 # the image used for running the Ingress v1 tests with KIND.
 # the current, official image does not support Ingress v1, so we must build our own image with k8s 1.18.
 # build this image with:
@@ -141,8 +145,8 @@ INGRESS_TEST_LOCAL_ADMIN_PORT = 8877
 
 # directory with the manifests for loading Ambassador for running the Ingress Conformance tests
 # NOTE: these manifests can be slightly different to the regular ones asd they include
-INGRESS_TEST_MANIF_DIR = $(BUILDER_HOME)/../docs/yaml/ambassador/
-INGRESS_TEST_MANIFS = ambassador-crds.yaml ambassador-rbac.yaml
+INGRESS_TEST_MANIF_DIR = $(BUILDER_HOME)/../manifests/emissary/
+INGRESS_TEST_MANIFS = ambassador-crds.yaml ambassador.yaml
 
 all: help
 .PHONY: all
@@ -273,7 +277,7 @@ docker/base-envoy.docker.stamp: FORCE
 	    docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@; \
 	  fi; \
 	}
-docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
+docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker python/ambassador.version $(BUILDER_HOME)/Dockerfile FORCE
 	@set -e; { \
 	    printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"; \
 	    printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"; \
@@ -282,22 +286,16 @@ docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag
 	    time ${DBUILD} -f ${BUILDER_HOME}/Dockerfile . \
 	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	      --build-arg=version="$(BUILD_VERSION)" \
 	      --target=ambassador \
 	      --iidfile=$@; \
 	    unset TIMEFORMAT; \
 	}
 
-docker/$(LCNAME)-ea.docker.stamp: %/$(LCNAME)-ea.docker.stamp: %/$(LCNAME).docker $(BUILDER_HOME)/Dockerfile-ea FORCE
+docker/$(LCNAME)-ea.docker.stamp: %/$(LCNAME)-ea.docker.stamp: %/$(LCNAME).docker FORCE
 	@set -e; { \
-	  printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)-ea${END}\n"; \
-	  printf "    ${BLU}base_ambassador=$$(cat $*/$(LCNAME).docker)${END}\n"; \
-	  TIMEFORMAT="     (docker build took %1R seconds)"; \
-	  time ${DBUILD} ${BUILDER_HOME} \
-	    -f $(BUILDER_HOME)/Dockerfile-ea \
-	    --build-arg=base_ambassador="$$(cat $*/$(LCNAME).docker)" \
-	    --target=ambassador-ea \
-	    --iidfile=$@; \
-	  unset TIMEFORMAT; \
+	  printf "${CYN}==> ${GRN}Promoting ${BLU}$$(cat docker/$(LCNAME).docker)${END} to EA as ${BLU}$(LCNAME)-ea${END}\n"; \
+	  cat docker/$(LCNAME).docker > $@; \
 	}
 
 docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
@@ -326,7 +324,6 @@ docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/base-envoy.docker.t
 REPO=$(BUILDER_NAME)
 
 images: docker/$(LCNAME).docker.tag.local
-images: docker/$(LCNAME)-ea.docker.tag.local
 images: docker/kat-client.docker.tag.local
 images: docker/kat-server.docker.tag.local
 .PHONY: images
@@ -337,12 +334,11 @@ REGISTRY_ERR += $(NL)       you would like to use for development
 REGISTRY_ERR += $(END)
 
 push: docker/$(LCNAME).docker.push.remote
-push: docker/$(LCNAME)-ea.docker.push.remote
 push: docker/kat-client.docker.push.remote
 push: docker/kat-server.docker.push.remote
 .PHONY: push
 
-push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
+push-dev: docker/$(LCNAME).docker.tag.local
 	@set -e; { \
 		if [ -n "$(IS_DIRTY)" ]; then \
 			echo "push-dev: tree must be clean" >&2 ;\
@@ -355,7 +351,7 @@ push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 		fi ;\
 		suffix=$$(echo $(BUILD_VERSION) | sed -e 's/\+/-/') ;\
 		chartsuffix=$${suffix#*-} ; \
-		for image in $(LCNAME) $(LCNAME)-ea; do \
+		for image in $(LCNAME) ; do \
 			tag="$(DEV_REGISTRY)/$$image:$${suffix}" ;\
 			printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
 			docker tag $$(cat docker/$$image.docker) $$tag && \
@@ -363,7 +359,11 @@ push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 		done ;\
 		commit=$$(git rev-parse HEAD) ;\
 		printf "$(CYN)==> $(GRN)recording $(BLU)$$commit$(GRN) => $(BLU)$$suffix$(GRN) in S3...$(END)\n" ;\
-		echo "$$suffix" | aws s3 cp - s3://datawire-static-files/dev-builds/$$commit ;\
+		echo "$$suffix" | aws s3 cp - s3://$(AWS_S3_BUCKET)/dev-builds/$$commit ;\
+		if [ $(IS_PRIVATE) ] ; then \
+			echo "push-dev: not pushing manifests because this is a private repo" ;\
+			exit 0 ; \
+		fi ; \
 		$(MAKE) \
 			CHART_VERSION_SUFFIX=-$$chartsuffix \
 			IMAGE_TAG=$${suffix} \
@@ -375,44 +375,10 @@ push-dev: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
 	}
 .PHONY: push-dev
 
-push-nightly: docker/$(LCNAME).docker.tag.local docker/$(LCNAME)-ea.docker.tag.local
-	@set -e; { \
-		if [ -n "$(IS_DIRTY)" ]; then \
-			echo "push-nightly: tree must be clean" >&2 ;\
-			exit 1 ;\
-		fi; \
-		now=$$(date +"%Y%m%dT%H%M%S") ;\
-		today=$$(date +"%Y%m%d") ;\
-		base_version=$$(echo $(BUILD_VERSION) | cut -d- -f1) ;\
-		for image in $(LCNAME) $(LCNAME)-ea; do \
-			for suffix in "$$now" "$$today"; do \
-				tag="$(DEV_REGISTRY)/$$image:$${base_version}-nightly.$${suffix}" ;\
-				printf "$(CYN)==> $(GRN)pushing $(BLU)$$image$(GRN) as $(BLU)$$tag$(GRN)...$(END)\n" ;\
-				docker tag $$(cat docker/$$image.docker) $$tag && \
-				docker push $$tag ;\
-			done ;\
-		done ;\
-		CHART_VERSION_SUFFIX=-nightly.$$today ;\
-		IMAGE_TAG=$${base_version}$${CHART_VERSION_SUFFIX} ;\
-		$(MAKE) \
-			CHART_VERSION_SUFFIX="$${CHART_VERSION_SUFFIX}" \
-			IMAGE_TAG="$${IMAGE_TAG}" \
-			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
-			chart-push-ci ; \
-		$(MAKE) update-yaml --always-make; \
-		$(MAKE) VERSION_OVERRIDE=$${base_version}-nightly.$${suffix} push-manifests  ; \
-		$(MAKE) clean-manifests ; \
-	}
-.PHONY: push-nightly
-
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
 export KUBECTL_ERR=$(RED)ERROR: preflight kubectl check failed$(END)
 
 test-ready: push preflight-cluster
-# XXX noop target for teleproxy tests
-	@docker exec -w /buildroot/ambassador -i $(shell $(BUILDER)) sh -c "echo bin_linux_amd64/edgectl: > Makefile"
-	@docker exec -w /buildroot/ambassador -i $(shell $(BUILDER)) sh -c "mkdir -p bin_linux_amd64"
-	@docker exec -w /buildroot/ambassador -d $(shell $(BUILDER)) ln -s /buildroot/bin/edgectl /buildroot/ambassador/bin_linux_amd64/edgectl
 .PHONY: test-ready
 
 PYTEST_ARGS ?=
@@ -470,15 +436,28 @@ docker/run/shell:
 
 setup-envoy: extract-bin-envoy
 
-pytest: setup-diagd setup-envoy $(OSS_HOME)/bin/kubestatus proxy
+pytest: docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote $(OSS_HOME)/bin/kubestatus
+	@$(MAKE) setup-diagd
+	@$(MAKE) setup-envoy
+	@$(MAKE) proxy
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	@echo "AMBASSADOR_DOCKER_IMAGE=$$AMBASSADOR_DOCKER_IMAGE"
 	@echo "KAT_CLIENT_DOCKER_IMAGE=$$KAT_CLIENT_DOCKER_IMAGE"
 	@echo "KAT_SERVER_DOCKER_IMAGE=$$KAT_SERVER_DOCKER_IMAGE"
 	@echo "DEV_KUBECONFIG=$$DEV_KUBECONFIG"
+	@echo "KAT_RUN_MODE=$$KAT_RUN_MODE"
+	@echo "PYTEST_ARGS=$$PYTEST_ARGS"
 	. $(OSS_HOME)/venv/bin/activate; \
 		$(OSS_HOME)/builder/builder.sh pytest-local
 .PHONY: pytest
+
+pytest-unit:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
+	@$(MAKE) setup-envoy
+	@$(MAKE) setup-diagd
+	. $(OSS_HOME)/venv/bin/activate; \
+		PYTEST_ARGS="$$PYTEST_ARGS python/tests/unit" $(OSS_HOME)/builder/builder.sh pytest-local-unit
+.PHONY: pytest-unit
 
 pytest-integration:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) integration tests$(END)\n"
@@ -490,13 +469,14 @@ pytest-kat:
 	$(MAKE) pytest PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
 .PHONY: pytest-kat
 
-extract-bin-envoy:
+extract-bin-envoy: docker/base-envoy.docker.tag.local
 	@mkdir -p $(OSS_HOME)/bin/
 	@rm -f $(OSS_HOME)/bin/envoy
 	@printf "Extracting envoy binary to $(OSS_HOME)/bin/envoy\n"
-	# Note that the call to `id -u` and `id -g` below are run in _this_ shell, not the docker container.
-	# That has the desired effect of chown'ing the output binary to the calling user/group.
-	@docker run -v $(OSS_HOME)/bin/:/output/ --rm -it --entrypoint /bin/bash $$AMBASSADOR_DOCKER_IMAGE -c "cp /usr/local/bin/envoy /output/envoy && chown $$(id -u):$$(id -g) /output/envoy"
+	@echo "#!/bin/bash" > $(OSS_HOME)/bin/envoy
+	@echo "" >> $(OSS_HOME)/bin/envoy
+	@echo "docker run -v $(OSS_HOME):$(OSS_HOME) -v /var/:/var/ -v /tmp/:/tmp/ -t --entrypoint /usr/local/bin/envoy-static-stripped $$(cat docker/base-envoy.docker) \"\$$@\"" >> $(OSS_HOME)/bin/envoy
+	@chmod +x $(OSS_HOME)/bin/envoy
 .PHONY: extract-bin-envoy
 
 $(OSS_HOME)/bin/kubestatus:
@@ -506,21 +486,52 @@ pytest-builder: test-ready
 	$(MAKE) pytest-builder-only
 .PHONY: pytest-builder
 
+pytest-envoy-ah:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy$(GRN) kat tests (ah) $(END)\n"
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range ah python/tests/kat"
+.PHONY: pytest-envoy-ah
+
+pytest-envoy-ip:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy$(GRN) kat tests (ip)$(END)\n"
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range ip python/tests/kat"
+.PHONY: pytest-envoy-ip
+
+pytest-envoy-qz:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy$(GRN) kat tests (qz)$(END)\n"
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range qz python/tests/kat"
+.PHONY: pytest-envoy-qz
+
+
 pytest-envoy:
-	$(MAKE) pytest KAT_RUN_MODE=envoy
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
 .PHONY: pytest-envoy
 
 pytest-envoy-builder:
 	$(MAKE) pytest-builder KAT_RUN_MODE=envoy
 .PHONY: pytest-envoy-builder
 
-pytest-envoy-v3:
-	$(MAKE) pytest KAT_RUN_MODE=envoy KAT_USE_ENVOY_V3=true
-.PHONY: pytest-envoy-v3
+pytest-envoy-v2-ah:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy v2$(GRN) kat tests (ah)$(END)\n"
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range ah python/tests/kat"
+.PHONY: pytest-envoy-ah
 
-pytest-envoy-v3-builder:
-	$(MAKE) pytest-builder KAT_RUN_MODE=envoy KAT_USE_ENVOY_V3=true
-.PHONY: pytest-envoy-v3-builder
+pytest-envoy-v2-ip:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy v2$(GRN) kat tests (ip)$(END)\n"
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range ip python/tests/kat"
+.PHONY: pytest-envoy-v2-ip
+
+pytest-envoy-v2-qz:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy v2$(GRN) kat tests (qz)$(END)\n"
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range qz python/tests/kat"
+.PHONY: pytest-envoy-v2-qz
+
+pytest-envoy-v2:
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
+.PHONY: pytest-envoy-v2
+
+pytest-envoy-v2-builder:
+	$(MAKE) pytest-builder KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2
+.PHONY: pytest-envoy-v2-builder
 
 pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests in builder shell$(END)\n"
@@ -533,7 +544,6 @@ pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remot
 		-e DOCKER_NETWORK=$(DOCKER_NETWORK) \
 		-e KAT_REQ_LIMIT \
 		-e KAT_RUN_MODE \
-		-e KAT_USE_ENVOY_V3 \
 		-e KAT_VERBOSE \
 		-e PYTEST_ARGS \
 		-e TEST_SERVICE_REGISTRY \
@@ -542,6 +552,7 @@ pytest-builder-only: sync preflight-cluster | docker/$(LCNAME).docker.push.remot
 		-e DEV_REGISTRY \
 		-e DOCKER_BUILD_USERNAME \
 		-e DOCKER_BUILD_PASSWORD \
+		-e AMBASSADOR_ENVOY_API_VERSION \
 		-e AMBASSADOR_LEGACY_MODE \
 		-e AMBASSADOR_FAST_RECONFIGURE \
 		-e AWS_SECRET_ACCESS_KEY \
@@ -555,18 +566,18 @@ pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
 
 mypy-server-stop: sync
-	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal stop
+	test -t 1 && USE_TTY="-t"; docker exec -i ${USE_TTY} $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal stop
 .PHONY: mypy
 
 mypy-server: sync
-	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal start
+	 test -t 1 && USE_TTY="-t"; docker exec -i ${USE_TTY} $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal start
 .PHONY: mypy
 
 mypy: mypy-server
-	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal check
+	test -t 1 && USE_TTY="-t"; docker exec -i ${USE_TTY} $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal check
 .PHONY: mypy
 
-GOTEST_PKGS = github.com/datawire/ambassador/...
+GOTEST_PKGS = github.com/datawire/ambassador/v2/...
 GOTEST_MODDIRS = $(OSS_HOME)
 export GOTEST_PKGS
 export GOTEST_MODDIRS
@@ -590,7 +601,7 @@ setup-venv:
 			pip install orjson==3.3.1; \
 			rm -f venv/lib/python3.8/site-packages/_manylinux.py; \
 		else \
-			pip install orjson==3.3.1; \
+			pip install orjson==3.6.0; \
 		fi; \
 		pip install -r $(OSS_HOME)/builder/requirements.txt; \
 		pip install -e $(OSS_HOME)/python; \
@@ -689,12 +700,8 @@ ingresstest: | docker/$(LCNAME).docker.push.remote
 		printf "$(CYN)==> $(GRN)We are done. You should destroy the cluster with 'kind delete cluster'.$(END)\n"; \
 	fi
 
-test: ingresstest gotest pytest e2etest
+test: ingresstest gotest pytest
 .PHONY: test
-
-# Empty stub; 'e2etest' is AES-only
-e2etest:
-.PHONY: e2etest
 
 shell: docker/container.txt
 	@printf "$(CYN)==> $(GRN)Launching interactive shell...$(END)\n"
@@ -712,25 +719,13 @@ RELEASE_VERSION=$$($(BUILDER) release-version)
 BUILD_VERSION=$$($(BUILDER) version)
 IS_DIRTY=$$($(BUILDER) is-dirty)
 
-# 'rc' is a deprecated alias for 'release/bits', kept around for the
-# moment to avoid pain with needing to update apro.git in lockstep.
-rc: release/bits
-.PHONY: rc
-
-release/bits: images
-	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@printf "$(CYN)==> $(GRN)Pushing $(BLU)$(REPO)$(GRN) Docker image$(END)\n"
-	docker tag $$(cat docker/$(LCNAME).docker) $(AMB_IMAGE_RC)
-	docker push $(AMB_IMAGE_RC)
-.PHONY: release/bits
-
 release/promote-oss/.main:
 	@[[ "$(RELEASE_VERSION)"      =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET RELEASE_VERSION"; exit 1)
 	@[[ -n "$(PROMOTE_FROM_VERSION)" ]] || (echo "MUST SET PROMOTE_FROM_VERSION"; exit 1)
 	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET PROMOTE_TO_VERSION" ; exit 1)
 	@set -e; { \
 		case "$(PROMOTE_CHANNEL)" in \
-			""|wip|early|test) true ;; \
+			""|wip|early|test|hotfix) true ;; \
 			*) echo "Unknown PROMOTE_CHANNEL $(PROMOTE_CHANNEL)" >&2 ; exit 1;; \
 		esac ; \
 		printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN) (channel=$(BLU)%s$(GRN))$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(PROMOTE_TO_VERSION)' '$(PROMOTE_CHANNEL)' ; \
@@ -748,46 +743,41 @@ release/promote-oss/.main:
 		docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) ;\
 	}
 
-	@printf '  $(CYN)https://s3.amazonaws.com/datawire-static-files/ambassador/$(PROMOTE_CHANNEL)stable.txt$(END)\n'
-	printf '%s' "$(RELEASE_VERSION)" | aws s3 cp - s3://datawire-static-files/ambassador/$(PROMOTE_CHANNEL)stable.txt
+	@printf '  $(CYN)https://s3.amazonaws.com/$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt$(END)\n'
+	printf '%s' "$(RELEASE_VERSION)" | aws s3 cp - s3://$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt
 
-	@printf '  $(CYN)s3://scout-datawire-io/ambassador/$(PROMOTE_CHANNEL)app.json$(END)\n'
-	printf '{"application":"ambassador","latest_version":"%s","notices":[]}' "$(RELEASE_VERSION)" | aws s3 cp - s3://scout-datawire-io/ambassador/$(PROMOTE_CHANNEL)app.json
+	@printf '  $(CYN)s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json$(END)\n'
+	printf '{"application":"emissary","latest_version":"%s","notices":[]}' "$(RELEASE_VERSION)" | aws s3 cp - s3://scout-datawire-io/emissary-ingress/$(PROMOTE_CHANNEL)app.json
 .PHONY: release/promote-oss/.main
-
-# To be run from a checkout at the tag you are promoting _from_.
-# At present, this is to be run by-hand.
-release/promote-oss/to-ea-latest:
-	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-ea\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an EA tag\n' "$(RELEASE_VERSION)"; exit 1)
-	@{ $(MAKE) release/promote-oss/.main \
-	  PROMOTE_FROM_VERSION="$(RELEASE_VERSION)" \
-	  PROMOTE_TO_VERSION="$$(echo "$(RELEASE_VERSION)" | sed 's/-ea.*/-ea-latest/')" \
-	  PROMOTE_CHANNEL=early \
-	; }
-.PHONY: release/promote-oss/to-ea-latest
 
 release/promote-oss/dev-to-rc:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@[[ ( "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ) || \
+	    ( "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$$ ) ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
 	@set -e; { \
 		if [ -n "$(IS_DIRTY)" ]; then \
 			echo "release/promote-oss/dev-to-rc: tree must be clean" >&2 ;\
 			exit 1 ;\
 		fi; \
 		commit=$$(git rev-parse HEAD) ;\
-		dev_version=$$(aws s3 cp s3://datawire-static-files/dev-builds/$$commit -) ;\
+		$(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key dev-builds ;\
+		dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
 		if [ -z "$$dev_version" ]; then \
 			printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
 			exit 1 ;\
 		fi ;\
 		printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
 		veroverride=$(RELEASE_VERSION) ; \
+		tag=$$(echo $(RELEASE_VERSION) | tr '+' '-') ; \
 		$(MAKE) release/promote-oss/.main \
 			PROMOTE_FROM_VERSION="$$dev_version" \
 			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
-			PROMOTE_TO_VERSION=$(RELEASE_VERSION) \
+			PROMOTE_TO_VERSION="$$tag" \
 			PROMOTE_CHANNEL=test ; \
+		if [ $(IS_PRIVATE) ] ; then \
+			echo "Not publishing charts or manifests because in a private repo" ;\
+			exit 0 ; \
+		fi ; \
 		chartsuffix=$(RELEASE_VERSION) ; \
 		chartsuffix=$${chartsuffix#*-} ; \
 		$(MAKE) \
@@ -802,12 +792,16 @@ release/promote-oss/dev-to-rc:
 	}
 .PHONY: release/promote-oss/dev-to-rc
 
+release/promote-oss/rc-update-apro:
+	$(OSS_HOME)/releng/01-release-rc-update-apro v$(RELEASE_VERSION) v$(VERSIONS_YAML_VERSION)
+.PHONY: release/promote-oss/rc-update-apro
+
 release/print-test-artifacts:
 	@set -e; { \
 		manifest_ver=$(RELEASE_VERSION) ; \
 		manifest_ver=$${manifest_ver%"-dirty"} ; \
-		echo "export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/ambassador/$$manifest_ver" ; \
-		echo "export HELM_CHART_VERSION=`grep 'version' $(OSS_HOME)/charts/ambassador/Chart.yaml | awk '{ print $$2 }'`" ; \
+		echo "export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/emissary/$$manifest_ver" ; \
+		echo "export HELM_CHART_VERSION=`grep 'version' $(OSS_HOME)/charts/emissary-ingress/Chart.yaml | awk '{ print $$2 }'`" ; \
 	}
 .PHONY: release/print-test-artifacts
 
@@ -828,93 +822,119 @@ release/promote-oss/to-rc-latest:
 release/promote-oss/dev-to-passed-ci:
 	@set -e; { \
 		commit=$$(git rev-parse HEAD) ;\
-		dev_version=$$(aws s3 cp s3://datawire-static-files/dev-builds/$$commit -) ;\
+		dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
 		if [ -z "$$dev_version" ]; then \
 			printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
 			exit 1 ;\
 		fi ;\
 		printf "$(CYN)==> $(GRN)Promoting $(BLU)$$commit$(GRN) => $(BLU)$$dev_version$(GRN) in S3...$(END)\n" ;\
-		echo "$$dev_version" | aws s3 cp - s3://datawire-static-files/passed-builds/$$commit ;\
+		echo "$$dev_version" | aws s3 cp - s3://$(AWS_S3_BUCKET)/passed-builds/$$commit ;\
 	}
 .PHONY: release/promote-oss/dev-to-passed-ci
+
+# should run on every PR once the builds have passed
+# this is less strong than "release/promote-oss/dev-to-passed-ci"
+release/promote-oss/pr-to-passed-ci:
+	@set -e; { \
+		commit=$$(git rev-parse HEAD) ;\
+		dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -) ;\
+		if [ -z "$$dev_version" ]; then \
+			printf "$(RED)==> found no dev version for $$commit in S3...$(END)\n" ;\
+			exit 1 ;\
+		fi ;\
+		printf "$(CYN)==> $(GRN)Promoting $(BLU)$$commit$(GRN) => $(BLU)$$dev_version$(GRN) in S3...$(END)\n" ;\
+		echo "$$dev_version" | aws s3 cp - s3://$(AWS_S3_BUCKET)/passed-pr/$$commit ;\
+	}
+.PHONY: release/promote-oss/pr-to-passed-ci
+
+release/promote-oss/to-hotfix:
+	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
+	@set -e; { \
+		docker login -u $$(keybase fs read /keybase/team/datawireio/secrets/dockerhub.webui.d6eautomaton.username) \
+					 -p $$(keybase fs read /keybase/team/datawireio/secrets/dockerhub.webui.d6eautomaton.password) ;\
+		HOTFIX_COMMIT=$$(git rev-parse $${HOTFIX_COMMIT:-HEAD}) ;\
+		hotfix_tag=$$(git describe --tags --exact --match '*-hf*' $$HOTFIX_COMMIT | sed 's/^v//g') ;\
+		if [ -z "$$hotfix_tag" ]; then \
+			printf "$(RED)==> found no hotfix tag for $$HOTFIX_COMMIT...$(END)\n" ;\
+			exit 1 ;\
+		fi ;\
+		[[ "$$hotfix_tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$$ ]] || (printf '$(RED)ERROR: tag %s does not look like a hotfix tag\n' "$$hotfix_tag"; exit 1) ;\
+		$(OSS_HOME)/releng/release-wait-for-commit --commit $$HOTFIX_COMMIT --s3-key passed-pr ;\
+		dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/passed-pr/$$HOTFIX_COMMIT -) ;\
+		if [ -z "$$dev_version" ]; then \
+			printf "$(RED)==> found no passed dev version for $$HOTFIX_COMMIT in S3...$(END)\n" ;\
+			exit 1 ;\
+		fi ;\
+		printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$HOTFIX_COMMIT$(GRN) in S3...$(END)\n" ;\
+		$(MAKE) release/promote-oss/.main \
+			PROMOTE_FROM_VERSION="$$dev_version" \
+			PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
+			PROMOTE_TO_VERSION=$$(echo "$$hotfix_tag" | tr '+' '-') \
+			PROMOTE_CHANNEL=hotfix ;\
+		chartsuffix=$$hotfix_tag ;\
+		chartsuffix=$${chartsuffix#*-} ;\
+		export AWS_ACCESS_KEY_ID=$$(keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials | grep 'aws_access_key_id' | sed 's/aws_access_key_id=//g') ;\
+		export AWS_SECRET_ACCESS_KEY=$$(keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials  | grep 'aws_secret_access_key' | sed 's/aws_secret_access_key=//g') ;\
+		$(MAKE) \
+			CHART_VERSION_SUFFIX=-$$chartsuffix \
+			IMAGE_TAG=$${hotfix_tag} \
+			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
+			chart-push-ci ;\
+		$(MAKE) update-yaml --always-make ;\
+		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} push-manifests ;\
+		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} publish-docs-yaml ;\
+		$(MAKE) clean-manifests ;\
+		docker logout ;\
+	}
+.PHONY: release/promote-oss/to-hotfix
 
 # To be run from a checkout at the tag you are promoting _from_.
 # This is normally run from CI by creating the GA tag.
 release/promote-oss/to-ga:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(RELEASE_VERSION)"; exit 1)
 	@set -e; { \
       commit=$$(git rev-parse HEAD) ;\
 	  $(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key passed-builds ; \
-	  dev_version=$$(aws s3 cp s3://datawire-static-files/passed-builds/$$commit -) ;\
+	  dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/passed-builds/$$commit -) ;\
 	  if [ -z "$$dev_version" ]; then \
 		  printf "$(RED)==> found no passed dev version for $$commit in S3...$(END)\n" ;\
 		  exit 1 ;\
       fi ;\
- 	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
+	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
 	  $(MAKE) release/promote-oss/.main \
 	    PROMOTE_FROM_VERSION="$$dev_version" \
 		PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
 	    PROMOTE_TO_VERSION="$(RELEASE_VERSION)" \
 	    PROMOTE_CHANNEL= \
 	    ; \
-	  $(OSS_HOME)/releng/release-wait-for-ga-image --ga-tag $(RELEASE_VERSION) --release-registry $(RELEASE_REGISTRY) ; \
-	  $(MAKE) release/ga-mirror ; \
 	}
 .PHONY: release/promote-oss/to-ga
 
 VERSIONS_YAML_VER := $(shell grep 'version:' $(OSS_HOME)/docs/yaml/versions.yml | awk '{ print $$2 }')
+VERSIONS_YAML_VER_STRIPPED := $(subst -ea,,$(VERSIONS_YAML_VER))
+RC_NUMBER ?= 0
 
 release/prep-rc:
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
 	@test -n "$(RELEASE_REGISTRY)" || (printf "RELEASE_REGISTRY must be set\n"; exit 1)
-	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: Version in versions.yml %s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
-	@set -e; { \
-		if [ -n "$(IS_DIRTY)" ]; then \
-			echo "release/prep-rc: tree must be clean" >&2 ;\
-			exit 1 ;\
-		fi; \
-		commit=$$(git rev-parse HEAD) ;\
-		$(OSS_HOME)/releng/release-wait-for-commit --commit $$commit --s3-key dev-builds ; \
-		curl --fail --silent https://datawire-static-files.s3.amazonaws.com/dev-builds/$$commit > /dev/null || \
-			(printf "$(RED)ERROR: $$commit not found in dev builds.\nPlease check that this commit passed oss-dev-images in circle or run \"make images push-dev\"\n" ; exit 1); \
-		rc_tag=$(VERSIONS_YAML_VER)-rc. ; \
-		if [[ -n "$${RC_NUMBER}" ]] ; then \
-			rc_tag="$${rc_tag}$(RC_NUMBER)" ;\
-		else \
-			rc_tag="$${rc_tag}0" ;\
-		fi ;\
-		read -p "I'm about to tag v$${rc_tag}, is this correct? (y/n) " -n 1 -r ; \
-		echo ; \
-		[[ ! $$REPLY =~ ^[Yy]$$ ]] && (printf "$(RED)Exiting without tagging\n" ; exit 1) ; \
-		git tag -m v$$rc_tag -a v$$rc_tag && git push origin v$$rc_tag ; \
-		$(OSS_HOME)/releng/release-wait-for-rc-artifacts --rc-tag $$rc_tag --release-registry $(RELEASE_REGISTRY) ; \
-	}
+	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: Version in versions.yml %s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
+	@[[ -z "$(IS_DIRTY)" ]] || (printf '$(RED)ERROR: tree must be clean\n'; exit 1)
+	@AWS_S3_BUCKET=$(AWS_S3_BUCKET) RELEASE_REGISTRY=$(RELEASE_REGISTRY) IMAGE_NAME=$(LCNAME) \
+		$(OSS_HOME)/releng/01-release-prep-rc $(VERSIONS_YAML_VER_STRIPPED)-rc.$(RC_NUMBER)
 .PHONY: release/prep-rc
 
 release/go:
-	@set -e; { \
-		if [ -n "$(IS_DIRTY)" ]; then \
-			echo "release/go: tree must be clean" >&2 ;\
-			exit 1 ;\
-		fi; \
-		commit=$$(git rev-parse HEAD) ;\
-		curl --fail --silent https://datawire-static-files.s3.amazonaws.com/passed-builds/$$commit > /dev/null || \
-			(printf "$(RED)ERROR: $$commit not found in dev builds.\nPlease check that this commit passed OSS: Dev in circle or run \"make release/promote-oss/dev-to-passed-ci\"\n" ; exit 1); \
-	}
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
 	@test -n "$${RC_NUMBER}" || (printf "RC_NUMBER must be set.\n"; exit 1)
-	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
-	@git fetch && git checkout v$(VERSIONS_YAML_VER)-rc.$(RC_NUMBER)
-	@$(OSS_HOME)/releng/release-ga-sanity-check --quiet $(VERSIONS_YAML_VER)
-	@git tag -m "Tagging v$(VERSIONS_YAML_VER) for GA" -a v$(VERSIONS_YAML_VER)
-	@git push origin v$(VERSIONS_YAML_VER)
-	@$(OSS_HOME)/releng/release-go-changelog-update --quiet $(VERSIONS_YAML_VER)
+	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
+	@[[ -z "$(IS_DIRTY)" ]] || (printf '$(RED)ERROR: tree must be clean\n'; exit 1)
+	@RELEASE_REGISTRY=$(RELEASE_REGISTRY) IMAGE_NAME=$(LCNAME) $(OSS_HOME)/releng/02-release-ga $(VERSIONS_YAML_VER)
 .PHONY: release/go
 
 release/manifests:
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "version not found in versions.yml\n"; exit 1)
-	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
+	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
 	@$(OSS_HOME)/releng/release-manifest-image-update --oss-version $(VERSIONS_YAML_VER) --aes-version "$(AES_VERSION)"
 .PHONY: release/manifests
 
@@ -924,29 +944,12 @@ release/repatriate:
 
 release/ga-mirror:
 	@test -n "$(VERSIONS_YAML_VER)" || (printf "$(RED)ERROR: version not found in versions.yml\n"; exit 1)
-	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
+	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$(RED)ERROR: RELEASE_REGISTRY not set\n"; exit 1)
-	@$(OSS_HOME)/releng/release-mirror-images $(VERSIONS_YAML_VER) $(RELEASE_REGISTRY)
-
-release/create-gh-release:
-	@test -n "$(VERSIONS_YAML_VER)" || (printf "$(RED)ERROR: version not found in versions.yml\n"; exit 1)
-	@[[ "$(VERSIONS_YAML_VER)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(VERSIONS_YAML_VER)"; exit 1)
-	@$(OSS_HOME)/releng/release-create-github $(VERSIONS_YAML_VER)
+	@$(OSS_HOME)/releng/release-mirror-images --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY) --image-name $(LCNAME) --repo-list $(GCR_RELEASE_REGISTRY)
 
 release/ga-check:
-	@$(OSS_HOME)/releng/release-ga-check $(VERSIONS_YAML_VER) $(RELEASE_REGISTRY)
-
-release/start:
-	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
-	@$(OSS_HOME)/releng/start-sanity-check --quiet $(VERSION)
-	@$(OSS_HOME)/releng/start-update-version --quiet $(VERSION)
-.PHONY: release/start
-
-release/hotfix/start:
-	@test -n "$(VERSION)" || (printf "VERSION is required\n"; exit 1)
-	@$(OSS_HOME)/releng/start-sanity-check --quiet $(VERSION)
-	@$(OSS_HOME)/releng/start-hotfix-update-version --quiet $(VERSION)
-.PHONY: release/hotfix/start
+	@$(OSS_HOME)/releng/release-ga-check --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY) --image-name $(LCNAME)
 
 clean:
 	@rm -f $(OSS_HOME)/bin/*
@@ -1088,7 +1091,7 @@ define _help.targets
 
     Use $(BLD)$$GOTEST_PKGS$(END) to control which packages are passed to $(BLD)gotest$(END). ($(GOTEST_PKGS))
     Use $(BLD)$$GOTEST_ARGS$(END) to supply additional non-package arguments. ($(GOTEST_ARGS))
-    Example: $(BLD)$(MAKE) gotest GOTEST_PKGS=./cmd/edgectl GOTEST_ARGS=-v$(END)  # run edgectl tests verbosely
+    Example: $(BLD)$(MAKE) gotest GOTEST_PKGS=./cmd/entrypoint GOTEST_ARGS=-v$(END)  # run entrypoint tests verbosely
 
   $(BLD)$(MAKE) $(BLU)pytest$(END)       -- runs just the Python tests inside the build container.
 
@@ -1111,17 +1114,6 @@ define _help.targets
     $(BLD)DO NOT$(END) run $(BLD)$(MAKE) $(BLU)pytest-gold$(END) if you have failing tests.
 
   $(BLD)$(MAKE) $(BLU)shell$(END)        -- starts a shell in the build container
-
-  $(BLD)$(MAKE) $(BLU)release/bits$(END) -- do the 'push some bits' part of a release
-
-    The current commit must be tagged for this to work, and your tree must be clean.
-    If the tag is of the form 'vX.Y.Z-(ea|rc).[0-9]*'.
-
-  $(BLD)$(MAKE) $(BLU)release/promote-oss/to-ea-latest$(END) -- promote an early-access '-ea.N' release to '-ea-latest'
-
-    The current commit must be tagged for this to work, and your tree must be clean.
-    Additionally, the tag must be of the form 'vX.Y.Z-ea.N'. You must also have previously
-    built an EA for the same tag using $(BLD)release/bits$(END).
 
   $(BLD)$(MAKE) $(BLU)release/promote-oss/to-rc-latest$(END) -- promote a release candidate '-rc.N' release to '-rc-latest'
 

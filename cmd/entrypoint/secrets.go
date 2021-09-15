@@ -4,9 +4,10 @@ import (
 	"context"
 	"strings"
 
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -36,8 +37,6 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 		var id amb.AmbassadorID
 		if len(h.Spec.AmbassadorID) > 0 {
 			id = h.Spec.AmbassadorID
-		} else {
-			id = h.Spec.DeprecatedAmbassadorID
 		}
 		if include(id) {
 			resources = append(resources, h)
@@ -105,10 +104,12 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 		findSecretRefs(ctx, resource, secretNamespacing, action)
 	}
 
+	// We _always_ have an implicit references to the fallback cert secret...
+	secretRef(GetAmbassadorNamespace(), "fallback-self-signed-cert", false, action)
+
 	if IsEdgeStack() {
-		// For Edge Stack, we _always_ have implicit references to the fallback
-		// cert secret and the license secret.
-		secretRef(GetAmbassadorNamespace(), "fallback-self-signed-cert", false, action)
+		// ...and for Edge Stack, we _always_ have an implicit reference to the
+		// license secret.
 		secretRef(GetLicenseSecretNamespace(), GetLicenseSecretName(), false, action)
 	}
 
@@ -146,7 +147,7 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 // Find all the secrets a given Ambassador resource references.
 func findSecretRefs(ctx context.Context, resource kates.Object, secretNamespacing bool, action func(snapshotTypes.SecretRef)) {
 	switch r := resource.(type) {
-	case *amb.Host:
+	case *v3alpha1.AmbassadorHost:
 		// The Host resource is a little odd. Host.spec.tls, Host.spec.tlsSecret, and
 		// host.spec.acmeProvider.privateKeySecret can all refer to secrets.
 		if r.Spec == nil {

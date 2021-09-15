@@ -202,6 +202,7 @@
         },
         "host": { "type": "string" },
         "host_regex": { "type": "boolean" },
+        "hostname": { "type": "string" },
         "headers": { "$ref": "#/definitions/mapStrStr" },
         "regex_headers": { "$ref": "#/definitions/mapStrStr" },
         "labels": {
@@ -234,7 +235,8 @@
             "additionalProperties": false
         },
         "query_parameters": { "$ref": "#/definitions/mapStrStr" },
-        "regex_query_parameters": { "$ref": "#/definitions/mapStrStr" }
+        "regex_query_parameters": { "$ref": "#/definitions/mapStrStr" },
+        "stats_name": { "type": "string" }
     },
     "definitions": {
         "mapStrStr": {

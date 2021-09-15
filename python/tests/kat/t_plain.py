@@ -6,6 +6,9 @@ from abstract_tests import AmbassadorTest, assert_default_errors
 from abstract_tests import MappingTest, Node
 from kat.utils import namespace_manifest
 
+import t_mappingtests_plain
+import t_optiontests
+
 # Plain is the place that all the MappingTests get pulled in.
 
 
@@ -28,15 +31,16 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
-      kind: Mapping
+      apiVersion: x.getambassador.io/v3alpha1
+      kind: AmbassadorMapping
       name: SimpleMapping-HTTP-all
+      hostname: "*"
       prefix: /SimpleMapping-HTTP-all/
       service: http://plain-simplemapping-http-all-http.plain
       ambassador_id: plain      
       ---
-      apiVersion: getambassador.io/v2
-      kind: Host
+      apiVersion: x.getambassador.io/v3alpha1
+      kind: AmbassadorHost
       name: cleartext-host-{self.path.k8s}
       ambassador_id: [ "plain" ]
       hostname: "*"
@@ -76,8 +80,8 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: getambassador.io/v2
-      kind: Host
+      apiVersion: x.getambassador.io/v3alpha1
+      kind: AmbassadorHost
       name: cleartext-host-{self.path.k8s}
       ambassador_id: [ "plain" ]
       hostname: "*"
@@ -113,7 +117,7 @@ spec:
     def config(self) -> Union[str, Tuple[Node, str]]:
         yield self, """
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config: {}

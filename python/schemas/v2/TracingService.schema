@@ -48,7 +48,8 @@
         "tag_headers": {
             "type": "array",
             "items": { "type": "string" }
-        }
+        },
+        "stats_name": { "type": "string" }
     },
     "required": [ "apiVersion", "kind", "name", "driver", "service" ],
     "additionalProperties": false

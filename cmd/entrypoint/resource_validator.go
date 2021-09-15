@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
 type resourceValidator struct {
@@ -39,6 +39,7 @@ func (v *resourceValidator) isValid(ctx context.Context, un *kates.Unstructured)
 	key := string(un.GetUID())
 	err := v.katesValidator.Validate(ctx, un)
 	if err != nil {
+		fmt.Printf("validation error: %s %s/%s -- %s\n", un.GetKind(), un.GetNamespace(), un.GetName(), err.Error())
 		copy := un.DeepCopy()
 		copy.Object["errors"] = err.Error()
 		v.invalid[key] = copy
@@ -60,9 +61,9 @@ func (v *resourceValidator) getInvalid() []*kates.Unstructured {
 func findCRDFilename() string {
 	searchPath := []string{
 		"/opt/ambassador/etc/crds.yaml",
-		"docs/yaml/ambassador/ambassador-crds.yaml",
-		"../../docs/yaml/ambassador/ambassador-crds.yaml",
-		"ambassador/docs/yaml/ambassador/ambassador-crds.yaml",
+		"manifests/emissary/emissary-crds.yaml",
+		"ambassador/manifests/emissary/emissary-crds.yaml",
+		"../../manifests/emissary/emissary-crds.yaml",
 	}
 
 	for _, candidate := range searchPath {

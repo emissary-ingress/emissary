@@ -49,6 +49,7 @@ type APIResource = metav1.APIResource
 
 type Namespace = corev1.Namespace
 
+type ObjectReference = corev1.ObjectReference
 type LocalObjectReference = corev1.LocalObjectReference
 
 type Event = corev1.Event

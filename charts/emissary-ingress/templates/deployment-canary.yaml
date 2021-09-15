@@ -1,0 +1,261 @@
+{{- if .Values.canary}}
+{{- if .Values.canary.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- if .Values.deploymentNameOverride }}
+  name: {{ .Values.deploymentNameOverride }}-canary
+  {{- else }}
+  name: {{ include "ambassador.fullname" . }}-canary
+  {{- end }}
+  namespace: {{ include "ambassador.namespace" . }}
+  labels:
+    {{- if ne .Values.deploymentTool "getambassador.io" }}
+    app.kubernetes.io/name: {{ include "ambassador.name" . }}
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+    helm.sh/chart: {{ include "ambassador.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- if .Values.deploymentTool }}
+    app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+    {{- else }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- end }}
+    {{- end }}
+    product: aes
+    {{- if .Values.deploymentLabels }}
+    {{- toYaml .Values.deploymentLabels | nindent 4 }}
+    {{- end }}
+    {{- if .Values.deploymentAnnotations }}
+  annotations:
+      {{- toYaml .Values.deploymentAnnotations | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.canary.replicaCount }}
+  selector:
+    matchLabels:
+      {{- if .Values.service.selector }}
+      {{ toYaml .Values.service.selector | nindent 6 }}
+      {{- else }}
+      app.kubernetes.io/name: {{ include "ambassador.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- end }}
+      profile: canary
+  {{- if .Values.daemonSet }}
+  updateStrategy:
+  {{- else }}
+  strategy:
+  {{- end }}
+    {{- toYaml .Values.deploymentStrategy | nindent 4}}
+  template:
+    metadata:
+      labels:
+        {{- if .Values.service.selector }}
+        {{ toYaml .Values.service.selector | nindent 8 }}
+        {{- end }}
+        {{- if ne .Values.deploymentTool "getambassador.io" }}
+        app.kubernetes.io/name: {{ include "ambassador.name" . }}
+        app.kubernetes.io/part-of: {{ .Release.Name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        product: aes
+        {{- end }}
+        {{- if .Values.deploymentTool }}
+        app.kubernetes.io/managed-by: {{ .Values.deploymentTool }}
+        {{- else }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        {{- end }}
+        profile: canary
+      {{- if .Values.podLabels }}
+        {{- toYaml .Values.podLabels | nindent 8 }}
+      {{- end }}
+      annotations:
+        {{- if ne .Values.deploymentTool "getambassador.io" }}
+        checksum/config: {{ include (print $.Template.BasePath "/config.yaml") . | sha256sum }}
+        {{- end }}
+      {{- if .Values.podAnnotations }}
+        {{- toYaml .Values.podAnnotations | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- /* Check if .Values.securityContext is set for backwards compatibility */ -}}
+      {{- if .Values.securityContext -}}
+      {{- with .Values.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- else -}}
+      {{- with .Values.security.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end -}}
+      {{- if .Values.restartPolicy }}
+      restartPolicy: {{ .Values.restartPolicy }}
+      {{- end }}
+      serviceAccountName: {{ include "ambassador.serviceAccountName" . }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName | quote }}
+      {{- end }}
+      volumes:
+        - name: ambassador-pod-info
+          downwardAPI:
+            items:
+              - fieldRef:
+                  fieldPath: metadata.labels
+                path: labels
+        {{- if .Values.prometheusExporter.enabled }}
+        - name: stats-exporter-mapping-config
+          configMap:
+            name: {{ include "ambassador.fullname" . }}-exporter-config
+            items:
+            - key: exporterConfiguration
+              path: mapping-config.yaml
+        {{- end }}
+        {{- if .Values.ambassadorConfig }}
+        - name: ambassador-config
+          configMap:
+            name: {{ include "ambassador.fullname" . }}-file-config
+            items:
+            - key: ambassadorConfig
+              path: ambassador-config.yaml
+        {{- end }}
+      {{- with .Values.volumes }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.volumesRaw }}
+        {{- tpl .Values.volumesRaw . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        {{- if .Values.prometheusExporter.enabled }}
+        - name: prometheus-exporter
+          image: "{{ .Values.prometheusExporter.repository }}:{{ .Values.prometheusExporter.tag }}"
+          imagePullPolicy: {{ .Values.prometheusExporter.pullPolicy }}
+          ports:
+            - name: metrics
+              containerPort: 9102
+            - name: listener
+              containerPort: 8125
+          args:
+            - --statsd.listen-udp=:8125
+            - --web.listen-address=:9102
+            - --statsd.mapping-config=/statsd-exporter/mapping-config.yaml
+          volumeMounts:
+            - name: stats-exporter-mapping-config
+              mountPath: /statsd-exporter/
+              readOnly: true
+          resources:
+            {{- toYaml .Values.prometheusExporter.resources | nindent 12 }}
+        {{- end }}
+        - name: {{ if .Values.containerNameOverride }}{{ .Values.containerNameOverride }}{{ else }}{{ .Chart.Name }}{{ end }}
+          {{- if ne (include "ambassador.canaryImage" .)  "" }}
+          image: {{ include "ambassador.canaryImage" . }}
+          {{- else }}
+          image: {{ include "ambassador.image" . }}
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            {{- range .Values.service.ports }}
+            - name: {{ .name }}
+              containerPort: {{ int .targetPort }}
+              {{- if .protocol }}
+              protocol: {{ .protocol }}
+              {{- end }}
+              {{- if .hostPort }}
+              hostPort: {{ .hostPort }}
+              {{- end }}
+            {{- end}}
+            - name: admin
+              containerPort: {{ .Values.adminService.port }}
+          env:
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            {{- if .Values.prometheusExporter.enabled }}
+            - name: STATSD_ENABLED
+              value: "true"
+            - name: STATSD_HOST
+              value: "localhost"
+            {{- end }}
+            {{- if .Values.scope.singleNamespace }}
+            - name: AMBASSADOR_SINGLE_NAMESPACE
+              value: "YES"
+            {{- end }}
+            - name: AMBASSADOR_NAMESPACE
+              {{- if .Values.namespace.name }}
+              value: {{ .Values.namespace.name | quote }}
+              {{ else }}
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+              {{- end -}}
+            {{- if .Values.env }}
+            {{- range $key,$value := .Values.env }}
+            - name: {{ $key | upper | quote}}
+              value: {{ $value | quote}}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.canary.envRaw  }}
+              {{- tpl .Values.canary.envRaw . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.security.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /ambassador/v0/check_alive
+              port: admin
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /ambassador/v0/check_ready
+              port: admin
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          volumeMounts:
+            - name: ambassador-pod-info
+              mountPath: /tmp/ambassador-pod-info
+              readOnly: true
+          {{- if .Values.ambassadorConfig }}
+            - name: ambassador-config
+              mountPath: /ambassador/ambassador-config/ambassador-config.yaml
+              subPath: ambassador-config.yaml
+          {{- end }}
+          {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.volumeMountsRaw }}
+            {{- tpl .Values.volumeMountsRaw . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.sidecarContainers }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      hostNetwork: {{ .Values.hostNetwork }}
+{{- end -}}
+{{- end -}}

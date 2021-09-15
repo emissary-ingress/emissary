@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+"""Verify that all GA artifacts got pushed."""
+
+import os.path
+import sys
+import argparse
+import subprocess
+import fileinput
+from contextlib import contextmanager
+from typing import Dict, Generator, Optional, Tuple, cast
+
+from lib import check_artifacts, re_rc
+from lib.uiutil import Checker, CheckResult, run
+
+def main(rc_ver: str, docker_image: str, helm_ver: str, s3_bucket: str, s3_key: str) -> int:
+    checker = Checker()
+
+    @contextmanager
+    def check(name: str) -> Generator[CheckResult, None, None]:
+        with checker.check(name) as subcheck:
+            # time.sleep(1)  # it's stupid, but honestly the delay makes the output more readable
+            yield subcheck
+    with check(f"Check for docker image {docker_image}"):
+        check_artifacts.docker_pull(docker_image)
+    with check(f"Check helm chart"):
+        subprocess.run(['helm', 'repo', 'rm', 'emissary-dev'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        subprocess.run(['helm', 'repo', 'add', 'emissary-dev',
+                'https://s3.amazonaws.com/{}/{}'.format(s3_bucket, s3_key)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.run(['helm', 'template', '--devel', '--version', helm_ver, 'emissary-dev/emissary-ingress'], capture_output=True, check=True, text=True)
+        found = False
+        lines = p.stdout.splitlines()
+        for line in lines:
+            line = line.strip()
+            if line.startswith('image:'):
+                if docker_image in line:
+                    found = True
+        if not found:
+            raise AssertionError("Image not found in chart")
+    with check(f"checking s3 yaml files"):
+        s3_url = f"https://s3.amazonaws.com/{s3_bucket}/yaml/emissary/{rc_ver}/emissary-ingress.yaml"
+        info = check_artifacts.http_cat(s3_url).decode('utf-8')
+        found = False
+        for line in info.split("\n"):
+            line = line.strip()
+            if line.startswith('image:'):
+                if docker_image in line:
+                    found = True
+        if not found:
+            raise AssertionError("Image not found in yaml")
+
+    if not checker.ok:
+        return 1
+    return 0
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Edit image values for ambassador helm charts.')
+    parser.add_argument('--rc-version', required=True)
+    parser.add_argument('--docker-image', required=True)
+    parser.add_argument('--s3-bucket', default='datawire-static-files')
+    parser.add_argument('--s3-key', default='charts-dev')
+    parser.add_argument('--helm-version', required=True)
+    args = parser.parse_args()
+
+    include_docker = True
+
+    if not re_rc.match(args.rc_version):
+        sys.stderr.write(f"{args.rc_version} does not match X.Y.Z-rc.N")
+        sys.exit(2)
+
+    sys.exit(main(rc_ver=args.rc_version, docker_image=args.docker_image, helm_ver=args.helm_version, s3_bucket=args.s3_bucket, s3_key=args.s3_key))

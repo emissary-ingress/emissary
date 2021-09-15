@@ -1,4 +1,4 @@
-module github.com/datawire/ambassador
+module github.com/datawire/ambassador/v2
 
 go 1.13
 
@@ -54,54 +54,46 @@ go 1.13
 //     this).
 
 require (
-	git.lukeshu.com/go/libsystemd v0.5.3
 	github.com/Masterminds/semver v1.4.2
 	github.com/Masterminds/sprig v2.17.1+incompatible
+	github.com/aokoli/goutils v1.1.1 // indirect
+	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.2.1
-	github.com/cncf/udpa/go v0.0.0-20200629203442-efcf912fb354
+	github.com/cncf/udpa/go v0.0.0-20210322005330-6414d713912e
 	github.com/datawire/dlib v1.2.0
-	github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/ecodia/golang-awaitility v0.0.0-20180710094957-fb55e59708c7
 	github.com/envoyproxy/protoc-gen-validate v0.3.0-java.0.20200609174644-bd816e4522c1
-	github.com/fatih/color v1.10.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9
+	github.com/getkin/kin-openapi v0.66.0
 	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.5
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/google/uuid v1.1.2
-	github.com/gookit/color v1.2.3
 	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/consul/api v1.3.0
-	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
-	github.com/mholt/archiver/v3 v3.3.0
-	github.com/miekg/dns v1.1.35
+	github.com/huandu/xstrings v1.3.1 // indirect
+	github.com/imdario/mergo v0.3.11 // indirect
+	github.com/miekg/dns v1.1.35 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
-	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_model v0.2.0
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
-	github.com/telepresenceio/telepresence/v2 v2.1.1-rc.0
-	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
-	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
+	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
+	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a // indirect
 	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c
-	golang.org/x/tools v0.1.0 // indirect
 	google.golang.org/genproto v0.0.0-20201110150050-8816d57aaa9a
 	google.golang.org/grpc v1.34.0
 	google.golang.org/protobuf v1.25.0
-	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.3.0
-	helm.sh/helm/v3 v3.5.3
 	k8s.io/api v0.20.2
 	k8s.io/apiextensions-apiserver v0.20.2
 	k8s.io/apimachinery v0.20.2
 	k8s.io/cli-runtime v0.20.2
 	k8s.io/client-go v0.20.2
-	k8s.io/helm v2.16.9+incompatible
-	k8s.io/klog v1.0.0
+	k8s.io/klog/v2 v2.10.0
 	k8s.io/kube-openapi v0.0.0-20201113171705-d219536bb9fd
 	k8s.io/kubectl v0.20.2
 	k8s.io/metrics v0.20.2
@@ -109,12 +101,6 @@ require (
 	sigs.k8s.io/controller-tools v0.4.1
 	sigs.k8s.io/gateway-api v0.2.0
 	sigs.k8s.io/yaml v1.2.0
-)
-
-// We need to inherit this from helm.sh/helm/v3
-replace (
-	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d
-	github.com/docker/docker => github.com/moby/moby v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
 )
 
 // The issue doesn't trigger with the current versions of our
@@ -142,4 +128,4 @@ replace (
 // it in `./pkg/ignore/pin.go`, but there are actually no packages in
 // it to import; it's entirely nested modules.
 //
-replace github.com/Azure/go-autorest v10.8.1+incompatible => github.com/Azure/go-autorest v13.3.2+incompatible
+//replace github.com/Azure/go-autorest v10.8.1+incompatible => github.com/Azure/go-autorest v13.3.2+incompatible

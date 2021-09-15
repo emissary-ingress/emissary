@@ -61,7 +61,8 @@
         "protocol_version": {
             "type": "string",
             "enum": [ "v2", "v3" ]
-        }
+        },
+        "stats_name": { "type": "string" }
     },
     "required": [ "apiVersion", "kind", "name", "auth_service" ],
     "additionalProperties": false

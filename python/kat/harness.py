@@ -25,7 +25,7 @@ from yaml.scanner import ScannerError as YAMLScanError
 
 from multi import multi
 from .parser import dump, load, Tag
-from tests.manifests import httpbin_manifests, websocket_echo_server_manifests
+from tests.manifests import httpbin_manifests, websocket_echo_server_manifests, cleartext_host_manifest, default_listener_manifest
 from tests.kubeutils import apply_kube_artifacts
 
 import yaml as pyyaml
@@ -489,7 +489,7 @@ class Node(ABC):
             # it, bring it up-to-date with the environment created in abstract_tests.py
             envstuff = ["env", f"AMBASSADOR_NAMESPACE={ambassador_namespace}"]
 
-            cmd = ["mockery", k8s_yaml_path,
+            cmd = ["mockery", "--debug", k8s_yaml_path,
                    "-w", "python /ambassador/watch_hook.py",
                    "--kat", self.ambassador_id,
                    "--diff", gold_path]
@@ -1137,28 +1137,6 @@ class Superpod:
 
         return list(manifest)
 
-CLEARTEXT_HOST_YAML = '''
----
-apiVersion: getambassador.io/v2
-kind: Host
-metadata:
-  name: cleartext-host-{self.path.k8s}
-  labels:
-    scope: AmbassadorTest
-  namespace: %s
-spec:
-  ambassador_id: [ "{self.ambassador_id}" ]
-  hostname: "*"
-  selector:
-    matchLabels:
-      hostname: {self.path.k8s}
-  acmeProvider:
-    authority: none
-  requestPolicy:
-    insecure:
-      action: Route
-      # additionalPort: 8080
-'''
 
 class Runner:
 
@@ -1247,10 +1225,10 @@ class Runner:
             finally:
                 self.done = True
 
-    def get_manifests_and_namespace(self, selected) -> Tuple[Any, str]:
+    def get_manifests_and_namespaces(self, selected) -> Tuple[Any, List[str]]:
         manifests: OrderedDict[Any, list] = OrderedDict()  # type: ignore
         superpods: Dict[str, Superpod] = {}
-
+        namespaces = []
         for n in (n for n in self.nodes if n in selected and not n.xfail):
             manifest = None
             nsp = None
@@ -1314,14 +1292,36 @@ class Runner:
                 yaml = n.manifests()
 
                 if yaml is not None:
-                    add_cleartext_host = getattr(n, 'edge_stack_cleartext_host', False)
                     is_plain_test = n.path.k8s.startswith("plain-")
 
-                    if EDGE_STACK and n.is_ambassador and add_cleartext_host and not is_plain_test:
-                        # print(f"{n.path.k8s} adding Host")
+                    if n.is_ambassador and not is_plain_test:
+                        add_default_http_listener = getattr(n, 'add_default_http_listener', True)
+                        add_default_https_listener = getattr(n, 'add_default_https_listener', True)
+                        add_cleartext_host = getattr(n, 'edge_stack_cleartext_host', False)
 
-                        host_yaml = CLEARTEXT_HOST_YAML % nsp
-                        yaml += host_yaml
+                        if add_default_http_listener:
+                            # print(f"{n.path.k8s} adding default HTTP AmbassadorListener")
+                            yaml += default_listener_manifest % {
+                                "namespace": nsp,
+                                "port": 8080,
+                                "protocol": "HTTPS",
+                                "securityModel": "XFP"
+                            }
+
+                        if add_default_https_listener:
+                            # print(f"{n.path.k8s} adding default HTTPS AmbassadorListener")
+                            yaml += default_listener_manifest % {
+                                "namespace": nsp,
+                                "port": 8443,
+                                "protocol": "HTTPS",
+                                "securityModel": "XFP"
+                            }
+
+                        if EDGE_STACK and add_cleartext_host:
+                            # print(f"{n.path.k8s} adding Host")
+
+                            host_yaml = cleartext_host_manifest % nsp
+                            yaml += host_yaml
 
                     yaml = n.format(yaml)
 
@@ -1353,11 +1353,13 @@ class Runner:
 
                 # ...and, finally, save the manifest list.
                 manifests[n] = list(manifest)
+                if str(nsp) not in namespaces:
+                    namespaces.append(str(nsp))
 
         for superpod in superpods.values():
             manifests[superpod] = superpod.get_manifest_list()
 
-        return manifests, str(nsp)
+        return manifests, namespaces
 
     def do_local_checks(self, selected, fname) -> bool:
         if RUN_MODE == 'envoy':
@@ -1382,7 +1384,7 @@ class Runner:
 
     def _setup_k8s(self, selected):
         # First up, get the full manifest and save it to disk.
-        manifests, namespace = self.get_manifests_and_namespace(selected)
+        manifests, namespaces = self.get_manifests_and_namespaces(selected)
 
         configs = OrderedDict()
         for n in (n for n in self.nodes if n in selected and not n.xfail):
@@ -1405,7 +1407,7 @@ class Runner:
                         if n.ambassador_id:
                             for obj in yaml:
                                 if "ambassador_id" not in obj:
-                                    obj["ambassador_id"] = n.ambassador_id
+                                    obj["ambassador_id"] = [n.ambassador_id]
 
                         configs[n].append((target, yaml))
                     except YAMLScanError as e:
@@ -1655,8 +1657,10 @@ class Runner:
             self.applied_manifests = True
 
         # Finally, install httpbin and the websocket-echo-server.
-        apply_kube_artifacts(namespace, httpbin_manifests)
-        apply_kube_artifacts(namespace, websocket_echo_server_manifests)
+        print(f"applying http_manifests + websocket_echo_server_manifests to namespaces: {namespaces}")
+        for namespace in namespaces:
+            apply_kube_artifacts(namespace, httpbin_manifests)
+            apply_kube_artifacts(namespace, websocket_echo_server_manifests)
 
         for n in self.nodes:
             if n in selected and not n.xfail:
@@ -1720,7 +1724,7 @@ class Runner:
         kinds = [ "pod", "url" ]
         delay = 5
         start = time.time()
-        limit = int(os.environ.get("KAT_REQ_LIMIT", "600"))
+        limit = int(os.environ.get("KAT_REQ_LIMIT", "900"))
 
         print("Starting requirements check (limit %ds)... " % limit)
 

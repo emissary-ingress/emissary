@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _client_ssl_auth_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on ClientSSLAuth with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -44,17 +41,24 @@ func (m *ClientSSLAuth) Validate() error {
 		return nil
 	}
 
-	if len(m.GetAuthApiCluster()) < 1 {
+	if utf8.RuneCountInString(m.GetAuthApiCluster()) < 1 {
 		return ClientSSLAuthValidationError{
 			field:  "AuthApiCluster",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
-	if len(m.GetStatPrefix()) < 1 {
+	if !_ClientSSLAuth_AuthApiCluster_Pattern.MatchString(m.GetAuthApiCluster()) {
+		return ClientSSLAuthValidationError{
+			field:  "AuthApiCluster",
+			reason: "value does not match regex pattern \"^[^\\x00\\n\\r]*$\"",
+		}
+	}
+
+	if utf8.RuneCountInString(m.GetStatPrefix()) < 1 {
 		return ClientSSLAuthValidationError{
 			field:  "StatPrefix",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -139,3 +143,5 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ClientSSLAuthValidationError{}
+
+var _ClientSSLAuth_AuthApiCluster_Pattern = regexp.MustCompile("^[^\x00\n\r]*$")

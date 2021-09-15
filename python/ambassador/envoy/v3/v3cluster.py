@@ -62,6 +62,9 @@ class V3Cluster(Cacheable):
             'dns_lookup_family': dns_lookup_family
         }
 
+        if cluster.get('stats_name', ''):
+            fields['alt_stat_name'] = cluster.stats_name
+
         if ctype == 'EDS':
             fields['eds_cluster_config'] = {
                 'eds_config': {

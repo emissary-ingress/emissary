@@ -9,17 +9,17 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/datawire/ambassador/cmd/watt/thingconsul"
-	"github.com/datawire/ambassador/cmd/watt/thingkube"
-	"github.com/datawire/ambassador/cmd/watt/watchapi"
-	"github.com/datawire/ambassador/pkg/consulwatch"
-	"github.com/datawire/ambassador/pkg/k8s"
-	"github.com/datawire/ambassador/pkg/kates"
-	"github.com/datawire/ambassador/pkg/limiter"
-	"github.com/datawire/ambassador/pkg/supervisor"
-	"github.com/datawire/ambassador/pkg/watt"
+	"github.com/datawire/ambassador/v2/cmd/watt/thingconsul"
+	"github.com/datawire/ambassador/v2/cmd/watt/thingkube"
+	"github.com/datawire/ambassador/v2/cmd/watt/watchapi"
+	"github.com/datawire/ambassador/v2/pkg/consulwatch"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/limiter"
+	"github.com/datawire/ambassador/v2/pkg/supervisor"
+	"github.com/datawire/ambassador/v2/pkg/watt"
 
-	. "github.com/datawire/ambassador/cmd/watt/aggregator"
+	. "github.com/datawire/ambassador/v2/cmd/watt/aggregator"
 )
 
 type aggIsolator struct {

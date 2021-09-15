@@ -16,6 +16,8 @@ service Director {
 
   // Retrieve Directives from the CEPC
   rpc Retrieve(Identity) returns (stream Directive) {}
+
+  rpc RetrieveSnapshot(Identity) returns (stream RawSnapshotChunk) {}
 }
 
 // How Ambassador's Agent identifies itself to the CEPC
@@ -54,6 +56,10 @@ message Snapshot {
   // api version of RawSnapshot
   string api_version = 6;
   google.protobuf.Timestamp snapshot_ts = 7;
+}
+
+message RawSnapshotChunk {
+    bytes chunk = 1;
 }
 
 message Service {

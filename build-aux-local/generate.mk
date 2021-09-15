@@ -1,8 +1,7 @@
-crds_yaml_dir = $(OSS_HOME)/charts/ambassador/crds
+crds_yaml_dir = $(OSS_HOME)/charts/emissary-ingress/crds
 
 generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto'))
-generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/edgectl/          -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/getambassador.io/%.proto,  $(OSS_HOME)/python/ambassador/proto/%_pb2.py        , $(shell find $(OSS_HOME)/api/getambassador.io/ -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_pb.js          , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_grpc_web_pb.js , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
@@ -12,14 +11,24 @@ generate/files += $(OSS_HOME)/pkg/envoy-control-plane
 generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
 generate/files += $(OSS_HOME)/OPENSOURCE.md
 generate/files += $(OSS_HOME)/builder/requirements.txt
+generate/files += $(OSS_HOME)/CHANGELOG.md
+
 generate: ## Update generated sources that get committed to git
 generate:
 	$(MAKE) generate-clean
 	$(MAKE) $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb
 	$(MAKE) _generate
-	cd .circleci && ./generate --always-make
+	$(MAKE) chart/docgen
+
 _generate:
 	@echo '$(MAKE) $$(generate/files)'; $(MAKE) $(generate/files)
+	# TODO: this should be done better probably, but i just don't have time for that right now.
+	@PS4=; set -ex; { \
+	  find "$(OSS_HOME)/pkg/api/" -name '*.go' -exec sed -E -i.bak \
+	    -e 's,github\.com/datawire/ambassador/pkg/api,github.com/datawire/ambassador/v2/pkg/api,g' \
+	    -- {} +; \
+	  find "$(OSS_HOME)" -name '*.go.bak' -delete; \
+	}
 generate-clean: ## Delete generated sources that get committed to git
 generate-clean:
 	rm -rf $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb
@@ -27,7 +36,6 @@ generate-clean:
 	rm -rf $(OSS_HOME)/_cxx/envoy/build_go
 	rm -rf $(OSS_HOME)/pkg/api/kat
 	rm -f $(OSS_HOME)/pkg/api/agent/*.pb.go
-	rm -f $(OSS_HOME)/pkg/api/edgectl/rpc/*.pb.go
 	rm -rf $(OSS_HOME)/python/ambassador/proto
 	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js
 	rm -rf $(OSS_HOME)/pkg/envoy-control-plane
@@ -44,6 +52,12 @@ go-mod-tidy/oss-evaluate:
 	@echo '# evaluate $$(proto_path)'; # $(proto_path) # cause Make to call `go list STUFF`, which will maybe edit go.mod or go.sum
 go-mod-tidy: go-mod-tidy/oss
 .PHONY: go-mod-tidy/oss go-mod-tidy
+
+$(OSS_HOME)/CHANGELOG.md: $(OSS_HOME)/docs/CHANGELOG.tpl $(OSS_HOME)/docs/releaseNotes.yml
+	docker run --rm \
+	  -v $(OSS_HOME)/docs/CHANGELOG.tpl:/tmp/CHANGELOG.tpl \
+	  -v $(OSS_HOME)/docs/releaseNotes.yml:/tmp/releaseNotes.yml \
+	  hairyhenderson/gomplate --verbose --file /tmp/CHANGELOG.tpl --datasource relnotes=/tmp/releaseNotes.yml > CHANGELOG.md
 
 #
 # Helper Make functions and variables
@@ -110,17 +124,17 @@ $(tools/controller-gen): $(OSS_HOME)/go.mod
 tools/fix-crds = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/fix-crds
 $(tools/fix-crds): FORCE
 	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/cmd/fix-crds
+	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/v2/cmd/fix-crds
 
 tools/go-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/go-mkopensource
 $(tools/go-mkopensource): FORCE
 	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/cmd/go-mkopensource
+	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/v2/cmd/go-mkopensource
 
 tools/py-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/py-mkopensource
 $(tools/py-mkopensource): FORCE
 	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/cmd/py-mkopensource
+	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/v2/cmd/py-mkopensource
 
 #
 # `make generate` vendor rules
@@ -160,8 +174,8 @@ $(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
 	  cd $(OSS_HOME)/_cxx/go-control-plane; \
 	  cp -r $$(git ls-files ':[A-Z]*' ':!Dockerfile*' ':!Makefile') pkg/* "$$tmpdir"; \
 	  find "$$tmpdir" -name '*.go' -exec sed -E -i.bak \
-	    -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/datawire/ambassador/pkg/envoy-control-plane,g' \
-	    -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/datawire/ambassador/pkg/api/envoy,g' \
+	    -e 's,github\.com/envoyproxy/go-control-plane/pkg,github.com/datawire/ambassador/v2/pkg/envoy-control-plane,g' \
+	    -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/datawire/ambassador/v2/pkg/api/envoy,g' \
 	    -- {} +; \
 	  find "$$tmpdir" -name '*.bak' -delete; \
 	  mv "$$tmpdir" $(abspath $@); \
@@ -295,44 +309,31 @@ update-yaml-preflight:
 #controller-gen/options/schemapatch += manifests=foo
 #controller-gen/options/rbac        += roleName=ambassador
 controller-gen/options/object      += # headerFile=hack/boilerplate.go.txt
-controller-gen/options/crd         += trivialVersions=true # change this to "false" once we're OK with requiring Kubernetes 1.13+
+controller-gen/options/crd         += trivialVersions=false # change this to "false" once we're OK with requiring Kubernetes 1.13+
 controller-gen/options/crd         += crdVersions=v1beta1 # change this to "v1" once we're OK with requiring Kubernetes 1.16+
 controller-gen/output/crd           = dir=$(crds_yaml_dir)
 _generate_controller_gen: $(tools/controller-gen) $(tools/fix-crds) update-yaml-preflight
 	@printf '  $(CYN)Running controller-gen$(END)\n'
-	rm -f $(crds_yaml_dir)/getambassador.io_*
+	rm -f $(crds_yaml_dir)/*getambassador.io_*
 	cd $(OSS_HOME) && $(tools/controller-gen) \
 	  $(foreach varname,$(sort $(filter controller-gen/options/%,$(.VARIABLES))), $(patsubst controller-gen/options/%,%,$(varname))$(if $(strip $($(varname))),:$(call joinlist,$(comma),$($(varname)))) ) \
 	  $(foreach varname,$(sort $(filter controller-gen/output/%,$(.VARIABLES))), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
 	  paths="./pkg/api/getambassador.io/..."
-	@PS4=; set -ex; for file in $(crds_yaml_dir)/getambassador.io_*.yaml; do $(tools/fix-crds) helm 1.11 "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
+	@PS4=; set -ex; for file in $(crds_yaml_dir)/*getambassador.io_*.yaml; do $(tools/fix-crds) helm 1.11 "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
 .PHONY: _generate_controller_gen
 
-$(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml: $(OSS_HOME)/manifests/ambassador/ambassador-crds.yaml
+$(OSS_HOME)/manifests/emissary/emissary-crds.yaml: _generate_controller_gen $(tools/fix-crds) update-yaml-preflight
 	@printf '  $(CYN)$@$(END)\n'
-	cp $(OSS_HOME)/manifests/ambassador/ambassador-crds.yaml $@
+	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/*getambassador.io_*.yaml)) > $@
 
-$(OSS_HOME)/manifests/ambassador/ambassador-crds.yaml: _generate_controller_gen $(tools/fix-crds) update-yaml-preflight
+$(OSS_HOME)/manifests/emissary/ambassador-crds.yaml: _generate_controller_gen $(tools/fix-crds) update-yaml-preflight
 	@printf '  $(CYN)$@$(END)\n'
-	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/getambassador.io_*.yaml)) > $@
+	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/*getambassador.io_*.yaml)) > $@
 
-$(OSS_HOME)/docs/yaml/ambassador/%.yaml: $(OSS_HOME)/docs/yaml/ambassador/%.yaml.m4 $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml update-yaml-preflight
-	@printf '  $(CYN)$@$(END)\n'
-	cd $(@D) && m4 < $(<F) > $(@F)
-
-update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml
-update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml
-update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac.yaml
-update-yaml/files += $(OSS_HOME)/docs/yaml/oss-migration.yaml
-update-yaml/files += $(OSS_HOME)/docs/yaml/resources-migration.yaml
-update-yaml/files += $(OSS_HOME)/docs/yaml/projects.yaml
-update-yaml/files += $(OSS_HOME)/docs/yaml/aes.yaml
-update-yaml/files += $(OSS_HOME)/docs/yaml/ambassador-agent.yaml
-update-yaml/files += $(OSS_HOME)/manifests/ambassador/ambassador-crds.yaml
-update-yaml/files += $(OSS_HOME)/manifests/ambassador/ambassador.yaml
-update-yaml/files += $(OSS_HOME)/manifests/edge-stack/oss-migration.yaml
-update-yaml/files += $(OSS_HOME)/manifests/edge-stack/resources-migration.yaml
-update-yaml/files += $(OSS_HOME)/manifests/edge-stack/aes.yaml
+update-yaml/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
+update-yaml/files += $(OSS_HOME)/manifests/emissary/emissary-ingress.yaml
+update-yaml/files += $(OSS_HOME)/manifests/emissary/ambassador.yaml
+update-yaml/files += $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
 
 generate/files += $(update-yaml/files)
 update-yaml:
@@ -376,51 +377,19 @@ python-setup: create-venv
 	$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
 .PHONY: python-setup
 
-define generate_yaml_from_helm
+define generate_emissary_yaml_from_helm
 	mkdir -p $(OSS_HOME)/build/yaml/$(1) && \
-		helm template ambassador -n $(2) \
+		helm template $(4) -n $(2) \
 		-f $(OSS_HOME)/k8s-config/$(1)/values.yaml \
-		$(OSS_HOME)/charts/ambassador > $(OSS_HOME)/build/yaml/$(1)/helm-expanded.yaml
+		$(OSS_HOME)/charts/emissary-ingress > $(OSS_HOME)/build/yaml/$(1)/helm-expanded.yaml
 	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/k8s-config/create_yaml.py \
 		$(OSS_HOME)/build/yaml/$(1)/helm-expanded.yaml $(OSS_HOME)/k8s-config/$(1)/require.yaml > $(3)
 endef
 
-$(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac.yaml: $(OSS_HOME)/manifests/ambassador/ambassador.yaml
+$(OSS_HOME)/manifests/emissary/emissary-ingress.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/emissary-ingress/require.yaml $(OSS_HOME)/k8s-config/emissary-ingress/values.yaml $(OSS_HOME)/charts/emissary-ingress/templates/*.yaml $(OSS_HOME)/charts/emissary-ingress/values.yaml python-setup
 	@printf '  $(CYN)$@$(END)\n'
-	cp $(OSS_HOME)/manifests/ambassador/ambassador.yaml $@
+	$(call generate_emissary_yaml_from_helm,emissary-ingress,emissary,$@,emissary-ingress)
 
-$(OSS_HOME)/manifests/ambassador/ambassador.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/ambassador-rbac/require.yaml $(OSS_HOME)/k8s-config/ambassador-rbac/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
+$(OSS_HOME)/manifests/emissary/ambassador.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/ambassador/require.yaml $(OSS_HOME)/k8s-config/ambassador/values.yaml $(OSS_HOME)/charts/emissary-ingress/templates/*.yaml $(OSS_HOME)/charts/emissary-ingress/values.yaml python-setup
 	@printf '  $(CYN)$@$(END)\n'
-	$(call generate_yaml_from_helm,ambassador-rbac,default,$@)
-
-$(OSS_HOME)/docs/yaml/oss-migration.yaml: $(OSS_HOME)/manifests/edge-stack/oss-migration.yaml
-	@printf '  $(CYN)$@$(END)\n'
-	cp $(OSS_HOME)/manifests/edge-stack/oss-migration.yaml $@
-
-$(OSS_HOME)/manifests/edge-stack/oss-migration.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/oss-migration/require.yaml $(OSS_HOME)/k8s-config/oss-migration/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
-	@printf '  $(CYN)$@$(END)\n'
-	$(call generate_yaml_from_helm,oss-migration,default,$@)
-
-$(OSS_HOME)/docs/yaml/resources-migration.yaml: $(OSS_HOME)/manifests/edge-stack/resources-migration.yaml
-	@printf '  $(CYN)$@$(END)\n'
-	cp $(OSS_HOME)/manifests/edge-stack/resources-migration.yaml $@
-
-$(OSS_HOME)/manifests/edge-stack/resources-migration.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/resources-migration/require.yaml $(OSS_HOME)/k8s-config/resources-migration/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
-	@printf '  $(CYN)$@$(END)\n'
-	$(call generate_yaml_from_helm,resources-migration,default,$@)
-
-$(OSS_HOME)/docs/yaml/projects.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/projects/require.yaml $(OSS_HOME)/k8s-config/projects/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
-	@printf '  $(CYN)$@$(END)\n'
-	$(call generate_yaml_from_helm,projects,ambassador,$@)
-
-$(OSS_HOME)/docs/yaml/aes.yaml: $(OSS_HOME)/manifests/edge-stack/aes.yaml
-	@printf '  $(CYN)$@$(END)\n'
-	cp $(OSS_HOME)/manifests/edge-stack/aes.yaml $@
-
-$(OSS_HOME)/manifests/edge-stack/aes.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/aes/require.yaml $(OSS_HOME)/k8s-config/aes/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
-	@printf '  $(CYN)$@$(END)\n'
-	$(call generate_yaml_from_helm,aes,ambassador,$@)
-
-$(OSS_HOME)/docs/yaml/ambassador-agent.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/ambassador-agent/require.yaml $(OSS_HOME)/k8s-config/ambassador-agent/values.yaml $(OSS_HOME)/charts/ambassador/templates/*.yaml $(OSS_HOME)/charts/ambassador/values.yaml python-setup
-	@printf '  $(CYN)$@$(END)\n'
-	$(call generate_yaml_from_helm,ambassador-agent,ambassador,$@)
+	$(call generate_emissary_yaml_from_helm,ambassador,default,$@,ambassador)

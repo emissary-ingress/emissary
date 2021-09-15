@@ -24,6 +24,9 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 TEST_DATA_DIR=/tmp/test-data/
+if [[ -n "${TEST_XML_DIR}" ]] ; then
+    TEST_DATA_DIR=${TEST_XML_DIR}
+fi
 
 DBUILD=${DIR}/dbuild.sh
 
@@ -292,6 +295,9 @@ module_version() {
 
     if [ -f docs/yaml/versions.yml ]; then
         BASE_VERSION=$(grep version: docs/yaml/versions.yml | awk ' { print $2 }')
+        if [[ "${BASE_VERSION}" =~ -ea$ ]] ; then
+            BASE_VERSION=${BASE_VERSION%-ea}
+        fi
     else
         # We have... nothing.
         echo "No base version" >&2
@@ -315,8 +321,8 @@ module_version() {
         dirty=""
     fi
     # The _previous_ tag, plus a git delta, like 'v1.13.3-117-g2434c437f'... or, if we're _on_
-    # a tag, just something like 'v1.13.3'.
-    GIT_DESCRIPTION=$(git describe --tags --match 'v*')
+    # a tag, just something like 'v1.13.3'. Don't allow hotfix tags to appear here, though!
+    GIT_DESCRIPTION=$(git describe --tags --match 'v*' --exclude '*-hf.*')
     echo GIT_DESCRIPTION="\"$GIT_DESCRIPTION\""
 
     # Do we have a '-' in our GIT_DESCRIPTION?
@@ -673,6 +679,38 @@ case "${cmd}" in
         fi
         ;;
 
+    pytest-local-unit)
+        fail=""
+        mkdir -p ${TEST_DATA_DIR}
+
+        if [ -z "$SOURCE_ROOT" ] ; then
+            export SOURCE_ROOT="$PWD"
+        fi
+
+        if [ -z "$MODDIR" ] ; then
+            export MODDIR="$PWD"
+        fi
+
+        if [ -z "$ENVOY_PATH" ] ; then
+            export ENVOY_PATH="${MODDIR}/bin/envoy"
+        fi
+        if [ ! -f "$ENVOY_PATH" ] ; then
+            echo "Envoy not found at ENVOY_PATH=$ENVOY_PATH"
+            exit 1
+        fi
+
+        echo "$0: SOURCE_ROOT=$SOURCE_ROOT"
+        echo "$0: MODDIR=$MODDIR"
+        echo "$0: ENVOY_PATH=$ENVOY_PATH"
+        if ! (cd ${MODDIR} && pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=${TEST_DATA_DIR}/pytest.xml --tb=short -rP "${pytest_args[@]}") then
+            fail="yes"
+        fi
+
+        if [ "${fail}" = yes ]; then
+            exit 1
+        fi
+        ;;
+
     pytest-internal)
         # This runs inside the builder image
         fail=""
@@ -701,7 +739,7 @@ case "${cmd}" in
                     if [[ -n "${TEST_XML_DIR}" ]] ; then
                         junitarg="--junitfile ${TEST_XML_DIR}/${modname}-gotest.xml"
                     fi
-                    if ! (cd ${MODDIR} && gotestsum ${junitarg} --rerun-fails=3 --packages="${pkgs}" -- ${GOTEST_ARGS}) ; then
+                    if ! (cd ${MODDIR} && gotestsum ${junitarg} --rerun-fails=3 --format=testname --packages="${pkgs}" -- -v ${GOTEST_ARGS}) ; then
                        fail="yes"
                     fi
                 fi

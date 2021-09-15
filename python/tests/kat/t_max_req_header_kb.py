@@ -11,7 +11,7 @@ class MaxRequestHeaderKBTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 ambassador_id: {self.ambassador_id}
@@ -20,9 +20,10 @@ config:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
+hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """)
@@ -48,7 +49,7 @@ class MaxRequestHeaderKBMaxTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 ambassador_id: {self.ambassador_id}
@@ -57,9 +58,10 @@ config:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}
+hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """)

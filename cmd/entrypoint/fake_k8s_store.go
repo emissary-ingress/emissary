@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
 // A K8sStore is implement just enough data structures to mock the watch aspect of kubernetes for
@@ -221,12 +221,12 @@ func canonGVK(kind string) (canonKind string, canonGroupVersion string) {
 		fallthrough
 	case "devportals.getambassador.io":
 		return "DevPortal", "getambassador.io/v2"
-	case "host":
+	case "ambassadorhost":
 		fallthrough
-	case "hosts":
+	case "ambassadorhosts":
 		fallthrough
-	case "hosts.getambassador.io":
-		return "Host", "getambassador.io/v2"
+	case "ambassadorhosts.x.getambassador.io":
+		return "AmbassadorHost", "x.getambassador.io/v3alpha1"
 	case "kubernetesendpointresolver":
 		fallthrough
 	case "kubernetesendpointresolvers":
@@ -239,18 +239,24 @@ func canonGVK(kind string) (canonKind string, canonGroupVersion string) {
 		fallthrough
 	case "kubernetesserviceresolvers.getambassador.io":
 		return "KubernetesServiceResolver", "getambassador.io/v2"
+	case "ambassadorlistener":
+		fallthrough
+	case "ambassadorlisteners":
+		fallthrough
+	case "ambassadorlisteners.x.getambassador.io":
+		return "AmbassadorListener", "x.getambassador.io/v3alpha1"
 	case "logservice":
 		fallthrough
 	case "logservices":
 		fallthrough
 	case "logservices.getambassador.io":
 		return "LogService", "getambassador.io/v2"
-	case "mapping":
+	case "ambassadormapping":
 		fallthrough
-	case "mappings":
+	case "ambassadormappings":
 		fallthrough
-	case "mappings.getambassador.io":
-		return "Mapping", "getambassador.io/v2"
+	case "ambassadormappings.x.getambassador.io":
+		return "AmbassadorMapping", "x.getambassador.io/v3alpha1"
 	case "module":
 		fallthrough
 	case "modules":
@@ -263,12 +269,12 @@ func canonGVK(kind string) (canonKind string, canonGroupVersion string) {
 		fallthrough
 	case "ratelimitservices.getambassador.io":
 		return "RateLimitServices", "getambassador.io/v2"
-	case "tcpmapping":
+	case "ambassadortcpmapping":
 		fallthrough
-	case "tcpmappings":
+	case "ambassadortcpmappings":
 		fallthrough
-	case "tcpmappings.getambassador.io":
-		return "TCPMapping", "getambassador.io/v2"
+	case "ambassadortcpmappings.x.getambassador.io":
+		return "AmbassadorTCPMapping", "x.getambassador.io/v3alpha1"
 	case "tlscontext":
 		fallthrough
 	case "tlscontexts":

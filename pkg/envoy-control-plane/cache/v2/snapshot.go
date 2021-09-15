@@ -18,7 +18,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/types"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
 )
 
 // Resources is a versioned group of resources.

@@ -13,7 +13,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
 )
 
 // errorDeadlineExceeded is returned from YAMLCollection.applyAndWait

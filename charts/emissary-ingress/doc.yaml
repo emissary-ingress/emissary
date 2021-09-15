@@ -1,0 +1,18 @@
+project:
+  name: Emissary Ingress
+  shortName: Emissary
+  url: https://github.com/datawire/ambassador
+  description: Emissary Ingress is a self-service, comprehensive API gateway that is Kubernetes-native and built on [Envoy Proxy](https://www.envoyproxy.io/).
+  app: Emissary Ingress
+repository:
+  url: https://app.getambassador.io
+  name: emissary-ingress
+chart:
+  name: emissary-ingress
+  values: "-- generate from values file --"
+  valuesExample: "-- generate from values file --"
+prerequisites:
+- "Kubernetes v1.11+"
+release:
+  name: emissary-ingress
+  namespace: ambassador

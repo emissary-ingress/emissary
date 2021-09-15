@@ -4,28 +4,28 @@
 
 import os.path
 import sys
+import argparse
 
-from lib import mirror_artifacts, re_ga
+from lib import mirror_artifacts, re_ga, re_ea
 
 
-def main(ga_ver: str, source_registry: str, image_append: str = '') -> int:
-    mirror_artifacts.main([ga_ver], source_registry=source_registry, image_append=image_append)
+def main(ga_ver: str, source_registry: str, image_append: str = '', img_name: str='') -> int:
+    mirror_artifacts.main([ga_ver], source_registry=source_registry, image_append=image_append, repos=[img_name])
     return 0
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2 or not re_ga.match(sys.argv[1]):
-        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z\n")
+    parser = argparse.ArgumentParser(description='Mirror GA artifacts')
+
+    parser.add_argument('--ga-version', help='GA version', required=True)
+    parser.add_argument('--source-registry', help='docker registry of source image', default="docker.io/datawire")
+    parser.add_argument('--image-name', default="emissary")
+    parser.add_argument('--image-append', default='')
+    parser.add_argument("--repo-list", nargs="+", default=["gcr.io/datawire"])
+
+    args = parser.parse_args()
+    if not re_ga.match(args.ga_version) and not re_ea.match(args.ga_version):
+        sys.stderr.write(f"--ga-version must matchX.Y.Z(-ea)?\n")
         sys.exit(2)
-    source_registry = 'docker.io/datawire'
-    if len(sys.argv) > 2:
-        source_registry = sys.argv[2]
-    image_append = ''
-    if len(sys.argv) > 3:
-        image_append = sys.argv[3]
-    ga_ver = sys.argv[1]
-    if len(sys.argv) > 4:
-        ga_ver = f"{ga_ver}-{sys.argv[4]}"
 
-
-    sys.exit(main(ga_ver=ga_ver, source_registry=source_registry, image_append=image_append))
+    sys.exit(main(ga_ver=args.ga_version, source_registry=args.source_registry, image_append=args.image_append, img_name=args.image_name, registries=args.repo_list))

@@ -17,7 +17,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 
-	v3 "github.com/datawire/ambassador/pkg/api/envoy/config/core/v3"
+	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
 )
 
 // ensure the imports are used
@@ -36,9 +36,6 @@ var (
 
 	_ = v3.ApiVersion(0)
 )
-
-// define the regex for a UUID once up-front
-var _als_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 
 // Validate checks the field values on HttpGrpcAccessLogConfig with the rules
 // defined in the proto definition for this message. If any rules are
@@ -216,10 +213,10 @@ func (m *CommonGrpcAccessLogConfig) Validate() error {
 		return nil
 	}
 
-	if len(m.GetLogName()) < 1 {
+	if utf8.RuneCountInString(m.GetLogName()) < 1 {
 		return CommonGrpcAccessLogConfigValidationError{
 			field:  "LogName",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 

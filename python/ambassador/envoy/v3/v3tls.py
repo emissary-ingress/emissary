@@ -106,6 +106,10 @@ class V3TLSContext(Dict):
 
     def update_validation(self, key: str, value: str) -> None:
         empty_context: EnvoyValidationContext = {}
+
+        # This looks weirder than you might expect, because self.get_common().setdefault() is a truly
+        # crazy Union type, so we need to cast it to an EnvoyValidationContext to be able to work
+        # with it.
         validation = typecast(EnvoyValidationContext, self.get_common().setdefault('validation_context', empty_context))
 
         src: EnvoyCoreSource = { 'filename': value }

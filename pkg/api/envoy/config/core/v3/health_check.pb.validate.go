@@ -17,7 +17,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 
-	v3 "github.com/datawire/ambassador/pkg/api/envoy/type/v3"
+	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/type/v3"
 )
 
 // ensure the imports are used
@@ -36,9 +36,6 @@ var (
 
 	_ = v3.CodecClientType(0)
 )
-
-// define the regex for a UUID once up-front
-var _health_check_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 
 // Validate checks the field values on HealthCheck with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
@@ -195,6 +192,27 @@ func (m *HealthCheck) Validate() error {
 		if dur <= gt {
 			return HealthCheckValidationError{
 				field:  "NoTrafficInterval",
+				reason: "value must be greater than 0s",
+			}
+		}
+
+	}
+
+	if d := m.GetNoTrafficHealthyInterval(); d != nil {
+		dur, err := ptypes.Duration(d)
+		if err != nil {
+			return HealthCheckValidationError{
+				field:  "NoTrafficHealthyInterval",
+				reason: "value is not a valid duration",
+				cause:  err,
+			}
+		}
+
+		gt := time.Duration(0*time.Second + 0*time.Nanosecond)
+
+		if dur <= gt {
+			return HealthCheckValidationError{
+				field:  "NoTrafficHealthyInterval",
 				reason: "value must be greater than 0s",
 			}
 		}
@@ -425,10 +443,10 @@ func (m *HealthCheck_Payload) Validate() error {
 
 	case *HealthCheck_Payload_Text:
 
-		if len(m.GetText()) < 1 {
+		if utf8.RuneCountInString(m.GetText()) < 1 {
 			return HealthCheck_PayloadValidationError{
 				field:  "Text",
-				reason: "value length must be at least 1 bytes",
+				reason: "value length must be at least 1 runes",
 			}
 		}
 
@@ -517,10 +535,10 @@ func (m *HealthCheck_HttpHealthCheck) Validate() error {
 		}
 	}
 
-	if len(m.GetPath()) < 1 {
+	if utf8.RuneCountInString(m.GetPath()) < 1 {
 		return HealthCheck_HttpHealthCheckValidationError{
 			field:  "Path",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -936,10 +954,10 @@ func (m *HealthCheck_CustomHealthCheck) Validate() error {
 		return nil
 	}
 
-	if len(m.GetName()) < 1 {
+	if utf8.RuneCountInString(m.GetName()) < 1 {
 		return HealthCheck_CustomHealthCheckValidationError{
 			field:  "Name",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 

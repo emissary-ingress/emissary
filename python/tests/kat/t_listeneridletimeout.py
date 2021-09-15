@@ -11,7 +11,7 @@ class ListenerIdleTimeout(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 ambassador_id: {self.ambassador_id}
@@ -20,9 +20,10 @@ config:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  config__dump
+hostname: "*"
 prefix: /config_dump
 rewrite: /config_dump
 service: http://127.0.0.1:8001

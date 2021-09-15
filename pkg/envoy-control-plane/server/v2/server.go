@@ -25,17 +25,17 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	clusterservice "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	discovery "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	endpointservice "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	listenerservice "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	routeservice "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
-	discoverygrpc "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v2"
-	runtimeservice "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v2"
-	secretservice "github.com/datawire/ambassador/pkg/api/envoy/service/discovery/v2"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v2"
-	"github.com/datawire/ambassador/pkg/envoy-control-plane/resource/v2"
+	clusterservice "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
+	discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
+	endpointservice "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
+	listenerservice "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
+	routeservice "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
+	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
+	discoverygrpc "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v2"
+	runtimeservice "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v2"
+	secretservice "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v2"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
+	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v2"
 )
 
 // Server is a collection of handlers for streaming discovery requests.

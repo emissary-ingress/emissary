@@ -8,9 +8,10 @@ import (
 	"strconv"
 	"strings"
 
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -158,9 +159,9 @@ func (eri *endpointRoutingInfo) checkResourcePhase1(ctx context.Context, obj kat
 // checkResourcePhase2 processes both regular and tcp Mappings and calls the correct type specific handler.
 func (eri *endpointRoutingInfo) checkResourcePhase2(ctx context.Context, obj kates.Object, source string) {
 	switch v := obj.(type) {
-	case *amb.Mapping:
+	case *v3alpha1.AmbassadorMapping:
 		eri.checkMapping(ctx, v, source)
-	case *amb.TCPMapping:
+	case *v3alpha1.AmbassadorTCPMapping:
 		eri.checkTCPMapping(ctx, v, source)
 	}
 }
@@ -202,7 +203,7 @@ func (eri *endpointRoutingInfo) saveResolver(ctx context.Context, name string, r
 }
 
 // checkMapping figures out what resolver is in use for a given Mapping.
-func (eri *endpointRoutingInfo) checkMapping(ctx context.Context, mapping *amb.Mapping, source string) {
+func (eri *endpointRoutingInfo) checkMapping(ctx context.Context, mapping *v3alpha1.AmbassadorMapping, source string) {
 	// Grab the name and the (possibly-empty) resolver.
 	name := mapping.GetName()
 	resolver := mapping.Spec.Resolver
@@ -221,7 +222,7 @@ func (eri *endpointRoutingInfo) checkMapping(ctx context.Context, mapping *amb.M
 }
 
 // checkTCPMapping figures out what resolver is in use for a given TCPMapping.
-func (eri *endpointRoutingInfo) checkTCPMapping(ctx context.Context, tcpmapping *amb.TCPMapping, source string) {
+func (eri *endpointRoutingInfo) checkTCPMapping(ctx context.Context, tcpmapping *v3alpha1.AmbassadorTCPMapping, source string) {
 	// Grab the name and the (possibly-empty) resolver.
 	name := tcpmapping.GetName()
 	resolver := tcpmapping.Spec.Resolver

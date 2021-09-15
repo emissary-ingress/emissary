@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _metadata_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on MetadataMatcher with the rules defined
 // in the proto definition for this message. If any rules are violated, an
 // error is returned.
@@ -44,10 +41,10 @@ func (m *MetadataMatcher) Validate() error {
 		return nil
 	}
 
-	if len(m.GetFilter()) < 1 {
+	if utf8.RuneCountInString(m.GetFilter()) < 1 {
 		return MetadataMatcherValidationError{
 			field:  "Filter",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -159,10 +156,10 @@ func (m *MetadataMatcher_PathSegment) Validate() error {
 
 	case *MetadataMatcher_PathSegment_Key:
 
-		if len(m.GetKey()) < 1 {
+		if utf8.RuneCountInString(m.GetKey()) < 1 {
 			return MetadataMatcher_PathSegmentValidationError{
 				field:  "Key",
-				reason: "value length must be at least 1 bytes",
+				reason: "value length must be at least 1 runes",
 			}
 		}
 

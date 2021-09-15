@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _certs_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on Certificates with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -260,6 +257,16 @@ func (m *CertificateDetails) Validate() error {
 		}
 	}
 
+	if v, ok := interface{}(m.GetOcspDetails()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CertificateDetailsValidationError{
+				field:  "OcspDetails",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -398,3 +405,91 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SubjectAlternateNameValidationError{}
+
+// Validate checks the field values on CertificateDetails_OcspDetails with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *CertificateDetails_OcspDetails) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if v, ok := interface{}(m.GetValidFrom()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CertificateDetails_OcspDetailsValidationError{
+				field:  "ValidFrom",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetExpiration()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CertificateDetails_OcspDetailsValidationError{
+				field:  "Expiration",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// CertificateDetails_OcspDetailsValidationError is the validation error
+// returned by CertificateDetails_OcspDetails.Validate if the designated
+// constraints aren't met.
+type CertificateDetails_OcspDetailsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CertificateDetails_OcspDetailsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CertificateDetails_OcspDetailsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CertificateDetails_OcspDetailsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CertificateDetails_OcspDetailsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CertificateDetails_OcspDetailsValidationError) ErrorName() string {
+	return "CertificateDetails_OcspDetailsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CertificateDetails_OcspDetailsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCertificateDetails_OcspDetails.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CertificateDetails_OcspDetailsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CertificateDetails_OcspDetailsValidationError{}

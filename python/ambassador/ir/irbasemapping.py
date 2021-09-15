@@ -8,6 +8,7 @@ from ..config import Config
 from ..utils import dump_json
 
 from .irresource import IRResource
+from .irutils import hostglob_matches
 
 if TYPE_CHECKING:
     from .ir import IR # pragma: no cover
@@ -76,9 +77,8 @@ def normalize_service_name(ir: 'IR', in_service: str, mapping_namespace: Optiona
 
 class IRBaseMapping (IRResource):
     group_id: str
-    host: str
+    host: Optional[str]
     route_weight: List[Union[str, int]]
-    sni: bool
     cached_status: Optional[Dict[str, str]]
     status_update: Optional[Dict[str, str]]
     cluster_key: Optional[str]
@@ -232,15 +232,3 @@ class IRBaseMapping (IRResource):
     def _route_weight(self) -> List[Union[str, int]]:
         """ Compute the route weight for this Mapping. Must be defined by subclasses. """
         raise NotImplementedError("%s._route_weight is not implemented?" %  self.__class__.__name__)
-
-    def match_tls_context(self, host: str, ir: 'IR'):
-        for context in ir.get_tls_contexts():
-            hosts = context.get('hosts') or []
-
-            for context_host in hosts:
-                if context_host == host:
-                    ir.logger.debug("Matched host {} with TLSContext {}".format(host, context.get('name')))
-                    self.sni = True
-                    return context
-
-        return None

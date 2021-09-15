@@ -88,7 +88,8 @@ class IR:
     groups: Dict[str, IRBaseMappingGroup]
     grpc_services: Dict[str, IRCluster]
     hosts: Dict[str, IRHost]
-    listeners: List[IRListener]
+    # The key for listeners is "{bindaddr}-{port}" (see IRListener.bind_to())
+    listeners: Dict[str, IRListener]
     log_services: Dict[str, IRLogService]
     ratelimit: Optional[IRRateLimit]
     redirect_cleartext_from: Optional[int]
@@ -167,7 +168,7 @@ class IR:
         self.grpc_services = {}
         self.hosts = {}
         # self.k8s_status_updates is handled below.
-        self.listeners = []
+        self.listeners = {}
         self.log_services = {}
         self.outliers = {}
         self.ratelimit = None
@@ -219,13 +220,16 @@ class IR:
         TLSModuleFactory.load_all(self, aconf)
         TLSContextFactory.load_all(self, aconf)
 
+        # After TLSContexts, grab Listeners...
+        ListenerFactory.load_all(self, aconf)
+
         # ...then grab whatever we know about Hosts...
         HostFactory.load_all(self, aconf)
 
         # ...then set up for the intercept agent, if that's a thing.
         self.agent_init(aconf)
 
-        # Finally, finalize all the Host stuff (including the !*@#&!* fallback context).
+        # Finally, finalize all the Host stuff (including the !*@#&!* fallback context)...
         HostFactory.finalize(self, aconf)
 
         # Now we can finalize the Ambassador module, to tidy up secrets et al. We do this
@@ -298,15 +302,17 @@ class IR:
 
         # We would handle other modules here -- but guess what? There aren't any.
         # At this point ambassador, tls, and the deprecated auth module are all there
-        # are, and they're handled above. So. At this point go sort out all the Mappings
-        ListenerFactory.load_all(self, aconf)
+        # are, and they're handled above. So. At this point go sort out all the Mappings.
         MappingFactory.load_all(self, aconf)
 
         self.walk_saved_resources(aconf, 'add_mappings')
 
         TLSModuleFactory.finalize(self, aconf)
-        ListenerFactory.finalize(self, aconf)
         MappingFactory.finalize(self, aconf)
+
+        # We can't finalize the listeners until _after_ we have all the TCPMapping
+        # information we might need, so that happens here.
+        ListenerFactory.finalize(self, aconf)
 
         # At this point we should know the full set of clusters, so we can generate
         # appropriate envoy names.
@@ -368,8 +374,9 @@ class IR:
                 # can change as new clusters appear! This is obviously not ideal.
                 #
                 # XXX This is doubly a hack because it's duplicating this magic format from
-                # v2cluster.py.
+                # v2cluster.py and v3cluster.py.
                 self.cache.invalidate(f"V2-{cluster.cache_key}")
+                self.cache.invalidate(f"V3-{cluster.cache_key}")
 
                 # OK. Finally, we can update the envoy_name.
                 cluster['envoy_name'] = mangled_name
@@ -453,11 +460,11 @@ class IR:
             host.referenced_by(self.ambassador_module)
             host.sourced_by(self.ambassador_module)
 
-            self.logger.debug(f"Intercept agent: saving host {host.pretty()}")
+            self.logger.debug(f"Intercept agent: saving host {host}")
             # self.logger.debug(host.as_json())
             self.save_host(host)
         else:
-            self.logger.debug(f"Intercept agent: not saving inactive host {host.pretty()}")
+            self.logger.debug(f"Intercept agent: not saving inactive host {host}")
 
         # How about originating TLS?
         agent_origination_secret = os.environ.get("AGENT_TLS_ORIG_SECRET", None)
@@ -750,8 +757,19 @@ class IR:
         for res in self.saved_resources.values():
             getattr(res, method_name)(self, aconf)
 
-    def add_listener(self, listener: IRListener) -> None:
-        self.listeners.append(listener)
+    def save_listener(self, listener: IRListener) -> None:
+        listener_key = listener.bind_to()
+
+        extant_listener = self.listeners.get(listener_key, None)
+        is_valid = True
+
+        if extant_listener:
+            self.post_error("Duplicate listener %s on %s:%d; keeping definition from %s" %
+                            (listener.name, listener.bind_address, listener.port, extant_listener.location))
+            is_valid = False
+
+        if is_valid:
+            self.listeners[listener_key] = listener
 
     def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> Optional[IRBaseMappingGroup]:
         mapping.check_status()
@@ -845,7 +863,7 @@ class IR:
             'grpc_services': { svc_name: cluster.as_dict()
                                for svc_name, cluster in self.grpc_services.items() },
             'hosts': [ host.as_dict() for host in self.hosts.values() ],
-            'listeners': [ listener.as_dict() for listener in self.listeners ],
+            'listeners': [ self.listeners[x].as_dict() for x in sorted(self.listeners.keys()) ],
             'filters': [ filt.as_dict() for filt in self.filters ],
             'groups': [ group.as_dict() for group in self.ordered_groups() ],
             'tls_contexts': [ context.as_dict() for context in self.tls_contexts.values() ],
@@ -923,6 +941,8 @@ class IR:
         default_port = Constants.SERVICE_PORT_HTTPS if tls_termination_count else Constants.SERVICE_PORT_HTTP
 
         od['custom_listener_port'] = bool(self.ambassador_module.service_port != default_port)
+
+        od['allow_chunked_length'] = self.ambassador_module.get('allow_chunked_length', None)
 
         cluster_count = 0
         cluster_grpc_count = 0      # clusters using GRPC upstream

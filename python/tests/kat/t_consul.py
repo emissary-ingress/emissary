@@ -91,17 +91,18 @@ kind: ConsulResolver
 metadata:
   name: {self.path.k8s}-resolver
 spec:
-  ambassador_id: consultest
+  ambassador_id: [consultest]
   address: {self.path.k8s}-consul:$CONSUL_WATCHER_PORT
   datacenter: {self.datacenter}
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name:  {self.path.k8s}-consul-ns-mapping
   namespace: consul-test-namespace
 spec:
-  ambassador_id: consultest
+  ambassador_id: [consultest]
+  hostname: "*"
   prefix: /{self.path.k8s}_consul_ns/
   service: {self.path.k8s}-consul-ns-service
   resolver: {self.path.k8s}-resolver
@@ -112,15 +113,17 @@ spec:
     def config(self):
         yield self.k8s_target, self.format("""
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.path.k8s}_k8s_mapping
+hostname: "*"
 prefix: /{self.path.k8s}_k8s/
 service: {self.k8s_target.path.k8s}
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.path.k8s}_consul_mapping
+hostname: "*"
 prefix: /{self.path.k8s}_consul/
 service: {self.path.k8s}-consul-service
 # tls: {self.path.k8s}-client-context # this doesn't seem to work... ambassador complains with "no private key in secret ..."
@@ -128,9 +131,10 @@ resolver: {self.path.k8s}-resolver
 load_balancer:
   policy: round_robin
 ---
-apiVersion: ambassador/v1
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.path.k8s}_consul_node_mapping
+hostname: "*"
 prefix: /{self.path.k8s}_consul_node/ # this is testing that Ambassador correctly falls back to the `Address` if `Service.Address` does not exist
 service: {self.path.k8s}-consul-node
 # tls: {self.path.k8s}-client-context # this doesn't seem to work... ambassador complains with "no private key in secret ..."
@@ -138,10 +142,16 @@ resolver: {self.path.k8s}-resolver
 load_balancer:
   policy: round_robin
 ---
-apiVersion: ambassador/v1
 kind:  TLSContext
 name:  {self.path.k8s}-client-context
 secret: {self.path.k8s}-client-cert-secret
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorHost
+name:  {self.path.k8s}-client-host
+requestPolicy:
+  insecure:
+    action: Route
 """)
 
     def requirements(self):

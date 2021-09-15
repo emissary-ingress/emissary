@@ -17,7 +17,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 
-	v3 "github.com/datawire/ambassador/pkg/api/envoy/type/v3"
+	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/type/v3"
 )
 
 // ensure the imports are used
@@ -36,9 +36,6 @@ var (
 
 	_ = v3.RateLimitUnit(0)
 )
-
-// define the regex for a UUID once up-front
-var _ratelimit_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 
 // Validate checks the field values on RateLimitDescriptor with the rules
 // defined in the proto definition for this message. If any rules are
@@ -147,17 +144,17 @@ func (m *RateLimitDescriptor_Entry) Validate() error {
 		return nil
 	}
 
-	if len(m.GetKey()) < 1 {
+	if utf8.RuneCountInString(m.GetKey()) < 1 {
 		return RateLimitDescriptor_EntryValidationError{
 			field:  "Key",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
-	if len(m.GetValue()) < 1 {
+	if utf8.RuneCountInString(m.GetValue()) < 1 {
 		return RateLimitDescriptor_EntryValidationError{
 			field:  "Value",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 

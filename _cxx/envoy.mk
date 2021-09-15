@@ -1,15 +1,12 @@
-# yo
+# ...
 include $(OSS_HOME)/build-aux/prelude.mk
 
 YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
 ENVOY_TEST_LABEL ?= //test/...
 
-_git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
-IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
-
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= 32c3f1c15e6ad2bbcdf76b86bc893f19fac7d96d
+  ENVOY_COMMIT ?= 7a33e53fd3d3c4befa53030797f344fcacaa61f4
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
@@ -210,8 +207,8 @@ $(OSS_HOME)/pkg/api/pb $(OSS_HOME)/pkg/api/envoy: $(OSS_HOME)/pkg/api/%: $(OSS_H
 	  find "$$tmpdir" -type f \
 	    -exec chmod 644 {} + \
 	    -exec sed -E -i.bak \
-	      -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/datawire/ambassador/pkg/api/envoy,g' \
-	      -e 's,github\.com/envoyproxy/go-control-plane/pb,github.com/datawire/ambassador/pkg/api/pb,g' \
+	      -e 's,github\.com/envoyproxy/go-control-plane/envoy,github.com/datawire/ambassador/v2/pkg/api/envoy,g' \
+	      -e 's,github\.com/envoyproxy/go-control-plane/pb,github.com/datawire/ambassador/v2/pkg/api/pb,g' \
 	      -- {} +; \
 	  find "$$tmpdir" -name '*.bak' -delete; \
 	  mv "$$tmpdir/$*" $@; \

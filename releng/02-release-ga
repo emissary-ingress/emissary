@@ -1,0 +1,34 @@
+#!/bin/bash
+
+set -e
+
+CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+[ -d "$CURR_DIR" ] || { echo "FATAL: no current dir (maybe running in zsh?)";  exit 1; }
+ga_ver=$1
+if [[ -z "${ga_ver}" ]] ; then
+    echo "ERROR: ga_ver must be first argument"
+    exit 1
+fi
+
+commit=$(git rev-parse HEAD)
+
+${CURR_DIR}/release-wait-for-commit --commit $commit --s3-key passed-builds
+
+${CURR_DIR}/release-ga-sanity-check --quiet ${ga_ver}
+
+echo "Tagging ${ga_ver}"
+git tag -m "Tagging v$ga_ver for GA" -a v$ga_ver
+git push origin v$ga_ver
+
+${CURR_DIR}/release-go-changelog-update --quiet $ga_ver
+
+${CURR_DIR}/release-wait-for-ga-image --ga-tag $ga_ver --release-registry $RELEASE_REGISTRY --image-name ${IMAGE_NAME}
+
+${CURR_DIR}/release-mirror-images --ga-version ${ga_ver} --source-registry $RELEASE_REGISTRY
+
+git checkout v$ga_ver
+${CURR_DIR}/release-manifest-image-update --oss-version ${ga_ver}
+
+make release/chart/tag
+
+${CURR_DIR}/release-wait-for-ga-artifacts --ga-tag $ga_ver

@@ -31,6 +31,7 @@ class IRAmbassador (IRResource):
         'add_linkerd_headers',
         'admin_port',
         'auth_enabled',
+        'allow_chunked_length',
         'circuit_breakers',
         'cluster_idle_timeout_ms',
         'cluster_max_connection_lifetime_ms',
@@ -132,7 +133,7 @@ class IRAmbassador (IRResource):
             use_proxy_proto=False,
             enable_http10=False,
             proper_case=False,
-            prune_unreachable_routes=False,
+            prune_unreachable_routes=True,          # default True; can be updated in finalize()
             use_remote_address=use_remote_address,
             x_forwarded_proto_redirect=False,
             load_balancer=None,
@@ -410,7 +411,7 @@ class IRAmbassador (IRResource):
                 name = "internal_%s_probe_mapping" % name
 
                 mapping = IRHTTPMapping(ir, aconf, rkey=self.rkey, name=name, location=self.location,
-                                        timeout_ms=10000, **cur)
+                                        timeout_ms=10000, hostname="*", **cur)
                 mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)
 
@@ -426,6 +427,7 @@ class IRAmbassador (IRResource):
                                         service="127.0.0.1:8500",
                                         precedence=1000000,
                                         timeout_ms=60000,
+                                        hostname="*",
                                         add_response_headers=edge_stack_response_header)
                 mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)
@@ -438,6 +440,7 @@ class IRAmbassador (IRResource):
                                         service="127.0.0.1:8500",
                                         precedence=-1000000,
                                         timeout_ms=60000,
+                                        hostname="*",
                                         add_response_headers=edge_stack_response_header)
                 mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)
