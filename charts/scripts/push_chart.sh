@@ -80,10 +80,6 @@ if [[ `basename ${chart_dir}` != emissary-ingress ]] ; then
 fi
 
 if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] && [[ -n "${PUBLISH_GIT_RELEASE}" ]]; then
-    if [[ -z "${CIRCLE_SHA1}" ]] ; then
-        echo "CIRCLE_SHA1 not set"
-        exit 1
-    fi
     if [[ -z "${GH_RELEASE_TOKEN}" ]] ; then
         echo "GH_RELEASE_TOKEN not set"
         exit 1
@@ -119,7 +115,7 @@ if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] && [[ -n "${PUBLISH_GIT_
   "body": "${description}",
   "draft": false,
   "prerelease": false,
-  "target_commitish": "${CIRCLE_SHA1}"
+  "target_commitish": "${GITHUB_REF}"
 }
 EOF
     }
