@@ -68,3 +68,4 @@ def test_logical_dns_type_wrong():
         # The dns type is listed as just "type"
         _test_cluster_setting(yaml, setting="type", 
             expected="EDS", exists=True, envoy_version=v)
+
