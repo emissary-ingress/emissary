@@ -51,7 +51,7 @@ items:
       - title: AmbassadorMapping supports setting the DNS type
         body: You can now set <code>dns_type</code> in the <code>AmbassadorMapping</code> to configure how Envoy will use the DNS for the service.
         type: feature
-        docs: topics/using/intro-mappings/
+        docs: topics/using/mappings/#using-dns_type
 
       - title: Building Emissary no longer requires setting DOCKER_BUILDKIT
         body: It is no longer necessary to set <code>DOCKER_BUILDKIT=0</code> when building Emissary. A future change will fully support BuildKit.
