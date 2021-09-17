@@ -43,6 +43,7 @@ import t_request_header
 import t_regexrewrite_forwarding
 import t_error_response
 import t_chunked_length
+import t_dns_type
 import t_bufferlimitbytes
 
 # pytest will find this because Runner is a toplevel callable object in a file
