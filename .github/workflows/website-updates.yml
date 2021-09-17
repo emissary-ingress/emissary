@@ -35,10 +35,6 @@ jobs:
         shell: bash
         run: |
           git clone git@github.com:datawire/getambassador.io.git -o /tmp/getambassador.io
-      - name: Get docs repo
-        shell: bash
-        run: |
-          git clone git@github.com:datawire/ambassador-docs.git -o /tmp/ambassador-docs
       - name: Get version
         shell: bash
         id: version
