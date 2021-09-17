@@ -701,7 +701,7 @@ IS_DIRTY        = $(shell $(BUILDER) is-dirty)
 
 # release/promote-oss/.main does the main reusable part of promoting a release:
 #  - pull/promote+re-tag/push the Docker image:
-#    $(PROMOTE_FROM_REPO)/$(REPO):$(PROMOTE_FROM_VERSION) -> $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
+#    $(DEV_REGISTRY)/$(REPO):$(PROMOTE_FROM_VERSION) -> $(RELEASE_REGISTRY)/$(REPO):$(subst +,-,$(RELEASE_VERSION))
 #  - update stable.txt
 #  - update Metriton's app.json
 #
@@ -711,35 +711,29 @@ IS_DIRTY        = $(shell $(BUILDER) is-dirty)
 #
 # The variables that the calling rule needs to set are:
 #  - PROMOTE_FROM_VERSION
-#  - PROMOTE_TO_VERSION
 #  - PROMOTE_CHANNEL: One of '' (GA), 'wip', 'early', 'test' (RC), or
 #    'hotfix'.  Used to determine which stable.txt and app.json to
 #    write to.
-#  - PROMOTE_FROM_REPO (or leave unset to default to $(RELEASE_REGISTRY))
 #
 # Additionally, it also makes use of the following global variables:
-#  - RELEASE_REGISTRY (set from CI environment)
 #  - AWS_S3_BUCKET    (set from CI environment)
+#  - DEV_REGISTRY     (set from CI environment)
+#  - RELEASE_REGISTRY (set from CI environment)
 #  - RELEASE_VERSION  (always set globally in the Makefile)
 #  - REPO             (always set globally in the Makefile)
 release/promote-oss/.main: $(tools/docker-promote)
 # pre-flight
 	@[[ "$(RELEASE_VERSION)"      =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "must set RELEASE_VERSION"; exit 1)
 	@[[ -n "$(PROMOTE_FROM_VERSION)" ]] || (echo "must set PROMOTE_FROM_VERSION"; exit 1)
-	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "must set PROMOTE_TO_VERSION" ; exit 1)
 	@case "$(PROMOTE_CHANNEL)" in \
 	  ""|wip|early|test|hotfix) true;; \
 	  *) echo "Unknown PROMOTE_CHANNEL $(PROMOTE_CHANNEL)" >&2 ; exit 1;; \
 	esac
-	@printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN) (channel=$(BLU)%s$(GRN))$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(PROMOTE_TO_VERSION)' '$(PROMOTE_CHANNEL)'
+	@printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN) (channel=$(BLU)%s$(GRN))$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(RELEASE_VERSION)' '$(PROMOTE_CHANNEL)'
 # pull/re-tag/push the Docker image
-	@PS4=; set -e; {
-	  pullregistry=$(or $(PROMOTE_FROM_REPO),$(RELEASE_REGISTRY),$(error $@: must set PROMOTE_FROM_REPO or RELEASE_REGISTRY)); \
-	  printf '  $(CYN)$${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION)$(END)\n'; \
-	  set -x; \
-	  $(tools/docker-promote) $${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION); \
-	}
-	docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
+	@printf '  $(CYN)$(DEV_REGISTRY)/$(REPO):$(PROMOTE_FROM_VERSION)$(END)\n'
+	$(tools/docker-promote) $(DEV_REGISTRY)/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(subst +,-,$(RELEASE_VERSION))
+	docker push $(RELEASE_REGISTRY)/$(REPO):$(subst +,-,$(RELEASE_VERSION))
 # update stable.txt
 	@printf '  $(CYN)https://s3.amazonaws.com/$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt$(END)\n'
 	printf '%s' "$(RELEASE_VERSION)" | aws s3 cp - s3://$(AWS_S3_BUCKET)/emissary-ingress/$(PROMOTE_CHANNEL)stable.txt
@@ -752,16 +746,19 @@ release/promote-oss/.main: $(tools/docker-promote)
 # ("promote-to-passed"ed) dev image from some other CI run to be an
 # RC.
 release/promote-oss/dev-to-rc:
+	@[[ ( "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ) || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
+	{ $(MAKE) release/promote-oss/.to-rc-or-hf PROMOTE_CHANNEL=test PROMOTE_S3_KEY=dev-builds
+.PHONY: release/promote-oss/dev-to-rc
+
+release/promote-oss/.to-rc-or-hf:
 # pre-flight
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ ( "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ) || \
-	    ( "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$$ ) ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
 	@$(if $(IS_DIRTY),$(error $@: tree must be clean))
-	$(OSS_HOME)/releng/release-wait-for-commit --commit $$(git rev-parse HEAD) --s3-key dev-builds
+	$(OSS_HOME)/releng/release-wait-for-commit --commit $$(git rev-parse HEAD) --s3-key $(PROMOTE_S3_KEY)
 # main (Docker, stable.txt, app.json)
 	@PS4=; set -ex; { \
 	  commit=$$(git rev-parse HEAD); \
-	  dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/dev-builds/$$commit -); \
+	  dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/$(PROMOTE_S3_KEY)/$$commit -); \
 	  set +x; \
 	  if [ -z "$$dev_version" ]; then \
 	    printf "$(RED)==> found no passed dev version for $$commit in S3...$(END)\n"; \
@@ -771,11 +768,9 @@ release/promote-oss/dev-to-rc:
 	  set -x; \
 	  $(MAKE) release/promote-oss/.main \
 	    PROMOTE_FROM_VERSION="$$dev_version" \
-	    PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
-	    PROMOTE_TO_VERSION=$(subst +,-,$(RELEASE_VERSION)) \
-	    PROMOTE_CHANNEL=test; \
+	    PROMOTE_CHANNEL=$(PROMOTE_CHANNEL); \
 	}
-# Helm chart and Kubernetes manifests
+# Helm chart and Kubernetes manifests... (why is this so different than how it is done for GA?)
 ifneq ($(IS_PRIVATE),)
 	@echo "Not publishing charts or manifests because in a private repo"
 else
@@ -788,7 +783,7 @@ else
 	$(MAKE) publish-docs-yaml VERSION_OVERRIDE=$(RELEASE_VERSION)
 	$(MAKE) clean-manifests
 endif
-.PHONY: release/promote-oss/dev-to-rc
+.PHONY: release/promote-oss/.to-rc-or-hf
 
 release/promote-oss/rc-update-apro:
 	$(OSS_HOME)/releng/01-release-rc-update-apro v$(RELEASE_VERSION) v$(VERSIONS_YAML_VERSION)
@@ -842,55 +837,24 @@ release/promote-oss/pr-to-passed-ci:
 # and is meant to be run on a developer's laptop.
 #
 # Before running `make release/promote-oss/to-hotfix`, you must:
-#  - have Keybase access
-#  - have already had CI build and bless ("promote-to-passed") a dev image
+#  - have the commit checked out
 #  - have tagged the commit with a Git tag matching "*-hf*"
+#  - have already had CI build and bless ("promote-to-passed") a dev image for the commit
+#  - have Keybase access
 #  - set the following variables:
-#    + HOTFIX_COMMIT (or leave unset to use the current commit)
 #    + AWS_S3_BUCKET
 #    + RELEASE_REGISTRY
-hotfix_commit = $(shell git rev-parse $(or $(HOTFIX_COMMIT,HEAD)))
-hotfix_gittag = $(shell git describe --tags --exact --match 'v*-hf*' $(hotfix_commit)))
-hotfix_version = $(patsubst v%,%,$(hotfix_gittag))
 release/promote-oss/to-hotfix:
-# pre-flight
 	@$test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ -n '$(hotfix_version)' ]] || (printf '$(RED)ERROR: could not find a hotfix Git tag for commit $(or $(HOTFIX_COMMIT),HEAD)$(END)'; exit 1)
-	@[[ '$(hotfix_version)' =~ ^[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$$ ]] || (printf '$(RED)ERROR: Git tag "$(hotfix_gittag)" does not look like a hotfix tag$(END)\n'; exit 1)
-	$(OSS_HOME)/releng/release-wait-for-commit --commit $(hotfix_commit) --s3-key passed-pr; \
+	@[[ ( "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-hf\.[0-9]+\+[0-9]+$$ ) ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an hotfix tag\n' "$(RELEASE_VERSION)"; exit 1)
 	{ docker login \
 	  -u $$(keybase fs read /keybase/team/datawireio/secrets/dockerhub.webui.d6eautomaton.username) \
 	  -p $$(keybase fs read /keybase/team/datawireio/secrets/dockerhub.webui.d6eautomaton.password); }
-# main (Docker, stable.txt, app.json)
-	@PS4=; set -ex; {
-	  commit=$(hotfix_commit); \
-	  dev_version=$$(aws s3 cp s3://$(AWS_S3_BUCKET)/passed-pr/$$commit -); \
-	  set +x; \
-	  if [ -z "$$dev_version" ]; then \
-	    printf "$(RED)==> found no passed dev version for $$commit in S3...$(END)\n"; \
-	    exit 1; \
-	  fi; \
-	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n"; \
-	  set -x; \
-	  $(MAKE) release/promote-oss/.main \
-	    PROMOTE_FROM_VERSION="$$dev_version" \
-	    PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
-	    PROMOTE_TO_VERSION=$(subst +,-,$(hotfix_version)) \
-	    PROMOTE_CHANNEL=hotfix; \
-	}
-# Helm chart and Kubernetes manifests
 	@PS4=; set -e; {
 	  export AWS_ACCESS_KEY_ID=$$(    keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials | sed -n 's/aws_access_key_id=//p'    ); \
 	  export AWS_SECRET_ACCESS_KEY=$$(keybase fs read /keybase/team/datawireio/secrets/aws.s3-bot.cli-credentials | sed -n 's/aws_secret_access_key=//p'); \
 	  set -x; \
-	  $(MAKE) chart-push-ci \
-	    CHART_VERSION_SUFFIX=$$(echo $(hotfix_version) | sed 's/^[^-]*-/-/') \
-	    IMAGE_TAG=$(hotfix_version) \
-	    IMAGE_REPO="$(RELEASE_REGISTRY)/$(REPO)"; \
-	  $(MAKE) --always-make update-yaml; \
-	  $(MAKE) push-manifests    VERSION_OVERRIDE=$(hotfix_version); \
-	  $(MAKE) publish-docs-yaml VERSION_OVERRIDE=$(hotfix_version); \
-	  $(MAKE) clean-manifests; \
+	  $(MAKE) release/promote-oss/.to-rc-or-hf PROMOTE_CHANNEL=hotfix PROMOTE_S3_KEY=passed-pr; \
 	}
 	docker logout
 .PHONY: release/promote-oss/to-hotfix
@@ -914,8 +878,6 @@ release/promote-oss/to-ga:
 	  set -x; \
 	  $(MAKE) release/promote-oss/.main \
 	    PROMOTE_FROM_VERSION="$$dev_version" \
-	    PROMOTE_FROM_REPO=$(DEV_REGISTRY) \
-	    PROMOTE_TO_VERSION="$(RELEASE_VERSION)" \
 	    PROMOTE_CHANNEL=; \
 	}
 .PHONY: release/promote-oss/to-ga

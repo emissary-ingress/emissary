@@ -324,8 +324,8 @@ module_version() {
         dirty=""
     fi
     # The _previous_ tag, plus a git delta, like 'v1.13.3-117-g2434c437f'... or, if we're _on_
-    # a tag, just something like 'v1.13.3'. Don't allow hotfix tags to appear here, though!
-    GIT_DESCRIPTION=$(git describe --tags --match 'v*' --exclude '*-hf.*')
+    # a tag, just something like 'v1.13.3'.
+    GIT_DESCRIPTION=$(git describe --tags --match 'v*')
     echo GIT_DESCRIPTION="\"$GIT_DESCRIPTION\""
 
     # Do we have a '-' in our GIT_DESCRIPTION?
