@@ -218,36 +218,18 @@
                 "additionalProperties": false
             }
         },
-        "generation": {
-            "type": "integer"
+        "modules": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
         },
-        "grpc": {
-            "type": "boolean"
-        },
-        "headers": {
-            "$ref": "#/definitions/mapStrStr"
-        },
-        "host": {
-            "type": "string"
-        },
-        "host_redirect": {
-            "type": "boolean"
-        },
-        "host_regex": {
-            "type": "boolean"
-        },
-        "host_rewrite": {
-            "type": "string"
-        },
-        "hostname": {
-            "type": "string"
-        },
-        "idle_timeout_ms": {
-            "type": "integer"
-        },
-        "kind": {
-            "type": "string"
-        },
+        "host": { "type": "string" },
+        "host_regex": { "type": "boolean" },
+        "hostname": { "type": "string" },
+        "headers": { "$ref": "#/definitions/mapStrStr" },
+        "regex_headers": { "$ref": "#/definitions/mapStrStr" },
+        "respect_dns_ttl": { "type": "boolean" },
         "labels": {
             "type": "object"
         },
@@ -410,6 +392,9 @@
         },
         "resolver": {
             "type": "string"
+        },
+        "respect_dns_ttl": {
+            "type": "boolean"
         },
         "retry_policy": {
             "type": "object",

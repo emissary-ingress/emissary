@@ -62,6 +62,7 @@ class IRCluster (IRResource):
                  load_balancer: Optional[dict] = None,
                  keepalive: Optional[dict] = None,
                  circuit_breakers: Optional[list] = None,
+                 respect_dns_ttl: Optional[bool] = False,
 
                  rkey: str="-override-",
                  kind: str="IRCluster",

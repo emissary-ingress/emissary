@@ -118,6 +118,7 @@ class IRHTTPMapping (IRBaseMapping):
         "remove_request_headers": True,
         "remove_response_headers": True,
         "resolver": False,
+        "respect_dns_ttl": False,
         "retry_policy": False,
         # Do not include rewrite
         "service": False,       # See notes above

@@ -70,6 +70,9 @@ class V2Cluster(Cacheable):
         if cluster.get('stats_name', ''):
             fields['alt_stat_name'] = cluster.stats_name
 
+        if cluster.respect_dns_ttl:
+            fields['respect_dns_ttl'] = cluster.respect_dns_ttl
+
         if ctype == 'EDS':
             fields['eds_cluster_config'] = {
                 'eds_config': {

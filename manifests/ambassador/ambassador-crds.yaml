@@ -54,10 +54,12 @@ spec:
                 type: string
               type: array
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             auth_service:
               type: string
             failure_mode_allow:
@@ -85,8 +87,6 @@ spec:
               - v2
               - v3
               type: string
-            stats_name:
-              type: string
             status_on_error:
               description: Why isn't this just an int??
               properties:
@@ -104,11 +104,14 @@ spec:
           - auth_service
           type: object
       type: object
-  version: v3alpha1
+  version: null
   versions:
-  - name: v3alpha1
+  - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -147,19 +150,24 @@ spec:
             address:
               type: string
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             datacenter:
               type: string
           type: object
       type: object
-  version: v3alpha1
+  version: null
   versions:
-  - name: v3alpha1
+  - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -196,10 +204,12 @@ spec:
           description: DevPortalSpec defines the desired state of DevPortal
           properties:
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             content:
               description: Content specifies where the content shown in the DevPortal come from
               properties:
@@ -235,9 +245,6 @@ spec:
               - namespace.name
               - name.prefix
               type: string
-            preserve_servers:
-              description: Configures this DevPortal to use server definitions from the openAPI doc instead of rewriting them based on the url used for the connection.
-              type: boolean
             search:
               description: DevPortalSearchSpec allows configuration over search functionality for the DevPortal
               properties:
@@ -266,9 +273,9 @@ spec:
               type: object
           type: object
       type: object
-  version: v3alpha1
+  version: null
   versions:
-  - name: v3alpha1
+  - name: v2
     served: true
     storage: true
 ---
@@ -347,45 +354,19 @@ spec:
               description: Common to all Ambassador objects (and optional).
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             ambassadorId:
               description: A compatibility alias for "ambassador_id"; because Host used to be specified with protobuf, and jsonpb allowed either "ambassador_id" or "ambassadorId", and even though we didn't tell people about "ambassadorId" it's what the web policy console generated because of jsonpb.  So Hosts with 'ambassadorId' exist in the wild.
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             hostname:
               description: Hostname by which the Ambassador can be reached.
               type: string
-            mapping_selector:
-              description: Selector for Mappings we'll associate with this Host.
-              properties:
-                matchExpressions:
-                  description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
-                  items:
-                    description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
-                    properties:
-                      key:
-                        description: key is the label key that the selector applies to.
-                        type: string
-                      operator:
-                        description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
-                        type: string
-                      values:
-                        description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
-                        items:
-                          type: string
-                        type: array
-                    required:
-                    - key
-                    - operator
-                    type: object
-                  type: array
-                matchLabels:
-                  additionalProperties:
-                    type: string
-                  description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
-                  type: object
-              type: object
             previewUrl:
               description: Configuration for the Preview URL feature of Service Preview. Defaults to preview URLs not enabled.
               properties:
@@ -414,7 +395,7 @@ spec:
                   type: object
               type: object
             selector:
-              description: 'DEPRECATED: Selector by which we can find further configuration. Use MappingSelector instead.'
+              description: Selector by which we can find further configuration. Defaults to hostname=$hostname
               properties:
                 matchExpressions:
                   description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
@@ -536,9 +517,9 @@ spec:
               type: string
           type: object
       type: object
-  version: v3alpha1
+  version: null
   versions:
-  - name: v3alpha1
+  - name: v2
     served: true
     storage: true
 ---
@@ -577,17 +558,22 @@ spec:
           description: KubernetesEndpointResolver tells Ambassador to use Kubernetes Endpoints resources to resolve services. It actually has no spec other than the AmbassadorID.
           properties:
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
           type: object
       type: object
-  version: v3alpha1
+  version: null
   versions:
-  - name: v3alpha1
+  - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -624,176 +610,22 @@ spec:
           description: KubernetesServiceResolver tells Ambassador to use Kubernetes Service resources to resolve services. It actually has no spec other than the AmbassadorID.
           properties:
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
           type: object
       type: object
-  version: v3alpha1
+  version: null
   versions:
-  - name: v3alpha1
+  - name: v2
     served: true
     storage: true
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  annotations:
-    controller-gen.kubebuilder.io/version: v0.4.1
-  labels:
-    app.kubernetes.io/name: ambassador
-    product: aes
-  name: listeners.getambassador.io
-spec:
-  additionalPrinterColumns:
-  - JSONPath: .spec.port
-    name: Port
-    type: string
-  - JSONPath: .spec.protocol
-    name: Protocol
-    type: string
-  - JSONPath: .spec.protocolStack
-    name: Stack
-    type: string
-  - JSONPath: .spec.statsPrefix
-    name: StatsPrefix
-    type: string
-  - JSONPath: .spec.securityModel
-    name: Security
-    type: string
-  - JSONPath: .spec.l7Depth
-    name: L7Depth
-    type: string
-  group: getambassador.io
-  names:
-    categories:
-    - ambassador-crds
-    kind: Listener
-    listKind: ListenerList
-    plural: listeners
-    singular: listener
-  scope: Namespaced
-  subresources: {}
-  validation:
-    openAPIV3Schema:
-      description: Listener is the Schema for the hosts API
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          description: ListenerSpec defines the desired state of this Port
-          properties:
-            ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-              items:
-                type: string
-              type: array
-            hostBinding:
-              description: HostBinding allows restricting which Hosts will be used for this Listener.
-              properties:
-                namespace:
-                  description: NamespaceBindingType defines we we specify which namespaces to look for Hosts in.
-                  properties:
-                    from:
-                      description: NamespaceFromType defines how we evaluate a NamespaceBindingType.
-                      enum:
-                      - SELF
-                      - ALL
-                      - SELECTOR
-                      type: string
-                  type: object
-                selector:
-                  description: A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
-                  properties:
-                    matchExpressions:
-                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
-                      items:
-                        description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
-                        properties:
-                          key:
-                            description: key is the label key that the selector applies to.
-                            type: string
-                          operator:
-                            description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
-                            type: string
-                          values:
-                            description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
-                            items:
-                              type: string
-                            type: array
-                        required:
-                        - key
-                        - operator
-                        type: object
-                      type: array
-                    matchLabels:
-                      additionalProperties:
-                        type: string
-                      description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
-                      type: object
-                  type: object
-              type: object
-            l7Depth:
-              description: L7Depth specifies how many layer 7 load balancers are between us and the edge of the network.
-              format: int32
-              type: integer
-            port:
-              description: Port is the network port. Only one Listener can use a given port.
-              format: int32
-              maximum: 65535
-              minimum: 1
-              type: integer
-            protocol:
-              description: Protocol is a shorthand for certain predefined stacks. Exactly one of Protocol or ProtocolStack must be supplied.
-              enum:
-              - HTTP
-              - HTTPS
-              - HTTPPROXY
-              - HTTPSPROXY
-              - TCP
-              - TLS
-              - UDP
-              type: string
-            protocolStack:
-              description: ProtocolStack explicitly specifies the protocol stack to set up. Exactly one of Protocol or ProtocolStack must be supplied.
-              items:
-                description: ProtocolStackElement defines specific layers that may be combined in a protocol stack for processing connections to a port.
-                enum:
-                - HTTP
-                - PROXY
-                - TLS
-                - TCP
-                - UDP
-                type: string
-              type: array
-            securityModel:
-              description: SecurityModel specifies how to determine whether connections to this port are secure or insecure.
-              enum:
-              - XFP
-              - SECURE
-              - INSECURE
-              type: string
-            statsPrefix:
-              description: 'StatsPrefix specifies the prefix for statistics sent by Envoy about this Listener. The default depends on the protocol: "ingress-http", "ingress-https", "ingress-tls-$port", or "ingress-$port".'
-              type: string
-          required:
-          - hostBinding
-          - port
-          - securityModel
-          type: object
-      type: object
-  version: v3alpha1
-  versions:
-  - name: v3alpha1
+  - name: v1
     served: true
-    storage: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -830,10 +662,12 @@ spec:
           description: LogServiceSpec defines the desired state of LogService
           properties:
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             driver:
               enum:
               - tcp
@@ -863,15 +697,16 @@ spec:
               type: boolean
             service:
               type: string
-            stats_name:
-              type: string
           type: object
       type: object
-  version: v3alpha1
+  version: null
   versions:
-  - name: v3alpha1
+  - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -947,10 +782,12 @@ spec:
                 type: string
               type: array
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             auth_context_extensions:
               additionalProperties:
                 type: string
@@ -995,28 +832,38 @@ spec:
                 credentials:
                   type: boolean
                 exposed_headers:
+                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
                 headers:
+                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
                 max_age:
                   type: string
                 methods:
+                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
-                  type: array
+                  oneOf:
+                  - type: string
+                  - type: array
                 origins:
-                  items:
-                    type: string
-                  type: array
+                  description: StringLiteralOrStringList is mostly like StringOrStringList, but instead of always forcing a list of strings, it will marshal a string literal as a string.
+                  oneOf:
+                  - type: string
+                  - type: array
               type: object
             dns_type:
               type: string
             docs:
-              description: DocsInfo provides some extra information about the docs for the Mapping. Docs is used by both the agent and the DevPortal.
+              description: DocsInfo provides some extra information about the docs for the Mapping (used by the Dev Portal)
               properties:
                 display_name:
                   type: string
@@ -1084,17 +931,12 @@ spec:
                 - type: boolean
               type: object
             host:
-              description: "Exact match for the hostname of a request if HostRegex is false; regex match for the hostname if HostRegex is true. \n Host specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Host will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used. \n DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead."
               type: string
             host_redirect:
               type: boolean
             host_regex:
-              description: 'DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.'
               type: boolean
             host_rewrite:
-              type: string
-            hostname:
-              description: "Hostname is a DNS glob specifying the hosts to which this Mapping applies. \n Hostname specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Hostname will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used."
               type: string
             idle_timeout_ms:
               type: integer
@@ -1221,13 +1063,19 @@ spec:
                 - type: boolean
               type: object
             remove_request_headers:
+              description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             remove_response_headers:
+              description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             resolver:
               type: string
             respect_dns_ttl:
@@ -1254,8 +1102,6 @@ spec:
               type: string
             shadow:
               type: boolean
-            stats_name:
-              type: string
             timeout_ms:
               description: The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
               type: integer
@@ -1286,11 +1132,14 @@ spec:
               type: string
           type: object
       type: object
-  version: v3alpha1
+  version: null
   versions:
-  - name: v3alpha1
+  - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -1326,22 +1175,25 @@ spec:
         spec:
           properties:
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             config:
               description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
               type: object
-          required:
-          - config
           type: object
       type: object
-  version: v3alpha1
+  version: null
   versions:
-  - name: v3alpha1
+  - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -1381,7 +1233,9 @@ spec:
               description: Common to all Ambassador objects.
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             domain:
               type: string
             protocol_version:
@@ -1390,8 +1244,6 @@ spec:
               - v3
               type: string
             service:
-              type: string
-            stats_name:
               type: string
             timeout_ms:
               type: integer
@@ -1404,11 +1256,14 @@ spec:
           - service
           type: object
       type: object
-  version: v3alpha1
+  version: null
   versions:
-  - name: v3alpha1
+  - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -1447,10 +1302,12 @@ spec:
             address:
               type: string
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             circuit_breakers:
               items:
                 properties:
@@ -1487,8 +1344,6 @@ spec:
               type: string
             service:
               type: string
-            stats_name:
-              type: string
             tls:
               description: BoolOrString is a type that can hold a Boolean or a string.
               oneOf:
@@ -1501,11 +1356,14 @@ spec:
           - service
           type: object
       type: object
-  version: v3alpha1
+  version: null
   versions:
-  - name: v3alpha1
+  - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -1544,10 +1402,12 @@ spec:
             alpn_protocols:
               type: string
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             ca_secret:
               type: string
             cacert_chain_file:
@@ -1594,11 +1454,14 @@ spec:
               type: string
           type: object
       type: object
-  version: v3alpha1
+  version: null
   versions:
-  - name: v3alpha1
+  - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -1635,10 +1498,12 @@ spec:
           description: TracingServiceSpec defines the desired state of TracingService
           properties:
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              type: array
+              oneOf:
+              - type: string
+              - type: array
             config:
               properties:
                 access_token_file:
@@ -1679,8 +1544,6 @@ spec:
               type: object
             service:
               type: string
-            stats_name:
-              type: string
             tag_headers:
               items:
                 type: string
@@ -1690,8 +1553,11 @@ spec:
           - service
           type: object
       type: object
-  version: v3alpha1
+  version: null
   versions:
-  - name: v3alpha1
+  - name: v2
     served: true
     storage: true
+  - name: v1
+    served: true
+    storage: false
