@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"os"
 
@@ -31,19 +30,6 @@ type Args struct {
 	Product     Product
 	KubeVersion *semver.Version
 	InputFiles  []*os.File
-}
-
-func main() {
-	args, err := ParseArgs(os.Args[1:]...)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: error: %v\n", os.Args[0], err)
-		fmt.Fprintf(os.Stderr, "Usage: %s PRODUCT KUBEVERSION [INPUTFILES...]\n", os.Args[0])
-		os.Exit(2)
-	}
-	if err := Main(args, os.Stdout); err != nil {
-		fmt.Fprintf(os.Stderr, "%s: error: %v\n", os.Args[0], err)
-		os.Exit(1)
-	}
 }
 
 func ParseArgs(strs ...string) (Args, error) {

@@ -77,66 +77,6 @@ comma=,
 gomoddir = $(shell cd $(OSS_HOME); go list $1/... >/dev/null 2>/dev/null; go list -m -f='{{.Dir}}' $1)
 
 #
-# Tools we need to install for `make generate`
-
-clobber: _makefile_clobber
-_makefile_clobber:
-	rm -rf $(OSS_HOME)/bin_*/
-.PHONY: _makefile_clobber
-
-GOHOSTOS=$(call lazyonce,GOHOSTOS,$(shell go env GOHOSTOS))
-GOHOSTARCH=$(call lazyonce,GOHOSTARCH,$(shell go env GOHOSTARCH))
-
-# PROTOC_VERSION must be at least 3.8.0 in order to contain the fix so that it doesn't generate
-# invalid Python if you name an Enum member the same as a Python keyword.
-PROTOC_VERSION            = 3.8.0
-PROTOC_PLATFORM           = $(patsubst darwin,osx,$(GOHOSTOS))-$(patsubst amd64,x86_64,$(patsubst 386,x86_32,$(GOHOSTARCH)))
-tools/protoc              = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/bin/protoc
-$(tools/protoc): $(OSS_HOME)/build-aux-local/generate.mk
-	mkdir -p $(dir $(@D))
-	set -o pipefail; curl --fail -L https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip | bsdtar -C $(dir $(@D)) -xf -
-	chmod 755 $@
-
-# The version number of protoc-gen-go is controlled by `./go.mod`.  Additionally, the package name is
-# mentioned in `./pkg/ignore/pin.go`, so that `go mod tidy` won't make the `go.mod` file forget about
-# it.
-tools/protoc-gen-go = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-go
-$(tools/protoc-gen-go): $(OSS_HOME)/go.mod
-	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/golang/protobuf/protoc-gen-go
-
-GRPC_WEB_VERSION          = 1.0.3
-GRPC_WEB_PLATFORM         = $(GOHOSTOS)-x86_64
-tools/protoc-gen-grpc-web = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-grpc-web
-$(tools/protoc-gen-grpc-web): $(OSS_HOME)/build-aux-local/generate.mk
-	mkdir -p $(@D)
-	curl -o $@ -L --fail https://github.com/grpc/grpc-web/releases/download/$(GRPC_WEB_VERSION)/protoc-gen-grpc-web-$(GRPC_WEB_VERSION)-$(GRPC_WEB_PLATFORM)
-	chmod 755 $@
-
-# The version number of protoc-gen-validate is controlled by `./go.mod`.  Additionally, the package
-# name is mentioned in `./pkg/ignore/pin.go`, so that `go mod tidy` won't make the `go.mod` file
-# forget about it.
-tools/controller-gen = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/controller-gen
-$(tools/controller-gen): $(OSS_HOME)/go.mod
-	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ sigs.k8s.io/controller-tools/cmd/controller-gen
-
-tools/fix-crds = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/fix-crds
-$(tools/fix-crds): FORCE
-	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/v2/cmd/fix-crds
-
-tools/go-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/go-mkopensource
-$(tools/go-mkopensource): FORCE
-	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/v2/cmd/go-mkopensource
-
-tools/py-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/py-mkopensource
-$(tools/py-mkopensource): FORCE
-	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/v2/cmd/py-mkopensource
-
-#
 # `make generate` vendor rules
 
 # How to set ENVOY_GO_CONTROL_PLANE_COMMIT: In envoyproxy/go-control-plane.git, the majority of

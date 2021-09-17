@@ -54,6 +54,10 @@ indent_style = tab
 [{*.sh,cluster-claim,cluster-unclaim}]
 indent_style = space
 indent_size = 4
+[docker-promote.sh]
+indent_style = tab
+indent_size = 8
+tab_width = 8
 
 [*.el]
 indent_style = space

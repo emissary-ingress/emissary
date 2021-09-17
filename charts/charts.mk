@@ -1,5 +1,4 @@
 EMISSARY_CHART = $(OSS_HOME)/charts/emissary-ingress
-YQ := $(OSS_HOME)/charts/yq
 thisdir := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 
 
@@ -19,14 +18,11 @@ endef
 
 define _docgen
 	if [[ -f $(1)/doc.yaml ]] ; then \
-		$(thisdir)/docgen -d $(1)/doc.yaml -t $(1)/readme.tpl -v $(1)/values.yaml > $(1)/README.md ; \
+		$(tools/chart-doc-gen) -d $(1)/doc.yaml -t $(1)/readme.tpl -v $(1)/values.yaml > $(1)/README.md ; \
 	fi
 endef
 
-$(thisdir)/docgen: $(thisdir)/chart-doc-gen.d/go.mod
-	cd $(<D) && go build -o $(abspath $@) kubepack.dev/chart-doc-gen
-
-push-preflight: create-venv $(YQ)
+push-preflight: create-venv $(tools/yq)
 	@$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
 .PHONY: push-preflight
 
@@ -56,7 +52,7 @@ chart-push-ci: push-preflight
 		for chart in $(EMISSARY_CHART) ; do \
 			sed -i.bak -E "s/version: ([0-9]+\.[0-9]+\.[0-9]+).*/version: \1${CHART_VERSION_SUFFIX}/g" $$chart/Chart.yaml && rm $$chart/Chart.yaml.bak ; \
 			$(call _set_tag_and_repo,$$chart/values.yaml,${IMAGE_TAG},${IMAGE_REPO}) ; \
-			$(YQ) w -i $$chart/Chart.yaml 'appVersion' ${IMAGE_TAG} ; \
+			$(tools/yq) w -i $$chart/Chart.yaml 'appVersion' ${IMAGE_TAG} ; \
 			$(call _push_chart,`basename $$chart`) ; \
 		done ; \
 	}
@@ -80,19 +76,19 @@ release/changelog:
 	done ;
 .PHONY: release/changelog
 
-release/chart/update-images: $(YQ) $(thisdir)/docgen
+release/chart/update-images: $(tools/yq) $(tools/chart-doc-gen)
 	@[ -n "${IMAGE_TAG}" ] || (echo "IMAGE_TAG must be set" && exit 1)
 	([[ "${IMAGE_TAG}" =~ .*\.0$$ ]] && $(MAKE) release/chart-bump/minor) || $(MAKE) release/chart-bump/revision
 	for chart in $(EMISSARY_CHART) ; do \
 		[[ "${IMAGE_TAG}" =~ .*\-ea$$ ]] && sed -i.bak -E "s/version: ([0-9]+\.[0-9]+\.[0-9]+).*/version: \1-ea/g" $$chart/Chart.yaml && rm $$chart/Chart.yaml.bak ; \
 		$(call _set_tag,$$chart/values.yaml,${IMAGE_TAG}) ; \
-		$(YQ) w -i $$chart/Chart.yaml 'appVersion' ${IMAGE_TAG} ; \
+		$(tools/yq) w -i $$chart/Chart.yaml 'appVersion' ${IMAGE_TAG} ; \
 		IMAGE_TAG="${IMAGE_TAG}" CHART_NAME=`basename $$chart` $(OSS_HOME)/charts/scripts/image_tag_changelog_update.sh ; \
 		CHART_NAME=`basename $$chart` $(OSS_HOME)/charts/scripts/update_chart_changelog.sh ; \
 		$(call _docgen,$$chart) ; \
 	done ;
 
-chart/docgen: $(thisdir)/docgen
+chart/docgen: $(tools/chart-doc-gen)
 	for chart in $(EMISSARY_CHART) ; do \
 		$(call _docgen,$$chart) ; \
 	done ;
@@ -118,6 +114,3 @@ chart-clean:
 			rm -f $$chart/*.tgz $$chart/index.yaml $$chart/tmp.yaml; \
 	done ;
 .PHONY: chart-clean
-
-$(OSS_HOME)/charts/yq:
-	cd $(OSS_HOME)/charts/yq.d/ && go build -o $(abspath $@) github.com/mikefarah/yq/v3
