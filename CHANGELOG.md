@@ -75,6 +75,20 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [2.0.4-ea] (TBD)
+[2.0.4-ea]: https://github.com/emissary-ingress/emissary/releases/v2.0.4-ea
+
+We're pleased to introduce Emissary-ingress 2.0.3 as a _developer preview_. The 2.X family
+introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
+installations, reduce global configuration to better handle multitenant or multiorganizational
+installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on
+<a href="https://a8r.io/slack">Slack</a> and let us know what you think.
+
+## Emissary-ingress
+
+- Bugfix: The release now shows its actual released version number, rather than the internal development
+  version number.
+
 ## [2.0.3-ea] (TBD)
 [2.0.3-ea]: https://github.com/emissary-ingress/emissary/releases/v2.0.3-ea
 
@@ -210,7 +224,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
   higher-performance implementation of the code that Emissary-ingress uses to generate and validate
   Envoy configurations.
 
-- Change: Service Preview and the `AGENT_SERVICE` environment variable are no longer supported.  The
+- Change: Service Preview and the `AGENT_SERVICE` environment variable are no longer supported. The
   Telepresence product replaces this functionality.
 
 - Change: The `edgectl` CLI tool has been deprecated; please use the `emissary-ingress` helm chart instead.

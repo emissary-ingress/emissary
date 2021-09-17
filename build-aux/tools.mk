@@ -23,6 +23,7 @@ clobber-tools:
 # =============
 #
 tools/copy-ifchanged      = $(tools.bindir)/copy-ifchanged
+tools/docker-promote      = $(tools.bindir)/docker-promote
 tools/move-ifchanged      = $(tools.bindir)/move-ifchanged
 tools/tap-driver          = $(tools.bindir)/tap-driver
 tools/write-dockertagfile = $(tools.bindir)/write-dockertagfile

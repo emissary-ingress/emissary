@@ -717,7 +717,7 @@ RELEASE_VERSION=$$($(BUILDER) release-version)
 BUILD_VERSION=$$($(BUILDER) version)
 IS_DIRTY=$$($(BUILDER) is-dirty)
 
-release/promote-oss/.main:
+release/promote-oss/.main: $(tools/docker-promote)
 	@[[ "$(RELEASE_VERSION)"      =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET RELEASE_VERSION"; exit 1)
 	@[[ -n "$(PROMOTE_FROM_VERSION)" ]] || (echo "MUST SET PROMOTE_FROM_VERSION"; exit 1)
 	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET PROMOTE_TO_VERSION" ; exit 1)
@@ -736,8 +736,7 @@ release/promote-oss/.main:
 			exit 1; \
 		fi ; \
 		printf '  $(CYN)$${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION)$(END)\n' ; \
-		docker pull $${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION) && \
-		docker tag $${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) && \
+		$(tools/docker-promote) $${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) && \
 		docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) ;\
 	}
 
