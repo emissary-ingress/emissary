@@ -75,7 +75,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [2.0.3-ea] September 16, 2021
+## [2.0.3-ea] (2021-09-16)
 [2.0.3-ea]: https://github.com/emissary-ingress/emissary/releases/v2.0.3-ea
 
 We're pleased to introduce Emissary-ingress 2.0.3 as a _developer preview_. The 2.X family
