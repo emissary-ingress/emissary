@@ -9,7 +9,7 @@ If you don't work at Datawire, this document is probably not going to help you. 
 
 If you're still reading, you must be at Datawire. Congrats, you picked a fine place to work! To release Ambassador, you'll need credentials for our Github repos.
 
-Note. PRs will pile up on `master`. **Don't accept PRs for which CI doesn't show passing tests.** 
+Note. PRs will pile up on `master`. **Don't accept PRs for which CI doesn't show passing tests.**
 When we get to the stage of creating a release, all the PRs that we want to merge will have been merged
 and the CI will be green.
 
@@ -19,7 +19,7 @@ and the CI will be green.
 
 2. The RC tag will trigger CI to run a new build and new tests. It had better pass: if not, figure out why. Monitor https://travis-ci.com/datawire/amabassador/ until the CI for ambassador completes and is green.
 
-3. The RC build will be available as e.g. `docker.io/datawire/ambassador:0.77.0-rc.1` and also as e.g. `docker.io/datawire/ambassador:0.77.0-rc-latest`. Any other testing you want to do against this image, rock on.
+3. The RC build will be available as e.g. `docker.io/datawire/ambassador:0.77.0-rc.1`. Any other testing you want to do against this image, rock on.
 
 4. When you're happy that the RC is ready for GA, **first** assemble the list of changes that you'll put into CHANGELOG.md: (Note: place this list in a separate file, maybe `~/temp-list.txt`, but definitely not in CHANGELOG.md at this time.
    - We always call out things contributed by the community, including who committed it
@@ -82,4 +82,3 @@ and the CI will be green.
       - If you want to test before submitting, use `yarn install && yarn start` and point a web browser to `localhost:8000`
 
    Submit a PR to the Ambassador website repository to update the version on the homepage. Details can be found there on specifically how to do that.
-

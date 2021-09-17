@@ -708,7 +708,6 @@ shell: docker/container.txt
 .PHONY: shell
 
 AMB_IMAGE_RC=$(RELEASE_REGISTRY)/$(REPO):$(RELEASE_VERSION)
-AMB_IMAGE_RC_LATEST=$(RELEASE_REGISTRY)/$(REPO):$(BUILD_VERSION)-rc-latest
 AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/$(REPO):$(BUILD_VERSION)
 
 export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/env variable to the docker registry\n       you would like to use for release$(END)
@@ -803,18 +802,6 @@ release/print-test-artifacts:
 		echo "export HELM_CHART_VERSION=`grep 'version' $(OSS_HOME)/charts/emissary-ingress/Chart.yaml | awk '{ print $$2 }'`" ; \
 	}
 .PHONY: release/print-test-artifacts
-
-# To be run from a checkout at the tag you are promoting _from_.
-# At present, this is to be run by-hand.
-release/promote-oss/to-rc-latest:
-	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
-	@{ $(MAKE) release/promote-oss/.main \
-	  PROMOTE_FROM_VERSION="$(RELEASE_VERSION)" \
-	  PROMOTE_TO_VERSION="$$(echo "$(RELEASE_VERSION)" | sed 's/-rc.*/-rc-latest/')" \
-	  PROMOTE_CHANNEL=test \
-	; }
-.PHONY: release/promote-oss/to-rc-latest
 
 # just push the commit hash to s3
 # this should only happen if all tests have passed at a certain commit
@@ -1113,8 +1100,6 @@ define _help.targets
 
   $(BLD)$(MAKE) $(BLU)shell$(END)        -- starts a shell in the build container
 
-  $(BLD)$(MAKE) $(BLU)release/promote-oss/to-rc-latest$(END) -- promote a release candidate '-rc.N' release to '-rc-latest'
-
     The current commit must be tagged for this to work, and your tree must be clean.
     Additionally, the tag must be of the form 'vX.Y.Z-rc.N'. You must also have previously
     built an RC for the same tag using $(BLD)release/bits$(END).
@@ -1123,8 +1108,7 @@ define _help.targets
 
     The current commit must be tagged for this to work, and your tree must be clean.
     Additionally, the tag must be of the form 'vX.Y.Z'. You must also have previously
-    built and promoted the RC that will become GA, using $(BLD)release/bits$(END) and
-    $(BLD)release/promote-oss/to-rc-latest$(END).
+    built and promoted the RC that will become GA, using $(BLD)release/bits$(END).
 
   $(BLD)$(MAKE) $(BLU)clean$(END)     -- kills the build container.
 
