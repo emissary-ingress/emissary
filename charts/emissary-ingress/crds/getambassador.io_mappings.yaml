@@ -358,6 +358,8 @@ spec:
               type: array
             resolver:
               type: string
+            respect_dns_ttl:
+              type: boolean
             retry_policy:
               properties:
                 num_retries:

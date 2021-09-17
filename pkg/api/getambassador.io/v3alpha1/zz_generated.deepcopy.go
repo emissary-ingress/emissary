@@ -1815,6 +1815,11 @@ func (in *MappingSpec) DeepCopyInto(out *MappingSpec) {
 		*out = new(RetryPolicy)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.RespectDNSTTL != nil {
+		in, out := &in.RespectDNSTTL, &out.RespectDNSTTL
+		*out = new(bool)
+		**out = **in
+	}
 	if in.GRPC != nil {
 		in, out := &in.GRPC, &out.GRPC
 		*out = new(bool)
