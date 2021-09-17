@@ -111,7 +111,6 @@ MODULES :=
 module = $(eval MODULES += $(1))$(eval SOURCE_$(1)=$(abspath $(2)))
 
 BUILDER = BUILDER_NAME=$(BUILDER_NAME) $(abspath $(BUILDER_HOME)/builder.sh)
-DBUILD = $(abspath $(BUILDER_HOME)/dbuild.sh)
 COPY_GOLD = $(abspath $(BUILDER_HOME)/copy-gold.sh)
 
 AWS_S3_BUCKET ?= datawire-static-files
@@ -276,20 +275,17 @@ docker/base-envoy.docker.stamp: FORCE
 	    docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@; \
 	  fi; \
 	}
-docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker python/ambassador.version $(BUILDER_HOME)/Dockerfile FORCE
-	@set -e; { \
-	    printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"; \
-	    printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"; \
-	    printf "    ${BLU}builderbase=$$(cat $*/builder-base.docker)${END}\n"; \
-	    TIMEFORMAT="     (docker build took %1R seconds)"; \
-	    time ${DBUILD} -f ${BUILDER_HOME}/Dockerfile . \
-	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	      --build-arg=version="$(BUILD_VERSION)" \
-	      --target=ambassador \
-	      --iidfile=$@; \
-	    unset TIMEFORMAT; \
-	}
+docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker python/ambassador.version $(BUILDER_HOME)/Dockerfile $(tools/dsum) FORCE
+	@printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"
+	@printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"
+	@printf "    ${BLU}builderbase=$$(cat $*/builder-base.docker)${END}\n"
+	{ $(tools/dsum) '$(LCNAME) build' 3s \
+	  docker build -f ${BUILDER_HOME}/Dockerfile . \
+	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
+	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	    --build-arg=version="$(BUILD_VERSION)" \
+	    --target=ambassador \
+	    --iidfile=$@; }
 
 docker/$(LCNAME)-ea.docker.stamp: %/$(LCNAME)-ea.docker.stamp: %/$(LCNAME).docker FORCE
 	@set -e; { \
@@ -297,28 +293,22 @@ docker/$(LCNAME)-ea.docker.stamp: %/$(LCNAME)-ea.docker.stamp: %/$(LCNAME).docke
 	  cat docker/$(LCNAME).docker > $@; \
 	}
 
-docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
-	@set -e; { \
-	  printf "${CYN}==> ${GRN}Building image ${BLU}kat-client${END}\n"; \
-	  TIMEFORMAT="     (kat-client build took %1R seconds)"; \
-	  time ${DBUILD} -f ${BUILDER_HOME}/Dockerfile . \
+docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile $(tools/dsum) FORCE
+	@printf "${CYN}==> ${GRN}Building image ${BLU}kat-client${END}\n"
+	{ $(tools/dsum) 'kat-client build' 3s \
+	  docker build -f ${BUILDER_HOME}/Dockerfile . \
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
 	    --target=kat-client \
-	    --iidfile=$@; \
-	  unset TIMEFORMAT; \
-	}
-docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
-	@set -e; { \
-	  printf "${CYN}==> ${GRN}Building image ${BLU}kat-server${END}\n"; \
-	  TIMEFORMAT="     (kat-server build took %1R seconds)"; \
-	  time ${DBUILD} -f ${BUILDER_HOME}/Dockerfile . \
+	    --iidfile=$@; }
+docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile $(tools/dsum) FORCE
+	@printf "${CYN}==> ${GRN}Building image ${BLU}kat-server${END}\n"
+	{ $(tools/dsum) 'kat-server build' 3s \
+	  docker build -f ${BUILDER_HOME}/Dockerfile . \
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
 	    --target=kat-server \
-	    --iidfile=$@; \
-	  unset TIMEFORMAT; \
-	}
+	    --iidfile=$@; }
 
 REPO=$(BUILDER_NAME)
 
