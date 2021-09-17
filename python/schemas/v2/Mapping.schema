@@ -207,6 +207,7 @@
         "host_regex": { "type": "boolean" },
         "headers": { "$ref": "#/definitions/mapStrStr" },
         "regex_headers": { "$ref": "#/definitions/mapStrStr" },
+        "respect_dns_ttl": { "type": "boolean" },
         "labels": {
             "type": "object"
         },
