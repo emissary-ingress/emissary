@@ -13,6 +13,7 @@ def has_open_pr(gh_repo: str, base: str, branchname: str) -> bool:
     conn.request("GET", f"/repos/{gh_repo}/pulls?base={base}", headers={"User-Agent":"python"})
     r1 = conn.getresponse()
     body = r1.read()
+    print(body)
     json_body = json.loads(body)
     for pr_info in json_body:
         if pr_info.get('head',{}).get('ref') == branchname:
