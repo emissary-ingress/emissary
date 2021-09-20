@@ -39,6 +39,14 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/execute-generate
         name: "execute generate action"
+  check-envoy-version:
+    name: "check-envoy-version"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - run: make check-envoy-version
   go-tests:
     runs-on: ubuntu-latest
     strategy:
@@ -175,6 +183,7 @@ jobs:
       - lint-test
       - job-image
       - generate
+      - check-envoy-version
       - go-tests
       - pytests
       - pytest-unit

@@ -613,13 +613,15 @@ I'd put this in in the pull request template, but so few PRs change Envoy...
 
  - [ ] The image has been pushed to...
    * [ ] `docker.io/datawire/ambassador-base`
-   * [ ] `quay.io/datawire/ambassador-base`
    * [ ] `gcr.io/datawire/ambassador-base`
  - [ ] The envoy.git commit has been tagged as `datawire-$(git
    describe --tags --match='v*')` (the `--match` is to prevent
    `datawire-*` tags from stacking on each other).
  - [ ] It's been tested with...
    * [ ] `make check-envoy`
+
+The `check-envoy-version` CI job should check all of those things,
+except for `make check-envoy`.
 
 How do I test Ambassador when using a private Docker repository?
 ----------------------------------------------------------------
