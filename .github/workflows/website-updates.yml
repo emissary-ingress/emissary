@@ -12,6 +12,7 @@ jobs:
       REF: ${{ github.ref }}
       RUN: ${{ github.run_id }}
       PUSH_ID: ${{ github.event.push_id }}
+      WEB_REPO: ${{ secrets.WEBSITE_REPO }}
       GH_TAIL_REF: ${{ github.event.before }}
       GIT_API_KEY: ${{ secrets.GH_API_KEY }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -34,16 +35,16 @@ jobs:
       - name: Get website repo
         shell: bash
         run: |
-          git clone git@github.com:datawire/getambassador.io.git -o /tmp/getambassador.io
+          git clone git@github.com:$WEB_REPO /tmp/getambassador.io
       - name: Get version
         shell: bash
         id: version
         run: |
           yq eval .items.0.version docs/releaseNotes.yml
-      - name: Get released item
-        shell: bash
-        run: |
-          yq eval .items.0 docs/releaseNotes.yml > /tmp/item.yml
+      #- name: Get released item
+      #  shell: bash
+      #  run: |
+      #    yq eval .items.0 docs/releaseNotes.yml > /tmp/item.yml
       # TODO: fix broken subtrees in docs repo and call a script to update .Y release
       - name: Temporarily block .Y releases
         shell: bash
@@ -56,36 +57,29 @@ jobs:
           set -x
           export LONG=${{jobs.version.outputs}}
           export SHORT=${LONG:0:3}
-          yq eval-all '. as $item ireduce ({}; . * $item)' \
-              /tmp/getambassador.io/ambassador-docs/docs/emissary/$SHORT/releaseNotes.yml /tmp/item.yml \
-              > /tmp/getambassador.io/ambassador-docs/docs/emissary/$SHORT/releaseNotes.yml
-
-          yq eval-all '. as $item ireduce ({}; . * $item)' \
-              /tmp/getabmassador.io/ambassador-docs/docs/edge-stack/$SHORT/releaseNotes.yml /tmp/item.yml \
-              > /tmp/getambassador.io/ambassador-docs/docs/edge-stack/$SHORT/releaseNotes.yml
-
+          #export ITEM=$(cat /tmp/item.yml)
+          #yq eval-all '.items |= [env(ITEM)] + .' /tmp/getambassador.io/ambassador-docs/docs/edge-stack/$SHORT/releaseNotes.yml
+          #yq eval-all '.items |= [env(ITEM)] + .' /tmp/getambassador.io/ambassador-docs/docs/emissary/$SHORT/releaseNotes.yml
+          cp docs/releaseNotes.yml /tmp/getambassador.io/ambassador-docs/docs/edge-stack/$SHORT/releaseNotes.yml
+          cp docs/releaseNotes.yml /tmp/getambassador.io/ambassador-docs/docs/emissary/$SHORT/releaseNotes.yml
+          
       - name: Prerelease docs update
         shell: bash
+        # according to Luke this will hit only and all pre-releases
         if: contains(jobs.version.outputs, "-")
-        is_skippable: true
         run: |
-          set -x
-          [[ "${{jobs.version.outputs}}" == "2."* ]]
-          yq eval-all '. as $item ireduce ({}; . * $item)' \
-              /tmp/ambassador-docs/docs/emissary/pre-release/releaseNotes.yml /tmp/item.yml \
-              > /tmp/ambassador-docs/docs/emissary/pre-release/releaseNotes.yml
+          #export ITEM=$(cat /tmp/item.yml)
+          #yq eval-all '.items |= [env(GITEM)] + .' /tmp/getambassador.io/ambassador-docs/docs/edge-stack/pre-release/releaseNotes.yml
+          #yq eval-all '.items |= [env(GITEM)] + .' /tmp/getambassador.io/ambassador-docs/docs/emissary/pre-release/releaseNotes.yml
+          cp docs/releaseNotes.yml /tmp/getambassador.io/ambassador-docs/docs/edge-stack/pre-release/releaseNotes.yml
+          cp docs/releaseNotes.yml /tmp/getambassador.io/ambassador-docs/docs/emissary/pre-release/releaseNotes.yml
 
-          yq eval-all '. as $item ireduce ({}; . * $item)' \
-              /tmp/ambassador-docs/docs/edge-stack/$SHORT/releaseNotes.yml /tmp/item.yml \
-              > /tmp/ambassador-docs/docs/edge-stack/$SHORT/releaseNotes.yml
-          
       - name: Update website repo
         shell: bash
         run: |
           pushd /tmp/getambassador.io
           git checkout -b rel/edge-stack/v${{jobs.version.outputs}}
-          git subtree pull --prefix ambassador-docs https://github.com/datawire/ambassador-docs.git master
-          # TODO: need a git add here?
+          git add .
           git commit -s -m "Update ambassador-docs subtree to latest following Edge Stack ${{jobs.version.outputs}} release"
           git push --set-upstream origin rel/edge-stack/v${{jobs.version.outputs}}
           echo "${GITHUB_TOKEN}" > temp_credential
