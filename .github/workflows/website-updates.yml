@@ -26,6 +26,11 @@ jobs:
         shell: bash
         run: |
           snap install yq
+      - NAME: Install git subtree
+        shell: bash
+        run: |
+          sudo curl -fL https://raw.githubusercontent.com/LukeShu/git/lukeshu/next/2021-05-15/contrib/subtree/git-subtree.sh -o $$(git --exec-path)/git-subtree && sudo chmod 755 $$(git --exec-path)/git-subtree
+
       - name: Git setup
         shell: bash
         run: |
