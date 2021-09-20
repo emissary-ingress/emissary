@@ -285,6 +285,7 @@ class IRCluster (IRResource):
             'connect_timeout_ms': connect_timeout_ms,
             'cluster_idle_timeout_ms': cluster_idle_timeout_ms,
             'cluster_max_connection_lifetime_ms': cluster_max_connection_lifetime_ms,
+            'respect_dns_ttl': respect_dns_ttl,
         }
 
         if grpc:
