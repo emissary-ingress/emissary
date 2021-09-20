@@ -1,0 +1,8 @@
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
+metadata:
+  name: catch-all
+spec:
+  prefix: /
+  service: https://example.com/

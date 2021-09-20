@@ -44,7 +44,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: ambassador-agent-cloud-token
-  namespace: ambassador
+  name: emissary-ingress-agent-cloud-token
+  namespace: emissary
 data:
   CLOUD_CONNECT_TOKEN: sometoken
