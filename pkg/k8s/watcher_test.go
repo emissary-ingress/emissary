@@ -1,6 +1,7 @@
 package k8s_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -8,6 +9,7 @@ import (
 
 	"github.com/datawire/ambassador/v2/pkg/dtest"
 	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/dlib/dlog"
 )
 
 const (
@@ -37,13 +39,14 @@ func fetch(w *k8s.Watcher, resource, qname string) (result k8s.Resource) {
 	return result
 }
 
-func info() *k8s.KubeInfo {
-	return k8s.NewKubeInfo(dtest.Kubeconfig(), "", "")
+func info(ctx context.Context) *k8s.KubeInfo {
+	return k8s.NewKubeInfo(dtest.Kubeconfig(ctx), "", "")
 }
 
 func TestUpdateStatus(t *testing.T) {
 	t.Parallel()
-	w := k8s.MustNewWatcher(info())
+	ctx := dlog.NewTestContext(t, false)
+	w := k8s.MustNewWatcher(info(ctx))
 
 	svc := fetch(w, "services", "kubernetes.default")
 	svc.Status()["loadBalancer"].(map[string]interface{})["ingress"] = []map[string]interface{}{{"hostname": "foo", "ip": "1.2.3.4"}}
@@ -55,7 +58,7 @@ func TestUpdateStatus(t *testing.T) {
 		t.Logf("updated %s status, result: %v\n", svc.QName(), result.ResourceVersion())
 	}
 
-	svc = fetch(k8s.MustNewWatcher(info()), "services", "kubernetes.default")
+	svc = fetch(k8s.MustNewWatcher(info(ctx)), "services", "kubernetes.default")
 	ingresses := svc.Status()["loadBalancer"].(map[string]interface{})["ingress"].([]interface{})
 	ingress := ingresses[0].(map[string]interface{})
 	if ingress["hostname"] != "foo" {
@@ -69,7 +72,8 @@ func TestUpdateStatus(t *testing.T) {
 
 func TestWatchCustom(t *testing.T) {
 	t.Parallel()
-	w := k8s.MustNewWatcher(info())
+	ctx := dlog.NewTestContext(t, false)
+	w := k8s.MustNewWatcher(info(ctx))
 
 	// XXX: we can only watch custom resources... k8s doesn't
 	// support status for CRDs until 1.12
@@ -86,7 +90,8 @@ func TestWatchCustom(t *testing.T) {
 
 func TestWatchCustomCollision(t *testing.T) {
 	t.Parallel()
-	w := k8s.MustNewWatcher(info())
+	ctx := dlog.NewTestContext(t, false)
+	w := k8s.MustNewWatcher(info(ctx))
 
 	easter := fetch(w, "csrv", "easter.default")
 	if easter == nil {
@@ -102,7 +107,8 @@ func TestWatchCustomCollision(t *testing.T) {
 
 func TestWatchQuery(t *testing.T) {
 	t.Parallel()
-	w := k8s.MustNewWatcher(info())
+	ctx := dlog.NewTestContext(t, false)
+	w := k8s.MustNewWatcher(info(ctx))
 
 	services := []string{}
 	err := w.WatchQuery(k8s.Query{
