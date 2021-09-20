@@ -109,8 +109,8 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           status: ${{ job.status }}
-          success_text: "Created docs PR for v${{jobs.version.outputs}}"
-          failure_text: "Failed somehow"
+          success_text: "Created website update PR for v${{jobs.version.outputs}}"
+          failure_text: "Website update PR failed"
           fields: |
             [{ "title": "Repository", "value": "${env.GITHUB_REPOSITORY}", "short": true },
              { "title": "Branch", "value": "${env.GITHUB_REF}", "short": true}]
