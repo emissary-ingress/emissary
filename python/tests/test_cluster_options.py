@@ -69,7 +69,6 @@ def test_logical_dns_type_wrong():
         _test_cluster_setting(yaml, setting="type", 
             expected="EDS", exists=True, envoy_version=v)
 
-
 @pytest.mark.compilertest
 def test_dns_ttl():
     # Test configuring the respect_dns_ttl generates an Envoy config
