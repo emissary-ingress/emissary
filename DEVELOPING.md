@@ -374,6 +374,41 @@ If you're concerned that the cache is somehow wrong (or if you just want the
 daemon to not be there any more), `make mypy-clean` will stop the daemon
 and clear the cache.
 
+How do I debug "This should not happen in CI" errors?
+-----------------------------------------------------
+
+These checks indicate that some output file changed in the middle of a
+run, when it should only change if a source file has changed.  Since
+CI isn't editing the source files, this shouldn't happen in CI!
+
+This is problematic because it means that running the build multiple
+times can give different results, and that the tests are probably not
+testing the same image that would be released.
+
+These checks will show you a patch showing how the output file
+changed; it is up to you to figure out what is happening in the
+build/test system that would cause that change in the middle of a run.
+For the most part, this is pretty simple... except when the output
+file is a Docker image; you just see that one image hash is different
+than another image hash.
+
+Fortunately, the failure showing the changed image hash is usually
+immediately preceeded by a `docker build`.  Earlier in the CI output,
+you should find an identical `docker build` command from the first time it
+ran.  In the second `docker build`'s output, each step should say
+`---> Using cache`; the first few steps will say this, but at some
+point later steps will stop saying this; find the first step that is
+missing the `---> Using cache` line, and try to figure out what could
+have changed between the two runs that would cause it to not use the
+cache.
+
+If that step is an `ADD` command that is adding a directory, the
+problem is probably that you need to add something to `.dockerignore`.
+To help figure out what you need to add, try adding a `RUN find
+DIRECTORY -exec ls -ld -- {} +` step after the `ADD` step, so that you
+can see what it added, and see what is different on that between the
+first and second `docker build` commands.
+
 How do I make documentation-only changes?
 -----------------------------------------
 
