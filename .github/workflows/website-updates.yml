@@ -7,7 +7,9 @@ on:
 jobs:
   repatriate-to-lts:
     runs-on: ubuntu-latest
+
     name: repatriate-to-lts
+    
     env:
       REF: ${{ github.ref }}
       RUN: ${{ github.run_id }}
@@ -18,10 +20,20 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GIT_USER_NAME: ${{ secrets.GH_AUTO_USER }}
       GIT_USER_EMAIL: ${{ secrets.GH_AUTO_EMAIL }}
+
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+
+      - name: Git setup
+        shell: bash
+        run: |
+          git config --global user.email "$GIT_USER_EMAIL"
+          git config --global user.name "$GIT_USER_NAME"
+          git config --global --remove-section url."ssh://git@github.com" || true
+          git config --global "url.https://$GIT_API_KEY@github.com.insteadof" https://github.com
+          
       - name: Get yq
         shell: bash
         run: |
@@ -32,23 +44,16 @@ jobs:
         run: |
           sudo curl -fL https://raw.githubusercontent.com/LukeShu/git/lukeshu/next/2021-05-15/contrib/subtree/git-subtree.sh -o $(git --exec-path)/git-subtree && sudo chmod 755 $(git --exec-path)/git-subtree
 
-      - name: Git setup
-        shell: bash
-        run: |
-          git config --global user.email "$GIT_USER_EMAIL"
-          git config --global user.name "$GIT_USER_NAME"
-          git config --global "url.https://$GIT_API_KEY@github.com.insteadof" https://github.com
-
       - name: Get website repo
         shell: bash
         run: |
-          git clone git@github.com:$WEB_REPO /tmp/getambassador.io
+          git clone https://github.com/$WEB_REPO.git /tmp/getambassador.io
 
       - name: Get version
         shell: bash
         id: version
         run: |
-          yq eval .items.0.version docs/releaseNotes.yml
+          echo "::set-output name=version::$(yq eval .items.0.version docs/releaseNotes.yml)"
 
       #- name: Get released item
       #  shell: bash
@@ -59,14 +64,14 @@ jobs:
       - name: Temporarily block .Y releases
         shell: bash
         run: |
-          [[ ! "${{job.version.outputs}}" ==  *.0 ]]
-          [[ ! "${{job.version.outputs}}" == *.0-* ]]
+          [[ ! "${{steps.version.outputs.version}}" ==  *.0 ]]
+          [[ ! "${{steps.version.outputs.version}}" == *.0-* ]]
 
       - name: Insert new version notes into docs repo
         shell: bash
         run: |
           set -x
-          export LONG=${{job.version.outputs}}
+          export LONG=${{steps.version.outputs.version}}
           export SHORT=${LONG:0:3}
           #export ITEM=$(cat /tmp/item.yml)
           #yq eval-all '.items |= [env(ITEM)] + .' /tmp/getambassador.io/ambassador-docs/docs/edge-stack/$SHORT/releaseNotes.yml
@@ -77,7 +82,7 @@ jobs:
       - name: Prerelease docs update
         shell: bash
         # according to Luke this will hit only and all pre-releases
-        if: contains(job.version.outputs, '-')
+        if: contains(steps.version.outputs.version, '-')
         run: |
           #export ITEM=$(cat /tmp/item.yml)
           #yq eval-all '.items |= [env(GITEM)] + .' /tmp/getambassador.io/ambassador-docs/docs/edge-stack/pre-release/releaseNotes.yml
@@ -89,17 +94,17 @@ jobs:
         shell: bash
         run: |
           pushd /tmp/getambassador.io
-          git checkout -b rel/edge-stack/v${{job.version.outputs}}
+          git checkout -b rel/edge-stack/v${{steps.version.outputs.version}}
           git add .
-          git commit -s -m "Update ambassador-docs subtree to latest following Edge Stack ${{job.version.outputs}} release"
-          git push --set-upstream origin rel/edge-stack/v${{job.version.outputs}}
+          git commit -s -m "Update ambassador-docs subtree to latest following Edge Stack ${{steps.version.outputs.version}} release"
+          git push --set-upstream origin rel/edge-stack/v${{steps.version.outputs.version}}
           echo "${GITHUB_TOKEN}" > temp_credential
           # GH does NOT want this in the env
           export GITHUB_TOKEN=
           cat temp_credential | gh auth login --with-token
           rm temp_credential
-          gh pr create --title "[CI] [v${{job.version.outputs}}] Release Branch" \
-                       --body "This PR contains updates from Edgissary release ${{job.version.outputs}}" \
+          gh pr create --title "[CI] [v${{steps.version.outputs.version}}] Release Branch" \
+                       --body "This PR contains updates from Edgissary release ${{steps.version.outputs.version}}" \
                        --base master
 
       - name: Push docs
@@ -115,7 +120,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           status: ${{ job.status }}
-          success_text: "Created website update PR for v${{job.version.outputs}}"
+          success_text: "Created website update PR for v${{steps.version.outputs.version}}"
           failure_text: "Website update PR failed"
           fields: |
             [{ "title": "Repository", "value": "${env.GITHUB_REPOSITORY}", "short": true },
