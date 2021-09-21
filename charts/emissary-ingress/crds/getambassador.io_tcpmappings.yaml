@@ -98,4 +98,7 @@ spec:
   versions:
   - name: v2
     served: true
+    storage: false
+  - name: v3alpha1
+    served: true
     storage: true
