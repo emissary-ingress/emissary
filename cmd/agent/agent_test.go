@@ -197,7 +197,26 @@ func setup(t *testing.T, ctx context.Context, kubeconfig string, cli *kates.Clie
 		},
 	}
 
-	patch := fmt.Sprintf(`{"spec":{"template":{"spec":{"containers":[{"name":"agent","env":[{"name":"%s", "value":"%s"}]}]}}}}`, "RPC_CONNECTION_ADDRESS", "http://agentcom-server.default:8080/")
+	patch, err := json.Marshal(map[string]interface{}{
+		"spec": map[string]interface{}{
+			"template": map[string]interface{}{
+				"spec": map[string]interface{}{
+					"containers": []interface{}{
+						map[string]interface{}{
+							"env": []interface{}{
+								map[string]interface{}{
+									"name":  "RPC_CONNECTION_ADDRESS",
+									"value": "http://agentcom-server.default:8080/",
+								},
+							},
+							"name": "agent",
+						},
+					},
+				},
+			},
+		},
+	})
+	assert.NoError(t, err)
 	assert.NoError(t, cli.Patch(ctx, dep, kates.StrategicMergePatchType, []byte(patch), dep))
 }
 
