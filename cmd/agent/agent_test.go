@@ -11,15 +11,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datawire/dlib/dexec"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/datawire/ambassador/pkg/api/agent"
-	"github.com/datawire/ambassador/pkg/dtest"
-	"github.com/datawire/ambassador/pkg/k8s"
-	"github.com/datawire/ambassador/pkg/kates"
-	"github.com/datawire/ambassador/pkg/kubeapply"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
+	"github.com/datawire/ambassador/v2/pkg/api/agent"
+	"github.com/datawire/ambassador/v2/pkg/dtest"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kubeapply"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	"github.com/datawire/dlib/dexec"
+	"github.com/datawire/dlib/dlog"
 )
 
 // This test is supposed to be a very lightweight end to end test.
@@ -28,7 +29,7 @@ import (
 // you can point it at your own cluster by running `go test` with env var `DTEST_KUBECONFIG=$HOME/.kube/config`
 // More complicated business logic tests live in ambassador.git/pkg/agent
 func TestAgentE2E(t *testing.T) {
-	kubeconfig := dtest.Kubeconfig()
+	kubeconfig := dtest.Kubeconfig(dlog.NewTestContext(t, false))
 	cli, err := kates.NewClient(kates.ClientConfig{Kubeconfig: kubeconfig})
 	assert.Nil(t, err)
 	// applies all k8s yaml to dtest cluter
