@@ -25,11 +25,12 @@ jobs:
       - name: Get yq
         shell: bash
         run: |
-          snap install yq
-      - NAME: Install git subtree
+          sudo snap install yq
+
+      - name: Install git subtree
         shell: bash
         run: |
-          sudo curl -fL https://raw.githubusercontent.com/LukeShu/git/lukeshu/next/2021-05-15/contrib/subtree/git-subtree.sh -o $$(git --exec-path)/git-subtree && sudo chmod 755 $$(git --exec-path)/git-subtree
+          sudo curl -fL https://raw.githubusercontent.com/LukeShu/git/lukeshu/next/2021-05-15/contrib/subtree/git-subtree.sh -o $(git --exec-path)/git-subtree && sudo chmod 755 $(git --exec-path)/git-subtree
 
       - name: Git setup
         shell: bash
@@ -37,30 +38,35 @@ jobs:
           git config --global user.email "$GIT_USER_EMAIL"
           git config --global user.name "$GIT_USER_NAME"
           git config --global "url.https://$GIT_API_KEY@github.com.insteadof" https://github.com
+
       - name: Get website repo
         shell: bash
         run: |
           git clone git@github.com:$WEB_REPO /tmp/getambassador.io
+
       - name: Get version
         shell: bash
         id: version
         run: |
           yq eval .items.0.version docs/releaseNotes.yml
+
       #- name: Get released item
       #  shell: bash
       #  run: |
       #    yq eval .items.0 docs/releaseNotes.yml > /tmp/item.yml
       # TODO: fix broken subtrees in docs repo and call a script to update .Y release
+
       - name: Temporarily block .Y releases
         shell: bash
         run: |
-          [[ ! "${{jobs.version.outputs}}" ==  *.0 ]]
-          [[ ! "${{jobs.version.outputs}}" == *.0-* ]]
+          [[ ! "${{job.version.outputs}}" ==  *.0 ]]
+          [[ ! "${{job.version.outputs}}" == *.0-* ]]
+
       - name: Insert new version notes into docs repo
         shell: bash
         run: |
           set -x
-          export LONG=${{jobs.version.outputs}}
+          export LONG=${{job.version.outputs}}
           export SHORT=${LONG:0:3}
           #export ITEM=$(cat /tmp/item.yml)
           #yq eval-all '.items |= [env(ITEM)] + .' /tmp/getambassador.io/ambassador-docs/docs/edge-stack/$SHORT/releaseNotes.yml
@@ -71,7 +77,7 @@ jobs:
       - name: Prerelease docs update
         shell: bash
         # according to Luke this will hit only and all pre-releases
-        if: contains(jobs.version.outputs, "-")
+        if: contains(job.version.outputs, '-')
         run: |
           #export ITEM=$(cat /tmp/item.yml)
           #yq eval-all '.items |= [env(GITEM)] + .' /tmp/getambassador.io/ambassador-docs/docs/edge-stack/pre-release/releaseNotes.yml
@@ -83,17 +89,17 @@ jobs:
         shell: bash
         run: |
           pushd /tmp/getambassador.io
-          git checkout -b rel/edge-stack/v${{jobs.version.outputs}}
+          git checkout -b rel/edge-stack/v${{job.version.outputs}}
           git add .
-          git commit -s -m "Update ambassador-docs subtree to latest following Edge Stack ${{jobs.version.outputs}} release"
-          git push --set-upstream origin rel/edge-stack/v${{jobs.version.outputs}}
+          git commit -s -m "Update ambassador-docs subtree to latest following Edge Stack ${{job.version.outputs}} release"
+          git push --set-upstream origin rel/edge-stack/v${{job.version.outputs}}
           echo "${GITHUB_TOKEN}" > temp_credential
           # GH does NOT want this in the env
           export GITHUB_TOKEN=
           cat temp_credential | gh auth login --with-token
           rm temp_credential
-          gh pr create --title "[CI] [v${{jobs.version.outputs}}] Release Branch" \
-                       --body "This PR contains updates from Edgissary release ${{jobs.version.outputs}}" \
+          gh pr create --title "[CI] [v${{job.version.outputs}}] Release Branch" \
+                       --body "This PR contains updates from Edgissary release ${{job.version.outputs}}" \
                        --base master
 
       - name: Push docs
@@ -109,7 +115,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
           status: ${{ job.status }}
-          success_text: "Created website update PR for v${{jobs.version.outputs}}"
+          success_text: "Created website update PR for v${{job.version.outputs}}"
           failure_text: "Website update PR failed"
           fields: |
             [{ "title": "Repository", "value": "${env.GITHUB_REPOSITORY}", "short": true },
