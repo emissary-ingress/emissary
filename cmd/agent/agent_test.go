@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/datawire/ambassador/v2/pkg/api/agent"
 	"github.com/datawire/ambassador/v2/pkg/dtest"
@@ -32,7 +33,7 @@ func TestAgentE2E(t *testing.T) {
 	ctx := dlog.NewTestContext(t, false)
 	kubeconfig := dtest.Kubeconfig(ctx)
 	cli, err := kates.NewClient(kates.ClientConfig{Kubeconfig: kubeconfig})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	// applies all k8s yaml to dtest cluter
 	// ambassador, ambassador-agent, rbac, crds, and a fake agentcom that implements the grpc
 	// server for the agent
@@ -117,7 +118,7 @@ func getAgentComSnapshots(t *testing.T, ctx context.Context, kubeconfig string, 
 		}
 		break
 	}
-	assert.True(t, found, "Could not cp file from agentcom")
+	require.True(t, found, "Could not cp file from agentcom")
 	return reportSnapshot, ambSnapshot
 }
 
@@ -159,10 +160,10 @@ func snapshotIsSane(ambSnapshot *snapshotTypes.Snapshot, t *testing.T, hasArgo b
 }
 func applyArgoResources(t *testing.T, kubeconfig string, cli *kates.Client) {
 	kubeinfo := k8s.NewKubeInfo(kubeconfig, "", "")
-	assert.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./testdata/argo-rollouts-crd.yaml"))
-	assert.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./testdata/argo-rollouts.yaml"))
-	assert.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./testdata/argo-application-crd.yaml"))
-	assert.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./testdata/argo-application.yaml"))
+	require.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./testdata/argo-rollouts-crd.yaml"))
+	require.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./testdata/argo-rollouts.yaml"))
+	require.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./testdata/argo-application-crd.yaml"))
+	require.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, "./testdata/argo-application.yaml"))
 }
 
 func setup(t *testing.T, ctx context.Context, kubeconfig string, cli *kates.Client) {
@@ -173,19 +174,19 @@ func setup(t *testing.T, ctx context.Context, kubeconfig string, cli *kates.Clie
 	crdFile := yamlPath + "ambassador/ambassador-crds.yaml"
 	aesFile := yamlPath + "aes.yaml"
 	aesDat, err := ioutil.ReadFile(aesFile)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	image := os.Getenv("AMBASSADOR_DOCKER_IMAGE")
-	assert.NotEmpty(t, image)
+	require.NotEmpty(t, image)
 
 	aesReplaced := strings.ReplaceAll(string(aesDat), "docker.io/datawire/aes:$version$", image)
 	newAesFile := t.TempDir() + "/aes.yaml"
 
-	assert.NoError(t, ioutil.WriteFile(newAesFile, []byte(aesReplaced), 0644))
+	require.NoError(t, ioutil.WriteFile(newAesFile, []byte(aesReplaced), 0644))
 	kubeinfo := k8s.NewKubeInfo(kubeconfig, "", "")
 
-	assert.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, crdFile))
-	assert.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Second*120, true, false, newAesFile))
-	assert.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Second*120, true, false, "./testdata/fake-agentcom.yaml"))
+	require.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Minute, true, false, crdFile))
+	require.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Second*120, true, false, newAesFile))
+	require.NoError(t, kubeapply.Kubeapply(kubeinfo, time.Second*120, true, false, "./testdata/fake-agentcom.yaml"))
 
 	dep := &kates.Deployment{
 		TypeMeta: kates.TypeMeta{
@@ -216,8 +217,8 @@ func setup(t *testing.T, ctx context.Context, kubeconfig string, cli *kates.Clie
 			},
 		},
 	})
-	assert.NoError(t, err)
-	assert.NoError(t, cli.Patch(ctx, dep, kates.StrategicMergePatchType, []byte(patch), dep))
+	require.NoError(t, err)
+	require.NoError(t, cli.Patch(ctx, dep, kates.StrategicMergePatchType, []byte(patch), dep))
 }
 
 func deleteArgoResources(t *testing.T, ctx context.Context, kubeconfig string) {
