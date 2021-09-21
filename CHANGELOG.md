@@ -63,6 +63,18 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [1.14.2] September 22, 2021
+[1.14.2]: https://github.com/emissary-ingress/emissary/compare/v1.14.1...v1.14.2
+
+### Emissary Ingress and Ambassador Edge Stack
+
+- Feature: You can now set `respect_dns_ttl` in Ambassador Mappings. When true it configures that upstream's refresh rate to be set to resource record’s TTL
+- Feature: You can now set `dns_type` to in Ambassador Mappings to use Envoy's `logical_dns` resolution instead of the default `strict_dns`.
+
+### Ambassador Edge Stack only
+
+- Feature: You can now set `preserve_servers` in Ambassador Edge Stack's `DevPortal` resource to configure the DevPortal to use server definitions from the OpenAPI document when displaying connection information for services in the DevPortal.
+
 ## [1.14.1] August 24, 2021
 [1.14.1]: https://github.com/emissary-ingress/emissary/compare/v1.14.0...v1.14.1
 
