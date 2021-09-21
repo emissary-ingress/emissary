@@ -53,6 +53,10 @@ vendor_bootstrap_hack.go
 /python/build
 dist
 
+# kubeapply
+*.yaml.o
+
+# misc
 *.out
 *.log
 *.tmp
