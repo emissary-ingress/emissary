@@ -29,20 +29,21 @@ import (
 // you can point it at your own cluster by running `go test` with env var `DTEST_KUBECONFIG=$HOME/.kube/config`
 // More complicated business logic tests live in ambassador.git/pkg/agent
 func TestAgentE2E(t *testing.T) {
-	kubeconfig := dtest.Kubeconfig(dlog.NewTestContext(t, false))
+	ctx := dlog.NewTestContext(t, false)
+	kubeconfig := dtest.Kubeconfig(ctx)
 	cli, err := kates.NewClient(kates.ClientConfig{Kubeconfig: kubeconfig})
 	assert.Nil(t, err)
 	// applies all k8s yaml to dtest cluter
 	// ambassador, ambassador-agent, rbac, crds, and a fake agentcom that implements the grpc
 	// server for the agent
-	setup(t, kubeconfig, cli)
-	defer deleteArgoResources(t, kubeconfig)
+	setup(t, ctx, kubeconfig, cli)
+	defer deleteArgoResources(t, ctx, kubeconfig)
 
 	// eh lets make sure the agent came up
 	time.Sleep(time.Second * 3)
 
 	hasArgo := false
-	reportSnapshot, ambSnapshot := getAgentComSnapshots(t, kubeconfig, cli, hasArgo)
+	reportSnapshot, ambSnapshot := getAgentComSnapshots(t, ctx, kubeconfig, cli, hasArgo)
 
 	// Do actual assertions here. kind of lazy way to retry, but it should work
 	assert.NotEmpty(t, reportSnapshot.Identity.ClusterId)
@@ -65,16 +66,15 @@ func TestAgentE2E(t *testing.T) {
 
 	applyArgoResources(t, kubeconfig, cli)
 	hasArgo = true
-	reportSnapshot, ambSnapshot = getAgentComSnapshots(t, kubeconfig, cli, hasArgo)
+	reportSnapshot, ambSnapshot = getAgentComSnapshots(t, ctx, kubeconfig, cli, hasArgo)
 	assert.NotEmpty(t, ambSnapshot.Kubernetes.ArgoRollouts, "No argo rollouts found in snapshot")
 	assert.NotEmpty(t, ambSnapshot.Kubernetes.ArgoApplications, "No argo applications found in snapshot")
 }
 
-func getAgentComSnapshots(t *testing.T, kubeconfig string, cli *kates.Client, waitArgo bool) (*agent.Snapshot, *snapshotTypes.Snapshot) {
+func getAgentComSnapshots(t *testing.T, ctx context.Context, kubeconfig string, cli *kates.Client, waitArgo bool) (*agent.Snapshot, *snapshotTypes.Snapshot) {
 	found := false
 	reportSnapshot := &agent.Snapshot{}
 	ambSnapshot := &snapshotTypes.Snapshot{}
-	ctx := context.Background()
 
 	// now we're going to go copy the snapshot.json file from our fake agentcom
 	// when the agentcom gets a snapshot from the agent, it'll store it at /tmp/snapshot.json
@@ -83,7 +83,7 @@ func getAgentComSnapshots(t *testing.T, kubeconfig string, cli *kates.Client, wa
 	// is correct and that the agent can talk to the ambassador-agent service.
 	// any tests that do any more complicated assertions should live in ambassador.git/pkg/agent
 	for i := 0; i < 15; i++ {
-		podName, err := getFakeAgentComPodName(cli)
+		podName, err := getFakeAgentComPodName(ctx, cli)
 		assert.Nil(t, err)
 
 		podFile := fmt.Sprintf("%s:%s", podName, "/tmp/snapshot.json")
@@ -173,7 +173,7 @@ func applyArgoResources(t *testing.T, kubeconfig string, cli *kates.Client) {
 	assert.Nil(t, err)
 }
 
-func setup(t *testing.T, kubeconfig string, cli *kates.Client) {
+func setup(t *testing.T, ctx context.Context, kubeconfig string, cli *kates.Client) {
 	// okay, yes this is gross, but we're revamping all the yaml right now, so i'm just making
 	// this as frictionless as possible for the time being
 	// TODO(acookin): this will probably need to change when we finish #1280
@@ -184,7 +184,6 @@ func setup(t *testing.T, kubeconfig string, cli *kates.Client) {
 	assert.Nil(t, err)
 	image := os.Getenv("AMBASSADOR_DOCKER_IMAGE")
 	assert.NotEmpty(t, image)
-	ctx := context.Background()
 
 	aesReplaced := strings.ReplaceAll(string(aesDat), "docker.io/datawire/aes:$version$", image)
 	newAesFile := t.TempDir() + "/aes.yaml"
@@ -215,8 +214,7 @@ func setup(t *testing.T, kubeconfig string, cli *kates.Client) {
 	assert.Nil(t, err)
 }
 
-func deleteArgoResources(t *testing.T, kubeconfig string) {
-	ctx := context.Background()
+func deleteArgoResources(t *testing.T, ctx context.Context, kubeconfig string) {
 	// cleaning up argo crds so the e2e test can be deterministic
 	cmd := dexec.CommandContext(ctx, "kubectl", "--kubeconfig", kubeconfig, "delete", "crd", "--ignore-not-found=true", "rollouts.argoproj.io")
 	out, err := cmd.CombinedOutput()
@@ -232,14 +230,14 @@ func deleteArgoResources(t *testing.T, kubeconfig string) {
 	}
 }
 
-func getFakeAgentComPodName(cli *kates.Client) (string, error) {
+func getFakeAgentComPodName(ctx context.Context, cli *kates.Client) (string, error) {
 	query := kates.Query{
 		Kind:          "Pod",
 		LabelSelector: "app=agentcom-server",
 		Namespace:     "default",
 	}
 	pods := []*kates.Pod{}
-	err := cli.List(context.Background(), query, &pods)
+	err := cli.List(ctx, query, &pods)
 	if err != nil {
 		return "", err
 	}
