@@ -67,6 +67,9 @@ class V3Cluster(Cacheable):
             'dns_lookup_family': dns_lookup_family
         }
 
+        if cluster.respect_dns_ttl:
+            fields['respect_dns_ttl'] = cluster.respect_dns_ttl
+
         if ctype == 'EDS':
             fields['eds_cluster_config'] = {
                 'eds_config': {
