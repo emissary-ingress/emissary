@@ -75,7 +75,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 - Feature: You can now set `preserve_servers` in Ambassador Edge Stack's `DevPortal` resource to configure the DevPortal to use server definitions from the OpenAPI document when displaying connection information for services in the DevPortal.
 
-## [1.14.1] August 24, 2021
+## [1.14.1] TBD
 [1.14.1]: https://github.com/emissary-ingress/emissary/compare/v1.14.0...v1.14.1
 
 ### Emissary Ingress and Ambassador Edge Stack
