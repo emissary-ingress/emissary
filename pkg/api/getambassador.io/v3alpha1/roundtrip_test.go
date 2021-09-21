@@ -15,15 +15,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Need AmbassadorListener and AmbassadorHost too...
+// Need Listener and Host too...
 
 func TestMappingRoundTrip(t *testing.T) {
-	var m []AmbassadorMapping
+	var m []Mapping
 	checkRoundtrip(t, "mappings.json", &m)
 }
 
 func TestTCPMappingRoundTrip(t *testing.T) {
-	var tm []AmbassadorTCPMapping
+	var tm []TCPMapping
 	checkRoundtrip(t, "tcpmappings.json", &tm)
 }
 

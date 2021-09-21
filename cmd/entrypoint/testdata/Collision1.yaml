@@ -1,7 +1,7 @@
 # @TEMPLATE@
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: staging.upchieve.org
   namespace: default
@@ -27,8 +27,8 @@ metadata:
   name: endpoint
   namespace: ambassador
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: subway-staging-socket-stable-mapping
   namespace: staging
@@ -46,8 +46,8 @@ spec:
   service: subway-staging-stable.staging:3001
   timeout_ms: 500000
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: subway-staging-whiteboard-reset-stable-mapping
   namespace: staging
@@ -62,8 +62,8 @@ spec:
   service: subway-staging-stable.staging:3000
   timeout_ms: 500000
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: subway-staging-whiteboard-stable-mapping
   namespace: staging

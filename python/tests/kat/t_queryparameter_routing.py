@@ -12,8 +12,8 @@ class QueryParameterRoutingTest(AmbassadorTest):
     def config(self):
         yield self.target1, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target1
 hostname: "*"
 prefix: /target/
@@ -21,8 +21,8 @@ service: http://{self.target1.path.fqdn}
 """)
         yield self.target2, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target2
 hostname: "*"
 prefix: /target/
@@ -48,8 +48,8 @@ class QueryParameterRoutingWithRegexTest(AmbassadorTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target
 hostname: "*"
 prefix: /target/
@@ -77,8 +77,8 @@ class QueryParameterPresentRoutingTest(AmbassadorTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target
 hostname: "*"
 prefix: /target/

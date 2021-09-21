@@ -22,15 +22,15 @@ config:
     origins: http://foo.example.com
     methods: POST, GET, OPTIONS
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-foo
 hostname: "*"
 prefix: /foo/
 service: {self.target.path.fqdn}
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-bar
 hostname: "*"
 prefix: /bar/

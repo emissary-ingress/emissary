@@ -46,8 +46,8 @@ data:
   tls.crt: '''+TLSCerts["localhost"].k8s_crt+'''
   tls.key: '''+TLSCerts["localhost"].k8s_key+'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.name.k8s}-host
   labels:
@@ -63,8 +63,8 @@ spec:
     matchLabels:
       hostname: {self.path.fqdn}
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.name.k8s}-target-mapping
   labels:
@@ -110,8 +110,8 @@ data:
   tls.crt: '''+TLSCerts["localhost"].k8s_crt+'''
   tls.key: '''+TLSCerts["localhost"].k8s_key+'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: {self.name.k8s}-listener
   labels:
@@ -125,8 +125,8 @@ spec:
     namespace:
       from: ALL
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.name.k8s}-host
   labels:
@@ -145,8 +145,8 @@ spec:
     insecure:
       action: Reject
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.name.k8s}-target-mapping
   labels:
@@ -191,8 +191,8 @@ data:
   tls.crt: '''+TLSCerts["localhost"].k8s_crt+'''
   tls.key: '''+TLSCerts["localhost"].k8s_key+'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}-manual-host
   labels:
@@ -222,8 +222,8 @@ spec:
   min_tls_version: v1.2
   max_tls_version: v1.3
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.path.k8s}-target-mapping
   labels:
@@ -271,8 +271,8 @@ data:
   tls.crt: '''+TLSCerts["localhost"].k8s_crt+'''
   tls.key: '''+TLSCerts["localhost"].k8s_key+'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}-manual-host-separate
   labels:
@@ -302,8 +302,8 @@ spec:
   min_tls_version: v1.2
   max_tls_version: v1.3
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.path.k8s}-target-mapping-separate
   labels:
@@ -349,8 +349,8 @@ data:
   tls.crt: '''+TLSCerts["localhost"].k8s_crt+'''
   tls.key: '''+TLSCerts["localhost"].k8s_key+'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}-manual-host-tls
   labels:
@@ -369,8 +369,8 @@ spec:
     min_tls_version: v1.2
     max_tls_version: v1.3
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.path.k8s}-target-mapping
   labels:
@@ -414,8 +414,8 @@ class HostCRDClearText(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}-cleartext-host
   labels:
@@ -432,8 +432,8 @@ spec:
     insecure:
       action: Route
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.path.k8s}-cleartext-target-mapping
   labels:
@@ -481,8 +481,8 @@ class HostCRDDouble(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}-host-1
   labels:
@@ -512,8 +512,8 @@ data:
   tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
   tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.path.k8s}-host-1-mapping
   labels:
@@ -526,8 +526,8 @@ spec:
   service: {self.target1.path.fqdn}
 
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}-host-2
   labels:
@@ -554,8 +554,8 @@ data:
   tls.crt: '''+TLSCerts["tls-context-host-2"].k8s_crt+'''
   tls.key: '''+TLSCerts["tls-context-host-2"].k8s_key+'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.path.k8s}-host-2-mapping
   labels:
@@ -568,8 +568,8 @@ spec:
   service: {self.target2.path.fqdn}
 
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}-host-3
   labels:
@@ -599,8 +599,8 @@ data:
   tls.crt: '''+TLSCerts["ambassador.example.com"].k8s_crt+'''
   tls.key: '''+TLSCerts["ambassador.example.com"].k8s_key+'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.path.k8s}-host-3-mapping
   labels:
@@ -614,8 +614,8 @@ spec:
 ---
 # Add a bogus ACME mapping so that we can distinguish "invalid
 # challenge" from "rejected".
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.path.k8s}-host-3-acme
   labels:
@@ -628,8 +628,8 @@ spec:
   service: {self.target3.path.fqdn}
 
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.path.k8s}-host-shared-mapping
   labels:
@@ -760,8 +760,8 @@ class HostCRDWildcards(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}-wc
   labels:
@@ -774,8 +774,8 @@ spec:
   tlsSecret:
     name: {self.path.k8s}-tls
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}-wc.domain.com
   labels:
@@ -791,8 +791,8 @@ spec:
     insecure:
       action: Route
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}-a.domain.com
   labels:
@@ -816,8 +816,8 @@ data:
   tls.crt: '''+TLSCerts["a.domain.com"].k8s_crt+'''
   tls.key: '''+TLSCerts["a.domain.com"].k8s_key+'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.path.k8s}
   labels:
@@ -879,8 +879,8 @@ class HostCRDClientCertCrossNamespace(AmbassadorTest):
         # as the separator.
         return namespace_manifest("alt-namespace") + self.format('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}
   labels:
@@ -920,8 +920,8 @@ data:
   tls.crt: '''+TLSCerts["ambassador.example.com"].k8s_crt+'''
   tls.key: '''+TLSCerts["ambassador.example.com"].k8s_key+'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.path.k8s}
   labels:
@@ -988,8 +988,8 @@ class HostCRDClientCertSameNamespace(AmbassadorTest):
         # namespace when a ".{namespace}" suffix isn't specified.
         return namespace_manifest("alt2-namespace") + self.format('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: ambassador-listener-8443    # This name is to match existing test stuff
   namespace: alt2-namespace
@@ -1004,8 +1004,8 @@ spec:
     namespace:
       from: SELF
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}
   namespace: alt2-namespace
@@ -1047,8 +1047,8 @@ data:
   tls.crt: '''+TLSCerts["ambassador.example.com"].k8s_crt+'''
   tls.key: '''+TLSCerts["ambassador.example.com"].k8s_key+'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.path.k8s}
   labels:
@@ -1105,8 +1105,8 @@ class HostCRDRootRedirectCongratulations(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}
   labels:
@@ -1169,8 +1169,8 @@ class HostCRDRootRedirectSlashMapping(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}
   labels:
@@ -1200,8 +1200,8 @@ data:
   tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
   tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.name.k8s}-target-mapping
   labels:
@@ -1244,8 +1244,8 @@ class HostCRDRootRedirectRE2Mapping(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}
   labels:
@@ -1275,8 +1275,8 @@ data:
   tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
   tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.name.k8s}-target-mapping
   labels:
@@ -1336,8 +1336,8 @@ config:
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}
   labels:
@@ -1367,8 +1367,8 @@ data:
   tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
   tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.name.k8s}-target-mapping
   labels:
@@ -1427,8 +1427,8 @@ class HostCRDForcedStar(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}-cleartext-host
   labels:
@@ -1442,8 +1442,8 @@ spec:
     insecure:
       action: Redirect
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}-tls-host
   labels:
@@ -1470,8 +1470,8 @@ data:
   tls.crt: '''+TLSCerts["tls-context-host-1"].k8s_crt+'''
   tls.key: '''+TLSCerts["tls-context-host-1"].k8s_key+'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.name.k8s}-target-mapping
 spec:

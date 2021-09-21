@@ -184,7 +184,7 @@ def test_circular_link():
 
     # This Can't Happen(tm) in Ambassador, but it's important that it not go
     # off the rails. Find a Mapping...
-    mapping_key = "AmbassadorMapping-v2-foo-4-default"
+    mapping_key = "Mapping-v2-foo-4-default"
     m = builder.cache[mapping_key]
 
     # ...then walk the link chain until we get to a V2-Cluster.
@@ -233,7 +233,7 @@ def test_simple_targets():
 
     builder.check_last("immediate rebuild")
 
-    builder.invalidate("AmbassadorMapping-v2-foo-4-default")
+    builder.invalidate("Mapping-v2-foo-4-default")
 
     builder.build()
 
@@ -249,8 +249,8 @@ def test_smashed_targets():
     builder.check_last("immediate rebuild")
 
     # Invalidate two things that share common links.
-    builder.invalidate("AmbassadorMapping-v2-foo-4-default")
-    builder.invalidate("AmbassadorMapping-v2-foo-6-default")
+    builder.invalidate("Mapping-v2-foo-4-default")
+    builder.invalidate("Mapping-v2-foo-6-default")
 
     builder.build()
 

@@ -3,8 +3,8 @@
 # h2.example.com HTTP to HTTPS. So it won't actually function, but sure, you can 
 # set things tup that way.
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: listener-8888
 spec:
@@ -16,8 +16,8 @@ spec:
       matchLabels:
         listener-8888: "yes"
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: listener-9999
 spec:
@@ -29,8 +29,8 @@ spec:
       matchLabels:
         listener-9999: "yes"
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: h1-host
   labels:
@@ -47,8 +47,8 @@ spec:
     matchLabels:
       h1-host: "yes"
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: h2-host
   labels:
@@ -64,8 +64,8 @@ spec:
     matchLabels:
       h2-host: "yes"
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: h3-host
 spec:
@@ -79,8 +79,8 @@ spec:
     matchLabels:
       h3-host: "yes"
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: qotm-mapping
   labels:
@@ -91,8 +91,8 @@ spec:
   prefix: /quote/
   service: quote.ambassador
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: mapping-to-ignore
   labels:

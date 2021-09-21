@@ -38,8 +38,8 @@ class SimpleMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
@@ -153,8 +153,8 @@ metadata:
     getambassador.io/ambassador-id: plain
     getambassador.io/config: |
       ---
-      apiVersion: x.getambassador.io/v3alpha1
-      kind: AmbassadorMapping
+      apiVersion: getambassador.io/v3alpha1
+      kind: Mapping
       name:  {self.name}-nested
       hostname: "*"
       prefix: /{self.name}-nested/
@@ -231,8 +231,8 @@ class HostHeaderMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
@@ -260,8 +260,8 @@ class InvalidPortMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
@@ -293,8 +293,8 @@ class WebSocketMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
@@ -318,8 +318,8 @@ class TLSOrigination(MappingTest):
 
     IMPLICIT = """
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
@@ -328,8 +328,8 @@ service: https://{self.target.path.fqdn}
 
     EXPLICIT = """
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
@@ -371,16 +371,16 @@ class HostRedirectMapping(MappingTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
 service: foobar.com
 host_redirect: true
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-2
 hostname: "*"
 prefix: /{self.name}-2/
@@ -388,8 +388,8 @@ case_sensitive: false
 service: foobar.com
 host_redirect: true
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-3
 hostname: "*"
 prefix: /{self.name}-3/foo/
@@ -398,8 +398,8 @@ host_redirect: true
 path_redirect: /redirect/
 redirect_response_code: 302
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-4
 hostname: "*"
 prefix: /{self.name}-4/foo/bar/baz
@@ -408,8 +408,8 @@ host_redirect: true
 prefix_redirect: /foobar/baz
 redirect_response_code: 307
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-5
 hostname: "*"
 prefix: /{self.name}-5/assets/([a-f0-9]{{12}})/images
@@ -501,8 +501,8 @@ class CanaryMapping(MappingTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
@@ -510,8 +510,8 @@ service: http://{self.target.path.fqdn}
 """)
         yield self.canary, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-canary
 hostname: "*"
 prefix: /{self.name}/
@@ -564,8 +564,8 @@ class CanaryDiffMapping(MappingTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
@@ -574,8 +574,8 @@ host_rewrite: canary.1.example.com
 """)
         yield self.canary, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-canary
 hostname: "*"
 prefix: /{self.name}/
@@ -623,8 +623,8 @@ class AddRespHeadersMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
@@ -668,8 +668,8 @@ class EdgeStackMapping(MappingTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
@@ -696,8 +696,8 @@ class RemoveReqHeadersMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
@@ -734,8 +734,8 @@ class AddReqHeadersMapping(MappingTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/

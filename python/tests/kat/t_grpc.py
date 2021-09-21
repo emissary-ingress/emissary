@@ -18,8 +18,8 @@ class AcceptanceGrpcTest(AmbassadorTest):
 
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 grpc: True
 hostname: "*"
 prefix: /echo.EchoService/
@@ -77,8 +77,8 @@ spec:
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 grpc: True
 hostname: "*"
 prefix: /echo.EchoService/

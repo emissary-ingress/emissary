@@ -31,16 +31,16 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: x.getambassador.io/v3alpha1
-      kind: AmbassadorMapping
+      apiVersion: getambassador.io/v3alpha1
+      kind: Mapping
       name: SimpleMapping-HTTP-all
       hostname: "*"
       prefix: /SimpleMapping-HTTP-all/
       service: http://plain-simplemapping-http-all-http.plain
       ambassador_id: plain      
       ---
-      apiVersion: x.getambassador.io/v3alpha1
-      kind: AmbassadorHost
+      apiVersion: getambassador.io/v3alpha1
+      kind: Host
       name: cleartext-host-{self.path.k8s}
       ambassador_id: [ "plain" ]
       hostname: "*"
@@ -80,8 +80,8 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: x.getambassador.io/v3alpha1
-      kind: AmbassadorHost
+      apiVersion: getambassador.io/v3alpha1
+      kind: Host
       name: cleartext-host-{self.path.k8s}
       ambassador_id: [ "plain" ]
       hostname: "*"

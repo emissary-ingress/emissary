@@ -33,8 +33,8 @@ config:
             altered: 4
             funk: 8
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name: test_mapping
 hostname: "*"
 prefix: /test/

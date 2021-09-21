@@ -232,8 +232,8 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: x.getambassador.io/v3alpha1
-      kind: AmbassadorMapping
+      apiVersion: getambassador.io/v3alpha1
+      kind: Mapping
       name:  {self.name}-nested
       hostname: "*"
       prefix: /{self.name}-nested/

@@ -147,7 +147,7 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 // Find all the secrets a given Ambassador resource references.
 func findSecretRefs(ctx context.Context, resource kates.Object, secretNamespacing bool, action func(snapshotTypes.SecretRef)) {
 	switch r := resource.(type) {
-	case *v3alpha1.AmbassadorHost:
+	case *v3alpha1.Host:
 		// The Host resource is a little odd. Host.spec.tls, Host.spec.tlsSecret, and
 		// host.spec.acmeProvider.privateKeySecret can all refer to secrets.
 		if r.Spec == nil {

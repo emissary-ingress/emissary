@@ -27,8 +27,8 @@ import (
 	ambv2 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
 )
 
-// AmbassadorMappingSpec defines the desired state of AmbassadorMapping
-type AmbassadorMappingSpec struct {
+// MappingSpec defines the desired state of Mapping
+type MappingSpec struct {
 	AmbassadorID ambv2.AmbassadorID `json:"ambassador_id,omitempty"`
 
 	// +kubebuilder:validation:Required
@@ -77,7 +77,7 @@ type AmbassadorMappingSpec struct {
 	ConnectTimeoutMs               *int                          `json:"connect_timeout_ms,omitempty"`
 	ClusterIdleTimeoutMs           *int                          `json:"cluster_idle_timeout_ms,omitempty"`
 	ClusterMaxConnectionLifetimeMs int                           `json:"cluster_max_connection_lifetime_ms,omitempty"`
-	// The timeout for requests that use this AmbassadorMapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
+	// The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
 	TimeoutMs     *int                `json:"timeout_ms,omitempty"`
 	IdleTimeoutMs *int                `json:"idle_timeout_ms,omitempty"`
 	TLS           *ambv2.BoolOrString `json:"tls,omitempty"`
@@ -113,25 +113,28 @@ type AmbassadorMappingSpec struct {
 	AuthContextExtensions map[string]string `json:"auth_context_extensions,omitempty"`
 	// If true, bypasses any `error_response_overrides` set on the Ambassador module.
 	BypassErrorResponseOverrides *bool `json:"bypass_error_response_overrides,omitempty"`
-	// Error response overrides for this AmbassadorMapping. Replaces all of the `error_response_overrides`
+	// Error response overrides for this Mapping. Replaces all of the `error_response_overrides`
 	// set on the Ambassador module, if any.
 	// +kubebuilder:validation:MinItems=1
 	ErrorResponseOverrides []ambv2.ErrorResponseOverride `json:"error_response_overrides,omitempty"`
 	Modules                []ambv2.UntypedDict           `json:"modules,omitempty"`
-	Host                   string                        `json:"host,omitempty"`
-	Hostname               string                        `json:"hostname,omitempty"`
-	HostRegex              *bool                         `json:"host_regex,omitempty"`
-	Headers                map[string]ambv2.BoolOrString `json:"headers,omitempty"`
-	RegexHeaders           map[string]ambv2.BoolOrString `json:"regex_headers,omitempty"`
-	Labels                 ambv2.DomainMap               `json:"labels,omitempty"`
-	EnvoyOverride          *ambv2.UntypedDict            `json:"envoy_override,omitempty"`
-	LoadBalancer           *ambv2.LoadBalancer           `json:"load_balancer,omitempty"`
-	QueryParameters        map[string]ambv2.BoolOrString `json:"query_parameters,omitempty"`
-	RegexQueryParameters   map[string]ambv2.BoolOrString `json:"regex_query_parameters,omitempty"`
-	StatsName              string                        `json:"stats_name,omitempty"`
+	// DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.
+	Host string `json:"host,omitempty"`
+	// DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.
+	HostRegex *bool `json:"host_regex,omitempty"`
+	// HostName is a DNS glob specifying the hosts to which this Mapping applies.
+	Hostname             string                        `json:"hostname,omitempty"`
+	Headers              map[string]ambv2.BoolOrString `json:"headers,omitempty"`
+	RegexHeaders         map[string]ambv2.BoolOrString `json:"regex_headers,omitempty"`
+	Labels               ambv2.DomainMap               `json:"labels,omitempty"`
+	EnvoyOverride        *ambv2.UntypedDict            `json:"envoy_override,omitempty"`
+	LoadBalancer         *ambv2.LoadBalancer           `json:"load_balancer,omitempty"`
+	QueryParameters      map[string]ambv2.BoolOrString `json:"query_parameters,omitempty"`
+	RegexQueryParameters map[string]ambv2.BoolOrString `json:"regex_query_parameters,omitempty"`
+	StatsName            string                        `json:"stats_name,omitempty"`
 }
 
-// DocsInfo provides some extra information about the docs for the AmbassadorMapping.
+// DocsInfo provides some extra information about the docs for the Mapping.
 // Docs is used by both the agent and the DevPortal.
 type DocsInfo struct {
 	Path        string `json:"path,omitempty"`
@@ -231,15 +234,15 @@ type LoadBalancerCookie struct {
 	Ttl  string `json:"ttl,omitempty"`
 }
 
-// AmbassadorMappingStatus defines the observed state of AmbassadorMapping
-type AmbassadorMappingStatus struct {
+// MappingStatus defines the observed state of Mapping
+type MappingStatus struct {
 	// +kubebuilder:validation:Enum={"","Inactive","Running"}
 	State string `json:"state,omitempty"`
 
 	Reason string `json:"reason,omitempty"`
 }
 
-// AmbassadorMapping is the Schema for the mappings API
+// Mapping is the Schema for the mappings API
 //
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
@@ -248,23 +251,24 @@ type AmbassadorMappingStatus struct {
 // +kubebuilder:printcolumn:name="Dest Service",type=string,JSONPath=`.spec.service`
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
 // +kubebuilder:printcolumn:name="Reason",type=string,JSONPath=`.status.reason`
-type AmbassadorMapping struct {
+// +kubebuilder:storageversion
+type Mapping struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   AmbassadorMappingSpec    `json:"spec,omitempty"`
-	Status *AmbassadorMappingStatus `json:"status,omitempty"`
+	Spec   MappingSpec    `json:"spec,omitempty"`
+	Status *MappingStatus `json:"status,omitempty"`
 }
 
-// AmbassadorMappingList contains a list of AmbassadorMappings.
+// MappingList contains a list of Mappings.
 //
 // +kubebuilder:object:root=true
-type AmbassadorMappingList struct {
+type MappingList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []AmbassadorMapping `json:"items"`
+	Items           []Mapping `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&AmbassadorMapping{}, &AmbassadorMappingList{})
+	SchemeBuilder.Register(&Mapping{}, &MappingList{})
 }

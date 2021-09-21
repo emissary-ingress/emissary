@@ -109,8 +109,8 @@ class ResourceFetcher:
                 # run outside of a container with this environment variable set.
                 automatic_manifests.append('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: ambassador-edge-stack
   namespace: _automatic_

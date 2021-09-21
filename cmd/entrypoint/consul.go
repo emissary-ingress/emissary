@@ -24,12 +24,12 @@ type consulMapping struct {
 func ReconcileConsul(ctx context.Context, consul *consul, s *snapshotTypes.KubernetesSnapshot) {
 	var mappings []consulMapping
 	for _, a := range s.Annotations {
-		m, ok := a.(*v3alpha1.AmbassadorMapping)
+		m, ok := a.(*v3alpha1.Mapping)
 		if ok && include(m.Spec.AmbassadorID) {
 			mappings = append(mappings, consulMapping{Service: m.Spec.Service, Resolver: m.Spec.Resolver})
 		}
 
-		tm, ok := a.(*v3alpha1.AmbassadorTCPMapping)
+		tm, ok := a.(*v3alpha1.TCPMapping)
 		if ok && include(tm.Spec.AmbassadorID) {
 			mappings = append(mappings, consulMapping{Service: tm.Spec.Service, Resolver: tm.Spec.Resolver})
 		}

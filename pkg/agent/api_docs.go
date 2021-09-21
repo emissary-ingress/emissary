@@ -88,8 +88,8 @@ func (a *APIDocsStore) StateOfWorld() []*snapshotTypes.APIDoc {
 	return toAPIDocs(a.store.getAll())
 }
 
-func getProcessableMappingsFromSnapshot(snapshot *snapshotTypes.Snapshot) []*v3alpha1.AmbassadorMapping {
-	processableMappings := []*v3alpha1.AmbassadorMapping{}
+func getProcessableMappingsFromSnapshot(snapshot *snapshotTypes.Snapshot) []*v3alpha1.Mapping {
+	processableMappings := []*v3alpha1.Mapping{}
 	if snapshot == nil || snapshot.Kubernetes == nil {
 		return processableMappings
 	}
@@ -108,14 +108,14 @@ func getProcessableMappingsFromSnapshot(snapshot *snapshotTypes.Snapshot) []*v3a
 }
 
 // scrape will take care of fetching OpenAPI documentation from each of the
-// AmbassadorMappings resources as we process a snapshot.
+// Mappings resources as we process a snapshot.
 //
 // Be careful as there is a very similar implementation of this logic in the DevPortal which
 // uses the ambassador diag representation to retrieve OpenAPI documentation from
 // Mapping resources.
 // Since both the DevPortal and the agent make use of this `docs` property, evolutions
 // made here should be considered for DevPortal too.
-func (a *APIDocsStore) scrape(ctx context.Context, mappings []*v3alpha1.AmbassadorMapping) {
+func (a *APIDocsStore) scrape(ctx context.Context, mappings []*v3alpha1.Mapping) {
 	defer func() {
 		// Once we are finished retrieving mapping docs, delete anything we
 		// don't need anymore
@@ -176,7 +176,7 @@ func (a *APIDocsStore) scrape(ctx context.Context, mappings []*v3alpha1.Ambassad
 	}
 }
 
-func extractQueryableDocsURL(mapping *v3alpha1.AmbassadorMapping) (*url.URL, error) {
+func extractQueryableDocsURL(mapping *v3alpha1.Mapping) (*url.URL, error) {
 	mappingDocsPath := mapping.Spec.Docs.Path
 	mappingRewrite := "/"
 	if mapping.Spec.Rewrite != nil {

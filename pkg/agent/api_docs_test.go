@@ -20,7 +20,7 @@ func TestAPIDocsStore(t *testing.T) {
 
 	type testCases struct {
 		name     string
-		mappings []*v3alpha1.AmbassadorMapping
+		mappings []*v3alpha1.Mapping
 
 		rawJSONDocsContent string
 		JSONDocsErr        error
@@ -33,9 +33,9 @@ func TestAPIDocsStore(t *testing.T) {
 	cases := []*testCases{
 		{
 			name: "will ignore mappings without a 'docs' property",
-			mappings: []*v3alpha1.AmbassadorMapping{
+			mappings: []*v3alpha1.Mapping{
 				{
-					Spec: v3alpha1.AmbassadorMappingSpec{
+					Spec: v3alpha1.MappingSpec{
 						Prefix:  "",
 						Service: "some-svc",
 						Docs:    nil,
@@ -51,9 +51,9 @@ func TestAPIDocsStore(t *testing.T) {
 		},
 		{
 			name: "will ignore mappings with docs.ignored setting",
-			mappings: []*v3alpha1.AmbassadorMapping{
+			mappings: []*v3alpha1.Mapping{
 				{
-					Spec: v3alpha1.AmbassadorMappingSpec{
+					Spec: v3alpha1.MappingSpec{
 						Prefix:  "",
 						Service: "some-svc",
 						Docs: &v3alpha1.DocsInfo{
@@ -70,9 +70,9 @@ func TestAPIDocsStore(t *testing.T) {
 		},
 		{
 			name: "will scrape OpenAPI docs from docs path and ignore malformed OpenAPI docs",
-			mappings: []*v3alpha1.AmbassadorMapping{
+			mappings: []*v3alpha1.Mapping{
 				{
-					Spec: v3alpha1.AmbassadorMappingSpec{
+					Spec: v3alpha1.MappingSpec{
 						Prefix:  "",
 						Rewrite: &mappingRewrite,
 						Service: "https://some-svc.fqdn:443",
@@ -102,12 +102,12 @@ func TestAPIDocsStore(t *testing.T) {
 		},
 		{
 			name: "will scrape OpenAPI docs from docs path",
-			mappings: []*v3alpha1.AmbassadorMapping{
+			mappings: []*v3alpha1.Mapping{
 				{
 					TypeMeta: kates.TypeMeta{
 						Kind: "Mapping",
 					},
-					Spec: v3alpha1.AmbassadorMappingSpec{
+					Spec: v3alpha1.MappingSpec{
 						Prefix:  "/prefix",
 						Service: "some-svc:8080",
 						Docs: &v3alpha1.DocsInfo{
@@ -147,12 +147,12 @@ func TestAPIDocsStore(t *testing.T) {
 		},
 		{
 			name: "will scrape OpenAPI docs from docs url",
-			mappings: []*v3alpha1.AmbassadorMapping{
+			mappings: []*v3alpha1.Mapping{
 				{
 					TypeMeta: kates.TypeMeta{
 						Kind: "Mapping",
 					},
-					Spec: v3alpha1.AmbassadorMappingSpec{
+					Spec: v3alpha1.MappingSpec{
 						Prefix:  "/api-prefix",
 						Service: "some-svc",
 						Docs: &v3alpha1.DocsInfo{

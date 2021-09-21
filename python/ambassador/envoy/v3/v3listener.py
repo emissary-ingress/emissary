@@ -1015,4 +1015,4 @@ class V3Listener(dict):
             if v3listener._filter_chains:
                 config.listeners.append(v3listener)
             else:
-                irlistener.post_error("No matching AmbassadorHosts found, disabling!")
+                irlistener.post_error("No matching Hosts found, disabling!")

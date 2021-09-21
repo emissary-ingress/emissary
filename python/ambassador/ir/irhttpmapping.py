@@ -140,7 +140,7 @@ class IRHTTPMapping (IRBaseMapping):
                  namespace: Optional[str] = None,
                  metadata_labels: Optional[Dict[str, str]] = None,
                  kind: str="IRHTTPMapping",
-                 apiVersion: str="x.getambassador.io/v3alpha1",   # Not a typo! See below.
+                 apiVersion: str="getambassador.io/v3alpha1",   # Not a typo! See below.
                  precedence: int=0,
                  rewrite: str="/",
                  cluster_tag: Optional[str]=None,

@@ -40,7 +40,7 @@ class KubernetesGVK:
     @classmethod
     def for_ambassador(cls, kind: str, version: str = 'v2') -> KubernetesGVK:
         if 'alpha' in version:
-            return cls(f'x.getambassador.io/{version}', kind)
+            return cls(f'getambassador.io/{version}', kind)
         else:
             return cls(f'getambassador.io/{version}', kind)
 

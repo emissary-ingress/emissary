@@ -25,8 +25,8 @@ import (
 	ambv2 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
 )
 
-// AmbassadorTCPMappingSpec defines the desired state of AmbassadorTCPMapping
-type AmbassadorTCPMappingSpec struct {
+// TCPMappingSpec defines the desired state of TCPMapping
+type TCPMappingSpec struct {
 	AmbassadorID ambv2.AmbassadorID `json:"ambassador_id,omitempty"`
 
 	// Port isn't a pointer because it's required.
@@ -50,25 +50,26 @@ type AmbassadorTCPMappingSpec struct {
 	StatsName  string              `json:"stats_name,omitempty"`
 }
 
-// AmbassadorTCPMapping is the Schema for the tcpmappings API
+// TCPMapping is the Schema for the tcpmappings API
 //
 // +kubebuilder:object:root=true
-type AmbassadorTCPMapping struct {
+// +kubebuilder:storageversion
+type TCPMapping struct {
 	metav1.TypeMeta   `json:""`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec AmbassadorTCPMappingSpec `json:"spec,omitempty"`
+	Spec TCPMappingSpec `json:"spec,omitempty"`
 }
 
-// AmbassadorTCPMappingList contains a list of AmbassadorTCPMappings.
+// TCPMappingList contains a list of TCPMappings.
 //
 // +kubebuilder:object:root=true
-type AmbassadorTCPMappingList struct {
+type TCPMappingList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []AmbassadorTCPMapping `json:"items"`
+	Items           []TCPMapping `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&AmbassadorTCPMapping{}, &AmbassadorTCPMappingList{})
+	SchemeBuilder.Register(&TCPMapping{}, &TCPMappingList{})
 }

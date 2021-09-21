@@ -7,8 +7,8 @@ from tests.utils import compile_with_cachecheck
 def test_mapping_host_star_error():
     test_yaml = """
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: bad-mapping
   namespace: default
@@ -39,8 +39,8 @@ spec:
 def test_mapping_host_authority_star_error():
     test_yaml = """
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: bad-mapping
   namespace: default
@@ -72,8 +72,8 @@ spec:
 def test_mapping_host_ok():
     test_yaml = """
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: good-host-mapping
   namespace: default
@@ -105,8 +105,8 @@ spec:
 def test_mapping_host_authority_ok():
     test_yaml = """
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: good-host-mapping
   namespace: default
@@ -139,8 +139,8 @@ spec:
 def test_mapping_host_authority_and_host():
     test_yaml = """
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: good-host-mapping
   namespace: default
@@ -174,8 +174,8 @@ spec:
 def test_mapping_hostname_ok():
     test_yaml = """
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: good-hostname-mapping
   namespace: default
@@ -207,8 +207,8 @@ spec:
 def test_mapping_hostname_and_host():
     test_yaml = """
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: hostname-and-host-mapping
   namespace: default
@@ -241,8 +241,8 @@ spec:
 def test_mapping_hostname_and_authority():
     test_yaml = """
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: hostname-and-host-mapping
   namespace: default
@@ -276,8 +276,8 @@ spec:
 def test_mapping_hostname_and_host_and_authority():
     test_yaml = """
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: hostname-and-host-mapping
   namespace: default

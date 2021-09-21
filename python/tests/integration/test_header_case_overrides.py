@@ -65,8 +65,8 @@ spec:
 def create_headerecho_mapping(namespace):
     headerecho_mapping = f"""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name:  headerecho-mapping
   namespace: {namespace}
@@ -119,8 +119,8 @@ def _test_headercaseoverrides(yaml, expectations, expect_norules=False, version=
 
     yaml = yaml + '''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: ambassador-listener-8080
   namespace: default
@@ -133,8 +133,8 @@ spec:
       from: ALL
 
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: httpbin-mapping
   namespace: default
@@ -314,8 +314,8 @@ spec:
     def create_listeners(self, namespace):
         manifest = f"""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: listener-8080
 spec:

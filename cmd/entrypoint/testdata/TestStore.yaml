@@ -1,6 +1,6 @@
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: foo
   namespace: default
@@ -8,8 +8,8 @@ spec:
   prefix: /foo
   service: foo
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: bar
   namespace: default

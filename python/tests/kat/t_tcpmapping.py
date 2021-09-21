@@ -57,8 +57,8 @@ data:
   tls.crt: {TLSCerts["tls-context-host-2"].k8s_crt}
   tls.key: {TLSCerts["tls-context-host-2"].k8s_key}
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: {self.path.k8s}-listener
   labels:
@@ -76,8 +76,8 @@ spec:
 # of using three. For this test, though, we need three because we aren't
 # using real domain names, and you can't do wildcards like tls-context-*
 # (because the '*' has to be a domain part on its own).
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}-host
   labels:
@@ -93,8 +93,8 @@ spec:
     insecure:
       action: Reject
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}-host-2
   labels:
@@ -110,8 +110,8 @@ spec:
     insecure:
       action: Reject
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: {self.path.k8s}-host-3
   labels:
@@ -146,28 +146,28 @@ secret: supersecret
 
         yield self.target1, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorTCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 name:  {self.name}
 port: 9876
 service: {self.target1.path.fqdn}:443
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorTCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 name:  {self.name}-local-only
 address: 127.0.0.1
 port: 8765
 service: {self.target1.path.fqdn}:443
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorTCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 name:  {self.name}-clear-to-tls
 port: 7654
 tls: true
 service: {self.target2.path.fqdn}:443
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorTCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 name:  {self.name}-1
 port: 6789
 host: tls-context-host-1
@@ -177,8 +177,8 @@ service: {self.target1.path.fqdn}:80
         # Host-differentiated.
         yield self.target2, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorTCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 name:  {self.name}-2
 port: 6789
 host: tls-context-host-2
@@ -189,8 +189,8 @@ tls: {self.name}-tlscontext
         # Host-differentiated.
         yield self.target3, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorTCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 name:  {self.name}-3
 port: 6789
 host: tls-context-host-3
