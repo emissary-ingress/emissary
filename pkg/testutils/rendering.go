@@ -127,7 +127,7 @@ func NewRenderedListener(name string, port uint32) RenderedListener {
 	}
 }
 
-func NewAmbassadorListener(port uint32) RenderedListener {
+func NewListener(port uint32) RenderedListener {
 	return RenderedListener{
 		Name:   fmt.Sprintf("ambassador-listener-0.0.0.0-%d", port),
 		Port:   port,
@@ -135,7 +135,7 @@ func NewAmbassadorListener(port uint32) RenderedListener {
 	}
 }
 
-func NewAmbassadorMapping(name string, pfx string) v3alpha1.Mapping {
+func NewMapping(name string, pfx string) v3alpha1.Mapping {
 	return v3alpha1.Mapping{
 		TypeMeta:   kates.TypeMeta{Kind: "Mapping"},
 		ObjectMeta: kates.ObjectMeta{Namespace: "default", Name: name},

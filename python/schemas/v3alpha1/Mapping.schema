@@ -40,7 +40,7 @@
         },
         "apiVersion": {
             "enum": [
-                "x.getambassador.io/v3alpha1"
+                "getambassador.io/v3alpha1"
             ]
         },
         "auth_context_extensions": {

@@ -94,8 +94,11 @@ type HostSpec struct {
 	// Hostname by which the Ambassador can be reached.
 	Hostname string `json:"hostname,omitempty"`
 
-	// Selector by which we can find further configuration.
+	// DEPRECATED: Selector by which we can find further configuration. Use MappingSelector instead.
 	Selector *metav1.LabelSelector `json:"selector,omitempty"`
+
+	// Selector for Mappings we'll associate with this Host.
+	MappingSelector *metav1.LabelSelector `json:"mapping_selector,omitempty"`
 
 	// Specifies whether/who to talk ACME with to automatically manage the $tlsSecret.
 	AcmeProvider *ACMEProviderSpec `json:"acmeProvider,omitempty"`

@@ -24,8 +24,8 @@ func getModuleSpec(rawconfig string) amb.UntypedDict {
 func TestParseAnnotations(t *testing.T) {
 	mapping := `
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name: quote-backend
 prefix: /backend/
 service: quote:80
@@ -43,8 +43,8 @@ service: quote:80
 
 	ingHost := `
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name: cool-mapping
 prefix: /blah/
 `
@@ -84,8 +84,8 @@ name: endpoint`
 
 	unparsedAnnotation := `
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name: dont-parse
 prefix: /blah/`
 
@@ -115,8 +115,8 @@ prefix: /blah/`
 	expectedMappings := []*v3alpha1.Mapping{
 		{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       "AmbassadorMapping",
-				APIVersion: "x.getambassador.io/v3alpha1",
+				Kind:       "Mapping",
+				APIVersion: "getambassador.io/v3alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "cool-mapping",
@@ -128,8 +128,8 @@ prefix: /blah/`
 		},
 		{
 			TypeMeta: metav1.TypeMeta{
-				Kind:       "AmbassadorMapping",
-				APIVersion: "x.getambassador.io/v3alpha1",
+				Kind:       "Mapping",
+				APIVersion: "getambassador.io/v3alpha1",
 			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "quote-backend",
@@ -209,18 +209,18 @@ func TestConvertAnnotation(tmain *testing.T) {
 			testName: "mapping",
 			objString: `
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name: cool-mapping
 prefix: /blah/`,
-			kind:         "AmbassadorMapping",
-			apiVersion:   "x.getambassador.io/v3alpha1",
+			kind:         "Mapping",
+			apiVersion:   "getambassador.io/v3alpha1",
 			parentns:     "somens",
 			parentLabels: map[string]string{},
 			expectedObj: &v3alpha1.Mapping{
 				TypeMeta: metav1.TypeMeta{
-					Kind:       "AmbassadorMapping",
-					APIVersion: "x.getambassador.io/v3alpha1",
+					Kind:       "Mapping",
+					APIVersion: "getambassador.io/v3alpha1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "cool-mapping",
@@ -236,18 +236,18 @@ prefix: /blah/`,
 			testName: "old-group-v0",
 			objString: `
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name: cool-mapping
 prefix: /blah/`,
-			kind:         "AmbassadorMapping",
+			kind:         "Mapping",
 			apiVersion:   "ambassador/v3alpha1",
 			parentns:     "somens",
 			parentLabels: map[string]string{},
 			expectedObj: &v3alpha1.Mapping{
 				TypeMeta: metav1.TypeMeta{
-					Kind:       "AmbassadorMapping",
-					APIVersion: "x.getambassador.io/v3alpha1",
+					Kind:       "Mapping",
+					APIVersion: "getambassador.io/v3alpha1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "cool-mapping",
@@ -263,18 +263,18 @@ prefix: /blah/`,
 			testName: "old-group-v1",
 			objString: `
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name: cool-mapping
 prefix: /blah/`,
-			kind:         "AmbassadorMapping",
-			apiVersion:   "x.getambassador.io/v3alpha1",
+			kind:         "Mapping",
+			apiVersion:   "getambassador.io/v3alpha1",
 			parentns:     "somens",
 			parentLabels: map[string]string{},
 			expectedObj: &v3alpha1.Mapping{
 				TypeMeta: metav1.TypeMeta{
-					Kind:       "AmbassadorMapping",
-					APIVersion: "x.getambassador.io/v3alpha1",
+					Kind:       "Mapping",
+					APIVersion: "getambassador.io/v3alpha1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "cool-mapping",
@@ -290,20 +290,20 @@ prefix: /blah/`,
 			testName: "label-override",
 			objString: `
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name: cool-mapping
 metadata_labels:
   bleep: blorp
 prefix: /blah/`,
-			kind:         "AmbassadorMapping",
-			apiVersion:   "x.getambassador.io/v3alpha1",
+			kind:         "Mapping",
+			apiVersion:   "getambassador.io/v3alpha1",
 			parentns:     "somens",
 			parentLabels: map[string]string{"should": "override"},
 			expectedObj: &v3alpha1.Mapping{
 				TypeMeta: metav1.TypeMeta{
-					Kind:       "AmbassadorMapping",
-					APIVersion: "x.getambassador.io/v3alpha1",
+					Kind:       "Mapping",
+					APIVersion: "getambassador.io/v3alpha1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "cool-mapping",
@@ -321,20 +321,20 @@ prefix: /blah/`,
 			testName: "parent-labels",
 			objString: `
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name: cool-mapping
 prefix: /blah/`,
-			kind:       "AmbassadorMapping",
-			apiVersion: "x.getambassador.io/v3alpha1",
+			kind:       "Mapping",
+			apiVersion: "getambassador.io/v3alpha1",
 			parentns:   "somens",
 			parentLabels: map[string]string{
 				"use": "theselabels",
 			},
 			expectedObj: &v3alpha1.Mapping{
 				TypeMeta: metav1.TypeMeta{
-					Kind:       "AmbassadorMapping",
-					APIVersion: "x.getambassador.io/v3alpha1",
+					Kind:       "Mapping",
+					APIVersion: "getambassador.io/v3alpha1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "cool-mapping",

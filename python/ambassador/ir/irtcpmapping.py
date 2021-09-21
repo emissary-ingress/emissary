@@ -45,7 +45,7 @@ class IRTCPMapping (IRBaseMapping):
                  metadata_labels: Optional[Dict[str, str]] = None,
 
                  kind: str="IRTCPMapping",
-                 apiVersion: str="x.getambassador.io/v3alpha1",   # Not a typo! See below.
+                 apiVersion: str="getambassador.io/v3alpha1",   # Not a typo! See below.
                  precedence: int=0,
                  cluster_tag: Optional[str]=None,
                  **kwargs) -> None:

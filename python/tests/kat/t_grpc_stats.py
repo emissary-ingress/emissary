@@ -20,8 +20,8 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 grpc: True
 hostname: "*"
 prefix: /echo.EchoService/
@@ -31,8 +31,8 @@ service: {self.target.path.k8s}
 """)
 
         yield self, self.format("""
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  metrics
 hostname: "*"
 prefix: /metrics
@@ -118,8 +118,8 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 grpc: True
 hostname: "*"
 prefix: /echo.EchoService/
@@ -129,8 +129,8 @@ service: {self.target.path.k8s}
 """)
 
         yield self, self.format("""
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  metrics
 hostname: "*"
 prefix: /metrics
@@ -209,8 +209,8 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 grpc: True
 hostname: "*"
 prefix: /echo.EchoService/
@@ -220,8 +220,8 @@ service: {self.target.path.k8s}
 """)
 
         yield self, self.format("""
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  metrics
 hostname: "*"
 prefix: /metrics

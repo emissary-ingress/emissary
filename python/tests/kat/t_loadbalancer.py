@@ -37,15 +37,15 @@ class LoadBalancerTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-0
 hostname: "*"
 prefix: /{self.name}-0/
 service: {self.target.path.fqdn}
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-1
 hostname: "*"
 prefix: /{self.name}-1/
@@ -54,8 +54,8 @@ resolver:  endpoint
 load_balancer:
   policy: round_robin
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-2
 hostname: "*"
 prefix: /{self.name}-2/
@@ -65,8 +65,8 @@ load_balancer:
   policy: ring_hash
   header: test-header
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-3
 hostname: "*"
 prefix: /{self.name}-3/
@@ -76,8 +76,8 @@ load_balancer:
   policy: ring_hash
   source_ip: True
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-4
 hostname: "*"
 prefix: /{self.name}-4/
@@ -88,8 +88,8 @@ load_balancer:
   cookie:
     name: test-cookie
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-5
 hostname: "*"
 prefix: /{self.name}-5/
@@ -102,8 +102,8 @@ load_balancer:
   header: test-header
   source_ip: True
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-6
 hostname: "*"
 prefix: /{self.name}-6/
@@ -114,8 +114,8 @@ load_balancer:
   cookie:
     name: test-cookie
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-7
 hostname: "*"
 prefix: /{self.name}-7/
@@ -124,8 +124,8 @@ resolver: endpoint
 load_balancer:
   policy: rr
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-8
 hostname: "*"
 prefix: /{self.name}-8/
@@ -134,8 +134,8 @@ resolver: endpoint
 load_balancer:
   policy: least_request
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-9
 hostname: "*"
 prefix: /{self.name}-9/
@@ -200,8 +200,8 @@ config:
     policy: ring_hash
     header: LB-HEADER
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-header
 hostname: "*"
 prefix: /{self.name}-header/
@@ -211,8 +211,8 @@ load_balancer:
   cookie:
     name: lb-cookie
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-generic
 hostname: "*"
 prefix: /{self.name}-generic/
@@ -343,8 +343,8 @@ spec:
             self.policy = policy
             yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-header-{self.policy}
 hostname: "*"
 prefix: /{self.name}-header-{self.policy}/
@@ -354,8 +354,8 @@ load_balancer:
   policy: {self.policy}
   header: LB-HEADER
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-sourceip-{self.policy}
 hostname: "*"
 prefix: /{self.name}-sourceip-{self.policy}/
@@ -365,8 +365,8 @@ load_balancer:
   policy: {self.policy}
   source_ip: true
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-cookie-{self.policy}
 hostname: "*"
 prefix: /{self.name}-cookie-{self.policy}/
@@ -379,8 +379,8 @@ load_balancer:
     ttl: 125s
     path: /foo
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-cookie-no-ttl-{self.policy}
 hostname: "*"
 prefix: /{self.name}-cookie-no-ttl-{self.policy}/

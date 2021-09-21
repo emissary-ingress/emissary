@@ -107,7 +107,7 @@ func getProcessableMappingsFromSnapshot(snapshot *snapshotTypes.Snapshot) []*v3a
 }
 
 // scrape will take care of fetching OpenAPI documentation from each of the
-// AmbassadorMappings resources as we process a snapshot.
+// Mappings resources as we process a snapshot.
 //
 // Be careful as there is a very similar implementation of this logic in the DevPortal which
 // uses the ambassador diag representation to retrieve OpenAPI documentation from
@@ -134,7 +134,7 @@ func (a *APIDocsStore) scrape(ctx context.Context, mappings []*v3alpha1.Mapping)
 		// Lookup the Hostname first since it is more restrictive, otherwise fallback on the Host attribute
 		mappingHostname := mapping.Spec.Hostname
 		if mappingHostname == "" || mappingHostname == "*" {
-			mappingHostname = mapping.Spec.Host
+			mappingHostname = mapping.Spec.DeprecatedHost
 		}
 
 		dm := &docMappingRef{

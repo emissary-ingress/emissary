@@ -46,8 +46,8 @@ spec:
   config:
     max_request_headers_kb: 96
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: ambassador
   namespace: default
@@ -89,8 +89,8 @@ spec:
   config:
     max_request_headers_kb: 96
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: ambassador
   namespace: default

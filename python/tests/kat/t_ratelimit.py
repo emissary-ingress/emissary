@@ -22,8 +22,8 @@ class RateLimitV0Test(AmbassadorTest):
         # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  ratelimit_target_mapping
 hostname: "*"
 prefix: /target/
@@ -38,8 +38,8 @@ labels:
           header: "x-ambassador-test-headers-append"
           omit_if_not_present: true
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  ratelimit_label_mapping
 hostname: "*"
 prefix: /labels/
@@ -117,8 +117,8 @@ class RateLimitV1Test(AmbassadorTest):
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  ratelimit_target_mapping
 hostname: "*"
 prefix: /target/
@@ -204,8 +204,8 @@ name: ratelimit-tls-context
 secret: ratelimit-tls-secret
 alpn_protocols: h2
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  ratelimit_target_mapping
 hostname: "*"
 prefix: /target/
@@ -272,8 +272,8 @@ class RateLimitV2Test(AmbassadorTest):
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  ratelimit_target_mapping
 hostname: "*"
 prefix: /target/
@@ -344,8 +344,8 @@ class RateLimitV3Test(AmbassadorTest):
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  ratelimit_target_mapping
 hostname: "*"
 prefix: /target/

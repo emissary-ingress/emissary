@@ -167,9 +167,10 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 
 ## Emissary-ingress
 
-- Feature: Emissary-ingress 2.0.0 introduces API version `x.getambassador.io/v3alpha1` for configuration
-  changes that are not backwards compatible with the 1.X family. API versions `getambassador.io/v0`
-  and `getambassador.io/v1` are deprecated. Further details are available in the <a
+- Feature: Emissary-ingress 2.0.0 introduces API version `getambassador.io/v3alpha1` for configuration
+  changes that are not backwards compatible with the 1.X family.  API versions
+  `getambassador.io/v0`, `getambassador.io/v1`, and `getambassador.io/v2` are deprecated.  Further
+  details are available in the <a
   href="about/changes-2.0.0/#1-configuration-api-version-xgetambassadoriov3alpha1">2.0.0 Changes</a>
   document.
 

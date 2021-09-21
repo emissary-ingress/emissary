@@ -115,8 +115,8 @@ func TestAPIDocsStore(t *testing.T) {
 							DisplayName: "docs-display-name",
 							Path:        "/docs-location",
 						},
-						Host:     "mapping-host",
-						Hostname: "mapping-hostname",
+						DeprecatedHost: "mapping-host",
+						Hostname:       "mapping-hostname",
 					},
 					ObjectMeta: kates.ObjectMeta{
 						Name:      "some-endpoint",

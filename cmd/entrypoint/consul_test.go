@@ -27,14 +27,14 @@ spec:
   address: consultest-consul:8500
   datacenter: dc1
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  consultest_k8s_mapping
 prefix: /consultest_k8s/
 service: consultest-http-k8s
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorTCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 name:  consultest_k8s_mapping_tcp
 port: 3099
 service: consultest-http-k8s
@@ -47,8 +47,8 @@ apiVersion: getambassador.io/v1
 kind: KubernetesEndpointResolver
 name: endpoint
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  consultest_consul_mapping
 prefix: /consultest_consul/
 service: consultest-consul-service
@@ -57,8 +57,8 @@ resolver: consultest-resolver
 load_balancer:
   policy: round_robin
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorTCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 name:  consultest_consul_mapping_tcp
 port: 3090
 service: consultest-consul-service-tcp

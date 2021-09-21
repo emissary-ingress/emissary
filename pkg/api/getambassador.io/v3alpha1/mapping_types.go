@@ -126,9 +126,12 @@ type MappingSpec struct {
 	//
 	// If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is
 	// used.
-	Host      string `json:"host,omitempty"`
-	HostRegex *bool  `json:"host_regex,omitempty"`
-	// Glob match for the hostname of a request. Ignores HostRegex.
+	//
+	// DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.
+	DeprecatedHost string `json:"host,omitempty"`
+	// DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.
+	DeprecatedHostRegex *bool `json:"host_regex,omitempty"`
+	// Hostname is a DNS glob specifying the hosts to which this Mapping applies.
 	//
 	// Hostname specifies both a match for the ':authority' header of a request, as well as a
 	// match criterion for Host CRDs: a Mapping that specifies Hostname will not associate with

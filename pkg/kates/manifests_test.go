@@ -84,8 +84,8 @@ func TestMergeUpdate(t *testing.T) {
 }
 
 const mapping = `---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name:  mapping-name
 spec:

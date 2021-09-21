@@ -16,8 +16,8 @@ name:  ambassador
 config:
   preserve_external_request_id: true
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target
 hostname: "*"
 prefix: /target/
@@ -45,8 +45,8 @@ kind:  Module
 name:  ambassador
 
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target
 hostname: "*"
 prefix: /target/
@@ -70,8 +70,8 @@ class EnvoyHeadersTest(AmbassadorTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target
 hostname: "*"
 prefix: /target/
@@ -108,8 +108,8 @@ name:  ambassador
 config:
   suppress_envoy_headers: true
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target
 hostname: "*"
 prefix: /target/

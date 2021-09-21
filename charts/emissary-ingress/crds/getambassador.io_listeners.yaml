@@ -9,7 +9,7 @@ metadata:
   labels:
     app.kubernetes.io/name: ambassador
     product: aes
-  name: ambassadorlisteners.getambassador.io
+  name: listeners.getambassador.io
 spec:
   additionalPrinterColumns:
   - JSONPath: .spec.port
@@ -34,15 +34,15 @@ spec:
   names:
     categories:
     - ambassador-crds
-    kind: AmbassadorListener
-    listKind: AmbassadorListenerList
-    plural: ambassadorlisteners
-    singular: ambassadorlistener
+    kind: Listener
+    listKind: ListenerList
+    plural: listeners
+    singular: listener
   scope: Namespaced
   subresources: {}
   validation:
     openAPIV3Schema:
-      description: AmbassadorListener is the Schema for the hosts API
+      description: Listener is the Schema for the hosts API
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
@@ -53,7 +53,7 @@ spec:
         metadata:
           type: object
         spec:
-          description: AmbassadorListenerSpec defines the desired state of this Port
+          description: ListenerSpec defines the desired state of this Port
           properties:
             ambassador_id:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
@@ -61,7 +61,7 @@ spec:
                 type: string
               type: array
             hostBinding:
-              description: HostBinding allows restricting which Hosts will be used for this AmbassadorListener.
+              description: HostBinding allows restricting which Hosts will be used for this Listener.
               properties:
                 namespace:
                   description: NamespaceBindingType defines we we specify which namespaces to look for Hosts in.
@@ -110,7 +110,7 @@ spec:
               format: int32
               type: integer
             port:
-              description: Port is the network port. Only one AmbassadorListener can use a given port.
+              description: Port is the network port. Only one Listener can use a given port.
               format: int32
               maximum: 65535
               minimum: 1
@@ -146,7 +146,7 @@ spec:
               - INSECURE
               type: string
             statsPrefix:
-              description: 'StatsPrefix specifies the prefix for statistics sent by Envoy about this AmbassadorListener. The default depends on the protocol: "ingress-http", "ingress-https", "ingress-tls-$port", or "ingress-$port".'
+              description: 'StatsPrefix specifies the prefix for statistics sent by Envoy about this Listener. The default depends on the protocol: "ingress-http", "ingress-https", "ingress-tls-$port", or "ingress-$port".'
               type: string
           required:
           - hostBinding

@@ -11,8 +11,8 @@ class AllowHeadersWithUnderscoresTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  config__dump
 ambassador_id: {self.ambassador_id}
 hostname: "*"
@@ -44,8 +44,8 @@ config:
 """)
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  config__dump
 ambassador_id: {self.ambassador_id}
 hostname: "*"
