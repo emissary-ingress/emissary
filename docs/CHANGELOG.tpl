@@ -76,7 +76,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ## RELEASE NOTES
 
 {{ range (datasource "relnotes").items -}}
-## [{{ .version }}] ({{ .date }})
+## [{{ .version }}] {{ .date }}
 [{{ .version }}]: https://github.com/emissary-ingress/emissary/releases/v{{ .version }}
 {{- range .notes }}{{ if index . "isHeadline" }}{{ if .isHeadline }}
 
@@ -90,13 +90,59 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 [{{.title}}]: {{.link}}{{ end -}}{{- end -}}{{- end }}
 {{ if $anyGitLinks }}
 {{ end }}{{ end }}
+## [1.14.1] August 24, 2021
+[1.14.1]: https://github.com/emissary-ingress/emissary/compare/v1.14.0...v1.14.1
 
-## [1.13.11] (TBD)
-[1.13.11]: https://github.com/emissary-ingress/emissary/compare/v1.13.10...v1.13.11
+### Emissary Ingress and Ambassador Edge Stack
+
+- Change: Update Envoy with security patches to fix the following CVEs
+  - CVE-2021-32777
+  - CVE-2021-32779
+  - CVE-2021-32781
+  - CVE-2021-32778
+
+## [1.14.0] August 19, 2021
+[1.14.0]: https://github.com/emissary-ingress/emissary/compare/v1.13.10...v1.14.0
 
 ### Emissary Ingress and Ambassador Edge Stack
 
 - Change: Logs now include subsecond time resolutions, rather than just seconds.
+- Change: Update from Envoy 1.15 to 1.17.3
+- Change: `AMBASSADOR_ENVOY_API_VERSION` now defaults to `V3`
+- Feature: You can now set `allow_chunked_length` in the Ambassador Module to configure the same value in Envoy.
+
+## [1.13.10] July 28, 2021
+[1.13.10]: https://github.com/emissary-ingress/emissary/compare/v1.13.9...v1.13.10
+
+### Emissary Ingress and Ambassador Edge Stack
+
+- Bugfix: Fixed a regression when specifying a comma separated string for `cors.origins` on the
+  `Mapping` resource. ([#3609])
+- Change: Envoy-configuration snapshots get saved (as `ambex-#.json`) in `/ambassador/snapshots`.
+  The number of snapshots is controlled by the `AMBASSADOR_AMBEX_SNAPSHOT_COUNT` environment
+  variable; set it to 0 to disable. The default is 30.
+- Change: Set `AMBASSADOR_AMBEX_NO_RATELIMIT` to `true` to completely disable ratelimiting Envoy
+  reconfiguration under memory pressure. This can help performance with the endpoint or Consul
+  resolvers, but could make OOMkills more likely with large configurations. The default is `false`,
+  meaning that the rate limiter is active.
+
+### Ambassador Edge Stack only
+
+- Bugfix: The `Mapping` resource can now specify `docs.timeout_ms` to set the timeout when the
+  Dev Portal is fetching API specifications.
+- Bugfix: The Dev Portal will now strip HTML tags when displaying search results, showing just
+  the actual content of the search result.
+- Change: Consul certificate-rotation logging now includes the fingerprints and validity
+  timestamps of certificates being rotated.
+
+[#3609]: https://github.com/emissary-ingress/emissary/issues/3609
+
+## [1.13.9] June 30, 2021
+[1.13.9]: https://github.com/emissary-ingress/emissary/compare/v1.13.8...v1.13.9
+
+### Emissary Ingress and Ambassador Edge Stack
+
+- Bugfix: Configuring multiple TCPMappings with the same ports (but different hosts) no longer generates invalid Envoy configuration.
 
 ## [1.13.8] June 08, 2021
 [1.13.8]: https://github.com/emissary-ingress/emissary/compare/v1.13.7...v1.13.8
