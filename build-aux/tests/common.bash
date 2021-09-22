@@ -3,6 +3,8 @@
 common_setup() {
 	test_tmpdir="$(mktemp -d)"
 	cp -a "$BATS_TEST_DIRNAME/.." "$test_tmpdir/build-aux"
+	mkdir "$test_tmpdir/tools"
+	cp -a "$BATS_TEST_DIRNAME/../../tools/src" "$test_tmpdir/tools/src"
 	cd "$test_tmpdir"
 	cat >Makefile <<-'__EOT__'
 		.DEFAULT_GOAL = tst
@@ -32,39 +34,6 @@ make_expecting_go_error() {
 	cat output
 	[[ "$(wc -l <output)" -eq 1 ]]
 	[[ "$(cat output)" == *": *** This Makefile requires Go '1.11.4' or newer; you "*".  Stop." ]]
-}
-
-# Usage: check_executable SNIPPET.mk VARNAME
-check_executable() {
-	[[ $# = 2 ]]
-	local snippet=$1
-	local varname=$2
-
-	cat >>Makefile <<-__EOT__
-		include build-aux/${snippet}
-		include build-aux/var.mk
-		tst: \$(${varname}) \$(var.)${varname}
-	__EOT__
-
-	if [[ "$_check_go_executable" == true ]] && ([[ "$build_aux_unsupported_go" == true ]] || ! type go &>/dev/null); then
-		make_expecting_go_error
-		eval "${varname}=unsupported"
-	else
-		make
-
-		local varvalue
-		varvalue="$(cat "build-aux/.var.${varname}")"
-
-		[[ "$varvalue" == /* ]]
-		[[ -f "$varvalue" && -x "$varvalue" ]]
-
-		eval "${varname}=\$varvalue"
-	fi
-}
-
-# Usage: check_go_executable SNIPPET.mk VARNAME
-check_go_executable() {
-	_check_go_executable=true check_executable "$@"
 }
 
 check_expr_eq() {

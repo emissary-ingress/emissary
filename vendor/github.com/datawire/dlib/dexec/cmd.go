@@ -14,9 +14,9 @@
 // CommandContext by calling
 // github.com/datawire/dlib/dlog.WithLogger.
 //
-// A Cmd logs when it starts, its exit status, and if they aren't an
-// *os.File, logs everything read from or written to .Stdin, .Stdout,
-// and .Stderr.  If one of those is an *os.File (as it is following a
+// A Cmd logs when it starts, its exit status, and everything read
+// from or written to .Stdin, .Stdout, and .Stderr if they aren't an
+// *os.File.  If one of those is an *os.File (as it is following a
 // call to .StdinPipe, .StdoutPipe, or .StderrPipe), then that stream
 // won't be logged (but it will print a message at process-start
 // noting that it isn't being logged).
@@ -28,13 +28,13 @@
 //     cmd.Stdin = os.Stdin
 //     err := cmd.Run()
 //
-// will log the lines
+// will log the lines (assuming the default dlog configuration):
 //
-//     [pid:24272] started command []string{"printf", "%s\n", "foo bar", "baz"}
-//     [pid:24272] stdin  < not logging input read from file /dev/stdin
-//     [pid:24272] stdout+stderr > "foo bar\n"
-//     [pid:24272] stdout+stderr > "baz\n"
-//     [pid:24272] finished successfully: exit status 0
+//     time="2021-05-18T17:18:35-06:00" level=info dexec.pid=24272 msg="started command [\"printf\" \"%s\\n\" \"foo bar\" \"baz\"]"
+//     time="2021-05-18T17:18:35-06:00" level=info dexec.pid=24272 dexec.stream=stdin msg="not logging input read from file \"/dev/stdin\""
+//     time="2021-05-18T17:18:35-06:00" level=info dexec.pid=24272 dexec.stream=stdout+stderr dexec.data="foo bar\n"
+//     time="2021-05-18T17:18:35-06:00" level=info dexec.pid=24272 dexec.stream=stdout+stderr dexec.data="baz\n"
+//     time="2021-05-18T17:18:35-06:00" level=info dexec.pid=24272 msg="finished successfully: exit status 0"
 //
 // If you would like a "pipe" to be logged, use an io.Pipe instead of
 // calling .StdinPipe, .StdoutPipe, or .StderrPipe.
@@ -108,8 +108,8 @@ func CommandContext(ctx context.Context, name string, arg ...string) *Cmd {
 	return ret
 }
 
-func (c *Cmd) logiofn(prefix string) func(string) {
-	return func(msg string) {
+func (c *Cmd) logiofn(stream string) func(error, []byte) {
+	return func(err error, msg []byte) {
 		if c.DisableLogging {
 			return
 		}
@@ -120,7 +120,17 @@ func (c *Cmd) logiofn(prefix string) func(string) {
 		if c.Process != nil {
 			pid = c.Process.Pid
 		}
-		dlog.Printf(c.ctx, "[pid:%v] %s %s", pid, prefix, msg)
+		ctx := dlog.WithField(c.ctx, "dexec.pid", pid)
+		ctx = dlog.WithField(ctx, "dexec.stream", stream)
+		if msg != nil {
+			ctx = dlog.WithField(ctx, "dexec.data", string(msg))
+		}
+		if err != nil {
+			ctx = dlog.WithField(ctx, "dexec.err", err)
+		}
+		// We don't have an additional message to log; all of the info that we want to log
+		// is provided via dlog.WithField.
+		dlog.Print(ctx)
 	}
 }
 
@@ -128,42 +138,43 @@ func (c *Cmd) logiofn(prefix string) func(string) {
 //
 // See the os/exec.Cmd.Start documenaton for more information.
 func (c *Cmd) Start() error {
-	c.Stdin = fixupReader(c.Stdin, c.logiofn("stdin  <"))
+	c.Stdin = fixupReader(c.Stdin, c.logiofn("stdin"))
 	if interfaceEqual(c.Stdout, c.Stderr) {
-		c.Stdout = fixupWriter(c.Stdout, c.logiofn("stdout+stderr >"))
+		c.Stdout = fixupWriter(c.Stdout, c.logiofn("stdout+stderr"))
 		c.Stderr = c.Stdout
 	} else {
-		c.Stdout = fixupWriter(c.Stdout, c.logiofn("stdout >"))
-		c.Stderr = fixupWriter(c.Stderr, c.logiofn("stderr >"))
+		c.Stdout = fixupWriter(c.Stdout, c.logiofn("stdout"))
+		c.Stderr = fixupWriter(c.Stderr, c.logiofn("stderr"))
 	}
 
 	err := c.Cmd.Start()
 	if err == nil {
 		if !c.DisableLogging {
-			dlog.Printf(c.ctx, "[pid:%v] started command %#v", c.Process.Pid, c.Args)
+			ctx := dlog.WithField(c.ctx, "dexec.pid", c.Process.Pid)
+			dlog.Printf(ctx, "started command %q", c.Args)
 			if stdin, isFile := c.Stdin.(*os.File); isFile {
-				dlog.Printf(c.ctx, "[pid:%v] stdin  < not logging input read from file %s", c.Process.Pid, stdin.Name())
+				dlog.Printf(dlog.WithField(ctx, "dexec.stream", "stdin"), "not logging input read from file %q", stdin.Name())
 			}
 			if stdout, isFile := c.Stdout.(*os.File); isFile {
-				dlog.Printf(c.ctx, "[pid:%v] stdout > not logging output written to file %s", c.Process.Pid, stdout.Name())
+				dlog.Printf(dlog.WithField(ctx, "dexec.stream", "stdout"), "not logging output written to file %q", stdout.Name())
 			}
 			if stderr, isFile := c.Stderr.(*os.File); isFile {
-				dlog.Printf(c.ctx, "[pid:%v] stderr > not logging output written to file %s", c.Process.Pid, stderr.Name())
+				dlog.Printf(dlog.WithField(ctx, "dexec.stream", "stderr"), "not logging output written to file %q", stderr.Name())
 			}
 		}
-	}
-	if c.ctx != dcontext.HardContext(c.ctx) {
-		c.waitDone = make(chan struct{})
-		go func() {
-			select {
-			case <-dcontext.HardContext(c.ctx).Done(): // hard shutdown
-				// let os/exec send SIGKILL
-			case <-c.ctx.Done(): // soft shutdown
-				_ = c.Cmd.Process.Signal(os.Interrupt) // send SIGINT
-			case <-c.waitDone:
-				// it exited on its own
-			}
-		}()
+		if c.ctx != dcontext.HardContext(c.ctx) {
+			c.waitDone = make(chan struct{})
+			go func() {
+				select {
+				case <-dcontext.HardContext(c.ctx).Done(): // hard shutdown
+					// let os/exec send SIGKILL
+				case <-c.ctx.Done(): // soft shutdown
+					_ = c.Cmd.Process.Signal(os.Interrupt) // send SIGINT
+				case <-c.waitDone:
+					// it exited on its own
+				}
+			}()
+		}
 	}
 	c.pidlock.Unlock()
 	return err
@@ -186,10 +197,11 @@ func (c *Cmd) Wait() error {
 	}
 
 	if !c.DisableLogging {
+		ctx := dlog.WithField(c.ctx, "dexec.pid", pid)
 		if err == nil {
-			dlog.Printf(c.ctx, "[pid:%v] finished successfully: %v", pid, c.ProcessState)
+			dlog.Printf(ctx, "finished successfully: %v", c.ProcessState)
 		} else {
-			dlog.Printf(c.ctx, "[pid:%v] finished with error: %v", pid, err)
+			dlog.Printf(ctx, "finished with error: %v", err)
 		}
 	}
 

@@ -28,7 +28,13 @@ if [[ -n "${TEST_XML_DIR}" ]] ; then
     TEST_DATA_DIR=${TEST_XML_DIR}
 fi
 
-DBUILD=${DIR}/dbuild.sh
+dsum() {
+    local exe=${DIR}/../tools/bin/dsum
+    if ! test -f "$exe"; then
+        make -C "$DIR/.." tools/bin/dsum
+    fi
+    "$exe" "$@"
+}
 
 now=$(date +"%H%M%S")
 
@@ -176,9 +182,8 @@ print("stage2_tag=%s" % stage2)
 
     msg2 "Using stage-1 base ${BLU}${name1}${GRN}"
     if ! (docker image inspect "$name1" || docker pull "$name2") &>/dev/null; then # skip building if the "$name1" already exists
-        TIMEFORMAT="     (stage-1 build took %1R seconds)"
-        time ${DBUILD} -f "${DIR}/Dockerfile.base" -t "${name1}" --target builderbase-stage1 "${DIR}"
-        unset TIMEFORMAT
+        dsum 'stage-1 build' 3s \
+             docker build -f "${DIR}/Dockerfile.base" -t "${name1}" --target builderbase-stage1 "${DIR}"
         if [[ "$BASE_REGISTRY" == "$DEV_REGISTRY" ]]; then
             TIMEFORMAT="     (stage-1 push took %1R seconds)"
             time docker push "$name1"
@@ -192,9 +197,8 @@ print("stage2_tag=%s" % stage2)
 
     msg2 "Using stage-2 base ${BLU}${name2}${GRN}"
     if ! (docker image inspect "$name2" || docker pull "$name2") &>/dev/null; then # skip building if the "$name2" already exists
-        TIMEFORMAT="     (stage-2 build took %1R seconds)"
-        time ${DBUILD} --build-arg=builderbase_stage1="$name1" -f "${DIR}/Dockerfile.base" -t "${name2}" --target builderbase-stage2 "${DIR}"
-        unset TIMEFORMAT
+        dsum 'stage-2 build' 3s \
+             docker build --build-arg=builderbase_stage1="$name1" -f "${DIR}/Dockerfile.base" -t "${name2}" --target builderbase-stage2 "${DIR}"
         if [[ "$BASE_REGISTRY" == "$DEV_REGISTRY" ]]; then
             TIMEFORMAT="     (stage-2 push took %1R seconds)"
             time docker push "$name2"
@@ -229,13 +233,12 @@ bootstrap() {
         builder_base_image=$(cat docker/builder-base.docker)
         envoy_base_image=$(cat docker/base-envoy.docker)
         msg2 'Bootstrapping build image'
-        TIMEFORMAT="     (builder bootstrap took %1R seconds)"
-        time ${DBUILD} \
-            --build-arg=envoy="${envoy_base_image}" \
-            --build-arg=builderbase="${builder_base_image}" \
-            --target=builder \
-            ${DIR} -t ${BUILDER_NAME}.local/builder
-        unset TIMEFORMAT
+        dsum 'builder bootstrap' 3s \
+             docker build \
+             --build-arg=envoy="${envoy_base_image}" \
+             --build-arg=builderbase="${builder_base_image}" \
+             --target=builder \
+             ${DIR} -t ${BUILDER_NAME}.local/builder
         if stat --version | grep -q GNU ; then
             DOCKER_GID=$(stat -c "%g" /var/run/docker.sock)
         else
@@ -658,7 +661,7 @@ case "${cmd}" in
         fi
 
         if [ -z "$KUBESTATUS_PATH" ] ; then
-            export KUBESTATUS_PATH="${MODDIR}/bin/kubestatus"
+            export KUBESTATUS_PATH="${MODDIR}/tools/bin/kubestatus"
         fi
         if [ ! -f "$KUBESTATUS_PATH" ] ; then
             echo "Kubestatus not found at $KUBESTATUS_PATH"

@@ -13,11 +13,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/datawire/ambassador/v2/pkg/dtest_k3s"
+	"github.com/datawire/dlib/dlog"
+	dtest_k3s "github.com/datawire/dtest"
 )
 
 func testClient(t *testing.T) *Client {
-	cli, err := NewClient(ClientConfig{Kubeconfig: dtest_k3s.Kubeconfig()})
+	ctx := dlog.NewTestContext(t, false)
+	cli, err := NewClient(ClientConfig{Kubeconfig: dtest_k3s.Kubeconfig(ctx)})
 	require.NoError(t, err)
 	return cli
 }
