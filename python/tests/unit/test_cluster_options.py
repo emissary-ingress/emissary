@@ -42,7 +42,7 @@ def test_logical_dns_type():
             expected="LOGICAL_DNS", exists=True, envoy_version=v)
 
 @pytest.mark.compilertest
-def test_logical_dns_type():
+def test_strict_dns_type():
     # Make sure we can configure strict dns as well even though it's the default
     yaml = module_and_mapping_manifests(None, ["dns_type: strict_dns"])
     for v in SUPPORTED_ENVOY_VERSIONS:
@@ -51,17 +51,17 @@ def test_logical_dns_type():
             expected="STRICT_DNS", exists=True, envoy_version=v)
 
 @pytest.mark.compilertest
-def test_logical_dns_type_wrong():
+def test_dns_type_wrong():
     # Ensure we fallback to strict_dns as the setting when an invalid string is passed
     # This is preferable to invalid config and an error is logged
     yaml = module_and_mapping_manifests(None, ["dns_type: something_new"])
     for v in SUPPORTED_ENVOY_VERSIONS:
         # The dns type is listed as just "type"
-        _test_cluster_setting(yaml, setting="type",
+        _test_cluster_setting(yaml, setting="type", 
             expected="STRICT_DNS", exists=True, envoy_version=v)
 
 @pytest.mark.compilertest
-def test_logical_dns_type_wrong():
+def test_logical_dns_type_endpoints():
     # Ensure we use endpoint discovery instead of this value when using the endpoint resolver
     yaml = module_and_mapping_manifests(None, ["dns_type: logical_dns", "resolver: endpoint"])
     for v in SUPPORTED_ENVOY_VERSIONS:
