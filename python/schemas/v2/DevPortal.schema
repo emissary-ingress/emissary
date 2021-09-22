@@ -20,6 +20,7 @@
             ]
         },
         "default": { "type": "boolean" },
+        "preserve_servers": { "type": "boolean" },
         "docs": {
             "type": "array",
             "items": {

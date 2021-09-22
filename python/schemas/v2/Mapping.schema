@@ -31,6 +31,8 @@
         "case_sensitive": { "type": "boolean" },
         "enable_ipv4": { "type": "boolean" },
         "enable_ipv6": { "type": "boolean" },
+        "respect_dns_ttl": { "type": "boolean" },
+        "dns_type": { "type": "string" },
         "circuit_breakers": {
             "type": "array",
             "items": {
