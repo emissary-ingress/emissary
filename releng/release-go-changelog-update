@@ -104,7 +104,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         found = False
         for line in fileinput.FileInput("CHANGELOG.md", inplace=True):
             if not found and line.startswith(f"## [{next_ver}]"):
-                line = f"## [{next_ver}] {today.strftime('%B %d, %Y')}\n"
+                line = f"## [{next_ver}] {today.strftime('%Y-%m-%d')}\n"
                 found = True
 
             sys.stdout.write(line)
@@ -113,6 +113,36 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             raise Exception(f"Changelog entry for {next_ver} not found. Was releng/start-update-version run?")
 
         git_add("CHANGELOG.md")
+
+    with check(f"Updating releaseNotes.yml with date for {next_ver}..."):
+        state = 0
+
+        for line in fileinput.FileInput("docs/releaseNotes.yml", inplace=True):
+            if state == 0:
+                if line.strip() == f"- version: {next_ver}":
+                    state = 1
+            elif state == 1:
+                m = re.match(r"(\s+date:)\s+.*$", line)
+
+                if m:
+                    line = f"{m.group(1)} '{today.strftime('%Y-%m-%d')}'\n"
+                    state = 2
+            
+            sys.stdout.write(line)
+
+        if state != 2:
+            # Something didn't go right.
+            sadness = f"""
+ ==> ERROR: could not find the date for version '{next_ver}' in 
+     docs/releaseNotes.yml. Make sure that the block for that release
+     starts with
+
+     - version: {next_ver}
+       date: ....
+
+     as the start of the block."""
+
+            raise Exception(sadness)
 
     if checker.ok and commit:
         with check(f"Committing changes..."):
