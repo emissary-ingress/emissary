@@ -8,7 +8,7 @@ jobs:
   repatriate-to-lts:
     runs-on: ubuntu-latest
 
-    name: repatriate-to-lts
+    name: update-website-docs
     
     env:
       REF: ${{ github.ref }}
@@ -93,25 +93,30 @@ jobs:
       - name: Update website repo
         shell: bash
         run: |
+          set -x
           pushd /tmp/getambassador.io
           git checkout -b rel/edge-stack/v${{steps.version.outputs.version}}
           git add .
           git commit -s -m "Update ambassador-docs subtree to latest following Edge Stack ${{steps.version.outputs.version}} release"
           git push --set-upstream origin rel/edge-stack/v${{steps.version.outputs.version}}
-          echo "${GITHUB_TOKEN}" > temp_credential
-          # GH does NOT want this in the env
-          export GITHUB_TOKEN=
-          cat temp_credential | gh auth login --with-token
-          rm temp_credential
-          gh pr create --title "[CI] [v${{steps.version.outputs.version}}] Release Branch" \
-                       --body "This PR contains updates from Edgissary release ${{steps.version.outputs.version}}" \
-                       --base master
 
-      - name: Push docs
-        shell: bash
-        run: |
-          pushd /tmp/getambassador.io
-          make push-docs
+      - name: Initialize Pull Request
+        id: pr
+        uses: vsoch/pull-request-action@master
+        env:
+          PULL_REQUEST_REPOSITORY: ${{ secrets.WEBSITE_REPO }}
+          PULL_REQUEST_TOKEN: ${{ secrets.GH_API_KEY }}
+          PULL_REQUEST_FROM_BRANCH: rel/edge-stack/v${{ steps.version.outputs.version }}
+          PULL_REQUEST_BRANCH: master
+          PULL_REQUEST_TITLE: '[CI] [v${{ steps.version.outputs.version }}] Release Branch'
+          PULL_REQUEST_BODY: >-
+            This PR contains updates from Edgissary release ${{steps.version.outputs.version}}
+
+      #- name: Push docs
+      #  shell: bash
+      #  run: |
+      #    pushd /tmp/getambassador.io
+      #    make push-docs
 
       - name: Slack notification
         if: always()
