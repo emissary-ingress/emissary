@@ -1,16 +1,24 @@
-Emissary-Ingress (fka Ambassador API Gateway) [![Build Status][build-status]][build-pages] [![CII Best Practices][cii-badge]][cii-status]
- [![Docker Repository][docker-latest]][docker-repo] ![Docker Pulls][docker-pulls] [![Join Slack][slack-join]][slack-url]
+Emissary-ingress
 ==========
 
-[build-pages]:   https://travis-ci.org/datawire/ambassador
-[build-status]:  https://travis-ci.org/datawire/ambassador.png?branch=master
-[cii-badge]:     https://bestpractices.coreinfrastructure.org/projects/1852/badge
-[cii-status]:    https://bestpractices.coreinfrastructure.org/projects/1852
-[docker-repo]:   https://hub.docker.com/repository/docker/datawire/ambassador
-[docker-latest]: https://img.shields.io/docker/v/datawire/ambassador?sort=semver
-[docker-pulls]:  https://img.shields.io/docker/pulls/datawire/ambassador
-[slack-url]:     https://a8r.io/slack
-[slack-join]:    https://img.shields.io/badge/slack-join-orange.svg
+<!-- [![Build Status][build-status]][build-pages] -->
+[![Docker Repository][version-endpoint]][docker-repo] 
+![Docker Pulls][docker-pulls]
+[![Join Slack][slack-join]][slack-url] <br/>
+[![CII Best Practices][cii-badge]][cii-status]
+
+<!--
+  ![example branch parameter](https://github.com/github/docs/actions/workflows/main.yml/badge.svg?branch=feature-1)
+  [build-pages]:   https://travis-ci.org/datawire/ambassador
+  [build-status]:  https://github.com/emissary-ingress/emissary/actions/workflows/promote-ga.yml/badge.svg?branch=release/v2.0
+-->
+[cii-badge]:        https://bestpractices.coreinfrastructure.org/projects/1852/badge
+[cii-status]:       https://bestpractices.coreinfrastructure.org/projects/1852
+[docker-repo]:      https://hub.docker.com/repository/docker/datawire/emissary
+[version-endpoint]: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/kflynn/emissary/flynn/dev/readme/docs/shield.json
+[docker-pulls]:     https://img.shields.io/docker/pulls/datawire/emissary
+[slack-url]:        https://a8r.io/slack
+[slack-join]:       https://img.shields.io/badge/slack-join-orange.svg
 
 Emissary-Ingress (formerly known as the [Ambassador API Gateway](https://www.getambassador.io)) is an open-source Kubernetes-native API Gateway + Layer 7 load balancer + Kubernetes Ingress built on [Envoy Proxy](https://www.envoyproxy.io). Emissary Ingress is an CNCF incubation project.
 
