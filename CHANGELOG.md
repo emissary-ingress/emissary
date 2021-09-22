@@ -78,7 +78,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ## [2.0.4-ea] (TBD)
 [2.0.4-ea]: https://github.com/emissary-ingress/emissary/releases/v2.0.4-ea
 
-We're pleased to introduce Emissary-ingress 2.0.3 as a _developer preview_. The 2.X family
+We're pleased to introduce Emissary-ingress 2.0.4 as a _developer preview_. The 2.X family
 introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
 installations, reduce global configuration to better handle multitenant or multiorganizational
 installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on
@@ -88,6 +88,8 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 
 - Bugfix: The release now shows its actual released version number, rather than the internal development
   version number.
+
+- Bugfix: The README isn't completely wrong. It's just <i>mostly</i> wrong. Yay?
 
 ## [2.0.3-ea] (TBD)
 [2.0.3-ea]: https://github.com/emissary-ingress/emissary/releases/v2.0.3-ea
