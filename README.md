@@ -1,5 +1,7 @@
 Emissary-ingress
-==========
+================
+
+<!-- Links are (mostly) at the end of this document, for legibility. -->
 
 <!-- [![Build Status][build-status]][build-pages] -->
 [![Docker Repository][version-endpoint]][docker-repo] 
@@ -7,18 +9,7 @@ Emissary-ingress
 [![Join Slack][slack-join]][slack-url] <br/>
 [![CII Best Practices][cii-badge]][cii-status]
 
-<!--
-  ![example branch parameter](https://github.com/github/docs/actions/workflows/main.yml/badge.svg?branch=feature-1)
-  [build-pages]:   https://travis-ci.org/emissary-ingress/emissary
-  [build-status]:  https://github.com/emissary-ingress/emissary/actions/workflows/promote-ga.yml/badge.svg?branch=release/v2.0
--->
-[cii-badge]:        https://bestpractices.coreinfrastructure.org/projects/1852/badge
-[cii-status]:       https://bestpractices.coreinfrastructure.org/projects/1852
-[docker-repo]:      https://hub.docker.com/repository/docker/datawire/emissary
-[version-endpoint]: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/kflynn/emissary/flynn/dev/readme/docs/shield.json
-[docker-pulls]:     https://img.shields.io/docker/pulls/datawire/emissary
-[slack-url]:        https://a8r.io/slack
-[slack-join]:       https://img.shields.io/badge/slack-join-orange.svg
+----
 
 [Emissary-Ingress](https://www.getambassador.io) is an open-source Kubernetes-native API Gateway +
 Layer 7 load balancer + Kubernetes Ingress built on [Envoy Proxy](https://www.envoyproxy.io). 
@@ -33,27 +24,6 @@ Emissary-ingress enables its users to:
 * Enable progressive delivery with [canary releases]
 * Connect service meshes including [Consul], [Linkerd], and [Istio]
 * [Knative serverless integration]
-
-[load balancing]: https://www.getambassador.io/docs/emissary/latest/topics/running/load-balancer/
-[gRPC and HTTP/2]: https://www.getambassador.io/docs/emissary/latest/howtos/grpc/
-[TCP]: https://www.getambassador.io/docs/emissary/latest/topics/using/tcpmappings/
-[web sockets]: https://www.getambassador.io/docs/emissary/latest/topics/using/tcpmappings/
-[self-service configuration]: https://www.getambassador.io/docs/emissary/latest/topics/using/mappings/
-[CRDs]: https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/
-[authentication]: https://www.getambassador.io/docs/emissary/latest/topics/running/services/auth-service/
-[TLS]: https://www.getambassador.io/docs/emissary/latest/howtos/tls-termination/
-[sticky sessions]: https://www.getambassador.io/docs/emissary/latest/topics/running/load-balancer/#sticky-sessions--session-affinity
-[rate limiting]: https://www.getambassador.io/docs/emissary/latest/topics/running/services/rate-limit-service/
-[circuit breaking]: https://www.getambassador.io/docs/emissary/latest/topics/using/circuit-breakers/
-[Grafana]: https://www.getambassador.io/docs/emissary/latest/topics/running/statistics/#grafana
-[Prometheus]: https://www.getambassador.io/docs/emissary/latest/topics/running/statistics/#prometheus
-[Datadog]: https://www.getambassador.io/docs/emissary/latest/topics/running/statistics/#datadog
-[metrics]: https://www.getambassador.io/docs/emissary/latest/topics/running/statistics/
-[canary releases]: https://www.getambassador.io/docs/emissary/latest/topics/using/canary/
-[Consul]: https://www.getambassador.io/docs/emissary/latest/howtos/consul/
-[Linkerd]: https://www.getambassador.io/docs/emissary/latest/howtos/linkerd2/
-[Istio]: https://www.getambassador.io/docs/emissary/latest/howtos/istio/
-[Knative serverless integration]: https://www.getambassador.io/docs/emissary/latest/howtos/knative/
 
 See the full list of [features](https://www.getambassador.io/features/) here.
 
@@ -92,3 +62,37 @@ If you're interested in contributing, here are some ways:
 
 The Ambassador Edge Stack is a superset of Emissary-ingress that provides additional functionality including OAuth/OpenID Connect, advanced rate limiting, Swagger/OpenAPI support, integrated ACME support for automatic TLS certificate management, and a cloud-based UI. For more information, visit https://www.getambassador.io/editions/.
 
+<!--
+  ![example branch parameter](https://github.com/github/docs/actions/workflows/main.yml/badge.svg?branch=feature-1)
+  [build-pages]:   https://travis-ci.org/emissary-ingress/emissary
+  [build-status]:  https://github.com/emissary-ingress/emissary/actions/workflows/promote-ga.yml/badge.svg?branch=release/v2.0
+-->
+[cii-badge]:        https://bestpractices.coreinfrastructure.org/projects/1852/badge
+[cii-status]:       https://bestpractices.coreinfrastructure.org/projects/1852
+[docker-repo]:      https://hub.docker.com/repository/docker/datawire/emissary
+[version-endpoint]: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/kflynn/emissary/flynn/dev/readme/docs/shield.json
+[docker-pulls]:     https://img.shields.io/docker/pulls/datawire/emissary
+[slack-url]:        https://a8r.io/slack
+[slack-join]:       https://img.shields.io/badge/slack-join-orange.svg
+
+<!-- Please keep this list sorted. -->
+[authentication]: https://www.getambassador.io/docs/emissary/latest/topics/running/services/auth-service/
+[canary releases]: https://www.getambassador.io/docs/emissary/latest/topics/using/canary/
+[circuit breaking]: https://www.getambassador.io/docs/emissary/latest/topics/using/circuit-breakers/
+[Consul]: https://www.getambassador.io/docs/emissary/latest/howtos/consul/
+[CRDs]: https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/
+[Datadog]: https://www.getambassador.io/docs/emissary/latest/topics/running/statistics/#datadog
+[Grafana]: https://www.getambassador.io/docs/emissary/latest/topics/running/statistics/#grafana
+[gRPC and HTTP/2]: https://www.getambassador.io/docs/emissary/latest/howtos/grpc/
+[Istio]: https://www.getambassador.io/docs/emissary/latest/howtos/istio/
+[Knative serverless integration]: https://www.getambassador.io/docs/emissary/latest/howtos/knative/
+[Linkerd]: https://www.getambassador.io/docs/emissary/latest/howtos/linkerd2/
+[load balancing]: https://www.getambassador.io/docs/emissary/latest/topics/running/load-balancer/
+[metrics]: https://www.getambassador.io/docs/emissary/latest/topics/running/statistics/
+[Prometheus]: https://www.getambassador.io/docs/emissary/latest/topics/running/statistics/#prometheus
+[rate limiting]: https://www.getambassador.io/docs/emissary/latest/topics/running/services/rate-limit-service/
+[self-service configuration]: https://www.getambassador.io/docs/emissary/latest/topics/using/mappings/
+[sticky sessions]: https://www.getambassador.io/docs/emissary/latest/topics/running/load-balancer/#sticky-sessions--session-affinity
+[TCP]: https://www.getambassador.io/docs/emissary/latest/topics/using/tcpmappings/
+[TLS]: https://www.getambassador.io/docs/emissary/latest/howtos/tls-termination/
+[web sockets]: https://www.getambassador.io/docs/emissary/latest/topics/using/tcpmappings/
