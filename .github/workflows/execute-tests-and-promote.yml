@@ -12,7 +12,7 @@ on:
       - 'docs/**'
       - '*.md$'
   pull_request:
-     paths-ignore:
+    paths-ignore:
       - 'releng/**'
       - 'charts/**'
       - 'manifests/**'
