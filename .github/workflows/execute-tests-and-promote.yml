@@ -12,8 +12,13 @@ on:
       - 'docs/**'
       - '*.md$'
   pull_request:
-    - branches:
-        - *
+     paths-ignore:
+      - 'releng/**'
+      - 'charts/**'
+      - 'manifests/**'
+      - 'k8s-config/**'
+      - 'docs/**'
+      - '*.md$'
 
 jobs:
   lint-test:
