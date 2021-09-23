@@ -83,7 +83,7 @@ def main(next_ver: str, commit: bool = True) -> int:
     if not checker.ok:
         return 1
     run(["git", "merge", f"origin/{release_branch}"])
-    with check(f"Checking if there are conflicts in merge"):
+    with check(f"Checking for clean branch with no conflicts..."):
         out = run_capture(["git", "status", "--porcelain"])
         if out:
             raise AssertionError(f"Merge conflicts on {current_release_branch}. Resolve these, then rerun this scrip")
