@@ -91,13 +91,13 @@ $(OSS_HOME)/_cxx/go-control-plane: FORCE
 	    git checkout $(ENVOY_GO_CONTROL_PLANE_COMMIT); \
 	}
 
-$(OSS_HOME)/_cxx/envoy-build-image.txt: $(OSS_HOME)/_cxx/envoy $(WRITE_IFCHANGED) FORCE
+$(OSS_HOME)/_cxx/envoy-build-image.txt: $(OSS_HOME)/_cxx/envoy $(tools/write-ifchanged) FORCE
 	@PS4=; set -ex -o pipefail; { \
 	    pushd $</ci; \
 	    echo "$$(pwd)"; \
 	    . envoy_build_sha.sh; \
 	    popd; \
-	    echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA | $(WRITE_IFCHANGED) $@; \
+	    echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA | $(tools/write-ifchanged) $@; \
 	}
 
 $(OSS_HOME)/_cxx/envoy-build-container.txt: $(OSS_HOME)/_cxx/envoy-build-image.txt FORCE

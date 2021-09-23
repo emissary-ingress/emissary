@@ -658,7 +658,7 @@ case "${cmd}" in
         fi
 
         if [ -z "$KUBESTATUS_PATH" ] ; then
-            export KUBESTATUS_PATH="${MODDIR}/bin/kubestatus"
+            export KUBESTATUS_PATH="${MODDIR}/tools/bin/kubestatus"
         fi
         if [ ! -f "$KUBESTATUS_PATH" ] ; then
             echo "Kubestatus not found at $KUBESTATUS_PATH"

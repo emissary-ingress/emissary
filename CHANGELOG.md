@@ -3,7 +3,7 @@
 ## EMISSARY-INGRESS and AMBASSADOR EDGE STACK
 
 Emissary-ingress is a Kubernatives-native, self-service, open-source API gateway
-and ingress controller. It is a CNCF Incubation project, formerly known as the 
+and ingress controller. It is a CNCF Incubation project, formerly known as the
 Ambassador API Gateway.
 
 Ambassador Edge Stack is a comprehensive, self-service solution for exposing,
@@ -20,7 +20,7 @@ The core of Ambassador Edge Stack is Emissary-ingress.
    - Developer onboarding assistance, including an API catalog, Swagger/OpenAPI documentation
      support, and a fully customizable developer portal.
 
-- Emissary-ingress can do everything that Ambassador Edge Stack can do, but you'll need to 
+- Emissary-ingress can do everything that Ambassador Edge Stack can do, but you'll need to
   write your own code to take advantage of the capabilities above.
 
 - Ambassador Edge Stack is free for all users: due to popular demand, Ambassador Edge Stack
@@ -74,6 +74,20 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 [HTTP_JSON_V1]: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version
 
 ## RELEASE NOTES
+
+## [2.0.4-ea] (TBD)
+[2.0.4-ea]: https://github.com/emissary-ingress/emissary/releases/v2.0.4-ea
+
+We're pleased to introduce Emissary-ingress 2.0.3 as a _developer preview_. The 2.X family
+introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
+installations, reduce global configuration to better handle multitenant or multiorganizational
+installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on
+<a href="https://a8r.io/slack">Slack</a> and let us know what you think.
+
+## Emissary-ingress
+
+- Bugfix: The release now shows its actual released version number, rather than the internal development
+  version number.
 
 ## [2.0.3-ea] (2021-09-16)
 [2.0.3-ea]: https://github.com/emissary-ingress/emissary/releases/v2.0.3-ea
@@ -220,7 +234,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
   higher-performance implementation of the code that Emissary-ingress uses to generate and validate
   Envoy configurations.
 
-- Change: Service Preview and the `AGENT_SERVICE` environment variable are no longer supported.  The
+- Change: Service Preview and the `AGENT_SERVICE` environment variable are no longer supported. The
   Telepresence product replaces this functionality.
 
 - Change: The `edgectl` CLI tool has been deprecated; please use the `emissary-ingress` helm chart instead.
@@ -2708,4 +2722,3 @@ Based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/). Ambassador fol
 [Ambassador-Envoy]: https://github.com/datawire/ambassador-envoy
 [Telepresence]: http://telepresence.io
 [Istio]: https://istio.io/
-
