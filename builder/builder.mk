@@ -235,7 +235,7 @@ raw-version:
 .PHONY: raw-version
 
 python/ambassador.version: $(tools/write-ifchanged) FORCE
-	$(BUILDER) raw-version | $(tools/write-ifchanged) python/ambassador.version
+	set -o pipefail; $(BUILDER) raw-version | $(tools/write-ifchanged) python/ambassador.version
 
 compile: sync
 	@$(BUILDER) compile
