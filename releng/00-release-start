@@ -101,6 +101,11 @@ def main(next_ver: str, commit: bool = True) -> int:
         print('not committing')
         return 0
 
+    out = run_capture(["git", "status", "--porcelain"])
+    if not out:
+        print("No changes needed, all good.")
+        return 0
+    
     with check(f"Committing changes..."):
         gitdir = run_capture(['git', 'rev-parse', '--git-dir'])
         with open(os.path.join(gitdir, 'GITGUI_MSG'), 'w') as msgfile:
