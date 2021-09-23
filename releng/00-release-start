@@ -70,10 +70,13 @@ def main(next_ver: str, commit: bool = True) -> int:
 
     workbranch = current_release_branch
     base_branch = release_branch
-    if branch_exists('origin/' + current_release_branch):
-        with check(f"Checking out {current_release_branch} and making it up to date with {release_branch}"):
+    if branch_exists(current_release_branch):
+        with check(f"Checking out {current_release_branch}"):
             run(["git", "checkout", current_release_branch])
-            run(["git", "pull", "origin", current_release_branch])
+
+        if branch_exists("origin/" + current_release_branch):
+            with check(f"Bringing our branch it up to date with origin/{release_branch}"):
+                run(["git", "pull", "origin", current_release_branch])
     else:
         with check(f"Creating {current_release_branch}"):
             run(["git", "checkout", "-b", current_release_branch])
