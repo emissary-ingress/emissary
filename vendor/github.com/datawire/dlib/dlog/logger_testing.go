@@ -7,14 +7,16 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/pkg/errors"
 )
 
 type tbWrapper struct {
 	testing.TB
-	failOnError bool
-	fields      map[string]interface{}
+	failOnError   bool
+	logTimestamps bool
+	fields        map[string]interface{}
 }
 
 func (w tbWrapper) WithField(key string, value interface{}) Logger {
@@ -46,6 +48,10 @@ func (w tbWrapper) Log(level LogLevel, msg string) {
 	}[level]
 	if !ok {
 		panic(errors.Errorf("invalid LogLevel: %d", level))
+	}
+
+	if w.logTimestamps {
+		fields["timestamp"] = time.Now().Format("2006-01-02 15:04:05.0000")
 	}
 
 	parts := make([]string, 0, len(fields))
@@ -80,11 +86,19 @@ func (w tbWrapper) Log(level LogLevel, msg string) {
 // This is considered deprecated; you should consider using NewTestContext (which calls this)
 // instead.
 func WrapTB(in testing.TB, failOnError bool) Logger {
-	return tbWrapper{
-		TB:          in,
-		failOnError: failOnError,
-		fields:      map[string]interface{}{},
+	return wrapTB(in, WithFailOnError(failOnError))
+}
+
+func wrapTB(in testing.TB, opts ...TestContextOption) Logger {
+	wrapper := tbWrapper{
+		TB:            in,
+		fields:        map[string]interface{}{},
+		logTimestamps: true,
 	}
+	for _, opt := range opts {
+		opt(&wrapper)
+	}
+	return wrapper
 }
 
 type tbWriter struct {
@@ -102,16 +116,42 @@ func (w tbWrapper) StdLogger(l LogLevel) *log.Logger {
 	return log.New(tbWriter{w, l}, "", 0)
 }
 
-// NewTestContext takes a testing.TB (that is: either a *testing.T or a *testing.B) and returns a
+// TestContextOption represents options that can be set on test contexts
+type TestContextOption func(*tbWrapper)
+
+// WithFailOnError sets a test context to fail on calling any of the dlog.Error{,f,ln} functions.
+// If not given, defaults to false
+func WithFailOnError(failOnError bool) TestContextOption {
+	return func(w *tbWrapper) {
+		w.failOnError = failOnError
+	}
+}
+
+// WithTimestampLogging sets a test context to always log timestamps
+// Note that these will be logged as log fields.
+// If not given, defaults to true
+func WithTimestampLogging(logTimestamps bool) TestContextOption {
+	return func(w *tbWrapper) {
+		w.logTimestamps = logTimestamps
+	}
+}
+
+// NewTestContext is like NewTestContextWithOpts but allows for the failOnError option to be set
+// as a boolean. It is kept for backward-compatibility, new code should prefer NewTestContextWithOpts
+func NewTestContext(t testing.TB, failOnError bool) context.Context {
+	return NewTestContextWithOpts(t, WithFailOnError(failOnError))
+}
+
+// NewTestContextWithOpts takes a testing.TB (that is: either a *testing.T or a *testing.B) and returns a
 // good default Context to use in unit test.  The Context will have dlog configured to log using the
 // Go test runner's built-in logging facilities.  The context will be canceled when the test
 // terminates.  The failOnError argument controls whether calling any of the dlog.Error{,f,ln}
 // functions should cause the test to fail.
 //
 // Naturally, you should only use this from inside of your *_test.go files.
-func NewTestContext(t testing.TB, failOnError bool) context.Context {
+func NewTestContextWithOpts(t testing.TB, opts ...TestContextOption) context.Context {
 	ctx := context.Background()
-	ctx = WithLogger(ctx, WrapTB(t, failOnError))
+	ctx = WithLogger(ctx, wrapTB(t, opts...))
 	ctx, cancel := context.WithCancel(ctx)
 	t.Cleanup(cancel)
 	return ctx

@@ -22,7 +22,7 @@ if [ -d "/tmp/apro-prep-rc" ]; then
 fi
 
 # get a fresh copy of apro
-git clone git@github.com:$APRO_REPO_TARGET /tmp/apro-prep-rc
+git clone https://github.com/$APRO_REPO_TARGET.git /tmp/apro-prep-rc
 pushd /tmp/apro-prep-rc
 
 # checkout or create proper rel branch

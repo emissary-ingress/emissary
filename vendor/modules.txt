@@ -44,7 +44,7 @@ github.com/cespare/xxhash/v2
 # github.com/cncf/udpa/go v0.0.0-20210322005330-6414d713912e
 github.com/cncf/udpa/go/udpa/annotations
 github.com/cncf/udpa/go/xds/core/v3
-# github.com/datawire/dlib v1.2.0
+# github.com/datawire/dlib v1.2.4-0.20210629021142-e221f3b9c3b8
 github.com/datawire/dlib/dcontext
 github.com/datawire/dlib/derrgroup
 github.com/datawire/dlib/derror
@@ -53,6 +53,8 @@ github.com/datawire/dlib/dgroup
 github.com/datawire/dlib/dhttp
 github.com/datawire/dlib/dlog
 github.com/datawire/dlib/dtime
+# github.com/datawire/dtest v0.0.0-20210914162017-6f63de0a5718
+github.com/datawire/dtest
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/docker/spdystream v0.0.0-20160310174837-449fdfce4d96
@@ -219,11 +221,12 @@ golang.org/x/crypto/scrypt
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/mod v0.3.0
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20210119194325-5f4716e94777
+# golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2
+golang.org/x/net/http2/h2c
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
@@ -234,7 +237,7 @@ golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c
+# golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
 golang.org/x/sys/unix

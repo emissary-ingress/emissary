@@ -1,13 +1,53 @@
 package dlog
 
 import (
+	"os"
+	"sort"
 	"sync"
 
 	"github.com/sirupsen/logrus"
 )
 
+// DefaultFieldSort is the field sorter that is used by the default fallback logger.  It mostly
+// mimics the logrus defaults.  This function may go away if we change the default fallback logger.
+func DefaultFieldSort(fieldNames []string) {
+	sort.Slice(fieldNames, func(i, j int) bool {
+		// This matches the default behavior of logrus.TextFormatter, except that it also
+		// includes "dexec.XXX" (in addition to the usual logrus.FieldXXX fields) in the
+		// fixed-ordering.
+		orders := map[string]int{
+			logrus.FieldKeyTime:        -10,
+			logrus.FieldKeyLevel:       -9,
+			"dexec.pid":                -8,
+			"dexec.stream":             -7,
+			"dexec.data":               -6,
+			"dexec.err":                -5,
+			logrus.FieldKeyMsg:         -4,
+			logrus.FieldKeyLogrusError: -3,
+			logrus.FieldKeyFunc:        -2,
+			logrus.FieldKeyFile:        -1,
+		}
+		iOrd := orders[fieldNames[i]]
+		jOrd := orders[fieldNames[j]]
+		if iOrd != jOrd {
+			return iOrd < jOrd
+		}
+		return fieldNames[i] < fieldNames[j]
+	})
+}
+
 var (
-	fallbackLogger   Logger = WrapLogrus(logrus.New())
+	// This mimics logrus.New(), but with a .Formatter.SortingFunc that makes dexec look nicer.
+	fallbackLogger Logger = WrapLogrus(&logrus.Logger{
+		Out: os.Stderr,
+		Formatter: &logrus.TextFormatter{
+			SortingFunc: DefaultFieldSort,
+		},
+		Hooks:        make(logrus.LevelHooks),
+		Level:        logrus.InfoLevel,
+		ExitFunc:     os.Exit,
+		ReportCaller: false,
+	})
 	fallbackLoggerMu sync.RWMutex
 )
 
