@@ -12,7 +12,7 @@ jobs:
       REF: ${{ github.ref }}
       RUN: ${{ github.run_id }}
       PUSH_ID: ${{ github.event.push_id }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GH_GITHUB_API_KEY }}
     steps:
       - uses: actions/checkout@v2
         with:
