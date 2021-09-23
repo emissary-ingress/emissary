@@ -1,6 +1,7 @@
 package dtest
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
@@ -14,11 +15,11 @@ const prefix = "DTEST"
 
 // K8sApply applies the supplied manifests to the cluster indicated by
 // the supplied kubeconfig.
-func K8sApply(files ...string) {
+func K8sApply(ctx context.Context, files ...string) {
 	if os.Getenv("DOCKER_REGISTRY") == "" {
-		os.Setenv("DOCKER_REGISTRY", DockerRegistry())
+		os.Setenv("DOCKER_REGISTRY", DockerRegistry(ctx))
 	}
-	kubeconfig := Kubeconfig()
+	kubeconfig := Kubeconfig(ctx)
 	err := kubeapply.Kubeapply(k8s.NewKubeInfo(kubeconfig, "", ""), 300*time.Second, false, false, files...)
 	if err != nil {
 		fmt.Println()

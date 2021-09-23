@@ -61,11 +61,14 @@ jobs:
         with:
           fetch-depth: 0
       - name: "setup git config"
+        shell: bash
         run: |
           set -x
           git config --global user.email "$AUTO_EMAIL"
           git config --global user.name "$AUTO_USER"
+          git config --global --remove-section url."ssh://git@github.com" || true
           git config --global "url.https://$GIT_TOKEN@github.com.insteadOf" https://github.com
       - name: Update emissary tag in apro
+        shell: bash
         run: |
           make release/promote-oss/rc-update-apro

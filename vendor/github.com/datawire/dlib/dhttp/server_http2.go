@@ -1,16 +1,10 @@
-// Until https://github.com/golang/net/pull/88 lands, use a vendored (bundled) copy of
-// golang.org/x/net/http2/h2c so we don't have to tell people to edit their go.mod to replace
-// golang.org/x/net with github.com/datawire/golang-x-net to get the fix that this relies on.
-//
-//go:generate make
-
 package dhttp
 
 import (
 	"net/http"
 
 	"golang.org/x/net/http2"
-	//"golang.org/x/net/http2/h2c"
+	"golang.org/x/net/http2/h2c"
 )
 
 // configureHTTP2 configures (mutates) an *http.Server to handle HTTP/2 connections, including both
@@ -58,7 +52,7 @@ func configureHTTP2(server *http.Server, conf *http2.Server) error {
 	if origHandler == nil {
 		origHandler = http.DefaultServeMux
 	}
-	server.Handler = h2c_NewHandler(origHandler, conf)
+	server.Handler = h2c.NewHandler(origHandler, conf)
 
 	// Configure "h2", this also configures shutdown for "h2c" (see above).
 	return http2.ConfigureServer(server, conf)
