@@ -16,7 +16,7 @@ jobs:
       PUSH_ID: ${{ github.event.push_id }}
       WEB_REPO: ${{ secrets.WEBSITE_REPO }}
       GH_TAIL_REF: ${{ github.event.before }}
-      GIT_API_KEY: ${{ secrets.GH_API_KEY }}
+      GIT_API_KEY: ${{ secrets.GH_GITHUB_API_KEY }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GIT_USER_NAME: ${{ secrets.GH_AUTO_USER }}
       GIT_USER_EMAIL: ${{ secrets.GH_AUTO_EMAIL }}
