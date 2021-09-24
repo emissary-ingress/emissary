@@ -102,7 +102,7 @@ func (a *GRPCAgent) Start() <-chan bool {
 		case err := <-httpErrChan:
 			log.Fatalf("http service died: %+v", err)
 		case <-c:
-			log.Print("Recieved shutdown")
+			log.Print("Received shutdown")
 		}
 
 		ctx, timeout := context.WithTimeout(context.Background(), time.Second*30)
@@ -133,7 +133,7 @@ func (d *director) Report(ctx context.Context, snapshot *agent.Snapshot) (*agent
 		return nil, err
 	}
 
-	log.Print("Recieved snapshot")
+	log.Print("Received snapshot")
 
 	err = writeSnapshot(snapshot)
 	if err != nil {
@@ -203,7 +203,7 @@ func (d *director) ReportStream(server agent.Director_ReportStreamServer) error 
 		return err
 	}
 
-	log.Print("Recieved snapshot")
+	log.Print("Received snapshot")
 
 	err = writeSnapshot(&snapshot)
 	if err != nil {
