@@ -108,9 +108,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
                 if line.strip() == f"- version: {next_ver}":
                     state = 1
             elif state == 1:
-                m = re.match(r"(\s+date:)\s+.*$", line)
-
-                if m:
+                if m := re.match(r"(\s+date:)\s+.*$", line):
                     line = f"{m.group(1)} '{today.strftime('%Y-%m-%d')}'\n"
                     state = 2
             
