@@ -32,10 +32,10 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             # edit 'line' as appropriate
             sys.stdout.write(line)
         git_add("FILENAME")
-    blocks.  However, the block to edit the CHANGELOG.md file is unfortunately a
-    touch more complex, because it has to deal with parsing the file in to
-    sections and buffering the sections... maybe line-oriented processing wasn't
-    the best choice for that file.
+    blocks.  However, the block to edit the releaseNotes.yml file is unfortunately
+    more complex, given the structuring of YAML... maybe line-oriented processing
+    wasn't the best choice for that file, but parsing and reconstructing at as YAML
+    probably isn't great either. Hmmmm.
     """
 
     if not quiet:
@@ -66,7 +66,6 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
     @contextmanager
     def check(name: str) -> Generator[CheckResult, None, None]:
         with checker.check(name) as subcheck:
-            # time.sleep(1)  # it's stupid, but honestly the delay makes the output more readable
             yield subcheck
 
     if not getenv("GIT_TOKEN"):
