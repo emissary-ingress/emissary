@@ -68,7 +68,7 @@ spec:
     profile: main
 ---
 # Source: emissary-ingress/templates/rbac.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ambassador
@@ -90,7 +90,7 @@ metadata:
     product: aes
 ---
 # Source: emissary-ingress/templates/rbac.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: ambassador
@@ -108,7 +108,7 @@ subjects:
 # Source: emissary-ingress/templates/rbac.yaml
 # CRDs are cluster scoped resources, so they need to be in a cluster role,
 # even if ambassador is running in single namespace mode
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ambassador-crd
@@ -121,7 +121,7 @@ rules:
   verbs: [get, list, watch, delete]
 ---
 # Source: emissary-ingress/templates/rbac.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ambassador-watch
@@ -275,7 +275,7 @@ metadata:
     product: aes
 ---
 # Source: emissary-ingress/templates/ambassador-agent.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: ambassador-agent
@@ -291,7 +291,7 @@ subjects:
   namespace: default
 ---
 # Source: emissary-ingress/templates/ambassador-agent.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ambassador-agent
@@ -304,7 +304,7 @@ aggregationRule:
 rules: []
 ---
 # Source: emissary-ingress/templates/ambassador-agent.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ambassador-agent-pods
@@ -317,7 +317,7 @@ rules:
   verbs: [get, list, watch]
 ---
 # Source: emissary-ingress/templates/ambassador-agent.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ambassador-agent-rollouts
@@ -330,7 +330,7 @@ rules:
   verbs: [get, list, watch]
 ---
 # Source: emissary-ingress/templates/ambassador-agent.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ambassador-agent-applications
@@ -343,7 +343,7 @@ rules:
   verbs: [get, list, watch]
 ---
 # Source: emissary-ingress/templates/ambassador-agent.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ambassador-agent-deployments
@@ -356,7 +356,7 @@ rules:
   verbs: [get, list, watch]
 ---
 # Source: emissary-ingress/templates/ambassador-agent.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ambassador-agent-endpoints
@@ -369,7 +369,7 @@ rules:
   verbs: [get, list, watch]
 ---
 # Source: emissary-ingress/templates/ambassador-agent.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ambassador-agent-configmaps
@@ -382,7 +382,7 @@ rules:
   verbs: [get, list, watch]
 ---
 # Source: emissary-ingress/templates/ambassador-agent.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: ambassador-agent-config
@@ -395,7 +395,7 @@ rules:
   verbs: [get, list, watch]
 ---
 # Source: emissary-ingress/templates/ambassador-agent.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: ambassador-agent-config
