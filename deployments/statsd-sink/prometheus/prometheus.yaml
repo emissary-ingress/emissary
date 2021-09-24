@@ -9,7 +9,7 @@ kind: ServiceAccount
 metadata:
   name: prometheus-operator
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: prometheus
@@ -28,7 +28,7 @@ rules:
 - nonResourceURLs: ["/metrics"]
   verbs: ["get"]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: prometheus
@@ -41,7 +41,7 @@ subjects:
   name: prometheus
   namespace: default
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: prometheus-operator
@@ -54,7 +54,7 @@ subjects:
   name: prometheus-operator
   namespace: default
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: prometheus-operator
