@@ -100,20 +100,6 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
     if not checker.ok:
         return 1
 
-    with check(f"Updating CHANGELOG.md with date for {next_ver}..."):
-        found = False
-        for line in fileinput.FileInput("CHANGELOG.md", inplace=True):
-            if not found and line.startswith(f"## [{next_ver}]"):
-                line = f"## [{next_ver}] {today.strftime('%Y-%m-%d')}\n"
-                found = True
-
-            sys.stdout.write(line)
-
-        if not found:
-            raise Exception(f"Changelog entry for {next_ver} not found. Was releng/start-update-version run?")
-
-        git_add("CHANGELOG.md")
-
     with check(f"Updating releaseNotes.yml with date for {next_ver}..."):
         state = 0
 
@@ -143,6 +129,10 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
      as the start of the block."""
 
             raise Exception(sadness)
+
+    # Once this is done, update the CHANGELOG from the release notes.
+    with check(f"Updating CHANGELOG.md from releaseNotes.yml..."):
+        run([ "make", f"{os.getcwd()}/CHANGELOG.md" ])
 
     if checker.ok and commit:
         with check(f"Committing changes..."):
