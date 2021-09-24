@@ -782,7 +782,7 @@ release/promote-oss/dev-to-rc:
 .PHONY: release/promote-oss/dev-to-rc
 
 release/promote-oss/rc-update-apro:
-	$(OSS_HOME)/releng/01-release-rc-update-apro v$(RELEASE_VERSION) v$(VERSIONS_YAML_VERSION)
+	$(OSS_HOME)/releng/01-release-rc-update-apro v$(RELEASE_VERSION) v$(VERSIONS_YAML_VER)
 .PHONY: release/promote-oss/rc-update-apro
 
 release/print-test-artifacts:
