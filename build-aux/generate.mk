@@ -12,15 +12,14 @@
 # This `go mod tidy` business only belongs in generate.mk because for the moment we're checking
 # 'vendor/' in to Git.
 
-go-mod-tidy/oss:
-	rm -f $(OSS_HOME)/go.sum
-	cd $(OSS_HOME) && GOFLAGS=-mod=mod go mod tidy
-	cd $(OSS_HOME) && GOFLAGS=-mod=mod go mod vendor # make sure go.mod is complete, and re-gen go.sum
-	$(MAKE) go-mod-tidy/oss-evaluate
-go-mod-tidy/oss-evaluate:
-	@echo '# evaluate $$(proto_path)'; # $(proto_path) # cause Make to call `go list STUFF`, which will maybe edit go.mod or go.sum
-go-mod-tidy: go-mod-tidy/oss
-.PHONY: go-mod-tidy/oss go-mod-tidy
+go-mod-tidy:
+.PHONY: go-mod-tidy
+
+go-mod-tidy: go-mod-tidy/main
+go-mod-tidy/main:
+	rm -f go.sum
+	GOFLAGS=-mod=mod go mod tidy
+.PHONY: go-mod-tidy/main
 
 #
 # The main `make generate` entrypoints and listings
@@ -108,7 +107,7 @@ joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(wo
 
 comma=,
 
-gomoddir = $(shell cd $(OSS_HOME); go list $1/... >/dev/null 2>/dev/null; go list -m -f='{{.Dir}}' $1)
+gomoddir = $(shell cd $(OSS_HOME); go list -mod=readonly $1/... >/dev/null 2>/dev/null; go list -mod=readonly -m -f='{{.Dir}}' $1)
 
 #
 # Rules for downloading ("vendoring") sources from elsewhere

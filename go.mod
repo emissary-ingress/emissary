@@ -1,6 +1,6 @@
 module github.com/datawire/ambassador/v2
 
-go 1.13
+go 1.17
 
 // If you're editing this file, there's a few things you should know:
 //

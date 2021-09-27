@@ -21,6 +21,13 @@ clobber: clobber-tools
 clobber-tools:
 	rm -rf $(tools.bindir) $(tools.dir)/include $(tools.dir)/downloads
 
+go-mod-tidy: $(patsubst $(tools.srcdir)/%/go.mod,go-mod-tidy/tools/%,$(wildcard $(tools.srcdir)/*/go.mod))
+
+.PHONY: go-mod-tidy/tools/%
+go-mod-tidy/tools/%:
+	rm -f $(tools.srcdir)/$*/go.sum
+	cd $(tools.srcdir)/$* && GOFLAGS=-mod=mod go mod tidy
+
 # Shell scripts
 # =============
 #
@@ -67,7 +74,16 @@ tools/py-mkopensource = $(tools.bindir)/py-mkopensource
 tools/schema-fmt      = $(tools.bindir)/schema-fmt
 tools/testcert-gen    = $(tools.bindir)/testcert-gen
 $(tools.bindir)/.%.stamp: $(tools.srcdir)/%/main.go FORCE
-	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) .
+# If we build with `-mod=vendor` (which is the default if
+# `vendor/modules.txt` exists), *and* our deps don't exist in $(go env
+# GOMODCACHE), then the binary ends up with empty hashes for those
+# packages.  In CI, (as long as `vendor/` is checked in to git) this
+# means that they would be empty for the first `make generate` and
+# non-empty for the second `make generate`, which would (rightfully)
+# trip copy-ifchanged's "this should not happen in CI" checks.  I
+# don't have the time to kill off `vendor/` yet, so for now this is
+# addressed by explicitly setting `-mod=mod`.
+	cd $(<D) && GOOS= GOARCH= go build -mod=mod -o $(abspath $@) .
 $(tools.bindir)/%: $(tools.bindir)/.%.stamp $(tools/copy-ifchanged)
 	$(tools/copy-ifchanged) $< $@
 

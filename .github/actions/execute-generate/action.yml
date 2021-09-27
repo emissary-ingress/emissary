@@ -9,6 +9,8 @@ runs:
       run: |
         sudo apt-get update -y
         sudo apt-get install -y libarchive-tools
+    - name: Install Go
+      uses: ./.github/actions/setup-go
     - name: "'make generate'"
       shell: bash
       run: |
@@ -21,4 +23,3 @@ runs:
         make generate
     - uses: ./.github/actions/git-dirty-check
       name: "Check git not dirty from 'make generate' (again!)"
-

@@ -12,6 +12,8 @@ runs:
         sudo sysctl -w fs.inotify.max_user_instances=4096
       shell: bash
       name: "Configure system file and inotify maximums (1600000/4096)"
+    - name: Install Go
+      uses: ./.github/actions/setup-go
     - uses: actions/setup-python@v2
       with:
         python-version: '~3.9.5'
