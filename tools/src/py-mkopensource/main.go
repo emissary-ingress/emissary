@@ -12,7 +12,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	. "github.com/datawire/ambassador/v2/pkg/mkopensource/detectlicense"
+	. "github.com/datawire/go-mkopensource/pkg/detectlicense"
 )
 
 type tuple struct {
