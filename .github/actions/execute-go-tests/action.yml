@@ -20,13 +20,8 @@ runs:
           awscli
           packaging
       name: "Install Python requirements with pip"
-    - uses: actions/setup-go@v2
-      with:
-        go-version: '^1.15.0' # The Go version to download (if necessary) and use.
-      name: "Install go (^1.15.0)"
-    - run: go version
-      shell: bash
-      name: "Check go version"
+    - name: Install Go
+      uses: ./.github/actions/setup-go
     - run: |
         go install gotest.tools/gotestsum@latest
       shell: bash

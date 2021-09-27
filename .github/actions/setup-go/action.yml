@@ -1,0 +1,16 @@
+name: setup-go
+description: "Install Go"
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Get Go version from builder container"
+      id: step-detect
+      shell: bash
+      run: |
+        make "$PWD/build-aux/go-version.txt"
+        echo "::set-output name=go_version::$(cat "$PWD/build-aux/go-version.txt")"
+    - name: "Install Go (${{ steps.step-detect.outputs.go_version }})"
+      uses: actions/setup-go@v2
+      with:
+        go-version: "${{ steps.step-detect.outputs.go_version }}"

@@ -4,6 +4,8 @@ description: "push emissary image to dev"
 runs:
   using: "composite"
   steps:
+    - name: Install Go
+      uses: ./.github/actions/setup-go
     - name: "Docker Login"
       uses: docker/login-action@v1
       with:

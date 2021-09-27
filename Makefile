@@ -42,6 +42,10 @@ include $(OSS_HOME)/build-aux/lint.mk
 
 include $(OSS_HOME)/docs/yaml.mk
 
+ifneq ($(MAKECMDGOALS),$(OSS_HOME)/build-aux/go-version.txt)
+$(_prelude.go.ensure)
+endif
+
 test-chart-values.yaml: docker/$(LCNAME).docker.push.remote
 	{ \
 	  echo 'image:'; \
