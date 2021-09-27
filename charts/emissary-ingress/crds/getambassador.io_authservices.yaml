@@ -1,6 +1,6 @@
 # GENERATED FILE: edits made by hand will not be preserved.
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
@@ -20,87 +20,86 @@ spec:
     plural: authservices
     singular: authservice
   scope: Namespaced
-  validation:
-    openAPIV3Schema:
-      description: AuthService is the Schema for the authservices API
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          description: AuthServiceSpec defines the desired state of AuthService
-          properties:
-            add_auth_headers:
-              additionalProperties:
-                type: string
-              type: object
-            add_linkerd_headers:
-              type: boolean
-            allow_request_body:
-              type: boolean
-            allowed_authorization_headers:
-              items:
-                type: string
-              type: array
-            allowed_request_headers:
-              items:
-                type: string
-              type: array
-            ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-              items:
-                type: string
-              type: array
-            auth_service:
-              type: string
-            failure_mode_allow:
-              type: boolean
-            include_body:
-              properties:
-                allow_partial:
-                  type: boolean
-                max_bytes:
-                  description: These aren't pointer types because they are required.
-                  type: integer
-              required:
-              - allow_partial
-              - max_bytes
-              type: object
-            path_prefix:
-              type: string
-            proto:
-              enum:
-              - http
-              - grpc
-              type: string
-            protocol_version:
-              enum:
-              - v2
-              - v3
-              type: string
-            stats_name:
-              type: string
-            status_on_error:
-              description: Why isn't this just an int??
-              properties:
-                code:
-                  type: integer
-              type: object
-            timeout_ms:
-              type: integer
-            tls:
-              type: string
-          required:
-          - auth_service
-          type: object
-      type: object
-  version: v3alpha1
   versions:
   - name: v3alpha1
+    schema:
+      openAPIV3Schema:
+        description: AuthService is the Schema for the authservices API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: AuthServiceSpec defines the desired state of AuthService
+            properties:
+              add_auth_headers:
+                additionalProperties:
+                  type: string
+                type: object
+              add_linkerd_headers:
+                type: boolean
+              allow_request_body:
+                type: boolean
+              allowed_authorization_headers:
+                items:
+                  type: string
+                type: array
+              allowed_request_headers:
+                items:
+                  type: string
+                type: array
+              ambassador_id:
+                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+                items:
+                  type: string
+                type: array
+              auth_service:
+                type: string
+              failure_mode_allow:
+                type: boolean
+              include_body:
+                properties:
+                  allow_partial:
+                    type: boolean
+                  max_bytes:
+                    description: These aren't pointer types because they are required.
+                    type: integer
+                required:
+                - allow_partial
+                - max_bytes
+                type: object
+              path_prefix:
+                type: string
+              proto:
+                enum:
+                - http
+                - grpc
+                type: string
+              protocol_version:
+                enum:
+                - v2
+                - v3
+                type: string
+              stats_name:
+                type: string
+              status_on_error:
+                description: Why isn't this just an int??
+                properties:
+                  code:
+                    type: integer
+                type: object
+              timeout_ms:
+                type: integer
+              tls:
+                type: string
+            required:
+            - auth_service
+            type: object
+        type: object
     served: true
     storage: true
