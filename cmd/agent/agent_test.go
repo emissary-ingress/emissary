@@ -33,7 +33,7 @@ import (
 // More complicated business logic tests live in ambassador.git/pkg/agent
 func TestAgentE2E(t *testing.T) {
 	ctx := dlog.NewTestContext(t, false)
-	kubeconfig := dtest.Kubeconfig(ctx)
+	kubeconfig := dtest.KubeVersionConfig(ctx, dtest.Kube22)
 	cli, err := kates.NewClient(kates.ClientConfig{Kubeconfig: kubeconfig})
 	require.NoError(t, err)
 	// applies all k8s yaml to dtest cluter

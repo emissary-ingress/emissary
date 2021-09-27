@@ -153,11 +153,6 @@ var requiredResources = []string{
 	"leases.coordination.k8s.io",
 	"endpointslices.discovery.k8s.io",
 	"events.events.k8s.io",
-	"ingresses.extensions",
-	"helmcharts.helm.cattle.io",
-	"addons.k3s.cattle.io",
-	"nodes.metrics.k8s.io",
-	"pods.metrics.k8s.io",
 	"ingresses.networking.k8s.io",
 	"networkpolicies.networking.k8s.io",
 	"runtimeclasses.node.k8s.io",
@@ -191,11 +186,15 @@ func isK3sReady(ctx context.Context) bool {
 		resources[strings.TrimSpace(line)] = true
 	}
 
+	missing := false
 	for _, req := range requiredResources {
-		_, exists := resources[req]
-		if !exists {
-			return false
+		if _, exists := resources[req]; !exists {
+			dlog.Printf(ctx, "k3s is not ready: resource type %q does not exist yet", req)
+			missing = true
 		}
+	}
+	if missing {
+		return false
 	}
 
 	get := dexec.CommandContext(ctx, "kubectl", "--kubeconfig", kubeconfig, "get", "namespace", "default")
@@ -287,7 +286,35 @@ func DockerRegistry(ctx context.Context) string {
 
 const dtestKubeconfig = "DTEST_KUBECONFIG"
 const k3sPort = "6443"
-const k3sImage = "rancher/k3s:v1.21.1-k3s1"
+
+type KubeVersion struct {
+	minor int
+}
+
+var (
+	Kube20 = KubeVersion{20}
+	Kube21 = KubeVersion{21}
+	Kube22 = KubeVersion{22}
+
+	KubeLatest = Kube22
+)
+
+var k3sImages = map[int]string{
+	20: "docker.io/rancher/k3s:v1.20.11-k3s1",
+	21: "docker.io/rancher/k3s:v1.21.5-k3s1",
+	22: "docker.io/rancher/k3s:v1.22.2-k3s1",
+}
+
+func (ver KubeVersion) image() string {
+	if ver.minor == 0 {
+		return KubeLatest.image()
+	}
+	image, ok := k3sImages[ver.minor]
+	if !ok {
+		panic("should not be possible: invalid Kubernetes version")
+	}
+	return image
+}
 
 const k3sMsg = `
 kubeconfig does not exist: %s
@@ -297,7 +324,11 @@ kubeconfig does not exist: %s
 `
 
 // Kubeconfig returns a path referencing a kubeconfig file suitable for use in tests.
-func Kubeconfig(ctx context.Context) string {
+func Kubeconfig(ctx context.Context, k3sExtraFlags ...string) string {
+	return KubeVersionConfig(ctx, KubeLatest, k3sExtraFlags...)
+}
+
+func KubeVersionConfig(ctx context.Context, kubeVersion KubeVersion, k3sExtraFlags ...string) string {
 	kubeconfig := os.Getenv(dtestKubeconfig)
 	if kubeconfig != "" {
 		if _, err := os.Stat(kubeconfig); os.IsNotExist(err) {
@@ -308,7 +339,7 @@ func Kubeconfig(ctx context.Context) string {
 		return kubeconfig
 	}
 
-	K3sUp(ctx)
+	K3sVersionUp(ctx, kubeVersion, k3sExtraFlags...)
 
 	dlog.Printf(ctx, "Polling for k3s to be ready...")
 	for ctx.Err() == nil {
@@ -325,17 +356,21 @@ func Kubeconfig(ctx context.Context) string {
 
 // K3sUp will launch if necessary and return the docker id of a
 // container running a k3s cluster.
-func K3sUp(ctx context.Context) string {
+func K3sUp(ctx context.Context, k3sExtraFlags ...string) string {
+	return K3sVersionUp(ctx, KubeLatest, k3sExtraFlags...)
+}
+
+func K3sVersionUp(ctx context.Context, kubeVersion KubeVersion, k3sExtraFlags ...string) string {
 	regid := RegistryUp(ctx)
 	dlog.Printf(ctx, "Bringing up k3s...")
-	return dockerUp(ctx, "k3s",
-		// `docker run` flags
+
+	dockerRunFlags := []string{
 		"--privileged",
-		"--network=container:"+regid,
+		"--network=container:" + regid,
 		"--volume=/dev/mapper:/dev/mapper",
 		"--entrypoint=/bin/sh", // for the cgroup hack below
 		// Docker image
-		k3sImage,
+		kubeVersion.image(),
 		// https://github.com/k3s-io/k3s/pull/3237
 		"-c", `
 			if [ -f /sys/fs/cgroup/cgroup.controllers ]; then
@@ -345,11 +380,17 @@ func K3sUp(ctx context.Context) string {
 			fi
 			exec /bin/k3s "$@"
 		`, "--",
-		// `k3s` args
+	}
+
+	k3sFlags := []string{
 		"server",
 		"--node-name=localhost",
 		"--no-deploy=traefik",
-		"--kube-proxy-arg=conntrack-max-per-core=0")
+		"--kube-proxy-arg=conntrack-max-per-core=0",
+	}
+
+	k3sFlags = append(k3sFlags, k3sExtraFlags...)
+	return dockerUp(ctx, "k3s", append(dockerRunFlags, k3sFlags...)...)
 }
 
 // K3sDown shuts down the k3s cluster.

@@ -1,6 +1,6 @@
 include $(dir $(lastword $(MAKEFILE_LIST)))tools.mk
 
-K3S_VERSION      = 1.21.5+k3s1
+K3S_VERSION      = 1.22.2+k3s1
 K3D_CLUSTER_NAME =
 K3D_ARGS         = --k3s-server-arg=--no-deploy=traefik --k3s-server-arg=--kubelet-arg=max-pods=255
 # This is modeled after

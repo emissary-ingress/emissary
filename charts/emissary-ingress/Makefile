@@ -4,7 +4,7 @@ CHART_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 CHART_KUBECONFIG := /tmp/kubeconfig/k3dconfig
 K3D_EXEC := KUBECONFIG=$(CHART_KUBECONFIG) k3d
 
-K3S_VERSION      = 1.21.5+k3s1
+K3S_VERSION      = 1.22.2+k3s1
 K3D_CLUSTER_NAME = helm-chart-test-cluster
 K3D_ARGS         = --k3s-server-arg=--no-deploy=traefik
 

@@ -53,7 +53,7 @@ github.com/datawire/dlib/dgroup
 github.com/datawire/dlib/dhttp
 github.com/datawire/dlib/dlog
 github.com/datawire/dlib/dtime
-# github.com/datawire/dtest v0.0.0-20210914162017-6f63de0a5718
+# github.com/datawire/dtest v0.0.0-20210927191556-2cccf1a938b0
 github.com/datawire/dtest
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew

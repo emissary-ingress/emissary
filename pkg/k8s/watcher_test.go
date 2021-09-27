@@ -46,7 +46,7 @@ func fetch(ctx context.Context, w *k8s.Watcher, resource, qname string) (result 
 }
 
 func info(ctx context.Context) *k8s.KubeInfo {
-	return k8s.NewKubeInfo(dtest.Kubeconfig(ctx), "", "")
+	return k8s.NewKubeInfo(dtest.KubeVersionConfig(ctx, dtest.Kube22), "", "")
 }
 
 func TestUpdateStatus(t *testing.T) {
