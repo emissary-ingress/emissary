@@ -86,6 +86,10 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 
 ## Emissary-ingress
 
+- Bugfix: Set the diagd tcp idle timeout (i.e. keepalive timeout) to 300s, up from the gunicorn default of
+  2s. This should help eliminate race-conditions where probing `/ambassador/v0/check_alive` may
+  intermittently fail. (Thanks, <a href="https://github.com/neufeldtech">Jordan Neufeld</a>!)
+
 - Bugfix: The release now shows its actual released version number, rather than the internal development
   version number.
 

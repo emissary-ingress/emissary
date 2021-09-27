@@ -38,6 +38,13 @@ items:
         isHeadline: true
         docs: about/changes-2.0.0
 
+      - title: Increase diagd timeout
+        type: bugfix
+        body: >-
+          Set the diagd tcp idle timeout (i.e. keepalive timeout) to 300s, up from the gunicorn default of 2s.
+          This should help eliminate race-conditions where probing `/ambassador/v0/check_alive` may intermittently
+          fail. (Thanks, <a href="https://github.com/neufeldtech">Jordan Neufeld</a>!)
+
       - type: bugfix
         title: Version number reported correctly
         body: >-
