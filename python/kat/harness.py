@@ -1545,11 +1545,31 @@ class Runner:
             if not crd:
                 continue
 
-            # We can't strip the schema validation from apiextensions.k8s.io/v1 CRDs because it is
-            # required; otherwise the API server would refuse to create the CRD, telling us:
-            #
-            #     CustomResourceDefinition.apiextensions.k8s.io "…" is invalid: spec.versions[0].schema.openAPIV3Schema: Required value: schemas are required
-            if crd["apiVersion"] != "apiextensions.k8s.io/v1":
+            if crd["apiVersion"] == "apiextensions.k8s.io/v1":
+                # We can't naively strip the schema validation from apiextensions.k8s.io/v1 CRDs
+                # because it is required; otherwise the API server would refuse to create the CRD,
+                # telling us:
+                #
+                #     CustomResourceDefinition.apiextensions.k8s.io "…" is invalid: spec.versions[0].schema.openAPIV3Schema: Required value: schemas are required
+                #
+                # So instead we must replace it with a schema that allows anything.
+                for version in crd["spec"]["versions"]:
+                    if "schema" in version:
+                        version["schema"] = {
+                            'openAPIV3Schema': {
+                                'type': 'object',
+                                'properties': {
+                                    'apiVersion': { 'type': 'string' },
+                                    'kind':       { 'type': 'string' },
+                                    'metadata':   { 'type': 'object' },
+                                    'spec': {
+                                        'type': 'object',
+                                        'x-kubernetes-preserve-unknown-fields': True,
+                                    },
+                                },
+                            },
+                        }
+            else:
                 crd["spec"].pop("validation", None)
                 for version in crd["spec"]["versions"]:
                     version.pop("schema", None)

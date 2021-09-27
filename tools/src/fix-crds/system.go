@@ -12,7 +12,7 @@ import (
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/yaml"
 
-	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
 type Product string
