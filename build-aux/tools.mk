@@ -49,6 +49,7 @@ tools/controller-gen  = $(tools.bindir)/controller-gen
 tools/conversion-gen  = $(tools.bindir)/conversion-gen
 tools/go-mkopensource = $(tools.bindir)/go-mkopensource
 tools/golangci-lint   = $(tools.bindir)/golangci-lint
+tools/k3d             = $(tools.bindir)/k3d
 tools/kubestatus      = $(tools.bindir)/kubestatus
 tools/protoc-gen-go   = $(tools.bindir)/protoc-gen-go
 tools/yq              = $(tools.bindir)/yq
@@ -100,15 +101,6 @@ TELEPRESENCE_VERSION = 2.4.2
 $(tools.bindir)/telepresence: $(tools.mk)
 	mkdir -p $(@D)
 	curl -s --fail -L https://app.getambassador.io/download/tel2/$(GOHOSTOS)/$(GOHOSTARCH)/$(TELEPRESENCE_VERSION)/telepresence -o $@
-	chmod a+x $@
-
-# k3d would be `go get`-able, but it requires Go 1.16, and Emissary is
-# still stuck on Go 1.15.
-tools/k3d   = $(tools.bindir)/k3d
-K3D_VERSION = 4.4.8
-$(tools.bindir)/k3d: $(tools.mk)
-	mkdir -p $(@D)
-	curl -s --fail -L https://github.com/rancher/k3d/releases/download/v$(K3D_VERSION)/k3d-$(GOHOSTOS)-$(GOHOSTARCH) -o $@
 	chmod a+x $@
 
 # PROTOC_VERSION must be at least 3.8.0 in order to contain the fix so that it doesn't generate
