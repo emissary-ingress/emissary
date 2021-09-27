@@ -168,6 +168,8 @@ github.com/datawire/dlib v1.2.4-0.20210629021142-e221f3b9c3b8 h1:WqvO+Sa8l7ydURs
 github.com/datawire/dlib v1.2.4-0.20210629021142-e221f3b9c3b8/go.mod h1:OdrErY06tawcmEkhTLeb1k3IN2HyzT3zcW4DsqQsJOM=
 github.com/datawire/dtest v0.0.0-20210927191556-2cccf1a938b0 h1:gWkYIZQdHDN1rwxfghp1mo/4RbaTxHs+NdDt7zz9fPk=
 github.com/datawire/dtest v0.0.0-20210927191556-2cccf1a938b0/go.mod h1:D/jb71PHlfUjfNSUVpXQAscXsXy3x+CY+c52lPnW2qU=
+github.com/datawire/go-mkopensource v0.0.0-20211026180000-06f43d9d3384 h1:+W+qTJ5aj//40MFTw3ZsTENDYtVVKuHDORGpIRlHhNw=
+github.com/datawire/go-mkopensource v0.0.0-20211026180000-06f43d9d3384/go.mod h1:G+8UlQKDCXD746tgBdhMxAe41eXxWCpZzOJl1fwKIAY=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
