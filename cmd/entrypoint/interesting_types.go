@@ -55,6 +55,13 @@ func GetInterestingTypes(ctx context.Context, serverTypeList []kates.APIResource
 		endpointFs += fmt.Sprintf(",%s", fs)
 	}
 
+	serverTypes := make(map[string]kates.APIResource, len(serverTypeList))
+	if serverTypeList != nil {
+		for _, typeinfo := range serverTypeList {
+			serverTypes[typeinfo.Name+"."+typeinfo.Group] = typeinfo
+		}
+	}
+
 	// We set interestingTypes to the list of types that we'd like to watch (if that type exits
 	// in this cluster).
 	//
@@ -73,9 +80,6 @@ func GetInterestingTypes(ctx context.Context, serverTypeList []kates.APIResource
 		// ReconcileSecrets will pull over the ones we need into "Secrets"
 		// and "Endpoints" respectively.
 		"K8sSecrets": {typename: "secrets."},
-
-		//"Ingresses": {typename: "ingresses.networking.k8s.io"}, // new in Kubernetes 1.14, deprecating ingresses.extensions
-		"Ingresses": {typename: "ingresses.extensions"}, // new in Kubernetes 1.2
 
 		"AuthServices":                {typename: "authservices.getambassador.io"},
 		"ConsulResolvers":             {typename: "consulresolvers.getambassador.io"},
@@ -98,6 +102,15 @@ func GetInterestingTypes(ctx context.Context, serverTypeList []kates.APIResource
 		"HTTPRoutes":     {typename: "httproutes.networking.x-k8s.io"},
 	}
 
+	_, haveOldIngress := serverTypes["ingresses.extensions"]        // First appeared in Kubernetes 1.2, gone in Kubernetes 1.22.
+	_, haveNewIngress := serverTypes["ingresses.networking.k8s.io"] // New in Kubernetes 1.14, deprecating ingresses.extensions.
+	if haveOldIngress && !haveNewIngress {
+		interestingTypes["Ingresses"] = thingToWatch{typename: "ingresses.extensions"}
+	} else {
+		// Add this even if !haveNewIngress, so that the warning below triggers for it.
+		interestingTypes["Ingresses"] = thingToWatch{typename: "ingresses.networking.k8s.io"}
+	}
+
 	if !IsAmbassadorSingleNamespace() {
 		interestingTypes["IngressClasses"] = thingToWatch{typename: "ingressclasses.networking.k8s.io"} // new in Kubernetes 1.18
 	}
@@ -109,17 +122,10 @@ func GetInterestingTypes(ctx context.Context, serverTypeList []kates.APIResource
 		interestingTypes["KNativeIngresses"] = thingToWatch{typename: "ingresses.networking.internal.knative.dev"}
 	}
 
-	if serverTypeList != nil {
-		serverTypes := make(map[string]kates.APIResource, len(serverTypeList))
-		for _, typeinfo := range serverTypeList {
-			serverTypes[typeinfo.Name+"."+typeinfo.Group] = typeinfo
-		}
-
-		for k, queryinfo := range interestingTypes {
-			if _, haveType := serverTypes[queryinfo.typename]; !haveType {
-				dlog.Infof(ctx, "Warning, unable to watch %s, unknown kind.", queryinfo.typename)
-				delete(interestingTypes, k)
-			}
+	for k, queryinfo := range interestingTypes {
+		if _, haveType := serverTypes[queryinfo.typename]; !haveType {
+			dlog.Warnf(ctx, "Warning, unable to watch %s, unknown kind.", queryinfo.typename)
+			delete(interestingTypes, k)
 		}
 	}
 
