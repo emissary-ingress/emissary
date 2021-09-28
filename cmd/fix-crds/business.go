@@ -75,38 +75,41 @@ func FixCRD(args Args, crd *CRD) error {
 		return errors.Errorf("not a CRD: %#v", crd)
 	}
 
-	// fix apiVersion
-	if args.HaveKubeversion("1.16") {
-		crd.APIVersion = "apiextensions.k8s.io/v1"
-	} else {
-		crd.APIVersion = "apiextensions.k8s.io/v1beta1"
-	}
+	if false {
 
-	// fix CRD versions
-	if crd.APIVersion == "apiextensions.k8s.io/v1" {
-		crd.Spec.Version = nil
-	} else {
-		// Set it explicitly to null, instead of just omiting it,
-		// because some apiserver versions (like 1.14.10-gke.27)
-		// will auto-populate it, and that makes upgrades
-		// troublesome if `.versions[0]` changes.
-		crd.Spec.Version = ExplicitNil
-	}
-	// Note: versions are sorted newest-first/oldest-last.
-	if inArray(crd.Spec.Names.Kind, old_pro_crds) {
-		crd.Spec.Versions = []apiext.CustomResourceDefinitionVersion{
-			{Name: "v2", Served: true, Storage: true},
-			{Name: "v1beta2", Served: true, Storage: false},
-			{Name: "v1beta1", Served: true, Storage: false},
+		// fix apiVersion
+		if args.HaveKubeversion("1.16") {
+			crd.APIVersion = "apiextensions.k8s.io/v1"
+		} else {
+			crd.APIVersion = "apiextensions.k8s.io/v1beta1"
 		}
-	} else if inArray(crd.Spec.Names.Kind, old_oss_crds) {
-		crd.Spec.Versions = []apiext.CustomResourceDefinitionVersion{
-			{Name: "v2", Served: true, Storage: true},
-			{Name: "v1", Served: true, Storage: false},
+
+		// fix CRD versions
+		if crd.APIVersion == "apiextensions.k8s.io/v1" {
+			crd.Spec.Version = nil
+		} else {
+			// Set it explicitly to null, instead of just omiting it,
+			// because some apiserver versions (like 1.14.10-gke.27)
+			// will auto-populate it, and that makes upgrades
+			// troublesome if `.versions[0]` changes.
+			crd.Spec.Version = ExplicitNil
 		}
-	} else {
-		crd.Spec.Versions = []apiext.CustomResourceDefinitionVersion{
-			{Name: "v2", Served: true, Storage: true},
+		// Note: versions are sorted newest-first/oldest-last.
+		if inArray(crd.Spec.Names.Kind, old_pro_crds) {
+			crd.Spec.Versions = []apiext.CustomResourceDefinitionVersion{
+				{Name: "v2", Served: true, Storage: true},
+				{Name: "v1beta2", Served: true, Storage: false},
+				{Name: "v1beta1", Served: true, Storage: false},
+			}
+		} else if inArray(crd.Spec.Names.Kind, old_oss_crds) {
+			crd.Spec.Versions = []apiext.CustomResourceDefinitionVersion{
+				{Name: "v2", Served: true, Storage: true},
+				{Name: "v1", Served: true, Storage: false},
+			}
+		} else {
+			crd.Spec.Versions = []apiext.CustomResourceDefinitionVersion{
+				{Name: "v2", Served: true, Storage: true},
+			}
 		}
 	}
 

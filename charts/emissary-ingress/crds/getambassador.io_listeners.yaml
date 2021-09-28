@@ -144,8 +144,8 @@ spec:
               type: string
           type: object
       type: object
-  version: null
+  version: v3alpha1
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true

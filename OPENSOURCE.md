@@ -38,7 +38,6 @@ following Free and Open Source software:
     github.com/containerd/containerd                               v1.4.3                                                      Apache License 2.0
     github.com/containerd/continuity                               v0.0.0-20201208142359-180525291bb7                          Apache License 2.0
     github.com/cyphar/filepath-securejoin                          v0.2.2                                                      3-clause BSD license
-    github.com/datawire/ambassador                                 (modified)                                                  Apache License 2.0
     github.com/datawire/dlib                                       v1.2.0                                                      Apache License 2.0
     github.com/datawire/pf                                         v0.0.0-20180510150411-31a823f9495a                          2-clause BSD license
     github.com/davecgh/go-spew                                     v1.1.1                                                      ISC license
@@ -69,7 +68,6 @@ following Free and Open Source software:
     github.com/go-openapi/swag                                     v0.19.5                                                     Apache License 2.0
     github.com/gobuffalo/flect                                     v0.2.0                                                      MIT license
     github.com/gobwas/glob                                         v0.2.3                                                      MIT license
-    github.com/godbus/dbus/v5                                      v5.0.4-0.20201218172701-b3768b321399                        2-clause BSD license
     github.com/gogo/protobuf                                       v1.3.1                                                      3-clause BSD license
     github.com/golang/gddo                                         v0.0.0-20190419222130-af0f2af80721                          3-clause BSD license
     github.com/golang/groupcache                                   v0.0.0-20200121045136-8c9f03a8e57e                          Apache License 2.0
@@ -124,7 +122,6 @@ following Free and Open Source software:
     github.com/opencontainers/runc                                 v0.1.1                                                      Apache License 2.0
     github.com/peterbourgon/diskv                                  v2.0.1+incompatible                                         MIT license
     github.com/pierrec/lz4                                         v2.0.5+incompatible                                         3-clause BSD license
-    github.com/pkg/browser                                         v0.0.0-20180916011732-0a3d74bf9ce4                          2-clause BSD license
     github.com/pkg/errors                                          v0.9.1                                                      2-clause BSD license
     github.com/pmezard/go-difflib                                  v1.0.0                                                      3-clause BSD license
     github.com/prometheus/client_golang                            v1.7.1                                                      Apache License 2.0
@@ -133,15 +130,12 @@ following Free and Open Source software:
     github.com/prometheus/procfs                                   v0.2.0                                                      Apache License 2.0
     github.com/rubenv/sql-migrate                                  v0.0.0-20200616145509-8d140a17f351                          MIT license
     github.com/russross/blackfriday                                v1.5.2                                                      2-clause BSD license
-    github.com/sethvargo/go-envconfig                              v0.3.2                                                      Apache License 2.0
     github.com/shopspring/decimal                                  v1.2.0                                                      MIT license
     github.com/sirupsen/logrus                                     v1.7.0                                                      MIT license
     github.com/spf13/cast                                          v1.3.1                                                      MIT license
     github.com/spf13/cobra                                         v1.1.1                                                      Apache License 2.0
     github.com/spf13/pflag                                         v1.0.5                                                      3-clause BSD license
     github.com/stretchr/testify                                    v1.7.0                                                      MIT license
-    github.com/telepresenceio/telepresence/rpc/v2                  v2.1.1-rc.0                                                 Apache License 2.0
-    github.com/telepresenceio/telepresence/v2                      v2.1.1-rc.0                                                 Apache License 2.0
     github.com/ulikunitz/xz                                        v0.5.6                                                      3-clause BSD license
     github.com/xeipuuv/gojsonpointer                               v0.0.0-20180127040702-4e3ac2762d5f                          Apache License 2.0
     github.com/xeipuuv/gojsonreference                             v0.0.0-20180127040603-bd5ef7bd5415                          Apache License 2.0
@@ -159,7 +153,7 @@ following Free and Open Source software:
     golang.org/x/time                                              v0.0.0-20200630173020-3af7569d3a1e                          3-clause BSD license
     golang.org/x/tools                                             v0.0.0-20200904185747-39188db58858                          3-clause BSD license
     golang.org/x/xerrors                                           v0.0.0-20200804184101-5ec99f83aff1                          3-clause BSD license
-    google.golang.org/appengine                                    v1.6.7                                                      Apache License 2.0
+    google.golang.org/appengine                                    v1.6.6                                                      Apache License 2.0
     google.golang.org/genproto                                     v0.0.0-20201110150050-8816d57aaa9a                          Apache License 2.0
     google.golang.org/grpc                                         v1.34.0                                                     Apache License 2.0
     google.golang.org/protobuf                                     v1.25.0                                                     3-clause BSD license

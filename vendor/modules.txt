@@ -106,9 +106,6 @@ github.com/containerd/containerd/version
 github.com/containerd/continuity/pathdriver
 # github.com/cyphar/filepath-securejoin v0.2.2
 github.com/cyphar/filepath-securejoin
-# github.com/datawire/ambassador v1.11.1 => ./
-github.com/datawire/ambassador/pkg/kates
-github.com/datawire/ambassador/pkg/metriton
 # github.com/datawire/dlib v1.2.0
 github.com/datawire/dlib/dcontext
 github.com/datawire/dlib/derrgroup
@@ -237,8 +234,6 @@ github.com/gobwas/glob/syntax/ast
 github.com/gobwas/glob/syntax/lexer
 github.com/gobwas/glob/util/runes
 github.com/gobwas/glob/util/strings
-# github.com/godbus/dbus/v5 v5.0.4-0.20201218172701-b3768b321399
-github.com/godbus/dbus/v5
 # github.com/gogo/protobuf v1.3.1
 github.com/gogo/protobuf/gogoproto
 github.com/gogo/protobuf/proto
@@ -387,8 +382,6 @@ github.com/peterbourgon/diskv
 # github.com/pierrec/lz4 v2.0.5+incompatible
 github.com/pierrec/lz4
 github.com/pierrec/lz4/internal/xxh32
-# github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4
-github.com/pkg/browser
 # github.com/pkg/errors v0.9.1
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
@@ -412,8 +405,6 @@ github.com/rubenv/sql-migrate
 github.com/rubenv/sql-migrate/sqlparse
 # github.com/russross/blackfriday v1.5.2
 github.com/russross/blackfriday
-# github.com/sethvargo/go-envconfig v0.3.2
-github.com/sethvargo/go-envconfig
 # github.com/shopspring/decimal v1.2.0
 github.com/shopspring/decimal
 # github.com/sirupsen/logrus v1.7.0
@@ -427,32 +418,6 @@ github.com/spf13/pflag
 # github.com/stretchr/testify v1.7.0
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
-# github.com/telepresenceio/telepresence/rpc/v2 v2.1.1-rc.0
-github.com/telepresenceio/telepresence/rpc/v2/common
-github.com/telepresenceio/telepresence/rpc/v2/connector
-github.com/telepresenceio/telepresence/rpc/v2/daemon
-github.com/telepresenceio/telepresence/rpc/v2/manager
-github.com/telepresenceio/telepresence/rpc/v2/systema
-# github.com/telepresenceio/telepresence/v2 v2.1.1-rc.0
-github.com/telepresenceio/telepresence/v2/cmd/telepresence
-github.com/telepresenceio/telepresence/v2/cmd/traffic/cmd/manager/managerutil
-github.com/telepresenceio/telepresence/v2/pkg/client
-github.com/telepresenceio/telepresence/v2/pkg/client/actions
-github.com/telepresenceio/telepresence/v2/pkg/client/auth
-github.com/telepresenceio/telepresence/v2/pkg/client/cache
-github.com/telepresenceio/telepresence/v2/pkg/client/cli
-github.com/telepresenceio/telepresence/v2/pkg/client/cli/extensions
-github.com/telepresenceio/telepresence/v2/pkg/client/connector
-github.com/telepresenceio/telepresence/v2/pkg/client/daemon
-github.com/telepresenceio/telepresence/v2/pkg/client/daemon/dbus
-github.com/telepresenceio/telepresence/v2/pkg/client/daemon/dns
-github.com/telepresenceio/telepresence/v2/pkg/client/daemon/nat
-github.com/telepresenceio/telepresence/v2/pkg/client/daemon/proxy
-github.com/telepresenceio/telepresence/v2/pkg/client/daemon/tun
-github.com/telepresenceio/telepresence/v2/pkg/client/logging
-github.com/telepresenceio/telepresence/v2/pkg/filelocation
-github.com/telepresenceio/telepresence/v2/pkg/subnet
-github.com/telepresenceio/telepresence/v2/pkg/version
 # github.com/ulikunitz/xz v0.5.6
 github.com/ulikunitz/xz
 github.com/ulikunitz/xz/internal/hash
@@ -507,7 +472,6 @@ golang.org/x/net/internal/timeseries
 golang.org/x/net/ipv4
 golang.org/x/net/ipv6
 golang.org/x/net/proxy
-golang.org/x/net/route
 golang.org/x/net/trace
 # golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 golang.org/x/oauth2
@@ -555,7 +519,7 @@ golang.org/x/tools/internal/typesinternal
 # golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/appengine v1.6.7
+# google.golang.org/appengine v1.6.6
 google.golang.org/appengine
 google.golang.org/appengine/internal
 google.golang.org/appengine/internal/app_identity

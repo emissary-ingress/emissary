@@ -12,7 +12,4 @@ import (
 
 	// controller-gen
 	_ "sigs.k8s.io/controller-tools/cmd/controller-gen"
-
-	// telepresence
-	_ "github.com/telepresenceio/telepresence/v2/cmd/telepresence"
 )
