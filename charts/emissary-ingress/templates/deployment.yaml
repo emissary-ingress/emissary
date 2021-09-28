@@ -49,6 +49,11 @@ spec:
   strategy:
   {{- end }}
     {{- toYaml .Values.deploymentStrategy | nindent 4}}
+  {{ if and .Values.progressDeadlines (not .Values.daemonSet) }}
+  {{ if hasKey .Values.progressDeadlines "ambassador" }}
+  progressDeadlineSeconds: {{ .Values.progressDeadlines.ambassador }}
+  {{- end }}
+  {{- end }}
   template:
     metadata:
       labels:

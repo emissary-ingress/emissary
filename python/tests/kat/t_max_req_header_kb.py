@@ -23,7 +23,7 @@ config:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """)
@@ -61,7 +61,7 @@ config:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.name}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """)

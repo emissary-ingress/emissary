@@ -8,6 +8,7 @@ import (
 	consulapi "github.com/hashicorp/consul/api"
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/ambassador/v2/pkg/watt"
@@ -23,13 +24,13 @@ type consulMapping struct {
 func ReconcileConsul(ctx context.Context, consul *consul, s *snapshotTypes.KubernetesSnapshot) {
 	var mappings []consulMapping
 	for _, a := range s.Annotations {
-		m, ok := a.(*amb.Mapping)
-		if ok && include(m.Spec.AmbassadorID) {
+		m, ok := a.(*v3alpha1.Mapping)
+		if ok && include(amb.AmbassadorID(m.Spec.AmbassadorID)) {
 			mappings = append(mappings, consulMapping{Service: m.Spec.Service, Resolver: m.Spec.Resolver})
 		}
 
-		tm, ok := a.(*amb.TCPMapping)
-		if ok && include(tm.Spec.AmbassadorID) {
+		tm, ok := a.(*v3alpha1.TCPMapping)
+		if ok && include(amb.AmbassadorID(tm.Spec.AmbassadorID)) {
 			mappings = append(mappings, consulMapping{Service: tm.Spec.Service, Resolver: tm.Spec.Resolver})
 		}
 	}

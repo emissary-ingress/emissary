@@ -118,7 +118,7 @@ image:
   # Emissary Ingress docker repo
   repository: docker.io/datawire/emissary
   # Emissary Ingress docker tag
-  tag: 2.0.0-dev.200-gebec99b36
+  tag: 2.0.0-ea
   # Pod container image pull policy
   pullPolicy: IfNotPresent
 
@@ -204,6 +204,12 @@ serviceAccount:
 
 deploymentStrategy:
   type: RollingUpdate
+
+# configures progressDeadlineSeconds for deployments
+progressDeadlines:
+  ambassador: 600
+  agent: 600
+
 
 restartPolicy:
 
@@ -371,3 +377,8 @@ deploymentTool: ''
 # configure docker to pull from private registry
 docker: {}
 createNamespace: false
+
+# Whether Emissary should be created with default listeners:
+# - HTTP on port 8080
+# - HTTPS on port 8443
+createDefaultListeners: false

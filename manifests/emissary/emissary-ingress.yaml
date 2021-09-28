@@ -136,12 +136,16 @@ rules:
   - endpoints
   verbs: [get, list, watch]
 
-- apiGroups: [getambassador.io]
+- apiGroups: [x.getambassador.io, getambassador.io]
   resources: ['*']
   verbs: [get, list, watch, update, patch, create, delete]
 
 - apiGroups: [getambassador.io]
   resources: [mappings/status]
+  verbs: [update]
+
+- apiGroups: [x.getambassador.io]
+  resources: [ambassadormappings/status]
   verbs: [update]
 
 - apiGroups: [networking.internal.knative.dev]
@@ -179,6 +183,9 @@ spec:
       service: ambassador
   strategy:
     type: RollingUpdate
+
+
+  progressDeadlineSeconds: 600
   template:
     metadata:
       labels:
@@ -202,7 +209,7 @@ spec:
             path: labels
       containers:
       - name: ambassador
-        image: docker.io/datawire/emissary:2.0.0-dev.200-gebec99b36
+        image: docker.io/datawire/emissary:2.0.0-ea
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
@@ -339,6 +346,45 @@ rules:
 ---
 # Source: emissary-ingress/templates/ambassador-agent.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: emissary-ingress-agent-deployments
+  labels:
+    rbac.getambassador.io/role-group: emissary-ingress-agent
+    product: aes
+rules:
+- apiGroups: [apps, extensions]
+  resources: [deployments]
+  verbs: [get, list, watch]
+---
+# Source: emissary-ingress/templates/ambassador-agent.yaml
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: emissary-ingress-agent-endpoints
+  labels:
+    rbac.getambassador.io/role-group: emissary-ingress-agent
+    product: aes
+rules:
+- apiGroups: ['']
+  resources: [endpoints]
+  verbs: [get, list, watch]
+---
+# Source: emissary-ingress/templates/ambassador-agent.yaml
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: emissary-ingress-agent-configmaps
+  labels:
+    rbac.getambassador.io/role-group: emissary-ingress-agent
+    product: aes
+rules:
+- apiGroups: ['']
+  resources: [configmaps]
+  verbs: [get, list, watch]
+---
+# Source: emissary-ingress/templates/ambassador-agent.yaml
+apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: Role
 metadata:
   name: emissary-ingress-agent-config
@@ -391,7 +437,7 @@ spec:
       serviceAccountName: emissary-ingress-agent
       containers:
       - name: agent
-        image: docker.io/datawire/emissary:2.0.0-dev.200-gebec99b36
+        image: docker.io/datawire/emissary:2.0.0-ea
         imagePullPolicy: IfNotPresent
         command: [agent]
         env:
@@ -405,3 +451,4 @@ spec:
           value: https://app.getambassador.io/
         - name: AES_SNAPSHOT_URL
           value: http://emissary-ingress-admin.emissary:8005/snapshot-external
+  progressDeadlineSeconds: 600

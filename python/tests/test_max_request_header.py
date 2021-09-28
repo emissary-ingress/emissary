@@ -14,11 +14,13 @@ from ambassador import Config, IR, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
 
+from utils import default_listener_manifests
+
 
 def _get_envoy_config(yaml, version='V3'):
     aconf = Config()
     fetcher = ResourceFetcher(logger, aconf)
-    fetcher.parse_yaml(yaml)
+    fetcher.parse_yaml(default_listener_manifests() + yaml, k8s=True)
 
     aconf.load_all(fetcher.sorted())
 
@@ -37,16 +39,22 @@ def test_set_max_request_header():
 ---
 apiVersion: getambassador.io/v2
 kind: Module
-name: ambassador
-config:
-  max_request_headers_kb: 96
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  config:
+    max_request_headers_kb: 96
 ---
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
-name: ambassador
-host: "*"
-prefix: /test/
-service: test:9999
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  hostname: "*"
+  prefix: /test/
+  service: test:9999
 """
     econf = _get_envoy_config(yaml, version='V2')
     expected = 96
@@ -74,16 +82,22 @@ def test_set_max_request_header_v3():
 ---
 apiVersion: getambassador.io/v2
 kind: Module
-name: ambassador
-config:
-  max_request_headers_kb: 96
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  config:
+    max_request_headers_kb: 96
 ---
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
-name: ambassador
-host: "*"
-prefix: /test/
-service: test:9999
+metadata:
+  name: ambassador
+  namespace: default
+spec:
+  hostname: "*"
+  prefix: /test/
+  service: test:9999
 """
     econf = _get_envoy_config(yaml)
     expected = 96

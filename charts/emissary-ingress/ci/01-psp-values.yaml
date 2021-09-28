@@ -38,3 +38,4 @@ security:
       allowPrivilegeEscalation: false
       runAsUser:
         rule: MustRunAsNonRoot
+createDefaultListeners: true

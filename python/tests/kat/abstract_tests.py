@@ -133,6 +133,8 @@ class AmbassadorTest(Test):
             self.manifest_envs += """
     - name: AMBASSADOR_DEBUG
       value: "%s"
+    - name: AES_LOG_LEVEL
+      value: "debug"
 """ % ":".join(amb_debug)
 
         if self.ambassador_id:

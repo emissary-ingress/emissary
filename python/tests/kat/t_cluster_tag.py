@@ -18,7 +18,7 @@ metadata:
   name: cluster-tag-1
 spec:
   ambassador_id: {self.ambassador_id}
-  host: "*"
+  hostname: "*"
   prefix: /mapping-1/
   service: {self.target_1.path.fqdn}
 ---
@@ -28,7 +28,7 @@ metadata:
   name: cluster-tag-2
 spec:
   ambassador_id: {self.ambassador_id}
-  host: "*"
+  hostname: "*"
   prefix: /mapping-2/
   service: {self.target_1.path.fqdn}
   cluster_tag: tag-1
@@ -39,7 +39,7 @@ metadata:
   name: cluster-tag-3
 spec:
   ambassador_id: {self.ambassador_id}
-  host: "*"
+  hostname: "*"
   prefix: /mapping-3/
   service: {self.target_1.path.fqdn}
   cluster_tag: tag-2
@@ -50,7 +50,7 @@ metadata:
   name: cluster-tag-4
 spec:
   ambassador_id: {self.ambassador_id}
-  host: "*"
+  hostname: "*"
   prefix: /mapping-4/
   service: {self.target_2.path.fqdn}
   cluster_tag: tag-2
@@ -61,7 +61,7 @@ metadata:
   name: cluster-tag-5
 spec:
   ambassador_id: {self.ambassador_id}
-  host: "*"
+  hostname: "*"
   prefix: /mapping-5/
   service: {self.target_1.path.fqdn}
   cluster_tag: some-really-long-tag-that-is-really-long
@@ -72,7 +72,7 @@ metadata:
   name: cluster-tag-6
 spec:
   ambassador_id: {self.ambassador_id}
-  host: "*"
+  hostname: "*"
   prefix: /mapping-6/
   service: {self.target_2.path.fqdn}
   cluster_tag: some-really-long-tag-that-is-really-long

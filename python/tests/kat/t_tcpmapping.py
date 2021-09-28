@@ -30,6 +30,9 @@ class TCPMappingTest(AmbassadorTest):
     # Test, AmbassadorTest, etc.).
 
     def init(self):
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
+
         self.target1 = HTTP(name="target1")
         # print("TCP target1 %s" % self.target1.namespace)
 

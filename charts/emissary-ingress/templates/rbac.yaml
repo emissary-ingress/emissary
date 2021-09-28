@@ -82,12 +82,16 @@ rules:
     - endpoints
     verbs: ["get", "list", "watch"]
 
-  - apiGroups: [ "getambassador.io" ]
+  - apiGroups: [ "x.getambassador.io", "getambassador.io" ]
     resources: [ "*" ]
     verbs: ["get", "list", "watch", "update", "patch", "create", "delete" ]
 
   - apiGroups: [ "getambassador.io" ]
     resources: [ "mappings/status" ]
+    verbs: ["update"]
+
+  - apiGroups: [ "x.getambassador.io" ]
+    resources: [ "ambassadormappings/status" ]
     verbs: ["update"]
 
   - apiGroups: [ "networking.internal.knative.dev" ]

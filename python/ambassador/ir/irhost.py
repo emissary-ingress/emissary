@@ -356,17 +356,24 @@ class IRHost(IRResource):
         host_match = False
         sel_match = False
 
-        group_glob = group.get('host') or None
+        group_regex = group.get('host_regex') or False
 
-        if group_glob:
-            host_match = hostglob_matches(self.hostname, group_glob)
-            self.logger.info("-- hostname %s group glob %s => %s", self.hostname, group_glob, host_match)
+        if group_regex:
+            # It matches.
+            host_match = True
+            self.logger.debug("-- hostname %s group regex => %s", self.hostname, host_match)
+        else:
+            group_glob = group.get('host') or None
+
+            if group_glob:
+                host_match = hostglob_matches(self.hostname, group_glob)
+                self.logger.debug("-- hostname %s group glob %s => %s", self.hostname, group_glob, host_match)
 
         selector = self.get('selector')
 
         if selector:
             sel_match = selector_matches(self.logger, selector, group.get('metadata_labels', {}))
-            self.logger.info("-- host sel %s group labels %s => %s", 
+            self.logger.debug("-- host sel %s group labels %s => %s", 
                              dump_json(selector), dump_json(group.get('metadata_labels')), sel_match)
 
         return host_match or sel_match

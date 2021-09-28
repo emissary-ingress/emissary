@@ -970,9 +970,8 @@ class V2Listener(dict):
             v2listener = V2Listener(config, irlistener)
             v2listener.finalize()
 
-            config.listeners.append(v2listener)
             config.ir.logger.info(f"V2Listener: ==== GENERATED {v2listener}")
-            
+
             if v2listener._log_debug:
                 for k in sorted(v2listener._chains.keys()):
                     chain = v2listener._chains[k]
@@ -980,3 +979,9 @@ class V2Listener(dict):
 
                     for r in chain.routes:
                         config.ir.logger.debug("      %s", v2prettyroute(r))
+
+            # Does this listener have any filter chains?
+            if v2listener._filter_chains:
+                config.listeners.append(v2listener)
+            else:
+                irlistener.post_error("No matching AmbassadorHosts found, disabling!")

@@ -7,3 +7,4 @@ module:
   ip_allow:
   - peer: 127.0.0.1
   - remote: 99.99.0.0/16
+createDefaultListeners: true

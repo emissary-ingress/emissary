@@ -70,6 +70,10 @@ class EnvoyConfig:
         return obj
 
     @abstractmethod
+    def has_listeners(self) -> bool:
+        pass
+
+    @abstractmethod
     def split_config(self) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, 'ClustermapEntry']]:
         pass
 

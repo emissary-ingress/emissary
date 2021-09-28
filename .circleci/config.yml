@@ -213,7 +213,7 @@ commands:
     steps:
     # setup
     - amb-linux-install
-    - amb-attach-workspace
+    - amb-checkout
     - amb-skip-if-no-code-changes-not-release
     - # pytest-envoy can be skipped unless the envoy.mk file changes, or the ambex control
       # plane changes, or the gold files change.
@@ -382,11 +382,11 @@ commands:
   amb-skip-if-no-code-changes:
     steps:
     - skip-if-only-changes:
-        to: (releng/|charts/|manifests/|k8s-config/|docs/|*.md)
+        to: (^releng/|^charts/|^manifests/|^k8s-config/|^docs/|*.md$)
   amb-skip-if-no-code-changes-not-release:
     steps:
     - amb-skip-if-only-changes-not-release:
-        to: (releng/|charts/|manifests/|k8s-config/|docs/|*.md)
+        to: (^releng/|^charts/|^manifests/|^k8s-config/|^docs/|*.md$)
   amb-checkout:
     steps:
     - when:
@@ -976,8 +976,6 @@ workflows:
     - oss-chart-changelog:
         name: "oss-chart-changelog"
     - oss-test:
-        requires:
-        - "oss-dev-images"
         name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
@@ -1004,8 +1002,6 @@ workflows:
             fast-reconfigure: true
             legacy-mode: true
     - oss-test:
-        requires:
-        - "oss-dev-images"
         name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
@@ -1030,8 +1026,6 @@ workflows:
             - master
             - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/
     - oss-envoy-test:
-        requires:
-        - "oss-dev-images"
         name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
@@ -1056,8 +1050,6 @@ workflows:
             fast-reconfigure: true
             legacy-mode: true
     - oss-envoy-test:
-        requires:
-        - "oss-dev-images"
         name: "oss-dev-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
           matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
           >>"
@@ -1092,98 +1084,15 @@ workflows:
         - oss-dev-gotest-fastreconfigure
         - oss-dev-gotest
         - oss-dev-generate
+        - oss-dev-images
+        - oss-chart-changelog
+        - oss-dev-lint
         name: "oss-dev-promote-to-passed"
         filters:
           branches:
             only:
             - master
             - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/
-  'OSS: Nightly':
-    triggers:
-    - schedule:
-        cron: "0 6 * * 1-5"
-        filters:
-          branches:
-            only:
-            - master
-    - schedule:
-        cron: "0 5 * * *"
-        filters:
-          branches:
-            only:
-            - master
-    jobs:
-    - oss-images:
-        name: "oss-nightly-images"
-        push_nightly: true
-    - oss-gotest:
-        name: "oss-nightly-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
-          >>"
-        matrix:
-          alias: "oss-nightly-gotest"
-          parameters:
-            fast-reconfigure:
-            - true
-            - false
-            legacy-mode:
-            - true
-            - false
-          exclude:
-          - fast-reconfigure: true
-            legacy-mode: true
-    - oss-test:
-        requires:
-        - "oss-nightly-images"
-        name: "oss-nightly-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
-          >>"
-        matrix:
-          alias: "oss-nightly-test"
-          parameters:
-            test:
-            - "pytest"
-            # Running the ingresstests would require we install `kind` and
-            # that the test suite supports HTTP to HTTPS redirects (AES
-            # enables cleartext redirection by default, even for fallback
-            # hosts, contrary to A/OSS)
-            #- "ingresstest"
-
-            fast-reconfigure:
-            - true
-            - false
-            legacy-mode:
-            - true
-            - false
-          exclude:
-          - test: pytest
-            fast-reconfigure: true
-            legacy-mode: true
-    - oss-envoy-test:
-        requires:
-        - "oss-nightly-images"
-        name: "oss-nightly-<< matrix.test >><<# matrix.fast-reconfigure >>-fastreconfigure<</
-          matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode
-          >>"
-        matrix:
-          alias: "oss-nightly-envoy-test"
-          parameters:
-            test:
-            - "pytest-envoy"
-            - "pytest-envoy-v2"
-            fast-reconfigure:
-            - true
-            - false
-            legacy-mode:
-            - true
-            - false
-          exclude:
-          - test: pytest-envoy
-            fast-reconfigure: true
-            legacy-mode: true
-          - test: pytest-envoy-v2
-            fast-reconfigure: true
-            legacy-mode: true
   'OSS: Chart Release':
     jobs:
     - oss-chart-publish:

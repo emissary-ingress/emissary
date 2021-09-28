@@ -31,7 +31,7 @@ metadata:
       apiVersion: x.getambassador.io/v3alpha1
       kind: AmbassadorMapping
       name: SimpleMapping-HTTP-all
-      host: "*"
+      hostname: "*"
       prefix: /SimpleMapping-HTTP-all/
       service: http://plain-simplemapping-http-all-http.plain
       ambassador_id: plain      

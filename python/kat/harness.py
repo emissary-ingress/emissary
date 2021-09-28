@@ -25,7 +25,7 @@ from yaml.scanner import ScannerError as YAMLScanError
 
 from multi import multi
 from .parser import dump, load, Tag
-from tests.manifests import httpbin_manifests, websocket_echo_server_manifests, cleartext_host_manifest
+from tests.manifests import httpbin_manifests, websocket_echo_server_manifests, cleartext_host_manifest, default_listener_manifest
 from tests.kubeutils import apply_kube_artifacts
 
 import yaml as pyyaml
@@ -1292,14 +1292,36 @@ class Runner:
                 yaml = n.manifests()
 
                 if yaml is not None:
-                    add_cleartext_host = getattr(n, 'edge_stack_cleartext_host', False)
                     is_plain_test = n.path.k8s.startswith("plain-")
 
-                    if EDGE_STACK and n.is_ambassador and add_cleartext_host and not is_plain_test:
-                        # print(f"{n.path.k8s} adding Host")
+                    if n.is_ambassador and not is_plain_test:
+                        add_default_http_listener = getattr(n, 'add_default_http_listener', True)
+                        add_default_https_listener = getattr(n, 'add_default_https_listener', True)
+                        add_cleartext_host = getattr(n, 'edge_stack_cleartext_host', False)
 
-                        host_yaml = cleartext_host_manifest % nsp
-                        yaml += host_yaml
+                        if add_default_http_listener:
+                            print(f"{n.path.k8s} adding default HTTP AmbassadorListener")
+                            yaml += default_listener_manifest % {
+                                "namespace": nsp,
+                                "port": 8080,
+                                "protocol": "HTTPS",
+                                "securityModel": "XFP"
+                            }
+
+                        if add_default_https_listener:
+                            print(f"{n.path.k8s} adding default HTTPS AmbassadorListener")
+                            yaml += default_listener_manifest % {
+                                "namespace": nsp,
+                                "port": 8443,
+                                "protocol": "HTTPS",
+                                "securityModel": "XFP"
+                            }
+
+                        if EDGE_STACK and add_cleartext_host:
+                            # print(f"{n.path.k8s} adding Host")
+
+                            host_yaml = cleartext_host_manifest % nsp
+                            yaml += host_yaml
 
                     yaml = n.format(yaml)
 
@@ -1698,7 +1720,7 @@ class Runner:
         kinds = [ "pod", "url" ]
         delay = 5
         start = time.time()
-        limit = int(os.environ.get("KAT_REQ_LIMIT", "600"))
+        limit = int(os.environ.get("KAT_REQ_LIMIT", "900"))
 
         print("Starting requirements check (limit %ds)... " % limit)
 

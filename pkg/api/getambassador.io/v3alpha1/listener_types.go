@@ -139,6 +139,7 @@ type AmbassadorListenerSpec struct {
 	// Port is the network port. Only one AmbassadorListener can use a given port.
 	// +kubebuilder:validation:Minimum=1
 	// +kubebuilder:validation:Maximum=65535
+	// +kubebuilder:validation:Required
 	Port int32 `json:"port"`
 
 	// Protocol is a shorthand for certain predefined stacks. Exactly one of Protocol
@@ -151,13 +152,20 @@ type AmbassadorListenerSpec struct {
 
 	// SecurityModel specifies how to determine whether connections to this port are secure
 	// or insecure.
+	// +kubebuilder:validation:Required
 	SecurityModel SecurityModelType `json:"securityModel"`
+
+	// StatsPrefix specifies the prefix for statistics sent by Envoy about this
+	// AmbassadorListener. The default depends on the protocol: "ingress-http",
+	// "ingress-https", "ingress-tls-$port", or "ingress-$port".
+	StatsPrefix string `json:"statsPrefix,omitempty"`
 
 	// L7Depth specifies how many layer 7 load balancers are between us and the edge of
 	// the network.
-	L7Depth int32 `json:"l7Depth"`
+	L7Depth int32 `json:"l7Depth,omitempty"`
 
 	// HostBinding allows restricting which Hosts will be used for this AmbassadorListener.
+	// +kubebuilder:validation:Required
 	HostBinding HostBindingType `json:"hostBinding"`
 }
 
@@ -167,6 +175,7 @@ type AmbassadorListenerSpec struct {
 // +kubebuilder:printcolumn:name="Port",type=string,JSONPath=`.spec.port`
 // +kubebuilder:printcolumn:name="Protocol",type=string,JSONPath=`.spec.protocol`
 // +kubebuilder:printcolumn:name="Stack",type=string,JSONPath=`.spec.protocolStack`
+// +kubebuilder:printcolumn:name="StatsPrefix",type=string,JSONPath=`.spec.statsPrefix`
 // +kubebuilder:printcolumn:name="Security",type=string,JSONPath=`.spec.securityModel`
 // +kubebuilder:printcolumn:name="L7Depth",type=string,JSONPath=`.spec.l7Depth`
 // +kubebuilder:storageversion

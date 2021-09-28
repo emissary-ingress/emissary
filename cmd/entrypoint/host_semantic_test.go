@@ -11,16 +11,16 @@ import (
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	"github.com/datawire/ambassador/v2/internal/pkg/testutils"
 	bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/stretchr/testify/require"
 )
 
-func getExpected(expectedFile string, inputObjects []kates.Object) ([]testutils.RenderedListener, []amb.Mapping, []string) {
+func getExpected(expectedFile string, inputObjects []kates.Object) ([]testutils.RenderedListener, []v3alpha1.Mapping, []string) {
 	// Figure out all the mappings and clusters we'll need.
 	neededClusters := []string{}
-	neededMappings := []amb.Mapping{}
+	neededMappings := []v3alpha1.Mapping{}
 
 	// Read the expected rendering from a file.
 	content, err := ioutil.ReadFile(expectedFile)
@@ -40,7 +40,7 @@ func getExpected(expectedFile string, inputObjects []kates.Object) ([]testutils.
 
 	for _, obj := range inputObjects {
 		// Skip things that aren't Mappings.
-		mapping, ok := obj.(*amb.Mapping)
+		mapping, ok := obj.(*v3alpha1.Mapping)
 
 		if !ok {
 			continue

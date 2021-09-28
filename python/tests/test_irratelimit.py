@@ -11,10 +11,13 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger("ambassador")
+# logger.setLevel(logging.DEBUG)
 
 from ambassador import Config, IR, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
+
+from utils import default_listener_manifests
 
 SERVICE_NAME = 'coolsvcname'
 
@@ -32,7 +35,7 @@ def _get_rl_config(yaml):
 def _get_envoy_config(yaml, version='V2'):
     aconf = Config()
     fetcher = ResourceFetcher(logger, aconf)
-    fetcher.parse_yaml(yaml)
+    fetcher.parse_yaml(default_listener_manifests() + yaml, k8s=True)
 
     aconf.load_all(fetcher.sorted())
 
@@ -83,10 +86,13 @@ def test_irratelimit_defaultsv3():
 
     # Test all defaults
     yaml = """
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v2
 kind: RateLimitService
-name: myrls
-service: {}
+metadata:
+  name: myrls
+  namespace: default
+spec:
+  service: {}
 """.format(SERVICE_NAME)
     econf = _get_envoy_config(yaml, version='V3')
     conf = _get_rl_config(econf.as_dict())
@@ -102,10 +108,13 @@ def test_irratelimit_defaults():
 
     # Test all defaults
     yaml = """
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v2
 kind: RateLimitService
-name: myrls
-service: {}
+metadata:
+  name: myrls
+  namespace: default
+spec:
+  service: {}
 """.format(SERVICE_NAME)
     econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())
@@ -120,11 +129,14 @@ def test_irratelimit_grpcsvc_version_v3():
     # Test protocol_version override
     yaml = """
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v2
 kind: RateLimitService
-name: myrls
-service: {}
-protocol_version: "v3"
+metadata:
+  name: myrls
+  namespace: default
+spec:
+  service: {}
+  protocol_version: "v3"
 """.format(SERVICE_NAME)
     config = _get_ratelimit_default_conf_v3()
     config['rate_limit_service']['transport_api_version'] = 'V3'
@@ -142,11 +154,14 @@ def test_irratelimit_grpcsvc_version_v2():
     # Test protocol_version override
     yaml = """
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v2
 kind: RateLimitService
-name: myrls
-service: {}
-protocol_version: "v2"
+metadata:
+  name: myrls
+  namespace: default
+spec:
+  service: {}
+  protocol_version: "v2"
 """.format(SERVICE_NAME)
     config = _get_ratelimit_default_conf_v2()
     econf = _get_envoy_config(yaml)
@@ -162,9 +177,12 @@ def test_irratelimit_error():
     # Test error no svc name
     yaml = """
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v2
 kind: RateLimitService
-name: myrls
+metadata:
+  name: myrls
+  namespace: default
+spec: {}
 """
     econf = _get_envoy_config(yaml)
     conf = _get_rl_config(econf.as_dict())
@@ -177,9 +195,12 @@ def test_irratelimit_error_v3():
     # Test error no svc name
     yaml = """
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v2
 kind: RateLimitService
-name: myrls
+metadata:
+  name: myrls
+  namespace: default
+spec: {}
 """
     econf = _get_envoy_config(yaml, version='V3')
     conf = _get_rl_config(econf.as_dict())
@@ -194,15 +215,17 @@ def test_irratelimit_overrides():
     config = _get_ratelimit_default_conf_v2()
     yaml = """
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v2
 kind: RateLimitService
-name: myrls
-service: {}
-namespace: someotherns
-domain: otherdomain
-timeout_ms: 500
-tls: rl-tls-context
-protocol_version: v2
+metadata:
+  name: myrls
+  namespace: someotherns
+spec:
+  service: {}
+  domain: otherdomain
+  timeout_ms: 500
+  tls: rl-tls-context
+  protocol_version: v2
 """.format(SERVICE_NAME)
     config['rate_limit_service']['grpc_service']['envoy_grpc']['cluster_name'] = 'cluster_{}_someotherns'.format(SERVICE_NAME)
     config['timeout'] = '0.500s'
@@ -222,15 +245,17 @@ def test_irratelimit_overrides_v3():
     config = _get_ratelimit_default_conf_v3()
     yaml = """
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v2
 kind: RateLimitService
-name: myrls
-service: {}
-namespace: someotherns
-domain: otherdomain
-timeout_ms: 500
-tls: rl-tls-context
-protocol_version: v2
+metadata:
+  name: myrls
+  namespace: someotherns
+spec:
+  service: {}
+  domain: otherdomain
+  timeout_ms: 500
+  tls: rl-tls-context
+  protocol_version: v2
 """.format(SERVICE_NAME)
     config['rate_limit_service']['grpc_service']['envoy_grpc']['cluster_name'] = 'cluster_{}_someotherns'.format(SERVICE_NAME)
     config['timeout'] = '0.500s'

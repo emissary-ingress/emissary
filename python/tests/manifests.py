@@ -131,3 +131,24 @@ spec:
     insecure:
       action: Route
 """
+
+# This is a little weird -- there are several things to fill in before you
+# use 'format' to fill in other things from 'self'.
+default_listener_manifest = """
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
+metadata:
+  name: listener-%(port)s-{self.path.k8s}
+  labels:
+    scope: AmbassadorTest
+  namespace: %(namespace)s
+spec:
+  ambassador_id: [ "{self.ambassador_id}" ]
+  port: %(port)d
+  protocol: %(protocol)s
+  securityModel: %(securityModel)s
+  hostBinding:
+    namespace:
+      from: ALL
+"""

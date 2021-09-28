@@ -91,7 +91,8 @@ class IRHTTPMapping (IRBaseMapping):
         "error_response_overrides": False,
         "grpc": False,
         # Do not include headers
-        "host": False,          # See notes above
+        # Do not include host
+        # Do not include hostname
         "host_redirect": False,
         "host_regex": False,
         "host_rewrite": False,
@@ -186,6 +187,14 @@ class IRHTTPMapping (IRBaseMapping):
         query_parameters = []
         regex_rewrite = kwargs.get('regex_rewrite', {})
 
+        # Start by assuming that nothing in our arguments mentions hosts (so no host and no host_regex).
+        host = None
+        host_regex = False
+
+        # Also start self.host as unspecified.
+        self.host = None
+
+        # OK. Start by looking for a :authority header match.
         if 'headers' in kwargs:
             for name, value in kwargs.get('headers', {}).items():
                 if value is True:
@@ -195,10 +204,23 @@ class IRHTTPMapping (IRBaseMapping):
                     # they set the "host" element (but note that we'll allow the actual
                     # "host" element to override it later).
                     if name.lower() == ':authority':
-                        self.host = value
-                        ir.logger.debug("IRHTTPMapping %s: self.host = %s (:authority)", name, self.host)
-
-                    hdrs.append(KeyValueDecorator(name, value))
+                        # This is an _exact_ match, so it mustn't contain a "*" -- that's illegal in the DNS.
+                        if "*" in value:
+                            # We can't call self.post_error() yet, because we're not initialized yet. So we cheat a bit
+                            # and defer the error for later.
+                            new_args["_deferred_error"] = f":authority exact-match '{value}' contains *, which cannot match anything."
+                            ir.logger.debug("IRHTTPMapping %s: self.host contains * (%s, :authority)", name, value)
+                        else:
+                            # No globs, just save it. (We'll end up using it as a glob later, in the Envoy
+                            # config part of the world, but that's OK -- a glob with no "*" in it will always
+                            # match only itself.)
+                            host = value
+                            ir.logger.debug("IRHTTPMapping %s: self.host == %s (:authority)", name, self.host)
+                            # DO NOT save the ':authority' match here -- we'll pick it up after we've checked
+                            # for hostname, too.
+                    else:
+                        # It's not an :authority match, so we're good.
+                        hdrs.append(KeyValueDecorator(name, value))
 
         if 'regex_headers' in kwargs:
             # DON'T do anything special with a regex :authority match: we can't
@@ -207,18 +229,42 @@ class IRHTTPMapping (IRBaseMapping):
                 hdrs.append(KeyValueDecorator(name, value, regex=True))
 
         if 'host' in kwargs:
-            # It's deliberate that we'll allow kwargs['host'] to override an exact :authority
+            # It's deliberate that we'll allow kwargs['host'] to silently override an exact :authority
             # header match.
             host = kwargs['host']
             host_regex = kwargs.get('host_regex', False)
 
-            # Again, don't set self.host if we have host_regex, because we can't
-            # do host-based filtering within the IR for that.
+            # If it's not a regex, it's an exact match -- make sure it doesn't contain a '*'.
+            if not host_regex:
+                if "*" in host:
+                    # We can't call self.post_error() yet, because we're not initialized yet. So we cheat a bit
+                    # and defer the error for later.
+                    new_args["_deferred_error"] = f"host exact-match {host} contains *, which cannot match anything."
+                    ir.logger.debug("IRHTTPMapping %s: self.host contains * (%s, host)", name, host)
+                else:
+                    ir.logger.debug("IRHTTPMapping %s: self.host == %s (host)", name, self.host)
+    
+        # Finally, check for 'hostname'.
+        if 'hostname' in kwargs:
+            # It's deliberate that we allow kwargs['hostname'] to override anything else -- even a regex host.
+            # Yell about it, though.
+            if host:
+                ir.logger.warning("Mapping %s in namespace %s: both host and hostname are set, using hostname and ignoring host", name, namespace)
+            
+            # No need to be so careful about "*" here, since hostname is defined to be a glob.
+            host = kwargs['hostname']
+            host_regex = False
+            ir.logger.debug("IRHTTPMapping %s: self.host gl~ %s (hostname)", name, self.host)
+
+        # If we have a host, include a ":authority" match. We're treating this as if it were
+        # an exact match, but that's because the ":authority" match is handling specially by
+        # Envoy.
+        if host:
+            hdrs.append(KeyValueDecorator(":authority", host, host_regex))
+
+            # Finally, if our host isn't a regex, save it in self.host.
             if not host_regex:
                 self.host = host
-                ir.logger.debug("IRHTTPMapping %s: self.host = %s (host)", name, self.host)
-
-            hdrs.append(KeyValueDecorator(":authority", host, host_regex))
 
         if 'method' in kwargs:
             hdrs.append(KeyValueDecorator(":method", kwargs['method'], kwargs.get('method_regex', False)))
@@ -240,7 +286,6 @@ class IRHTTPMapping (IRBaseMapping):
             add_request_hdrs = kwargs['add_request_headers']
         else:
             add_request_hdrs = self.lookup_default('add_request_headers', {})
-
 
         if 'add_response_headers' in kwargs:
             add_response_hdrs = kwargs['add_response_headers']
@@ -323,6 +368,12 @@ class IRHTTPMapping (IRBaseMapping):
             del self[other]
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
+        # First things first: handle any deferred error.
+        _deferred_error = self.get("_deferred_error")
+        if _deferred_error:
+            self.post_error(_deferred_error)
+            return False
+
         if not super().setup(ir, aconf):
             return False
 
@@ -420,6 +471,10 @@ class IRHTTPMapping (IRBaseMapping):
         self._enforce_mutual_exclusion('path_redirect', 'prefix_redirect')
         self._enforce_mutual_exclusion('path_redirect', 'regex_redirect')
         self._enforce_mutual_exclusion('prefix_redirect', 'regex_redirect')
+
+        ir.logger.debug("Mapping %s: setup OK: host %s hostname %s regex %s", 
+                        self.name, self.get('host'), self.get('hostname'), self.get('host_regex'))
+
         return True
 
     @staticmethod

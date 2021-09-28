@@ -112,15 +112,15 @@ imagePullSecrets:
             # add new envs, if any
             manifest['spec']['containers'][0]['env'].extend(envs)
 
-    print("INSTALLING AMBASSADOR: manifests:")
-    print(yaml.safe_dump_all(ambassador_yaml))
+    # print("INSTALLING AMBASSADOR: manifests:")
+    # print(yaml.safe_dump_all(ambassador_yaml))
 
     apply_kube_artifacts(namespace=namespace, artifacts=yaml.safe_dump_all(ambassador_yaml))
 
 
 def update_envs(envs, name, value):
     found = False
-        
+
     for e in envs:
         if e['name'] == name:
             e['value'] = value
@@ -147,7 +147,7 @@ metadata:
   name:  qotm-mapping
   namespace: {namespace}
 spec:
-  host: "*"
+  hostname: "*"
   prefix: /qotm/
   service: qotm
 """
@@ -163,7 +163,7 @@ metadata:
   name:  httpbin-mapping
   namespace: {namespace}
 spec:
-  host: "*"
+  hostname: "*"
   prefix: /httpbin/
   rewrite: /
   service: httpbin
@@ -202,8 +202,38 @@ spec:
   config: {}
 """
 
+def default_listener_manifests():
+    return """
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
+metadata:
+  name: listener-8080
+  namespace: default
+spec:
+  port: 8080
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
+metadata:
+  name: listener-8443
+  namespace: default
+spec:
+  port: 8443
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
+"""
+
 def module_and_mapping_manifests(module_confs, mapping_confs):
-    yaml = """
+    yaml = default_listener_manifests() + """
 ---
 apiVersion: getambassador.io/v2
 kind: Module
@@ -228,7 +258,7 @@ metadata:
   name: ambassador
   namespace: default
 spec:
-  host: "*"
+  hostname: "*"
   prefix: /httpbin/
   service: httpbin"""
     if mapping_confs:
@@ -245,23 +275,29 @@ def _secret_handler():
     cache_dir = tempfile.TemporaryDirectory(prefix="null-secret-", suffix="-cache")
     return NullSecretHandler(logger, source_root.name, cache_dir.name, "fake")
 
-def econf_compile(yaml, envoy_version="V2"):
+def compile_with_cachecheck(yaml, envoy_version="V2", errors_ok=False):
     # Compile with and without a cache. Neither should produce errors.
     cache = Cache(logger)
     secret_handler = _secret_handler()
     r1 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, envoy_version=envoy_version)
     r2 = Compile(logger, yaml, k8s=True, secret_handler=secret_handler, cache=cache,
             envoy_version=envoy_version)
-    _require_no_errors(r1["ir"])
-    _require_no_errors(r2["ir"])
+
+    if not errors_ok:
+        _require_no_errors(r1["ir"])
+        _require_no_errors(r2["ir"])
 
     # Both should produce equal Envoy config as sorted json.
     r1j = json.dumps(r1[envoy_version.lower()].as_dict(), sort_keys=True, indent=2)
     r2j = json.dumps(r2[envoy_version.lower()].as_dict(), sort_keys=True, indent=2)
     assert r1j == r2j
 
-    # Now we can return the Envoy config as a dictionary
-    return r1[envoy_version.lower()].as_dict()
+    # All good.
+    return r1
+
+def econf_compile(yaml, envoy_version="V2"):
+    compiled = compile_with_cachecheck(yaml, envoy_version=envoy_version)
+    return compiled[envoy_version.lower()].as_dict()
 
 def econf_foreach_hcm(econf, fn, envoy_version='V2', chain_count=2):
     found_hcm = False
@@ -312,4 +348,7 @@ def assert_valid_envoy_config(config_dict):
         temp.flush()
         f_name = temp.name
         cmd = [ENVOY_PATH, '--config-path', f_name, '--mode', 'validate']
-        v_encoded = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+        p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if p.returncode != 0:
+            print(p.stdout)
+        p.check_returncode()

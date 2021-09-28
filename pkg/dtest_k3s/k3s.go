@@ -283,7 +283,7 @@ func DockerRegistry() string {
 
 const dtestKubeconfig = "DTEST_KUBECONFIG"
 const k3sPort = "6443"
-const k3sImage = "rancher/k3s:v1.17.3-k3s1"
+const k3sImage = "rancher/k3s:v1.21.1-k3s1"
 
 const k3sMsg = `
 kubeconfig does not exist: %s

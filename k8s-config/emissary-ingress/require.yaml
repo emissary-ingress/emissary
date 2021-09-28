@@ -32,6 +32,12 @@ resources:
     name: emissary-ingress-agent-rollouts
   - kind: ClusterRole
     name: emissary-ingress-agent-applications
+  - kind: ClusterRole
+    name: emissary-ingress-agent-deployments
+  - kind: ClusterRole
+    name: emissary-ingress-agent-endpoints
+  - kind: ClusterRole
+    name: emissary-ingress-agent-configmaps
   - kind: Role
     name: emissary-ingress-agent-config
     namespace: emissary

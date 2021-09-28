@@ -7,3 +7,4 @@ redis:
 
 deploymentStrategy:
   type: Recreate
+createDefaultListeners: true

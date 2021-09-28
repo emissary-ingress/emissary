@@ -64,7 +64,7 @@ spec:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.name}-target
-host: "*"
+hostname: "*"
 prefix: /{self.name}/mark/
 rewrite: /mark/
 service: https://{self.target.path.fqdn}
@@ -72,7 +72,7 @@ service: https://{self.target.path.fqdn}
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.name}-weighted-target
-host: "*"
+hostname: "*"
 prefix: /{self.name}/weighted-mark/
 rewrite: /mark/
 service: https://{self.target.path.fqdn}
@@ -80,7 +80,7 @@ service: https://{self.target.path.fqdn}
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.name}-shadow
-host: "*"
+hostname: "*"
 prefix: /{self.name}/mark/
 rewrite: /mark/
 service: shadow.plain-namespace
@@ -89,7 +89,7 @@ shadow: true
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.name}-weighted-shadow
-host: "*"
+hostname: "*"
 prefix: /{self.name}/weighted-mark/
 rewrite: /mark/
 service: shadow.plain-namespace
@@ -99,7 +99,7 @@ shadow: true
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.name}-checkshadow
-host: "*"
+hostname: "*"
 prefix: /{self.name}/check/
 rewrite: /check/
 service: shadow.plain-namespace

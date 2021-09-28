@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
@@ -72,7 +72,7 @@ func GlobMatch(what string, text string, pattern string, regex bool) (bool, stri
 	return rc, authority, authorityMatch
 }
 
-func HostMatch(mapping amb.Mapping, host amb.Host) (bool, string, string) {
+func HostMatch(mapping v3alpha1.Mapping, host v3alpha1.Host) (bool, string, string) {
 	hostName := host.Spec.Hostname
 	mappingHost := mapping.Spec.Host
 	mappingHostRegexPtr := mapping.Spec.HostRegex

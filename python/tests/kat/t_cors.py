@@ -25,14 +25,14 @@ config:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}-foo
-host: "*"
+hostname: "*"
 prefix: /foo/
 service: {self.target.path.fqdn}
 ---
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}-bar
-host: "*"
+hostname: "*"
 prefix: /bar/
 service: {self.target.path.fqdn}
 cors:

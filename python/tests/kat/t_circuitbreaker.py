@@ -95,7 +95,7 @@ spec:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}-pr
-host: "*"
+hostname: "*"
 prefix: /{self.name}-pr/
 service: {self.target.path.fqdn}
 circuit_breakers:
@@ -107,7 +107,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name: {self.name}-reset
 case_sensitive: false
-host: "*"
+hostname: "*"
 prefix: /reset/
 rewrite: /RESET/
 service: cbstatsd-sink
@@ -116,7 +116,7 @@ apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name: {self.name}-dump
 case_sensitive: false
-host: "*"
+hostname: "*"
 prefix: /dump/
 rewrite: /DUMP/
 service: cbstatsd-sink
@@ -219,7 +219,7 @@ requestPolicy:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}-pr
-host: "*"
+hostname: "*"
 prefix: /{self.name}-pr/
 service: {self.target.path.fqdn}
 circuit_breakers:
@@ -230,7 +230,7 @@ circuit_breakers:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}-normal
-host: "*"
+hostname: "*"
 prefix: /{self.name}-normal/
 service: {self.target.path.fqdn}
 ---

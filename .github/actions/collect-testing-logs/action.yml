@@ -1,0 +1,53 @@
+name: 'Collect Testing Logs'
+description: 'test-logs, coverage, pods'
+runs:
+  using: "composite"
+  steps:
+    - name: "Gather Logs"
+      shell: bash
+      run: |
+        rsync \
+          --prune-empty-dirs --archive --include='*/' \
+          --include='*.xml' \
+          --include='*.tap' \
+          --include='*.log' \
+          --include='Test*.webm' \
+          --exclude='*' \
+          . \
+          /tmp/test-logs
+        if test -d ~/.cache/telepresence/logs; then
+          rsync \
+            --archive \
+            ~/.cache/telepresence/logs \
+            /tmp/test-logs/telepresence-logs
+        fi
+        if [ -f docker/container.txt ] && docker inspect $(cat docker/container.txt) >/dev/null; then
+          docker exec $(cat docker/container.txt) /bin/bash -c 'mkdir -p /tmp/build-container-logs && (cp -r /tmp/*.txt /tmp/*.json /tmp/*.log /tmp/*.yaml /tmp/build-container-logs || true) && ((test -d ~/.cache/telepresence/logs && cp -r ~/.cache/telepresence/logs /tmp/build-container-logs/telepresence-logs) || true)'
+          docker cp $(cat docker/container.txt):/tmp/build-container-logs /tmp/test-logs/build-container-logs || true
+        fi
+    - name: "Gather Coverage"
+      shell: bash
+      run: |
+        if [ -f docker/container.txt ] && docker inspect $(cat docker/container.txt) >/dev/null; then
+          docker cp $(cat docker/container.txt):/tmp/cov_html /tmp/cov_html || true
+        fi
+    - name: "Gather Pod Logs"
+      shell: bash
+      run: |
+        if ! test -f ~/.kube/kubeception.yaml ; then
+          exit 0
+        fi
+
+        export KUBECONFIG=~/.kube/kubeception.yaml
+        mkdir -p /tmp/pod-logs
+        podsfile=/tmp/pod-logs/all-pods.txt
+        (kubectl get pods --all-namespaces -ocustom-columns="name:.metadata.name,namespace:.metadata.namespace " --no-headers || true) > $podsfile (kubectl describe pods --all-namespaces || true) > /tmp/pod-logs/all-pods-described.txt
+
+        cat $podsfile | while IFS= read -r line; do
+          name=$(echo $line | awk '{print $1}')
+          ns=$(echo $line | awk '{print $2}')
+          nsdir=/tmp/pod-logs/${ns}/
+          mkdir -p $nsdir
+          outfile=${nsdir}/${name}-pod.log
+          (kubectl logs -n $ns $name > $outfile || echo "FAILED, status $ret, continuing...") || true
+        done

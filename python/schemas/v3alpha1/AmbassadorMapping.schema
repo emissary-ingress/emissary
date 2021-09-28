@@ -201,6 +201,7 @@
             }
         },
         "host": { "type": "string" },
+        "hostname": { "type": "string" },
         "host_regex": { "type": "boolean" },
         "headers": { "$ref": "#/definitions/mapStrStr" },
         "regex_headers": { "$ref": "#/definitions/mapStrStr" },

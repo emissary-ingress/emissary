@@ -92,6 +92,8 @@ class HostCRDNo8080(AmbassadorTest):
 
     def init(self):
         self.edge_stack_cleartext_host = False
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -160,11 +162,7 @@ spec:
 
     def queries(self):
         yield Query(self.url("target/"), insecure=True)
-
-        if EDGE_STACK:
-            yield Query(self.url("target/", scheme="http"), expected=404)
-        else:
-            yield Query(self.url("target/", scheme="http"), error=[ "EOF", "connection refused" ])
+        yield Query(self.url("target/", scheme="http"), error=[ "EOF", "connection refused" ])
 
 
 class HostCRDManualContext(AmbassadorTest):
@@ -249,10 +247,7 @@ spec:
                            "tls: no supported versions satisfy MinVersion and MaxVersion",
                            "tls: protocol version not supported"])
 
-        if EDGE_STACK:
-            yield Query(self.url("target/cleartext", scheme="http"), expected=404)
-        else:
-            yield Query(self.url("target/cleartext", scheme="http"), expected=301)
+        yield Query(self.url("target/cleartext", scheme="http"), expected=301)
 
 
 class HostCRDSeparateTLSContext(AmbassadorTest):
@@ -409,6 +404,11 @@ class HostCRDClearText(AmbassadorTest):
 
     def init(self):
         self.edge_stack_cleartext_host = False
+
+        # Only add the default HTTP listener (we're mimicking the no-TLS case here.)
+        self.add_default_http_listener = True
+        self.add_default_https_listener = False
+
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -636,7 +636,7 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  host: "*"
+  hostname: "*"
   prefix: /target-shared/
   service: {self.targetshared.path.fqdn}
 ''') + super().manifests()
@@ -824,7 +824,7 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  host: "*"
+  hostname: "*"
   prefix: /foo/
   service: {self.target.path.fqdn}
 ''') + super().manifests()
@@ -928,7 +928,7 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  host: "*"
+  hostname: "*"
   prefix: /
   service: {self.target.path.fqdn}
 ''') +  super().manifests()
@@ -977,6 +977,8 @@ class HostCRDClientCertSameNamespace(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
+        self.add_default_http_listener = False
+        self.add_default_https_listener = False
 
     def manifests(self) -> str:
         # Same as HostCRDClientCertCrossNamespace, all of the things
@@ -1053,7 +1055,7 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  host: "*"
+  hostname: "*"
   prefix: /
   service: {self.target.path.fqdn}
 ''') +  super().manifests()
@@ -1474,7 +1476,7 @@ metadata:
   name: {self.name.k8s}-target-mapping
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  host: "*"
+  hostname: "*"
   prefix: /foo/
   service: {self.target.path.fqdn}
 ''') + super().manifests()

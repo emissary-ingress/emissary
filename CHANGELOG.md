@@ -70,8 +70,17 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [2.0.0-ea] (TBD)
+## [2.0.1-ea] (TBD)
+[2.0.1-ea]: https://github.com/emissary-ingress/emissary/compare/v2.0.0-ea...v2.0.1-ea
+
+### Emissary Ingress
+
+(no changes yet)
+
+## [2.0.0-ea] June 24, 2021
 [2.0.0-ea]: https://github.com/emissary-ingress/emissary/compare/v1.13.8...v2.0.0-ea
+
+We're pleased to introduce Emissary 2.0.0 as a developer preview. The 2.X family introduces a number of changes to allow Emissary to more gracefully handle larger installations, reduce global configuration to better handle multitenant or multiorganizational installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
 
 ### Emissary Ingress
 
@@ -79,6 +88,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 - Bugfix: `requestPolicy.insecure.action` works independently across `Host`s ([#2888])
 - Bugfix: Fixed a regression in detecting the Ambassador Kubernetes service that could cause the wrong IP or hostname to be used in Ingress statuses.
 - Change: `Host`s and `Mapping`s will not be associated unless a `Host` selector or a `Mapping`'s `host` element explicitly agree.
+- Change: `Mapping`'s `host` field is either an exact match or (with `host_regex` set) a regex. `Mapping` now has a new `hostname` element that is functionally the same as `host`, but is always a DNS glob.
 - Change: The `tls` field on the Ambassador module is now deprecated. Please use TLSContexts instead https://www.getambassador.io/docs/edge-stack/latest/topics/running/tls/#tlscontext.
 - Change: Envoy V3 is now the default.
 - Change: The `Host` CRD is now required when terminating TLS.

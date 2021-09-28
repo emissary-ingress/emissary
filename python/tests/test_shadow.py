@@ -141,23 +141,42 @@ def test_shadow_v3():
     yaml = '''
 ---
 apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
-name: httpbin-mapping
-service: httpbin
-host: "*"
-prefix: /httpbin/
+kind: AmbassadorListener
+metadata:
+  name: ambassador-listener-8080
+  namespace: default
+spec:
+  port: 8080
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
 ---
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
-name: httpbin-mapping-shadow
-service: httpbin-shadow
-host: "*"
-prefix: /httpbin/
-shadow: true
-weight: 10
+metadata:
+  name: httpbin-mapping
+  namespace: default
+spec:
+  service: httpbin
+  hostname: "*"
+  prefix: /httpbin/
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
+metadata:
+  name: httpbin-mapping-shadow
+  namespace: default
+spec:
+  service: httpbin-shadow
+  hostname: "*"
+  prefix: /httpbin/
+  shadow: true
+  weight: 10
 '''
     fetcher = ResourceFetcher(logger, aconf)
-    fetcher.parse_yaml(yaml)
+    fetcher.parse_yaml(yaml, k8s=True)
 
     aconf.load_all(fetcher.sorted())
 
@@ -190,23 +209,42 @@ def test_shadow_v2():
     yaml = '''
 ---
 apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
-name: httpbin-mapping
-service: httpbin
-host: "*"
-prefix: /httpbin/
+kind: AmbassadorListener
+metadata:
+  name: ambassador-listener-8080
+  namespace: default
+spec:
+  port: 8080
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
 ---
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
-name: httpbin-mapping-shadow
-service: httpbin-shadow
-host: "*"
-prefix: /httpbin/
-shadow: true
-weight: 10
+metadata:
+  name: httpbin-mapping
+  namespace: default
+spec:
+  service: httpbin
+  hostname: "*"
+  prefix: /httpbin/
+---
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
+metadata:
+  name: httpbin-mapping-shadow
+  namespace: default
+spec:
+  service: httpbin-shadow
+  hostname: "*"
+  prefix: /httpbin/
+  shadow: true
+  weight: 10
 '''
     fetcher = ResourceFetcher(logger, aconf)
-    fetcher.parse_yaml(yaml)
+    fetcher.parse_yaml(yaml, k8s=True)
 
     aconf.load_all(fetcher.sorted())
 

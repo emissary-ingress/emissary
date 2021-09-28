@@ -26,7 +26,7 @@ config:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -62,7 +62,7 @@ config:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -97,7 +97,7 @@ config:
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name:  {self.target.path.k8s}
-host: "*"
+hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)

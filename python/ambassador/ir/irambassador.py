@@ -410,7 +410,7 @@ class IRAmbassador (IRResource):
                 name = "internal_%s_probe_mapping" % name
 
                 mapping = IRHTTPMapping(ir, aconf, rkey=self.rkey, name=name, location=self.location,
-                                        timeout_ms=10000, host="*", **cur)
+                                        timeout_ms=10000, hostname="*", **cur)
                 mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)
 
@@ -426,7 +426,7 @@ class IRAmbassador (IRResource):
                                         service="127.0.0.1:8500",
                                         precedence=1000000,
                                         timeout_ms=60000,
-                                        host="*",
+                                        hostname="*",
                                         add_response_headers=edge_stack_response_header)
                 mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)
@@ -439,7 +439,7 @@ class IRAmbassador (IRResource):
                                         service="127.0.0.1:8500",
                                         precedence=-1000000,
                                         timeout_ms=60000,
-                                        host="*",
+                                        hostname="*",
                                         add_response_headers=edge_stack_response_header)
                 mapping.referenced_by(self)
                 ir.add_mapping(aconf, mapping)

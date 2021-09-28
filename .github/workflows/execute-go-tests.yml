@@ -1,0 +1,107 @@
+name: gotest
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - 'releng/**'
+      - 'charts/**'
+      - 'manifests/**'
+      - 'k8s-config/**'
+      - 'docs/**'
+      - '*.md$'
+  pull_request:
+    paths-ignore:
+      - 'releng/**'
+      - 'charts/**'
+      - 'manifests/**'
+      - 'k8s-config/**'
+      - 'docs/**'
+      - '*.md$'
+
+jobs:
+  execute-go-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # NOTES:
+        # legacy mode does not do fast reconfigure - never test state true, true
+        # on master/release branch (legacy + reconfigure testing)
+        #   - legacy + no reconfigure (true, false)
+        #   -  no legacy + reconfigure (false, true)
+        #   - no legacy + no reconfigure (false, false)
+        # other branches (no legacy testing)
+        #   - no legacy + no reconfigure (false, true)
+        #   - no legacy + reconfigure (false, false)
+        gotest-settings:
+          - {legacy-mode: true, fast-reconfigure: false}
+          - {legacy-mode: false, fast-reconfigure: true}
+          - {legacy-mode: false, fast-reconfigure: false}
+        isMasterOrRelease:
+          # is this close enough to release branch being /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/ ?
+          - ${{ contains(github.ref, 'master') || startsWith(github.ref, 'refs/heads/rel/v') }}
+        exclude:
+          - isMasterOrRelease: false # if we are not master/release then we exclude legacy mode
+            gotest-settings: {legacy-mode: true, fast-reconfigure: false}
+    name: (legacy-mode:${{ matrix.gotest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.gotest-settings.fast-reconfigure }} )
+    steps:
+      - run: echo "PREFIX=legacy-mode.${{ matrix.gotest-settings.legacy-mode }}-fast-reconfigure.${{ matrix.gotest-settings.fast-reconfigure }}" >> $GITHUB_ENV
+        name: Set Unique Test prefix (legacy-mode.${{ matrix.gotest-settings.legacy-mode }}-fast-reconfigure.${{ matrix.gotest-settings.fast-reconfigure }})
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '^3.9.5'
+        name: "Install Python (^3.9.5)"
+      - run: python --version
+        name: "Check python installed"
+      - uses: BSFishy/pip-action@v1
+        with:
+          packages: |
+            awscli
+            packaging
+        name: "Install Python requirements with pip"
+      - uses: azure/setup-kubectl@v1
+        id: install
+        with:
+          version: 'v1.19.12'
+        name: "Install kubectl (v1.19.12)" # maybe not?
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.15.0' # The Go version to download (if necessary) and use.
+        name: "Install go (^1.15.0)"
+      - run: go version
+        name: "Check go version"
+      - run: |
+          go install gotest.tools/gotestsum@latest
+        name: "Install gotestsum (latest)"
+      - name: make gotest (legacy-mode:${{ matrix.gotest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.gotest-settings.fast-reconfigure }} )
+        # todo - idle timeout here!  3m
+        timeout-minutes: 30
+        run: |
+          export DEV_KUBE_NO_PVC=yes
+          export KAT_REQ_LIMIT=900
+          export AMBASSADOR_LEGACY_MODE=${{ matrix.gotest-settings.legacy-mode }}
+          export AMBASSADOR_FAST_RECONFIGURE=${{ matrix.gotest-settings.fast-reconfigure }}
+          export TEST_XML_DIR=/tmp/test-logs/xml/
+          export GOTEST_ARGS='-timeout 30m'
+          mkdir -p ${TEST_XML_DIR}
+          make gotest
+      # teardown
+      # collect logs
+      - uses: ./.github/actions/collect-testing-logs
+        if: always()
+        name: "Collect testing logs"
+      # upload artifacts
+      - name: "Upload Test Logs (test-logs)"
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.PREFIX }}--test-logs
+          path: /tmp/test-logs
+      - name: "Upload XML Logs (xml)"
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.PREFIX }}--xml
+          path: /tmp/test-logs/xml/
+      - uses: ./.github/actions/git-dirty-check
+        if: always()
+        name: "Check git not dirty from testing"

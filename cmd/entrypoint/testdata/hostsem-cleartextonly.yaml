@@ -44,7 +44,7 @@ kind: AmbassadorMapping
 metadata:
   name: qotm-mapping
 spec:
-  host: "*"
+  hostname: "*"
   prefix: /quote/
   service: quote.ambassador
 ---

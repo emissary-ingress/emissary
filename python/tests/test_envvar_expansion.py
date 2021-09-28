@@ -25,7 +25,7 @@ yaml = '''
 apiVersion: x.getambassador.io/v3alpha1
 kind: AmbassadorMapping
 name: test_mapping
-host: "*"
+hostname: "*"
 prefix: /test/
 service: ${TEST_SERVICE}:9999
 '''
