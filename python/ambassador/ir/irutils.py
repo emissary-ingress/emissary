@@ -55,7 +55,7 @@ def selector_matches(logger: logging.Logger, selector: Dict[str, Any], labels: D
         logger.debug("    no matchLabels in selector => True")
         return True
 
-    # If we have stuff to match on, but no labels to actually match them, we 
+    # If we have stuff to match on, but no labels to actually match them, we
     # can short-circuit (and skip a weirder conditional down in the loop).
     if not labels:
         logger.debug("    no incoming labels => False")

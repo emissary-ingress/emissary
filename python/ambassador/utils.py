@@ -151,7 +151,7 @@ def load_url_contents(logger: logging.Logger, url: str, stream2: Optional[TextIO
 
 
 def parse_bool(s: Optional[Union[str, bool]]) -> bool:
-    """ 
+    """
     Parse a boolean value from a string. T, True, Y, y, 1 return True;
     other things return False.
     """

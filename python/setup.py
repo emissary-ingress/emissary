@@ -25,7 +25,7 @@ requirements = open("requirements.txt", "r").read().split("\n")
 def collect_data_files(dirpath):
     return [
         (subdirpath,
-         [ os.path.join(subdirpath, filename) 
+         [ os.path.join(subdirpath, filename)
            for filename in filenames ])
         for subdirpath, folders, filenames in os.walk(dirpath)
     ]
@@ -34,7 +34,7 @@ template_files = collect_data_files("templates")
 schema_files = collect_data_files("schemas")
 kat_files = [
     (subdirpath,
-     [ os.path.join(subdirpath, filename) 
+     [ os.path.join(subdirpath, filename)
        for filename in filenames if filename.endswith("go") ])
     for subdirpath, folders, filenames in os.walk("kat")
 ]
