@@ -74,17 +74,21 @@ func GlobMatch(what string, text string, pattern string, regex bool) (bool, stri
 
 func HostMatch(mapping v3alpha1.Mapping, host v3alpha1.Host) (bool, string, string) {
 	hostName := host.Spec.Hostname
-	mappingHost := mapping.Spec.DeprecatedHost
-	mappingHostRegexPtr := mapping.Spec.DeprecatedHostRegex
-	mappingHostRegex := false
 
-	if mappingHostRegexPtr != nil {
-		mappingHostRegex = *mappingHostRegexPtr
+	if mapping.Spec.Hostname != "" {
+		fmt.Printf("HostMatch: hostName %s mappingHost %s\n", hostName, mapping.Spec.Hostname)
+		return GlobMatch("Hostname", hostName, mapping.Spec.Hostname, false)
 	}
 
-	fmt.Printf("HostMatch: hostName %s mappingHost %s\n", hostName, mappingHost)
+	if mapping.Spec.DeprecatedHost != "" {
+		mappingHost := mapping.Spec.DeprecatedHost
 
-	if mappingHost != "" {
+		mappingHostRegex := false
+		if mapping.Spec.DeprecatedHostRegex != nil {
+			mappingHostRegex = *mapping.Spec.DeprecatedHostRegex
+		}
+
+		fmt.Printf("HostMatch: hostName %s mappingHost %s\n", hostName, mappingHost)
 		return GlobMatch("Host", hostName, mappingHost, mappingHostRegex)
 	}
 

@@ -11,7 +11,7 @@ import (
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
 	v3cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
-	v2 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/stretchr/testify/assert"
@@ -199,11 +199,11 @@ func HasEndpoints(path string) func(endpoints *ambex.Endpoints) bool {
 	}
 }
 
-func makeMapping(namespace, name, prefix, service, resolver string) *v2.Mapping {
-	return &v2.Mapping{
+func makeMapping(namespace, name, prefix, service, resolver string) *amb.Mapping {
+	return &amb.Mapping{
 		TypeMeta:   kates.TypeMeta{Kind: "Mapping"},
 		ObjectMeta: kates.ObjectMeta{Namespace: namespace, Name: name},
-		Spec: v2.MappingSpec{
+		Spec: amb.MappingSpec{
 			Prefix:   prefix,
 			Service:  service,
 			Resolver: resolver,
