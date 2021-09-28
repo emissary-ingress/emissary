@@ -147,6 +147,8 @@ INGRESS_TEST_LOCAL_ADMIN_PORT = 8877
 INGRESS_TEST_MANIF_DIR = $(BUILDER_HOME)/../manifests/emissary/
 INGRESS_TEST_MANIFS = ambassador-crds.yaml ambassador.yaml
 
+export DOCKER_BUILDKIT := 0
+
 all: help
 .PHONY: all
 
@@ -780,7 +782,7 @@ release/promote-oss/dev-to-rc:
 .PHONY: release/promote-oss/dev-to-rc
 
 release/promote-oss/rc-update-apro:
-	$(OSS_HOME)/releng/01-release-rc-update-apro v$(RELEASE_VERSION) v$(VERSIONS_YAML_VERSION)
+	$(OSS_HOME)/releng/01-release-rc-update-apro v$(RELEASE_VERSION) v$(VERSIONS_YAML_VER)
 .PHONY: release/promote-oss/rc-update-apro
 
 release/print-test-artifacts:
