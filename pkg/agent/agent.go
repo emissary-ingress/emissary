@@ -16,9 +16,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/datawire/ambassador/pkg/api/agent"
-	"github.com/datawire/ambassador/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
+	"github.com/datawire/ambassador/v2/pkg/api/agent"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/derror"
 	"github.com/datawire/dlib/dlog"
 )

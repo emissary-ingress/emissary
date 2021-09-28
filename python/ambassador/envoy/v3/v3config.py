@@ -21,8 +21,8 @@ from ...cache import Cache, NullCache
 from ..common import EnvoyConfig, sanitize_pre_json
 from .v3admin import V3Admin
 from .v3bootstrap import V3Bootstrap
-from .v3route import V3Route
-from .v3listener import V3Listener, V3TCPListener
+from .v3route import V3Route, V3RouteVariants
+from .v3listener import V3Listener
 from .v3cluster import V3Cluster
 from .v3_static_resources import V3StaticResources
 from .v3tracing import V3Tracing
@@ -43,7 +43,8 @@ class V3Config (EnvoyConfig):
     ratelimit: Optional[V3RateLimit]
     bootstrap: V3Bootstrap
     routes: List[V3Route]
-    listeners: List[Union[V3Listener,V3TCPListener]]
+    route_variants: List[V3RouteVariants]
+    listeners: List[V3Listener]
     clusters: List[V3Cluster]
     static_resources: V3StaticResources
     clustermap: Dict[str, Any]

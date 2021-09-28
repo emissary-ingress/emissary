@@ -26,6 +26,13 @@ Edge Stack documentation refer both to the Ambassador Edge Stack and Emissary In
 
 ## UPCOMING BREAKING CHANGES
 
+#### TLS Termination and the `Host` CRD
+
+As of Ambassador 2.0.0, you _must_ supply a `Host` CRD to terminate TLS: it is not sufficient
+to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS configuration
+information to be shared across multiple `Host`s). The minimal configuration for TLS termination is
+now a certificate stored in a Kubernetes `Secret`, and a `Host` referring to that `Secret`.
+
 #### `Ingress` Resources and Namespaces
 
 In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, TLS secrets
@@ -63,12 +70,31 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [2.0.0] (TBD)
+## [2.0.0-ea] (TBD)
+[2.0.0-ea]: https://github.com/emissary-ingress/emissary/compare/v1.13.8...v2.0.0-ea
+
+### Emissary Ingress
+
+- Feature: The `Listener` CRD allows explicit definition of ports to listen on, and the protocols and security model for each port
+- Bugfix: `requestPolicy.insecure.action` works independently across `Host`s ([#2888])
+- Bugfix: Fixed a regression in detecting the Ambassador Kubernetes service that could cause the wrong IP or hostname to be used in Ingress statuses.
+- Change: The `tls` field on the Ambassador module is now deprecated. Please use TLSContexts instead https://www.getambassador.io/docs/edge-stack/latest/topics/running/tls/#tlscontext.
+- Change: Envoy V3 is now the default.
+- Change: The `Host` CRD is now required when terminating TLS.
+- Change: The AGENT_SERVICE environment variable has been deprecated.
+- Change: `redirect_cleartext_from` in a `TLSContext` is no longer supported -- use an extra 'Listener' instead!
+- Change: `prune_unreachable_routes` now defaults to true, which should reduce Envoy memory requirements for installations with many `Host`s
+- Change: The edgectl CLI tool has been deprecated, please use the `emissary-ingress` helm chart instead.
+
+[#2888]: https://github.com/datawire/ambassador/issues/2888
+
+## [1.13.8] June 08, 2021
+[1.13.8]: https://github.com/emissary-ingress/emissary/compare/v1.13.7...v1.13.8
 
 ### Emissary Ingress and Ambassador Edge Stack
 
-- Change: `prune_unreachable_routes` now defaults to true, which should reduce Envoy memory requirements for installations with many `Host`s
-- Bugfix: Fixed a regression in detecting the Ambassador Kubernetes service that could cause the wrong IP or hostname to be used in Ingress statuses
+- Bugfix: Ambassador Agent now accurately reports up-to-date Endpoint information to Ambassador Cloud
+- Feature: Ambassador Agent reports ConfigMaps and Deployments to Ambassador Cloud to provide a better Argo Rollouts experience. See [Argo+Ambassador documentation](https://www.getambassador.io/docs/argo) for more info.
 
 ## [1.13.7] June 03, 2021
 [1.13.7]: https://github.com/datawire/ambassador/compare/v1.13.6...v1.13.7

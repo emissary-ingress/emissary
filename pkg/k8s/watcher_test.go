@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/datawire/ambassador/pkg/dtest"
-	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/dtest"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
 )
 
 const (

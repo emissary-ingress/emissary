@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/v2/pkg/supervisor"
 )
 
 type WatchSet struct {

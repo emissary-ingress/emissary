@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/datawire/ambassador/pkg/dtest_k3s"
+	"github.com/datawire/ambassador/v2/pkg/dtest_k3s"
 )
 
 func testClient(t *testing.T) *Client {

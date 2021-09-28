@@ -26,9 +26,9 @@ __pycache__
 /bin_*/
 
 # helm chart
-charts/ambassador/ci/tests/values
-charts/ambassador/artifacts
-charts/ambassador/k3dconfig
+charts/emissary-ingress/ci/tests/values
+charts/emissary-ingress/artifacts
+charts/emissary-ingress/k3dconfig
 
 vendor_bootstrap_hack.go
 

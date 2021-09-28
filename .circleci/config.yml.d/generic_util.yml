@@ -177,8 +177,8 @@ commands:
             fi
             COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
             echo "Commit range: " $COMMIT_RANGE
-            git --no-pager diff $COMMIT_RANGE charts/ambassador/Chart.yaml
-            if ! git --no-pager diff $COMMIT_RANGE charts/ambassador/Chart.yaml | grep -q +version; then
+            git --no-pager diff $COMMIT_RANGE charts/emissary-ingress/Chart.yaml
+            if ! git --no-pager diff $COMMIT_RANGE charts/emissary-ingress/Chart.yaml | grep -q +version; then
               echo "Halting this CircleCI job because the version was not changed in Chart.yaml"
               circleci step halt
             fi

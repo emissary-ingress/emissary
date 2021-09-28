@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/datawire/ambassador/pkg/mkopensource/golist"
+	"github.com/datawire/ambassador/v2/pkg/mkopensource/golist"
 )
 
 ////////////////////////////////////////////////////////////////////////

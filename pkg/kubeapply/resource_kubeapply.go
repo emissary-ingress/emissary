@@ -16,8 +16,8 @@ import (
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 
-	"github.com/datawire/ambassador/pkg/k8s"
-	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/supervisor"
 )
 
 var readyChecks = map[string]func(k8s.Resource) bool{

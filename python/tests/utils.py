@@ -273,31 +273,36 @@ def econf_compile(yaml, envoy_version="V2"):
     # Now we can return the Envoy config as a dictionary
     return r1[envoy_version.lower()].as_dict()
 
-def econf_foreach_hcm(econf, fn, envoy_version='V2'):
+def econf_foreach_hcm(econf, fn, envoy_version='V2', chain_count=2):
     found_hcm = False
     for listener in econf['static_resources']['listeners']:
-        # There's only one filter chain...
+        # We need a specific number of filter chains. Normally it's 2,
+        # since the compiler tests don't generally supply Listeners or Hosts,
+        # so we get secure and insecure chains.
         filter_chains = listener['filter_chains']
-        assert len(filter_chains) == 1
+        assert len(filter_chains) == chain_count
 
-        # ...and one filter on that chain.
-        filters = filter_chains[0]['filters']
-        assert len(filters) == 1
+        for chain in filter_chains:
+            # We expect one filter on that chain (the http_connection_manager).
+            filters = chain['filters']
+            assert len(filters) == 1
 
-        # The http connection manager is the only filter on the chain from the one and only vhost.
-        hcm = filters[0]
-        assert hcm['name'] == 'envoy.filters.network.http_connection_manager'
-        typed_config = hcm['typed_config']
-        envoy_version_type_map = {
-            'V3': 'type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager',
-            'V2': 'type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager',
-        }
-        assert typed_config['@type'] == envoy_version_type_map[envoy_version], "bad type: %s" % typed_config['@type']
+            # The http connection manager is the only filter on the chain from the one and only vhost.
+            hcm = filters[0]
+            assert hcm['name'] == 'envoy.filters.network.http_connection_manager'
+            typed_config = hcm['typed_config']
+            envoy_version_type_map = {
+                'V3': 'type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager',
+                'V2': 'type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager',
+            }
+            assert typed_config['@type'] == envoy_version_type_map[envoy_version], "bad type: %s" % typed_config['@type']
 
-        found_hcm = True
-        r = fn(typed_config)
-        if not r:
-            break
+            found_hcm = True
+
+            r = fn(typed_config)
+            if not r:
+                break
+
     assert found_hcm
 
 def econf_foreach_cluster(econf, fn, name='cluster_httpbin_default'):

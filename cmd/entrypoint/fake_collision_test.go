@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/datawire/ambassador/cmd/entrypoint"
-	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
+	"github.com/datawire/ambassador/v2/cmd/entrypoint"
+	bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v2"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -4,6 +4,9 @@ import os
 from abstract_tests import AmbassadorTest, HTTP, ServiceType, RLSGRPC
 from selfsigned import TLSCerts
 
+from ambassador import Config
+
+
 class RateLimitV0Test(AmbassadorTest):
     # debug = True
     target: ServiceType
@@ -251,7 +254,7 @@ class RateLimitV2Test(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        if os.environ.get('KAT_USE_ENVOY_V3', '') != '':
+        if Config.envoy_api_version == "V3":
             self.skip_node = True
         self.target = HTTP()
         self.rls = RLSGRPC(protocol_version="v2")
@@ -322,7 +325,7 @@ class RateLimitV3Test(AmbassadorTest):
     target: ServiceType
 
     def init(self):
-        if os.environ.get('KAT_USE_ENVOY_V3', '') == '':
+        if Config.envoy_api_version != "V3":
             self.skip_node = True
         self.target = HTTP()
         self.rls = RLSGRPC(protocol_version="v3")

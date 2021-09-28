@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/pkg/kates"
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
 

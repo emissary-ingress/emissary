@@ -27,7 +27,7 @@ commands:
     - amb-linux-install
     - amb-checkout
     - amb-skip-if-no-changes-not-release:
-        to: charts/ambassador
+        to: charts/emissary-ingress
     - install-k3d
     # We might need to be logged in the registry to pull the Envoy
     # image or the builder-base image.
@@ -40,26 +40,14 @@ commands:
     - amb-checkout
     - skip-if-no-new-chart
     - run: |
-        CHART_NAME=ambassador ./charts/scripts/check_updated_changelog.sh
-  "job-emissary-chart":
-    steps:
-    - amb-linux-install
-    - amb-checkout
-    - amb-skip-if-no-changes-not-release:
-        to: charts/emissary-ingress
-    - install-k3d
-    # We might need to be logged in the registry to pull the Envoy
-    # image or the builder-base image.
-    - amb-config-registry
-    - # main
-      run: make -f charts/emissary-ingress/Makefile test-chart
+        CHART_NAME=emissary-ingress ./charts/scripts/check_updated_changelog.sh
   "job-chart-publish":
     steps:
     - amb-linux-install
     - amb-checkout
     - amb-skip-if-bad-chart-version
     - run: |
-        CHART_NAME=ambassador ./charts/scripts/check_updated_changelog.sh
+        CHART_NAME=emissary-ingress ./charts/scripts/check_updated_changelog.sh
     - install-k3d
     # We might need to be logged in the registry to pull the Envoy
     # image or the builder-base image.
@@ -191,7 +179,7 @@ commands:
     - amb-config-registry
     - run:
         name: "Test"
-        no_output_timeout: "30m"
+        no_output_timeout: "3m"
         command: |
           export DEV_KUBE_NO_PVC=yes
           export KAT_REQ_LIMIT=900
@@ -347,7 +335,7 @@ commands:
               - master
               - << pipeline.git.branch >>
             - matches:
-                pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+$'
+                pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$'
                 value: << pipeline.git.branch >>
         steps:
         - run: circleci step hault
@@ -366,7 +354,7 @@ commands:
               - master
               - << pipeline.git.branch >>
             - matches:
-                pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+$'
+                pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$'
                 value: << pipeline.git.branch >>
         steps:
         - skip-if-no-changes:
@@ -386,7 +374,7 @@ commands:
               - master
               - << pipeline.git.branch >>
             - matches:
-                pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+$'
+                pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$'
                 value: << pipeline.git.branch >>
         steps:
         - skip-if-only-changes:
@@ -553,7 +541,7 @@ commands:
     - run:
         name: "Diff changes"
         command: |
-          thisversion=$(grep version: charts/ambassador/Chart.yaml | awk ' { print $2 }')
+          thisversion=$(grep version: charts/emissary-ingress/Chart.yaml | awk ' { print $2 }')
 
           if [[ "<< pipeline.git.tag >>" != "chart-v${thisversion}" ]]; then
             echo "Chart version ${thisversion} doesn't match tag << pipeline.git.tag >>; aborting"
@@ -724,8 +712,8 @@ commands:
           fi
           COMMIT_RANGE="<< pipeline.git.base_revision >>...<<pipeline.git.revision>>"
           echo "Commit range: " $COMMIT_RANGE
-          git --no-pager diff $COMMIT_RANGE charts/ambassador/Chart.yaml
-          if ! git --no-pager diff $COMMIT_RANGE charts/ambassador/Chart.yaml | grep -q +version; then
+          git --no-pager diff $COMMIT_RANGE charts/emissary-ingress/Chart.yaml
+          if ! git --no-pager diff $COMMIT_RANGE charts/emissary-ingress/Chart.yaml | grep -q +version; then
             echo "Halting this CircleCI job because the version was not changed in Chart.yaml"
             circleci step halt
           fi
@@ -889,10 +877,6 @@ jobs:
               - << pipeline.git.branch >>
         steps:
         - job-chart-changelog
-  emissary-chart:
-    executor: oss-linux
-    steps:
-    - job-emissary-chart
   oss-promote-dev-to-rc:
     executor: oss-linux
     steps:
@@ -917,13 +901,13 @@ _anchors:
   filter-ga-only:
     filters:
       tags:
-        only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+        only: /^v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/
       branches:
         ignore: /.*/
   filter-chart-release-only:
     filters:
       tags:
-        only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+        only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/
       branches:
         ignore: /.*/
   filter-master-release-branches-only:
@@ -931,7 +915,7 @@ _anchors:
       branches:
         only:
         - master
-        - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
+        - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/
 workflows:
   'OSS: GA Release':
     jobs:
@@ -939,7 +923,7 @@ workflows:
         name: "oss-release-promote-to-ga"
         filters:
           tags:
-            only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+            only: /^v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/
           branches:
             ignore: /.*/
   'OSS: Release Candidate':
@@ -961,8 +945,6 @@ workflows:
         name: "oss-dev-lint"
     - oss-chart:
         name: "oss-dev-chart"
-    - emissary-chart:
-        name: "emissary-dev-chart"
     - oss-gotest:
         name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure
           >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
@@ -990,7 +972,7 @@ workflows:
           branches:
             only:
             - master
-            - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
+            - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/
     - oss-chart-changelog:
         name: "oss-chart-changelog"
     - oss-test:
@@ -1046,7 +1028,7 @@ workflows:
           branches:
             only:
             - master
-            - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
+            - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/
     - oss-envoy-test:
         requires:
         - "oss-dev-images"
@@ -1093,7 +1075,7 @@ workflows:
           branches:
             only:
             - master
-            - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
+            - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/
     - oss-promote-dev-to-passed:
         requires:
         - oss-dev-pytest
@@ -1106,7 +1088,6 @@ workflows:
         - oss-dev-pytest-fastreconfigure
         - oss-dev-pytest-legacy
         - oss-dev-chart
-        - emissary-dev-chart
         - oss-dev-gotest-legacy
         - oss-dev-gotest-fastreconfigure
         - oss-dev-gotest
@@ -1116,7 +1097,7 @@ workflows:
           branches:
             only:
             - master
-            - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
+            - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/
   'OSS: Nightly':
     triggers:
     - schedule:
@@ -1204,37 +1185,21 @@ workflows:
             fast-reconfigure: true
             legacy-mode: true
   'OSS: Chart Release':
-    when:
-      or:
-      - equal:
-        - "https://github.com/emissary-ingress/emissary"
-        - << pipeline.project.git_url >>
-      - equal:
-        - "https://github.com/emissary-ingress/emissary-private"
-        - << pipeline.project.git_url >>
     jobs:
     - oss-chart-publish:
         name: "oss-release-chart"
         filters:
           tags:
-            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/
           branches:
             ignore: /.*/
   'OSS: Manifests Release':
-    when:
-      or:
-      - equal:
-        - "https://github.com/emissary-ingress/emissary"
-        - << pipeline.project.git_url >>
-      - equal:
-        - "https://github.com/emissary-ingress/emissary-private"
-        - << pipeline.project.git_url >>
     jobs:
     - oss-manifest-publish:
         name: "oss-rc-manifests-publish"
         filters:
           tags:
-            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+            only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/
           branches:
             ignore: /.*/
 executors:

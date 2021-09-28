@@ -3,10 +3,10 @@ package gateway
 import (
 	"fmt"
 
-	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	v2core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
-	v2endpoint "github.com/datawire/ambassador/pkg/api/envoy/api/v2/endpoint"
-	"github.com/datawire/ambassador/pkg/kates"
+	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
+	v2core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
+	v2endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/endpoint"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
 // Compile_Endpoints transforms a kubernetes endpoints resource into a v2.ClusterLoadAssignment

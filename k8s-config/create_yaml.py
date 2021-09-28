@@ -2,7 +2,7 @@
 #
 # This script takes two arguments:
 #   1. A multi-doc yaml file generated from running:
-#       `helm template ambassador -f [VALUES_FILE.yaml] -n [NAMESPACE] ./charts/ambassador`
+#       `helm template ambassador -f [VALUES_FILE.yaml] -n [NAMESPACE] ./charts/emissary-ingress`
 #   2. A yaml file listing the required kubernetes resources from the generated helm template to
 #   output to stdout. See ../aes/require.yaml for an example
 #

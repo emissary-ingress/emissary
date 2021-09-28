@@ -82,7 +82,7 @@ def _test_compiler(test_name, envoy_api_version="V2"):
     assert_valid_envoy_config(ads_config)
     assert_valid_envoy_config(bootstrap_config)
 
-@pytest.mark.compilertest
-@pytest.mark.parametrize("test_name", testdata)
-def test_compiler_v3(test_name):
-    _test_compiler(test_name, envoy_api_version="V3")
+# @pytest.mark.compilertest
+# @pytest.mark.parametrize("test_name", testdata)
+# def test_compiler_v3(test_name):
+#     _test_compiler(test_name, envoy_api_version="V3")

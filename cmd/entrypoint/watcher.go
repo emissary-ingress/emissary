@@ -8,14 +8,14 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/datawire/ambassador/cmd/ambex"
-	"github.com/datawire/ambassador/pkg/acp"
-	"github.com/datawire/ambassador/pkg/debug"
-	v2cache "github.com/datawire/ambassador/pkg/envoy-control-plane/cache/v2"
-	"github.com/datawire/ambassador/pkg/gateway"
-	"github.com/datawire/ambassador/pkg/kates"
-	"github.com/datawire/ambassador/pkg/snapshot/v1"
-	"github.com/datawire/ambassador/pkg/watt"
+	"github.com/datawire/ambassador/v2/cmd/ambex"
+	"github.com/datawire/ambassador/v2/pkg/acp"
+	"github.com/datawire/ambassador/v2/pkg/debug"
+	v2cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
+	"github.com/datawire/ambassador/v2/pkg/gateway"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	"github.com/datawire/ambassador/v2/pkg/watt"
 	"github.com/datawire/dlib/dlog"
 )
 

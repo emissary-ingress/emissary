@@ -8,12 +8,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/datawire/ambassador/cmd/ambex"
-	"github.com/datawire/ambassador/cmd/entrypoint"
-	envoy "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
-	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
-	"github.com/datawire/ambassador/pkg/kates"
-	"github.com/datawire/ambassador/pkg/snapshot/v1"
+	"github.com/datawire/ambassador/v2/cmd/ambex"
+	"github.com/datawire/ambassador/v2/cmd/entrypoint"
+	envoy "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
+	bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v2"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

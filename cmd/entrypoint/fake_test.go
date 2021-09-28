@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/datawire/ambassador/cmd/entrypoint"
-	bootstrap "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v2"
-	"github.com/datawire/ambassador/pkg/kates"
-	"github.com/datawire/ambassador/pkg/snapshot/v1"
+	"github.com/datawire/ambassador/v2/cmd/entrypoint"
+	bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v2"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 )
 
 func AnySnapshot(_ *snapshot.Snapshot) bool {

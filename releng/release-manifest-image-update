@@ -4,7 +4,7 @@ This must be run with an already pushed GA tag `vX.Y.Z`.
 This creates a branch from vX.Y.Z, updates all the helm chart/manifest files,
 commits, pushes and creates a pull request.
 After that, this will create a `chart-A.B.C` tag, where A.B.C is the version
-in charts/ambassador/Chart.yaml
+in charts/emissary-ingress/Chart.yaml
 """
 
 from os import getenv
@@ -18,7 +18,7 @@ from contextlib import contextmanager
 from typing import Generator
 from shutil import which
 
-from lib import base_version, build_version, git_add, git_check_clean, re_ga, vX, vY, ansiterm, get_gh_repo
+from lib import base_version, build_version, git_add, git_check_clean, re_ga, re_ea, vX, vY, ansiterm, get_gh_repo
 from lib.uiutil import Checker, CheckResult, run
 from lib.uiutil import run_txtcapture as run_capture
 from lib.gitutil import has_open_pr
@@ -73,11 +73,8 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
 
     with check(f"Updating image tag in charts"):
         run(["make", f"IMAGE_TAG={image_tag}", "release/chart/update-images"])
-        git_add("charts/ambassador/Chart.yaml")
-        git_add("charts/ambassador/CHANGELOG.md")
-        git_add("charts/ambassador/README.md")
-        git_add("charts/ambassador/values.yaml")
-
+        for file_name in ['Chart.yaml', 'CHANGELOG.md', 'README.md', 'values.yaml']:
+            git_add(f"charts/emissary-ingress/{file_name}")
     if not checker.ok:
         return 1
 
@@ -101,6 +98,8 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             return 1
         with check(f"Creating pull request for chart and manifest changes"):
             m = re_ga.match(next_ver)
+            if not m:
+                m = re_ea.match(next_ver)
             assert m
             long_lived_release_branch = f"release/v{m[vX]}.{m[vY]}"
             curr_release_branch = f"rel/v{next_ver}"
@@ -125,7 +124,6 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
 
 
 if __name__ == '__main__':
-    args = sys.argv[1:]
     parser = argparse.ArgumentParser(description='Edit image values for ambassador helm charts.')
     parser.add_argument('--quiet', dest='quiet', default=False, action='store_true')
     parser.add_argument('--no-commit', dest='no_commit', default=False, action='store_true')
@@ -141,8 +139,8 @@ if __name__ == '__main__':
     if args.no_commit:
         commit = False
 
-    if not re_ga.match(args.oss_version):
-        sys.stderr.write("--oss-version must be X.Y.Z")
+    if not re_ga.match(args.oss_version) and not re_ea.match(args.oss_version):
+        sys.stderr.write("--oss-version must be X.Y.Z(-ea)?")
         sys.exit(2)
 
     sys.exit(main(

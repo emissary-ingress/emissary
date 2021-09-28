@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/tpu"
+	"github.com/datawire/ambassador/v2/pkg/tpu"
 )
 
 type empty struct{}

@@ -8,7 +8,7 @@ package envoy_extensions_transport_sockets_quic_v3
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v3 "github.com/datawire/ambassador/pkg/api/envoy/extensions/transport_sockets/tls/v3"
+	v3 "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/transport_sockets/tls/v3"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

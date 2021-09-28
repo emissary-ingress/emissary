@@ -54,7 +54,6 @@ class IRHTTPMapping (IRBaseMapping):
     cors: IRCORS
     retry_policy: IRRetryPolicy
     error_response_overrides: Optional[IRErrorResponse]
-    sni: bool
     query_parameters: List[KeyValueDecorator]
     regex_rewrite: Dict[str,str]
 
@@ -191,15 +190,34 @@ class IRHTTPMapping (IRBaseMapping):
                 if value is True:
                     hdrs.append(KeyValueDecorator(name))
                 else:
+                    # An exact match on the :authority header is special -- treat it like
+                    # they set the "host" element (but note that we'll allow the actual
+                    # "host" element to override it later).
+                    if name.lower() == ':authority':
+                        self.host = value
+                        ir.logger.debug("IRHTTPMapping %s: self.host = %s (:authority)", name, self.host)
+
                     hdrs.append(KeyValueDecorator(name, value))
 
         if 'regex_headers' in kwargs:
+            # DON'T do anything special with a regex :authority match: we can't
+            # do host-based filtering within the IR for it anyway.
             for name, value in kwargs.get('regex_headers', {}).items():
                 hdrs.append(KeyValueDecorator(name, value, regex=True))
 
         if 'host' in kwargs:
-            hdrs.append(KeyValueDecorator(":authority", kwargs['host'], kwargs.get('host_regex', False)))
-            self.tls_context = self.match_tls_context(kwargs['host'], ir)
+            # It's deliberate that we'll allow kwargs['host'] to override an exact :authority
+            # header match.
+            host = kwargs['host']
+            host_regex = kwargs.get('host_regex', False)
+
+            # Again, don't set self.host if we have host_regex, because we can't
+            # do host-based filtering within the IR for that.
+            if not host_regex:
+                self.host = host
+                ir.logger.debug("IRHTTPMapping %s: self.host = %s (host)", name, self.host)
+
+            hdrs.append(KeyValueDecorator(":authority", host, host_regex))
 
         if 'method' in kwargs:
             hdrs.append(KeyValueDecorator(":method", kwargs['method'], kwargs.get('method_regex', False)))

@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/datawire/ambassador/pkg/dtest"
+	"github.com/datawire/ambassador/v2/pkg/dtest"
 )
 
 // Version holds the version of the code. This is intended to be overridden at build time.

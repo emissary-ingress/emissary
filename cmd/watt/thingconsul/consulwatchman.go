@@ -6,9 +6,9 @@ import (
 
 	consulapi "github.com/hashicorp/consul/api"
 
-	"github.com/datawire/ambassador/cmd/watt/watchapi"
-	"github.com/datawire/ambassador/pkg/consulwatch"
-	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/v2/cmd/watt/watchapi"
+	"github.com/datawire/ambassador/v2/pkg/consulwatch"
+	"github.com/datawire/ambassador/v2/pkg/supervisor"
 )
 
 type ConsulEvent struct {

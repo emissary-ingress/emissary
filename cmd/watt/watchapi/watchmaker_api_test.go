@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	. "github.com/datawire/ambassador/cmd/watt/watchapi"
+	. "github.com/datawire/ambassador/v2/cmd/watt/watchapi"
 )
 
 func TestWatchSet_Interpolate(t *testing.T) {

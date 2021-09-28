@@ -8,8 +8,8 @@ package envoy_config_filter_http_adaptive_concurrency_v2alpha
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
-	_type "github.com/datawire/ambassador/pkg/api/envoy/type"
+	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
+	_type "github.com/datawire/ambassador/v2/pkg/api/envoy/type"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	duration "github.com/golang/protobuf/ptypes/duration"

@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/debug"
+	"github.com/datawire/ambassador/v2/pkg/debug"
 	"github.com/datawire/dlib/dlog"
 )
 

@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/dlib/dexec"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

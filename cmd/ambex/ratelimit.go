@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	_debug "github.com/datawire/ambassador/pkg/debug"
+	_debug "github.com/datawire/ambassador/v2/pkg/debug"
 )
 
 // An Update encapsulates everything needed to perform an update (of envoy configuration). The

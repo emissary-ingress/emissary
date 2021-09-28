@@ -3,7 +3,7 @@ package entrypoint
 import (
 	"context"
 
-	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
 type K8sSource interface {

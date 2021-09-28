@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
 )
 
 // Waiter takes some YAML and waits for all of the resources described

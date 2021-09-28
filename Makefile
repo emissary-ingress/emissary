@@ -19,7 +19,7 @@ unexport IFS      # should not be exported, but some people do
 unexport SSH_CLIENT
 unexport SSH2_CLIENT
 
-NAME ?= ambassador
+NAME ?= emissary
 
 OSS_HOME := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
@@ -28,7 +28,7 @@ push: python/ambassador.version
 
 include $(OSS_HOME)/builder/builder.mk
 include $(OSS_HOME)/_cxx/envoy.mk
-include $(OSS_HOME)/charts/ambassador/Makefile
+include $(OSS_HOME)/charts/emissary-ingress/Makefile
 include $(OSS_HOME)/charts/charts.mk
 include $(OSS_HOME)/manifests/manifests.mk
 
@@ -57,14 +57,17 @@ deploy: push preflight-cluster
 .PHONY: deploy
 
 deploy-only: preflight-dev-kubeconfig
-	kubectl apply -f docs/yaml/aes-crds.yaml && \
-	kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && \
-	helm template ambassador -n ambassador charts/ambassador/ \
+	mkdir -p $(OSS_HOME)/build/helm/ && \
+	(kubectl --kubeconfig $(DEV_KUBECONFIG) create ns ambassador || true) && \
+	helm template ambassador --include-crds --output-dir $(OSS_HOME)/build/helm -n ambassador charts/emissary-ingress/ \
 		--set createNamespace=true \
 		--set service.selector.service=ambassador \
 		--set replicaCount=1 \
 		--set enableAES=false \
-		--set image.fullImageOverride=$$(sed -n 2p docker/ambassador.docker.push.remote) | kubectl --kubeconfig $(DEV_KUBECONFIG) apply -f - && \
+		--set image.fullImageOverride=$$(sed -n 2p docker/ambassador.docker.push.remote) && \
+	kubectl --kubeconfig $(DEV_KUBECONFIG) apply -f $(OSS_HOME)/build/helm/emissary-ingress/crds/ && \
+	kubectl --kubeconfig $(DEV_KUBECONFIG) apply -f $(OSS_HOME)/build/helm/emissary-ingress/templates && \
+	rm -rf $(OSS_HOME)/build/helm
 	kubectl --kubeconfig $(DEV_KUBECONFIG) -n ambassador wait --for condition=available --timeout=90s deploy --all
 	@printf "$(GRN)Your ambassador service IP:$(END) $(BLD)$$(kubectl --kubeconfig $(DEV_KUBECONFIG) get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}')$(END)\n"
 	@printf "$(GRN)Your ambassador image:$(END) $(BLD)$$(kubectl --kubeconfig $(DEV_KUBECONFIG) get -n ambassador deploy ambassador -o 'go-template={{(index .spec.template.spec.containers 0).image}}')$(END)\n"

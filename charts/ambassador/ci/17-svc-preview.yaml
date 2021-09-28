@@ -1,5 +1,0 @@
-servicePreview:
-  enabled: true
-trafficAgent:
-  injector:
-    enabled: true

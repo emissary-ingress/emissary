@@ -57,7 +57,6 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         'add_response_headers': True,   # do this manually.
         'cluster': True,
         'cluster_key': True,
-        'host': True,
         'kind': True,
         'location': True,
         'name': True,

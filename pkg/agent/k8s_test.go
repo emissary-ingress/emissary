@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/datawire/ambassador/pkg/agent"
+	"github.com/datawire/ambassador/v2/pkg/agent"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"

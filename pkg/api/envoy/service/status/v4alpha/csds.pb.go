@@ -9,9 +9,9 @@ package envoy_service_status_v4alpha
 import (
 	context "context"
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v4alpha1 "github.com/datawire/ambassador/pkg/api/envoy/admin/v4alpha"
-	v4alpha2 "github.com/datawire/ambassador/pkg/api/envoy/config/core/v4alpha"
-	v4alpha "github.com/datawire/ambassador/pkg/api/envoy/type/matcher/v4alpha"
+	v4alpha1 "github.com/datawire/ambassador/v2/pkg/api/envoy/admin/v4alpha"
+	v4alpha2 "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v4alpha"
+	v4alpha "github.com/datawire/ambassador/v2/pkg/api/envoy/type/matcher/v4alpha"
 	proto "github.com/golang/protobuf/proto"
 	_ "github.com/golang/protobuf/ptypes/struct"
 	_ "google.golang.org/genproto/googleapis/api/annotations"

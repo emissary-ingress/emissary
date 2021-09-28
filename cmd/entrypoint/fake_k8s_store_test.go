@@ -3,8 +3,8 @@ package entrypoint_test
 import (
 	"testing"
 
-	"github.com/datawire/ambassador/cmd/entrypoint"
-	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/v2/cmd/entrypoint"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

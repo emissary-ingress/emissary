@@ -1,9 +1,9 @@
 HELM_TEST_IMAGE = quay.io/helmpack/chart-testing:v3.0.0-rc.1
 K3D_CLUSTER_NAME = helm-chart-test-cluster
 CHART_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
-KUBECONFIG := /tmp/kubeconfig/k3dconfig
-CT_EXEC = docker run --rm -v $(KUBECONFIG):/root/.kube/config -v $(CHART_DIR):/charts --network host $(HELM_TEST_IMAGE) ct
-K3D_EXEC := KUBECONFIG=$(KUBECONFIG) k3d
+CHART_KUBECONFIG := /tmp/kubeconfig/k3dconfig
+CT_EXEC = docker run --rm -v $(CHART_KUBECONFIG):/root/.kube/config -v $(CHART_DIR):/charts --network host $(HELM_TEST_IMAGE) ct
+K3D_EXEC := KUBECONFIG=$(CHART_KUBECONFIG) k3d
 
 test-chart: lint-chart preflight-chart-test chart-create-cluster
 	$(CT_EXEC) install --config /charts/ct.yaml && \
@@ -23,8 +23,8 @@ preflight-chart-test: preflight-kubeconfig
 .PHONY: preflight-chart-test
 
 preflight-kubeconfig:
-	mkdir -p `dirname $(KUBECONFIG)`
-	touch $(KUBECONFIG)
+	mkdir -p `dirname $(CHART_KUBECONFIG)`
+	touch $(CHART_KUBECONFIG)
 .PHONY: preflight-kubeconfig
 
 chart-create-cluster: preflight-kubeconfig
@@ -35,14 +35,3 @@ chart-create-cluster: preflight-kubeconfig
 chart-delete-cluster:
 	$(K3D_EXEC) cluster delete $(K3D_CLUSTER_NAME)
 .PHONY: chart-delete-cluster
-
-doc-gen-preflight:
-	@if ! command -v chart-doc-gen 2> /dev/null ; then \
-		printf 'chart-doc-gen not installed, see https://github.com/kubepack/chart-doc-gen'; \
-	    false; \
-	fi
-.PHONY: doc-gen-preflight
-
-chart-doc-gen: doc-gen-preflight
-	chart-doc-gen -d ./doc.yaml -t ./readme.tpl -v ./values.yaml > ./README.md
-.PHONY: chart-doc-gen

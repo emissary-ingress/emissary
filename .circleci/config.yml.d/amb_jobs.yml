@@ -29,7 +29,7 @@ commands:
       - amb-linux-install
       - amb-checkout
       - amb-skip-if-no-changes-not-release:
-          to: charts/ambassador
+          to: charts/emissary-ingress
       - install-k3d
       # We might need to be logged in the registry to pull the Envoy
       # image or the builder-base image.
@@ -43,20 +43,7 @@ commands:
       - amb-checkout
       - skip-if-no-new-chart
       - run: |
-          CHART_NAME=ambassador ./charts/scripts/check_updated_changelog.sh
-
-  "job-emissary-chart":
-    steps:
-      - amb-linux-install
-      - amb-checkout
-      - amb-skip-if-no-changes-not-release:
-          to: charts/emissary-ingress
-      - install-k3d
-      # We might need to be logged in the registry to pull the Envoy
-      # image or the builder-base image.
-      - amb-config-registry
-      # main
-      - run: make -f charts/emissary-ingress/Makefile test-chart
+          CHART_NAME=emissary-ingress ./charts/scripts/check_updated_changelog.sh
 
   "job-chart-publish":
     steps:
@@ -64,7 +51,7 @@ commands:
       - amb-checkout
       - amb-skip-if-bad-chart-version
       - run: |
-          CHART_NAME=ambassador ./charts/scripts/check_updated_changelog.sh
+          CHART_NAME=emissary-ingress ./charts/scripts/check_updated_changelog.sh
       - install-k3d
       # We might need to be logged in the registry to pull the Envoy
       # image or the builder-base image.
@@ -207,7 +194,7 @@ commands:
       - amb-config-registry
       - run:
           name: "Test"
-          no_output_timeout: "30m"
+          no_output_timeout: "3m"
           command: |
             export DEV_KUBE_NO_PVC=yes
             export KAT_REQ_LIMIT=900

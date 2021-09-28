@@ -3,31 +3,28 @@
 
 import os.path
 import sys
+import argparse
 
-from lib import check_artifacts, re_ga
+from lib import check_artifacts, re_ga, re_ea
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Edit image values for ambassador helm charts.')
+    parser.add_argument('--no-docker', dest='docker', default=True, action='store_false')
+    parser.add_argument('--promote-path', default="")
+    parser.add_argument('--ga-version', required=True)
+    parser.add_argument('--source-registry', default='docker.io/datawire')
+    parser.add_argument('--image-name', default='emissary')
+    parser.add_argument('--image-append', default='')
+    args = parser.parse_args()
+
     include_docker = True
+    ga_ver = args.ga_version
 
-    args = sys.argv[1:]
 
-    if args and (args[0] == "--no-docker"):
-        include_docker = False
-        args.pop(0)
-
-    if len(args) < 1 or not re_ga.match(args[0]):
-        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z\n")
+    if not re_ga.match(ga_ver) and not re_ea.match(ga_ver):
+        sys.stderr.write(f"{ga_ver} does not match X.Y.Z(-ea)?")
         sys.exit(2)
-    promote_chan = ''
-    if len(args) > 1:
-        promote_chan = args[1]
-    source_registry = 'docker.io/datawire'
-    if len(args) > 2:
-        source_registry = args[2]
-    image_append = ''
-    if len(args) > 3:
-        image_append = args[3]
 
-    sys.exit(check_artifacts.main(ga_ver=args[0], ga=True, include_latest=True,
-        include_docker=include_docker, release_channel=promote_chan,
-        source_registry=source_registry, image_append=image_append))
+    sys.exit(check_artifacts.main(ga_ver=ga_ver, ga=True, include_latest=True,
+        include_docker=args.docker, release_channel=args.promote_path,
+        source_registry=args.source_registry, image_append=args.image_append, image_name=args.image_name))

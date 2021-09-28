@@ -54,7 +54,7 @@ commands:
               or:
                 - equal: [ master, << pipeline.git.branch >> ]
                 - matches:
-                    pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+$'
+                    pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$'
                     value: << pipeline.git.branch >>
           steps:
             - run: circleci step hault
@@ -71,7 +71,7 @@ commands:
               or:
                 - equal: [ master, << pipeline.git.branch >> ]
                 - matches:
-                    pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+$'
+                    pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$'
                     value: << pipeline.git.branch >>
           steps:
             - skip-if-no-changes:
@@ -89,7 +89,7 @@ commands:
               or:
                 - equal: [ master, << pipeline.git.branch >> ]
                 - matches:
-                    pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+$'
+                    pattern: '^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$'
                     value: << pipeline.git.branch >>
           steps:
             - skip-if-only-changes:
@@ -262,7 +262,7 @@ commands:
       - run:
           name: "Diff changes"
           command: |
-            thisversion=$(grep version: charts/ambassador/Chart.yaml | awk ' { print $2 }')
+            thisversion=$(grep version: charts/emissary-ingress/Chart.yaml | awk ' { print $2 }')
 
             if [[ "<< pipeline.git.tag >>" != "chart-v${thisversion}" ]]; then
               echo "Chart version ${thisversion} doesn't match tag << pipeline.git.tag >>; aborting"

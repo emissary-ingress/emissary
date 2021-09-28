@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	srv "github.com/datawire/ambassador/cmd/kat-server/services"
+	srv "github.com/datawire/ambassador/v2/cmd/kat-server/services"
 )
 
 const (

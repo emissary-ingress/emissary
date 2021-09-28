@@ -11,7 +11,7 @@ import time
 from contextlib import contextmanager
 from typing import Generator
 
-from lib import assert_eq, git_check_clean, vX, vY, re_ga
+from lib import assert_eq, git_check_clean, vX, vY, re_ga, re_ea
 from lib.uiutil import Checker, CheckResult, run
 from lib.uiutil import run_txtcapture as run_capture
 
@@ -60,6 +60,8 @@ def main(next_ver: str, quiet: bool = False) -> int:
 
     # ...make sure the passed-in version is OK...
     m = re_ga.match(next_ver)
+    if not m:
+        m = re_ea.match(next_ver)
     assert m
 
     # ...and figure out some branch names.
@@ -129,8 +131,8 @@ if __name__ == '__main__':
         quiet = True
         args.pop(0)
 
-    if len(args) != 1 or not re_ga.match(args[0]):
-        sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z\n")
+    if len(args) != 1 or (not re_ga.match(args[0]) and not re_ea.match(args[0])):
+        sys.stderr.write(f"{os.path.basename(sys.argv[0])} Version must match X.Y.Z(-ea)\n")
         sys.exit(2)
 
     sys.exit(main(next_ver=args[0], quiet=quiet))

@@ -8,7 +8,7 @@ package envoy_admin_v4alpha
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	_ "github.com/datawire/ambassador/pkg/api/envoy/annotations"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/annotations"
 	proto "github.com/golang/protobuf/proto"
 	duration "github.com/golang/protobuf/ptypes/duration"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

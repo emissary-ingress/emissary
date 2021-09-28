@@ -131,7 +131,7 @@ that.
 | All Tests       | `make test`                                                         |
 | All Golang      | `make gotest`                                                       |
 | All Python      | `make pytest`                                                       |
-| Some/One Golang | `make gotest GOTEST_PKGS=./cmd/edgectl GOTEST_ARGS="-run TestName"` |
+| Some/One Golang | `make gotest GOTEST_PKGS=./cmd/entrypoint GOTEST_ARGS="-run TestName"` |
 | Some/One Python | `make pytest PYTEST_ARGS="-k TestName"`                             |
 
 Please note the python tests use a local cache to speed up test

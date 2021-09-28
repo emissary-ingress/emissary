@@ -117,10 +117,6 @@ jobs:
                   equal: [ "master", << pipeline.git.branch >>  ]
           steps:
             - job-chart-changelog
-  "emissary-chart":
-    executor: oss-linux
-    steps:
-      - job-emissary-chart
 
   "oss-promote-dev-to-rc":
     executor: oss-linux
@@ -153,7 +149,7 @@ _anchors:
   "filter-ga-only": &filter-ga-only
     filters:
       tags:
-        only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+        only: /^v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/
       branches:
         ignore: /.*/
 
@@ -161,7 +157,7 @@ _anchors:
   "filter-chart-release-only": &filter-chart-release-only
     filters:
       tags:
-        only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+$/
+        only: /^chart\-v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/
       branches:
         ignore: /.*/
   "filter-master-release-branches-only": &filter-master-release-branches-only
@@ -169,7 +165,7 @@ _anchors:
       branches:
         only:
           - master
-          - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+$/
+          - /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/
 
 workflows:
   "OSS: GA Release":
@@ -202,9 +198,6 @@ workflows:
 
       - "oss-chart":
           name: "oss-dev-chart"
-
-      - "emissary-chart":
-          name: "emissary-dev-chart"
 
       - "oss-gotest":
           name: "oss-dev-gotest<<# matrix.fast-reconfigure >>-fastreconfigure<</ matrix.fast-reconfigure >><<# matrix.legacy-mode >>-legacy<</ matrix.legacy-mode >>"
@@ -331,7 +324,6 @@ workflows:
             - oss-dev-pytest-fastreconfigure
             - oss-dev-pytest-legacy
             - oss-dev-chart
-            - emissary-dev-chart
             - oss-dev-gotest-legacy
             - oss-dev-gotest-fastreconfigure
             - oss-dev-gotest
@@ -433,19 +425,11 @@ workflows:
                 legacy-mode: true
 
   "OSS: Chart Release":
-    when: # Don't run this workflow in apro.git
-      or:
-      - equal: [ "https://github.com/emissary-ingress/emissary", << pipeline.project.git_url >> ]
-      - equal: [ "https://github.com/emissary-ingress/emissary-private", << pipeline.project.git_url >> ]
     jobs:
       - "oss-chart-publish":
           <<: *filter-chart-release-only
           name: "oss-release-chart"
   "OSS: Manifests Release":
-    when: # Don't run this workflow in apro.git
-      or:
-      - equal: [ "https://github.com/emissary-ingress/emissary", << pipeline.project.git_url >> ]
-      - equal: [ "https://github.com/emissary-ingress/emissary-private", << pipeline.project.git_url >> ]
     jobs:
       - "oss-manifest-publish":
           <<: *filter-chart-release-only

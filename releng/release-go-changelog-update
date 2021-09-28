@@ -17,7 +17,7 @@ from contextlib import contextmanager
 from typing import Generator
 from shutil import which
 
-from lib import base_version, build_version, git_add, git_check_clean, re_ga, vX, vY, get_gh_repo
+from lib import base_version, build_version, git_add, git_check_clean, re_ga, re_ea, vX, vY, get_gh_repo
 from lib.uiutil import Checker, CheckResult, run
 from lib.uiutil import run_txtcapture as run_capture
 from lib import ansiterm
@@ -73,6 +73,8 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         run(["gh", "auth", "login"])
 
     m = re_ga.match(next_ver)
+    if not m:
+        m = re_ea.match(next_ver)
     assert m
     release_branch = f"release/v{m[vX]}.{m[vY]}"
     with check(f"Checking that {release_branch} exists"):
@@ -166,7 +168,7 @@ if __name__ == '__main__':
             commit = False
             args.pop(0)
 
-    if len(args) != 1 or not re_ga.match(args[0]):
+    if len(args) != 1 or (not re_ga.match(args[0]) and not re_ea.match(args[0])):
         sys.stderr.write(f"Usage: {os.path.basename(sys.argv[0])} X.Y.Z\n")
         sys.exit(2)
 

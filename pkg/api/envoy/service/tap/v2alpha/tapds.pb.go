@@ -9,7 +9,7 @@ package envoy_service_tap_v2alpha
 import (
 	context "context"
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2"
+	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/golang/protobuf/proto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"

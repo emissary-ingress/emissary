@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/datawire/ambassador/internal/pkg/dns"
-	"github.com/datawire/ambassador/internal/pkg/interceptor"
-	"github.com/datawire/ambassador/internal/pkg/route"
+	"github.com/datawire/ambassador/v2/internal/pkg/dns"
+	"github.com/datawire/ambassador/v2/internal/pkg/interceptor"
+	"github.com/datawire/ambassador/v2/internal/pkg/route"
 
 	"github.com/datawire/dlib/dhttp"
 )

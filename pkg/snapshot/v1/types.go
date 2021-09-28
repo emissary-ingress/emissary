@@ -6,10 +6,10 @@ import (
 	"reflect"
 	"strings"
 
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	ambV3 "github.com/datawire/ambassador/pkg/api/getambassador.io/v3alpha1"
-	"github.com/datawire/ambassador/pkg/kates"
-	"github.com/datawire/ambassador/pkg/watt"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	ambV3 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/watt"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 )
 

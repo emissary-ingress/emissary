@@ -12,7 +12,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	. "github.com/datawire/ambassador/pkg/mkopensource/detectlicense"
+	. "github.com/datawire/ambassador/v2/pkg/mkopensource/detectlicense"
 )
 
 type tuple struct {
@@ -184,7 +184,7 @@ func Main() error {
     the license is.  (This is a good thing, because it is reminding you
     to check the license of libraries before using them.)
 
-    You need to update the "github.com/datawire/ambassador/cmd/py-mkopensource/main.go"
+    You need to update the "github.com/datawire/ambassador/v2/cmd/py-mkopensource/main.go"
     file to correctly detect the license.`,
 			err)
 	}

@@ -25,7 +25,7 @@ fi
 [ -n ${version} ] || abort "could not read version from docs/yaml/versions.yml"
 log "Publishing manifest version ${version}"
 
-if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
+if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] ; then
     # if this is a stable version, working directory must be clean
     # otherwise this is an rc, ea or test version and we don't care
     if [ -n "$(git status --porcelain)" ] ; then

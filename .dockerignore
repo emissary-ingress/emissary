@@ -1,6 +1,6 @@
 *
 !demo/
-!docs/yaml/ambassador/ambassador-crds.yaml
+!manifests/emissary/emissary-crds.yaml
 !post-compile.sh
 !api/
 !build-aux-local

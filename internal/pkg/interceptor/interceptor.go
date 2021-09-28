@@ -7,10 +7,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/v2/pkg/supervisor"
 
-	"github.com/datawire/ambassador/internal/pkg/nat"
-	rt "github.com/datawire/ambassador/internal/pkg/route"
+	"github.com/datawire/ambassador/v2/internal/pkg/nat"
+	rt "github.com/datawire/ambassador/v2/internal/pkg/route"
 )
 
 type Interceptor struct {

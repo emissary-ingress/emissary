@@ -270,6 +270,8 @@ class CircuitBreakingTCPTest(AmbassadorTest):
     target2: ServiceType
 
     def init(self):
+      self.xfail = "FIXME: IHA"
+
       self.target1 = HTTP(name="target1")
       self.target2 = HTTP(name="target2")
 

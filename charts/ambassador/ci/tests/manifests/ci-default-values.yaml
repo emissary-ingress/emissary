@@ -1,9 +1,0 @@
-#env:
-#  AMBASSADOR_SINGLE_NAMESPACE: true
-#  AMBASSADOR_NO_KUBEWATCH: no_kubewatch
-
-deploymentStrategy:
-  type: Recreate
-
-service:
-  type: NodePort

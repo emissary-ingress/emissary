@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datawire/ambassador/pkg/dtest"
-	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/v2/pkg/dtest"
+	"github.com/datawire/ambassador/v2/pkg/supervisor"
 )
 
 func TestMain(m *testing.M) {

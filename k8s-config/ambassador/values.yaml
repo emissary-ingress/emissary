@@ -1,0 +1,33 @@
+deploymentTool: getambassador.io
+podAnnotations:
+  consul.hashicorp.com/connect-inject: 'false'
+  sidecar.istio.io/inject: 'false'
+containerNameOverride: ambassador
+restartPolicy: Always
+terminationGracePeriodSeconds: "0"
+service:
+  type: LoadBalancer
+
+  # Note that target http ports need to match your ambassador configurations service_port
+  # https://www.getambassador.io/reference/modules/#the-ambassador-module
+  selector:
+    service: ambassador
+replicaCount: 3
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - podAffinityTerm:
+        labelSelector:
+          matchLabels:
+            service: ambassador
+        topologyKey: kubernetes.io/hostname
+      weight: 100
+
+resources:
+  limits:
+    cpu: 1
+    memory: 400Mi
+  requests:
+    memory: 100Mi
+adminService:
+  type: NodePort

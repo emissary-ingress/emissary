@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"sync/atomic"
 
-	snapshotTypes "github.com/datawire/ambassador/pkg/snapshot/v1"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dhttp"
 )
 

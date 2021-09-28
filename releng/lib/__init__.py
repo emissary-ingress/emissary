@@ -4,6 +4,7 @@ import re
 import subprocess
 from typing import Any, List
 from os import getenv
+import subprocess
 
 from .gitutil import git_check_clean as git_check_clean  # Stop mypy complaining about implicit reexport
 from .uiutil import run_txtcapture
@@ -13,8 +14,11 @@ from .gitutil import git_add as git_add # Stop mypy complaining about implicit r
 # X.Y.Z[-rc.N] versions.
 re_rc = re.compile(r'^([0-9]+)\.([0-9]+)\.([0-9]+)-rc\.([0-9]+)$')
 re_ga = re.compile(r'^([0-9]+)\.([0-9]+)\.([0-9]+)$')
+re_ea = re.compile(r'^([0-9]+)\.([0-9]+)\.([0-9]+)-ea$')
 vX = 1
 vY = 2
+vZ = 3
+vN = 4
 
 DEFAULT_REPO = "emissary-ingress/emissary"
 

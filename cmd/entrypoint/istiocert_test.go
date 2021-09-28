@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datawire/ambassador/cmd/entrypoint"
-	"github.com/datawire/ambassador/pkg/kates"
+	"github.com/datawire/ambassador/v2/cmd/entrypoint"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/dlib/dlog"
 	"github.com/datawire/dlib/dtime"
 )

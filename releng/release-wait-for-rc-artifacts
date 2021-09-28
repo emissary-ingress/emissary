@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+"""Waits for rc artifacts to exist
+Docker, helm, yaml
+"""
+
+import argparse
+import http.client
+import sys
+import time
+import subprocess
+import fileinput
+
+from lib import ansiterm
+from lib import vN, re_rc
+
+
+def check_docker(image: str) -> bool:
+    p = subprocess.run(["docker", "pull", image], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return p.returncode == 0
+
+
+def main(rc_tag: str, release_registry: str, image_name: str, helm_s3_key: str) -> int:
+    print(f"{ansiterm.sgr.bold.fg_cyn}==> Waiting for RC artifacts for {rc_tag}")
+    print(f"    Check Circle CI if you would like to check progress:")
+    print(f"        https://app.circleci.com/pipelines/github/emissary-ingress/emissary")
+    print(f"    The 'OSS: Release Candidate' workflow for tag {rc_tag} should create these artifacts.{ansiterm.sgr.reset}")
+    print(f"    {ansiterm.sgr.bold.fg_cyn}==> Starting wait for docker images.{ansiterm.sgr}")
+
+    docker_found = False
+    image = f"{release_registry}/{image_name}:{rc_tag}"
+    while not docker_found:
+        if check_docker(image):
+            print(f"        {ansiterm.sgr.bold.fg_grn}Image {image} found!{ansiterm.sgr}")
+            docker_found = True
+        else:
+            print(f"        {ansiterm.sgr.fg_red}Image {image} not found, sleeping before trying again.{ansiterm.sgr}")
+            time.sleep(30)
+    if not docker_found:
+        return 1
+    m = re_rc.match(rc_tag)
+    assert m
+    chart_version = ""
+    for line in fileinput.FileInput("charts/emissary-ingress/Chart.yaml"):
+        if line.startswith("version:"):
+            chart_version = line.replace("version:", "").strip()
+            chart_version = chart_version.split('-')[0]
+            chart_version = f"{chart_version}-rc.{m[vN]}"
+    print(f"    {ansiterm.sgr.bold.fg_cyn}==> Starting wait for helm chart {chart_version}.{ansiterm.sgr}")
+    s3_url = f"datawire-static-files.s3.amazonaws.com"
+
+    helm_chart_s3_path = f"/{helm_s3_key}/emissary-ingress-{chart_version}.tgz"
+    helm_found = False
+    while not helm_found:
+        conn = http.client.HTTPSConnection(s3_url)
+        conn.request("GET", helm_chart_s3_path)
+        r1 = conn.getresponse()
+        if r1.status == 200:
+            print(f"        {ansiterm.sgr.bold.fg_grn}Helm chart for {chart_version} found in S3!{ansiterm.sgr}")
+            helm_found = True
+        else:
+            print(f"        {ansiterm.sgr.fg_red}Helm chart {chart_version} still not found, sleeping before trying again.{ansiterm.sgr}")
+            time.sleep(10)
+
+    print(f"    {ansiterm.sgr.bold.fg_cyn}==> Starting wait for yaml manifests.{ansiterm.sgr}")
+    manifests_found = False
+    while not manifests_found:
+        conn = http.client.HTTPSConnection(s3_url)
+        conn.request("GET", f"/yaml/emissary/{rc_tag}/emissary-ingress.yaml")
+        r1 = conn.getresponse()
+        if r1.status == 200:
+            print(f"        {ansiterm.sgr.bold.fg_grn}Yaml manifests for {rc_tag} found in S3!{ansiterm.sgr}")
+            manifests_found = True
+        else:
+            print(f"        {ansiterm.sgr.fg_red}Yaml manifests still not found for {rc_tag}, sleeping before trying again.{ansiterm.sgr}")
+            time.sleep(10)
+    print(f"{ansiterm.sgr.bold.fg_grn}==> All artifacts found for {rc_tag}!{ansiterm.sgr}")
+
+    print(f"{ansiterm.sgr.bold.fg_cyn}Environment variables for RC testing:{ansiterm.sgr}")
+    print("")
+    print(f"{ansiterm.sgr.bold.fg_wht}export AMBASSADOR_MANIFEST_URL=https://app.getambassador.io/yaml/emissary/{rc_tag}")
+    print(f"{ansiterm.sgr.bold.fg_wht}export DOCS_MANIFEST_URL=https://datawire-static-files.s3.amazonaws.com/yaml/v2-docs/{rc_tag}")
+    print(f"export HELM_CHART_REPO=https://{s3_url}/{helm_s3_key}")
+    print(f"export HELM_CHART_VERSION={chart_version}{ansiterm.sgr}")
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Wait for commit to show up in s3')
+    parser.add_argument('--rc-tag', required=True)
+    parser.add_argument('--release-registry', default="docker.io/datawire")
+    parser.add_argument('--image-name', default="emissary")
+    parser.add_argument('--helm-s3-key', default="charts-dev")
+    args = parser.parse_args()
+
+    sys.exit(main(
+        rc_tag=args.rc_tag,
+        release_registry=args.release_registry,
+        image_name=args.image_name,
+        helm_s3_key=args.helm_s3_key,
+    ))

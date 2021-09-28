@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"sigs.k8s.io/yaml"
 
-	ambV2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v3alpha1"
+	ambV2 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 )
 
 func boolPtr(b bool) *bool {

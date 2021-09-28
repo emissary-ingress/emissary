@@ -1,0 +1,194 @@
+#!/usr/bin/env python3
+"""Updates version.yml and CHANGELOG.md for next version, then
+launch the `git citool` GUI to create a commit of it.
+"""
+
+import os
+import re
+import sys
+from contextlib import contextmanager
+from typing import Generator
+from shutil import which
+import argparse
+import subprocess
+
+from lib import re_ga, re_ea, get_gh_repo, vX, vY
+from lib.uiutil import Checker, CheckResult, run, check_command
+from lib.uiutil import run_txtcapture as run_capture
+from lib.start_release_updates import update_versions_yaml, update_changelog_date
+from lib.gitutil import branch_exists
+
+
+HOTFIX_MESSAGE = """
+All commits that are going out in {next_ver} release **must** be on {hotfix_branch}.
+This will allow the appropriate CI to run.
+
+To get the hotfix changes onto this branch you can do one of the following:
+    * use {hotfix_branch} as the development branch for the fix
+    * land (or have already landed) hotfix changes on {release_train} branch, and merge {release_train} into {hotfix_branch}
+    * cherry-pick hotfix commits from ambassador.git to {hotfix_branch}
+
+It is okay if you've already landed the hotfix changes on {release_train} branch,
+reviewers just need to validate that the hotfix commits are in the tree for {hotfix_branch},
+and all the appropriate changelog updates exist.
+
+## REVIEWERS MUST CHECK THAT:
+* hotfix commits are on {hotfix_branch}
+* CHANGELOG updates are on {hotfix_branch}
+"""
+
+
+def main(next_ver: str, commit: bool = True, hotfix: bool = False) -> int:
+    """Starts a release train.
+    This script will edit docs/yaml/versions.yml with the supplied version,
+    and create a changelog entry.
+    If this is a hotfix, this will create the rel/vX.Y.Z branch and PR it back to release/vX.Y
+    Otherwise, this script will create a PR against master
+    """
+    m = re_ga.match(next_ver)
+    if not m:
+        m = re_ea.match(next_ver)
+    assert m
+
+    if which("gh") is None:
+        print("gh tool is not installed.")
+        print("Please install the tool and rerun this script:")
+        print("https://github.com/cli/cli#installation")
+        return 1
+
+    if not os.getenv("GITHUB_TOKEN"):
+        run(["gh", "auth", "login"])
+
+    print()
+    print(f'Doing basic updates for v{next_ver}...')
+    print()
+
+    # This context manager and check function are pretty much just to produce
+    # a nice list of steps...
+
+    checker = Checker()
+
+    @contextmanager
+    def check(name: str) -> Generator[CheckResult, None, None]:
+        with checker.check(name) as subcheck:
+            # time.sleep(1)  # it's stupid, but honestly the delay makes the output more readable
+            yield subcheck
+    workbranch = ''
+    base_branch = ''
+    if hotfix:
+        current_release_branch = f"rel/v{next_ver}"
+        release_branch = f"release/v{m[vX]}.{m[vY]}"
+        check_command(["git", "fetch", "--all"])
+
+        workbranch = current_release_branch
+        base_branch = release_branch
+
+        if hotfix and not branch_exists(release_branch):
+            print(f"You're trying to start a hotfix release, but release branch {release_branch} doesn't exist.")
+            print("Please create it before continuing")
+            return 1
+        if branch_exists(current_release_branch):
+            with check(f"Checking out {current_release_branch} and making it up to date with {release_branch}"):
+                run(["git", "checkout", current_release_branch])
+                run(["git", "pull", "origin", current_release_branch])
+                run(["git", "merge", f"origin/{release_branch}"])
+            if not checker.ok:
+                return 1
+            with check(f"Checking if there are conflicts in merge"):
+                out = run_capture(["git", "status", "--porcelain"])
+                if out:
+                    raise AssertionError(f"Merge conflicts on {current_release_branch}. Resolve these, then rerun this scrip")
+            if not checker.ok:
+                return 1
+
+        else:
+            with check(f"Creating {current_release_branch} (IGNORE PREVIOUS STEP FAILURE)"):
+                run(["git", "checkout", f"origin/{release_branch}", "-b", current_release_branch])
+                run(["git", "push", "-u", "origin", current_release_branch])
+            if not checker.ok:
+                return 1
+    else:
+
+        orig_branch = run_capture(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
+
+        user = os.getenv("USER")
+        if user is None or user == '':
+            user = 'unknownuser'
+        start_release_branch = f"{user}/v{next_ver}/start-release"
+
+        workbranch = start_release_branch
+        base_branch = orig_branch
+        if not hotfix:
+            with check(f"Checking out branch {workbranch}"):
+                run(["git", "checkout", "-b", workbranch])
+            if not checker.ok:
+                return 1
+
+    # docs/yaml/versions.yml
+    with check(f"Updating docs/yaml/versions.yml with {next_ver}..."):
+        update_versions_yaml(next_ver)
+
+    with check(f"Updating CHANGELOG.md with {next_ver}..."):
+        update_changelog_date(next_ver)
+
+    if checker.ok and commit:
+        with check(f"Committing changes..."):
+            gitdir = run_capture(['git', 'rev-parse', '--git-dir'])
+            with open(os.path.join(gitdir, 'GITGUI_MSG'), 'w') as msgfile:
+                msgfile.write(f"Update for v{next_ver}\n")
+            if os.getenv("AMBASSADOR_RELENG_NO_GUI"):
+                run(['git', 'commit', '-am', f'Update for v{next_ver}'])
+            else:
+                run(['git', 'citool'])
+            run(["git", "push", "-u", "origin", workbranch])
+        if not checker.ok:
+            return 1
+        pr_message = ''
+        pr_body = ''
+
+        if hotfix:
+            pr_message = f"[v{next_ver}] Release Branch"
+            pr_body = HOTFIX_MESSAGE.format(next_ver=next_ver, hotfix_branch=current_release_branch, release_train=release_branch)
+        else:
+             pr_message = f"[v{next_ver}] Prep work for next scheduled release"
+             pr_body = f"Updates for next version {next_ver}"
+
+        with check(f"Creating PR for {workbranch}"):
+            run(["gh", "pr", "create",
+                    "--repo", get_gh_repo(),
+                    "--base", base_branch,
+                    "--title", pr_message,
+                    "--body", pr_body,
+                    "--reviewer", "kflynn,rhs,esmet,acookin"])
+
+    if checker.ok:
+        if commit:
+            print(f'Update complete. Merge PR back to target branch ASAP')
+            if os.getenv("AMBASSADOR_RELENG_NO_GUI"):
+                run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo()])
+            else:
+                run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo(), "--web"])
+        return 0
+    else:
+        return 1
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Start a release train')
+
+    parser.add_argument('--next-version', help='Next version to prep for', required=True)
+    parser.add_argument('--no-commit', dest='commit', action='store_false', default=True)
+    parser.add_argument('--hotfix', action='store_true', default=False)
+
+    args = parser.parse_args()
+
+    if not re_ga.match(args.next_version) and not re_ea.match(args.next_version):
+        sys.stderr.write(f"{os.path.basename(sys.argv[0])}: Version must match X.Y.Z(-ea)?\n")
+        sys.exit(2)
+
+    sys.exit(main(
+        next_ver=args.next_version,
+        commit=args.commit,
+        hotfix=args.hotfix,
+    ))
+

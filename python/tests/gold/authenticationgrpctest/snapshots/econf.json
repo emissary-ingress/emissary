@@ -4,10 +4,8 @@
       {
         "name": "static_layer",
         "static_layer": {
-          "envoy.deprecated_features:envoy.api.v2.route.HeaderMatcher.regex_match": true,
-          "envoy.deprecated_features:envoy.api.v2.route.RouteMatch.regex": true,
-          "envoy.deprecated_features:envoy.config.trace.v2.ZipkinConfig.HTTP_JSON_V1": true,
-          "envoy.reloadable_features.ext_authz_http_service_enable_case_sensitive_string_matcher": false
+          "envoy.reloadable_features.ext_authz_http_service_enable_case_sensitive_string_matcher": false,
+          "re2.max_program_size.error_level": 200
         }
       }
     ]
@@ -113,12 +111,12 @@
               {
                 "name": "envoy.filters.network.http_connection_manager",
                 "typed_config": {
-                  "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
+                  "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
                   "access_log": [
                     {
                       "name": "envoy.access_loggers.file",
                       "typed_config": {
-                        "@type": "type.googleapis.com/envoy.config.accesslog.v2.FileAccessLog",
+                        "@type": "type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog",
                         "format": "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n",
                         "path": "/dev/fd/1"
                       }
@@ -128,14 +126,15 @@
                     {
                       "name": "envoy.filters.http.ext_authz",
                       "typed_config": {
-                        "@type": "type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthz",
+                        "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz",
                         "clear_route_cache": true,
                         "grpc_service": {
                           "envoy_grpc": {
                             "cluster_name": "cluster_extauth_authenticationgrpctest_agrpc_auth_default"
                           },
                           "timeout": "5.000s"
-                        }
+                        },
+                        "transport_api_version": "V2"
                       }
                     },
                     {
@@ -272,7 +271,7 @@
                             },
                             "typed_per_filter_config": {
                               "envoy.filters.http.ext_authz": {
-                                "@type": "type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthzPerRoute",
+                                "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute",
                                 "check_settings": {
                                   "context_extensions": {
                                     "context": "auth-context-name",
@@ -302,7 +301,7 @@
                             },
                             "typed_per_filter_config": {
                               "envoy.filters.http.ext_authz": {
-                                "@type": "type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthzPerRoute",
+                                "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute",
                                 "check_settings": {
                                   "context_extensions": {
                                     "context": "auth-context-name",
@@ -338,7 +337,7 @@
                             },
                             "typed_per_filter_config": {
                               "envoy.filters.http.ext_authz": {
-                                "@type": "type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthzPerRoute",
+                                "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute",
                                 "check_settings": {
                                   "context_extensions": {
                                     "first": "first element",
@@ -368,7 +367,7 @@
                             },
                             "typed_per_filter_config": {
                               "envoy.filters.http.ext_authz": {
-                                "@type": "type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthzPerRoute",
+                                "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute",
                                 "check_settings": {
                                   "context_extensions": {
                                     "first": "first element",
@@ -479,7 +478,6 @@
             ]
           }
         ],
-        "listener_filters": [],
         "name": "ambassador-listener-8080",
         "traffic_direction": "UNSPECIFIED"
       }

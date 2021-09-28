@@ -11,7 +11,7 @@ def update_versions_yaml(next_ver):
     git_add("docs/yaml/versions.yml")
 
 def update_changelog_date(next_ver):
-    changelog_ver_pattern = re.compile(r"^## \[([0-9]+\.[0-9]+\.[0-9]+(?:-rc\.[0-9]+)?)\] \S+ [0-9]+, [0-9]{4}$")
+    changelog_ver_pattern = re.compile(r"^## \[([0-9]+\.[0-9]+\.[0-9]+(-ea)?)\]")
     in_notes = False
     buf = ""
     for line in fileinput.FileInput("CHANGELOG.md", inplace=True):
@@ -38,7 +38,7 @@ def update_changelog_date(next_ver):
             sys.stdout.write(
                     f"[{next_ver}]: https://github.com/emissary-ingress/emissary/compare/v{prev_ver}...v{next_ver}\n")
             sys.stdout.write("\n")
-            sys.stdout.write("### Emissary Ingress and Ambassador Edge Stack\n")
+            sys.stdout.write("### Emissary Ingress\n")
             sys.stdout.write("\n")
             sys.stdout.write("(no changes yet)\n")
             sys.stdout.write(buf)

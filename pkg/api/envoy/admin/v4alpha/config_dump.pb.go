@@ -8,7 +8,7 @@ package envoy_admin_v4alpha
 
 import (
 	_ "github.com/cncf/udpa/go/udpa/annotations"
-	v4alpha "github.com/datawire/ambassador/pkg/api/envoy/config/bootstrap/v4alpha"
+	v4alpha "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v4alpha"
 	proto "github.com/golang/protobuf/proto"
 	any "github.com/golang/protobuf/ptypes/any"
 	timestamp "github.com/golang/protobuf/ptypes/timestamp"

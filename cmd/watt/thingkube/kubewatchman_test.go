@@ -8,10 +8,10 @@ import (
 	"github.com/ecodia/golang-awaitility/awaitility"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/datawire/ambassador/cmd/watt/watchapi"
-	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/v2/cmd/watt/watchapi"
+	"github.com/datawire/ambassador/v2/pkg/supervisor"
 
-	. "github.com/datawire/ambassador/cmd/watt/thingkube"
+	. "github.com/datawire/ambassador/v2/cmd/watt/thingkube"
 )
 
 func TestAddAndRemoveKubernetesWatchers(t *testing.T) {

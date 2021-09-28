@@ -13,8 +13,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/datawire/ambassador/pkg/k8s"
-	"github.com/datawire/ambassador/pkg/kubeapply"
+	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/ambassador/v2/pkg/kubeapply"
 )
 
 var tmpl = template.Must(template.
