@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
+	ambV3 "github.com/datawire/ambassador/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/pkg/kates"
 	"github.com/datawire/ambassador/pkg/watt"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
@@ -57,6 +58,7 @@ type KubernetesSnapshot struct {
 	Endpoints      []*kates.Endpoints    `json:"Endpoints"`
 
 	// ambassador resources
+	Listeners   []*ambV3.Listener `json:"Listener"`
 	Hosts       []*amb.Host       `json:"Host"`
 	Mappings    []*amb.Mapping    `json:"Mapping"`
 	TCPMappings []*amb.TCPMapping `json:"TCPMapping"`

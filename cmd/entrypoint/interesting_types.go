@@ -83,6 +83,7 @@ func GetInterestingTypes(ctx context.Context, serverTypeList []kates.APIResource
 		"Hosts":                       {typename: "hosts.getambassador.io"},
 		"KubernetesEndpointResolvers": {typename: "kubernetesendpointresolvers.getambassador.io"},
 		"KubernetesServiceResolvers":  {typename: "kubernetesserviceresolvers.getambassador.io"},
+		"Listeners":                   {typename: "listeners.getambassador.io"},
 		"LogServices":                 {typename: "logservices.getambassador.io"},
 		"Mappings":                    {typename: "mappings.getambassador.io"},
 		"Modules":                     {typename: "modules.getambassador.io"},

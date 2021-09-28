@@ -239,6 +239,12 @@ func canonGVK(kind string) (canonKind string, canonGroupVersion string) {
 		fallthrough
 	case "kubernetesserviceresolvers.getambassador.io":
 		return "KubernetesServiceResolver", "getambassador.io/v2"
+	case "listener":
+		fallthrough
+	case "listeners":
+		fallthrough
+	case "listeners.getambassador.io":
+		return "Listener", "getambassador.io/v2"
 	case "logservice":
 		fallthrough
 	case "logservices":
