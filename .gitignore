@@ -101,6 +101,8 @@ ambassador-secrets-deployment.yaml
 *.swp
 .ambassador_ignore_ingress_class
 /test-chart-values.yaml
+# `.coverage.HOSTNAME.PID.NNN` - I'm not sure what causes these to get written, but `make pytest-kat` does it
+.coverage.*.*.*
 
 # --- Files ignored by older versions ---
 # Remove the tail of this list when the commit making the change gets
