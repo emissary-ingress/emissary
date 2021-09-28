@@ -1,9 +1,11 @@
 from kat.harness import Query, EDGE_STACK
 from kat.utils import namespace_manifest
 
+import pytest
+import os
+
 from abstract_tests import AmbassadorTest, ServiceType, HTTP
 from selfsigned import TLSCerts
-import os
 
 from ambassador import Config
 
@@ -117,6 +119,9 @@ spec:
   port: 8443
   protocol: HTTPS
   securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
 ---
 apiVersion: getambassador.io/v2
 kind: Host
@@ -532,9 +537,6 @@ spec:
   hostname: tls-context-host-2
   acmeProvider:
     authority: none
-  selector:
-    matchLabels:
-      hostname: tls-context-host-2
   tlsSecret:
     name: {self.path.k8s}-test-tlscontext-secret-2
   requestPolicy:
@@ -634,6 +636,7 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
+  host: "*"
   prefix: /target-shared/
   service: {self.targetshared.path.fqdn}
 ''') + super().manifests()
@@ -751,6 +754,7 @@ class HostCRDWildcards(AmbassadorTest):
     target: ServiceType
 
     def init(self):
+        self.xfail = "IHA FIXME (swap glob)"
         self.target = HTTP()
 
     def manifests(self) -> str:
@@ -767,9 +771,6 @@ spec:
   hostname: "*"
   acmeProvider:
     authority: none
-  selector:
-    matchLabels:
-      hostname: "wc"
   tlsSecret:
     name: {self.path.k8s}-tls
 ---
@@ -784,9 +785,6 @@ spec:
   hostname: "*.domain.com"
   acmeProvider:
     authority: none
-  selector:
-    matchLabels:
-      hostname: "wc.domain.com"
   tlsSecret:
     name: {self.path.k8s}-tls
   requestPolicy:
@@ -804,9 +802,6 @@ spec:
   hostname: "a.domain.com"
   acmeProvider:
     authority: none
-  selector:
-    matchLabels:
-      hostname: "a.domain.com"
   tlsSecret:
     name: {self.path.k8s}-tls
 ---
@@ -829,27 +824,31 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  prefix: /foo
+  host: "*"
+  prefix: /foo/
   service: {self.target.path.fqdn}
 ''') + super().manifests()
 
-    def queries(self):
-        insecure_base = {
-            'url': self.url('foo', scheme='http'),
+    def insecure(self, suffix):
+        return {
+            'url': self.url('foo/%s' % suffix, scheme='http'),
         }
-        secure_base = {
-            'url': self.url('foo', scheme='https'),
+
+    def secure(self, suffix):
+        return {
+            'url': self.url('foo/%s' % suffix, scheme='https'),
             'ca_cert': TLSCerts["*.domain.com"].pubcert,
             'sni': True,
         }
 
-        yield Query(**secure_base, headers={'Host': 'a.domain.com'}, expected=200)  # Host=a.domain.com
-        yield Query(**secure_base, headers={'Host': 'wc.domain.com'}, expected=200) # Host=*.domain.com
-        yield Query(**secure_base, headers={'Host': '127.0.0.1'}, expected=200)     # Host=*
+    def queries(self):
+        yield Query(**self.secure("0-200"), headers={'Host': 'a.domain.com'}, expected=200)  # Host=a.domain.com
+        yield Query(**self.secure("1-200"), headers={'Host': 'wc.domain.com'}, expected=200) # Host=*.domain.com
+        yield Query(**self.secure("2-200"), headers={'Host': '127.0.0.1'}, expected=200)     # Host=*
 
-        yield Query(**insecure_base, headers={'Host': 'a.domain.com'}, expected=301)  # Host=a.domain.com
-        yield Query(**insecure_base, headers={'Host': 'wc.domain.com'}, expected=301) # Host=*.domain.com
-        yield Query(**insecure_base, headers={'Host': '127.0.0.1'}, expected=301)     # Host=*
+        yield Query(**self.insecure("3-301"), headers={'Host': 'a.domain.com'}, expected=301)  # Host=a.domain.com
+        yield Query(**self.insecure("4-200"), headers={'Host': 'wc.domain.com'}, expected=200) # Host=*.domain.com
+        yield Query(**self.insecure("5-301"), headers={'Host': '127.0.0.1'}, expected=301)     # Host=*
 
     def scheme(self) -> str:
         return "https"
@@ -929,6 +928,7 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
+  host: "*"
   prefix: /
   service: {self.target.path.fqdn}
 ''') +  super().manifests()
@@ -987,6 +987,22 @@ class HostCRDClientCertSameNamespace(AmbassadorTest):
         return namespace_manifest("alt2-namespace") + self.format('''
 ---
 apiVersion: getambassador.io/v2
+kind: Listener
+metadata:
+  name: ambassador-listener-8443    # This name is to match existing test stuff
+  namespace: alt2-namespace
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  port: 8443
+  protocol: HTTPS
+  securityModel: XFP
+  hostBinding:
+    namespace:
+      from: SELF
+---
+apiVersion: getambassador.io/v2
 kind: Host
 metadata:
   name: {self.path.k8s}
@@ -1037,6 +1053,7 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
+  host: "*"
   prefix: /
   service: {self.target.path.fqdn}
 ''') +  super().manifests()
@@ -1391,7 +1408,6 @@ spec:
 class HostCRDForcedStar(AmbassadorTest):
     """This test verifies that Ambassador responds properly if we try
     talking to it on a hostname that it doesn't recognize.
-
     """
     target: ServiceType
 
@@ -1418,14 +1434,11 @@ metadata:
 spec:
   ambassador_id: [ "{self.ambassador_id}" ]
   hostname: "*"
-  selector:
-    matchLabels:
-      hostname: {self.path.k8s}
   acmeProvider:
     authority: none
   requestPolicy:
     insecure:
-      action: Route
+      action: Redirect
 ---
 apiVersion: getambassador.io/v2
 kind: Host
@@ -1438,9 +1451,6 @@ spec:
   hostname: tls-context-host-1
   acmeProvider:
     authority: none
-  selector:
-    matchLabels:
-      hostname: tls-context-host-1
   tlsSecret:
     name: {self.path.k8s}-test-tlscontext-secret-1
   requestPolicy:
@@ -1464,7 +1474,8 @@ metadata:
   name: {self.name.k8s}-target-mapping
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  prefix: /foo
+  host: "*"
+  prefix: /foo/
   service: {self.target.path.fqdn}
 ''') + super().manifests()
 
@@ -1476,28 +1487,28 @@ spec:
         # sanity check, and then we'll try the same query for an unrecongized hostname
         # ("nonmatching-host") to make sure that it is handled the same way.
 
-        # 0-1: cleartext 200
-        yield Query(self.url("foo", scheme="http"), headers={"Host": "tls-context-host-1"},
+        # 0-1: cleartext 200/301
+        yield Query(self.url("foo/0-200", scheme="http"), headers={"Host": "tls-context-host-1"},
                     expected=200)
-        yield Query(self.url("foo", scheme="http"), headers={"Host": "nonmatching-hostname"},
-                    expected=(200 if bug_single_insecure_action else 301))
+        yield Query(self.url("foo/1-301", scheme="http"), headers={"Host": "nonmatching-hostname"},
+                    expected=301)
 
         # 2-3: cleartext 404
-        yield Query(self.url("bar", scheme="http"), headers={"Host": "tls-context-host-1"},
+        yield Query(self.url("bar/2-404", scheme="http"), headers={"Host": "tls-context-host-1"},
                     expected=404)
-        yield Query(self.url("bar", scheme="http"), headers={"Host": "nonmatching-hostname"},
-                    expected=(404 if bug_single_insecure_action else 301))
+        yield Query(self.url("bar/3-301-or-404", scheme="http"), headers={"Host": "nonmatching-hostname"},
+                    expected=404 if bug_404_routes else 301)
 
         # 4-5: TLS 200
-        yield Query(self.url("foo", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+        yield Query(self.url("foo/4-200", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
                     expected=200)
-        yield Query(self.url("foo", scheme="https"), headers={"Host": "nonmatching-hostname"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True, insecure=True,
+        yield Query(self.url("foo/5-200", scheme="https"), headers={"Host": "nonmatching-hostname"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True, insecure=True,
                     expected=200, error=("http: server gave HTTP response to HTTPS client" if bug_forced_star else None))
 
         # 6-7: TLS 404
-        yield Query(self.url("bar", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
+        yield Query(self.url("bar/6-404", scheme="https"), headers={"Host": "tls-context-host-1"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True,
                     expected=404)
-        yield Query(self.url("bar", scheme="https"), headers={"Host": "nonmatching-hostname"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True, insecure=True,
+        yield Query(self.url("bar/7-404", scheme="https"), headers={"Host": "nonmatching-hostname"}, ca_cert=TLSCerts["tls-context-host-1"].pubcert, sni=True, insecure=True,
                     expected=404, error=("http: server gave HTTP response to HTTPS client" if bug_forced_star else None))
 
     def requirements(self):

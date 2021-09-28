@@ -72,7 +72,7 @@ jobs:
         type: enum
         enum:
           - "pytest-envoy"
-          - "pytest-envoy-v3"
+          - "pytest-envoy-v2"
         default: "pytest-envoy"
       "fast-reconfigure":
         type: boolean
@@ -279,7 +279,7 @@ workflows:
             parameters:
               test:
                 - "pytest-envoy"
-                - "pytest-envoy-v3"
+                - "pytest-envoy-v2"
               fast-reconfigure:
                 - true
                 - false
@@ -294,7 +294,7 @@ workflows:
               - test: pytest-envoy
                 fast-reconfigure: true
                 legacy-mode: true
-              - test: pytest-envoy-v3
+              - test: pytest-envoy-v2
                 fast-reconfigure: true
                 legacy-mode: true
       - "oss-envoy-test":
@@ -306,7 +306,7 @@ workflows:
             parameters:
               test:
                 - "pytest-envoy"
-                - "pytest-envoy-v3"
+                - "pytest-envoy-v2"
               fast-reconfigure:
                 - false
               legacy-mode:
@@ -318,9 +318,9 @@ workflows:
             - oss-dev-pytest-envoy
             - oss-dev-pytest-envoy-fastreconfigure
             - oss-dev-pytest-envoy-legacy
-            - oss-dev-pytest-envoy-v3
-            - oss-dev-pytest-envoy-v3-fastreconfigure
-            - oss-dev-pytest-envoy-v3-legacy
+            - oss-dev-pytest-envoy-v2
+            - oss-dev-pytest-envoy-v2-fastreconfigure
+            - oss-dev-pytest-envoy-v2-legacy
             - oss-dev-pytest-fastreconfigure
             - oss-dev-pytest-legacy
             - oss-dev-chart
@@ -406,7 +406,7 @@ workflows:
             parameters:
               test:
                 - "pytest-envoy"
-                - "pytest-envoy-v3"
+                - "pytest-envoy-v2"
               fast-reconfigure:
                 - true
                 - false
@@ -420,7 +420,7 @@ workflows:
               - test: pytest-envoy
                 fast-reconfigure: true
                 legacy-mode: true
-              - test: pytest-envoy-v3
+              - test: pytest-envoy-v2
                 fast-reconfigure: true
                 legacy-mode: true
 

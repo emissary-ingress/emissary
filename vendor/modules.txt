@@ -66,7 +66,7 @@ github.com/PuerkitoBio/purell
 github.com/PuerkitoBio/urlesc
 # github.com/andybalholm/brotli v0.0.0-20190621154722-5f990b63d2d6
 github.com/andybalholm/brotli
-# github.com/aokoli/goutils v1.1.0
+# github.com/aokoli/goutils v1.1.1
 github.com/aokoli/goutils
 # github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da
 github.com/armon/go-metrics
@@ -106,8 +106,7 @@ github.com/containerd/containerd/version
 github.com/containerd/continuity/pathdriver
 # github.com/cyphar/filepath-securejoin v0.2.2
 github.com/cyphar/filepath-securejoin
-# github.com/datawire/ambassador v1.11.1
-github.com/datawire/ambassador/pkg/api/getambassador.io/v2
+# github.com/datawire/ambassador v1.11.1 => ./
 github.com/datawire/ambassador/pkg/kates
 github.com/datawire/ambassador/pkg/metriton
 # github.com/datawire/dlib v1.2.0
@@ -209,7 +208,7 @@ github.com/evanphx/json-patch
 github.com/exponent-io/jsonpath
 # github.com/fatih/camelcase v1.0.0
 github.com/fatih/camelcase
-# github.com/fatih/color v1.10.0
+# github.com/fatih/color v1.7.0
 github.com/fatih/color
 # github.com/form3tech-oss/jwt-go v3.2.2+incompatible
 github.com/form3tech-oss/jwt-go
@@ -219,29 +218,14 @@ github.com/fsnotify/fsnotify
 github.com/ghodss/yaml
 # github.com/go-logr/logr v0.3.0
 github.com/go-logr/logr
-# github.com/go-openapi/analysis v0.19.5
-github.com/go-openapi/analysis
-github.com/go-openapi/analysis/internal
-# github.com/go-openapi/errors v0.19.2
-github.com/go-openapi/errors
 # github.com/go-openapi/jsonpointer v0.19.3
 github.com/go-openapi/jsonpointer
 # github.com/go-openapi/jsonreference v0.19.3
 github.com/go-openapi/jsonreference
-# github.com/go-openapi/loads v0.19.4
-github.com/go-openapi/loads
-# github.com/go-openapi/runtime v0.19.4
-github.com/go-openapi/runtime
 # github.com/go-openapi/spec v0.19.3
 github.com/go-openapi/spec
-# github.com/go-openapi/strfmt v0.19.3
-github.com/go-openapi/strfmt
 # github.com/go-openapi/swag v0.19.5
 github.com/go-openapi/swag
-# github.com/go-openapi/validate v0.19.5
-github.com/go-openapi/validate
-# github.com/go-stack/stack v1.8.0
-github.com/go-stack/stack
 # github.com/gobuffalo/flect v0.2.0
 github.com/gobuffalo/flect
 # github.com/gobwas/glob v0.2.3
@@ -358,9 +342,9 @@ github.com/liggitt/tabwriter
 github.com/mailru/easyjson/buffer
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
-# github.com/mattn/go-colorable v0.1.8
+# github.com/mattn/go-colorable v0.1.2
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.12
+# github.com/mattn/go-isatty v0.0.8
 github.com/mattn/go-isatty
 # github.com/mattn/go-runewidth v0.0.4
 github.com/mattn/go-runewidth
@@ -482,13 +466,6 @@ github.com/xeipuuv/gojsonreference
 github.com/xeipuuv/gojsonschema
 # github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
 github.com/xi2/xz
-# go.mongodb.org/mongo-driver v1.1.2
-go.mongodb.org/mongo-driver/bson
-go.mongodb.org/mongo-driver/bson/bsoncodec
-go.mongodb.org/mongo-driver/bson/bsonrw
-go.mongodb.org/mongo-driver/bson/bsontype
-go.mongodb.org/mongo-driver/bson/primitive
-go.mongodb.org/mongo-driver/x/bsonx/bsoncore
 # go.opencensus.io v0.22.3
 go.opencensus.io
 go.opencensus.io/internal
@@ -563,7 +540,7 @@ golang.org/x/text/unicode/norm
 golang.org/x/text/width
 # golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
 golang.org/x/time/rate
-# golang.org/x/tools v0.1.0
+# golang.org/x/tools v0.0.0-20200904185747-39188db58858
 golang.org/x/tools/go/gcexportdata
 golang.org/x/tools/go/internal/gcimporter
 golang.org/x/tools/go/internal/packagesdriver

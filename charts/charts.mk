@@ -1,5 +1,7 @@
 EMISSARY_CHART = $(OSS_HOME)/charts/emissary-ingress
 YQ := $(OSS_HOME)/.circleci/yq
+thisdir := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
+
 
 define _push_chart
 	CHART_NAME=$(1) $(OSS_HOME)/charts/scripts/push_chart.sh
@@ -17,10 +19,12 @@ endef
 
 define _docgen
 	if [[ -f $(1)/doc.yaml ]] ; then \
-		GO111MODULE=off go get kubepack.dev/chart-doc-gen ; \
-		GO111MODULE=off go run kubepack.dev/chart-doc-gen -d $(1)/doc.yaml -t $(1)/readme.tpl -v $(1)/values.yaml > $(1)/README.md ; \
+		$(thisdir)/docgen -d $(1)/doc.yaml -t $(1)/readme.tpl -v $(1)/values.yaml > $(1)/README.md ; \
 	fi
 endef
+
+$(thisdir)/docgen: $(thisdir)/chart-doc-gen.d/go.mod
+	cd $(<D) && go build -o $(abspath $@) kubepack.dev/chart-doc-gen
 
 push-preflight: create-venv $(YQ)
 	@$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
@@ -66,7 +70,7 @@ release/changelog:
 	done ;
 .PHONY: release/changelog
 
-release/chart/update-images: $(YQ)
+release/chart/update-images: $(YQ) $(thisdir)/docgen
 	@[ -n "${IMAGE_TAG}" ] || (echo "IMAGE_TAG must be set" && exit 1)
 	([[ "${IMAGE_TAG}" =~ .*\.0$$ ]] && $(MAKE) release/chart-bump/minor) || $(MAKE) release/chart-bump/revision
 	for chart in $(EMISSARY_CHART) ; do \
@@ -78,7 +82,7 @@ release/chart/update-images: $(YQ)
 		$(call _docgen,$$chart) ; \
 	done ;
 
-chart/docgen:
+chart/docgen: $(thisdir)/docgen
 	for chart in $(EMISSARY_CHART) ; do \
 		$(call _docgen,$$chart) ; \
 	done ;

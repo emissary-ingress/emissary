@@ -18,7 +18,7 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dgroup"
 
-	bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v2"
+	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
 )
 
 // The Fake struct is a test harness for edgestack. Its goals are to help us fill out our test
@@ -268,16 +268,16 @@ func (f *Fake) appendEnvoyConfig() {
 	if err != nil {
 		f.T.Fatalf("error decoding envoy.json after sending snapshot to python: %+v", err)
 	}
-	bs := msg.(*bootstrap.Bootstrap)
+	bs := msg.(*v3bootstrap.Bootstrap)
 	f.envoyConfigs.Add(bs)
 }
 
 // GetEnvoyConfig will return the next envoy config that satisfies the supplied predicate.
-func (f *Fake) GetEnvoyConfig(predicate func(*bootstrap.Bootstrap) bool) *bootstrap.Bootstrap {
+func (f *Fake) GetEnvoyConfig(predicate func(*v3bootstrap.Bootstrap) bool) *v3bootstrap.Bootstrap {
 	f.T.Helper()
 	return f.envoyConfigs.Get(func(obj interface{}) bool {
-		return predicate(obj.(*bootstrap.Bootstrap))
-	}).(*bootstrap.Bootstrap)
+		return predicate(obj.(*v3bootstrap.Bootstrap))
+	}).(*v3bootstrap.Bootstrap)
 }
 
 // AutoFlush will cause a flush whenever any inputs are modified.

@@ -20,7 +20,8 @@ kind: ConsulResolver
 metadata:
   name: consultest-resolver
 spec:
-  ambassador_id: consultest
+  ambassador_id:
+   - consultest
   address: consultest-consul:8500
   datacenter: dc1
 ---

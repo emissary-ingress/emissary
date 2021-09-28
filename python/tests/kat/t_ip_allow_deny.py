@@ -50,6 +50,7 @@ metadata:
   name: {self.path.k8s}-target-mapping
 spec:
   ambassador_id: {self.ambassador_id}
+  host: "*"
   prefix: /target/
   service: {self.target.path.fqdn}
 ---
@@ -59,6 +60,7 @@ metadata:
   name: {self.path.k8s}-localhost-mapping
 spec:
   ambassador_id: {self.ambassador_id}
+  host: "*"
   prefix: /localhost/
   rewrite: /target/             # See NOTE above
   service: 127.0.0.1:8080       # See NOTE above
@@ -117,6 +119,7 @@ metadata:
   name: {self.path.k8s}-target-mapping
 spec:
   ambassador_id: {self.ambassador_id}
+  host: "*"
   prefix: /target/
   service: {self.target.path.fqdn}
 ---
@@ -126,6 +129,7 @@ metadata:
   name: {self.path.k8s}-localhost-mapping
 spec:
   ambassador_id: {self.ambassador_id}
+  host: "*"
   prefix: /localhost/
   rewrite: /target/             # See NOTE above
   service: 127.0.0.1:8080       # See NOTE above

@@ -35,12 +35,10 @@ spec:
         spec:
           properties:
             ambassador_id:
-              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             config:
               description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
               type: object

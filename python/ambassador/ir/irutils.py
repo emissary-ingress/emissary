@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-import sys
+from typing import Any, Dict
+
+import logging
 
 ################
 ## hostglob_matches is a utility for host globbing.
@@ -41,3 +43,32 @@ def hostglob_matches(glob: str, value: str) -> bool:
 
     # sys.stderr.write(f"hostglob_matches: {value} gl~ {glob} == {rc}\n")
     return rc
+
+################
+## selector_matches is a utility for doing K8s label selector matching.
+
+def selector_matches(logger: logging.Logger, selector: Dict[str, Any], labels: Dict[str, str]) -> bool:
+    match: Dict[str, str] = selector.get("matchLabels") or {}
+
+    if not match:
+        # If there's no matchLabels to match, return True.
+        logger.debug("    no matchLabels in selector => True")
+        return True
+
+    # If we have stuff to match on, but no labels to actually match them, we 
+    # can short-circuit (and skip a weirder conditional down in the loop).
+    if not labels:
+        logger.debug("    no incoming labels => False")
+        return False
+
+    selmatch = False
+
+    for k, v in match.items():
+        if labels.get(k) == v:
+            logger.debug("    selector match for %s=%s => True", k, v)
+            return True
+
+        logger.debug("    selector miss on %s=%s", k, v)
+
+    logger.debug("    all selectors miss => False")
+    return False

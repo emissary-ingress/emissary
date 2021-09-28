@@ -8,14 +8,15 @@ import (
 	"strings"
 
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes/scheme"
+	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 	"sigs.k8s.io/yaml"
 
-	amb "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
 )
 
 var sch = runtime.NewScheme()
@@ -24,6 +25,7 @@ func init() {
 	scheme.AddToScheme(sch)
 	apiextensions.AddToScheme(sch)
 	amb.AddToScheme(sch)
+	gw.AddToScheme(sch)
 }
 
 func NewObject(kind, version string) (Object, error) {
@@ -44,13 +46,41 @@ func newFromGVK(gvk schema.GroupVersionKind) (Object, error) {
 	}
 }
 
+// NewObjectFromUnstructured will construct a new specialized object based on the runtime schema
+// ambassador uses. This gaurantees any types defined by or used by ambassador will be constructed
+// as the proper golang type.
+func NewObjectFromUnstructured(unstructured *Unstructured) (Object, error) {
+	if unstructured == nil {
+		return nil, nil
+	}
+
+	gvk := unstructured.GetObjectKind().GroupVersionKind()
+
+	obj, err := newFromGVK(gvk)
+	if err != nil {
+		return nil, err
+	}
+	err = convert(unstructured, &obj)
+	if err != nil {
+		return nil, err
+	}
+
+	return obj, nil
+}
+
 func NewUnstructured(kind, version string) *Unstructured {
 	uns := &Unstructured{}
 	uns.SetGroupVersionKind(schema.FromAPIVersionAndKind(version, kind))
 	return uns
 }
 
-func ParseManifests(text string) ([]Object, error) {
+// Convert a potentially typed Object to an *Unstructured object.
+func NewUnstructuredFromObject(obj Object) (result *Unstructured, err error) {
+	err = convert(obj, &result)
+	return
+}
+
+func parseManifests(text string, structured bool) ([]Object, error) {
 	yr := utilyaml.NewYAMLReader(bufio.NewReader(strings.NewReader(text)))
 
 	var result []Object
@@ -80,11 +110,19 @@ func ParseManifests(text string) ([]Object, error) {
 		if err != nil {
 			return nil, err
 		}
+		var obj Object
 
-		obj, err := newFromGVK(tm.GroupVersionKind())
-		if err != nil {
-			return nil, err
+		if structured {
+			obj, err = newFromGVK(tm.GroupVersionKind())
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			un := &Unstructured{}
+			un.SetGroupVersionKind(tm.GroupVersionKind())
+			obj = un
 		}
+
 		err = yaml.Unmarshal(bs, obj)
 		if err != nil {
 			return nil, err
@@ -94,6 +132,15 @@ func ParseManifests(text string) ([]Object, error) {
 	}
 
 	return result, nil
+
+}
+
+func ParseManifestsToUnstructured(text string) ([]Object, error) {
+	return parseManifests(text, false)
+}
+
+func ParseManifests(text string) ([]Object, error) {
+	return parseManifests(text, true)
 }
 
 func HasOwnerReference(owner, other Object) bool {

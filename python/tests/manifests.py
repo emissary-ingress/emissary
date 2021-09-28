@@ -109,3 +109,25 @@ spec:
       - name: websocket-echo-server
         image: docker.io/johnesmet/go-websocket-echo-server:latest
 """
+
+
+# This is a little weird -- you need to fill in the '%s' with the namespace
+# you want before you use 'format' to fill in other things from 'self'.
+cleartext_host_manifest = """
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: cleartext-host-{self.path.k8s}
+  labels:
+    scope: AmbassadorTest
+  namespace: %s
+spec:
+  ambassador_id: [ "{self.ambassador_id}" ]
+  hostname: "*"
+  acmeProvider:
+    authority: none
+  requestPolicy:
+    insecure:
+      action: Route
+"""

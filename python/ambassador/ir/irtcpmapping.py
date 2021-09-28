@@ -26,6 +26,7 @@ class IRTCPMapping (IRBaseMapping):
         "enable_ipv6": True,
         "host": True,
         "idle_timeout_ms": True,
+        "metadata_labels": True,
         "port": True,
         "service": True,
         "tls": True,

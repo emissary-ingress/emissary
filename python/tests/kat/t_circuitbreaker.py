@@ -67,7 +67,23 @@ class CircuitBreakingTest(AmbassadorTest):
       value: 'cbstatsd-sink'
 """
 
-        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
+        return """
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: cleartext-host
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
+  port: 8080
+  protocol: HTTP
+  securityModel: INSECURE
+  requestPolicy:
+    insecure:
+      action: Route
+""" + self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
                            envs=envs, extra_ports="", capabilities_block="") + \
                STATSD_MANIFEST.format(name='cbstatsd-sink', image=self.test_image['stats'],
                                       target=self.__class__.TARGET_CLUSTER)
@@ -79,6 +95,7 @@ class CircuitBreakingTest(AmbassadorTest):
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.target.path.k8s}-pr
+host: "*"
 prefix: /{self.name}-pr/
 service: {self.target.path.fqdn}
 circuit_breakers:
@@ -90,6 +107,7 @@ apiVersion: ambassador/v1
 kind: Mapping
 name: {self.name}-reset
 case_sensitive: false
+host: "*"
 prefix: /reset/
 rewrite: /RESET/
 service: cbstatsd-sink
@@ -98,6 +116,7 @@ apiVersion: ambassador/v1
 kind: Mapping
 name: {self.name}-dump
 case_sensitive: false
+host: "*"
 prefix: /dump/
 rewrite: /DUMP/
 service: cbstatsd-sink
@@ -175,7 +194,8 @@ service: cbstatsd-sink
                 failures.append(f'Expected {pending_overloaded} rq_pending_overflow, got {rq_pending_overflow}')
 
         if failures:
-            pytest.xfail("failed:\n  %s" % "\n  ".join(failures))
+            print("%s FAILED:\n  %s" % (self.name, "\n  ".join(failures)))
+            pytest.xfail(f"FFS {self.name}")
 
 class GlobalCircuitBreakingTest(AmbassadorTest):
     target: ServiceType
@@ -186,9 +206,20 @@ class GlobalCircuitBreakingTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
+apiVersion: getambassador.io/v2
+kind: Host
+name: cleartext-host
+port: 8080
+protocol: HTTP
+securityModel: INSECURE
+requestPolicy:
+  insecure:
+    action: Route
+---
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.target.path.k8s}-pr
+host: "*"
 prefix: /{self.name}-pr/
 service: {self.target.path.fqdn}
 circuit_breakers:
@@ -199,6 +230,7 @@ circuit_breakers:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.target.path.k8s}-normal
+host: "*"
 prefix: /{self.name}-normal/
 service: {self.target.path.fqdn}
 ---
@@ -261,7 +293,8 @@ config:
                 failures.append(f'[GCF] expected 100-200 normal_overloaded, got {normal_overloaded}')
 
         if failures:
-            pytest.xfail("failed:\n  %s" % "\n  ".join(failures))
+            print("%s FAILED:\n  %s" % (self.name, "\n  ".join(failures)))
+            pytest.xfail(f"FFS {self.name}")
 
 class CircuitBreakingTCPTest(AmbassadorTest):
     extra_ports = [ 6789, 6790 ]
@@ -270,8 +303,6 @@ class CircuitBreakingTCPTest(AmbassadorTest):
     target2: ServiceType
 
     def init(self):
-      self.xfail = "FIXME: IHA"
-
       self.target1 = HTTP(name="target1")
       self.target2 = HTTP(name="target2")
 
@@ -324,7 +355,7 @@ circuit_breakers:
                     default_limit_failure += 1
 
             if default_limit_failure != 0:
-              failures.append(f'expected no failure with default limit, got {normal_overloaded}')
+              failures.append(f'expected no failure with default limit, got {default_limit_failure}')
 
             low_limit_failure = 0
 
@@ -333,7 +364,8 @@ circuit_breakers:
                     low_limit_failure += 1
 
             if not 100 < low_limit_failure < 200:
-                failures.append(f'expected 100-200 failure with low limit, got {low_overloaded}')
+                failures.append(f'expected 100-200 failure with low limit, got {low_limit_failure}')
 
         if failures:
-            pytest.xfail("failed:\n  %s" % "\n  ".join(failures))
+            print("%s FAILED:\n  %s" % (self.name, "\n  ".join(failures)))
+            pytest.xfail(f"FFS {self.name}")

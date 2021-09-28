@@ -11,22 +11,6 @@ metadata:
     product: aes
   name: hosts.getambassador.io
 spec:
-  additionalPrinterColumns:
-  - JSONPath: .spec.hostname
-    name: Hostname
-    type: string
-  - JSONPath: .status.state
-    name: State
-    type: string
-  - JSONPath: .status.phaseCompleted
-    name: Phase Completed
-    type: string
-  - JSONPath: .status.phasePending
-    name: Phase Pending
-    type: string
-  - JSONPath: .metadata.creationTimestamp
-    name: Age
-    type: date
   group: getambassador.io
   names:
     categories:
@@ -36,8 +20,6 @@ spec:
     plural: hosts
     singular: host
   scope: Namespaced
-  subresources:
-    status: {}
   validation:
     openAPIV3Schema:
       description: Host is the Schema for the hosts API
@@ -76,16 +58,12 @@ spec:
               description: Common to all Ambassador objects (and optional).
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             ambassadorId:
               description: A compatibility alias for "ambassador_id"; because Host used to be specified with protobuf, and jsonpb allowed either "ambassador_id" or "ambassadorId", and even though we didn't tell people about "ambassadorId" it's what the web policy console generated because of jsonpb.  So Hosts with 'ambassadorId' exist in the wild.
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             hostname:
               description: Hostname by which the Ambassador can be reached.
               type: string
@@ -117,7 +95,7 @@ spec:
                   type: object
               type: object
             selector:
-              description: Selector by which we can find further configuration. Defaults to hostname=$hostname
+              description: Selector by which we can find further configuration.
               properties:
                 matchExpressions:
                   description: matchExpressions is a list of label selector requirements. The requirements are ANDed.

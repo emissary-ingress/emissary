@@ -25,12 +25,14 @@ config:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.target.path.k8s}-foo
+host: "*"
 prefix: /foo/
 service: {self.target.path.fqdn}
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.target.path.k8s}-bar
+host: "*"
 prefix: /bar/
 service: {self.target.path.fqdn}
 cors:

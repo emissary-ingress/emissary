@@ -374,8 +374,9 @@ class IR:
                 # can change as new clusters appear! This is obviously not ideal.
                 #
                 # XXX This is doubly a hack because it's duplicating this magic format from
-                # v2cluster.py.
+                # v2cluster.py and v3cluster.py.
                 self.cache.invalidate(f"V2-{cluster.cache_key}")
+                self.cache.invalidate(f"V3-{cluster.cache_key}")
 
                 # OK. Finally, we can update the envoy_name.
                 cluster['envoy_name'] = mangled_name
@@ -459,11 +460,11 @@ class IR:
             host.referenced_by(self.ambassador_module)
             host.sourced_by(self.ambassador_module)
 
-            self.logger.debug(f"Intercept agent: saving host {host.pretty()}")
+            self.logger.debug(f"Intercept agent: saving host {host}")
             # self.logger.debug(host.as_json())
             self.save_host(host)
         else:
-            self.logger.debug(f"Intercept agent: not saving inactive host {host.pretty()}")
+            self.logger.debug(f"Intercept agent: not saving inactive host {host}")
 
         # How about originating TLS?
         agent_origination_secret = os.environ.get("AGENT_TLS_ORIG_SECRET", None)
@@ -758,7 +759,7 @@ class IR:
 
     def save_listener(self, listener: IRListener) -> None:
         listener_key = listener.bind_to()
-        
+
         extant_listener = self.listeners.get(listener_key, None)
         is_valid = True
 

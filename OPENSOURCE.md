@@ -1,5 +1,5 @@
-The Go module "github.com/datawire/ambassador" incorporates the following
-Free and Open Source software:
+The Go module "github.com/datawire/ambassador/v2" incorporates the
+following Free and Open Source software:
 
     Name                                                           Version                                                     License(s)
     ----                                                           -------                                                     ----------
@@ -26,7 +26,7 @@ Free and Open Source software:
     github.com/PuerkitoBio/purell                                  v1.1.1                                                      3-clause BSD license
     github.com/PuerkitoBio/urlesc                                  v0.0.0-20170810143723-de5bf2ad4578                          3-clause BSD license
     github.com/andybalholm/brotli                                  v0.0.0-20190621154722-5f990b63d2d6                          MIT license
-    github.com/aokoli/goutils                                      v1.1.0                                                      Apache License 2.0
+    github.com/aokoli/goutils                                      v1.1.1                                                      Apache License 2.0
     github.com/armon/go-metrics                                    v0.0.0-20180917152333-f0300d1749da                          MIT license
     github.com/asaskevich/govalidator                              v0.0.0-20200428143746-21a406dcc535                          MIT license
     github.com/beorn7/perks                                        v1.0.1                                                      MIT license
@@ -38,6 +38,7 @@ Free and Open Source software:
     github.com/containerd/containerd                               v1.4.3                                                      Apache License 2.0
     github.com/containerd/continuity                               v0.0.0-20201208142359-180525291bb7                          Apache License 2.0
     github.com/cyphar/filepath-securejoin                          v0.2.2                                                      3-clause BSD license
+    github.com/datawire/ambassador                                 (modified)                                                  Apache License 2.0
     github.com/datawire/dlib                                       v1.2.0                                                      Apache License 2.0
     github.com/datawire/pf                                         v0.0.0-20180510150411-31a823f9495a                          2-clause BSD license
     github.com/davecgh/go-spew                                     v1.1.1                                                      ISC license
@@ -57,7 +58,7 @@ Free and Open Source software:
     github.com/evanphx/json-patch                                  v4.9.0+incompatible                                         3-clause BSD license
     github.com/exponent-io/jsonpath                                v0.0.0-20151013193312-d6023ce2651d                          MIT license
     github.com/fatih/camelcase                                     v1.0.0                                                      MIT license
-    github.com/fatih/color                                         v1.10.0                                                     MIT license
+    github.com/fatih/color                                         v1.7.0                                                      MIT license
     github.com/form3tech-oss/jwt-go                                v3.2.2+incompatible                                         MIT license
     github.com/fsnotify/fsnotify                                   v1.4.9                                                      3-clause BSD license
     github.com/ghodss/yaml                                         v1.0.0                                                      3-clause BSD license, MIT license
@@ -102,8 +103,8 @@ Free and Open Source software:
     github.com/lib/pq                                              v1.9.0                                                      MIT license
     github.com/liggitt/tabwriter                                   v0.0.0-20181228230101-89fcab3d43de                          3-clause BSD license
     github.com/mailru/easyjson                                     v0.7.0                                                      MIT license
-    github.com/mattn/go-colorable                                  v0.1.8                                                      MIT license
-    github.com/mattn/go-isatty                                     v0.0.12                                                     MIT license
+    github.com/mattn/go-colorable                                  v0.1.2                                                      MIT license
+    github.com/mattn/go-isatty                                     v0.0.8                                                      MIT license
     github.com/mattn/go-runewidth                                  v0.0.4                                                      MIT license
     github.com/matttproud/golang_protobuf_extensions               v1.0.2-0.20181231171920-c182affec369                        Apache License 2.0
     github.com/mholt/archiver/v3                                   v3.3.0                                                      MIT license
@@ -156,7 +157,7 @@ Free and Open Source software:
     golang.org/x/term                                              v0.0.0-20201126162022-7de9c90e9dd1                          3-clause BSD license
     golang.org/x/text                                              v0.3.4                                                      3-clause BSD license
     golang.org/x/time                                              v0.0.0-20200630173020-3af7569d3a1e                          3-clause BSD license
-    golang.org/x/tools                                             v0.1.0                                                      3-clause BSD license
+    golang.org/x/tools                                             v0.0.0-20200904185747-39188db58858                          3-clause BSD license
     golang.org/x/xerrors                                           v0.0.0-20200804184101-5ec99f83aff1                          3-clause BSD license
     google.golang.org/appengine                                    v1.6.7                                                      Apache License 2.0
     google.golang.org/genproto                                     v0.0.0-20201110150050-8816d57aaa9a                          Apache License 2.0

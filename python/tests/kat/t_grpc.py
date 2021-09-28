@@ -21,6 +21,7 @@ class AcceptanceGrpcTest(AmbassadorTest):
 apiVersion: ambassador/v0
 kind:  Mapping
 grpc: True
+host: "*"
 prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
@@ -70,7 +71,7 @@ kind: KubernetesEndpointResolver
 metadata:
     name: my-endpoint
 spec:    
-    ambassador_id: endpointgrpctest 
+    ambassador_id: ["endpointgrpctest"]
 ''') + super().manifests()
 
     def config(self):
@@ -79,6 +80,7 @@ spec:
 apiVersion: ambassador/v1
 kind:  Mapping
 grpc: True
+host: "*"
 prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}

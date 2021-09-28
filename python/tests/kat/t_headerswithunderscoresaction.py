@@ -15,6 +15,7 @@ apiVersion: ambassador/v2
 kind:  Mapping
 name:  config__dump
 ambassador_id: {self.ambassador_id}
+host: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """)
@@ -47,6 +48,7 @@ apiVersion: ambassador/v2
 kind:  Mapping
 name:  config__dump
 ambassador_id: {self.ambassador_id}
+host: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """)

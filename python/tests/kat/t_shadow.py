@@ -64,6 +64,7 @@ spec:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-target
+host: "*"
 prefix: /{self.name}/mark/
 rewrite: /mark/
 service: https://{self.target.path.fqdn}
@@ -71,6 +72,7 @@ service: https://{self.target.path.fqdn}
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-weighted-target
+host: "*"
 prefix: /{self.name}/weighted-mark/
 rewrite: /mark/
 service: https://{self.target.path.fqdn}
@@ -78,6 +80,7 @@ service: https://{self.target.path.fqdn}
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-shadow
+host: "*"
 prefix: /{self.name}/mark/
 rewrite: /mark/
 service: shadow.plain-namespace
@@ -86,6 +89,7 @@ shadow: true
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-weighted-shadow
+host: "*"
 prefix: /{self.name}/weighted-mark/
 rewrite: /mark/
 service: shadow.plain-namespace
@@ -95,6 +99,7 @@ shadow: true
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-checkshadow
+host: "*"
 prefix: /{self.name}/check/
 rewrite: /check/
 service: shadow.plain-namespace

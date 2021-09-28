@@ -144,12 +144,14 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 name: httpbin-mapping
 service: httpbin
+host: "*"
 prefix: /httpbin/
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
 name: httpbin-mapping-shadow
 service: httpbin-shadow
+host: "*"
 prefix: /httpbin/
 shadow: true
 weight: 10
@@ -191,12 +193,14 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 name: httpbin-mapping
 service: httpbin
+host: "*"
 prefix: /httpbin/
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
 name: httpbin-mapping-shadow
 service: httpbin-shadow
+host: "*"
 prefix: /httpbin/
 shadow: true
 weight: 10

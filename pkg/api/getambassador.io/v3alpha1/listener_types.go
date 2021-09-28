@@ -83,7 +83,6 @@ const (
 type SecurityModelType string
 
 const (
-
 	// XFPSecurityModelType specifies that connections on this port use X-Forwarded-Proto to
 	// determine security: if the protocol is HTTPS, the connection is secure; otherwise
 	// it is insecure.
@@ -95,6 +94,43 @@ const (
 	// INSECURESecurityModelType specifies that connections on this port are never secure
 	INSECURESecurityModelType SecurityModelType = "INSECURE"
 )
+
+// NamespaceFromType defines how we evaluate a NamespaceBindingType.
+// +kubebuilder:validation:Enum=SELF;ALL;SELECTOR
+type NamespaceFromType string
+
+const (
+	// SELFNamespaceFromType specifies that a Listener should consider Hosts only in the
+	// Listener's namespaces.
+	SELFNamespaceFromType NamespaceFromType = "SELF"
+
+	// ALLNamespaceFromType specifies that a Listener should consider Hosts in ALL
+	// namespaces. This is the simplest way to build a Listener that matches all Hosts.
+	ALLNamespaceFromType NamespaceFromType = "ALL"
+
+	// XXX We can't support from=SELECTOR until we're doing Listener handling in
+	// XXX Golang: the Python side of Emissary doesn't have access to namespace selectors.
+	//
+	// // SELECTORNamespaceFromType specifies to use the NamespaceBinding selector to
+	// // determine namespaces to consider for Hosts.
+	// SELECTORNamespaceFromType NamespaceFromType = "SELECTOR"
+)
+
+// NamespaceBindingType defines we we specify which namespaces to look for Hosts in.
+type NamespaceBindingType struct {
+	From NamespaceFromType `json:"from,omitempty"`
+
+	// XXX We can't support from=SELECTOR until we're doing Listener handling in
+	// XXX Golang: the Python side of Emissary doesn't have access to namespace selectors.
+	//
+	// Selector *metav1.LabelSelector `json:"hostSelector,omitempty"`
+}
+
+// HostBindingType defines how we specify Hosts to bind to this Listener.
+type HostBindingType struct {
+	Namespace NamespaceBindingType  `json:"namespace"`
+	Selector  *metav1.LabelSelector `json:"selector,omitempty"`
+}
 
 // ListenerSpec defines the desired state of this Port
 type ListenerSpec struct {
@@ -121,8 +157,8 @@ type ListenerSpec struct {
 	// the network.
 	L7Depth int32 `json:"l7Depth"`
 
-	// HostSelector allows restricting which Hosts will be used for this Listener.
-	HostSelector *metav1.LabelSelector `json:"hostSelector"`
+	// HostBinding allows restricting which Hosts will be used for this Listener.
+	HostBinding HostBindingType `json:"hostBinding"`
 }
 
 // Listener is the Schema for the hosts API

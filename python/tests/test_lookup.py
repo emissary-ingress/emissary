@@ -36,6 +36,7 @@ config:
 apiVersion: getambassador.io/v1
 kind: Mapping
 name: test_mapping
+host: "*"
 prefix: /test/
 service: test:9999
 '''

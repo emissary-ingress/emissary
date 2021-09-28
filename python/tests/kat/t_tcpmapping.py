@@ -14,6 +14,10 @@ class TCPMappingTest(AmbassadorTest):
     namespace = "tcp-namespace"
     extra_ports = [ 6789, 7654, 8765, 9876 ]
 
+    # This test is written assuming explicit control of which Hosts are present,
+    # so don't let Edge Stack mess with that.
+    edge_stack_cleartext_host = False
+
     # If you set debug = True here, the results of every Query will be printed
     # when the test is run.
     # debug = True
@@ -61,6 +65,9 @@ spec:
   port: 8443
   protocol: HTTPS
   securityModel: XFP
+  hostBinding:
+    namespace:
+      from: ALL
 ---
 # In most real-world cases, we'd just use a single wildcard Host instead
 # of using three. For this test, though, we need three because we aren't

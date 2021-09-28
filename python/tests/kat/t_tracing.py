@@ -72,6 +72,7 @@ spec:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  tracing_target_mapping
+host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -190,6 +191,7 @@ spec:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  tracing_target_mapping_longclustername
+host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -302,6 +304,7 @@ spec:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  tracing_target_mapping_64
+host: "*"
 prefix: /target-64/
 service: {self.target.path.fqdn}
 """)
@@ -393,6 +396,7 @@ spec:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  tracing_target_mapping
+host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -495,6 +499,7 @@ spec:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  tracing_target_mapping_65
+host: "*"
 prefix: /target-65/
 service: {self.target.path.fqdn}
 """)
@@ -596,6 +601,7 @@ spec:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  tracing_target_mapping
+host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -717,6 +723,7 @@ spec:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  tracing_target_mapping
+host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)

@@ -1,0 +1,20 @@
+---
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: test-host
+spec:
+  selector:
+    matchLabels:
+      host: minimal
+    
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: test-mapping
+  labels:
+    host: minimal
+spec:
+  prefix: /test-mapping/
+  service: test-service

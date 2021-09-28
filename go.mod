@@ -57,13 +57,13 @@ require (
 	git.lukeshu.com/go/libsystemd v0.5.3
 	github.com/Masterminds/semver v1.4.2
 	github.com/Masterminds/sprig v2.17.1+incompatible
+	github.com/aokoli/goutils v1.1.1 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.2.1
 	github.com/cncf/udpa/go v0.0.0-20200629203442-efcf912fb354
 	github.com/datawire/dlib v1.2.0
 	github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a
 	github.com/ecodia/golang-awaitility v0.0.0-20180710094957-fb55e59708c7
 	github.com/envoyproxy/protoc-gen-validate v0.3.0-java.0.20200609174644-bd816e4522c1
-	github.com/fatih/color v1.10.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.5
@@ -83,7 +83,6 @@ require (
 	github.com/telepresenceio/telepresence/v2 v2.1.1-rc.0
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
 	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c
-	golang.org/x/tools v0.1.0 // indirect
 	google.golang.org/genproto v0.0.0-20201110150050-8816d57aaa9a
 	google.golang.org/grpc v1.34.0
 	google.golang.org/protobuf v1.25.0
@@ -107,6 +106,7 @@ require (
 
 // We need to inherit this from helm.sh/helm/v3
 replace (
+	github.com/datawire/ambassador => ./
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d
 	github.com/docker/docker => github.com/moby/moby v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
 )

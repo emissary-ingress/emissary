@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"sort"
-	"strings"
 	"sync"
 
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -120,6 +118,19 @@ type Delta struct {
 	TypeMeta   `json:""`
 	ObjectMeta `json:"metadata,omitempty"`
 	DeltaType  DeltaType `json:"deltaType"`
+}
+
+func NewDelta(deltaType DeltaType, obj *Unstructured) *Delta {
+	return newDelta(deltaType, obj)
+}
+
+func NewDeltaFromObject(deltaType DeltaType, obj Object) *Delta {
+	var un *Unstructured
+	err := convert(obj, &un)
+	if err != nil {
+		panic(err)
+	}
+	return NewDelta(deltaType, un)
 }
 
 func newDelta(deltaType DeltaType, obj *Unstructured) *Delta {
@@ -350,12 +361,4 @@ func (a *Accumulator) update(target reflect.Value, deltas *[]*Delta, predicate f
 	}
 
 	return updated
-}
-
-func unKeySort(items []*Unstructured) {
-	sort.Slice(items, func(i, j int) bool {
-		ik := unKey(items[i])
-		jk := unKey(items[j])
-		return strings.Compare(ik, jk) < 0
-	})
 }

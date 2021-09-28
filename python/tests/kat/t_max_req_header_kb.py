@@ -23,6 +23,7 @@ config:
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.name}
+host: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """)
@@ -60,6 +61,7 @@ config:
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.name}
+host: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
 """)

@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
-	bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v2"
+	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,7 +28,7 @@ func TestFakeCollision(t *testing.T) {
 	assert.NotNil(t, snap)
 
 	// Grab the next envoy config that satisfies our predicate.
-	envoyConfig := f.GetEnvoyConfig(func(config *bootstrap.Bootstrap) bool {
+	envoyConfig := f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
 		// The first time we look at the Envoy config, we should find only two clusters.
 		//
 		// First up, a cluster named cluster_subway_staging_stable_staging_30-0,
@@ -81,7 +81,7 @@ func TestFakeCollision(t *testing.T) {
 	assert.NotNil(t, snap)
 
 	// Grab the next envoy config that satisfies our predicate.
-	envoyConfig = f.GetEnvoyConfig(func(config *bootstrap.Bootstrap) bool {
+	envoyConfig = f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
 		// The second time we look at the Envoy config, we need to see three
 		// clusters, but note that some of the contents of the clusters will have
 		// changed.

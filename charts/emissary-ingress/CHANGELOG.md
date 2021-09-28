@@ -5,7 +5,7 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## Next Release
 
-(no changes yet)
+- Change: removed helm 2 support
 
 ## v6.7.11
 

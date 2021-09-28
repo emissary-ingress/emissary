@@ -26,6 +26,7 @@ config:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
+host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -61,6 +62,7 @@ config:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
+host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)
@@ -95,6 +97,7 @@ config:
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.target.path.k8s}
+host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 """)

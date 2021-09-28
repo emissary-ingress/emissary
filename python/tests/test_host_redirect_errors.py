@@ -48,6 +48,7 @@ metadata:
     name: mapping-1
     namespace: default
 spec:
+    host: "*"
     prefix: /
     service: svc1
 ---
@@ -57,6 +58,7 @@ metadata:
     name: mapping-2
     namespace: default
 spec:
+    host: "*"
     prefix: /
     service: svc2
 """
@@ -80,6 +82,7 @@ metadata:
     name: mapping-1
     namespace: default
 spec:
+    host: "*"
     prefix: /
     service: svc1
     host_redirect: true
@@ -90,6 +93,7 @@ metadata:
     name: mapping-2
     namespace: default
 spec:
+    host: "*"
     prefix: /
     service: svc2
     host_redirect: true
@@ -118,6 +122,7 @@ metadata:
     name: mapping-1
     namespace: default
 spec:
+    host: "*"
     prefix: /
     service: svc1
     host_redirect: true
@@ -128,6 +133,7 @@ metadata:
     name: mapping-2
     namespace: default
 spec:
+    host: "*"
     prefix: /
     service: svc2
 """
@@ -155,6 +161,7 @@ metadata:
     name: mapping-1
     namespace: default
 spec:
+    host: "*"
     prefix: /
     service: svc1
 ---
@@ -164,6 +171,7 @@ metadata:
     name: mapping-2
     namespace: default
 spec:
+    host: "*"
     prefix: /
     service: svc2
     host_redirect: true
@@ -192,6 +200,7 @@ metadata:
     name: mapping-1
     namespace: default
 spec:
+    host: "*"
     prefix: /svc1
     service: svc1
     host_redirect: true
@@ -204,6 +213,7 @@ metadata:
     name: mapping-2
     namespace: default
 spec:
+    host: "*"
     prefix: /svc2
     service: svc2
     host_redirect: true
@@ -218,6 +228,7 @@ metadata:
     name: mapping-3
     namespace: default
 spec:
+    host: "*"
     prefix: /svc3
     service: svc3
     host_redirect: true

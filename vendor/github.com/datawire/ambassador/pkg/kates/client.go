@@ -186,15 +186,21 @@ func NewRESTMapper(config *ConfigFlags) (meta.RESTMapper, discovery.CachedDiscov
 	return expander, cachedDiscoveryClient, nil
 }
 
-// This is how client-go figures out if it is inside a cluster (from
-// client-go/tools/clientcmd/client_config.go), we don't use it right
-// now, but it might prove useful in the future if we want to choose a
-// different caching strategy when we are inside the cluster.
-func inCluster() bool {
+// The InCluster function returns true if the process is running inside a kubernetes cluster, and
+// false if it is running outside the cluster. This is determined by heuristics, however it uses the
+// exact same heuristics as client-go does. This is copied from
+// (client-go/tools/clientcmd/client_config.go), as it is not publically invocable in its original
+// place. This should be re-copied if the original code changes.
+func InCluster() bool {
 	fi, err := os.Stat("/var/run/secrets/kubernetes.io/serviceaccount/token")
 	return os.Getenv("KUBERNETES_SERVICE_HOST") != "" &&
 		os.Getenv("KUBERNETES_SERVICE_PORT") != "" &&
 		err == nil && !fi.IsDir()
+}
+
+// DynamicInterface is an accessor method to the k8s dynamic client
+func (c *Client) DynamicInterface() dynamic.Interface {
+	return c.cli
 }
 
 func (c *Client) WaitFor(ctx context.Context, kindOrResource string) {
@@ -358,7 +364,25 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 	// more useful error message:
 	/*
 		informer.SetWatchErrorHandler(func(r *cache.Reflector, err error) {
-			errorHandler(query.Kind, err)
+			// This is from client-go/tools/cache/reflector.go:563
+			isExpiredError := func(err error) bool {
+				// In Kubernetes 1.17 and earlier, the api server returns both apierrors.StatusReasonExpired and
+				// apierrors.StatusReasonGone for HTTP 410 (Gone) status code responses. In 1.18 the kube server is more consistent
+				// and always returns apierrors.StatusReasonExpired. For backward compatibility we can only remove the apierrors.IsGone
+				// check when we fully drop support for Kubernetes 1.17 servers from reflectors.
+				return apierrors.IsResourceExpired(err) || apierrors.IsGone(err)
+			}
+
+			switch {
+			case isExpiredError(err):
+				log.Printf("Watch of %s closed with: %v", query.Kind, err)
+			case err == io.EOF:
+				// watch closed normally
+			case err == io.ErrUnexpectedEOF:
+				log.Printf("Watch for %s closed with unexpected EOF: %v", query.Kind, err)
+			default:
+				log.Printf("Failed to watch %s: %v", query.Kind, err)
+			}
 		})
 	*/
 	informer.AddEventHandler(
@@ -417,28 +441,6 @@ type rawUpdate struct {
 	synced bool
 	old    *unstructured.Unstructured
 	new    *unstructured.Unstructured
-}
-
-func errorHandler(name string, err error) {
-	switch {
-	case isExpiredError(err):
-		log.Printf("Watch of %s closed with: %v", name, err)
-	case err == io.EOF:
-		// watch closed normally
-	case err == io.ErrUnexpectedEOF:
-		log.Printf("Watch for %s closed with unexpected EOF: %v", name, err)
-	default:
-		log.Printf("Failed to watch %s: %v", name, err)
-	}
-}
-
-// This is from client-go/tools/cache/reflector.go:563
-func isExpiredError(err error) bool {
-	// In Kubernetes 1.17 and earlier, the api server returns both apierrors.StatusReasonExpired and
-	// apierrors.StatusReasonGone for HTTP 410 (Gone) status code responses. In 1.18 the kube server is more consistent
-	// and always returns apierrors.StatusReasonExpired. For backward compatibility we can only remove the apierrors.IsGone
-	// check when we fully drop support for Kubernetes 1.17 servers from reflectors.
-	return apierrors.IsResourceExpired(err) || apierrors.IsGone(err)
 }
 
 type lw struct {

@@ -1,0 +1,674 @@
+[
+  {
+    "name": "ambassador-listener-8080",
+    "port": 8080,
+    "chains": [
+      {
+        "server_names": null,
+        "transport_protocol": "",
+        "vhosts": [
+          {
+            "name": "ambassador-listener-8080-h1.example.com",
+            "routes": [
+              {
+                "scheme": "https",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "https",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "https",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "https",
+                "host": "h1.example.com",
+                "path": "/quote/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_quote_ambassador_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h1.example.com",
+                "path": "/quote/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_quote_ambassador_default"
+              }
+            ]
+          },
+          {
+            "name": "ambassador-listener-8080-h2.example.com",
+            "routes": [
+              {
+                "scheme": "implicit-http",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h2.example.com",
+                "path": "/quote/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "h2.example.com",
+                "path": "/quote/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_quote_ambassador_default"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "server_names": [
+          "h1.example.com"
+        ],
+        "transport_protocol": "tls",
+        "vhosts": [
+          {
+            "name": "ambassador-listener-8080-h1.example.com",
+            "routes": [
+              {
+                "scheme": "https",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "https",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "https",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "https",
+                "host": "h1.example.com",
+                "path": "/quote/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_quote_ambassador_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h1.example.com",
+                "path": "/quote/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_quote_ambassador_default"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "server_names": [
+          "h2.example.com"
+        ],
+        "transport_protocol": "tls",
+        "vhosts": [
+          {
+            "name": "ambassador-listener-8080-h2.example.com",
+            "routes": [
+              {
+                "scheme": "implicit-http",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h2.example.com",
+                "path": "/quote/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "h2.example.com",
+                "path": "/quote/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_quote_ambassador_default"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ambassador-listener-8443",
+    "port": 8443,
+    "chains": [
+      {
+        "server_names": null,
+        "transport_protocol": "",
+        "vhosts": [
+          {
+            "name": "ambassador-listener-8443-h1.example.com",
+            "routes": [
+              {
+                "scheme": "https",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "https",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "https",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "https",
+                "host": "h1.example.com",
+                "path": "/quote/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_quote_ambassador_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h1.example.com",
+                "path": "/quote/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_quote_ambassador_default"
+              }
+            ]
+          },
+          {
+            "name": "ambassador-listener-8443-h2.example.com",
+            "routes": [
+              {
+                "scheme": "implicit-http",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h2.example.com",
+                "path": "/quote/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "h2.example.com",
+                "path": "/quote/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_quote_ambassador_default"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "server_names": [
+          "h1.example.com"
+        ],
+        "transport_protocol": "tls",
+        "vhosts": [
+          {
+            "name": "ambassador-listener-8443-h1.example.com",
+            "routes": [
+              {
+                "scheme": "https",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "https",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "https",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h1.example.com",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "https",
+                "host": "h1.example.com",
+                "path": "/quote/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_quote_ambassador_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h1.example.com",
+                "path": "/quote/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_quote_ambassador_default"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "server_names": [
+          "h2.example.com"
+        ],
+        "transport_protocol": "tls",
+        "vhosts": [
+          {
+            "name": "ambassador-listener-8443-h2.example.com",
+            "routes": [
+              {
+                "scheme": "implicit-http",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/check_alive",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "h2.example.com",
+                "path": "/ambassador/v0/check_ready",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_127_0_0_1_8877_default"
+              },
+              {
+                "scheme": "implicit-http",
+                "host": "h2.example.com",
+                "path": "/quote/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "REDIRECT",
+                "action_arg": " HTTPS"
+              },
+              {
+                "scheme": "https",
+                "host": "h2.example.com",
+                "path": "/quote/",
+                "authority": "",
+                "authorityMatch": "",
+                "action": "ROUTE",
+                "action_arg": " cluster_quote_ambassador_default"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -219,7 +219,7 @@ commands:
           - "ingresstest"
           - "pytest"
           - "pytest-envoy"
-          - "pytest-envoy-v3"
+          - "pytest-envoy-v2"
         default: "test"
       "fast-reconfigure":
         type: boolean
@@ -238,7 +238,7 @@ commands:
           condition:
             or:
               - equal: [ "pytest-envoy", << parameters.test >> ]
-              - equal: [ "pytest-envoy-v3", << parameters.test >> ]
+              - equal: [ "pytest-envoy-v2", << parameters.test >> ]
           steps:
             - amb-skip-if-no-changes-not-release:
                 to: "(/envoy\\.mk$|/python/tests/gold/|/pytest/gold/|/cmd/ambex/)"

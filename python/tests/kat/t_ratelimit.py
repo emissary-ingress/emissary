@@ -25,6 +25,7 @@ class RateLimitV0Test(AmbassadorTest):
 apiVersion: ambassador/v0
 kind:  Mapping
 name:  ratelimit_target_mapping
+host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 rate_limits:
@@ -36,6 +37,7 @@ rate_limits:
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  ratelimit_label_mapping
+host: "*"
 prefix: /labels/
 service: {self.target.path.fqdn}
 labels:
@@ -114,6 +116,7 @@ class RateLimitV1Test(AmbassadorTest):
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  ratelimit_target_mapping
+host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 labels:
@@ -200,6 +203,7 @@ alpn_protocols: h2
 apiVersion: ambassador/v1
 kind:  Mapping
 name:  ratelimit_target_mapping
+host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 labels:
@@ -267,6 +271,7 @@ class RateLimitV2Test(AmbassadorTest):
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  ratelimit_target_mapping
+host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 labels:
@@ -338,6 +343,7 @@ class RateLimitV3Test(AmbassadorTest):
 apiVersion: ambassador/v2
 kind:  Mapping
 name:  ratelimit_target_mapping
+host: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 labels:
