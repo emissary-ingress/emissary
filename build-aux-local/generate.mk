@@ -13,6 +13,8 @@ generate/files += $(OSS_HOME)/OPENSOURCE.md
 generate/files += $(OSS_HOME)/builder/requirements.txt
 generate/files += $(OSS_HOME)/CHANGELOG.md
 
+generate/precious += $(OSS_HOME)/builder/requirements.txt
+
 generate: ## Update generated sources that get committed to git
 generate:
 	$(MAKE) generate-clean
@@ -31,16 +33,12 @@ _generate:
 	}
 generate-clean: ## Delete generated sources that get committed to git
 generate-clean:
-	rm -rf $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb
-	rm -rf $(OSS_HOME)/pkg/api/envoy $(OSS_HOME)/pkg/api/pb
-	rm -rf $(OSS_HOME)/_cxx/envoy/build_go
-	rm -rf $(OSS_HOME)/pkg/api/kat
-	rm -f $(OSS_HOME)/pkg/api/agent/*.pb.go
+	rm -rf $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb $(OSS_HOME)/pkg/api/kat
 	rm -rf $(OSS_HOME)/python/ambassador/proto
+	rm -rf $(OSS_HOME)/_cxx/envoy/build_go
+	rm -f $(OSS_HOME)/pkg/api/agent/*.pb.go
 	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js
-	rm -rf $(OSS_HOME)/pkg/envoy-control-plane
-	rm -f $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
-	rm -f $(OSS_HOME)/OPENSOURCE.md
+	rm -rf $(filter-out $(generate/precious),$(generate/files))
 .PHONY: generate _generate generate-clean
 
 go-mod-tidy/oss:
