@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
@@ -35,9 +36,7 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 	for _, h := range s.Hosts {
 		var id amb.AmbassadorID
 		if len(h.Spec.AmbassadorID) > 0 {
-			id = h.Spec.AmbassadorID
-		} else {
-			id = h.Spec.DeprecatedAmbassadorID
+			id = amb.AmbassadorID(h.Spec.AmbassadorID)
 		}
 		if include(id) {
 			resources = append(resources, h)
@@ -148,7 +147,7 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 // Find all the secrets a given Ambassador resource references.
 func findSecretRefs(ctx context.Context, resource kates.Object, secretNamespacing bool, action func(snapshotTypes.SecretRef)) {
 	switch r := resource.(type) {
-	case *amb.Host:
+	case *v3alpha1.Host:
 		// The Host resource is a little odd. Host.spec.tls, Host.spec.tlsSecret, and
 		// host.spec.acmeProvider.privateKeySecret can all refer to secrets.
 		if r.Spec == nil {

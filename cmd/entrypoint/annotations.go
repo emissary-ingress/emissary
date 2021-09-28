@@ -72,8 +72,8 @@ func convertAnnotation(ctx context.Context, parent kates.Object, kobj kates.Obje
 		gvk.Group = "getambassador.io"
 	}
 
-	if gvk.Group != "getambassador.io" {
-		dlog.Debugf(ctx, "Annotation does not have group getambassador.io")
+	if !(gvk.Group == "getambassador.io" || gvk.Group == "x.getambassador.io") {
+		dlog.Debugf(ctx, "Annotation does not have group [x.]getambassador.io")
 		return un
 	}
 

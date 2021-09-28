@@ -42,13 +42,13 @@ func ReconcileConsul(ctx context.Context, consul *consul, s *snapshotTypes.Kuber
 	}
 
 	for _, m := range s.Mappings {
-		if include(m.Spec.AmbassadorID) {
+		if include(amb.AmbassadorID(m.Spec.AmbassadorID)) {
 			mappings = append(mappings, consulMapping{Service: m.Spec.Service, Resolver: m.Spec.Resolver})
 		}
 	}
 
 	for _, tm := range s.TCPMappings {
-		if include(tm.Spec.AmbassadorID) {
+		if include(amb.AmbassadorID(tm.Spec.AmbassadorID)) {
 			mappings = append(mappings, consulMapping{Service: tm.Spec.Service, Resolver: tm.Spec.Resolver})
 		}
 	}

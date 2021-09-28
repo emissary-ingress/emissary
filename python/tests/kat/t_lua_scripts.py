@@ -28,8 +28,8 @@ spec:
         response_handle: headers():add("Lua-Scripts-Enabled", "$LUA_SCRIPTS_ENABLED")
       end
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: lua-target-mapping
 spec:

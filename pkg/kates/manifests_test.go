@@ -9,7 +9,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 )
 
 var svc = `
@@ -84,8 +84,8 @@ func TestMergeUpdate(t *testing.T) {
 }
 
 const mapping = `---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name:  mapping-name
 spec:

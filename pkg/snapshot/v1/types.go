@@ -59,9 +59,9 @@ type KubernetesSnapshot struct {
 
 	// ambassador resources
 	Listeners   []*ambv3alpha1.AmbassadorListener `json:"Listener"`
-	Hosts       []*amb.Host                       `json:"Host"`
-	Mappings    []*amb.Mapping                    `json:"Mapping"`
-	TCPMappings []*amb.TCPMapping                 `json:"TCPMapping"`
+	Hosts       []*ambv3alpha1.Host               `json:"Host"`
+	Mappings    []*ambv3alpha1.Mapping            `json:"Mapping"`
+	TCPMappings []*ambv3alpha1.TCPMapping         `json:"TCPMapping"`
 	Modules     []*amb.Module                     `json:"Module"`
 	TLSContexts []*amb.TLSContext                 `json:"TLSContext"`
 

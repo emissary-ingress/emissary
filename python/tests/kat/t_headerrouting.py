@@ -24,8 +24,8 @@ class HeaderRoutingTest(MappingTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-target1
 host: "*"
 prefix: /{self.name}/
@@ -33,8 +33,8 @@ service: http://{self.target.path.fqdn}
 """)
         yield self.target2, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-target2
 host: "*"
 prefix: /{self.name}/
@@ -129,8 +129,8 @@ allowed_authorization_headers:
 """)
         yield self.target1, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-target1
 host: "*"
 prefix: /target/
@@ -138,8 +138,8 @@ service: http://{self.target1.path.fqdn}
 """)
         yield self.target2, self.format("""
 ---
-apiVersion: getambassador.io/v2
-kind:  Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name:  {self.name}-target2
 host: "*"
 prefix: /target/

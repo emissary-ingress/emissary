@@ -7,8 +7,8 @@ spec:
   address: consul-server.default:$CONSULPORT
   datacenter: dc1
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   name: hello
   namespace: default
@@ -17,8 +17,8 @@ spec:
   service: hello
   resolver: consul-dc1
 ---
-apiVersion: getambassador.io/v2
-kind: TCPMapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorTCPMapping
 metadata:
   name: hello-tcp
   namespace: default

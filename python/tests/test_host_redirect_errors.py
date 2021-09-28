@@ -42,8 +42,8 @@ def require_errors(ir: IR, errors: List[Tuple[str, str]]):
 def test_hr_good_1():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-1
     namespace: default
@@ -52,8 +52,8 @@ spec:
     prefix: /
     service: svc1
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-2
     namespace: default
@@ -76,8 +76,8 @@ spec:
 def test_hr_error_1():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-1
     namespace: default
@@ -87,8 +87,8 @@ spec:
     service: svc1
     host_redirect: true
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-2
     namespace: default
@@ -116,8 +116,8 @@ spec:
 def test_hr_error_2():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-1
     namespace: default
@@ -127,8 +127,8 @@ spec:
     service: svc1
     host_redirect: true
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-2
     namespace: default
@@ -155,8 +155,8 @@ spec:
 def test_hr_error_3():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-1
     namespace: default
@@ -165,8 +165,8 @@ spec:
     prefix: /
     service: svc1
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-2
     namespace: default
@@ -194,8 +194,8 @@ spec:
 def test_hr_error_4():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-1
     namespace: default
@@ -207,8 +207,8 @@ spec:
     path_redirect: /path/
     prefix_redirect: /prefix/
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-2
     namespace: default
@@ -222,8 +222,8 @@ spec:
       pattern: /regex/
       substitution: /substitution/
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
     name: mapping-3
     namespace: default

@@ -61,7 +61,7 @@ func getExpected(expectedFile string, inputObjects []kates.Object) ([]testutils.
 }
 
 func testSemanticSet(t *testing.T, inputFile string, expectedFile string) {
-	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true, DiagdDebug: true}, nil)
+	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true, DiagdDebug: false}, nil)
 
 	inputObjects := testutils.LoadYAML(inputFile)
 

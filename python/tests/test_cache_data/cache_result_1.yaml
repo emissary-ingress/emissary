@@ -1,6 +1,6 @@
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   namespace: default
   name: foo-0
@@ -9,8 +9,8 @@ spec:
   service: foo-0.example.com
 
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   namespace: default
   name: foo-1
@@ -19,8 +19,8 @@ spec:
   service: foo-1.example.com
 
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   namespace: default
   name: foo-2
@@ -29,8 +29,8 @@ spec:
   service: httpbin.org
 
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   namespace: default
   name: foo-3
@@ -39,8 +39,8 @@ spec:
   service: foo-3.example.com
 
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   namespace: default
   name: foo-4
@@ -49,8 +49,8 @@ spec:
   service: foo-4.example.com
 
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   namespace: default
   name: foo-5
@@ -59,8 +59,8 @@ spec:
   service: foo-5.example.com
 
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   namespace: default
   name: foo-6
@@ -69,8 +69,8 @@ spec:
   service: foo-6.example.com
 
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   namespace: default
   name: foo-7
@@ -79,8 +79,8 @@ spec:
   service: foo-7.example.com
 
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   namespace: default
   name: foo-8
@@ -89,8 +89,8 @@ spec:
   service: foo-8.example.com
 
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 metadata:
   namespace: default
   name: foo-9

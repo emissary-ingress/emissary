@@ -14,7 +14,7 @@ func TestAmbassadorMetaInfo(t *testing.T) {
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, &snapshot.AmbassadorMetaInfo{ClusterID: "foo"})
 	// Set some meta info we can check for.
 	f.Upsert(&v2.Mapping{
-		TypeMeta:   kates.TypeMeta{Kind: "Mapping"},
+		TypeMeta:   kates.TypeMeta{Kind: "AmbassadorMapping"},
 		ObjectMeta: kates.ObjectMeta{Name: "foo"},
 		Spec:       v2.MappingSpec{Prefix: "/foo", Service: "1.2.3.4"},
 	})

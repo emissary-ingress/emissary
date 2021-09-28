@@ -41,8 +41,8 @@ name: ambassador
 config:
   max_request_headers_kb: 96
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name: ambassador
 host: "*"
 prefix: /test/
@@ -78,8 +78,8 @@ name: ambassador
 config:
   max_request_headers_kb: 96
 ---
-apiVersion: getambassador.io/v2
-kind: Mapping
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorMapping
 name: ambassador
 host: "*"
 prefix: /test/
