@@ -117,15 +117,33 @@ type MappingSpec struct {
 	// +kubebuilder:validation:MinItems=1
 	ErrorResponseOverrides []ErrorResponseOverride `json:"error_response_overrides,omitempty"`
 	Modules                []UntypedDict           `json:"modules,omitempty"`
-	Host                   string                  `json:"host,omitempty"`
-	HostRegex              *bool                   `json:"host_regex,omitempty"`
-	Headers                map[string]BoolOrString `json:"headers,omitempty"`
-	RegexHeaders           map[string]BoolOrString `json:"regex_headers,omitempty"`
-	Labels                 DomainMap               `json:"labels,omitempty"`
-	EnvoyOverride          *UntypedDict            `json:"envoy_override,omitempty"`
-	LoadBalancer           *LoadBalancer           `json:"load_balancer,omitempty"`
-	QueryParameters        map[string]BoolOrString `json:"query_parameters,omitempty"`
-	RegexQueryParameters   map[string]BoolOrString `json:"regex_query_parameters,omitempty"`
+	// Exact match for the hostname of a request if HostRegex is false; regex match for the
+	// hostname if HostRegex is true.
+	//
+	// Host specifies both a match for the ':authority' header of a request, as well as a match
+	// criterion for Host CRDs: a Mapping that specifies Host will not associate with a Host that
+	// doesn't have a matching Hostname.
+	//
+	// If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is
+	// used.
+	Host      string `json:"host,omitempty"`
+	HostRegex *bool  `json:"host_regex,omitempty"`
+	// Glob match for the hostname of a request. Ignores HostRegex.
+	//
+	// Hostname specifies both a match for the ':authority' header of a request, as well as a
+	// match criterion for Host CRDs: a Mapping that specifies Hostname will not associate with
+	// a Host that doesn't have a matching Hostname.
+	//
+	// If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is
+	// used.
+	Hostname             string                  `json:"hostname,omitempty"`
+	Headers              map[string]BoolOrString `json:"headers,omitempty"`
+	RegexHeaders         map[string]BoolOrString `json:"regex_headers,omitempty"`
+	Labels               DomainMap               `json:"labels,omitempty"`
+	EnvoyOverride        *UntypedDict            `json:"envoy_override,omitempty"`
+	LoadBalancer         *LoadBalancer           `json:"load_balancer,omitempty"`
+	QueryParameters      map[string]BoolOrString `json:"query_parameters,omitempty"`
+	RegexQueryParameters map[string]BoolOrString `json:"regex_query_parameters,omitempty"`
 }
 
 // DocsInfo provides some extra information about the docs for the Mapping
