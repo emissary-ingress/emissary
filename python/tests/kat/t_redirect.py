@@ -230,7 +230,7 @@ class XFPRedirect(AmbassadorTest):
     def manifests(self):
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Listener
 metadata:
   name: ambassador-listener-8080
