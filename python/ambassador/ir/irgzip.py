@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from .ir import IR # pragma: no cover
 
 class IRGzip (IRFilter):
-    
+
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.gzip",
                  name: str="ir.gzip",
@@ -31,5 +31,5 @@ class IRGzip (IRFilter):
         self["content_type"] = self.pop('content_type', [])
         self["disable_on_etag_header"] = self.pop('disable_on_etag_header', None)
         self["remove_accept_encoding_header"] = self.pop('remove_accept_encoding_header', None)
-        
+
         return True

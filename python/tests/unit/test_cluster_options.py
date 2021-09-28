@@ -57,7 +57,7 @@ def test_logical_dns_type_wrong():
     yaml = module_and_mapping_manifests(None, ["dns_type: something_new"])
     for v in SUPPORTED_ENVOY_VERSIONS:
         # The dns type is listed as just "type"
-        _test_cluster_setting(yaml, setting="type", 
+        _test_cluster_setting(yaml, setting="type",
             expected="STRICT_DNS", exists=True, envoy_version=v)
 
 @pytest.mark.compilertest
@@ -66,5 +66,5 @@ def test_logical_dns_type_wrong():
     yaml = module_and_mapping_manifests(None, ["dns_type: logical_dns", "resolver: endpoint"])
     for v in SUPPORTED_ENVOY_VERSIONS:
         # The dns type is listed as just "type"
-        _test_cluster_setting(yaml, setting="type", 
+        _test_cluster_setting(yaml, setting="type",
             expected="EDS", exists=True, envoy_version=v)
