@@ -246,8 +246,8 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Mapping\nname: tracing_target_mapping_65\nprefix: /target-65/\nservice: tracingtestsampling-http\nambassador_id: tracingtestsampling\n",
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: tracing_target_mapping_65\\nprefix: /target-65/\\nservice: tracingtestsampling-http\\nambassador_id: tracingtestsampling\\n\"},\"labels\":{\"kat-ambassador-id\":\"tracingtestsampling\",\"scope\":\"AmbassadorTest\"},\"name\":\"tracingtestsampling-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8158},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8521}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                        "getambassador.io/config": "---\napiVersion: getambassador.io/v2\nkind: Mapping\nname: tracing_target_mapping_65\nprefix: /target-65/\nservice: tracingtestsampling-http\nambassador_id: tracingtestsampling\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: getambassador.io/v2\\nkind: Mapping\\nname: tracing_target_mapping_65\\nprefix: /target-65/\\nservice: tracingtestsampling-http\\nambassador_id: tracingtestsampling\\n\"},\"labels\":{\"kat-ambassador-id\":\"tracingtestsampling\",\"scope\":\"AmbassadorTest\"},\"name\":\"tracingtestsampling-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8158},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8521}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
                     "creationTimestamp": "2020-12-23T20:40:26Z",
                     "labels": {

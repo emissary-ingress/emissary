@@ -19,7 +19,7 @@ class AmbassadorProcessor (ManagedKubernetesProcessor):
             'Host',
             'KubernetesEndpointResolver',
             'KubernetesServiceResolver',
-            'Listener',
+            'AmbassadorListener',
             'LogService',
             'Mapping',
             'Module',

@@ -92,7 +92,7 @@ spec:
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-pr
 host: "*"
@@ -103,7 +103,7 @@ circuit_breakers:
   max_pending_requests: 1
   max_connections: 1
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: {self.name}-reset
 case_sensitive: false
@@ -112,7 +112,7 @@ prefix: /reset/
 rewrite: /RESET/
 service: cbstatsd-sink
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: {self.name}-dump
 case_sensitive: false
@@ -216,7 +216,7 @@ requestPolicy:
   insecure:
     action: Route
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-pr
 host: "*"
@@ -227,14 +227,14 @@ circuit_breakers:
   max_pending_requests: 1024
   max_connections: 1024
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-normal
 host: "*"
 prefix: /{self.name}-normal/
 service: {self.target.path.fqdn}
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:

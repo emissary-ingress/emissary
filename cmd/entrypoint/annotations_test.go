@@ -262,12 +262,12 @@ prefix: /blah/`,
 			testName: "old-group-v1",
 			objString: `
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: cool-mapping
 prefix: /blah/`,
 			kind:         "Mapping",
-			apiVersion:   "ambassador/v1",
+			apiVersion:   "getambassador.io/v2",
 			parentns:     "somens",
 			parentLabels: map[string]string{},
 			expectedObj: &amb.Mapping{

@@ -58,12 +58,12 @@ type KubernetesSnapshot struct {
 	Endpoints      []*kates.Endpoints    `json:"Endpoints"`
 
 	// ambassador resources
-	Listeners   []*ambv3alpha1.Listener `json:"Listener"`
-	Hosts       []*amb.Host             `json:"Host"`
-	Mappings    []*amb.Mapping          `json:"Mapping"`
-	TCPMappings []*amb.TCPMapping       `json:"TCPMapping"`
-	Modules     []*amb.Module           `json:"Module"`
-	TLSContexts []*amb.TLSContext       `json:"TLSContext"`
+	Listeners   []*ambv3alpha1.AmbassadorListener `json:"Listener"`
+	Hosts       []*amb.Host                       `json:"Host"`
+	Mappings    []*amb.Mapping                    `json:"Mapping"`
+	TCPMappings []*amb.TCPMapping                 `json:"TCPMapping"`
+	Modules     []*amb.Module                     `json:"Module"`
+	TLSContexts []*amb.TLSContext                 `json:"TLSContext"`
 
 	// plugin services
 	AuthServices      []*amb.AuthService      `json:"AuthService"`

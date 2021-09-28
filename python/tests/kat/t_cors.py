@@ -14,7 +14,7 @@ class GlobalCORSTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
@@ -22,14 +22,14 @@ config:
     origins: http://foo.example.com
     methods: POST, GET, OPTIONS
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-foo
 host: "*"
 prefix: /foo/
 service: {self.target.path.fqdn}
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}-bar
 host: "*"

@@ -23,7 +23,7 @@ rules:
 - apiGroups: [""]
   resources: [ "endpoints", "namespaces", "secrets", "services" ]
   verbs: ["get", "list", "watch"]
-- apiGroups: [ "getambassador.io" ]
+- apiGroups: [ "x.getambassador.io", "getambassador.io" ]
   resources: [ "*" ]
   verbs: ["get", "list", "watch"]
 - apiGroups: [ "getambassador.io" ]

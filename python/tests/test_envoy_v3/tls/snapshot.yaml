@@ -182,8 +182,8 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nname: tls\nambassador_id: tls\nconfig:\n  server:\n    enabled: True\n    secret: test-tls-secret\n",
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Module\\nname: tls\\nambassador_id: tls\\nconfig:\\n  server:\\n    enabled: True\\n    secret: test-tls-secret\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"tls\",\"scope\":\"AmbassadorTest\"},\"name\":\"tls\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"tls\"},\"type\":\"NodePort\"}}\n"
+                        "getambassador.io/config": "---\napiVersion: getambassador.io/v2\nkind: Module\nname: tls\nambassador_id: tls\nconfig:\n  server:\n    enabled: True\n    secret: test-tls-secret\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: getambassador.io/v2\\nkind: Module\\nname: tls\\nambassador_id: tls\\nconfig:\\n  server:\\n    enabled: True\\n    secret: test-tls-secret\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"tls\",\"scope\":\"AmbassadorTest\"},\"name\":\"tls\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"tls\"},\"type\":\"NodePort\"}}\n"
                     },
                     "creationTimestamp": "2020-12-23T20:40:11Z",
                     "labels": {
@@ -272,8 +272,8 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Mapping\nname: tls_target_mapping\nprefix: /tls-target/\nservice: tls-http\nambassador_id: tls\n",
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: tls_target_mapping\\nprefix: /tls-target/\\nservice: tls-http\\nambassador_id: tls\\n\"},\"labels\":{\"kat-ambassador-id\":\"tls\",\"scope\":\"AmbassadorTest\"},\"name\":\"tls-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8144},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8507}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                        "getambassador.io/config": "---\napiVersion: getambassador.io/v2\nkind: Mapping\nname: tls_target_mapping\nprefix: /tls-target/\nservice: tls-http\nambassador_id: tls\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: getambassador.io/v2\\nkind: Mapping\\nname: tls_target_mapping\\nprefix: /tls-target/\\nservice: tls-http\\nambassador_id: tls\\n\"},\"labels\":{\"kat-ambassador-id\":\"tls\",\"scope\":\"AmbassadorTest\"},\"name\":\"tls-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8144},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8507}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
                     "creationTimestamp": "2020-12-23T20:40:12Z",
                     "labels": {

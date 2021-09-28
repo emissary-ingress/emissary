@@ -126,54 +126,22 @@
                       "name": "envoy.filters.http.ext_authz",
                       "typed_config": {
                         "@type": "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz",
+                        "clear_route_cache": true,
                         "http_service": {
                           "authorization_request": {
                             "allowed_headers": {
                               "patterns": [
                                 {
-                                  "exact": "Authorization"
+                                  "exact": "authorization"
                                 },
                                 {
-                                  "exact": "Cookie"
+                                  "exact": "cookie"
                                 },
                                 {
-                                  "exact": "Forwarded"
+                                  "exact": "from"
                                 },
                                 {
-                                  "exact": "From"
-                                },
-                                {
-                                  "exact": "Host"
-                                },
-                                {
-                                  "exact": "Proxy-Authenticate"
-                                },
-                                {
-                                  "exact": "Proxy-Authorization"
-                                },
-                                {
-                                  "exact": "Set-Cookie"
-                                },
-                                {
-                                  "exact": "User-Agent"
-                                },
-                                {
-                                  "exact": "WWW-Authenticate"
-                                },
-                                {
-                                  "exact": "X-Forwarded-For"
-                                },
-                                {
-                                  "exact": "X-Forwarded-Host"
-                                },
-                                {
-                                  "exact": "X-Forwarded-Proto"
-                                },
-                                {
-                                  "exact": "X-Gateway-Proto"
-                                },
-                                {
-                                  "exact": "extauth"
+                                  "exact": "proxy-authorization"
                                 },
                                 {
                                   "exact": "requested-header"
@@ -185,19 +153,7 @@
                                   "exact": "requested-status"
                                 },
                                 {
-                                  "exact": "x-b3-flags"
-                                },
-                                {
-                                  "exact": "x-b3-parentspanid"
-                                },
-                                {
-                                  "exact": "x-b3-sampled"
-                                },
-                                {
-                                  "exact": "x-b3-spanid"
-                                },
-                                {
-                                  "exact": "x-b3-traceid"
+                                  "exact": "user-agent"
                                 },
                                 {
                                   "exact": "x-bar"
@@ -206,10 +162,17 @@
                                   "exact": "x-foo"
                                 },
                                 {
-                                  "exact": "x-ot-span-context"
+                                  "exact": "x-forwarded-for"
+                                },
+                                {
+                                  "exact": "x-forwarded-host"
+                                },
+                                {
+                                  "exact": "x-forwarded-proto"
                                 }
                               ]
-                            }
+                            },
+                            "headers_to_add": []
                           },
                           "authorization_response": {
                             "allowed_client_headers": {
@@ -225,15 +188,6 @@
                                 },
                                 {
                                   "exact": "proxy-authenticate"
-                                },
-                                {
-                                  "exact": "requested-header"
-                                },
-                                {
-                                  "exact": "requested-location"
-                                },
-                                {
-                                  "exact": "requested-status"
                                 },
                                 {
                                   "exact": "set-cookie"
@@ -262,15 +216,6 @@
                                 },
                                 {
                                   "exact": "proxy-authenticate"
-                                },
-                                {
-                                  "exact": "requested-header"
-                                },
-                                {
-                                  "exact": "requested-location"
-                                },
-                                {
-                                  "exact": "requested-status"
                                 },
                                 {
                                   "exact": "set-cookie"

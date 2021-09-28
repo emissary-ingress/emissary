@@ -14,7 +14,7 @@ class GzipMinimumConfigTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
@@ -23,7 +23,7 @@ config:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"
@@ -47,7 +47,7 @@ class GzipTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
@@ -59,7 +59,7 @@ config:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"
@@ -83,7 +83,7 @@ class GzipNotSupportedContentTypeTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
@@ -94,7 +94,7 @@ config:
 """)
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.target.path.k8s}
 host: "*"

@@ -103,7 +103,7 @@ spec:
 
 valid_mapping_v1 = k8s_object_from_yaml('''
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: test
@@ -359,7 +359,7 @@ class TestServiceAnnotations:
                 'name': 'test',
                 'namespace': 'default',
                 'annotations': {
-                    'getambassador.io/config': """apiVersion: getambassador.io/v1
+                    'getambassador.io/config': """apiVersion: getambassador.io/v2
 kind: Mapping
 name: test_mapping
 host: "*"
@@ -372,7 +372,7 @@ service: test:9999""",
         assert len(self.manager.elements) == 1
 
         expected = {
-            'apiVersion': 'getambassador.io/v1',
+            'apiVersion': 'getambassador.io/v2',
             'kind': 'Mapping',
             'name': 'test_mapping',
             'host': "*",

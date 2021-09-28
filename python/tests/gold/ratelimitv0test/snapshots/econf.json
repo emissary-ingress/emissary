@@ -318,20 +318,6 @@
                                 {
                                   "actions": [
                                     {
-                                      "source_cluster": {}
-                                    },
-                                    {
-                                      "destination_cluster": {}
-                                    },
-                                    {
-                                      "remote_address": {}
-                                    },
-                                    {
-                                      "generic_key": {
-                                        "descriptor_value": "A test case"
-                                      }
-                                    },
-                                    {
                                       "request_headers": {
                                         "descriptor_key": "x-ambassador-test-allow",
                                         "header_name": "x-ambassador-test-allow"
@@ -369,20 +355,6 @@
                               "rate_limits": [
                                 {
                                   "actions": [
-                                    {
-                                      "source_cluster": {}
-                                    },
-                                    {
-                                      "destination_cluster": {}
-                                    },
-                                    {
-                                      "remote_address": {}
-                                    },
-                                    {
-                                      "generic_key": {
-                                        "descriptor_value": "A test case"
-                                      }
-                                    },
                                     {
                                       "request_headers": {
                                         "descriptor_key": "x-ambassador-test-allow",

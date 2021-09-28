@@ -59,7 +59,7 @@ data:
         # be annotated on the Ambassador itself.
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: tls
 ambassador_id: {self.ambassador_id}
@@ -72,7 +72,7 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tls_target_mapping
 host: "*"
@@ -115,7 +115,7 @@ class RedirectTestsWithProxyProto(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
@@ -125,7 +125,7 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tls_target_mapping
 host: "*"
@@ -177,7 +177,7 @@ class RedirectTestsInvalidSecret(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: tls
 ambassador_id: {self.ambassador_id}
@@ -190,7 +190,7 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tls_target_mapping
 host: "*"
@@ -230,8 +230,8 @@ class XFPRedirect(AmbassadorTest):
     def manifests(self):
         return self.format('''
 ---
-apiVersion: getambassador.io/v3alpha1
-kind: Listener
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
 metadata:
   name: ambassador-listener-8080
 spec:
@@ -263,7 +263,7 @@ name: ambassador
 config:
   use_remote_address: false
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  {self.name}
 host: "*"

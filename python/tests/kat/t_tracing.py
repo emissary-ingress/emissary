@@ -69,7 +69,7 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tracing_target_mapping
 host: "*"
@@ -80,7 +80,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: TracingService
 name: tracing
 service: zipkin:9411
@@ -188,7 +188,7 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tracing_target_mapping_longclustername
 host: "*"
@@ -199,7 +199,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: TracingService
 name: tracing-longclustername
 service: zipkinservicenamewithoversixtycharacterstoforcenamecompression:9411
@@ -301,7 +301,7 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tracing_target_mapping_64
 host: "*"
@@ -393,7 +393,7 @@ spec:
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tracing_target_mapping
 host: "*"
@@ -403,7 +403,7 @@ service: {self.target.path.fqdn}
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: TracingService
 name: tracing-auth
 service: zipkin-auth:9411
@@ -412,12 +412,12 @@ driver: zipkin
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
 path_prefix: "/extauth"
-allowed_headers:
+allowed_request_headers:
 - Requested-Status
 - Requested-Header
 """)
@@ -496,7 +496,7 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tracing_target_mapping_65
 host: "*"
@@ -598,7 +598,7 @@ spec:
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tracing_target_mapping
 host: "*"
@@ -720,7 +720,7 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tracing_target_mapping
 host: "*"

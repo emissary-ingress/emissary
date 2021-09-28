@@ -54,8 +54,8 @@ data:
   tls.crt: {TLSCerts["tls-context-host-2"].k8s_crt}
   tls.key: {TLSCerts["tls-context-host-2"].k8s_key}
 ---
-apiVersion: getambassador.io/v3alpha1
-kind: Listener
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
 metadata:
   name: {self.path.k8s}-listener
   labels:
@@ -131,7 +131,7 @@ spec:
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 name: {self.name}-tlscontext
 hosts:
@@ -143,27 +143,27 @@ secret: supersecret
 
         yield self.target1, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  TCPMapping
 name:  {self.name}
 port: 9876
 service: {self.target1.path.fqdn}:443
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  TCPMapping
 name:  {self.name}-local-only
 address: 127.0.0.1
 port: 8765
 service: {self.target1.path.fqdn}:443
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  TCPMapping
 name:  {self.name}-clear-to-tls
 port: 7654
 tls: true
 service: {self.target2.path.fqdn}:443
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  TCPMapping
 name:  {self.name}-1
 port: 6789
@@ -174,7 +174,7 @@ service: {self.target1.path.fqdn}:80
         # Host-differentiated.
         yield self.target2, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  TCPMapping
 name:  {self.name}-2
 port: 6789
@@ -186,7 +186,7 @@ tls: {self.name}-tlscontext
         # Host-differentiated.
         yield self.target3, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  TCPMapping
 name:  {self.name}-3
 port: 6789

@@ -246,8 +246,8 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Mapping\nname: tracing_target_mapping\nprefix: /target/\nservice: tracingtestzipkinv2-http\nambassador_id: tracingtestzipkinv2\n",
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: tracing_target_mapping\\nprefix: /target/\\nservice: tracingtestzipkinv2-http\\nambassador_id: tracingtestzipkinv2\\n\"},\"labels\":{\"kat-ambassador-id\":\"tracingtestzipkinv2\",\"scope\":\"AmbassadorTest\"},\"name\":\"tracingtestzipkinv2-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8159},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8522}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                        "getambassador.io/config": "---\napiVersion: getambassador.io/v2\nkind: Mapping\nname: tracing_target_mapping\nprefix: /target/\nservice: tracingtestzipkinv2-http\nambassador_id: tracingtestzipkinv2\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: getambassador.io/v2\\nkind: Mapping\\nname: tracing_target_mapping\\nprefix: /target/\\nservice: tracingtestzipkinv2-http\\nambassador_id: tracingtestzipkinv2\\n\"},\"labels\":{\"kat-ambassador-id\":\"tracingtestzipkinv2\",\"scope\":\"AmbassadorTest\"},\"name\":\"tracingtestzipkinv2-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8159},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8522}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
                     "creationTimestamp": "2020-12-23T20:40:27Z",
                     "labels": {

@@ -3,8 +3,8 @@
 # h2.example.com HTTP to HTTPS. So it won't actually function, but sure, you can 
 # set things tup that way.
 ---
-apiVersion: getambassador.io/v3alpha1
-kind: Listener
+apiVersion: x.getambassador.io/v3alpha1
+kind: AmbassadorListener
 metadata:
   name: cleartext-listener
 spec:

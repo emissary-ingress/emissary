@@ -22,7 +22,7 @@ from ambassador.ir.irbuffer import IRBuffer
 
 yaml = '''
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: test_mapping
 host: "*"

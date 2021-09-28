@@ -83,7 +83,7 @@ class Config:
         'authservice': "auth_configs",
         'consulresolver': "resolvers",
         'host': "hosts",
-        'listener': "listeners",
+        'ambassadorlistener': "listeners",
         'mapping': "mappings",
         'kubernetesendpointresolver': "resolvers",
         'kubernetesserviceresolver': "resolvers",
@@ -466,7 +466,7 @@ class Config:
 
         # OK. If it really starts with getambassador.io/, we're good, and we can strip
         # that off to make comparisons and keying easier.
-        if apiVersion.startswith("getambassador.io/"):
+        if apiVersion.startswith("getambassador.io/") or apiVersion.startswith("x.getambassador.io/"):
             is_ambassador = True
             apiVersion = apiVersion.split('/')[1]
         elif apiVersion.startswith('networking.internal.knative.dev'):

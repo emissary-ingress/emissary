@@ -352,7 +352,7 @@ def main(k8s_yaml_paths: List[str], debug: bool, force_pod_labels: bool, update:
     if not source:
         source = [
             "Host", "service", "ingresses",
-            "AuthService", "Listener", "LogService", "Mapping", "Module", "RateLimitService",
+            "AuthService", "AmbassadorListener", "LogService", "Mapping", "Module", "RateLimitService",
             "TCPMapping", "TLSContext", "TracingService",
             "ConsulResolver", "KubernetesEndpointResolver", "KubernetesServiceResolver"
         ]

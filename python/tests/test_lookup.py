@@ -21,7 +21,7 @@ from ambassador.ir.irbuffer import IRBuffer
 
 yaml = '''
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config:
@@ -33,7 +33,7 @@ config:
             altered: 4
             funk: 8
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: test_mapping
 host: "*"
