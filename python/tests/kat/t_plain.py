@@ -37,7 +37,7 @@ metadata:
       hostname: "*"
       prefix: /SimpleMapping-HTTP-all/
       service: http://plain-simplemapping-http-all-http.plain
-      ambassador_id: plain      
+      ambassador_id: plain
       ---
       apiVersion: getambassador.io/v3alpha1
       kind: Host
@@ -117,7 +117,7 @@ spec:
     def config(self) -> Union[str, Tuple[Node, str]]:
         yield self, """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config: {}

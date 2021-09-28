@@ -39,7 +39,7 @@ spec:
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -179,7 +179,7 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-same-context-1
 secret: auth-partial-secret
@@ -274,7 +274,7 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -282,12 +282,12 @@ config:
   buffer:
     max_request_bytes: 16384
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-same-context-1
 secret: auth-buffered-secret
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -417,13 +417,13 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-failure-context
 secret: auth-failure-secret
 
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -480,7 +480,7 @@ class AuthenticationTestV1(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth1.path.k8s}
 auth_service: "{self.auth1.path.fqdn}"
@@ -503,7 +503,7 @@ status_on_error:
   code: 503
 
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth2.path.k8s}
 auth_service: "{self.auth2.path.fqdn}"
@@ -698,7 +698,7 @@ class AuthenticationTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -833,7 +833,7 @@ class AuthenticationWebsocketTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"

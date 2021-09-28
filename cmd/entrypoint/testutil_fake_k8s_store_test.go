@@ -208,19 +208,19 @@ func canonGVK(kind string) (canonKind string, canonGroupVersion string) {
 	case "authservices":
 		fallthrough
 	case "authservices.getambassador.io":
-		return "AuthService", "getambassador.io/v2"
+		return "AuthService", "getambassador.io/v3alpha1"
 	case "consulresolver":
 		fallthrough
 	case "consulresolvers":
 		fallthrough
 	case "consulresolvers.getambassador.io":
-		return "ConsulResolver", "getambassador.io/v2"
+		return "ConsulResolver", "getambassador.io/v3alpha1"
 	case "devportal":
 		fallthrough
 	case "devportals":
 		fallthrough
 	case "devportals.getambassador.io":
-		return "DevPortal", "getambassador.io/v2"
+		return "DevPortal", "getambassador.io/v3alpha1"
 	case "host":
 		fallthrough
 	case "hosts":
@@ -232,13 +232,13 @@ func canonGVK(kind string) (canonKind string, canonGroupVersion string) {
 	case "kubernetesendpointresolvers":
 		fallthrough
 	case "kubernetesendpointresolvers.getambassador.io":
-		return "KubernetesEndpointResolver", "getambassador.io/v2"
+		return "KubernetesEndpointResolver", "getambassador.io/v3alpha1"
 	case "kubernetesserviceresolver":
 		fallthrough
 	case "kubernetesserviceresolvers":
 		fallthrough
 	case "kubernetesserviceresolvers.getambassador.io":
-		return "KubernetesServiceResolver", "getambassador.io/v2"
+		return "KubernetesServiceResolver", "getambassador.io/v3alpha1"
 	case "listener":
 		fallthrough
 	case "listeners":
@@ -250,7 +250,7 @@ func canonGVK(kind string) (canonKind string, canonGroupVersion string) {
 	case "logservices":
 		fallthrough
 	case "logservices.getambassador.io":
-		return "LogService", "getambassador.io/v2"
+		return "LogService", "getambassador.io/v3alpha1"
 	case "mapping":
 		fallthrough
 	case "mappings":
@@ -262,13 +262,13 @@ func canonGVK(kind string) (canonKind string, canonGroupVersion string) {
 	case "modules":
 		fallthrough
 	case "modules.getambassador.io":
-		return "Module", "getambassador.io/v2"
+		return "Module", "getambassador.io/v3alpha1"
 	case "ratelimitservice":
 		fallthrough
 	case "ratelimitservices":
 		fallthrough
 	case "ratelimitservices.getambassador.io":
-		return "RateLimitServices", "getambassador.io/v2"
+		return "RateLimitServices", "getambassador.io/v3alpha1"
 	case "tcpmapping":
 		fallthrough
 	case "tcpmappings":
@@ -280,13 +280,13 @@ func canonGVK(kind string) (canonKind string, canonGroupVersion string) {
 	case "tlscontexts":
 		fallthrough
 	case "tlscontexts.getambassador.io":
-		return "TLSContext", "getambassador.io/v2"
+		return "TLSContext", "getambassador.io/v3alpha1"
 	case "tracingservice":
 		fallthrough
 	case "tracingservices":
 		fallthrough
 	case "tracingservices.getambassador.io":
-		return "TracingService", "getambassador.io/v2"
+		return "TracingService", "getambassador.io/v3alpha1"
 	case "gatewayclasses.networking.x-k8s.io":
 		return "GatewayClass", "networking.x-k8s.io/v1alpha1"
 	case "gateways.networking.x-k8s.io":

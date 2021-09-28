@@ -36,7 +36,7 @@ spec:
 
     def apply_qotm_endpoint_manifests(self, namespace):
         qotm_resolver = f"""
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: KubernetesEndpointResolver
 metadata:
   name: qotm-resolver

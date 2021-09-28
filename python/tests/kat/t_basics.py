@@ -56,10 +56,10 @@ class AmbassadorIDTest(AmbassadorTest):
     def config(self) -> Union[str, Tuple[Node, str]]:
         yield self, """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
-config: 
+config:
   use_ambassador_namespace_for_service_resolution: true
 """
         for prefix, amb_id in (("findme", "[{self.ambassador_id}]"),
@@ -94,7 +94,7 @@ class InvalidResources(AmbassadorTest):
         self.resource_names = []
 
         self.models = [ """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  AuthService
 metadata:
   name:  {self.path.k8s}-as-bad1-<<WHICH>>
@@ -122,7 +122,7 @@ spec:
   prefix_bad: /bad-<<WHICH>>/
   service: {self.target.path.fqdn}
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 metadata:
   name:  {self.path.k8s}-md-bad-<<WHICH>>
@@ -130,7 +130,7 @@ spec:
   ambassador_id: ["{self.ambassador_id}"]
   config_bad: []
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  RateLimitService
 metadata:
   name:  {self.path.k8s}-r-bad-<<WHICH>>
@@ -156,7 +156,7 @@ spec:
   service_bad: {self.target.path.fqdn}
   port: 8888
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  TracingService
 metadata:
   name:  {self.path.k8s}-ts-bad1-<<WHICH>>
@@ -165,7 +165,7 @@ spec:
   driver_bad: zipkin
   service: {self.target.path.fqdn}
 """, """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  TracingService
 metadata:
   name:  {self.path.k8s}-ts-bad2-<<WHICH>>
@@ -236,7 +236,7 @@ spec:
 
         for resource, error in errors:
             error_dict[resource] = error.split("\n", 1)[0]
-        
+
         for name in self.resource_names:
             assert name in error_dict, f"no error found for {name}"
 
@@ -260,7 +260,7 @@ class ServerNameTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:

@@ -86,7 +86,7 @@ def test_irratelimit_defaultsv3():
 
     # Test all defaults
     yaml = """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 metadata:
   name: myrls
@@ -108,7 +108,7 @@ def test_irratelimit_defaults():
 
     # Test all defaults
     yaml = """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 metadata:
   name: myrls
@@ -129,7 +129,7 @@ def test_irratelimit_grpcsvc_version_v3():
     # Test protocol_version override
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 metadata:
   name: myrls
@@ -154,7 +154,7 @@ def test_irratelimit_grpcsvc_version_v2():
     # Test protocol_version override
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 metadata:
   name: myrls
@@ -177,7 +177,7 @@ def test_irratelimit_error():
     # Test error no svc name
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 metadata:
   name: myrls
@@ -195,7 +195,7 @@ def test_irratelimit_error_v3():
     # Test error no svc name
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 metadata:
   name: myrls
@@ -215,7 +215,7 @@ def test_irratelimit_overrides():
     config = _get_ratelimit_default_conf_v2()
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 metadata:
   name: myrls
@@ -245,7 +245,7 @@ def test_irratelimit_overrides_v3():
     config = _get_ratelimit_default_conf_v3()
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 metadata:
   name: myrls

@@ -60,14 +60,14 @@ prefix: /blah/
 
 	ambSvcAnnotations := `
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 config:
   diagnostics:
     enabled: true
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: KubernetesEndpointResolver
 name: endpoint`
 
@@ -147,7 +147,7 @@ prefix: /blah/`
 	expectedModule := &amb.Module{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Module",
-			APIVersion: "getambassador.io/v2",
+			APIVersion: "getambassador.io/v3alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ambassador",
@@ -160,7 +160,7 @@ prefix: /blah/`
 	expectedResolver := &amb.KubernetesEndpointResolver{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KubernetesEndpointResolver",
-			APIVersion: "getambassador.io/v2",
+			APIVersion: "getambassador.io/v3alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "endpoint",
@@ -351,20 +351,20 @@ prefix: /blah/`,
 			testName: "module",
 			objString: `
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 config:
   diagnostics:
     enabled: true`,
 			kind:         "Module",
-			apiVersion:   "getambassador.io/v2",
+			apiVersion:   "getambassador.io/v3alpha1",
 			parentns:     "somens",
 			parentLabels: map[string]string{},
 			expectedObj: &amb.Module{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "Module",
-					APIVersion: "getambassador.io/v2",
+					APIVersion: "getambassador.io/v3alpha1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "ambassador",

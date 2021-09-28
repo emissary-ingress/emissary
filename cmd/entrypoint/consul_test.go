@@ -16,7 +16,7 @@ import (
 
 const manifests = `
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: ConsulResolver
 metadata:
   name: consultest-resolver
@@ -63,7 +63,7 @@ port: 3090
 service: consultest-consul-service-tcp
 resolver: consultest-resolver
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  TLSContext
 name:  consultest-client-context
 secret: consultest-client-cert-secret

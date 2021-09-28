@@ -59,7 +59,7 @@ data:
         # be annotated on the Ambassador itself.
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: tls
 ambassador_id: {self.ambassador_id}
@@ -92,7 +92,7 @@ service: {self.target.path.fqdn}
 
     def check(self):
         # For query 0, check the redirection target.
-        assert len(self.results[0].headers['Location']) > 0 
+        assert len(self.results[0].headers['Location']) > 0
         assert self.results[0].headers['Location'][0].find('/tls-target/') > 0
 
         # For query 1, we require no errors.
@@ -115,7 +115,7 @@ class RedirectTestsWithProxyProto(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -177,7 +177,7 @@ class RedirectTestsInvalidSecret(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: tls
 ambassador_id: {self.ambassador_id}
@@ -303,4 +303,3 @@ service: {self.target.path.fqdn}
         # We're replacing super()'s requirements deliberately here: we need the XFP header or they can't work.
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"X-Forwarded-Proto": "https"}))
         yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"X-Forwarded-Proto": "https"}))
-

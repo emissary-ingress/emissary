@@ -21,7 +21,7 @@ class EnvoyLogTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 ambassador_id: {self.ambassador_id}
@@ -52,7 +52,7 @@ class EnvoyLogJSONTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 ambassador_id: {self.ambassador_id}

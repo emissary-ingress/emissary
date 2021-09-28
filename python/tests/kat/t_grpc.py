@@ -11,7 +11,7 @@ class AcceptanceGrpcTest(AmbassadorTest):
     def config(self):
 #         yield self, self.format("""
 # ---
-# apiVersion: getambassador.io/v2
+# apiVersion: getambassador.io/v3alpha1
 # kind:  Module
 # name:  ambassador
 # # """)
@@ -66,11 +66,11 @@ class EndpointGrpcTest(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: KubernetesEndpointResolver
 metadata:
     name: my-endpoint
-spec:    
+spec:
     ambassador_id: ["endpointgrpctest"]
 ''') + super().manifests()
 

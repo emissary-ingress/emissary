@@ -80,7 +80,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing
 service: zipkin:9411
@@ -199,7 +199,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing-longclustername
 service: zipkinservicenamewithoversixtycharacterstoforcenamecompression:9411
@@ -312,7 +312,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing-64
 service: zipkin-64:9411
@@ -403,7 +403,7 @@ service: {self.target.path.fqdn}
 
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing-auth
 service: zipkin-auth:9411
@@ -412,7 +412,7 @@ driver: zipkin
 
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -507,7 +507,7 @@ service: {self.target.path.fqdn}
         # Configure the TracingService.
         yield self, """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 name: tracing-65
 service: zipkin-65:9411

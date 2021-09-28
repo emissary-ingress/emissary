@@ -208,7 +208,7 @@ spec:
   tlsSecret:
     name: {self.path.k8s}-manual-secret
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 metadata:
   name: {self.path.k8s}-manual-host-context
@@ -290,7 +290,7 @@ spec:
   tlsContext:
     name: {self.path.k8s}-separate-tls-context
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 metadata:
   name: {self.path.k8s}-separate-tls-context
