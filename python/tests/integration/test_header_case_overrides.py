@@ -82,7 +82,7 @@ spec:
 def _ambassador_module_config():
     return '''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   name: ambassador
@@ -143,7 +143,7 @@ spec:
   hostname: "*"
   prefix: /httpbin/
 '''
- 
+
     fetcher = ResourceFetcher(logger, aconf)
     fetcher.parse_yaml(yaml, k8s=True)
 
@@ -298,7 +298,7 @@ class HeaderCaseOverridesTesting:
     def create_module(self, namespace):
         manifest = f"""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   name: ambassador

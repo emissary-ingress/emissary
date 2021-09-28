@@ -238,7 +238,7 @@ metadata:
       hostname: "*"
       prefix: /{self.name}-nested/
       service: http://{self.target.path.fqdn}
-      ambassador_id: {self.ambassador_id}
+      ambassador_id: [{self.ambassador_id}]
     kubernetes.io/ingress.class: ambassador
     getambassador.io/ambassador-id: {self.ambassador_id}
   name: {self.name.k8s}

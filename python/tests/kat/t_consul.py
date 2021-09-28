@@ -26,16 +26,16 @@ class ConsulTest(AmbassadorTest):
         self.datacenter = "dc12"
 
         # We use Consul's local-config environment variable to set the datacenter name
-        # on the actual Consul pod. That means that we need to supply the datacenter 
+        # on the actual Consul pod. That means that we need to supply the datacenter
         # name in JSON format.
-        # 
+        #
         # In a perfect world this would just be
-        # 
+        #
         # self.datacenter_dict = { "datacenter": self.datacenter }
         #
         # but the world is not perfect, so we have to supply it as JSON with LOTS of
         # escaping, since this gets passed through self.format (hence two layers of
-        # doubled braces) and JSON decoding (hence backslash-escaped double quotes, 
+        # doubled braces) and JSON decoding (hence backslash-escaped double quotes,
         # and of course the backslashes themselves have to be escaped...)
         self.datacenter_json = f'{{{{\\\"datacenter\\\":\\\"{self.datacenter}\\\"}}}}'
 
@@ -86,7 +86,7 @@ metadata:
   name: consul-test-namespace
 """) + super().manifests() + consul_manifest + self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: ConsulResolver
 metadata:
   name: {self.path.k8s}-resolver

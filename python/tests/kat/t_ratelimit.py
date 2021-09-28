@@ -63,7 +63,7 @@ labels:
         # For self.with_tracing, we want to configure the TracingService.
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"
@@ -136,7 +136,7 @@ labels:
 
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"
@@ -198,7 +198,7 @@ type: kubernetes.io/tls
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: ratelimit-tls-context
 secret: ratelimit-tls-secret
@@ -223,7 +223,7 @@ labels:
 
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"

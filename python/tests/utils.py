@@ -191,7 +191,7 @@ def get_code_with_retry(req, headers={}):
 def zipkin_tracing_service_manifest():
     return """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TracingService
 metadata:
   name: tracing
@@ -235,7 +235,7 @@ spec:
 def module_and_mapping_manifests(module_confs, mapping_confs):
     yaml = default_listener_manifests() + """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   name: ambassador
