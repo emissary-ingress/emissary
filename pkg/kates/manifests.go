@@ -16,8 +16,7 @@ import (
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 	"sigs.k8s.io/yaml"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
-	ambv3alpha1 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 )
 
 var sch = runtime.NewScheme()
@@ -26,7 +25,6 @@ func init() {
 	scheme.AddToScheme(sch)
 	apiextensions.AddToScheme(sch)
 	amb.AddToScheme(sch)
-	ambv3alpha1.AddToScheme(sch)
 	gw.AddToScheme(sch)
 }
 
