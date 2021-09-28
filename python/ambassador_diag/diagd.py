@@ -98,7 +98,7 @@ else:
     # Check for env var log level
     if level_name := os.getenv("AES_LOG_LEVEL"):
         level_number = logging.getLevelName(level_name.upper())
-        
+
         if isinstance(level_number, int):
             level = level_number
 

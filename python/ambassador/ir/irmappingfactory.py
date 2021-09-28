@@ -58,7 +58,7 @@ class MappingFactory:
                 # key must be an IRBaseMapping, but let's assert that rather than casting.
                 assert(isinstance(cached_mapping, IRBaseMapping))
                 mapping = cached_mapping
-               
+
             ir.logger.debug(f"IR: adding Mapping for {config.name}")
             ir.add_mapping(aconf, mapping)
 

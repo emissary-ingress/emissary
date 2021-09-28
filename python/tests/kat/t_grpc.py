@@ -70,7 +70,7 @@ apiVersion: getambassador.io/v2
 kind: KubernetesEndpointResolver
 metadata:
     name: my-endpoint
-spec:    
+spec:
     ambassador_id: ["endpointgrpctest"]
 ''') + super().manifests()
 

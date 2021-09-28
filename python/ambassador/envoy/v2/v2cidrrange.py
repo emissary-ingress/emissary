@@ -4,7 +4,7 @@ from ipaddress import ip_address, IPv4Address, IPv6Address
 
 class CIDRRange:
     """
-    A CIDRRange is an IP address (either v4 or v6) plus a prefix length. It 
+    A CIDRRange is an IP address (either v4 or v6) plus a prefix length. It
     corresponds to an envoy.api.v2.core.CidrRange.
     """
 

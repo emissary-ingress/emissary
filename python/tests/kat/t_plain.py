@@ -37,7 +37,7 @@ metadata:
       hostname: "*"
       prefix: /SimpleMapping-HTTP-all/
       service: http://plain-simplemapping-http-all-http.plain
-      ambassador_id: plain      
+      ambassador_id: plain
       ---
       apiVersion: x.getambassador.io/v3alpha1
       kind: AmbassadorHost

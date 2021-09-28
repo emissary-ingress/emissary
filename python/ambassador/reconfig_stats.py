@@ -53,7 +53,7 @@ class ReconfigStats:
         # logic around the last reconfigure and for logging.
         self.reconfigures: List[Tuple[str, PerfCounter]] = []
 
-        # self.counts tracks how many of each kind of reconfiguration have 
+        # self.counts tracks how many of each kind of reconfiguration have
         # happened, for metrics.
         self.counts = {
             "incremental": 0,
@@ -107,7 +107,7 @@ class ReconfigStats:
         update_counters = True
 
         if what == 'complete':
-            # For a complete reconfigure, we need to clear all the outstanding 
+            # For a complete reconfigure, we need to clear all the outstanding
             # incrementals, and also remember when it happened.
             self.incrementals_outstanding = 0
             self.last_complete = when
@@ -152,7 +152,7 @@ class ReconfigStats:
         :param when: Override the effective time of the check. Primarily useful for testing.
         :return: True if a check is needed, False if not
         """
-        
+
         if not when:
             when = time.perf_counter()
 
@@ -160,7 +160,7 @@ class ReconfigStats:
             # No reconfigures, so no need to check.
             # self.logger.debug(f"NEEDS_CHECK @ {when}: no reconfigures, skip")
             return False
-        
+
         # Grab information about our last reconfiguration.
         what, _ = self.reconfigures[-1]
 
@@ -197,20 +197,20 @@ class ReconfigStats:
             # Yup, it's been long enough.
             # self.logger.debug(f"NEEDS_CHECK @ {when}: delta {delta}, check")
             return True
-    
+
         # self.logger.debug(f"NEEDS_CHECK @ {when}: delta {delta}, skip")
         return False
 
     def needs_timers(self, when: Optional[PerfCounter]=None) -> bool:
         """
-        Determine if we need to log the timers or not. The logic here is that 
+        Determine if we need to log the timers or not. The logic here is that
         we need to log every max_configs_between_timers incrementals or every
         or every max_time_between_timers seconds, whichever comes first.
 
         :param when: Override the effective time of the check. Primarily useful for testing.
         :return: True if we need to log timers, False if not
         """
-        
+
         if not when:
             when = time.perf_counter()
 
@@ -218,7 +218,7 @@ class ReconfigStats:
             # No reconfigures, so no need to check.
             # self.logger.debug(f"NEEDS_TIMERS @ {when}: no reconfigures, skip")
             return False
-        
+
         # If we have no configurations outstanding, we're done.
         if self.configs_outstanding == 0:
             # self.logger.debug(f"NEEDS_TIMERS @ {when}: outstanding 0, skip")
@@ -233,8 +233,8 @@ class ReconfigStats:
         # self.logger.debug(f"NEEDS_TIMERS @ {when}: outstanding {self.configs_outstanding}")
 
         # We're good for outstanding incrementals. How about the max time between timers?
-        # Note that we may _never_ have logged timers before -- if that's the case, use 
-        # the time of our last complete reconfigure, which must always be set, as a 
+        # Note that we may _never_ have logged timers before -- if that's the case, use
+        # the time of our last complete reconfigure, which must always be set, as a
         # baseline.
 
         assert(self.last_complete is not None)
@@ -246,7 +246,7 @@ class ReconfigStats:
             # Yup, it's been long enough.
             # self.logger.debug(f"NEEDS_TIMERS @ {when}: delta {delta}, check")
             return True
-    
+
         # self.logger.debug(f"NEEDS_TIMERS @ {when}: delta {delta}, skip")
         return False
 
@@ -266,7 +266,7 @@ class ReconfigStats:
 
         if not result:
             self.errors += 1
-    
+
         self.last_check = when or time.perf_counter()
 
     def mark_timers_logged(self, when: Optional[PerfCounter]=None) -> None:
@@ -301,7 +301,7 @@ class ReconfigStats:
 
         for what in [ "incremental", "complete" ]:
             self.logger.info(f"CACHE: {what} count: {self.counts[what]}")
-        
+
         self.logger.info(f"CACHE: incrementals outstanding: {self.incrementals_outstanding}")
         self.logger.info(f"CACHE: incremental checks: {self.checks}, errors {self.errors}")
         self.logger.info(f"CACHE: last_complete {self.isofmt(self.last_complete, now_pc, now_dt)}")

@@ -143,7 +143,7 @@ spec:
   hostname: "*"
   prefix: /httpbin/
 '''
- 
+
     fetcher = ResourceFetcher(logger, aconf)
     fetcher.parse_yaml(yaml, k8s=True)
 

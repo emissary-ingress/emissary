@@ -136,9 +136,9 @@ def check_listener(listener, envoy_version):
 
     print(f"---- Listener @ {port}, {got_count} chain{got_plural}:")
 
-    # In this test, we can derive chain counts, protocols, and expected stat_prefix from 
+    # In this test, we can derive chain counts, protocols, and expected stat_prefix from
     # the port number. Ports 8443 and 8888 do HTTP and HTTPS, so they need two chains.
-    # Ports < 9000 use HTTP, not TCP. 
+    # Ports < 9000 use HTTP, not TCP.
 
     check_info = {
         8080: ( "HCM", 1, EnvoyHCMInfo, "ingress_http" ),
@@ -156,7 +156,7 @@ def check_listener(listener, envoy_version):
 
     econf_foreach_listener_chain(
         listener, checker, chain_count=chain_count,
-        need_name=filter_info[envoy_version].name, 
+        need_name=filter_info[envoy_version].name,
         need_type=filter_info[envoy_version].type)
 
 @pytest.mark.compilertest

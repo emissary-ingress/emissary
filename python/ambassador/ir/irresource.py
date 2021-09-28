@@ -37,7 +37,7 @@ class IRResource (Resource):
     _active: bool
     _errored: bool
     _cache_key: Optional[str]
-    
+
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str,
                  kind: str,
@@ -89,7 +89,7 @@ class IRResource (Resource):
         """
         Look up a key in the Ambassador module's "defaults" element.
 
-        The "lookup class" is 
+        The "lookup class" is
         - the lookup_class parameter if one was passed, else
         - self.default_class if that's set, else
         - None.
@@ -110,7 +110,7 @@ class IRResource (Resource):
         :param lookup_class: the lookup class, see above
         :return: Any
         """
-        
+
         defaults = self.ir.ambassador_module.get('defaults', {})
 
         lclass = lookup_class

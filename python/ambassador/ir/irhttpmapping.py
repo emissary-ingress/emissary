@@ -245,14 +245,14 @@ class IRHTTPMapping (IRBaseMapping):
                     ir.logger.debug("IRHTTPMapping %s: self.host contains * (%s, host)", name, host)
                 else:
                     ir.logger.debug("IRHTTPMapping %s: self.host == %s (host)", name, self.host)
-    
+
         # Finally, check for 'hostname'.
         if 'hostname' in kwargs:
             # It's deliberate that we allow kwargs['hostname'] to override anything else -- even a regex host.
             # Yell about it, though.
             if host:
                 ir.logger.warning("Mapping %s in namespace %s: both host and hostname are set, using hostname and ignoring host", name, namespace)
-            
+
             # No need to be so careful about "*" here, since hostname is defined to be a glob.
             host = kwargs['hostname']
             host_regex = False
@@ -474,7 +474,7 @@ class IRHTTPMapping (IRBaseMapping):
         self._enforce_mutual_exclusion('path_redirect', 'regex_redirect')
         self._enforce_mutual_exclusion('prefix_redirect', 'regex_redirect')
 
-        ir.logger.debug("Mapping %s: setup OK: host %s hostname %s regex %s", 
+        ir.logger.debug("Mapping %s: setup OK: host %s hostname %s regex %s",
                         self.name, self.get('host'), self.get('hostname'), self.get('host_regex'))
 
         return True

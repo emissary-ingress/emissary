@@ -247,7 +247,7 @@ class IngressProcessor (ManagedKubernetesProcessor):
                     # of "*" so that the Mapping we generate doesn't get dropped.
                     if not ingress_id:
                         spec['hostname'] = "*"
-                
+
                 mapping_labels = dict(obj.labels)
 
                 if ingress_id:

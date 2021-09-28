@@ -404,7 +404,7 @@ spec:
 # """)
 
         # Use self.target _here_, because we want the mapping to be annotated
-        # on the service, not the Ambassador. Also, you don't need to include 
+        # on the service, not the Ambassador. Also, you don't need to include
         # the ambassador_id unless you need some special ambassador_id that
         # isn't something that kat already knows about.
         #

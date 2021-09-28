@@ -243,7 +243,7 @@ def test_qualify_service():
     assert qualify_service_name(ir, "https://fe80::e022:9cff:fecc:c7c4", "otherns") == "https://fe80::e022:9cff:fecc:c7c4"
     assert qualify_service_name(ir, "https://bad-service:-1", "otherns") == "https://bad-service:-1"
     assert qualify_service_name(ir, "https://bad-service:70000", "otherns") == "https://bad-service:70000"
-    
+
     assert normalize_service_name(ir, "https://bad-service:443:443", "otherns", 'ConsulResolver') == "https://bad-service:443:443"
     assert normalize_service_name(ir, "https://bad-service:443:443", "otherns", 'ConsulResolver', rkey="test-rkey") == "https://bad-service:443:443"
     assert normalize_service_name(ir, "bad-service:443:443", "otherns", 'ConsulResolver') == "bad-service:443:443"
