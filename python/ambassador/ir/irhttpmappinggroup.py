@@ -51,12 +51,17 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         # 'timeout_ms': True
     }
 
+    # We don't flatten cluster_key and stats_name because the whole point of those
+    # two is that you're asking for something special with stats. Note that we also
+    # don't do collision checking specially for the stats_name: if you ask for the
+    # same stats_name in two unrelated mappings, on your own head be it.
+
     DoNotFlattenKeys: ClassVar[Dict[str, bool]] = dict(CoreMappingKeys)
     DoNotFlattenKeys.update({
         'add_request_headers': True,    # do this manually.
         'add_response_headers': True,   # do this manually.
         'cluster': True,
-        'cluster_key': True,
+        'cluster_key': True,            # See above about stats.
         'kind': True,
         'location': True,
         'name': True,
@@ -64,6 +69,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         'rkey': True,
         'route_weight': True,
         'service': True,
+        'stats_name': True,             # See above about stats.
         'weight': True,
     })
 
@@ -248,7 +254,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                                 cluster_idle_timeout_ms=mapping.get('cluster_idle_timeout_ms', None),
                                 cluster_max_connection_lifetime_ms=mapping.get('cluster_max_connection_lifetime_ms', None),
                                 circuit_breakers=mapping.get('circuit_breakers', None),
-                                marker=marker)
+                                marker=marker, stats_name=mapping.get('stats_name'))
 
         # Make sure that the cluster is actually in our IR...
         stored = self.ir.add_cluster(cluster)

@@ -121,6 +121,7 @@ class IRHTTPMapping (IRBaseMapping):
         # Do not include rewrite
         "service": False,       # See notes above
         "shadow": False,
+        "stats_name": True,
         "timeout_ms": False,
         "tls": False,
         "use_websocket": False,

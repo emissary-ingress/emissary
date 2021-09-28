@@ -13,6 +13,7 @@
   "static_resources": {
     "clusters": [
       {
+        "alt_stat_name": "127_0_0_1_8877",
         "circuit_breakers": {
           "thresholds": [
             {
@@ -49,6 +50,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "globalcircuitbreakingtest_http",
         "circuit_breakers": {
           "thresholds": [
             {
@@ -85,6 +87,7 @@
         "type": "STRICT_DNS"
       },
       {
+        "alt_stat_name": "globalcircuitbreakingtest_http",
         "circuit_breakers": {
           "thresholds": [
             {

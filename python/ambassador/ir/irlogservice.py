@@ -72,7 +72,8 @@ class IRLogService(IRResource):
                 service=self.service,
                 host_rewrite=self.get('host_rewrite', None),
                 marker='logging',
-                grpc=self.grpc
+                grpc=self.grpc,
+                stats_name=self.get("stats_name", None)
             )
         )
 

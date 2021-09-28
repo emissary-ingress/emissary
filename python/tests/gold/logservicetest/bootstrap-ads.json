@@ -74,6 +74,7 @@
         "name": "xds_cluster"
       },
       {
+        "alt_stat_name": "stenography_25565",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",

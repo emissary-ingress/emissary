@@ -74,6 +74,7 @@
         "name": "xds_cluster"
       },
       {
+        "alt_stat_name": "zipkin_v2_9411",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
