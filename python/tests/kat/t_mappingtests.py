@@ -370,7 +370,7 @@ name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/status/
 rewrite: /status/
-service: httpbin
+service: httpbin.default
 """)
 
     def queries(self):

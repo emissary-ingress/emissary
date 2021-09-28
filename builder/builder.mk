@@ -284,6 +284,7 @@ docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag
 	    time ${DBUILD} -f ${BUILDER_HOME}/Dockerfile . \
 	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	      --build-arg=version=$(BUILD_VERSION) \
 	      --target=ambassador \
 	      --iidfile=$@; \
 	    unset TIMEFORMAT; \
@@ -470,9 +471,19 @@ pytest: docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote
 	@echo "KAT_CLIENT_DOCKER_IMAGE=$$KAT_CLIENT_DOCKER_IMAGE"
 	@echo "KAT_SERVER_DOCKER_IMAGE=$$KAT_SERVER_DOCKER_IMAGE"
 	@echo "DEV_KUBECONFIG=$$DEV_KUBECONFIG"
+	@echo "KAT_RUN_MODE=$$KAT_RUN_MODE"
+	@echo "PYTEST_ARGS=$$PYTEST_ARGS"
 	. $(OSS_HOME)/venv/bin/activate; \
 		$(OSS_HOME)/builder/builder.sh pytest-local
 .PHONY: pytest
+
+pytest-unit:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) unit tests$(END)\n"
+	@$(MAKE) setup-envoy
+	@$(MAKE) setup-diagd
+	. $(OSS_HOME)/venv/bin/activate; \
+		PYTEST_ARGS="$$PYTEST_ARGS python/tests/unit" $(OSS_HOME)/builder/builder.sh pytest-local-unit
+.PHONY: pytest-unit
 
 pytest-integration:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) integration tests$(END)\n"
@@ -501,16 +512,47 @@ pytest-builder: test-ready
 	$(MAKE) pytest-builder-only
 .PHONY: pytest-builder
 
+pytest-envoy-ah:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy$(GRN) kat tests (ah) $(END)\n"
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range ah python/tests/kat"
+.PHONY: pytest-envoy-ah
+
+pytest-envoy-ip:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy$(GRN) kat tests (ip)$(END)\n"
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range ip python/tests/kat"
+.PHONY: pytest-envoy-ip
+
+pytest-envoy-qz:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy$(GRN) kat tests (qz)$(END)\n"
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS --letter-range qz python/tests/kat"
+.PHONY: pytest-envoy-qz
+
+
 pytest-envoy:
-	$(MAKE) pytest KAT_RUN_MODE=envoy
+	$(MAKE) pytest KAT_RUN_MODE=envoy PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
 .PHONY: pytest-envoy
 
 pytest-envoy-builder:
 	$(MAKE) pytest-builder KAT_RUN_MODE=envoy
 .PHONY: pytest-envoy-builder
 
+pytest-envoy-v2-ah:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy v2$(GRN) kat tests (ah)$(END)\n"
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range ah python/tests/kat"
+.PHONY: pytest-envoy-ah
+
+pytest-envoy-v2-ip:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy v2$(GRN) kat tests (ip)$(END)\n"
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range ip python/tests/kat"
+.PHONY: pytest-envoy-v2-ip
+
+pytest-envoy-v2-qz:
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py envoy v2$(GRN) kat tests (qz)$(END)\n"
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS --letter-range qz python/tests/kat"
+.PHONY: pytest-envoy-v2-qz
+
 pytest-envoy-v2:
-	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2
+	$(MAKE) pytest KAT_RUN_MODE=envoy AMBASSADOR_ENVOY_API_VERSION=V2 PYTEST_ARGS="$$PYTEST_ARGS python/tests/kat"
 .PHONY: pytest-envoy-v2
 
 pytest-envoy-v2-builder:
@@ -550,15 +592,15 @@ pytest-gold:
 	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
 
 mypy-server-stop: sync
-	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal stop
+	test -t 1 && USE_TTY="-t"; docker exec -i ${USE_TTY} $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal stop
 .PHONY: mypy
 
 mypy-server: sync
-	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal start
+	 test -t 1 && USE_TTY="-t"; docker exec -i ${USE_TTY} $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal start
 .PHONY: mypy
 
 mypy: mypy-server
-	docker exec -it $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal check
+	test -t 1 && USE_TTY="-t"; docker exec -i ${USE_TTY} $(shell $(BUILDER)) /buildroot/builder.sh mypy-internal check
 .PHONY: mypy
 
 GOTEST_PKGS = github.com/datawire/ambassador/v2/...
@@ -585,7 +627,7 @@ setup-venv:
 			pip install orjson==3.3.1; \
 			rm -f venv/lib/python3.8/site-packages/_manylinux.py; \
 		else \
-			pip install orjson; \
+			pip install orjson==3.6.0; \
 		fi; \
 		pip install -r $(OSS_HOME)/builder/requirements.txt; \
 		pip install -e $(OSS_HOME)/python; \
@@ -834,7 +876,7 @@ release/promote-oss/to-ga:
 		  printf "$(RED)==> found no passed dev version for $$commit in S3...$(END)\n" ;\
 		  exit 1 ;\
       fi ;\
- 	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
+	  printf "$(CYN)==> $(GRN)found version $(BLU)$$dev_version$(GRN) for $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
 	  $(MAKE) release/promote-oss/.main \
 	    PROMOTE_FROM_VERSION="$$dev_version" \
 		PROMOTE_FROM_REPO=$(DEV_REGISTRY) \

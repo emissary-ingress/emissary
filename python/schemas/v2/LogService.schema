@@ -43,7 +43,8 @@
         },
         "flush_interval_time": { "type": "integer" },
         "flush_interval_byte_size": { "type": "integer" },
-        "grpc": { "type": "boolean" }
+        "grpc": { "type": "boolean" },
+        "stats_name": { "type": "string" }
     },
     "required": [ "apiVersion", "kind", "name" ],
     "additionalProperties": false

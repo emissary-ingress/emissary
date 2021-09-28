@@ -1,0 +1,30 @@
+name: generate
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  execute-generate:
+    runs-on: ubuntu-latest
+    name: generate
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: "install bsdtar (libarchive-tools)"
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libarchive-tools
+      - name: "'make generate'"
+        run: |
+          make generate
+      - uses: ./.github/actions/git-dirty-check
+        name: "Check git not dirty from 'make generate'"
+      - name: "'make generate' (again!)"
+        run: |
+          make generate
+      - uses: ./.github/actions/git-dirty-check
+        name: "Check git not dirty from 'make generate' (again!)"
+

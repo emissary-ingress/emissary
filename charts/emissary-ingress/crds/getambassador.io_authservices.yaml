@@ -177,6 +177,8 @@ spec:
                 - v2
                 - v3
                 type: string
+              stats_name:
+                type: string
               status_on_error:
                 description: Why isn't this just an int??
                 properties:

@@ -48,7 +48,8 @@
         "tls": { "type": [ "string", "boolean" ] },
         "cluster_tag": { "type": "string" },
 
-        "service": { "type": "string" }
+        "service": { "type": "string" },
+        "stats_name": { "type": "string" }
     },
 
     "required": [ "apiVersion", "kind", "name", "service", "port" ],

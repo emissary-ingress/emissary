@@ -27,7 +27,8 @@
         "protocol_version": {
             "type": "string",
             "enum": [ "v2", "v3" ]
-        }
+        },
+        "stats_name": { "type": "string" }
     },
     "required": [ "apiVersion", "kind", "name", "service" ],
     "additionalProperties": false

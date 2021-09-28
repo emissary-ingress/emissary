@@ -6,6 +6,9 @@ from abstract_tests import AmbassadorTest, assert_default_errors
 from abstract_tests import MappingTest, Node
 from kat.utils import namespace_manifest
 
+import t_mappingtests
+import t_optiontests
+
 # Plain is the place that all the MappingTests get pulled in.
 
 

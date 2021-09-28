@@ -144,6 +144,7 @@ type MappingSpec struct {
 	LoadBalancer         *LoadBalancer           `json:"load_balancer,omitempty"`
 	QueryParameters      map[string]BoolOrString `json:"query_parameters,omitempty"`
 	RegexQueryParameters map[string]BoolOrString `json:"regex_query_parameters,omitempty"`
+	StatsName            string                  `json:"stats_name,omitempty"`
 }
 
 // DocsInfo provides some extra information about the docs for the Mapping

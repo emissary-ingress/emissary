@@ -60,9 +60,10 @@ following Free and Open Source software:
     github.com/fatih/color                                         v1.7.0                                                      MIT license
     github.com/form3tech-oss/jwt-go                                v3.2.2+incompatible                                         MIT license
     github.com/fsnotify/fsnotify                                   v1.4.9                                                      3-clause BSD license
+    github.com/getkin/kin-openapi                                  v0.66.0                                                     MIT license
     github.com/ghodss/yaml                                         v1.0.0                                                      3-clause BSD license, MIT license
-    github.com/go-logr/logr                                        v0.3.0                                                      Apache License 2.0
-    github.com/go-openapi/jsonpointer                              v0.19.3                                                     Apache License 2.0
+    github.com/go-logr/logr                                        v0.4.0                                                      Apache License 2.0
+    github.com/go-openapi/jsonpointer                              v0.19.5                                                     Apache License 2.0
     github.com/go-openapi/jsonreference                            v0.19.3                                                     Apache License 2.0
     github.com/go-openapi/spec                                     v0.19.3                                                     Apache License 2.0
     github.com/go-openapi/swag                                     v0.19.5                                                     Apache License 2.0
@@ -79,7 +80,7 @@ following Free and Open Source software:
     github.com/google/shlex                                        v0.0.0-20191202100458-e7afc7fbc510                          Apache License 2.0
     github.com/google/uuid                                         v1.1.2                                                      3-clause BSD license
     github.com/googleapis/gnostic                                  v0.5.1                                                      Apache License 2.0
-    github.com/gorilla/mux                                         v1.7.3                                                      3-clause BSD license
+    github.com/gorilla/mux                                         v1.8.0                                                      3-clause BSD license
     github.com/gorilla/websocket                                   v1.4.2                                                      2-clause BSD license
     github.com/gosuri/uitable                                      v0.0.4                                                      MIT license
     github.com/gregjones/httpcache                                 v0.0.0-20180305231024-9cad4c3443a7                          MIT license
@@ -170,8 +171,7 @@ following Free and Open Source software:
     k8s.io/client-go                                               v0.20.2                                                     Apache License 2.0
     k8s.io/component-base                                          v0.20.2                                                     Apache License 2.0
     k8s.io/helm                                                    v2.16.9+incompatible                                        Apache License 2.0
-    k8s.io/klog                                                    v1.0.0                                                      Apache License 2.0
-    k8s.io/klog/v2                                                 v2.4.0                                                      Apache License 2.0
+    k8s.io/klog/v2                                                 v2.10.0                                                     Apache License 2.0
     k8s.io/kube-openapi                                            v0.0.0-20201113171705-d219536bb9fd                          Apache License 2.0
     k8s.io/kubectl                                                 v0.20.2                                                     Apache License 2.0
     k8s.io/metrics                                                 v0.20.2                                                     Apache License 2.0

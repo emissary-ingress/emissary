@@ -10,21 +10,23 @@ import (
 
 func TestLoggingTextFormatterDefault(t *testing.T) {
 	os.Unsetenv("AMBASSADOR_JSON_LOGGING")
-	Init()
+	testInit()
 
-	formatter := GetLogrusFormatter()
-	fm, isTextFormatter := formatter.(*logrus.TextFormatter)
-	assert.True(t, isTextFormatter)
-	assert.Equal(t, "2006-01-02 15:04:05", fm.TimestampFormat)
+	fm, isTextFormatter := logrusLogger.Formatter.(*logrus.TextFormatter)
+	if !assert.True(t, isTextFormatter) {
+		return
+	}
+	assert.Equal(t, "2006-01-02 15:04:05.0000", fm.TimestampFormat)
 	assert.True(t, fm.FullTimestamp)
 }
 
 func TestLoggingJsonFormatter(t *testing.T) {
 	os.Setenv("AMBASSADOR_JSON_LOGGING", "true")
-	Init()
+	testInit()
 
-	formatter := GetLogrusFormatter()
-	fm, isJSONFormatter := formatter.(*logrus.JSONFormatter)
-	assert.True(t, isJSONFormatter)
-	assert.Equal(t, "2006-01-02 15:04:05", fm.TimestampFormat)
+	fm, isJSONFormatter := logrusLogger.Formatter.(*logrus.JSONFormatter)
+	if !assert.True(t, isJSONFormatter) {
+		return
+	}
+	assert.Equal(t, "2006-01-02 15:04:05.0000", fm.TimestampFormat)
 }

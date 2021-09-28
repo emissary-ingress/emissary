@@ -66,10 +66,19 @@ spec:
     {{- end}}
   selector:
     {{- if .Values.service.selector }}
-    {{ toYaml .Values.service.selector | nindent 6 }}
+    {{ toYaml .Values.service.selector | nindent 4 }}
     {{- else }}
     app.kubernetes.io/name: {{ include "ambassador.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- end }}
+    {{- if  .Values.canary}}
+    {{- if or (not (hasKey .Values.canary "mixPods")) (eq .Values.canary.mixPods false) }}
+    {{- if .Values.service.selector -}}
+    {{- nindent 4 "profile: main" -}}
+    {{- else }}
+    profile: main
+    {{- end }}
+    {{- end }}
     {{- end }}
   {{- with .Values.service.loadBalancerSourceRanges }}
   loadBalancerSourceRanges:
@@ -78,4 +87,4 @@ spec:
   {{- if .Values.service.externalIPs }}
   externalIPs:
     {{- toYaml .Values.service.externalIPs | nindent 4 }}
-  {{- end }}
+{{- end }}

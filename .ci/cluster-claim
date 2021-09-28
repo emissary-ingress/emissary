@@ -30,6 +30,8 @@ push_metrics() {
     build_label=
     if [[ -n "${CIRCLE_BUILD_NUM}" ]] ; then
         build_label=",build_id=${CIRCLE_BUILD_NUM}"
+    elif [[ -n "${GITHUB_RUN_NUMBER}" ]] ; then
+        build_label=",build_id=${GITHUB_RUN_NUMBER}"
     fi
     # could theoretically stick more data in here, like export the error step or something
     # but for now just going for the least intrusive change

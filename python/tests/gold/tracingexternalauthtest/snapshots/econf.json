@@ -449,7 +449,7 @@
                     ]
                   },
                   "server_name": "envoy",
-                  "stat_prefix": "ingress_http",
+                  "stat_prefix": "ingress_https",
                   "tracing": {},
                   "use_remote_address": true,
                   "xff_num_trusted_hops": 0
@@ -773,7 +773,7 @@
                     ]
                   },
                   "server_name": "envoy",
-                  "stat_prefix": "ingress_http",
+                  "stat_prefix": "ingress_https",
                   "tracing": {},
                   "use_remote_address": true,
                   "xff_num_trusted_hops": 0
@@ -1117,7 +1117,7 @@
                     ]
                   },
                   "server_name": "envoy",
-                  "stat_prefix": "ingress_http",
+                  "stat_prefix": "ingress_https",
                   "tracing": {},
                   "use_remote_address": true,
                   "xff_num_trusted_hops": 0
@@ -1441,7 +1441,7 @@
                     ]
                   },
                   "server_name": "envoy",
-                  "stat_prefix": "ingress_http",
+                  "stat_prefix": "ingress_https",
                   "tracing": {},
                   "use_remote_address": true,
                   "xff_num_trusted_hops": 0

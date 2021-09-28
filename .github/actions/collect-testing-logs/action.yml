@@ -41,7 +41,8 @@ runs:
         export KUBECONFIG=~/.kube/kubeception.yaml
         mkdir -p /tmp/pod-logs
         podsfile=/tmp/pod-logs/all-pods.txt
-        (kubectl get pods --all-namespaces -ocustom-columns="name:.metadata.name,namespace:.metadata.namespace " --no-headers || true) > $podsfile (kubectl describe pods --all-namespaces || true) > /tmp/pod-logs/all-pods-described.txt
+        (kubectl get pods --all-namespaces -ocustom-columns="name:.metadata.name,namespace:.metadata.namespace " --no-headers || true) > $podsfile
+        (kubectl describe pods --all-namespaces || true) > /tmp/pod-logs/all-pods-described.txt
 
         cat $podsfile | while IFS= read -r line; do
           name=$(echo $line | awk '{print $1}')

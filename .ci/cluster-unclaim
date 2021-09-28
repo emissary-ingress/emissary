@@ -30,5 +30,7 @@ set -o xtrace
 
 DEV_KUBECONFIG=~/.kube/kubeception.yaml
 if test -e "$DEV_KUBECONFIG"; then
+  if [ -n "${KUBECEPTION_TOKEN:-}" ]; then
     del_cluster ${DEV_KUBECONFIG}
+  fi
 fi

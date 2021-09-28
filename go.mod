@@ -65,6 +65,7 @@ require (
 	github.com/ecodia/golang-awaitility v0.0.0-20180710094957-fb55e59708c7
 	github.com/envoyproxy/protoc-gen-validate v0.3.0-java.0.20200609174644-bd816e4522c1
 	github.com/fsnotify/fsnotify v1.4.9
+	github.com/getkin/kin-openapi v0.66.0
 	github.com/golang/protobuf v1.4.3
 	github.com/google/go-cmp v0.5.5
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
@@ -93,7 +94,7 @@ require (
 	k8s.io/cli-runtime v0.20.2
 	k8s.io/client-go v0.20.2
 	k8s.io/helm v2.16.9+incompatible
-	k8s.io/klog v1.0.0
+	k8s.io/klog/v2 v2.10.0
 	k8s.io/kube-openapi v0.0.0-20201113171705-d219536bb9fd
 	k8s.io/kubectl v0.20.2
 	k8s.io/metrics v0.20.2

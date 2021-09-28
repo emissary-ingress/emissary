@@ -17,6 +17,20 @@
         "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
+            "name": "tcpmapping-with-stats-name",
+            "namespace": "default"
+        },
+        "spec": {
+            "port": 6789,
+            "service": "tcpmapping-base:80",
+            "stats_name": "alt-stats-name"
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v3alpha1",
+        "kind": "TCPMapping",
+        "metadata": {
+            "creationTimestamp": "2020-07-03T02:19:06Z",
             "name": "tcpmapping-breakers-defined",
             "namespace": "default"
         },

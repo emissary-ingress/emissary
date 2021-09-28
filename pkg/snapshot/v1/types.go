@@ -37,6 +37,9 @@ type Snapshot struct {
 	// portion of the snapshot. Changes in the Consul endpoint data are not
 	// reflected in this field.
 	Deltas []*kates.Delta
+	// The APIDocs field contains a list of OpenAPI documents scrapped from
+	// Ambassador Mappings part of the KubernetesSnapshot
+	APIDocs []*APIDoc `json:"APIDocs,omitempty"`
 	// The Invalid field contains any kubernetes resources that have failed
 	// validation.
 	Invalid []*kates.Unstructured
@@ -44,10 +47,11 @@ type Snapshot struct {
 }
 
 type AmbassadorMetaInfo struct {
-	ClusterID         string `json:"cluster_id"`
-	AmbassadorID      string `json:"ambassador_id"`
-	AmbassadorVersion string `json:"ambassador_version"`
-	KubeVersion       string `json:"kube_version"`
+	ClusterID         string          `json:"cluster_id"`
+	AmbassadorID      string          `json:"ambassador_id"`
+	AmbassadorVersion string          `json:"ambassador_version"`
+	KubeVersion       string          `json:"kube_version"`
+	Sidecar           json.RawMessage `json:"sidecar"`
 }
 
 type KubernetesSnapshot struct {
@@ -113,6 +117,15 @@ type KubernetesSnapshot struct {
 	// ArgoApplications represents the argo-rollout CRD state of the world that may or may not be present
 	// in the client's cluster. For reasons why this is defined as unstructured see ArgoRollouts attribute.
 	ArgoApplications []*kates.Unstructured `json:"ArgoApplications,omitempty"`
+}
+
+// The APIDoc type is custom object built in the style of a Kubernetes resource (name, type, version)
+// which holds a reference to a Kubernetes object from which an OpenAPI document was scrapped (Data field)
+type APIDoc struct {
+	*kates.TypeMeta
+	Metadata  *kates.ObjectMeta      `json:"metadata,omitempty"`
+	TargetRef *kates.ObjectReference `json:"targetRef,omitempty"`
+	Data      []byte                 `json:"data,omitempty"`
 }
 
 // Custom Unmarshaller for the kubernetes snapshot

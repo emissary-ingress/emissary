@@ -156,6 +156,8 @@ spec:
                 type: string
               service:
                 type: string
+              stats_name:
+                type: string
               tls:
                 description: BoolOrString is a type that can hold a Boolean or a string.
                 oneOf:

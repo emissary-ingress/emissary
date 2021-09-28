@@ -65,6 +65,7 @@ spec:
     targetPort: 8443
   selector:
     service: ambassador
+    profile: main
 ---
 # Source: emissary-ingress/templates/rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -191,6 +192,7 @@ spec:
       labels:
         service: ambassador
         app.kubernetes.io/managed-by: getambassador.io
+        profile: main
       annotations:
         consul.hashicorp.com/connect-inject: 'false'
         sidecar.istio.io/inject: 'false'

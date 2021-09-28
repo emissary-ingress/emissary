@@ -81,6 +81,9 @@ type Agent struct {
 	// current cluster state of core resources
 	coreStore *coreStore
 
+	// apiDocsStore holds OpenAPI documents from cluster Mappings
+	apiDocsStore *APIDocsStore
+
 	// rolloutStore holds Argo Rollouts state from cluster
 	rolloutStore *RolloutStore
 	// applicationStore holds Argo Applications state from cluster
@@ -366,6 +369,7 @@ func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator
 		return err
 	}
 
+	a.apiDocsStore = NewAPIDocsStore()
 	applicationStore := NewApplicationStore()
 	rolloutStore := NewRolloutStore()
 	coreSnapshot := CoreSnapshot{}
@@ -565,6 +569,11 @@ func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Sna
 		if a.applicationStore != nil {
 			snapshot.Kubernetes.ArgoApplications = a.applicationStore.StateOfWorld()
 			dlog.Debugf(ctx, "Found %d argo applications", len(snapshot.Kubernetes.ArgoApplications))
+		}
+		if a.apiDocsStore != nil {
+			a.apiDocsStore.ProcessSnapshot(ctx, snapshot)
+			snapshot.APIDocs = a.apiDocsStore.StateOfWorld()
+			dlog.Debugf(ctx, "Found %d api docs", len(snapshot.APIDocs))
 		}
 	}
 

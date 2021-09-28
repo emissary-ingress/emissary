@@ -335,6 +335,8 @@ spec:
                 - v2
                 - v3
                 type: string
+              stats_name:
+                type: string
               status_on_error:
                 description: Why isn't this just an int??
                 properties:
@@ -1346,6 +1348,8 @@ spec:
                 type: boolean
               service:
                 type: string
+              stats_name:
+                type: string
             type: object
         type: object
     served: true
@@ -2115,6 +2119,8 @@ spec:
                 type: string
               shadow:
                 type: boolean
+              stats_name:
+                type: string
               timeout_ms:
                 description: The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
                 type: integer
@@ -2322,6 +2328,8 @@ spec:
                 type: string
               service:
                 type: string
+              stats_name:
+                type: string
               timeout_ms:
                 type: integer
               tls:
@@ -2490,6 +2498,8 @@ spec:
               resolver:
                 type: string
               service:
+                type: string
+              stats_name:
                 type: string
               tls:
                 description: BoolOrString is a type that can hold a Boolean or a string.
@@ -2827,6 +2837,8 @@ spec:
                     type: integer
                 type: object
               service:
+                type: string
+              stats_name:
                 type: string
               tag_headers:
                 items:

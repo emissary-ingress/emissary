@@ -6,7 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	_debug "github.com/datawire/ambassador/v2/pkg/debug"
+	"github.com/datawire/ambassador/v2/pkg/debug"
+	"github.com/datawire/dlib/dlog"
 )
 
 // An Update encapsulates everything needed to perform an update (of envoy configuration). The
@@ -32,17 +33,29 @@ func Updater(ctx context.Context, updates <-chan Update, getUsage MemoryGetter) 
 }
 
 type debugInfo struct {
-	Times      []time.Time `json:"times"`
-	StaleCount int         `json:"staleCount"`
-	StaleMax   int         `json:"staleMax"`
-	Synced     bool        `json:"synced"`
+	Times              []time.Time `json:"times"`
+	StaleCount         int         `json:"staleCount"`
+	StaleMax           int         `json:"staleMax"`
+	Synced             bool        `json:"synced"`
+	DisableRatelimiter bool        `json:"disableRatelimiter"`
 }
 
 func updaterWithTicker(ctx context.Context, updates <-chan Update, getUsage MemoryGetter,
 	drainTime time.Duration, ticker *time.Ticker, clock func() time.Time) error {
 
-	dbg := _debug.FromContext(ctx)
+	dbg := debug.FromContext(ctx)
 	info := dbg.Value("envoyReconfigs")
+
+	// Is the rate-limiter meant to be active at all?
+	disableRatelimiter, err := strconv.ParseBool(os.Getenv("AMBASSADOR_AMBEX_NO_RATELIMIT"))
+
+	if err != nil {
+		disableRatelimiter = false
+	}
+
+	if disableRatelimiter {
+		dlog.Info(ctx, "snapshot ratelimiter DISABLED")
+	}
 
 	// This slice holds the times of any updates we have made. This lets us compute how many stale
 	// configs are being held in memory since we can filter this list down to just those times that
@@ -57,7 +70,7 @@ func updaterWithTicker(ctx context.Context, updates <-chan Update, getUsage Memo
 	for {
 		// The basic idea here is that we wakeup whenever we either a) get a new snapshot to update,
 		// or b) the timer ticks. In case a) we update the "latest" variable so that it always holds
-		// the most recent desired Ufpdate. In either case, we filter the list of updateTimes so we
+		// the most recent desired Update. In either case, we filter the list of updateTimes so we
 		// know exactly how many updates are in memory, and then based on that we decide whether we
 		// can do another reconfig or whether we should wait until the next (tick|update) whichever
 		// happens first.
@@ -83,6 +96,11 @@ func updaterWithTicker(ctx context.Context, updates <-chan Update, getUsage Memo
 		updateTimes = gcUpdateTimes(updateTimes, now, drainTime)
 
 		usagePercent := getUsage()
+
+		if disableRatelimiter {
+			usagePercent = 0
+		}
+
 		var maxStaleReconfigs int
 		switch {
 		case usagePercent >= 90:
@@ -114,7 +132,7 @@ func updaterWithTicker(ctx context.Context, updates <-chan Update, getUsage Memo
 
 		staleReconfigs := len(updateTimes)
 
-		info.Store(debugInfo{updateTimes, staleReconfigs, maxStaleReconfigs, pushed})
+		info.Store(debugInfo{updateTimes, staleReconfigs, maxStaleReconfigs, pushed, disableRatelimiter})
 
 		// Decide if we have enough capacity left to perform a reconfig.
 		if maxStaleReconfigs > 0 && staleReconfigs >= maxStaleReconfigs {
@@ -141,7 +159,7 @@ func updaterWithTicker(ctx context.Context, updates <-chan Update, getUsage Memo
 		log.Infof("Pushing snapshot %+v", latest.Version)
 		pushed = true
 
-		info.Store(debugInfo{updateTimes, staleReconfigs, maxStaleReconfigs, pushed})
+		info.Store(debugInfo{updateTimes, staleReconfigs, maxStaleReconfigs, pushed, disableRatelimiter})
 	}
 }
 

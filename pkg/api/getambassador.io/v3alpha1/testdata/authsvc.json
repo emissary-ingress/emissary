@@ -17,6 +17,20 @@
         "kind": "AuthService",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
+            "name": "authsvc-with-stats-name",
+            "namespace": "default"
+        },
+        "spec": {
+            "auth_service": "authservice",
+            "proto": "grpc",
+            "stats_name": "alt-stats-name"
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v3alpha1",
+        "kind": "AuthService",
+        "metadata": {
+            "creationTimestamp": "2020-07-03T02:19:06Z",
             "name": "authsvc-timeout",
             "namespace": "default"
         },

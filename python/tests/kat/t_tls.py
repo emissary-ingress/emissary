@@ -403,10 +403,10 @@ spec:
 #     secret: test-tls-secret
 # """)
 
-        # Use self.target _here_, because we want the httpbin mapping to
-        # be annotated on the service, not the Ambassador. Also, you don't
-        # need to include the ambassador_id unless you need some special
-        # ambassador_id that isn't something that kat already knows about.
+        # Use self.target _here_, because we want the mapping to be annotated
+        # on the service, not the Ambassador. Also, you don't need to include 
+        # the ambassador_id unless you need some special ambassador_id that
+        # isn't something that kat already knows about.
         #
         # If the test were more complex, we'd probably need to do some sort
         # of mangling for the mapping name and prefix. For this simple test,

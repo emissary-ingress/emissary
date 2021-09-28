@@ -45,6 +45,7 @@ type TCPMappingSpec struct {
 	TLS        *BoolOrString `json:"tls,omitempty"`
 	Weight     *int          `json:"weight,omitempty"`
 	ClusterTag string        `json:"cluster_tag,omitempty"`
+	StatsName  string        `json:"stats_name,omitempty"`
 }
 
 // TCPMapping is the Schema for the tcpmappings API

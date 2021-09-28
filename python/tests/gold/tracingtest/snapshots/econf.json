@@ -330,7 +330,7 @@
                     ]
                   },
                   "server_name": "envoy",
-                  "stat_prefix": "ingress_http",
+                  "stat_prefix": "ingress_https",
                   "tracing": {
                     "custom_tags": [
                       {
@@ -571,7 +571,7 @@
                     ]
                   },
                   "server_name": "envoy",
-                  "stat_prefix": "ingress_http",
+                  "stat_prefix": "ingress_https",
                   "tracing": {
                     "custom_tags": [
                       {
@@ -832,7 +832,7 @@
                     ]
                   },
                   "server_name": "envoy",
-                  "stat_prefix": "ingress_http",
+                  "stat_prefix": "ingress_https",
                   "tracing": {
                     "custom_tags": [
                       {
@@ -1073,7 +1073,7 @@
                     ]
                   },
                   "server_name": "envoy",
-                  "stat_prefix": "ingress_http",
+                  "stat_prefix": "ingress_https",
                   "tracing": {
                     "custom_tags": [
                       {
