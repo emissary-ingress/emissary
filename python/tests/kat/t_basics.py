@@ -59,7 +59,7 @@ class AmbassadorIDTest(AmbassadorTest):
 apiVersion: ambassador/v0
 kind:  Module
 name:  ambassador
-config: 
+config:
   use_ambassador_namespace_for_service_resolution: true
 """
         for prefix, amb_id in (("findme", "{self.ambassador_id}"),
@@ -233,7 +233,7 @@ spec:
 
         for resource, error in errors:
             error_dict[resource] = error.split("\n", 1)[0]
-        
+
         for name in self.resource_names:
             assert name in error_dict, f"no error found for {name}"
 

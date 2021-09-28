@@ -387,7 +387,7 @@ class EnvoyStatsMgr:
                 # self.logger.info("cluster %s stats: %s" % (cluster_name, cluster))
 
                 healthy_percent: Optional[int]
-                
+
                 healthy_members = cluster['membership_healthy']
                 total_members = cluster['membership_total']
                 healthy_percent = percentage(healthy_members, total_members)

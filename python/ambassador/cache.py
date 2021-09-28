@@ -4,7 +4,7 @@ import logging
 
 class Cacheable(dict):
     """
-    A dictionary that is specifically cacheable, by way of its added 
+    A dictionary that is specifically cacheable, by way of its added
     cache_key property.
     """
 
@@ -35,7 +35,7 @@ class Cache():
     HAPPENS IN ONE DIRECTION at present, so deleting a Cacheable in the middle
     of the ownership tree can leave dangling pointers.
     """
-    
+
     def __init__(self, logger: logging.Logger) -> None:
         self.cache: Dict[str, CacheEntry] = {}
         self.links: Dict[str, CacheLink] = {}
@@ -55,10 +55,10 @@ class Cache():
     def fn_name(fn: Optional[Callable]) -> str:
         return fn.__name__ if (fn and fn.__name__) else "-none-"
 
-    def add(self, rsrc: Cacheable, 
+    def add(self, rsrc: Cacheable,
             on_delete: Optional[DeletionHandler]=None) -> None:
         """
-        Adds an entry to the cache, if it's not already present. If 
+        Adds an entry to the cache, if it's not already present. If
         on_delete is not None, it will called when rsrc is removed from
         the cache.
         """
@@ -88,7 +88,7 @@ class Cache():
 
         if not owner_key:
             self.logger.info(f"CACHE: cannot link, owner has no key: {owner}")
-            return       
+            return
 
         if not owned_key:
             self.logger.info(f"CACHE: cannot link, owned has no key: {owned}")
@@ -113,14 +113,14 @@ class Cache():
         is linked.
         """
 
-        # We use worklist to keep track of things to consider: for starters, 
+        # We use worklist to keep track of things to consider: for starters,
         # it just has our key in it, and as we find owned things, we add them
         # to the worklist to consider.
         #
-        # Note that word "consider". If you want to invalidate something from 
+        # Note that word "consider". If you want to invalidate something from
         # the cache that isn't in the cache, that's not an error -- it'll be
         # silently ignored. That helps with dangling links (e.g. if two Mappings
-        # both link to the same Group, and you invalidate the first Mapping, the 
+        # both link to the same Group, and you invalidate the first Mapping, the
         # second will have a dangling link to the now-invalidated Group, and that
         # needs to not break anything).
 
@@ -230,8 +230,8 @@ class NullCache(Cache):
     """
     A Cache that doesn't actually cache anything -- basically, a no-op
     implementation of the Cache interface.
-    
-    Giving consumers of the Cache class a way to make their cache 
+
+    Giving consumers of the Cache class a way to make their cache
     instance non-Optional, without actually requiring the use of the
     cache, makes the consumer code simpler.
     """
@@ -242,7 +242,7 @@ class NullCache(Cache):
         self.reset_stats()
         pass
 
-    def add(self, rsrc: Cacheable, 
+    def add(self, rsrc: Cacheable,
             on_delete: Optional[DeletionHandler]=None) -> None:
         pass
 
@@ -256,6 +256,6 @@ class NullCache(Cache):
     def __getitem__(self, key: str) -> Any:
         self.misses += 1
         return None
-    
+
     def dump(self) -> None:
         self.logger.info("NullCache: empty")

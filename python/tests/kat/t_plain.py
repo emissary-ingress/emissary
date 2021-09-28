@@ -33,7 +33,7 @@ metadata:
       name: SimpleMapping-HTTP-all
       prefix: /SimpleMapping-HTTP-all/
       service: http://plain-simplemapping-http-all-http.plain
-      ambassador_id: plain      
+      ambassador_id: plain
       ---
       apiVersion: getambassador.io/v2
       kind: Host

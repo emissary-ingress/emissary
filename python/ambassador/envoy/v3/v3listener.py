@@ -1276,7 +1276,7 @@ class V3Listener(dict):
         if 'buffer_limit_bytes' in self.config.ir.ambassador_module and self.config.ir.ambassador_module.buffer_limit_bytes != None:
             listener["per_connection_buffer_limit_bytes"] = self.config.ir.ambassador_module.buffer_limit_bytes
         return listener
-        
+
     def pretty(self) -> dict:
         return { "name": self.name,
                  "port": self.service_port,

@@ -4,22 +4,22 @@ from ipaddress import ip_address, IPv4Address, IPv6Address
 
 class CIDRRange:
     """
-    A CIDRRange is an IP address (either v4 or v6) plus a prefix length. It 
+    A CIDRRange is an IP address (either v4 or v6) plus a prefix length. It
     corresponds to an envoy.api.v2.core.CidrRange.
     """
 
     def __init__(self, spec: str) -> None:
         """
         Initialize a CIDRRange from a spec, which can look like any of:
-        
+
         127.0.0.1 -- an exact IPv4 match
         ::1 -- an exact IPv6 match
         192.168.0.0/16 -- an IPv4 range
         2001:2000::/64 -- an IPv6 range
 
         If the prefix is not a valid IP address, or if the prefix length
-        isn't a valid length for the class of IP address, the CIDRRange 
-        object will evaluate False, with information about the error in 
+        isn't a valid length for the class of IP address, the CIDRRange
+        object will evaluate False, with information about the error in
         self.error.
 
         :param spec: string specifying the CIDR block in question
@@ -60,7 +60,7 @@ class CIDRRange:
             self.error = f"Invalid prefix length for IPv{addr.version} address {address}/{pfx_len}"
             return
 
-        # Convert the parsed address to a string, so that any normalization 
+        # Convert the parsed address to a string, so that any normalization
         # appropriate to the IP version can happen.
         self.address = str(addr)
         self.prefix_len = pfx_len
@@ -86,7 +86,7 @@ class CIDRRange:
         Return a dictionary version of a CIDRRange, suitable for use in
         an Envoy config as an envoy.api.v2.core.CidrRange.
         """
-        
+
         return {
             "address_prefix": self.address,
             "prefix_len": self.prefix_len
