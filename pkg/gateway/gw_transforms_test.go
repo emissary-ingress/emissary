@@ -6,11 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datawire/ambassador/v2/pkg/envoy"
-	"github.com/datawire/ambassador/v2/pkg/gateway"
-	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/datawire/ambassador/v2/pkg/envoytest"
+	"github.com/datawire/ambassador/v2/pkg/gateway"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
 func TestGatewayMatches(t *testing.T) {
