@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/google/go-cmp/cmp"
+	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 
 	"github.com/datawire/dlib/dlog"
 )
@@ -27,32 +28,6 @@ func main() {
 		}
 		os.Exit(1)
 	}
-}
-
-func transform(obj interface{}) interface{} {
-	switch obj := obj.(type) {
-	case map[string]interface{}:
-		if typ, ok := obj["type"]; ok {
-			if typAry, ok := typ.([]interface{}); ok {
-				delete(obj, "type")
-				var oneOf []interface{}
-				for _, opt := range typAry {
-					oneOf = append(oneOf, map[string]interface{}{
-						"type": opt,
-					})
-				}
-				obj["oneOf"] = oneOf
-			}
-		}
-		for k, v := range obj {
-			obj[k] = transform(v)
-		}
-	case []interface{}:
-		for i, v := range obj {
-			obj[i] = transform(v)
-		}
-	}
-	return obj
 }
 
 func processFile(ctx context.Context, op byte, filename string) error {
@@ -77,11 +52,10 @@ func processFile(ctx context.Context, op byte, filename string) error {
 	decoder := json.NewDecoder(bytes.NewReader(inputBytes))
 	decoder.DisallowUnknownFields()
 
-	var schema interface{}
+	var schema apiext.JSONSchemaProps
 	if err := decoder.Decode(&schema); err != nil {
 		return fmt.Errorf("%q: %w", filename, err)
 	}
-	schema = transform(schema)
 
 	outputBytes, err := json.MarshalIndent(schema, "", "    ")
 	if err != nil {
