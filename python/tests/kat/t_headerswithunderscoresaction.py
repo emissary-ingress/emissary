@@ -14,7 +14,7 @@ class AllowHeadersWithUnderscoresTest(AmbassadorTest):
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name:  config__dump
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}

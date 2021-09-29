@@ -27,7 +27,7 @@ kind: Mapping
 metadata:
   name: auth-context-mapping
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   service: {self.target.path.fqdn}
   hostname: "*"
   prefix: /context-extensions-crd/

@@ -49,7 +49,7 @@ kind: Mapping
 metadata:
   name: {self.path.k8s}-target-mapping
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /target/
   service: {self.target.path.fqdn}
@@ -59,7 +59,7 @@ kind: Mapping
 metadata:
   name: {self.path.k8s}-localhost-mapping
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /localhost/
   rewrite: /target/             # See NOTE above
@@ -118,7 +118,7 @@ kind: Mapping
 metadata:
   name: {self.path.k8s}-target-mapping
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /target/
   service: {self.target.path.fqdn}
@@ -128,7 +128,7 @@ kind: Mapping
 metadata:
   name: {self.path.k8s}-localhost-mapping
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /localhost/
   rewrite: /target/             # See NOTE above
