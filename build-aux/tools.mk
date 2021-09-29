@@ -54,6 +54,7 @@ $(tools.main-gomod): $(tools.bindir)/%: $(tools.srcdir)/%/pin.go $(OSS_HOME)/go.
 # Local Go sources
 # ================
 #
+tools/crds2schemas    = $(tools.bindir)/crds2schemas
 tools/dsum            = $(tools.bindir)/dsum
 tools/fix-crds        = $(tools.bindir)/fix-crds
 tools/flock           = $(tools.bindir)/flock
