@@ -1,7 +1,12 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "additionalProperties": false,
     "id": "https://getambassador.io/schemas/tlscontext.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name"
+    ],
     "properties": {
         "alpn_protocols": {
             "type": "string"
@@ -12,10 +17,10 @@
                     "type": "string"
                 },
                 {
+                    "type": "array",
                     "items": {
                         "type": "string"
-                    },
-                    "type": "array"
+                    }
                 }
             ]
         },
@@ -37,25 +42,25 @@
             "type": "boolean"
         },
         "cipher_suites": {
+            "type": "array",
             "items": {
                 "type": "string"
-            },
-            "type": "array"
+            }
         },
         "ecdh_curves": {
+            "type": "array",
             "items": {
                 "type": "string"
-            },
-            "type": "array"
+            }
         },
         "generation": {
             "type": "integer"
         },
         "hosts": {
+            "type": "array",
             "items": {
                 "type": "string"
-            },
-            "type": "array"
+            }
         },
         "kind": {
             "type": "string"
@@ -69,6 +74,7 @@
             ]
         },
         "metadata_labels": {
+            "type": "object",
             "additionalProperties": {
                 "oneOf": [
                     {
@@ -78,8 +84,7 @@
                         "type": "boolean"
                     }
                 ]
-            },
-            "type": "object"
+            }
         },
         "min_tls_version": {
             "enum": [
@@ -111,10 +116,5 @@
             "type": "string"
         }
     },
-    "required": [
-        "apiVersion",
-        "kind",
-        "name"
-    ],
-    "type": "object"
+    "additionalProperties": false
 }

@@ -1,7 +1,14 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "additionalProperties": false,
     "id": "https://getambassador.io/schemas/mapping.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "service",
+        "port"
+    ],
     "properties": {
         "address": {
             "type": "string"
@@ -12,10 +19,10 @@
                     "type": "string"
                 },
                 {
+                    "type": "array",
                     "items": {
                         "type": "string"
-                    },
-                    "type": "array"
+                    }
                 }
             ]
         },
@@ -25,8 +32,9 @@
             ]
         },
         "circuit_breakers": {
+            "type": "array",
             "items": {
-                "additionalProperties": false,
+                "type": "object",
                 "properties": {
                     "max_connections": {
                         "type": "integer"
@@ -41,16 +49,15 @@
                         "type": "integer"
                     },
                     "priority": {
+                        "type": "string",
                         "enum": [
                             "default",
                             "high"
-                        ],
-                        "type": "string"
+                        ]
                     }
                 },
-                "type": "object"
-            },
-            "type": "array"
+                "additionalProperties": false
+            }
         },
         "cluster_tag": {
             "type": "string"
@@ -74,6 +81,7 @@
             "type": "string"
         },
         "metadata_labels": {
+            "type": "object",
             "additionalProperties": {
                 "oneOf": [
                     {
@@ -83,8 +91,7 @@
                         "type": "boolean"
                     }
                 ]
-            },
-            "type": "object"
+            }
         },
         "name": {
             "type": "string"
@@ -118,12 +125,5 @@
             "type": "integer"
         }
     },
-    "required": [
-        "apiVersion",
-        "kind",
-        "name",
-        "service",
-        "port"
-    ],
-    "type": "object"
+    "additionalProperties": false
 }

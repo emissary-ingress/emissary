@@ -1,48 +1,14 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "additionalProperties": false,
-    "definitions": {
-        "mapStrObj": {
-            "additionalProperties": {
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    },
-                    {
-                        "type": "object"
-                    }
-                ]
-            },
-            "type": "object"
-        },
-        "mapStrStr": {
-            "additionalProperties": {
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
-            },
-            "type": "object"
-        },
-        "rateLimit": {
-            "anyOf": [
-                {
-                    "type": "array"
-                },
-                {
-                    "type": "object"
-                }
-            ]
-        }
-    },
     "id": "https://getambassador.io/schemas/mapping.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "service",
+        "prefix"
+    ],
     "properties": {
         "add_linkerd_headers": {
             "type": "boolean"
@@ -59,10 +25,10 @@
                     "type": "string"
                 },
                 {
+                    "type": "array",
                     "items": {
                         "type": "string"
-                    },
-                    "type": "array"
+                    }
                 }
             ]
         },
@@ -81,8 +47,9 @@
             "type": "boolean"
         },
         "circuit_breakers": {
+            "type": "array",
             "items": {
-                "additionalProperties": false,
+                "type": "object",
                 "properties": {
                     "max_connections": {
                         "type": "integer"
@@ -97,16 +64,15 @@
                         "type": "integer"
                     },
                     "priority": {
+                        "type": "string",
                         "enum": [
                             "default",
                             "high"
-                        ],
-                        "type": "string"
+                        ]
                     }
                 },
-                "type": "object"
-            },
-            "type": "array"
+                "additionalProperties": false
+            }
         },
         "cluster_idle_timeout_ms": {
             "type": "integer"
@@ -115,7 +81,7 @@
             "type": "integer"
         },
         "cors": {
-            "additionalProperties": false,
+            "type": "object",
             "properties": {
                 "credentials": {
                     "type": "boolean"
@@ -126,10 +92,10 @@
                             "type": "string"
                         },
                         {
+                            "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "type": "array"
+                            }
                         }
                     ]
                 },
@@ -139,10 +105,10 @@
                             "type": "string"
                         },
                         {
+                            "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "type": "array"
+                            }
                         }
                     ]
                 },
@@ -155,10 +121,10 @@
                             "type": "string"
                         },
                         {
+                            "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "type": "array"
+                            }
                         }
                     ]
                 },
@@ -168,15 +134,15 @@
                             "type": "string"
                         },
                         {
+                            "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "type": "array"
+                            }
                         }
                     ]
                 }
             },
-            "type": "object"
+            "additionalProperties": false
         },
         "enable_ipv4": {
             "type": "boolean"
@@ -215,6 +181,7 @@
             "type": "integer"
         },
         "keepalive": {
+            "type": "object",
             "properties": {
                 "idle_time": {
                     "type": "integer"
@@ -225,8 +192,7 @@
                 "probes": {
                     "type": "integer"
                 }
-            },
-            "type": "object"
+            }
         },
         "kind": {
             "type": "string"
@@ -235,10 +201,16 @@
             "type": "object"
         },
         "load_balancer": {
-            "additionalProperties": false,
+            "type": "object",
+            "required": [
+                "policy"
+            ],
             "properties": {
                 "cookie": {
-                    "additionalProperties": false,
+                    "type": "object",
+                    "required": [
+                        "name"
+                    ],
                     "properties": {
                         "name": {
                             "type": "string"
@@ -250,33 +222,28 @@
                             "type": "string"
                         }
                     },
-                    "required": [
-                        "name"
-                    ],
-                    "type": "object"
+                    "additionalProperties": false
                 },
                 "header": {
                     "type": "string"
                 },
                 "policy": {
+                    "type": "string",
                     "enum": [
                         "round_robin",
                         "ring_hash",
                         "maglev",
                         "least_request"
-                    ],
-                    "type": "string"
+                    ]
                 },
                 "source_ip": {
                     "type": "boolean"
                 }
             },
-            "required": [
-                "policy"
-            ],
-            "type": "object"
+            "additionalProperties": false
         },
         "metadata_labels": {
+            "type": "object",
             "additionalProperties": {
                 "oneOf": [
                     {
@@ -286,8 +253,7 @@
                         "type": "boolean"
                     }
                 ]
-            },
-            "type": "object"
+            }
         },
         "method": {
             "type": "string"
@@ -296,10 +262,10 @@
             "type": "boolean"
         },
         "modules": {
+            "type": "array",
             "items": {
                 "type": "object"
-            },
-            "type": "array"
+            }
         },
         "name": {
             "type": "string"
@@ -334,10 +300,10 @@
                     "type": "string"
                 },
                 {
+                    "type": "array",
                     "items": {
                         "type": "string"
-                    },
-                    "type": "array"
+                    }
                 }
             ]
         },
@@ -347,10 +313,10 @@
                     "type": "string"
                 },
                 {
+                    "type": "array",
                     "items": {
                         "type": "string"
-                    },
-                    "type": "array"
+                    }
                 }
             ]
         },
@@ -358,7 +324,7 @@
             "type": "string"
         },
         "retry_policy": {
-            "additionalProperties": false,
+            "type": "object",
             "properties": {
                 "num_retries": {
                     "type": "integer"
@@ -367,6 +333,7 @@
                     "type": "string"
                 },
                 "retry_on": {
+                    "type": "string",
                     "enum": [
                         "5xx",
                         "gateway-error",
@@ -374,11 +341,10 @@
                         "retriable-4xx",
                         "refused-stream",
                         "retriable-status-codes"
-                    ],
-                    "type": "string"
+                    ]
                 }
             },
-            "type": "object"
+            "additionalProperties": false
         },
         "rewrite": {
             "type": "string"
@@ -409,12 +375,46 @@
             "type": "integer"
         }
     },
-    "required": [
-        "apiVersion",
-        "kind",
-        "name",
-        "service",
-        "prefix"
-    ],
-    "type": "object"
+    "additionalProperties": false,
+    "definitions": {
+        "mapStrObj": {
+            "type": "object",
+            "additionalProperties": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    },
+                    {
+                        "type": "object"
+                    }
+                ]
+            }
+        },
+        "mapStrStr": {
+            "type": "object",
+            "additionalProperties": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            }
+        },
+        "rateLimit": {
+            "anyOf": [
+                {
+                    "type": "array"
+                },
+                {
+                    "type": "object"
+                }
+            ]
+        }
+    }
 }

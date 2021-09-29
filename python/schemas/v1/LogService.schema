@@ -1,7 +1,12 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "additionalProperties": false,
     "id": "https://getambassador.io/schemas/logservice.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name"
+    ],
     "properties": {
         "ambassador_id": {
             "anyOf": [
@@ -9,10 +14,10 @@
                     "type": "string"
                 },
                 {
+                    "type": "array",
                     "items": {
                         "type": "string"
-                    },
-                    "type": "array"
+                    }
                 }
             ]
         },
@@ -28,11 +33,12 @@
             ]
         },
         "driver_config": {
-            "additionalProperties": false,
+            "type": "object",
             "properties": {
                 "additional_log_headers": {
+                    "type": "array",
                     "items": {
-                        "additionalProperties": false,
+                        "type": "object",
                         "properties": {
                             "during_request": {
                                 "type": "boolean"
@@ -47,12 +53,11 @@
                                 "type": "string"
                             }
                         },
-                        "type": "object"
-                    },
-                    "type": "array"
+                        "additionalProperties": false
+                    }
                 }
             },
-            "type": "object"
+            "additionalProperties": false
         },
         "flush_interval_byte_size": {
             "type": "integer"
@@ -70,6 +75,7 @@
             "type": "string"
         },
         "metadata_labels": {
+            "type": "object",
             "additionalProperties": {
                 "oneOf": [
                     {
@@ -79,8 +85,7 @@
                         "type": "boolean"
                     }
                 ]
-            },
-            "type": "object"
+            }
         },
         "name": {
             "type": "string"
@@ -92,10 +97,5 @@
             "type": "string"
         }
     },
-    "required": [
-        "apiVersion",
-        "kind",
-        "name"
-    ],
-    "type": "object"
+    "additionalProperties": false
 }

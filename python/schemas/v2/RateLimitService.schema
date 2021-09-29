@@ -1,7 +1,13 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "additionalProperties": false,
     "id": "https://getambassador.io/schemas/mapping.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "service"
+    ],
     "properties": {
         "ambassador_id": {
             "anyOf": [
@@ -9,10 +15,10 @@
                     "type": "string"
                 },
                 {
+                    "type": "array",
                     "items": {
                         "type": "string"
-                    },
-                    "type": "array"
+                    }
                 }
             ]
         },
@@ -31,6 +37,7 @@
             "type": "string"
         },
         "metadata_labels": {
+            "type": "object",
             "additionalProperties": {
                 "oneOf": [
                     {
@@ -40,8 +47,7 @@
                         "type": "boolean"
                     }
                 ]
-            },
-            "type": "object"
+            }
         },
         "name": {
             "type": "string"
@@ -50,11 +56,11 @@
             "type": "string"
         },
         "protocol_version": {
+            "type": "string",
             "enum": [
                 "v2",
                 "v3"
-            ],
-            "type": "string"
+            ]
         },
         "service": {
             "type": "string"
@@ -76,11 +82,5 @@
             ]
         }
     },
-    "required": [
-        "apiVersion",
-        "kind",
-        "name",
-        "service"
-    ],
-    "type": "object"
+    "additionalProperties": false
 }

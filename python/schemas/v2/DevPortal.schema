@@ -1,7 +1,12 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "additionalProperties": false,
     "id": "https://getambassador.io/schemas/devportal.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name"
+    ],
     "properties": {
         "ambassador_id": {
             "anyOf": [
@@ -9,10 +14,10 @@
                     "type": "string"
                 },
                 {
+                    "type": "array",
                     "items": {
                         "type": "string"
-                    },
-                    "type": "array"
+                    }
                 }
             ]
         },
@@ -22,7 +27,7 @@
             ]
         },
         "content": {
-            "additionalProperties": false,
+            "type": "object",
             "properties": {
                 "branch": {
                     "type": "string"
@@ -34,15 +39,15 @@
                     "type": "string"
                 }
             },
-            "type": "object"
+            "additionalProperties": false
         },
         "default": {
             "type": "boolean"
         },
         "docs": {
-            "additionalProperties": false,
+            "type": "array",
             "items": {
-                "additionalProperties": false,
+                "type": "object",
                 "properties": {
                     "service": {
                         "type": "string"
@@ -51,9 +56,9 @@
                         "type": "string"
                     }
                 },
-                "type": "object"
+                "additionalProperties": false
             },
-            "type": "array"
+            "additionalProperties": false
         },
         "generation": {
             "type": "integer"
@@ -62,6 +67,7 @@
             "type": "string"
         },
         "metadata_labels": {
+            "type": "object",
             "additionalProperties": {
                 "oneOf": [
                     {
@@ -71,8 +77,7 @@
                         "type": "boolean"
                     }
                 ]
-            },
-            "type": "object"
+            }
         },
         "name": {
             "type": "string"
@@ -81,9 +86,10 @@
             "type": "string"
         },
         "selector": {
-            "additionalProperties": false,
+            "type": "object",
             "properties": {
                 "matchLabels": {
+                    "type": "object",
                     "additionalProperties": {
                         "oneOf": [
                             {
@@ -93,23 +99,17 @@
                                 "type": "object"
                             }
                         ]
-                    },
-                    "type": "object"
+                    }
                 },
                 "matchNamespaces": {
+                    "type": "array",
                     "items": {
                         "type": "string"
-                    },
-                    "type": "array"
+                    }
                 }
             },
-            "type": "object"
+            "additionalProperties": false
         }
     },
-    "required": [
-        "apiVersion",
-        "kind",
-        "name"
-    ],
-    "type": "object"
+    "additionalProperties": false
 }

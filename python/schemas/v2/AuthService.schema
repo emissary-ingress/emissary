@@ -1,9 +1,16 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "additionalProperties": false,
     "id": "https://getambassador.io/schemas/mapping.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "auth_service"
+    ],
     "properties": {
         "add_auth_headers": {
+            "type": "object",
             "additionalProperties": {
                 "oneOf": [
                     {
@@ -13,8 +20,7 @@
                         "type": "boolean"
                     }
                 ]
-            },
-            "type": "object"
+            }
         },
         "add_linkerd_headers": {
             "type": "boolean"
@@ -23,16 +29,16 @@
             "type": "boolean"
         },
         "allowed_authorization_headers": {
+            "type": "array",
             "items": {
                 "type": "string"
-            },
-            "type": "array"
+            }
         },
         "allowed_request_headers": {
+            "type": "array",
             "items": {
                 "type": "string"
-            },
-            "type": "array"
+            }
         },
         "ambassador_id": {
             "anyOf": [
@@ -40,10 +46,10 @@
                     "type": "string"
                 },
                 {
+                    "type": "array",
                     "items": {
                         "type": "string"
-                    },
-                    "type": "array"
+                    }
                 }
             ]
         },
@@ -62,7 +68,11 @@
             "type": "integer"
         },
         "include_body": {
-            "additionalProperties": false,
+            "type": "object",
+            "required": [
+                "max_bytes",
+                "allow_partial"
+            ],
             "properties": {
                 "allow_partial": {
                     "type": "boolean"
@@ -71,16 +81,13 @@
                     "type": "integer"
                 }
             },
-            "required": [
-                "max_bytes",
-                "allow_partial"
-            ],
-            "type": "object"
+            "additionalProperties": false
         },
         "kind": {
             "type": "string"
         },
         "metadata_labels": {
+            "type": "object",
             "additionalProperties": {
                 "oneOf": [
                     {
@@ -90,8 +97,7 @@
                         "type": "boolean"
                     }
                 ]
-            },
-            "type": "object"
+            }
         },
         "name": {
             "type": "string"
@@ -117,22 +123,22 @@
             ]
         },
         "protocol_version": {
+            "type": "string",
             "enum": [
                 "v2",
                 "v3"
-            ],
-            "type": "string"
+            ]
         },
         "stats_name": {
             "type": "string"
         },
         "status_on_error": {
+            "type": "object",
             "properties": {
                 "code": {
                     "type": "integer"
                 }
-            },
-            "type": "object"
+            }
         },
         "timeout_ms": {
             "type": "integer"
@@ -148,11 +154,5 @@
             ]
         }
     },
-    "required": [
-        "apiVersion",
-        "kind",
-        "name",
-        "auth_service"
-    ],
-    "type": "object"
+    "additionalProperties": false
 }
