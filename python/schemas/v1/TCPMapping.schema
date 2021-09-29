@@ -1,38 +1,87 @@
 {
     "$schema": "http://json-schema.org/schema#",
+    "additionalProperties": false,
     "id": "https://getambassador.io/schemas/mapping.json",
-
-    "type": "object",
     "properties": {
-        "apiVersion": { "enum": [ "getambassador.io/v1" ] },
-        "generation": { "type": "integer" },
-        "kind": { "type": "string" },
-        "name": { "type": "string" },
-        "namespace": { "type": "string" },
-        "metadata_labels": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
+        "address": {
+            "type": "string"
         },
         "ambassador_id": {
             "anyOf": [
-                { "type": "string" },
-                { "type": "array", "items": { "type": "string" } }
+                {
+                    "type": "string"
+                },
+                {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
             ]
         },
-
-        "port": { "type": "integer" },
-        "host": { "type": "string" },
-        "address": { "type": "string" },
-        "idle_timeout_ms": { "type": "string" },
-        "weight": { "type": "integer" },
-        "enable_ipv4": { "type": "boolean" },
-        "enable_ipv6": { "type": "boolean" },
-        "resolver": { "type": "string" },
-        "tls": { "type": [ "string", "boolean" ] },
-
-        "service": { "type": "string" }
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v1"
+            ]
+        },
+        "enable_ipv4": {
+            "type": "boolean"
+        },
+        "enable_ipv6": {
+            "type": "boolean"
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "host": {
+            "type": "string"
+        },
+        "idle_timeout_ms": {
+            "type": "string"
+        },
+        "kind": {
+            "type": "string"
+        },
+        "metadata_labels": {
+            "additionalProperties": {
+                "type": [
+                    "string",
+                    "boolean"
+                ]
+            },
+            "type": "object"
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
+        "port": {
+            "type": "integer"
+        },
+        "resolver": {
+            "type": "string"
+        },
+        "service": {
+            "type": "string"
+        },
+        "tls": {
+            "type": [
+                "string",
+                "boolean"
+            ]
+        },
+        "weight": {
+            "type": "integer"
+        }
     },
-
-    "required": [ "apiVersion", "kind", "name", "service", "port" ],
-    "additionalProperties": false
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "service",
+        "port"
+    ],
+    "type": "object"
 }

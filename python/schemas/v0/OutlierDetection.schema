@@ -1,29 +1,61 @@
 {
     "$schema": "http://json-schema.org/schema#",
+    "additionalProperties": false,
     "id": "https://getambassador.io/schemas/circuitbreaker.json",
-
-    "type": "object",
     "properties": {
-        "apiVersion": { "enum": [ "getambassador.io/v0" ] },
-        "generation": { "type": "integer" },
-        "kind": { "type": "string" },
-        "name": { "type": "string" },
-        "namespace": { "type": "string" },
-        "metadata_labels": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
-        },
         "ambassador_id": {
             "anyOf": [
-                { "type": "string" },
-                { "type": "array", "items": { "type": "string" } }
+                {
+                    "type": "string"
+                },
+                {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
             ]
         },
-        
-        "consecutive_5xx": { "type": "integer" },
-        "max_ejection": { "type": "integer" },
-        "interval_ms": { "type": "integer" }
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v0"
+            ]
+        },
+        "consecutive_5xx": {
+            "type": "integer"
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "interval_ms": {
+            "type": "integer"
+        },
+        "kind": {
+            "type": "string"
+        },
+        "max_ejection": {
+            "type": "integer"
+        },
+        "metadata_labels": {
+            "additionalProperties": {
+                "type": [
+                    "string",
+                    "boolean"
+                ]
+            },
+            "type": "object"
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        }
     },
-    "required": [ "apiVersion", "kind", "name" ],
-    "additionalProperties": false
+    "required": [
+        "apiVersion",
+        "kind",
+        "name"
+    ],
+    "type": "object"
 }

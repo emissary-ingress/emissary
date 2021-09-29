@@ -1,118 +1,249 @@
 {
     "$schema": "http://json-schema.org/schema#",
-    "id": "https://getambassador.io/schemas/mapping.json",
-
-    "type": "object",
-    "properties": {
-        "apiVersion": { "enum": [ "getambassador.io/v0" ] },
-        "generation": { "type": "integer" },
-        "kind": { "type": "string" },
-        "name": { "type": "string" },
-        "namespace": { "type": "string" },
-        "metadata_labels": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
+    "additionalProperties": false,
+    "definitions": {
+        "mapStrStr": {
+            "additionalProperties": {
+                "type": [
+                    "string",
+                    "boolean"
+                ]
+            },
+            "type": "object"
         },
-        "ambassador_id": {
-            "anyOf": [
-                { "type": "string" },
-                { "type": "array", "items": { "type": "string" } }
-            ]
-        },
-
-        "prefix": { "type": "string" },
-        "prefix_regex": { "type": "boolean" },
-        "service": { "type": "string" },
-        "add_request_headers": { "$ref": "#/definitions/mapStrStr" },
-        "add_response_headers": { "$ref": "#/definitions/mapStrStr" },
-        "auto_host_rewrite": { "type": "boolean" },
-        "case_sensitive": { "type": "boolean" },
-        "circuit_breaker": { "type": "string" },
-        "cors": {
-            "type": "object",
+        "rateLimit": {
+            "additionalProperties": false,
             "properties": {
-                "origins":  {
-                    "anyOf": [
-                        { "type": "string" },
-                        { "type": "array", "items": { "type": "string" } }
-                    ]
-                },
-                "methods": {
-                    "anyOf": [
-                        { "type": "string" },
-                        { "type": "array", "items": { "type": "string" } }
-                    ]
+                "descriptor": {
+                    "type": "string"
                 },
                 "headers": {
-                    "anyOf": [
-                        { "type": "string" },
-                        { "type": "array", "items": { "type": "string" } }
-                    ]
-                },
-                "credentials": { "type": "boolean" },
-                "exposed_headers": {
-                    "anyOf": [
-                        { "type": "string" },
-                        { "type": "array", "items": { "type": "string" } }
-                    ]
-                },
-                "max_age": { "type": "string" }
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
             },
-            "additionalProperties": false
-        },
-        "grpc": { "type": "boolean" },
-        "host_redirect": { "type": "boolean" },
-        "host_rewrite": { "type": "string" },
-        "method": { "type": "string" },
-        "method_regex": { "type": "boolean" },
-        "outlier_detection": { "type": "string" },
-        "path_redirect": { "type": "string" },
-        "priority": { "type": "string" },
-        "precedence": { "type": "integer" },
-        "rewrite": { "type": "string" },
-        "shadow": { "type": "boolean" },
-        "connect_timeout_ms": { "type": "integer" },
-        "timeout_ms": { "type": "integer" },
-        "tls": { "type": [ "string", "boolean" ] },
-        "use_websocket": { "type": "boolean" },
-        "weight": { "type": "integer" },
-
-        "modules": {
-            "type": "array",
-            "items": {
-                "type": "object"
-            }
-        },
-        "host": { "type": "string" },
-        "host_regex": { "type": "boolean" },
-        "hostname": { "type": "string" },
-        "headers": { "$ref": "#/definitions/mapStrStr" },
-        "regex_headers": { "$ref": "#/definitions/mapStrStr" },
-        "rate_limits": {
-            "type": "array",
-            "items": { "$ref": "#/definitions/rateLimit" }
-        },
-        "envoy_override": {
             "type": "object"
         }
     },
-    "definitions": {
-        "mapStrStr": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
+    "id": "https://getambassador.io/schemas/mapping.json",
+    "properties": {
+        "add_request_headers": {
+            "$ref": "#/definitions/mapStrStr"
         },
-        "rateLimit": {
-            "type": "object",
+        "add_response_headers": {
+            "$ref": "#/definitions/mapStrStr"
+        },
+        "ambassador_id": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            ]
+        },
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v0"
+            ]
+        },
+        "auto_host_rewrite": {
+            "type": "boolean"
+        },
+        "case_sensitive": {
+            "type": "boolean"
+        },
+        "circuit_breaker": {
+            "type": "string"
+        },
+        "connect_timeout_ms": {
+            "type": "integer"
+        },
+        "cors": {
+            "additionalProperties": false,
             "properties": {
-                "descriptor":  { "type": "string" },
+                "credentials": {
+                    "type": "boolean"
+                },
+                "exposed_headers": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    ]
+                },
                 "headers": {
-                    "type": "array",
-                    "items": { "type": "string" }
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    ]
+                },
+                "max_age": {
+                    "type": "string"
+                },
+                "methods": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    ]
+                },
+                "origins": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        }
+                    ]
                 }
             },
-            "additionalProperties": false
+            "type": "object"
+        },
+        "envoy_override": {
+            "type": "object"
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "grpc": {
+            "type": "boolean"
+        },
+        "headers": {
+            "$ref": "#/definitions/mapStrStr"
+        },
+        "host": {
+            "type": "string"
+        },
+        "host_redirect": {
+            "type": "boolean"
+        },
+        "host_regex": {
+            "type": "boolean"
+        },
+        "host_rewrite": {
+            "type": "string"
+        },
+        "hostname": {
+            "type": "string"
+        },
+        "kind": {
+            "type": "string"
+        },
+        "metadata_labels": {
+            "additionalProperties": {
+                "type": [
+                    "string",
+                    "boolean"
+                ]
+            },
+            "type": "object"
+        },
+        "method": {
+            "type": "string"
+        },
+        "method_regex": {
+            "type": "boolean"
+        },
+        "modules": {
+            "items": {
+                "type": "object"
+            },
+            "type": "array"
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
+        "outlier_detection": {
+            "type": "string"
+        },
+        "path_redirect": {
+            "type": "string"
+        },
+        "precedence": {
+            "type": "integer"
+        },
+        "prefix": {
+            "type": "string"
+        },
+        "prefix_regex": {
+            "type": "boolean"
+        },
+        "priority": {
+            "type": "string"
+        },
+        "rate_limits": {
+            "items": {
+                "$ref": "#/definitions/rateLimit"
+            },
+            "type": "array"
+        },
+        "regex_headers": {
+            "$ref": "#/definitions/mapStrStr"
+        },
+        "rewrite": {
+            "type": "string"
+        },
+        "service": {
+            "type": "string"
+        },
+        "shadow": {
+            "type": "boolean"
+        },
+        "timeout_ms": {
+            "type": "integer"
+        },
+        "tls": {
+            "type": [
+                "string",
+                "boolean"
+            ]
+        },
+        "use_websocket": {
+            "type": "boolean"
+        },
+        "weight": {
+            "type": "integer"
         }
     },
-    "required": [ "apiVersion", "kind", "name", "service", "prefix" ],
-    "additionalProperties": false
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "service",
+        "prefix"
+    ],
+    "type": "object"
 }
