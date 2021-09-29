@@ -28,7 +28,7 @@ type GRPCAgent struct {
 	Port int16
 }
 
-func (a *GRPCAgent) Start() <-chan bool {
+func (a *GRPCAgent) Start(ctx context.Context) <-chan bool {
 	wg := &sync.WaitGroup{}
 	var opts []grpc.ServerOption
 	if sizeStr := os.Getenv("KAT_GRPC_MAX_RECV_MSG_SIZE"); sizeStr != "" {
@@ -46,8 +46,7 @@ func (a *GRPCAgent) Start() <-chan bool {
 	}
 	grpcErrChan := make(chan error)
 	httpErrChan := make(chan error)
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 
 	wg.Add(2)
 	go func() {
@@ -105,7 +104,7 @@ func (a *GRPCAgent) Start() <-chan bool {
 			log.Print("Received shutdown")
 		}
 
-		ctx, timeout := context.WithTimeout(context.Background(), time.Second*30)
+		ctx, timeout := context.WithTimeout(ctx, time.Second*30)
 		defer timeout()
 		cancel()
 

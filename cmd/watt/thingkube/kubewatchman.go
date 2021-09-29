@@ -60,7 +60,7 @@ func (m *KubernetesWatchMaker) MakeKubernetesWatch(spec watchapi.KubernetesWatch
 				return watcherErr
 			}
 
-			watcher.Start()
+			watcher.Start(p.Context())
 			<-p.Shutdown()
 			watcher.Stop()
 			return nil
@@ -221,7 +221,7 @@ func (b *kubebootstrap) Work(p *supervisor.Process) error {
 		}
 	}
 
-	b.kubeAPIWatcher.Start()
+	b.kubeAPIWatcher.Start(p.Context())
 	p.Ready()
 
 	for range p.Shutdown() {

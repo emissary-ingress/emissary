@@ -145,14 +145,14 @@ func (w *Waiter) Wait(ctx context.Context, deadline time.Time) bool {
 		}
 	}
 
-	w.watcher.Start()
+	w.watcher.Start(ctx)
 
 	go func() {
 		time.Sleep(time.Until(deadline))
 		w.watcher.Stop()
 	}()
 
-	w.watcher.Wait()
+	w.watcher.Wait(ctx)
 
 	result := true
 

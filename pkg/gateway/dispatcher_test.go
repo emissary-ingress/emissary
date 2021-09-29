@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/golang/protobuf/ptypes"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
 	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
 	listener "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/listener"
@@ -11,9 +15,7 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
 	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
 	"github.com/datawire/ambassador/v2/pkg/gateway"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/datawire/dlib/dlog"
 )
 
 func assertErrorContains(t *testing.T, err error, msg string) {
@@ -23,12 +25,13 @@ func assertErrorContains(t *testing.T, err error, msg string) {
 
 func TestDispatcherRegister(t *testing.T) {
 	t.Parallel()
+	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_Foo)
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	disp.Upsert(foo)
-	l := disp.GetListener("bar")
+	l := disp.GetListener(ctx, "bar")
 	require.NotNil(t, l)
 	assert.Equal(t, "bar", l.Name)
 }
@@ -138,31 +141,33 @@ func TestDispatcherNoTransform(t *testing.T) {
 
 func TestDispatcherDelete(t *testing.T) {
 	t.Parallel()
+	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_Foo)
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	disp.Upsert(foo)
-	l := disp.GetListener("bar")
+	l := disp.GetListener(ctx, "bar")
 	require.NotNil(t, l)
 	assert.Equal(t, "bar", l.Name)
 	disp.Delete(foo)
-	l = disp.GetListener("bar")
+	l = disp.GetListener(ctx, "bar")
 	require.Nil(t, l)
 }
 
 func TestDispatcherDeleteKey(t *testing.T) {
 	t.Parallel()
+	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_Foo)
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	disp.Upsert(foo)
-	l := disp.GetListener("bar")
+	l := disp.GetListener(ctx, "bar")
 	require.NotNil(t, l)
 	assert.Equal(t, "bar", l.Name)
 	disp.DeleteKey("Foo", "default", "foo")
-	l = disp.GetListener("bar")
+	l = disp.GetListener(ctx, "bar")
 	require.Nil(t, l)
 }
 
@@ -201,15 +206,16 @@ spec:
 
 func TestDispatcherAssemblyWithRouteConfg(t *testing.T) {
 	t.Parallel()
+	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_FooWithRouteConfigName)
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	disp.Upsert(foo)
-	l := disp.GetListener("bar")
+	l := disp.GetListener(ctx, "bar")
 	require.NotNil(t, l)
 	assert.Equal(t, "bar", l.Name)
-	r := disp.GetRouteConfiguration("bar-routeconfig")
+	r := disp.GetRouteConfiguration(ctx, "bar-routeconfig")
 	require.NotNil(t, r)
 	assert.Equal(t, "bar-routeconfig", r.Name)
 }
@@ -266,17 +272,18 @@ func compile_FooWithRouteConfigName(f *Foo) *gateway.CompiledConfig {
 
 func TestDispatcherAssemblyWithEmptyRouteConfigName(t *testing.T) {
 	t.Parallel()
+	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_FooWithEmptyRouteConfigName)
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	disp.Upsert(foo)
-	l := disp.GetListener("bar")
+	l := disp.GetListener(ctx, "bar")
 	require.NotNil(t, l)
 	assert.Equal(t, "bar", l.Name)
 	// This is a bit weird, but the go control plane's consistency check seems to imply that an
 	// empty route config name is ok.
-	r := disp.GetRouteConfiguration("")
+	r := disp.GetRouteConfiguration(ctx, "")
 	require.NotNil(t, r)
 	assert.Equal(t, "", r.Name)
 }
@@ -327,15 +334,16 @@ func compile_FooWithEmptyRouteConfigName(f *Foo) *gateway.CompiledConfig {
 
 func TestDispatcherAssemblyWithoutRds(t *testing.T) {
 	t.Parallel()
+	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_FooWithoutRds)
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	disp.Upsert(foo)
-	l := disp.GetListener("bar")
+	l := disp.GetListener(ctx, "bar")
 	require.NotNil(t, l)
 	assert.Equal(t, "bar", l.Name)
-	r := disp.GetRouteConfiguration("bar")
+	r := disp.GetRouteConfiguration(ctx, "bar")
 	require.Nil(t, r)
 }
 
@@ -379,13 +387,14 @@ func compile_FooWithoutRds(f *Foo) *gateway.CompiledConfig {
 
 func TestDispatcherAssemblyEndpointDefaulting(t *testing.T) {
 	t.Parallel()
+	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_FooWithClusterRefs)
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	err = disp.Upsert(foo)
 	require.NoError(t, err)
-	_, snap := disp.GetSnapshot()
+	_, snap := disp.GetSnapshot(ctx)
 	found := false
 	for _, r := range snap.Resources[types.Endpoint].Items {
 		cla := r.(*v2.ClusterLoadAssignment)
@@ -409,13 +418,14 @@ func compile_FooWithClusterRefs(f *Foo) *gateway.CompiledConfig {
 
 func TestDispatcherAssemblyEndpointWatches(t *testing.T) {
 	t.Parallel()
+	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Foo", compile_FooEndpointWatches)
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	err = disp.Upsert(foo)
 	require.NoError(t, err)
-	disp.GetSnapshot()
+	disp.GetSnapshot(ctx)
 	assert.True(t, disp.IsWatched("foo-ns", "foo"))
 }
 

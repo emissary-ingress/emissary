@@ -33,13 +33,13 @@ func (usage *MemoryUsage) Watch(ctx context.Context) {
 	for {
 		select {
 		case now := <-ticker.C:
-			usage.Refresh()
+			usage.Refresh(ctx)
 			memory.Store(usage.ShortString())
 			usage.maybeDo(now, func() {
 				dlog.Infoln(ctx, usage.String())
 			})
 		case <-ctx.Done():
-			usage.Refresh()
+			usage.Refresh(ctx)
 			dlog.Infoln(ctx, usage.String())
 			return
 		}
@@ -83,9 +83,16 @@ func (m *MemoryUsage) maybeDo(now time.Time, f func()) {
 }
 
 // The GetMemoryUsage function returns MemoryUsage info for the entire cgroup.
-func GetMemoryUsage() *MemoryUsage {
-	usage, limit := readUsage()
-	return &MemoryUsage{usage, limit, readPerProcess(), 0, time.Time{}, readUsage, readPerProcess, sync.Mutex{}}
+func GetMemoryUsage(ctx context.Context) *MemoryUsage {
+	usage, limit := readUsage(ctx)
+	return &MemoryUsage{
+		usage:      usage,
+		limit:      limit,
+		perProcess: readPerProcess(ctx),
+
+		readUsage:      readUsage,
+		readPerProcess: readPerProcess,
+	}
 }
 
 // The MemoryUsage struct to holds memory usage and memory limit information about a cgroup.
@@ -97,8 +104,8 @@ type MemoryUsage struct {
 	lastAction time.Time
 
 	// these allow mocking for tests
-	readUsage      func() (memory, memory)
-	readPerProcess func() map[int]*ProcessUsage
+	readUsage      func(context.Context) (memory, memory)
+	readPerProcess func(context.Context) map[int]*ProcessUsage
 
 	// Protects the whole structure
 	mutex sync.Mutex
@@ -128,11 +135,11 @@ func (m memory) String() string {
 }
 
 // The MemoryUsage.Refresh method updates memory usage information.
-func (m *MemoryUsage) Refresh() {
+func (m *MemoryUsage) Refresh(ctx context.Context) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	usage, limit := m.readUsage()
+	usage, limit := m.readUsage(ctx)
 	m.usage = usage
 	m.limit = limit
 
@@ -150,7 +157,7 @@ func (m *MemoryUsage) Refresh() {
 		}
 	}
 
-	for pid, usage := range m.readPerProcess() {
+	for pid, usage := range m.readPerProcess(ctx) {
 		// Overwrite any old process info with new/updated process info.
 		m.perProcess[pid] = usage
 	}
@@ -213,28 +220,28 @@ func (m *MemoryUsage) percentUsed() int {
 
 // The GetCmdline helper returns the command line for a pid. If the pid does not exist or we don't
 // have access to read /proc/<pid>/cmdline, then it returns the empty string.
-func GetCmdline(pid int) []string {
+func GetCmdline(ctx context.Context, pid int) []string {
 	bytes, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/cmdline", pid))
 	if err != nil {
 		if errors.Is(err, os.ErrPermission) || errors.Is(err, os.ErrNotExist) {
 			// Don't complain if we don't have permission or the info doesn't exist.
 			return nil
 		}
-		dlog.Errorf(context.TODO(), "couldn't access cmdline for %d: %v", pid, err)
+		dlog.Errorf(ctx, "couldn't access cmdline for %d: %v", pid, err)
 		return nil
 	}
 	return strings.Split(strings.TrimSuffix(string(bytes), "\n"), "\x00")
 }
 
 // Helper to read the usage and limit for the cgroup.
-func readUsage() (memory, memory) {
+func readUsage(ctx context.Context) (memory, memory) {
 	limit, err := readMemory("/sys/fs/cgroup/memory/memory.limit_in_bytes")
 	if err != nil {
 		if errors.Is(err, os.ErrPermission) || errors.Is(err, os.ErrNotExist) {
 			// Don't complain if we don't have permission or the info doesn't exist.
 			return 0, unlimited
 		}
-		dlog.Errorf(context.TODO(), "couldn't access memory limit: %v", err)
+		dlog.Errorf(ctx, "couldn't access memory limit: %v", err)
 		return 0, unlimited
 	}
 
@@ -244,7 +251,7 @@ func readUsage() (memory, memory) {
 			// Don't complain if we don't have permission or the info doesn't exist.
 			return 0, limit
 		}
-		dlog.Errorf(context.TODO(), "couldn't access memory usage: %v", err)
+		dlog.Errorf(ctx, "couldn't access memory usage: %v", err)
 		return 0, limit
 	}
 
@@ -275,12 +282,12 @@ func readMemory(fpath string) (memory, error) {
 }
 
 // The readPerProcess helper returns a map containing memory usage used for each process in the cgroup.
-func readPerProcess() map[int]*ProcessUsage {
+func readPerProcess(ctx context.Context) map[int]*ProcessUsage {
 	result := map[int]*ProcessUsage{}
 
 	files, err := ioutil.ReadDir("/proc")
 	if err != nil {
-		dlog.Errorf(context.TODO(), "could not access memory info: %v", err)
+		dlog.Errorf(ctx, "could not access memory info: %v", err)
 		return nil
 	}
 
@@ -300,7 +307,7 @@ func readPerProcess() map[int]*ProcessUsage {
 				// Don't complain if we don't have permission or the info doesn't exist.
 				continue
 			}
-			dlog.Errorf(context.TODO(), "couldn't access usage for %d: %v", pid, err)
+			dlog.Errorf(ctx, "couldn't access usage for %d: %v", pid, err)
 			continue
 		}
 
@@ -316,11 +323,11 @@ func readPerProcess() map[int]*ProcessUsage {
 		}
 		rss, err := strconv.ParseUint(rssStr, 10, 64)
 		if err != nil {
-			dlog.Errorf(context.TODO(), "couldn't parse %s: %v", rssStr, err)
+			dlog.Errorf(ctx, "couldn't parse %s: %v", rssStr, err)
 			continue
 		}
 		rss = rss * 1024
-		result[pid] = &ProcessUsage{pid, GetCmdline(pid), memory(rss), 0}
+		result[pid] = &ProcessUsage{pid, GetCmdline(ctx, pid), memory(rss), 0}
 	}
 
 	return result

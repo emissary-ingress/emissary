@@ -12,10 +12,12 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/envoytest"
 	"github.com/datawire/ambassador/v2/pkg/gateway"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/dlib/dlog"
 )
 
 func TestGatewayMatches(t *testing.T) {
 	t.Parallel()
+	ctx := dlog.NewTestContext(t, false)
 	envoy.SetupRequestLogger(t, ":9000", ":9002")
 	e := envoy.SetupEnvoyController(t, ":8003")
 	envoy.SetupEnvoy(t, envoy.GetLoopbackAddr(8003), "8080:8080")
@@ -41,6 +43,7 @@ apiVersion: networking.x-k8s.io/v1alpha1
 metadata:
   name: my-route
   namespace: default
+
 spec:
   rules:
   - matches:
@@ -92,7 +95,7 @@ spec:
 	err = d.Upsert(makeEndpoint("default", "foo-backend-2", loopbackIp, 9001))
 	require.NoError(t, err)
 
-	version, snapshot := d.GetSnapshot()
+	version, snapshot := d.GetSnapshot(ctx)
 	status := e.Configure("test-id", version, *snapshot)
 	if status != nil {
 		t.Fatalf("envoy error: %s", status.Message)
