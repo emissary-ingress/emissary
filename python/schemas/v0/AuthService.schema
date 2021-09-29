@@ -1,33 +1,79 @@
 {
-    "$schema": "http://json-schema.org/schema#",
     "id": "https://getambassador.io/schemas/mapping.json",
-
+    "$schema": "http://json-schema.org/schema#",
     "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "auth_service"
+    ],
     "properties": {
-        "apiVersion": { "enum": [ "getambassador.io/v0" ] },
-        "generation": { "type": "integer" },
-        "kind": { "type": "string" },
-        "name": { "type": "string" },
-        "namespace": { "type": "string" },
-        "metadata_labels": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
+        "allowed_headers": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         },
         "ambassador_id": {
             "anyOf": [
-                { "type": "string" },
-                { "type": "array", "items": { "type": "string" } }
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
             ]
         },
-        
-        "auth_service": { "type": "string" },
-        "path_prefix": { "type": "string" },
-        "tls": { "type": [ "string", "boolean" ] },
-        "allowed_headers": {
-            "type": "array",
-            "items": { "type": "string" }
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v0"
+            ]
+        },
+        "auth_service": {
+            "type": "string"
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "kind": {
+            "type": "string"
+        },
+        "metadata_labels": {
+            "type": "object",
+            "additionalProperties": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            }
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
+        "path_prefix": {
+            "type": "string"
+        },
+        "tls": {
+            "oneOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "boolean"
+                }
+            ]
         }
     },
-    "required": [ "apiVersion", "kind", "name", "auth_service" ],
     "additionalProperties": false
 }

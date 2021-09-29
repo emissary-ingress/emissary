@@ -60,6 +60,7 @@ tools/flock           = $(tools.bindir)/flock
 tools/go-mkopensource = $(tools.bindir)/go-mkopensource
 tools/gotest2tap      = $(tools.bindir)/gotest2tap
 tools/py-mkopensource = $(tools.bindir)/py-mkopensource
+tools/schema-fmt      = $(tools.bindir)/schema-fmt
 $(tools.bindir)/.%.stamp: $(tools.srcdir)/%/main.go FORCE
 	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) .
 $(tools.bindir)/%: $(tools.bindir)/.%.stamp $(tools/copy-ifchanged)
