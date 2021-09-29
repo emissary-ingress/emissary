@@ -1545,7 +1545,14 @@ class Runner:
             if not crd:
                 continue
 
-            crd["spec"].pop("validation", None)
+            # We can't strip the schema validation from apiextensions.k8s.io/v1 CRDs because it is
+            # required; otherwise the API server would refuse to create the CRD, telling us:
+            #
+            #     CustomResourceDefinition.apiextensions.k8s.io "…" is invalid: spec.versions[0].schema.openAPIV3Schema: Required value: schemas are required
+            if crd["apiVersion"] != "apiextensions.k8s.io/v1":
+                crd["spec"].pop("validation", None)
+                for version in crd["spec"]["versions"]:
+                    version.pop("schema", None)
             stripped_crds.append(crd)
 
         final_crds = pyyaml.dump_all(stripped_crds, Dumper=pyyaml_dumper)

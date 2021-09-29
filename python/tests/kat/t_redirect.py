@@ -237,7 +237,7 @@ kind: Listener
 metadata:
   name: ambassador-listener-8080
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   port: 8080
   protocol: HTTP
   securityModel: XFP
@@ -251,7 +251,7 @@ kind: Host
 metadata:
   name: weird-xfp-test-host
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   requestPolicy:
     insecure:
       action: Redirect

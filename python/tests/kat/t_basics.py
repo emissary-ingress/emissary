@@ -75,7 +75,7 @@ name:  {self.path.k8s}-{prefix}
 hostname: "*"
 prefix: /{prefix}/
 service: {self.target.path.fqdn}
-ambassador_id: {amb_id}
+ambassador_id: [{amb_id}]
             """, prefix=self.format(prefix), amb_id=self.format(amb_id))
 
     def queries(self):

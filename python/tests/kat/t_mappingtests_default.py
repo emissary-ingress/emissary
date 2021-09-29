@@ -294,7 +294,7 @@ metadata:
   name: {self.target.path.k8s}
   namespace: same-mapping-1
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /{self.name}-1/
   service: {self.target.path.fqdn}.default
@@ -305,7 +305,7 @@ metadata:
   name: {self.target.path.k8s}
   namespace: same-mapping-2
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /{self.name}-2/
   service: {self.target.path.fqdn}.default
@@ -338,7 +338,7 @@ kind: Mapping
 metadata:
   name: {self.target.path.k8s}
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /{self.name}-1/
   service: thisisaverylongservicenameoverwithsixythreecharacters123456789

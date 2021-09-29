@@ -17,7 +17,7 @@ kind: Mapping
 metadata:
   name: cluster-tag-1
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /mapping-1/
   service: {self.target_1.path.fqdn}
@@ -27,7 +27,7 @@ kind: Mapping
 metadata:
   name: cluster-tag-2
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /mapping-2/
   service: {self.target_1.path.fqdn}
@@ -38,7 +38,7 @@ kind: Mapping
 metadata:
   name: cluster-tag-3
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /mapping-3/
   service: {self.target_1.path.fqdn}
@@ -49,7 +49,7 @@ kind: Mapping
 metadata:
   name: cluster-tag-4
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /mapping-4/
   service: {self.target_2.path.fqdn}
@@ -60,7 +60,7 @@ kind: Mapping
 metadata:
   name: cluster-tag-5
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /mapping-5/
   service: {self.target_1.path.fqdn}
@@ -71,7 +71,7 @@ kind: Mapping
 metadata:
   name: cluster-tag-6
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /mapping-6/
   service: {self.target_2.path.fqdn}

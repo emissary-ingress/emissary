@@ -33,7 +33,7 @@ kind: Mapping
 metadata:
   name: lua-target-mapping
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /target/
   service: {self.target.path.fqdn}
