@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _compressor_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on Compressor with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *Compressor) Validate() error {
@@ -71,6 +68,26 @@ func (m *Compressor) Validate() error {
 		if err := v.Validate(); err != nil {
 			return CompressorValidationError{
 				field:  "CompressorLibrary",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetRequestDirectionConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CompressorValidationError{
+				field:  "RequestDirectionConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetResponseDirectionConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CompressorValidationError{
+				field:  "ResponseDirectionConfig",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -133,3 +150,251 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CompressorValidationError{}
+
+// Validate checks the field values on Compressor_CommonDirectionConfig with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, an error is returned.
+func (m *Compressor_CommonDirectionConfig) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if v, ok := interface{}(m.GetEnabled()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Compressor_CommonDirectionConfigValidationError{
+				field:  "Enabled",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetMinContentLength()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Compressor_CommonDirectionConfigValidationError{
+				field:  "MinContentLength",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// Compressor_CommonDirectionConfigValidationError is the validation error
+// returned by Compressor_CommonDirectionConfig.Validate if the designated
+// constraints aren't met.
+type Compressor_CommonDirectionConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e Compressor_CommonDirectionConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e Compressor_CommonDirectionConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e Compressor_CommonDirectionConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e Compressor_CommonDirectionConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e Compressor_CommonDirectionConfigValidationError) ErrorName() string {
+	return "Compressor_CommonDirectionConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e Compressor_CommonDirectionConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCompressor_CommonDirectionConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = Compressor_CommonDirectionConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = Compressor_CommonDirectionConfigValidationError{}
+
+// Validate checks the field values on Compressor_RequestDirectionConfig with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, an error is returned.
+func (m *Compressor_RequestDirectionConfig) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if v, ok := interface{}(m.GetCommonConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Compressor_RequestDirectionConfigValidationError{
+				field:  "CommonConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// Compressor_RequestDirectionConfigValidationError is the validation error
+// returned by Compressor_RequestDirectionConfig.Validate if the designated
+// constraints aren't met.
+type Compressor_RequestDirectionConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e Compressor_RequestDirectionConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e Compressor_RequestDirectionConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e Compressor_RequestDirectionConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e Compressor_RequestDirectionConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e Compressor_RequestDirectionConfigValidationError) ErrorName() string {
+	return "Compressor_RequestDirectionConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e Compressor_RequestDirectionConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCompressor_RequestDirectionConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = Compressor_RequestDirectionConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = Compressor_RequestDirectionConfigValidationError{}
+
+// Validate checks the field values on Compressor_ResponseDirectionConfig with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, an error is returned.
+func (m *Compressor_ResponseDirectionConfig) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if v, ok := interface{}(m.GetCommonConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Compressor_ResponseDirectionConfigValidationError{
+				field:  "CommonConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for DisableOnEtagHeader
+
+	// no validation rules for RemoveAcceptEncodingHeader
+
+	return nil
+}
+
+// Compressor_ResponseDirectionConfigValidationError is the validation error
+// returned by Compressor_ResponseDirectionConfig.Validate if the designated
+// constraints aren't met.
+type Compressor_ResponseDirectionConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e Compressor_ResponseDirectionConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e Compressor_ResponseDirectionConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e Compressor_ResponseDirectionConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e Compressor_ResponseDirectionConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e Compressor_ResponseDirectionConfigValidationError) ErrorName() string {
+	return "Compressor_ResponseDirectionConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e Compressor_ResponseDirectionConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCompressor_ResponseDirectionConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = Compressor_ResponseDirectionConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = Compressor_ResponseDirectionConfigValidationError{}

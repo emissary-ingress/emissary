@@ -1,13 +1,15 @@
 package testprocess
 
 import (
+	"context"
 	"flag"
-	"log"
 	"os"
 	"os/exec"
 	"reflect"
 	"runtime"
 	"runtime/debug"
+
+	"github.com/datawire/dlib/dlog"
 )
 
 // flags.  Initialize these in the init() step, in case anything else
@@ -83,6 +85,7 @@ func _make(sudo bool, f func()) *exec.Cmd {
 // calling testprocess.Dispatch.  If flag.Parse has not been called,
 // then testprocess.Dispatch will call it.
 func Dispatch() {
+	ctx := context.TODO()
 	dispatched = true
 
 	if !flag.Parsed() {
@@ -92,19 +95,19 @@ func Dispatch() {
 		return
 	}
 
-	log.Printf("TESTPROCESS %s PID: %d", *name, os.Getpid())
+	dlog.Printf(ctx, "TESTPROCESS %s PID: %d", *name, os.Getpid())
 
 	defer func() {
 		if r := recover(); r != nil {
 			stack := string(debug.Stack())
-			log.Printf("TESTPROCESS %s PANICKED: %v\n%s", *name, r, stack)
+			dlog.Printf(ctx, "TESTPROCESS %s PANICKED: %v\n%s", *name, r, stack)
 			os.Exit(1)
 		}
 	}()
 
 	functions[*name]()
 
-	log.Printf("TESTPROCESS %s NORMAL EXIT", *name)
+	dlog.Printf(ctx, "TESTPROCESS %s NORMAL EXIT", *name)
 	os.Exit(0)
 }
 

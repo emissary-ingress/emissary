@@ -175,7 +175,7 @@ func (w *Watcher) WatchQuery(query Query, listener func(*Watcher)) error {
 }
 
 // Start starts the watcher
-func (w *Watcher) Start() {
+func (w *Watcher) Start(ctx context.Context) {
 	w.mutex.Lock()
 	if w.started {
 		w.mutex.Unlock()
@@ -185,7 +185,7 @@ func (w *Watcher) Start() {
 		w.mutex.Unlock()
 	}
 	for kind := range w.watches {
-		w.sync(kind)
+		w.sync(ctx, kind)
 	}
 
 	for _, watch := range w.watches {
@@ -198,9 +198,9 @@ func (w *Watcher) Start() {
 	}
 }
 
-func (w *Watcher) sync(kind ResourceType) {
+func (w *Watcher) sync(ctx context.Context, kind ResourceType) {
 	watch := w.watches[kind]
-	resources, err := w.Client.ListQuery(watch.query)
+	resources, err := w.Client.ListQuery(ctx, watch.query)
 	if err != nil {
 		panic(err)
 	}
@@ -234,7 +234,7 @@ func (w *Watcher) List(kind string) []Resource {
 }
 
 // UpdateStatus updates the status of the `resource` provided
-func (w *Watcher) UpdateStatus(resource Resource) (Resource, error) {
+func (w *Watcher) UpdateStatus(ctx context.Context, resource Resource) (Resource, error) {
 	ri, err := w.Client.ResolveResourceType(resource.QKind())
 	if err != nil {
 		return nil, err
@@ -254,7 +254,7 @@ func (w *Watcher) UpdateStatus(resource Resource) (Resource, error) {
 		cli = watch.resource
 	}
 
-	result, err := cli.UpdateStatus(context.TODO(), &uns, v1.UpdateOptions{})
+	result, err := cli.UpdateStatus(ctx, &uns, v1.UpdateOptions{})
 	if err != nil {
 		return nil, err
 	} else {
@@ -296,7 +296,7 @@ func (w *Watcher) Stop() {
 	}
 }
 
-func (w *Watcher) Wait() {
-	w.Start()
+func (w *Watcher) Wait(ctx context.Context) {
+	w.Start(ctx)
 	w.wg.Wait()
 }

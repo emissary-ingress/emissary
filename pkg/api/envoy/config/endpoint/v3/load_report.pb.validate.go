@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _load_report_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on UpstreamLocalityStats with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -344,10 +341,10 @@ func (m *ClusterStats) Validate() error {
 		return nil
 	}
 
-	if len(m.GetClusterName()) < 1 {
+	if utf8.RuneCountInString(m.GetClusterName()) < 1 {
 		return ClusterStatsValidationError{
 			field:  "ClusterName",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -467,10 +464,10 @@ func (m *ClusterStats_DroppedRequests) Validate() error {
 		return nil
 	}
 
-	if len(m.GetCategory()) < 1 {
+	if utf8.RuneCountInString(m.GetCategory()) < 1 {
 		return ClusterStats_DroppedRequestsValidationError{
 			field:  "Category",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 

@@ -81,7 +81,7 @@ func Main(binName, humanName string, version string, cmds map[string]Command) {
 	logger := dlog.WrapLogrus(logrusLogger).
 		WithField("PID", os.Getpid()).
 		WithField("CMD", name)
-	ctx := dlog.WithLogger(context.Background(), logger)
+	ctx := dlog.WithLogger(context.Background(), logger) // early in Main()
 	dlog.SetFallbackLogger(logger.WithField("oops-i-did-not-pass-context-correctly", "THIS IS A BUG"))
 
 	if cmdOk {

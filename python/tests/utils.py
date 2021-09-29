@@ -275,7 +275,7 @@ def _secret_handler():
     cache_dir = tempfile.TemporaryDirectory(prefix="null-secret-", suffix="-cache")
     return NullSecretHandler(logger, source_root.name, cache_dir.name, "fake")
 
-def compile_with_cachecheck(yaml, envoy_version="V2", errors_ok=False):
+def compile_with_cachecheck(yaml, envoy_version="V3", errors_ok=False):
     # Compile with and without a cache. Neither should produce errors.
     cache = Cache(logger)
     secret_handler = _secret_handler()
@@ -323,7 +323,7 @@ def econf_compile(yaml, envoy_version="V2"):
     compiled = compile_with_cachecheck(yaml, envoy_version=envoy_version)
     return compiled[envoy_version.lower()].as_dict()
 
-def econf_foreach_listener(econf, fn, envoy_version='V2', listener_count=1):
+def econf_foreach_listener(econf, fn, envoy_version='V3', listener_count=1):
     listeners = econf['static_resources']['listeners']
 
     wanted_plural = "" if (listener_count == 1) else "s"
@@ -364,7 +364,7 @@ def econf_foreach_listener_chain(listener, fn, chain_count=2, need_name=None, ne
 
         fn(typed_config)
 
-def econf_foreach_hcm(econf, fn, envoy_version='V2', chain_count=2):
+def econf_foreach_hcm(econf, fn, envoy_version='V3', chain_count=2):
     for listener in econf['static_resources']['listeners']:
         hcm_info = EnvoyHCMInfo[envoy_version]
 
@@ -383,12 +383,14 @@ def econf_foreach_cluster(econf, fn, name='cluster_httpbin_default'):
             break
     assert found_cluster
 
-def assert_valid_envoy_config(config_dict):
+def assert_valid_envoy_config(config_dict, v2=False):
     with tempfile.NamedTemporaryFile() as temp:
         temp.write(bytes(json.dumps(config_dict), encoding = 'utf-8'))
         temp.flush()
         f_name = temp.name
         cmd = [ENVOY_PATH, '--config-path', f_name, '--mode', 'validate']
+        if v2:
+            cmd.append('--bootstrap-version 2')
         p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if p.returncode != 0:
             print(p.stdout)

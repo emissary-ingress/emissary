@@ -418,6 +418,11 @@ class V3Listener(dict):
             http_options = base_http_config.setdefault("http_protocol_options", {})
             http_options['accept_http_10'] = self.config.ir.ambassador_module.enable_http10
 
+        if 'allow_chunked_length' in self.config.ir.ambassador_module:
+            if self.config.ir.ambassador_module.allow_chunked_length != None:
+                http_options = base_http_config.setdefault("http_protocol_options", {})
+                http_options['allow_chunked_length'] = self.config.ir.ambassador_module.allow_chunked_length
+
         if 'preserve_external_request_id' in self.config.ir.ambassador_module:
             base_http_config["preserve_external_request_id"] = self.config.ir.ambassador_module.preserve_external_request_id
 

@@ -12,6 +12,7 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/dlib/dlog"
 )
 
 const manifests = `
@@ -70,8 +71,8 @@ secret: consultest-client-cert-secret
 `
 
 func TestReconcile(t *testing.T) {
-	resolvers, mappings, c, tw := setup(t)
-	c.reconcile(resolvers, mappings)
+	ctx, resolvers, mappings, c, tw := setup(t)
+	c.reconcile(ctx, resolvers, mappings)
 	tw.Assert(
 		"consultest-resolver.default:consultest-consul-service:watch",
 		"consultest-resolver.default:consultest-consul-service-tcp:watch",
@@ -80,11 +81,11 @@ func TestReconcile(t *testing.T) {
 		Service:  "foo",
 		Resolver: "consultest-resolver",
 	}
-	c.reconcile(resolvers, append(mappings, extra))
+	c.reconcile(ctx, resolvers, append(mappings, extra))
 	tw.Assert(
 		"consultest-resolver.default:foo:watch",
 	)
-	c.reconcile(resolvers, nil)
+	c.reconcile(ctx, resolvers, nil)
 	tw.Assert(
 		"consultest-resolver.default:consultest-consul-service-tcp:stop",
 		"consultest-resolver.default:consultest-consul-service:stop",
@@ -93,13 +94,13 @@ func TestReconcile(t *testing.T) {
 }
 
 func TestCleanup(t *testing.T) {
-	resolvers, mappings, c, tw := setup(t)
-	c.reconcile(resolvers, mappings)
+	ctx, resolvers, mappings, c, tw := setup(t)
+	c.reconcile(ctx, resolvers, mappings)
 	tw.Assert(
 		"consultest-resolver.default:consultest-consul-service:watch",
 		"consultest-resolver.default:consultest-consul-service-tcp:watch",
 	)
-	c.cleanup()
+	c.cleanup(ctx)
 	tw.Assert(
 		"consultest-resolver.default:consultest-consul-service:stop",
 		"consultest-resolver.default:consultest-consul-service-tcp:stop",
@@ -107,9 +108,9 @@ func TestCleanup(t *testing.T) {
 }
 
 func TestBootstrap(t *testing.T) {
-	resolvers, mappings, c, _ := setup(t)
+	ctx, resolvers, mappings, c, _ := setup(t)
 	assert.False(t, c.isBootstrapped())
-	c.reconcile(resolvers, mappings)
+	c.reconcile(ctx, resolvers, mappings)
 	assert.False(t, c.isBootstrapped())
 	// XXX: break this (maybe use a chan to replace uncoalesced dirties and passing con around?)
 	//
@@ -120,13 +121,13 @@ func TestBootstrap(t *testing.T) {
 	assert.True(t, c.isBootstrapped())
 }
 
-func setup(t *testing.T) (resolvers []*amb.ConsulResolver, mappings []consulMapping, c *consul, tw *testWatcher) {
+func setup(t *testing.T) (ctx context.Context, resolvers []*amb.ConsulResolver, mappings []consulMapping, c *consul, tw *testWatcher) {
 	objs, err := kates.ParseManifestsToUnstructured(manifests)
 	require.NoError(t, err)
 
 	parent := &kates.Unstructured{}
 	parent.SetNamespace("default")
-	ctx := context.Background()
+	ctx = dlog.NewTestContext(t, false)
 
 	for _, obj := range objs {
 		newobj := convertAnnotation(ctx, parent, obj)
@@ -145,7 +146,7 @@ func setup(t *testing.T) (resolvers []*amb.ConsulResolver, mappings []consulMapp
 	assert.Equal(t, 4, len(mappings))
 
 	tw = &testWatcher{t: t, events: make(map[string]bool)}
-	c = newConsul(context.TODO(), tw)
+	c = newConsul(ctx, tw)
 	tw.Assert()
 
 	return
@@ -173,7 +174,7 @@ func (tw *testWatcher) Assert(events ...string) {
 	tw.events = make(map[string]bool)
 }
 
-func (tw *testWatcher) Watch(resolver *amb.ConsulResolver, svc string, _ chan consulwatch.Endpoints) Stopper {
+func (tw *testWatcher) Watch(ctx context.Context, resolver *amb.ConsulResolver, svc string, _ chan consulwatch.Endpoints) Stopper {
 	rname := fmt.Sprintf("%s.%s", resolver.GetName(), resolver.GetNamespace())
 	tw.Logf("%s:%s:watch", rname, svc)
 	return &testStopper{watcher: tw, resolver: rname, service: svc}

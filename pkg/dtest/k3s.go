@@ -1,7 +1,7 @@
 package dtest
 
 import (
-	"github.com/datawire/ambassador/v2/pkg/dtest_k3s"
+	dtest_k3s "github.com/datawire/dtest"
 )
 
 var DockerRegistry = dtest_k3s.DockerRegistry

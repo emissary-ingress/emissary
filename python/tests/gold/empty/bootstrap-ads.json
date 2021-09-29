@@ -34,7 +34,7 @@
       {
         "name": "static_layer",
         "static_layer": {
-          "envoy.reloadable_features.ext_authz_http_service_enable_case_sensitive_string_matcher": false,
+          "envoy.reloadable_features.enable_deprecated_v2_api": true,
           "re2.max_program_size.error_level": 200
         }
       }

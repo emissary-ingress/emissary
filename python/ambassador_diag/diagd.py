@@ -92,8 +92,19 @@ if parse_bool(os.environ.get("AMBASSADOR_JSON_LOGGING", "false")):
     else:
         print("Could not find a logging manager. Some logging may not be properly JSON formatted!")
 else:
+    # Default log level
+    level = logging.INFO
+
+    # Check for env var log level
+    if level_name := os.getenv("AES_LOG_LEVEL"):
+        level_number = logging.getLevelName(level_name.upper())
+        
+        if isinstance(level_number, int):
+            level = level_number
+
+    # Set defauts for all loggers
     logging.basicConfig(
-        level=logging.INFO,
+        level=level,
         format="%%(asctime)s diagd %s [P%%(process)dT%%(threadName)s] %%(levelname)s: %%(message)s" % __version__,
         datefmt="%Y-%m-%d %H:%M:%S"
     )
@@ -188,9 +199,8 @@ class DiagApp (Flask):
         self.enable_fast_reconfigure = enable_fast_reconfigure
         self.legacy_mode = legacy_mode
 
-        # This feels like overkill.
+        # Init logger, inherits settings from default
         self.logger = logging.getLogger("ambassador.diagd")
-        self.logger.setLevel(logging.INFO)
 
         # Initialize the Envoy stats manager...
         self.estatsmgr = EnvoyStatsMgr(self.logger)
@@ -2028,6 +2038,8 @@ class AmbassadorEventWatcher(threading.Thread):
             output.write(config_json)
 
         command = ['envoy', '--service-node', 'test-id', '--service-cluster', ir.ambassador_nodename, '--config-path', econf_validation_path, '--mode', 'validate']
+        if Config.envoy_api_version == "V2":
+            command.extend(["--bootstrap-version", "2"])
 
         v_exit = 0
         v_encoded = ''.encode('utf-8')

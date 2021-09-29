@@ -4,12 +4,9 @@ include $(OSS_HOME)/build-aux/prelude.mk
 YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
 ENVOY_TEST_LABEL ?= //test/...
 
-_git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
-IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
-
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= 32c3f1c15e6ad2bbcdf76b86bc893f19fac7d96d
+  ENVOY_COMMIT ?= 7a33e53fd3d3c4befa53030797f344fcacaa61f4
   ENVOY_COMPILATION_MODE ?= opt
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes.
   # You may reset BASE_ENVOY_RELVER when adjusting ENVOY_COMMIT.
@@ -23,6 +20,17 @@ IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
 # for builder.mk...
 export ENVOY_DOCKER_TAG
+
+# Set ENVOY_DOCKER_REPO to the list of mirrors that we should
+# sanity-check that things get pushed to.
+ifneq ($(IS_PRIVATE),)
+  # If $(IS_PRIVATE), then just the private repo...
+  ENVOY_DOCKER_REPOS = $(ENVOY_DOCKER_REPO)
+else
+  # ...otherwise, this list of repos:
+  ENVOY_DOCKER_REPOS  = docker.io/datawire/ambassador-base
+  ENVOY_DOCKER_REPOS += gcr.io/datawire/ambassador-base
+endif
 
 #
 # Envoy build
@@ -94,13 +102,13 @@ $(OSS_HOME)/_cxx/go-control-plane: FORCE
 	    git checkout $(ENVOY_GO_CONTROL_PLANE_COMMIT); \
 	}
 
-$(OSS_HOME)/_cxx/envoy-build-image.txt: $(OSS_HOME)/_cxx/envoy $(WRITE_IFCHANGED) FORCE
+$(OSS_HOME)/_cxx/envoy-build-image.txt: $(OSS_HOME)/_cxx/envoy $(tools/write-ifchanged) FORCE
 	@PS4=; set -ex -o pipefail; { \
 	    pushd $</ci; \
 	    echo "$$(pwd)"; \
 	    . envoy_build_sha.sh; \
 	    popd; \
-	    echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA | $(WRITE_IFCHANGED) $@; \
+	    echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA | $(tools/write-ifchanged) $@; \
 	}
 
 $(OSS_HOME)/_cxx/envoy-build-container.txt: $(OSS_HOME)/_cxx/envoy-build-image.txt FORCE
@@ -181,6 +189,24 @@ check-envoy: $(ENVOY_BASH.deps)
 	     $(ENVOY_DOCKER_EXEC) bazel test --config=clang --test_output=errors --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only $(ENVOY_TEST_LABEL); \
 	 )
 .PHONY: check-envoy
+
+.PHONY: check-envoy-version
+check-envoy-version: ## Check that Envoy version has been pushed to the right places
+check-envoy-version: $(OSS_HOME)/_cxx/envoy
+	# First, we're going to check whether the envoy commit is tagged, which
+	# is one of the things that has to happen before landing a PR that bumps
+	# the ENVOY_COMMIT.
+	cd $< && unset GIT_DIR GIT_WORK_TREE && git describe --tags --exact-match
+	# Now, we're going to check that the Envoy Docker images have been
+	# pushed to all of the mirrors, which is another thing that has to
+	# happen before landing a PR that bumps the ENVOY_COMMIT.
+	#
+	# We "could" use `docker manifest inspect` instead of `docker
+	# pull` to test that these exist without actually pulling
+	# them... except that gcr.io doesn't allow `manifest inspect`.
+	# So just go ahead and do the `pull` :(
+	@PS4=; set -ex; $(foreach ENVOY_DOCKER_REPO,$(ENVOY_DOCKER_REPOS), docker pull $(ENVOY_DOCKER_TAG) >/dev/null; )
+	@PS4=; set -ex; $(foreach ENVOY_DOCKER_REPO,$(ENVOY_DOCKER_REPOS), docker pull $(ENVOY_FULL_DOCKER_TAG) >/dev/null; )
 
 envoy-shell: ## Run a shell in the Envoy build container
 envoy-shell: $(ENVOY_BASH.deps)

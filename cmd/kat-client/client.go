@@ -620,7 +620,7 @@ func GetGRPCReqBody() (*bytes.Buffer, error) {
 
 // CallRealGRPC handles real gRPC queries, i.e. queries that use the normal gRPC
 // generated code and the normal HTTP/2-based transport.
-func CallRealGRPC(query Query) {
+func CallRealGRPC(ctx context.Context, query Query) {
 	qURL, err := url.Parse(query.URL())
 	if query.CheckErr(err) {
 		log.Printf("grpc url parse failed: %v", err)
@@ -643,7 +643,7 @@ func CallRealGRPC(query Query) {
 		}
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	// Dial runs in the background and thus always appears to succeed. If you
@@ -723,7 +723,7 @@ func CallRealGRPC(query Query) {
 
 // ExecuteQuery constructs the appropriate request, executes it, and records the
 // response and related information in query.result.
-func ExecuteQuery(query Query) {
+func ExecuteQuery(ctx context.Context, query Query) {
 	// Websocket stuff is handled elsewhere
 	if query.IsWebsocket() {
 		ExecuteWebsocketQuery(query)
@@ -732,7 +732,7 @@ func ExecuteQuery(query Query) {
 
 	// Real gRPC is handled elsewhere
 	if query.GrpcType() == "real" {
-		CallRealGRPC(query)
+		CallRealGRPC(ctx, query)
 		return
 	}
 
@@ -842,6 +842,7 @@ func parseArgs(rawArgs ...string) Args {
 }
 
 func main() {
+	ctx := context.Background() // first line in main()
 	debug_grpc_web = false
 
 	rlimit()
@@ -886,7 +887,7 @@ func main() {
 				queries <- true
 				sem.Release()
 			}()
-			ExecuteQuery(specs[idx])
+			ExecuteQuery(ctx, specs[idx])
 		}(i)
 	}
 

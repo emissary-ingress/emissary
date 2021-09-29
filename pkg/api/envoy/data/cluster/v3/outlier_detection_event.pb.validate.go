@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _outlier_detection_event_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on OutlierDetectionEvent with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -71,17 +68,17 @@ func (m *OutlierDetectionEvent) Validate() error {
 		}
 	}
 
-	if len(m.GetClusterName()) < 1 {
+	if utf8.RuneCountInString(m.GetClusterName()) < 1 {
 		return OutlierDetectionEventValidationError{
 			field:  "ClusterName",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
-	if len(m.GetUpstreamUrl()) < 1 {
+	if utf8.RuneCountInString(m.GetUpstreamUrl()) < 1 {
 		return OutlierDetectionEventValidationError{
 			field:  "UpstreamUrl",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 

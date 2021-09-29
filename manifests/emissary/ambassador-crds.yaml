@@ -1886,7 +1886,7 @@ spec:
                     type: array
                 type: object
               docs:
-                description: DocsInfo provides some extra information about the docs for the Mapping (used by the Dev Portal)
+                description: DocsInfo provides some extra information about the docs for the Mapping. Docs is used by both the agent and the DevPortal.
                 properties:
                   display_name:
                     type: string

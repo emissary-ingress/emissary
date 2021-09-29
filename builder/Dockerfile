@@ -75,7 +75,6 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local
 # Build the golang binaries
 ADD api api
 ADD cmd cmd
-ADD internal internal
 ADD pkg pkg
 ADD vendor vendor
 ADD go.mod go.mod

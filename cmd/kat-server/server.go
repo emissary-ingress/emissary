@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -20,6 +21,7 @@ const (
 )
 
 func main() {
+	ctx := context.Background() // first line in main()
 	listeners := make([]srv.Service, 0)
 	var s srv.Service
 
@@ -173,7 +175,7 @@ func main() {
 		first := true
 
 		for _, s := range listeners {
-			c := s.Start()
+			c := s.Start(ctx)
 
 			if first {
 				waitFor = c

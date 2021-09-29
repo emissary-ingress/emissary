@@ -2,13 +2,14 @@ package entrypoint
 
 import (
 	"bytes"
-	"context"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/datawire/dlib/dlog"
 )
 
 var sanitizeExternalSnapshotTests = []struct {
@@ -66,7 +67,8 @@ func TestSanitizeExternalSnapshot(t *testing.T) {
 				}
 			})
 
-			snapshot, err := sanitizeExternalSnapshot(context.Background(), []byte(sanitizeExternalSnapshotTest.rawJSON), client)
+			ctx := dlog.NewTestContext(t, false)
+			snapshot, err := sanitizeExternalSnapshot(ctx, []byte(sanitizeExternalSnapshotTest.rawJSON), client)
 
 			assert.Nil(innerT, err)
 			assert.Equal(innerT, sanitizeExternalSnapshotTest.expectedSanitizedJSON, string(snapshot))

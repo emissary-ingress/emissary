@@ -1225,10 +1225,10 @@ class Runner:
             finally:
                 self.done = True
 
-    def get_manifests_and_namespace(self, selected) -> Tuple[Any, str]:
+    def get_manifests_and_namespaces(self, selected) -> Tuple[Any, List[str]]:
         manifests: OrderedDict[Any, list] = OrderedDict()  # type: ignore
         superpods: Dict[str, Superpod] = {}
-
+        namespaces = []
         for n in (n for n in self.nodes if n in selected and not n.xfail):
             manifest = None
             nsp = None
@@ -1353,11 +1353,13 @@ class Runner:
 
                 # ...and, finally, save the manifest list.
                 manifests[n] = list(manifest)
+                if str(nsp) not in namespaces:
+                    namespaces.append(str(nsp))
 
         for superpod in superpods.values():
             manifests[superpod] = superpod.get_manifest_list()
 
-        return manifests, str(nsp)
+        return manifests, namespaces
 
     def do_local_checks(self, selected, fname) -> bool:
         if RUN_MODE == 'envoy':
@@ -1382,7 +1384,7 @@ class Runner:
 
     def _setup_k8s(self, selected):
         # First up, get the full manifest and save it to disk.
-        manifests, namespace = self.get_manifests_and_namespace(selected)
+        manifests, namespaces = self.get_manifests_and_namespaces(selected)
 
         configs = OrderedDict()
         for n in (n for n in self.nodes if n in selected and not n.xfail):
@@ -1655,8 +1657,10 @@ class Runner:
             self.applied_manifests = True
 
         # Finally, install httpbin and the websocket-echo-server.
-        apply_kube_artifacts(namespace, httpbin_manifests)
-        apply_kube_artifacts(namespace, websocket_echo_server_manifests)
+        print(f"applying http_manifests + websocket_echo_server_manifests to namespaces: {namespaces}")
+        for namespace in namespaces:
+            apply_kube_artifacts(namespace, httpbin_manifests)
+            apply_kube_artifacts(namespace, websocket_echo_server_manifests)
 
         for n in self.nodes:
             if n in selected and not n.xfail:

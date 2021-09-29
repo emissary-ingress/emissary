@@ -21,7 +21,7 @@ func NewKubernetesSnapshot() *snapshotTypes.KubernetesSnapshot {
 }
 
 // GetAmbId extracts the AmbassadorId from the kubernetes resource.
-func GetAmbId(resource kates.Object) amb.AmbassadorID {
+func GetAmbId(ctx context.Context, resource kates.Object) amb.AmbassadorID {
 	switch r := resource.(type) {
 	case *v3alpha1.Host:
 		var id amb.AmbassadorID
@@ -64,7 +64,7 @@ func GetAmbId(resource kates.Object) amb.AmbassadorID {
 		var id amb.AmbassadorID
 		err := json.Unmarshal([]byte(idstr), &id)
 		if err != nil {
-			dlog.Errorf(context.TODO(), "%s: error parsing ambassador-id '%s'", location(resource), idstr)
+			dlog.Errorf(ctx, "%s: error parsing ambassador-id '%s'", location(resource), idstr)
 		} else {
 			return id
 		}

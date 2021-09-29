@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _string_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on StringMatcher with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -53,19 +50,19 @@ func (m *StringMatcher) Validate() error {
 
 	case *StringMatcher_Prefix:
 
-		if len(m.GetPrefix()) < 1 {
+		if utf8.RuneCountInString(m.GetPrefix()) < 1 {
 			return StringMatcherValidationError{
 				field:  "Prefix",
-				reason: "value length must be at least 1 bytes",
+				reason: "value length must be at least 1 runes",
 			}
 		}
 
 	case *StringMatcher_Suffix:
 
-		if len(m.GetSuffix()) < 1 {
+		if utf8.RuneCountInString(m.GetSuffix()) < 1 {
 			return StringMatcherValidationError{
 				field:  "Suffix",
-				reason: "value length must be at least 1 bytes",
+				reason: "value length must be at least 1 runes",
 			}
 		}
 
@@ -85,6 +82,15 @@ func (m *StringMatcher) Validate() error {
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
+			}
+		}
+
+	case *StringMatcher_Contains:
+
+		if utf8.RuneCountInString(m.GetContains()) < 1 {
+			return StringMatcherValidationError{
+				field:  "Contains",
+				reason: "value length must be at least 1 runes",
 			}
 		}
 

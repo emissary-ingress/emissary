@@ -19,9 +19,6 @@
 #  - Alias: bin/% -> bin_$(GOHOSTOS)_$(GOHOSTARCH)/%
 ## common.mk targets ##
 #  (N/A)
-#
-# Dependencies of `clobber` MUST NOT depend on programs in
-# `$(build-aux.bindir)/`.
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _common.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_common.mk))prelude.mk
@@ -87,22 +84,22 @@ bin:
 
 check: lint build
 	$(MAKE) -f $(firstword $(MAKEFILE_LIST)) test-suite.tap.summary
-test-suite.tap: $(TAP_DRIVER)
-	@$(TAP_DRIVER) cat $(sort $(filter %.tap,$^)) > $@
+test-suite.tap: $(tools/tap-driver)
+	@$(tools/tap-driver) cat $(sort $(filter %.tap,$^)) > $@
 
-%.tap.summary: %.tap $(TAP_DRIVER)
-	@$(TAP_DRIVER) summarize $<
+%.tap.summary: %.tap $(tools/tap-driver)
+	@$(tools/tap-driver) summarize $<
 
-%.tap: %.tap.gen $(TAP_DRIVER) FORCE
-	@{ $(abspath $<) || true; } 2>&1 | tee $@ | $(TAP_DRIVER) stream -n $<
+%.tap: %.tap.gen $(tools/tap-driver) FORCE
+	@{ $(abspath $<) || true; } 2>&1 | tee $@ | $(tools/tap-driver) stream -n $<
 %.log: %.test FORCE
 	@$(abspath $<) >$@ 2>&1; echo :exit-status: $$? >>$@
-%.tap: %.log %.test $(TAP_DRIVER)
+%.tap: %.log %.test $(tools/tap-driver)
 	@{ \
 		printf '%s\n' 'TAP version 13' '1..1' && \
 		sed 's/^/#/' < $< && \
 		sed -n '$${ s/^:exit-status: 0$$/ok 1/; s/^:exit-status: 77$$/ok 1 # SKIP/; s/^:exit-status: .*/not ok 1/; p; }' < $<; \
-	} | tee $@ | $(TAP_DRIVER) stream -n $*.test
+	} | tee $@ | $(tools/tap-driver) stream -n $*.test
 
 #
 # Configure how Make works

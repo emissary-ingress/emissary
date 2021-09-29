@@ -75,7 +75,7 @@ func (eri *endpointRoutingInfo) reconcileEndpointWatches(ctx context.Context, s 
 	// includes Modules and Resolvers. When we are done with Phase one we have processed enough
 	// resources to correctly interpret Mappings.
 	for _, a := range s.Annotations {
-		if include(GetAmbId(a)) {
+		if include(GetAmbId(ctx, a)) {
 			eri.checkResourcePhase1(ctx, a, "annotation")
 		}
 	}
@@ -120,7 +120,7 @@ func (eri *endpointRoutingInfo) reconcileEndpointWatches(ctx context.Context, s 
 	}
 
 	for _, a := range s.Annotations {
-		if include(GetAmbId(a)) {
+		if include(GetAmbId(ctx, a)) {
 			eri.checkResourcePhase2(ctx, a, "annotation")
 		}
 	}

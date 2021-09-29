@@ -17,7 +17,7 @@ def update_changelog_date(next_ver):
     for line in fileinput.FileInput("CHANGELOG.md", inplace=True):
         if not in_notes:
             sys.stdout.write(line)
-            if line.startswith("## RELEASE NOTES"):
+            if line.startswith("## Next Release"):
                 in_notes = True
             continue
 
@@ -34,13 +34,13 @@ def update_changelog_date(next_ver):
             # dope let's get the last version first
             # this is the beginning of the last version line
             sys.stdout.write("\n")
-            sys.stdout.write(f"## [{next_ver}] (TBD)\n")
-            sys.stdout.write(
-                    f"[{next_ver}]: https://github.com/emissary-ingress/emissary/compare/v{prev_ver}...v{next_ver}\n")
-            sys.stdout.write("\n")
             sys.stdout.write("### Emissary Ingress\n")
             sys.stdout.write("\n")
             sys.stdout.write("(no changes yet)\n")
+            sys.stdout.write("\n")
+            sys.stdout.write(f"## [{next_ver}] (TBD)\n")
+            sys.stdout.write(
+                    f"[{next_ver}]: https://github.com/emissary-ingress/emissary/compare/v{prev_ver}...v{next_ver}\n")
             sys.stdout.write(buf)
             sys.stdout.write(line)
             in_notes = False

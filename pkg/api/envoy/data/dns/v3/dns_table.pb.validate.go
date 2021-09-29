@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _dns_table_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on DnsTable with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *DnsTable) Validate() error {
@@ -223,6 +220,470 @@ var _ interface {
 	ErrorName() string
 } = DnsTable_AddressListValidationError{}
 
+// Validate checks the field values on DnsTable_DnsServiceProtocol with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *DnsTable_DnsServiceProtocol) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	switch m.ProtocolConfig.(type) {
+
+	case *DnsTable_DnsServiceProtocol_Number:
+
+		if m.GetNumber() >= 255 {
+			return DnsTable_DnsServiceProtocolValidationError{
+				field:  "Number",
+				reason: "value must be less than 255",
+			}
+		}
+
+	case *DnsTable_DnsServiceProtocol_Name:
+
+		if utf8.RuneCountInString(m.GetName()) < 1 {
+			return DnsTable_DnsServiceProtocolValidationError{
+				field:  "Name",
+				reason: "value length must be at least 1 runes",
+			}
+		}
+
+		if !_DnsTable_DnsServiceProtocol_Name_Pattern.MatchString(m.GetName()) {
+			return DnsTable_DnsServiceProtocolValidationError{
+				field:  "Name",
+				reason: "value does not match regex pattern \"^:?[0-9a-zA-Z!#$%&'*+-.^_|~`]+$\"",
+			}
+		}
+
+	default:
+		return DnsTable_DnsServiceProtocolValidationError{
+			field:  "ProtocolConfig",
+			reason: "value is required",
+		}
+
+	}
+
+	return nil
+}
+
+// DnsTable_DnsServiceProtocolValidationError is the validation error returned
+// by DnsTable_DnsServiceProtocol.Validate if the designated constraints
+// aren't met.
+type DnsTable_DnsServiceProtocolValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DnsTable_DnsServiceProtocolValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DnsTable_DnsServiceProtocolValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DnsTable_DnsServiceProtocolValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DnsTable_DnsServiceProtocolValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DnsTable_DnsServiceProtocolValidationError) ErrorName() string {
+	return "DnsTable_DnsServiceProtocolValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DnsTable_DnsServiceProtocolValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDnsTable_DnsServiceProtocol.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DnsTable_DnsServiceProtocolValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DnsTable_DnsServiceProtocolValidationError{}
+
+var _DnsTable_DnsServiceProtocol_Name_Pattern = regexp.MustCompile("^:?[0-9a-zA-Z!#$%&'*+-.^_|~`]+$")
+
+// Validate checks the field values on DnsTable_DnsServiceTarget with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *DnsTable_DnsServiceTarget) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetPriority() >= 65536 {
+		return DnsTable_DnsServiceTargetValidationError{
+			field:  "Priority",
+			reason: "value must be less than 65536",
+		}
+	}
+
+	if m.GetWeight() >= 65536 {
+		return DnsTable_DnsServiceTargetValidationError{
+			field:  "Weight",
+			reason: "value must be less than 65536",
+		}
+	}
+
+	if m.GetPort() >= 65536 {
+		return DnsTable_DnsServiceTargetValidationError{
+			field:  "Port",
+			reason: "value must be less than 65536",
+		}
+	}
+
+	switch m.EndpointType.(type) {
+
+	case *DnsTable_DnsServiceTarget_HostName:
+
+		if utf8.RuneCountInString(m.GetHostName()) < 1 {
+			return DnsTable_DnsServiceTargetValidationError{
+				field:  "HostName",
+				reason: "value length must be at least 1 runes",
+			}
+		}
+
+		if !_DnsTable_DnsServiceTarget_HostName_Pattern.MatchString(m.GetHostName()) {
+			return DnsTable_DnsServiceTargetValidationError{
+				field:  "HostName",
+				reason: "value does not match regex pattern \"^:?[0-9a-zA-Z!#$%&'*+-.^_|~`]+$\"",
+			}
+		}
+
+	case *DnsTable_DnsServiceTarget_ClusterName:
+
+		if utf8.RuneCountInString(m.GetClusterName()) < 1 {
+			return DnsTable_DnsServiceTargetValidationError{
+				field:  "ClusterName",
+				reason: "value length must be at least 1 runes",
+			}
+		}
+
+		if !_DnsTable_DnsServiceTarget_ClusterName_Pattern.MatchString(m.GetClusterName()) {
+			return DnsTable_DnsServiceTargetValidationError{
+				field:  "ClusterName",
+				reason: "value does not match regex pattern \"^:?[0-9a-zA-Z!#$%&'*+-.^_|~`]+$\"",
+			}
+		}
+
+	default:
+		return DnsTable_DnsServiceTargetValidationError{
+			field:  "EndpointType",
+			reason: "value is required",
+		}
+
+	}
+
+	return nil
+}
+
+// DnsTable_DnsServiceTargetValidationError is the validation error returned by
+// DnsTable_DnsServiceTarget.Validate if the designated constraints aren't met.
+type DnsTable_DnsServiceTargetValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DnsTable_DnsServiceTargetValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DnsTable_DnsServiceTargetValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DnsTable_DnsServiceTargetValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DnsTable_DnsServiceTargetValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DnsTable_DnsServiceTargetValidationError) ErrorName() string {
+	return "DnsTable_DnsServiceTargetValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DnsTable_DnsServiceTargetValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDnsTable_DnsServiceTarget.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DnsTable_DnsServiceTargetValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DnsTable_DnsServiceTargetValidationError{}
+
+var _DnsTable_DnsServiceTarget_HostName_Pattern = regexp.MustCompile("^:?[0-9a-zA-Z!#$%&'*+-.^_|~`]+$")
+
+var _DnsTable_DnsServiceTarget_ClusterName_Pattern = regexp.MustCompile("^:?[0-9a-zA-Z!#$%&'*+-.^_|~`]+$")
+
+// Validate checks the field values on DnsTable_DnsService with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *DnsTable_DnsService) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if utf8.RuneCountInString(m.GetServiceName()) < 1 {
+		return DnsTable_DnsServiceValidationError{
+			field:  "ServiceName",
+			reason: "value length must be at least 1 runes",
+		}
+	}
+
+	if !_DnsTable_DnsService_ServiceName_Pattern.MatchString(m.GetServiceName()) {
+		return DnsTable_DnsServiceValidationError{
+			field:  "ServiceName",
+			reason: "value does not match regex pattern \"^:?[0-9a-zA-Z!#$%&'*+-.^_|~`]+$\"",
+		}
+	}
+
+	if v, ok := interface{}(m.GetProtocol()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DnsTable_DnsServiceValidationError{
+				field:  "Protocol",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if d := m.GetTtl(); d != nil {
+		dur, err := ptypes.Duration(d)
+		if err != nil {
+			return DnsTable_DnsServiceValidationError{
+				field:  "Ttl",
+				reason: "value is not a valid duration",
+				cause:  err,
+			}
+		}
+
+		gte := time.Duration(1*time.Second + 0*time.Nanosecond)
+
+		if dur < gte {
+			return DnsTable_DnsServiceValidationError{
+				field:  "Ttl",
+				reason: "value must be greater than or equal to 1s",
+			}
+		}
+
+	}
+
+	if len(m.GetTargets()) < 1 {
+		return DnsTable_DnsServiceValidationError{
+			field:  "Targets",
+			reason: "value must contain at least 1 item(s)",
+		}
+	}
+
+	for idx, item := range m.GetTargets() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DnsTable_DnsServiceValidationError{
+					field:  fmt.Sprintf("Targets[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// DnsTable_DnsServiceValidationError is the validation error returned by
+// DnsTable_DnsService.Validate if the designated constraints aren't met.
+type DnsTable_DnsServiceValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DnsTable_DnsServiceValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DnsTable_DnsServiceValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DnsTable_DnsServiceValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DnsTable_DnsServiceValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DnsTable_DnsServiceValidationError) ErrorName() string {
+	return "DnsTable_DnsServiceValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DnsTable_DnsServiceValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDnsTable_DnsService.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DnsTable_DnsServiceValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DnsTable_DnsServiceValidationError{}
+
+var _DnsTable_DnsService_ServiceName_Pattern = regexp.MustCompile("^:?[0-9a-zA-Z!#$%&'*+-.^_|~`]+$")
+
+// Validate checks the field values on DnsTable_DnsServiceList with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *DnsTable_DnsServiceList) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if len(m.GetServices()) < 1 {
+		return DnsTable_DnsServiceListValidationError{
+			field:  "Services",
+			reason: "value must contain at least 1 item(s)",
+		}
+	}
+
+	for idx, item := range m.GetServices() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DnsTable_DnsServiceListValidationError{
+					field:  fmt.Sprintf("Services[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// DnsTable_DnsServiceListValidationError is the validation error returned by
+// DnsTable_DnsServiceList.Validate if the designated constraints aren't met.
+type DnsTable_DnsServiceListValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DnsTable_DnsServiceListValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DnsTable_DnsServiceListValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DnsTable_DnsServiceListValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DnsTable_DnsServiceListValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DnsTable_DnsServiceListValidationError) ErrorName() string {
+	return "DnsTable_DnsServiceListValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DnsTable_DnsServiceListValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDnsTable_DnsServiceList.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DnsTable_DnsServiceListValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DnsTable_DnsServiceListValidationError{}
+
 // Validate checks the field values on DnsTable_DnsEndpoint with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -247,6 +708,18 @@ func (m *DnsTable_DnsEndpoint) Validate() error {
 
 	case *DnsTable_DnsEndpoint_ClusterName:
 		// no validation rules for ClusterName
+
+	case *DnsTable_DnsEndpoint_ServiceList:
+
+		if v, ok := interface{}(m.GetServiceList()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DnsTable_DnsEndpointValidationError{
+					field:  "ServiceList",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
 
 	default:
 		return DnsTable_DnsEndpointValidationError{
@@ -323,10 +796,10 @@ func (m *DnsTable_DnsVirtualDomain) Validate() error {
 		return nil
 	}
 
-	if utf8.RuneCountInString(m.GetName()) < 2 {
+	if utf8.RuneCountInString(m.GetName()) < 1 {
 		return DnsTable_DnsVirtualDomainValidationError{
 			field:  "Name",
-			reason: "value length must be at least 2 runes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -357,12 +830,12 @@ func (m *DnsTable_DnsVirtualDomain) Validate() error {
 			}
 		}
 
-		gte := time.Duration(60*time.Second + 0*time.Nanosecond)
+		gte := time.Duration(30*time.Second + 0*time.Nanosecond)
 
 		if dur < gte {
 			return DnsTable_DnsVirtualDomainValidationError{
 				field:  "AnswerTtl",
-				reason: "value must be greater than or equal to 1m0s",
+				reason: "value must be greater than or equal to 30s",
 			}
 		}
 

@@ -1,5 +1,4 @@
 EMISSARY_CHART = $(OSS_HOME)/charts/emissary-ingress
-YQ := $(OSS_HOME)/.circleci/yq
 thisdir := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 
 
@@ -17,26 +16,27 @@ define _set_tag
 		--values-file $(1) --tag $(2)
 endef
 
-define _docgen
-	if [[ -f $(1)/doc.yaml ]] ; then \
-		$(thisdir)/docgen -d $(1)/doc.yaml -t $(1)/readme.tpl -v $(1)/values.yaml > $(1)/README.md ; \
-	fi
-endef
-
-$(thisdir)/docgen: $(thisdir)/chart-doc-gen.d/go.mod
-	cd $(<D) && go build -o $(abspath $@) kubepack.dev/chart-doc-gen
-
-push-preflight: create-venv $(YQ)
+push-preflight: create-venv $(tools/yq)
 	@$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
 .PHONY: push-preflight
 
 release/ga/chart-push:
+	$(OSS_HOME)/releng/release-wait-for-commit --commit $$(git rev-parse HEAD) --s3-key chart-builds
 	for chart in $(EMISSARY_CHART) ; do \
 		$(call _push_chart,`basename $$chart`) ; \
 	done ;
 .PHONY: release/ga/chart-push
 
+release/promote-chart-passed:
+	@set -ex; { \
+		commit=$$(git rev-parse HEAD) ;\
+		printf "$(CYN)==> $(GRN)Promoting $(BLU)$$commit$(GRN) in S3...$(END)\n" ;\
+		echo "PASSED" | aws s3 cp - s3://$(AWS_S3_BUCKET)/chart-builds/$$commit ; \
+	}
+.PHONY: release/promote-chart-passed
+
 chart-push-ci: push-preflight
+	@([ $(IS_PRIVATE) ] && (echo "Private repo, not pushing chart" && exit 1)) || true
 	@echo ">>> This will dirty your local tree and should only be run in CI"
 	@echo ">>> If running locally, you'll probably want to run make chart-clean after running this"
 	@[ -n "${CHART_VERSION_SUFFIX}" ] || (echo "CHART_VERSION_SUFFIX must be set for non-GA pushes" && exit 1)
@@ -46,7 +46,7 @@ chart-push-ci: push-preflight
 		for chart in $(EMISSARY_CHART) ; do \
 			sed -i.bak -E "s/version: ([0-9]+\.[0-9]+\.[0-9]+).*/version: \1${CHART_VERSION_SUFFIX}/g" $$chart/Chart.yaml && rm $$chart/Chart.yaml.bak ; \
 			$(call _set_tag_and_repo,$$chart/values.yaml,${IMAGE_TAG},${IMAGE_REPO}) ; \
-			$(YQ) w -i $$chart/Chart.yaml 'appVersion' ${IMAGE_TAG} ; \
+			$(tools/yq) w -i $$chart/Chart.yaml 'appVersion' ${IMAGE_TAG} ; \
 			$(call _push_chart,`basename $$chart`) ; \
 		done ; \
 	}
@@ -70,23 +70,17 @@ release/changelog:
 	done ;
 .PHONY: release/changelog
 
-release/chart/update-images: $(YQ) $(thisdir)/docgen
+release/chart/update-images: $(tools/yq) $(tools/chart-doc-gen)
 	@[ -n "${IMAGE_TAG}" ] || (echo "IMAGE_TAG must be set" && exit 1)
 	([[ "${IMAGE_TAG}" =~ .*\.0$$ ]] && $(MAKE) release/chart-bump/minor) || $(MAKE) release/chart-bump/revision
 	for chart in $(EMISSARY_CHART) ; do \
 		[[ "${IMAGE_TAG}" =~ .*\-ea$$ ]] && sed -i.bak -E "s/version: ([0-9]+\.[0-9]+\.[0-9]+).*/version: \1-ea/g" $$chart/Chart.yaml && rm $$chart/Chart.yaml.bak ; \
 		$(call _set_tag,$$chart/values.yaml,${IMAGE_TAG}) ; \
-		$(YQ) w -i $$chart/Chart.yaml 'appVersion' ${IMAGE_TAG} ; \
+		$(tools/yq) w -i $$chart/Chart.yaml 'appVersion' ${IMAGE_TAG} ; \
 		IMAGE_TAG="${IMAGE_TAG}" CHART_NAME=`basename $$chart` $(OSS_HOME)/charts/scripts/image_tag_changelog_update.sh ; \
 		CHART_NAME=`basename $$chart` $(OSS_HOME)/charts/scripts/update_chart_changelog.sh ; \
-		$(call _docgen,$$chart) ; \
+		$(MAKE) $$chart/README.md; \
 	done ;
-
-chart/docgen: $(thisdir)/docgen
-	for chart in $(EMISSARY_CHART) ; do \
-		$(call _docgen,$$chart) ; \
-	done ;
-.PHONY:  docgen
 
 # Both charts should have same versions for now. Just makes things a bit easier if we publish them together for now
 release/chart-bump/revision:
@@ -103,11 +97,9 @@ release/chart-bump/minor:
 
 # This is pretty Draconian. Use with care.
 chart-clean:
-	@for chart in $(EMISSARY_CHART) ; do \
-		git restore $$chart/Chart.yaml $$chart/values.yaml && \
-			rm -f $$chart/*.tgz $$chart/index.yaml $$chart/tmp.yaml; \
-	done ;
+	@PS4=; set -ex; for chart in $(EMISSARY_CHART); do \
+		git restore $$chart/Chart.yaml $$chart/values.yaml; \
+		$(MAKE) $$chart/README.md; \
+		rm -f $$chart/*.tgz $$chart/index.yaml $$chart/tmp.yaml; \
+	done
 .PHONY: chart-clean
-
-$(OSS_HOME)/.circleci/yq:
-	cd $(OSS_HOME)/.circleci/yq.d/ && go build -o $(abspath $@) github.com/mikefarah/yq/v3

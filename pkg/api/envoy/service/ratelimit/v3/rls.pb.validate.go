@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _rls_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on RateLimitRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, an
 // error is returned.
@@ -341,6 +338,16 @@ func (m *RateLimitResponse_DescriptorStatus) Validate() error {
 	}
 
 	// no validation rules for LimitRemaining
+
+	if v, ok := interface{}(m.GetDurationUntilReset()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RateLimitResponse_DescriptorStatusValidationError{
+				field:  "DurationUntilReset",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	return nil
 }

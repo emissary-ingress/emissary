@@ -48,7 +48,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
 """
     print(f"{ansiterm.sgr.fg_red}{warning}{ansiterm.sgr}")
 
-    if not getenv("GITHUB_TOKEN"):
+    if not getenv("GIT_TOKEN"):
         run(["gh", "auth", "login"])
 
     user = getenv("USER")
@@ -63,13 +63,12 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         cur_branch = run_capture(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
 
         if cur_branch != workbranch:
-            run(["git", "fetch", "--tags"])
+            if getenv('CI') == '':
+                run(["git", "fetch", "--tags"])
             run(["git", "checkout", f"v{next_ver}", "-b", workbranch])
 
     if not checker.ok:
         return 1
-
-    print('TODO: CHECK THAT IMAGE EXISTS')
 
     with check(f"Updating image tag in charts"):
         run(["make", f"IMAGE_TAG={image_tag}", "release/chart/update-images"])
@@ -79,7 +78,7 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
         return 1
 
     with check(f"Updating manifest yaml"):
-        run(["make", "BUMP_STABLE=true", "update-yaml"])
+        run(["make", "BUMP_STABLE=true", "generate-fast"])
         git_add("manifests")
         git_add("docs/yaml")
 
@@ -106,17 +105,29 @@ def main(next_ver: str, today: datetime.date, quiet: bool=False, commit: bool = 
             target_branch = long_lived_release_branch
             if has_open_pr(get_gh_repo(), long_lived_release_branch, curr_release_branch):
                 target_branch = curr_release_branch
+            # In theory, one could trigger a github action on a pull request review event,
+            # but that seems a bit excessive for now so let's just do this.
+            pr_body = """
+Chart updates for {ga_version}.
+
+Once this pull request has been reviewed, the release engineer can run the following:
+
+```
+git fetch
+git checkout {workbranch}
+git pull origin {workbranch}
+make release/chart/tag
+```
+"""
             # TODO: dont hardcode owners
             run(["gh", "pr", "create",
                     "--repo", get_gh_repo(),
                     "--base", target_branch,
                     "--title", f"[v{next_ver}] Chart and manifest image updates",
-                    "--body", f"Update charts and manifests to use the newly release images for {next_ver}",
+                    "--body", pr_body.format(ga_version=next_ver, workbranch=workbranch),
                     "--reviewer", "kflynn,rhs,esmet,acookin"])
     if checker.ok:
-        if getenv("AMBASSADOR_RELENG_NO_GUI"):
-            run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo()])
-        else:
+        if not getenv("AMBASSADOR_RELENG_NO_GUI"):
             run(["gh", "pr", "view", workbranch, "--repo", get_gh_repo(), "--web"])
         return 0
     else:

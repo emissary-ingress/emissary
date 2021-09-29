@@ -35,8 +35,8 @@ elif [[ "${BUMP_STABLE}" ]] ; then
     # if this isn't an X.Y.Z version, don't let allow bumping stable
     abort "Cannot bump stable unless this is an X.Y.Z tag"
 fi
-if [ -z "$AWS_BUCKET" ] ; then
-    AWS_BUCKET=datawire-static-files
+if [ -z "$AWS_S3_BUCKET" ] ; then
+    AWS_S3_BUCKET=datawire-static-files
 fi
 
 [ -n "$AWS_ACCESS_KEY_ID"     ] || abort "AWS_ACCESS_KEY_ID is not set"
@@ -46,13 +46,13 @@ echo ${version} > stable.txt
 for dir in ${CURR_DIR}/*/ ; do
     dir=`basename ${dir%*/}`
     aws s3api put-object \
-        --bucket "$AWS_BUCKET" \
+        --bucket "$AWS_S3_BUCKET" \
         --key "yaml/${dir}/${version}"
     for f in ${CURR_DIR}/${dir}/*.yaml ; do
       fname=`basename $f`
       echo ${fname}
       aws s3api put-object \
-        --bucket "$AWS_BUCKET" \
+        --bucket "$AWS_S3_BUCKET" \
         --key "yaml/${dir}/${version}/$fname" \
         --body "$f" &&  echo "... yaml/${dir}/${version}/$fname pushed"
     done
@@ -60,7 +60,7 @@ for dir in ${CURR_DIR}/*/ ; do
     if [[ "${BUMP_STABLE}" ]] ; then
         log "Bumping stable version for yaml/${dir}"
         aws s3api put-object \
-            --bucket "$AWS_BUCKET" \
+            --bucket "$AWS_S3_BUCKET" \
             --key "yaml/${dir}/stable.txt" \
             --body stable.txt
     fi

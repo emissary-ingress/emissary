@@ -13,7 +13,7 @@
 // limitations under the License.
 
 ///////////////////////////////////////////////////////////////////////////
-// Important: Run "make update-yaml" to regenerate code after modifying
+// Important: Run "make generate-fast" to regenerate code after modifying
 // this file.
 ///////////////////////////////////////////////////////////////////////////
 
@@ -147,8 +147,8 @@ type MappingSpec struct {
 	StatsName            string                  `json:"stats_name,omitempty"`
 }
 
-// DocsInfo provides some extra information about the docs for the Mapping
-// (used by the Dev Portal)
+// DocsInfo provides some extra information about the docs for the Mapping.
+// Docs is used by both the agent and the DevPortal.
 type DocsInfo struct {
 	Path        string `json:"path,omitempty"`
 	URL         string `json:"url,omitempty"`

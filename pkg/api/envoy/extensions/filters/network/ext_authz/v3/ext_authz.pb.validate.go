@@ -37,9 +37,6 @@ var (
 	_ = v3.ApiVersion(0)
 )
 
-// define the regex for a UUID once up-front
-var _ext_authz_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on ExtAuthz with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *ExtAuthz) Validate() error {
@@ -47,10 +44,10 @@ func (m *ExtAuthz) Validate() error {
 		return nil
 	}
 
-	if len(m.GetStatPrefix()) < 1 {
+	if utf8.RuneCountInString(m.GetStatPrefix()) < 1 {
 		return ExtAuthzValidationError{
 			field:  "StatPrefix",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -72,6 +69,16 @@ func (m *ExtAuthz) Validate() error {
 		return ExtAuthzValidationError{
 			field:  "TransportApiVersion",
 			reason: "value must be one of the defined enum values",
+		}
+	}
+
+	if v, ok := interface{}(m.GetFilterEnabledMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ExtAuthzValidationError{
+				field:  "FilterEnabledMetadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
 		}
 	}
 

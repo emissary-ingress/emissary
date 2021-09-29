@@ -47,8 +47,10 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"path"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -90,12 +92,8 @@ import (
 	v2discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v2"
 
 	// Envoy API v3
-	//
-	// XXX TODO Is this actually true and necessary?
-	// yes it is true and necessary. need to import all types so they can be decoded by `decode`
-	// Be sure to import the package of any types that the Python
-	// emits a "@type" of in the generated config, even if that package is otherwise
-	// not used by ambex.
+	// Be sure to import the package of any types that're referenced with "@type" in our
+	// generated Envoy config, even if that package is otherwise not used by ambex.
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/config/accesslog/v3"
 	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
 	v3clusterconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
@@ -105,7 +103,9 @@ import (
 	v3routeconfig "github.com/datawire/ambassador/v2/pkg/api/envoy/config/route/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/access_loggers/file/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/access_loggers/grpc/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/compression/gzip/compressor/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/buffer/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/compressor/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/ext_authz/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/grpc_stats/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/gzip/v3"
@@ -321,7 +321,113 @@ func Clone(src proto.Message) proto.Message {
 	return dst
 }
 
-func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.SnapshotCache, generation *int, dirs []string, edsEndpoints map[string]*v2.ClusterLoadAssignment, edsEndpointsV3 map[string]*v3endpointconfig.ClusterLoadAssignment, fastpathSnapshot *FastpathSnapshot, updates chan<- Update) {
+// Observability:
+//
+// These "expanded" snapshots make the snapshots we log easier to read: basically,
+// instead of just indexing by Golang types, make the JSON marshal with real names.
+type v2ExpandedSnapshot struct {
+	Endpoints v2cache.Resources `json:"endpoints"`
+	Clusters  v2cache.Resources `json:"clusters"`
+	Routes    v2cache.Resources `json:"routes"`
+	Listeners v2cache.Resources `json:"listeners"`
+	Runtimes  v2cache.Resources `json:"runtimes"`
+}
+
+func NewV2ExpandedSnapshot(v2snap *v2cache.Snapshot) v2ExpandedSnapshot {
+	return v2ExpandedSnapshot{
+		Endpoints: v2snap.Resources[types.Endpoint],
+		Clusters:  v2snap.Resources[types.Cluster],
+		Routes:    v2snap.Resources[types.Route],
+		Listeners: v2snap.Resources[types.Listener],
+		Runtimes:  v2snap.Resources[types.Runtime],
+	}
+}
+
+type v3ExpandedSnapshot struct {
+	Endpoints v3cache.Resources `json:"endpoints"`
+	Clusters  v3cache.Resources `json:"clusters"`
+	Routes    v3cache.Resources `json:"routes"`
+	Listeners v3cache.Resources `json:"listeners"`
+	Runtimes  v3cache.Resources `json:"runtimes"`
+}
+
+func NewV3ExpandedSnapshot(v3snap *v3cache.Snapshot) v3ExpandedSnapshot {
+	return v3ExpandedSnapshot{
+		Endpoints: v3snap.Resources[types.Endpoint],
+		Clusters:  v3snap.Resources[types.Cluster],
+		Routes:    v3snap.Resources[types.Route],
+		Listeners: v3snap.Resources[types.Listener],
+		Runtimes:  v3snap.Resources[types.Runtime],
+	}
+}
+
+// A combinedSnapshot has both a V2 and V3 snapshot, for logging.
+type combinedSnapshot struct {
+	Version string             `json:"version"`
+	V2      v2ExpandedSnapshot `json:"v2"`
+	V3      v3ExpandedSnapshot `json:"v3"`
+}
+
+// csDump creates a combinedSnapshot from a V2 snapshot and a V3 snapshot, then
+// dumps the combinedSnapshot to disk. Only numsnaps snapshots are kept: ambex-1.json
+// is the newest, then ambex-2.json, etc., so ambex-$numsnaps.json is the oldest.
+// Every time we write a new one, we rename all the older ones, ditching the oldest
+// after we've written numsnaps snapshots.
+func csDump(snapdirPath string, numsnaps int, generation int, v2snap *v2cache.Snapshot, v3snap *v3cache.Snapshot) {
+	if numsnaps <= 0 {
+		// Don't do snapshotting at all.
+		return
+	}
+
+	// OK, they want snapshots. Make a proper version string...
+	version := fmt.Sprintf("v%d", generation)
+
+	// ...and a combinedSnapshot.
+	cs := combinedSnapshot{
+		Version: version,
+		V2:      NewV2ExpandedSnapshot(v2snap),
+		V3:      NewV3ExpandedSnapshot(v3snap),
+	}
+
+	// Next up, marshal as JSON and write to ambex-0.json. Note that we
+	// didn't say anything about a -0 file; that's because it's about to
+	// be renamed.
+
+	bs, err := json.MarshalIndent(cs, "", "  ")
+
+	if err != nil {
+		log.Errorf("CSNAP: marshal failure: %s", err)
+		return
+	}
+
+	csPath := path.Join(snapdirPath, "ambex-0.json")
+
+	err = ioutil.WriteFile(csPath, bs, 0644)
+
+	if err != nil {
+		log.Errorf("CSNAP: write failure: %s", err)
+	} else {
+		log.Infof("Saved snapshot %s", version)
+	}
+
+	// Rotate everything one file down. This includes renaming the just-written
+	// ambex-0 to ambex-1.
+	for i := numsnaps; i > 0; i-- {
+		previous := i - 1
+
+		fromPath := path.Join(snapdirPath, fmt.Sprintf("ambex-%d.json", previous))
+		toPath := path.Join(snapdirPath, fmt.Sprintf("ambex-%d.json", i))
+
+		err := os.Rename(fromPath, toPath)
+
+		if (err != nil) && !os.IsNotExist(err) {
+			log.Infof("CSNAP: could not rename %s -> %s: %#v", fromPath, toPath, err)
+		}
+	}
+}
+
+// Get an updated snapshot going.
+func update(ctx context.Context, snapdirPath string, numsnaps int, config v2cache.SnapshotCache, configv3 v3cache.SnapshotCache, generation *int, dirs []string, edsEndpoints map[string]*v2.ClusterLoadAssignment, edsEndpointsV3 map[string]*v3endpointconfig.ClusterLoadAssignment, fastpathSnapshot *FastpathSnapshot, updates chan<- Update) {
 	clusters := []ctypes.Resource{}  // v2.Cluster
 	routes := []ctypes.Resource{}    // v2.RouteConfiguration
 	listeners := []ctypes.Resource{} // v2.Listener
@@ -473,8 +579,10 @@ func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.
 	endpointsv3 := JoinEdsClustersV3(ctx, clustersv3, edsEndpointsV3)
 
 	// Create a new configuration snapshot from everything we have just loaded from disk.
-	version := fmt.Sprintf("v%d", *generation)
+	curgen := *generation
 	*generation++
+
+	version := fmt.Sprintf("v%d", curgen)
 	snapshot := v2cache.NewSnapshot(
 		version,
 		endpoints,
@@ -506,12 +614,13 @@ func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.
 	// This used to just directly update envoy. Since we want ratelimiting, we now send an
 	// Update object down the channel with a function that knows how to do the update if/when
 	// the ratelimiting logic decides.
-	//
-	// We also need to pay attention to contexts here so we can shutdown properly. If we didn't
-	// have the context portion, the ratelimit goroutine could shutdown first and we could end
-	// up blocking here and never shutting down.
-	select {
-	case updates <- Update{version, func() error {
+
+	log.Debugf("Created snapshot %s", version)
+	csDump(snapdirPath, numsnaps, curgen, &snapshot, &snapshotv3)
+
+	update := Update{version, func() error {
+		log.Debugf("Accepting snapshot %s", version)
+
 		err := config.SetSnapshot("test-id", snapshot)
 		if err != nil {
 			return fmt.Errorf("V2 Snapshot error %q for %+v", err, snapshot)
@@ -523,7 +632,13 @@ func update(ctx context.Context, config v2cache.SnapshotCache, configv3 v3cache.
 		}
 
 		return nil
-	}}:
+	}}
+
+	// We also need to pay attention to contexts here so we can shutdown properly. If we didn't
+	// have the context portion, the ratelimit goroutine could shutdown first and we could end
+	// up blocking here and never shutting down.
+	select {
+	case updates <- update:
 	case <-ctx.Done():
 	}
 }
@@ -539,72 +654,72 @@ func warn(err error) bool {
 
 // OnStreamOpen is called once an xDS stream is open with a stream ID and the type URL (or "" for ADS).
 func (l loggerv2) OnStreamOpen(_ context.Context, sid int64, stype string) error {
-	l.Infof("V2 Stream open[%v]: %v", sid, stype)
+	l.Debugf("V2 Stream open[%v]: %v", sid, stype)
 	return nil
 }
 
 func (l loggerv3) OnStreamOpen(_ context.Context, sid int64, stype string) error {
-	l.Infof("V3 Stream open[%v]: %v", sid, stype)
+	l.Debugf("V3 Stream open[%v]: %v", sid, stype)
 	return nil
 }
 
 // OnStreamClosed is called immediately prior to closing an xDS stream with a stream ID.
 func (l loggerv2) OnStreamClosed(sid int64) {
-	l.Infof("V2 Stream closed[%v]", sid)
+	l.Debugf("V2 Stream closed[%v]", sid)
 }
 
 func (l loggerv3) OnStreamClosed(sid int64) {
-	l.Infof("V3 Stream closed[%v]", sid)
+	l.Debugf("V3 Stream closed[%v]", sid)
 }
 
 // OnStreamRequest is called once a request is received on a stream.
 func (l loggerv2) OnStreamRequest(sid int64, req *v2.DiscoveryRequest) error {
-	l.Infof("V2 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
+	l.Debugf("V2 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
 	l.Debugf("V2 Stream request[%v] dump: %v", sid, req)
 	return nil
 }
 
 func (l loggerv3) OnStreamRequest(sid int64, req *v3discovery.DiscoveryRequest) error {
-	l.Infof("V3 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
+	l.Debugf("V3 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
 	l.Debugf("V3 Stream request[%v] dump: %v", sid, req)
 	return nil
 }
 
 // OnStreamResponse is called immediately prior to sending a response on a stream.
 func (l loggerv2) OnStreamResponse(sid int64, req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
-	l.Infof("V2 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
+	l.Debugf("V2 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
 	l.Debugf("V2 Stream dump response[%v]: %v -> %v", sid, req, res)
 }
 
 func (l loggerv3) OnStreamResponse(sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
-	l.Infof("V3 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
+	l.Debugf("V3 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
 	l.Debugf("V3 Stream dump response[%v]: %v -> %v", sid, req, res)
 }
 
 // OnFetchRequest is called for each Fetch request
 func (l loggerv2) OnFetchRequest(_ context.Context, r *v2.DiscoveryRequest) error {
-	l.Infof("V2 Fetch request: %v", r)
+	l.Debugf("V2 Fetch request: %v", r)
 	return nil
 }
 
 func (l loggerv3) OnFetchRequest(_ context.Context, r *v3discovery.DiscoveryRequest) error {
-	l.Infof("V3 Fetch request: %v", r)
+	l.Debugf("V3 Fetch request: %v", r)
 	return nil
 }
 
 // OnFetchResponse is called immediately prior to sending a response.
 func (l loggerv2) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
-	l.Infof("V2 Fetch response: %v -> %v", req, res)
+	l.Debugf("V2 Fetch response: %v -> %v", req, res)
 }
 
 func (l loggerv3) OnFetchResponse(req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
-	l.Infof("V3 Fetch response: %v -> %v", req, res)
+	l.Debugf("V3 Fetch response: %v -> %v", req, res)
 }
 
 // NOTE WELL: this Main() does NOT RUN from entrypoint! This one is only relevant if you
 // explicitly run Ambex by hand.
 func Main(ctx context.Context, Version string, rawArgs ...string) error {
-	usage := memory.GetMemoryUsage()
+	usage := memory.GetMemoryUsage(ctx)
 	go usage.Watch(ctx)
 	return Main2(ctx, Version, usage.PercentUsed, make(chan *FastpathSnapshot), rawArgs...)
 }
@@ -619,10 +734,44 @@ func Main2(ctx context.Context, Version string, getUsage MemoryGetter, fastpathC
 	if args.debug {
 		log.SetLevel(logrus.DebugLevel)
 	} else {
-		log.SetLevel(logrus.WarnLevel)
+		log.SetLevel(logrus.InfoLevel)
 	}
 
-	log.Infof("Ambex %s starting...", Version)
+	// ambex logs its own snapshots, separately from the ones provided by the Python
+	// side of the world, in $rootdir/snapshots/ambex-#.json, where rootdir is taken
+	// from $AMBASSADOR_CONFIG_BASE_DIR if set, else $ambassador_root if set, else
+	// whatever, set rootdir to /ambassador.
+
+	snapdirPath := os.Getenv("AMBASSADOR_CONFIG_BASE_DIR")
+
+	if snapdirPath == "" {
+		snapdirPath = os.Getenv("ambassador_root")
+	}
+
+	if snapdirPath == "" {
+		snapdirPath = "/ambassador"
+	}
+
+	snapdirPath = path.Join(snapdirPath, "snapshots")
+
+	// We'll keep $AMBASSADOR_AMBEX_SNAPSHOT_COUNT snapshots. If unset, or set to
+	// something we can't treat as an int, use 30 (which Flynn just made up, so don't
+	// be afraid to change it if need be).
+
+	numsnapStr := os.Getenv("AMBASSADOR_AMBEX_SNAPSHOT_COUNT")
+
+	if numsnapStr == "" {
+		numsnapStr = "30"
+	}
+
+	numsnaps, err := strconv.Atoi(numsnapStr)
+
+	if (err != nil) || (numsnaps < 0) {
+		numsnaps = 30
+		log.Errorf("Invalid AMBASSADOR_AMBEX_SNAPSHOT_COUNT: %s, using %d", numsnapStr, numsnaps)
+	}
+
+	log.Infof("Ambex %s starting, snapdirPath %s", Version, snapdirPath)
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -679,29 +828,42 @@ func Main2(ctx context.Context, Version string, getUsage MemoryGetter, fastpathC
 	var fastpathSnapshot *FastpathSnapshot
 	edsEndpoints := map[string]*v2.ClusterLoadAssignment{}
 	edsEndpointsV3 := map[string]*v3endpointconfig.ClusterLoadAssignment{}
-	update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
 
+	// We always start by updating with a totally empty snapshot.
+	//
+	// XXX This seems questionable: why do we do this? Envoy isn't currently started until
+	// we have a real configuration...
+	update(ctx, snapdirPath, numsnaps, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
+
+	// This is the main loop where the magic happens. The fact that it uses a label
+	// depresses me, though.
 OUTER:
 	for {
 
 		select {
 		case sig := <-ch:
+			// Signal handling: reconfigure on HUP, bail on INT or TERM.
+			//
+			// XXX Y'know, redoing this with if would let us ditch that silly label.
 			switch sig {
 			case syscall.SIGHUP:
-				update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
+				update(ctx, snapdirPath, numsnaps, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
 			case os.Interrupt, syscall.SIGTERM:
 				break OUTER
 			}
 		case fpSnap := <-fastpathCh:
+			// Fastpath update. Grab new endpoints and update.
 			if fpSnap.Endpoints != nil {
 				edsEndpoints = fpSnap.Endpoints.ToMap_v2()
 				edsEndpointsV3 = fpSnap.Endpoints.ToMap_v3()
 			}
 			fastpathSnapshot = fpSnap
-			update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
+			update(ctx, snapdirPath, numsnaps, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
 		case <-watcher.Events:
-			update(ctx, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
+			// Non-fastpath update. Just update.
+			update(ctx, snapdirPath, numsnaps, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
 		case err := <-watcher.Errors:
+			// Something went wrong, so scream about that.
 			log.WithError(err).Warn("Watcher error")
 		case <-ctx.Done():
 			break OUTER

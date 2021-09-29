@@ -36,11 +36,11 @@ elif [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] ; then
 else
     repo_key=charts-dev
 fi
-if [ -z "$AWS_BUCKET" ] ; then
-    AWS_BUCKET=datawire-static-files
+if [ -z "$AWS_S3_BUCKET" ] ; then
+    AWS_S3_BUCKET=datawire-static-files
 fi
 
-repo_url=https://s3.amazonaws.com/${AWS_BUCKET}/${repo_key}/
+repo_url=https://s3.amazonaws.com/${AWS_S3_BUCKET}/${repo_key}/
 
 rm -f ${chart_dir}/*.tgz
 info "Pushing Helm Chart"
@@ -60,12 +60,12 @@ fi
 [ -n "$AWS_ACCESS_KEY_ID"     ] || abort "AWS_ACCESS_KEY_ID is not set"
 [ -n "$AWS_SECRET_ACCESS_KEY" ] || abort "AWS_SECRET_ACCESS_KEY is not set"
 
-info "Pushing chart to S3 bucket $AWS_BUCKET"
+info "Pushing chart to S3 bucket $AWS_S3_BUCKET"
 for f in "$CHART_PACKAGE" ; do
     fname=`basename $f`
     echo "pushing ${repo_key}/$fname"
     aws s3api put-object \
-        --bucket "$AWS_BUCKET" \
+        --bucket "$AWS_S3_BUCKET" \
         --key "${repo_key}/$fname" \
         --body "$f" && passed "... ${repo_key}/$fname pushed"
 done
@@ -80,19 +80,15 @@ if [[ `basename ${chart_dir}` != emissary-ingress ]] ; then
 fi
 
 if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] && [[ -n "${PUBLISH_GIT_RELEASE}" ]]; then
-    if [[ -z "${CIRCLE_SHA1}" ]] ; then
-        echo "CIRCLE_SHA1 not set"
-        exit 1
-    fi
-    if [[ -z "${GH_RELEASE_TOKEN}" ]] ; then
-        echo "GH_RELEASE_TOKEN not set"
+    if [[ -z "${GH_GITHUB_API_KEY}" ]] ; then
+        echo "GH_GITHUB_API_KEY not set"
         exit 1
     fi
     tag="chart-v${thisversion}"
     export CHART_VERSION=${thisversion}
     title=`envsubst < ${chart_dir}/RELEASE_TITLE.tpl`
     repo_full_name="emissary-ingress/emissary"
-    token="${GH_RELEASE_TOKEN}"
+    token="${GH_GITHUB_API_KEY}"
     description=`envsubst < ${chart_dir}/RELEASE.tpl | awk '{printf "%s\\\n", $0}'`
     in_changelog=false
     while IFS= read -r line ; do
@@ -119,7 +115,7 @@ if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] && [[ -n "${PUBLISH_GIT_
   "body": "${description}",
   "draft": false,
   "prerelease": false,
-  "target_commitish": "${CIRCLE_SHA1}"
+  "target_commitish": "${GITHUB_REF}"
 }
 EOF
     }

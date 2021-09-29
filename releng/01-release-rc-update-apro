@@ -1,0 +1,49 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "First argument must be RC tag"
+    exit -1
+fi
+
+if [ -z "$2" ]; then
+    echo "Second argument must be a GA tag"
+    exit -1
+fi
+
+if [ -z "$APRO_REPO_TARGET" ]; then
+    echo "APRO_REPO_TARGET not set. This should be set in the environment"
+    exit -1
+fi
+
+# remove existing apro-prep-rc in case this is being run
+# locally on a long lived dev machine
+if [ -d "/tmp/apro-prep-rc" ]; then
+    rm -rf /tmp/apro-prep-rc
+fi
+
+# get a fresh copy of apro
+git clone https://github.com/$APRO_REPO_TARGET.git /tmp/apro-prep-rc
+pushd /tmp/apro-prep-rc
+
+# checkout or create proper rel branch
+if [ ! $(git checkout rel/$2) ]; then
+    case $2 in
+        *"v1."*)
+            git checkout ltr
+            ;;
+        *"v2."*)
+            git checkout master
+            ;;
+        *)
+            echo "Not intelligent enough to find branch that tracks $2 parent releases"
+            exit 1
+    esac
+
+    git checkout -b rel/$2
+fi
+
+# set emissary tag into apro
+CURRENT_EMISSARY_TAG=$(grep 'imageTag' emissaryInfo.yml | sed 's/imageTag://g' | xargs)
+sed 's/$CURRENT_EMISSARY_TAG/$1/g' emissaryInfo.yml
+git commit -s -m "(from CI) bump emissary version to latest RC"
+git push --set-upstream origin rel/$2

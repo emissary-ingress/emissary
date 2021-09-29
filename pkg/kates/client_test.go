@@ -13,18 +13,21 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/datawire/ambassador/v2/pkg/dtest_k3s"
+	"github.com/datawire/dlib/dlog"
+	dtest_k3s "github.com/datawire/dtest"
 )
 
-func testClient(t *testing.T) *Client {
-	cli, err := NewClient(ClientConfig{Kubeconfig: dtest_k3s.Kubeconfig()})
+func testClient(t *testing.T, ctx context.Context) (context.Context, *Client) {
+	if ctx == nil {
+		ctx = dlog.NewTestContext(t, false)
+	}
+	cli, err := NewClient(ClientConfig{Kubeconfig: dtest_k3s.Kubeconfig(ctx)})
 	require.NoError(t, err)
-	return cli
+	return ctx, cli
 }
 
 func TestCRUD(t *testing.T) {
-	ctx := context.TODO()
-	cli := testClient(t)
+	ctx, cli := testClient(t, nil)
 
 	cm := &ConfigMap{
 		TypeMeta: TypeMeta{
@@ -69,8 +72,7 @@ func TestCRUD(t *testing.T) {
 }
 
 func TestUpsert(t *testing.T) {
-	ctx := context.TODO()
-	cli := testClient(t)
+	ctx, cli := testClient(t, nil)
 
 	cm := &ConfigMap{
 		TypeMeta: TypeMeta{
@@ -110,8 +112,7 @@ func TestUpsert(t *testing.T) {
 }
 
 func TestPatch(t *testing.T) {
-	ctx := context.TODO()
-	cli := testClient(t)
+	ctx, cli := testClient(t, nil)
 
 	cm := &ConfigMap{
 		TypeMeta: TypeMeta{
@@ -138,8 +139,7 @@ func TestPatch(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	ctx := context.TODO()
-	cli := testClient(t)
+	ctx, cli := testClient(t, nil)
 
 	namespaces := make([]*Namespace, 0)
 
@@ -162,8 +162,7 @@ func TestList(t *testing.T) {
 }
 
 func TestListSelector(t *testing.T) {
-	ctx := context.TODO()
-	cli := testClient(t)
+	ctx, cli := testClient(t, nil)
 
 	myns := &Namespace{
 		TypeMeta: TypeMeta{
@@ -196,8 +195,7 @@ func TestListSelector(t *testing.T) {
 }
 
 func TestShortcut(t *testing.T) {
-	ctx := context.TODO()
-	cli := testClient(t)
+	ctx, cli := testClient(t, nil)
 
 	cm := &ConfigMap{
 		TypeMeta: TypeMeta{
@@ -226,8 +224,8 @@ type TestSnapshot struct {
 // implementation to allow for more mocks, this could be made into a pure unit test and not be
 // probabilistic at all.
 func TestCoherence(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	cli := testClient(t)
+	ctx, cli := testClient(t, nil)
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 
 	// This simulates an api server that is very slow at notifying its watch clients of updates to
 	// config maps, but notifies of other resources at normal speeds. This can really happen.
@@ -265,7 +263,7 @@ func TestCoherence(t *testing.T) {
 	}
 
 	defer func() {
-		ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, _ := context.WithTimeout(ctx, 10*time.Second)
 		err := cli.Delete(ctx, cm, nil)
 		if err != nil {
 			t.Log(err)
@@ -416,9 +414,8 @@ func TestDeltasWithRemoteDelay(t *testing.T) {
 }
 
 func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstructured, *Unstructured)) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-
-	cli := testClient(t)
+	ctx, cli := testClient(t, nil)
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 
 	cli.watchAdded = watchHook
 	cli.watchUpdated = watchHook
@@ -445,7 +442,7 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 	}
 
 	defer func() {
-		ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, _ := context.WithTimeout(ctx, 10*time.Second)
 		if cm1 != nil {
 			err := cli.Delete(ctx, cm1, nil)
 			if err != nil {

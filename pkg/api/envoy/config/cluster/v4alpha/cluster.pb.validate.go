@@ -33,9 +33,6 @@ var (
 	_ = ptypes.DynamicAny{}
 )
 
-// define the regex for a UUID once up-front
-var _cluster_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on ClusterCollection with the rules defined
 // in the proto definition for this message. If any rules are violated, an
 // error is returned.
@@ -135,10 +132,10 @@ func (m *Cluster) Validate() error {
 
 	}
 
-	if len(m.GetName()) < 1 {
+	if utf8.RuneCountInString(m.GetName()) < 1 {
 		return ClusterValidationError{
 			field:  "Name",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -244,40 +241,40 @@ func (m *Cluster) Validate() error {
 		}
 	}
 
-	if v, ok := interface{}(m.GetUpstreamHttpProtocolOptions()).(interface{ Validate() error }); ok {
+	if v, ok := interface{}(m.GetHiddenEnvoyDeprecatedUpstreamHttpProtocolOptions()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return ClusterValidationError{
-				field:  "UpstreamHttpProtocolOptions",
+				field:  "HiddenEnvoyDeprecatedUpstreamHttpProtocolOptions",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
 		}
 	}
 
-	if v, ok := interface{}(m.GetCommonHttpProtocolOptions()).(interface{ Validate() error }); ok {
+	if v, ok := interface{}(m.GetHiddenEnvoyDeprecatedCommonHttpProtocolOptions()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return ClusterValidationError{
-				field:  "CommonHttpProtocolOptions",
+				field:  "HiddenEnvoyDeprecatedCommonHttpProtocolOptions",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
 		}
 	}
 
-	if v, ok := interface{}(m.GetHttpProtocolOptions()).(interface{ Validate() error }); ok {
+	if v, ok := interface{}(m.GetHiddenEnvoyDeprecatedHttpProtocolOptions()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return ClusterValidationError{
-				field:  "HttpProtocolOptions",
+				field:  "HiddenEnvoyDeprecatedHttpProtocolOptions",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
 		}
 	}
 
-	if v, ok := interface{}(m.GetHttp2ProtocolOptions()).(interface{ Validate() error }); ok {
+	if v, ok := interface{}(m.GetHiddenEnvoyDeprecatedHttp2ProtocolOptions()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return ClusterValidationError{
-				field:  "Http2ProtocolOptions",
+				field:  "HiddenEnvoyDeprecatedHttp2ProtocolOptions",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -439,7 +436,7 @@ func (m *Cluster) Validate() error {
 		}
 	}
 
-	// no validation rules for ProtocolSelection
+	// no validation rules for HiddenEnvoyDeprecatedProtocolSelection
 
 	if v, ok := interface{}(m.GetUpstreamConnectionOptions()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
@@ -490,7 +487,7 @@ func (m *Cluster) Validate() error {
 		}
 	}
 
-	// no validation rules for TrackTimeoutBudgets
+	// no validation rules for HiddenEnvoyDeprecatedTrackTimeoutBudgets
 
 	if v, ok := interface{}(m.GetUpstreamConfig()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
@@ -501,6 +498,28 @@ func (m *Cluster) Validate() error {
 			}
 		}
 	}
+
+	if v, ok := interface{}(m.GetTrackClusterStats()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "TrackClusterStats",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetPreconnectPolicy()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ClusterValidationError{
+				field:  "PreconnectPolicy",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for ConnectionPoolPerDownstreamConnection
 
 	switch m.ClusterDiscoveryType.(type) {
 
@@ -535,6 +554,18 @@ func (m *Cluster) Validate() error {
 			if err := v.Validate(); err != nil {
 				return ClusterValidationError{
 					field:  "RingHashLbConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *Cluster_MaglevLbConfig_:
+
+		if v, ok := interface{}(m.GetMaglevLbConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ClusterValidationError{
+					field:  "MaglevLbConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -864,6 +895,77 @@ var _ interface {
 	ErrorName() string
 } = UpstreamConnectionOptionsValidationError{}
 
+// Validate checks the field values on TrackClusterStats with the rules defined
+// in the proto definition for this message. If any rules are violated, an
+// error is returned.
+func (m *TrackClusterStats) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for TimeoutBudgets
+
+	// no validation rules for RequestResponseSizes
+
+	return nil
+}
+
+// TrackClusterStatsValidationError is the validation error returned by
+// TrackClusterStats.Validate if the designated constraints aren't met.
+type TrackClusterStatsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TrackClusterStatsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TrackClusterStatsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TrackClusterStatsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TrackClusterStatsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TrackClusterStatsValidationError) ErrorName() string {
+	return "TrackClusterStatsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e TrackClusterStatsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTrackClusterStats.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TrackClusterStatsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TrackClusterStatsValidationError{}
+
 // Validate checks the field values on Cluster_TransportSocketMatch with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -967,10 +1069,10 @@ func (m *Cluster_CustomClusterType) Validate() error {
 		return nil
 	}
 
-	if len(m.GetName()) < 1 {
+	if utf8.RuneCountInString(m.GetName()) < 1 {
 		return Cluster_CustomClusterTypeValidationError{
 			field:  "Name",
-			reason: "value length must be at least 1 bytes",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
@@ -1061,24 +1163,7 @@ func (m *Cluster_EdsClusterConfig) Validate() error {
 		}
 	}
 
-	switch m.NameSpecifier.(type) {
-
-	case *Cluster_EdsClusterConfig_ServiceName:
-		// no validation rules for ServiceName
-
-	case *Cluster_EdsClusterConfig_EdsResourceLocator:
-
-		if v, ok := interface{}(m.GetEdsResourceLocator()).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return Cluster_EdsClusterConfigValidationError{
-					field:  "EdsResourceLocator",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
+	// no validation rules for ServiceName
 
 	return nil
 }
@@ -1265,6 +1350,16 @@ func (m *Cluster_LeastRequestLbConfig) Validate() error {
 
 	}
 
+	if v, ok := interface{}(m.GetActiveRequestBias()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Cluster_LeastRequestLbConfigValidationError{
+				field:  "ActiveRequestBias",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -1420,6 +1515,83 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = Cluster_RingHashLbConfigValidationError{}
+
+// Validate checks the field values on Cluster_MaglevLbConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *Cluster_MaglevLbConfig) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if v, ok := interface{}(m.GetTableSize()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Cluster_MaglevLbConfigValidationError{
+				field:  "TableSize",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// Cluster_MaglevLbConfigValidationError is the validation error returned by
+// Cluster_MaglevLbConfig.Validate if the designated constraints aren't met.
+type Cluster_MaglevLbConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e Cluster_MaglevLbConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e Cluster_MaglevLbConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e Cluster_MaglevLbConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e Cluster_MaglevLbConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e Cluster_MaglevLbConfigValidationError) ErrorName() string {
+	return "Cluster_MaglevLbConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e Cluster_MaglevLbConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCluster_MaglevLbConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = Cluster_MaglevLbConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = Cluster_MaglevLbConfigValidationError{}
 
 // Validate checks the field values on Cluster_OriginalDstLbConfig with the
 // rules defined in the proto definition for this message. If any rules are
@@ -1736,6 +1908,95 @@ var _ interface {
 	ErrorName() string
 } = Cluster_RefreshRateValidationError{}
 
+// Validate checks the field values on Cluster_PreconnectPolicy with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *Cluster_PreconnectPolicy) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if wrapper := m.GetPerUpstreamPreconnectRatio(); wrapper != nil {
+
+		if val := wrapper.GetValue(); val < 1 || val > 3 {
+			return Cluster_PreconnectPolicyValidationError{
+				field:  "PerUpstreamPreconnectRatio",
+				reason: "value must be inside range [1, 3]",
+			}
+		}
+
+	}
+
+	if wrapper := m.GetPredictivePreconnectRatio(); wrapper != nil {
+
+		if val := wrapper.GetValue(); val < 1 || val > 3 {
+			return Cluster_PreconnectPolicyValidationError{
+				field:  "PredictivePreconnectRatio",
+				reason: "value must be inside range [1, 3]",
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// Cluster_PreconnectPolicyValidationError is the validation error returned by
+// Cluster_PreconnectPolicy.Validate if the designated constraints aren't met.
+type Cluster_PreconnectPolicyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e Cluster_PreconnectPolicyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e Cluster_PreconnectPolicyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e Cluster_PreconnectPolicyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e Cluster_PreconnectPolicyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e Cluster_PreconnectPolicyValidationError) ErrorName() string {
+	return "Cluster_PreconnectPolicyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e Cluster_PreconnectPolicyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCluster_PreconnectPolicy.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = Cluster_PreconnectPolicyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = Cluster_PreconnectPolicyValidationError{}
+
 // Validate checks the field values on Cluster_LbSubsetConfig_LbSubsetSelector
 // with the rules defined in the proto definition for this message. If any
 // rules are violated, an error is returned.
@@ -1743,6 +2004,8 @@ func (m *Cluster_LbSubsetConfig_LbSubsetSelector) Validate() error {
 	if m == nil {
 		return nil
 	}
+
+	// no validation rules for SingleHostPerSubset
 
 	if _, ok := Cluster_LbSubsetConfig_LbSubsetSelector_LbSubsetSelectorFallbackPolicy_name[int32(m.GetFallbackPolicy())]; !ok {
 		return Cluster_LbSubsetConfig_LbSubsetSelectorValidationError{
@@ -1985,6 +2248,17 @@ func (m *Cluster_CommonLbConfig_ConsistentHashingLbConfig) Validate() error {
 	}
 
 	// no validation rules for UseHostnameForHashing
+
+	if wrapper := m.GetHashBalanceFactor(); wrapper != nil {
+
+		if wrapper.GetValue() < 100 {
+			return Cluster_CommonLbConfig_ConsistentHashingLbConfigValidationError{
+				field:  "HashBalanceFactor",
+				reason: "value must be greater than or equal to 100",
+			}
+		}
+
+	}
 
 	return nil
 }

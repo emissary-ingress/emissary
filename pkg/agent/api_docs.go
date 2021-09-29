@@ -106,6 +106,14 @@ func getProcessableMappingsFromSnapshot(snapshot *snapshotTypes.Snapshot) []*v3a
 	return processableMappings
 }
 
+// scrape will take care of fetching OpenAPI documentation from each of the
+// AmbassadorMappings resources as we process a snapshot.
+//
+// Be careful as there is a very similar implementation of this logic in the DevPortal which
+// uses the ambassador diag representation to retrieve OpenAPI documentation from
+// Mapping resources.
+// Since both the DevPortal and the agent make use of this `docs` property, evolutions
+// made here should be considered for DevPortal too.
 func (a *APIDocsStore) scrape(ctx context.Context, mappings []*v3alpha1.Mapping) {
 	defer func() {
 		// Once we are finished retrieving mapping docs, delete anything we

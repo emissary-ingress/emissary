@@ -1,11 +1,13 @@
 package kubeapply
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/datawire/ambassador/v2/pkg/k8s"
+	"github.com/datawire/dlib/dlog"
 )
 
 // Waiter takes some YAML and waits for all of the resources described
@@ -54,8 +56,8 @@ func (w *Waiter) add(resource k8s.Resource) error {
 
 // Scan calls LoadResources(path), and add all resources loaded to the
 // Waiter.
-func (w *Waiter) Scan(path string) (err error) {
-	resources, err := LoadResources(path)
+func (w *Waiter) Scan(ctx context.Context, path string) (err error) {
+	resources, err := LoadResources(ctx, path)
 	for _, res := range resources {
 		err = w.add(res)
 		if err != nil {
@@ -83,7 +85,7 @@ func (w *Waiter) isEmpty() bool {
 // Scan()ed resources to be ready.  If they all become ready before
 // deadline, then it returns true.  If they don't become ready by
 // then, then it bails early and returns false.
-func (w *Waiter) Wait(deadline time.Time) bool {
+func (w *Waiter) Wait(ctx context.Context, deadline time.Time) bool {
 	start := time.Now()
 	printed := make(map[string]bool)
 	err := w.watcher.WatchQuery(k8s.Query{Kind: "events", Namespace: k8s.NamespaceAll}, func(watcher *k8s.Watcher) {
@@ -106,7 +108,7 @@ func (w *Waiter) Wait(deadline time.Time) bool {
 				} else {
 					name = r.QName()
 				}
-				fmt.Printf("event: %s %s\n", name, r["message"])
+				dlog.Printf(ctx, "event: %s %s\n", name, r["message"])
 				printed[r.QName()] = true
 			}
 		}
@@ -121,9 +123,9 @@ func (w *Waiter) Wait(deadline time.Time) bool {
 				r := watcher.Get(kind.String(), name)
 				if Ready(r) {
 					if ReadyImplemented(r) {
-						fmt.Printf("ready: %s/%s\n", r.QKind(), r.QName())
+						dlog.Printf(ctx, "ready: %s/%s\n", r.QKind(), r.QName())
 					} else {
-						fmt.Printf("ready: %s/%s (UNIMPLEMENTED)\n",
+						dlog.Printf(ctx, "ready: %s/%s (UNIMPLEMENTED)\n",
 							r.QKind(), r.QName())
 					}
 					w.remove(kind, name)
@@ -143,14 +145,14 @@ func (w *Waiter) Wait(deadline time.Time) bool {
 		}
 	}
 
-	w.watcher.Start()
+	w.watcher.Start(ctx)
 
 	go func() {
 		time.Sleep(time.Until(deadline))
 		w.watcher.Stop()
 	}()
 
-	w.watcher.Wait()
+	w.watcher.Wait(ctx)
 
 	result := true
 

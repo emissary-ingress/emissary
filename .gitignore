@@ -30,6 +30,7 @@ __pycache__
 charts/emissary-ingress/ci/tests/values
 charts/emissary-ingress/artifacts
 charts/emissary-ingress/k3dconfig
+charts/yq
 
 vendor_bootstrap_hack.go
 
@@ -52,10 +53,16 @@ vendor_bootstrap_hack.go
 /python/build
 dist
 
+# kubeapply
+*.yaml.o
+
+# misc
 *.out
 *.log
 *.tmp
 *.bak
+*.orig
+*.rej
 log.txt
 
 # From `make update-aws`

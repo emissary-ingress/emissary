@@ -37,9 +37,6 @@ var (
 	_ = v3.TrafficDirection(0)
 )
 
-// define the regex for a UUID once up-front
-var _listener_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on ListenerCollection with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -48,14 +45,19 @@ func (m *ListenerCollection) Validate() error {
 		return nil
 	}
 
-	if v, ok := interface{}(m.GetEntries()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return ListenerCollectionValidationError{
-				field:  "Entries",
-				reason: "embedded message failed validation",
-				cause:  err,
+	for idx, item := range m.GetEntries() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListenerCollectionValidationError{
+					field:  fmt.Sprintf("Entries[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
 			}
 		}
+
 	}
 
 	return nil
@@ -156,6 +158,26 @@ func (m *Listener) Validate() error {
 			}
 		}
 
+	}
+
+	if v, ok := interface{}(m.GetUseOriginalDst()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListenerValidationError{
+				field:  "UseOriginalDst",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetDefaultFilterChain()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListenerValidationError{
+				field:  "DefaultFilterChain",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if v, ok := interface{}(m.GetPerConnectionBufferLimitBytes()).(interface{ Validate() error }); ok {
@@ -311,10 +333,30 @@ func (m *Listener) Validate() error {
 
 	}
 
-	if v, ok := interface{}(m.GetHiddenEnvoyDeprecatedUseOriginalDst()).(interface{ Validate() error }); ok {
+	if v, ok := interface{}(m.GetUdpWriterConfig()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return ListenerValidationError{
-				field:  "HiddenEnvoyDeprecatedUseOriginalDst",
+				field:  "UdpWriterConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetTcpBacklogSize()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListenerValidationError{
+				field:  "TcpBacklogSize",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetBindToPort()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListenerValidationError{
+				field:  "BindToPort",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}

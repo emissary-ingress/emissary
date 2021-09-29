@@ -112,21 +112,33 @@ def V3HTTPFilter_buffer(buffer: IRBuffer, v3config: 'V3Config'):
 @V3HTTPFilter.when("IRGzip")
 def V3HTTPFilter_gzip(gzip: IRGzip, v3config: 'V3Config'):
     del v3config  # silence unused-variable warning
+    common_config = {
+        'min_content_length': gzip.content_length,
+        'content_type': gzip.content_type,
+    }
 
     return {
         'name': 'envoy.filters.http.gzip',
         'typed_config': {
-            '@type': 'type.googleapis.com/envoy.extensions.filters.http.gzip.v3.Gzip',
-            'memory_level': gzip.memory_level,
-            'compression_level': gzip.compression_level,
-            'compression_strategy': gzip.compression_strategy,
-            'window_bits': gzip.window_bits,
-            'compressor': {
-                'content_type': gzip.content_type,
-                'content_length': gzip.content_length,
+            '@type': 'type.googleapis.com/envoy.extensions.filters.http.compressor.v3.Compressor',
+            'compressor_library': {
+                "name": "envoy.compression.gzip.compressor",
+                "typed_config": {
+                    "@type": "type.googleapis.com/envoy.extensions.compression.gzip.compressor.v3.Gzip",
+                    'memory_level': gzip.memory_level,
+                    'compression_level': gzip.compression_level,
+                    'compression_strategy': gzip.compression_strategy,
+                    'window_bits': gzip.window_bits,
+                }
+            },
+            'request_direction_config': {
+                'common_config': common_config,
+            },
+            'response_direction_config': {
                 'disable_on_etag_header': gzip.disable_on_etag_header,
                 'remove_accept_encoding_header': gzip.remove_accept_encoding_header,
-            },
+                'common_config': common_config,
+            }
         }
     }
 
@@ -201,12 +213,12 @@ def V3HTTPFilter_authv0(auth: IRAuth, v3config: 'V3Config'):
     allowed_authorization_headers = []
 
     for key in sorted(hdrs):
-        allowed_authorization_headers.append({"exact": key})
+        allowed_authorization_headers.append({"exact": key, "ignore_case": True})
 
     allowed_request_headers = []
 
     for key in sorted(request_headers.keys()):
-        allowed_request_headers.append({"exact": key})
+        allowed_request_headers.append({"exact": key, "ignore_case": True})
 
     return {
         'name': 'envoy.filters.http.ext_authz',

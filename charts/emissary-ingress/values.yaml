@@ -27,9 +27,9 @@ canary:
   # If a value is supplied, then the canary deployment will use the following image for Ambassador instead of using the image from the main deployment
   image:
     # Controlls the image repository for the canary deployment.
-    repository: ""
+    repository: ''
     # Controlls the tag for the canary deployments image.repository. Uses the repository from the main deployment if the canay.image.repository is not set.
-    tag: ""
+    tag: ''
   # Environment variables to be used for the canary deployment, see `envRaw` for usage example
   envRaw: {}
 
@@ -136,7 +136,7 @@ image:
   # Emissary Ingress docker repo
   repository: docker.io/datawire/emissary
   # Emissary Ingress docker tag
-  tag: 2.0.0-ea
+  tag: 2.0.2-ea
   # Pod container image pull policy
   pullPolicy: IfNotPresent
 

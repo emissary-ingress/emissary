@@ -4,6 +4,7 @@
 
 import fileinput
 import os.path
+import os
 import sys
 from contextlib import contextmanager
 from typing import Generator
@@ -30,6 +31,7 @@ Get started with Emissary on Kubernetes - https://www.getambassador.io/user-guid
 def main(release_version: str) -> int:
     # This context manager and check function are pretty much just to produce
     # a nice list of steps...
+    in_ci = os.getenv('CI') != ''
     checker = Checker()
 
     @contextmanager
@@ -39,7 +41,9 @@ def main(release_version: str) -> int:
             yield subcheck
 
     with check(f"Check that tag v{release_version} exists"):
-        run(['git', 'fetch', '--tags'])
+
+        if not in_ci:
+            run(['git', 'fetch', '--tags'])
         run(['git', 'rev-parse', '--verify', f"v{release_version}"])
     if not checker.ok:
         return 1
@@ -63,10 +67,11 @@ def main(release_version: str) -> int:
 
     print(f"Generated release notes:")
     print(buf)
-    ok = input("Does this look correct? (y/n)")
-    if ok != 'y':
-        print('Ok, not generating release')
-        return 1
+    if not in_ci:
+        ok = input("Does this look correct? (y/n)")
+        if ok != 'y':
+            print('Ok, not generating release')
+            return 1
     with check(f"Creating release for {release_version}"):
         run([
             "gh", "release", "create",
@@ -76,8 +81,9 @@ def main(release_version: str) -> int:
             "--notes", RELEASE_BODY_FORMAT.format(release_version=release_version, release_notes=buf)])
     if not checker.ok:
         return 1
-    print('Release info from github:')
-    run(["gh", "release", "view", "--repo", get_gh_repo(), f"v{release_version}"])
+    if os.getenv("AMBASSADOR_RELENG_NO_GUI") == '':
+        print('Release info from github:')
+        run(["gh", "release", "view", "--repo", get_gh_repo(), f"v{release_version}"])
     if checker.ok:
         return 0
     else:

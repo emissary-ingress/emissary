@@ -942,6 +942,8 @@ class IR:
 
         od['custom_listener_port'] = bool(self.ambassador_module.service_port != default_port)
 
+        od['allow_chunked_length'] = self.ambassador_module.get('allow_chunked_length', None)
+
         cluster_count = 0
         cluster_grpc_count = 0      # clusters using GRPC upstream
         cluster_http_count = 0      # clusters using HTTP or HTTPS upstream

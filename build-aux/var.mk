@@ -19,10 +19,11 @@
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _var.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_var.mk))prelude.mk
+include $(dir $(_var.mk))tools.mk
 
 var. = $(dir $(_var.mk)).var.
-$(var.)%: FORCE $(WRITE_IFCHANGED)
-	@printf '%s' $(call quote.shell,$($*)) | $(WRITE_IFCHANGED) $@
+$(var.)%: FORCE $(tools/write-ifchanged)
+	@printf '%s' $(call quote.shell,$($*)) | $(tools/write-ifchanged) $@
 
 clobber: _clobber-var
 _clobber-var:

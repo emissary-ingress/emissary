@@ -54,7 +54,7 @@ func WithField(ctx context.Context, key string, value interface{}) context.Conte
 // StdLogger returns a stdlib *log.Logger that uses the Logger
 // associated with ctx and logs at the specified loglevel.
 //
-// Avoid using this functions if at all possible; prefer to use the
+// Avoid using this function if at all possible; prefer to use the
 // {Trace,Debug,Info,Print,Warn,Error}{f,ln,}() functions.  You should
 // only use this for working with external libraries that demand a
 // stdlib *log.Logger.

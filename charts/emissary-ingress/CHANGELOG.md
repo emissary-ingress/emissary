@@ -7,6 +7,14 @@ numbering uses [semantic versioning](http://semver.org).
 
 (no changes yet)
 
+## v7.1.2-ea
+
+- Update Ambassador chart image to version v2.0.2-ea: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
+## v7.1.1-ea
+
+- Update Ambassador chart image to version v2.0.1-ea: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
 ## v7.1.0-ea
 
 - Feature: New canarying features for Ambassador in the chart that allow creation of a secondary deployment/service to test new versions and environment variables.

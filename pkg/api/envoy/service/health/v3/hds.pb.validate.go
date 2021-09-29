@@ -37,9 +37,6 @@ var (
 	_ = v3.HealthStatus(0)
 )
 
-// define the regex for a UUID once up-front
-var _hds_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on Capability with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *Capability) Validate() error {
@@ -268,6 +265,182 @@ var _ interface {
 	ErrorName() string
 } = EndpointHealthValidationError{}
 
+// Validate checks the field values on LocalityEndpointsHealth with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *LocalityEndpointsHealth) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if v, ok := interface{}(m.GetLocality()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return LocalityEndpointsHealthValidationError{
+				field:  "Locality",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	for idx, item := range m.GetEndpointsHealth() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return LocalityEndpointsHealthValidationError{
+					field:  fmt.Sprintf("EndpointsHealth[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// LocalityEndpointsHealthValidationError is the validation error returned by
+// LocalityEndpointsHealth.Validate if the designated constraints aren't met.
+type LocalityEndpointsHealthValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e LocalityEndpointsHealthValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e LocalityEndpointsHealthValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e LocalityEndpointsHealthValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e LocalityEndpointsHealthValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e LocalityEndpointsHealthValidationError) ErrorName() string {
+	return "LocalityEndpointsHealthValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e LocalityEndpointsHealthValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sLocalityEndpointsHealth.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = LocalityEndpointsHealthValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = LocalityEndpointsHealthValidationError{}
+
+// Validate checks the field values on ClusterEndpointsHealth with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *ClusterEndpointsHealth) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for ClusterName
+
+	for idx, item := range m.GetLocalityEndpointsHealth() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ClusterEndpointsHealthValidationError{
+					field:  fmt.Sprintf("LocalityEndpointsHealth[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ClusterEndpointsHealthValidationError is the validation error returned by
+// ClusterEndpointsHealth.Validate if the designated constraints aren't met.
+type ClusterEndpointsHealthValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ClusterEndpointsHealthValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ClusterEndpointsHealthValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ClusterEndpointsHealthValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ClusterEndpointsHealthValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ClusterEndpointsHealthValidationError) ErrorName() string {
+	return "ClusterEndpointsHealthValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ClusterEndpointsHealthValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sClusterEndpointsHealth.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ClusterEndpointsHealthValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ClusterEndpointsHealthValidationError{}
+
 // Validate checks the field values on EndpointHealthResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -283,6 +456,21 @@ func (m *EndpointHealthResponse) Validate() error {
 			if err := v.Validate(); err != nil {
 				return EndpointHealthResponseValidationError{
 					field:  fmt.Sprintf("EndpointsHealth[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	for idx, item := range m.GetClusterEndpointsHealth() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return EndpointHealthResponseValidationError{
+					field:  fmt.Sprintf("ClusterEndpointsHealth[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -570,6 +758,21 @@ func (m *ClusterHealthCheck) Validate() error {
 			if err := v.Validate(); err != nil {
 				return ClusterHealthCheckValidationError{
 					field:  fmt.Sprintf("LocalityEndpoints[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	for idx, item := range m.GetTransportSocketMatches() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ClusterHealthCheckValidationError{
+					field:  fmt.Sprintf("TransportSocketMatches[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
