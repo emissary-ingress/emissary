@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/datawire/dlib/dlog"
 )
 
 const (
@@ -114,7 +116,7 @@ func newRoot() Root {
 
 func TestNormalExit(t *testing.T) {
 	r := newRoot()
-	s := WithContext(context.Background())
+	s := WithContext(dlog.NewTestContext(t, false))
 	N := 3
 	counts := make([]int, N)
 	for i := 0; i < N; i++ {
@@ -139,7 +141,7 @@ func TestNormalExit(t *testing.T) {
 
 func TestErrorExit(t *testing.T) {
 	r := newRoot()
-	s := WithContext(context.Background())
+	s := WithContext(dlog.NewTestContext(t, false))
 	N := 3
 	counts := make([]int, N)
 	for i := 0; i < N; i++ {
@@ -171,7 +173,7 @@ func TestErrorExit(t *testing.T) {
 
 func TestPanicExit(t *testing.T) {
 	r := newRoot()
-	s := WithContext(context.Background())
+	s := WithContext(dlog.NewTestContext(t, false))
 	N := 3
 	counts := make([]int, N)
 	for i := 0; i < N; i++ {
@@ -203,7 +205,7 @@ func TestPanicExit(t *testing.T) {
 
 func TestDependency(t *testing.T) {
 	r := newRoot()
-	s := WithContext(context.Background())
+	s := WithContext(dlog.NewTestContext(t, false))
 	s.Supervise(r.worker(Spec{
 		Name: "minion",
 		OnShutdown: func(spec *Spec) {
@@ -231,7 +233,7 @@ func TestDependency(t *testing.T) {
 
 func TestDependencyPanic(t *testing.T) {
 	r := newRoot()
-	s := WithContext(context.Background())
+	s := WithContext(dlog.NewTestContext(t, false))
 	s.Supervise(r.worker(Spec{
 		Name: "minion",
 		OnStartup: func(spec *Spec) {
@@ -254,7 +256,7 @@ func TestDependencyPanic(t *testing.T) {
 
 func TestShutdownOnError(t *testing.T) {
 	r := newRoot()
-	s := WithContext(context.Background())
+	s := WithContext(dlog.NewTestContext(t, false))
 	s.Supervise(r.worker(Spec{
 		Name:    "forever",
 		OnReady: func(spec *Spec) { spec.wait(-1) },
@@ -271,7 +273,7 @@ func TestShutdownOnError(t *testing.T) {
 
 func TestShutdownOnPanic(t *testing.T) {
 	r := newRoot()
-	s := WithContext(context.Background())
+	s := WithContext(dlog.NewTestContext(t, false))
 	s.Supervise(r.worker(Spec{
 		Name:    "forever",
 		OnReady: func(spec *Spec) { spec.wait(-1) },
@@ -288,7 +290,7 @@ func TestShutdownOnPanic(t *testing.T) {
 
 func TestShutdown(t *testing.T) {
 	r := newRoot()
-	s := WithContext(context.Background())
+	s := WithContext(dlog.NewTestContext(t, false))
 	s.Supervise(r.worker(Spec{
 		Name:    "forever",
 		OnReady: func(spec *Spec) { spec.wait(-1) },
@@ -312,7 +314,7 @@ func TestShutdown(t *testing.T) {
 // being called, I'm guessing we might want to turn Run into a noop.
 func TestCancelPreRun(t *testing.T) {
 	r := newRoot()
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 	cancel()
 	s := WithContext(ctx)
 	ran := false
@@ -334,7 +336,7 @@ func TestCancelPreRun(t *testing.T) {
 
 func TestCancelPostRun(t *testing.T) {
 	r := newRoot()
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 	s := WithContext(ctx)
 	ran := false
 	s.Supervise(r.worker(Spec{
@@ -368,7 +370,7 @@ func TestCancelPostRun(t *testing.T) {
 }
 
 func TestCancelTriggersShutdown(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 	s := WithContext(ctx)
 	ran := false
 	s.Supervise(&Worker{
@@ -392,7 +394,7 @@ func TestCancelTriggersShutdown(t *testing.T) {
 
 func TestRetry(t *testing.T) {
 	r := newRoot()
-	s := WithContext(context.Background())
+	s := WithContext(dlog.NewTestContext(t, false))
 	N := 3
 	count := 0
 	s.Supervise(r.worker(Spec{
@@ -417,7 +419,7 @@ func TestRetry(t *testing.T) {
 
 func TestGo(t *testing.T) {
 	r := newRoot()
-	s := WithContext(context.Background())
+	s := WithContext(dlog.NewTestContext(t, false))
 	went := false
 	s.Supervise(r.worker(Spec{
 		Name: "entry",
@@ -439,7 +441,7 @@ func TestGo(t *testing.T) {
 
 func TestGoError(t *testing.T) {
 	r := newRoot()
-	s := WithContext(context.Background())
+	s := WithContext(dlog.NewTestContext(t, false))
 	went := false
 	s.Supervise(r.worker(Spec{
 		Name: "entry",
@@ -461,7 +463,7 @@ func TestGoError(t *testing.T) {
 
 func TestGoPanic(t *testing.T) {
 	r := newRoot()
-	s := WithContext(context.Background())
+	s := WithContext(dlog.NewTestContext(t, false))
 	went := false
 	s.Supervise(r.worker(Spec{
 		Name: "entry",
@@ -486,7 +488,7 @@ func TestGoPanic(t *testing.T) {
 
 func TestWorkerShutdown(t *testing.T) {
 	r := newRoot()
-	s := WithContext(context.Background())
+	s := WithContext(dlog.NewTestContext(t, false))
 	fooRan := false
 	s.Supervise(r.worker(Spec{
 		Name: "foo",
@@ -513,7 +515,7 @@ func TestWorkerShutdown(t *testing.T) {
 }
 
 func TestSuperviseAfterRun(t *testing.T) {
-	s := WithContext(context.Background())
+	s := WithContext(dlog.NewTestContext(t, false))
 	running := make(chan struct{})
 	ran := false
 	go func() {
@@ -546,7 +548,7 @@ func TestSuperviseAfterRun(t *testing.T) {
 }
 
 func TestWorkerWait(t *testing.T) {
-	s := WithContext(context.Background())
+	s := WithContext(dlog.NewTestContext(t, false))
 	exit := make(chan struct{})
 	log := make(chan string)
 	w := &Worker{
@@ -578,7 +580,7 @@ func TestWorkerWait(t *testing.T) {
 }
 
 func TestWaitOnWorkerStartedAfterShutdown(t *testing.T) {
-	s := WithContext(context.Background())
+	s := WithContext(dlog.NewTestContext(t, false))
 	w := &Worker{Name: "noop", Work: func(p *Process) error { return nil }}
 	s.Supervise(w)
 	s.Shutdown()
@@ -587,8 +589,9 @@ func TestWaitOnWorkerStartedAfterShutdown(t *testing.T) {
 }
 
 func TestDoPanic(t *testing.T) {
+	ctx := dlog.NewTestContext(t, false)
 	gotHere := false
-	errs := Run("bob", func(p *Process) error {
+	errs := Run(ctx, "bob", func(p *Process) error {
 		p.Do(func() error {
 			if true {
 				panic("blah")
@@ -607,7 +610,8 @@ func TestDoPanic(t *testing.T) {
 }
 
 func TestRestart(t *testing.T) {
-	MustRun("sysiphus", func(p *Process) error {
+	ctx := dlog.NewTestContext(t, false)
+	MustRun(ctx, "sysiphus", func(p *Process) error {
 		pipe := make(chan bool)
 		w := &Worker{
 			Name: "bob",
