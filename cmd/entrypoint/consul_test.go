@@ -1,7 +1,6 @@
 package entrypoint
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/dlib/dlog"
 )
 
 const manifests = `
@@ -126,7 +126,7 @@ func setup(t *testing.T) (resolvers []*amb.ConsulResolver, mappings []consulMapp
 
 	parent := &kates.Unstructured{}
 	parent.SetNamespace("default")
-	ctx := context.Background()
+	ctx := dlog.NewTestContext(t, false)
 
 	for _, obj := range objs {
 		newobj := convertAnnotation(ctx, parent, obj)
@@ -145,7 +145,7 @@ func setup(t *testing.T) (resolvers []*amb.ConsulResolver, mappings []consulMapp
 	assert.Equal(t, 4, len(mappings))
 
 	tw = &testWatcher{t: t, events: make(map[string]bool)}
-	c = newConsul(context.TODO(), tw)
+	c = newConsul(ctx, tw)
 	tw.Assert()
 
 	return

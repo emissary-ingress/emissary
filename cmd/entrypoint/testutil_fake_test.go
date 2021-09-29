@@ -12,13 +12,13 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/v2/cmd/ambex"
+	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dgroup"
-
-	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
+	"github.com/datawire/dlib/dlog"
 )
 
 // The Fake struct is a test harness for edgestack. Its goals are to help us fill out our test
@@ -95,7 +95,7 @@ func (fc *FakeConfig) fillDefaults() {
 // Setup, and Teardown of a Fake with one line of code.
 func NewFake(t *testing.T, config FakeConfig) *Fake {
 	config.fillDefaults()
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 	k8sStore := NewK8sStore()
 	consulStore := NewConsulStore()
 

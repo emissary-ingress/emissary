@@ -9,7 +9,6 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -126,10 +125,7 @@ func (m *MockClient) RetrieveSnapshot(context.Context, *agent.Identity, ...grpc.
 }
 
 func TestComm(t *testing.T) {
-	llog := logrus.New()
-	llog.SetLevel(logrus.DebugLevel)
-	log := dlog.WrapLogrus(llog)
-	ctx := dlog.WithLogger(context.Background(), log)
+	ctx := dlog.NewTestContext(t, false)
 	ctx, cancel := context.WithCancel(ctx)
 	client := &MockClient{}
 	agentID := &agent.Identity{}

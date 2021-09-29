@@ -17,9 +17,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/datawire/dlib/dhttp"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+
+	"github.com/datawire/dlib/dhttp"
+	"github.com/datawire/dlib/dlog"
 )
 
 func GetLoopbackAddr(port int) string {
@@ -244,7 +246,7 @@ func (rl *RequestLogger) Log(r *http.Request) {
 // SetupServer will launch an http server that runs for the duration of the test, binds to the
 // supplied addresses using the supplied handler.
 func SetupServer(t *testing.T, handler http.Handler, addresses ...string) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 	wg := &sync.WaitGroup{}
 	t.Cleanup(func() {
 		cancel()

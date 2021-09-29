@@ -155,7 +155,7 @@ func (e *EnvoyController) Run(ctx context.Context) error {
 // registering a Cleanup function to shutdown the EnvoyController.
 func SetupEnvoyController(t *testing.T, address string) *EnvoyController {
 	e := NewEnvoyController(address)
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 	done := make(chan struct{})
 	t.Cleanup(func() {
 		cancel()

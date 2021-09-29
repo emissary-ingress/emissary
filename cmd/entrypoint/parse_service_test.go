@@ -1,12 +1,13 @@
 package entrypoint
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/dlib/dlog"
 )
 
 var serviceTests = []struct {
@@ -148,7 +149,7 @@ var serviceTests = []struct {
 }
 
 func TestParseService(t *testing.T) {
-	ctx := context.Background()
+	ctx := dlog.NewTestContext(t, false)
 	cm := &kates.ConfigMap{ObjectMeta: kates.ObjectMeta{Name: "foo", Namespace: "bar"}}
 	for _, test := range serviceTests {
 		// Make sure we ignore these also.

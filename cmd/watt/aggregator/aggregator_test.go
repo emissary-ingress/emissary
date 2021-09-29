@@ -18,6 +18,7 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/limiter"
 	"github.com/datawire/ambassador/v2/pkg/supervisor"
 	"github.com/datawire/ambassador/v2/pkg/watt"
+	"github.com/datawire/dlib/dlog"
 
 	. "github.com/datawire/ambassador/v2/cmd/watt/aggregator"
 )
@@ -54,7 +55,7 @@ func newAggIsolator(t *testing.T, requiredKinds []string, watchHook WatchHook) *
 	iso.aggregator = NewAggregator(iso.snapshots, iso.k8sWatches, iso.consulWatches, requiredKinds, watchHook,
 		limiter.NewUnlimited(),
 		validator)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(dlog.NewTestContext(t, false), 10*time.Second)
 	iso.cancel = cancel
 	iso.sup = supervisor.WithContext(ctx)
 	iso.sup.Supervise(&supervisor.Worker{

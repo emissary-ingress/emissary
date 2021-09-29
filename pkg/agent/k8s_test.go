@@ -4,12 +4,14 @@ import (
 	"context"
 	"testing"
 
-	"github.com/datawire/ambassador/v2/pkg/agent"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/tools/cache"
+
+	"github.com/datawire/ambassador/v2/pkg/agent"
+	"github.com/datawire/dlib/dlog"
 )
 
 type informerMock struct {
@@ -44,8 +46,6 @@ func TestWatchGeneric(t *testing.T) {
 	type fixture struct {
 		dc         *agent.DynamicClient
 		rolloutGvr *schema.GroupVersionResource
-		ctx        context.Context
-		ctxCancel  context.CancelFunc
 	}
 	defaultRunFunc := func(handler cache.ResourceEventHandler) {
 		obj := &unstructured.Unstructured{}
@@ -68,23 +68,20 @@ func TestWatchGeneric(t *testing.T) {
 		mock := newInformerMock(rf)
 		dc := agent.NewDynamicClient(nil, mock.fakeInformer)
 		rolloutGvr, _ := schema.ParseResourceArg("rollouts.v1alpha1.argoproj.io")
-		ctx, cancel := context.WithCancel(context.Background())
 		return &fixture{
 			dc:         dc,
 			rolloutGvr: rolloutGvr,
-			ctx:        ctx,
-			ctxCancel:  cancel,
 		}
 
 	}
 	t.Run("will watch generic resource successfully", func(t *testing.T) {
 		// given
 		t.Parallel()
+		ctx := dlog.NewTestContext(t, false)
 		f := setup(nil)
-		defer f.ctxCancel()
 
 		// when
-		rolloutCallback := f.dc.WatchGeneric(f.ctx, "default", f.rolloutGvr)
+		rolloutCallback := f.dc.WatchGeneric(ctx, "default", f.rolloutGvr)
 
 		// then
 		assert.NotNil(t, rolloutCallback)
@@ -110,11 +107,12 @@ func TestWatchGeneric(t *testing.T) {
 			obj.SetName("obj1-added")
 			handler.OnAdd(obj)
 		}
+		ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
+		cancel()
 		f := setup(informerRunFunc)
-		f.ctxCancel()
 
 		// when
-		rolloutCallback := f.dc.WatchGeneric(f.ctx, "default", f.rolloutGvr)
+		rolloutCallback := f.dc.WatchGeneric(ctx, "default", f.rolloutGvr)
 
 		// then
 		assert.NotNil(t, rolloutCallback)
