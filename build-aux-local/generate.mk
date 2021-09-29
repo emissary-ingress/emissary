@@ -52,6 +52,7 @@ generate/files      += $(OSS_HOME)/pkg/api/envoy/
 generate/files      += $(OSS_HOME)/pkg/api/pb/
 generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/
 generate-fast/files += $(OSS_HOME)/charts/emissary-ingress/crds/
+generate-fast/files += $(OSS_HOME)/python/schemas/v3alpha1/
 # Individual files
 generate/files      += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
 generate/files      += $(OSS_HOME)/OPENSOURCE.md
@@ -293,6 +294,10 @@ $(OSS_HOME)/manifests/emissary/emissary-crds.yaml: $(OSS_HOME)/charts/emissary-i
 $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml: $(OSS_HOME)/charts/emissary-ingress/crds $(tools/fix-crds)
 	@printf '  $(CYN)$@$(END)\n'
 	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $</*.yaml)) > $@
+
+$(OSS_HOME)/python/schemas/v3alpha1: $(OSS_HOME)/manifests/emissary/emissary-crds.yaml $(tools/crds2schemas)
+	rm -rf $@
+	$(tools/crds2schemas) $< $@
 
 python-setup: create-venv
 	$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml

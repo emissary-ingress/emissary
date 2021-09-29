@@ -1,30 +1,24 @@
 {
-    "id": "https://getambassador.io/schemas/mapping.json",
+    "id": "https://getambassador.io/schemas/tcpmapping.json",
     "$schema": "http://json-schema.org/schema#",
     "type": "object",
     "required": [
         "apiVersion",
         "kind",
         "name",
-        "service",
-        "port"
+        "port",
+        "service"
     ],
     "properties": {
         "address": {
             "type": "string"
         },
         "ambassador_id": {
-            "anyOf": [
-                {
-                    "type": "string"
-                },
-                {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            ]
+            "description": "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\"",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         },
         "apiVersion": {
             "enum": [
@@ -55,8 +49,7 @@
                             "high"
                         ]
                     }
-                },
-                "additionalProperties": false
+                }
             }
         },
         "cluster_tag": {
@@ -75,22 +68,18 @@
             "type": "string"
         },
         "idle_timeout_ms": {
+            "description": "FIXME(lukeshu): Surely this should be an 'int'?",
             "type": "string"
         },
         "kind": {
-            "type": "string"
+            "enum": [
+                "TCPMapping"
+            ]
         },
         "metadata_labels": {
             "type": "object",
             "additionalProperties": {
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+                "type": "string"
             }
         },
         "name": {
@@ -100,6 +89,7 @@
             "type": "string"
         },
         "port": {
+            "description": "Port isn't a pointer because it's required.",
             "type": "integer"
         },
         "resolver": {
@@ -112,6 +102,7 @@
             "type": "string"
         },
         "tls": {
+            "description": "BoolOrString is a type that can hold a Boolean or a string.",
             "oneOf": [
                 {
                     "type": "string"
@@ -124,6 +115,5 @@
         "weight": {
             "type": "integer"
         }
-    },
-    "additionalProperties": false
+    }
 }
