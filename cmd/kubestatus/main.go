@@ -84,7 +84,7 @@ func Main(ctx context.Context, version string, args ...string) error {
 			if namespace != "" {
 				obj.SetNamespace(namespace)
 			}
-			err = client.Get(context.TODO(), obj, obj)
+			err = client.Get(ctx, obj, obj)
 			if err != nil {
 				return err
 			}
@@ -96,13 +96,13 @@ func Main(ctx context.Context, version string, args ...string) error {
 				return nil
 			} else {
 				obj.Object["status"] = status
-				return client.UpdateStatus(context.TODO(), obj, obj)
+				return client.UpdateStatus(ctx, obj, obj)
 			}
 		}
 
 		var items []*kates.Unstructured
 
-		err = client.List(context.TODO(),
+		err = client.List(ctx,
 			kates.Query{
 				Kind:          kind,
 				Namespace:     namespace,
@@ -129,7 +129,7 @@ func Main(ctx context.Context, version string, args ...string) error {
 				}
 
 				obj.Object["status"] = status
-				err = client.UpdateStatus(context.TODO(), obj, nil)
+				err = client.UpdateStatus(ctx, obj, nil)
 				if err != nil {
 					// log.Debugf doesn't exist.
 					if true {

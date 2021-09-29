@@ -35,7 +35,7 @@ type GRPCAUTHV3 struct {
 }
 
 // Start initializes the HTTP server.
-func (g *GRPCAUTHV3) Start() <-chan bool {
+func (g *GRPCAUTHV3) Start(_ context.Context) <-chan bool {
 	log.Printf("GRPCAUTHV3: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
 	exited := make(chan bool)

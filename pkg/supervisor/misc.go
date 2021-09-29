@@ -12,15 +12,15 @@ type Logger func(ctx context.Context, format string, v ...interface{})
 
 // Run creates a single-purpose Supervisor and runs a worker function
 // with it.
-func Run(name string, f func(*Process) error) []error {
-	sup := WithContext(context.Background())
+func Run(ctx context.Context, name string, f func(*Process) error) []error {
+	sup := WithContext(ctx)
 	sup.Supervise(&Worker{Name: name, Work: f})
 	return sup.Run()
 }
 
 // MustRun is like Run, but panics if there are errors.
-func MustRun(name string, f func(*Process) error) {
-	errs := Run(name, f)
+func MustRun(ctx context.Context, name string, f func(*Process) error) {
+	errs := Run(ctx, name, f)
 	if len(errs) > 0 {
 		panic(fmt.Sprintf("%s: %v", name, errs))
 	}

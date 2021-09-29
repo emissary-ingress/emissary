@@ -54,7 +54,7 @@ func ReconcileConsul(ctx context.Context, consul *consul, s *snapshotTypes.Kuber
 		}
 	}
 
-	consul.reconcile(s.ConsulResolvers, mappings)
+	consul.reconcile(ctx, s.ConsulResolvers, mappings)
 }
 
 type consul struct {
@@ -99,7 +99,7 @@ func (c *consul) run(ctx context.Context) {
 				c.updateEndpoints(ep)
 				dirty = true
 			case <-ctx.Done():
-				c.cleanup()
+				c.cleanup(ctx)
 				return
 			}
 		} else {
@@ -108,7 +108,7 @@ func (c *consul) run(ctx context.Context) {
 				c.updateEndpoints(ep)
 				dirty = true
 			case <-ctx.Done():
-				c.cleanup()
+				c.cleanup(ctx)
 				return
 			}
 		}
@@ -158,19 +158,19 @@ func (c *consul) isBootstrapped() bool {
 }
 
 // Stop all service watches.
-func (c *consul) cleanup() {
+func (c *consul) cleanup(ctx context.Context) {
 	// XXX: do we care about a clean shutdown
 	/*go func() {
 		<-ctx.Done()
 		w.Stop()
 	}()*/
 
-	c.reconcile(nil, nil)
+	c.reconcile(ctx, nil, nil)
 }
 
 // Start and stop consul service watches as needed in order to match the supplied set of resolvers
 // and mappings.
-func (c *consul) reconcile(resolvers []*amb.ConsulResolver, mappings []consulMapping) {
+func (c *consul) reconcile(ctx context.Context, resolvers []*amb.ConsulResolver, mappings []consulMapping) {
 	// ==First we compute resolvers and their related mappings without actualy changing anything.==
 	resolversByName := make(map[string]*amb.ConsulResolver)
 	for _, cr := range resolvers {
@@ -236,7 +236,7 @@ func (c *consul) reconcile(resolvers []*amb.ConsulResolver, mappings []consulMap
 	// Finally we reconcile each mapping.
 	for rname, mappings := range mappingsByResolver {
 		res := c.resolvers[rname]
-		res.reconcile(c.watcher, mappings, c.endpointsCh)
+		res.reconcile(ctx, c.watcher, mappings, c.endpointsCh)
 	}
 
 	// If this is the first time we are reconciling, we need to compute conditions for being
@@ -270,7 +270,7 @@ func (r *resolver) deleted() {
 	}
 }
 
-func (r *resolver) reconcile(watcher Watcher, mappings []consulMapping, endpoints chan consulwatch.Endpoints) {
+func (r *resolver) reconcile(ctx context.Context, watcher Watcher, mappings []consulMapping, endpoints chan consulwatch.Endpoints) {
 	servicesByName := make(map[string]bool)
 	for _, m := range mappings {
 		// XXX: how to parse this?
@@ -278,7 +278,7 @@ func (r *resolver) reconcile(watcher Watcher, mappings []consulMapping, endpoint
 		servicesByName[svc] = true
 		w, ok := r.watches[svc]
 		if !ok {
-			w = watcher.Watch(r.resolver, svc, endpoints)
+			w = watcher.Watch(ctx, r.resolver, svc, endpoints)
 			r.watches[svc] = w
 		}
 	}
@@ -293,7 +293,7 @@ func (r *resolver) reconcile(watcher Watcher, mappings []consulMapping, endpoint
 }
 
 type Watcher interface {
-	Watch(resolver *amb.ConsulResolver, svc string, endpoints chan consulwatch.Endpoints) Stopper
+	Watch(ctx context.Context, resolver *amb.ConsulResolver, svc string, endpoints chan consulwatch.Endpoints) Stopper
 }
 
 type Stopper interface {
@@ -302,7 +302,7 @@ type Stopper interface {
 
 type consulWatcher struct{}
 
-func (cw *consulWatcher) Watch(resolver *amb.ConsulResolver, svc string,
+func (cw *consulWatcher) Watch(ctx context.Context, resolver *amb.ConsulResolver, svc string,
 	endpointsCh chan consulwatch.Endpoints) Stopper {
 	// XXX: should this part be shared?
 	consulConfig := consulapi.DefaultConfig()
@@ -329,7 +329,7 @@ func (cw *consulWatcher) Watch(resolver *amb.ConsulResolver, svc string,
 	})
 
 	go func() {
-		err = w.Start(context.TODO())
+		err = w.Start(ctx)
 		if err != nil {
 			panic(err)
 		}

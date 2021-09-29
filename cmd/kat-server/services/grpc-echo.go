@@ -45,7 +45,7 @@ func DefaultOpts() []grpc.ServerOption {
 }
 
 // Start initializes the gRPC server.
-func (g *GRPC) Start() <-chan bool {
+func (g *GRPC) Start(ctx context.Context) <-chan bool {
 	log.Printf("GRPC: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
 	grpcHandler := grpc.NewServer(DefaultOpts()...)
@@ -63,7 +63,7 @@ func (g *GRPC) Start() <-chan bool {
 		},
 	}
 
-	grp := dgroup.NewGroup(context.TODO(), dgroup.GroupConfig{})
+	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
 	grp.Go("cleartext", func(ctx context.Context) error {
 		return sc.ListenAndServe(ctx, fmt.Sprintf(":%v", g.Port))
 	})

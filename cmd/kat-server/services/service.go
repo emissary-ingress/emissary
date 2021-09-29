@@ -1,6 +1,10 @@
 package services
 
+import (
+	"context"
+)
+
 // Service defines a KAT backend service interface.
 type Service interface {
-	Start() <-chan bool
+	Start(context.Context) <-chan bool
 }

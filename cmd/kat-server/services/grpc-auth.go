@@ -39,7 +39,7 @@ type GRPCAUTH struct {
 }
 
 // Start initializes the HTTP server.
-func (g *GRPCAUTH) Start() <-chan bool {
+func (g *GRPCAUTH) Start(ctx context.Context) <-chan bool {
 	log.Printf("GRPCAUTH: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
 	grpcHandler := grpc.NewServer()
@@ -58,7 +58,7 @@ func (g *GRPCAUTH) Start() <-chan bool {
 		},
 	}
 
-	grp := dgroup.NewGroup(context.TODO(), dgroup.GroupConfig{})
+	grp := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
 	grp.Go("cleartext", func(ctx context.Context) error {
 		return sc.ListenAndServe(ctx, fmt.Sprintf(":%v", g.Port))
 	})

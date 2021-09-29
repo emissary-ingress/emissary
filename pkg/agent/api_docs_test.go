@@ -5,12 +5,14 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/datawire/ambassador/v2/pkg/agent"
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
-	"github.com/stretchr/testify/assert"
+	"github.com/datawire/dlib/dlog"
 )
 
 func TestAPIDocsStore(t *testing.T) {
@@ -194,7 +196,7 @@ func TestAPIDocsStore(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctx, cancel := context.WithCancel(context.Background())
+			ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 			defer cancel()
 
 			snapshot := &snapshotTypes.Snapshot{
