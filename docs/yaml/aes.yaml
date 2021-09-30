@@ -409,7 +409,7 @@ spec:
           secretName: ambassador-edge-stack
       containers:
       - name: aes
-        image: docker.io/datawire/aes:1.14.1
+        image: docker.io/datawire/aes:1.14.2
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
@@ -653,7 +653,7 @@ spec:
       serviceAccountName: ambassador-agent
       containers:
       - name: agent
-        image: docker.io/datawire/aes:1.14.1
+        image: docker.io/datawire/aes:1.14.2
         imagePullPolicy: IfNotPresent
         command: [agent]
         env:
