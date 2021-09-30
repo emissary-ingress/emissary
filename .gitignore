@@ -100,6 +100,7 @@ ambassador-secrets-deployment.yaml
 *failures.txt
 *.swp
 .ambassador_ignore_ingress_class
+/test-chart-values.yaml
 
 # --- Files ignored by older versions ---
 # Remove the tail of this list when the commit making the change gets
