@@ -300,15 +300,15 @@ controller-gen/options/crd         += crdVersions=v1beta1 # change this to "v1" 
 controller-gen/output/crd           = dir=$(crds_yaml_dir)
 _generate_controller_gen: $(tools/controller-gen) $(tools/fix-crds) update-yaml-preflight
 	@printf '  $(CYN)Running controller-gen$(END)\n'
-	rm -f $(crds_yaml_dir)/getambassador.io_*
+	rm -f $(crds_yaml_dir)/*_*.yaml
 	cd $(OSS_HOME) && $(tools/controller-gen) \
 	  $(foreach varname,$(sort $(filter controller-gen/options/%,$(.VARIABLES))), $(patsubst controller-gen/options/%,%,$(varname))$(if $(strip $($(varname))),:$(call joinlist,$(comma),$($(varname)))) ) \
 	  $(foreach varname,$(sort $(filter controller-gen/output/%,$(.VARIABLES))), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
 	  paths="./pkg/api/getambassador.io/..."
-	@PS4=; set -ex; for file in $(crds_yaml_dir)/getambassador.io_*.yaml; do $(tools/fix-crds) helm 1.11 "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
+	@PS4=; set -ex; for file in $(crds_yaml_dir)/*_*.yaml; do $(tools/fix-crds) helm 1.11 "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
 	# copy the crds into the emissary chart for now.
 	# hack-ish, but this will keep things in sync for the time being
-	cp $(crds_yaml_dir)/* $(OSS_HOME)/charts/emissary-ingress/crds/
+	cp $(crds_yaml_dir)/*_*.yaml $(OSS_HOME)/charts/emissary-ingress/crds/
 .PHONY: _generate_controller_gen
 
 $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml: $(OSS_HOME)/manifests/ambassador/ambassador-crds.yaml
@@ -317,11 +317,11 @@ $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml: $(OSS_HOME)/manifests/amb
 
 $(OSS_HOME)/manifests/ambassador/ambassador-crds.yaml: _generate_controller_gen $(tools/fix-crds) update-yaml-preflight
 	@printf '  $(CYN)$@$(END)\n'
-	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/getambassador.io_*.yaml)) > $@
+	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/*_*.yaml)) > $@
 
 $(OSS_HOME)/manifests/emissary/emissary-crds.yaml: _generate_controller_gen $(tools/fix-crds) update-yaml-preflight
 	@printf '  $(CYN)$@$(END)\n'
-	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/getambassador.io_*.yaml)) > $@
+	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/*_*.yaml)) > $@
 
 $(OSS_HOME)/docs/yaml/ambassador/%.yaml: $(OSS_HOME)/docs/yaml/ambassador/%.yaml.m4 $(OSS_HOME)/docs/yaml/ambassador/ambassador-crds.yaml update-yaml-preflight
 	@printf '  $(CYN)$@$(END)\n'
@@ -351,7 +351,7 @@ update-yaml:
 
 update-yaml-clean:
 	find $(OSS_HOME)/pkg/api/getambassador.io -name 'zz_generated.*.go' -delete
-	rm -f $(crds_yaml_dir)/getambassador.io_*
+	rm -f $(crds_yaml_dir)/*_*
 	rm -f $(update-yaml/files)
 generate-clean: update-yaml-clean
 .PHONY: update-yaml-clean
