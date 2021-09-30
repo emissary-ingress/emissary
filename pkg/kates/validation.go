@@ -2,6 +2,7 @@ package kates
 
 import (
 	"context"
+	"path"
 	"strings"
 	"sync"
 
@@ -132,9 +133,22 @@ func (v *Validator) getValidator(ctx context.Context, tm TypeMeta) (*validate.Sc
 		}
 
 		if crd != nil {
-			validator, _, err = validation.NewSchemaValidator(crd.Spec.Validation)
-			if err != nil {
-				return nil, err
+			if crd.Spec.Validation != nil {
+				validator, _, err = validation.NewSchemaValidator(crd.Spec.Validation)
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				tmVersion := path.Base(tm.APIVersion)
+				for _, version := range crd.Spec.Versions {
+					if version.Name == tmVersion {
+						validator, _, err = validation.NewSchemaValidator(version.Schema)
+						if err != nil {
+							return nil, err
+						}
+						break
+					}
+				}
 			}
 		}
 
