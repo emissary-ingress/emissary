@@ -117,8 +117,8 @@ security:
     #     rule: MustRunAsNonRoot
 
 image:
-  ossTag: 1.14.1
-  aesTag: 1.14.1
+  ossTag: 1.14.2
+  aesTag: 1.14.2
   pullPolicy: IfNotPresent
   ossRepository: docker.io/datawire/ambassador
   aesRepository: docker.io/datawire/aes
