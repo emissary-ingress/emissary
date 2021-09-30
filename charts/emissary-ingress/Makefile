@@ -1,4 +1,8 @@
-HELM_TEST_IMAGE = quay.io/helmpack/chart-testing:v3.0.0-rc.1
+# HELM_TEST_IMAGE is canonically at quay.io/helmpack/chart-testing:v3.0.0-rc.1,
+# but quay.io's DNS has vanished at least twice, so we've mirrored it to 
+# DockerHub.
+HELM_TEST_IMAGE = docker.io/datawiredev/helmpack-chart-testing:v3.0.0-rc.1
+
 K3D_CLUSTER_NAME = helm-chart-test-cluster
 CHART_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 CHART_KUBECONFIG := /tmp/kubeconfig/k3dconfig
