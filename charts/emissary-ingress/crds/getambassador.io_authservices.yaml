@@ -37,10 +37,7 @@ spec:
           properties:
             add_auth_headers:
               additionalProperties:
-                description: BoolOrString is a type that can hold a Boolean or a string.
-                oneOf:
-                - type: string
-                - type: boolean
+                type: string
               type: object
             add_linkerd_headers:
               type: boolean
@@ -97,10 +94,7 @@ spec:
             timeout_ms:
               type: integer
             tls:
-              description: BoolOrString is a type that can hold a Boolean or a string.
-              oneOf:
-              - type: string
-              - type: boolean
+              type: string
           required:
           - auth_service
           type: object

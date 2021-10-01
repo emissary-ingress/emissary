@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -300,19 +299,12 @@ func newOpenAPI(ctx context.Context, docBytes []byte, baseURL string, prefix str
 	}
 }
 
-func buildMappingRequestHeaders(mappingHeaders map[string]amb.BoolOrString) []Header {
+func buildMappingRequestHeaders(mappingHeaders map[string]string) []Header {
 	headers := []Header{}
 
-	for key, headerValue := range mappingHeaders {
+	for key, value := range mappingHeaders {
 		if key == ":authority" {
 			continue
-		}
-		value := ""
-		if headerValue.String != nil {
-			value = *headerValue.String
-		}
-		if headerValue.Bool != nil {
-			value = strconv.FormatBool(*headerValue.Bool)
 		}
 		headers = append(headers, Header{Name: key, Value: value})
 	}

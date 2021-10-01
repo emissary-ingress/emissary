@@ -41,11 +41,11 @@ type TCPMappingSpec struct {
 	// FIXME(lukeshu): Surely this should be an 'int'?
 	IdleTimeoutMs string `json:"idle_timeout_ms,omitempty"`
 
-	Resolver   string        `json:"resolver,omitempty"`
-	TLS        *BoolOrString `json:"tls,omitempty"`
-	Weight     *int          `json:"weight,omitempty"`
-	ClusterTag string        `json:"cluster_tag,omitempty"`
-	StatsName  string        `json:"stats_name,omitempty"`
+	Resolver   string `json:"resolver,omitempty"`
+	TLS        string `json:"tls,omitempty"`
+	Weight     *int   `json:"weight,omitempty"`
+	ClusterTag string `json:"cluster_tag,omitempty"`
+	StatsName  string `json:"stats_name,omitempty"`
 }
 
 // TCPMapping is the Schema for the tcpmappings API

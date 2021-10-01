@@ -94,19 +94,13 @@ func HostMatch(mapping v3alpha1.Mapping, host v3alpha1.Host) (bool, string, stri
 
 	// No host in the Mapping -- how about authority?
 	mappingAuthorityRegex := false
-	mappingAuthorityBoolOrString, found := mapping.Spec.Headers[":authority"]
 	mappingAuthority := ""
 
-	if found && (mappingAuthorityBoolOrString.String != nil) {
-		mappingAuthority = *mappingAuthorityBoolOrString.String
-	} else {
-		// Try a regex authority.
-		mappingAuthorityBoolOrString, found = mapping.Spec.RegexHeaders[":authority"]
-
-		if found && (mappingAuthorityBoolOrString.String != nil) {
-			mappingAuthorityRegex = true
-			mappingAuthority = *mappingAuthorityBoolOrString.String
-		}
+	if stringVal, ok := mapping.Spec.Headers[":authority"]; ok {
+		mappingAuthority = stringVal
+	} else if regexVal, ok := mapping.Spec.RegexHeaders[":authority"]; ok {
+		mappingAuthorityRegex = true
+		mappingAuthority = regexVal
 	}
 
 	fmt.Printf("HostMatch: mappingAuthority %s\n", mappingAuthority)

@@ -314,9 +314,17 @@ use_websocket: true
 class TLSOrigination(MappingTest):
 
     parent: AmbassadorTest
-    definition: str
 
-    IMPLICIT = """
+    @classmethod
+    def variants(cls):
+        for v in variants(ServiceType):
+            yield cls(v, name="{self.target.name}")
+
+    def init(self, target):
+        MappingTest.init(self, target)
+
+    def config(self):
+        yield self.target, self.format("""
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -324,31 +332,7 @@ name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
 service: https://{self.target.path.fqdn}
-"""
-
-    EXPLICIT = """
----
-apiVersion: getambassador.io/v3alpha1
-kind: Mapping
-name:  {self.name}
-hostname: "*"
-prefix: /{self.name}/
-service: {self.target.path.fqdn}
-tls: true
-"""
-
-    @classmethod
-    def variants(cls):
-        for v in variants(ServiceType):
-            for name, dfn in ("IMPLICIT", cls.IMPLICIT), ("EXPLICIT", cls.EXPLICIT):
-                yield cls(v, dfn, name="{self.target.name}-%s" % name)
-
-    def init(self, target, definition):
-        MappingTest.init(self, target)
-        self.definition = definition
-
-    def config(self):
-        yield self.target, self.format(self.definition)
+""")
 
     def queries(self):
         yield Query(self.parent.url(self.name + "/"))
@@ -638,7 +622,8 @@ add_response_headers:
         value: ZooZ
     test:
         value: boo
-    foo: Foo
+    foo:
+        value: Foo
 """)
 
     def queries(self):
@@ -749,7 +734,8 @@ add_request_headers:
         value: aoo
     boo:
         value: boo
-    foo: Foo
+    foo:
+        value: Foo
 """)
 
     def queries(self):
