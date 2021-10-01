@@ -159,7 +159,7 @@ metadata:
       hostname: "*"
       prefix: /{self.name}-nested/
       service: http://{self.target.path.fqdn}
-      ambassador_id: plain
+      ambassador_id: [plain]
   name: {self.name.lower()}
 spec:
   rules:
@@ -767,4 +767,3 @@ add_request_headers:
                 assert r.backend.request.headers['aoo'] == ['AooA','aoo']
                 assert r.backend.request.headers['boo'] == ['BooB','boo']
                 assert r.backend.request.headers['foo'] == ['FooF','Foo']
-

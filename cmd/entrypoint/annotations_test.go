@@ -8,8 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
@@ -61,14 +60,14 @@ prefix: /blah/
 
 	ambSvcAnnotations := `
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 config:
   diagnostics:
     enabled: true
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: KubernetesEndpointResolver
 name: endpoint`
 
@@ -89,7 +88,7 @@ kind: Mapping
 name: dont-parse
 prefix: /blah/`
 
-	ignoredHost := &v3alpha1.Host{
+	ignoredHost := &amb.Host{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ambassador",
 			Namespace: "ambassador",
@@ -102,7 +101,7 @@ prefix: /blah/`
 	ks := &snapshotTypes.KubernetesSnapshot{
 		Services:  []*kates.Service{svc, ambSvc},
 		Ingresses: []*kates.Ingress{ingress},
-		Hosts:     []*v3alpha1.Host{ignoredHost},
+		Hosts:     []*amb.Host{ignoredHost},
 	}
 
 	ctx := dlog.NewTestContext(t, false)
@@ -112,7 +111,7 @@ prefix: /blah/`
 	assert.NotEmpty(t, ks.Annotations)
 	assert.Equal(t, len(ks.Annotations), 4)
 
-	expectedMappings := []*v3alpha1.Mapping{
+	expectedMappings := []*amb.Mapping{
 		{
 			TypeMeta: metav1.TypeMeta{
 				Kind:       "Mapping",
@@ -122,7 +121,7 @@ prefix: /blah/`
 				Name:      "cool-mapping",
 				Namespace: "somens",
 			},
-			Spec: v3alpha1.MappingSpec{
+			Spec: amb.MappingSpec{
 				Prefix: "/blah/",
 			},
 		},
@@ -135,7 +134,7 @@ prefix: /blah/`
 				Name:      "quote-backend",
 				Namespace: "ambassador",
 			},
-			Spec: v3alpha1.MappingSpec{
+			Spec: amb.MappingSpec{
 				Prefix:  "/backend/",
 				Service: "quote:80",
 			},
@@ -148,7 +147,7 @@ prefix: /blah/`
 	expectedModule := &amb.Module{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Module",
-			APIVersion: "getambassador.io/v2",
+			APIVersion: "getambassador.io/v3alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ambassador",
@@ -161,7 +160,7 @@ prefix: /blah/`
 	expectedResolver := &amb.KubernetesEndpointResolver{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "KubernetesEndpointResolver",
-			APIVersion: "getambassador.io/v2",
+			APIVersion: "getambassador.io/v3alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "endpoint",
@@ -174,8 +173,8 @@ prefix: /blah/`
 	foundResolvers := 0
 	for _, obj := range ks.Annotations {
 		switch obj.(type) {
-		case *v3alpha1.Mapping:
-			mapping := obj.(*v3alpha1.Mapping)
+		case *amb.Mapping:
+			mapping := obj.(*amb.Mapping)
 			assert.Contains(t, expectedMappings, mapping)
 			foundMappings++
 		case *amb.Module:
@@ -217,7 +216,7 @@ prefix: /blah/`,
 			apiVersion:   "getambassador.io/v3alpha1",
 			parentns:     "somens",
 			parentLabels: map[string]string{},
-			expectedObj: &v3alpha1.Mapping{
+			expectedObj: &amb.Mapping{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "Mapping",
 					APIVersion: "getambassador.io/v3alpha1",
@@ -227,7 +226,7 @@ prefix: /blah/`,
 					Namespace: "somens",
 					Labels:    map[string]string{},
 				},
-				Spec: v3alpha1.MappingSpec{
+				Spec: amb.MappingSpec{
 					Prefix: "/blah/",
 				},
 			},
@@ -244,7 +243,7 @@ prefix: /blah/`,
 			apiVersion:   "ambassador/v3alpha1",
 			parentns:     "somens",
 			parentLabels: map[string]string{},
-			expectedObj: &v3alpha1.Mapping{
+			expectedObj: &amb.Mapping{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "Mapping",
 					APIVersion: "getambassador.io/v3alpha1",
@@ -254,7 +253,7 @@ prefix: /blah/`,
 					Namespace: "somens",
 					Labels:    map[string]string{},
 				},
-				Spec: v3alpha1.MappingSpec{
+				Spec: amb.MappingSpec{
 					Prefix: "/blah/",
 				},
 			},
@@ -271,7 +270,7 @@ prefix: /blah/`,
 			apiVersion:   "getambassador.io/v3alpha1",
 			parentns:     "somens",
 			parentLabels: map[string]string{},
-			expectedObj: &v3alpha1.Mapping{
+			expectedObj: &amb.Mapping{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "Mapping",
 					APIVersion: "getambassador.io/v3alpha1",
@@ -281,7 +280,7 @@ prefix: /blah/`,
 					Namespace: "somens",
 					Labels:    map[string]string{},
 				},
-				Spec: v3alpha1.MappingSpec{
+				Spec: amb.MappingSpec{
 					Prefix: "/blah/",
 				},
 			},
@@ -300,7 +299,7 @@ prefix: /blah/`,
 			apiVersion:   "getambassador.io/v3alpha1",
 			parentns:     "somens",
 			parentLabels: map[string]string{"should": "override"},
-			expectedObj: &v3alpha1.Mapping{
+			expectedObj: &amb.Mapping{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "Mapping",
 					APIVersion: "getambassador.io/v3alpha1",
@@ -312,7 +311,7 @@ prefix: /blah/`,
 						"bleep": "blorp",
 					},
 				},
-				Spec: v3alpha1.MappingSpec{
+				Spec: amb.MappingSpec{
 					Prefix: "/blah/",
 				},
 			},
@@ -331,7 +330,7 @@ prefix: /blah/`,
 			parentLabels: map[string]string{
 				"use": "theselabels",
 			},
-			expectedObj: &v3alpha1.Mapping{
+			expectedObj: &amb.Mapping{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "Mapping",
 					APIVersion: "getambassador.io/v3alpha1",
@@ -343,7 +342,7 @@ prefix: /blah/`,
 						"use": "theselabels",
 					},
 				},
-				Spec: v3alpha1.MappingSpec{
+				Spec: amb.MappingSpec{
 					Prefix: "/blah/",
 				},
 			},
@@ -352,20 +351,20 @@ prefix: /blah/`,
 			testName: "module",
 			objString: `
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 config:
   diagnostics:
     enabled: true`,
 			kind:         "Module",
-			apiVersion:   "getambassador.io/v2",
+			apiVersion:   "getambassador.io/v3alpha1",
 			parentns:     "somens",
 			parentLabels: map[string]string{},
 			expectedObj: &amb.Module{
 				TypeMeta: metav1.TypeMeta{
 					Kind:       "Module",
-					APIVersion: "getambassador.io/v2",
+					APIVersion: "getambassador.io/v3alpha1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "ambassador",

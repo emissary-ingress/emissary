@@ -20,149 +20,76 @@ spec:
     plural: tlscontexts
     singular: tlscontext
   scope: Namespaced
-  version: v2
+  validation:
+    openAPIV3Schema:
+      description: TLSContext is the Schema for the tlscontexts API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: TLSContextSpec defines the desired state of TLSContext
+          properties:
+            alpn_protocols:
+              type: string
+            ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              items:
+                type: string
+              type: array
+            ca_secret:
+              type: string
+            cacert_chain_file:
+              type: string
+            cert_chain_file:
+              type: string
+            cert_required:
+              type: boolean
+            cipher_suites:
+              items:
+                type: string
+              type: array
+            ecdh_curves:
+              items:
+                type: string
+              type: array
+            hosts:
+              items:
+                type: string
+              type: array
+            max_tls_version:
+              enum:
+              - v1.0
+              - v1.1
+              - v1.2
+              - v1.3
+              type: string
+            min_tls_version:
+              enum:
+              - v1.0
+              - v1.1
+              - v1.2
+              - v1.3
+              type: string
+            private_key_file:
+              type: string
+            redirect_cleartext_from:
+              type: integer
+            secret:
+              type: string
+            secret_namespacing:
+              type: boolean
+            sni:
+              type: string
+          type: object
+      type: object
+  version: v3alpha1
   versions:
-  - name: v2
-    schema:
-      openAPIV3Schema:
-        description: TLSContext is the Schema for the tlscontexts API
-        properties:
-          apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-            type: string
-          kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-            type: string
-          metadata:
-            type: object
-          spec:
-            description: TLSContextSpec defines the desired state of TLSContext
-            properties:
-              alpn_protocols:
-                type: string
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                oneOf:
-                - type: string
-                - type: array
-              ca_secret:
-                type: string
-              cacert_chain_file:
-                type: string
-              cert_chain_file:
-                type: string
-              cert_required:
-                type: boolean
-              cipher_suites:
-                items:
-                  type: string
-                type: array
-              ecdh_curves:
-                items:
-                  type: string
-                type: array
-              hosts:
-                items:
-                  type: string
-                type: array
-              max_tls_version:
-                enum:
-                - v1.0
-                - v1.1
-                - v1.2
-                - v1.3
-                type: string
-              min_tls_version:
-                enum:
-                - v1.0
-                - v1.1
-                - v1.2
-                - v1.3
-                type: string
-              private_key_file:
-                type: string
-              redirect_cleartext_from:
-                type: integer
-              secret:
-                type: string
-              secret_namespacing:
-                type: boolean
-              sni:
-                type: string
-            type: object
-        type: object
-    served: true
-    storage: false
   - name: v3alpha1
-    schema:
-      openAPIV3Schema:
-        description: TLSContext is the Schema for the tlscontexts API
-        properties:
-          apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-            type: string
-          kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-            type: string
-          metadata:
-            type: object
-          spec:
-            description: TLSContextSpec defines the desired state of TLSContext
-            properties:
-              alpn_protocols:
-                type: string
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: array
-              ca_secret:
-                type: string
-              cacert_chain_file:
-                type: string
-              cert_chain_file:
-                type: string
-              cert_required:
-                type: boolean
-              cipher_suites:
-                items:
-                  type: string
-                type: array
-              ecdh_curves:
-                items:
-                  type: string
-                type: array
-              hosts:
-                items:
-                  type: string
-                type: array
-              max_tls_version:
-                enum:
-                - v1.0
-                - v1.1
-                - v1.2
-                - v1.3
-                type: string
-              min_tls_version:
-                enum:
-                - v1.0
-                - v1.1
-                - v1.2
-                - v1.3
-                type: string
-              private_key_file:
-                type: string
-              redirect_cleartext_from:
-                type: integer
-              secret:
-                type: string
-              secret_namespacing:
-                type: boolean
-              sni:
-                type: string
-            type: object
-        type: object
     served: true
     storage: true

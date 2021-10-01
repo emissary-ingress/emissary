@@ -11,10 +11,10 @@ class MaxRequestHeaderKBTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 config:
   max_request_headers_kb: 30
 """)
@@ -49,10 +49,10 @@ class MaxRequestHeaderKBMaxTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 config:
   max_request_headers_kb: 96
 """)

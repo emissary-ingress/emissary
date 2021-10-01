@@ -14,7 +14,7 @@ class GzipMinimumConfigTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -33,7 +33,7 @@ service: {self.target.path.fqdn}
 
     def queries(self):
         yield Query(self.url("target/"), headers={"Accept-Encoding": "gzip"}, expected=200)
-        
+
     def check(self):
         assert self.results[0].headers["Content-Encoding"] == [ "gzip" ]
 
@@ -47,7 +47,7 @@ class GzipTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -69,7 +69,7 @@ service: {self.target.path.fqdn}
 
     def queries(self):
         yield Query(self.url("target/"), headers={"Accept-Encoding": "gzip"}, expected=200)
-        
+
     def check(self):
         assert self.results[0].headers["Content-Encoding"] == [ "gzip" ]
 
@@ -83,7 +83,7 @@ class GzipNotSupportedContentTypeTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -104,6 +104,6 @@ service: {self.target.path.fqdn}
 
     def queries(self):
         yield Query(self.url("target/"), headers={"Accept-Encoding": "gzip"}, expected=200)
-        
+
     def check(self):
         assert "Content-Encoding" not in self.results[0].headers

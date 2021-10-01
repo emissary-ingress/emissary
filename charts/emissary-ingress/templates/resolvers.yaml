@@ -1,6 +1,6 @@
 {{- if .Values.resolvers.endpoint.create }}
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: KubernetesEndpointResolver
 metadata:
   name: {{ .Values.resolvers.endpoint.name }}
@@ -22,7 +22,7 @@ spec:
 {{- end }}
 {{- if .Values.resolvers.consul.create }}
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: ConsulResolver
 metadata:
   name: {{ .Values.resolvers.consul.name }}

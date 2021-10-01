@@ -19,7 +19,7 @@ spec:
 # metadata:
 #   name: staging
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: KubernetesEndpointResolver
 metadata:
   labels:

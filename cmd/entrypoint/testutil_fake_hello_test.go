@@ -276,7 +276,7 @@ func TestFakeHelloConsul(t *testing.T) {
 	// Next up, change the Consul resolver definition.
 	f.UpsertYAML(`
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: ConsulResolver
 metadata:
   name: consul-dc1
@@ -309,7 +309,7 @@ spec:
 
 	f.UpsertYAML(`
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: ConsulResolver
 metadata:
   name: consul-dc1

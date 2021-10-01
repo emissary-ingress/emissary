@@ -5,8 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
@@ -23,19 +22,19 @@ func NewKubernetesSnapshot() *snapshotTypes.KubernetesSnapshot {
 // GetAmbId extracts the AmbassadorId from the kubernetes resource.
 func GetAmbId(ctx context.Context, resource kates.Object) amb.AmbassadorID {
 	switch r := resource.(type) {
-	case *v3alpha1.Host:
+	case *amb.Host:
 		var id amb.AmbassadorID
 		if r.Spec != nil {
 			if len(r.Spec.AmbassadorID) > 0 {
-				id = amb.AmbassadorID(r.Spec.AmbassadorID)
+				id = r.Spec.AmbassadorID
 			}
 		}
 		return id
 
-	case *v3alpha1.Mapping:
-		return amb.AmbassadorID(r.Spec.AmbassadorID)
-	case *v3alpha1.TCPMapping:
-		return amb.AmbassadorID(r.Spec.AmbassadorID)
+	case *amb.Mapping:
+		return r.Spec.AmbassadorID
+	case *amb.TCPMapping:
+		return r.Spec.AmbassadorID
 	case *amb.Module:
 		return r.Spec.AmbassadorID
 	case *amb.TLSContext:

@@ -26,6 +26,7 @@ import (
 type ModuleSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
+	// +kubebuilder:validation:Required
 	Config UntypedDict `json:"config,omitempty"`
 }
 

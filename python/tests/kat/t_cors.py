@@ -14,13 +14,13 @@ class GlobalCORSTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
   cors:
-    origins: http://foo.example.com
-    methods: POST, GET, OPTIONS
+    origins: [http://foo.example.com]
+    methods: [POST, GET, OPTIONS]
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
@@ -36,8 +36,8 @@ hostname: "*"
 prefix: /bar/
 service: {self.target.path.fqdn}
 cors:
-  origins: http://bar.example.com
-  methods: POST, GET, OPTIONS
+  origins: [http://bar.example.com]
+  methods: [POST, GET, OPTIONS]
 """)
 
     def queries(self):

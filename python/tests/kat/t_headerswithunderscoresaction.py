@@ -38,7 +38,7 @@ class RejectHeadersWithUnderscoresTest(AmbassadorTest):
 apiVersion: ambassador/v2
 kind: Module
 name: ambassador
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 config:
   headers_with_underscores_action: REJECT_REQUEST
 """)
@@ -47,7 +47,7 @@ config:
 apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name:  config__dump
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
