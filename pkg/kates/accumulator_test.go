@@ -1,7 +1,6 @@
 package kates
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -17,10 +16,8 @@ type Snap struct {
 // Make sure that we don't prematurely signal the first changed event. The first notification should
 // wait until we have done a complete List()ing of all existing resources.
 func TestBootstrapNoNotifyBeforeSync(t *testing.T) {
-	ctx := context.Background()
-
 	// Create a set of 10 configmaps to give us some resources to watch.
-	cli := testClient(t)
+	ctx, cli := testClient(t, nil)
 	for i := 0; i < 10; i++ {
 		cm := &ConfigMap{
 			TypeMeta: TypeMeta{
@@ -38,7 +35,7 @@ func TestBootstrapNoNotifyBeforeSync(t *testing.T) {
 	}
 
 	// Use a separate client for watching so we can bypass any caching.
-	cli2 := testClient(t)
+	_, cli2 := testClient(t, nil)
 	// Configure this to slow down dispatch add events. This will dramatically increase the chance
 	// of the edge case we are trying to test.
 	cli2.watchAdded = func(old *Unstructured, new *Unstructured) {
@@ -62,8 +59,7 @@ func TestBootstrapNoNotifyBeforeSync(t *testing.T) {
 
 // Make sure we still notify on bootstrap if there are no resources that satisfy a Watch.
 func TestBootstrapNotifyEvenOnEmptyWatch(t *testing.T) {
-	ctx := context.Background()
-	cli := testClient(t)
+	ctx, cli := testClient(t, nil)
 
 	// Create a watch with a nonexistent label filter to gaurantee no resources will satisfy the watch.
 	acc := cli.Watch(ctx, Query{Name: "ConfigMaps", Kind: "ConfigMap", LabelSelector: "nonexistent-label"})

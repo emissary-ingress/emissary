@@ -235,7 +235,7 @@ raw-version:
 .PHONY: raw-version
 
 python/ambassador.version: $(tools/write-ifchanged) FORCE
-	$(BUILDER) raw-version | $(tools/write-ifchanged) python/ambassador.version
+	set -o pipefail; $(BUILDER) raw-version | $(tools/write-ifchanged) python/ambassador.version
 
 compile: sync
 	@$(BUILDER) compile
@@ -358,7 +358,7 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			IMAGE_TAG=$${suffix} \
 			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
-		$(MAKE) update-yaml --always-make; \
+		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests  ; \
 		$(MAKE) clean-manifests ; \
 	}
@@ -772,7 +772,7 @@ release/promote-oss/dev-to-rc:
 			IMAGE_TAG=$${veroverride} \
 			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
-		$(MAKE) update-yaml --always-make; \
+		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} push-manifests  ; \
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} publish-docs-yaml ; \
 		$(MAKE) clean-manifests ; \
@@ -855,7 +855,7 @@ release/promote-oss/to-hotfix:
 			IMAGE_TAG=$${hotfix_tag} \
 			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ;\
-		$(MAKE) update-yaml --always-make ;\
+		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} push-manifests ;\
 		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} publish-docs-yaml ;\
 		$(MAKE) clean-manifests ;\
@@ -1113,7 +1113,7 @@ define _help.targets
     4. Use the Go CRD definitions in 'pkg/api/getambassador.io/' to generate YAML
        (and a few 'zz_generated.*.go' files).
 
-  $(BLD)$(MAKE) $(BLU)update-yaml$(END) -- like $(BLD)make generate$(END), but skips the slow Envoy stuff.
+  $(BLD)$(MAKE) $(BLU)generate-fast$(END) -- like $(BLD)make generate$(END), but skips the slow Envoy stuff.
 
   $(BLD)$(MAKE) $(BLU)go-mod-tidy$(END) -- 'go mod tidy', but plays nice with 'make generate'
 

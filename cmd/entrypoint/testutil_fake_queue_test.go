@@ -1,7 +1,6 @@
 package entrypoint
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -10,6 +9,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/datawire/dlib/dlog"
 )
 
 // The Queue struct implements a multi-writer/multi-reader concurrent queue where the dequeue
@@ -30,8 +31,7 @@ func NewQueue(t *testing.T, timeout time.Duration) *Queue {
 		timeout: timeout,
 		cond:    sync.NewCond(&sync.Mutex{}),
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	t.Cleanup(cancel)
+	ctx := dlog.NewTestContext(t, false)
 	// Broadcast on Queue.cond every three seconds so that anyone waiting on the condition has a
 	// chance to timeout. (Go doesn't support timed wait on conditions.)
 	go func() {

@@ -1,18 +1,18 @@
 package entrypoint
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/datawire/dlib/dlog"
 )
 
 func getModuleSpec(rawconfig string) amb.UntypedDict {
@@ -105,7 +105,7 @@ prefix: /blah/`
 		Hosts:     []*v3alpha1.AmbassadorHost{ignoredHost},
 	}
 
-	ctx := context.Background()
+	ctx := dlog.NewTestContext(t, false)
 
 	parseAnnotations(ctx, ks)
 
@@ -392,7 +392,7 @@ config:
 				},
 			}
 
-			ctx := context.Background()
+			ctx := dlog.NewTestContext(t, false)
 
 			converted := convertAnnotation(ctx, parent, kobj)
 

@@ -719,7 +719,7 @@ func (l loggerv3) OnFetchResponse(req *v3discovery.DiscoveryRequest, res *v3disc
 // NOTE WELL: this Main() does NOT RUN from entrypoint! This one is only relevant if you
 // explicitly run Ambex by hand.
 func Main(ctx context.Context, Version string, rawArgs ...string) error {
-	usage := memory.GetMemoryUsage()
+	usage := memory.GetMemoryUsage(ctx)
 	go usage.Watch(ctx)
 	return Main2(ctx, Version, usage.PercentUsed, make(chan *FastpathSnapshot), rawArgs...)
 }

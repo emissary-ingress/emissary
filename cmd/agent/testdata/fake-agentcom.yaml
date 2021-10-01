@@ -35,6 +35,8 @@ spec:
         env:
           - name: "KAT_BACKEND_TYPE"
             value: "grpc_agent"
+          - name: "KAT_GRPC_MAX_RECV_MSG_SIZE"
+            value: "65536" # 4 KiB
         ports:
         - name: grpc-server
           containerPort: 8080
@@ -44,7 +46,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: ambassador-agent-cloud-token
-  namespace: ambassador
+  name: emissary-ingress-agent-cloud-token
+  namespace: emissary
 data:
   CLOUD_CONNECT_TOKEN: sometoken

@@ -398,7 +398,7 @@ func (sh *SnapshotHolder) K8sUpdate(ctx context.Context, watcher K8sWatcher, con
 			for _, hr := range sh.k8sSnapshot.HTTPRoutes {
 				sh.dispatcher.Upsert(hr)
 			}
-			_, dispSnapshot = sh.dispatcher.GetSnapshot()
+			_, dispSnapshot = sh.dispatcher.GetSnapshot(ctx)
 		}
 
 		return true
@@ -423,7 +423,7 @@ func (sh *SnapshotHolder) ConsulUpdate(ctx context.Context, consul *consul, fast
 		defer sh.mutex.Unlock()
 		consul.update(sh.consulSnapshot)
 		endpoints = makeEndpoints(ctx, sh.k8sSnapshot, sh.consulSnapshot.Endpoints)
-		_, dispSnapshot = sh.dispatcher.GetSnapshot()
+		_, dispSnapshot = sh.dispatcher.GetSnapshot(ctx)
 	}()
 	fastpathProcessor(ctx, &ambex.FastpathSnapshot{
 		Endpoints: endpoints,

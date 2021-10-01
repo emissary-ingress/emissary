@@ -209,16 +209,16 @@ func (d *Dispatcher) GetErrors() []*CompiledItem {
 }
 
 // GetSnapshot returns a version and a snapshot.
-func (d *Dispatcher) GetSnapshot() (string, *cache.Snapshot) {
+func (d *Dispatcher) GetSnapshot(ctx context.Context) (string, *cache.Snapshot) {
 	if d.snapshot == nil {
-		d.buildSnapshot()
+		d.buildSnapshot(ctx)
 	}
 	return d.version, d.snapshot
 }
 
 // GetListener returns a *v2.Listener with the specified name or nil if none exists.
-func (d *Dispatcher) GetListener(name string) *v2.Listener {
-	_, snap := d.GetSnapshot()
+func (d *Dispatcher) GetListener(ctx context.Context, name string) *v2.Listener {
+	_, snap := d.GetSnapshot(ctx)
 	for _, rsrc := range snap.Resources[types.Listener].Items {
 		l := rsrc.(*v2.Listener)
 		if l.Name == name {
@@ -231,8 +231,8 @@ func (d *Dispatcher) GetListener(name string) *v2.Listener {
 
 // GetRouteConfiguration returns a *v2.RouteConfiguration with the specified name or nil if none
 // exists.
-func (d *Dispatcher) GetRouteConfiguration(name string) *v2.RouteConfiguration {
-	_, snap := d.GetSnapshot()
+func (d *Dispatcher) GetRouteConfiguration(ctx context.Context, name string) *v2.RouteConfiguration {
+	_, snap := d.GetSnapshot(ctx)
 	for _, rsrc := range snap.Resources[types.Route].Items {
 		r := rsrc.(*v2.RouteConfiguration)
 		if r.Name == name {
@@ -340,7 +340,7 @@ func getRdsName(l *v2.Listener) (string, bool) {
 	return "", false
 }
 
-func (d *Dispatcher) buildSnapshot() {
+func (d *Dispatcher) buildSnapshot(ctx context.Context) {
 	d.changeCount++
 	d.version = fmt.Sprintf("v%d", d.changeCount)
 
@@ -371,7 +371,7 @@ func (d *Dispatcher) buildSnapshot() {
 	snapshot := cache.NewSnapshot(d.version, endpoints, clusters, routes, listeners, nil)
 	if err := snapshot.Consistent(); err != nil {
 		bs, _ := json.MarshalIndent(snapshot, "", "  ")
-		dlog.Errorf(context.Background(), "Dispatcher Snapshot inconsistency: %v: %s", err, bs)
+		dlog.Errorf(ctx, "Dispatcher Snapshot inconsistency: %v: %s", err, bs)
 	} else {
 		d.snapshot = &snapshot
 		d.endpointWatches = endpointWatches

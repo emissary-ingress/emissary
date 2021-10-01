@@ -89,6 +89,8 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 - Bugfix: The release now shows its actual released version number, rather than the internal development
   version number.
 
+- Bugfix: Large configurations no longer cause the agent to be unable to communicate with Ambassador Cloud.
+
 ## [2.0.3-ea] (TBD)
 [2.0.3-ea]: https://github.com/emissary-ingress/emissary/releases/v2.0.3-ea
 
