@@ -81,10 +81,8 @@ func TestAPIDocsStore(t *testing.T) {
 							DisplayName: "docs-display-name",
 							Path:        "/docs-location",
 						},
-						Headers: map[string]amb.BoolOrString{
-							"header-key": {
-								String: &headerValue,
-							},
+						Headers: map[string]string{
+							"header-key": headerValue,
 						},
 					},
 					ObjectMeta: kates.ObjectMeta{

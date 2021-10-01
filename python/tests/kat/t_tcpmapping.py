@@ -163,8 +163,7 @@ apiVersion: getambassador.io/v3alpha1
 kind: TCPMapping
 name:  {self.name}-clear-to-tls
 port: 7654
-tls: true
-service: {self.target2.path.fqdn}:443
+service: https://{self.target2.path.fqdn}:443
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: TCPMapping
@@ -194,8 +193,7 @@ kind: TCPMapping
 name:  {self.name}-3
 port: 6789
 host: tls-context-host-3
-service: {self.target3.path.fqdn}
-tls: true
+service: https://{self.target3.path.fqdn}
 """)
 
     def requirements(self):

@@ -138,9 +138,9 @@
                 },
                 "spec": {
                     "add_response_headers": {
-                        "x-test-ip": "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%",
-                        "x-test-proto": "%PROTOCOL%",
-                        "x-test-static": "This is apro mapping"
+                        "x-test-ip": { "value": "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%" },
+                        "x-test-proto": { "value": "%PROTOCOL%" },
+                        "x-test-static": { "value": "This is apro mapping" }
                     },
                     "prefix": "/documentation/",
                     "rewrite": "/docs/",

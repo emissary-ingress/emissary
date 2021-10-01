@@ -16,33 +16,29 @@
         "add_request_headers": {
             "type": "object",
             "additionalProperties": {
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
+                "type": "object",
+                "properties": {
+                    "append": {
                         "type": "boolean"
                     },
-                    {
-                        "type": "object"
+                    "value": {
+                        "type": "string"
                     }
-                ]
+                }
             }
         },
         "add_response_headers": {
             "type": "object",
             "additionalProperties": {
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
+                "type": "object",
+                "properties": {
+                    "append": {
                         "type": "boolean"
                     },
-                    {
-                        "type": "object"
+                    "value": {
+                        "type": "string"
                     }
-                ]
+                }
             }
         },
         "allow_upgrade": {
@@ -252,15 +248,7 @@
         "headers": {
             "type": "object",
             "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+                "type": "string"
             }
         },
         "host": {
@@ -416,15 +404,7 @@
         "query_parameters": {
             "type": "object",
             "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+                "type": "string"
             }
         },
         "redirect_response_code": {
@@ -441,58 +421,36 @@
         "regex_headers": {
             "type": "object",
             "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+                "type": "string"
             }
         },
         "regex_query_parameters": {
             "type": "object",
             "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+                "type": "string"
             }
         },
         "regex_redirect": {
             "description": "Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.",
             "type": "object",
-            "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+            "properties": {
+                "pattern": {
+                    "type": "string"
+                },
+                "substitution": {
+                    "type": "string"
+                }
             }
         },
         "regex_rewrite": {
             "type": "object",
-            "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+            "properties": {
+                "pattern": {
+                    "type": "string"
+                },
+                "substitution": {
+                    "type": "string"
+                }
             }
         },
         "remove_request_headers": {
@@ -552,15 +510,7 @@
             "type": "integer"
         },
         "tls": {
-            "description": "BoolOrString is a type that can hold a Boolean or a string.",
-            "oneOf": [
-                {
-                    "type": "string"
-                },
-                {
-                    "type": "boolean"
-                }
-            ]
+            "type": "string"
         },
         "use_websocket": {
             "description": "use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: [\"websocket\"]`",

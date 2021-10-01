@@ -100,10 +100,7 @@ spec:
           properties:
             add_auth_headers:
               additionalProperties:
-                description: BoolOrString is a type that can hold a Boolean or a string.
-                oneOf:
-                - type: string
-                - type: boolean
+                type: string
               type: object
             add_linkerd_headers:
               type: boolean
@@ -160,10 +157,7 @@ spec:
             timeout_ms:
               type: integer
             tls:
-              description: BoolOrString is a type that can hold a Boolean or a string.
-              oneOf:
-              - type: string
-              - type: boolean
+              type: string
           required:
           - auth_service
           type: object
@@ -993,17 +987,21 @@ spec:
               type: boolean
             add_request_headers:
               additionalProperties:
-                oneOf:
-                - type: string
-                - type: boolean
-                - type: object
+                properties:
+                  append:
+                    type: boolean
+                  value:
+                    type: string
+                type: object
               type: object
             add_response_headers:
               additionalProperties:
-                oneOf:
-                - type: string
-                - type: boolean
-                - type: object
+                properties:
+                  append:
+                    type: boolean
+                  value:
+                    type: string
+                type: object
               type: object
             allow_upgrade:
               description: "A case-insensitive list of the non-HTTP protocols to allow \"upgrading\" to from HTTP via the \"Connection: upgrade\" mechanism[1].  After the upgrade, Ambassador does not interpret the traffic, and behaves similarly to how it does for TCPMappings. \n [1]: https://tools.ietf.org/html/rfc7230#section-6.7 \n For example, if your upstream service supports WebSockets, you would write \n    allow_upgrade:    - websocket \n Or if your upstream service supports upgrading from HTTP to SPDY (as the Kubernetes apiserver does for `kubectl exec` functionality), you would write \n    allow_upgrade:    - spdy/3.1"
@@ -1142,10 +1140,7 @@ spec:
               type: boolean
             headers:
               additionalProperties:
-                description: BoolOrString is a type that can hold a Boolean or a string.
-                oneOf:
-                - type: string
-                - type: boolean
+                type: string
               type: object
             host:
               description: "Exact match for the hostname of a request if HostRegex is false; regex match for the hostname if HostRegex is true. \n Host specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Host will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used. \n DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead."
@@ -1241,10 +1236,7 @@ spec:
               type: string
             query_parameters:
               additionalProperties:
-                description: BoolOrString is a type that can hold a Boolean or a string.
-                oneOf:
-                - type: string
-                - type: boolean
+                type: string
               type: object
             redirect_response_code:
               description: The response code to use when generating an HTTP redirect. Defaults to 301. Used with `host_redirect`.
@@ -1257,32 +1249,26 @@ spec:
               type: integer
             regex_headers:
               additionalProperties:
-                description: BoolOrString is a type that can hold a Boolean or a string.
-                oneOf:
-                - type: string
-                - type: boolean
+                type: string
               type: object
             regex_query_parameters:
               additionalProperties:
-                description: BoolOrString is a type that can hold a Boolean or a string.
-                oneOf:
-                - type: string
-                - type: boolean
+                type: string
               type: object
             regex_redirect:
-              additionalProperties:
-                description: BoolOrString is a type that can hold a Boolean or a string.
-                oneOf:
-                - type: string
-                - type: boolean
               description: Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+              properties:
+                pattern:
+                  type: string
+                substitution:
+                  type: string
               type: object
             regex_rewrite:
-              additionalProperties:
-                description: BoolOrString is a type that can hold a Boolean or a string.
-                oneOf:
-                - type: string
-                - type: boolean
+              properties:
+                pattern:
+                  type: string
+                substitution:
+                  type: string
               type: object
             remove_request_headers:
               items:
@@ -1324,10 +1310,7 @@ spec:
               description: The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
               type: integer
             tls:
-              description: BoolOrString is a type that can hold a Boolean or a string.
-              oneOf:
-              - type: string
-              - type: boolean
+              type: string
             use_websocket:
               description: 'use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: ["websocket"]`'
               type: boolean
@@ -1460,10 +1443,7 @@ spec:
             timeout_ms:
               type: integer
             tls:
-              description: BoolOrString is a type that can hold a Boolean or a string.
-              oneOf:
-              - type: string
-              - type: boolean
+              type: string
           required:
           - service
           type: object
@@ -1554,10 +1534,7 @@ spec:
             stats_name:
               type: string
             tls:
-              description: BoolOrString is a type that can hold a Boolean or a string.
-              oneOf:
-              - type: string
-              - type: boolean
+              type: string
             weight:
               type: integer
           required:

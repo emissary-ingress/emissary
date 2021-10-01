@@ -12,15 +12,7 @@
         "add_auth_headers": {
             "type": "object",
             "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+                "type": "string"
             }
         },
         "add_linkerd_headers": {
@@ -128,15 +120,7 @@
             "type": "integer"
         },
         "tls": {
-            "description": "BoolOrString is a type that can hold a Boolean or a string.",
-            "oneOf": [
-                {
-                    "type": "string"
-                },
-                {
-                    "type": "boolean"
-                }
-            ]
+            "type": "string"
         }
     }
 }

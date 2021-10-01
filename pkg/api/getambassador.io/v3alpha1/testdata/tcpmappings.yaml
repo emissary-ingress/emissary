@@ -127,7 +127,6 @@
   spec:
       port: 9876
       service: "tcpmapping-tls-false"
-      tls: false
 - apiVersion: "getambassador.io/v3alpha1"
   kind: "TCPMapping"
   metadata:
@@ -136,8 +135,7 @@
       namespace: "tcp-namespace"
   spec:
       port: 9876
-      service: "tcpmapping-tls-meaningless-true"
-      tls: true
+      service: "https://tcpmapping-tls-meaningless-true"
 - apiVersion: "getambassador.io/v3alpha1"
   kind: "TCPMapping"
   metadata:

@@ -607,7 +607,7 @@
       uid: "caf33312-1f60-4aed-9d8d-7a9f37b68da0"
   spec:
       add_response_headers:
-          Strict-Transport-Security: "max-age=31536000"
+          Strict-Transport-Security: { value: "max-age=31536000" }
       ambassador_id: [ "consultest" ]
       labels:
           ambassador:

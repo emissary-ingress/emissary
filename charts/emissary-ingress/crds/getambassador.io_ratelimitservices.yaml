@@ -54,10 +54,7 @@ spec:
             timeout_ms:
               type: integer
             tls:
-              description: BoolOrString is a type that can hold a Boolean or a string.
-              oneOf:
-              - type: string
-              - type: boolean
+              type: string
           required:
           - service
           type: object

@@ -333,10 +333,8 @@ kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
-service: {self.target.path.fqdn}
-tls: true
+service: https://{self.target.path.fqdn}
 """
-
     @classmethod
     def variants(cls):
         for v in variants(ServiceType):
@@ -638,7 +636,8 @@ add_response_headers:
         value: ZooZ
     test:
         value: boo
-    foo: Foo
+    foo:
+        value: Foo
 """)
 
     def queries(self):
@@ -749,7 +748,8 @@ add_request_headers:
         value: aoo
     boo:
         value: boo
-    foo: Foo
+    foo:
+        value: Foo
 """)
 
     def queries(self):
