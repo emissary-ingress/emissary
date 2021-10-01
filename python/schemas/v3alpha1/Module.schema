@@ -5,7 +5,8 @@
     "required": [
         "apiVersion",
         "kind",
-        "name"
+        "name",
+        "config"
     ],
     "properties": {
         "ambassador_id": {

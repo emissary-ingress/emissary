@@ -42,6 +42,8 @@ spec:
             config:
               description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
               type: object
+          required:
+          - config
           type: object
       type: object
   version: v3alpha1
