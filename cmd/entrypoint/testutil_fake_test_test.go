@@ -164,7 +164,7 @@ func TestFakeIstioCert(t *testing.T) {
 		t.Errorf("needed 1 secret, got %d", len(k.Secrets))
 	}
 
-	istioSecret := kates.Secret{
+	istioSecret := k8sresourcetypes.Secret{
 		TypeMeta: kates.TypeMeta{
 			APIVersion: "v1",
 			Kind:       "Secret",
@@ -173,7 +173,7 @@ func TestFakeIstioCert(t *testing.T) {
 			Name:      "test-istio-secret",
 			Namespace: "default",
 		},
-		Type: kates.SecretTypeTLS,
+		Type: k8sresourcetypes.SecretTypeTLS,
 		Data: map[string][]byte{
 			"tls.key": []byte("not-real-cert"),
 			"tls.crt": []byte("not-real-pem"),

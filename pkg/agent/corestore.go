@@ -3,7 +3,7 @@ package agent
 import (
 	"fmt"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -14,10 +14,10 @@ const (
 // CoreSnapshot reflects the current state of the kates accumulators for the given
 // resource types.
 type CoreSnapshot struct {
-	Pods        []*kates.Pod
-	ConfigMaps  []*kates.ConfigMap
-	Deployments []*kates.Deployment
-	Endpoints   []*kates.Endpoints
+	Pods        []*k8sresourcetypes.Pod
+	ConfigMaps  []*k8sresourcetypes.ConfigMap
+	Deployments []*k8sresourcetypes.Deployment
+	Endpoints   []*k8sresourcetypes.Endpoints
 }
 
 // coreStore is used to store core k8s resources that are not handled by default
@@ -30,19 +30,19 @@ type coreStore struct {
 }
 
 type configMapStore struct {
-	sotw map[string]*kates.ConfigMap
+	sotw map[string]*k8sresourcetypes.ConfigMap
 }
 
 type deploymentStore struct {
-	sotw map[string]*kates.Deployment
+	sotw map[string]*k8sresourcetypes.Deployment
 }
 
 type podStore struct {
-	sotw map[string]*kates.Pod
+	sotw map[string]*k8sresourcetypes.Pod
 }
 
 type endpointStore struct {
-	sotw map[string]*kates.Endpoints
+	sotw map[string]*k8sresourcetypes.Endpoints
 }
 
 // NewCoreStore will create a new coreStore with the given coreSnapshot.
@@ -56,8 +56,8 @@ func NewCoreStore(snapshot *CoreSnapshot) *coreStore {
 }
 
 // NewPodStore will create a new podStore filtering out undesired resources.
-func NewPodStore(pods []*kates.Pod) *podStore {
-	sotw := make(map[string]*kates.Pod)
+func NewPodStore(pods []*k8sresourcetypes.Pod) *podStore {
+	sotw := make(map[string]*k8sresourcetypes.Pod)
 	store := &podStore{sotw: sotw}
 
 	for _, pod := range pods {
@@ -70,8 +70,8 @@ func NewPodStore(pods []*kates.Pod) *podStore {
 }
 
 // NewConfigMapStore will create a new configMapStore filtering out undesired resources.
-func NewConfigMapStore(cms []*kates.ConfigMap) *configMapStore {
-	sotw := make(map[string]*kates.ConfigMap)
+func NewConfigMapStore(cms []*k8sresourcetypes.ConfigMap) *configMapStore {
+	sotw := make(map[string]*k8sresourcetypes.ConfigMap)
 	store := &configMapStore{sotw: sotw}
 
 	for _, cm := range cms {
@@ -84,8 +84,8 @@ func NewConfigMapStore(cms []*kates.ConfigMap) *configMapStore {
 }
 
 // NewDeploymentStore will create a new deploymentStore filtering out undesired resources.
-func NewDeploymentStore(ds []*kates.Deployment) *deploymentStore {
-	sotw := make(map[string]*kates.Deployment)
+func NewDeploymentStore(ds []*k8sresourcetypes.Deployment) *deploymentStore {
+	sotw := make(map[string]*k8sresourcetypes.Deployment)
 	store := &deploymentStore{sotw: sotw}
 
 	for _, d := range ds {
@@ -98,8 +98,8 @@ func NewDeploymentStore(ds []*kates.Deployment) *deploymentStore {
 }
 
 // NewEndpointsStore will create a new endpointStore filtering out undesired resources.
-func NewEndpointsStore(es []*kates.Endpoints) *endpointStore {
-	sotw := make(map[string]*kates.Endpoints)
+func NewEndpointsStore(es []*k8sresourcetypes.Endpoints) *endpointStore {
+	sotw := make(map[string]*k8sresourcetypes.Endpoints)
 	store := &endpointStore{sotw: sotw}
 
 	for _, ep := range es {
@@ -112,16 +112,16 @@ func NewEndpointsStore(es []*kates.Endpoints) *endpointStore {
 }
 
 // StateOfWorld returns the current state of all pods from the allowed namespaces.
-func (store *podStore) StateOfWorld() []*kates.Pod {
-	pods := []*kates.Pod{}
+func (store *podStore) StateOfWorld() []*k8sresourcetypes.Pod {
+	pods := []*k8sresourcetypes.Pod{}
 	for _, v := range store.sotw {
 		pods = append(pods, v)
 	}
 	return pods
 }
 
-func (store *endpointStore) StateOfWorld() []*kates.Endpoints {
-	eps := []*kates.Endpoints{}
+func (store *endpointStore) StateOfWorld() []*k8sresourcetypes.Endpoints {
+	eps := []*k8sresourcetypes.Endpoints{}
 	for _, ep := range store.sotw {
 		eps = append(eps, ep)
 	}
@@ -129,8 +129,8 @@ func (store *endpointStore) StateOfWorld() []*kates.Endpoints {
 }
 
 // StateOfWorld returns the current state of all configmaps from the allowed namespaces.
-func (store *configMapStore) StateOfWorld() []*kates.ConfigMap {
-	configs := []*kates.ConfigMap{}
+func (store *configMapStore) StateOfWorld() []*k8sresourcetypes.ConfigMap {
+	configs := []*k8sresourcetypes.ConfigMap{}
 	for _, v := range store.sotw {
 		configs = append(configs, v)
 	}
@@ -138,8 +138,8 @@ func (store *configMapStore) StateOfWorld() []*kates.ConfigMap {
 }
 
 // StateOfWorld returns the current state of all deployments from the allowed namespaces.
-func (store *deploymentStore) StateOfWorld() []*kates.Deployment {
-	deployments := []*kates.Deployment{}
+func (store *deploymentStore) StateOfWorld() []*k8sresourcetypes.Deployment {
+	deployments := []*k8sresourcetypes.Deployment{}
 	for _, v := range store.sotw {
 		deployments = append(deployments, v)
 	}

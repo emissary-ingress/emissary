@@ -16,6 +16,8 @@ import (
 	"sigs.k8s.io/yaml"
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourceparts"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 )
 
 var sch = runtime.NewScheme()
@@ -47,7 +49,7 @@ func newFromGVK(gvk schema.GroupVersionKind) (Object, error) {
 		}
 		return robj.(Object), nil
 	} else {
-		un := &Unstructured{}
+		un := &k8sresourcetypes.Unstructured{}
 		un.SetGroupVersionKind(gvk)
 		return un, nil
 	}
@@ -56,7 +58,7 @@ func newFromGVK(gvk schema.GroupVersionKind) (Object, error) {
 // NewObjectFromUnstructured will construct a new specialized object based on the runtime schema
 // ambassador uses. This gaurantees any types defined by or used by ambassador will be constructed
 // as the proper golang type.
-func NewObjectFromUnstructured(unstructured *Unstructured) (Object, error) {
+func NewObjectFromUnstructured(unstructured *k8sresourcetypes.Unstructured) (Object, error) {
 	if unstructured == nil {
 		return nil, nil
 	}
@@ -75,14 +77,14 @@ func NewObjectFromUnstructured(unstructured *Unstructured) (Object, error) {
 	return obj, nil
 }
 
-func NewUnstructured(kind, version string) *Unstructured {
-	uns := &Unstructured{}
+func NewUnstructured(kind, version string) *k8sresourcetypes.Unstructured {
+	uns := &k8sresourcetypes.Unstructured{}
 	uns.SetGroupVersionKind(schema.FromAPIVersionAndKind(version, kind))
 	return uns
 }
 
-// Convert a potentially typed Object to an *Unstructured object.
-func NewUnstructuredFromObject(obj Object) (result *Unstructured, err error) {
+// Convert a potentially typed Object to an *k8sresourcetypes.Unstructured object.
+func NewUnstructuredFromObject(obj Object) (result *k8sresourcetypes.Unstructured, err error) {
 	err = convert(obj, &result)
 	return
 }
@@ -112,7 +114,7 @@ func parseManifests(text string, structured bool) ([]Object, error) {
 			continue
 		}
 
-		var tm TypeMeta
+		var tm k8sresourceparts.TypeMeta
 		err = yaml.Unmarshal(bs, &tm)
 		if err != nil {
 			return nil, err
@@ -125,7 +127,7 @@ func parseManifests(text string, structured bool) ([]Object, error) {
 				return nil, err
 			}
 		} else {
-			un := &Unstructured{}
+			un := &k8sresourcetypes.Unstructured{}
 			un.SetGroupVersionKind(tm.GroupVersionKind())
 			obj = un
 		}
@@ -170,7 +172,7 @@ func SetOwnerReferences(owner Object, objects ...Object) {
 	}
 }
 
-func MergeUpdate(target *Unstructured, source *Unstructured) {
+func MergeUpdate(target *k8sresourcetypes.Unstructured, source *k8sresourcetypes.Unstructured) {
 	annotations := make(map[string]string)
 	for k, v := range target.GetAnnotations() {
 		annotations[k] = v

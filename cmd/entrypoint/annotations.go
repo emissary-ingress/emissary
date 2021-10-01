@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
@@ -51,7 +52,7 @@ func GetAnnotations(ctx context.Context, resources ...kates.Object) (result []ka
 // NOTE: Right now this is only guaranteed to preserve enough fidelity to find secrets, this may
 // work well enough for other purposes, but some careful review is required before such use.
 func convertAnnotation(ctx context.Context, parent kates.Object, kobj kates.Object) kates.Object {
-	un, ok := kobj.(*kates.Unstructured)
+	un, ok := kobj.(*k8sresourcetypes.Unstructured)
 	if !ok {
 		return kobj
 	}

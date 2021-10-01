@@ -13,16 +13,19 @@ import (
 	"k8s.io/kube-openapi/pkg/validation/validate"
 
 	"github.com/pkg/errors"
+
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourceparts"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8shelpers"
 )
 
 // A Validator may be used in concert with a Client to perform
 // validate of freeform jsonish data structures as kubernetes CRDs.
 type Validator struct {
 	client *Client
-	static map[TypeMeta]*apiextVInternal.CustomResourceDefinition
+	static map[k8sresourceparts.TypeMeta]*apiextVInternal.CustomResourceDefinition
 
 	mutex      sync.Mutex
-	validators map[TypeMeta]*validate.SchemaValidator
+	validators map[k8sresourceparts.TypeMeta]*validate.SchemaValidator
 }
 
 // The NewValidator constructor returns a *Validator that uses the
@@ -34,7 +37,7 @@ func NewValidator(client *Client, staticCRDs []Object) (*Validator, error) {
 		return nil, errors.New("at least 1 client or static CRD must be provided")
 	}
 
-	static := make(map[TypeMeta]*apiextVInternal.CustomResourceDefinition, len(staticCRDs))
+	static := make(map[k8sresourceparts.TypeMeta]*apiextVInternal.CustomResourceDefinition, len(staticCRDs))
 	for i, untypedCRD := range staticCRDs {
 		var crd apiextVInternal.CustomResourceDefinition
 		switch untypedCRD.GetObjectKind().GroupVersionKind() {
@@ -60,7 +63,7 @@ func NewValidator(client *Client, staticCRDs []Object) (*Validator, error) {
 			return nil, errors.Wrapf(errors.Errorf("unrecognized CRD GroupVersionKind: %v", untypedCRD.GetObjectKind().GroupVersionKind()), "staticCRDs[%d]", i)
 		}
 		for _, version := range crd.Spec.Versions {
-			static[TypeMeta{
+			static[k8sresourceparts.TypeMeta{
 				APIVersion: crd.Spec.Group + "/" + version.Name,
 				Kind:       crd.Spec.Names.Kind,
 			}] = &crd
@@ -71,11 +74,11 @@ func NewValidator(client *Client, staticCRDs []Object) (*Validator, error) {
 		client: client,
 		static: static,
 
-		validators: make(map[TypeMeta]*validate.SchemaValidator),
+		validators: make(map[k8sresourceparts.TypeMeta]*validate.SchemaValidator),
 	}, nil
 }
 
-func (v *Validator) getCRD(ctx context.Context, tm TypeMeta) (*apiextVInternal.CustomResourceDefinition, error) {
+func (v *Validator) getCRD(ctx context.Context, tm k8sresourceparts.TypeMeta) (*apiextVInternal.CustomResourceDefinition, error) {
 	if crd, ok := v.static[tm]; ok {
 		return crd, nil
 	}
@@ -87,16 +90,16 @@ func (v *Validator) getCRD(ctx context.Context, tm TypeMeta) (*apiextVInternal.C
 		crd := mapping.Resource.GroupResource().String()
 
 		obj := &apiextV1.CustomResourceDefinition{
-			TypeMeta: TypeMeta{
+			TypeMeta: k8sresourceparts.TypeMeta{
 				Kind: "CustomResourceDefinition",
 			},
-			ObjectMeta: ObjectMeta{
+			ObjectMeta: k8sresourceparts.ObjectMeta{
 				Name: crd,
 			},
 		}
 		err = v.client.Get(ctx, obj, obj)
 		if err != nil {
-			if IsNotFound(err) {
+			if k8shelpers.IsNotFound(err) {
 				return nil, nil
 			}
 
@@ -113,7 +116,7 @@ func (v *Validator) getCRD(ctx context.Context, tm TypeMeta) (*apiextVInternal.C
 	return nil, nil
 }
 
-func (v *Validator) getValidator(ctx context.Context, tm TypeMeta) (*validate.SchemaValidator, error) {
+func (v *Validator) getValidator(ctx context.Context, tm k8sresourceparts.TypeMeta) (*validate.SchemaValidator, error) {
 	v.mutex.Lock()
 	defer v.mutex.Unlock()
 
@@ -165,7 +168,7 @@ func (v *Validator) getValidator(ctx context.Context, tm TypeMeta) (*validate.Sc
 // and if so to fetch the schema needed to perform validation. All
 // subsequent Validate() calls for that Kind will be local.
 func (v *Validator) Validate(ctx context.Context, resource interface{}) error {
-	var tm TypeMeta
+	var tm k8sresourceparts.TypeMeta
 	err := convert(resource, &tm)
 	if err != nil {
 		return err

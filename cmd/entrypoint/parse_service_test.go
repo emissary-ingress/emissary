@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -150,7 +151,7 @@ var serviceTests = []struct {
 
 func TestParseService(t *testing.T) {
 	ctx := dlog.NewTestContext(t, false)
-	cm := &kates.ConfigMap{ObjectMeta: kates.ObjectMeta{Name: "foo", Namespace: "bar"}}
+	cm := &k8sresourcetypes.ConfigMap{ObjectMeta: kates.ObjectMeta{Name: "foo", Namespace: "bar"}}
 	for _, test := range serviceTests {
 		// Make sure we ignore these also.
 		for _, prefix := range []string{"", "http://", "https://"} {

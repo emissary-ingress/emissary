@@ -28,8 +28,8 @@
 // the last argument. This will typically be different than the value you supplied if e.g. the
 // server defaults fields, updates the resource version, assigns UIDs, etc.
 //
-//  var result kates.Pod
-//  err = client.Create(ctx, &kates.Pod{...}, &result)
+//  var result k8sresourcetypes.Pod
+//  err = client.Create(ctx, &k8sresourcetypes.Pod{...}, &result)
 //  err = client.Update(ctx, result, &result)
 //  err = client.UpdateStatus(ctx, result, &result)
 //  err = client.Delete(ctx, result, &result)
@@ -38,7 +38,7 @@
 // you pass will json.Marshal to and json.Unmarshal from something that looks like a kubernetes
 // resource:
 //
-//   pod := kates.Pod{...}
+//   pod := k8sresourcetypes.Pod{...}
 //   err := client.Create(ctx, &pod, &pod)
 //   // -or-
 //   pod := map[string]interface{}{"kind": "Pod", ...}
@@ -72,8 +72,8 @@
 //
 //  // initialize an empty snapshot
 //  snapshot := struct {
-//      Services    []*kates.Service
-//      Deployments []*kates.Deployment
+//      Services    []*k8sresourcetypes.Service
+//      Deployments []*k8sresourcetypes.Deployment
 //  }{}
 //
 //  accumulator.Update(&snapshot)

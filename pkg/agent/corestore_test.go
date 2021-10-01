@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/datawire/ambassador/v2/pkg/agent"
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -13,20 +13,20 @@ import (
 func TestCoreStore(t *testing.T) {
 	type testCases struct {
 		name                string
-		getPods             func() []*kates.Pod
+		getPods             func() []*k8sresourcetypes.Pod
 		expectedPods        int
-		getConfigMaps       func() []*kates.ConfigMap
+		getConfigMaps       func() []*k8sresourcetypes.ConfigMap
 		expectedConfigMaps  int
-		getDeployments      func() []*kates.Deployment
+		getDeployments      func() []*k8sresourcetypes.Deployment
 		expectedDeployments int
-		getEndpoints        func() []*kates.Endpoints
+		getEndpoints        func() []*k8sresourcetypes.Endpoints
 		expectedEndpoints   int
 	}
 	cases := []*testCases{
 		{
 			name: "will add running endpoints to state of the world",
-			getEndpoints: func() []*kates.Endpoints {
-				return []*kates.Endpoints{
+			getEndpoints: func() []*k8sresourcetypes.Endpoints {
+				return []*k8sresourcetypes.Endpoints{
 					{
 						TypeMeta: metav1.TypeMeta{
 							Kind:       "Endpoints",
@@ -43,8 +43,8 @@ func TestCoreStore(t *testing.T) {
 		},
 		{
 			name: "will add running pods to state of the world",
-			getPods: func() []*kates.Pod {
-				return []*kates.Pod{
+			getPods: func() []*k8sresourcetypes.Pod {
+				return []*k8sresourcetypes.Pod{
 					{
 						TypeMeta: metav1.TypeMeta{
 							Kind:       "Pod",
@@ -64,8 +64,8 @@ func TestCoreStore(t *testing.T) {
 		},
 		{
 			name: "will ensure no duplicate pods are added",
-			getPods: func() []*kates.Pod {
-				return []*kates.Pod{
+			getPods: func() []*k8sresourcetypes.Pod {
+				return []*k8sresourcetypes.Pod{
 					{
 						TypeMeta: metav1.TypeMeta{
 							Kind:       "Pod",
@@ -98,8 +98,8 @@ func TestCoreStore(t *testing.T) {
 		},
 		{
 			name: "will exclude kube-system pods from state of the world",
-			getPods: func() []*kates.Pod {
-				return []*kates.Pod{
+			getPods: func() []*k8sresourcetypes.Pod {
+				return []*k8sresourcetypes.Pod{
 					{
 						TypeMeta: metav1.TypeMeta{
 							Kind:       "Pod",
@@ -119,8 +119,8 @@ func TestCoreStore(t *testing.T) {
 		},
 		{
 			name: "will exclude non running pods from state of the world",
-			getPods: func() []*kates.Pod {
-				return []*kates.Pod{
+			getPods: func() []*k8sresourcetypes.Pod {
+				return []*k8sresourcetypes.Pod{
 					{
 						TypeMeta: metav1.TypeMeta{
 							Kind:       "Pod",
@@ -140,8 +140,8 @@ func TestCoreStore(t *testing.T) {
 		},
 		{
 			name: "will send pods in failed state",
-			getPods: func() []*kates.Pod {
-				return []*kates.Pod{
+			getPods: func() []*k8sresourcetypes.Pod {
+				return []*k8sresourcetypes.Pod{
 					{
 						TypeMeta: metav1.TypeMeta{
 							Kind:       "Pod",
@@ -161,8 +161,8 @@ func TestCoreStore(t *testing.T) {
 		},
 		{
 			name: "will add configmaps to the configmapStore successfully",
-			getConfigMaps: func() []*kates.ConfigMap {
-				return []*kates.ConfigMap{
+			getConfigMaps: func() []*k8sresourcetypes.ConfigMap {
+				return []*k8sresourcetypes.ConfigMap{
 					{
 						TypeMeta: metav1.TypeMeta{
 							Kind:       "ConfigMap",
@@ -179,8 +179,8 @@ func TestCoreStore(t *testing.T) {
 		},
 		{
 			name: "will ensure no duplicated configmaps are added",
-			getConfigMaps: func() []*kates.ConfigMap {
-				return []*kates.ConfigMap{
+			getConfigMaps: func() []*k8sresourcetypes.ConfigMap {
+				return []*k8sresourcetypes.ConfigMap{
 					{
 						TypeMeta: metav1.TypeMeta{
 							Kind:       "ConfigMap",
@@ -207,8 +207,8 @@ func TestCoreStore(t *testing.T) {
 		},
 		{
 			name: "will exclude configmaps from kube-system",
-			getConfigMaps: func() []*kates.ConfigMap {
-				return []*kates.ConfigMap{
+			getConfigMaps: func() []*k8sresourcetypes.ConfigMap {
+				return []*k8sresourcetypes.ConfigMap{
 					{
 						TypeMeta: metav1.TypeMeta{
 							Kind:       "ConfigMap",
@@ -225,8 +225,8 @@ func TestCoreStore(t *testing.T) {
 		},
 		{
 			name: "will add Deployments to state of the world",
-			getDeployments: func() []*kates.Deployment {
-				return []*kates.Deployment{
+			getDeployments: func() []*k8sresourcetypes.Deployment {
+				return []*k8sresourcetypes.Deployment{
 					{
 						TypeMeta: metav1.TypeMeta{
 							Kind:       "Deployment",
@@ -243,8 +243,8 @@ func TestCoreStore(t *testing.T) {
 		},
 		{
 			name: "will ensure no duplicated deployments are added",
-			getDeployments: func() []*kates.Deployment {
-				return []*kates.Deployment{
+			getDeployments: func() []*k8sresourcetypes.Deployment {
+				return []*k8sresourcetypes.Deployment{
 					{
 						TypeMeta: metav1.TypeMeta{
 							Kind:       "Deployment",
@@ -271,8 +271,8 @@ func TestCoreStore(t *testing.T) {
 		},
 		{
 			name: "will exclude kube-system Deployments from state of the world",
-			getDeployments: func() []*kates.Deployment {
-				return []*kates.Deployment{
+			getDeployments: func() []*k8sresourcetypes.Deployment {
+				return []*k8sresourcetypes.Deployment{
 					{
 						TypeMeta: metav1.TypeMeta{
 							Kind:       "Deployment",

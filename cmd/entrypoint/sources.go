@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 )
 
 type K8sSource interface {
@@ -12,7 +13,7 @@ type K8sSource interface {
 
 type K8sWatcher interface {
 	Changed() chan struct{}
-	FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) (bool, error)
+	FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*k8sresourcetypes.Unstructured) bool) (bool, error)
 }
 
 type IstioCertSource interface {

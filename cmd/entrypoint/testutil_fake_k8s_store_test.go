@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 )
 
 // A K8sStore is implement just enough data structures to mock the watch aspect of kubernetes for
@@ -48,7 +49,7 @@ func NewK8sStore() *K8sStore {
 // well result in some very obscure edgecases around changing names/namespaces that behave
 // differently different from kubernetes.
 func (k *K8sStore) Upsert(resource kates.Object) error {
-	var un *kates.Unstructured
+	var un *k8sresourcetypes.Unstructured
 	bytes, err := json.Marshal(resource)
 	if err != nil {
 		return err

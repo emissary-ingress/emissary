@@ -6,11 +6,11 @@ import (
 	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
 	v2core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
 	v2endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/endpoint"
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 )
 
 // Compile_Endpoints transforms a kubernetes endpoints resource into a v2.ClusterLoadAssignment
-func Compile_Endpoints(endpoints *kates.Endpoints) (*CompiledConfig, error) {
+func Compile_Endpoints(endpoints *k8sresourcetypes.Endpoints) (*CompiledConfig, error) {
 	var clas []*CompiledLoadAssignment
 
 	for _, subset := range endpoints.Subsets {

@@ -2,6 +2,7 @@ package snapshot
 
 import (
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -23,7 +24,7 @@ func (s *Snapshot) Sanitize() error {
 	// so it's probably best to scrub the contents and just send along the object meta and
 	// error?
 	if len(s.Invalid) > 0 {
-		scrubbedInvalid := []*kates.Unstructured{}
+		scrubbedInvalid := []*k8sresourcetypes.Unstructured{}
 		for _, invalid := range s.Invalid {
 			scrubbed := kates.NewUnstructured(invalid.GetKind(), invalid.GetAPIVersion())
 			scrubbed.SetName(invalid.GetName())
@@ -48,9 +49,9 @@ func (ambInputs *KubernetesSnapshot) Sanitize() error {
 	// another option here is that we could have a `Sanatizable` interface, and have each object
 	// that needs to be cleaned up a bit implement `Sanitize()`, but, imo, that's harder to
 	// read
-	sanitizedSecrets := []*kates.Secret{}
+	sanitizedSecrets := []*k8sresourcetypes.Secret{}
 	for _, secret := range ambInputs.Secrets {
-		sanitizedSecret := &kates.Secret{
+		sanitizedSecret := &k8sresourcetypes.Secret{
 			Type:     secret.Type,
 			TypeMeta: secret.TypeMeta,
 			ObjectMeta: metav1.ObjectMeta{

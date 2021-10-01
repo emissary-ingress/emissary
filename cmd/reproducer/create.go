@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -68,7 +69,7 @@ func create(cmd *cobra.Command, args []string) error {
 		switch name {
 		case "snapshot":
 			var snapshot struct {
-				Kubernetes map[string][]*kates.Unstructured
+				Kubernetes map[string][]*k8sresourcetypes.Unstructured
 			}
 			err := json.Unmarshal(content, &snapshot)
 			if err != nil {
@@ -126,15 +127,15 @@ func create(cmd *cobra.Command, args []string) error {
 }
 
 type Repro struct {
-	Resources  map[string][]*kates.Unstructured
+	Resources  map[string][]*k8sresourcetypes.Unstructured
 	Namespaces map[string]bool
 	Ports      map[string]bool
-	Processed  []*kates.Unstructured
+	Processed  []*k8sresourcetypes.Unstructured
 }
 
 func NewRepro() *Repro {
 	return &Repro{
-		Resources:  map[string][]*kates.Unstructured{},
+		Resources:  map[string][]*k8sresourcetypes.Unstructured{},
 		Namespaces: map[string]bool{},
 		Ports:      map[string]bool{},
 	}
@@ -175,7 +176,7 @@ func (r *Repro) Process(ctx context.Context) error {
 	}
 
 	// Auto create any missing namespaces and prepend so they are defined before being used.
-	ns := []*kates.Unstructured{}
+	ns := []*k8sresourcetypes.Unstructured{}
 	for _, k := range sortedKeys(r.Namespaces) {
 		un, err := kates.NewUnstructuredFromObject(&kates.Namespace{
 			TypeMeta:   kates.TypeMeta{APIVersion: "v1", Kind: "Namespace"},
@@ -207,7 +208,7 @@ func (r *Repro) OrderedKinds() []string {
 		sortedKeys(r.Resources)...)
 }
 
-func (r *Repro) callProcess(ctx context.Context, resource *kates.Unstructured) *kates.Unstructured {
+func (r *Repro) callProcess(ctx context.Context, resource *k8sresourcetypes.Unstructured) *k8sresourcetypes.Unstructured {
 	if len(resource.GetOwnerReferences()) > 0 {
 		return nil
 	}
@@ -264,7 +265,7 @@ func (r *Repro) process(object kates.Object) kates.Object {
 
 	rbac := false
 	switch obj := object.(type) {
-	case *kates.Service:
+	case *k8sresourcetypes.Service:
 		obj.Spec.ClusterIP = ""
 		if !isAmbassadorResource(object) {
 			obj.Spec.Selector = map[string]string{
@@ -274,15 +275,15 @@ func (r *Repro) process(object kates.Object) kates.Object {
 				r.Ports[port.TargetPort.String()] = true
 			}
 		}
-	case *kates.ClusterRole:
+	case *k8sresourcetypes.ClusterRole:
 		rbac = true
-	case *kates.ClusterRoleBinding:
+	case *k8sresourcetypes.ClusterRoleBinding:
 		rbac = true
-	case *kates.Role:
+	case *k8sresourcetypes.Role:
 		rbac = true
-	case *kates.RoleBinding:
+	case *k8sresourcetypes.RoleBinding:
 		rbac = true
-	case *kates.ServiceAccount:
+	case *k8sresourcetypes.ServiceAccount:
 		rbac = true
 		if obj.GetName() == "default" {
 			return nil
@@ -303,7 +304,7 @@ const bootstrappingLabel = "kubernetes.io/bootstrapping"
 // will add a bunch of annotations about last-applied-configurations and managed fields and what
 // not, and these annotations will make kubectl and/or the API server barf if present on a resource
 // supplied to `kubectl apply`.
-func clean(resource *kates.Unstructured) *kates.Unstructured {
+func clean(resource *k8sresourcetypes.Unstructured) *k8sresourcetypes.Unstructured {
 	if resource == nil {
 		return nil
 	}

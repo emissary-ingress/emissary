@@ -10,9 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 
-	"github.com/datawire/ambassador/v2/pkg/envoytest"
+	envoy "github.com/datawire/ambassador/v2/pkg/envoytest"
 	"github.com/datawire/ambassador/v2/pkg/gateway"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -195,11 +196,11 @@ func makeDispatcher(t *testing.T) *gateway.Dispatcher {
 	return d
 }
 
-func makeEndpoint(namespace, name, ip string, port int) *kates.Endpoints {
+func makeEndpoint(namespace, name, ip string, port int) *k8sresourcetypes.Endpoints {
 	ports := []kates.EndpointPort{{Port: int32(port)}}
 	addrs := []kates.EndpointAddress{{IP: ip}}
 
-	return &kates.Endpoints{
+	return &k8sresourcetypes.Endpoints{
 		TypeMeta:   kates.TypeMeta{Kind: "Endpoints"},
 		ObjectMeta: kates.ObjectMeta{Namespace: namespace, Name: name},
 		Subsets:    []kates.EndpointSubset{{Addresses: addrs, Ports: ports}},

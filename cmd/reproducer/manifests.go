@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/yaml"
 )
 
-func marshalManifests(manifests []*kates.Unstructured) ([]byte, error) {
+func marshalManifests(manifests []*k8sresourcetypes.Unstructured) ([]byte, error) {
 	result := bytes.NewBuffer(nil)
 
 	pfx := ""

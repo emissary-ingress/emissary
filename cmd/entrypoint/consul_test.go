@@ -11,6 +11,7 @@ import (
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -124,7 +125,7 @@ func setup(t *testing.T) (ctx context.Context, resolvers []*amb.ConsulResolver, 
 	objs, err := kates.ParseManifestsToUnstructured(manifests)
 	require.NoError(t, err)
 
-	parent := &kates.Unstructured{}
+	parent := &k8sresourcetypes.Unstructured{}
 	parent.SetNamespace("default")
 	ctx = dlog.NewTestContext(t, false)
 

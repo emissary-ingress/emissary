@@ -20,6 +20,7 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/dtest"
 	"github.com/datawire/ambassador/v2/pkg/k8s"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	"github.com/datawire/ambassador/v2/pkg/kubeapply"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dexec"
@@ -233,7 +234,7 @@ func setup(t *testing.T, ctx context.Context, kubeconfig string, cli *kates.Clie
 	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, 2*time.Minute, true, false, newAesFile))
 	require.NoError(t, kubeapply.Kubeapply(ctx, kubeinfo, 2*time.Minute, true, false, "./testdata/fake-agentcom.yaml"))
 
-	dep := &kates.Deployment{
+	dep := &k8sresourcetypes.Deployment{
 		TypeMeta: kates.TypeMeta{
 			Kind: "Deployment",
 		},
@@ -291,7 +292,7 @@ func getFakeAgentComPodName(ctx context.Context, cli *kates.Client) (string, err
 		LabelSelector: "app=agentcom-server",
 		Namespace:     "default",
 	}
-	pods := []*kates.Pod{}
+	pods := []*k8sresourcetypes.Pod{}
 	err := cli.List(ctx, query, &pods)
 	if err != nil {
 		return "", err

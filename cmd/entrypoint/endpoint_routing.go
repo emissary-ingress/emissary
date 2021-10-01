@@ -8,12 +8,13 @@ import (
 	"github.com/datawire/ambassador/v2/cmd/ambex"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8s_resource_types"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
 
 func makeEndpoints(ctx context.Context, ksnap *snapshotTypes.KubernetesSnapshot, consulEndpoints map[string]consulwatch.Endpoints) *ambex.Endpoints {
-	k8sServices := map[string]*kates.Service{}
+	k8sServices := map[string]*k8sresourcetypes.Service{}
 	for _, svc := range ksnap.Services {
 		k8sServices[key(svc)] = svc
 	}
@@ -43,7 +44,7 @@ func key(resource kates.Object) string {
 	return fmt.Sprintf("%s:%s", resource.GetNamespace(), resource.GetName())
 }
 
-func k8sEndpointsToAmbex(ep *kates.Endpoints, svc *kates.Service) (result []*ambex.Endpoint) {
+func k8sEndpointsToAmbex(ep *k8sresourcetypes.Endpoints, svc *k8sresourcetypes.Service) (result []*ambex.Endpoint) {
 	portmap := map[string][]string{}
 	for _, p := range svc.Spec.Ports {
 		port := fmt.Sprintf("%d", p.Port)

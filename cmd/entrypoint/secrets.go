@@ -123,7 +123,7 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 	// The way this works is kind of simple: first we check everything in
 	// FSSecrets. Then, when we check K8sSecrets, we skip any secrets that are
 	// also in FSSecrets. End result: FSSecrets wins if there are any conflicts.
-	s.Secrets = make([]*kates.Secret, 0, len(refs))
+	s.Secrets = make([]*k8sresourcetypes.Secret, 0, len(refs))
 
 	for ref, secret := range s.FSSecrets {
 		if refs[ref] {

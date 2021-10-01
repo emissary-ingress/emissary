@@ -79,11 +79,11 @@ func TestEndpointRoutingMultiplePorts(t *testing.T) {
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 	// Create Mapping, Service, and Endpoints, except this time the Service has multiple ports.
 	assert.NoError(t, f.Upsert(makeMapping("default", "foo", "/foo", "foo", "endpoint")))
-	assert.NoError(t, f.Upsert(&kates.Service{
+	assert.NoError(t, f.Upsert(&k8sresourcetypes.Service{
 		TypeMeta:   kates.TypeMeta{Kind: "Service"},
 		ObjectMeta: kates.ObjectMeta{Namespace: "default", Name: "foo"},
-		Spec: kates.ServiceSpec{
-			Ports: []kates.ServicePort{
+		Spec: k8sresourcetypes.ServiceSpec{
+			Ports: []k8sresourcetypes.ServicePort{
 				{
 					Name:       "cleartext",
 					Port:       80,
@@ -227,12 +227,12 @@ func makeMapping(namespace, name, prefix, service, resolver string) *amb.Mapping
 	}
 }
 
-func makeService(namespace, name string) *kates.Service {
-	return &kates.Service{
+func makeService(namespace, name string) *k8sresourcetypes.Service {
+	return &k8sresourcetypes.Service{
 		TypeMeta:   kates.TypeMeta{Kind: "Service"},
 		ObjectMeta: kates.ObjectMeta{Namespace: namespace, Name: name},
-		Spec: kates.ServiceSpec{
-			Ports: []kates.ServicePort{
+		Spec: k8sresourcetypes.ServiceSpec{
+			Ports: []k8sresourcetypes.ServicePort{
 				{
 					Port:       80,
 					TargetPort: intstr.FromInt(8080),
@@ -242,8 +242,8 @@ func makeService(namespace, name string) *kates.Service {
 	}
 }
 
-func makeEndpoints(namespace, name string, subsets ...kates.EndpointSubset) *kates.Endpoints {
-	return &kates.Endpoints{
+func makeEndpoints(namespace, name string, subsets ...kates.EndpointSubset) *k8sresourcetypes.Endpoints {
+	return &k8sresourcetypes.Endpoints{
 		TypeMeta:   kates.TypeMeta{Kind: "Endpoints"},
 		ObjectMeta: kates.ObjectMeta{Namespace: namespace, Name: name},
 		Subsets:    subsets,

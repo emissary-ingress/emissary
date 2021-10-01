@@ -24,12 +24,12 @@ import (
 	"github.com/datawire/dlib/dlog"
 )
 
-// Take a json formatted string and transform it to kates.Unstructured
+// Take a json formatted string and transform it to k8sresourcetypes.Unstructured
 // for easy formatting of Snapshot.Invalid members
-func getUnstructured(objStr string) *kates.Unstructured {
+func getUnstructured(objStr string) *k8sresourcetypes.Unstructured {
 	var obj map[string]interface{}
 	_ = json.Unmarshal([]byte(objStr), &obj)
-	unstructured := &kates.Unstructured{}
+	unstructured := &k8sresourcetypes.Unstructured{}
 	unstructured.SetUnstructuredContent(obj)
 	return unstructured
 }
@@ -53,8 +53,8 @@ func TestHandleAPIKeyConfigChange(t *testing.T) {
 	testcases := []struct {
 		testName       string
 		agent          *Agent
-		secrets        []kates.Secret
-		configMaps     []kates.ConfigMap
+		secrets        []k8sresourcetypes.Secret
+		configMaps     []k8sresourcetypes.ConfigMap
 		expectedAPIKey string
 	}{
 		{
@@ -65,8 +65,8 @@ func TestHandleAPIKeyConfigChange(t *testing.T) {
 				ambassadorAPIKey:             "",
 				ambassadorAPIKeyEnvVarValue:  "",
 			},
-			secrets: []kates.Secret{},
-			configMaps: []kates.ConfigMap{
+			secrets: []k8sresourcetypes.Secret{},
+			configMaps: []k8sresourcetypes.ConfigMap{
 				{
 					ObjectMeta: objMeta,
 					Data: map[string]string{
@@ -84,7 +84,7 @@ func TestHandleAPIKeyConfigChange(t *testing.T) {
 				ambassadorAPIKey:             "",
 				ambassadorAPIKeyEnvVarValue:  "",
 			},
-			secrets: []kates.Secret{
+			secrets: []k8sresourcetypes.Secret{
 				{
 					ObjectMeta: objMeta,
 					Data: map[string][]byte{
@@ -92,7 +92,7 @@ func TestHandleAPIKeyConfigChange(t *testing.T) {
 					},
 				},
 			},
-			configMaps: []kates.ConfigMap{
+			configMaps: []k8sresourcetypes.ConfigMap{
 				{
 					ObjectMeta: objMeta,
 					Data: map[string]string{
@@ -110,7 +110,7 @@ func TestHandleAPIKeyConfigChange(t *testing.T) {
 				ambassadorAPIKey:             "",
 				ambassadorAPIKeyEnvVarValue:  "",
 			},
-			secrets: []kates.Secret{
+			secrets: []k8sresourcetypes.Secret{
 				{
 					ObjectMeta: objMeta,
 					Data: map[string][]byte{
@@ -118,7 +118,7 @@ func TestHandleAPIKeyConfigChange(t *testing.T) {
 					},
 				},
 			},
-			configMaps:     []kates.ConfigMap{},
+			configMaps:     []k8sresourcetypes.ConfigMap{},
 			expectedAPIKey: "secretvalue",
 		},
 		{
@@ -129,8 +129,8 @@ func TestHandleAPIKeyConfigChange(t *testing.T) {
 				ambassadorAPIKey:             "someexistingvalue",
 				ambassadorAPIKeyEnvVarValue:  "",
 			},
-			secrets: []kates.Secret{},
-			configMaps: []kates.ConfigMap{
+			secrets: []k8sresourcetypes.Secret{},
+			configMaps: []k8sresourcetypes.ConfigMap{
 				{
 					ObjectMeta: objMeta,
 					Data:       map[string]string{},
@@ -146,13 +146,13 @@ func TestHandleAPIKeyConfigChange(t *testing.T) {
 				ambassadorAPIKey:             "someexistingvalue",
 				ambassadorAPIKeyEnvVarValue:  "",
 			},
-			secrets: []kates.Secret{
+			secrets: []k8sresourcetypes.Secret{
 				{
 					ObjectMeta: objMeta,
 					Data:       map[string][]byte{},
 				},
 			},
-			configMaps:     []kates.ConfigMap{},
+			configMaps:     []k8sresourcetypes.ConfigMap{},
 			expectedAPIKey: "",
 		},
 		{
@@ -173,7 +173,7 @@ func TestHandleAPIKeyConfigChange(t *testing.T) {
 				ambassadorAPIKey:             "somevaluefromsomewhereelse",
 				ambassadorAPIKeyEnvVarValue:  "gotfromenv",
 			},
-			secrets: []kates.Secret{
+			secrets: []k8sresourcetypes.Secret{
 				{
 					ObjectMeta: objMeta,
 					Data: map[string][]byte{
@@ -181,7 +181,7 @@ func TestHandleAPIKeyConfigChange(t *testing.T) {
 					},
 				},
 			},
-			configMaps: []kates.ConfigMap{
+			configMaps: []k8sresourcetypes.ConfigMap{
 				{
 					ObjectMeta: objMeta,
 					Data: map[string]string{
@@ -307,21 +307,21 @@ func TestProcessSnapshot(t *testing.T) {
 					AmbassadorVersion: "v1.0",
 				},
 				Kubernetes: &snapshotTypes.KubernetesSnapshot{
-					Services: []*kates.Service{
+					Services: []*k8sresourcetypes.Service{
 						{
-							Spec: kates.ServiceSpec{
+							Spec: k8sresourcetypes.ServiceSpec{
 								Selector: map[string]string{"label": "matching"},
 							},
 						},
 						{
-							Spec: kates.ServiceSpec{
+							Spec: k8sresourcetypes.ServiceSpec{
 								Selector: map[string]string{"label2": "alsomatching", "label3": "yay"},
 							},
 						},
 					},
 				},
 			},
-			podStore: NewPodStore([]*kates.Pod{
+			podStore: NewPodStore([]*k8sresourcetypes.Pod{
 				{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "pod1",
@@ -418,7 +418,7 @@ func (m *mockAccumulator) Changed() chan struct{} {
 	return m.changedChan
 }
 
-func (m *mockAccumulator) FilteredUpdate(_ context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) (bool, error) {
+func (m *mockAccumulator) FilteredUpdate(_ context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*k8sresourcetypes.Unstructured) bool) (bool, error) {
 	rawtarget, err := json.Marshal(m.targetInterface)
 	if err != nil {
 		return false, err
@@ -744,7 +744,7 @@ func TestWatchWithSnapshot(t *testing.T) {
 	a.ambassadorAPIKeyEnvVarValue = apiKey
 	a.agentCloudResourceConfigName = "bogusvalue"
 	snapshot := &snapshotTypes.Snapshot{
-		Invalid: []*kates.Unstructured{
+		Invalid: []*k8sresourcetypes.Unstructured{
 			// everything that's not errors or metadata here needs to get scrubbed
 			getUnstructured(`
 {
@@ -759,7 +759,7 @@ func TestWatchWithSnapshot(t *testing.T) {
 }`),
 		},
 		Kubernetes: &snapshotTypes.KubernetesSnapshot{
-			Secrets: []*kates.Secret{
+			Secrets: []*k8sresourcetypes.Secret{
 				{
 					TypeMeta: metav1.TypeMeta{
 						Kind:       "Secret",
@@ -816,7 +816,7 @@ func TestWatchWithSnapshot(t *testing.T) {
 	podAcc := &mockAccumulator{
 		changedChan: make(chan struct{}),
 		targetInterface: CoreSnapshot{
-			Pods: []*kates.Pod{
+			Pods: []*k8sresourcetypes.Pod{
 				{
 					TypeMeta: metav1.TypeMeta{
 						Kind:       "Pod",
@@ -831,7 +831,7 @@ func TestWatchWithSnapshot(t *testing.T) {
 					},
 				},
 			},
-			Endpoints: []*kates.Endpoints{
+			Endpoints: []*k8sresourcetypes.Endpoints{
 				{
 					TypeMeta: metav1.TypeMeta{
 						Kind:       "Endpoints",
@@ -843,7 +843,7 @@ func TestWatchWithSnapshot(t *testing.T) {
 					},
 				},
 			},
-			Deployments: []*kates.Deployment{
+			Deployments: []*k8sresourcetypes.Deployment{
 				{
 					TypeMeta: metav1.TypeMeta{
 						Kind:       "Deployment",
@@ -855,7 +855,7 @@ func TestWatchWithSnapshot(t *testing.T) {
 					},
 				},
 			},
-			ConfigMaps: []*kates.ConfigMap{
+			ConfigMaps: []*k8sresourcetypes.ConfigMap{
 				{
 					TypeMeta: metav1.TypeMeta{
 						Kind:       "ConfigMap",

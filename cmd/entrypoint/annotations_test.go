@@ -33,7 +33,7 @@ prefix: /backend/
 service: quote:80
 `
 
-	svc := &kates.Service{
+	svc := &k8sresourcetypes.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "svc",
 			Namespace: "ambassador",
@@ -74,7 +74,7 @@ apiVersion: getambassador.io/v3alpha1
 kind: KubernetesEndpointResolver
 name: endpoint`
 
-	ambSvc := &kates.Service{
+	ambSvc := &k8sresourcetypes.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ambassador",
 			Namespace: "ambassador",
@@ -102,7 +102,7 @@ prefix: /blah/`
 	}
 
 	ks := &snapshotTypes.KubernetesSnapshot{
-		Services:  []*kates.Service{svc, ambSvc},
+		Services:  []*k8s_resource_types.Service{svc, ambSvc},
 		Ingresses: []*snapshotTypes.Ingress{{Ingress: *ingress}},
 		Hosts:     []*amb.Host{ignoredHost},
 	}
@@ -390,7 +390,7 @@ config:
 			if err := yaml.Unmarshal([]byte(tc.objString), kobj); err != nil {
 				t.Fatal(err)
 			}
-			parent := &kates.Service{
+			parent := &k8sresourcetypes.Service{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "svc",
 					Namespace: tc.parentns,

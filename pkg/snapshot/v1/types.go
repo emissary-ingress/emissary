@@ -8,6 +8,7 @@ import (
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	"github.com/datawire/ambassador/v2/pkg/watt"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 )
@@ -41,7 +42,7 @@ type Snapshot struct {
 	APIDocs []*APIDoc `json:"APIDocs,omitempty"`
 	// The Invalid field contains any kubernetes resources that have failed
 	// validation.
-	Invalid []*kates.Unstructured
+	Invalid []*k8sresourcetypes.Unstructured
 	Raw     json.RawMessage `json:"-"`
 }
 
@@ -55,10 +56,10 @@ type AmbassadorMetaInfo struct {
 
 type KubernetesSnapshot struct {
 	// k8s resources
-	IngressClasses []*IngressClass    `json:"ingressclasses"`
-	Ingresses      []*Ingress         `json:"ingresses"`
-	Services       []*kates.Service   `json:"service"`
-	Endpoints      []*kates.Endpoints `json:"Endpoints"`
+	IngressClasses []*IngressClass               `json:"ingressclasses"`
+	Ingresses      []*Ingress                    `json:"ingresses"`
+	Services       []*k8sresourcetypes.Service   `json:"service"`
+	Endpoints      []*k8sresourcetypes.Endpoints `json:"Endpoints"`
 
 	// ambassador resources
 	Listeners   []*amb.Listener   `json:"Listener"`
@@ -88,20 +89,20 @@ type KubernetesSnapshot struct {
 	// It is safe to ignore AmbassadorInstallation, ambassador doesn't need to look at those, just
 	// the operator.
 
-	KNativeClusterIngresses []*kates.Unstructured `json:"clusteringresses.networking.internal.knative.dev,omitempty"`
-	KNativeIngresses        []*kates.Unstructured `json:"ingresses.networking.internal.knative.dev,omitempty"`
+	KNativeClusterIngresses []*k8sresourcetypes.Unstructured `json:"clusteringresses.networking.internal.knative.dev,omitempty"`
+	KNativeIngresses        []*k8sresourcetypes.Unstructured `json:"ingresses.networking.internal.knative.dev,omitempty"`
 
-	K8sSecrets []*kates.Secret             `json:"-"`      // Secrets from Kubernetes
-	FSSecrets  map[SecretRef]*kates.Secret `json:"-"`      // Secrets from the filesystem
-	Secrets    []*kates.Secret             `json:"secret"` // Secrets we'll feed to Ambassador
+	K8sSecrets []*k8sresourcetypes.Secret             `json:"-"`      // Secrets from Kubernetes
+	FSSecrets  map[SecretRef]*k8sresourcetypes.Secret `json:"-"`      // Secrets from the filesystem
+	Secrets    []*k8sresourcetypes.Secret             `json:"secret"` // Secrets we'll feed to Ambassador
 
 	Annotations []kates.Object `json:"-"`
 
 	// Pods, Deployments and ConfigMaps were added to be used by Ambassador Agent so it can
 	// report to AgentCom in Ambassador Cloud.
-	Pods        []*kates.Pod        `json:"Pods,omitempty"`
-	Deployments []*kates.Deployment `json:"Deployments,omitempty"`
-	ConfigMaps  []*kates.ConfigMap  `json:"ConfigMaps,omitempty"`
+	Pods        []*k8sresourcetypes.Pod        `json:"Pods,omitempty"`
+	Deployments []*k8sresourcetypes.Deployment `json:"Deployments,omitempty"`
+	ConfigMaps  []*k8sresourcetypes.ConfigMap  `json:"ConfigMaps,omitempty"`
 
 	// ArgoRollouts represents the argo-rollout CRD state of the world that may or may not be present
 	// in the client's cluster. For this reason, Rollouts resources are fetched making use of the
@@ -111,11 +112,11 @@ type KubernetesSnapshot struct {
 	//   - no need to maintain types defined by the Argo projects
 	//   - no unnecessary overhead Marshaling/Unmarshaling it into json as the state is opaque to
 	// Ambassador.
-	ArgoRollouts []*kates.Unstructured `json:"ArgoRollouts,omitempty"`
+	ArgoRollouts []*k8sresourcetypes.Unstructured `json:"ArgoRollouts,omitempty"`
 
 	// ArgoApplications represents the argo-rollout CRD state of the world that may or may not be present
 	// in the client's cluster. For reasons why this is defined as unstructured see ArgoRollouts attribute.
-	ArgoApplications []*kates.Unstructured `json:"ArgoApplications,omitempty"`
+	ArgoApplications []*k8sresourcetypes.Unstructured `json:"ArgoApplications,omitempty"`
 }
 
 // The APIDoc type is custom object built in the style of a Kubernetes resource (name, type, version)

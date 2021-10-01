@@ -11,6 +11,7 @@ import (
 
 	"github.com/datawire/ambassador/v2/pkg/k8s"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -101,7 +102,7 @@ func Main(ctx context.Context, version string, args ...string) error {
 			}
 		}
 
-		var items []*kates.Unstructured
+		var items []*k8sresourcetypes.Unstructured
 
 		err = client.List(ctx,
 			kates.Query{

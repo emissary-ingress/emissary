@@ -18,6 +18,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dlog"
 )
@@ -91,10 +92,10 @@ type PodLogs = map[string][]kates.LogEvent
 
 type Extraction struct {
 	client        *kates.Client
-	ExtractionLog []*LogEntry           // A log of the extraction process itsef.
-	Snapshots     map[string][]byte     // Snapshots from all pods in the cluster.
-	Resources     []*kates.Unstructured // Interesting resources in the cluster that may not be included in snapshots.
-	Environ       map[string]string     // Capture the environment if we are invoked in the cluster.
+	ExtractionLog []*LogEntry                      // A log of the extraction process itsef.
+	Snapshots     map[string][]byte                // Snapshots from all pods in the cluster.
+	Resources     []*k8sresourcetypes.Unstructured // Interesting resources in the cluster that may not be included in snapshots.
+	Environ       map[string]string                // Capture the environment if we are invoked in the cluster.
 }
 
 type LogEntry struct {
@@ -126,10 +127,10 @@ func (ex *Extraction) Warnf(ctx context.Context, err error, format string, args 
 // by the manifests and the product=aes labeling used by the helm charts. This may get more pods
 // than just edge-stack, e.g. it may pull in the redis logs since they have the product=aes label,
 // but that is ok we would rather grab more debugging info than less.
-func (ex *Extraction) ListAmbassadorPods(ctx context.Context) []*kates.Pod {
-	var result []*kates.Pod
+func (ex *Extraction) ListAmbassadorPods(ctx context.Context) []*k8sresourcetypes.Pod {
+	var result []*k8sresourcetypes.Pod
 	for _, sel := range []string{"service=ambassador", "product=aes"} {
-		var pods []*kates.Pod
+		var pods []*k8sresourcetypes.Pod
 		err := ex.client.List(ctx, kates.Query{Kind: "Pod", Namespace: kates.NamespaceAll, LabelSelector: sel}, &pods)
 		if err != nil {
 			ex.Warnf(ctx, err, "error listing pods, no logs will be available")
@@ -154,20 +155,20 @@ func (ex *Extraction) ListAmbassadorPods(ctx context.Context) []*kates.Pod {
 // CaptureLogs will capture the current and previous logs from all the listed pods. It operates
 // asynchronously and returns a function that can be used to access the final result (i.e. a poor
 // mans future).
-func (ex *Extraction) CaptureLogs(ctx context.Context, pods []*kates.Pod) func() PodLogs {
+func (ex *Extraction) CaptureLogs(ctx context.Context, pods []*k8sresourcetypes.Pod) func() PodLogs {
 	previousEvents := make(chan kates.LogEvent)
 	currentEvents := make(chan kates.LogEvent)
 	wg := sync.WaitGroup{}
 	byID := map[string]string{}
 	for _, pod := range pods {
 		byID[string(pod.GetUID())] = QName(pod)
-		err := ex.client.PodLogs(ctx, pod, &kates.PodLogOptions{Previous: true}, previousEvents)
+		err := ex.client.PodLogs(ctx, pod, &k8sresourcetypes.PodLogOptions{Previous: true}, previousEvents)
 		if err != nil {
 			ex.Warnf(ctx, err, "error listing previous logs for pod %s in namespaces %s", pod.Name, pod.Namespace)
 		} else {
 			wg.Add(1)
 		}
-		err = ex.client.PodLogs(ctx, pod, &kates.PodLogOptions{}, currentEvents)
+		err = ex.client.PodLogs(ctx, pod, &k8sresourcetypes.PodLogOptions{}, currentEvents)
 		if err != nil {
 			ex.Warnf(ctx, err, "error listing current logs for pod %s in namespaces %s", pod.Name, pod.Namespace)
 		} else {
@@ -199,7 +200,7 @@ func (ex *Extraction) CaptureLogs(ctx context.Context, pods []*kates.Pod) func()
 }
 
 // CaptureRemoteSnapshots will exec grab-snapshots on all the supplied pods and capture the resulting tarballs.
-func (ex *Extraction) CaptureRemoteSnapshots(ctx context.Context, pods []*kates.Pod) error {
+func (ex *Extraction) CaptureRemoteSnapshots(ctx context.Context, pods []*k8sresourcetypes.Pod) error {
 	for _, p := range pods {
 		cmd := dexec.CommandContext(ctx, "kubectl", "exec", "-i", "-n", p.GetNamespace(), p.GetName(), "--", "grab-snapshots", "-o", "/tmp/sanitized.tgz")
 		cmd.DisableLogging = true
@@ -252,14 +253,14 @@ func (ex *Extraction) CaptureResources(ctx context.Context) error {
 }
 
 func (ex *Extraction) capture(ctx context.Context, query kates.Query) {
-	var rsrcs []*kates.Unstructured
+	var rsrcs []*k8sresourcetypes.Unstructured
 	err := ex.client.List(ctx, query, &rsrcs)
 	if err != nil {
 		ex.Warnf(ctx, err, "error extracting resource %s", query.Kind)
 		return
 	}
 
-	sanitized := []*kates.Unstructured{}
+	sanitized := []*k8sresourcetypes.Unstructured{}
 	for _, r := range rsrcs {
 		s := ex.callSanitize(ctx, r)
 		if s != nil {
@@ -271,7 +272,7 @@ func (ex *Extraction) capture(ctx context.Context, query kates.Query) {
 	ex.Resources = append(ex.Resources, sanitized...)
 }
 
-func (ex *Extraction) callSanitize(ctx context.Context, resource *kates.Unstructured) *kates.Unstructured {
+func (ex *Extraction) callSanitize(ctx context.Context, resource *k8sresourcetypes.Unstructured) *k8sresourcetypes.Unstructured {
 	obj, err := kates.NewObjectFromUnstructured(resource)
 	if err != nil {
 		ex.Printf(ctx, "error sanitizing object: %+v", err)
@@ -291,8 +292,8 @@ func (ex *Extraction) callSanitize(ctx context.Context, resource *kates.Unstruct
 func (ex *Extraction) sanitize(ctx context.Context, object kates.Object) kates.Object {
 	// Don't capture secrets and don't capture ConfigMaps because the latter often has secrets.
 	switch obj := object.(type) {
-	case *kates.Secret:
-		if obj.Type == kates.SecretTypeServiceAccountToken {
+	case *k8sresourcetypes.Secret:
+		if obj.Type == k8sresourcetypes.SecretTypeServiceAccountToken {
 			return nil
 		}
 
@@ -303,7 +304,7 @@ func (ex *Extraction) sanitize(ctx context.Context, object kates.Object) kates.O
 		}
 		obj.Data = data
 		obj.StringData = nil
-	case *kates.ConfigMap:
+	case *k8sresourcetypes.ConfigMap:
 		ex.Printf(ctx, "redacting configmap %s", QName(obj))
 		data := map[string]string{}
 		for k := range obj.Data {
@@ -311,7 +312,7 @@ func (ex *Extraction) sanitize(ctx context.Context, object kates.Object) kates.O
 		}
 		obj.Data = data
 		obj.BinaryData = nil
-	case *kates.Deployment:
+	case *k8sresourcetypes.Deployment:
 		for _, c := range obj.Spec.Template.Spec.Containers {
 			filtered := []kates.EnvVar{}
 			for _, e := range c.Env {

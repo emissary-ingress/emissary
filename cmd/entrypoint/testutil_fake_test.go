@@ -16,6 +16,7 @@ import (
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dgroup"
@@ -382,7 +383,7 @@ func (f *fakeK8sWatcher) Changed() chan struct{} {
 	return f.notifyCh
 }
 
-func (f *fakeK8sWatcher) FilteredUpdate(_ context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) (bool, error) {
+func (f *fakeK8sWatcher) FilteredUpdate(_ context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*k8sresourcetypes.Unstructured) bool) (bool, error) {
 	byname := map[string][]kates.Object{}
 	resources, newDeltas, err := f.cursor.Get()
 	if err != nil {
@@ -390,7 +391,7 @@ func (f *fakeK8sWatcher) FilteredUpdate(_ context.Context, target interface{}, d
 	}
 	for _, obj := range resources {
 		for _, q := range f.queries {
-			var un *kates.Unstructured
+			var un *k8sresourcetypes.Unstructured
 			err := convert(obj, &un)
 			if err != nil {
 				return false, err

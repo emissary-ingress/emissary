@@ -8,6 +8,10 @@ import (
 	"sync"
 
 	"k8s.io/apimachinery/pkg/api/meta"
+
+	"github.com/datawire/ambassador/v2/pkg/kates/k8shelpers"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourceparts"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 )
 
 // The Accumulator struct is used to efficiently maintain an in-memory copy of kubernetes resources
@@ -60,11 +64,11 @@ type Accumulator struct {
 
 type field struct {
 	query    Query
-	selector Selector
+	selector k8shelpers.LabelSelector
 	mapping  *meta.RESTMapping
 
 	// The values and deltas map are keyed by unKey(*Unstructured)
-	values map[string]*Unstructured
+	values map[string]*k8sresourcetypes.Unstructured
 	// The values map has a true for a new or update object, false for a deleted object.
 	deltas map[string]*Delta
 
@@ -115,17 +119,17 @@ func (dt *DeltaType) UnmarshalJSON(b []byte) error {
 }
 
 type Delta struct {
-	TypeMeta   `json:""`
-	ObjectMeta `json:"metadata,omitempty"`
-	DeltaType  DeltaType `json:"deltaType"`
+	k8sresourceparts.TypeMeta   `json:""`
+	k8sresourceparts.ObjectMeta `json:"metadata,omitempty"`
+	DeltaType                   DeltaType `json:"deltaType"`
 }
 
-func NewDelta(deltaType DeltaType, obj *Unstructured) *Delta {
+func NewDelta(deltaType DeltaType, obj *k8sresourcetypes.Unstructured) *Delta {
 	return newDelta(deltaType, obj)
 }
 
 func NewDeltaFromObject(deltaType DeltaType, obj Object) (*Delta, error) {
-	var un *Unstructured
+	var un *k8sresourcetypes.Unstructured
 	err := convert(obj, &un)
 	if err != nil {
 		return nil, err
@@ -133,14 +137,14 @@ func NewDeltaFromObject(deltaType DeltaType, obj Object) (*Delta, error) {
 	return NewDelta(deltaType, un), nil
 }
 
-func newDelta(deltaType DeltaType, obj *Unstructured) *Delta {
+func newDelta(deltaType DeltaType, obj *k8sresourcetypes.Unstructured) *Delta {
 	// We don't want all of the object, just a subset.
 	return &Delta{
-		TypeMeta: TypeMeta{
+		TypeMeta: k8sresourceparts.TypeMeta{
 			APIVersion: obj.GetAPIVersion(),
 			Kind:       obj.GetKind(),
 		},
-		ObjectMeta: ObjectMeta{
+		ObjectMeta: k8sresourceparts.ObjectMeta{
 			Name:      obj.GetName(),
 			Namespace: obj.GetNamespace(),
 			// Not sure we need this, but it marshals as null if we don't provide it.
@@ -161,7 +165,7 @@ func newAccumulator(ctx context.Context, client *Client, queries ...Query) (*Acc
 		if err != nil {
 			return nil, err
 		}
-		sel, err := ParseSelector(q.LabelSelector)
+		sel, err := k8shelpers.ParseLabelSelector(q.LabelSelector)
 		if err != nil {
 			return nil, err
 		}
@@ -169,7 +173,7 @@ func newAccumulator(ctx context.Context, client *Client, queries ...Query) (*Acc
 			query:    q,
 			mapping:  mapping,
 			selector: sel,
-			values:   make(map[string]*Unstructured),
+			values:   make(map[string]*k8sresourcetypes.Unstructured),
 			deltas:   make(map[string]*Delta),
 		}
 		client.watchRaw(ctx, q, rawUpdateCh, client.cliFor(mapping, q.Namespace))
@@ -231,7 +235,7 @@ func (a *Accumulator) UpdateWithDeltas(ctx context.Context, target interface{}, 
 // The FilteredUpdate method updates the target snapshot with only those resources for which
 // "predicate" returns true. The predicate is only called when objects are added/updated, it is not
 // repeatedly called on objects that have not changed. The predicate must not modify its argument.
-func (a *Accumulator) FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*Delta, predicate func(*Unstructured) bool) (bool, error) {
+func (a *Accumulator) FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*Delta, predicate func(*k8sresourcetypes.Unstructured) bool) (bool, error) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 	return a.update(ctx, reflect.ValueOf(target), deltas, predicate)
@@ -281,7 +285,7 @@ func (a *Accumulator) updateField(
 	name string,
 	field *field,
 	deltas *[]*Delta,
-	predicate func(*Unstructured) bool,
+	predicate func(*k8sresourcetypes.Unstructured) bool,
 ) (bool, error) {
 	if err := a.client.patchWatch(ctx, field); err != nil {
 		return false, err
@@ -312,7 +316,7 @@ func (a *Accumulator) updateField(
 		}
 	}
 
-	var items []*Unstructured
+	var items []*k8sresourcetypes.Unstructured
 	for key, un := range field.values {
 		if a.excluded[key] {
 			continue
@@ -356,7 +360,7 @@ func (a *Accumulator) updateField(
 	return true, nil
 }
 
-func (a *Accumulator) update(ctx context.Context, target reflect.Value, deltas *[]*Delta, predicate func(*Unstructured) bool) (bool, error) {
+func (a *Accumulator) update(ctx context.Context, target reflect.Value, deltas *[]*Delta, predicate func(*k8sresourcetypes.Unstructured) bool) (bool, error) {
 	if deltas != nil {
 		*deltas = nil
 	}

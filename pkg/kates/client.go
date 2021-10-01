@@ -31,12 +31,11 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/kubectl/pkg/polymorphichelpers"
 
-	// k8s types
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	// k8s plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	"github.com/datawire/ambassador/v2/pkg/kates/k8shelpers"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	kates_internal "github.com/datawire/ambassador/v2/pkg/kates_internal"
 	"github.com/datawire/dlib/dlog"
 )
@@ -77,20 +76,20 @@ import (
 //   2. The Accumulator API is guaranteed to bootstrap (i.e. perform an initial List operation) on
 //      all watches prior to notifying the user that resources are available to process.
 type Client struct {
-	config    *ConfigFlags
+	config    *k8shelpers.CLIConfigFlags
 	cli       dynamic.Interface
 	mapper    meta.RESTMapper
 	disco     discovery.CachedDiscoveryInterface
 	mutex     sync.Mutex
-	canonical map[string]*Unstructured
+	canonical map[string]*k8sresourcetypes.Unstructured
 
 	// This is an internal interface for testing, it lets us deliberately introduce delays into the
 	// implementation, e.g. effectively increasing the latency to the api server in a controllable
 	// way and letting us reproduce and test for race conditions far more efficiently than
 	// otherwise.
-	watchAdded   func(*Unstructured, *Unstructured)
-	watchUpdated func(*Unstructured, *Unstructured)
-	watchDeleted func(*Unstructured, *Unstructured)
+	watchAdded   func(*k8sresourcetypes.Unstructured, *k8sresourcetypes.Unstructured)
+	watchUpdated func(*k8sresourcetypes.Unstructured, *k8sresourcetypes.Unstructured)
+	watchDeleted func(*k8sresourcetypes.Unstructured, *k8sresourcetypes.Unstructured)
 }
 
 // The ClientConfig struct holds all the parameters and configuration
@@ -107,19 +106,19 @@ func NewClient(options ClientConfig) (*Client, error) {
 }
 
 func NewClientFromFlagSet(flags *pflag.FlagSet) (*Client, error) {
-	config := NewConfigFlags(false)
+	config := k8shelpers.NewCLIConfigFlags(false)
 
 	// We can disable or enable flags by setting them to
 	// nil/non-nil prior to calling .AddFlags().
 	//
 	// .Username and .Password are already disabled by default in
-	// genericclioptions.NewConfigFlags().
+	// k8shelpers.NewCLIConfigFlags().
 
 	config.AddFlags(flags)
 	return NewClientFromConfigFlags(config)
 }
 
-func NewClientFromConfigFlags(config *ConfigFlags) (*Client, error) {
+func NewClientFromConfigFlags(config *k8shelpers.CLIConfigFlags) (*Client, error) {
 	restconfig, err := config.ToRESTConfig()
 	if err != nil {
 		return nil, err
@@ -140,14 +139,14 @@ func NewClientFromConfigFlags(config *ConfigFlags) (*Client, error) {
 		cli:          cli,
 		mapper:       mapper,
 		disco:        disco,
-		canonical:    make(map[string]*Unstructured),
-		watchAdded:   func(oldObj, newObj *Unstructured) {},
-		watchUpdated: func(oldObj, newObj *Unstructured) {},
-		watchDeleted: func(oldObj, newObj *Unstructured) {},
+		canonical:    make(map[string]*k8sresourcetypes.Unstructured),
+		watchAdded:   func(oldObj, newObj *k8sresourcetypes.Unstructured) {},
+		watchUpdated: func(oldObj, newObj *k8sresourcetypes.Unstructured) {},
+		watchDeleted: func(oldObj, newObj *k8sresourcetypes.Unstructured) {},
 	}, nil
 }
 
-func NewRESTMapper(config *ConfigFlags) (meta.RESTMapper, discovery.CachedDiscoveryInterface, error) {
+func NewRESTMapper(config *k8shelpers.CLIConfigFlags) (meta.RESTMapper, discovery.CachedDiscoveryInterface, error) {
 	// Throttling is scoped to rest.Config, so we use a dedicated
 	// rest.Config for discovery so we can disable throttling for
 	// discovery, but leave it in place for normal requests. This
@@ -238,7 +237,7 @@ func (c *Client) InvalidateCache() error {
 
 // The ServerVersion() method returns a struct with information about
 // the kubernetes api-server version.
-func (c *Client) ServerVersion() (*VersionInfo, error) {
+func (c *Client) ServerVersion() (*k8shelpers.VersionInfo, error) {
 	return c.disco.ServerVersion()
 }
 
@@ -257,7 +256,7 @@ func (c *Client) ServerVersion() (*VersionInfo, error) {
 //      APIresource objects don't.  This lets them save 10s of bytes on an infrequently use API
 //      call!  Anyway, we'll need to fill those in on the returned objects because we're discarding
 //      the grouping.
-func processAPIResourceLists(listsByGV []*metav1.APIResourceList) []APIResource {
+func processAPIResourceLists(listsByGV []*k8shelpers.APIResourceList) []k8shelpers.APIResource {
 	// Do some book-keeping to allow us to pre-allocate the entire list.
 	count := 0
 	for _, list := range listsByGV {
@@ -270,7 +269,7 @@ func processAPIResourceLists(listsByGV []*metav1.APIResourceList) []APIResource 
 	}
 
 	// Build the processed list to return.
-	ret := make([]APIResource, 0, count)
+	ret := make([]k8shelpers.APIResource, 0, count)
 	for _, list := range listsByGV {
 		if list != nil {
 			gv, err := schema.ParseGroupVersion(list.GroupVersion)
@@ -299,7 +298,7 @@ func processAPIResourceLists(listsByGV []*metav1.APIResourceList) []APIResource 
 //
 // If a resource type supports multiple versions, then *only* the preferred version is returned.
 // Use ServerResources to return a list that includes all versions.
-func (c *Client) ServerPreferredResources() ([]APIResource, error) {
+func (c *Client) ServerPreferredResources() ([]k8shelpers.APIResource, error) {
 	// It's possible that an error prevented listing some apigroups, but not all; so process the
 	// output even if there is an error.
 	listsByGV, err := c.disco.ServerPreferredResources()
@@ -310,7 +309,7 @@ func (c *Client) ServerPreferredResources() ([]APIResource, error) {
 //
 // If a resource type supports multiple versions, then a list entry for *each* version is returned.
 // Use ServerPreferredResources to return a list that includes just the preferred version.
-func (c *Client) ServerResources() ([]APIResource, error) {
+func (c *Client) ServerResources() ([]k8shelpers.APIResource, error) {
 	// It's possible that an error prevented listing some apigroups, but not all; so process the
 	// output even if there is an error.
 	_, listsByGV, err := c.disco.ServerGroupsAndResources()
@@ -361,7 +360,7 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 			target <- rawUpdate{query.Name, true, nil, nil}
 		}
 	})
-	informer = cache.NewSharedInformer(lw, &Unstructured{}, 5*time.Minute)
+	informer = cache.NewSharedInformer(lw, &k8sresourcetypes.Unstructured{}, 5*time.Minute)
 	// TODO: uncomment this when we get to kubernetes 1.19. Right now errors will get logged by
 	// klog. With this error handler in place we will log them to our own logger and provide a
 	// more useful error message:
@@ -395,13 +394,13 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 				// race conditions by e.g. introducing sleeps. At some point I'm sure we will want a
 				// nicer prettier set of hooks, but for now all we need is this hack for
 				// better/faster tests.
-				c.watchAdded(nil, obj.(*Unstructured))
+				c.watchAdded(nil, obj.(*k8sresourcetypes.Unstructured))
 				lw.countAddEvent()
-				target <- rawUpdate{query.Name, lw.hasSynced(), nil, obj.(*Unstructured)}
+				target <- rawUpdate{query.Name, lw.hasSynced(), nil, obj.(*k8sresourcetypes.Unstructured)}
 			},
 			UpdateFunc: func(oldObj, newObj interface{}) {
-				old := oldObj.(*Unstructured)
-				new := newObj.(*Unstructured)
+				old := oldObj.(*k8sresourcetypes.Unstructured)
+				new := newObj.(*k8sresourcetypes.Unstructured)
 
 				// This is for testing. It allows us to deliberately increase the probability of
 				// race conditions by e.g. introducing sleeps. At some point I'm sure we will want a
@@ -411,11 +410,11 @@ func (c *Client) watchRaw(ctx context.Context, query Query, target chan rawUpdat
 				target <- rawUpdate{query.Name, lw.hasSynced(), old, new}
 			},
 			DeleteFunc: func(obj interface{}) {
-				var old *Unstructured
+				var old *k8sresourcetypes.Unstructured
 				switch o := obj.(type) {
 				case cache.DeletedFinalStateUnknown:
-					old = o.Obj.(*Unstructured)
-				case *Unstructured:
+					old = o.Obj.(*k8sresourcetypes.Unstructured)
+				case *k8sresourcetypes.Unstructured:
 					old = o
 				}
 
@@ -497,7 +496,7 @@ func (lw *lw) hasSynced() (result bool) {
 
 // List is used by a SharedInformer to get a baseline list of resources
 // that can then be maintained by a watch.
-func (lw *lw) List(opts ListOptions) (runtime.Object, error) {
+func (lw *lw) List(opts k8shelpers.ListOptions) (runtime.Object, error) {
 	// Our SharedInformer will call us every so often. Every time through,
 	// we'll decide whether we can be synchronized, and whether the list was
 	// forbidden.
@@ -544,7 +543,7 @@ func (lw *lw) List(opts ListOptions) (runtime.Object, error) {
 	return result, err
 }
 
-func (lw *lw) Watch(opts ListOptions) (watch.Interface, error) {
+func (lw *lw) Watch(opts k8shelpers.ListOptions) (watch.Interface, error) {
 	lw.once.Do(func() { lw.synced(lw) })
 	opts.FieldSelector = lw.query.FieldSelector
 	opts.LabelSelector = lw.query.LabelSelector
@@ -571,14 +570,14 @@ func (lw *lw) Watch(opts ListOptions) (watch.Interface, error) {
 
 func (c *Client) cliFor(mapping *meta.RESTMapping, namespace string) dynamic.ResourceInterface {
 	cli := c.cli.Resource(mapping.Resource)
-	if mapping.Scope.Name() == meta.RESTScopeNameNamespace && namespace != NamespaceAll {
+	if mapping.Scope.Name() == meta.RESTScopeNameNamespace && namespace != k8shelpers.NamespaceAll {
 		return cli.Namespace(namespace)
 	} else {
 		return cli
 	}
 }
 
-func (c *Client) cliForResource(resource *Unstructured) (dynamic.ResourceInterface, error) {
+func (c *Client) cliForResource(resource *k8sresourcetypes.Unstructured) (dynamic.ResourceInterface, error) {
 	mapping, err := c.mappingFor(resource.GroupVersionKind().GroupKind().String())
 	if err != nil {
 		return nil, err
@@ -660,12 +659,12 @@ func (c *Client) List(ctx context.Context, query Query, target interface{}) erro
 		return err
 	}
 
-	items := make([]*Unstructured, 0)
+	items := make([]*k8sresourcetypes.Unstructured, 0)
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
 		cli := c.cliFor(mapping, query.Namespace)
-		res, err := cli.List(ctx, ListOptions{
+		res, err := cli.List(ctx, k8shelpers.ListOptions{
 			FieldSelector: query.FieldSelector,
 			LabelSelector: query.LabelSelector,
 		})
@@ -692,13 +691,13 @@ func (c *Client) List(ctx context.Context, query Query, target interface{}) erro
 // ==
 
 func (c *Client) Get(ctx context.Context, resource interface{}, target interface{}) error {
-	var un Unstructured
+	var un k8sresourcetypes.Unstructured
 	err := convert(resource, &un)
 	if err != nil {
 		return err
 	}
 
-	var res *Unstructured
+	var res *k8sresourcetypes.Unstructured
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
@@ -706,7 +705,7 @@ func (c *Client) Get(ctx context.Context, resource interface{}, target interface
 		if err != nil {
 			return err
 		}
-		res, err = cli.Get(ctx, un.GetName(), GetOptions{})
+		res, err = cli.Get(ctx, un.GetName(), k8shelpers.GetOptions{})
 		if err != nil {
 			return err
 		}
@@ -725,13 +724,13 @@ func (c *Client) Get(ctx context.Context, resource interface{}, target interface
 // ==
 
 func (c *Client) Create(ctx context.Context, resource interface{}, target interface{}) error {
-	var un Unstructured
+	var un k8sresourcetypes.Unstructured
 	err := convert(resource, &un)
 	if err != nil {
 		return err
 	}
 
-	var res *Unstructured
+	var res *k8sresourcetypes.Unstructured
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
@@ -739,7 +738,7 @@ func (c *Client) Create(ctx context.Context, resource interface{}, target interf
 		if err != nil {
 			return err
 		}
-		res, err = cli.Create(ctx, &un, CreateOptions{})
+		res, err = cli.Create(ctx, &un, k8shelpers.CreateOptions{})
 		if err != nil {
 			return err
 		}
@@ -756,7 +755,7 @@ func (c *Client) Create(ctx context.Context, resource interface{}, target interf
 // ==
 
 func (c *Client) Update(ctx context.Context, resource interface{}, target interface{}) error {
-	var un Unstructured
+	var un k8sresourcetypes.Unstructured
 	err := convert(resource, &un)
 	if err != nil {
 		return err
@@ -764,7 +763,7 @@ func (c *Client) Update(ctx context.Context, resource interface{}, target interf
 
 	prev := un.GetResourceVersion()
 
-	var res *Unstructured
+	var res *k8sresourcetypes.Unstructured
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
@@ -772,7 +771,7 @@ func (c *Client) Update(ctx context.Context, resource interface{}, target interf
 		if err != nil {
 			return err
 		}
-		res, err = cli.Update(ctx, &un, UpdateOptions{})
+		res, err = cli.Update(ctx, &un, k8shelpers.UpdateOptions{})
 		if err != nil {
 			return err
 		}
@@ -790,8 +789,8 @@ func (c *Client) Update(ctx context.Context, resource interface{}, target interf
 
 // ==
 
-func (c *Client) Patch(ctx context.Context, resource interface{}, pt PatchType, data []byte, target interface{}) error {
-	var un Unstructured
+func (c *Client) Patch(ctx context.Context, resource interface{}, pt k8shelpers.PatchType, data []byte, target interface{}) error {
+	var un k8sresourcetypes.Unstructured
 	err := convert(resource, &un)
 	if err != nil {
 		return err
@@ -799,7 +798,7 @@ func (c *Client) Patch(ctx context.Context, resource interface{}, pt PatchType, 
 
 	prev := un.GetResourceVersion()
 
-	var res *Unstructured
+	var res *k8sresourcetypes.Unstructured
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
@@ -807,7 +806,7 @@ func (c *Client) Patch(ctx context.Context, resource interface{}, pt PatchType, 
 		if err != nil {
 			return err
 		}
-		res, err = cli.Patch(ctx, un.GetName(), pt, data, PatchOptions{})
+		res, err = cli.Patch(ctx, un.GetName(), pt, data, k8shelpers.PatchOptions{})
 		if err != nil {
 			return err
 		}
@@ -830,13 +829,13 @@ func (c *Client) Upsert(ctx context.Context, resource interface{}, source interf
 		resource = source
 	}
 
-	var un Unstructured
+	var un k8sresourcetypes.Unstructured
 	err := convert(resource, &un)
 	if err != nil {
 		return err
 	}
 
-	var unsrc Unstructured
+	var unsrc k8sresourcetypes.Unstructured
 	err = convert(source, &unsrc)
 	if err != nil {
 		return err
@@ -845,7 +844,7 @@ func (c *Client) Upsert(ctx context.Context, resource interface{}, source interf
 
 	prev := un.GetResourceVersion()
 
-	var res *Unstructured
+	var res *k8sresourcetypes.Unstructured
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
@@ -856,9 +855,9 @@ func (c *Client) Upsert(ctx context.Context, resource interface{}, source interf
 		create := false
 		rsrc := &un
 		if prev == "" {
-			stored, err := cli.Get(ctx, un.GetName(), GetOptions{})
+			stored, err := cli.Get(ctx, un.GetName(), k8shelpers.GetOptions{})
 			if err != nil {
-				if IsNotFound(err) {
+				if k8shelpers.IsNotFound(err) {
 					create = true
 					rsrc = &un
 				} else {
@@ -870,13 +869,13 @@ func (c *Client) Upsert(ctx context.Context, resource interface{}, source interf
 			}
 		}
 		if create {
-			res, err = cli.Create(ctx, rsrc, CreateOptions{})
+			res, err = cli.Create(ctx, rsrc, k8shelpers.CreateOptions{})
 		} else {
 			// XXX: need to clean up the conflict case and add a test for it
 		update:
-			res, err = cli.Update(ctx, rsrc, UpdateOptions{})
-			if err != nil && IsConflict(err) {
-				stored, err := cli.Get(ctx, un.GetName(), GetOptions{})
+			res, err = cli.Update(ctx, rsrc, k8shelpers.UpdateOptions{})
+			if err != nil && k8shelpers.IsConflict(err) {
+				stored, err := cli.Get(ctx, un.GetName(), k8shelpers.GetOptions{})
 				if err != nil {
 					return err
 				}
@@ -903,7 +902,7 @@ func (c *Client) Upsert(ctx context.Context, resource interface{}, source interf
 // ==
 
 func (c *Client) UpdateStatus(ctx context.Context, resource interface{}, target interface{}) error {
-	var un Unstructured
+	var un k8sresourcetypes.Unstructured
 	err := convert(resource, &un)
 	if err != nil {
 		return err
@@ -911,7 +910,7 @@ func (c *Client) UpdateStatus(ctx context.Context, resource interface{}, target 
 
 	prev := un.GetResourceVersion()
 
-	var res *Unstructured
+	var res *k8sresourcetypes.Unstructured
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
@@ -919,7 +918,7 @@ func (c *Client) UpdateStatus(ctx context.Context, resource interface{}, target 
 		if err != nil {
 			return err
 		}
-		res, err = cli.UpdateStatus(ctx, &un, UpdateOptions{})
+		res, err = cli.UpdateStatus(ctx, &un, k8shelpers.UpdateOptions{})
 		if err != nil {
 			return err
 		}
@@ -938,7 +937,7 @@ func (c *Client) UpdateStatus(ctx context.Context, resource interface{}, target 
 // ==
 
 func (c *Client) Delete(ctx context.Context, resource interface{}, target interface{}) error {
-	var un Unstructured
+	var un k8sresourcetypes.Unstructured
 	err := convert(resource, &un)
 	if err != nil {
 		return err
@@ -951,7 +950,7 @@ func (c *Client) Delete(ctx context.Context, resource interface{}, target interf
 		if err != nil {
 			return err
 		}
-		err = cli.Delete(ctx, un.GetName(), DeleteOptions{})
+		err = cli.Delete(ctx, un.GetName(), k8shelpers.DeleteOptions{})
 		if err != nil {
 			return err
 		}
@@ -1005,7 +1004,7 @@ func (c *Client) patchWatch(ctx context.Context, field *field) error {
 				field.deltas[key] = newDelta(ObjectUpdate, can)
 			}
 		} else if can != nil && can.GroupVersionKind() == field.mapping.GroupVersionKind &&
-			field.selector.Matches(LabelSet(can.GetLabels())) {
+			field.selector.Matches(k8shelpers.LabelSet(can.GetLabels())) {
 			// An object that was created locally is not yet present in the watch result, so we add it.
 			dlog.Println(ctx, "Patching add", field.mapping.GroupVersionKind.Kind, key)
 			field.values[key] = can
@@ -1061,7 +1060,7 @@ func parseLogLine(line string) (timestamp string, output string) {
 //   }
 //
 // The above code will print log output from all 3 pods.
-func (c *Client) PodLogs(ctx context.Context, pod *Pod, options *PodLogOptions, events chan<- LogEvent) error {
+func (c *Client) PodLogs(ctx context.Context, pod *k8sresourcetypes.Pod, options *k8shelpers.PodLogOptions, events chan<- LogEvent) error {
 	// always use timestamps
 	options.Timestamps = true
 	timeout := 10 * time.Second
@@ -1135,19 +1134,19 @@ func convert(in interface{}, out interface{}) error {
 	return kates_internal.Convert(in, out)
 }
 
-func unKey(u *Unstructured) string {
+func unKey(u *k8sresourcetypes.Unstructured) string {
 	return string(u.GetUID())
 }
 
-func config(options ClientConfig) *ConfigFlags {
+func config(options ClientConfig) *k8shelpers.CLIConfigFlags {
 	flags := pflag.NewFlagSet("KubeInfo", pflag.ContinueOnError)
-	result := NewConfigFlags(false)
+	result := k8shelpers.NewCLIConfigFlags(false)
 
 	// We can disable or enable flags by setting them to
 	// nil/non-nil prior to calling .AddFlags().
 	//
 	// .Username and .Password are already disabled by default in
-	// genericclioptions.NewConfigFlags().
+	// k8shelpers.NewCLIConfigFlags().
 
 	result.AddFlags(flags)
 

@@ -7,14 +7,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 )
 
-func getUnstructured(objStr string) *kates.Unstructured {
+func getUnstructured(objStr string) *k8sresourcetypes.Unstructured {
 	var obj map[string]interface{}
 	_ = json.Unmarshal([]byte(objStr), &obj)
-	unstructured := &kates.Unstructured{}
+	unstructured := &k8sresourcetypes.Unstructured{}
 	unstructured.SetUnstructuredContent(obj)
 	return unstructured
 }
@@ -28,7 +28,7 @@ var sanitizeTests = []struct {
 		testName: "secrets",
 		unsanitized: &snapshotTypes.Snapshot{
 			Kubernetes: &snapshotTypes.KubernetesSnapshot{
-				Secrets: []*kates.Secret{
+				Secrets: []*k8sresourcetypes.Secret{
 					{},
 					{
 						TypeMeta: metav1.TypeMeta{
@@ -71,7 +71,7 @@ var sanitizeTests = []struct {
 		},
 		expectedSanitized: &snapshotTypes.Snapshot{
 			Kubernetes: &snapshotTypes.KubernetesSnapshot{
-				Secrets: []*kates.Secret{
+				Secrets: []*k8sresourcetypes.Secret{
 					{
 						Data: map[string][]byte{},
 					},
@@ -112,7 +112,7 @@ var sanitizeTests = []struct {
 	{
 		testName: "invalid",
 		unsanitized: &snapshotTypes.Snapshot{
-			Invalid: []*kates.Unstructured{
+			Invalid: []*k8sresourcetypes.Unstructured{
 				getUnstructured(`
                                         {
                                                 "kind":"WeirdKind",
@@ -128,7 +128,7 @@ var sanitizeTests = []struct {
 			},
 		},
 		expectedSanitized: &snapshotTypes.Snapshot{
-			Invalid: []*kates.Unstructured{
+			Invalid: []*k8sresourcetypes.Unstructured{
 				getUnstructured(`
                                         {
                                                 "kind":"WeirdKind",

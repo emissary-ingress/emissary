@@ -16,6 +16,7 @@ import (
 	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
 	"github.com/datawire/ambassador/v2/pkg/gateway"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/ambassador/v2/pkg/watt"
 	"github.com/datawire/dlib/dlog"
@@ -365,7 +366,7 @@ func (sh *SnapshotHolder) K8sUpdate(
 		var changed bool
 		var err error
 		katesUpdateTimer.Time(func() {
-			changed, err = watcher.FilteredUpdate(ctx, sh.k8sSnapshot, &deltas, func(un *kates.Unstructured) bool {
+			changed, err = watcher.FilteredUpdate(ctx, sh.k8sSnapshot, &deltas, func(un *k8sresourcetypes.Unstructured) bool {
 				return sh.validator.isValid(ctx, un)
 			})
 		})

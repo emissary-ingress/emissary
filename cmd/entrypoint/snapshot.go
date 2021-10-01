@@ -7,6 +7,7 @@ import (
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
@@ -14,7 +15,7 @@ import (
 // NewKubernetesSnapshot creates a new, empty set of Ambassador inputs.
 func NewKubernetesSnapshot() *snapshotTypes.KubernetesSnapshot {
 	a := &snapshotTypes.KubernetesSnapshot{}
-	a.FSSecrets = make(map[snapshotTypes.SecretRef]*kates.Secret)
+	a.FSSecrets = make(map[snapshotTypes.SecretRef]*k8sresourcetypes.Secret)
 
 	return a
 }

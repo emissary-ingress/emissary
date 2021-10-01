@@ -191,10 +191,10 @@ type IstioCert struct {
 // XXX This will morph into a more general "internally-generated resource"
 // thing later.
 type IstioCertUpdate struct {
-	Op        string        // "update" or "delete"
-	Name      string        // secret name
-	Namespace string        // secret namespace
-	Secret    *kates.Secret // IstioCert secret
+	Op        string                   // "update" or "delete"
+	Name      string                   // secret name
+	Namespace string                   // secret namespace
+	Secret    *k8sresourcetypes.Secret // IstioCert secret
 }
 
 // NewIstioCert instantiates an IstioCert to manage a certificate that Istio
@@ -209,7 +209,7 @@ type IstioCertUpdate struct {
 // XXX Nomenclature is a little odd here. Istio is writing a _certificate_,
 // but we're supplying it to the rest of Ambassador as a thing that looks
 // like a Kubernetes TLS _Secret_ -- so we call this class an IstioCert,
-// but the thing it's posting to the updateChannel includes a kates.Secret.
+// but the thing it's posting to the updateChannel includes a k8sresourcetypes.Secret.
 // Names are hard.
 func NewIstioCert(dir string, name string, namespace string, updateChannel chan IstioCertUpdate) *IstioCert {
 	icert := &IstioCert{
@@ -404,9 +404,9 @@ func (icert *IstioCert) HandleEvent(ctx context.Context, name string, deleted bo
 	}
 }
 
-// Secret generates a kates.Secret for this IstioCert. Since this
+// Secret generates a k8sresourcetypes.Secret for this IstioCert. Since this
 // involves reading PEM, it can fail, so it logs and returns a status.
-func (icert *IstioCert) Secret(ctx context.Context) (*kates.Secret, bool) {
+func (icert *IstioCert) Secret(ctx context.Context) (*k8sresourcetypes.Secret, bool) {
 	privatePEM, privateOK := icert.readPEM(ctx, icert.dir, "key.pem")
 	publicPEM, publicOK := icert.readPEM(ctx, icert.dir, "cert-chain.pem")
 
@@ -415,7 +415,7 @@ func (icert *IstioCert) Secret(ctx context.Context) (*kates.Secret, bool) {
 		return nil, false
 	}
 
-	newSecret := &kates.Secret{
+	newSecret := &k8sresourcetypes.Secret{
 		TypeMeta: kates.TypeMeta{
 			APIVersion: "v1",
 			Kind:       "Secret",
@@ -424,7 +424,7 @@ func (icert *IstioCert) Secret(ctx context.Context) (*kates.Secret, bool) {
 			Name:      icert.name,
 			Namespace: icert.namespace,
 		},
-		Type: kates.SecretTypeTLS,
+		Type: k8sresourcetypes.SecretTypeTLS,
 		Data: map[string][]byte{
 			"tls.key": privatePEM,
 			"tls.crt": publicPEM,

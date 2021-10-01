@@ -16,6 +16,7 @@ import (
 
 	"github.com/datawire/ambassador/v2/pkg/api/agent"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8sresourcetypes"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
@@ -204,7 +205,7 @@ func getAPIKeyValue(configValue string, configHadValue bool) string {
 // so if a secret exists, read from that. then, check if a config map exists, and read the value
 // from that. If neither a secret or a configmap exists, use the value from the environment that we
 // stored on startup.
-func (a *Agent) handleAPIKeyConfigChange(ctx context.Context, secrets []kates.Secret, configMaps []kates.ConfigMap) {
+func (a *Agent) handleAPIKeyConfigChange(ctx context.Context, secrets []k8sresourcetypes.Secret, configMaps []k8sresourcetypes.ConfigMap) {
 	// reset the connection so we use a new api key (or break the connection if the api key was
 	// unset). The agent will reset the connection the next time it tries to send a report
 	resetComm := func(newKey string, oldKey string, a *Agent) {
@@ -323,16 +324,16 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 
 type accumulator interface {
 	Changed() chan struct{}
-	FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) (bool, error)
+	FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*k8sresourcetypes.Unstructured) bool) (bool, error)
 }
 
 func (a *Agent) waitForAPIKey(ctx context.Context, configAccumulator accumulator) error {
-	isValid := func(un *kates.Unstructured) bool {
+	isValid := func(un *k8sresourcetypes.Unstructured) bool {
 		return true
 	}
 	configSnapshot := struct {
-		Secrets    []kates.Secret
-		ConfigMaps []kates.ConfigMap
+		Secrets    []k8sresourcetypes.Secret
+		ConfigMaps []k8sresourcetypes.ConfigMap
 	}{}
 	// wait until the user installs an api key
 	for a.ambassadorAPIKey == "" {
@@ -360,7 +361,7 @@ func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator
 	// for the watch
 	// we're not watching CRDs or anything special, so i'm pretty sure it's okay just to say all
 	// the pods are valid
-	isValid := func(un *kates.Unstructured) bool {
+	isValid := func(un *k8sresourcetypes.Unstructured) bool {
 		return true
 	}
 	ambHost, err := parseAmbassadorAdminHost(snapshotURL)
@@ -375,8 +376,8 @@ func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator
 	rolloutStore := NewRolloutStore()
 	coreSnapshot := CoreSnapshot{}
 	configSnapshot := struct {
-		Secrets    []kates.Secret
-		ConfigMaps []kates.ConfigMap
+		Secrets    []k8sresourcetypes.Secret
+		ConfigMaps []k8sresourcetypes.ConfigMap
 	}{}
 	dlog.Info(ctx, "Beginning to watch and report resources to ambassador cloud")
 	for {

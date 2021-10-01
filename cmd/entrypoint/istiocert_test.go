@@ -105,7 +105,7 @@ func (m *icertMetadata) checkNoSecret() {
 }
 
 func (m *icertMetadata) checkSecret(namespace string, publicPEM string, privatePEM string) {
-	wantedSecret := &kates.Secret{
+	wantedSecret := &k8sresourcetypes.Secret{
 		TypeMeta: kates.TypeMeta{
 			APIVersion: "v1",
 			Kind:       "Secret",
@@ -114,7 +114,7 @@ func (m *icertMetadata) checkSecret(namespace string, publicPEM string, privateP
 			Name:      "istio-test",
 			Namespace: namespace,
 		},
-		Type: kates.SecretTypeTLS,
+		Type: k8sresourcetypes.SecretTypeTLS,
 		Data: map[string][]byte{
 			"tls.key": []byte(privatePEM),
 			"tls.crt": []byte(publicPEM),
