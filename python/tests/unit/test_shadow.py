@@ -140,8 +140,8 @@ def test_shadow_v3():
 
     yaml = '''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: ambassador-listener-8080
   namespace: default
@@ -153,8 +153,8 @@ spec:
     namespace:
       from: ALL
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: httpbin-mapping
   namespace: default
@@ -163,8 +163,8 @@ spec:
   hostname: "*"
   prefix: /httpbin/
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: httpbin-mapping-shadow
   namespace: default
@@ -208,8 +208,8 @@ def test_shadow_v2():
 
     yaml = '''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: ambassador-listener-8080
   namespace: default
@@ -221,8 +221,8 @@ spec:
     namespace:
       from: ALL
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: httpbin-mapping
   namespace: default
@@ -231,8 +231,8 @@ spec:
   hostname: "*"
   prefix: /httpbin/
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: httpbin-mapping-shadow
   namespace: default

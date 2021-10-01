@@ -58,7 +58,6 @@ type AuthServiceSpec struct {
 	StatusOnError               *AuthServiceStatusOnError `json:"status_on_error,omitempty"`
 	// +kubebuilder:validation:Enum={"v2","v3"}
 	ProtocolVersion string `json:"protocol_version,omitempty"`
-	StatsName       string `json:"stats_name,omitempty"`
 }
 
 // AuthService is the Schema for the authservices API

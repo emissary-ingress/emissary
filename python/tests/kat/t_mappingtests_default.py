@@ -27,8 +27,8 @@ name:  ambassador
 config:
   strip_matching_host_port: true
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
@@ -60,8 +60,8 @@ class MergeSlashesDisabled(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/status/
@@ -96,8 +96,8 @@ name:  ambassador
 config:
   merge_slashes: true
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/status/
@@ -125,8 +125,8 @@ class RejectRequestsWithEscapedSlashesDisabled(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/status/
@@ -164,8 +164,8 @@ name:  ambassador
 config:
   reject_requests_with_escaped_slashes: true
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/status/
@@ -209,8 +209,8 @@ config:
         remove_request_headers:
         - x-evil-header
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name: {self.target_add_linkerd_header_only.path.k8s}
 hostname: "*"
 prefix: /target_add_linkerd_header_only/
@@ -218,16 +218,16 @@ service: {self.target_add_linkerd_header_only.path.fqdn}
 add_request_headers: {{}}
 remove_request_headers: []
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name: {self.target_no_header.path.k8s}
 hostname: "*"
 prefix: /target_no_header/
 service: {self.target_no_header.path.fqdn}
 add_linkerd_headers: false
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name: {self.target.path.k8s}
 hostname: "*"
 prefix: /target/
@@ -288,24 +288,24 @@ class SameMappingDifferentNamespaces(AmbassadorTest):
             namespace_manifest('same-mapping-2') + \
             self.format('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.target.path.k8s}
   namespace: same-mapping-1
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /{self.name}-1/
   service: {self.target.path.fqdn}.default
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.target.path.k8s}
   namespace: same-mapping-2
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /{self.name}-2/
   service: {self.target.path.fqdn}.default
@@ -333,12 +333,12 @@ spec:
   type: ExternalName
   externalName: httpbin.default.svc.cluster.local
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.target.path.k8s}
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /{self.name}-1/
   service: thisisaverylongservicenameoverwithsixythreecharacters123456789

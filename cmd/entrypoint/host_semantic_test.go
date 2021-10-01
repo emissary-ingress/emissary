@@ -17,10 +17,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func getExpected(expectedFile string, inputObjects []kates.Object) ([]testutils.RenderedListener, []v3alpha1.AmbassadorMapping, []string) {
+func getExpected(expectedFile string, inputObjects []kates.Object) ([]testutils.RenderedListener, []v3alpha1.Mapping, []string) {
 	// Figure out all the mappings and clusters we'll need.
 	neededClusters := []string{}
-	neededMappings := []v3alpha1.AmbassadorMapping{}
+	neededMappings := []v3alpha1.Mapping{}
 
 	// Read the expected rendering from a file.
 	content, err := ioutil.ReadFile(expectedFile)
@@ -40,7 +40,7 @@ func getExpected(expectedFile string, inputObjects []kates.Object) ([]testutils.
 
 	for _, obj := range inputObjects {
 		// Skip things that aren't Mappings.
-		mapping, ok := obj.(*v3alpha1.AmbassadorMapping)
+		mapping, ok := obj.(*v3alpha1.Mapping)
 
 		if !ok {
 			continue

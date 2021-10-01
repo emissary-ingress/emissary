@@ -28,12 +28,12 @@ spec:
         response_handle: headers():add("Lua-Scripts-Enabled", "$LUA_SCRIPTS_ENABLED")
       end
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: lua-target-mapping
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /target/
   service: {self.target.path.fqdn}

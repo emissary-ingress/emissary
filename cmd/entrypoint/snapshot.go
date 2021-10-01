@@ -23,19 +23,19 @@ func NewKubernetesSnapshot() *snapshotTypes.KubernetesSnapshot {
 // GetAmbId extracts the AmbassadorId from the kubernetes resource.
 func GetAmbId(ctx context.Context, resource kates.Object) amb.AmbassadorID {
 	switch r := resource.(type) {
-	case *v3alpha1.AmbassadorHost:
+	case *v3alpha1.Host:
 		var id amb.AmbassadorID
 		if r.Spec != nil {
 			if len(r.Spec.AmbassadorID) > 0 {
-				id = r.Spec.AmbassadorID
+				id = amb.AmbassadorID(r.Spec.AmbassadorID)
 			}
 		}
 		return id
 
-	case *v3alpha1.AmbassadorMapping:
-		return r.Spec.AmbassadorID
-	case *v3alpha1.AmbassadorTCPMapping:
-		return r.Spec.AmbassadorID
+	case *v3alpha1.Mapping:
+		return amb.AmbassadorID(r.Spec.AmbassadorID)
+	case *v3alpha1.TCPMapping:
+		return amb.AmbassadorID(r.Spec.AmbassadorID)
 	case *amb.Module:
 		return r.Spec.AmbassadorID
 	case *amb.TLSContext:

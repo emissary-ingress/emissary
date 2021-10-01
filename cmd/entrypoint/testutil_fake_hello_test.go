@@ -227,7 +227,7 @@ func TestFakeHelloConsul(t *testing.T) {
 	assert.Equal(t, "consul-server.default:8500", snap.Kubernetes.ConsulResolvers[0].Spec.Address)
 
 	// Check that our deltas are what we expect.
-	assert.Equal(t, []string{"add AmbassadorMapping hello", "add AmbassadorTCPMapping hello-tcp", "add ConsulResolver consul-dc1"}, deltaSummary(snap))
+	assert.Equal(t, []string{"add ConsulResolver consul-dc1", "add Mapping hello", "add TCPMapping hello-tcp"}, deltaSummary(snap))
 
 	// Create a predicate that will recognize the cluster we care about. The surjection from
 	// Mappings to clusters is a bit opaque, so we just look for a cluster that contains the name

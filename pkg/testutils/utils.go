@@ -72,10 +72,10 @@ func GlobMatch(what string, text string, pattern string, regex bool) (bool, stri
 	return rc, authority, authorityMatch
 }
 
-func HostMatch(mapping v3alpha1.AmbassadorMapping, host v3alpha1.AmbassadorHost) (bool, string, string) {
+func HostMatch(mapping v3alpha1.Mapping, host v3alpha1.Host) (bool, string, string) {
 	hostName := host.Spec.Hostname
-	mappingHost := mapping.Spec.Host
-	mappingHostRegexPtr := mapping.Spec.HostRegex
+	mappingHost := mapping.Spec.DeprecatedHost
+	mappingHostRegexPtr := mapping.Spec.DeprecatedHostRegex
 	mappingHostRegex := false
 
 	if mappingHostRegexPtr != nil {

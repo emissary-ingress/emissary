@@ -1300,7 +1300,7 @@ class Runner:
                         add_cleartext_host = getattr(n, 'edge_stack_cleartext_host', False)
 
                         if add_default_http_listener:
-                            # print(f"{n.path.k8s} adding default HTTP AmbassadorListener")
+                            # print(f"{n.path.k8s} adding default HTTP Listener")
                             yaml += default_listener_manifest % {
                                 "namespace": nsp,
                                 "port": 8080,
@@ -1309,7 +1309,7 @@ class Runner:
                             }
 
                         if add_default_https_listener:
-                            # print(f"{n.path.k8s} adding default HTTPS AmbassadorListener")
+                            # print(f"{n.path.k8s} adding default HTTPS Listener")
                             yaml += default_listener_manifest % {
                                 "namespace": nsp,
                                 "port": 8443,
@@ -1545,7 +1545,14 @@ class Runner:
             if not crd:
                 continue
 
-            crd["spec"].pop("validation", None)
+            # We can't strip the schema validation from apiextensions.k8s.io/v1 CRDs because it is
+            # required; otherwise the API server would refuse to create the CRD, telling us:
+            #
+            #     CustomResourceDefinition.apiextensions.k8s.io "…" is invalid: spec.versions[0].schema.openAPIV3Schema: Required value: schemas are required
+            if crd["apiVersion"] != "apiextensions.k8s.io/v1":
+                crd["spec"].pop("validation", None)
+                for version in crd["spec"]["versions"]:
+                    version.pop("schema", None)
             stripped_crds.append(crd)
 
         final_crds = pyyaml.dump_all(stripped_crds, Dumper=pyyaml_dumper)

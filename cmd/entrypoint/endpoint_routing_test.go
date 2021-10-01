@@ -45,8 +45,8 @@ func TestEndpointRoutingMappingAnnotations(t *testing.T) {
 	svc.ObjectMeta.Annotations = map[string]string{
 		"getambassador.io/config": `
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name: foo
 prefix: /foo
 service: foo
@@ -147,8 +147,8 @@ func TestEndpointRoutingMappingCreation(t *testing.T) {
 	f.AssertEndpointsEmpty(timeout)
 	f.UpsertYAML(`
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: foo
   namespace: default
@@ -201,7 +201,7 @@ func HasEndpoints(path string) func(endpoints *ambex.Endpoints) bool {
 
 func makeMapping(namespace, name, prefix, service, resolver string) *v2.Mapping {
 	return &v2.Mapping{
-		TypeMeta:   kates.TypeMeta{Kind: "AmbassadorMapping"},
+		TypeMeta:   kates.TypeMeta{Kind: "Mapping"},
 		ObjectMeta: kates.ObjectMeta{Namespace: namespace, Name: name},
 		Spec: v2.MappingSpec{
 			Prefix:   prefix,

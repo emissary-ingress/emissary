@@ -1,9 +1,5 @@
 package v2
 
-// This is the roundtrip test for getambassador.io/v2, so it doesn't
-// test any CRDs that are only in getambassador.io/v3alpha1 -- those
-// resources have their own roundtrip test.
-
 import (
 	"encoding/json"
 	"io/ioutil"

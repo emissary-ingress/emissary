@@ -72,8 +72,8 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tls_target_mapping
 hostname: "*"
 prefix: /tls-target/
@@ -125,8 +125,8 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tls_target_mapping
 hostname: "*"
 prefix: /tls-target/
@@ -190,8 +190,8 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tls_target_mapping
 hostname: "*"
 prefix: /tls-target/
@@ -232,12 +232,12 @@ class XFPRedirect(AmbassadorTest):
     def manifests(self):
         return self.format('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: ambassador-listener-8080
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   port: 8080
   protocol: HTTP
   securityModel: XFP
@@ -246,12 +246,12 @@ spec:
     namespace:
       from: ALL
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: weird-xfp-test-host
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   requestPolicy:
     insecure:
       action: Redirect
@@ -265,8 +265,8 @@ name: ambassador
 config:
   use_remote_address: false
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/

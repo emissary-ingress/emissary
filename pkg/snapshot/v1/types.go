@@ -62,12 +62,12 @@ type KubernetesSnapshot struct {
 	Endpoints      []*kates.Endpoints    `json:"Endpoints"`
 
 	// ambassador resources
-	Listeners   []*ambv3alpha1.AmbassadorListener   `json:"Listener"`
-	Hosts       []*ambv3alpha1.AmbassadorHost       `json:"Host"`
-	Mappings    []*ambv3alpha1.AmbassadorMapping    `json:"Mapping"`
-	TCPMappings []*ambv3alpha1.AmbassadorTCPMapping `json:"TCPMapping"`
-	Modules     []*amb.Module                       `json:"Module"`
-	TLSContexts []*amb.TLSContext                   `json:"TLSContext"`
+	Listeners   []*ambv3alpha1.Listener   `json:"Listener"`
+	Hosts       []*ambv3alpha1.Host       `json:"Host"`
+	Mappings    []*ambv3alpha1.Mapping    `json:"Mapping"`
+	TCPMappings []*ambv3alpha1.TCPMapping `json:"TCPMapping"`
+	Modules     []*amb.Module             `json:"Module"`
+	TLSContexts []*amb.TLSContext         `json:"TLSContext"`
 
 	// plugin services
 	AuthServices      []*amb.AuthService      `json:"AuthService"`
@@ -134,10 +134,10 @@ type APIDoc struct {
 // into the correct fields in KubernetesSnapshot
 func (a *KubernetesSnapshot) UnmarshalJSON(data []byte) error {
 	legacyK8sTranslator := struct {
-		LegacyModeListeners   []*ambv3alpha1.AmbassadorListener   `json:"AmbassadorListener"`
-		LegacyModeHosts       []*ambv3alpha1.AmbassadorHost       `json:"AmbassadorHost"`
-		LegacyModeMappings    []*ambv3alpha1.AmbassadorMapping    `json:"AmbassadorMapping"`
-		LegacyModeTCPMappings []*ambv3alpha1.AmbassadorTCPMapping `json:"AmbassadorTCPMapping"`
+		LegacyModeListeners   []*ambv3alpha1.Listener   `json:"Listener"`
+		LegacyModeHosts       []*ambv3alpha1.Host       `json:"Host"`
+		LegacyModeMappings    []*ambv3alpha1.Mapping    `json:"Mapping"`
+		LegacyModeTCPMappings []*ambv3alpha1.TCPMapping `json:"TCPMapping"`
 	}{}
 
 	if err := json.Unmarshal(data, &legacyK8sTranslator); err != nil {

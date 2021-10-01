@@ -82,14 +82,14 @@ class Config:
     StorageByKind: ClassVar[Dict[str, str]] = {
         'authservice': "auth_configs",
         'consulresolver': "resolvers",
-        'ambassadorhost': "hosts",
-        'ambassadorlistener': "listeners",
-        'ambassadormapping': "mappings",
+        'host': "hosts",
+        'listener': "listeners",
+        'mapping': "mappings",
         'kubernetesendpointresolver': "resolvers",
         'kubernetesserviceresolver': "resolvers",
         'ratelimitservice': "ratelimit_configs",
         'devportal': "devportals",
-        'ambassadortcpmapping': "tcpmappings",
+        'tcpmapping': "tcpmappings",
         'tlscontext': "tls_contexts",
         'tracingservice': "tracing_configs",
         'logservice': "log_services",
@@ -466,7 +466,7 @@ class Config:
 
         # OK. If it really starts with getambassador.io/, we're good, and we can strip
         # that off to make comparisons and keying easier.
-        if apiVersion.startswith("getambassador.io/") or apiVersion.startswith("x.getambassador.io/"):
+        if apiVersion.startswith("getambassador.io/"):
             is_ambassador = True
             apiVersion = apiVersion.split('/')[1]
         elif apiVersion.startswith('networking.internal.knative.dev'):
@@ -600,7 +600,7 @@ class Config:
     def cannot_validate(self, apiVersion: str, kind: str) -> RichStatus:
         self.logger.debug(f"Cannot validate getambassador.io/{apiVersion} {kind}")
 
-        return RichStatus.OK(msg="Not validating getambassador.io/{apiVersion} {kind}")
+        return RichStatus.OK(msg=f"Not validating getambassador.io/{apiVersion} {kind}")
 
     def get_proto_validator(self, apiVersion, kind) -> Optional[Validator]:
         # See if we can import a protoclass...

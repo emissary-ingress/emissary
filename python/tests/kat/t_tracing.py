@@ -69,8 +69,8 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tracing_target_mapping
 hostname: "*"
 prefix: /target/
@@ -188,8 +188,8 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tracing_target_mapping_longclustername
 hostname: "*"
 prefix: /target/
@@ -301,8 +301,8 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tracing_target_mapping_64
 hostname: "*"
 prefix: /target-64/
@@ -393,8 +393,8 @@ spec:
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tracing_target_mapping
 hostname: "*"
 prefix: /target/
@@ -496,8 +496,8 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tracing_target_mapping_65
 hostname: "*"
 prefix: /target-65/
@@ -598,8 +598,8 @@ spec:
         # on the service, not the Ambassador.
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tracing_target_mapping
 hostname: "*"
 prefix: /target/
@@ -720,8 +720,8 @@ spec:
 
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tracing_target_mapping
 hostname: "*"
 prefix: /target/

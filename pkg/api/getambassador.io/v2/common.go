@@ -223,7 +223,8 @@ type ErrorResponseOverride struct {
 }
 
 // AmbassadorID declares which Ambassador instances should pay
-// attention to this resource. If no value is provided, the default is:
+// attention to this resource.  May either be a string or a list of
+// strings.  If no value is provided, the default is:
 //
 //    ambassador_id:
 //    - "default"

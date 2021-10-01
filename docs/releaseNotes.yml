@@ -137,7 +137,13 @@ items:
         isHeadline: true
 
       - title: Configuration API v3alpha1
-        body: $productName$ 2.0.0 introduces API version <code>x.getambassador.io/v3alpha1</code> for configuration changes that are not backwards compatible with the 1.X family. API versions <code>getambassador.io/v0</code> and <code>getambassador.io/v1</code> are deprecated. Further details are available in the <a href="about/changes-2.0.0/#1-configuration-api-version-xgetambassadoriov3alpha1">2.0.0 Changes</a> document.
+        body: >-
+          $productName$ 2.0.0 introduces API version <code>getambassador.io/v3alpha1</code> for
+          configuration changes that are not backwards compatible with the 1.X family.  API versions
+          <code>getambassador.io/v0</code>, <code>getambassador.io/v1</code>, and
+          <code>getambassador.io/v2</code> are deprecated.  Further details are available in the <a
+          href="about/changes-2.0.0/#1-configuration-api-version-xgetambassadoriov3alpha1">2.0.0
+          Changes</a> document.
         type: feature
         docs: about/changes-2.0.0/#1-configuration-api-version-getambassadoriov3alpha1
         image: ./edge-stack-2.0.0-v3alpha1.png

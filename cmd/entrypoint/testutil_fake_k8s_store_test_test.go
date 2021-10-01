@@ -41,7 +41,7 @@ func TestStore(t *testing.T) {
 	assert.Equal(t, "foo", deltasLate[1].Name)
 
 	// Now let's update an object.
-	fooKey := entrypoint.K8sKey{"AmbassadorMapping", "default", "foo"}
+	fooKey := entrypoint.K8sKey{"Mapping", "default", "foo"}
 	foo := resourcesEarly[fooKey]
 	require.NotNil(t, foo)
 	store.Upsert(foo)
@@ -61,7 +61,7 @@ func TestStore(t *testing.T) {
 	assert.Equal(t, "foo", deltasLate[0].Name)
 
 	// Now let's delete an object.
-	store.Delete("AmbassadorMapping", "default", "foo")
+	store.Delete("Mapping", "default", "foo")
 
 	// Observe the delete from the early cursor.
 	resourcesEarly, deltasEarly = cEarly.Get()

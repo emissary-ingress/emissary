@@ -33,35 +33,6 @@
         "kind": "Mapping",
         "metadata": {
             "annotations": {
-                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"labels\":{\"product\":\"aes\"},\"name\":\"ambassador-devportal-api\",\"namespace\":\"ambassador\"},\"spec\":{\"prefix\":\"/openapi/\",\"rewrite\":\"\",\"service\":\"127.0.0.1:8500\"}}\n"
-            },
-            "creationTimestamp": "2020-07-03T02:19:06Z",
-            "generation": 1,
-            "labels": {
-                "product": "aes"
-            },
-            "name": "ambassador-mapping-with-stats-name",
-            "namespace": "ambassador",
-            "resourceVersion": "701",
-            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/ambassador-devportal-api",
-            "uid": "2fd46b2e-a553-455c-9a67-5b22848c1167"
-        },
-        "spec": {
-            "prefix": "/openapi/",
-            "auto_host_rewrite": false,
-            "prefix_regex": false,
-            "rewrite": "",
-            "service": "127.0.0.1:8500",
-            "stats_name": "alt-stats-name"
-        },
-        "status": {
-            "state": "Running"
-        }
-    },    {
-        "apiVersion": "getambassador.io/v2",
-        "kind": "Mapping",
-        "metadata": {
-            "annotations": {
                 "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"labels\":{\"product\":\"aes\"},\"name\":\"ambassador-devportal\",\"namespace\":\"ambassador\"},\"spec\":{\"prefix\":\"/docs/\",\"rewrite\":\"/docs/\",\"service\":\"127.0.0.1:8500\"}}\n"
             },
             "creationTimestamp": "2020-07-03T02:19:06Z",

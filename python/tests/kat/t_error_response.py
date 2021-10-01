@@ -45,24 +45,24 @@ config:
       text_format: 'took too long, sorry'
       content_type: 'apology'
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-invalidservice
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
 prefix: /target/invalidservice
 service: {self.target.path.fqdn}-invalidservice
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-invalidservice-empty
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
@@ -161,8 +161,8 @@ class ErrorResponseOnStatusCodeMappingCRD(AmbassadorTest):
     def manifests(self) -> str:
         return super().manifests() + f'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name:  {self.target.path.k8s}-crd
 spec:
@@ -197,8 +197,8 @@ spec:
       text_format: 'took too long, sorry'
       content_type: 'apology'
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.target.path.k8s}-invalidservice-crd
 spec:
@@ -207,8 +207,8 @@ spec:
   prefix: /target/invalidservice
   service: {self.target.path.fqdn}-invalidservice
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.target.path.k8s}-invalidservice-override-crd
 spec:
@@ -335,8 +335,8 @@ config:
       text_format: '<html>2slow %PROTOCOL%</html>'
       content_type: 'text/html; charset="utf-8"'
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
@@ -406,8 +406,8 @@ config:
         toofast: 'definitely'
         code: 'code was %RESPONSE_CODE%'
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
@@ -473,8 +473,8 @@ config:
       text_format_source:
         filename: '/etc/shells'
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
@@ -539,8 +539,8 @@ config:
     body:
       text_format: 'the upstream is not happy'
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 ambassador_id: ["{self.ambassador_id}"]
 ambassador_id: {self.ambassador_id}
@@ -548,16 +548,16 @@ hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-invalidservice
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
 prefix: /target/invalidservice
 service: {self.target.path.fqdn}-invalidservice
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-bypass
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
@@ -565,8 +565,8 @@ prefix: /bypass/
 service: {self.target.path.fqdn}
 bypass_error_response_overrides: true
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-target-bypass
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
@@ -574,8 +574,8 @@ prefix: /target/bypass/
 service: {self.target.path.fqdn}
 bypass_error_response_overrides: true
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-bypass-invalidservice
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
@@ -675,24 +675,24 @@ config:
       text_format: 'this is a custom 404 response'
       content_type: 'text/custom'
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-invalidservice
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
 prefix: /target/invalidservice
 service: {self.target.path.fqdn}-invalidservice
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-bypass
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
@@ -747,16 +747,16 @@ config:
       text_format: 'this is a custom 401 response'
       content_type: 'text/custom'
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-bypass
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
@@ -764,8 +764,8 @@ prefix: /bypass/
 service: {self.target.path.fqdn}
 bypass_error_response_overrides: true
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-overrides
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
@@ -833,16 +833,16 @@ config:
     body:
       text_format: 'the upstream took a really long time'
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-override-401
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
@@ -855,8 +855,8 @@ error_response_overrides:
       x: "1"
       status: '%RESPONSE_CODE%'
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-override-503
 ambassador_id: ["{self.ambassador_id}"]
 hostname: "*"
@@ -956,8 +956,8 @@ class ErrorResponseSeveralMappings(AmbassadorTest):
     def manifests(self) -> str:
         return super().manifests() + f'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name:  {self.target.path.k8s}-one
 spec:
@@ -973,8 +973,8 @@ spec:
     body:
       text_format: 'a custom 504 response'
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.target.path.k8s}-two
 spec:
@@ -990,8 +990,8 @@ spec:
     body:
       text_format: 'a custom 429 response'
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.target.path.k8s}-three
 spec:
@@ -1000,8 +1000,8 @@ spec:
   prefix: /target-three/
   service: {self.target.path.fqdn}
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.target.path.k8s}-four
 spec:
