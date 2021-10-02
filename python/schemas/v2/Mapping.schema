@@ -162,37 +162,27 @@
             },
             "additionalProperties": false
         },
+        "dns_type": {
+            "type": "string"
+        },
         "docs": {
             "type": "object",
             "properties": {
                 "ignored": {
                     "type": "boolean"
                 },
+                "num_retries": {
+                    "type": "integer"
+                },
                 "path": {
+                    "type": "string"
+                },
+                "per_try_timeout": {
                     "type": "string"
                 },
                 "url": {
                     "type": "string"
-                },
-                "num_retries": { "type": "integer" },
-                "per_try_timeout": { "type": "string" }
-            },
-            "additionalProperties": false
-        },
-        "grpc": { "type": "boolean" },
-        "host_redirect": { "type": "boolean" },
-        "host_rewrite": { "type": "string" },
-        "method": { "type": "string" },
-        "method_regex": { "type": "boolean" },
-        "outlier_detection": { "type": "string" },
-        "path_redirect": { "type": "string" },
-        "dns_type": { "type": "string" },
-        "prefix_redirect": { "type": "string" },
-        "regex_redirect": {
-            "type": "object",
-            "properties": {
-                "pattern": { "type": "string" },
-                "substitution": { "type": "string" }
+                }
             },
             "additionalProperties": false
         },
