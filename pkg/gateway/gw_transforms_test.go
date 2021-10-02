@@ -18,15 +18,17 @@ import (
 func TestGatewayMatches(t *testing.T) {
 	t.Parallel()
 	ctx := dlog.NewTestContext(t, false)
-	envoy.SetupRequestLogger(t, ":9000", ":9002")
-	e := envoy.SetupEnvoyController(t, ":8003")
-	envoy.SetupEnvoy(t, envoy.GetLoopbackAddr(8003), "8080:8080")
+	envoytest.SetupRequestLogger(t, ":9000", ":9002")
+	e := envoytest.SetupEnvoyController(t, ":8003")
+	addr, err := envoytest.GetLoopbackAddr(ctx, 8003)
+	require.NoError(t, err)
+	envoytest.SetupEnvoy(t, addr, "8080:8080")
 
 	d := makeDispatcher(t)
 
 	// One rule for each type of path match (exact, prefix, regex) and each type of header match
 	// (exact and regex).
-	err := d.UpsertYaml(`
+	err = d.UpsertYaml(`
 ---
 kind: Gateway
 apiVersion: networking.x-k8s.io/v1alpha1
@@ -88,7 +90,8 @@ spec:
 
 	require.NoError(t, err)
 
-	loopbackIp := envoy.GetLoopbackIp()
+	loopbackIp, err := envoytest.GetLoopbackIp(ctx)
+	require.NoError(t, err)
 
 	err = d.Upsert(makeEndpoint("default", "foo-backend-1", loopbackIp, 9000))
 	require.NoError(t, err)

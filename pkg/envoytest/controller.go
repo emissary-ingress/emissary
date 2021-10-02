@@ -1,4 +1,4 @@
-package envoy
+package envoytest
 
 import (
 	"context"
