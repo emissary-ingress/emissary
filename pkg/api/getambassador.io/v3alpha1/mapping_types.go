@@ -41,7 +41,7 @@ type MappingSpec struct {
 	AddLinkerdHeaders  *bool                  `json:"add_linkerd_headers,omitempty"`
 	AutoHostRewrite    *bool                  `json:"auto_host_rewrite,omitempty"`
 	CaseSensitive      *bool                  `json:"case_sensitive,omitempty"`
-    DNSType            string                 `json:"dns_type,omitempty"`
+	DNSType            string                 `json:"dns_type,omitempty"`
 	Docs               *DocsInfo              `json:"docs,omitempty"`
 	EnableIPv4         *bool                  `json:"enable_ipv4,omitempty"`
 	EnableIPv6         *bool                  `json:"enable_ipv6,omitempty"`

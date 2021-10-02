@@ -168,7 +168,12 @@
                 "ignored": {
                     "type": "boolean"
                 },
-<<<<<<< HEAD
+                "path": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
                 "num_retries": { "type": "integer" },
                 "per_try_timeout": { "type": "string" }
             },
@@ -188,14 +193,6 @@
             "properties": {
                 "pattern": { "type": "string" },
                 "substitution": { "type": "string" }
-=======
-                "path": {
-                    "type": "string"
-                },
-                "url": {
-                    "type": "string"
-                }
->>>>>>> master
             },
             "additionalProperties": false
         },
