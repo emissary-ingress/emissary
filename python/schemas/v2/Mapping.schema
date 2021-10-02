@@ -173,7 +173,7 @@
                 },
                 "url": {
                     "type": "string"
-                }
+                },
                 "num_retries": { "type": "integer" },
                 "per_try_timeout": { "type": "string" }
             },
