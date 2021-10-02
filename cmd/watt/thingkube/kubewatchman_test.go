@@ -10,6 +10,7 @@ import (
 
 	"github.com/datawire/ambassador/v2/cmd/watt/watchapi"
 	"github.com/datawire/ambassador/v2/pkg/supervisor"
+	"github.com/datawire/dlib/dlog"
 
 	. "github.com/datawire/ambassador/v2/cmd/watt/thingkube"
 )
@@ -129,7 +130,7 @@ func newKubewatchmanIsolator(t *testing.T) *kubewatchmanIsolator {
 
 	iso.watchman = NewKubeWatchMan(nil, nil, iso.aggregatorToWatchmanCh)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(dlog.NewTestContext(t, false), 10*time.Second)
 	iso.cancel = cancel
 	iso.sup = supervisor.WithContext(ctx)
 	iso.sup.Supervise(&supervisor.Worker{

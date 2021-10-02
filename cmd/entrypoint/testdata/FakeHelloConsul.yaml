@@ -1,5 +1,5 @@
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: ConsulResolver
 metadata:
   name: consul-dc1
@@ -7,8 +7,8 @@ spec:
   address: consul-server.default:$CONSULPORT
   datacenter: dc1
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: hello
   namespace: default
@@ -17,8 +17,8 @@ spec:
   service: hello
   resolver: consul-dc1
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorTCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 metadata:
   name: hello-tcp
   namespace: default

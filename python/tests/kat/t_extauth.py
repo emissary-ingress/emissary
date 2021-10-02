@@ -22,12 +22,12 @@ class AuthenticationGRPCTest(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: auth-context-mapping
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   service: {self.target.path.fqdn}
   hostname: "*"
   prefix: /context-extensions-crd/
@@ -39,7 +39,7 @@ spec:
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -48,15 +48,15 @@ proto: grpc
 """)
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-context-extensions
 hostname: "*"
 prefix: /context-extensions/
@@ -179,7 +179,7 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-same-context-1
 secret: auth-partial-secret
@@ -209,8 +209,8 @@ include_body:
 """)
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 hostname: "*"
 prefix: /target/
@@ -274,7 +274,7 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -282,12 +282,12 @@ config:
   buffer:
     max_request_bytes: 16384
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-same-context-1
 secret: auth-buffered-secret
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -313,8 +313,8 @@ include_body:
 """)
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 hostname: "*"
 prefix: /target/
@@ -417,13 +417,13 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-failure-context
 secret: auth-failure-secret
 
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -439,8 +439,8 @@ failure_mode_allow: true
 """)
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 hostname: "*"
 prefix: /target/
@@ -480,7 +480,7 @@ class AuthenticationTestV1(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth1.path.k8s}
 auth_service: "{self.auth1.path.fqdn}"
@@ -503,7 +503,7 @@ status_on_error:
   code: 503
 
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth2.path.k8s}
 auth_service: "{self.auth2.path.fqdn}"
@@ -529,15 +529,15 @@ status_on_error:
 """)
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 hostname: "*"
 prefix: /target/
 service: {self.target.path.fqdn}
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.fqdn}-unauthed
 hostname: "*"
 prefix: /target/unauthed/
@@ -698,7 +698,7 @@ class AuthenticationTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -719,8 +719,8 @@ allowed_authorization_headers:
 """)
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 hostname: "*"
 prefix: /target/
@@ -833,7 +833,7 @@ class AuthenticationWebsocketTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
@@ -843,8 +843,8 @@ allowed_request_headers:
 - Requested-Status
 allow_request_body: true
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name: {self.name}
 hostname: "*"
 prefix: /{self.name}/
@@ -886,8 +886,8 @@ proto: grpc
 """)
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 hostname: "*"
 prefix: /target/
@@ -981,8 +981,8 @@ proto: grpc
 """)
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 hostname: "*"
 prefix: /target/

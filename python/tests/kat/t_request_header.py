@@ -10,14 +10,14 @@ class XRequestIdHeaderPreserveTest(AmbassadorTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
   preserve_external_request_id: true
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target
 hostname: "*"
 prefix: /target/
@@ -40,13 +40,13 @@ class XRequestIdHeaderDefaultTest(AmbassadorTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target
 hostname: "*"
 prefix: /target/
@@ -70,8 +70,8 @@ class EnvoyHeadersTest(AmbassadorTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target
 hostname: "*"
 prefix: /target/
@@ -102,14 +102,14 @@ class SuppressEnvoyHeadersTest(AmbassadorTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
   suppress_envoy_headers: true
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-target
 hostname: "*"
 prefix: /target/

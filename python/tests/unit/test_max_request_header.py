@@ -37,7 +37,7 @@ def _get_envoy_config(yaml, version='V3'):
 def test_set_max_request_header():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   name: ambassador
@@ -46,8 +46,8 @@ spec:
   config:
     max_request_headers_kb: 96
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: ambassador
   namespace: default
@@ -80,7 +80,7 @@ spec:
 def test_set_max_request_header_v3():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   name: ambassador
@@ -89,8 +89,8 @@ spec:
   config:
     max_request_headers_kb: 96
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: ambassador
   namespace: default

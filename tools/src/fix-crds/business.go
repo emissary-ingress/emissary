@@ -77,20 +77,18 @@ func FixCRD(args Args, crd *CRD) error {
 
 	// hack around limitations in `controller-gen`; see the comments in
 	// `pkg/api/getambassdor.io/v2/common.go`.
-	if crd.Spec.Validation != nil {
-		VisitAllSchemaProps(crd.Spec.Validation.OpenAPIV3Schema, func(node *apiext.JSONSchemaProps) {
-			if strings.HasPrefix(node.Type, "d6e-union:") {
-				types := strings.Split(strings.TrimPrefix(node.Type, "d6e-union:"), ",")
-				node.Type = ""
-				node.OneOf = nil
-				for _, typ := range types {
-					node.OneOf = append(node.OneOf, apiext.JSONSchemaProps{
-						Type: typ,
-					})
-				}
+	VisitAllSchemaProps(crd, func(node *apiext.JSONSchemaProps) {
+		if strings.HasPrefix(node.Type, "d6e-union:") {
+			types := strings.Split(strings.TrimPrefix(node.Type, "d6e-union:"), ",")
+			node.Type = ""
+			node.OneOf = nil
+			for _, typ := range types {
+				node.OneOf = append(node.OneOf, apiext.JSONSchemaProps{
+					Type: typ,
+				})
 			}
-		})
-	}
+		}
+	})
 
 	// fix labels
 	if crd.Metadata.Labels == nil {

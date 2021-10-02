@@ -69,3 +69,7 @@ indent_style = tab
 ; Emacs markdown-mode gets mixed tabs/spaces wrong, and so I have zero
 ; faith that any other tool gets it right.
 indent_style = space
+
+[*.proto]
+indent_style = space
+indent_size = 2

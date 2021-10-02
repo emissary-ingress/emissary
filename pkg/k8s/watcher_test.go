@@ -16,7 +16,7 @@ const (
 	delay = 10 * time.Second
 )
 
-func fetch(w *k8s.Watcher, resource, qname string) (result k8s.Resource) {
+func fetch(ctx context.Context, w *k8s.Watcher, resource, qname string) (result k8s.Resource) {
 	go func() {
 		time.Sleep(delay)
 		w.Stop()
@@ -35,7 +35,7 @@ func fetch(w *k8s.Watcher, resource, qname string) (result k8s.Resource) {
 		panic(err)
 	}
 
-	w.Wait()
+	w.Wait(ctx)
 	return result
 }
 
@@ -48,9 +48,9 @@ func TestUpdateStatus(t *testing.T) {
 	ctx := dlog.NewTestContext(t, false)
 	w := k8s.MustNewWatcher(info(ctx))
 
-	svc := fetch(w, "services", "kubernetes.default")
+	svc := fetch(ctx, w, "services", "kubernetes.default")
 	svc.Status()["loadBalancer"].(map[string]interface{})["ingress"] = []map[string]interface{}{{"hostname": "foo", "ip": "1.2.3.4"}}
-	result, err := w.UpdateStatus(svc)
+	result, err := w.UpdateStatus(ctx, svc)
 	if err != nil {
 		t.Error(err)
 		return
@@ -58,7 +58,7 @@ func TestUpdateStatus(t *testing.T) {
 		t.Logf("updated %s status, result: %v\n", svc.QName(), result.ResourceVersion())
 	}
 
-	svc = fetch(k8s.MustNewWatcher(info(ctx)), "services", "kubernetes.default")
+	svc = fetch(ctx, k8s.MustNewWatcher(info(ctx)), "services", "kubernetes.default")
 	ingresses := svc.Status()["loadBalancer"].(map[string]interface{})["ingress"].([]interface{})
 	ingress := ingresses[0].(map[string]interface{})
 	if ingress["hostname"] != "foo" {
@@ -77,7 +77,7 @@ func TestWatchCustom(t *testing.T) {
 
 	// XXX: we can only watch custom resources... k8s doesn't
 	// support status for CRDs until 1.12
-	xmas := fetch(w, "customs", "xmas.default")
+	xmas := fetch(ctx, w, "customs", "xmas.default")
 	if xmas == nil {
 		t.Error("couldn't find xmas")
 	} else {
@@ -93,7 +93,7 @@ func TestWatchCustomCollision(t *testing.T) {
 	ctx := dlog.NewTestContext(t, false)
 	w := k8s.MustNewWatcher(info(ctx))
 
-	easter := fetch(w, "csrv", "easter.default")
+	easter := fetch(ctx, w, "csrv", "easter.default")
 	if easter == nil {
 		t.Error("couln't find easter")
 	} else {
@@ -126,6 +126,6 @@ func TestWatchQuery(t *testing.T) {
 	time.AfterFunc(1*time.Second, func() {
 		w.Stop()
 	})
-	w.Wait()
+	w.Wait(ctx)
 	require.Equal(t, services, []string{"kubernetes.default"})
 }

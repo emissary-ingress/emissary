@@ -1,24 +1,25 @@
 package entrypoint
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/datawire/dlib/dlog"
 )
 
 // Check if we return false when we get a connection refused.
 func TestNotifyWebhookUrlConnectionRefused(t *testing.T) {
-	ctx := context.Background()
+	ctx := dlog.NewTestContext(t, false)
 
 	assert.False(t, notifyWebhookUrl(ctx, "test", "http://localhost:5555"))
 }
 
 // Check that we panic if we do not get a properly formed http response of some kind such as an EOF.
 func TestNotifyWebhookUrlEOF(t *testing.T) {
-	ctx := context.Background()
+	ctx := dlog.NewTestContext(t, false)
 
 	var srv *httptest.Server
 	srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -60,7 +60,7 @@ def _text_format_source_obj(filename, content_type=None):
 def _ambassador_module_config():
     return '''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 config:
@@ -202,7 +202,7 @@ def _test_errorresponse_twomappers_onstatuscode_textformat(code1, text1, code2, 
     _test_errorresponse_twomappers(
 f'''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 config:

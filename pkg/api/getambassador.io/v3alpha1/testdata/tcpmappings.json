@@ -1,7 +1,7 @@
 [
     {
         "apiVersion": "getambassador.io/v3alpha1",
-        "kind": "AmbassadorTCPMapping",
+        "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
             "name": "tcpmapping-base",
@@ -14,7 +14,7 @@
     },
     {
         "apiVersion": "getambassador.io/v3alpha1",
-        "kind": "AmbassadorTCPMapping",
+        "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
             "name": "tcpmapping-with-stats-name",
@@ -28,7 +28,7 @@
     },
     {
         "apiVersion": "getambassador.io/v3alpha1",
-        "kind": "AmbassadorTCPMapping",
+        "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
             "name": "tcpmapping-breakers-defined",
@@ -48,7 +48,7 @@
     },
     {
         "apiVersion": "getambassador.io/v3alpha1",
-        "kind": "AmbassadorTCPMapping",
+        "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
             "name": "tcpmapping-absent-breakers",
@@ -62,7 +62,7 @@
     },
     {
         "apiVersion": "getambassador.io/v3alpha1",
-        "kind": "AmbassadorTCPMapping",
+        "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
             "name": "tcpmapping-some-breakers",
@@ -78,7 +78,7 @@
     },
     {
         "apiVersion": "getambassador.io/v3alpha1",
-        "kind": "AmbassadorTCPMapping",
+        "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
             "name": "tcpmapping-most-breakers",
@@ -95,7 +95,7 @@
     },
     {
         "apiVersion": "getambassador.io/v3alpha1",
-        "kind": "AmbassadorTCPMapping",
+        "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
             "name": "tcpmapping-zero-breakers",
@@ -113,7 +113,7 @@
     },
     {
         "apiVersion": "getambassador.io/v3alpha1",
-        "kind": "AmbassadorTCPMapping",
+        "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
             "name": "tcpmapping-weight-present",
@@ -127,7 +127,7 @@
     },
     {
         "apiVersion": "getambassador.io/v3alpha1",
-        "kind": "AmbassadorTCPMapping",
+        "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
             "name": "tcpmapping-weight-zero",
@@ -141,7 +141,7 @@
     },
     {
         "apiVersion": "getambassador.io/v3alpha1",
-        "kind": "AmbassadorTCPMapping",
+        "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
             "name": "tcpmapping-v4-v6",
@@ -156,7 +156,7 @@
     },
     {
         "apiVersion": "getambassador.io/v3alpha1",
-        "kind": "AmbassadorTCPMapping",
+        "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
             "name": "tcpmapping-v4-v6-false",
@@ -171,7 +171,7 @@
     },
     {
         "apiVersion": "getambassador.io/v3alpha1",
-        "kind": "AmbassadorTCPMapping",
+        "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
             "name": "tcpmapping-tls-false",
@@ -185,7 +185,7 @@
     },
     {
         "apiVersion": "getambassador.io/v3alpha1",
-        "kind": "AmbassadorTCPMapping",
+        "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
             "name": "tcpmapping-tls-meaningless-true",
@@ -199,7 +199,7 @@
     },
     {
         "apiVersion": "getambassador.io/v3alpha1",
-        "kind": "AmbassadorTCPMapping",
+        "kind": "TCPMapping",
         "metadata": {
             "creationTimestamp": "2020-07-03T02:19:06Z",
             "name": "tcpmapping-tls-set",

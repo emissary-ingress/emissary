@@ -11,15 +11,15 @@ class AcceptanceGrpcTest(AmbassadorTest):
     def config(self):
 #         yield self, self.format("""
 # ---
-# apiVersion: getambassador.io/v2
+# apiVersion: getambassador.io/v3alpha1
 # kind:  Module
 # name:  ambassador
 # # """)
 
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 grpc: True
 hostname: "*"
 prefix: /echo.EchoService/
@@ -66,19 +66,19 @@ class EndpointGrpcTest(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: KubernetesEndpointResolver
 metadata:
     name: my-endpoint
-spec:    
+spec:
     ambassador_id: ["endpointgrpctest"]
 ''') + super().manifests()
 
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 grpc: True
 hostname: "*"
 prefix: /echo.EchoService/

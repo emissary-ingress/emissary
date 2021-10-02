@@ -41,6 +41,15 @@ include $(OSS_HOME)/build-aux-local/lint.mk
 
 include $(OSS_HOME)/docs/yaml.mk
 
+test-chart-values.yaml: docker/$(LCNAME).docker.push.remote
+	{ \
+	  echo 'image:'; \
+	  sed -E -n '2s/^(.*):.*/  repository: \1/p' < $<; \
+	  sed -E -n '2s/.*:/  tag: /p' < $<; \
+	} >$@
+HELM_TEST_VALUES = test-chart-values.yaml
+test-chart: test-chart-values.yaml
+
 # Configure GNU Make itself
 SHELL = bash
 .SECONDARY:

@@ -12,7 +12,7 @@ class AcceptanceGrpcBridgeTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -21,8 +21,8 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 grpc: True
 hostname: "*"
 prefix: /echo.EchoService/

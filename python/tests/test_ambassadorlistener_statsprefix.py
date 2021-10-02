@@ -16,8 +16,8 @@ data:
   tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNzRENDQVpnQ0NRRFd2TnRjRzNpelZEQU5CZ2txaGtpRzl3MEJBUXNGQURBYU1SZ3dGZ1lEVlFRRERBOWgKYldKaGMzTmhaRzl5TFdObGNuUXdIaGNOTWpFd056QTRNakF5T0RNd1doY05Nakl3TnpBNE1qQXlPRE13V2pBYQpNUmd3RmdZRFZRUUREQTloYldKaGMzTmhaRzl5TFdObGNuUXdnZ0VpTUEwR0NTcUdTSWIzRFFFQkFRVUFBNElCCkR3QXdnZ0VLQW9JQkFRQ1pVbXhqT1lrTWlKRm0yZSttZDlMelNwd0oxSWlic1lUWHp5a1NiMExZYlNqcG5jMGoKV0dWMEppOXdlU3FSSFFPMHM4NUZreENzT2s1K2ZCWDFJOTYra1Z2V3NyeWgwcDlsdjI3ZUpHZFp1Q1ZsSmR3cApuYnBaWFF6R3JjWVVaeTA2WEVWOGxkaFdOSVhMazc1bmxsWmE5M2xjajRXRzNTRHpzT2MrdEtWaEtNaG9QSkVaClVGbXNxZ080dm8yZkJxYk0zNXhBT3lFSHhodXgvVlNLeVIxbHN0S0dsd25icGliZDc2UUZCdWYwbHN2bEJRTFAKV2xiRW8zZzI0NWxMNFhMWjg2UURoaTJseTdSNFN5em4yZ2E2TjZYQWNxMjFYTzNQUzhPaFp6d2J1cGpEMHRadApxL0JjY01kTElXbm9zVmlpc0FVdElLUHpCbjVkNFhBaGRtVnhBZ01CQUFFd0RRWUpLb1pJaHZjTkFRRUxCUUFECmdnRUJBSmFONUVxcTlqMi9IVnJWWk9wT3BuWVRSZlU0OU1pNDlvbkF1ZjlmQk9tR3dlMHBWSmpqTVlyQW9kZ1IKYWVyUHVWUlBEWGRzZXczejJkMjliRzBMVTJTdEpBMEY0Z05vWTY0bGVZUTN0RjFDUmxsczdKaWVWelN1RVVyUwpLZjZiaWJ0aUlLSU4waEdTV3R2YU04ZXhqb2Y3ZGUyeWFLNEVPeE1pQmJyZkFPNnJ6MXgzc1ovOENGTnp3OXNRClhCNWpZSWhNZWhsb2xhR0U5RGNydUdrbStFQ3ZCNjZkajFNcm5UamVJcWc4QnN4Wm5WYlZ4cDlUZTJRZ2hyTmkKckVySndjV1NSU3lUZzBEZXdUektYQUx2aW5iRTliZ3pNdFhNSEhkUmZQYUMvWmFCTUd1QXExeWJTOUV3M2MvWgo1dk00aFdOaHU5MS9DSmN5UVJHdlJRWXFiZTA9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
   tls.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb3dJQkFBS0NBUUVBbVZKc1l6bUpESWlSWnRudnBuZlM4MHFjQ2RTSW03R0UxODhwRW05QzJHMG82WjNOCkkxaGxkQ1l2Y0hrcWtSMER0TFBPUlpNUXJEcE9mbndWOVNQZXZwRmIxcks4b2RLZlpiOXUzaVJuV2JnbFpTWGMKS1oyNldWME14cTNHRkdjdE9seEZmSlhZVmpTRnk1TytaNVpXV3ZkNVhJK0ZodDBnODdEblByU2xZU2pJYUR5UgpHVkJacktvRHVMNk5ud2Ftek4rY1FEc2hCOFlic2YxVWlza2RaYkxTaHBjSjI2WW0zZStrQlFibjlKYkw1UVVDCnoxcFd4S040TnVPWlMrRnkyZk9rQTRZdHBjdTBlRXNzNTlvR3VqZWx3SEt0dFZ6dHowdkRvV2M4RzdxWXc5TFcKYmF2d1hIREhTeUZwNkxGWW9yQUZMU0NqOHdaK1hlRndJWFpsY1FJREFRQUJBb0lCQUdlaVNOVUE3TnZsNjdKRAptVE5DUnZwZjhmekxCZE9IT0MzUFB3blEzclAvaE9uejJkY01SdmN0WUY5NzV3UFRRcy8vd1d0UnJyRmJiL2NhCjFKU3dQRDAvYjM0OXJqY0xjT2FMY05zQ2JFRStzVGdmVVNOb0U2K1hyNjBUaEpJQjg1WkJERTdiMGpEaXE1VWgKTmxBNlZBQ0V5aW1BY1ZicFhQNmJFcE5WODNzcDFBUEUrc2xpUWVrMHBWK2VJcFNuWGNkMWRNbjdhcHNuYmR3MgpBbDErRDBiTkJweUNSd1dCMm81dmh0ZzIrcndaQUNOdTFQdmJGc0g5bURGUit2elJBT1oycFRDMzRwWDBhcktECnUyMGFMTU1PT2NETWN0bWp2OHJrcVJVRWt6aTNuV0ljWVVVYXFKVG1Ub2RLZlRobXhsbGx5aDg5UVAzUG8raEwKYWk0b0VJa0NnWUVBeUcvQ2xaa3g4WHF3M0NrZXJrZlZoTm83OHIxWFVFRFE3U3dMUUllaHo1Ri9iRU9WRS8yUgpJeGFZQkx2alMwRkRzY0s3TkpPeU9kTVBpU1VNcHdMSC9kNnNrWjA2QWRTVllPbUJpNUFCMUJNZXk1b0cvSmtXClpzSm42Q3g5aEJUZTVzQnRCUWQ1K1phUXU4aDBhUFcwcFh3b1h5aW1JejNpZ3Vxdk1Dc3plNU1DZ1lFQXc5TWQKY2ZmK1FhbmxqMnVpcmcxbnljMFVkN1h6ekFZRXVMUERPdHltcm1SSU9BNGl4c3JzMzRmbVE4STc4cXpDMnhmNQpEdlJPNTNzMW9XSHNzbXdxcmgzQ0RVaDF2UEVEcHVqR3dLd2E4bE1yQ2piWDhtYk1ibVNyelBuczVWeVhXaEhFCkN3VHNPV3RleUZ3OVFkZTR1K011SEYzSHB0SHFvZlRFTGZJRXBXc0NnWUVBdVBPM3dFZGVlSTlZUjYrQjZodkwKQVE1SHB4UGtUOStmYWxyci94Mm95RnBnRkV6QWNYUFh5Mkw3MzlKb1NIYnV1a2NRYTlHbDhnbTZHamtmMWJTUgpTc2VBd2RVdFE2Y2dPQThBUlFJYlRkQmU2RTAzQ1R0U0dueGxXUzVFbSs2T1NLdGpiZkthTVI4b2FyN3IvRFpOCi9TMzJLdWpkZFVPVGttNXdQYWgvbHhVQ2dZQmh3N0dNcDZJQmlGKzZaYU5YUUF3VC9OWCtHaEg0UnZ6dWRaaS8KZDArait4N3ZGV2VaVmRCQ25PZUI1cVBsT1Frak51bTU1SkRNRW9BbzdPbXQva0Nrb3VpeGx2NW84TzdBMHEvLwpteXpzMUViRmw3SGlMQjVkOHRhdXhBdllTb3lwZy9zYkFUOHFQNGVYZ2kxM0JNc095cEhIeWE0V2cvQ2ZJTU1jCnFScFd0d0tCZ0hYRjVSWUo4alpLTnE2bHI5TVZhZFRXdkpRZ01VbHR0UWlaM3ZrMmc0S09Kc1NWdWtEbjFpZysKQ0NKZUU2VS9OS0N3ejJSMXBjSWVET3dwek9IYzJWNkt4Z0RYZUYyVWsvMjMydlB3aXRjVExhS2hsTTlDOGNLcwp6RGlJcVFkZDRLdFhDajc4S040TlhHZ1hJdVdXOHZERFY4Q05wQm45eUlUUXFST3NRSHRrCi0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: ambassador-https-listener
   namespace: default
@@ -29,8 +29,8 @@ spec:
     namespace:
       from: ALL
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: ambassador-http-listener
   namespace: default
@@ -42,8 +42,8 @@ spec:
     namespace:
       from: ALL
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: ambassador-alternate-listener
   namespace: default
@@ -56,8 +56,8 @@ spec:
     namespace:
       from: ALL
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: ambassador-tls-listener
   namespace: default
@@ -69,8 +69,8 @@ spec:
     namespace:
       from: ALL
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: quote-backend
   namespace: default
@@ -79,8 +79,8 @@ spec:
   service: quote
   hostname: '*'
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorTCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 metadata:
   name: tls-backend
   namespace: default
@@ -88,8 +88,8 @@ spec:
   port: 9999
   service: quote
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorTCPMapping
+apiVersion: getambassador.io/v3alpha1
+kind: TCPMapping
 metadata:
   name: tcp-backend
   namespace: default
@@ -97,8 +97,8 @@ spec:
   port: 9998
   service: quote
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: quote-backend
   namespace: default
@@ -107,8 +107,8 @@ spec:
   service: quote
   hostname: '*'
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: wildcard-host
   namespace: default
@@ -160,7 +160,7 @@ def check_listener(listener, envoy_version):
         need_type=filter_info[envoy_version].type)
 
 @pytest.mark.compilertest
-def test_ambassadorlistener_stats_prefix():
+def listener_stats_prefix():
     # For each Envoy version we support...
     for v in SUPPORTED_ENVOY_VERSIONS:
         print(f"\n-- Envoy {v}:")

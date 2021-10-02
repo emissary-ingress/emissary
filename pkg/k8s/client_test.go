@@ -28,7 +28,7 @@ func TestList(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	svcs, err := c.List("svc")
+	svcs, err := c.List(ctx, "svc")
 	if err != nil {
 		t.Error(err)
 	}
@@ -42,7 +42,7 @@ func TestList(t *testing.T) {
 		t.Errorf("did not find kubernetes service")
 	}
 
-	customs, err := c.List("customs")
+	customs, err := c.List(ctx, "customs")
 	if err != nil {
 		t.Error(err)
 	}
