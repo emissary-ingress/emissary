@@ -17,6 +17,7 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
 )
@@ -158,15 +159,8 @@ func (f *Fake) Setup() {
 				cmdArgs = append(cmdArgs, "--debug")
 			}
 
-			cmd := subcommand(ctx, "diagd", cmdArgs...)
-			if envbool("DEV_SHUTUP_DIAGD") {
-				cmd.Stdout = nil
-				cmd.Stderr = nil
-			}
-			err := cmd.Run()
-			if err != nil {
-				exErr, ok := err.(*exec.ExitError)
-				if ok {
+			if err := dexec.CommandContext(ctx, "diagd", cmdArgs...).Run(); err != nil {
+				if exErr, ok := err.(*exec.ExitError); ok {
 					f.T.Logf("diagd exited with error: %+v", exErr)
 					return nil
 				}
@@ -197,14 +191,14 @@ func (f *Fake) runWatcher(ctx context.Context) error {
 
 	return watcherLoop(
 		ctx,
-		f.currentSnapshot, // encoded
-		f.k8sSource,
-		queries,
-		f.watcher, // consulWatcher
-		f.istioCertSource,
-		f.notifySnapshot,
-		f.notifyFastpath,
-		f.ambassadorMeta,
+		f.currentSnapshot, // encoded *atomic.Value
+		f.k8sSource,       // k8sSrc
+		queries,           // queries
+		f.watcher,         // consulWatcher
+		f.istioCertSource, // istioCertSrc
+		f.notifySnapshot,  // snapshotProcessor
+		f.notifyFastpath,  // fastpathProcessor
+		f.ambassadorMeta,  // ambassadorMeta
 	)
 }
 
@@ -255,7 +249,6 @@ func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, sna
 
 // GetSnapshotEntry will return the next SnapshotEntry that satisfies the supplied predicate.
 func (f *Fake) GetSnapshotEntry(predicate func(SnapshotEntry) bool) (SnapshotEntry, error) {
-	f.T.Helper()
 	untyped, err := f.snapshots.Get(func(obj interface{}) bool {
 		entry := obj.(SnapshotEntry)
 		return predicate(entry)
@@ -268,7 +261,6 @@ func (f *Fake) GetSnapshotEntry(predicate func(SnapshotEntry) bool) (SnapshotEnt
 
 // GetSnapshot will return the next snapshot that satisfies the supplied predicate.
 func (f *Fake) GetSnapshot(predicate func(*snapshot.Snapshot) bool) (*snapshot.Snapshot, error) {
-	f.T.Helper()
 	entry, err := f.GetSnapshotEntry(func(entry SnapshotEntry) bool {
 		return entry.Disposition == SnapshotReady && predicate(entry.Snapshot)
 	})
