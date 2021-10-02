@@ -30,7 +30,7 @@ type GRPCRLSV3 struct {
 }
 
 // Start initializes the HTTP server.
-func (g *GRPCRLSV3) Start() <-chan bool {
+func (g *GRPCRLSV3) Start(_ context.Context) <-chan bool {
 	log.Printf("GRPCRLSV3: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
 	exited := make(chan bool)

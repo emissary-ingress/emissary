@@ -49,7 +49,7 @@ def _get_envoy_config(yaml, version='V3'):
 def test_irauth_grpcservice_version_v2():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 metadata:
   name:  mycoolauthservice
@@ -73,7 +73,7 @@ spec:
 def test_irauth_grpcservice_version_v3():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 metadata:
   name:  mycoolauthservice
@@ -98,7 +98,7 @@ spec:
 def test_irauth_grpcservice_version_default():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 metadata:
   name:  mycoolauthservice
@@ -121,7 +121,7 @@ spec:
 def test_irauth_grpcservice_version_default_v3():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: AuthService
 metadata:
   name:  mycoolauthservice

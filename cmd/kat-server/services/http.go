@@ -45,7 +45,7 @@ func getTLSVersion(state *tls.ConnectionState) string {
 }
 
 // Start initializes the HTTP server.
-func (h *HTTP) Start() <-chan bool {
+func (h *HTTP) Start(ctx context.Context) <-chan bool {
 	log.Printf("HTTP: %s listening on %d/%d", h.Backend, h.Port, h.SecurePort)
 
 	mux := http.NewServeMux()
@@ -55,7 +55,7 @@ func (h *HTTP) Start() <-chan bool {
 		Handler: mux,
 	}
 
-	g := dgroup.NewGroup(context.TODO(), dgroup.GroupConfig{})
+	g := dgroup.NewGroup(ctx, dgroup.GroupConfig{})
 	g.Go("cleartext", func(ctx context.Context) error {
 		return sc.ListenAndServe(ctx, fmt.Sprintf(":%v", h.Port))
 	})

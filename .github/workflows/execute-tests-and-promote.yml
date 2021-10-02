@@ -73,6 +73,8 @@ jobs:
     name: gotest-legacy-mode:${{ matrix.gotest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.gotest-settings.fast-reconfigure }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: ./.github/actions/execute-go-tests
         name: "execute go-tests action"
       # collect logs

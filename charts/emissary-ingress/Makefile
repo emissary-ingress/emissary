@@ -1,17 +1,32 @@
 HELM_TEST_IMAGE = quay.io/helmpack/chart-testing:v3.0.0-rc.1
+HELM_TEST_VALUES ?=
 K3D_CLUSTER_NAME = helm-chart-test-cluster
 CHART_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 CHART_KUBECONFIG := /tmp/kubeconfig/k3dconfig
-CT_EXEC = docker run --rm -v $(CHART_KUBECONFIG):/root/.kube/config -v $(CHART_DIR):/charts --network host $(HELM_TEST_IMAGE) ct
 K3D_EXEC := KUBECONFIG=$(CHART_KUBECONFIG) k3d
 
 test-chart: lint-chart preflight-chart-test chart-create-cluster
-	$(CT_EXEC) install --config /charts/ct.yaml && \
-		$(MAKE) chart-delete-cluster
+	rm -rf $(CHART_DIR)/ci.tmp
+	cp -a $(CHART_DIR)/ci $(CHART_DIR)/ci.tmp
+	$(if $(HELM_TEST_VALUES),for file in $(CHART_DIR)/ci.tmp/*-values.yaml; do cat $(HELM_TEST_VALUES) >> "$$file"; done)
+	{ docker run --rm \
+	  --network=host \
+	  --volume=$(CHART_KUBECONFIG):/root/.kube/config \
+	  --volume=$(CHART_DIR):/charts \
+	  --volume=$(CHART_DIR)/ci.tmp:/charts/ci \
+	  $(HELM_TEST_IMAGE) \
+	  ct install --config=/charts/ct.yaml; }
+	$(MAKE) chart-delete-cluster
 .PHONY: test-chart
 
 lint-chart: preflight-kubeconfig
-	$(CT_EXEC) lint --config /charts/ct.yaml
+# This does NOT have the extra ci.tmp volume that the chart-test rule has.
+	{ docker run --rm \
+	  --network=host \
+	  --volume=$(CHART_KUBECONFIG):/root/.kube/config \
+	  --volume=$(CHART_DIR):/charts \
+	  $(HELM_TEST_IMAGE) \
+	  ct lint --config /charts/ct.yaml; }
 .PHONY: lint-chart
 
 preflight-chart-test: preflight-kubeconfig

@@ -149,7 +149,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		return cmd.Run()
 	})
 
-	usage := memory.GetMemoryUsage()
+	usage := memory.GetMemoryUsage(ctx)
 	if !envbool("DEV_SHUTUP_MEMORY") {
 		group.Go("memory", func(ctx context.Context) error {
 			usage.Watch(ctx)

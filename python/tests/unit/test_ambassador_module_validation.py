@@ -35,7 +35,7 @@ def require_errors(ir: IR, errors: List[Tuple[str, str]]):
 def test_valid_forward_client_cert_details():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   name: ambassador
@@ -56,7 +56,7 @@ spec:
 def test_invalid_forward_client_cert_details():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   name: ambassador
@@ -81,7 +81,7 @@ spec:
 def test_valid_set_current_client_cert_details():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   name: ambassador
@@ -104,7 +104,7 @@ spec:
 def test_invalid_set_current_client_cert_details_key():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   name: ambassador
@@ -132,7 +132,7 @@ spec:
 def test_invalid_set_current_client_cert_details_value():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   name: ambassador

@@ -115,8 +115,8 @@ spec:
 # you want before you use 'format' to fill in other things from 'self'.
 cleartext_host_manifest = """
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: cleartext-host-{self.path.k8s}
   labels:
@@ -136,8 +136,8 @@ spec:
 # use 'format' to fill in other things from 'self'.
 default_listener_manifest = """
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: listener-%(port)s-{self.path.k8s}
   labels:

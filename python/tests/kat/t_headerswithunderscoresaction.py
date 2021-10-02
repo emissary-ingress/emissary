@@ -11,10 +11,10 @@ class AllowHeadersWithUnderscoresTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  config__dump
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
@@ -38,16 +38,16 @@ class RejectHeadersWithUnderscoresTest(AmbassadorTest):
 apiVersion: ambassador/v2
 kind: Module
 name: ambassador
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 config:
   headers_with_underscores_action: REJECT_REQUEST
 """)
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  config__dump
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}

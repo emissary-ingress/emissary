@@ -2,13 +2,13 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"sync"
 	"sync/atomic"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -59,6 +59,40 @@ func (m *MockClient) Report(ctx context.Context, in *agent.Snapshot, opts ...grp
 	return nil, nil
 }
 
+type mockReportStreamClient struct {
+	ctx     context.Context
+	opts    []grpc.CallOption
+	parent  *MockClient
+	content []byte
+}
+
+func (s *mockReportStreamClient) Send(chunk *agent.RawSnapshotChunk) error {
+	s.content = append(s.content, chunk.Chunk...)
+	return nil
+}
+func (s *mockReportStreamClient) CloseAndRecv() (*agent.SnapshotResponse, error) {
+	var snapshot agent.Snapshot
+	if err := json.Unmarshal(s.content, &snapshot); err != nil {
+		return nil, err
+	}
+	return s.parent.Report(s.ctx, &snapshot, s.opts...)
+}
+
+func (s *mockReportStreamClient) Header() (metadata.MD, error) { return nil, nil }
+func (s *mockReportStreamClient) Trailer() metadata.MD         { return nil }
+func (s *mockReportStreamClient) CloseSend() error             { return nil }
+func (s *mockReportStreamClient) Context() context.Context     { return s.ctx }
+func (s *mockReportStreamClient) SendMsg(m interface{}) error  { return nil }
+func (s *mockReportStreamClient) RecvMsg(m interface{}) error  { return nil }
+
+func (m *MockClient) ReportStream(ctx context.Context, opts ...grpc.CallOption) (agent.Director_ReportStreamClient, error) {
+	return &mockReportStreamClient{
+		ctx:    ctx,
+		opts:   opts,
+		parent: m,
+	}, nil
+}
+
 func (m *MockClient) Recv() (*agent.Directive, error) {
 	counter := atomic.AddInt64(&m.Counter, 1)
 
@@ -91,10 +125,7 @@ func (m *MockClient) RetrieveSnapshot(context.Context, *agent.Identity, ...grpc.
 }
 
 func TestComm(t *testing.T) {
-	llog := logrus.New()
-	llog.SetLevel(logrus.DebugLevel)
-	log := dlog.WrapLogrus(llog)
-	ctx := dlog.WithLogger(context.Background(), log)
+	ctx := dlog.NewTestContext(t, false)
 	ctx, cancel := context.WithCancel(ctx)
 	client := &MockClient{}
 	agentID := &agent.Identity{}

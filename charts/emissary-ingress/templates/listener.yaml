@@ -1,7 +1,7 @@
 {{- if .Values.createDefaultListeners }}
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: {{ include "ambassador.fullname" . }}-https-listener
   namespace: {{ include "ambassador.namespace" . }}
@@ -13,8 +13,8 @@ spec:
     namespace:
       from: ALL
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
+apiVersion: getambassador.io/v3alpha1
+kind: Listener
 metadata:
   name: {{ include "ambassador.fullname" . }}-http-listener
   namespace: {{ include "ambassador.namespace" . }}

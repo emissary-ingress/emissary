@@ -9,7 +9,7 @@ metadata:
   namespace: default
 type: kubernetes.io/tls
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 metadata:
   name: tls-context-1
@@ -19,7 +19,7 @@ spec:
   - tls-context-host-1
   secret: test-k8s-secret
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 metadata:
   name: istio-context-1

@@ -43,10 +43,10 @@ type: Opaque
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: tls
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 config:
   upstream:
     enabled: True
@@ -55,8 +55,8 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
@@ -106,7 +106,7 @@ data:
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 config:
@@ -114,9 +114,9 @@ config:
   set_current_client_cert_details:
     subject: true
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 name: tls
 config:
   server:
@@ -130,8 +130,8 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
@@ -218,14 +218,14 @@ data:
   tls.crt: {TLSCerts["ambassador.example.com"].k8s_crt}
   tls.key: {TLSCerts["ambassador.example.com"].k8s_key}
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 metadata:
   name: ccauthctx-tls
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hosts: [ "*" ]
   secret: ccauthctx-server-secret
   ca_secret: ccauthctx-client-secret
@@ -235,8 +235,8 @@ spec:
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
@@ -299,9 +299,9 @@ data:
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 name: tls
 config:
   upstream:
@@ -313,8 +313,8 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
@@ -323,8 +323,8 @@ tls: upstream
 
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-files
 prefix: /{self.name}-files/
 service: {self.target.path.fqdn}
@@ -373,14 +373,14 @@ data:
   tls.crt: {TLSCerts["localhost"].k8s_crt}
   tls.key: {TLSCerts["localhost"].k8s_key}
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorHost
+apiVersion: getambassador.io/v3alpha1
+kind: Host
 metadata:
   name: tls-host
   labels:
     kat-ambassador-id: tls
 spec:
-  ambassador_id: tls
+  ambassador_id: [tls]
   tlsSecret:
     name: test-tls-secret
   requestPolicy:
@@ -393,10 +393,10 @@ spec:
 #         # be annotated on the Ambassador itself.
 #         yield self, self.format("""
 # ---
-# apiVersion: getambassador.io/v2
+# apiVersion: getambassador.io/v3alpha1
 # kind: Module
 # name: tls
-# ambassador_id: {self.ambassador_id}
+# ambassador_id: [{self.ambassador_id}]
 # config:
 #   server:
 #     enabled: True
@@ -404,7 +404,7 @@ spec:
 # """)
 
         # Use self.target _here_, because we want the mapping to be annotated
-        # on the service, not the Ambassador. Also, you don't need to include 
+        # on the service, not the Ambassador. Also, you don't need to include
         # the ambassador_id unless you need some special ambassador_id that
         # isn't something that kat already knows about.
         #
@@ -413,8 +413,8 @@ spec:
         # it's not necessary.
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tls_target_mapping
 prefix: /tls-target/
 service: {self.target.path.fqdn}
@@ -438,10 +438,10 @@ class TLSInvalidSecret(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: tls
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 config:
   server:
     enabled: True
@@ -459,8 +459,8 @@ config:
 
         yield self.target, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  tls_target_mapping
 prefix: /tls-target/
 service: {self.target.path.fqdn}
@@ -543,8 +543,8 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-same-prefix-1
 prefix: /tls-context-same/
 service: http://{self.target.path.fqdn}
@@ -552,7 +552,7 @@ host: tls-context-host-1
 """)
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-same-context-1
 hosts:
@@ -564,8 +564,8 @@ redirect_cleartext_from: 8080
 """)
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-same-prefix-2
 prefix: /tls-context-same/
 service: http://{self.target.path.fqdn}
@@ -573,7 +573,7 @@ host: tls-context-host-2
 """)
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-same-context-2
 hosts:
@@ -584,7 +584,7 @@ redirect_cleartext_from: 8080
 """)
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: tls
 config:
@@ -594,8 +594,8 @@ config:
 """)
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-other-mapping
 prefix: /{self.name}/
 service: https://{self.target.path.fqdn}
@@ -603,7 +603,7 @@ service: https://{self.target.path.fqdn}
         # Ambassador should not return an error when hostname is not present.
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-no-secret
 min_tls_version: v1.0
@@ -613,7 +613,7 @@ redirect_cleartext_from: 8080
         # Ambassador should return an error for this configuration.
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-same-context-error
 hosts:
@@ -623,7 +623,7 @@ redirect_cleartext_from: 8080
       # Ambassador should return an error for this configuration.
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-rcf-error
 hosts:
@@ -862,7 +862,7 @@ spec:
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: tls
 config:
@@ -873,8 +873,8 @@ config:
 
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 hostname: "*"
 name:  {self.name}-other-mapping
 prefix: /{self.name}/
@@ -1028,21 +1028,21 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
   defaults:
     tls_secret_namespacing: False
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-same-prefix-1
 prefix: /tls-context-same/
 service: http://{self.target.path.fqdn}
 host: tls-context-host-1
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-same-context-1
 hosts:
@@ -1147,14 +1147,14 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-same-prefix-1
 prefix: /tls-context-same/
 service: https://{self.target.path.fqdn}
 host: tls-context-host-1
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-same-context-1
 hosts:
@@ -1246,8 +1246,8 @@ type: kubernetes.io/tls
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-same-prefix-1
 prefix: /tls-context-same/
 service: https://{self.target.path.fqdn}
@@ -1255,7 +1255,7 @@ host: tls-context-host-1
 """)
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-same-context-1
 hosts:
@@ -1346,8 +1346,8 @@ type: istio.io/key-and-cert
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.name}-istio-prefix-1
 prefix: /tls-context-istio/
 service: https://{self.target.path.fqdn}
@@ -1355,7 +1355,7 @@ tls: {self.name}-istio-context-1
 """)
         yield self, self.format("""
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: {self.name}-istio-context-1
 secret: istio.test-tlscontext-istio-secret-1
@@ -1397,7 +1397,7 @@ type: kubernetes.io/tls
 
     def config(self):
         yield self, self.format("""
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 name: tlscoalescing-context
 secret: tlscoalescing-certs
@@ -1445,10 +1445,10 @@ class TLSInheritFromModule(AmbassadorTest):
         # These are annotations instead of resources because the name matters.
         yield self, self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: tls
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 config:
   server:
     enabled: True
@@ -1458,7 +1458,7 @@ config:
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: TLSContext
 metadata:
   name: {self.name.k8s}
@@ -1480,8 +1480,8 @@ data:
   tls.crt: '''+TLSCerts["a.domain.com"].k8s_crt+'''
   tls.key: '''+TLSCerts["a.domain.com"].k8s_key+'''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.name.k8s}-target-mapping
 spec:

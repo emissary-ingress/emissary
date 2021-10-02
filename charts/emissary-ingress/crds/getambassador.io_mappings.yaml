@@ -78,9 +78,7 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             auth_context_extensions:
               additionalProperties:
                 type: string
@@ -125,40 +123,28 @@ spec:
                 credentials:
                   type: boolean
                 exposed_headers:
-                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
-                  oneOf:
-                  - type: string
-                  - type: array
+                  type: array
                 headers:
-                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
-                  oneOf:
-                  - type: string
-                  - type: array
+                  type: array
                 max_age:
                   type: string
                 methods:
-                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
-                  oneOf:
-                  - type: string
-                  - type: array
+                  type: array
                 origins:
-                  description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
                   items:
                     type: string
-                  oneOf:
-                  - type: string
-                  - type: array
+                  type: array
               type: object
             dns_type:
               type: string
             docs:
-              description: DocsInfo provides some extra information about the docs for the Mapping (used by the Dev Portal)
+              description: DocsInfo provides some extra information about the docs for the Mapping. Docs is used by both the agent and the DevPortal.
               properties:
                 display_name:
                   type: string
@@ -224,16 +210,17 @@ spec:
                 - type: boolean
               type: object
             host:
-              description: "Exact match for the hostname of a request if HostRegex is false; regex match for the hostname if HostRegex is true. \n Host specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Host will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used."
+              description: "Exact match for the hostname of a request if HostRegex is false; regex match for the hostname if HostRegex is true. \n Host specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Host will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used. \n DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead."
               type: string
             host_redirect:
               type: boolean
             host_regex:
+              description: 'DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.'
               type: boolean
             host_rewrite:
               type: string
             hostname:
-              description: "Glob match for the hostname of a request. Ignores HostRegex. \n Hostname specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Hostname will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used."
+              description: "Hostname is a DNS glob specifying the hosts to which this Mapping applies. \n Hostname specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Hostname will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used."
               type: string
             idle_timeout_ms:
               type: integer
@@ -360,19 +347,13 @@ spec:
                 - type: boolean
               type: object
             remove_request_headers:
-              description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             remove_response_headers:
-              description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             resolver:
               type: string
             retry_policy:
@@ -429,8 +410,8 @@ spec:
               type: string
           type: object
       type: object
-  version: v2
+  version: v3alpha1
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true

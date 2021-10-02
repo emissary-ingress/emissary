@@ -1,0 +1,567 @@
+{
+    "id": "https://getambassador.io/schemas/mapping.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "prefix",
+        "service"
+    ],
+    "properties": {
+        "add_linkerd_headers": {
+            "type": "boolean"
+        },
+        "add_request_headers": {
+            "type": "object",
+            "additionalProperties": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    },
+                    {
+                        "type": "object"
+                    }
+                ]
+            }
+        },
+        "add_response_headers": {
+            "type": "object",
+            "additionalProperties": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    },
+                    {
+                        "type": "object"
+                    }
+                ]
+            }
+        },
+        "allow_upgrade": {
+            "description": "A case-insensitive list of the non-HTTP protocols to allow \"upgrading\" to from HTTP via the \"Connection: upgrade\" mechanism[1].  After the upgrade, Ambassador does not interpret the traffic, and behaves similarly to how it does for TCPMappings. \n [1]: https://tools.ietf.org/html/rfc7230#section-6.7 \n For example, if your upstream service supports WebSockets, you would write \n    allow_upgrade:    - websocket \n Or if your upstream service supports upgrading from HTTP to SPDY (as the Kubernetes apiserver does for `kubectl exec` functionality), you would write \n    allow_upgrade:    - spdy/3.1",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "ambassador_id": {
+            "description": "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\"",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v3alpha1"
+            ]
+        },
+        "auth_context_extensions": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "auto_host_rewrite": {
+            "type": "boolean"
+        },
+        "bypass_auth": {
+            "type": "boolean"
+        },
+        "bypass_error_response_overrides": {
+            "description": "If true, bypasses any `error_response_overrides` set on the Ambassador module.",
+            "type": "boolean"
+        },
+        "case_sensitive": {
+            "type": "boolean"
+        },
+        "circuit_breakers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "max_connections": {
+                        "type": "integer"
+                    },
+                    "max_pending_requests": {
+                        "type": "integer"
+                    },
+                    "max_requests": {
+                        "type": "integer"
+                    },
+                    "max_retries": {
+                        "type": "integer"
+                    },
+                    "priority": {
+                        "type": "string",
+                        "enum": [
+                            "default",
+                            "high"
+                        ]
+                    }
+                }
+            }
+        },
+        "cluster_idle_timeout_ms": {
+            "type": "integer"
+        },
+        "cluster_max_connection_lifetime_ms": {
+            "type": "integer"
+        },
+        "cluster_tag": {
+            "type": "string"
+        },
+        "connect_timeout_ms": {
+            "type": "integer"
+        },
+        "cors": {
+            "type": "object",
+            "properties": {
+                "credentials": {
+                    "type": "boolean"
+                },
+                "exposed_headers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "headers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "max_age": {
+                    "type": "string"
+                },
+                "methods": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "origins": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dns_type": {
+            "type": "string"
+        },
+        "docs": {
+            "description": "DocsInfo provides some extra information about the docs for the Mapping. Docs is used by both the agent and the DevPortal.",
+            "type": "object",
+            "properties": {
+                "display_name": {
+                    "type": "string"
+                },
+                "ignored": {
+                    "type": "boolean"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "enable_ipv4": {
+            "type": "boolean"
+        },
+        "enable_ipv6": {
+            "type": "boolean"
+        },
+        "envoy_override": {
+            "description": "UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.",
+            "type": "object"
+        },
+        "error_response_overrides": {
+            "description": "Error response overrides for this Mapping. Replaces all of the `error_response_overrides` set on the Ambassador module, if any.",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "description": "A response rewrite for an HTTP error response",
+                "type": "object",
+                "required": [
+                    "body",
+                    "on_status_code"
+                ],
+                "properties": {
+                    "body": {
+                        "description": "The new response body",
+                        "type": "object",
+                        "properties": {
+                            "content_type": {
+                                "description": "The content type to set on the error response body when using text_format or text_format_source. Defaults to 'text/plain'.",
+                                "type": "string"
+                            },
+                            "json_format": {
+                                "description": "A JSON response with content-type: application/json. The values can contain format text like in text_format.",
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "string"
+                                }
+                            },
+                            "text_format": {
+                                "description": "A format string representing a text response body. Content-Type can be set using the `content_type` field below.",
+                                "type": "string"
+                            },
+                            "text_format_source": {
+                                "description": "A format string sourced from a file on the Ambassador container. Useful for larger response bodies that should not be placed inline in configuration.",
+                                "type": "object",
+                                "properties": {
+                                    "filename": {
+                                        "description": "The name of a file on the Ambassador pod that contains a format text string.",
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "on_status_code": {
+                        "description": "The status code to match on -- not a pointer because it's required.",
+                        "type": "integer",
+                        "maximum": 599,
+                        "minimum": 400
+                    }
+                }
+            }
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "grpc": {
+            "type": "boolean"
+        },
+        "headers": {
+            "type": "object",
+            "additionalProperties": {
+                "description": "BoolOrString is a type that can hold a Boolean or a string.",
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            }
+        },
+        "host": {
+            "description": "Exact match for the hostname of a request if HostRegex is false; regex match for the hostname if HostRegex is true. \n Host specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Host will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used. \n DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.",
+            "type": "string"
+        },
+        "host_redirect": {
+            "type": "boolean"
+        },
+        "host_regex": {
+            "description": "DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.",
+            "type": "boolean"
+        },
+        "host_rewrite": {
+            "type": "string"
+        },
+        "hostname": {
+            "description": "Hostname is a DNS glob specifying the hosts to which this Mapping applies. \n Hostname specifies both a match for the ':authority' header of a request, as well as a match criterion for Host CRDs: a Mapping that specifies Hostname will not associate with a Host that doesn't have a matching Hostname. \n If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is used.",
+            "type": "string"
+        },
+        "idle_timeout_ms": {
+            "type": "integer"
+        },
+        "keepalive": {
+            "type": "object",
+            "properties": {
+                "idle_time": {
+                    "type": "integer"
+                },
+                "interval": {
+                    "type": "integer"
+                },
+                "probes": {
+                    "type": "integer"
+                }
+            }
+        },
+        "kind": {
+            "enum": [
+                "Mapping"
+            ]
+        },
+        "labels": {
+            "description": "A DomainMap is the overall Mapping.spec.Labels type. It maps domains (kind of like namespaces for Mapping labels) to arrays of label groups.",
+            "type": "object",
+            "additionalProperties": {
+                "description": "A MappingLabelGroupsArray is an array of MappingLabelGroups. I know, complex.",
+                "type": "array",
+                "items": {
+                    "description": "A MappingLabelGroup is a single element of a MappingLabelGroupsArray: a second map, where the key is a human-readable name that identifies the group.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "description": "A MappingLabelsArray is the value in the MappingLabelGroup: an array of label specifiers.",
+                        "type": "array",
+                        "items": {
+                            "description": "A MappingLabelSpecifier (finally!) defines a single label. There are multiple kinds of label, so this is more complex than we'd like it to be. See the remarks about schema on custom types in `./common.go`."
+                        }
+                    }
+                }
+            }
+        },
+        "load_balancer": {
+            "type": "object",
+            "required": [
+                "policy"
+            ],
+            "properties": {
+                "cookie": {
+                    "type": "object",
+                    "required": [
+                        "name"
+                    ],
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "path": {
+                            "type": "string"
+                        },
+                        "ttl": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "header": {
+                    "type": "string"
+                },
+                "policy": {
+                    "type": "string",
+                    "enum": [
+                        "round_robin",
+                        "ring_hash",
+                        "maglev",
+                        "least_request"
+                    ]
+                },
+                "source_ip": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "metadata_labels": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "method": {
+            "type": "string"
+        },
+        "method_regex": {
+            "type": "boolean"
+        },
+        "modules": {
+            "type": "array",
+            "items": {
+                "description": "UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.",
+                "type": "object"
+            }
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
+        "outlier_detection": {
+            "type": "string"
+        },
+        "path_redirect": {
+            "description": "Path replacement to use when generating an HTTP redirect. Used with `host_redirect`.",
+            "type": "string"
+        },
+        "precedence": {
+            "type": "integer"
+        },
+        "prefix": {
+            "type": "string"
+        },
+        "prefix_exact": {
+            "type": "boolean"
+        },
+        "prefix_redirect": {
+            "description": "Prefix rewrite to use when generating an HTTP redirect. Used with `host_redirect`.",
+            "type": "string"
+        },
+        "prefix_regex": {
+            "type": "boolean"
+        },
+        "priority": {
+            "type": "string"
+        },
+        "query_parameters": {
+            "type": "object",
+            "additionalProperties": {
+                "description": "BoolOrString is a type that can hold a Boolean or a string.",
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            }
+        },
+        "redirect_response_code": {
+            "description": "The response code to use when generating an HTTP redirect. Defaults to 301. Used with `host_redirect`.",
+            "type": "integer",
+            "enum": [
+                301,
+                302,
+                303,
+                307,
+                308
+            ]
+        },
+        "regex_headers": {
+            "type": "object",
+            "additionalProperties": {
+                "description": "BoolOrString is a type that can hold a Boolean or a string.",
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            }
+        },
+        "regex_query_parameters": {
+            "type": "object",
+            "additionalProperties": {
+                "description": "BoolOrString is a type that can hold a Boolean or a string.",
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            }
+        },
+        "regex_redirect": {
+            "description": "Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.",
+            "type": "object",
+            "additionalProperties": {
+                "description": "BoolOrString is a type that can hold a Boolean or a string.",
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            }
+        },
+        "regex_rewrite": {
+            "type": "object",
+            "additionalProperties": {
+                "description": "BoolOrString is a type that can hold a Boolean or a string.",
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            }
+        },
+        "remove_request_headers": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "remove_response_headers": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "resolver": {
+            "type": "string"
+        },
+        "retry_policy": {
+            "type": "object",
+            "properties": {
+                "num_retries": {
+                    "type": "integer"
+                },
+                "per_try_timeout": {
+                    "type": "string"
+                },
+                "retry_on": {
+                    "type": "string",
+                    "enum": [
+                        "5xx",
+                        "gateway-error",
+                        "connect-failure",
+                        "retriable-4xx",
+                        "refused-stream",
+                        "retriable-status-codes"
+                    ]
+                }
+            }
+        },
+        "rewrite": {
+            "type": "string"
+        },
+        "service": {
+            "type": "string"
+        },
+        "shadow": {
+            "type": "boolean"
+        },
+        "stats_name": {
+            "type": "string"
+        },
+        "timeout_ms": {
+            "description": "The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.",
+            "type": "integer"
+        },
+        "tls": {
+            "description": "BoolOrString is a type that can hold a Boolean or a string.",
+            "oneOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "boolean"
+                }
+            ]
+        },
+        "use_websocket": {
+            "description": "use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: [\"websocket\"]`",
+            "type": "boolean"
+        },
+        "weight": {
+            "type": "integer"
+        }
+    }
+}

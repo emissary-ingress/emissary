@@ -37,7 +37,8 @@ type icertMetadata struct {
 	mutex  sync.Mutex
 }
 
-func newICertMetadata(t *testing.T) *icertMetadata {
+func newICertMetadata(t *testing.T) (context.Context, *icertMetadata) {
+	ctx := dlog.NewTestContext(t, false)
 	ft := dtime.NewFakeTime()
 
 	updates := make(chan entrypoint.IstioCertUpdate)
@@ -58,22 +59,22 @@ func newICertMetadata(t *testing.T) *icertMetadata {
 			m.mutex.Unlock()
 
 			if evt.Op == "update" {
-				dlog.Infof(context.TODO(), "Event handler: got update of %s", evt.Secret.ObjectMeta.Name)
+				dlog.Infof(ctx, "Event handler: got update of %s", evt.Secret.ObjectMeta.Name)
 			} else {
-				dlog.Infof(context.TODO(), "Event handler: got deletion")
+				dlog.Infof(ctx, "Event handler: got deletion")
 			}
 		}
 	}()
 
-	return m
+	return ctx, m
 }
 
 func (m *icertMetadata) stepSec(sec int) {
 	m.ft.StepSec(sec)
 }
 
-func (m *icertMetadata) check(what string, name string, deleted bool, count int) {
-	m.icert.HandleEvent(context.TODO(), name, deleted)
+func (m *icertMetadata) check(ctx context.Context, what string, name string, deleted bool, count int) {
+	m.icert.HandleEvent(ctx, name, deleted)
 	time.Sleep(250 * time.Millisecond)
 
 	m.mutex.Lock()
@@ -160,99 +161,99 @@ func (m *icertMetadata) checkSecret(namespace string, publicPEM string, privateP
 }
 
 func TestIstioCertHappyBoot1(t *testing.T) {
-	m := newICertMetadata(t)
+	ctx, m := newICertMetadata(t)
 
-	m.check("boot foo", "/tmp/foo", false, 0)
-	m.check("boot bar", "/tmp/bar", false, 0)
-	m.check("boot root-cert.pem", "/tmp/root-cert.pem", false, 0)
-	m.check("boot cert-chain.pem", "/tmp/cert-chain.pem", false, 0)
-	m.check("boot key.pem", "/tmp/key.pem", false, 1)
+	m.check(ctx, "boot foo", "/tmp/foo", false, 0)
+	m.check(ctx, "boot bar", "/tmp/bar", false, 0)
+	m.check(ctx, "boot root-cert.pem", "/tmp/root-cert.pem", false, 0)
+	m.check(ctx, "boot cert-chain.pem", "/tmp/cert-chain.pem", false, 0)
+	m.check(ctx, "boot key.pem", "/tmp/key.pem", false, 1)
 
 	m.checkSecret("ambassador", PUBLIC_KEY, PRIVATE_KEY)
 }
 
 func TestIstioCertHappyBoot2(t *testing.T) {
-	m := newICertMetadata(t)
+	ctx, m := newICertMetadata(t)
 
-	m.check("boot key.pem", "/tmp/key.pem", false, 0)
-	m.check("boot foo", "/tmp/foo", false, 0)
-	m.check("boot bar", "/tmp/bar", false, 0)
-	m.check("boot root-cert.pem", "/tmp/root-cert.pem", false, 0)
-	m.check("boot cert-chain.pem", "/tmp/cert-chain.pem", false, 1)
+	m.check(ctx, "boot key.pem", "/tmp/key.pem", false, 0)
+	m.check(ctx, "boot foo", "/tmp/foo", false, 0)
+	m.check(ctx, "boot bar", "/tmp/bar", false, 0)
+	m.check(ctx, "boot root-cert.pem", "/tmp/root-cert.pem", false, 0)
+	m.check(ctx, "boot cert-chain.pem", "/tmp/cert-chain.pem", false, 1)
 
 	m.checkSecret("ambassador", PUBLIC_KEY, PRIVATE_KEY)
 }
 
 func TestIstioCertHappyNoBoot(t *testing.T) {
-	m := newICertMetadata(t)
+	ctx, m := newICertMetadata(t)
 
 	m.stepSec(5)
-	m.check("key.pem", "/tmp/key.pem", false, 0)
+	m.check(ctx, "key.pem", "/tmp/key.pem", false, 0)
 	m.stepSec(1)
-	m.check("root-cert.pem", "/tmp/root-cert.pem", false, 0)
+	m.check(ctx, "root-cert.pem", "/tmp/root-cert.pem", false, 0)
 	m.stepSec(2)
-	m.check("cert-chain.pem", "/tmp/cert-chain.pem", false, 1)
+	m.check(ctx, "cert-chain.pem", "/tmp/cert-chain.pem", false, 1)
 
 	m.checkSecret("ambassador", PUBLIC_KEY, PRIVATE_KEY)
 }
 
 func TestIstioCertTooSlow1(t *testing.T) {
-	m := newICertMetadata(t)
+	ctx, m := newICertMetadata(t)
 
 	m.stepSec(5)
-	m.check("key.pem", "/tmp/key.pem", false, 0)
+	m.check(ctx, "key.pem", "/tmp/key.pem", false, 0)
 	m.stepSec(5)
-	m.check("root-cert.pem", "/tmp/root-cert.pem", false, 0)
+	m.check(ctx, "root-cert.pem", "/tmp/root-cert.pem", false, 0)
 	m.stepSec(5)
-	m.check("cert-chain.pem", "/tmp/cert-chain.pem", false, 0)
+	m.check(ctx, "cert-chain.pem", "/tmp/cert-chain.pem", false, 0)
 }
 
 func TestIstioCertTooSlow2(t *testing.T) {
-	m := newICertMetadata(t)
+	ctx, m := newICertMetadata(t)
 
 	m.stepSec(5)
-	m.check("key.pem", "/tmp/key.pem", false, 0)
+	m.check(ctx, "key.pem", "/tmp/key.pem", false, 0)
 	m.stepSec(1)
-	m.check("root-cert.pem", "/tmp/root-cert.pem", false, 0)
+	m.check(ctx, "root-cert.pem", "/tmp/root-cert.pem", false, 0)
 	m.stepSec(5)
-	m.check("cert-chain.pem", "/tmp/cert-chain.pem", false, 0)
+	m.check(ctx, "cert-chain.pem", "/tmp/cert-chain.pem", false, 0)
 }
 
 func TestIstioCertEventually(t *testing.T) {
-	m := newICertMetadata(t)
+	ctx, m := newICertMetadata(t)
 
 	m.stepSec(5)
-	m.check("key.pem", "/tmp/key.pem", false, 0)
+	m.check(ctx, "key.pem", "/tmp/key.pem", false, 0)
 	m.stepSec(5)
-	m.check("root-cert.pem", "/tmp/root-cert.pem", false, 0)
+	m.check(ctx, "root-cert.pem", "/tmp/root-cert.pem", false, 0)
 	m.stepSec(1)
-	m.check("cert-chain.pem", "/tmp/cert-chain.pem", false, 0)
+	m.check(ctx, "cert-chain.pem", "/tmp/cert-chain.pem", false, 0)
 	m.stepSec(1)
-	m.check("root-cert.pem", "/tmp/root-cert.pem", false, 0)
+	m.check(ctx, "root-cert.pem", "/tmp/root-cert.pem", false, 0)
 	m.stepSec(2)
-	m.check("key.pem", "/tmp/key.pem", false, 1)
+	m.check(ctx, "key.pem", "/tmp/key.pem", false, 1)
 
 	m.checkSecret("ambassador", PUBLIC_KEY, PRIVATE_KEY)
 }
 
 func TestIstioCertDeletion(t *testing.T) {
-	m := newICertMetadata(t)
+	ctx, m := newICertMetadata(t)
 
 	m.stepSec(5)
-	m.check("key.pem", "/tmp/key.pem", false, 0)
+	m.check(ctx, "key.pem", "/tmp/key.pem", false, 0)
 	m.checkNoSecret()
 
 	m.stepSec(1)
-	m.check("root-cert.pem", "/tmp/root-cert.pem", false, 0)
+	m.check(ctx, "root-cert.pem", "/tmp/root-cert.pem", false, 0)
 	m.stepSec(1)
-	m.check("cert-chain.pem", "/tmp/cert-chain.pem", false, 1)
+	m.check(ctx, "cert-chain.pem", "/tmp/cert-chain.pem", false, 1)
 	m.checkSecret("ambassador", PUBLIC_KEY, PRIVATE_KEY)
 
 	m.stepSec(1)
-	m.check("root-cert.pem", "/tmp/root-cert.pem", true, 1)
+	m.check(ctx, "root-cert.pem", "/tmp/root-cert.pem", true, 1)
 	m.checkSecret("ambassador", PUBLIC_KEY, PRIVATE_KEY)
 
 	m.stepSec(1)
-	m.check("key.pem", "/tmp/key.pem", true, 2)
+	m.check(ctx, "key.pem", "/tmp/key.pem", true, 2)
 	m.checkNoSecret()
 }

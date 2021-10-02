@@ -18,7 +18,7 @@ kind: Namespace
 metadata:
   name: no-ui-namespace
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   name: ambassador
@@ -36,4 +36,3 @@ spec:
         yield(Query(self.url("ambassador/v0/diag/"), expected=404))
         yield(Query(self.url("edge_stack/admin/"), expected=404))
         yield Query(self.url("ambassador/v0/diag/", scheme="http", port=8877), expected=404)
-

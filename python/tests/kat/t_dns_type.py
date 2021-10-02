@@ -13,8 +13,8 @@ class LogicalDnsType(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-foo
 prefix: /foo/
 service: {self.target.path.fqdn}
@@ -39,8 +39,8 @@ class LogicalDnsTypeEndpoint(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 name:  {self.target.path.k8s}-foo
 prefix: /foo/
 service: {self.target.path.fqdn}
