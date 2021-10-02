@@ -175,117 +175,43 @@ func canonGVK(kind string) (canonKind string, canonGroupVersion string) {
 	// this to work well for ambassador and core types.
 
 	switch strings.ToLower(kind) {
-	case "service":
-		fallthrough
-	case "services":
-		fallthrough
-	case "services.":
+	case "service", "services", "services.":
 		return "Service", "v1"
-	case "secret":
-		fallthrough
-	case "secrets":
-		fallthrough
-	case "secrets.":
+	case "secret", "secrets", "secrets.":
 		return "Secret", "v1"
-	case "endpoints":
-		fallthrough
-	case "endpoints.":
+	case "endpoints", "endpoints.":
 		return "Endpoints", "v1"
-	case "ingress":
-		fallthrough
-	case "ingresses":
-		fallthrough
-	case "ingresses.extensions":
+	case "ingress", "ingresses", "ingresses.extensions":
 		return "Ingress", "v1"
-	case "ingressclass":
-		fallthrough
-	case "ingressclasses":
-		fallthrough
-	case "ingressclasses.networking.k8s.io":
+	case "ingressclass", "ingressclasses", "ingressclasses.networking.k8s.io":
 		return "IngressClass", "v1"
-	case "authservice":
-		fallthrough
-	case "authservices":
-		fallthrough
-	case "authservices.getambassador.io":
+	case "authservice", "authservices", "authservices.getambassador.io":
 		return "AuthService", "getambassador.io/v3alpha1"
-	case "consulresolver":
-		fallthrough
-	case "consulresolvers":
-		fallthrough
-	case "consulresolvers.getambassador.io":
+	case "consulresolver", "consulresolvers", "consulresolvers.getambassador.io":
 		return "ConsulResolver", "getambassador.io/v3alpha1"
-	case "devportal":
-		fallthrough
-	case "devportals":
-		fallthrough
-	case "devportals.getambassador.io":
+	case "devportal", "devportals", "devportals.getambassador.io":
 		return "DevPortal", "getambassador.io/v3alpha1"
-	case "host":
-		fallthrough
-	case "hosts":
-		fallthrough
-	case "hosts.getambassador.io":
+	case "host", "hosts", "hosts.getambassador.io":
 		return "Host", "getambassador.io/v3alpha1"
-	case "kubernetesendpointresolver":
-		fallthrough
-	case "kubernetesendpointresolvers":
-		fallthrough
-	case "kubernetesendpointresolvers.getambassador.io":
+	case "kubernetesendpointresolver", "kubernetesendpointresolvers", "kubernetesendpointresolvers.getambassador.io":
 		return "KubernetesEndpointResolver", "getambassador.io/v3alpha1"
-	case "kubernetesserviceresolver":
-		fallthrough
-	case "kubernetesserviceresolvers":
-		fallthrough
-	case "kubernetesserviceresolvers.getambassador.io":
+	case "kubernetesserviceresolver", "kubernetesserviceresolvers", "kubernetesserviceresolvers.getambassador.io":
 		return "KubernetesServiceResolver", "getambassador.io/v3alpha1"
-	case "listener":
-		fallthrough
-	case "listeners":
-		fallthrough
-	case "listeners.getambassador.io":
+	case "listener", "listeners", "listeners.getambassador.io":
 		return "Listener", "getambassador.io/v3alpha1"
-	case "logservice":
-		fallthrough
-	case "logservices":
-		fallthrough
-	case "logservices.getambassador.io":
+	case "logservice", "logservices", "logservices.getambassador.io":
 		return "LogService", "getambassador.io/v3alpha1"
-	case "mapping":
-		fallthrough
-	case "mappings":
-		fallthrough
-	case "mappings.getambassador.io":
+	case "mapping", "mappings", "mappings.getambassador.io":
 		return "Mapping", "getambassador.io/v3alpha1"
-	case "module":
-		fallthrough
-	case "modules":
-		fallthrough
-	case "modules.getambassador.io":
+	case "module", "modules", "modules.getambassador.io":
 		return "Module", "getambassador.io/v3alpha1"
-	case "ratelimitservice":
-		fallthrough
-	case "ratelimitservices":
-		fallthrough
-	case "ratelimitservices.getambassador.io":
+	case "ratelimitservice", "ratelimitservices", "ratelimitservices.getambassador.io":
 		return "RateLimitServices", "getambassador.io/v3alpha1"
-	case "tcpmapping":
-		fallthrough
-	case "tcpmappings":
-		fallthrough
-	case "tcpmappings.getambassador.io":
+	case "tcpmapping", "tcpmappings", "tcpmappings.getambassador.io":
 		return "TCPMapping", "getambassador.io/v3alpha1"
-	case "tlscontext":
-		fallthrough
-	case "tlscontexts":
-		fallthrough
-	case "tlscontexts.getambassador.io":
+	case "tlscontext", "tlscontexts", "tlscontexts.getambassador.io":
 		return "TLSContext", "getambassador.io/v3alpha1"
-	case "tracingservice":
-		fallthrough
-	case "tracingservices":
-		fallthrough
-	case "tracingservices.getambassador.io":
+	case "tracingservice", "tracingservices", "tracingservices.getambassador.io":
 		return "TracingService", "getambassador.io/v3alpha1"
 	case "gatewayclasses.networking.x-k8s.io":
 		return "GatewayClass", "networking.x-k8s.io/v1alpha1"
