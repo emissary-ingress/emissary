@@ -75,10 +75,10 @@ func NewEnvoyController(address string) *EnvoyController {
 
 // Configure will update the envoy configuration and block until the reconfiguration either succeeds
 // or signals an error.
-func (e *EnvoyController) Configure(node, version string, snapshot ecp_v2_cache.Snapshot) *status.Status {
+func (e *EnvoyController) Configure(node, version string, snapshot ecp_v2_cache.Snapshot) (*status.Status, error) {
 	err := e.configCache.SetSnapshot(node, snapshot)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	// Versioning happens on a per type basis, so we need to figure out how many versions will be
@@ -101,11 +101,11 @@ func (e *EnvoyController) Configure(node, version string, snapshot ecp_v2_cache.
 	for _, t := range typeUrls {
 		status := e.waitFor(version, t)
 		if status != nil {
-			return status
+			return status, nil
 		}
 	}
 
-	return nil
+	return nil, nil
 }
 
 // waitFor blocks until the supplied version and typeUrl are acknowledged by envoy. It returns the

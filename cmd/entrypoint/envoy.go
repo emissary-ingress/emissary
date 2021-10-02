@@ -2,26 +2,24 @@ package entrypoint
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"time"
 
 	"github.com/datawire/dlib/dcontext"
+	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dgroup"
+	"github.com/datawire/dlib/dlog"
 )
 
 func runEnvoy(ctx context.Context, envoyHUP chan os.Signal) error {
 	// Wait until we get a SIGHUP to start envoy.
 	//var bootstrap string
 	select {
-	case <-envoyHUP:
-		/*bytes, err := ioutil.ReadFile(GetEnvoyBootstrapFile())
-		if err != nil {
-			panic(err)
-		}
-		bootstrap = string(bytes)*/
 	case <-ctx.Done():
 		return nil
+	case <-envoyHUP:
 	}
 
 	// Try to run envoy directly, but fallback to running it inside docker if there is
@@ -73,7 +71,10 @@ func runEnvoy(ctx context.Context, envoyHUP chan os.Signal) error {
 			ctx = dcontext.HardContext(ctx)
 
 			for {
-				cids := cidsForLabel(ctx, label)
+				cids, err := cidsForLabel(ctx, label)
+				if err != nil {
+					return err
+				}
 				if len(cids) == 0 {
 					return nil
 				}
@@ -83,16 +84,33 @@ func runEnvoy(ctx context.Context, envoyHUP chan os.Signal) error {
 				defer cancel()
 				wait := subcommand(tctx, "docker", append([]string{"wait"}, cids...)...)
 				wait.Stdout = nil
-				logExecError(ctx, "docker wait", wait.Run())
+				if err := wait.Run(); err != nil {
+					var exitErr *dexec.ExitError
+					if errors.As(err, &exitErr) {
+						dlog.Errorf(ctx, "docker wait: %v\n%s", err, string(exitErr.Stderr))
+					} else {
+						return err
+					}
+				}
 
-				cids = cidsForLabel(ctx, label)
+				cids, err = cidsForLabel(ctx, label)
+				if err != nil {
+					return err
+				}
 				if len(cids) == 0 {
 					return nil
 				}
 
 				kill := subcommand(ctx, "docker", append([]string{"kill"}, cids...)...)
 				kill.Stdout = nil
-				logExecError(ctx, "docker kill", kill.Run())
+				if err := wait.Run(); err != nil {
+					var exitErr *dexec.ExitError
+					if errors.As(err, &exitErr) {
+						dlog.Errorf(ctx, "docker kill: %v\n%s", err, string(exitErr.Stderr))
+					} else {
+						return err
+					}
+				}
 			}
 		})
 		return group.Wait()

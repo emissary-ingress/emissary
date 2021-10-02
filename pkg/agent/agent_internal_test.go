@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
@@ -420,14 +419,15 @@ func (m *mockAccumulator) Changed() chan struct{} {
 	return m.changedChan
 }
 
-func (m *mockAccumulator) FilteredUpdate(_ context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool {
+func (m *mockAccumulator) FilteredUpdate(_ context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) (bool, error) {
 	rawtarget, err := json.Marshal(m.targetInterface)
-
 	if err != nil {
-		return false
+		return false, err
 	}
-	err = json.Unmarshal(rawtarget, target)
-	return true
+	if err := json.Unmarshal(rawtarget, target); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // Set up a watch and send a MinReportPeriod directive to the directive channel
@@ -1021,12 +1021,6 @@ func TestWatchEmptySnapshot(t *testing.T) {
 	rolloutCallback := make(chan *GenericCallback)
 	appCallback := make(chan *GenericCallback)
 	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				watchDone <- errors.New(fmt.Sprintf("%v", r))
-				t.Errorf("Panic-ed while sending an empty snapshot")
-			}
-		}()
 		err := a.watch(ctx, ts.URL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()

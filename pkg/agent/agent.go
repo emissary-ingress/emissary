@@ -14,12 +14,9 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"github.com/pkg/errors"
-
 	"github.com/datawire/ambassador/v2/pkg/api/agent"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
-	"github.com/datawire/dlib/derror"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -256,14 +253,6 @@ func (a *Agent) handleAPIKeyConfigChange(ctx context.Context, secrets []kates.Se
 // Watt/Diag snapshots, reports to the Director, and executes directives from
 // the Director.
 func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
-	defer func() {
-		err := derror.PanicToError(recover())
-		if err != nil {
-			err = errors.Wrap(err, "Agent panicked and will no longer report snapshots")
-			dlog.Errorln(ctx, err)
-		}
-	}()
-
 	client, err := kates.NewClient(kates.ClientConfig{})
 	if err != nil {
 		return err
@@ -281,9 +270,11 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 		Kind:          "secrets.",
 		FieldSelector: fmt.Sprintf("metadata.name=%s", a.agentCloudResourceConfigName),
 	}
-	configAcc := client.Watch(ctx, agentCMQuery, agentSecretQuery)
-	err = a.waitForAPIKey(ctx, configAcc)
+	configAcc, err := client.Watch(ctx, agentCMQuery, agentSecretQuery)
 	if err != nil {
+		return err
+	}
+	if err := a.waitForAPIKey(ctx, configAcc); err != nil {
 		dlog.Errorf(ctx, "Error waiting for api key: %+v", err)
 		return err
 	}
@@ -311,7 +302,10 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 
 	// If the user didn't setup RBAC to allow the agent to get pods, the watch will just return
 	// no pods, log that it didn't have permission to get pods, and carry along.
-	coreAcc := client.Watch(ctx, podQuery, cmQuery, deployQuery, endpointQuery)
+	coreAcc, err := client.Watch(ctx, podQuery, cmQuery, deployQuery, endpointQuery)
+	if err != nil {
+		return err
+	}
 
 	ns := kates.NamespaceAll
 	dc := NewDynamicClient(client.DynamicInterface(), NewK8sInformer)
@@ -326,7 +320,7 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 
 type accumulator interface {
 	Changed() chan struct{}
-	FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool
+	FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) (bool, error)
 }
 
 func (a *Agent) waitForAPIKey(ctx context.Context, configAccumulator accumulator) error {
@@ -343,7 +337,11 @@ func (a *Agent) waitForAPIKey(ctx context.Context, configAccumulator accumulator
 		case <-ctx.Done():
 			return nil
 		case <-configAccumulator.Changed():
-			if !configAccumulator.FilteredUpdate(ctx, &configSnapshot, &[]*kates.Delta{}, isValid) {
+			updated, err := configAccumulator.FilteredUpdate(ctx, &configSnapshot, &[]*kates.Delta{}, isValid)
+			if err != nil {
+				return err
+			}
+			if !updated {
 				continue
 			}
 			a.handleAPIKeyConfigChange(ctx, configSnapshot.Secrets, configSnapshot.ConfigMaps)
@@ -390,12 +388,20 @@ func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator
 		case <-time.After(1 * time.Second):
 			// just a ticker, this will fallthru to the snapshot getting thing
 		case <-configAccumulator.Changed():
-			if !configAccumulator.FilteredUpdate(ctx, &configSnapshot, &[]*kates.Delta{}, isValid) {
+			updated, err := configAccumulator.FilteredUpdate(ctx, &configSnapshot, &[]*kates.Delta{}, isValid)
+			if err != nil {
+				return err
+			}
+			if !updated {
 				continue
 			}
 			a.handleAPIKeyConfigChange(ctx, configSnapshot.Secrets, configSnapshot.ConfigMaps)
 		case <-coreAccumulator.Changed():
-			if !coreAccumulator.FilteredUpdate(ctx, &coreSnapshot, &[]*kates.Delta{}, isValid) {
+			updated, err := coreAccumulator.FilteredUpdate(ctx, &coreSnapshot, &[]*kates.Delta{}, isValid)
+			if err != nil {
+				return err
+			}
+			if !updated {
 				continue
 			}
 			a.coreStore = NewCoreStore(&coreSnapshot)
@@ -476,11 +482,6 @@ func (a *Agent) MaybeReport(ctx context.Context) {
 		defer func() {
 			if err != nil {
 				dlog.Warnf(ctx, "failed to report: %+v", err)
-			}
-			recoveredError := derror.PanicToError(recover())
-			if recoveredError != nil {
-				err = recoveredError
-				dlog.Warnf(ctx, "panicked while sending report: %+v", err)
 			}
 			dlog.Debugf(ctx, "Finished sending snapshot report, sleeping for %s", delay.String())
 			time.Sleep(delay)

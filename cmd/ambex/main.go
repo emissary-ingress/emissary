@@ -385,7 +385,19 @@ func csDump(ctx context.Context, snapdirPath string, numsnaps int, generation in
 }
 
 // Get an updated snapshot going.
-func update(ctx context.Context, snapdirPath string, numsnaps int, config ecp_v2_cache.SnapshotCache, configv3 ecp_v3_cache.SnapshotCache, generation *int, dirs []string, edsEndpoints map[string]*v2.ClusterLoadAssignment, edsEndpointsV3 map[string]*v3endpointconfig.ClusterLoadAssignment, fastpathSnapshot *FastpathSnapshot, updates chan<- Update) {
+func update(
+	ctx context.Context,
+	snapdirPath string,
+	numsnaps int,
+	config ecp_v2_cache.SnapshotCache,
+	configv3 ecp_v3_cache.SnapshotCache,
+	generation *int,
+	dirs []string,
+	edsEndpoints map[string]*v2.ClusterLoadAssignment,
+	edsEndpointsV3 map[string]*v3endpointconfig.ClusterLoadAssignment,
+	fastpathSnapshot *FastpathSnapshot,
+	updates chan<- Update,
+) error {
 	clusters := []ecp_cache_types.Resource{}  // v2.Cluster
 	routes := []ecp_cache_types.Resource{}    // v2.RouteConfiguration
 	listeners := []ecp_cache_types.Resource{} // v2.Listener
@@ -552,7 +564,7 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config ecp_v2
 	if err := snapshot.Consistent(); err != nil {
 		bs, _ := json.Marshal(snapshot)
 		dlog.Errorf(ctx, "V2 Snapshot inconsistency: %v: %s", err, bs)
-		return
+		return nil // TODO: should we return the error, rather than just logging it?
 	}
 
 	snapshotv3 := ecp_v3_cache.NewSnapshot(
@@ -566,7 +578,7 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config ecp_v2
 	if err := snapshotv3.Consistent(); err != nil {
 		bs, _ := json.Marshal(snapshotv3)
 		dlog.Errorf(ctx, "V3 Snapshot inconsistency: %v: %s", err, bs)
-		return
+		return nil // TODO: should we return the error, rather than just logging it?
 	}
 
 	// This used to just directly update envoy. Since we want ratelimiting, we now send an
@@ -599,6 +611,7 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config ecp_v2
 	case updates <- update:
 	case <-ctx.Done():
 	}
+	return nil
 }
 
 func warn(ctx context.Context, err error) bool {
@@ -818,11 +831,8 @@ func Main2(
 	envoyUpdaterDone := make(chan struct{})
 	go func() {
 		defer close(envoyUpdaterDone)
-		err := Updater(ctx, updates, getUsage)
-		if err != nil {
-			// Panic will get reported more usefully by entrypoint.go's exit code than logging the
-			// error.
-			panic(err)
+		if err := Updater(ctx, updates, getUsage); err != nil {
+			panic(err) // TODO: Find a better way of reporting errors from goroutines.
 		}
 	}()
 
@@ -835,7 +845,22 @@ func Main2(
 	//
 	// XXX This seems questionable: why do we do this? Envoy isn't currently started until
 	// we have a real configuration...
-	update(ctx, snapdirPath, numsnaps, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
+	err = update(
+		ctx,
+		snapdirPath,
+		numsnaps,
+		config,
+		configv3,
+		&generation,
+		args.dirs,
+		edsEndpoints,
+		edsEndpointsV3,
+		fastpathSnapshot,
+		updates,
+	)
+	if err != nil {
+		return err
+	}
 
 	// This is the main loop where the magic happens. The fact that it uses a label
 	// depresses me, though.
@@ -849,7 +874,22 @@ OUTER:
 			// XXX Y'know, redoing this with if would let us ditch that silly label.
 			switch sig {
 			case syscall.SIGHUP:
-				update(ctx, snapdirPath, numsnaps, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
+				err := update(
+					ctx,
+					snapdirPath,
+					numsnaps,
+					config,
+					configv3,
+					&generation,
+					args.dirs,
+					edsEndpoints,
+					edsEndpointsV3,
+					fastpathSnapshot,
+					updates,
+				)
+				if err != nil {
+					return err
+				}
 			case os.Interrupt, syscall.SIGTERM:
 				break OUTER
 			}
@@ -860,10 +900,40 @@ OUTER:
 				edsEndpointsV3 = fpSnap.Endpoints.ToMap_v3()
 			}
 			fastpathSnapshot = fpSnap
-			update(ctx, snapdirPath, numsnaps, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
+			err := update(
+				ctx,
+				snapdirPath,
+				numsnaps,
+				config,
+				configv3,
+				&generation,
+				args.dirs,
+				edsEndpoints,
+				edsEndpointsV3,
+				fastpathSnapshot,
+				updates,
+			)
+			if err != nil {
+				return err
+			}
 		case <-watcher.Events:
 			// Non-fastpath update. Just update.
-			update(ctx, snapdirPath, numsnaps, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
+			err := update(
+				ctx,
+				snapdirPath,
+				numsnaps,
+				config,
+				configv3,
+				&generation,
+				args.dirs,
+				edsEndpoints,
+				edsEndpointsV3,
+				fastpathSnapshot,
+				updates,
+			)
+			if err != nil {
+				return err
+			}
 		case err := <-watcher.Errors:
 			// Something went wrong, so scream about that.
 			dlog.Warnf(ctx, "Watcher error: %v", err)

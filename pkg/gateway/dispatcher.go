@@ -52,7 +52,7 @@ import (
 //
 type Dispatcher struct {
 	// Map from kind to transform function.
-	transforms map[string]func(kates.Object) *CompiledConfig
+	transforms map[string]func(kates.Object) (*CompiledConfig, error)
 	configs    map[string]*CompiledConfig
 
 	version         string
@@ -80,7 +80,7 @@ func resourceKeyFromParts(kind, namespace, name string) string {
 // NewDispatcher creates a new and empty *Dispatcher struct.
 func NewDispatcher() *Dispatcher {
 	return &Dispatcher{
-		transforms: map[string]func(kates.Object) *CompiledConfig{},
+		transforms: map[string]func(kates.Object) (*CompiledConfig, error){},
 		configs:    map[string]*CompiledConfig{},
 	}
 }
@@ -88,7 +88,7 @@ func NewDispatcher() *Dispatcher {
 // Register registers a transform function for the specified kubernetes resource. The transform
 // argument must be a function that takes a single resource of the supplied "kind" and returns a
 // single CompiledConfig object, i.e.: `func(Kind) *CompiledConfig`
-func (d *Dispatcher) Register(kind string, transform func(kates.Object) *CompiledConfig) error {
+func (d *Dispatcher) Register(kind string, transform func(kates.Object) (*CompiledConfig, error)) error {
 	_, ok := d.transforms[kind]
 	if ok {
 		return errors.Errorf("duplicate transform: %q", kind)
@@ -115,24 +115,9 @@ func (d *Dispatcher) Upsert(resource kates.Object) error {
 
 	key := resourceKey(resource)
 
-	var config *CompiledConfig
-	var err error
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				e, ok := r.(error)
-				if ok {
-					err = errors.Wrapf(e, "internal error processing %s", key)
-				} else {
-					err = errors.Errorf("internal error processing %s: %+v", key, e)
-				}
-			}
-		}()
-		config = xform(resource)
-	}()
-
+	config, err := xform(resource)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "internal error processing %s", key)
 	}
 
 	d.configs[key] = config

@@ -115,10 +115,18 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	os.Setenv("PYTHONUNBUFFERED", "true")
 
 	// Make sure that all of the directories that we need actually exist.
-	ensureDir(GetHomeDir())
-	ensureDir(GetAmbassadorConfigBaseDir())
-	ensureDir(GetSnapshotDir())
-	ensureDir(GetEnvoyDir())
+	if err := ensureDir(GetHomeDir()); err != nil {
+		return err
+	}
+	if err := ensureDir(GetAmbassadorConfigBaseDir()); err != nil {
+		return err
+	}
+	if err := ensureDir(GetSnapshotDir()); err != nil {
+		return err
+	}
+	if err := ensureDir(GetEnvoyDir()); err != nil {
+		return err
+	}
 
 	// We use this to wait until the bootstrap config has been written before starting envoy.
 	envoyHUP := make(chan os.Signal, 1)
@@ -181,8 +189,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 		group.Go("watcher", func(ctx context.Context) error {
 			// We need to pass the AmbassadorWatcher to this (Kubernetes/Consul) watcher, so
 			// that it can tell the AmbassadorWatcher when snapshots are posted.
-			watcher(ctx, ambwatch, snapshot, fastpathCh, clusterID, Version)
-			return nil
+			return watcher(ctx, ambwatch, snapshot, fastpathCh, clusterID, Version)
 		})
 	}
 
@@ -195,10 +202,8 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	// entrypoint.sh for now, e.g. we don't check execute bits or anything like that.
 	sidecarDir := "/ambassador/sidecars"
 	sidecars, err := ioutil.ReadDir(sidecarDir)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			panic(err)
-		}
+	if err != nil && !os.IsNotExist(err) {
+		return err
 	}
 	for _, sidecar := range sidecars {
 		group.Go(sidecar.Name(), func(ctx context.Context) error {
@@ -224,17 +229,6 @@ func GetClusterID(ctx context.Context) (clusterID string) {
 	}
 
 	rootID := "00000000-0000-0000-0000-000000000000"
-
-	// *!&@*#!& kates panics.
-	defer func() {
-		err := recover()
-
-		if err != nil {
-			// Sigh.
-			dlog.Errorf(ctx, "GetClusterID: couldn't get ID: %s", err)
-			clusterID = clusterIDFromRootID(rootID)
-		}
-	}()
 
 	client, err := kates.NewClient(kates.ClientConfig{})
 	if err == nil {

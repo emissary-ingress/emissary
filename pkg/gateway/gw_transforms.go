@@ -25,20 +25,24 @@ import (
 	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
-func Compile_Gateway(gateway *gw.Gateway) *CompiledConfig {
+func Compile_Gateway(gateway *gw.Gateway) (*CompiledConfig, error) {
 	src := SourceFromResource(gateway)
 	var listeners []*CompiledListener
 	for idx, l := range gateway.Spec.Listeners {
 		name := fmt.Sprintf("%s-%d", getName(gateway), idx)
-		listeners = append(listeners, Compile_Listener(src, l, name))
+		listener, err := Compile_Listener(src, l, name)
+		if err != nil {
+			return nil, err
+		}
+		listeners = append(listeners, listener)
 	}
 	return &CompiledConfig{
 		CompiledItem: NewCompiledItem(src),
 		Listeners:    listeners,
-	}
+	}, nil
 }
 
-func Compile_Listener(parent Source, lst gw.Listener, name string) *CompiledListener {
+func Compile_Listener(parent Source, lst gw.Listener, name string) (*CompiledListener, error) {
 	hcm := &apiv2_httpman.HttpConnectionManager{
 		StatPrefix: name,
 		HttpFilters: []*apiv2_httpman.HttpFilter{
@@ -58,7 +62,7 @@ func Compile_Listener(parent Source, lst gw.Listener, name string) *CompiledList
 	}
 	hcmAny, err := anypb.New(hcm)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return &CompiledListener{
@@ -84,17 +88,21 @@ func Compile_Listener(parent Source, lst gw.Listener, name string) *CompiledList
 			return true
 		},
 		Domains: []string{"*"},
-	}
+	}, nil
 
 }
 
-func Compile_HTTPRoute(httpRoute *gw.HTTPRoute) *CompiledConfig {
+func Compile_HTTPRoute(httpRoute *gw.HTTPRoute) (*CompiledConfig, error) {
 	src := SourceFromResource(httpRoute)
 	clusterRefs := []*ClusterRef{}
 	var routes []*apiv2_route.Route
 	for idx, rule := range httpRoute.Spec.Rules {
 		s := Sourcef("rule %d in %s", idx, src)
-		routes = append(routes, Compile_HTTPRouteRule(s, rule, httpRoute.Namespace, &clusterRefs)...)
+		_routes, err := Compile_HTTPRouteRule(s, rule, httpRoute.Namespace, &clusterRefs)
+		if err != nil {
+			return nil, err
+		}
+		routes = append(routes, _routes...)
 	}
 	return &CompiledConfig{
 		CompiledItem: NewCompiledItem(src),
@@ -106,10 +114,10 @@ func Compile_HTTPRoute(httpRoute *gw.HTTPRoute) *CompiledConfig {
 				ClusterRefs:  clusterRefs,
 			},
 		},
-	}
+	}, nil
 }
 
-func Compile_HTTPRouteRule(src Source, rule gw.HTTPRouteRule, namespace string, clusterRefs *[]*ClusterRef) (result []*apiv2_route.Route) {
+func Compile_HTTPRouteRule(src Source, rule gw.HTTPRouteRule, namespace string, clusterRefs *[]*ClusterRef) ([]*apiv2_route.Route, error) {
 	var clusters []*apiv2_route.WeightedCluster_ClusterWeight
 	for idx, fwd := range rule.ForwardTo {
 		s := Sourcef("forwardTo %d in %s", idx, src)
@@ -118,7 +126,12 @@ func Compile_HTTPRouteRule(src Source, rule gw.HTTPRouteRule, namespace string, 
 
 	wc := &apiv2_route.WeightedCluster{Clusters: clusters}
 
-	for _, match := range Compile_HTTPRouteMatches(rule.Matches) {
+	matches, err := Compile_HTTPRouteMatches(rule.Matches)
+	if err != nil {
+		return nil, err
+	}
+	var result []*apiv2_route.Route
+	for _, match := range matches {
 		result = append(result, &apiv2_route.Route{
 			Match: match,
 			Action: &apiv2_route.Route_Route{Route: &apiv2_route.RouteAction{
@@ -127,7 +140,7 @@ func Compile_HTTPRouteRule(src Source, rule gw.HTTPRouteRule, namespace string, 
 		})
 	}
 
-	return
+	return result, err
 }
 
 func Compile_HTTPRouteForwardTo(src Source, forward gw.HTTPRouteForwardTo, namespace string, clusterRefs *[]*ClusterRef) *apiv2_route.WeightedCluster_ClusterWeight {
@@ -149,16 +162,25 @@ func Compile_HTTPRouteForwardTo(src Source, forward gw.HTTPRouteForwardTo, names
 	}
 }
 
-func Compile_HTTPRouteMatches(matches []gw.HTTPRouteMatch) (result []*apiv2_route.RouteMatch) {
+func Compile_HTTPRouteMatches(matches []gw.HTTPRouteMatch) ([]*apiv2_route.RouteMatch, error) {
+	var result []*apiv2_route.RouteMatch
 	for _, match := range matches {
-		result = append(result, Compile_HTTPRouteMatch(match))
+		item, err := Compile_HTTPRouteMatch(match)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, item)
 	}
-	return
+	return result, nil
 }
 
-func Compile_HTTPRouteMatch(match gw.HTTPRouteMatch) *apiv2_route.RouteMatch {
+func Compile_HTTPRouteMatch(match gw.HTTPRouteMatch) (*apiv2_route.RouteMatch, error) {
+	headers, err := Compile_HTTPHeaderMatch(match.Headers)
+	if err != nil {
+		return nil, err
+	}
 	result := &apiv2_route.RouteMatch{
-		Headers: Compile_HTTPHeaderMatch(match.Headers),
+		Headers: headers,
 	}
 
 	switch match.Path.Type {
@@ -172,17 +194,18 @@ func Compile_HTTPRouteMatch(match gw.HTTPRouteMatch) *apiv2_route.RouteMatch {
 		// no path match, but PathSpecifier is required
 		result.PathSpecifier = &apiv2_route.RouteMatch_Prefix{}
 	default:
-		panic(errors.Errorf("unknown path match type: %q", match.Path.Type))
+		return nil, errors.Errorf("unknown path match type: %q", match.Path.Type)
 	}
 
-	return result
+	return result, nil
 }
 
-func Compile_HTTPHeaderMatch(headerMatch *gw.HTTPHeaderMatch) (result []*apiv2_route.HeaderMatcher) {
+func Compile_HTTPHeaderMatch(headerMatch *gw.HTTPHeaderMatch) ([]*apiv2_route.HeaderMatcher, error) {
 	if headerMatch == nil {
-		return
+		return nil, nil
 	}
 
+	var result []*apiv2_route.HeaderMatcher
 	for hdr, pattern := range headerMatch.Values {
 		hm := &apiv2_route.HeaderMatcher{
 			Name:        hdr,
@@ -195,12 +218,12 @@ func Compile_HTTPHeaderMatch(headerMatch *gw.HTTPHeaderMatch) (result []*apiv2_r
 		case gw.HeaderMatchRegularExpression:
 			hm.HeaderMatchSpecifier = &apiv2_route.HeaderMatcher_SafeRegexMatch{SafeRegexMatch: regexMatcher(pattern)}
 		default:
-			panic(errors.Errorf("unknown header match type: %s", headerMatch.Type))
+			return nil, errors.Errorf("unknown header match type: %s", headerMatch.Type)
 		}
 
 		result = append(result, hm)
 	}
-	return
+	return result, nil
 }
 
 func regexMatcher(pattern string) *api_matcher.RegexMatcher {

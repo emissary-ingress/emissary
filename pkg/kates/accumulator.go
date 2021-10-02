@@ -89,7 +89,7 @@ func (dt DeltaType) MarshalJSON() ([]byte, error) {
 	case ObjectDelete:
 		return []byte(`"delete"`), nil
 	default:
-		panic("missing case")
+		return nil, fmt.Errorf("invalid DeltaType enum: %d", dt)
 	}
 }
 
@@ -124,13 +124,13 @@ func NewDelta(deltaType DeltaType, obj *Unstructured) *Delta {
 	return newDelta(deltaType, obj)
 }
 
-func NewDeltaFromObject(deltaType DeltaType, obj Object) *Delta {
+func NewDeltaFromObject(deltaType DeltaType, obj Object) (*Delta, error) {
 	var un *Unstructured
 	err := convert(obj, &un)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return NewDelta(deltaType, un)
+	return NewDelta(deltaType, un), nil
 }
 
 func newDelta(deltaType DeltaType, obj *Unstructured) *Delta {
@@ -150,7 +150,7 @@ func newDelta(deltaType DeltaType, obj *Unstructured) *Delta {
 	}
 }
 
-func newAccumulator(ctx context.Context, client *Client, queries ...Query) *Accumulator {
+func newAccumulator(ctx context.Context, client *Client, queries ...Query) (*Accumulator, error) {
 	changed := make(chan struct{})
 
 	fields := make(map[string]*field)
@@ -159,11 +159,11 @@ func newAccumulator(ctx context.Context, client *Client, queries ...Query) *Accu
 	for _, q := range queries {
 		mapping, err := client.mappingFor(q.Kind)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		sel, err := ParseSelector(q.LabelSelector)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		fields[q.Name] = &field{
 			query:    q,
@@ -213,25 +213,25 @@ func newAccumulator(ctx context.Context, client *Client, queries ...Query) *Accu
 		}
 	}()
 
-	return acc
+	return acc, nil
 }
 
 func (a *Accumulator) Changed() chan struct{} {
 	return a.changed
 }
 
-func (a *Accumulator) Update(ctx context.Context, target interface{}) bool {
+func (a *Accumulator) Update(ctx context.Context, target interface{}) (bool, error) {
 	return a.UpdateWithDeltas(ctx, target, nil)
 }
 
-func (a *Accumulator) UpdateWithDeltas(ctx context.Context, target interface{}, deltas *[]*Delta) bool {
+func (a *Accumulator) UpdateWithDeltas(ctx context.Context, target interface{}, deltas *[]*Delta) (bool, error) {
 	return a.FilteredUpdate(ctx, target, deltas, nil)
 }
 
 // The FilteredUpdate method updates the target snapshot with only those resources for which
 // "predicate" returns true. The predicate is only called when objects are added/updated, it is not
 // repeatedly called on objects that have not changed. The predicate must not modify its argument.
-func (a *Accumulator) FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*Delta, predicate func(*Unstructured) bool) bool {
+func (a *Accumulator) FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*Delta, predicate func(*Unstructured) bool) (bool, error) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 	return a.update(ctx, reflect.ValueOf(target), deltas, predicate)
@@ -275,12 +275,20 @@ func (a *Accumulator) storeUpdate(update rawUpdate) bool {
 	return a.synced >= len(a.fields)
 }
 
-func (a *Accumulator) updateField(ctx context.Context, target reflect.Value, name string, field *field, deltas *[]*Delta,
-	predicate func(*Unstructured) bool) bool {
-	a.client.patchWatch(ctx, field)
+func (a *Accumulator) updateField(
+	ctx context.Context,
+	target reflect.Value,
+	name string,
+	field *field,
+	deltas *[]*Delta,
+	predicate func(*Unstructured) bool,
+) (bool, error) {
+	if err := a.client.patchWatch(ctx, field); err != nil {
+		return false, err
+	}
 
 	if field.firstUpdate && len(field.deltas) == 0 {
-		return false
+		return false, nil
 	}
 
 	field.firstUpdate = true
@@ -314,12 +322,12 @@ func (a *Accumulator) updateField(ctx context.Context, target reflect.Value, nam
 
 	jsonBytes, err := json.Marshal(items)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
 
 	fieldEntry, ok := target.Type().Elem().FieldByName(name)
 	if !ok {
-		panic(fmt.Sprintf("no such field: %q", name))
+		return false, fmt.Errorf("no such field: %q", name)
 	}
 
 	var val reflect.Value
@@ -327,7 +335,7 @@ func (a *Accumulator) updateField(ctx context.Context, target reflect.Value, nam
 		val = reflect.New(fieldEntry.Type)
 		err := json.Unmarshal(jsonBytes, val.Interface())
 		if err != nil {
-			panic(err)
+			return false, err
 		}
 	} else if fieldEntry.Type.Kind() == reflect.Map {
 		val = reflect.MakeMap(fieldEntry.Type)
@@ -335,30 +343,34 @@ func (a *Accumulator) updateField(ctx context.Context, target reflect.Value, nam
 			innerVal := reflect.New(fieldEntry.Type.Elem())
 			err := convert(item, innerVal.Interface())
 			if err != nil {
-				panic(err)
+				return false, err
 			}
 			val.SetMapIndex(reflect.ValueOf(item.GetName()), reflect.Indirect(innerVal))
 		}
 	} else {
-		panic(fmt.Sprintf("don't know how to unmarshal to: %v", fieldEntry.Type))
+		return false, fmt.Errorf("don't know how to unmarshal to: %v", fieldEntry.Type)
 	}
 
 	target.Elem().FieldByName(name).Set(reflect.Indirect(val))
 
-	return true
+	return true, nil
 }
 
-func (a *Accumulator) update(ctx context.Context, target reflect.Value, deltas *[]*Delta, predicate func(*Unstructured) bool) bool {
+func (a *Accumulator) update(ctx context.Context, target reflect.Value, deltas *[]*Delta, predicate func(*Unstructured) bool) (bool, error) {
 	if deltas != nil {
 		*deltas = nil
 	}
 
 	updated := false
 	for name, field := range a.fields {
-		if a.updateField(ctx, target, name, field, deltas, predicate) {
+		_updated, err := a.updateField(ctx, target, name, field, deltas, predicate)
+		if _updated {
 			updated = true
+		}
+		if err != nil {
+			return updated, err
 		}
 	}
 
-	return updated
+	return updated, nil
 }

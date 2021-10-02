@@ -202,7 +202,7 @@ func (c *Client) DynamicInterface() dynamic.Interface {
 	return c.cli
 }
 
-func (c *Client) WaitFor(ctx context.Context, kindOrResource string) {
+func (c *Client) WaitFor(ctx context.Context, kindOrResource string) error {
 	for {
 		_, err := c.mappingFor(kindOrResource)
 		if err != nil {
@@ -210,26 +210,29 @@ func (c *Client) WaitFor(ctx context.Context, kindOrResource string) {
 			if ok {
 				select {
 				case <-time.After(1 * time.Second):
-					c.InvalidateCache()
+					if err := c.InvalidateCache(); err != nil {
+						return err
+					}
 					continue
 				case <-ctx.Done():
-					return
+					return nil
 				}
 			}
 		}
-		return
+		return nil
 	}
 }
 
-func (c *Client) InvalidateCache() {
+func (c *Client) InvalidateCache() error {
 	// TODO: it's possible that invalidate could be smarter now
 	// and use the methods on CachedDiscoveryInterface
 	mapper, disco, err := NewRESTMapper(c.config)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	c.mapper = mapper
 	c.disco = disco
+	return nil
 }
 
 // The ServerVersion() method returns a struct with information about
@@ -340,7 +343,7 @@ type Query struct {
 	LabelSelector string
 }
 
-func (c *Client) Watch(ctx context.Context, queries ...Query) *Accumulator {
+func (c *Client) Watch(ctx context.Context, queries ...Query) (*Accumulator, error) {
 	return newAccumulator(ctx, c, queries...)
 }
 
@@ -574,10 +577,10 @@ func (c *Client) cliFor(mapping *meta.RESTMapping, namespace string) dynamic.Res
 	}
 }
 
-func (c *Client) cliForResource(resource *Unstructured) dynamic.ResourceInterface {
+func (c *Client) cliForResource(resource *Unstructured) (dynamic.ResourceInterface, error) {
 	mapping, err := c.mappingFor(resource.GroupVersionKind().GroupKind().String())
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	// this will canonicalize the kind and version so any
@@ -588,7 +591,7 @@ func (c *Client) cliForResource(resource *Unstructured) dynamic.ResourceInterfac
 	if ns == "" {
 		ns = "default"
 	}
-	return c.cliFor(mapping, ns)
+	return c.cliFor(mapping, ns), nil
 }
 
 // mappingFor returns the RESTMapping for the Kind given, or the Kind referenced by the resource.
@@ -698,7 +701,10 @@ func (c *Client) Get(ctx context.Context, resource interface{}, target interface
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
-		cli := c.cliForResource(&un)
+		cli, err := c.cliForResource(&un)
+		if err != nil {
+			return err
+		}
 		res, err = cli.Get(ctx, un.GetName(), GetOptions{})
 		if err != nil {
 			return err
@@ -728,7 +734,10 @@ func (c *Client) Create(ctx context.Context, resource interface{}, target interf
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
-		cli := c.cliForResource(&un)
+		cli, err := c.cliForResource(&un)
+		if err != nil {
+			return err
+		}
 		res, err = cli.Create(ctx, &un, CreateOptions{})
 		if err != nil {
 			return err
@@ -758,7 +767,10 @@ func (c *Client) Update(ctx context.Context, resource interface{}, target interf
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
-		cli := c.cliForResource(&un)
+		cli, err := c.cliForResource(&un)
+		if err != nil {
+			return err
+		}
 		res, err = cli.Update(ctx, &un, UpdateOptions{})
 		if err != nil {
 			return err
@@ -790,7 +802,10 @@ func (c *Client) Patch(ctx context.Context, resource interface{}, pt PatchType, 
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
-		cli := c.cliForResource(&un)
+		cli, err := c.cliForResource(&un)
+		if err != nil {
+			return err
+		}
 		res, err = cli.Patch(ctx, un.GetName(), pt, data, PatchOptions{})
 		if err != nil {
 			return err
@@ -833,7 +848,10 @@ func (c *Client) Upsert(ctx context.Context, resource interface{}, source interf
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
-		cli := c.cliForResource(&un)
+		cli, err := c.cliForResource(&un)
+		if err != nil {
+			return err
+		}
 		create := false
 		rsrc := &un
 		if prev == "" {
@@ -896,7 +914,10 @@ func (c *Client) UpdateStatus(ctx context.Context, resource interface{}, target 
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
-		cli := c.cliForResource(&un)
+		cli, err := c.cliForResource(&un)
+		if err != nil {
+			return err
+		}
 		res, err = cli.UpdateStatus(ctx, &un, UpdateOptions{})
 		if err != nil {
 			return err
@@ -925,7 +946,10 @@ func (c *Client) Delete(ctx context.Context, resource interface{}, target interf
 	if err := func() error {
 		c.mutex.Lock()
 		defer c.mutex.Unlock()
-		cli := c.cliForResource(&un)
+		cli, err := c.cliForResource(&un)
+		if err != nil {
+			return err
+		}
 		err = cli.Delete(ctx, un.GetName(), DeleteOptions{})
 		if err != nil {
 			return err
@@ -944,7 +968,7 @@ func (c *Client) Delete(ctx context.Context, resource interface{}, target interf
 
 // Update the result of a watch with newer items from our local cache. This guarantees we never give
 // back stale objects that are known to be modified by us.
-func (c *Client) patchWatch(ctx context.Context, field *field) {
+func (c *Client) patchWatch(ctx context.Context, field *field) error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -965,7 +989,9 @@ func (c *Client) patchWatch(ctx context.Context, field *field) {
 				dlog.Println(ctx, "Patching delete", field.mapping.GroupVersionKind.Kind, key)
 				delete(field.values, key)
 				field.deltas[key] = newDelta(ObjectDelete, can)
-			} else if gteq(item.GetResourceVersion(), can.GetResourceVersion()) {
+			} else if newer, err := gteq(item.GetResourceVersion(), can.GetResourceVersion()); err != nil {
+				return err
+			} else if newer {
 				// The object in the watch result is the same or newer than our canonical value, so
 				// no need to track it anymore.
 				dlog.Println(ctx, "Patching synced", field.mapping.GroupVersionKind.Kind, key)
@@ -985,6 +1011,7 @@ func (c *Client) patchWatch(ctx context.Context, field *field) {
 			field.deltas[key] = newDelta(ObjectAdd, can)
 		}
 	}
+	return nil
 }
 
 // ==
@@ -1091,16 +1118,16 @@ func (c *Client) PodLogs(ctx context.Context, pod *Pod, options *PodLogOptions, 
 // kubernetes team was very adamant about the approach to pluggable stores being to create an etcd
 // shim rather than to go more abstract. I believe this makes it relatively safe to depend on in
 // practice.
-func gteq(v1, v2 string) bool {
+func gteq(v1, v2 string) (bool, error) {
 	i1, err := strconv.ParseInt(v1, 10, 64)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
 	i2, err := strconv.ParseInt(v2, 10, 64)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
-	return i1 >= i2
+	return i1 >= i2, nil
 }
 
 func convert(in interface{}, out interface{}) error {
@@ -1126,7 +1153,7 @@ func unKey(u *Unstructured) string {
 }
 
 func config(options ClientConfig) *ConfigFlags {
-	flags := pflag.NewFlagSet("KubeInfo", pflag.PanicOnError)
+	flags := pflag.NewFlagSet("KubeInfo", pflag.ContinueOnError)
 	result := NewConfigFlags(false)
 
 	// We can disable or enable flags by setting them to
@@ -1148,8 +1175,7 @@ func config(options ClientConfig) *ConfigFlags {
 		args = append(args, "--namespace", options.Namespace)
 	}
 
-	err := flags.Parse(args)
-	if err != nil {
+	if err := flags.Parse(args); err != nil {
 		// Args is constructed by us, we should never get an
 		// error, so it's ok to panic.
 		panic(err)

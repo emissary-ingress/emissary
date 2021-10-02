@@ -98,7 +98,7 @@ type RenderedListener struct {
 	ChainList []*RenderedChain          `json:"chains"`
 }
 
-func (rl *RenderedListener) AddChain(rchain *RenderedChain) {
+func (rl *RenderedListener) AddChain(rchain *RenderedChain) error {
 	hostname := "*"
 
 	if len(rchain.ServerNames) > 0 {
@@ -110,12 +110,13 @@ func (rl *RenderedListener) AddChain(rchain *RenderedChain) {
 	extant := rl.GetChain(hostname, xport)
 
 	if extant != nil {
-		panic(fmt.Errorf("chain for %s, %s already exists in %s", hostname, xport, rl.Name))
+		return fmt.Errorf("chain for %s, %s already exists in %s", hostname, xport, rl.Name)
 	}
 
 	key := fmt.Sprintf("%s-%s", hostname, xport)
 
 	rl.Chains[key] = rchain
+	return nil
 }
 
 func (rl *RenderedListener) GetChain(hostname string, xport string) *RenderedChain {
@@ -152,7 +153,7 @@ func NewMapping(name string, pfx string) v3alpha1.Mapping {
 	}
 }
 
-func JSONifyRenderedListeners(renderedListeners []RenderedListener) string {
+func JSONifyRenderedListeners(renderedListeners []RenderedListener) (string, error) {
 	// Why is this needed? JSONifying renderedListeners directly always
 	// shows empty listeners -- kinda feels like something's getting copied
 	// in a way I'm not awake enough to follow right now.
@@ -224,7 +225,7 @@ type Candidate struct {
 	ActionArg string
 }
 
-func RenderEnvoyConfig(envoyConfig *apiv3_bootstrap.Bootstrap) []RenderedListener {
+func RenderEnvoyConfig(envoyConfig *apiv3_bootstrap.Bootstrap) ([]RenderedListener, error) {
 	renderedListeners := make([]RenderedListener, 0, 2)
 
 	for _, l := range envoyConfig.StaticResources.Listeners {
@@ -364,11 +365,13 @@ func RenderEnvoyConfig(envoyConfig *apiv3_bootstrap.Bootstrap) []RenderedListene
 				}
 			}
 
-			rlistener.AddChain(&rchain)
+			if err := rlistener.AddChain(&rchain); err != nil {
+				return nil, err
+			}
 		}
 
 		renderedListeners = append(renderedListeners, rlistener)
 	}
 
-	return renderedListeners
+	return renderedListeners, nil
 }

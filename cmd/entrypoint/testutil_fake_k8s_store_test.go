@@ -47,18 +47,21 @@ func NewK8sStore() *K8sStore {
 // or if it even permits that, so I am not going to attempt to consider those cases, and that may
 // well result in some very obscure edgecases around changing names/namespaces that behave
 // differently different from kubernetes.
-func (k *K8sStore) Upsert(resource kates.Object) {
+func (k *K8sStore) Upsert(resource kates.Object) error {
 	var un *kates.Unstructured
 	bytes, err := json.Marshal(resource)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	err = json.Unmarshal(bytes, &un)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	kind, apiVersion := canonGVK(un.GetKind())
+	kind, apiVersion, err := canonGVK(un.GetKind())
+	if err != nil {
+		return err
+	}
 	un.SetKind(kind)
 	un.SetAPIVersion(apiVersion)
 	if un.GetNamespace() == "" {
@@ -76,43 +79,56 @@ func (k *K8sStore) Upsert(resource kates.Object) {
 		k.deltas = append(k.deltas, kates.NewDelta(kates.ObjectAdd, un))
 	}
 	k.resources[key] = un
+	return nil
 }
 
 // Delete will remove the identified resource from the store.
-func (k *K8sStore) Delete(kind, namespace, name string) {
+func (k *K8sStore) Delete(kind, namespace, name string) error {
 	k.mutex.Lock()
 	defer k.mutex.Unlock()
 
-	key := K8sKey{canon(kind), namespace, name}
+	canonKind, err := canon(kind)
+	if err != nil {
+		return err
+	}
+	key := K8sKey{canonKind, namespace, name}
 	old, ok := k.resources[key]
 	if ok {
-		k.deltas = append(k.deltas, kates.NewDeltaFromObject(kates.ObjectDelete, old))
+		delta, err := kates.NewDeltaFromObject(kates.ObjectDelete, old)
+		if err != nil {
+			return err
+		}
+		k.deltas = append(k.deltas, delta)
 	}
 	delete(k.resources, key)
+	return nil
 }
 
 // UpsertFile will parse the yaml manifests in the referenced file and Upsert each resource from the
 // file.
-func (k *K8sStore) UpsertFile(filename string) {
+func (k *K8sStore) UpsertFile(filename string) error {
 	content, err := ioutil.ReadFile(filename)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	k.UpsertYAML(string(content))
+	return k.UpsertYAML(string(content))
 }
 
 // UpsertYAML will parse the provided YAML and feed the resources in it into the control plane,
 // creating or updating any overlapping resources that exist.
-func (k *K8sStore) UpsertYAML(yaml string) {
+func (k *K8sStore) UpsertYAML(yaml string) error {
 	objs, err := kates.ParseManifests(yaml)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	for _, obj := range objs {
-		k.Upsert(obj)
+		if err := k.Upsert(obj); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 // A Cursor allows multiple views of the same stream of deltas. The cursors implement a bootstrap
@@ -132,7 +148,7 @@ type K8sStoreCursor struct {
 
 // Get returns a map of resources plus all the deltas that lead to the map being in its current
 // state.
-func (kc *K8sStoreCursor) Get() (map[K8sKey]kates.Object, []*kates.Delta) {
+func (kc *K8sStoreCursor) Get() (map[K8sKey]kates.Object, []*kates.Delta, error) {
 	kc.store.mutex.Lock()
 	defer kc.store.mutex.Unlock()
 
@@ -145,7 +161,11 @@ func (kc *K8sStoreCursor) Get() (map[K8sKey]kates.Object, []*kates.Delta) {
 		// This is the first time Get() has been called, so we shall create a synthetic ADD delta
 		// for every resource that currently exists.
 		if kc.offset < 0 {
-			deltas = append(deltas, kates.NewDeltaFromObject(kates.ObjectAdd, resource))
+			delta, err := kates.NewDeltaFromObject(kates.ObjectAdd, resource)
+			if err != nil {
+				return nil, nil, err
+			}
+			deltas = append(deltas, delta)
 		}
 	}
 
@@ -154,7 +174,7 @@ func (kc *K8sStoreCursor) Get() (map[K8sKey]kates.Object, []*kates.Delta) {
 	}
 	kc.offset = len(kc.store.deltas)
 
-	return resources, deltas
+	return resources, deltas, nil
 }
 
 func sortedKeys(resources map[K8sKey]kates.Object) []K8sKey {
@@ -170,61 +190,64 @@ func sortedKeys(resources map[K8sKey]kates.Object) []K8sKey {
 	return keys
 }
 
-func canonGVK(kind string) (canonKind string, canonGroupVersion string) {
+func canonGVK(kind string) (canonKind string, canonGroupVersion string, err error) {
 	// XXX: there is probably a better way to do this, but this is good enough for now, we just need
 	// this to work well for ambassador and core types.
 
 	switch strings.ToLower(kind) {
 	case "service", "services", "services.":
-		return "Service", "v1"
+		return "Service", "v1", nil
 	case "secret", "secrets", "secrets.":
-		return "Secret", "v1"
+		return "Secret", "v1", nil
 	case "endpoints", "endpoints.":
-		return "Endpoints", "v1"
+		return "Endpoints", "v1", nil
 	case "ingress", "ingresses", "ingresses.extensions":
-		return "Ingress", "v1"
+		return "Ingress", "v1", nil
 	case "ingressclass", "ingressclasses", "ingressclasses.networking.k8s.io":
-		return "IngressClass", "v1"
+		return "IngressClass", "v1", nil
 	case "authservice", "authservices", "authservices.getambassador.io":
-		return "AuthService", "getambassador.io/v3alpha1"
+		return "AuthService", "getambassador.io/v3alpha1", nil
 	case "consulresolver", "consulresolvers", "consulresolvers.getambassador.io":
-		return "ConsulResolver", "getambassador.io/v3alpha1"
+		return "ConsulResolver", "getambassador.io/v3alpha1", nil
 	case "devportal", "devportals", "devportals.getambassador.io":
-		return "DevPortal", "getambassador.io/v3alpha1"
+		return "DevPortal", "getambassador.io/v3alpha1", nil
 	case "host", "hosts", "hosts.getambassador.io":
-		return "Host", "getambassador.io/v3alpha1"
+		return "Host", "getambassador.io/v3alpha1", nil
 	case "kubernetesendpointresolver", "kubernetesendpointresolvers", "kubernetesendpointresolvers.getambassador.io":
-		return "KubernetesEndpointResolver", "getambassador.io/v3alpha1"
+		return "KubernetesEndpointResolver", "getambassador.io/v3alpha1", nil
 	case "kubernetesserviceresolver", "kubernetesserviceresolvers", "kubernetesserviceresolvers.getambassador.io":
-		return "KubernetesServiceResolver", "getambassador.io/v3alpha1"
+		return "KubernetesServiceResolver", "getambassador.io/v3alpha1", nil
 	case "listener", "listeners", "listeners.getambassador.io":
-		return "Listener", "getambassador.io/v3alpha1"
+		return "Listener", "getambassador.io/v3alpha1", nil
 	case "logservice", "logservices", "logservices.getambassador.io":
-		return "LogService", "getambassador.io/v3alpha1"
+		return "LogService", "getambassador.io/v3alpha1", nil
 	case "mapping", "mappings", "mappings.getambassador.io":
-		return "Mapping", "getambassador.io/v3alpha1"
+		return "Mapping", "getambassador.io/v3alpha1", nil
 	case "module", "modules", "modules.getambassador.io":
-		return "Module", "getambassador.io/v3alpha1"
+		return "Module", "getambassador.io/v3alpha1", nil
 	case "ratelimitservice", "ratelimitservices", "ratelimitservices.getambassador.io":
-		return "RateLimitServices", "getambassador.io/v3alpha1"
+		return "RateLimitServices", "getambassador.io/v3alpha1", nil
 	case "tcpmapping", "tcpmappings", "tcpmappings.getambassador.io":
-		return "TCPMapping", "getambassador.io/v3alpha1"
+		return "TCPMapping", "getambassador.io/v3alpha1", nil
 	case "tlscontext", "tlscontexts", "tlscontexts.getambassador.io":
-		return "TLSContext", "getambassador.io/v3alpha1"
+		return "TLSContext", "getambassador.io/v3alpha1", nil
 	case "tracingservice", "tracingservices", "tracingservices.getambassador.io":
-		return "TracingService", "getambassador.io/v3alpha1"
+		return "TracingService", "getambassador.io/v3alpha1", nil
 	case "gatewayclasses.networking.x-k8s.io":
-		return "GatewayClass", "networking.x-k8s.io/v1alpha1"
+		return "GatewayClass", "networking.x-k8s.io/v1alpha1", nil
 	case "gateways.networking.x-k8s.io":
-		return "Gateway", "networking.x-k8s.io/v1alpha1"
+		return "Gateway", "networking.x-k8s.io/v1alpha1", nil
 	case "httproutes.networking.x-k8s.io":
-		return "HTTPRoute", "networking.x-k8s.io/v1alpha1"
+		return "HTTPRoute", "networking.x-k8s.io/v1alpha1", nil
 	default:
-		panic(fmt.Errorf("I don't know how to canonicalize kind: %q", kind))
+		return "", "", fmt.Errorf("I don't know how to canonicalize kind: %q", kind)
 	}
 }
 
-func canon(kind string) string {
-	canonKind, _ := canonGVK(kind)
-	return canonKind
+func canon(kind string) (string, error) {
+	canonKind, _, err := canonGVK(kind)
+	if err != nil {
+		return "", err
+	}
+	return canonKind, nil
 }

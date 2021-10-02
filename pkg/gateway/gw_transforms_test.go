@@ -100,7 +100,8 @@ spec:
 	require.NoError(t, err)
 
 	version, snapshot := d.GetSnapshot(ctx)
-	status := e.Configure("test-id", version, *snapshot)
+	status, err := e.Configure("test-id", version, *snapshot)
+	require.NoError(t, err)
 	if status != nil {
 		t.Fatalf("envoy error: %s", status.Message)
 	}
@@ -179,15 +180,15 @@ spec:
 
 func makeDispatcher(t *testing.T) *gateway.Dispatcher {
 	d := gateway.NewDispatcher()
-	err := d.Register("Gateway", func(untyped kates.Object) *gateway.CompiledConfig {
+	err := d.Register("Gateway", func(untyped kates.Object) (*gateway.CompiledConfig, error) {
 		return gateway.Compile_Gateway(untyped.(*gw.Gateway))
 	})
 	require.NoError(t, err)
-	err = d.Register("HTTPRoute", func(untyped kates.Object) *gateway.CompiledConfig {
+	err = d.Register("HTTPRoute", func(untyped kates.Object) (*gateway.CompiledConfig, error) {
 		return gateway.Compile_HTTPRoute(untyped.(*gw.HTTPRoute))
 	})
 	require.NoError(t, err)
-	err = d.Register("Endpoints", func(untyped kates.Object) *gateway.CompiledConfig {
+	err = d.Register("Endpoints", func(untyped kates.Object) (*gateway.CompiledConfig, error) {
 		return gateway.Compile_Endpoints(untyped.(*kates.Endpoints))
 	})
 	require.NoError(t, err)
