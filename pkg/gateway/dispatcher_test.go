@@ -2,6 +2,7 @@ package gateway_test
 
 import (
 	// standard library
+	"errors"
 	"fmt"
 	"testing"
 
@@ -27,8 +28,10 @@ import (
 )
 
 func assertErrorContains(t *testing.T, err error, msg string) {
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), msg)
+	t.Helper()
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), msg)
+	}
 }
 
 func TestDispatcherRegister(t *testing.T) {
@@ -68,7 +71,7 @@ func TestDispatcherFaultIsolation1(t *testing.T) {
 	err := disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bang")
-	foo.Spec.PanicArg = "bang bang!"
+	foo.Spec.PanicArg = errors.New("bang bang!")
 	err = disp.Upsert(foo)
 	assertErrorContains(t, err, "error processing")
 }
@@ -79,7 +82,7 @@ func TestDispatcherFaultIsolation2(t *testing.T) {
 	err := disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bang")
-	foo.Spec.PanicArg = fmt.Errorf("bang bang!")
+	foo.Spec.PanicArg = errors.New("bang bang!")
 	err = disp.Upsert(foo)
 	assertErrorContains(t, err, "error processing")
 }
@@ -114,7 +117,7 @@ func TestDispatcherTransformError(t *testing.T) {
 	assert.Equal(t, "this is a load assignment error", errors[5].Error)
 }
 
-func compile_FooWithErrors(f *Foo) *gateway.CompiledConfig {
+func compile_FooWithErrors(f *Foo) (*gateway.CompiledConfig, error) {
 	src := gateway.SourceFromResource(f)
 	return &gateway.CompiledConfig{
 		CompiledItem: gateway.NewCompiledItemError(src, "this is an error"),
@@ -136,7 +139,7 @@ func compile_FooWithErrors(f *Foo) *gateway.CompiledConfig {
 			{CompiledItem: gateway.NewCompiledItemError(gateway.Sourcef("load assignment in %s", src),
 				"this is a load assignment error")},
 		},
-	}
+	}, nil
 }
 
 func TestDispatcherNoTransform(t *testing.T) {
@@ -179,9 +182,9 @@ func TestDispatcherDeleteKey(t *testing.T) {
 	require.Nil(t, l)
 }
 
-func compile_Foo(f *Foo) *gateway.CompiledConfig {
+func compile_Foo(f *Foo) (*gateway.CompiledConfig, error) {
 	if f.Spec.Value == "bang" {
-		panic(f.Spec.PanicArg)
+		return nil, f.Spec.PanicArg
 	}
 	return &gateway.CompiledConfig{
 		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
@@ -190,7 +193,7 @@ func compile_Foo(f *Foo) *gateway.CompiledConfig {
 				Listener: &apiv2.Listener{Name: f.Spec.Value},
 			},
 		},
-	}
+	}, nil
 }
 
 func TestDispatcherUpsertYamlErr(t *testing.T) {
@@ -228,9 +231,9 @@ func TestDispatcherAssemblyWithRouteConfg(t *testing.T) {
 	assert.Equal(t, "bar-routeconfig", r.Name)
 }
 
-func compile_FooWithRouteConfigName(f *Foo) *gateway.CompiledConfig {
+func compile_FooWithRouteConfigName(f *Foo) (*gateway.CompiledConfig, error) {
 	if f.Spec.Value == "bang" {
-		panic(f.Spec.PanicArg)
+		return nil, f.Spec.PanicArg
 	}
 
 	name := f.Spec.Value
@@ -255,7 +258,7 @@ func compile_FooWithRouteConfigName(f *Foo) *gateway.CompiledConfig {
 	}
 	hcmAny, err := anypb.New(hcm)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	l := &apiv2.Listener{
@@ -275,7 +278,7 @@ func compile_FooWithRouteConfigName(f *Foo) *gateway.CompiledConfig {
 	return &gateway.CompiledConfig{
 		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
 		Listeners:    []*gateway.CompiledListener{{Listener: l}},
-	}
+	}, nil
 }
 
 func TestDispatcherAssemblyWithEmptyRouteConfigName(t *testing.T) {
@@ -296,7 +299,7 @@ func TestDispatcherAssemblyWithEmptyRouteConfigName(t *testing.T) {
 	assert.Equal(t, "", r.Name)
 }
 
-func compile_FooWithEmptyRouteConfigName(f *Foo) *gateway.CompiledConfig {
+func compile_FooWithEmptyRouteConfigName(f *Foo) (*gateway.CompiledConfig, error) {
 	name := f.Spec.Value
 
 	hcm := &apiv2_httpman.HttpConnectionManager{
@@ -317,7 +320,7 @@ func compile_FooWithEmptyRouteConfigName(f *Foo) *gateway.CompiledConfig {
 	}
 	hcmAny, err := anypb.New(hcm)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	l := &apiv2.Listener{
@@ -337,7 +340,7 @@ func compile_FooWithEmptyRouteConfigName(f *Foo) *gateway.CompiledConfig {
 	return &gateway.CompiledConfig{
 		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
 		Listeners:    []*gateway.CompiledListener{{Listener: l}},
-	}
+	}, nil
 }
 
 func TestDispatcherAssemblyWithoutRds(t *testing.T) {
@@ -355,7 +358,7 @@ func TestDispatcherAssemblyWithoutRds(t *testing.T) {
 	require.Nil(t, r)
 }
 
-func compile_FooWithoutRds(f *Foo) *gateway.CompiledConfig {
+func compile_FooWithoutRds(f *Foo) (*gateway.CompiledConfig, error) {
 	name := f.Spec.Value
 
 	hcm := &apiv2_httpman.HttpConnectionManager{
@@ -367,7 +370,7 @@ func compile_FooWithoutRds(f *Foo) *gateway.CompiledConfig {
 	}
 	hcmAny, err := anypb.New(hcm)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	l := &apiv2.Listener{
@@ -390,7 +393,7 @@ func compile_FooWithoutRds(f *Foo) *gateway.CompiledConfig {
 	return &gateway.CompiledConfig{
 		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
 		Listeners:    []*gateway.CompiledListener{{Listener: l}},
-	}
+	}, nil
 }
 
 func TestDispatcherAssemblyEndpointDefaulting(t *testing.T) {
@@ -415,19 +418,19 @@ func TestDispatcherAssemblyEndpointDefaulting(t *testing.T) {
 	}
 }
 
-func wrapFooCompiler(inner func(*Foo) *gateway.CompiledConfig) func(kates.Object) *gateway.CompiledConfig {
-	return func(untyped kates.Object) *gateway.CompiledConfig {
+func wrapFooCompiler(inner func(*Foo) (*gateway.CompiledConfig, error)) func(kates.Object) (*gateway.CompiledConfig, error) {
+	return func(untyped kates.Object) (*gateway.CompiledConfig, error) {
 		return inner(untyped.(*Foo))
 	}
 }
 
-func compile_FooWithClusterRefs(f *Foo) *gateway.CompiledConfig {
+func compile_FooWithClusterRefs(f *Foo) (*gateway.CompiledConfig, error) {
 	return &gateway.CompiledConfig{
 		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
 		Routes: []*gateway.CompiledRoute{{
 			ClusterRefs: []*gateway.ClusterRef{{Name: "foo"}},
 		}},
-	}
+	}, nil
 }
 
 func TestDispatcherAssemblyEndpointWatches(t *testing.T) {
@@ -443,12 +446,12 @@ func TestDispatcherAssemblyEndpointWatches(t *testing.T) {
 	assert.True(t, disp.IsWatched("foo-ns", "foo"))
 }
 
-func compile_FooEndpointWatches(f *Foo) *gateway.CompiledConfig {
+func compile_FooEndpointWatches(f *Foo) (*gateway.CompiledConfig, error) {
 	return &gateway.CompiledConfig{
 		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
 		Routes: []*gateway.CompiledRoute{{
 			CompiledItem: gateway.CompiledItem{Source: gateway.SourceFromResource(f), Namespace: "foo-ns"},
 			ClusterRefs:  []*gateway.ClusterRef{{Name: "foo"}},
 		}},
-	}
+	}, nil
 }

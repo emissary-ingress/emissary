@@ -57,7 +57,7 @@ func (q *Queue) Add(obj interface{}) {
 }
 
 // Get will return the next entry that satisfies the supplied predicate.
-func (q *Queue) Get(predicate func(interface{}) bool) interface{} {
+func (q *Queue) Get(predicate func(interface{}) bool) (interface{}, error) {
 	q.T.Helper()
 	start := time.Now()
 	q.cond.L.Lock()
@@ -67,7 +67,7 @@ func (q *Queue) Get(predicate func(interface{}) bool) interface{} {
 		for idx, obj := range q.entries[q.offset:] {
 			if predicate(obj) {
 				q.offset += idx + 1
-				return obj
+				return obj, nil
 			}
 		}
 
@@ -76,7 +76,7 @@ func (q *Queue) Get(predicate func(interface{}) bool) interface{} {
 			for idx, entry := range q.entries {
 				bytes, err := json.MarshalIndent(entry, "", "  ")
 				if err != nil {
-					panic(err)
+					return nil, err
 				}
 				var extra string
 				if idx < q.offset {

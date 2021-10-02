@@ -290,9 +290,10 @@ func TestCoherence(t *testing.T) {
 		return
 	}
 
-	acc := cli.Watch(ctx,
+	acc, err := cli.Watch(ctx,
 		Query{Name: "ConfigMaps", Kind: "ConfigMap"},
 		Query{Name: "Secrets", Kind: "Secret"})
+	require.NoError(t, err)
 	snap := &TestSnapshot{}
 
 	COUNT := 25
@@ -315,7 +316,9 @@ func TestCoherence(t *testing.T) {
 			select {
 			case <-acc.Changed():
 				mutex.Lock()
-				if !acc.UpdateWithDeltas(ctx, snap, &deltas) {
+				updated, err := acc.UpdateWithDeltas(ctx, snap, &deltas)
+				assert.NoError(t, err)
+				if !updated {
 					mutex.Unlock()
 					continue
 				}
@@ -473,7 +476,8 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 		return
 	}
 
-	acc := cli.Watch(ctx, Query{Name: "ConfigMaps", Kind: "ConfigMap"})
+	acc, err := cli.Watch(ctx, Query{Name: "ConfigMaps", Kind: "ConfigMap"})
+	require.NoError(t, err)
 	snap := &TestSnapshot{}
 
 	err = cli.Upsert(ctx, cm1, cm1, nil)
@@ -486,7 +490,9 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 	for {
 		<-acc.Changed()
 		var deltas []*Delta
-		if !acc.UpdateWithDeltas(ctx, snap, &deltas) {
+		updated, err := acc.UpdateWithDeltas(ctx, snap, &deltas)
+		require.NoError(t, err)
+		if !updated {
 			continue
 		}
 
@@ -502,7 +508,9 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 	for {
 		<-acc.Changed()
 		var deltas []*Delta
-		if !acc.UpdateWithDeltas(ctx, snap, &deltas) {
+		updated, err := acc.UpdateWithDeltas(ctx, snap, &deltas)
+		require.NoError(t, err)
+		if !updated {
 			continue
 		}
 
@@ -520,7 +528,9 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 	for {
 		<-acc.Changed()
 		var deltas []*Delta
-		if !acc.UpdateWithDeltas(ctx, snap, &deltas) {
+		updated, err := acc.UpdateWithDeltas(ctx, snap, &deltas)
+		require.NoError(t, err)
+		if !updated {
 			continue
 		}
 

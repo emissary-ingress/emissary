@@ -84,11 +84,15 @@ func (w *Waiter) isEmpty() bool {
 // Scan()ed resources to be ready.  If they all become ready before
 // deadline, then it returns true.  If they don't become ready by
 // then, then it bails early and returns false.
-func (w *Waiter) Wait(ctx context.Context, deadline time.Time) bool {
+func (w *Waiter) Wait(ctx context.Context, deadline time.Time) (bool, error) {
 	start := time.Now()
 	printed := make(map[string]bool)
-	err := w.watcher.WatchQuery(k8s.Query{Kind: "events", Namespace: k8s.NamespaceAll}, func(watcher *k8s.Watcher) {
-		for _, r := range watcher.List("events") {
+	err := w.watcher.WatchQuery(k8s.Query{Kind: "events", Namespace: k8s.NamespaceAll}, func(watcher *k8s.Watcher) error {
+		list, err := watcher.List("events")
+		if err != nil {
+			return err
+		}
+		for _, r := range list {
 			if lastStr, ok := r["lastTimestamp"].(string); ok {
 				last, err := time.Parse("2006-01-02T15:04:05Z", lastStr)
 				if err != nil {
@@ -111,15 +115,19 @@ func (w *Waiter) Wait(ctx context.Context, deadline time.Time) bool {
 				printed[r.QName()] = true
 			}
 		}
+		return nil
 	})
 	if err != nil {
-		panic(err)
+		return false, err
 	}
 
-	listener := func(watcher *k8s.Watcher) {
+	listener := func(watcher *k8s.Watcher) error {
 		for kind, names := range w.kinds {
 			for name := range names {
-				r := watcher.Get(kind.String(), name)
+				r, err := watcher.Get(kind.String(), name)
+				if err != nil {
+					return err
+				}
 				if Ready(r) {
 					if ReadyImplemented(r) {
 						dlog.Printf(ctx, "ready: %s/%s\n", r.QKind(), r.QName())
@@ -135,23 +143,27 @@ func (w *Waiter) Wait(ctx context.Context, deadline time.Time) bool {
 		if w.isEmpty() {
 			watcher.Stop()
 		}
+		return nil
 	}
 
 	for k := range w.kinds {
-		err := w.watcher.WatchQuery(k8s.Query{Kind: k.String(), Namespace: k8s.NamespaceAll}, listener)
-		if err != nil {
-			panic(err)
+		if err := w.watcher.WatchQuery(k8s.Query{Kind: k.String(), Namespace: k8s.NamespaceAll}, listener); err != nil {
+			return false, err
 		}
 	}
 
-	w.watcher.Start(ctx)
+	if err := w.watcher.Start(ctx); err != nil {
+		return false, err
+	}
 
 	go func() {
 		time.Sleep(time.Until(deadline))
 		w.watcher.Stop()
 	}()
 
-	w.watcher.Wait(ctx)
+	if err := w.watcher.Wait(ctx); err != nil {
+		return false, err
+	}
 
 	result := true
 
@@ -162,5 +174,5 @@ func (w *Waiter) Wait(ctx context.Context, deadline time.Time) bool {
 		}
 	}
 
-	return result
+	return result, nil
 }

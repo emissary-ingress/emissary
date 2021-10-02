@@ -59,7 +59,11 @@ func sanitizeExternalSnapshot(ctx context.Context, rawSnapshot []byte, client *h
 	if err != nil {
 		return nil, err
 	}
-	if snapDecoded.AmbassadorMeta != nil && IsEdgeStack() {
+	isEdgeStack, err := IsEdgeStack()
+	if err != nil {
+		return nil, err
+	}
+	if snapDecoded.AmbassadorMeta != nil && isEdgeStack {
 		sidecarProcessInfoUrl := fmt.Sprintf("%s/process-info/", GetSidecarHost())
 		dlog.Debugf(ctx, "loading sidecar process-info using [%s]...", sidecarProcessInfoUrl)
 		resp, err := client.Get(sidecarProcessInfoUrl)

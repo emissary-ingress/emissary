@@ -226,7 +226,7 @@ type MappingLabelSpecGeneric struct {
 // jsonschema for our sub-fields:
 // https://github.com/kubernetes-sigs/controller-tools/pull/427
 func (o MappingLabelSpecifier) MarshalJSON() ([]byte, error) {
-	nonNil := 0
+	nonNil := uint(0)
 
 	if o.String != nil {
 		nonNil++
@@ -238,30 +238,25 @@ func (o MappingLabelSpecifier) MarshalJSON() ([]byte, error) {
 		nonNil++
 	}
 
-	// If there's nothing set at all...
-	if nonNil == 0 {
-		// ...return nil.
+	switch nonNil {
+	case 0:
 		return json.Marshal(nil)
+	case 1:
+		// OK, exactly one thing is set. Marshal it.
+		switch {
+		case o.String != nil:
+			return json.Marshal(o.String)
+		case o.Header != nil:
+			return json.Marshal(o.Header)
+		case o.Generic != nil:
+			return json.Marshal(o.Generic)
+		default:
+			// We already checked that nonNil == 1, so this can't happen.
+			panic("not reached")
+		}
+	default:
+		return nil, errors.New("invalid MappingLabelSpecifier")
 	}
-
-	// OK, something is set -- is more than one thing?
-	if nonNil > 1 {
-		// Bzzzt.
-		panic("invalid MappingLabelSpecifier")
-	}
-
-	// OK, exactly one thing is set. Marshal it.
-	if o.String != nil {
-		return json.Marshal(o.String)
-	}
-	if o.Header != nil {
-		return json.Marshal(o.Header)
-	}
-	if o.Generic != nil {
-		return json.Marshal(o.Generic)
-	}
-
-	panic("not reached")
 }
 
 // UnmarshalJSON is MarshalJSON's other half.

@@ -22,16 +22,16 @@ var sch = runtime.NewScheme()
 
 func init() {
 	if err := scheme.AddToScheme(sch); err != nil {
-		panic(err)
+		panic(err) // panic is ok in init() I guess
 	}
 	if err := apiextensions.AddToScheme(sch); err != nil {
-		panic(err)
+		panic(err) // panic is ok in init() I guess
 	}
 	if err := amb.AddToScheme(sch); err != nil {
-		panic(err)
+		panic(err) // panic is ok in init() I guess
 	}
 	if err := gw.AddToScheme(sch); err != nil {
-		panic(err)
+		panic(err) // panic is ok in init() I guess
 	}
 }
 

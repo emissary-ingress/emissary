@@ -103,6 +103,7 @@ package v3alpha1
 
 import (
 	"encoding/json"
+	"errors"
 )
 
 // The old `k8s.io/kube-openapi/cmd/openapi-gen` command had ways to
@@ -250,7 +251,7 @@ func (o BoolOrString) MarshalJSON() ([]byte, error) {
 	case o.String != nil && o.Bool == nil:
 		return json.Marshal(o.String)
 	case o.String != nil && o.Bool != nil:
-		panic("invalid BoolOrString")
+		return nil, errors.New("invalid BoolOrString")
 	}
 	panic("not reached")
 }
