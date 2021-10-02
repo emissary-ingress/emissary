@@ -75,16 +75,21 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
-## [2.0.4-ea] TBD
-[2.0.4-ea]: https://github.com/emissary-ingress/emissary/releases/v2.0.4-ea
+## [2.0.4] TBD
+[2.0.4]: https://github.com/emissary-ingress/emissary/releases/v2.0.4
 
-We're pleased to introduce Emissary-ingress 2.0.3 as a _developer preview_. The 2.X family
-introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
-installations, reduce global configuration to better handle multitenant or multiorganizational
-installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on
-<a href="https://a8r.io/slack">Slack</a> and let us know what you think.
+We're pleased to introduce Emissary-ingress 2.0.4 for general availability for new  installations!
+The 2.X family introduces a number of changes to allow Emissary-ingress to more gracefully handle
+larger installations, reduce global configuration to better handle multitenant or
+multiorganizational installations, reduce memory footprint, and improve performance. We welcome
+feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
 
 ## Emissary-ingress
+
+- Change: The `x.getambassador.io/v3alpha1` API version has become the  `getambassador.io/v3alpha1` API
+  version. The `Ambassador-` prefixes from `x.getambassador.io/v3alpha1` resources have been removed
+  for ease of migration. _Note that `getambassador.io/v3alpha1` is the only supported API version
+  for 2.0.4_ &mdash; full support for `getambassador.io/v2` will arrive soon in a later 2.X version.
 
 - Bugfix: The release now shows its actual released version number, rather than the internal development
   version number.
@@ -177,7 +182,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 
 ## Emissary-ingress
 
-- Feature: Emissary-ingress 2.0.0 introduces API version `getambassador.io/v3alpha1` for configuration
+- Feature: Emissary-ingress 2.0.0 introduces API version `x.getambassador.io/v3alpha1` for configuration
   changes that are not backwards compatible with the 1.X family.  API versions
   `getambassador.io/v0`, `getambassador.io/v1`, and `getambassador.io/v2` are deprecated.  Further
   details are available in the <a
