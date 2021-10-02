@@ -26,7 +26,7 @@ func TestValidation(t *testing.T) {
 	crd := objs[0].(*CustomResourceDefinition)
 
 	defer func() {
-		client.Delete(ctx, crd, nil)
+		assert.NoError(t, client.Delete(ctx, crd, nil))
 	}()
 
 	err = client.Create(ctx, crd, crd)

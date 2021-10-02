@@ -336,8 +336,8 @@ func Main(args *CLIArgs) error {
 	}
 	readme.WriteString("\n")
 	table := tabwriter.NewWriter(readme, 0, 8, 2, ' ', 0)
-	io.WriteString(table, "  \tName\tVersion\tLicense(s)\n")
-	io.WriteString(table, "  \t----\t-------\t----------\n")
+	_, _ = io.WriteString(table, "  \tName\tVersion\tLicense(s)\n")
+	_, _ = io.WriteString(table, "  \t----\t-------\t----------\n")
 	for _, modKey := range modNames {
 		proprietary, err := licenseIsProprietary(modLicenses[modKey])
 		if err != nil {

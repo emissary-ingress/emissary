@@ -40,15 +40,19 @@ func run(cmd *cobra.Command, args []string) error {
 		}
 		klogLevel = logutil.LogrusToKLogLevel(logrusLevel)
 	}
-	klogFlags := flag.NewFlagSet(os.Args[0], flag.PanicOnError)
+	klogFlags := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	klog.InitFlags(klogFlags)
-	klogFlags.Parse([]string{fmt.Sprintf("-stderrthreshold=%d", klogLevel), "-v=2", "-logtostderr=false"})
+	if err := klogFlags.Parse([]string{fmt.Sprintf("-stderrthreshold=%d", klogLevel), "-v=2", "-logtostderr=false"}); err != nil {
+		return err
+	}
 	snapshotURL := os.Getenv("AES_SNAPSHOT_URL")
 	if snapshotURL == "" {
 		snapshotURL = fmt.Sprintf(DefaultSnapshotURLFmt, entrypoint.ExternalSnapshotPort)
 	}
 
-	ambAgent.Watch(ctx, snapshotURL)
+	if err := ambAgent.Watch(ctx, snapshotURL); err != nil {
+		return err
+	}
 
 	return nil
 }

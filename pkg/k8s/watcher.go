@@ -257,10 +257,11 @@ func (w *Watcher) UpdateStatus(ctx context.Context, resource Resource) (Resource
 	result, err := cli.UpdateStatus(ctx, &uns, v1.UpdateOptions{})
 	if err != nil {
 		return nil, err
-	} else {
-		watch.store.Update(result)
-		return result.UnstructuredContent(), nil
 	}
+	if err := watch.store.Update(result); err != nil {
+		return nil, err
+	}
+	return result.UnstructuredContent(), nil
 }
 
 // Get gets the `qname` resource (of kind `kind`)

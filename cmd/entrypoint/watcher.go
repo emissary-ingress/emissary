@@ -390,13 +390,23 @@ func (sh *SnapshotHolder) K8sUpdate(ctx context.Context, watcher K8sWatcher, con
 		if endpointsChanged || dispatcherChanged {
 			endpoints = makeEndpoints(ctx, sh.k8sSnapshot, sh.consulSnapshot.Endpoints)
 			for _, gwc := range sh.k8sSnapshot.GatewayClasses {
-				sh.dispatcher.Upsert(gwc)
+				if err := sh.dispatcher.Upsert(gwc); err != nil {
+					// TODO: Should this be more severe?
+					dlog.Error(ctx, err)
+				}
 			}
 			for _, gw := range sh.k8sSnapshot.Gateways {
-				sh.dispatcher.Upsert(gw)
+				if err := sh.dispatcher.Upsert(gw); err != nil {
+					// TODO: Should this be more severe?
+					dlog.Error(ctx, err)
+				}
+
 			}
 			for _, hr := range sh.k8sSnapshot.HTTPRoutes {
-				sh.dispatcher.Upsert(hr)
+				if err := sh.dispatcher.Upsert(hr); err != nil {
+					// TODO: Should this be more severe?
+					dlog.Error(ctx, err)
+				}
 			}
 			_, dispSnapshot = sh.dispatcher.GetSnapshot(ctx)
 		}

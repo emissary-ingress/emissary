@@ -87,7 +87,7 @@ func TestUpsert(t *testing.T) {
 	}
 
 	defer func() {
-		cli.Delete(ctx, cm, nil)
+		assert.NoError(t, cli.Delete(ctx, cm, nil))
 	}()
 
 	err := cli.Upsert(ctx, cm, cm, cm)
@@ -130,7 +130,7 @@ func TestPatch(t *testing.T) {
 	assert.NoError(t, err)
 
 	defer func() {
-		cli.Delete(ctx, cm, nil)
+		assert.NoError(t, cli.Delete(ctx, cm, nil))
 	}()
 
 	err = cli.Patch(ctx, cm, StrategicMergePatchType, []byte(`{"metadata": {"annotations": {"moo": "arf"}}}`), cm)

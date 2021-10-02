@@ -143,7 +143,9 @@ func (g *GRPC) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResponse, e
 				s := strings.Join(md[v], ",")
 				response.Headers[v] = s
 				p := metadata.Pairs(v, s)
-				grpc.SendHeader(ctx, p)
+				if err := grpc.SendHeader(ctx, p); err != nil {
+					return nil, err
+				}
 			}
 		}
 	}

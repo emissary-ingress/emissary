@@ -91,10 +91,11 @@ func SetupEnvoy(t *testing.T, adsAddress string, portmaps ...string) {
 	if cidfile == "" {
 		// we started envoy without a container
 		t.Cleanup(func() {
-			cmd.Process.Kill()
-			_, err := cmd.Process.Wait()
-			if err != nil {
-				t.Logf("error tearing down envoy: %+v", err)
+			if err := cmd.Process.Kill(); err != nil {
+				t.Error(err)
+			}
+			if _, err := cmd.Process.Wait(); err != nil {
+				t.Errorf("error tearing down envoy: %+v", err)
 			}
 		})
 	} else {
@@ -233,7 +234,7 @@ func NewRequestLogger() *RequestLogger {
 
 func (rl *RequestLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	rl.Log(r)
-	w.Write([]byte("Hello World"))
+	_, _ = w.Write([]byte("Hello World"))
 }
 
 func (rl *RequestLogger) Log(r *http.Request) {

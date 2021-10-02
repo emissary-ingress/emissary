@@ -51,7 +51,9 @@ func (g *GRPCAUTHV3) Start(ctx context.Context) <-chan bool {
 		s := grpc.NewServer()
 		dlog.Printf(ctx, "registering v3 service")
 		pb.RegisterAuthorizationServer(s, g)
-		s.Serve(ln)
+		if err := s.Serve(ln); err != nil {
+			panic(err) // TODO: do something better
+		}
 
 		defer ln.Close()
 		close(exited)
@@ -75,7 +77,9 @@ func (g *GRPCAUTHV3) Start(ctx context.Context) <-chan bool {
 		s := grpc.NewServer()
 		dlog.Printf(ctx, "registering v2 service")
 		pb.RegisterAuthorizationServer(s, g)
-		s.Serve(ln)
+		if err := s.Serve(ln); err != nil {
+			panic(err) // TODO: do something better
+		}
 
 		defer ln.Close()
 		close(exited)

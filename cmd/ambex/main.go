@@ -803,7 +803,9 @@ func Main2(
 
 	if args.watch {
 		for _, d := range args.dirs {
-			watcher.Add(d)
+			if err := watcher.Add(d); err != nil {
+				return err
+			}
 		}
 	}
 

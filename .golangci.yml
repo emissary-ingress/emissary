@@ -7,6 +7,7 @@ linters:
     - govet
     - depguard
     - unused
+    - errcheck
 linters-settings:
   gofmt:
     simplify: true
@@ -22,9 +23,12 @@ linters-settings:
     # treat code as a program (not a library) and report unused
     # exported identifiers
     check-exported: true
+  errcheck:
+    exclude-functions:
+      - "(net/http.ResponseWriter).Write"
 issues:
   exclude-rules:
-    - linters: [govet]
+    - linters: [govet, errcheck]
       path: pkg/envoy-control-plane/
     - linters: [depguard]
       path: "pkg/envoy-control-plane/(test/|.*_test\\.go)"

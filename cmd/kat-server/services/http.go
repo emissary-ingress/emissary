@@ -226,5 +226,5 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dlog.Printf(ctx, "%s (%s): \"%s %s\" -> HTTP %v", r.Method, r.URL.Path, backend, conntype, statusCode)
-	w.Write(b)
+	_, _ = w.Write(b)
 }

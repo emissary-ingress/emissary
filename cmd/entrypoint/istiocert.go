@@ -69,7 +69,7 @@ func (src *istioCertSource) Watch(ctx context.Context) IstioCertWatcher {
 		//
 		// XXX This handler function is really just an impedance matcher.
 		// Maybe IstioCert should just have a "HandleFSWEvent"...
-		fsw.WatchDir(ctx, secretDir,
+		err = fsw.WatchDir(ctx, secretDir,
 			func(ctx context.Context, event FSWEvent) {
 				// Is this a deletion?
 				deleted := (event.Op == FSWDelete)
@@ -78,6 +78,10 @@ func (src *istioCertSource) Watch(ctx context.Context) IstioCertWatcher {
 				icert.HandleEvent(ctx, event.Path, deleted)
 			},
 		)
+		if err != nil {
+			dlog.Errorf(ctx, "FileSystemWatcher.WatchDir(ctx, %q, fn) => %v",
+				secretDir, err)
+		}
 	}
 
 	return &istioCertWatcher{

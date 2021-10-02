@@ -22,10 +22,18 @@ import (
 var sch = runtime.NewScheme()
 
 func init() {
-	scheme.AddToScheme(sch)
-	apiextensions.AddToScheme(sch)
-	amb.AddToScheme(sch)
-	gw.AddToScheme(sch)
+	if err := scheme.AddToScheme(sch); err != nil {
+		panic(err)
+	}
+	if err := apiextensions.AddToScheme(sch); err != nil {
+		panic(err)
+	}
+	if err := amb.AddToScheme(sch); err != nil {
+		panic(err)
+	}
+	if err := gw.AddToScheme(sch); err != nil {
+		panic(err)
+	}
 }
 
 func NewObject(kind, version string) (Object, error) {

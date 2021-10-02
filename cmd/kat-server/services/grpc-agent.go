@@ -74,7 +74,7 @@ func (a *GRPCAgent) Start(ctx context.Context) <-chan bool {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write(ret)
+		_, _ = w.Write(ret)
 	})
 
 	go func() {
@@ -111,7 +111,7 @@ func (a *GRPCAgent) Start(ctx context.Context) <-chan bool {
 		cancel()
 
 		grpcHandler.GracefulStop()
-		srv.Shutdown(ctx)
+		_ = srv.Shutdown(ctx)
 		wg.Wait()
 		close(exited)
 	}()

@@ -650,10 +650,12 @@ func TestWatchErrorSendingSnapshot(t *testing.T) {
 			Kubernetes: &snapshotTypes.KubernetesSnapshot{},
 		}
 		enSnapshot, err := json.Marshal(&snapshot)
-		if err != nil {
-			t.Fatal("error marshalling snapshot")
+		if !assert.NoError(t, err) {
+			return
 		}
-		w.Write(enSnapshot)
+		_, err = w.Write(enSnapshot)
+		assert.NoError(t, err)
+
 	}))
 	defer ts.Close()
 	mockError := errors.New("MockClient: Error sending report")
@@ -790,10 +792,11 @@ func TestWatchWithSnapshot(t *testing.T) {
 	var snapshotSentTime time.Time
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		enSnapshot, err := json.Marshal(&snapshot)
-		if err != nil {
-			t.Fatal("error marshalling snapshot")
+		if !assert.NoError(t, err) {
+			return
 		}
-		w.Write(enSnapshot)
+		_, err = w.Write(enSnapshot)
+		assert.NoError(t, err)
 		snapshotSentTime = time.Now()
 	}))
 	defer ts.Close()
@@ -1002,7 +1005,7 @@ func TestWatchEmptySnapshot(t *testing.T) {
 			t.Fatal("error marshalling snapshot")
 		}
 
-		w.Write(enSnapshot)
+		_, _ = w.Write(enSnapshot)
 		select {
 		case snapshotRequested <- true:
 		default:

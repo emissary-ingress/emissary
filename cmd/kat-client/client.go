@@ -834,13 +834,13 @@ type Args struct {
 	output string
 }
 
-func parseArgs(rawArgs ...string) Args {
+func parseArgs(rawArgs ...string) (Args, error) {
 	var args Args
-	flagset := flag.NewFlagSet("kat-client", flag.ExitOnError)
+	flagset := flag.NewFlagSet("kat-client", flag.ContinueOnError)
 	flagset.StringVar(&args.input, "input", "", "input filename")
 	flagset.StringVar(&args.output, "output", "", "output filename")
-	flagset.Parse(rawArgs)
-	return args
+	err := flagset.Parse(rawArgs)
+	return args, err
 }
 
 func main() {
@@ -849,10 +849,12 @@ func main() {
 
 	rlimit(ctx)
 
-	args := parseArgs(os.Args[1:]...)
+	args, err := parseArgs(os.Args[1:]...)
+	if err != nil {
+		panic(err)
+	}
 
 	var data []byte
-	var err error
 
 	// Read input file
 	if args.input == "" {
