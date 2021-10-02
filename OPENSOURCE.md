@@ -29,7 +29,6 @@ following Free and Open Source software:
     github.com/datawire/dtest                                v0.0.0-20210914162017-6f63de0a5718         Apache License 2.0
     github.com/davecgh/go-spew                               v1.1.1                                     ISC license
     github.com/docker/spdystream                             v0.0.0-20160310174837-449fdfce4d96         Apache License 2.0
-    github.com/ecodia/golang-awaitility                      v0.0.0-20180710094957-fb55e59708c7         MIT license
     github.com/emicklei/go-restful                           v2.9.5+incompatible                        MIT license
     github.com/envoyproxy/protoc-gen-validate                v0.3.0-java.0.20200609174644-bd816e4522c1  Apache License 2.0
     github.com/evanphx/json-patch                            v4.9.0+incompatible                        3-clause BSD license

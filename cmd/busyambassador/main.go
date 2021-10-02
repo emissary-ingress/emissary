@@ -14,7 +14,6 @@ import (
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	"github.com/datawire/ambassador/v2/cmd/kubestatus"
 	"github.com/datawire/ambassador/v2/cmd/reproducer"
-	"github.com/datawire/ambassador/v2/cmd/watt"
 )
 
 // Version is inserted at build-time using --ldflags -X
@@ -25,7 +24,6 @@ func noop() {}
 func main() {
 	busy.Main("busyambassador", "Ambassador", Version, map[string]busy.Command{
 		"ambex":      {Setup: environment.EnvironmentSetupEntrypoint, Run: ambex.Main},
-		"watt":       {Setup: environment.EnvironmentSetupEntrypoint, Run: watt.Main},
 		"kubestatus": {Setup: environment.EnvironmentSetupEntrypoint, Run: kubestatus.Main},
 		"entrypoint": {Setup: noop, Run: entrypoint.Main},
 		"reproducer": {Setup: noop, Run: reproducer.Main},
