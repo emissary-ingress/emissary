@@ -205,14 +205,14 @@ func (f *Fake) runWatcher(ctx context.Context) error {
 
 	return watchAllTheThingsInternal(
 		ctx,
-		f.currentSnapshot, // encoded
-		f.k8sSource,
-		queries,
-		f.watcher.Watch, // watchConsulFunc
-		f.istioCertSource,
-		f.notifySnapshot,
-		f.notifyFastpath,
-		f.ambassadorMeta,
+		f.currentSnapshot, // encoded *atomic.Value
+		f.k8sSource,       // k8sSrc
+		queries,           // queries
+		f.watcher.Watch,   // watchConsulFunc
+		f.istioCertSource, // istioCertSrc
+		f.notifySnapshot,  // snapshotProcessor
+		f.notifyFastpath,  // fastpathProcessor
+		f.ambassadorMeta,  // ambassadorMeta
 	)
 }
 
@@ -271,7 +271,6 @@ func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, sna
 
 // GetSnapshotEntry will return the next SnapshotEntry that satisfies the supplied predicate.
 func (f *Fake) GetSnapshotEntry(predicate func(SnapshotEntry) bool) (SnapshotEntry, error) {
-	f.T.Helper()
 	untyped, err := f.snapshots.Get(f.T, func(obj interface{}) bool {
 		entry := obj.(SnapshotEntry)
 		return predicate(entry)
@@ -284,7 +283,6 @@ func (f *Fake) GetSnapshotEntry(predicate func(SnapshotEntry) bool) (SnapshotEnt
 
 // GetSnapshot will return the next snapshot that satisfies the supplied predicate.
 func (f *Fake) GetSnapshot(predicate func(*snapshot.Snapshot) bool) (*snapshot.Snapshot, error) {
-	f.T.Helper()
 	entry, err := f.GetSnapshotEntry(func(entry SnapshotEntry) bool {
 		return entry.Disposition == SnapshotReady && predicate(entry.Snapshot)
 	})

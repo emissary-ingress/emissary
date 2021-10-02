@@ -64,15 +64,18 @@ func (q *Queue) Add(t *testing.T, obj interface{}) {
 
 // Get will return the next entry that satisfies the supplied predicate.
 func (q *Queue) Get(t *testing.T, predicate func(interface{}) bool) (interface{}, error) {
-	t.Helper()
 	start := time.Now()
 	q.cond.L.Lock()
 	defer q.cond.L.Unlock()
 
-	for {
-		for idx, obj := range q.entries[q.offset:] {
-			if predicate(obj) {
-				q.offset += idx + 1
+	for pass := 0; true; pass++ {
+		q.T.Logf("[pass %d] q.offset=%v len(q.entries)=%v", pass, q.offset, len(q.entries))
+		for i := q.offset; i < len(q.entries); i++ {
+			obj := q.entries[i]
+			matches := predicate(obj)
+			q.T.Logf("[pass %d] predicate(q.entries[%v]) => %v", pass, i, matches)
+			if matches {
+				q.offset = i + 1
 				return obj, nil
 			}
 		}
@@ -99,6 +102,7 @@ func (q *Queue) Get(t *testing.T, predicate func(interface{}) bool) (interface{}
 		}
 		q.cond.Wait()
 	}
+	panic("not reached")
 }
 
 // AssertEmpty will check that the queue remains empty for the supplied duration.
