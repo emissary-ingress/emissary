@@ -3,7 +3,6 @@ package kubeapply
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -156,7 +155,7 @@ func applyAndWait(ctx context.Context, kubeinfo *k8s.KubeInfo, deadline time.Tim
 			if valid[n] {
 				err := os.Remove(n)
 				if err != nil {
-					log.Print(err)
+					dlog.Print(ctx, err)
 				}
 			}
 		}

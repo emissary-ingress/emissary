@@ -315,7 +315,7 @@ func TestCoherence(t *testing.T) {
 			select {
 			case <-acc.Changed():
 				mutex.Lock()
-				if !acc.UpdateWithDeltas(snap, &deltas) {
+				if !acc.UpdateWithDeltas(ctx, snap, &deltas) {
 					mutex.Unlock()
 					continue
 				}
@@ -486,7 +486,7 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 	for {
 		<-acc.Changed()
 		var deltas []*Delta
-		if !acc.UpdateWithDeltas(snap, &deltas) {
+		if !acc.UpdateWithDeltas(ctx, snap, &deltas) {
 			continue
 		}
 
@@ -502,7 +502,7 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 	for {
 		<-acc.Changed()
 		var deltas []*Delta
-		if !acc.UpdateWithDeltas(snap, &deltas) {
+		if !acc.UpdateWithDeltas(ctx, snap, &deltas) {
 			continue
 		}
 
@@ -520,7 +520,7 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 	for {
 		<-acc.Changed()
 		var deltas []*Delta
-		if !acc.UpdateWithDeltas(snap, &deltas) {
+		if !acc.UpdateWithDeltas(ctx, snap, &deltas) {
 			continue
 		}
 

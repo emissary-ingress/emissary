@@ -326,7 +326,7 @@ func (a *Agent) Watch(ctx context.Context, snapshotURL string) error {
 
 type accumulator interface {
 	Changed() chan struct{}
-	FilteredUpdate(target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool
+	FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool
 }
 
 func (a *Agent) waitForAPIKey(ctx context.Context, configAccumulator accumulator) error {
@@ -343,7 +343,7 @@ func (a *Agent) waitForAPIKey(ctx context.Context, configAccumulator accumulator
 		case <-ctx.Done():
 			return nil
 		case <-configAccumulator.Changed():
-			if !configAccumulator.FilteredUpdate(&configSnapshot, &[]*kates.Delta{}, isValid) {
+			if !configAccumulator.FilteredUpdate(ctx, &configSnapshot, &[]*kates.Delta{}, isValid) {
 				continue
 			}
 			a.handleAPIKeyConfigChange(ctx, configSnapshot.Secrets, configSnapshot.ConfigMaps)
@@ -390,12 +390,12 @@ func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator
 		case <-time.After(1 * time.Second):
 			// just a ticker, this will fallthru to the snapshot getting thing
 		case <-configAccumulator.Changed():
-			if !configAccumulator.FilteredUpdate(&configSnapshot, &[]*kates.Delta{}, isValid) {
+			if !configAccumulator.FilteredUpdate(ctx, &configSnapshot, &[]*kates.Delta{}, isValid) {
 				continue
 			}
 			a.handleAPIKeyConfigChange(ctx, configSnapshot.Secrets, configSnapshot.ConfigMaps)
 		case <-coreAccumulator.Changed():
-			if !coreAccumulator.FilteredUpdate(&coreSnapshot, &[]*kates.Delta{}, isValid) {
+			if !coreAccumulator.FilteredUpdate(ctx, &coreSnapshot, &[]*kates.Delta{}, isValid) {
 				continue
 			}
 			a.coreStore = NewCoreStore(&coreSnapshot)

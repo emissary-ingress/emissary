@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"syscall"
@@ -126,9 +125,9 @@ func notifyWebhookUrl(ctx context.Context, name, xurl string) bool {
 	if resp.StatusCode != 200 {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			log.Printf("error reading body from %s: %v", name, err)
+			dlog.Printf(ctx, "error reading body from %s: %v", name, err)
 		} else {
-			log.Printf("error notifying %s: %s, %s", name, resp.Status, string(body))
+			dlog.Printf(ctx, "error notifying %s: %s, %s", name, resp.Status, string(body))
 		}
 	}
 

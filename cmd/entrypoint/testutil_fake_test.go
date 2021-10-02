@@ -233,7 +233,7 @@ func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, sna
 	if disp == SnapshotReady {
 		if f.config.EnvoyConfig {
 			notifyReconfigWebhooksFunc(ctx, &noopNotable{}, false)
-			f.appendEnvoyConfig()
+			f.appendEnvoyConfig(ctx)
 		}
 	}
 
@@ -263,8 +263,8 @@ func (f *Fake) GetSnapshot(predicate func(*snapshot.Snapshot) bool) *snapshot.Sn
 	}).Snapshot
 }
 
-func (f *Fake) appendEnvoyConfig() {
-	msg, err := ambex.Decode("/tmp/envoy.json")
+func (f *Fake) appendEnvoyConfig(ctx context.Context) {
+	msg, err := ambex.Decode(ctx, "/tmp/envoy.json")
 	if err != nil {
 		f.T.Fatalf("error decoding envoy.json after sending snapshot to python: %+v", err)
 	}
@@ -359,7 +359,7 @@ func (f *fakeK8sWatcher) Changed() chan struct{} {
 	return f.notifyCh
 }
 
-func (f *fakeK8sWatcher) FilteredUpdate(target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool {
+func (f *fakeK8sWatcher) FilteredUpdate(_ context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool {
 	byname := map[string][]kates.Object{}
 	resources, newDeltas := f.cursor.Get()
 	for _, obj := range resources {

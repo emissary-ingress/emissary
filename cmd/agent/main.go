@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
+	"k8s.io/klog/v2"
+
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	"github.com/datawire/ambassador/v2/pkg/agent"
 	"github.com/datawire/ambassador/v2/pkg/busy"
 	"github.com/datawire/ambassador/v2/pkg/logutil"
 	"github.com/datawire/dlib/dlog"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"k8s.io/klog/v2"
 )
 
 // internal k8s service
@@ -32,7 +32,7 @@ func run(cmd *cobra.Command, args []string) error {
 	// list secrets initially.
 	klogLevel := 3
 	if logLevel != "" {
-		logrusLevel, err := logrus.ParseLevel(logLevel)
+		logrusLevel, err := logutil.ParseLogLevel(logLevel)
 		if err != nil {
 			dlog.Errorf(ctx, "error parsing log level, running with default level: %+v", err)
 		} else {

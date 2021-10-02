@@ -14,8 +14,10 @@ linters-settings:
     list-type: blacklist
     include-go-root: true
     packages-with-error-message:
-      - github/datawire/dlib/dutil: "use either github/datawire/dlib/derror or github/datawire/dlib/dhttp"
-      - golang.org/x/net/http2/h2c: "use github/datawire/dlib/dhttp"
+      - log:                            "Use `github.com/datawire/dlib/dlog` instead of `log`"
+      - github.com/sirupsen/logrus:     "Use `github.com/datawire/dlib/dlog` instead of `github.com/sirupsen/logrus`"
+      - github.com/datawire/dlib/dutil: "Use either `github.com/datawire/dlib/derror` or `github.com/datawire/dlib/dhttp` instead of `github.com/datawire/dlib/dutil`"
+      - golang.org/x/net/http2/h2c:     "Use `github.com/datawire/dlib/dhttp` instead of `golang.org/x/net/http2/h2c`"
   unused:
     # treat code as a program (not a library) and report unused
     # exported identifiers
@@ -24,6 +26,8 @@ issues:
   exclude-rules:
     - linters: [govet]
       path: pkg/envoy-control-plane/
+    - linters: [depguard]
+      path: "pkg/envoy-control-plane/(test/|.*_test\\.go)"
     - linters: [govet]
       text: "^tests: .* should return nothing$"
 run:

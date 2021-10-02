@@ -1,9 +1,11 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
+
+	//nolint:depguard // Because of the simple Dockerfile, we are limited to stdlib.
+	"log"
 )
 
 func main() {

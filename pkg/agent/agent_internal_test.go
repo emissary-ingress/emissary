@@ -420,7 +420,7 @@ func (m *mockAccumulator) Changed() chan struct{} {
 	return m.changedChan
 }
 
-func (m *mockAccumulator) FilteredUpdate(target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool {
+func (m *mockAccumulator) FilteredUpdate(_ context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool {
 	rawtarget, err := json.Marshal(m.targetInterface)
 
 	if err != nil {

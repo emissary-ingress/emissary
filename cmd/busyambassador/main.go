@@ -6,6 +6,8 @@
 package main
 
 import (
+	"context"
+
 	"github.com/datawire/ambassador/v2/pkg/busy"
 	"github.com/datawire/ambassador/v2/pkg/environment"
 
@@ -19,7 +21,7 @@ import (
 // Version is inserted at build-time using --ldflags -X
 var Version = "(unknown version)"
 
-func noop() {}
+func noop(_ context.Context) {}
 
 func main() {
 	busy.Main("busyambassador", "Ambassador", Version, map[string]busy.Command{

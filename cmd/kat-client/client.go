@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -28,6 +27,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	grpc_echo_pb "github.com/datawire/ambassador/v2/pkg/api/kat"
+	"github.com/datawire/dlib/dlog"
 )
 
 // Should we output GRPCWeb debugging?
@@ -59,27 +59,27 @@ func (s Semaphore) Release() {
 
 // rlimit frobnicates the interplexing beacon. Or maybe it reverses the polarity
 // of the neutron flow. I'm not sure. FIXME.
-func rlimit() {
+func rlimit(ctx context.Context) {
 	var rLimit syscall.Rlimit
 	err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit)
 	if err != nil {
-		log.Println("Error getting rlimit:", err)
+		dlog.Println(ctx, "Error getting rlimit:", err)
 	} else {
-		log.Println("Initial rlimit:", rLimit)
+		dlog.Println(ctx, "Initial rlimit:", rLimit)
 	}
 
 	rLimit.Max = 999999
 	rLimit.Cur = 999999
 	err = syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
 	if err != nil {
-		log.Println("Error setting rlimit:", err)
+		dlog.Println(ctx, "Error setting rlimit:", err)
 	}
 
 	err = syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit)
 	if err != nil {
-		log.Println("Error getting rlimit:", err)
+		dlog.Println(ctx, "Error getting rlimit:", err)
 	} else {
-		log.Println("Final rlimit", rLimit)
+		dlog.Println(ctx, "Final rlimit", rLimit)
 	}
 }
 
@@ -345,9 +345,9 @@ func (q Query) Result() Result {
 
 // CheckErr populates the query result with error information if an error is
 // passed in (and logs the error).
-func (q Query) CheckErr(err error) bool {
+func (q Query) CheckErr(ctx context.Context, err error) bool {
 	if err != nil {
-		log.Printf("%v: %v", q.URL(), err)
+		dlog.Printf(ctx, "%v: %v", q.URL(), err)
 		q.Result()["error"] = err.Error()
 		return true
 	}
@@ -356,7 +356,7 @@ func (q Query) CheckErr(err error) bool {
 
 // DecodeGrpcWebTextBody treats the body as a series of base64-encode chunks. It
 // returns the decoded proto and trailers.
-func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
+func DecodeGrpcWebTextBody(ctx context.Context, body []byte) ([]byte, http.Header, error) {
 	// First, decode all the base64 stuff coming in. An annoyance here
 	// is that while the data coming over the wire are encoded in
 	// multiple chunks, we can't rely on seeing that framing when
@@ -372,7 +372,7 @@ func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
 
 	for {
 		if debug_grpc_web {
-			log.Printf("%v: base64 body '%v'", cycle, body)
+			dlog.Printf(ctx, "%v: base64 body '%v'", cycle, body)
 		}
 
 		cycle++
@@ -385,7 +385,7 @@ func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
 		n, err := base64.StdEncoding.Decode(chunk, body)
 
 		if err != nil && n <= 0 {
-			log.Printf("Failed to process body: %v\n", err)
+			dlog.Printf(ctx, "Failed to process body: %v\n", err)
 			return nil, nil, err
 		}
 
@@ -414,7 +414,7 @@ func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
 	frame_start = 0
 
 	if debug_grpc_web {
-		log.Printf("starting frame split, len %v: %v", len(raw), raw)
+		dlog.Printf(ctx, "starting frame split, len %v: %v", len(raw), raw)
 	}
 
 	for (frame_start + 5) < uint32(len(raw)) {
@@ -426,7 +426,7 @@ func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
 		if (frame_type & 128) > 0 {
 			// Trailers frame
 			if debug_grpc_web {
-				log.Printf("  trailers @%v (len %v, type %v) %v - %v", frame_start, frame_len, frame_type, len(frame), frame)
+				dlog.Printf(ctx, "  trailers @%v (len %v, type %v) %v - %v", frame_start, frame_len, frame_type, len(frame), frame)
 			}
 
 			lines := strings.Split(string(frame), "\n")
@@ -442,7 +442,7 @@ func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
 		} else {
 			// Protobuf frame
 			if debug_grpc_web {
-				log.Printf("  protobuf @%v (len %v, type %v) %v - %v", frame_start, frame_len, frame_type, len(frame), frame)
+				dlog.Printf(ctx, "  protobuf @%v (len %v, type %v) %v - %v", frame_start, frame_len, frame_type, len(frame), frame)
 			}
 
 			proto = frame
@@ -459,7 +459,7 @@ func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
 //
 // This is not called for websockets or real GRPC. It _is_ called for
 // GRPC-bridge, GRPC-web, and (of course) HTTP(s).
-func (q Query) AddResponse(resp *http.Response) {
+func (q Query) AddResponse(ctx context.Context, resp *http.Response) {
 	result := q.Result()
 	result["status"] = resp.StatusCode
 	result["headers"] = resp.Header
@@ -487,22 +487,22 @@ func (q Query) AddResponse(resp *http.Response) {
 		result["cipher_suite"] = resp.TLS.CipherSuite
 	}
 	body, err := ioutil.ReadAll(resp.Body)
-	if !q.CheckErr(err) {
-		log.Printf("%v: %v", q.URL(), resp.Status)
+	if !q.CheckErr(ctx, err) {
+		dlog.Printf(ctx, "%v: %v", q.URL(), resp.Status)
 		result["body"] = body
 		if q.GrpcType() != "" && len(body) > 5 {
 			if q.GrpcType() == "web" {
 				// This is the GRPC-web case. Go forth and decode the base64'd
 				// GRPC-web body madness.
-				decodedBody, trailers, err := DecodeGrpcWebTextBody(body)
-				if q.CheckErr(err) {
-					log.Printf("Failed to decode grpc-web-text body: %v", err)
+				decodedBody, trailers, err := DecodeGrpcWebTextBody(ctx, body)
+				if q.CheckErr(ctx, err) {
+					dlog.Printf(ctx, "Failed to decode grpc-web-text body: %v", err)
 					return
 				}
 				body = decodedBody
 
 				if debug_grpc_web {
-					log.Printf("decodedBody '%v'", body)
+					dlog.Printf(ctx, "decodedBody '%v'", body)
 				}
 
 				for key, values := range trailers {
@@ -519,8 +519,8 @@ func (q Query) AddResponse(resp *http.Response) {
 
 			response := &grpc_echo_pb.EchoResponse{}
 			err := proto.Unmarshal(body, response)
-			if q.CheckErr(err) {
-				log.Printf("Failed to unmarshal proto: %v", err)
+			if q.CheckErr(ctx, err) {
+				dlog.Printf(ctx, "Failed to unmarshal proto: %v", err)
 				return
 			}
 			result["text"] = response // q.r.json needs a different format
@@ -539,25 +539,25 @@ func (q Query) AddResponse(resp *http.Response) {
 // Request processing
 
 // ExecuteWebsocketQuery handles Websocket queries
-func ExecuteWebsocketQuery(query Query) {
+func ExecuteWebsocketQuery(ctx context.Context, query Query) {
 	url := query.URL()
 	c, resp, err := websocket.DefaultDialer.Dial(url, query.Headers())
-	if query.CheckErr(err) {
+	if query.CheckErr(ctx, err) {
 		return
 	}
 	defer c.Close()
-	query.AddResponse(resp)
+	query.AddResponse(ctx, resp)
 	messages := query["messages"].([]interface{})
 	for _, msg := range messages {
 		err = c.WriteMessage(websocket.TextMessage, []byte(msg.(string)))
-		if query.CheckErr(err) {
+		if query.CheckErr(ctx, err) {
 			return
 		}
 	}
 
 	err = c.WriteMessage(websocket.CloseMessage,
 		websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-	if query.CheckErr(err) {
+	if query.CheckErr(ctx, err) {
 		return
 	}
 
@@ -572,7 +572,7 @@ func ExecuteWebsocketQuery(query Query) {
 		_, message, err := c.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure) {
-				query.CheckErr(err)
+				query.CheckErr(ctx, err)
 			}
 			return
 		}
@@ -583,14 +583,14 @@ func ExecuteWebsocketQuery(query Query) {
 // GetGRPCReqBody returns the body of the HTTP request using the
 // HTTP/1.1-gRPC bridge format as described in the Envoy docs
 // https://www.envoyproxy.io/docs/envoy/v1.9.0/configuration/http_filters/grpc_http1_bridge_filter
-func GetGRPCReqBody() (*bytes.Buffer, error) {
+func GetGRPCReqBody(ctx context.Context) (*bytes.Buffer, error) {
 	// Protocol:
 	// 	. 1 byte of zero (not compressed).
 	// 	. network order (big-endian) of proto message length.
 	// 	. serialized proto message.
 	buf := &bytes.Buffer{}
 	if err := binary.Write(buf, binary.BigEndian, uint8(0)); err != nil {
-		log.Printf("error when packing first byte: %v", err)
+		dlog.Printf(ctx, "error when packing first byte: %v", err)
 		return nil, err
 	}
 
@@ -599,18 +599,18 @@ func GetGRPCReqBody() (*bytes.Buffer, error) {
 
 	pbuf := &proto.Buffer{}
 	if err := pbuf.Marshal(m); err != nil {
-		log.Printf("error when serializing the gRPC message: %v", err)
+		dlog.Printf(ctx, "error when serializing the gRPC message: %v", err)
 		return nil, err
 	}
 
 	if err := binary.Write(buf, binary.BigEndian, uint32(len(pbuf.Bytes()))); err != nil {
-		log.Printf("error when packing message length: %v", err)
+		dlog.Printf(ctx, "error when packing message length: %v", err)
 		return nil, err
 	}
 
 	for i := 0; i < len(pbuf.Bytes()); i++ {
 		if err := binary.Write(buf, binary.BigEndian, uint8(pbuf.Bytes()[i])); err != nil {
-			log.Printf("error when packing message: %v", err)
+			dlog.Printf(ctx, "error when packing message: %v", err)
 			return nil, err
 		}
 	}
@@ -622,8 +622,8 @@ func GetGRPCReqBody() (*bytes.Buffer, error) {
 // generated code and the normal HTTP/2-based transport.
 func CallRealGRPC(ctx context.Context, query Query) {
 	qURL, err := url.Parse(query.URL())
-	if query.CheckErr(err) {
-		log.Printf("grpc url parse failed: %v", err)
+	if query.CheckErr(ctx, err) {
+		dlog.Printf(ctx, "grpc url parse failed: %v", err)
 		return
 	}
 
@@ -658,8 +658,8 @@ func CallRealGRPC(ctx context.Context, query Query) {
 		dialOptions = append(dialOptions, grpc.WithInsecure())
 	}
 	conn, err := grpc.DialContext(ctx, dialHost, dialOptions...)
-	if query.CheckErr(err) {
-		log.Printf("grpc dial failed: %v", err)
+	if query.CheckErr(ctx, err) {
+		dlog.Printf(ctx, "grpc dial failed: %v", err)
 		return
 	}
 	defer conn.Close()
@@ -680,8 +680,8 @@ func CallRealGRPC(ctx context.Context, query Query) {
 	response, err := client.Echo(ctx, request)
 	stat, ok := status.FromError(err)
 	if !ok { // err is not nil and not a grpc Status
-		query.CheckErr(err)
-		log.Printf("grpc echo request failed: %v", err)
+		query.CheckErr(ctx, err)
+		dlog.Printf(ctx, "grpc echo request failed: %v", err)
 		return
 	}
 
@@ -691,8 +691,8 @@ func CallRealGRPC(ctx context.Context, query Query) {
 	// return code 14 (Code.Unavailable).
 	grpcCode := int(stat.Code())
 	if grpcCode == 14 {
-		query.CheckErr(err)
-		log.Printf("grpc echo request connection failed: %v", err)
+		query.CheckErr(ctx, err)
+		dlog.Printf(ctx, "grpc echo request connection failed: %v", err)
 		return
 	}
 
@@ -723,17 +723,17 @@ func CallRealGRPC(ctx context.Context, query Query) {
 
 // ExecuteQuery constructs the appropriate request, executes it, and records the
 // response and related information in query.result.
-func ExecuteQuery(ctx context.Context, query Query) {
+func ExecuteQuery(ctx context.Context, query Query) error {
 	// Websocket stuff is handled elsewhere
 	if query.IsWebsocket() {
-		ExecuteWebsocketQuery(query)
-		return
+		ExecuteWebsocketQuery(ctx, query)
+		return nil
 	}
 
 	// Real gRPC is handled elsewhere
 	if query.GrpcType() == "real" {
 		CallRealGRPC(ctx, query)
-		return
+		return nil
 	}
 
 	// Prepare an http.Transport with customized TLS settings.
@@ -753,7 +753,8 @@ func ExecuteQuery(ctx context.Context, query Query) {
 	if query.ClientCert() != "" || query.ClientKey() != "" {
 		clientCert, err := tls.X509KeyPair([]byte(query.ClientCert()), []byte(query.ClientKey()))
 		if err != nil {
-			log.Fatal(err)
+			dlog.Error(ctx, err)
+			return err
 		}
 		transport.TLSClientConfig.Certificates = []tls.Certificate{clientCert}
 	}
@@ -775,10 +776,10 @@ func ExecuteQuery(ctx context.Context, query Query) {
 	method := query.Method()
 	if query.GrpcType() != "" {
 		// Perform special handling for gRPC-bridge and gRPC-web
-		buf, err := GetGRPCReqBody()
-		if query.CheckErr(err) {
-			log.Printf("gRPC buffer error: %v", err)
-			return
+		buf, err := GetGRPCReqBody(ctx)
+		if query.CheckErr(ctx, err) {
+			dlog.Printf(ctx, "gRPC buffer error: %v", err)
+			return nil
 		}
 		if query.GrpcType() == "web" {
 			result := make([]byte, base64.StdEncoding.EncodedLen(buf.Len()))
@@ -791,9 +792,9 @@ func ExecuteQuery(ctx context.Context, query Query) {
 		body = query.Body()
 	}
 	req, err := http.NewRequest(method, query.URL(), body)
-	if query.CheckErr(err) {
-		log.Printf("request error: %v", err)
-		return
+	if query.CheckErr(ctx, err) {
+		dlog.Printf(ctx, "request error: %v", err)
+		return nil
 	}
 	req.Header = query.Headers()
 	for _, cookie := range query.Cookies() {
@@ -821,10 +822,11 @@ func ExecuteQuery(ctx context.Context, query Query) {
 		},
 	}
 	resp, err := client.Do(req)
-	if query.CheckErr(err) {
-		return
+	if query.CheckErr(ctx, err) {
+		return nil
 	}
-	query.AddResponse(resp)
+	query.AddResponse(ctx, resp)
+	return nil
 }
 
 type Args struct {
@@ -845,7 +847,7 @@ func main() {
 	ctx := context.Background() // first line in main()
 	debug_grpc_web = false
 
-	rlimit()
+	rlimit(ctx)
 
 	args := parseArgs(os.Args[1:]...)
 
@@ -887,7 +889,9 @@ func main() {
 				queries <- true
 				sem.Release()
 			}()
-			ExecuteQuery(ctx, specs[idx])
+			if err := ExecuteQuery(ctx, specs[idx]); err != nil {
+				panic(err) // TODO: do something better
+			}
 		}(i)
 	}
 
@@ -899,13 +903,13 @@ func main() {
 	// Generate the output file
 	bytes, err := json.MarshalIndent(specs, "", "  ")
 	if err != nil {
-		log.Print(err)
+		dlog.Print(ctx, err)
 	} else if args.output == "" {
 		fmt.Print(string(bytes))
 	} else {
 		err = ioutil.WriteFile(args.output, bytes, 0644)
 		if err != nil {
-			log.Print(err)
+			dlog.Print(ctx, err)
 		}
 	}
 }

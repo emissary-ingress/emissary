@@ -12,7 +12,7 @@ type K8sSource interface {
 
 type K8sWatcher interface {
 	Changed() chan struct{}
-	FilteredUpdate(target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool
+	FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool
 }
 
 type IstioCertSource interface {

@@ -3,7 +3,6 @@ package kubeapply
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/datawire/ambassador/v2/pkg/k8s"
@@ -93,7 +92,7 @@ func (w *Waiter) Wait(ctx context.Context, deadline time.Time) bool {
 			if lastStr, ok := r["lastTimestamp"].(string); ok {
 				last, err := time.Parse("2006-01-02T15:04:05Z", lastStr)
 				if err != nil {
-					log.Println(err)
+					dlog.Println(ctx, err)
 					continue
 				}
 				if last.Before(start) {

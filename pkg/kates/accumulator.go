@@ -220,21 +220,21 @@ func (a *Accumulator) Changed() chan struct{} {
 	return a.changed
 }
 
-func (a *Accumulator) Update(target interface{}) bool {
-	return a.UpdateWithDeltas(target, nil)
+func (a *Accumulator) Update(ctx context.Context, target interface{}) bool {
+	return a.UpdateWithDeltas(ctx, target, nil)
 }
 
-func (a *Accumulator) UpdateWithDeltas(target interface{}, deltas *[]*Delta) bool {
-	return a.FilteredUpdate(target, deltas, nil)
+func (a *Accumulator) UpdateWithDeltas(ctx context.Context, target interface{}, deltas *[]*Delta) bool {
+	return a.FilteredUpdate(ctx, target, deltas, nil)
 }
 
 // The FilteredUpdate method updates the target snapshot with only those resources for which
 // "predicate" returns true. The predicate is only called when objects are added/updated, it is not
 // repeatedly called on objects that have not changed. The predicate must not modify its argument.
-func (a *Accumulator) FilteredUpdate(target interface{}, deltas *[]*Delta, predicate func(*Unstructured) bool) bool {
+func (a *Accumulator) FilteredUpdate(ctx context.Context, target interface{}, deltas *[]*Delta, predicate func(*Unstructured) bool) bool {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
-	return a.update(reflect.ValueOf(target), deltas, predicate)
+	return a.update(ctx, reflect.ValueOf(target), deltas, predicate)
 }
 
 func (a *Accumulator) storeUpdate(update rawUpdate) bool {
@@ -275,9 +275,9 @@ func (a *Accumulator) storeUpdate(update rawUpdate) bool {
 	return a.synced >= len(a.fields)
 }
 
-func (a *Accumulator) updateField(target reflect.Value, name string, field *field, deltas *[]*Delta,
+func (a *Accumulator) updateField(ctx context.Context, target reflect.Value, name string, field *field, deltas *[]*Delta,
 	predicate func(*Unstructured) bool) bool {
-	a.client.patchWatch(field)
+	a.client.patchWatch(ctx, field)
 
 	if field.firstUpdate && len(field.deltas) == 0 {
 		return false
@@ -348,14 +348,14 @@ func (a *Accumulator) updateField(target reflect.Value, name string, field *fiel
 	return true
 }
 
-func (a *Accumulator) update(target reflect.Value, deltas *[]*Delta, predicate func(*Unstructured) bool) bool {
+func (a *Accumulator) update(ctx context.Context, target reflect.Value, deltas *[]*Delta, predicate func(*Unstructured) bool) bool {
 	if deltas != nil {
 		*deltas = nil
 	}
 
 	updated := false
 	for name, field := range a.fields {
-		if a.updateField(target, name, field, deltas, predicate) {
+		if a.updateField(ctx, target, name, field, deltas, predicate) {
 			updated = true
 		}
 	}

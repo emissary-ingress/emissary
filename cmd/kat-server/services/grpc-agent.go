@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,6 +21,7 @@ import (
 
 	"github.com/datawire/ambassador/v2/pkg/api/agent"
 	"github.com/datawire/dlib/dhttp"
+	"github.com/datawire/dlib/dlog"
 )
 
 type GRPCAgent struct {
@@ -34,7 +34,7 @@ func (a *GRPCAgent) Start(ctx context.Context) <-chan bool {
 	if sizeStr := os.Getenv("KAT_GRPC_MAX_RECV_MSG_SIZE"); sizeStr != "" {
 		size, err := strconv.Atoi(sizeStr)
 		if err == nil {
-			log.Printf("setting gRPC MaxRecvMsgSize to %d bytes", size)
+			dlog.Printf(ctx, "setting gRPC MaxRecvMsgSize to %d bytes", size)
 			opts = append(opts, grpc.MaxRecvMsgSize(size))
 		}
 	}
@@ -51,7 +51,7 @@ func (a *GRPCAgent) Start(ctx context.Context) <-chan bool {
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		log.Print("starting GRPC agentcom...")
+		dlog.Print(ctx, "starting GRPC agentcom...")
 		if err := sc.ListenAndServe(ctx, fmt.Sprintf(":%d", a.Port)); err != nil {
 			select {
 			case grpcErrChan <- err:
@@ -80,7 +80,7 @@ func (a *GRPCAgent) Start(ctx context.Context) <-chan bool {
 	go func() {
 		defer wg.Done()
 
-		log.Print("Starting http server")
+		dlog.Print(ctx, "Starting http server")
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 			select {
 			case httpErrChan <- err:
@@ -97,11 +97,13 @@ func (a *GRPCAgent) Start(ctx context.Context) <-chan bool {
 
 		select {
 		case err := <-grpcErrChan:
-			log.Fatalf("GRPC service died: %+v", err)
+			dlog.Errorf(ctx, "GRPC service died: %+v", err)
+			panic(err) // TODO: do something better
 		case err := <-httpErrChan:
-			log.Fatalf("http service died: %+v", err)
+			dlog.Errorf(ctx, "http service died: %+v", err)
+			panic(err) // TODO: do something better
 		case <-c:
-			log.Print("Received shutdown")
+			dlog.Print(ctx, "Received shutdown")
 		}
 
 		ctx, timeout := context.WithTimeout(ctx, time.Second*30)
@@ -132,7 +134,7 @@ func (d *director) Report(ctx context.Context, snapshot *agent.Snapshot) (*agent
 		return nil, err
 	}
 
-	log.Print("Received snapshot")
+	dlog.Print(ctx, "Received snapshot")
 
 	err = writeSnapshot(snapshot)
 	if err != nil {
@@ -150,7 +152,7 @@ func (d *director) Retrieve(agentID *agent.Identity, stream agent.Director_Retri
 func checkContext(ctx context.Context) error {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		log.Print("No metadata found, not allowing request")
+		dlog.Print(ctx, "No metadata found, not allowing request")
 		err := status.Error(codes.PermissionDenied, "Missing grpc metadata")
 
 		return err
@@ -158,7 +160,7 @@ func checkContext(ctx context.Context) error {
 
 	apiKeyValues := md.Get("x-ambassador-api-key")
 	if len(apiKeyValues) == 0 || apiKeyValues[0] == "" {
-		log.Print("api key found, not allowing request")
+		dlog.Print(ctx, "api key found, not allowing request")
 		err := status.Error(codes.PermissionDenied, "Missing api key")
 		return err
 	}
@@ -202,7 +204,7 @@ func (d *director) ReportStream(server agent.Director_ReportStreamServer) error 
 		return err
 	}
 
-	log.Print("Received snapshot")
+	dlog.Print(server.Context(), "Received snapshot")
 
 	err = writeSnapshot(&snapshot)
 	if err != nil {

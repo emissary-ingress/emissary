@@ -46,7 +46,7 @@ func TestBootstrapNoNotifyBeforeSync(t *testing.T) {
 	snap := &Snap{}
 	for {
 		<-acc.Changed()
-		if acc.Update(snap) {
+		if acc.Update(ctx, snap) {
 			break
 		}
 	}
@@ -67,7 +67,7 @@ func TestBootstrapNotifyEvenOnEmptyWatch(t *testing.T) {
 	snap := &Snap{}
 	for {
 		<-acc.Changed()
-		if acc.Update(snap) {
+		if acc.Update(ctx, snap) {
 			break
 		}
 	}

@@ -13,12 +13,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 
 	"github.com/datawire/ambassador/v2/cmd/ambex"
 	"github.com/datawire/ambassador/v2/pkg/acp"
 	"github.com/datawire/ambassador/v2/pkg/busy"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/logutil"
 	"github.com/datawire/ambassador/v2/pkg/memory"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
@@ -80,7 +80,7 @@ func Main(ctx context.Context, Version string, args ...string) error {
 	// Setup logging according to AES_LOG_LEVEL
 	lvl := os.Getenv("AES_LOG_LEVEL")
 	if lvl != "" {
-		parsed, err := logrus.ParseLevel(lvl)
+		parsed, err := logutil.ParseLogLevel(lvl)
 		if err != nil {
 			dlog.Errorf(ctx, "Error parsing log level: %v", err)
 		} else {

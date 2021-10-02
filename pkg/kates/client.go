@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"reflect"
 	"strconv"
@@ -945,7 +944,7 @@ func (c *Client) Delete(ctx context.Context, resource interface{}, target interf
 
 // Update the result of a watch with newer items from our local cache. This guarantees we never give
 // back stale objects that are known to be modified by us.
-func (c *Client) patchWatch(field *field) {
+func (c *Client) patchWatch(ctx context.Context, field *field) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -963,25 +962,25 @@ func (c *Client) patchWatch(field *field) {
 			if can == nil {
 				// The object is deleted, but has not yet been reported so by the apiserver, so we
 				// remove it.
-				log.Println("Patching delete", field.mapping.GroupVersionKind.Kind, key)
+				dlog.Println(ctx, "Patching delete", field.mapping.GroupVersionKind.Kind, key)
 				delete(field.values, key)
 				field.deltas[key] = newDelta(ObjectDelete, can)
 			} else if gteq(item.GetResourceVersion(), can.GetResourceVersion()) {
 				// The object in the watch result is the same or newer than our canonical value, so
 				// no need to track it anymore.
-				log.Println("Patching synced", field.mapping.GroupVersionKind.Kind, key)
+				dlog.Println(ctx, "Patching synced", field.mapping.GroupVersionKind.Kind, key)
 				delete(c.canonical, key)
 			} else {
 				// The object in the watch result is stale, so we update it with the canonical
 				// version and track it as a delta.
-				log.Println("Patching update", field.mapping.GroupVersionKind.Kind, key)
+				dlog.Println(ctx, "Patching update", field.mapping.GroupVersionKind.Kind, key)
 				field.values[key] = can
 				field.deltas[key] = newDelta(ObjectUpdate, can)
 			}
 		} else if can != nil && can.GroupVersionKind() == field.mapping.GroupVersionKind &&
 			field.selector.Matches(LabelSet(can.GetLabels())) {
 			// An object that was created locally is not yet present in the watch result, so we add it.
-			log.Println("Patching add", field.mapping.GroupVersionKind.Kind, key)
+			dlog.Println(ctx, "Patching add", field.mapping.GroupVersionKind.Kind, key)
 			field.values[key] = can
 			field.deltas[key] = newDelta(ObjectAdd, can)
 		}

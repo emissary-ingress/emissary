@@ -55,7 +55,6 @@ import (
 	"syscall"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
 	// protobuf library
@@ -69,9 +68,9 @@ import (
 	ctypes "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
 	v2cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
 	v3cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v3"
+	envoyLog "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/log"
 	v2server "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v2"
 	v3server "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v3"
-	"github.com/datawire/ambassador/v2/pkg/memory"
 
 	// envoy protobuf v2 -- Be sure to import the package of any types that the Python emits a
 	// "@type" of in the generated config, even if that package is otherwise not used by ambex.
@@ -112,6 +111,7 @@ import (
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/lua/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/ratelimit/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/rbac/v3"
+	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/response_map/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/router/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
 	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/tcp_proxy/v3"
@@ -122,11 +122,11 @@ import (
 	v3route "github.com/datawire/ambassador/v2/pkg/api/envoy/service/route/v3"
 	v3runtime "github.com/datawire/ambassador/v2/pkg/api/envoy/service/runtime/v3"
 
-	// envoy protobuf v3 -- likewise
-	_ "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/http/response_map/v3"
-
 	// first-party libraries
+	"github.com/datawire/ambassador/v2/pkg/busy"
+	"github.com/datawire/ambassador/v2/pkg/memory"
 	"github.com/datawire/dlib/dhttp"
+	"github.com/datawire/dlib/dlog"
 )
 
 type Args struct {
@@ -195,31 +195,14 @@ func (h HasherV3) ID(node *v3core.Node) string {
 
 // end Hasher stuff
 
-// This feels kinda dumb.
-type loggerv2 struct {
-	*logrus.Logger
-}
-
-var log = &loggerv2{
-	Logger: logrus.StandardLogger(),
-}
-
-type loggerv3 struct {
-	*logrus.Logger
-}
-
-var logv3 = &loggerv3{
-	Logger: logrus.StandardLogger(),
-}
-
 // run stuff
 // RunManagementServer starts an xDS server at the given port.
-func runManagementServer(ctx context.Context, server v2server.Server, serverv3 v3server.Server, adsNetwork, adsAddress string) {
+func runManagementServer(ctx context.Context, server v2server.Server, serverv3 v3server.Server, adsNetwork, adsAddress string) error {
 	grpcServer := grpc.NewServer()
 
 	lis, err := net.Listen(adsNetwork, adsAddress)
 	if err != nil {
-		log.WithError(err).Panic("failed to listen")
+		return fmt.Errorf("failed to listen: %w", err)
 	}
 
 	// register services
@@ -235,15 +218,16 @@ func runManagementServer(ctx context.Context, server v2server.Server, serverv3 v
 	v3route.RegisterRouteDiscoveryServiceServer(grpcServer, serverv3)
 	v3listener.RegisterListenerDiscoveryServiceServer(grpcServer, serverv3)
 
-	log.WithFields(logrus.Fields{"addr": adsNetwork + ":" + adsAddress}).Info("Listening")
+	dlog.Infof(ctx, "Listening on %s:%s", adsNetwork, adsAddress)
 	go func() {
 		sc := &dhttp.ServerConfig{
 			Handler: grpcServer,
 		}
 		if err := sc.Serve(ctx, lis); err != nil {
-			log.WithFields(logrus.Fields{"error": err}).Error("Management server exited")
+			dlog.Errorf(ctx, "Management server exited: %v", err)
 		}
 	}()
+	return nil
 }
 
 // Decoders for unmarshalling our config
@@ -269,7 +253,7 @@ type Validatable interface {
 	Validate() error
 }
 
-func Decode(name string) (proto.Message, error) {
+func Decode(ctx context.Context, name string) (proto.Message, error) {
 	any := &any.Any{}
 	contents, err := ioutil.ReadFile(name)
 	if err != nil {
@@ -295,7 +279,7 @@ func Decode(name string) (proto.Message, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Infof("Loaded file %s", name)
+	dlog.Infof(ctx, "Loaded file %s", name)
 	return v, nil
 }
 
@@ -373,7 +357,7 @@ type combinedSnapshot struct {
 // is the newest, then ambex-2.json, etc., so ambex-$numsnaps.json is the oldest.
 // Every time we write a new one, we rename all the older ones, ditching the oldest
 // after we've written numsnaps snapshots.
-func csDump(snapdirPath string, numsnaps int, generation int, v2snap *v2cache.Snapshot, v3snap *v3cache.Snapshot) {
+func csDump(ctx context.Context, snapdirPath string, numsnaps int, generation int, v2snap *v2cache.Snapshot, v3snap *v3cache.Snapshot) {
 	if numsnaps <= 0 {
 		// Don't do snapshotting at all.
 		return
@@ -396,7 +380,7 @@ func csDump(snapdirPath string, numsnaps int, generation int, v2snap *v2cache.Sn
 	bs, err := json.MarshalIndent(cs, "", "  ")
 
 	if err != nil {
-		log.Errorf("CSNAP: marshal failure: %s", err)
+		dlog.Errorf(ctx, "CSNAP: marshal failure: %s", err)
 		return
 	}
 
@@ -405,9 +389,9 @@ func csDump(snapdirPath string, numsnaps int, generation int, v2snap *v2cache.Sn
 	err = ioutil.WriteFile(csPath, bs, 0644)
 
 	if err != nil {
-		log.Errorf("CSNAP: write failure: %s", err)
+		dlog.Errorf(ctx, "CSNAP: write failure: %s", err)
 	} else {
-		log.Infof("Saved snapshot %s", version)
+		dlog.Infof(ctx, "Saved snapshot %s", version)
 	}
 
 	// Rotate everything one file down. This includes renaming the just-written
@@ -421,7 +405,7 @@ func csDump(snapdirPath string, numsnaps int, generation int, v2snap *v2cache.Sn
 		err := os.Rename(fromPath, toPath)
 
 		if (err != nil) && !os.IsNotExist(err) {
-			log.Infof("CSNAP: could not rename %s -> %s: %#v", fromPath, toPath, err)
+			dlog.Infof(ctx, "CSNAP: could not rename %s -> %s: %#v", fromPath, toPath, err)
 		}
 	}
 }
@@ -443,7 +427,7 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config v2cach
 	for _, dir := range dirs {
 		files, err := ioutil.ReadDir(dir)
 		if err != nil {
-			log.WithError(err).Warnf("Error listing %v", dir)
+			dlog.Warnf(ctx, "Error listing %q: %v", dir, err)
 			continue
 		}
 		for _, file := range files {
@@ -455,9 +439,9 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config v2cach
 	}
 
 	for _, name := range filenames {
-		m, e := Decode(name)
+		m, e := Decode(ctx, name)
 		if e != nil {
-			log.Warnf("%s: %v", name, e)
+			dlog.Warnf(ctx, "%s: %v", name, e)
 			continue
 		}
 		var dst *[]ctypes.Resource
@@ -483,7 +467,7 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config v2cach
 				// process and disrupt in-flight requests.
 				rdsListener, routeConfigs, err := ListenerToRdsListener(lst)
 				if err != nil {
-					log.Errorf("Error converting listener to RDS: %+v", err)
+					dlog.Errorf(ctx, "Error converting listener to RDS: %+v", err)
 					listeners = append(listeners, Clone(lst).(ctypes.Resource))
 					continue
 				}
@@ -518,7 +502,7 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config v2cach
 				// process and disrupt in-flight requests.
 				rdsListener, routeConfigs, err := V3ListenerToRdsListener(lst)
 				if err != nil {
-					log.Errorf("Error converting listener to RDS: %+v", err)
+					dlog.Errorf(ctx, "Error converting listener to RDS: %+v", err)
 					listenersv3 = append(listenersv3, Clone(lst).(ctypes.Resource))
 					continue
 				}
@@ -533,7 +517,7 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config v2cach
 			}
 			continue
 		default:
-			log.Warnf("Unrecognized resource %s: %v", name, e)
+			dlog.Warnf(ctx, "Unrecognized resource %s: %v", name, e)
 			continue
 		}
 		*dst = append(*dst, m.(ctypes.Resource))
@@ -593,7 +577,7 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config v2cach
 
 	if err := snapshot.Consistent(); err != nil {
 		bs, _ := json.Marshal(snapshot)
-		log.Errorf("V2 Snapshot inconsistency: %v: %s", err, bs)
+		dlog.Errorf(ctx, "V2 Snapshot inconsistency: %v: %s", err, bs)
 		return
 	}
 
@@ -607,7 +591,7 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config v2cach
 
 	if err := snapshotv3.Consistent(); err != nil {
 		bs, _ := json.Marshal(snapshotv3)
-		log.Errorf("V3 Snapshot inconsistency: %v: %s", err, bs)
+		dlog.Errorf(ctx, "V3 Snapshot inconsistency: %v: %s", err, bs)
 		return
 	}
 
@@ -615,11 +599,11 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config v2cach
 	// Update object down the channel with a function that knows how to do the update if/when
 	// the ratelimiting logic decides.
 
-	log.Debugf("Created snapshot %s", version)
-	csDump(snapdirPath, numsnaps, curgen, &snapshot, &snapshotv3)
+	dlog.Debugf(ctx, "Created snapshot %s", version)
+	csDump(ctx, snapdirPath, numsnaps, curgen, &snapshot, &snapshotv3)
 
 	update := Update{version, func() error {
-		log.Debugf("Accepting snapshot %s", version)
+		dlog.Debugf(ctx, "Accepting snapshot %s", version)
 
 		err := config.SetSnapshot("test-id", snapshot)
 		if err != nil {
@@ -643,77 +627,110 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config v2cach
 	}
 }
 
-func warn(err error) bool {
+func warn(ctx context.Context, err error) bool {
 	if err != nil {
-		log.Warn(err)
+		dlog.Warn(ctx, err)
 		return true
 	} else {
 		return false
 	}
 }
 
-// OnStreamOpen is called once an xDS stream is open with a stream ID and the type URL (or "" for ADS).
-func (l loggerv2) OnStreamOpen(_ context.Context, sid int64, stype string) error {
-	l.Debugf("V2 Stream open[%v]: %v", sid, stype)
+type logAdapterBase struct {
+	prefix string
+}
+
+type logAdapterV2 struct {
+	logAdapterBase
+}
+
+var _ v2server.Callbacks = logAdapterV2{}
+var _ envoyLog.Logger = logAdapterV2{}
+
+type logAdapterV3 struct {
+	logAdapterBase
+}
+
+var _ v3server.Callbacks = logAdapterV3{}
+var _ envoyLog.Logger = logAdapterV3{}
+
+// Debugf implements envoyLog.Logger.
+func (l logAdapterBase) Debugf(format string, args ...interface{}) {
+	dlog.Debugf(context.TODO(), format, args...)
+}
+
+// Infof implements envoyLog.Logger.
+func (l logAdapterBase) Infof(format string, args ...interface{}) {
+	dlog.Infof(context.TODO(), format, args...)
+}
+
+// Warnf implements envoyLog.Logger.
+func (l logAdapterBase) Warnf(format string, args ...interface{}) {
+	dlog.Warnf(context.TODO(), format, args...)
+}
+
+// Errorf implements envoyLog.Logger.
+func (l logAdapterBase) Errorf(format string, args ...interface{}) {
+	dlog.Errorf(context.TODO(), format, args...)
+}
+
+// OnStreamOpen implements v2server.Callbacks and v3server.Callbacks.
+func (l logAdapterBase) OnStreamOpen(ctx context.Context, sid int64, stype string) error {
+	dlog.Debugf(ctx, "%v Stream open[%v]: %v", l.prefix, sid, stype)
 	return nil
 }
 
-func (l loggerv3) OnStreamOpen(_ context.Context, sid int64, stype string) error {
-	l.Debugf("V3 Stream open[%v]: %v", sid, stype)
+// OnStreamClosed implements v2server.Callbacks and v3server.Callbacks.
+func (l logAdapterBase) OnStreamClosed(sid int64) {
+	dlog.Debugf(context.TODO(), "%v Stream closed[%v]", l.prefix, sid)
+}
+
+// OnStreamRequest implements v2server.Callbacks.
+func (l logAdapterV2) OnStreamRequest(sid int64, req *v2.DiscoveryRequest) error {
+	dlog.Debugf(context.TODO(), "V2 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
+	dlog.Debugf(context.TODO(), "V2 Stream request[%v] dump: %v", sid, req)
 	return nil
 }
 
-// OnStreamClosed is called immediately prior to closing an xDS stream with a stream ID.
-func (l loggerv2) OnStreamClosed(sid int64) {
-	l.Debugf("V2 Stream closed[%v]", sid)
-}
-
-func (l loggerv3) OnStreamClosed(sid int64) {
-	l.Debugf("V3 Stream closed[%v]", sid)
-}
-
-// OnStreamRequest is called once a request is received on a stream.
-func (l loggerv2) OnStreamRequest(sid int64, req *v2.DiscoveryRequest) error {
-	l.Debugf("V2 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
-	l.Debugf("V2 Stream request[%v] dump: %v", sid, req)
+// OnStreamRequest implements v3server.Callbacks.
+func (l logAdapterV3) OnStreamRequest(sid int64, req *v3discovery.DiscoveryRequest) error {
+	dlog.Debugf(context.TODO(), "V3 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
+	dlog.Debugf(context.TODO(), "V3 Stream request[%v] dump: %v", sid, req)
 	return nil
 }
 
-func (l loggerv3) OnStreamRequest(sid int64, req *v3discovery.DiscoveryRequest) error {
-	l.Debugf("V3 Stream request[%v] for type %s: requesting %d resources", sid, req.TypeUrl, len(req.ResourceNames))
-	l.Debugf("V3 Stream request[%v] dump: %v", sid, req)
+// OnStreamResponse implements v2server.Callbacks.
+func (l logAdapterV2) OnStreamResponse(sid int64, req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
+	dlog.Debugf(context.TODO(), "V2 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
+	dlog.Debugf(context.TODO(), "V2 Stream dump response[%v]: %v -> %v", sid, req, res)
+}
+
+// OnStreamResponse implements v3server.Callbacks.
+func (l logAdapterV3) OnStreamResponse(sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
+	dlog.Debugf(context.TODO(), "V3 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
+	dlog.Debugf(context.TODO(), "V3 Stream dump response[%v]: %v -> %v", sid, req, res)
+}
+
+// OnFetchRequest implements v2server.Callbacks.
+func (l logAdapterV2) OnFetchRequest(ctx context.Context, r *v2.DiscoveryRequest) error {
+	dlog.Debugf(ctx, "V2 Fetch request: %v", r)
 	return nil
 }
 
-// OnStreamResponse is called immediately prior to sending a response on a stream.
-func (l loggerv2) OnStreamResponse(sid int64, req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
-	l.Debugf("V2 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
-	l.Debugf("V2 Stream dump response[%v]: %v -> %v", sid, req, res)
-}
-
-func (l loggerv3) OnStreamResponse(sid int64, req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
-	l.Debugf("V3 Stream response[%v] for type %s: returning %d resources", sid, res.TypeUrl, len(res.Resources))
-	l.Debugf("V3 Stream dump response[%v]: %v -> %v", sid, req, res)
-}
-
-// OnFetchRequest is called for each Fetch request
-func (l loggerv2) OnFetchRequest(_ context.Context, r *v2.DiscoveryRequest) error {
-	l.Debugf("V2 Fetch request: %v", r)
+// OnFetchRequest implements v3server.Callbacks.
+func (l logAdapterV3) OnFetchRequest(ctx context.Context, r *v3discovery.DiscoveryRequest) error {
+	dlog.Debugf(ctx, "V3 Fetch request: %v", r)
 	return nil
 }
 
-func (l loggerv3) OnFetchRequest(_ context.Context, r *v3discovery.DiscoveryRequest) error {
-	l.Debugf("V3 Fetch request: %v", r)
-	return nil
+// OnFetchResponse implements v2server.Callbacks.
+func (l logAdapterV2) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
+	dlog.Debugf(context.TODO(), "V2 Fetch response: %v -> %v", req, res)
 }
 
-// OnFetchResponse is called immediately prior to sending a response.
-func (l loggerv2) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
-	l.Debugf("V2 Fetch response: %v -> %v", req, res)
-}
-
-func (l loggerv3) OnFetchResponse(req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
-	l.Debugf("V3 Fetch response: %v -> %v", req, res)
+// OnFetchResponse implements v3server.Callbacks.
+func (l logAdapterV3) OnFetchResponse(req *v3discovery.DiscoveryRequest, res *v3discovery.DiscoveryResponse) {
+	dlog.Debugf(context.TODO(), "V3 Fetch response: %v -> %v", req, res)
 }
 
 // NOTE WELL: this Main() does NOT RUN from entrypoint! This one is only relevant if you
@@ -724,17 +741,22 @@ func Main(ctx context.Context, Version string, rawArgs ...string) error {
 	return Main2(ctx, Version, usage.PercentUsed, make(chan *FastpathSnapshot), rawArgs...)
 }
 
-func Main2(ctx context.Context, Version string, getUsage MemoryGetter, fastpathCh <-chan *FastpathSnapshot,
-	rawArgs ...string) error {
+func Main2(
+	ctx context.Context,
+	Version string,
+	getUsage MemoryGetter,
+	fastpathCh <-chan *FastpathSnapshot,
+	rawArgs ...string,
+) error {
 	args, err := parseArgs(rawArgs...)
 	if err != nil {
 		return err
 	}
 
 	if args.debug {
-		log.SetLevel(logrus.DebugLevel)
+		busy.SetLogLevel(logrusDebugLevel)
 	} else {
-		log.SetLevel(logrus.InfoLevel)
+		busy.SetLogLevel(logrusInfoLevel)
 	}
 
 	// ambex logs its own snapshots, separately from the ones provided by the Python
@@ -768,14 +790,14 @@ func Main2(ctx context.Context, Version string, getUsage MemoryGetter, fastpathC
 
 	if (err != nil) || (numsnaps < 0) {
 		numsnaps = 30
-		log.Errorf("Invalid AMBASSADOR_AMBEX_SNAPSHOT_COUNT: %s, using %d", numsnapStr, numsnaps)
+		dlog.Errorf(ctx, "Invalid AMBASSADOR_AMBEX_SNAPSHOT_COUNT: %s, using %d", numsnapStr, numsnaps)
 	}
 
-	log.Infof("Ambex %s starting, snapdirPath %s", Version, snapdirPath)
+	dlog.Infof(ctx, "Ambex %s starting, snapdirPath %s", Version, snapdirPath)
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.WithError(err).Panic()
+		return err
 	}
 	defer watcher.Close()
 
@@ -799,17 +821,21 @@ func Main2(ctx context.Context, Version string, getUsage MemoryGetter, fastpathC
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	config := v2cache.NewSnapshotCache(true, HasherV2{}, log)
-	configv3 := v3cache.NewSnapshotCache(true, HasherV3{}, logv3)
-	server := v2server.NewServer(ctx, config, log)
-	serverv3 := v3server.NewServer(ctx, configv3, logv3)
+	config := v2cache.NewSnapshotCache(true, HasherV2{}, logAdapterV2{logAdapterBase{"V2"}})
+	configv3 := v3cache.NewSnapshotCache(true, HasherV3{}, logAdapterV3{logAdapterBase{"V3"}})
+	server := v2server.NewServer(ctx, config, logAdapterV2{logAdapterBase{"V2"}})
+	serverv3 := v3server.NewServer(ctx, configv3, logAdapterV3{logAdapterBase{"V3"}})
 
-	runManagementServer(ctx, server, serverv3, args.adsNetwork, args.adsAddress)
+	if err := runManagementServer(ctx, server, serverv3, args.adsNetwork, args.adsAddress); err != nil {
+		return err
+	}
 
 	pid := os.Getpid()
 	file := "ambex.pid"
-	if !warn(ioutil.WriteFile(file, []byte(fmt.Sprintf("%v", pid)), 0644)) {
-		log.WithFields(logrus.Fields{"pid": pid, "file": file}).Info("Wrote PID")
+	if !warn(ctx, ioutil.WriteFile(file, []byte(fmt.Sprintf("%v", pid)), 0644)) {
+		ctx := dlog.WithField(ctx, "pid", pid)
+		ctx = dlog.WithField(ctx, "file", file)
+		dlog.Info(ctx, "Wrote PID")
 	}
 
 	updates := make(chan Update)
@@ -864,7 +890,7 @@ OUTER:
 			update(ctx, snapdirPath, numsnaps, config, configv3, &generation, args.dirs, edsEndpoints, edsEndpointsV3, fastpathSnapshot, updates)
 		case err := <-watcher.Errors:
 			// Something went wrong, so scream about that.
-			log.WithError(err).Warn("Watcher error")
+			dlog.Warnf(ctx, "Watcher error: %v", err)
 		case <-ctx.Done():
 			break OUTER
 		}
@@ -872,6 +898,6 @@ OUTER:
 	}
 
 	<-envoyUpdaterDone
-	log.Info("Done")
+	dlog.Info(ctx, "Done")
 	return nil
 }

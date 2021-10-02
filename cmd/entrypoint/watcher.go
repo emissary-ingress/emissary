@@ -308,7 +308,7 @@ func (sh *SnapshotHolder) K8sUpdate(ctx context.Context, watcher K8sWatcher, con
 		var deltas []*kates.Delta
 		var changed bool
 		katesUpdateTimer.Time(func() {
-			changed = watcher.FilteredUpdate(sh.k8sSnapshot, &deltas, func(un *kates.Unstructured) bool {
+			changed = watcher.FilteredUpdate(ctx, sh.k8sSnapshot, &deltas, func(un *kates.Unstructured) bool {
 				return sh.validator.isValid(ctx, un)
 			})
 		})

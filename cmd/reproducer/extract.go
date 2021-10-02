@@ -8,17 +8,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"sort"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/dlib/dexec"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/dlib/dexec"
+	"github.com/datawire/dlib/dlog"
 )
 
 var extractCmd = &cobra.Command{
@@ -281,7 +282,7 @@ func (ex *Extraction) callSanitize(ctx context.Context, resource *kates.Unstruct
 
 	result, err := kates.NewUnstructuredFromObject(obj)
 	if err != nil {
-		log.Printf("error converting resource to Unstructured: %+v", err)
+		dlog.Printf(ctx, "error converting resource to Unstructured: %+v", err)
 		return nil
 	}
 	return result
