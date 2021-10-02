@@ -10,9 +10,6 @@ linters:
 linters-settings:
   gofmt:
     simplify: true
-  govet:
-    disable:
-      - lostcancel
   depguard:
     list-type: blacklist
     include-go-root: true

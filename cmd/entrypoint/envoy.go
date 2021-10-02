@@ -79,7 +79,8 @@ func runEnvoy(ctx context.Context, envoyHUP chan os.Signal) error {
 				}
 
 				// Give the container one second to exit
-				tctx, _ := context.WithTimeout(ctx, 1*time.Second)
+				tctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+				defer cancel()
 				wait := subcommand(tctx, "docker", append([]string{"wait"}, cids...)...)
 				wait.Stdout = nil
 				logExecError(ctx, "docker wait", wait.Run())

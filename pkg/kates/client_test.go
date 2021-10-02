@@ -226,6 +226,7 @@ type TestSnapshot struct {
 func TestCoherence(t *testing.T) {
 	ctx, cli := testClient(t, nil)
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
 	// This simulates an api server that is very slow at notifying its watch clients of updates to
 	// config maps, but notifies of other resources at normal speeds. This can really happen.
@@ -263,7 +264,8 @@ func TestCoherence(t *testing.T) {
 	}
 
 	defer func() {
-		ctx, _ := context.WithTimeout(ctx, 10*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
 		err := cli.Delete(ctx, cm, nil)
 		if err != nil {
 			t.Log(err)
@@ -416,6 +418,7 @@ func TestDeltasWithRemoteDelay(t *testing.T) {
 func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstructured, *Unstructured)) {
 	ctx, cli := testClient(t, nil)
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
 	cli.watchAdded = watchHook
 	cli.watchUpdated = watchHook
@@ -442,7 +445,8 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 	}
 
 	defer func() {
-		ctx, _ := context.WithTimeout(ctx, 10*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
 		if cm1 != nil {
 			err := cli.Delete(ctx, cm1, nil)
 			if err != nil {
