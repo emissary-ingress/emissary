@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"io"
-	"reflect"
 	"strings"
 
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -168,16 +167,6 @@ func SetOwnerReferences(owner Object, objects ...Object) {
 			ref := v1.NewControllerRef(owner, gvk)
 			o.SetOwnerReferences(append(o.GetOwnerReferences(), *ref))
 		}
-	}
-}
-
-func ByName(objs interface{}, target interface{}) {
-	vobjs := reflect.ValueOf(objs)
-	vtarget := reflect.ValueOf(target)
-	for i := 0; i < vobjs.Len(); i++ {
-		obj := vobjs.Index(i).Interface()
-		name := obj.(Object).GetName()
-		vtarget.SetMapIndex(reflect.ValueOf(name), reflect.ValueOf(obj).Convert(vtarget.Type().Elem()))
 	}
 }
 

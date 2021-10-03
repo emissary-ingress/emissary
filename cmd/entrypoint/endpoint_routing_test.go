@@ -3,7 +3,6 @@ package entrypoint_test
 import (
 	"fmt"
 	"net"
-	"reflect"
 	"strings"
 	"testing"
 
@@ -253,7 +252,7 @@ func makeSubset(args ...interface{}) kates.EndpointSubset {
 				addrs = append(addrs, kates.EndpointAddress{IP: v})
 			}
 		default:
-			panic(fmt.Sprintf("unrecognized type: %v", reflect.TypeOf(v)))
+			panic(fmt.Sprintf("unrecognized type: %T", v))
 		}
 	}
 

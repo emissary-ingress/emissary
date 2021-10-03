@@ -22,6 +22,7 @@ import (
 
 	// first-party libraries
 	"github.com/datawire/ambassador/v2/pkg/gateway"
+	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/dlib/dlog"
 )
 
@@ -34,7 +35,7 @@ func TestDispatcherRegister(t *testing.T) {
 	t.Parallel()
 	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_Foo)
+	err := disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	assert.NoError(t, disp.Upsert(foo))
@@ -46,16 +47,16 @@ func TestDispatcherRegister(t *testing.T) {
 func TestDispatcherDuplicateRegister(t *testing.T) {
 	t.Parallel()
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_Foo)
+	err := disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	require.NoError(t, err)
-	err = disp.Register("Foo", compile_Foo)
+	err = disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	assertErrorContains(t, err, "duplicate")
 }
 
 func TestIsRegistered(t *testing.T) {
 	t.Parallel()
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_Foo)
+	err := disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	require.NoError(t, err)
 	assert.True(t, disp.IsRegistered("Foo"))
 	assert.False(t, disp.IsRegistered("Bar"))
@@ -64,7 +65,7 @@ func TestIsRegistered(t *testing.T) {
 func TestDispatcherFaultIsolation1(t *testing.T) {
 	t.Parallel()
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_Foo)
+	err := disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bang")
 	foo.Spec.PanicArg = "bang bang!"
@@ -75,7 +76,7 @@ func TestDispatcherFaultIsolation1(t *testing.T) {
 func TestDispatcherFaultIsolation2(t *testing.T) {
 	t.Parallel()
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_Foo)
+	err := disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bang")
 	foo.Spec.PanicArg = fmt.Errorf("bang bang!")
@@ -86,7 +87,7 @@ func TestDispatcherFaultIsolation2(t *testing.T) {
 func TestDispatcherTransformError(t *testing.T) {
 	t.Parallel()
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_FooWithErrors)
+	err := disp.Register("Foo", wrapFooCompiler(compile_FooWithErrors))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	err = disp.Upsert(foo)
@@ -150,7 +151,7 @@ func TestDispatcherDelete(t *testing.T) {
 	t.Parallel()
 	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_Foo)
+	err := disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	assert.NoError(t, disp.Upsert(foo))
@@ -166,7 +167,7 @@ func TestDispatcherDeleteKey(t *testing.T) {
 	t.Parallel()
 	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_Foo)
+	err := disp.Register("Foo", wrapFooCompiler(compile_Foo))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	assert.NoError(t, disp.Upsert(foo))
@@ -215,7 +216,7 @@ func TestDispatcherAssemblyWithRouteConfg(t *testing.T) {
 	t.Parallel()
 	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_FooWithRouteConfigName)
+	err := disp.Register("Foo", wrapFooCompiler(compile_FooWithRouteConfigName))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	assert.NoError(t, disp.Upsert(foo))
@@ -281,7 +282,7 @@ func TestDispatcherAssemblyWithEmptyRouteConfigName(t *testing.T) {
 	t.Parallel()
 	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_FooWithEmptyRouteConfigName)
+	err := disp.Register("Foo", wrapFooCompiler(compile_FooWithEmptyRouteConfigName))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	assert.NoError(t, disp.Upsert(foo))
@@ -343,7 +344,7 @@ func TestDispatcherAssemblyWithoutRds(t *testing.T) {
 	t.Parallel()
 	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_FooWithoutRds)
+	err := disp.Register("Foo", wrapFooCompiler(compile_FooWithoutRds))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	assert.NoError(t, disp.Upsert(foo))
@@ -396,7 +397,7 @@ func TestDispatcherAssemblyEndpointDefaulting(t *testing.T) {
 	t.Parallel()
 	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_FooWithClusterRefs)
+	err := disp.Register("Foo", wrapFooCompiler(compile_FooWithClusterRefs))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	err = disp.Upsert(foo)
@@ -414,6 +415,12 @@ func TestDispatcherAssemblyEndpointDefaulting(t *testing.T) {
 	}
 }
 
+func wrapFooCompiler(inner func(*Foo) *gateway.CompiledConfig) func(kates.Object) *gateway.CompiledConfig {
+	return func(untyped kates.Object) *gateway.CompiledConfig {
+		return inner(untyped.(*Foo))
+	}
+}
+
 func compile_FooWithClusterRefs(f *Foo) *gateway.CompiledConfig {
 	return &gateway.CompiledConfig{
 		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
@@ -427,7 +434,7 @@ func TestDispatcherAssemblyEndpointWatches(t *testing.T) {
 	t.Parallel()
 	ctx := dlog.NewTestContext(t, false)
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Foo", compile_FooEndpointWatches)
+	err := disp.Register("Foo", wrapFooCompiler(compile_FooEndpointWatches))
 	require.NoError(t, err)
 	foo := makeFoo("default", "foo", "bar")
 	err = disp.Upsert(foo)

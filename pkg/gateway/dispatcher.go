@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"reflect"
 
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -53,7 +52,7 @@ import (
 //
 type Dispatcher struct {
 	// Map from kind to transform function.
-	transforms map[string]reflect.Value
+	transforms map[string]func(kates.Object) *CompiledConfig
 	configs    map[string]*CompiledConfig
 
 	version         string
@@ -81,23 +80,21 @@ func resourceKeyFromParts(kind, namespace, name string) string {
 // NewDispatcher creates a new and empty *Dispatcher struct.
 func NewDispatcher() *Dispatcher {
 	return &Dispatcher{
-		transforms: map[string]reflect.Value{},
+		transforms: map[string]func(kates.Object) *CompiledConfig{},
 		configs:    map[string]*CompiledConfig{},
 	}
 }
 
 // Register registers a transform function for the specified kubernetes resource. The transform
 // argument must be a function that takes a single resource of the supplied "kind" and returns a
-// single CompiledConfig object, i.e.: `func(Kind) CompiledConfig`
-func (d *Dispatcher) Register(kind string, transform interface{}) error {
+// single CompiledConfig object, i.e.: `func(Kind) *CompiledConfig`
+func (d *Dispatcher) Register(kind string, transform func(kates.Object) *CompiledConfig) error {
 	_, ok := d.transforms[kind]
 	if ok {
-		return errors.Errorf("duplicate transform: %+v", transform)
+		return errors.Errorf("duplicate transform: %q", kind)
 	}
 
-	xform := reflect.ValueOf(transform)
-
-	d.transforms[kind] = xform
+	d.transforms[kind] = transform
 
 	return nil
 }
@@ -131,8 +128,7 @@ func (d *Dispatcher) Upsert(resource kates.Object) error {
 				}
 			}
 		}()
-		result := xform.Call([]reflect.Value{reflect.ValueOf(resource)})
-		config = result[0].Interface().(*CompiledConfig)
+		config = xform(resource)
 	}()
 
 	if err != nil {
