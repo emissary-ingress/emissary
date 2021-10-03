@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	// third-party libraries
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/anypb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 
 	// envoy api v2
@@ -56,7 +56,7 @@ func Compile_Listener(parent Source, lst gw.Listener, name string) *CompiledList
 			},
 		},
 	}
-	hcmAny, err := ptypes.MarshalAny(hcm)
+	hcmAny, err := anypb.New(hcm)
 	if err != nil {
 		panic(err)
 	}
@@ -145,7 +145,7 @@ func Compile_HTTPRouteForwardTo(src Source, forward gw.HTTPRouteForwardTo, names
 	})
 	return &apiv2_route.WeightedCluster_ClusterWeight{
 		Name:   clusterName,
-		Weight: &wrappers.UInt32Value{Value: uint32(forward.Weight)},
+		Weight: &wrapperspb.UInt32Value{Value: uint32(forward.Weight)},
 	}
 }
 

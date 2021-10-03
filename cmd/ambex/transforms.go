@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	// third-party libraries
-	"github.com/golang/protobuf/ptypes"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	// envoy api v2
 	apiv2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
@@ -166,7 +166,7 @@ func ListenerToRdsListener(lnr *apiv2.Listener) (*apiv2.Listener, []*apiv2.Route
 				// expect the above modifications to take effect on our clone of the input. There is
 				// also a protobuf oneof that includes the deprecated config and typed_config
 				// fields.
-				any, err := ptypes.MarshalAny(hcm)
+				any, err := anypb.New(hcm)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -228,7 +228,7 @@ func V3ListenerToRdsListener(lnr *apiv3_listener.Listener) (*apiv3_listener.List
 				// expect the above modifications to take effect on our clone of the input. There is
 				// also a protobuf oneof that includes the deprecated config and typed_config
 				// fields.
-				any, err := ptypes.MarshalAny(hcm)
+				any, err := anypb.New(hcm)
 				if err != nil {
 					return nil, nil, err
 				}

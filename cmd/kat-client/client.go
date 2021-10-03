@@ -20,11 +20,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 
 	grpc_echo_pb "github.com/datawire/ambassador/v2/pkg/api/kat"
 	"github.com/datawire/dlib/dlog"
@@ -597,19 +597,19 @@ func GetGRPCReqBody(ctx context.Context) (*bytes.Buffer, error) {
 	m := &grpc_echo_pb.EchoRequest{}
 	m.Data = "foo"
 
-	pbuf := &proto.Buffer{}
-	if err := pbuf.Marshal(m); err != nil {
+	bs, err := proto.Marshal(m)
+	if err != nil {
 		dlog.Printf(ctx, "error when serializing the gRPC message: %v", err)
 		return nil, err
 	}
 
-	if err := binary.Write(buf, binary.BigEndian, uint32(len(pbuf.Bytes()))); err != nil {
+	if err := binary.Write(buf, binary.BigEndian, uint32(len(bs))); err != nil {
 		dlog.Printf(ctx, "error when packing message length: %v", err)
 		return nil, err
 	}
 
-	for i := 0; i < len(pbuf.Bytes()); i++ {
-		if err := binary.Write(buf, binary.BigEndian, uint8(pbuf.Bytes()[i])); err != nil {
+	for i := 0; i < len(bs); i++ {
+		if err := binary.Write(buf, binary.BigEndian, bs[i]); err != nil {
 			dlog.Printf(ctx, "error when packing message: %v", err)
 			return nil, err
 		}
