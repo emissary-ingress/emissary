@@ -33,6 +33,7 @@ items:
     date: "TBD"
     notes:
       - title: Developer Preview!
+        type: change
         body: >-
           We're pleased to introduce $productName$ 2.0.4 for general availability for new 
           installations! The 2.X family introduces a number of changes to allow $productName$
@@ -40,12 +41,11 @@ items:
           handle multitenant or multiorganizational installations, reduce memory footprint, and
           improve performance. We welcome feedback!! Join us on
           <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
-        type: change
         isHeadline: true
         docs: about/changes-2.0.0
 
-      - type: change
-        title: API version getambassador.io/v3alpha1
+      - title: API version getambassador.io/v3alpha1
+        type: change
         body: >-
           The <code>x.getambassador.io/v3alpha1</code> API version has become the 
           <code>getambassador.io/v3alpha1</code> API version. The <code>Ambassador-</code>
@@ -55,14 +55,14 @@ items:
           <code>getambassador.io/v2</code> will arrive soon in a later 2.X version.
         docs: about/changes-2.0.0
 
-      - type: bugfix
-        title: Version number reported correctly
+      - title: Version number reported correctly
+        type: bugfix
         body: >-
           The release now shows its actual released version number, rather than
           the internal development version number.
 
-      - type: bugfix
-        bugfix: Agent handles large configurations
+      - title: Agent handles large configurations
+        type: bugfix
         body: >-
           Large configurations no longer cause the agent to be unable
           to communicate with Ambassador Cloud.
