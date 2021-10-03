@@ -60,12 +60,20 @@ items:
         body: >-
           The release now shows its actual released version number, rather than
           the internal development version number.
+        github:
+        - title: "#3854"
+          link: https://github.com/emissary-ingress/emissary/issues/3854
+        docs: https://github.com/emissary-ingress/emissary/issues/3854
 
       - title: Agent handles large configurations
         type: bugfix
         body: >-
           Large configurations no longer cause the agent to be unable
           to communicate with Ambassador Cloud.
+        github:
+        - title: "#3593"
+          link: https://github.com/emissary-ingress/emissary/issues/3593
+        docs: https://github.com/emissary-ingress/emissary/issues/3593
 
   - version: 2.0.3-ea
     date: '2021-09-16'

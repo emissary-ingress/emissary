@@ -92,9 +92,12 @@ feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know w
   for 2.0.4_ &mdash; full support for `getambassador.io/v2` will arrive soon in a later 2.X version.
 
 - Bugfix: The release now shows its actual released version number, rather than the internal development
-  version number.
+  version number. ([#3854])
 
-- Bugfix: Large configurations no longer cause the agent to be unable to communicate with Ambassador Cloud.
+- Bugfix: Large configurations no longer cause the agent to be unable to communicate with Ambassador Cloud. ([#3593])
+
+[#3854]: https://github.com/emissary-ingress/emissary/issues/3854
+[#3593]: https://github.com/emissary-ingress/emissary/issues/3593
 
 ## [2.0.3-ea] 2021-09-16
 [2.0.3-ea]: https://github.com/emissary-ingress/emissary/releases/v2.0.3-ea
