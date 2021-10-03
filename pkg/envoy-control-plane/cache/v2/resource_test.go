@@ -31,6 +31,8 @@ const (
 	routeName    = "route0"
 	listenerName = "listener0"
 	runtimeName  = "runtime0"
+	tlsName      = "secret0"
+	rootName     = "root0"
 )
 
 var (
@@ -39,6 +41,7 @@ var (
 	testRoute    = resource.MakeRoute(routeName, clusterName)
 	testListener = resource.MakeHTTPListener(resource.Ads, listenerName, 80, routeName)
 	testRuntime  = resource.MakeRuntime(runtimeName)
+	testSecret   = resource.MakeSecrets(tlsName, rootName)
 )
 
 func TestValidate(t *testing.T) {
