@@ -57,6 +57,9 @@ github.com/datawire/dlib/dtime
 github.com/datawire/dtest
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
+# github.com/docker/distribution v2.7.1+incompatible
+github.com/docker/distribution/digestset
+github.com/docker/distribution/reference
 # github.com/docker/spdystream v0.0.0-20160310174837-449fdfce4d96
 github.com/docker/spdystream
 github.com/docker/spdystream/spdy
@@ -180,6 +183,8 @@ github.com/moby/term/windows
 github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.1
 github.com/modern-go/reflect2
+# github.com/opencontainers/go-digest v1.0.0
+github.com/opencontainers/go-digest
 # github.com/peterbourgon/diskv v2.0.1+incompatible
 github.com/peterbourgon/diskv
 # github.com/pkg/errors v0.9.1
@@ -494,8 +499,10 @@ k8s.io/apiserver/pkg/apis/apiserver/install
 k8s.io/apiserver/pkg/apis/apiserver/v1
 k8s.io/apiserver/pkg/apis/apiserver/v1alpha1
 k8s.io/apiserver/pkg/apis/apiserver/v1beta1
+k8s.io/apiserver/pkg/features
 k8s.io/apiserver/pkg/server/egressselector
 k8s.io/apiserver/pkg/server/egressselector/metrics
+k8s.io/apiserver/pkg/util/feature
 k8s.io/apiserver/pkg/util/webhook
 # k8s.io/cli-runtime v0.20.2
 k8s.io/cli-runtime/pkg/genericclioptions
@@ -704,6 +711,7 @@ k8s.io/client-go/util/jsonpath
 k8s.io/client-go/util/keyutil
 k8s.io/client-go/util/workqueue
 # k8s.io/component-base v0.20.2
+k8s.io/component-base/featuregate
 k8s.io/component-base/metrics
 k8s.io/component-base/metrics/legacyregistry
 k8s.io/component-base/version
@@ -740,6 +748,19 @@ k8s.io/kubectl/pkg/util/storage
 k8s.io/kubectl/pkg/util/templates
 k8s.io/kubectl/pkg/util/term
 k8s.io/kubectl/pkg/validation
+# k8s.io/kubernetes v1.20.2
+k8s.io/kubernetes/pkg/apis/apps
+k8s.io/kubernetes/pkg/apis/autoscaling
+k8s.io/kubernetes/pkg/apis/core
+k8s.io/kubernetes/pkg/apis/core/v1
+k8s.io/kubernetes/pkg/apis/extensions/v1beta1
+k8s.io/kubernetes/pkg/apis/networking
+k8s.io/kubernetes/pkg/apis/networking/v1
+k8s.io/kubernetes/pkg/apis/networking/v1beta1
+k8s.io/kubernetes/pkg/apis/policy
+k8s.io/kubernetes/pkg/features
+k8s.io/kubernetes/pkg/util/node
+k8s.io/kubernetes/pkg/util/parsers
 # k8s.io/metrics v0.20.2
 k8s.io/metrics/pkg/apis/metrics
 k8s.io/metrics/pkg/apis/metrics/v1beta1
@@ -747,6 +768,7 @@ k8s.io/metrics/pkg/apis/metrics/v1beta1
 k8s.io/utils/buffer
 k8s.io/utils/exec
 k8s.io/utils/integer
+k8s.io/utils/net
 k8s.io/utils/path
 k8s.io/utils/pointer
 k8s.io/utils/trace

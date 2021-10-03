@@ -28,6 +28,7 @@ following Free and Open Source software:
     github.com/datawire/dlib                                 v1.2.4-0.20210629021142-e221f3b9c3b8       Apache License 2.0
     github.com/datawire/dtest                                v0.0.0-20210914162017-6f63de0a5718         Apache License 2.0
     github.com/davecgh/go-spew                               v1.1.1                                     ISC license
+    github.com/docker/distribution                           v2.7.1+incompatible                        Apache License 2.0
     github.com/docker/spdystream                             v0.0.0-20160310174837-449fdfce4d96         Apache License 2.0
     github.com/emicklei/go-restful                           v2.9.5+incompatible                        MIT license
     github.com/envoyproxy/protoc-gen-validate                v0.3.0-java.0.20200609174644-bd816e4522c1  Apache License 2.0
@@ -76,6 +77,7 @@ following Free and Open Source software:
     github.com/moby/term                                     v0.0.0-20200312100748-672ec06f55cd         Apache License 2.0
     github.com/modern-go/concurrent                          v0.0.0-20180306012644-bacd9c7ef1dd         Apache License 2.0
     github.com/modern-go/reflect2                            v1.0.1                                     Apache License 2.0
+    github.com/opencontainers/go-digest                      v1.0.0                                     Apache License 2.0
     github.com/peterbourgon/diskv                            v2.0.1+incompatible                        MIT license
     github.com/pkg/errors                                    v0.9.1                                     2-clause BSD license
     github.com/pmezard/go-difflib                            v1.0.0                                     3-clause BSD license
@@ -115,6 +117,7 @@ following Free and Open Source software:
     k8s.io/klog/v2                                           v2.10.0                                    Apache License 2.0
     k8s.io/kube-openapi                                      v0.0.0-20201113171705-d219536bb9fd         Apache License 2.0
     k8s.io/kubectl                                           v0.20.2                                    Apache License 2.0
+    k8s.io/kubernetes                                        v1.20.2                                    Apache License 2.0
     k8s.io/metrics                                           v0.20.2                                    Apache License 2.0
     k8s.io/utils                                             v0.0.0-20201110183641-67b214c5f920         Apache License 2.0
     sigs.k8s.io/apiserver-network-proxy/konnectivity-client  v0.0.14                                    Apache License 2.0

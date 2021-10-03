@@ -85,7 +85,7 @@ func GetInterestingTypes(ctx context.Context, serverTypeList []kates.APIResource
 		"Ingresses": {
 			{typename: "ingresses.v1beta1.extensions"},        // New in Kubernetes 1.2.0 (2016-03-16), gone in Kubernetes 1.22.0 (2021-08-04)
 			{typename: "ingresses.v1beta1.networking.k8s.io"}, // New in Kubernetes 1.14.0 (2019-03-25), gone in Kubernetes 1.22.0 (2021-08-04)
-			//{typename: "ingresses.v1.networking.k8s.io"},      // New in Kubernetes 1.19.0 (2020-08-26), but not supported by Emissary yet
+			{typename: "ingresses.v1.networking.k8s.io"},      // New in Kubernetes 1.19.0 (2020-08-26)
 		},
 		"IngressClasses": {
 			{typename: "ingressclasses.v1beta1.networking.k8s.io", ignoreIf: IsAmbassadorSingleNamespace()}, // New in Kubernetes 1.18.0 (2020-03-25), gone in Kubernetes 1.22.0 (2021-08-04)

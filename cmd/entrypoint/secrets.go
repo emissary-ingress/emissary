@@ -6,6 +6,7 @@ import (
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8s_resource_types"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
@@ -220,7 +221,7 @@ func findSecretRefs(ctx context.Context, resource kates.Object, secretNamespacin
 			secretRef(r.GetNamespace(), secs.Client.Secret, secretNamespacing, action)
 		}
 
-	case *kates.Ingress:
+	case *k8s_resource_types.Ingress:
 		// Ingress is pretty straightforward, too, just look in spec.tls.
 		for _, itls := range r.Spec.TLS {
 			if itls.SecretName != "" {
