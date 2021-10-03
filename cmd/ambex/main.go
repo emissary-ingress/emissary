@@ -572,7 +572,9 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config ecp_v2
 		clusters,
 		routes,
 		listeners,
-		runtimes)
+		runtimes,
+		nil, // secrets
+	)
 
 	if err := snapshot.Consistent(); err != nil {
 		bs, _ := json.Marshal(snapshot)
@@ -586,7 +588,9 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config ecp_v2
 		clustersv3,
 		routesv3,
 		listenersv3,
-		runtimesv3)
+		runtimesv3,
+		nil, // secrets
+	)
 
 	if err := snapshotv3.Consistent(); err != nil {
 		bs, _ := json.Marshal(snapshotv3)

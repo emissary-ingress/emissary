@@ -42,22 +42,28 @@ func (log logger) Errorf(format string, args ...interface{}) { log.t.Logf(format
 
 func TestGateway(t *testing.T) {
 	config := makeMockConfigWatcher()
-	config.responses = map[string][]cache.RawResponse{
-		resource.ClusterType: {{
-			Version:   "2",
-			Resources: []types.Resource{cluster},
-			Request:   discovery.DiscoveryRequest{TypeUrl: rsrc.ClusterType},
-		}},
-		resource.RouteType: {{
-			Version:   "3",
-			Resources: []types.Resource{route},
-			Request:   discovery.DiscoveryRequest{TypeUrl: rsrc.RouteType},
-		}},
-		resource.ListenerType: {{
-			Version:   "4",
-			Resources: []types.Resource{listener},
-			Request:   discovery.DiscoveryRequest{TypeUrl: rsrc.ListenerType},
-		}},
+	config.responses = map[string][]cache.Response{
+		resource.ClusterType: {
+			&cache.RawResponse{
+				Version:   "2",
+				Resources: []types.Resource{cluster},
+				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.ClusterType},
+			},
+		},
+		resource.RouteType: {
+			&cache.RawResponse{
+				Version:   "3",
+				Resources: []types.Resource{route},
+				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.RouteType},
+			},
+		},
+		resource.ListenerType: {
+			&cache.RawResponse{
+				Version:   "4",
+				Resources: []types.Resource{listener},
+				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.ListenerType},
+			},
+		},
 	}
 	gtw := server.HTTPGateway{Log: logger{t: t}, Server: server.NewServer(context.Background(), config, nil)}
 

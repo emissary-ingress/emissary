@@ -116,7 +116,7 @@ gomoddir = $(shell cd $(OSS_HOME); go list $1/... >/dev/null 2>/dev/null; go lis
 # which commits are ancestors, I added `make guess-envoy-go-control-plane-commit` to do that in an
 # automated way!  Still look at the commit yourself to make sure it seems sane; blindly trusting
 # machines is bad, mmkay?
-ENVOY_GO_CONTROL_PLANE_COMMIT = v0.9.6
+ENVOY_GO_CONTROL_PLANE_COMMIT = v0.9.7
 
 guess-envoy-go-control-plane-commit: $(OSS_HOME)/_cxx/envoy $(OSS_HOME)/_cxx/go-control-plane
 	@echo

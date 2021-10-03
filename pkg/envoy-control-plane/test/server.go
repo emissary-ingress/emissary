@@ -18,13 +18,8 @@ import (
 )
 
 const (
-	// Hello is the echo message
-	Hello = "Hi, there!\n"
-
 	grpcMaxConcurrentStreams = 1000000
 )
-
-type echo struct{}
 
 // HTTPGateway is a custom implementation of [gRPC gateway](https://github.com/grpc-ecosystem/grpc-gateway)
 // specialized to Envoy xDS API.
@@ -103,6 +98,10 @@ func RunManagementGateway(ctx context.Context, srv2 serverv2.Server, srv3 server
 			log.Println(err)
 		}
 	}()
+	<-ctx.Done()
+
+	// Cleanup our gateway if we receive a shutdown
+	server.Shutdown(ctx)
 }
 
 func (h *HTTPGateway) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
@@ -124,22 +123,4 @@ func (h *HTTPGateway) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	if _, err = resp.Write(bytes); err != nil && h.Log != nil {
 		h.Log.Errorf("gateway error: %v", err)
 	}
-}
-
-func (h echo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/text")
-	if _, err := w.Write([]byte(Hello)); err != nil {
-		log.Println(err)
-	}
-}
-
-// RunHTTP opens a simple listener on the port.
-func RunHTTP(ctx context.Context, upstreamPort uint) {
-	log.Printf("upstream listening HTTP/1.1 on %d\n", upstreamPort)
-	server := &http.Server{Addr: fmt.Sprintf(":%d", upstreamPort), Handler: echo{}}
-	go func() {
-		if err := server.ListenAndServe(); err != nil {
-			log.Println(err)
-		}
-	}()
 }
