@@ -62,6 +62,12 @@ type SnapshotCache interface {
 }
 
 type snapshotCache struct {
+	// watchCount is an atomic counter incremented for each watch. This needs to
+	// be the first field in the struct to guarantee that it is 64-bit aligned,
+	// which is a requirement for atomic operations on 64-bit operands to work on
+	// 32-bit machines.
+	watchCount int64
+
 	log log.Logger
 
 	// ads flag to hold responses until all resources are named
@@ -75,9 +81,6 @@ type snapshotCache struct {
 
 	// hash is the hashing function for Envoy nodes
 	hash NodeHash
-
-	// watchCount is an atomic counter incremented for each watch
-	watchCount int64
 
 	mu sync.RWMutex
 }
