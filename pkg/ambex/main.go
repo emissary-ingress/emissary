@@ -586,7 +586,9 @@ func update(
 		clusters,
 		routes,
 		listeners,
-		runtimes)
+		runtimes,
+		nil, // secrets
+	)
 
 	if err := snapshot.Consistent(); err != nil {
 		bs, _ := json.Marshal(snapshot)
@@ -600,7 +602,9 @@ func update(
 		clustersv3,
 		routesv3,
 		listenersv3,
-		runtimesv3)
+		runtimesv3,
+		nil, // secrets
+	)
 
 	if err := snapshotv3.Consistent(); err != nil {
 		bs, _ := json.Marshal(snapshotv3)
