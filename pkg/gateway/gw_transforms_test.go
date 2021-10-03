@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
 
 	"github.com/datawire/ambassador/v2/pkg/envoytest"
 	"github.com/datawire/ambassador/v2/pkg/gateway"
@@ -178,11 +179,17 @@ spec:
 
 func makeDispatcher(t *testing.T) *gateway.Dispatcher {
 	d := gateway.NewDispatcher()
-	err := d.Register("Gateway", gateway.Compile_Gateway)
+	err := d.Register("Gateway", func(untyped kates.Object) *gateway.CompiledConfig {
+		return gateway.Compile_Gateway(untyped.(*gw.Gateway))
+	})
 	require.NoError(t, err)
-	err = d.Register("HTTPRoute", gateway.Compile_HTTPRoute)
+	err = d.Register("HTTPRoute", func(untyped kates.Object) *gateway.CompiledConfig {
+		return gateway.Compile_HTTPRoute(untyped.(*gw.HTTPRoute))
+	})
 	require.NoError(t, err)
-	err = d.Register("Endpoints", gateway.Compile_Endpoints)
+	err = d.Register("Endpoints", func(untyped kates.Object) *gateway.CompiledConfig {
+		return gateway.Compile_Endpoints(untyped.(*kates.Endpoints))
+	})
 	require.NoError(t, err)
 	return d
 }

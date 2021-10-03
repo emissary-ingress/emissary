@@ -8,6 +8,8 @@ import (
 	"sync"
 	"sync/atomic"
 
+	gw "sigs.k8s.io/gateway-api/apis/v1alpha1"
+
 	"github.com/datawire/ambassador/v2/cmd/ambex"
 	"github.com/datawire/ambassador/v2/pkg/acp"
 	"github.com/datawire/ambassador/v2/pkg/debug"
@@ -266,11 +268,15 @@ type SnapshotHolder struct {
 
 func NewSnapshotHolder(ambassadorMeta *snapshot.AmbassadorMetaInfo) *SnapshotHolder {
 	disp := gateway.NewDispatcher()
-	err := disp.Register("Gateway", gateway.Compile_Gateway)
+	err := disp.Register("Gateway", func(untyped kates.Object) *gateway.CompiledConfig {
+		return gateway.Compile_Gateway(untyped.(*gw.Gateway))
+	})
 	if err != nil {
 		panic(err)
 	}
-	err = disp.Register("HTTPRoute", gateway.Compile_HTTPRoute)
+	err = disp.Register("HTTPRoute", func(untyped kates.Object) *gateway.CompiledConfig {
+		return gateway.Compile_HTTPRoute(untyped.(*gw.HTTPRoute))
+	})
 	if err != nil {
 		panic(err)
 	}
