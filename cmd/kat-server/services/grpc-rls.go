@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	// third party
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	// first party (protobuf)
 	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
@@ -149,7 +149,7 @@ func (r *RLSResponse) AddHeader(a bool, k, v string) {
 			Key:   k,
 			Value: v,
 		},
-		Append: &wrappers.BoolValue{Value: a},
+		Append: &wrapperspb.BoolValue{Value: a},
 	}
 	r.headers = append(r.headers, val)
 }

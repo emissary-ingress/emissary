@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	// third-party libraries
-	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	// envoy api v2
 	apiv2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
@@ -252,7 +252,7 @@ func compile_FooWithRouteConfigName(f *Foo) *gateway.CompiledConfig {
 			},
 		},
 	}
-	hcmAny, err := ptypes.MarshalAny(hcm)
+	hcmAny, err := anypb.New(hcm)
 	if err != nil {
 		panic(err)
 	}
@@ -314,7 +314,7 @@ func compile_FooWithEmptyRouteConfigName(f *Foo) *gateway.CompiledConfig {
 			},
 		},
 	}
-	hcmAny, err := ptypes.MarshalAny(hcm)
+	hcmAny, err := anypb.New(hcm)
 	if err != nil {
 		panic(err)
 	}
@@ -364,7 +364,7 @@ func compile_FooWithoutRds(f *Foo) *gateway.CompiledConfig {
 			{Name: ecp_wellknown.Router},
 		},
 	}
-	hcmAny, err := ptypes.MarshalAny(hcm)
+	hcmAny, err := anypb.New(hcm)
 	if err != nil {
 		panic(err)
 	}

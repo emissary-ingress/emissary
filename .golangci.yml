@@ -18,6 +18,8 @@ linters-settings:
       - log:                            "Use `github.com/datawire/dlib/dlog` instead of `log`"
       - github.com/sirupsen/logrus:     "Use `github.com/datawire/dlib/dlog` instead of `github.com/sirupsen/logrus`"
       - github.com/datawire/dlib/dutil: "Use either `github.com/datawire/dlib/derror` or `github.com/datawire/dlib/dhttp` instead of `github.com/datawire/dlib/dutil`"
+      - github.com/gogo/protobuf:       "Use `google.golang.org/protobuf` instead of `github.com/gogo/protobuf`"
+      - github.com/golang/protobuf:     "Use `google.golang.org/protobuf` instead of `github.com/golang/protobuf`"
       - github.com/google/shlex:        "Use `github.com/kballard/go-shellquote` instead of `github.com/google/shlex`"
       - golang.org/x/net/http2/h2c:     "Use `github.com/datawire/dlib/dhttp` instead of `golang.org/x/net/http2/h2c`"
   unused:
@@ -33,6 +35,9 @@ issues:
       path: pkg/envoy-control-plane/
     - linters: [depguard]
       path: "pkg/envoy-control-plane/(test/|.*_test\\.go)"
+    - linters: [depguard]
+      path: "pkg/envoy-control-plane/"
+      source: '"github\.com/golang/protobuf'
     - linters: [govet]
       text: "^tests: .* should return nothing$"
 run:

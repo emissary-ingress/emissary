@@ -50,18 +50,17 @@ import (
 	"os/signal"
 	"path"
 	"path/filepath"
-	"reflect"
 	"strconv"
 	"strings"
 	"syscall"
 
 	// third-party libraries
 	"github.com/fsnotify/fsnotify"
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/encoding/prototext"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	// envoy control plane
 	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
@@ -230,9 +229,9 @@ func runManagementServer(ctx context.Context, server ecp_v2_server.Server, serve
 }
 
 // Decoders for unmarshalling our config
-var decoders = map[string](func(string, proto.Message) error){
-	".json": jsonpb.UnmarshalString,
-	".pb":   proto.UnmarshalText,
+var decoders = map[string](func([]byte, proto.Message) error){
+	".json": protojson.Unmarshal,
+	".pb":   prototext.Unmarshal,
 }
 
 func isDecodable(name string) bool {
@@ -253,7 +252,7 @@ type Validatable interface {
 }
 
 func Decode(ctx context.Context, name string) (proto.Message, error) {
-	any := &any.Any{}
+	any := &anypb.Any{}
 	contents, err := ioutil.ReadFile(name)
 	if err != nil {
 		return nil, err
@@ -261,47 +260,23 @@ func Decode(ctx context.Context, name string) (proto.Message, error) {
 
 	ext := filepath.Ext(name)
 	decoder := decoders[ext]
-	err = decoder(string(contents), any)
+	err = decoder(contents, any)
 	if err != nil {
 		return nil, err
 	}
 
-	var m ptypes.DynamicAny
-	err = ptypes.UnmarshalAny(any, &m)
+	m, err := any.UnmarshalNew()
 	if err != nil {
 		return nil, err
 	}
 
-	var v = m.Message.(Validatable)
+	v := m.(Validatable)
 
-	err = v.Validate()
-	if err != nil {
+	if err := v.Validate(); err != nil {
 		return nil, err
 	}
 	dlog.Infof(ctx, "Loaded file %s", name)
 	return v, nil
-}
-
-func Merge(to, from proto.Message) {
-	str, err := (&jsonpb.Marshaler{}).MarshalToString(from)
-	if err != nil {
-		panic(err)
-	}
-	err = jsonpb.UnmarshalString(str, to)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func Clone(src proto.Message) proto.Message {
-	in := reflect.ValueOf(src)
-	if in.IsNil() {
-		return src
-	}
-	out := reflect.New(in.Type().Elem())
-	dst := out.Interface().(proto.Message)
-	Merge(dst, src)
-	return dst
 }
 
 // Observability:
@@ -467,7 +442,7 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config ecp_v2
 				rdsListener, routeConfigs, err := ListenerToRdsListener(lst)
 				if err != nil {
 					dlog.Errorf(ctx, "Error converting listener to RDS: %+v", err)
-					listeners = append(listeners, Clone(lst).(ecp_cache_types.Resource))
+					listeners = append(listeners, proto.Clone(lst).(ecp_cache_types.Resource))
 					continue
 				}
 				listeners = append(listeners, rdsListener)
@@ -477,7 +452,7 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config ecp_v2
 				}
 			}
 			for _, cls := range sr.Clusters {
-				clusters = append(clusters, Clone(cls).(ecp_cache_types.Resource))
+				clusters = append(clusters, proto.Clone(cls).(ecp_cache_types.Resource))
 			}
 			continue
 		case *v3clusterconfig.Cluster:
@@ -502,7 +477,7 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config ecp_v2
 				rdsListener, routeConfigs, err := V3ListenerToRdsListener(lst)
 				if err != nil {
 					dlog.Errorf(ctx, "Error converting listener to RDS: %+v", err)
-					listenersv3 = append(listenersv3, Clone(lst).(ecp_cache_types.Resource))
+					listenersv3 = append(listenersv3, proto.Clone(lst).(ecp_cache_types.Resource))
 					continue
 				}
 				listenersv3 = append(listenersv3, rdsListener)
@@ -512,7 +487,7 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config ecp_v2
 				}
 			}
 			for _, cls := range sr.Clusters {
-				clustersv3 = append(clustersv3, Clone(cls).(ecp_cache_types.Resource))
+				clustersv3 = append(clustersv3, proto.Clone(cls).(ecp_cache_types.Resource))
 			}
 			continue
 		default:

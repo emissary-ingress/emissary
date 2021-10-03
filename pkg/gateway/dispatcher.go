@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	apiv2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
 	apiv2_core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
@@ -392,7 +392,7 @@ func (d *Dispatcher) buildSnapshot(ctx context.Context) {
 func makeCluster(name, path string) *apiv2.Cluster {
 	return &apiv2.Cluster{
 		Name:                 name,
-		ConnectTimeout:       &duration.Duration{Seconds: 10},
+		ConnectTimeout:       &durationpb.Duration{Seconds: 10},
 		ClusterDiscoveryType: &apiv2.Cluster_Type{Type: apiv2.Cluster_EDS},
 		EdsClusterConfig: &apiv2.Cluster_EdsClusterConfig{
 			EdsConfig:   &apiv2_core.ConfigSource{ConfigSourceSpecifier: &apiv2_core.ConfigSource_Ads{}},
