@@ -41,6 +41,7 @@ func RunAccessLogServer(ctx context.Context, alsv2 *testv2.AccessLogService, als
 	}
 
 	testv2.RegisterAccessLogServer(grpcServer, alsv2)
+	testv3.RegisterAccessLogServer(grpcServer, alsv3)
 	log.Printf("access log server listening on %d\n", alsPort)
 
 	go func() {
