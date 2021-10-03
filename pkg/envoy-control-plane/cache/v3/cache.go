@@ -23,6 +23,7 @@ import (
 
 	discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v3"
 	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
+	ttl "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/ttl/v3"
 	"github.com/golang/protobuf/ptypes/any"
 )
 
@@ -83,7 +84,12 @@ type RawResponse struct {
 	Version string
 
 	// Resources to be included in the response.
-	Resources []types.Resource
+	Resources []types.ResourceWithTtl
+
+	// Whether this is a heartbeat response. For xDS versions that support TTL, this
+	// will be converted into a response that doesn't contain the actual resource protobuf.
+	// This allows for more lightweight updates that server only to update the TTL timer.
+	Heartbeat bool
 
 	// marshaledResponse holds an atomic reference to the serialized discovery response.
 	marshaledResponse atomic.Value
@@ -114,12 +120,16 @@ func (r *RawResponse) GetDiscoveryResponse() (*discovery.DiscoveryResponse, erro
 		marshaledResources := make([]*any.Any, len(r.Resources))
 
 		for i, resource := range r.Resources {
-			marshaledResource, err := MarshalResource(resource)
+			maybeTtldResource, resourceType, err := ttl.MaybeCreateTtlResourceIfSupported(resource, GetResourceName(resource.Resource), r.Request.TypeUrl, r.Heartbeat)
+			if err != nil {
+				return nil, err
+			}
+			marshaledResource, err := MarshalResource(maybeTtldResource)
 			if err != nil {
 				return nil, err
 			}
 			marshaledResources[i] = &any.Any{
-				TypeUrl: r.Request.TypeUrl,
+				TypeUrl: resourceType,
 				Value:   marshaledResource,
 			}
 		}

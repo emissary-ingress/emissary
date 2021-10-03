@@ -223,7 +223,7 @@ func (d *Dispatcher) GetSnapshot(ctx context.Context) (string, *ecp_v2_cache.Sna
 func (d *Dispatcher) GetListener(ctx context.Context, name string) *apiv2.Listener {
 	_, snap := d.GetSnapshot(ctx)
 	for _, rsrc := range snap.Resources[ecp_cache_types.Listener].Items {
-		l := rsrc.(*apiv2.Listener)
+		l := rsrc.Resource.(*apiv2.Listener)
 		if l.Name == name {
 			return l
 		}
@@ -237,7 +237,7 @@ func (d *Dispatcher) GetListener(ctx context.Context, name string) *apiv2.Listen
 func (d *Dispatcher) GetRouteConfiguration(ctx context.Context, name string) *apiv2.RouteConfiguration {
 	_, snap := d.GetSnapshot(ctx)
 	for _, rsrc := range snap.Resources[ecp_cache_types.Route].Items {
-		r := rsrc.(*apiv2.RouteConfiguration)
+		r := rsrc.Resource.(*apiv2.RouteConfiguration)
 		if r.Name == name {
 			return r
 		}

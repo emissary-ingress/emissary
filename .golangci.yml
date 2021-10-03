@@ -29,7 +29,7 @@ linters-settings:
       - "(net/http.ResponseWriter).Write"
 issues:
   exclude-rules:
-    - linters: [govet, errcheck]
+    - linters: [govet, errcheck, unused]
       path: pkg/envoy-control-plane/
     - linters: [depguard]
       path: "pkg/envoy-control-plane/(test/|.*_test\\.go)"

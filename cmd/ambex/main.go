@@ -524,13 +524,13 @@ func update(ctx context.Context, snapdirPath string, numsnaps int, config ecp_v2
 
 	if fastpathSnapshot != nil && fastpathSnapshot.Snapshot != nil {
 		for _, lst := range fastpathSnapshot.Snapshot.Resources[ecp_cache_types.Listener].Items {
-			listeners = append(listeners, lst)
+			listeners = append(listeners, lst.Resource)
 		}
 		for _, route := range fastpathSnapshot.Snapshot.Resources[ecp_cache_types.Route].Items {
-			routes = append(routes, route)
+			routes = append(routes, route.Resource)
 		}
 		for _, clu := range fastpathSnapshot.Snapshot.Resources[ecp_cache_types.Cluster].Items {
-			clusters = append(clusters, clu)
+			clusters = append(clusters, clu.Resource)
 		}
 		// We intentionally omit endpoints since those are carried separately.
 	}
