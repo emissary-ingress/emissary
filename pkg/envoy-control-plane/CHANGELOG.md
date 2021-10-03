@@ -1,6 +1,9 @@
 # Changelog
 
-## Release v0.9.7
+## Release v0.9.8
+
+### Added
+- Support for setting TTL on resources and configuring resource heartbeating
 
 ### Changed
 
