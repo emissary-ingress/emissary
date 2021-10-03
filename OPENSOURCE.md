@@ -50,7 +50,6 @@ following Free and Open Source software:
     github.com/google/btree                                  v1.0.0                                     Apache License 2.0
     github.com/google/go-cmp                                 v0.5.5                                     3-clause BSD license
     github.com/google/gofuzz                                 v1.1.0                                     Apache License 2.0
-    github.com/google/shlex                                  v0.0.0-20191202100458-e7afc7fbc510         Apache License 2.0
     github.com/google/uuid                                   v1.1.2                                     3-clause BSD license
     github.com/googleapis/gnostic                            v0.5.1                                     Apache License 2.0
     github.com/gorilla/websocket                             v1.4.2                                     2-clause BSD license
@@ -65,6 +64,7 @@ following Free and Open Source software:
     github.com/imdario/mergo                                 v0.3.11                                    3-clause BSD license
     github.com/inconshreveable/mousetrap                     v1.0.0                                     Apache License 2.0
     github.com/json-iterator/go                              v1.1.10                                    MIT license
+    github.com/kballard/go-shellquote                        v0.0.0-20180428030007-95032a82bc51         MIT license
     github.com/liggitt/tabwriter                             v0.0.0-20181228230101-89fcab3d43de         3-clause BSD license
     github.com/mailru/easyjson                               v0.7.0                                     MIT license
     github.com/mattn/go-colorable                            v0.1.2                                     MIT license

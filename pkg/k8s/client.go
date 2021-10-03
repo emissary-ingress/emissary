@@ -23,7 +23,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 
-	"github.com/google/shlex"
+	"github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
@@ -138,7 +138,7 @@ func (info *KubeInfo) GetRestConfig() (*rest.Config, error) {
 // GetKubectl returns the arguments for a runnable kubectl command that talks to
 // the same cluster as the associated ClientConfig.
 func (info *KubeInfo) GetKubectl(args string) (string, error) {
-	parts, err := shlex.Split(args)
+	parts, err := shellquote.Split(args)
 	if err != nil {
 		panic(err)
 	}

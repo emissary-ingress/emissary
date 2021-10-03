@@ -18,6 +18,7 @@ linters-settings:
       - log:                            "Use `github.com/datawire/dlib/dlog` instead of `log`"
       - github.com/sirupsen/logrus:     "Use `github.com/datawire/dlib/dlog` instead of `github.com/sirupsen/logrus`"
       - github.com/datawire/dlib/dutil: "Use either `github.com/datawire/dlib/derror` or `github.com/datawire/dlib/dhttp` instead of `github.com/datawire/dlib/dutil`"
+      - github.com/google/shlex:        "Use `github.com/kballard/go-shellquote` instead of `github.com/google/shlex`"
       - golang.org/x/net/http2/h2c:     "Use `github.com/datawire/dlib/dhttp` instead of `golang.org/x/net/http2/h2c`"
   unused:
     # treat code as a program (not a library) and report unused
