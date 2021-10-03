@@ -46,21 +46,21 @@ func TestGateway(t *testing.T) {
 		resource.ClusterType: {
 			&cache.RawResponse{
 				Version:   "2",
-				Resources: []types.Resource{cluster},
+				Resources: []types.ResourceWithTtl{{Resource: cluster}},
 				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.ClusterType},
 			},
 		},
 		resource.RouteType: {
 			&cache.RawResponse{
 				Version:   "3",
-				Resources: []types.Resource{route},
+				Resources: []types.ResourceWithTtl{{Resource: route}},
 				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.RouteType},
 			},
 		},
 		resource.ListenerType: {
 			&cache.RawResponse{
 				Version:   "4",
-				Resources: []types.Resource{listener},
+				Resources: []types.ResourceWithTtl{{Resource: listener}},
 				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.ListenerType},
 			},
 		},

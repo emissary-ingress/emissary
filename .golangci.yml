@@ -25,7 +25,7 @@ linters-settings:
     check-exported: true
 issues:
   exclude-rules:
-    - linters: [govet]
+    - linters: [govet, unused]
       path: pkg/envoy-control-plane/
     - linters: [govet]
       text: "^tests: .* should return nothing$"

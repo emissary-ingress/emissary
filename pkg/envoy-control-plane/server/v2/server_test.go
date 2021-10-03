@@ -172,42 +172,42 @@ func makeResponses() map[string][]cache.Response {
 		rsrc.EndpointType: {
 			&cache.RawResponse{
 				Version:   "1",
-				Resources: []types.Resource{endpoint},
+				Resources: []types.ResourceWithTtl{{Resource: endpoint}},
 				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.EndpointType},
 			},
 		},
 		rsrc.ClusterType: {
 			&cache.RawResponse{
 				Version:   "2",
-				Resources: []types.Resource{cluster},
+				Resources: []types.ResourceWithTtl{{Resource: cluster}},
 				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.ClusterType},
 			},
 		},
 		rsrc.RouteType: {
 			&cache.RawResponse{
 				Version:   "3",
-				Resources: []types.Resource{route},
+				Resources: []types.ResourceWithTtl{{Resource: route}},
 				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.RouteType},
 			},
 		},
 		rsrc.ListenerType: {
 			&cache.RawResponse{
 				Version:   "4",
-				Resources: []types.Resource{listener},
+				Resources: []types.ResourceWithTtl{{Resource: listener}},
 				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.ListenerType},
 			},
 		},
 		rsrc.SecretType: {
 			&cache.RawResponse{
 				Version:   "5",
-				Resources: []types.Resource{secret},
+				Resources: []types.ResourceWithTtl{{Resource: secret}},
 				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.SecretType},
 			},
 		},
 		rsrc.RuntimeType: {
 			&cache.RawResponse{
 				Version:   "6",
-				Resources: []types.Resource{runtime},
+				Resources: []types.ResourceWithTtl{{Resource: runtime}},
 				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.RuntimeType},
 			},
 		},
@@ -215,7 +215,7 @@ func makeResponses() map[string][]cache.Response {
 		opaqueType: {
 			&cache.RawResponse{
 				Version:   "7",
-				Resources: []types.Resource{opaque},
+				Resources: []types.ResourceWithTtl{{Resource: opaque}},
 				Request:   &discovery.DiscoveryRequest{TypeUrl: opaqueType},
 			},
 		},

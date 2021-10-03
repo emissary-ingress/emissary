@@ -388,7 +388,7 @@ func TestDispatcherAssemblyEndpointDefaulting(t *testing.T) {
 	_, snap := disp.GetSnapshot()
 	found := false
 	for _, r := range snap.Resources[types.Endpoint].Items {
-		cla := r.(*v2.ClusterLoadAssignment)
+		cla := r.Resource.(*v2.ClusterLoadAssignment)
 		if cla.ClusterName == "foo" && len(cla.Endpoints) == 0 {
 			found = true
 		}
