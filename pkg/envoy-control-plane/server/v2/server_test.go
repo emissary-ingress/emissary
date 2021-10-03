@@ -35,11 +35,12 @@ import (
 
 type mockConfigWatcher struct {
 	counts     map[string]int
-	responses  map[string][]cache.RawResponse
+	responses  map[string][]cache.Response
 	closeWatch bool
+	watches    int
 }
 
-func (config *mockConfigWatcher) CreateWatch(req discovery.DiscoveryRequest) (chan cache.Response, func()) {
+func (config *mockConfigWatcher) CreateWatch(req *discovery.DiscoveryRequest) (chan cache.Response, func()) {
 	config.counts[req.TypeUrl] = config.counts[req.TypeUrl] + 1
 	out := make(chan cache.Response, 1)
 	if len(config.responses[req.TypeUrl]) > 0 {
@@ -47,15 +48,22 @@ func (config *mockConfigWatcher) CreateWatch(req discovery.DiscoveryRequest) (ch
 		config.responses[req.TypeUrl] = config.responses[req.TypeUrl][1:]
 	} else if config.closeWatch {
 		close(out)
+	} else {
+		config.watches += 1
+		return out, func() {
+			// it is ok to close the channel after cancellation and not wait for it to be garbage collected
+			close(out)
+			config.watches -= 1
+		}
 	}
-	return out, func() {}
+	return out, nil
 }
 
-func (config *mockConfigWatcher) Fetch(ctx context.Context, req discovery.DiscoveryRequest) (cache.Response, error) {
+func (config *mockConfigWatcher) Fetch(ctx context.Context, req *discovery.DiscoveryRequest) (cache.Response, error) {
 	if len(config.responses[req.TypeUrl]) > 0 {
 		out := config.responses[req.TypeUrl][0]
 		config.responses[req.TypeUrl] = config.responses[req.TypeUrl][1:]
-		return &out, nil
+		return out, nil
 	}
 	return nil, errors.New("missing")
 }
@@ -131,6 +139,8 @@ const (
 	clusterName  = "cluster0"
 	routeName    = "route0"
 	listenerName = "listener0"
+	secretName   = "secret0"
+	runtimeName  = "runtime0"
 )
 
 var (
@@ -138,40 +148,77 @@ var (
 		Id:      "test-id",
 		Cluster: "test-cluster",
 	}
-	endpoint  = resource.MakeEndpoint(clusterName, 8080)
-	cluster   = resource.MakeCluster(resource.Ads, clusterName)
-	route     = resource.MakeRoute(routeName, clusterName)
-	listener  = resource.MakeHTTPListener(resource.Ads, listenerName, 80, routeName)
-	testTypes = []string{
+	endpoint   = resource.MakeEndpoint(clusterName, 8080)
+	cluster    = resource.MakeCluster(resource.Ads, clusterName)
+	route      = resource.MakeRoute(routeName, clusterName)
+	listener   = resource.MakeHTTPListener(resource.Ads, listenerName, 80, routeName)
+	secret     = resource.MakeSecrets(secretName, "test")[0]
+	runtime    = resource.MakeRuntime(runtimeName)
+	opaque     = &core.Address{}
+	opaqueType = "unknown-type"
+	testTypes  = []string{
 		rsrc.EndpointType,
 		rsrc.ClusterType,
 		rsrc.RouteType,
 		rsrc.ListenerType,
+		rsrc.SecretType,
+		rsrc.RuntimeType,
+		opaqueType,
 	}
 )
 
-func makeResponses() map[string][]cache.RawResponse {
-	return map[string][]cache.RawResponse{
-		rsrc.EndpointType: {{
-			Version:   "1",
-			Resources: []types.Resource{endpoint},
-			Request:   discovery.DiscoveryRequest{TypeUrl: rsrc.EndpointType},
-		}},
-		rsrc.ClusterType: {{
-			Version:   "2",
-			Resources: []types.Resource{cluster},
-			Request:   discovery.DiscoveryRequest{TypeUrl: rsrc.ClusterType},
-		}},
-		rsrc.RouteType: {{
-			Version:   "3",
-			Resources: []types.Resource{route},
-			Request:   discovery.DiscoveryRequest{TypeUrl: rsrc.RouteType},
-		}},
-		rsrc.ListenerType: {{
-			Version:   "4",
-			Resources: []types.Resource{listener},
-			Request:   discovery.DiscoveryRequest{TypeUrl: rsrc.ListenerType},
-		}},
+func makeResponses() map[string][]cache.Response {
+	return map[string][]cache.Response{
+		rsrc.EndpointType: {
+			&cache.RawResponse{
+				Version:   "1",
+				Resources: []types.Resource{endpoint},
+				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.EndpointType},
+			},
+		},
+		rsrc.ClusterType: {
+			&cache.RawResponse{
+				Version:   "2",
+				Resources: []types.Resource{cluster},
+				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.ClusterType},
+			},
+		},
+		rsrc.RouteType: {
+			&cache.RawResponse{
+				Version:   "3",
+				Resources: []types.Resource{route},
+				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.RouteType},
+			},
+		},
+		rsrc.ListenerType: {
+			&cache.RawResponse{
+				Version:   "4",
+				Resources: []types.Resource{listener},
+				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.ListenerType},
+			},
+		},
+		rsrc.SecretType: {
+			&cache.RawResponse{
+				Version:   "5",
+				Resources: []types.Resource{secret},
+				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.SecretType},
+			},
+		},
+		rsrc.RuntimeType: {
+			&cache.RawResponse{
+				Version:   "6",
+				Resources: []types.Resource{runtime},
+				Request:   &discovery.DiscoveryRequest{TypeUrl: rsrc.RuntimeType},
+			},
+		},
+		// Pass-through type (xDS does not exist for this type)
+		opaqueType: {
+			&cache.RawResponse{
+				Version:   "7",
+				Resources: []types.Resource{opaque},
+				Request:   &discovery.DiscoveryRequest{TypeUrl: opaqueType},
+			},
+		},
 	}
 }
 
@@ -186,7 +233,7 @@ func TestServerShutdown(t *testing.T) {
 
 			// make a request
 			resp := makeMockStream(t)
-			resp.recv <- &discovery.DiscoveryRequest{Node: node}
+			resp.recv <- &discovery.DiscoveryRequest{Node: node, TypeUrl: typ}
 			go func() {
 				var err error
 				switch typ {
@@ -198,6 +245,12 @@ func TestServerShutdown(t *testing.T) {
 					err = s.StreamRoutes(resp)
 				case rsrc.ListenerType:
 					err = s.StreamListeners(resp)
+				case rsrc.SecretType:
+					err = s.StreamSecrets(resp)
+				case rsrc.RuntimeType:
+					err = s.StreamRuntime(resp)
+				case opaqueType:
+					err = s.StreamAggregatedResources(resp)
 				}
 				if err != nil {
 					t.Errorf("Stream() => got %v, want no error", err)
@@ -239,6 +292,12 @@ func TestResponseHandlers(t *testing.T) {
 					err = s.StreamRoutes(resp)
 				case rsrc.ListenerType:
 					err = s.StreamListeners(resp)
+				case rsrc.SecretType:
+					err = s.StreamSecrets(resp)
+				case rsrc.RuntimeType:
+					err = s.StreamRuntime(resp)
+				case opaqueType:
+					err = s.StreamAggregatedResources(resp)
 				}
 				if err != nil {
 					t.Errorf("Stream() => got %v, want no error", err)
@@ -299,6 +358,12 @@ func TestFetch(t *testing.T) {
 	if out, err := s.FetchListeners(context.Background(), &discovery.DiscoveryRequest{Node: node}); out == nil || err != nil {
 		t.Errorf("unexpected empty or error for listeners: %v", err)
 	}
+	if out, err := s.FetchSecrets(context.Background(), &discovery.DiscoveryRequest{Node: node}); out == nil || err != nil {
+		t.Errorf("unexpected empty or error for listeners: %v", err)
+	}
+	if out, err := s.FetchRuntime(context.Background(), &discovery.DiscoveryRequest{Node: node}); out == nil || err != nil {
+		t.Errorf("unexpected empty or error for listeners: %v", err)
+	}
 
 	// try again and expect empty results
 	if out, err := s.FetchEndpoints(context.Background(), &discovery.DiscoveryRequest{Node: node}); out != nil {
@@ -327,6 +392,12 @@ func TestFetch(t *testing.T) {
 	if out, err := s.FetchListeners(context.Background(), nil); out != nil {
 		t.Errorf("expected empty on empty request: %v", err)
 	}
+	if out, err := s.FetchSecrets(context.Background(), nil); out != nil {
+		t.Errorf("expected empty on empty request: %v", err)
+	}
+	if out, err := s.FetchRuntime(context.Background(), nil); out != nil {
+		t.Errorf("expected empty on empty request: %v", err)
+	}
 
 	// send error from callback
 	callbackError = true
@@ -344,10 +415,10 @@ func TestFetch(t *testing.T) {
 	}
 
 	// verify fetch callbacks
-	if want := 8; requestCount != want {
+	if want := 10; requestCount != want {
 		t.Errorf("unexpected number of fetch requests: got %d, want %d", requestCount, want)
 	}
-	if want := 4; responseCount != want {
+	if want := 6; responseCount != want {
 		t.Errorf("unexpected number of fetch responses: got %d, want %d", responseCount, want)
 	}
 }
@@ -457,17 +528,15 @@ func TestAggregatedHandlers(t *testing.T) {
 		Node:    node,
 		TypeUrl: rsrc.ListenerType,
 	}
+	// Delta compress node
 	resp.recv <- &discovery.DiscoveryRequest{
-		Node:    node,
 		TypeUrl: rsrc.ClusterType,
 	}
 	resp.recv <- &discovery.DiscoveryRequest{
-		Node:          node,
 		TypeUrl:       rsrc.EndpointType,
 		ResourceNames: []string{clusterName},
 	}
 	resp.recv <- &discovery.DiscoveryRequest{
-		Node:          node,
 		TypeUrl:       rsrc.RouteType,
 		ResourceNames: []string{routeName},
 	}
@@ -511,6 +580,46 @@ func TestAggregateRequestType(t *testing.T) {
 	resp.recv <- &discovery.DiscoveryRequest{Node: node}
 	if err := s.StreamAggregatedResources(resp); err == nil {
 		t.Error("StreamAggregatedResources() => got nil, want an error")
+	}
+}
+
+func TestCancellations(t *testing.T) {
+	config := makeMockConfigWatcher()
+	resp := makeMockStream(t)
+	for _, typ := range testTypes {
+		resp.recv <- &discovery.DiscoveryRequest{
+			Node:    node,
+			TypeUrl: typ,
+		}
+	}
+	close(resp.recv)
+	s := server.NewServer(context.Background(), config, server.CallbackFuncs{})
+	if err := s.StreamAggregatedResources(resp); err != nil {
+		t.Errorf("StreamAggregatedResources() => got %v, want no error", err)
+	}
+	if config.watches != 0 {
+		t.Errorf("Expect all watches cancelled, got %q", config.watches)
+	}
+}
+
+func TestOpaqueRequestsChannelMuxing(t *testing.T) {
+	config := makeMockConfigWatcher()
+	resp := makeMockStream(t)
+	for i := 0; i < 10; i++ {
+		resp.recv <- &discovery.DiscoveryRequest{
+			Node:    node,
+			TypeUrl: fmt.Sprintf("%s%d", opaqueType, i%2),
+			// each subsequent request is assumed to supercede the previous request
+			ResourceNames: []string{fmt.Sprintf("%d", i)},
+		}
+	}
+	close(resp.recv)
+	s := server.NewServer(context.Background(), config, server.CallbackFuncs{})
+	if err := s.StreamAggregatedResources(resp); err != nil {
+		t.Errorf("StreamAggregatedResources() => got %v, want no error", err)
+	}
+	if config.watches != 0 {
+		t.Errorf("Expect all watches cancelled, got %q", config.watches)
 	}
 }
 

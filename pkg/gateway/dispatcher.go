@@ -368,7 +368,15 @@ func (d *Dispatcher) buildSnapshot() {
 
 	listeners, routes := d.buildRouteConfigurations()
 
-	snapshot := cache.NewSnapshot(d.version, endpoints, clusters, routes, listeners, nil)
+	snapshot := cache.NewSnapshot(
+		d.version,
+		endpoints,
+		clusters,
+		routes,
+		listeners,
+		nil, // runtimes
+		nil, // secrets
+	)
 	if err := snapshot.Consistent(); err != nil {
 		bs, _ := json.MarshalIndent(snapshot, "", "  ")
 		dlog.Errorf(context.Background(), "Dispatcher Snapshot inconsistency: %v: %s", err, bs)

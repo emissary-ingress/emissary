@@ -21,7 +21,7 @@ const (
 func TestResponseGetDiscoveryResponse(t *testing.T) {
 	routes := []types.Resource{&route.RouteConfiguration{Name: resourceName}}
 	resp := cache.RawResponse{
-		Request:   discovery.DiscoveryRequest{TypeUrl: resource.RouteType},
+		Request:   &discovery.DiscoveryRequest{TypeUrl: resource.RouteType},
 		Version:   "v",
 		Resources: routes,
 	}
@@ -30,6 +30,10 @@ func TestResponseGetDiscoveryResponse(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, discoveryResponse.VersionInfo, resp.Version)
 	assert.Equal(t, len(discoveryResponse.Resources), 1)
+
+	cachedResponse, err := resp.GetDiscoveryResponse()
+	assert.Nil(t, err)
+	assert.Same(t, discoveryResponse, cachedResponse)
 
 	r := &route.RouteConfiguration{}
 	err = ptypes.UnmarshalAny(discoveryResponse.Resources[0], r)
@@ -47,7 +51,7 @@ func TestPassthroughResponseGetDiscoveryResponse(t *testing.T) {
 		VersionInfo: "v",
 	}
 	resp := cache.PassthroughResponse{
-		Request:           discovery.DiscoveryRequest{TypeUrl: resource.RouteType},
+		Request:           &discovery.DiscoveryRequest{TypeUrl: resource.RouteType},
 		DiscoveryResponse: dr,
 	}
 

@@ -27,18 +27,18 @@ func TestSnapshotConsistent(t *testing.T) {
 	if err := snapshot.Consistent(); err != nil {
 		t.Errorf("got inconsistent snapshot for %#v", snapshot)
 	}
-	if snap := cache.NewSnapshot(version, []types.Resource{testEndpoint}, nil, nil, nil, nil); snap.Consistent() == nil {
+	if snap := cache.NewSnapshot(version, []types.Resource{testEndpoint}, nil, nil, nil, nil, nil); snap.Consistent() == nil {
 		t.Errorf("got consistent snapshot %#v", snap)
 	}
 	if snap := cache.NewSnapshot(version, []types.Resource{resource.MakeEndpoint("missing", 8080)},
-		[]types.Resource{testCluster}, nil, nil, nil); snap.Consistent() == nil {
+		[]types.Resource{testCluster}, nil, nil, nil, nil); snap.Consistent() == nil {
 		t.Errorf("got consistent snapshot %#v", snap)
 	}
-	if snap := cache.NewSnapshot(version, nil, nil, nil, []types.Resource{testListener}, nil); snap.Consistent() == nil {
+	if snap := cache.NewSnapshot(version, nil, nil, nil, []types.Resource{testListener}, nil, nil); snap.Consistent() == nil {
 		t.Errorf("got consistent snapshot %#v", snap)
 	}
 	if snap := cache.NewSnapshot(version, nil, nil,
-		[]types.Resource{resource.MakeRoute("test", clusterName)}, []types.Resource{testListener}, nil); snap.Consistent() == nil {
+		[]types.Resource{resource.MakeRoute("test", clusterName)}, []types.Resource{testListener}, nil, nil); snap.Consistent() == nil {
 		t.Errorf("got consistent snapshot %#v", snap)
 	}
 }

@@ -87,7 +87,7 @@ type snapshotCache struct {
 // resources are explicitly named in the request. This avoids the problem of a
 // partial request over a single stream for a subset of resources which would
 // require generating a fresh version for acknowledgement. ADS flag requires
-// snapshot consistency. For non-ADS case (and fetch), mutliple partial
+// snapshot consistency. For non-ADS case (and fetch), multiple partial
 // requests are sent across multiple streams and re-using the snapshot version
 // is OK.
 //
@@ -172,7 +172,7 @@ func superset(names map[string]bool, resources map[string]types.Resource) error 
 }
 
 // CreateWatch returns a watch for an xDS request.
-func (cache *snapshotCache) CreateWatch(request Request) (chan Response, func()) {
+func (cache *snapshotCache) CreateWatch(request *Request) (chan Response, func()) {
 	nodeID := cache.hash.ID(request.Node)
 
 	cache.mu.Lock()
@@ -234,7 +234,7 @@ func (cache *snapshotCache) cancelWatch(nodeID string, watchID int64) func() {
 
 // Respond to a watch with the snapshot value. The value channel should have capacity not to block.
 // TODO(kuat) do not respond always, see issue https://github.com/envoyproxy/go-control-plane/issues/46
-func (cache *snapshotCache) respond(request Request, value chan Response, resources map[string]types.Resource, version string) {
+func (cache *snapshotCache) respond(request *Request, value chan Response, resources map[string]types.Resource, version string) {
 	// for ADS, the request names must match the snapshot names
 	// if they do not, then the watch is never responded, and it is expected that envoy makes another request
 	if len(request.ResourceNames) != 0 && cache.ads {
@@ -253,7 +253,7 @@ func (cache *snapshotCache) respond(request Request, value chan Response, resour
 	value <- createResponse(request, resources, version)
 }
 
-func createResponse(request Request, resources map[string]types.Resource, version string) Response {
+func createResponse(request *Request, resources map[string]types.Resource, version string) Response {
 	filtered := make([]types.Resource, 0, len(resources))
 
 	// Reply only with the requested resources. Envoy may ask each resource
@@ -272,7 +272,7 @@ func createResponse(request Request, resources map[string]types.Resource, versio
 		}
 	}
 
-	return RawResponse{
+	return &RawResponse{
 		Request:   request,
 		Version:   version,
 		Resources: filtered,
@@ -281,7 +281,7 @@ func createResponse(request Request, resources map[string]types.Resource, versio
 
 // Fetch implements the cache fetch function.
 // Fetch is called on multiple streams, so responding to individual names with the same version works.
-func (cache *snapshotCache) Fetch(ctx context.Context, request Request) (Response, error) {
+func (cache *snapshotCache) Fetch(ctx context.Context, request *Request) (Response, error) {
 	nodeID := cache.hash.ID(request.Node)
 
 	cache.mu.RLock()

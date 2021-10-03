@@ -561,6 +561,7 @@ export GOTEST_PKGS
 export GOTEST_MODDIRS
 
 GOTEST_ARGS ?= -race -count=1
+GOTEST_ARGS += -parallel=150 # The ./pkg/envoy-control-plane/cache/v{2,3}/ tests require high parallelism to reliably work
 export GOTEST_ARGS
 
 create-venv:

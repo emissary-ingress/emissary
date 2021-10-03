@@ -49,7 +49,7 @@ func NewResources(version string, items []types.Resource) Resources {
 }
 
 // Snapshot is an internally consistent snapshot of xDS resources.
-// Consistentcy is important for the convergence as different resource types
+// Consistency is important for the convergence as different resource types
 // from the snapshot may be delivered to the proxy in arbitrary order.
 type Snapshot struct {
 	Resources [types.UnknownType]Resources
@@ -61,13 +61,15 @@ func NewSnapshot(version string,
 	clusters []types.Resource,
 	routes []types.Resource,
 	listeners []types.Resource,
-	runtimes []types.Resource) Snapshot {
+	runtimes []types.Resource,
+	secrets []types.Resource) Snapshot {
 	out := Snapshot{}
 	out.Resources[types.Endpoint] = NewResources(version, endpoints)
 	out.Resources[types.Cluster] = NewResources(version, clusters)
 	out.Resources[types.Route] = NewResources(version, routes)
 	out.Resources[types.Listener] = NewResources(version, listeners)
 	out.Resources[types.Runtime] = NewResources(version, runtimes)
+	out.Resources[types.Secret] = NewResources(version, secrets)
 	return out
 }
 
