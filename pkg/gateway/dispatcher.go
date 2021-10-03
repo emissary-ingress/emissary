@@ -6,18 +6,21 @@ import (
 	"fmt"
 	"reflect"
 
-	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	v2endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/endpoint"
-	route "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/route"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v2"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
-	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/dlib/dlog"
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/pkg/errors"
+
+	apiv2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
+	apiv2_core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
+	apiv2_endpoint "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/endpoint"
+	apiv2_route "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/route"
+
+	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
+	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
+	ecp_v2_resource "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v2"
+	ecp_wellknown "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
+
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/dlib/dlog"
 )
 
 // The Dispatcher struct allows transforms to be registered for different kinds of kubernetes
@@ -55,7 +58,7 @@ type Dispatcher struct {
 
 	version         string
 	changeCount     int
-	snapshot        *cache.Snapshot
+	snapshot        *ecp_v2_cache.Snapshot
 	endpointWatches map[string]bool
 }
 
@@ -209,18 +212,18 @@ func (d *Dispatcher) GetErrors() []*CompiledItem {
 }
 
 // GetSnapshot returns a version and a snapshot.
-func (d *Dispatcher) GetSnapshot(ctx context.Context) (string, *cache.Snapshot) {
+func (d *Dispatcher) GetSnapshot(ctx context.Context) (string, *ecp_v2_cache.Snapshot) {
 	if d.snapshot == nil {
 		d.buildSnapshot(ctx)
 	}
 	return d.version, d.snapshot
 }
 
-// GetListener returns a *v2.Listener with the specified name or nil if none exists.
-func (d *Dispatcher) GetListener(ctx context.Context, name string) *v2.Listener {
+// GetListener returns a *apiv2.Listener with the specified name or nil if none exists.
+func (d *Dispatcher) GetListener(ctx context.Context, name string) *apiv2.Listener {
 	_, snap := d.GetSnapshot(ctx)
-	for _, rsrc := range snap.Resources[types.Listener].Items {
-		l := rsrc.(*v2.Listener)
+	for _, rsrc := range snap.Resources[ecp_cache_types.Listener].Items {
+		l := rsrc.(*apiv2.Listener)
 		if l.Name == name {
 			return l
 		}
@@ -229,12 +232,12 @@ func (d *Dispatcher) GetListener(ctx context.Context, name string) *v2.Listener 
 
 }
 
-// GetRouteConfiguration returns a *v2.RouteConfiguration with the specified name or nil if none
+// GetRouteConfiguration returns a *apiv2.RouteConfiguration with the specified name or nil if none
 // exists.
-func (d *Dispatcher) GetRouteConfiguration(ctx context.Context, name string) *v2.RouteConfiguration {
+func (d *Dispatcher) GetRouteConfiguration(ctx context.Context, name string) *apiv2.RouteConfiguration {
 	_, snap := d.GetSnapshot(ctx)
-	for _, rsrc := range snap.Resources[types.Route].Items {
-		r := rsrc.(*v2.RouteConfiguration)
+	for _, rsrc := range snap.Resources[ecp_cache_types.Route].Items {
+		r := rsrc.(*apiv2.RouteConfiguration)
 		if r.Name == name {
 			return r
 		}
@@ -267,8 +270,8 @@ func (d *Dispatcher) buildClusterMap() (map[string]string, map[string]bool) {
 	return refs, watches
 }
 
-func (d *Dispatcher) buildEndpointMap() map[string]*v2.ClusterLoadAssignment {
-	endpoints := map[string]*v2.ClusterLoadAssignment{}
+func (d *Dispatcher) buildEndpointMap() map[string]*apiv2.ClusterLoadAssignment {
+	endpoints := map[string]*apiv2.ClusterLoadAssignment{}
 	for _, config := range d.configs {
 		for _, la := range config.LoadAssignments {
 			endpoints[la.LoadAssignment.ClusterName] = la.LoadAssignment
@@ -277,9 +280,9 @@ func (d *Dispatcher) buildEndpointMap() map[string]*v2.ClusterLoadAssignment {
 	return endpoints
 }
 
-func (d *Dispatcher) buildRouteConfigurations() ([]types.Resource, []types.Resource) {
-	listeners := []types.Resource{}
-	routes := []types.Resource{}
+func (d *Dispatcher) buildRouteConfigurations() ([]ecp_cache_types.Resource, []ecp_cache_types.Resource) {
+	listeners := []ecp_cache_types.Resource{}
+	routes := []ecp_cache_types.Resource{}
 	for _, config := range d.configs {
 		for _, lst := range config.Listeners {
 			listeners = append(listeners, lst.Listener)
@@ -292,13 +295,13 @@ func (d *Dispatcher) buildRouteConfigurations() ([]types.Resource, []types.Resou
 	return listeners, routes
 }
 
-func (d *Dispatcher) buildRouteConfiguration(lst *CompiledListener) *v2.RouteConfiguration {
+func (d *Dispatcher) buildRouteConfiguration(lst *CompiledListener) *apiv2.RouteConfiguration {
 	rdsName, isRds := getRdsName(lst.Listener)
 	if !isRds {
 		return nil
 	}
 
-	var routes []*route.Route
+	var routes []*apiv2_route.Route
 	for _, config := range d.configs {
 		for _, route := range config.Routes {
 			if lst.Predicate(route) {
@@ -307,9 +310,9 @@ func (d *Dispatcher) buildRouteConfiguration(lst *CompiledListener) *v2.RouteCon
 		}
 	}
 
-	return &v2.RouteConfiguration{
+	return &apiv2.RouteConfiguration{
 		Name: rdsName,
-		VirtualHosts: []*route.VirtualHost{
+		VirtualHosts: []*apiv2_route.VirtualHost{
 			{
 				Name:    rdsName,
 				Domains: lst.Domains,
@@ -321,14 +324,14 @@ func (d *Dispatcher) buildRouteConfiguration(lst *CompiledListener) *v2.RouteCon
 
 // getRdsName returns the RDS route configuration name configured for the listener and a flag
 // indicating whether the listener uses Rds.
-func getRdsName(l *v2.Listener) (string, bool) {
+func getRdsName(l *apiv2.Listener) (string, bool) {
 	for _, fc := range l.FilterChains {
 		for _, f := range fc.Filters {
-			if f.Name != wellknown.HTTPConnectionManager {
+			if f.Name != ecp_wellknown.HTTPConnectionManager {
 				continue
 			}
 
-			hcm := resource.GetHTTPConnectionManager(f)
+			hcm := ecp_v2_resource.GetHTTPConnectionManager(f)
 			if hcm != nil {
 				rds := hcm.GetRds()
 				if rds != nil {
@@ -347,8 +350,8 @@ func (d *Dispatcher) buildSnapshot(ctx context.Context) {
 	endpointMap := d.buildEndpointMap()
 	clusterMap, endpointWatches := d.buildClusterMap()
 
-	clusters := []types.Resource{}
-	endpoints := []types.Resource{}
+	clusters := []ecp_cache_types.Resource{}
+	endpoints := []ecp_cache_types.Resource{}
 	for name, path := range clusterMap {
 		clusters = append(clusters, makeCluster(name, path))
 		key := path
@@ -359,16 +362,16 @@ func (d *Dispatcher) buildSnapshot(ctx context.Context) {
 		if ok {
 			endpoints = append(endpoints, la)
 		} else {
-			endpoints = append(endpoints, &v2.ClusterLoadAssignment{
+			endpoints = append(endpoints, &apiv2.ClusterLoadAssignment{
 				ClusterName: key,
-				Endpoints:   []*v2endpoint.LocalityLbEndpoints{},
+				Endpoints:   []*apiv2_endpoint.LocalityLbEndpoints{},
 			})
 		}
 	}
 
 	listeners, routes := d.buildRouteConfigurations()
 
-	snapshot := cache.NewSnapshot(d.version, endpoints, clusters, routes, listeners, nil)
+	snapshot := ecp_v2_cache.NewSnapshot(d.version, endpoints, clusters, routes, listeners, nil)
 	if err := snapshot.Consistent(); err != nil {
 		bs, _ := json.MarshalIndent(snapshot, "", "  ")
 		dlog.Errorf(ctx, "Dispatcher Snapshot inconsistency: %v: %s", err, bs)
@@ -378,13 +381,13 @@ func (d *Dispatcher) buildSnapshot(ctx context.Context) {
 	}
 }
 
-func makeCluster(name, path string) *v2.Cluster {
-	return &v2.Cluster{
+func makeCluster(name, path string) *apiv2.Cluster {
+	return &apiv2.Cluster{
 		Name:                 name,
 		ConnectTimeout:       &duration.Duration{Seconds: 10},
-		ClusterDiscoveryType: &v2.Cluster_Type{Type: v2.Cluster_EDS},
-		EdsClusterConfig: &v2.Cluster_EdsClusterConfig{
-			EdsConfig:   &core.ConfigSource{ConfigSourceSpecifier: &core.ConfigSource_Ads{}},
+		ClusterDiscoveryType: &apiv2.Cluster_Type{Type: apiv2.Cluster_EDS},
+		EdsClusterConfig: &apiv2.Cluster_EdsClusterConfig{
+			EdsConfig:   &apiv2_core.ConfigSource{ConfigSourceSpecifier: &apiv2_core.ConfigSource_Ads{}},
 			ServiceName: path,
 		},
 	}

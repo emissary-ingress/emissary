@@ -1,19 +1,26 @@
 package gateway_test
 
 import (
+	// standard library
 	"fmt"
 	"testing"
 
+	// third-party libraries
 	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	listener "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/listener"
-	v2http "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
+	// envoy api v2
+	apiv2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
+	apiv2_core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
+	apiv2_listener "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/listener"
+	apiv2_httpman "github.com/datawire/ambassador/v2/pkg/api/envoy/config/filter/network/http_connection_manager/v2"
+
+	// envoy control plane
+	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
+	ecp_wellknown "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
+
+	// first-party libraries
 	"github.com/datawire/ambassador/v2/pkg/gateway"
 	"github.com/datawire/dlib/dlog"
 )
@@ -179,7 +186,7 @@ func compile_Foo(f *Foo) *gateway.CompiledConfig {
 		CompiledItem: gateway.NewCompiledItem(gateway.SourceFromResource(f)),
 		Listeners: []*gateway.CompiledListener{
 			{
-				Listener: &v2.Listener{Name: f.Spec.Value},
+				Listener: &apiv2.Listener{Name: f.Spec.Value},
 			},
 		},
 	}
@@ -228,17 +235,17 @@ func compile_FooWithRouteConfigName(f *Foo) *gateway.CompiledConfig {
 	name := f.Spec.Value
 	rcName := fmt.Sprintf("%s-routeconfig", name)
 
-	hcm := &v2http.HttpConnectionManager{
+	hcm := &apiv2_httpman.HttpConnectionManager{
 		StatPrefix: name,
-		HttpFilters: []*v2http.HttpFilter{
-			{Name: wellknown.CORS},
-			{Name: wellknown.Router},
+		HttpFilters: []*apiv2_httpman.HttpFilter{
+			{Name: ecp_wellknown.CORS},
+			{Name: ecp_wellknown.Router},
 		},
-		RouteSpecifier: &v2http.HttpConnectionManager_Rds{
-			Rds: &v2http.Rds{
-				ConfigSource: &core.ConfigSource{
-					ConfigSourceSpecifier: &core.ConfigSource_Ads{
-						Ads: &core.AggregatedConfigSource{},
+		RouteSpecifier: &apiv2_httpman.HttpConnectionManager_Rds{
+			Rds: &apiv2_httpman.Rds{
+				ConfigSource: &apiv2_core.ConfigSource{
+					ConfigSourceSpecifier: &apiv2_core.ConfigSource_Ads{
+						Ads: &apiv2_core.AggregatedConfigSource{},
 					},
 				},
 				RouteConfigName: rcName,
@@ -250,14 +257,14 @@ func compile_FooWithRouteConfigName(f *Foo) *gateway.CompiledConfig {
 		panic(err)
 	}
 
-	l := &v2.Listener{
+	l := &apiv2.Listener{
 		Name: name,
-		FilterChains: []*listener.FilterChain{
+		FilterChains: []*apiv2_listener.FilterChain{
 			{
-				Filters: []*listener.Filter{
+				Filters: []*apiv2_listener.Filter{
 					{
-						Name:       wellknown.HTTPConnectionManager,
-						ConfigType: &listener.Filter_TypedConfig{TypedConfig: hcmAny},
+						Name:       ecp_wellknown.HTTPConnectionManager,
+						ConfigType: &apiv2_listener.Filter_TypedConfig{TypedConfig: hcmAny},
 					},
 				},
 			},
@@ -291,17 +298,17 @@ func TestDispatcherAssemblyWithEmptyRouteConfigName(t *testing.T) {
 func compile_FooWithEmptyRouteConfigName(f *Foo) *gateway.CompiledConfig {
 	name := f.Spec.Value
 
-	hcm := &v2http.HttpConnectionManager{
+	hcm := &apiv2_httpman.HttpConnectionManager{
 		StatPrefix: name,
-		HttpFilters: []*v2http.HttpFilter{
-			{Name: wellknown.CORS},
-			{Name: wellknown.Router},
+		HttpFilters: []*apiv2_httpman.HttpFilter{
+			{Name: ecp_wellknown.CORS},
+			{Name: ecp_wellknown.Router},
 		},
-		RouteSpecifier: &v2http.HttpConnectionManager_Rds{
-			Rds: &v2http.Rds{
-				ConfigSource: &core.ConfigSource{
-					ConfigSourceSpecifier: &core.ConfigSource_Ads{
-						Ads: &core.AggregatedConfigSource{},
+		RouteSpecifier: &apiv2_httpman.HttpConnectionManager_Rds{
+			Rds: &apiv2_httpman.Rds{
+				ConfigSource: &apiv2_core.ConfigSource{
+					ConfigSourceSpecifier: &apiv2_core.ConfigSource_Ads{
+						Ads: &apiv2_core.AggregatedConfigSource{},
 					},
 				},
 			},
@@ -312,14 +319,14 @@ func compile_FooWithEmptyRouteConfigName(f *Foo) *gateway.CompiledConfig {
 		panic(err)
 	}
 
-	l := &v2.Listener{
+	l := &apiv2.Listener{
 		Name: name,
-		FilterChains: []*listener.FilterChain{
+		FilterChains: []*apiv2_listener.FilterChain{
 			{
-				Filters: []*listener.Filter{
+				Filters: []*apiv2_listener.Filter{
 					{
-						Name:       wellknown.HTTPConnectionManager,
-						ConfigType: &listener.Filter_TypedConfig{TypedConfig: hcmAny},
+						Name:       ecp_wellknown.HTTPConnectionManager,
+						ConfigType: &apiv2_listener.Filter_TypedConfig{TypedConfig: hcmAny},
 					},
 				},
 			},
@@ -350,11 +357,11 @@ func TestDispatcherAssemblyWithoutRds(t *testing.T) {
 func compile_FooWithoutRds(f *Foo) *gateway.CompiledConfig {
 	name := f.Spec.Value
 
-	hcm := &v2http.HttpConnectionManager{
+	hcm := &apiv2_httpman.HttpConnectionManager{
 		StatPrefix: name,
-		HttpFilters: []*v2http.HttpFilter{
-			{Name: wellknown.CORS},
-			{Name: wellknown.Router},
+		HttpFilters: []*apiv2_httpman.HttpFilter{
+			{Name: ecp_wellknown.CORS},
+			{Name: ecp_wellknown.Router},
 		},
 	}
 	hcmAny, err := ptypes.MarshalAny(hcm)
@@ -362,17 +369,17 @@ func compile_FooWithoutRds(f *Foo) *gateway.CompiledConfig {
 		panic(err)
 	}
 
-	l := &v2.Listener{
+	l := &apiv2.Listener{
 		Name: name,
-		FilterChains: []*listener.FilterChain{
+		FilterChains: []*apiv2_listener.FilterChain{
 			{
-				Filters: []*listener.Filter{
+				Filters: []*apiv2_listener.Filter{
 					{
-						Name: wellknown.RateLimit,
+						Name: ecp_wellknown.RateLimit,
 					},
 					{
-						Name:       wellknown.HTTPConnectionManager,
-						ConfigType: &listener.Filter_TypedConfig{TypedConfig: hcmAny},
+						Name:       ecp_wellknown.HTTPConnectionManager,
+						ConfigType: &apiv2_listener.Filter_TypedConfig{TypedConfig: hcmAny},
 					},
 				},
 			},
@@ -396,8 +403,8 @@ func TestDispatcherAssemblyEndpointDefaulting(t *testing.T) {
 	require.NoError(t, err)
 	_, snap := disp.GetSnapshot(ctx)
 	found := false
-	for _, r := range snap.Resources[types.Endpoint].Items {
-		cla := r.(*v2.ClusterLoadAssignment)
+	for _, r := range snap.Resources[ecp_cache_types.Endpoint].Items {
+		cla := r.(*apiv2.ClusterLoadAssignment)
 		if cla.ClusterName == "foo" && len(cla.Endpoints) == 0 {
 			found = true
 		}

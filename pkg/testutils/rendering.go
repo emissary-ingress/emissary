@@ -1,15 +1,21 @@
 package testutils
 
 import (
+	// standard library
 	"fmt"
 	"sort"
 	"strings"
 
-	bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
-	http "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+	// envoy api v3
+	apiv3_bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
+	apiv3_httpman "github.com/datawire/ambassador/v2/pkg/api/envoy/extensions/filters/network/http_connection_manager/v3"
+
+	// envoy control plane
+	ecp_v3_resource "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v3"
+	ecp_wellknown "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
+
+	// first-party libraries
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/resource/v3"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/wellknown"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 )
 
@@ -218,7 +224,7 @@ type Candidate struct {
 	ActionArg string
 }
 
-func RenderEnvoyConfig(envoyConfig *bootstrap.Bootstrap) []RenderedListener {
+func RenderEnvoyConfig(envoyConfig *apiv3_bootstrap.Bootstrap) []RenderedListener {
 	renderedListeners := make([]RenderedListener, 0, 2)
 
 	for _, l := range envoyConfig.StaticResources.Listeners {
@@ -233,7 +239,7 @@ func RenderEnvoyConfig(envoyConfig *bootstrap.Bootstrap) []RenderedListener {
 			rchain := NewRenderedChain(chain.FilterChainMatch.ServerNames, chain.FilterChainMatch.TransportProtocol)
 
 			for _, filter := range chain.Filters {
-				if filter.Name != wellknown.HTTPConnectionManager {
+				if filter.Name != ecp_wellknown.HTTPConnectionManager {
 					// We only know how to create an rds listener for HttpConnectionManager
 					// listeners. We must ignore all other listeners.
 					continue
@@ -241,14 +247,14 @@ func RenderEnvoyConfig(envoyConfig *bootstrap.Bootstrap) []RenderedListener {
 
 				// Note that the hcm configuration is stored in a protobuf any, so make
 				// sure that GetHTTPConnectionManager is actually returning an unmarshalled copy.
-				hcm := resource.GetHTTPConnectionManager(filter)
+				hcm := ecp_v3_resource.GetHTTPConnectionManager(filter)
 				if hcm == nil {
 					continue
 				}
 
 				// RouteSpecifier is a protobuf oneof that corresponds to the rds, route_config, and
 				// scoped_routes fields. Only one of those may be set at a time.
-				rs, ok := hcm.RouteSpecifier.(*http.HttpConnectionManager_RouteConfig)
+				rs, ok := hcm.RouteSpecifier.(*apiv3_httpman.HttpConnectionManager_RouteConfig)
 				if !ok {
 					continue
 				}

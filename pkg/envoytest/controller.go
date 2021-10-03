@@ -1,22 +1,30 @@
 package envoytest
 
 import (
+	// standard library
 	"context"
 	"fmt"
 	"net"
 	"sync"
 	"testing"
 
-	v2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
-	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
-	discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v2"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
-	"github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v2"
-	"github.com/datawire/dlib/dhttp"
-	"github.com/datawire/dlib/dlog"
+	// third-party libraries
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
+
+	// envoy api v2
+	apiv2 "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2"
+	apiv2_core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
+	apiv2_discovery "github.com/datawire/ambassador/v2/pkg/api/envoy/service/discovery/v2"
+
+	// envoy control plane
+	ecp_cache_types "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/types"
+	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
+	ecp_v2_server "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/server/v2"
+
+	// first-party-libraries
+	"github.com/datawire/dlib/dhttp"
+	"github.com/datawire/dlib/dlog"
 )
 
 // EnvoyController runs a go control plane for envoy that tracks ACKS/NACKS for configuration
@@ -25,7 +33,7 @@ import (
 type EnvoyController struct {
 	address string
 
-	configCache cache.SnapshotCache
+	configCache ecp_v2_cache.SnapshotCache
 
 	// Protects the errors and outstanding fields.
 	cond        *sync.Cond
@@ -61,13 +69,13 @@ func NewEnvoyController(address string) *EnvoyController {
 		errors:      map[string]*errorInfo{},
 		outstanding: map[string]ackInfo{},
 	}
-	result.configCache = cache.NewSnapshotCache(true, result, result)
+	result.configCache = ecp_v2_cache.NewSnapshotCache(true, result, result)
 	return result
 }
 
 // Configure will update the envoy configuration and block until the reconfiguration either succeeds
 // or signals an error.
-func (e *EnvoyController) Configure(node, version string, snapshot cache.Snapshot) *status.Status {
+func (e *EnvoyController) Configure(node, version string, snapshot ecp_v2_cache.Snapshot) *status.Status {
 	err := e.configCache.SetSnapshot(node, snapshot)
 	if err != nil {
 		panic(err)
@@ -77,16 +85,16 @@ func (e *EnvoyController) Configure(node, version string, snapshot cache.Snapsho
 	// requested in order to figure out how to properly check that the entire snapshot was
 	// acked/nacked.
 	typeUrls := []string{}
-	if len(snapshot.Resources[types.Endpoint].Items) > 0 {
+	if len(snapshot.Resources[ecp_cache_types.Endpoint].Items) > 0 {
 		typeUrls = append(typeUrls, "type.googleapis.com/envoy.api.v2.ClusterLoadAssignment")
 	}
-	if len(snapshot.Resources[types.Cluster].Items) > 0 {
+	if len(snapshot.Resources[ecp_cache_types.Cluster].Items) > 0 {
 		typeUrls = append(typeUrls, "type.googleapis.com/envoy.api.v2.Cluster")
 	}
-	if len(snapshot.Resources[types.Route].Items) > 0 {
+	if len(snapshot.Resources[ecp_cache_types.Route].Items) > 0 {
 		typeUrls = append(typeUrls, "type.googleapis.com/envoy.api.v2.RouteConfiguration")
 	}
-	if len(snapshot.Resources[types.Listener].Items) > 0 {
+	if len(snapshot.Resources[ecp_cache_types.Listener].Items) > 0 {
 		typeUrls = append(typeUrls, "type.googleapis.com/envoy.api.v2.Listener")
 	}
 
@@ -127,13 +135,13 @@ func (e *EnvoyController) Run(ctx context.Context) error {
 	e.logCtx = ctx
 
 	grpcServer := grpc.NewServer()
-	srv := server.NewServer(ctx, e.configCache, e)
+	srv := ecp_v2_server.NewServer(ctx, e.configCache, e)
 
-	discovery.RegisterAggregatedDiscoveryServiceServer(grpcServer, srv)
-	v2.RegisterEndpointDiscoveryServiceServer(grpcServer, srv)
-	v2.RegisterClusterDiscoveryServiceServer(grpcServer, srv)
-	v2.RegisterRouteDiscoveryServiceServer(grpcServer, srv)
-	v2.RegisterListenerDiscoveryServiceServer(grpcServer, srv)
+	apiv2_discovery.RegisterAggregatedDiscoveryServiceServer(grpcServer, srv)
+	apiv2.RegisterEndpointDiscoveryServiceServer(grpcServer, srv)
+	apiv2.RegisterClusterDiscoveryServiceServer(grpcServer, srv)
+	apiv2.RegisterRouteDiscoveryServiceServer(grpcServer, srv)
+	apiv2.RegisterListenerDiscoveryServiceServer(grpcServer, srv)
 
 	lis, err := net.Listen("tcp", e.address)
 	if err != nil {
@@ -172,7 +180,7 @@ func SetupEnvoyController(t *testing.T, address string) *EnvoyController {
 }
 
 // ID is a callback function that the go control plane uses. I don't know what it does.
-func (e EnvoyController) ID(node *core.Node) string {
+func (e EnvoyController) ID(node *apiv2_core.Node) string {
 	if node == nil {
 		return "unknown"
 	}
@@ -191,7 +199,7 @@ func (e *EnvoyController) OnStreamClosed(sid int64) {
 }
 
 // OnStreamRequest is called once a request is received on a stream.
-func (e *EnvoyController) OnStreamRequest(sid int64, req *v2.DiscoveryRequest) error {
+func (e *EnvoyController) OnStreamRequest(sid int64, req *apiv2.DiscoveryRequest) error {
 	//e.Infof("Stream request[%v]: %v", sid, req.TypeUrl)
 
 	func() {
@@ -214,7 +222,7 @@ func (e *EnvoyController) OnStreamRequest(sid int64, req *v2.DiscoveryRequest) e
 }
 
 // OnStreamResponse is called immediately prior to sending a response on a stream.
-func (e *EnvoyController) OnStreamResponse(sid int64, req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
+func (e *EnvoyController) OnStreamResponse(sid int64, req *apiv2.DiscoveryRequest, res *apiv2.DiscoveryResponse) {
 	//e.Infof("Stream response[%v]: %v -> %v", sid, req.TypeUrl, res.Nonce)
 	func() {
 		e.cond.L.Lock()
@@ -224,13 +232,13 @@ func (e *EnvoyController) OnStreamResponse(sid int64, req *v2.DiscoveryRequest, 
 }
 
 // OnFetchRequest is called for each Fetch request
-func (e *EnvoyController) OnFetchRequest(_ context.Context, r *v2.DiscoveryRequest) error {
+func (e *EnvoyController) OnFetchRequest(_ context.Context, r *apiv2.DiscoveryRequest) error {
 	//e.Infof("Fetch request: %v", r)
 	return nil
 }
 
 // OnFetchResponse is called immediately prior to sending a response.
-func (e *EnvoyController) OnFetchResponse(req *v2.DiscoveryRequest, res *v2.DiscoveryResponse) {
+func (e *EnvoyController) OnFetchResponse(req *apiv2.DiscoveryRequest, res *apiv2.DiscoveryResponse) {
 	//e.Infof("Fetch response: %v -> %v", req, res)
 }
 
