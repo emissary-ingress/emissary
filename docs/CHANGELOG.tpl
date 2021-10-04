@@ -33,25 +33,29 @@ refer both to Emissary-ingress and to the Ambassador Edge Stack.
 
 #### TLS Termination and the `Host` CRD
 
-As of Ambassador 2.0.0, you _must_ supply a `Host` CRD to terminate TLS: it is not sufficient
-to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS configuration
-information to be shared across multiple `Host`s). The minimal configuration for TLS termination is
-now a certificate stored in a Kubernetes `Secret`, and a `Host` referring to that `Secret`.
+As of Emissary-ingress v2.0.4, you _must_ supply a `Host` CRD to terminate TLS: it is not
+sufficient to define a `TLSContext` (although `TLSContext`s are still the best way to define TLS
+configuration information to be shared across multiple `Host`s). The minimal configuration for
+TLS termination is now a certificate stored in a Kubernetes `Secret`, and a `Host` referring to
+that `Secret`.
+
+For Emissary-ingress v2.0.0 - v2.0.3, you must supply an `AmbassadorHost` CRD.
 
 #### `Ingress` Resources and Namespaces
 
-In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, TLS secrets
-in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
+In a future version of Emissary-ingress, *no sooner than Emissary-ingress v2.1.0*, TLS
+secrets in `Ingress` resources will not be able to use `.namespace` suffixes to cross namespaces.
 
 #### Regex Matching
 
-In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, the `regex_type` and `regex_max_size`
-fields will be removed from the `ambassador` `Module`, and Ambassador will support only Envoy `safe_regex`
-matching. Note that `safe_regex` matching has been Ambassador's default since Ambassador v0.83.0.
+In a future version of Emissary-ingress, *no sooner than Ambassador v2.1.0*, the `regex_type`
+and `regex_max_size` fields will be removed from the `ambassador` `Module`, and Ambassador Edge
+Stack will support only Envoy `safe_regex` matching. Note that `safe_regex` matching has been
+the default for all 1.X releases of Emissary-ingress.
 
-This change is being made because the `regex` field for `HeaderMatcher`, `RouteMatch`, and `StringMatcher` was
-[deprecated in favor of safe_regex] in Envoy v1.12.0, then removed entirely from the Envoy V3 APIs. Additionally,
-setting [max_program_size was deprecated] in Envoy v1.15.0. As such, `regex_type: unsafe` and setting
+This change is being made the original Envay `regex` matcher was [deprecated in favor of safe_regex]
+in Envoy v1.12.0, then removed entirely from the Envoy V3 APIs. Additionally, setting
+[max_program_size was deprecated] in Envoy v1.15.0. As such, `regex_type: unsafe` and setting 
 `regex_max_size` are no longer supported unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`.
 
 Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/type/matcher/v3/regex.proto.html) for more information.
@@ -61,13 +65,13 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 #### Zipkin Collector Versions
 
-In a future version of Ambassador, *no sooner than Ambassador 1.14.0*, support for the [HTTP_JSON_V1] Zipkin
-collector version will be removed.
+In a future version of Emissary-ingress, *no sooner than Emissary-ingress v2.1.0*, support
+for the [HTTP_JSON_V1] Zipkin collector version will be removed.
 
-This change is being made because the HTTP_JSON_V1 collector was deprecated in Envoy v1.12.0, then removed
-entirely from the Envoy V3 APIs. As such, the HTTP_JSON_V1 collector is no longer supported unless
-`AMBASSADOR_ENVOY_API_VERSION` is set to `V2`. You must migrate to either the HTTP_JSON or the HTTP_PROTO
-collector unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`.
+This change is being made because the HTTP_JSON_V1 collector was deprecated in Envoy v1.12.0, then
+removed entirely from the Envoy V3 APIs. As such, the HTTP_JSON_V1 collector is no longer supported
+unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`. You must migrate to either the HTTP_JSON or
+the HTTP_PROTO collector unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`.
 
 Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version) for more information.
 
