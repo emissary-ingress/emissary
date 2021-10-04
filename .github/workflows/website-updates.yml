@@ -72,11 +72,11 @@ jobs:
         run: |
           set -x
           export LONG=${{steps.version.outputs.version}}
-          export SHORT=${LONG%.*-*}
+          export SHORT=$(echo ${LONG%.*-*} | cut -d. -f1-2)
           #export ITEM=$(cat /tmp/item.yml)
           #yq eval-all '.items |= [env(ITEM)] + .' /tmp/getambassador.io/ambassador-docs/docs/edge-stack/$SHORT/releaseNotes.yml
           #yq eval-all '.items |= [env(ITEM)] + .' /tmp/getambassador.io/ambassador-docs/docs/emissary/$SHORT/releaseNotes.yml
-          cp docs/releaseNotes.yml /tmp/getambassador.io/ambassador-docs/docs/edge-stack/$SHORT/releaseNotes.yml
+          # cp docs/releaseNotes.yml /tmp/getambassador.io/ambassador-docs/docs/edge-stack/$SHORT/releaseNotes.yml
           cp docs/releaseNotes.yml /tmp/getambassador.io/ambassador-docs/docs/emissary/$SHORT/releaseNotes.yml
           
       - name: Prerelease docs update
@@ -87,7 +87,7 @@ jobs:
           #export ITEM=$(cat /tmp/item.yml)
           #yq eval-all '.items |= [env(GITEM)] + .' /tmp/getambassador.io/ambassador-docs/docs/edge-stack/pre-release/releaseNotes.yml
           #yq eval-all '.items |= [env(GITEM)] + .' /tmp/getambassador.io/ambassador-docs/docs/emissary/pre-release/releaseNotes.yml
-          cp docs/releaseNotes.yml /tmp/getambassador.io/ambassador-docs/docs/edge-stack/pre-release/releaseNotes.yml
+          # cp docs/releaseNotes.yml /tmp/getambassador.io/ambassador-docs/docs/edge-stack/pre-release/releaseNotes.yml
           cp docs/releaseNotes.yml /tmp/getambassador.io/ambassador-docs/docs/emissary/pre-release/releaseNotes.yml
 
       - name: Update website repo
