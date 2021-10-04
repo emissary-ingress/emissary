@@ -170,14 +170,17 @@ func getAmbSnapshotInfo(url string) (*snapshotTypes.Snapshot, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	rawSnapshot, err := ioutil.ReadAll(resp.Body)
+	snapshotBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-	ret := &snapshotTypes.Snapshot{}
-	err = json.Unmarshal(rawSnapshot, ret)
 
-	return ret, err
+	var snapshotStruct snapshotTypes.Snapshot
+	if err := json.Unmarshal(snapshotBytes, &snapshotStruct); err != nil {
+		return nil, err
+	}
+
+	return &snapshotStruct, nil
 }
 
 func parseAmbassadorAdminHost(rawurl string) (string, error) {
@@ -431,10 +434,11 @@ func (a *Agent) watch(ctx context.Context, snapshotURL string, configAccumulator
 			snapshot, err := getAmbSnapshotInfo(snapshotURL)
 			if err != nil {
 				dlog.Warnf(ctx, "Error getting snapshot from ambassador %+v", err)
-			}
-			dlog.Debug(ctx, "Received snapshot in agent")
-			if err = a.ProcessSnapshot(ctx, snapshot, ambHost); err != nil {
-				dlog.Warnf(ctx, "error processing snapshot: %+v", err)
+			} else {
+				dlog.Debug(ctx, "Received snapshot in agent")
+				if err = a.ProcessSnapshot(ctx, *snapshot, ambHost); err != nil {
+					dlog.Warnf(ctx, "error processing snapshot: %+v", err)
+				}
 			}
 		}
 
@@ -509,8 +513,8 @@ func (a *Agent) MaybeReport(ctx context.Context) {
 // send to the Director. If the new report is semantically different from the
 // prior one sent, then the Agent's state is updated to indicate that reporting
 // should occur once again.
-func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Snapshot, ambHost string) error {
-	if snapshot == nil || snapshot.AmbassadorMeta == nil {
+func (a *Agent) ProcessSnapshot(ctx context.Context, snapshot snapshotTypes.Snapshot, ambHost string) error {
+	if snapshot.AmbassadorMeta == nil {
 		dlog.Warn(ctx, "No metadata discovered for snapshot, not reporting.")
 		return nil
 	}

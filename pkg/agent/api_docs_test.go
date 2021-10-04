@@ -196,7 +196,7 @@ func TestAPIDocsStore(t *testing.T) {
 			ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 			defer cancel()
 
-			snapshot := &snapshotTypes.Snapshot{
+			snapshot := snapshotTypes.Snapshot{
 				Kubernetes: &snapshotTypes.KubernetesSnapshot{
 					Mappings: c.mappings,
 				},
@@ -210,7 +210,7 @@ func TestAPIDocsStore(t *testing.T) {
 			assert.Equal(t, c.expectedSOTW, store.StateOfWorld())
 
 			// Processing an empty snapshot should be ignored and not change the state of the world
-			store.ProcessSnapshot(ctx, &snapshotTypes.Snapshot{})
+			store.ProcessSnapshot(ctx, snapshotTypes.Snapshot{})
 			assert.Equal(t, c.expectedSOTW, store.StateOfWorld())
 		})
 	}

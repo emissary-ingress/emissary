@@ -50,7 +50,7 @@ func NewAPIDocsStore() *APIDocsStore {
 
 // ProcessSnapshot will query the required services to retrieve the API documentation for each
 // of the Mappings in the snapshot. It will execute at most once every minute.
-func (a *APIDocsStore) ProcessSnapshot(ctx context.Context, snapshot *snapshotTypes.Snapshot) {
+func (a *APIDocsStore) ProcessSnapshot(ctx context.Context, snapshot snapshotTypes.Snapshot) {
 	a.processingSnapshotMutex.Lock()
 	defer a.processingSnapshotMutex.Unlock()
 
@@ -86,12 +86,12 @@ func (a *APIDocsStore) StateOfWorld() []*snapshotTypes.APIDoc {
 	return toAPIDocs(a.store.getAll())
 }
 
-func getProcessableMappingsFromSnapshot(snapshot *snapshotTypes.Snapshot) []*amb.Mapping {
-	processableMappings := []*amb.Mapping{}
-	if snapshot == nil || snapshot.Kubernetes == nil {
-		return processableMappings
+func getProcessableMappingsFromSnapshot(snapshot snapshotTypes.Snapshot) []*amb.Mapping {
+	if snapshot.Kubernetes == nil {
+		return nil
 	}
 
+	var processableMappings []*amb.Mapping
 	for _, mapping := range snapshot.Kubernetes.Mappings {
 		if mapping == nil {
 			continue

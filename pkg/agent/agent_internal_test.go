@@ -210,7 +210,7 @@ func TestProcessSnapshot(t *testing.T) {
 		// name of test (passed to t.Run())
 		testName string
 		// snapshot to call ProcessSnapshot with
-		inputSnap *snapshotTypes.Snapshot
+		inputSnap snapshotTypes.Snapshot
 		// expected return value of ProcessSnapshot
 		ret error
 		// expected value of inputSnap.reportToSend after calling ProcessSnapshot
@@ -225,17 +225,16 @@ func TestProcessSnapshot(t *testing.T) {
 		{
 			// Totally nil inputs should not error and not panic, and should not set
 			// snapshot.reportToSend
-			testName:  "nil-snapshot",
-			inputSnap: nil,
-			ret:       nil,
-			res:       nil,
+			testName: "nil-snapshot",
+			ret:      nil,
+			res:      nil,
 		},
 		{
 			// If no ambassador modules exist in the snapshot, we should not try to send
 			// a report.
 			// More granular tests for this are in report_test.go
 			testName: "no-modules",
-			inputSnap: &snapshotTypes.Snapshot{
+			inputSnap: snapshotTypes.Snapshot{
 				AmbassadorMeta: &snapshotTypes.AmbassadorMetaInfo{},
 				Kubernetes:     &snapshotTypes.KubernetesSnapshot{},
 			},
@@ -245,7 +244,7 @@ func TestProcessSnapshot(t *testing.T) {
 		{
 			// if we let address be an empty string, the defaults should get set
 			testName: "default-connection-info",
-			inputSnap: &snapshotTypes.Snapshot{
+			inputSnap: snapshotTypes.Snapshot{
 				AmbassadorMeta: &snapshotTypes.AmbassadorMetaInfo{
 					AmbassadorID:      "default",
 					ClusterID:         "dopecluster",
@@ -273,7 +272,7 @@ func TestProcessSnapshot(t *testing.T) {
 			// ambassador module's CEPC config
 			testName: "module-contains-connection-info",
 			address:  "http://somecooladdress:1234",
-			inputSnap: &snapshotTypes.Snapshot{
+			inputSnap: snapshotTypes.Snapshot{
 				AmbassadorMeta: &snapshotTypes.AmbassadorMetaInfo{
 					AmbassadorID:      "default",
 					AmbassadorVersion: "v1.1",
@@ -301,7 +300,7 @@ func TestProcessSnapshot(t *testing.T) {
 			// if the agent has pods that match the service selector labels, it should
 			// return those pods in the snapshot
 			testName: "pods-in-snapshot",
-			inputSnap: &snapshotTypes.Snapshot{
+			inputSnap: snapshotTypes.Snapshot{
 				AmbassadorMeta: &snapshotTypes.AmbassadorMetaInfo{
 					AmbassadorID:      "default",
 					ClusterID:         "dopecluster",
