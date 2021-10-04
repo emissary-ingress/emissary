@@ -72,7 +72,7 @@ jobs:
         run: |
           set -x
           export LONG=${{steps.version.outputs.version}}
-          export SHORT=${LONG%.*-*}
+          export SHORT=$(echo ${LONG%.*-*} | cut -d. -f1-2)
           #export ITEM=$(cat /tmp/item.yml)
           #yq eval-all '.items |= [env(ITEM)] + .' /tmp/getambassador.io/ambassador-docs/docs/edge-stack/$SHORT/releaseNotes.yml
           #yq eval-all '.items |= [env(ITEM)] + .' /tmp/getambassador.io/ambassador-docs/docs/emissary/$SHORT/releaseNotes.yml
