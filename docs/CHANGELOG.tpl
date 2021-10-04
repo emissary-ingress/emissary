@@ -1,4 +1,4 @@
-# CHANGELOG -- this is a GENERATED FILE, edit docs/releaseNotes.yml and "make generate" to change.
+# CHANGELOG -- this is {{/* NOT */}}a GENERATED FILE, edit docs/releaseNotes.yml and "make generate" to change.
 
 ## EMISSARY-INGRESS and AMBASSADOR EDGE STACK
 
@@ -55,7 +55,7 @@ the default for all 1.X releases of Emissary-ingress.
 
 This change is being made the original Envay `regex` matcher was [deprecated in favor of safe_regex]
 in Envoy v1.12.0, then removed entirely from the Envoy V3 APIs. Additionally, setting
-[max_program_size was deprecated] in Envoy v1.15.0. As such, `regex_type: unsafe` and setting 
+[max_program_size was deprecated] in Envoy v1.15.0. As such, `regex_type: unsafe` and setting
 `regex_max_size` are no longer supported unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`.
 
 Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/type/matcher/v3/regex.proto.html) for more information.
