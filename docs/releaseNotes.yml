@@ -32,22 +32,22 @@ items:
   - version: 2.0.4
     date: "TBD"
     notes:
-      - title: Developer Preview!
+      - title: General availability for new installations!
+        type: feature
         body: >-
-          We're pleased to introduce $productName$ 2.0.4 for general availability for new 
+          We're pleased to introduce $productName$ 2.0.4 for general availability for new
           installations! The 2.X family introduces a number of changes to allow $productName$
           to more gracefully handle larger installations, reduce global configuration to better
           handle multitenant or multiorganizational installations, reduce memory footprint, and
           improve performance. We welcome feedback!! Join us on
           <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
-        type: change
         isHeadline: true
         docs: about/changes-2.0.0
 
-      - type: change
-        title: API version getambassador.io/v3alpha1
+      - title: API version getambassador.io/v3alpha1
+        type: change
         body: >-
-          The <code>x.getambassador.io/v3alpha1</code> API version has become the 
+          The <code>x.getambassador.io/v3alpha1</code> API version has become the
           <code>getambassador.io/v3alpha1</code> API version. The <code>Ambassador-</code>
           prefixes from <code>x.getambassador.io/v3alpha1</code> resources have been
           removed for ease of migration. <b>Note that <code>getambassador.io/v3alpha1</code>
@@ -55,17 +55,25 @@ items:
           <code>getambassador.io/v2</code> will arrive soon in a later 2.X version.
         docs: about/changes-2.0.0
 
-      - type: bugfix
-        title: Version number reported correctly
+      - title: Version number reported correctly
+        type: bugfix
         body: >-
           The release now shows its actual released version number, rather than
           the internal development version number.
+        github:
+        - title: "#3854"
+          link: https://github.com/emissary-ingress/emissary/issues/3854
+        docs: https://github.com/emissary-ingress/emissary/issues/3854
 
-      - type: bugfix
-        bugfix: Agent handles large configurations
+      - title: Large configurations work correctly with Ambassador Cloud
+        type: bugfix
         body: >-
-          Large configurations no longer cause the agent to be unable
+          Large configurations no longer cause $productName$ to be unable
           to communicate with Ambassador Cloud.
+        github:
+        - title: "#3593"
+          link: https://github.com/emissary-ingress/emissary/issues/3593
+        docs: https://github.com/emissary-ingress/emissary/issues/3593
 
   - version: 2.0.3-ea
     date: '2021-09-16'
@@ -270,4 +278,164 @@ items:
         docs: topics/install/helm/
         type: change
 
-# This file should contain only 2.0.0 and higher.
+
+  - version: 1.14.2
+    date: '2021-09-27'
+    notes:
+      - title: Mappings support controlling DNS refresh with DNS TTL 
+        type: feature
+        body: >-
+          You can now set <code>respect_dns_ttl</code> to <code>true</code> to force the
+          DNS refresh rate for a <code>Mapping</code> to be set to the record's TTL
+          obtained from DNS resolution.
+        docs: topics/using/mappings/#dns-configuration-for-mappings
+
+      - title: Mappings support configuring strict or logical DNS
+        type: feature
+        body: >-
+          You can now set <code>dns_type</code> between <code>strict_dns</code> and
+          <code>logical_dns</code> in a <code>Mapping</code> to configure the Service
+          Discovery Type.
+        docs: topics/using/mappings/#dns-configuration-for-mappings
+
+      - title: Support configuring upstream buffer sizes
+        type: feature
+        body: >-
+          You can now set <code>buffer_limit_bytes</code> in the <code>ambassador</code>
+          <code>Module</code> to to change the size of the upstream read and write buffers.
+          The default is 1MiB. 
+        docs: topics/running/ambassador/#modify-default-buffer-size
+
+  - version: 1.14.1
+    date: '2021-08-24'
+    notes:
+      - title: Envoy security updates
+        type: change
+        body: >-
+          Upgraded envoy to 1.17.4 to address security vulnerabilities CVE-2021-32777, CVE-2021-32778, CVE-2021-32779,
+          and CVE-2021-32781.
+        docs: https://groups.google.com/g/envoy-announce/c/5xBpsEZZDfE
+
+  - version: 1.14.0
+    date: "2021-08-19"
+    notes:
+      - title: Envoy upgraded to 1.17.3!
+        type: change
+        body: "Upgraded Envoy from 1.15 to 1.17.3, see the <a href=\"https://www.envoyproxy.io/docs/envoy/latest/version_history/version_history\">Envoy changelog</a> for more information"
+        docs: https://www.envoyproxy.io/docs/envoy/latest/version_history/version_history
+
+      - title: Expose Envoy's allow_chunked_length HTTPProtocolOption
+        type: feature
+        body: "You can now set <code>allow_chunked_length</code> in the Ambassador Module to configure the same value in Envoy"
+        docs: topics/running/ambassador/#content-length-headers
+
+      - title: Default Envoy API version is now V3
+        type: change
+        body: The default Envoy API version has changed from V2 to V3, as V2 has fallen out of support, and has been removed as of Envoy 1.18.0.
+        docs: https://www.getambassador.io/docs/edge-stack/latest/topics/running/running/#ambassador_envoy_api_version
+
+      - title: Subsecond time resolution in logs
+        type: change
+        body: Logs now include subsecond time resolutions, rather than just seconds.
+        docs: https://github.com/emissary-ingress/emissary/pull/3650
+
+  - version: 1.13.10
+    date: '2021-07-27'
+    notes:
+      - title: Fix for CORS origins configuration on the Mapping resource
+        type: bugfix
+        body: "Fixed a regression when specifying a comma separated string for <code>cors.origins</code> on the <code>Mapping</code> resource"
+        docs: topics/using/cors
+        image: ../images/emissary-1.13.10-cors-origin.png
+
+      - title: New Envoy-configuration snapshots for debugging
+        body: "Envoy-configuration snapshots get saved (as <code>ambex-#.json</code>) in <code>/ambassador/snapshots</code>. The number of snapshots is controlled by the <code>AMBASSADOR_AMBEX_SNAPSHOT_COUNT</code> environment variable; set it to 0 to disable. The default is 30."
+        type: change
+        docs: topics/running/environment/
+
+      - title: Optionally remove ratelimiting for Envoy reconfiguration
+        body: "Set <code>AMBASSADOR_AMBEX_NO_RATELIMIT</code> to <code>true</code> to completely disable ratelimiting Envoy reconfiguration under memory pressure. This can help performance with the endpoint or Consul resolvers, but could make OOMkills more likely with large configurations."
+        type: change
+        docs: topics/running/environment/
+
+  - version: 1.13.9
+    date: '2021-06-30'
+    notes:
+      - title: Fix for TCPMappings
+        body: "Fixed a bug which caused $productName$ to generate invalid Envoy configuration when two TCPMappings were deployed with the same port, but different host."
+        type: bugfix
+        docs: topics/using/tcpmappings/
+
+  - version: 1.13.8
+    date: '2021-06-08'
+    notes:
+      - title: Fix Ambassador Cloud Service Details
+        body: "Fixed a bug that occasionally caused missing version information for a service in the Ambassador Service Catalog, especially in clusters with high pod churn."
+        type: bugfix
+        docs: tutorials/getting-started/#3-connect-your-cluster-to-ambassador-cloud
+        image: ../images/edge-stack-1.13.8-cloud-bugfix.png
+
+      - title: Improved Argo Rollouts Experience with Ambassador Cloud
+        body: "Ambassador Agent now reports the state of ArgoCD configurations and Deployments in order to provide proper configurations to the users while setting up the Argo Rollouts feature."
+        type: feature
+        docs: https://www.getambassador.io/docs/argo
+
+  - version: 1.13.7
+    date: '2021-06-03'
+    notes:
+      - title: JSON logging support
+        body: "An <code>AMBASSADOR_JSON_LOGGING</code> environment variable has been added. When set to <code>true</code> JSON format will be used for most of the control plane logs. Some (but few) logs from <code>gunicorn</code> and the Kubernetes <code>client-go</code> package will still be in text only format."
+        image: ../images/edge-stack-1.13.7-json-logging.png
+        docs: topics/running/running/#log-format
+        type: feature
+
+      - title: Consul resolver bugfix with TCPMappings
+        body: "The TCPMapping has the ability to specify a resolver, however the <code>ConsulResolver</code> did not work properly with it. It now utilizes the Consul Connect service discovery instead of falling back to attempting to register an arbitrary endpoint."
+        image: ../images/edge-stack-1.13.7-tcpmapping-consul.png
+        docs: topics/running/resolvers/#the-consul-resolver
+        type: bugfix
+
+      - title: Memory usage calculation improvements
+        body: "The internal memory usage calculation that $productName$ performs has been updated to exclude cache memory. This now matches how the kernel OOMKiller calculates memory and should avoid situations where Envoy updates are throttled unnecessarily."
+        image: ../images/edge-stack-1.13.7-memory.png
+        docs: topics/running/scaling/#inspecting-ambassador-performance
+        type: change
+
+  - version: 1.13.6
+    date: '2021-05-24'
+    notes:
+      - title: Quieter logs in legacy mode
+        type: bugfix
+        body: >-
+          Fixed a regression where Ambassador snapshot data was logged at the INFO label
+          when using <code>AMBASSADOR_LEGACY_MODE=true</code>.
+
+  - version: 1.13.5
+    date: '2021-05-13'
+    notes:
+      - title: Correctly support proper_case and preserve_external_request_id
+        type: bugfix
+        body: >-
+          Fix a regression from 1.8.0 that prevented <code>ambassador</code> <code>Module</code>
+          config keys <code>proper_case</code> and <code>preserve_external_request_id</code> from
+          working correctly.
+        docs: topics/running/ambassador/#header-case
+
+      - title: Correctly support Ingress statuses in all cases
+        type: bugfix
+        body: >-
+          Fixed a regression in detecting the Ambassador Kubernetes service that could
+          cause the wrong IP or hostname to be used in Ingress statuses (thanks,
+          [Noah Fontes](https://github.com/impl)!
+        docs: topics/running/ingress-controller
+
+  - version: 1.13.4
+    date: '2021-05-13'
+    notes:
+      - title: Envoy 1.15.5
+        body: $productName$ has been updated to Envoy 1.15.5, which addresses a high severity security vulnerability (CVE-2021-29492). $productName$ can now be configured to reject client requests that contain escaped slashes.
+        image: ../images/edge-stack-1.13.4.png
+        docs: topics/running/ambassador/#rejecting-client-requests-with-escaped-slashes
+        type: security
+
+# Don't go any further back than 1.13.4.
