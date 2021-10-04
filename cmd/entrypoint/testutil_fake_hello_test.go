@@ -16,7 +16,7 @@ import (
 	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
 	v3cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
 	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 )
 
 // The Fake struct is a test harness for edgestack. It spins up the key portions of the edgestack
@@ -53,7 +53,7 @@ func TestFakeHello(t *testing.T) {
 	// whatever conditions are being tested. This allows the test to verify that the correct
 	// computation is occurring without being overly prescriptive about the exact number of
 	// snapshots and/or envoy configs that are produce to achieve a certain result.
-	snap, err := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
+	snap, err := f.GetSnapshot(func(snap *snapshotTypes.Snapshot) bool {
 		return len(snap.Kubernetes.Mappings) > 0
 	})
 	require.NoError(t, err)
@@ -81,7 +81,7 @@ func TestFakeHelloWithEnvoyConfig(t *testing.T) {
 
 	// Grab the next snapshot that has mappings. The v3bootstrap logic should actually gaurantee this
 	// is also the first mapping, but we aren't trying to test that here.
-	snap, err := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
+	snap, err := f.GetSnapshot(func(snap *snapshotTypes.Snapshot) bool {
 		return len(snap.Kubernetes.Mappings) > 0
 	})
 	require.NoError(t, err)
@@ -130,7 +130,7 @@ func FindCluster(envoyConfig *v3bootstrap.Bootstrap, predicate func(*v3cluster.C
 	return nil
 }
 
-func deltaSummary(snap *snapshot.Snapshot) []string {
+func deltaSummary(snap *snapshotTypes.Snapshot) []string {
 	summary := []string{}
 
 	var typestr string
@@ -221,7 +221,7 @@ func TestFakeHelloConsul(t *testing.T) {
 	// Grab the next snapshot that has both mappings, tcpmappings, and a Consul resolver. The v3bootstrap logic
 	// should actually guarantee this is also the first mapping, but we aren't trying to test
 	// that here.
-	snap, err := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
+	snap, err := f.GetSnapshot(func(snap *snapshotTypes.Snapshot) bool {
 		return (len(snap.Kubernetes.Mappings) > 0) && (len(snap.Kubernetes.TCPMappings) > 0) && (len(snap.Kubernetes.ConsulResolvers) > 0)
 	})
 	require.NoError(t, err)
@@ -296,7 +296,7 @@ spec:
 	f.Flush()
 
 	// Repeat the snapshot checks. We must have mappings and consulresolvers...
-	snap, err = f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
+	snap, err = f.GetSnapshot(func(snap *snapshotTypes.Snapshot) bool {
 		return (len(snap.Kubernetes.Mappings) > 0) && (len(snap.Kubernetes.TCPMappings) > 0) && (len(snap.Kubernetes.ConsulResolvers) > 0)
 	})
 	require.NoError(t, err)
@@ -330,7 +330,7 @@ spec:
 	f.Flush()
 
 	// Repeat all the checks.
-	snap, err = f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
+	snap, err = f.GetSnapshot(func(snap *snapshotTypes.Snapshot) bool {
 		return (len(snap.Kubernetes.Mappings) > 0) && (len(snap.Kubernetes.TCPMappings) > 0) && (len(snap.Kubernetes.ConsulResolvers) > 0)
 	})
 	require.NoError(t, err)

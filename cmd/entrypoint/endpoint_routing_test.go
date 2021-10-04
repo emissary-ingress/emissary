@@ -16,7 +16,7 @@ import (
 	v3cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 )
 
 func TestEndpointRouting(t *testing.T) {
@@ -186,8 +186,8 @@ func ClusterNameContains(substring string) func(*v3cluster.Cluster) bool {
 	}
 }
 
-func HasService(namespace, name string) func(snapshot *snapshot.Snapshot) bool {
-	return func(snapshot *snapshot.Snapshot) bool {
+func HasService(namespace, name string) func(snapshot *snapshotTypes.Snapshot) bool {
+	return func(snapshot *snapshotTypes.Snapshot) bool {
 		for _, m := range snapshot.Kubernetes.Services {
 			if m.Namespace == namespace && m.Name == name {
 				return true
@@ -197,8 +197,8 @@ func HasService(namespace, name string) func(snapshot *snapshot.Snapshot) bool {
 	}
 }
 
-func HasMapping(namespace, name string) func(snapshot *snapshot.Snapshot) bool {
-	return func(snapshot *snapshot.Snapshot) bool {
+func HasMapping(namespace, name string) func(snapshot *snapshotTypes.Snapshot) bool {
+	return func(snapshot *snapshotTypes.Snapshot) bool {
 		for _, m := range snapshot.Kubernetes.Mappings {
 			if m.Namespace == namespace && m.Name == name {
 				return true

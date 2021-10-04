@@ -10,10 +10,10 @@ import (
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
 	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 )
 
-func AnySnapshot(_ *snapshot.Snapshot) bool {
+func AnySnapshot(_ *snapshotTypes.Snapshot) bool {
 	return true
 }
 

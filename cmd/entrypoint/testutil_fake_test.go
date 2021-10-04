@@ -16,7 +16,7 @@ import (
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/consulwatch"
 	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dlog"
@@ -76,7 +76,7 @@ type Fake struct {
 	// This is used to make Teardown idempotent.
 	teardownOnce sync.Once
 
-	ambassadorMeta *snapshot.AmbassadorMetaInfo
+	ambassadorMeta *snapshotTypes.AmbassadorMetaInfo
 }
 
 // FakeConfig provides option when constructing a new Fake.
@@ -127,7 +127,7 @@ func NewFake(t *testing.T, config FakeConfig) *Fake {
 
 // RunFake will create a new fake, invoke its Setup method and register its Teardown method as a
 // Cleanup function with the test object.
-func RunFake(t *testing.T, config FakeConfig, ambMeta *snapshot.AmbassadorMetaInfo) *Fake {
+func RunFake(t *testing.T, config FakeConfig, ambMeta *snapshotTypes.AmbassadorMetaInfo) *Fake {
 	fake := NewFake(t, config)
 	fake.SetAmbassadorMeta(ambMeta)
 	fake.Setup()
@@ -225,7 +225,7 @@ func (f *Fake) AssertEndpointsEmpty(timeout time.Duration) {
 
 type SnapshotEntry struct {
 	Disposition SnapshotDisposition
-	Snapshot    *snapshot.Snapshot
+	Snapshot    *snapshotTypes.Snapshot
 }
 
 // We pass this into the watcher loop to get notified when a snapshot is produced.
@@ -237,7 +237,7 @@ func (f *Fake) notifySnapshot(ctx context.Context, disp SnapshotDisposition, sna
 		f.appendEnvoyConfig(ctx)
 	}
 
-	var snap *snapshot.Snapshot
+	var snap *snapshotTypes.Snapshot
 	err := json.Unmarshal(snapJSON, &snap)
 	if err != nil {
 		f.T.Fatalf("error decoding snapshot: %+v", err)
@@ -260,7 +260,7 @@ func (f *Fake) GetSnapshotEntry(predicate func(SnapshotEntry) bool) (SnapshotEnt
 }
 
 // GetSnapshot will return the next snapshot that satisfies the supplied predicate.
-func (f *Fake) GetSnapshot(predicate func(*snapshot.Snapshot) bool) (*snapshot.Snapshot, error) {
+func (f *Fake) GetSnapshot(predicate func(*snapshotTypes.Snapshot) bool) (*snapshotTypes.Snapshot, error) {
 	entry, err := f.GetSnapshotEntry(func(entry SnapshotEntry) bool {
 		return entry.Disposition == SnapshotReady && predicate(entry.Snapshot)
 	})
@@ -304,7 +304,7 @@ func (f *Fake) Flush() {
 }
 
 // sets the ambassador meta info that should get sent in each snapshot
-func (f *Fake) SetAmbassadorMeta(ambMeta *snapshot.AmbassadorMetaInfo) {
+func (f *Fake) SetAmbassadorMeta(ambMeta *snapshotTypes.AmbassadorMetaInfo) {
 	f.ambassadorMeta = ambMeta
 }
 

@@ -14,7 +14,7 @@ import (
 	bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
 	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/ambassador/v2/pkg/testutils"
 )
 
@@ -75,7 +75,7 @@ func testSemanticSet(t *testing.T, inputFile string, expectedFile string) {
 	require.NoError(t, f.UpsertFile(inputFile))
 	f.Flush()
 
-	snap, err := f.GetSnapshot(func(snapshot *snapshot.Snapshot) bool {
+	snap, err := f.GetSnapshot(func(snapshot *snapshotTypes.Snapshot) bool {
 		// XXX Ew. Switch to a dict, FFS.
 		for _, mapping := range neededMappings {
 			mappingNamespace := mapping.Namespace

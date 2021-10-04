@@ -16,7 +16,7 @@ import (
 	ecp_v2_cache "github.com/datawire/ambassador/v2/pkg/envoy-control-plane/cache/v2"
 	"github.com/datawire/ambassador/v2/pkg/gateway"
 	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
+	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/ambassador/v2/pkg/watt"
 	"github.com/datawire/dlib/dlog"
 )
@@ -76,8 +76,8 @@ func watcher(
 	)
 }
 
-func getAmbassadorMeta(ambassadorID string, clusterID string, version string, client *kates.Client) *snapshot.AmbassadorMetaInfo {
-	ambMeta := &snapshot.AmbassadorMetaInfo{
+func getAmbassadorMeta(ambassadorID string, clusterID string, version string, client *kates.Client) *snapshotTypes.AmbassadorMetaInfo {
+	ambMeta := &snapshotTypes.AmbassadorMetaInfo{
 		ClusterID:         clusterID,
 		AmbassadorID:      ambassadorID,
 		AmbassadorVersion: version,
@@ -161,7 +161,7 @@ func watcherLoop(
 	istioCertSrc IstioCertSource,
 	snapshotProcessor SnapshotProcessor,
 	fastpathProcessor FastpathProcessor,
-	ambassadorMeta *snapshot.AmbassadorMetaInfo,
+	ambassadorMeta *snapshotTypes.AmbassadorMetaInfo,
 ) error {
 	// Ambassador has three sources of inputs: kubernetes, consul, and the filesystem. The job of
 	// the watcherLoop is to read updates from all three of these sources, assemble them into a
@@ -279,13 +279,13 @@ type SnapshotHolder struct {
 	validator *resourceValidator
 
 	// Ambassadro meta info to pass along in the snapshot.
-	ambassadorMeta *snapshot.AmbassadorMetaInfo
+	ambassadorMeta *snapshotTypes.AmbassadorMetaInfo
 
 	// These two fields represent the view of the kubernetes world and the view of the consul
 	// world. This view is constructed from the raw data given to us from each respective source,
 	// plus additional fields that are computed based on the raw data. These are cumulative values,
 	// they always represent the entire state of their respective worlds.
-	k8sSnapshot    *snapshot.KubernetesSnapshot
+	k8sSnapshot    *snapshotTypes.KubernetesSnapshot
 	consulSnapshot *watt.ConsulSnapshot
 	// XXX: you would expect there to be an analogous snapshot for istio secrets, however the istio
 	// source works by directly munging the k8sSnapshot.
@@ -308,7 +308,7 @@ type SnapshotHolder struct {
 	firstReconfig bool
 }
 
-func NewSnapshotHolder(ambassadorMeta *snapshot.AmbassadorMetaInfo) (*SnapshotHolder, error) {
+func NewSnapshotHolder(ambassadorMeta *snapshotTypes.AmbassadorMetaInfo) (*SnapshotHolder, error) {
 	disp := gateway.NewDispatcher()
 	err := disp.Register("Gateway", func(untyped kates.Object) (*gateway.CompiledConfig, error) {
 		return gateway.Compile_Gateway(untyped.(*gw.Gateway))
@@ -558,7 +558,7 @@ func (sh *SnapshotHolder) Notify(
 			return nil
 		}
 
-		sn := &snapshot.Snapshot{
+		sn := &snapshotTypes.Snapshot{
 			Kubernetes:     sh.k8sSnapshot,
 			Consul:         sh.consulSnapshot,
 			Invalid:        sh.validator.getInvalid(),

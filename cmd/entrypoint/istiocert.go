@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/v2/pkg/kates"
-	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
@@ -112,7 +111,7 @@ func (imgr *istioCertWatchManager) Changed() chan IstioCertUpdate {
 // Update actually does the work of updating our internal state with changes. The
 // istioCertWatchManager isn't allowed to short-circuit early: it's assumed that
 // any update is relevant.
-func (imgr *istioCertWatchManager) Update(ctx context.Context, icertUpdate IstioCertUpdate, k8sSnapshot *snapshot.KubernetesSnapshot) {
+func (imgr *istioCertWatchManager) Update(ctx context.Context, icertUpdate IstioCertUpdate, k8sSnapshot *snapshotTypes.KubernetesSnapshot) {
 	dlog.Debugf(ctx, "WATCHER: ICert fired")
 
 	// We've seen a change in the Istio cert info on the filesystem. This is
