@@ -293,12 +293,12 @@ def V3HTTPFilter_authv1(auth: IRAuth, v3config: 'V3Config'):
             })
 
         for key in list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)):
-            allowed_authorization_headers.append({"exact": key})
+            allowed_authorization_headers.append({"exact": key, "ignore_case": True})
 
         allowed_request_headers = []
 
         for key in list(set(auth.allowed_request_headers).union(AllowedRequestHeaders)):
-            allowed_request_headers.append({"exact": key})
+            allowed_request_headers.append({"exact": key, "ignore_case": True})
 
         if auth.get('add_linkerd_headers', False):
             svc = Service(auth.ir.logger, auth_cluster_uri(auth, cluster))
