@@ -118,6 +118,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 ## Emissary-ingress
 
 - Feature: The environment variable `AES_LOG_LEVEL` now also sets the log level for the `diagd` logger. ([#3686]) ([#3666])
+
 - Feature: You can now set `dns_type` in the `AmbassadorMapping` to configure how Envoy will use the DNS for
   the service.
 
