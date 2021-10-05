@@ -5,6 +5,8 @@
 #  - OSS_HOME being set.
 # That should be it.
 
+ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
+
 tools.mk    := $(lastword $(MAKEFILE_LIST))
 tools.dir    = tools
 tools.bindir = $(tools.dir)/bin
@@ -71,11 +73,23 @@ $(tools.bindir)/%: $(tools.bindir)/.%.stamp $(tools/copy-ifchanged)
 # ==========
 #
 
+# Telepresence would be `go get`-able, but it requires a few
+# `replace`s that keeping in-sync would be more trouble than it's
+# worth.
 tools/telepresence   = $(tools.bindir)/telepresence
 TELEPRESENCE_VERSION = 2.4.2
 $(tools.bindir)/telepresence: $(tools.mk)
 	mkdir -p $(@D)
 	curl -s --fail -L https://app.getambassador.io/download/tel2/$(GOHOSTOS)/$(GOHOSTARCH)/$(TELEPRESENCE_VERSION)/telepresence -o $@
+	chmod a+x $@
+
+# k3d would be `go get`-able, but it requires Go 1.16, and Emissary is
+# still stuck on Go 1.15.
+tools/k3d   = $(tools.bindir)/k3d
+K3D_VERSION = 4.4.8
+$(tools.bindir)/k3d: $(tools.mk)
+	mkdir -p $(@D)
+	curl -s --fail -L https://github.com/rancher/k3d/releases/download/v$(K3D_VERSION)/k3d-$(GOHOSTOS)-$(GOHOSTARCH) -o $@
 	chmod a+x $@
 
 # PROTOC_VERSION must be at least 3.8.0 in order to contain the fix so that it doesn't generate
@@ -97,3 +111,5 @@ $(tools.bindir)/protoc-gen-grpc-web: $(tools.mk)
 	mkdir -p $(@D)
 	curl -o $@ -L --fail https://github.com/grpc/grpc-web/releases/download/$(GRPC_WEB_VERSION)/protoc-gen-grpc-web-$(GRPC_WEB_VERSION)-$(GRPC_WEB_PLATFORM)
 	chmod 755 $@
+
+endif

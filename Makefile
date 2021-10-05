@@ -27,9 +27,9 @@ _git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
 IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
 include $(OSS_HOME)/build-aux/tools.mk
+include $(OSS_HOME)/build-aux/ci.mk
 include $(OSS_HOME)/builder/builder.mk
 include $(OSS_HOME)/_cxx/envoy.mk
-include $(OSS_HOME)/charts/emissary-ingress/Makefile
 include $(OSS_HOME)/charts/charts.mk
 include $(OSS_HOME)/manifests/manifests.mk
 include $(OSS_HOME)/releng/release.mk
@@ -47,8 +47,14 @@ test-chart-values.yaml: docker/$(LCNAME).docker.push.remote
 	  sed -E -n '2s/^(.*):.*/  repository: \1/p' < $<; \
 	  sed -E -n '2s/.*:/  tag: /p' < $<; \
 	} >$@
-HELM_TEST_VALUES = test-chart-values.yaml
-test-chart: test-chart-values.yaml
+
+test-chart: $(tools/k3d) test-chart-values.yaml
+	PATH=$(abspath $(tools.bindir)):$(PATH) $(MAKE) -C charts/emissary-ingress HELM_TEST_VALUES=$(abspath test-chart-values.yaml) $@
+.PHONY: test-chart
+
+lint-chart:
+	$(MAKE) -C charts/emissary-ingress $@
+.PHONY: lint-chart
 
 # Configure GNU Make itself
 SHELL = bash
