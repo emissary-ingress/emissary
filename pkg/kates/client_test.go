@@ -87,7 +87,7 @@ func TestUpsert(t *testing.T) {
 	}
 
 	defer func() {
-		cli.Delete(ctx, cm, nil)
+		assert.NoError(t, cli.Delete(ctx, cm, nil))
 	}()
 
 	err := cli.Upsert(ctx, cm, cm, cm)
@@ -130,7 +130,7 @@ func TestPatch(t *testing.T) {
 	assert.NoError(t, err)
 
 	defer func() {
-		cli.Delete(ctx, cm, nil)
+		assert.NoError(t, cli.Delete(ctx, cm, nil))
 	}()
 
 	err = cli.Patch(ctx, cm, StrategicMergePatchType, []byte(`{"metadata": {"annotations": {"moo": "arf"}}}`), cm)
@@ -226,6 +226,7 @@ type TestSnapshot struct {
 func TestCoherence(t *testing.T) {
 	ctx, cli := testClient(t, nil)
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
 	// This simulates an api server that is very slow at notifying its watch clients of updates to
 	// config maps, but notifies of other resources at normal speeds. This can really happen.
@@ -263,7 +264,8 @@ func TestCoherence(t *testing.T) {
 	}
 
 	defer func() {
-		ctx, _ := context.WithTimeout(ctx, 10*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
 		err := cli.Delete(ctx, cm, nil)
 		if err != nil {
 			t.Log(err)
@@ -288,9 +290,10 @@ func TestCoherence(t *testing.T) {
 		return
 	}
 
-	acc := cli.Watch(ctx,
+	acc, err := cli.Watch(ctx,
 		Query{Name: "ConfigMaps", Kind: "ConfigMap"},
 		Query{Name: "Secrets", Kind: "Secret"})
+	require.NoError(t, err)
 	snap := &TestSnapshot{}
 
 	COUNT := 25
@@ -313,7 +316,9 @@ func TestCoherence(t *testing.T) {
 			select {
 			case <-acc.Changed():
 				mutex.Lock()
-				if !acc.UpdateWithDeltas(snap, &deltas) {
+				updated, err := acc.UpdateWithDeltas(ctx, snap, &deltas)
+				assert.NoError(t, err)
+				if !updated {
 					mutex.Unlock()
 					continue
 				}
@@ -416,6 +421,7 @@ func TestDeltasWithRemoteDelay(t *testing.T) {
 func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstructured, *Unstructured)) {
 	ctx, cli := testClient(t, nil)
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
 	cli.watchAdded = watchHook
 	cli.watchUpdated = watchHook
@@ -442,7 +448,8 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 	}
 
 	defer func() {
-		ctx, _ := context.WithTimeout(ctx, 10*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
 		if cm1 != nil {
 			err := cli.Delete(ctx, cm1, nil)
 			if err != nil {
@@ -469,7 +476,8 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 		return
 	}
 
-	acc := cli.Watch(ctx, Query{Name: "ConfigMaps", Kind: "ConfigMap"})
+	acc, err := cli.Watch(ctx, Query{Name: "ConfigMaps", Kind: "ConfigMap"})
+	require.NoError(t, err)
 	snap := &TestSnapshot{}
 
 	err = cli.Upsert(ctx, cm1, cm1, nil)
@@ -482,7 +490,9 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 	for {
 		<-acc.Changed()
 		var deltas []*Delta
-		if !acc.UpdateWithDeltas(snap, &deltas) {
+		updated, err := acc.UpdateWithDeltas(ctx, snap, &deltas)
+		require.NoError(t, err)
+		if !updated {
 			continue
 		}
 
@@ -498,7 +508,9 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 	for {
 		<-acc.Changed()
 		var deltas []*Delta
-		if !acc.UpdateWithDeltas(snap, &deltas) {
+		updated, err := acc.UpdateWithDeltas(ctx, snap, &deltas)
+		require.NoError(t, err)
+		if !updated {
 			continue
 		}
 
@@ -516,7 +528,9 @@ func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstruc
 	for {
 		<-acc.Changed()
 		var deltas []*Delta
-		if !acc.UpdateWithDeltas(snap, &deltas) {
+		updated, err := acc.UpdateWithDeltas(ctx, snap, &deltas)
+		require.NoError(t, err)
+		if !updated {
 			continue
 		}
 

@@ -113,10 +113,10 @@ gomoddir = $(shell cd $(OSS_HOME); go list $1/... >/dev/null 2>/dev/null; go lis
 # commits have a commit message of the form "Mirrored from envoyproxy/envoy @ ${envoy.git_commit}".
 # Look for the most recent one that names a commit that is an ancestor of our ENVOY_COMMIT.  If there
 # are commits not of that form immediately following that commit, you can take them in too (but that's
-# pretty uncommon).  Since that's a simple sentence, can be tedious to go through and check which
-# commits are ancestors, I added `make guess-envoy-go-control-plane-commit` to do that in an automated
-# way!  Still look at the commit yourself to make sure it seems sane; blindly trusting machines is
-# bad, mmkay?
+# pretty uncommon).  Since that's a simple sentence, but it can be tedious to go through and check
+# which commits are ancestors, I added `make guess-envoy-go-control-plane-commit` to do that in an
+# automated way!  Still look at the commit yourself to make sure it seems sane; blindly trusting
+# machines is bad, mmkay?
 ENVOY_GO_CONTROL_PLANE_COMMIT = v0.9.6
 
 guess-envoy-go-control-plane-commit: $(OSS_HOME)/_cxx/envoy $(OSS_HOME)/_cxx/go-control-plane
@@ -124,7 +124,7 @@ guess-envoy-go-control-plane-commit: $(OSS_HOME)/_cxx/envoy $(OSS_HOME)/_cxx/go-
 	@echo '######################################################################'
 	@echo
 	@set -e; { \
-	  (cd $(OSS_HOME)/_cxx/go-control-plane && git log --format='%H %s' origin/master) | sed -n 's, Mirrored from envoyproxy/envoy @ , ,p' | \
+	  (cd $(OSS_HOME)/_cxx/go-control-plane && git log --format='%H %s' origin/main) | sed -n 's, Mirrored from envoyproxy/envoy @ , ,p' | \
 	  while read -r go_commit cxx_commit; do \
 	    if (cd $(OSS_HOME)/_cxx/envoy && git merge-base --is-ancestor "$$cxx_commit" $(ENVOY_COMMIT) 2>/dev/null); then \
 	      echo "ENVOY_GO_CONTROL_PLANE_COMMIT = $$go_commit"; \

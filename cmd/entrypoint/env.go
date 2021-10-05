@@ -250,17 +250,17 @@ func IsAmbassadorSingleNamespace() bool {
 	return envbool("AMBASSADOR_SINGLE_NAMESPACE")
 }
 
-func IsEdgeStack() bool {
+func IsEdgeStack() (bool, error) {
 	if envbool("EDGE_STACK") {
-		return true
+		return true, nil
 	}
 	_, err := os.Stat("/ambassador/.edge_stack")
 	if err == nil {
-		return true
+		return true, nil
 	} else if os.IsNotExist(err) {
-		return false
+		return false, nil
 	} else {
-		panic(err)
+		return false, err
 	}
 }
 

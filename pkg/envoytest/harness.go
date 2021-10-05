@@ -1,7 +1,6 @@
-package envoy
+package envoytest
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -9,7 +8,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"os/exec"
 	"path"
 	"strings"
 	"sync"
@@ -20,29 +18,29 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
+	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dhttp"
 	"github.com/datawire/dlib/dlog"
 )
 
-func GetLoopbackAddr(port int) string {
-	return fmt.Sprintf("%s:%d", GetLoopbackIp(), port)
+func GetLoopbackAddr(ctx context.Context, port int) (string, error) {
+	ip, err := GetLoopbackIp(ctx)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s:%d", ip, port), nil
 }
 
-func GetLoopbackIp() string {
-	_, err := exec.LookPath("envoy")
-	if err == nil {
-		return "127.0.0.1"
-	} else {
-		cmd := exec.Command("docker", "network", "inspect", "bridge", "--format={{(index .IPAM.Config 0).Gateway}}")
-		buf := &bytes.Buffer{}
-		cmd.Stdout = buf
-		cmd.Stderr = os.Stderr
-		err := cmd.Run()
-		if err != nil {
-			panic(errors.Wrapf(err, "error finding loopback ip"))
-		}
-		return strings.TrimSpace(buf.String())
+func GetLoopbackIp(ctx context.Context) (string, error) {
+	if _, err := dexec.LookPath("envoy"); err == nil {
+		return "127.0.0.1", nil
 	}
+	cmd := dexec.CommandContext(ctx, "docker", "network", "inspect", "bridge", "--format={{(index .IPAM.Config 0).Gateway}}")
+	bs, err := cmd.Output()
+	if err != nil {
+		return "", errors.Wrapf(err, "error finding loopback ip")
+	}
+	return strings.TrimSpace(string(bs)), nil
 }
 
 var cidCounter int64
@@ -51,38 +49,41 @@ var cidCounter int64
 // address and expose the supplied portmaps. A Cleanup function is registered to shutdown the
 // container at the end of the test suite.
 func SetupEnvoy(t *testing.T, adsAddress string, portmaps ...string) {
+	ctx := dlog.NewTestContext(t, false)
+
 	host, port, err := net.SplitHostPort(adsAddress)
 	require.NoError(t, err)
 
 	yaml := fmt.Sprintf(bootstrap, host, port)
 
-	_, err = exec.LookPath("envoy")
-
-	var cmd *exec.Cmd
+	var cmd *dexec.Cmd
 	var cidfile string
-	if err == nil {
-		cmd = exec.Command("envoy", "--config-yaml", yaml)
+	if _, err := dexec.LookPath("envoy"); err == nil {
+		cmd = dexec.CommandContext(ctx, "envoy", "--config-yaml", yaml)
 	} else {
 		counter := atomic.AddInt64(&cidCounter, 1)
 		cidfile = path.Join(os.TempDir(), fmt.Sprintf("envoy-%d-%d-cid", os.Getpid(), counter))
 
-		args := []string{"run", "--cidfile", cidfile}
+		args := []string{"docker", "run", "--cidfile", cidfile}
 		for _, pm := range portmaps {
 			args = append(args, "-p", pm)
 		}
 		args = append(args, "--rm", "--entrypoint", "envoy", "docker.io/datawire/aes:1.6.2", "--config-yaml", yaml)
-		cmd = exec.Command("docker", args...)
+		cmd = dexec.CommandContext(ctx, args[0], args[1:]...)
 	}
 
-	cmd.Stdin = os.Stdin
 	var out io.Writer
-	if os.Getenv("SHUTUP_ENVOY") == "" {
-		out = NewPrefixer(os.Stdout, []byte("ENVOY: "))
+	if os.Getenv("SHUTUP_ENVOY") != "" {
+		var err error
+		out, err = os.OpenFile(os.DevNull, os.O_WRONLY, 0)
+		if err != nil {
+			t.Error(err)
+			return
+		}
 	}
 	cmd.Stdout = out
 	cmd.Stderr = out
-	err = cmd.Start()
-	if err != nil {
+	if err := cmd.Start(); err != nil {
 		t.Errorf("error starting envoy: %v", err)
 		return
 	}
@@ -90,10 +91,11 @@ func SetupEnvoy(t *testing.T, adsAddress string, portmaps ...string) {
 	if cidfile == "" {
 		// we started envoy without a container
 		t.Cleanup(func() {
-			cmd.Process.Kill()
-			_, err := cmd.Process.Wait()
-			if err != nil {
-				t.Logf("error tearing down envoy: %+v", err)
+			if err := cmd.Process.Kill(); err != nil {
+				t.Error(err)
+			}
+			if _, err := cmd.Process.Wait(); err != nil {
+				t.Errorf("error tearing down envoy: %+v", err)
 			}
 		})
 	} else {
@@ -121,16 +123,12 @@ func SetupEnvoy(t *testing.T, adsAddress string, portmaps ...string) {
 
 			cid := strings.TrimSpace(string(cidBytes))
 
-			cmd := exec.Command("docker", "kill", cid)
-			err = cmd.Run()
-			if err != nil {
+			if err := dexec.CommandContext(ctx, "docker", "kill", cid).Run(); err != nil {
 				t.Logf("error killing envoy container %s: %+v", cid, err)
 				return
 			}
 
-			cmd = exec.Command("docker", "wait", cid)
-			cmd.Run()
-			if err != nil {
+			if err := dexec.CommandContext(ctx, "docker", "wait", cid).Run(); err != nil {
 				// No such container is an "expected" error since the container might exit before we get
 				// around to waiting for it.
 				if !strings.Contains(err.Error(), "No such container") {
@@ -236,7 +234,7 @@ func NewRequestLogger() *RequestLogger {
 
 func (rl *RequestLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	rl.Log(r)
-	w.Write([]byte("Hello World"))
+	_, _ = w.Write([]byte("Hello World"))
 }
 
 func (rl *RequestLogger) Log(r *http.Request) {

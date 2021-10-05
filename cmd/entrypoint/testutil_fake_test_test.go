@@ -2,8 +2,10 @@ package entrypoint_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
@@ -21,15 +23,27 @@ func AnyConfig(_ *v3bootstrap.Bootstrap) bool {
 
 func TestFake(t *testing.T) {
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
-	f.UpsertFile("testdata/snapshot.yaml")
+	assert.NoError(t, f.UpsertFile("testdata/snapshot.yaml"))
 	f.AutoFlush(true)
-	fmt.Println(Jsonify(f.GetSnapshot(AnySnapshot)))
-	fmt.Println(Jsonify(f.GetEnvoyConfig(AnyConfig)))
 
-	f.Delete("Mapping", "default", "foo")
+	snapshot, err := f.GetSnapshot(AnySnapshot)
+	require.NoError(t, err)
+	LogJSON(t, snapshot)
 
-	fmt.Println(Jsonify(f.GetSnapshot(AnySnapshot)))
-	fmt.Println(Jsonify(f.GetEnvoyConfig(AnyConfig)))
+	envoyConfig, err := f.GetEnvoyConfig(AnyConfig)
+	require.NoError(t, err)
+	LogJSON(t, envoyConfig)
+
+	assert.NoError(t, f.Delete("Mapping", "default", "foo"))
+
+	snapshot, err = f.GetSnapshot(AnySnapshot)
+	require.NoError(t, err)
+	LogJSON(t, snapshot)
+
+	envoyConfig, err = f.GetEnvoyConfig(AnyConfig)
+	require.NoError(t, err)
+	LogJSON(t, envoyConfig)
+
 	/*f.ConsulEndpoints(endpointsBlob)
 	f.ApplyFile()
 	f.ApplyResources()
@@ -45,12 +59,11 @@ func TestFake(t *testing.T) {
 
 }
 
-func Jsonify(obj interface{}) string {
+func LogJSON(t testing.TB, obj interface{}) {
+	t.Helper()
 	bytes, err := json.MarshalIndent(obj, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-	return string(bytes)
+	require.NoError(t, err)
+	t.Log(string(bytes))
 }
 
 func TestFakeIstioCert(t *testing.T) {
@@ -58,11 +71,13 @@ func TestFakeIstioCert(t *testing.T) {
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: false}, nil)
 	f.AutoFlush(true)
 
-	f.UpsertFile("testdata/tls-snap.yaml")
+	assert.NoError(t, f.UpsertFile("testdata/tls-snap.yaml"))
 
-	// fmt.Println(f.GetSnapshotString())
+	// t.Log(f.GetSnapshotString())
 
-	k := f.GetSnapshot(AnySnapshot).Kubernetes
+	snapshot, err := f.GetSnapshot(AnySnapshot)
+	require.NoError(t, err)
+	k := snapshot.Kubernetes
 
 	if len(k.Secrets) != 1 {
 		t.Errorf("needed 1 secret, got %d", len(k.Secrets))
@@ -91,9 +106,10 @@ func TestFakeIstioCert(t *testing.T) {
 		Secret:    &istioSecret,
 	})
 
-	k = f.GetSnapshot(AnySnapshot).Kubernetes
-
-	fmt.Println(Jsonify(k))
+	snapshot, err = f.GetSnapshot(AnySnapshot)
+	require.NoError(t, err)
+	k = snapshot.Kubernetes
+	LogJSON(t, k)
 
 	if len(k.Secrets) != 2 {
 		t.Errorf("needed 2 secrets, got %d", len(k.Secrets))

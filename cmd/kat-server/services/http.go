@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dhttp"
+	"github.com/datawire/dlib/dlog"
 )
 
 // HTTP server object (all fields are required).
@@ -46,7 +46,7 @@ func getTLSVersion(state *tls.ConnectionState) string {
 
 // Start initializes the HTTP server.
 func (h *HTTP) Start(ctx context.Context) <-chan bool {
-	log.Printf("HTTP: %s listening on %d/%d", h.Backend, h.Port, h.SecurePort)
+	dlog.Printf(ctx, "HTTP: %s listening on %d/%d", h.Backend, h.Port, h.SecurePort)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", h.handler)
@@ -65,7 +65,10 @@ func (h *HTTP) Start(ctx context.Context) <-chan bool {
 
 	exited := make(chan bool)
 	go func() {
-		log.Fatal(g.Wait())
+		if err := g.Wait(); err != nil {
+			dlog.Error(ctx, err)
+			panic(err) // TODO: do something better
+		}
 		close(exited)
 	}()
 	return exited
@@ -81,6 +84,7 @@ func lower(m map[string][]string) (result map[string][]string) {
 }
 
 func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	// Assume we're the clear side of the world.
 	backend := h.Backend
 	conntype := "CLR"
@@ -129,7 +133,7 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 
 	statusCode, err := strconv.Atoi(status)
 	if err != nil {
-		log.Print(err)
+		dlog.Print(ctx, err)
 		statusCode = 500
 	}
 
@@ -148,7 +152,7 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 	if b, _ := ioutil.ReadAll(r.Body); b != nil {
 		body := string(b)
 		if len(body) > 0 {
-			log.Printf("received body: %s", body)
+			dlog.Printf(ctx, "received body: %s", body)
 		}
 		w.Header()[http.CanonicalHeaderKey("Auth-Request-Body")] = []string{body}
 	}
@@ -197,7 +201,7 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 	// Check header and delay response.
 	if h, ok := r.Header["Requested-Backend-Delay"]; ok {
 		if v, err := strconv.Atoi(h[0]); err == nil {
-			log.Printf("Delaying response by %v ms", v)
+			dlog.Printf(ctx, "Delaying response by %v ms", v)
 			time.Sleep(time.Duration(v) * time.Millisecond)
 		}
 	}
@@ -221,6 +225,6 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 		b = []byte(fmt.Sprintf("Error: %v", err))
 	}
 
-	log.Printf("%s (%s): \"%s %s\" -> HTTP %v", r.Method, r.URL.Path, backend, conntype, statusCode)
-	w.Write(b)
+	dlog.Printf(ctx, "%s (%s): \"%s %s\" -> HTTP %v", r.Method, r.URL.Path, backend, conntype, statusCode)
+	_, _ = w.Write(b)
 }

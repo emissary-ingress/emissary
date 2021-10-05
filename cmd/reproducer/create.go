@@ -1,18 +1,20 @@
 package reproducer
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"path/filepath"
 	"reflect"
 	"sort"
 	"strings"
 	"time"
 
-	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/dlib/dlog"
 )
 
 var createCmd = &cobra.Command{
@@ -35,6 +37,7 @@ You can also save the output and hand edit it should you need to tweak some of t
 }
 
 func create(cmd *cobra.Command, args []string) error {
+	ctx := cmd.Context()
 	filename := args[0]
 
 	extensions := map[string]bool{
@@ -51,16 +54,16 @@ func create(cmd *cobra.Command, args []string) error {
 		name := base[:len(base)-len(ext)]
 
 		if !extensions[ext] {
-			log.Printf("skipping %s", path)
+			dlog.Printf(ctx, "skipping %s", path)
 			return nil
 		}
 
 		if !(name == "snapshot" || name == "manifests") {
-			log.Printf("skipping %s", path)
+			dlog.Printf(ctx, "skipping %s", path)
 			return nil
 		}
 
-		log.Printf("found resources from %s", path)
+		dlog.Printf(ctx, "found resources from %s", path)
 
 		switch name {
 		case "snapshot":
@@ -106,7 +109,7 @@ func create(cmd *cobra.Command, args []string) error {
 	}
 
 	// Process all the resources we found.
-	err = repro.Process()
+	err = repro.Process(ctx)
 	if err != nil {
 		return err
 	}
@@ -149,14 +152,14 @@ func (r *Repro) Add(resource kates.Object) error {
 
 }
 
-func (r *Repro) Process() error {
+func (r *Repro) Process(ctx context.Context) error {
 	// Process resources in order.
 	for _, key := range r.OrderedKinds() {
 		values, ok := r.Resources[key]
 		if ok {
 			delete(r.Resources, key)
 			for _, resource := range values {
-				p := r.callProcess(resource)
+				p := r.callProcess(ctx, resource)
 				if p != nil {
 					r.Processed = append(r.Processed, p)
 				}
@@ -204,7 +207,7 @@ func (r *Repro) OrderedKinds() []string {
 		sortedKeys(r.Resources)...)
 }
 
-func (r *Repro) callProcess(resource *kates.Unstructured) *kates.Unstructured {
+func (r *Repro) callProcess(ctx context.Context, resource *kates.Unstructured) *kates.Unstructured {
 	if len(resource.GetOwnerReferences()) > 0 {
 		return nil
 	}
@@ -240,7 +243,7 @@ func (r *Repro) callProcess(resource *kates.Unstructured) *kates.Unstructured {
 
 	obj, err := kates.NewObjectFromUnstructured(resource)
 	if err != nil {
-		log.Printf("error processing object: %+v", err)
+		dlog.Printf(ctx, "error processing object: %+v", err)
 		return nil
 	}
 
@@ -249,7 +252,7 @@ func (r *Repro) callProcess(resource *kates.Unstructured) *kates.Unstructured {
 	// convert back to unstructured so we serialize prettier, e.g. no creationTimestamp: null
 	result, err := kates.NewUnstructuredFromObject(obj)
 	if err != nil {
-		log.Printf("error making unstructured from object: %+v", err)
+		dlog.Printf(ctx, "error making unstructured from object: %+v", err)
 		return nil
 	}
 

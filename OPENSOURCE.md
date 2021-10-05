@@ -29,7 +29,6 @@ following Free and Open Source software:
     github.com/datawire/dtest                                v0.0.0-20210914162017-6f63de0a5718         Apache License 2.0
     github.com/davecgh/go-spew                               v1.1.1                                     ISC license
     github.com/docker/spdystream                             v0.0.0-20160310174837-449fdfce4d96         Apache License 2.0
-    github.com/ecodia/golang-awaitility                      v0.0.0-20180710094957-fb55e59708c7         MIT license
     github.com/emicklei/go-restful                           v2.9.5+incompatible                        MIT license
     github.com/envoyproxy/protoc-gen-validate                v0.3.0-java.0.20200609174644-bd816e4522c1  Apache License 2.0
     github.com/evanphx/json-patch                            v4.9.0+incompatible                        3-clause BSD license
@@ -51,7 +50,6 @@ following Free and Open Source software:
     github.com/google/btree                                  v1.0.0                                     Apache License 2.0
     github.com/google/go-cmp                                 v0.5.5                                     3-clause BSD license
     github.com/google/gofuzz                                 v1.1.0                                     Apache License 2.0
-    github.com/google/shlex                                  v0.0.0-20191202100458-e7afc7fbc510         Apache License 2.0
     github.com/google/uuid                                   v1.1.2                                     3-clause BSD license
     github.com/googleapis/gnostic                            v0.5.1                                     Apache License 2.0
     github.com/gorilla/websocket                             v1.4.2                                     2-clause BSD license
@@ -66,6 +64,7 @@ following Free and Open Source software:
     github.com/imdario/mergo                                 v0.3.11                                    3-clause BSD license
     github.com/inconshreveable/mousetrap                     v1.0.0                                     Apache License 2.0
     github.com/json-iterator/go                              v1.1.10                                    MIT license
+    github.com/kballard/go-shellquote                        v0.0.0-20180428030007-95032a82bc51         MIT license
     github.com/liggitt/tabwriter                             v0.0.0-20181228230101-89fcab3d43de         3-clause BSD license
     github.com/mailru/easyjson                               v0.7.0                                     MIT license
     github.com/mattn/go-colorable                            v0.1.2                                     MIT license

@@ -13,7 +13,7 @@ import (
 // ReconcileSecrets figures out which secrets we're actually using,
 // since we don't want to send secrets to Ambassador unless we're
 // using them, since any secret we send will be saved to disk.
-func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) {
+func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) error {
 	// Start by building up a list of all the K8s objects that are
 	// allowed to mention secrets. Note that we vet the ambassador_id
 	// for all of these before putting them on the list.
@@ -106,7 +106,11 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 	// We _always_ have an implicit references to the fallback cert secret...
 	secretRef(GetAmbassadorNamespace(), "fallback-self-signed-cert", false, action)
 
-	if IsEdgeStack() {
+	isEdgeStack, err := IsEdgeStack()
+	if err != nil {
+		return err
+	}
+	if isEdgeStack {
 		// ...and for Edge Stack, we _always_ have an implicit reference to the
 		// license secret.
 		secretRef(GetLicenseSecretNamespace(), GetLicenseSecretName(), false, action)
@@ -141,6 +145,7 @@ func ReconcileSecrets(ctx context.Context, s *snapshotTypes.KubernetesSnapshot) 
 			s.Secrets = append(s.Secrets, secret)
 		}
 	}
+	return nil
 }
 
 // Find all the secrets a given Ambassador resource references.
