@@ -1,9 +1,12 @@
 HELM_TEST_IMAGE = quay.io/helmpack/chart-testing:v3.0.0-rc.1
 HELM_TEST_VALUES ?=
-K3D_CLUSTER_NAME = helm-chart-test-cluster
 CHART_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 CHART_KUBECONFIG := /tmp/kubeconfig/k3dconfig
 K3D_EXEC := KUBECONFIG=$(CHART_KUBECONFIG) k3d
+
+K3S_VERSION      = 1.21.5+k3s1
+K3D_CLUSTER_NAME = helm-chart-test-cluster
+K3D_ARGS         = --k3s-server-arg=--no-deploy=traefik
 
 test-chart: lint-chart preflight-chart-test chart-create-cluster
 	rm -rf $(CHART_DIR)/ci.tmp
@@ -32,8 +35,8 @@ lint-chart: preflight-kubeconfig
 preflight-chart-test: preflight-kubeconfig
 	# check if k3d is installed
 	@if ! command -v k3d 2> /dev/null ; then \
-		printf 'k3d not installed, plz do that'; \
-	    false; \
+	  echo 'k3d not installed, plz do that'; \
+	  false; \
 	fi
 .PHONY: preflight-chart-test
 
@@ -44,7 +47,7 @@ preflight-kubeconfig:
 
 chart-create-cluster: preflight-kubeconfig
 	$(MAKE) chart-delete-cluster || true
-	$(K3D_EXEC) cluster create $(K3D_CLUSTER_NAME) --k3s-server-arg "--no-deploy=traefik"
+	$(K3D_EXEC) cluster create $(K3D_CLUSTER_NAME) --image=docker.io/rancher/k3s:v$(subst +,-,$(K3S_VERSION)) $(K3D_ARGS)
 .PHONY: chart-create-cluster
 
 chart-delete-cluster:

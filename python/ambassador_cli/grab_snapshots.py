@@ -56,7 +56,7 @@ def sanitize_snapshot(snapshot: dict):
     for key in [ 'Deltas', 'Invalid' ]:
         if key in snapshot:
             sanitized[key] = snapshot[key]
-    
+
     # Kube is harder because we need to sanitize Kube secrets.
     kube_elements = snapshot.get('Kubernetes')
 

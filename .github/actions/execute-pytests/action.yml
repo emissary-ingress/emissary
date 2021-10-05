@@ -33,23 +33,15 @@ runs:
       with:
         version: 'v1.19.12'
       name: "Install kubectl (v1.19.12)" # maybe not?
-    - name: "Install/Setup K3d/K3s"
-      uses: nolar/setup-k3d-k3s@v1.0.7
+    - name: "Install and start k3d"
+      shell: bash
+      run: |
+        make ci/setup-k3d K3D_CLUSTER_NAME=amb-ci
     - name: "Docker Login"
       uses: docker/login-action@v1
       with:
         username: ${{ env.DOCKER_USERNAME }}
         password: ${{ env.DOCKER_PASSWORD }}
-    - name: "Configure Kubernetes cluster and Docker registry"
-      shell: bash
-      run: |
-        ./.ci/cluster-claim
-        rm -f ~/.kube/config
-        cp ~/.kube/kubeception.yaml ~/.kube/config
-
-        if test -e ~/.kube/kubeception.yaml; then
-          echo 'DEV_KUBECONFIG=~/.kube/kubeception.yaml' >> $GITHUB_ENV
-        fi
     - name: make pytest-${{ matrix.test }} (legacy-mode:${{ matrix.pytest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.pytest-settings.fast-reconfigure }} )
       uses: nick-invision/retry@v2.4.0
       with:
@@ -61,7 +53,7 @@ runs:
           export AMBASSADOR_LEGACY_MODE=${{ matrix.pytest-settings.legacy-mode }}
           export AMBASSADOR_FAST_RECONFIGURE=${{ matrix.pytest-settings.fast-reconfigure }}
           export TEST_XML_DIR=/tmp/test-logs/xml/
-          export DEV_KUBECONFIG=~/.kube/kubeception.yaml
+          export DEV_KUBECONFIG=~/.kube/config
           export DEV_REGISTRY=${{ env.DEV_REGISTRY }}
           mkdir -p ${TEST_XML_DIR}
           make pytest-${{ matrix.test }}

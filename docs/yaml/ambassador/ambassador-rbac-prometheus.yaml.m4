@@ -62,7 +62,7 @@ subjects:
 - kind: ServiceAccount
   name: ambassador
   namespace: default
-include(ambassador-crds.yaml)
+include(../../../manifests/emissary/ambassador-crds.yaml)
 ---
 apiVersion: v1
 kind: ConfigMap
