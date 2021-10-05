@@ -62,7 +62,6 @@ spec:
     conf = econf.as_dict()
 
     for listener in conf['static_resources']['listeners']:
-        print(f"checking for per_connection_buffer_limit_bytes in Listener: {listener.name}")
         per_connection_buffer_limit_bytes = listener.get('per_connection_buffer_limit_bytes', None)
         assert per_connection_buffer_limit_bytes is not None, \
             f"per_connection_buffer_limit_bytes not found on listener: {listener.name}"
