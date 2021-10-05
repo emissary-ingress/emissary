@@ -66,7 +66,7 @@ class DnsTtl(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
 name:  {self.target.path.k8s}-foo
 prefix: /foo/
@@ -91,7 +91,7 @@ class DnsTtlEndpoint(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
 name:  {self.target.path.k8s}-foo
 prefix: /foo/
@@ -117,7 +117,7 @@ class DnsTtlDnsType(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
 name:  {self.target.path.k8s}-foo
 prefix: /foo/

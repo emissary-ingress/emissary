@@ -12,7 +12,7 @@ class BufferLimitBytesTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:
@@ -22,7 +22,7 @@ config:
       request_handle:headers():add("request_body_size", request_handle:body():length())
     end
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Mapping
 name:  {self.target.path.k8s}-foo
 prefix: /foo/
