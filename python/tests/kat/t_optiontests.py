@@ -95,7 +95,7 @@ class CORS(OptionTest):
     parent: MappingTest
 
     def config(self):
-        yield 'cors: { origins: "*" }'
+        yield 'cors: { origins: ["*"] }'
 
     def queries(self):
         for q in self.parent.queries():
@@ -172,7 +172,7 @@ class RemoveResponseHeaders(OptionTest):
     parent: Test
 
     def config(self):
-        yield "remove_response_headers: x-envoy-upstream-service-time"
+        yield "remove_response_headers: [x-envoy-upstream-service-time]"
 
     def check(self):
         for r in self.parent.results:

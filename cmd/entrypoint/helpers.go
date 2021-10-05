@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/dlib/dexec"
 	"github.com/datawire/dlib/dlog"
 )

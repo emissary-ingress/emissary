@@ -244,6 +244,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                                 service=mapping.service,
                                 resolver=mapping.resolver,
                                 ctx_name=mapping.get('tls', None),
+                                dns_type=mapping.get('dns_type', 'strict_dns'),
                                 host_rewrite=mapping.get('host_rewrite', False),
                                 enable_ipv4=mapping.get('enable_ipv4', None),
                                 enable_ipv6=mapping.get('enable_ipv6', None),

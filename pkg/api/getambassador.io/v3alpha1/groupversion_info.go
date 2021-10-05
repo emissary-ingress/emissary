@@ -13,7 +13,7 @@
 // limitations under the License.
 
 ///////////////////////////////////////////////////////////////////////////
-// Important: Run "make update-yaml" to regenerate code after modifying
+// Important: Run "make generate-fast" to regenerate code after modifying
 // this file.
 ///////////////////////////////////////////////////////////////////////////
 
@@ -49,7 +49,7 @@
 // Package-level markers:
 //
 // The group name to use for the CRDs in the generated YAML:
-// +groupName=x.getambassador.io
+// +groupName=getambassador.io
 // +versionName=v3alpha1
 //
 // By default, mark all types in this package to have DeepCopy methods
@@ -73,7 +73,7 @@ import (
 
 var (
 	// GroupVersion is group version used to register these objects
-	GroupVersion = schema.GroupVersion{Group: "x.getambassador.io", Version: "v3alpha1"}
+	GroupVersion = schema.GroupVersion{Group: "getambassador.io", Version: "v3alpha1"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}

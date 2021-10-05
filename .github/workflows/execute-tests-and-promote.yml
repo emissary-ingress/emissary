@@ -39,6 +39,14 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/execute-generate
         name: "execute generate action"
+  check-envoy-version:
+    name: "check-envoy-version"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - run: make check-envoy-version
   go-tests:
     runs-on: ubuntu-latest
     strategy:
@@ -65,6 +73,8 @@ jobs:
     name: gotest-legacy-mode:${{ matrix.gotest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.gotest-settings.fast-reconfigure }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: ./.github/actions/execute-go-tests
         name: "execute go-tests action"
       # collect logs
@@ -175,6 +185,7 @@ jobs:
       - lint-test
       - job-image
       - generate
+      - check-envoy-version
       - go-tests
       - pytests
       - pytest-unit

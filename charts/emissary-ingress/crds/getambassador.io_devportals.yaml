@@ -39,9 +39,7 @@ spec:
               description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
               items:
                 type: string
-              oneOf:
-              - type: string
-              - type: array
+              type: array
             content:
               description: Content specifies where the content shown in the DevPortal come from
               properties:
@@ -74,6 +72,9 @@ spec:
               - namespace.name
               - name.prefix
               type: string
+            preserve_servers:
+              description: Configures this DevPortal to use server definitions from the openAPI doc instead of rewriting them based on the url used for the connection.
+              type: boolean
             search:
               description: DevPortalSearchSpec allows configuration over search functionality for the DevPortal
               properties:
@@ -102,8 +103,8 @@ spec:
               type: object
           type: object
       type: object
-  version: v2
+  version: v3alpha1
   versions:
-  - name: v2
+  - name: v3alpha1
     served: true
     storage: true

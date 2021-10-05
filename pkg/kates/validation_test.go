@@ -1,7 +1,6 @@
 package kates
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,8 +8,7 @@ import (
 )
 
 func TestValidation(t *testing.T) {
-	ctx := context.TODO()
-	client := testClient(t)
+	ctx, client := testClient(t, nil)
 
 	version, err := client.ServerVersion()
 	require.NoError(t, err)

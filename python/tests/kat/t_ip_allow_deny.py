@@ -9,27 +9,27 @@ from abstract_tests import AmbassadorTest, ServiceType, HTTP
 ################
 # NOTE: The IPAllow and IPDeny tests are not entirely straightforward. In
 # particular:
-# 
+#
 # 1. They currently use an annotation for their Ambassador modules to keep
 #    them distinct between the two tests. If you don't like annotations for
 #    this, you'll have to set up separate namespaces.
 #
 # 2. 'xff_num_trusted_hosts' MUST BE SET TO 1 in order for the tests to work:
-# 
+#
 #    - When we hit /target/ with XFF "99.99.0.1", Envoy receives exactly that.
 #      Since xff_num_trusted_hops is 1, Envoy accepts that as the valid address
 #      of the remote end of the connection, RBAC accepts that as matching the
 #      99.99.0.0/16 CIDR block, and the request is allowed or denied as
 #      appropriate. Great. But when it's accepted, the rules for XFF are that
 #      Envoy must append the peer address to the XFF list before forwarding, so
-#      the upstream sees XFF "99.99.0.1,$katIP". In the /target/ case, the 
+#      the upstream sees XFF "99.99.0.1,$katIP". In the /target/ case, the
 #      upstream is a KAT backend HTTP service -- it doesn't care about XFF, and
 #      just responds OK.
 #
 #    - When we hit /localhost/ with XFF "99.99.0.1", though, _Ambassador is the
 #      upstream_. So everything up to rewriting XFF as "99.99.0.1,$katIP" is the
 #      same, but Envoy hands that upstream to... itself. Since xff_num_trusted_hops
-#      is still 1, Envoy throws away the 99.99.0.1 part and believes that the 
+#      is still 1, Envoy throws away the 99.99.0.1 part and believes that the
 #      connection is coming from $katIP, which does _not_ match the 99.99.0.0/16
 #      CIDR block -- but the raw peer address _is_ in fact 127.0.0.1, so _that_
 #      matches the peer: 127.0.0.1 principal.
@@ -44,22 +44,22 @@ class IPAllow(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.path.k8s}-target-mapping
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /target/
   service: {self.target.path.fqdn}
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.path.k8s}-localhost-mapping
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /localhost/
   rewrite: /target/             # See NOTE above
@@ -69,10 +69,10 @@ spec:
     def config(self):
         yield self, self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 config:
   # Allow one trusted hop, so that KAT can fake addresses with XFF (see NOTE above).
   xff_num_trusted_hops: 1
@@ -113,22 +113,22 @@ class IPDeny(AmbassadorTest):
     def manifests(self) -> str:
         return self.format('''
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.path.k8s}-target-mapping
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /target/
   service: {self.target.path.fqdn}
 ---
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorMapping
+apiVersion: getambassador.io/v3alpha1
+kind: Mapping
 metadata:
   name: {self.path.k8s}-localhost-mapping
 spec:
-  ambassador_id: {self.ambassador_id}
+  ambassador_id: [{self.ambassador_id}]
   hostname: "*"
   prefix: /localhost/
   rewrite: /target/             # See NOTE above
@@ -138,10 +138,10 @@ spec:
     def config(self):
         yield self, self.format('''
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
-ambassador_id: {self.ambassador_id}
+ambassador_id: [{self.ambassador_id}]
 config:
   # Allow one trusted hop, so that KAT can fake addresses with XFF (see NOTE above).
   xff_num_trusted_hops: 1

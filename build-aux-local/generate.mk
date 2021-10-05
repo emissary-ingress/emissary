@@ -1,47 +1,16 @@
-crds_yaml_dir = $(OSS_HOME)/charts/emissary-ingress/crds
+# -*- fill-column: 102 -*-
 
-generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
-generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto'))
-generate/files += $(patsubst $(OSS_HOME)/api/getambassador.io/%.proto,  $(OSS_HOME)/python/ambassador/proto/%_pb2.py        , $(shell find $(OSS_HOME)/api/getambassador.io/ -name '*.proto'))
-generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_pb.js          , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
-generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_grpc_web_pb.js , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
-generate/files += $(OSS_HOME)/pkg/api/envoy
-generate/files += $(OSS_HOME)/pkg/api/pb
-generate/files += $(OSS_HOME)/pkg/envoy-control-plane
-generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
-generate/files += $(OSS_HOME)/OPENSOURCE.md
-generate/files += $(OSS_HOME)/builder/requirements.txt
-generate/files += $(OSS_HOME)/CHANGELOG.md
+# This file deals with creating files that get checked in to Git.  This is all grouped together in to
+# one file, rather than being closer to the "subject matter" because this is a heinous thing.  Output
+# files should not get checked in to Git -- every entry added to to this file is an affront to all
+# that is good and proper.  As an exception, some of the Envoy-related stuff is allowed to live in
+# envoy.mk, because that's a whole other bag of gross.
 
-generate: ## Update generated sources that get committed to git
-generate:
-	$(MAKE) generate-clean
-	$(MAKE) $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb
-	$(MAKE) _generate
-	$(MAKE) chart/docgen
-
-_generate:
-	@echo '$(MAKE) $$(generate/files)'; $(MAKE) $(generate/files)
-	# TODO: this should be done better probably, but i just don't have time for that right now.
-	@PS4=; set -ex; { \
-	  find "$(OSS_HOME)/pkg/api/" -name '*.go' -exec sed -E -i.bak \
-	    -e 's,github\.com/datawire/ambassador/pkg/api,github.com/datawire/ambassador/v2/pkg/api,g' \
-	    -- {} +; \
-	  find "$(OSS_HOME)" -name '*.go.bak' -delete; \
-	}
-generate-clean: ## Delete generated sources that get committed to git
-generate-clean:
-	rm -rf $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb
-	rm -rf $(OSS_HOME)/pkg/api/envoy $(OSS_HOME)/pkg/api/pb
-	rm -rf $(OSS_HOME)/_cxx/envoy/build_go
-	rm -rf $(OSS_HOME)/pkg/api/kat
-	rm -f $(OSS_HOME)/pkg/api/agent/*.pb.go
-	rm -rf $(OSS_HOME)/python/ambassador/proto
-	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js
-	rm -rf $(OSS_HOME)/pkg/envoy-control-plane
-	rm -f $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
-	rm -f $(OSS_HOME)/OPENSOURCE.md
-.PHONY: generate _generate generate-clean
+#
+# `go mod tidy`
+#
+# This `go mod tidy` business only belongs in generate.mk because for the moment we're checking
+# 'vendor/' in to Git.
 
 go-mod-tidy/oss:
 	rm -f $(OSS_HOME)/go.sum
@@ -53,20 +22,80 @@ go-mod-tidy/oss-evaluate:
 go-mod-tidy: go-mod-tidy/oss
 .PHONY: go-mod-tidy/oss go-mod-tidy
 
-$(OSS_HOME)/CHANGELOG.md: $(OSS_HOME)/docs/CHANGELOG.tpl $(OSS_HOME)/docs/releaseNotes.yml
-	docker run --rm \
-	  -v $(OSS_HOME)/docs/CHANGELOG.tpl:/tmp/CHANGELOG.tpl \
-	  -v $(OSS_HOME)/docs/releaseNotes.yml:/tmp/releaseNotes.yml \
-	  hairyhenderson/gomplate --verbose --file /tmp/CHANGELOG.tpl --datasource relnotes=/tmp/releaseNotes.yml > CHANGELOG.md
+#
+# The main `make generate` entrypoints and listings
+
+# - Let $(generate/files) be a listing of all files or directories that `make generate` will create.
+#
+# - Let $(generate-fast/files) be the subset of $(generate/files) that can be generated "quickly".  A
+#   file may NOT be considered fast if it uses the builder container, if it uses the network, or if it
+#   needs to access the filesystem to evaluate the list of files (as the lines using `$(shell find
+#   ...)` do).
+#
+# - Let $(generate/precious) be the subset of $(generate/files) that should not be deleted prior to
+#   re-generation.
+
+# Initialize
+generate-fast/files  =
+generate/files       = $(generate-fast/files)
+generate/precious    =
+# Whole directories with rules for each individual file in it
+generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) $(OSS_HOME)/pkg/api/kat/
+generate/files      += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/agent/            -name '*.proto')) $(OSS_HOME)/pkg/api/agent/
+generate/files      += $(patsubst $(OSS_HOME)/api/getambassador.io/%.proto,  $(OSS_HOME)/python/ambassador/proto/%_pb2.py        , $(shell find $(OSS_HOME)/api/getambassador.io/ -name '*.proto')) $(OSS_HOME)/python/ambassador/proto/
+generate/files      += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_pb.js          , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) # XXX: There are other files in this dir
+generate/files      += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_grpc_web_pb.js , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto')) # XXX: There are other files in this dir
+# Whole directories with one rule for the whole directory
+generate/files      += $(OSS_HOME)/api/envoy/
+generate/files      += $(OSS_HOME)/api/pb/
+generate/files      += $(OSS_HOME)/pkg/api/envoy/
+generate/files      += $(OSS_HOME)/pkg/api/pb/
+generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/
+generate-fast/files += $(OSS_HOME)/charts/emissary-ingress/crds/
+generate-fast/files += $(OSS_HOME)/python/schemas/v3alpha1/
+# Individual files
+generate/files      += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
+generate/files      += $(OSS_HOME)/OPENSOURCE.md
+generate/files      += $(OSS_HOME)/builder/requirements.txt
+generate/precious   += $(OSS_HOME)/builder/requirements.txt
+generate-fast/files += $(OSS_HOME)/CHANGELOG.md
+generate-fast/files += $(OSS_HOME)/charts/emissary-ingress/README.md
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
+generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-ingress.yaml
+generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador.yaml
+generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
+
+generate: ## Update generated sources that get committed to Git
+generate:
+	$(MAKE) generate-clean
+# This (generating specific targets early, then having a separate `_generate`) is a hack.  Because the
+# full value of $(generate/files) is based on the listing of files in $(OSS_HOME)/api/, we need to
+# make sure that those directories are fully populated before we evaluate the full $(generate/files).
+	$(MAKE) $(OSS_HOME)/api/envoy $(OSS_HOME)/api/pb
+	$(MAKE) _generate
+_generate:
+	@echo '$(MAKE) $$(generate/files)'; $(MAKE) $(patsubst %/,%,$(generate/files))
+.PHONY: generate _generate
+
+generate-clean: ## Delete generated sources that get committed to Git
+	rm -rf $(filter-out $(generate/precious),$(generate/files))
+	rm -f $(OSS_HOME)/tools/sandbox/grpc_web/*_pb.js # This corresponds to the "# XXX: There are other files in this dir" comments above
+	find $(OSS_HOME)/pkg/api/getambassador.io -name 'zz_generated.*.go' -print -delete # generated as a side-effect of other files
+.PHONY: generate-clean
+
+generate-fast: ## Update the subset of generated-sources-that-get-committed-to-Git that can be updated quickly
+generate-fast:
+	$(MAKE) generate-fast-clean
+	$(MAKE) $(patsubst %/,%,$(generate-fast/files))
+.PHONY: generate-fast
+
+generate-fast-clean: ## Delete the subset of generated-sources-that-get-committed-to-Git that can be updated quickly
+	rm -rf $(filter-out $(generate/precious),$(generate-fast/files))
+	find $(OSS_HOME)/pkg/api/getambassador.io -name 'zz_generated.*.go' -print -delete # generated as a side-effect of other files
+.PHONY: generate-fast-clean
 
 #
 # Helper Make functions and variables
-
-# Usage: VAR = $(call lazyonce,VAR,EXPR)
-#
-# Caches the value of EXPR (in case it's expensive/slow) once it is
-# evaluated, but doesn't eager-evaluate it either.
-lazyonce = $(eval $(strip $1) := $2)$2
 
 # Usage: $(call joinlist,SEPARATOR,LIST)
 # Example: $(call joinlist,/,foo bar baz) => foo/bar/baz
@@ -77,67 +106,7 @@ comma=,
 gomoddir = $(shell cd $(OSS_HOME); go list $1/... >/dev/null 2>/dev/null; go list -m -f='{{.Dir}}' $1)
 
 #
-# Tools we need to install for `make generate`
-
-clobber: _makefile_clobber
-_makefile_clobber:
-	rm -rf $(OSS_HOME)/bin_*/
-.PHONY: _makefile_clobber
-
-GOHOSTOS=$(call lazyonce,GOHOSTOS,$(shell go env GOHOSTOS))
-GOHOSTARCH=$(call lazyonce,GOHOSTARCH,$(shell go env GOHOSTARCH))
-
-# PROTOC_VERSION must be at least 3.8.0 in order to contain the fix so that it doesn't generate
-# invalid Python if you name an Enum member the same as a Python keyword.
-PROTOC_VERSION            = 3.8.0
-PROTOC_PLATFORM           = $(patsubst darwin,osx,$(GOHOSTOS))-$(patsubst amd64,x86_64,$(patsubst 386,x86_32,$(GOHOSTARCH)))
-tools/protoc              = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/bin/protoc
-$(tools/protoc): $(OSS_HOME)/build-aux-local/generate.mk
-	mkdir -p $(dir $(@D))
-	set -o pipefail; curl --fail -L https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip | bsdtar -C $(dir $(@D)) -xf -
-	chmod 755 $@
-
-# The version number of protoc-gen-go is controlled by `./go.mod`.  Additionally, the package name is
-# mentioned in `./pkg/ignore/pin.go`, so that `go mod tidy` won't make the `go.mod` file forget about
-# it.
-tools/protoc-gen-go = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-go
-$(tools/protoc-gen-go): $(OSS_HOME)/go.mod
-	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/golang/protobuf/protoc-gen-go
-
-GRPC_WEB_VERSION          = 1.0.3
-GRPC_WEB_PLATFORM         = $(GOHOSTOS)-x86_64
-tools/protoc-gen-grpc-web = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-grpc-web
-$(tools/protoc-gen-grpc-web): $(OSS_HOME)/build-aux-local/generate.mk
-	mkdir -p $(@D)
-	curl -o $@ -L --fail https://github.com/grpc/grpc-web/releases/download/$(GRPC_WEB_VERSION)/protoc-gen-grpc-web-$(GRPC_WEB_VERSION)-$(GRPC_WEB_PLATFORM)
-	chmod 755 $@
-
-# The version number of protoc-gen-validate is controlled by `./go.mod`.  Additionally, the package
-# name is mentioned in `./pkg/ignore/pin.go`, so that `go mod tidy` won't make the `go.mod` file
-# forget about it.
-tools/controller-gen = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/controller-gen
-$(tools/controller-gen): $(OSS_HOME)/go.mod
-	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ sigs.k8s.io/controller-tools/cmd/controller-gen
-
-tools/fix-crds = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/fix-crds
-$(tools/fix-crds): FORCE
-	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/v2/cmd/fix-crds
-
-tools/go-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/go-mkopensource
-$(tools/go-mkopensource): FORCE
-	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/v2/cmd/go-mkopensource
-
-tools/py-mkopensource = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/py-mkopensource
-$(tools/py-mkopensource): FORCE
-	mkdir -p $(@D)
-	cd $(OSS_HOME) && go build -o $@ github.com/datawire/ambassador/v2/cmd/py-mkopensource
-
-#
-# `make generate` vendor rules
+# Rules for downloading ("vendoring") sources from elsewhere
 
 # How to set ENVOY_GO_CONTROL_PLANE_COMMIT: In envoyproxy/go-control-plane.git, the majority of
 # commits have a commit message of the form "Mirrored from envoyproxy/envoy @ ${envoy.git_commit}".
@@ -182,9 +151,6 @@ $(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
 	}
 	cd $(OSS_HOME) && gofmt -w -s ./pkg/envoy-control-plane/
 
-#
-# `make generate` protobuf rules
-
 $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto:
 	set -e; { \
 	  url=https://raw.githubusercontent.com/envoyproxy/ratelimit/v1.3.0/proto/ratelimit/ratelimit.proto; \
@@ -192,6 +158,9 @@ $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto:
 	  echo; \
 	  curl --fail -L "$$url"; \
 	} > $@
+
+#
+# `make generate` protobuf rules
 
 # Usage: $(call protoc,output_module,output_basedir[,plugin_files])
 #
@@ -259,40 +228,36 @@ $(OSS_HOME)/pkg/api/%.pb.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/pro
 	    $(tools/protoc-gen-go))
 
 proto_options/python +=
-$(OSS_HOME)/generate.tmp/%_pb2.py: $(OSS_HOME)/api/%.proto $(tools/protoc)
-	mkdir -p $(OSS_HOME)/generate.tmp/getambassador.io
-	mkdir -p $(OSS_HOME)/generate.tmp/getambassador
-	ln -sf ../getambassador.io/ $(OSS_HOME)/generate.tmp/getambassador/io
-	$(call protoc,python,$(OSS_HOME)/generate.tmp)
+$(OSS_HOME)/_generate.tmp/%_pb2.py: $(OSS_HOME)/api/%.proto $(tools/protoc)
+	mkdir -p $(OSS_HOME)/_generate.tmp/getambassador.io
+	mkdir -p $(OSS_HOME)/_generate.tmp/getambassador
+	ln -sf ../getambassador.io/ $(OSS_HOME)/_generate.tmp/getambassador/io
+	$(call protoc,python,$(OSS_HOME)/_generate.tmp)
 
 proto_options/js += import_style=commonjs
-$(OSS_HOME)/generate.tmp/%_pb.js: $(OSS_HOME)/api/%.proto $(tools/protoc)
-	$(call protoc,js,$(OSS_HOME)/generate.tmp)
+$(OSS_HOME)/_generate.tmp/%_pb.js: $(OSS_HOME)/api/%.proto $(tools/protoc)
+	$(call protoc,js,$(OSS_HOME)/_generate.tmp)
 
 proto_options/grpc-web += import_style=commonjs
 proto_options/grpc-web += mode=grpcwebtext
-$(OSS_HOME)/generate.tmp/%_grpc_web_pb.js: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-grpc-web)
-	$(call protoc,grpc-web,$(OSS_HOME)/generate.tmp,\
+$(OSS_HOME)/_generate.tmp/%_grpc_web_pb.js: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-grpc-web)
+	$(call protoc,grpc-web,$(OSS_HOME)/_generate.tmp,\
 	    $(tools/protoc-gen-grpc-web))
 
-$(OSS_HOME)/python/ambassador/proto/%.py: $(OSS_HOME)/generate.tmp/getambassador.io/%.py
+$(OSS_HOME)/python/ambassador/proto/%.py: $(OSS_HOME)/_generate.tmp/getambassador.io/%.py
 	mkdir -p $(@D)
 	cp $< $@
 
-$(OSS_HOME)/tools/sandbox/grpc_web/%.js: $(OSS_HOME)/generate.tmp/kat/%.js
+$(OSS_HOME)/tools/sandbox/grpc_web/%.js: $(OSS_HOME)/_generate.tmp/kat/%.js
 	cp $< $@
 
-clean: _makefile_clean
-_makefile_clean:
-	rm -rf $(OSS_HOME)/generate.tmp
-.PHONY: _makefile_clean
+clean: _generate_clean
+_generate_clean:
+	rm -rf $(OSS_HOME)/_generate.tmp
+.PHONY: _generate_clean
 
 #
-# `make generate`/`make update-yaml` rules to update generated YAML files (and `zz_generated.*.go` Go files)
-
-update-yaml-preflight:
-	@printf "$(CYN)==> $(GRN)Updating YAML$(END)\n"
-.PHONY: update-yaml-preflight
+# `make generate` rules to update generated YAML files (and `zz_generated.*.go` Go files)
 
 # Use `controller-gen` to generate Go & YAML
 #
@@ -311,42 +276,49 @@ update-yaml-preflight:
 controller-gen/options/object      += # headerFile=hack/boilerplate.go.txt
 controller-gen/options/crd         += trivialVersions=false # change this to "false" once we're OK with requiring Kubernetes 1.13+
 controller-gen/options/crd         += crdVersions=v1beta1 # change this to "v1" once we're OK with requiring Kubernetes 1.16+
-controller-gen/output/crd           = dir=$(crds_yaml_dir)
-_generate_controller_gen: $(tools/controller-gen) $(tools/fix-crds) update-yaml-preflight
+controller-gen/output/crd           = dir=$@
+$(OSS_HOME)/charts/emissary-ingress/crds: $(tools/controller-gen) $(tools/fix-crds) FORCE
 	@printf '  $(CYN)Running controller-gen$(END)\n'
-	rm -f $(crds_yaml_dir)/*getambassador.io_*
+	rm -rf $@
+	mkdir $@
 	cd $(OSS_HOME) && $(tools/controller-gen) \
 	  $(foreach varname,$(sort $(filter controller-gen/options/%,$(.VARIABLES))), $(patsubst controller-gen/options/%,%,$(varname))$(if $(strip $($(varname))),:$(call joinlist,$(comma),$($(varname)))) ) \
 	  $(foreach varname,$(sort $(filter controller-gen/output/%,$(.VARIABLES))), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
 	  paths="./pkg/api/getambassador.io/..."
-	@PS4=; set -ex; for file in $(crds_yaml_dir)/*getambassador.io_*.yaml; do $(tools/fix-crds) helm 1.11 "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
-.PHONY: _generate_controller_gen
+	@PS4=; set -ex; for file in $@/*.yaml; do $(tools/fix-crds) helm 1.11 "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
 
-$(OSS_HOME)/manifests/emissary/emissary-crds.yaml: _generate_controller_gen $(tools/fix-crds) update-yaml-preflight
+$(OSS_HOME)/manifests/emissary/emissary-crds.yaml: $(OSS_HOME)/charts/emissary-ingress/crds $(tools/fix-crds)
 	@printf '  $(CYN)$@$(END)\n'
-	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/*getambassador.io_*.yaml)) > $@
+	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $</*.yaml)) > $@
 
-$(OSS_HOME)/manifests/emissary/ambassador-crds.yaml: _generate_controller_gen $(tools/fix-crds) update-yaml-preflight
+$(OSS_HOME)/manifests/emissary/ambassador-crds.yaml: $(OSS_HOME)/charts/emissary-ingress/crds $(tools/fix-crds)
 	@printf '  $(CYN)$@$(END)\n'
-	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $(crds_yaml_dir)/*getambassador.io_*.yaml)) > $@
+	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $</*.yaml)) > $@
 
-update-yaml/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
-update-yaml/files += $(OSS_HOME)/manifests/emissary/emissary-ingress.yaml
-update-yaml/files += $(OSS_HOME)/manifests/emissary/ambassador.yaml
-update-yaml/files += $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
+$(OSS_HOME)/python/schemas/v3alpha1: $(OSS_HOME)/manifests/emissary/emissary-crds.yaml $(tools/crds2schemas)
+	rm -rf $@
+	$(tools/crds2schemas) $< $@
 
-generate/files += $(update-yaml/files)
-update-yaml:
-	$(MAKE) update-yaml-clean
-	@echo '$(MAKE) $$(update-yaml/files)'; $(MAKE) $(update-yaml/files)
-.PHONY: update-yaml
+python-setup: create-venv
+	$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
+.PHONY: python-setup
 
-update-yaml-clean:
-	find $(OSS_HOME)/pkg/api/getambassador.io -name 'zz_generated.*.go' -delete
-	rm -f $(crds_yaml_dir)/getambassador.io_*
-	rm -f $(update-yaml/files)
-generate-clean: update-yaml-clean
-.PHONY: update-yaml-clean
+define generate_emissary_yaml_from_helm
+	mkdir -p $(OSS_HOME)/build/yaml/$(1) && \
+		helm template $(4) -n $(2) \
+		-f $(OSS_HOME)/k8s-config/$(1)/values.yaml \
+		$(OSS_HOME)/charts/emissary-ingress > $(OSS_HOME)/build/yaml/$(1)/helm-expanded.yaml
+	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/k8s-config/create_yaml.py \
+		$(OSS_HOME)/build/yaml/$(1)/helm-expanded.yaml $(OSS_HOME)/k8s-config/$(1)/require.yaml > $(3)
+endef
+
+$(OSS_HOME)/manifests/emissary/emissary-ingress.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/emissary-ingress/require.yaml $(OSS_HOME)/k8s-config/emissary-ingress/values.yaml $(OSS_HOME)/charts/emissary-ingress/templates/*.yaml $(OSS_HOME)/charts/emissary-ingress/values.yaml python-setup
+	@printf '  $(CYN)$@$(END)\n'
+	$(call generate_emissary_yaml_from_helm,emissary-ingress,emissary,$@,emissary-ingress)
+
+$(OSS_HOME)/manifests/emissary/ambassador.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/ambassador/require.yaml $(OSS_HOME)/k8s-config/ambassador/values.yaml $(OSS_HOME)/charts/emissary-ingress/templates/*.yaml $(OSS_HOME)/charts/emissary-ingress/values.yaml python-setup
+	@printf '  $(CYN)$@$(END)\n'
+	$(call generate_emissary_yaml_from_helm,ambassador,default,$@,ambassador)
 
 #
 # Generate report on dependencies
@@ -373,23 +345,14 @@ $(OSS_HOME)/OPENSOURCE.md: $(tools/go-mkopensource) $(tools/py-mkopensource) $(O
 		{ sed 's/^---$$//' $(OSS_HOME)/build-aux-local/pip-show.txt; echo; } | $(tools/py-mkopensource); \
 	} > $@
 
-python-setup: create-venv
-	$(OSS_HOME)/venv/bin/python -m pip install ruamel.yaml
-.PHONY: python-setup
+#
+# Misc. other `make generate` rules
 
-define generate_emissary_yaml_from_helm
-	mkdir -p $(OSS_HOME)/build/yaml/$(1) && \
-		helm template $(4) -n $(2) \
-		-f $(OSS_HOME)/k8s-config/$(1)/values.yaml \
-		$(OSS_HOME)/charts/emissary-ingress > $(OSS_HOME)/build/yaml/$(1)/helm-expanded.yaml
-	$(OSS_HOME)/venv/bin/python $(OSS_HOME)/k8s-config/create_yaml.py \
-		$(OSS_HOME)/build/yaml/$(1)/helm-expanded.yaml $(OSS_HOME)/k8s-config/$(1)/require.yaml > $(3)
-endef
+$(OSS_HOME)/CHANGELOG.md: $(OSS_HOME)/docs/CHANGELOG.tpl $(OSS_HOME)/docs/releaseNotes.yml
+	docker run --rm \
+	  -v $(OSS_HOME)/docs/CHANGELOG.tpl:/tmp/CHANGELOG.tpl \
+	  -v $(OSS_HOME)/docs/releaseNotes.yml:/tmp/releaseNotes.yml \
+	  hairyhenderson/gomplate --verbose --file /tmp/CHANGELOG.tpl --datasource relnotes=/tmp/releaseNotes.yml > CHANGELOG.md
 
-$(OSS_HOME)/manifests/emissary/emissary-ingress.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/emissary-ingress/require.yaml $(OSS_HOME)/k8s-config/emissary-ingress/values.yaml $(OSS_HOME)/charts/emissary-ingress/templates/*.yaml $(OSS_HOME)/charts/emissary-ingress/values.yaml python-setup
-	@printf '  $(CYN)$@$(END)\n'
-	$(call generate_emissary_yaml_from_helm,emissary-ingress,emissary,$@,emissary-ingress)
-
-$(OSS_HOME)/manifests/emissary/ambassador.yaml: $(OSS_HOME)/k8s-config/create_yaml.py $(OSS_HOME)/k8s-config/ambassador/require.yaml $(OSS_HOME)/k8s-config/ambassador/values.yaml $(OSS_HOME)/charts/emissary-ingress/templates/*.yaml $(OSS_HOME)/charts/emissary-ingress/values.yaml python-setup
-	@printf '  $(CYN)$@$(END)\n'
-	$(call generate_emissary_yaml_from_helm,ambassador,default,$@,ambassador)
+$(OSS_HOME)/charts/emissary-ingress/README.md: %/README.md: %/doc.yaml %/readme.tpl %/values.yaml $(tools/chart-doc-gen)
+	$(tools/chart-doc-gen) -d $*/doc.yaml -t $*/readme.tpl -v $*/values.yaml >$@

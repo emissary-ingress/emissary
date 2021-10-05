@@ -53,7 +53,7 @@ class IRCluster (IRResource):
                  ctx_name: Optional[Union[str, bool]]=None,
                  host_rewrite: Optional[str]=None,
 
-                 dns_type: str="strict_dns",
+                 dns_type: Optional[str]="strict_dns",
                  enable_ipv4: Optional[bool]=None,
                  enable_ipv6: Optional[bool]=None,
                  lb_type: str="round_robin",

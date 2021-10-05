@@ -21,6 +21,17 @@ ENVOY_TEST_LABEL ?= //test/...
 # for builder.mk...
 export ENVOY_DOCKER_TAG
 
+# Set ENVOY_DOCKER_REPO to the list of mirrors that we should
+# sanity-check that things get pushed to.
+ifneq ($(IS_PRIVATE),)
+  # If $(IS_PRIVATE), then just the private repo...
+  ENVOY_DOCKER_REPOS = $(ENVOY_DOCKER_REPO)
+else
+  # ...otherwise, this list of repos:
+  ENVOY_DOCKER_REPOS  = docker.io/datawire/ambassador-base
+  ENVOY_DOCKER_REPOS += gcr.io/datawire/ambassador-base
+endif
+
 #
 # Envoy build
 
@@ -91,13 +102,13 @@ $(OSS_HOME)/_cxx/go-control-plane: FORCE
 	    git checkout $(ENVOY_GO_CONTROL_PLANE_COMMIT); \
 	}
 
-$(OSS_HOME)/_cxx/envoy-build-image.txt: $(OSS_HOME)/_cxx/envoy $(WRITE_IFCHANGED) FORCE
+$(OSS_HOME)/_cxx/envoy-build-image.txt: $(OSS_HOME)/_cxx/envoy $(tools/write-ifchanged) FORCE
 	@PS4=; set -ex -o pipefail; { \
 	    pushd $</ci; \
 	    echo "$$(pwd)"; \
 	    . envoy_build_sha.sh; \
 	    popd; \
-	    echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA | $(WRITE_IFCHANGED) $@; \
+	    echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA | $(tools/write-ifchanged) $@; \
 	}
 
 $(OSS_HOME)/_cxx/envoy-build-container.txt: $(OSS_HOME)/_cxx/envoy-build-image.txt FORCE
@@ -120,14 +131,17 @@ $(OSS_HOME)/_cxx/envoy-build-container.txt: $(OSS_HOME)/_cxx/envoy-build-image.t
 	rm -f $*-container.txt
 .PHONY: %-container.txt.clean
 
+RSYNC_EXTRAS=
+# RSYNC_EXTRAS=Pv
+
 # We do everything with rsync and a persistent build-container
 # (instead of using a volume), because
 #  1. Docker for Mac's osxfs is very slow, so volumes are bad for
 #     macOS users.
 #  2. Volumes mounts just straight-up don't work for people who use
 #     Minikube's dockerd.
-ENVOY_SYNC_HOST_TO_DOCKER = rsync -Pav --delete --blocking-io -e "docker exec -i" $(OSS_HOME)/_cxx/envoy/ $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/root/envoy
-ENVOY_SYNC_DOCKER_TO_HOST = rsync -Pav --delete --blocking-io -e "docker exec -i" $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/root/envoy/ $(OSS_HOME)/_cxx/envoy/
+ENVOY_SYNC_HOST_TO_DOCKER = rsync -a$(RSYNC_EXTRAS) --partial --delete --blocking-io -e "docker exec -i" $(OSS_HOME)/_cxx/envoy/ $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/root/envoy
+ENVOY_SYNC_DOCKER_TO_HOST = rsync -a$(RSYNC_EXTRAS) --partial --delete --blocking-io -e "docker exec -i" $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/root/envoy/ $(OSS_HOME)/_cxx/envoy/
 
 ENVOY_BASH.cmd = bash -c 'PS4=; set -ex; $(ENVOY_SYNC_HOST_TO_DOCKER); trap '\''$(ENVOY_SYNC_DOCKER_TO_HOST)'\'' EXIT; '$(call quote.shell,$1)
 ENVOY_BASH.deps = $(OSS_HOME)/_cxx/envoy-build-container.txt
@@ -142,7 +156,7 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	mkdir -p $(@D)
 	@PS4=; set -ex; { \
 	    if [ '$(ENVOY_COMMIT)' != '-' ] && docker run --rm --entrypoint=true $(ENVOY_FULL_DOCKER_TAG); then \
-	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_FULL_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy-static $@; \
+	        rsync -a$(RSYNC_EXTRAS) --partial --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_FULL_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy-static $@; \
 	    else \
 	        if [ -z '$(YES_I_AM_OK_WITH_COMPILING_ENVOY)' ]; then \
 	            { set +x; } &>/dev/null; \
@@ -151,23 +165,23 @@ $(OSS_HOME)/docker/base-envoy/envoy-static: $(ENVOY_BASH.deps) FORCE
 	        fi; \
 	        $(call ENVOY_BASH.cmd, \
 	            $(ENVOY_DOCKER_EXEC) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) --config=clang //source/exe:envoy-static; \
-	            rsync -Pav --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/root/envoy/bazel-bin/source/exe/envoy-static $@; \
+	            rsync -a$(RSYNC_EXTRAS) --partial --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/root/envoy/bazel-bin/source/exe/envoy-static $@; \
 	        ); \
 	    fi; \
 	}
 %-stripped: % FORCE
 	@PS4=; set -ex; { \
 	    if [ '$(ENVOY_COMMIT)' != '-' ] && docker run --rm --entrypoint=true $(ENVOY_FULL_DOCKER_TAG); then \
-	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_FULL_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/$(@F) $@; \
+	        rsync -a$(RSYNC_EXTRAS) --partial --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(ENVOY_FULL_DOCKER_TAG) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/$(@F) $@; \
 	    else \
 	        if [ -z '$(YES_I_AM_OK_WITH_COMPILING_ENVOY)' ]; then \
 	            { set +x; } &>/dev/null; \
 	            echo 'error: Envoy compilation triggered, but $$YES_I_AM_OK_WITH_COMPILING_ENVOY is not set'; \
 	            exit 1; \
 	        fi; \
-	        rsync -Pav --blocking-io -e 'docker exec -i' $< $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/tmp/$(<F); \
+	        rsync -a$(RSYNC_EXTRAS) --partial --blocking-io -e 'docker exec -i' $< $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/tmp/$(<F); \
 	        docker exec $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt) strip /tmp/$(<F) -o /tmp/$(@F); \
-	        rsync -Pav --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/tmp/$(@F) $@; \
+	        rsync -a$(RSYNC_EXTRAS) --partial --blocking-io -e 'docker exec -i' $$(cat $(OSS_HOME)/_cxx/envoy-build-container.txt):/tmp/$(@F) $@; \
 	    fi; \
 	}
 
@@ -178,6 +192,24 @@ check-envoy: $(ENVOY_BASH.deps)
 	     $(ENVOY_DOCKER_EXEC) bazel test --config=clang --test_output=errors --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only $(ENVOY_TEST_LABEL); \
 	 )
 .PHONY: check-envoy
+
+.PHONY: check-envoy-version
+check-envoy-version: ## Check that Envoy version has been pushed to the right places
+check-envoy-version: $(OSS_HOME)/_cxx/envoy
+	# First, we're going to check whether the envoy commit is tagged, which
+	# is one of the things that has to happen before landing a PR that bumps
+	# the ENVOY_COMMIT.
+	cd $< && unset GIT_DIR GIT_WORK_TREE && git describe --tags --exact-match
+	# Now, we're going to check that the Envoy Docker images have been
+	# pushed to all of the mirrors, which is another thing that has to
+	# happen before landing a PR that bumps the ENVOY_COMMIT.
+	#
+	# We "could" use `docker manifest inspect` instead of `docker
+	# pull` to test that these exist without actually pulling
+	# them... except that gcr.io doesn't allow `manifest inspect`.
+	# So just go ahead and do the `pull` :(
+	@PS4=; set -ex; $(foreach ENVOY_DOCKER_REPO,$(ENVOY_DOCKER_REPOS), docker pull $(ENVOY_DOCKER_TAG) >/dev/null; )
+	@PS4=; set -ex; $(foreach ENVOY_DOCKER_REPO,$(ENVOY_DOCKER_REPOS), docker pull $(ENVOY_FULL_DOCKER_TAG) >/dev/null; )
 
 envoy-shell: ## Run a shell in the Envoy build container
 envoy-shell: $(ENVOY_BASH.deps)
@@ -298,6 +330,12 @@ clobber: _clobber-envoy
 
 _clean-envoy: _clean-envoy-old
 _clean-envoy: $(OSS_HOME)/_cxx/envoy-build-container.txt.clean
+	@PS4=; set -e; { \
+		if docker volume inspect envoy-build >/dev/null 2>&1; then \
+			set -x ;\
+			docker volume rm envoy-build >/dev/null ;\
+		fi ;\
+	}
 	rm -f $(OSS_HOME)/_cxx/envoy-build-image.txt
 _clobber-envoy: _clean-envoy
 	rm -f $(OSS_HOME)/docker/base-envoy/envoy-static

@@ -17,12 +17,8 @@
 /docker-registry.yaml.o
 /docker-registry.deploy
 
-# go-mod.mk
-/go-test.tap
+# generate.mk
 /go1*.src.tar.gz
-
-# go-mod.mk
-/gopath/
 
 # var.mk
 /.var.*

@@ -23,14 +23,11 @@ rules:
 - apiGroups: [""]
   resources: [ "endpoints", "namespaces", "secrets", "services" ]
   verbs: ["get", "list", "watch"]
-- apiGroups: [ "x.getambassador.io", "getambassador.io" ]
+- apiGroups: [ "getambassador.io" ]
   resources: [ "*" ]
   verbs: ["get", "list", "watch"]
 - apiGroups: [ "getambassador.io" ]
   resources: [ "mappings/status" ]
-  verbs: ["update"]
-- apiGroups: [ "x.getambassador.io" ]
-  resources: [ "ambassadormappings/status" ]
   verbs: ["update"]
 - apiGroups: [ "apiextensions.k8s.io" ]
   resources: [ "customresourcedefinitions" ]
@@ -309,6 +306,9 @@ spec:
               - namespace.name
               - name.prefix
               type: string
+            preserve_servers:
+              description: Configures this DevPortal to use server definitions from the openAPI doc instead of rewriting them based on the url used for the connection.
+              type: boolean
             search:
               description: DevPortalSearchSpec allows configuration over search functionality for the DevPortal
               properties:

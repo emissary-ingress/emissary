@@ -69,61 +69,6 @@ load common
 	[[ "$(cat build-aux/.var.build-aux.dir)" -ef build-aux ]]
 }
 
-@test "prelude.mk: build-aux.bindir" {
-	cat >>Makefile <<-'__EOT__'
-		include build-aux/prelude.mk
-		include build-aux/var.mk
-		tst: $(build-aux.bindir) $(var.)build-aux.bindir
-	__EOT__
-
-	make
-	# Check that it points to the right place
-	[[ "$(cat build-aux/.var.build-aux.bindir)" -ef build-aux/bin ]]
-	# Check that it's absolute
-	[[ "$(cat build-aux/.var.build-aux.bindir)" == /* ]]
-}
-
-@test "prelude.mk: FLOCK" {
-	if type flock &>/dev/null; then
-		check_executable prelude.mk FLOCK
-	else
-		check_go_executable prelude.mk FLOCK
-		[[ "$FLOCK" != unsupported ]] || return 0
-	fi
-	if which flock &>/dev/null; then
-		[[ "$FLOCK" == "$(which flock)" ]]
-	fi
-	if [[ -n "$build_aux_expected_FLOCK" ]]; then
-		[[ "$FLOCK" == "$build_aux_expected_FLOCK" ]]
-	fi
-
-	# TODO: Check that $FLOCK behaves correctly
-}
-
-@test "prelude.mk: COPY_IFCHANGED" {
-	check_executable prelude.mk COPY_IFCHANGED
-
-	# TODO: Check that $COPY_IFCHANGED behaves correctly
-}
-
-@test "prelude.mk: MOVE_IFCHANGED" {
-	check_executable prelude.mk MOVE_IFCHANGED
-
-	# TODO: Check that $MOVE_IFCHANGED behaves correctly
-}
-
-@test "prelude.mk: WRITE_IFCHANGED" {
-	check_executable prelude.mk WRITE_IFCHANGED
-
-	# TODO: Check that $WRITE_IFCHANGED behaves correctly
-}
-
-@test "prelude.mk: TAP_DRIVER" {
-	check_executable prelude.mk TAP_DRIVER
-
-	# TODO: Check that $TAP_DRIVER behaves correctly
-}
-
 @test "prelude.mk: clobber" {
 	if ! [[ -e build-aux/.git ]]; then
 		# Because we check `git clean -ndx` to make sure

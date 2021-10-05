@@ -244,6 +244,8 @@ func (x *Snapshot) GetSnapshotTs() *timestamp.Timestamp {
 	return nil
 }
 
+// RawSnapshotChunk is a fragment of a JSON serialization of a
+// Snapshot protobuf object.
 type RawSnapshotChunk struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -603,19 +605,24 @@ var file_agent_director_proto_rawDesc = []byte{
 	0x0e, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x52,
 	0x08, 0x63, 0x6f, 0x6d, 0x6d, 0x61, 0x6e, 0x64, 0x73, 0x22, 0x23, 0x0a, 0x07, 0x43, 0x6f, 0x6d,
 	0x6d, 0x61, 0x6e, 0x64, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x32, 0xb5,
-	0x01, 0x0a, 0x08, 0x44, 0x69, 0x72, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x12, 0x34, 0x0a, 0x06, 0x52,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x32, 0xfe,
+	0x01, 0x0a, 0x08, 0x44, 0x69, 0x72, 0x65, 0x63, 0x74, 0x6f, 0x72, 0x12, 0x37, 0x0a, 0x06, 0x52,
 	0x65, 0x70, 0x6f, 0x72, 0x74, 0x12, 0x0f, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x53, 0x6e,
 	0x61, 0x70, 0x73, 0x68, 0x6f, 0x74, 0x1a, 0x17, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x53,
 	0x6e, 0x61, 0x70, 0x73, 0x68, 0x6f, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x00, 0x12, 0x31, 0x0a, 0x08, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x65, 0x12, 0x0f, 0x2e,
-	0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x1a, 0x10,
-	0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x44, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x76, 0x65,
-	0x22, 0x00, 0x30, 0x01, 0x12, 0x40, 0x0a, 0x10, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x65,
-	0x53, 0x6e, 0x61, 0x70, 0x73, 0x68, 0x6f, 0x74, 0x12, 0x0f, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74,
-	0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x1a, 0x17, 0x2e, 0x61, 0x67, 0x65, 0x6e,
-	0x74, 0x2e, 0x52, 0x61, 0x77, 0x53, 0x6e, 0x61, 0x70, 0x73, 0x68, 0x6f, 0x74, 0x43, 0x68, 0x75,
-	0x6e, 0x6b, 0x22, 0x00, 0x30, 0x01, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x03, 0x88, 0x02, 0x01, 0x12, 0x44, 0x0a, 0x0c, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x53, 0x74,
+	0x72, 0x65, 0x61, 0x6d, 0x12, 0x17, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x52, 0x61, 0x77,
+	0x53, 0x6e, 0x61, 0x70, 0x73, 0x68, 0x6f, 0x74, 0x43, 0x68, 0x75, 0x6e, 0x6b, 0x1a, 0x17, 0x2e,
+	0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x53, 0x6e, 0x61, 0x70, 0x73, 0x68, 0x6f, 0x74, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x28, 0x01, 0x12, 0x31, 0x0a, 0x08, 0x52, 0x65,
+	0x74, 0x72, 0x69, 0x65, 0x76, 0x65, 0x12, 0x0f, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x49,
+	0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x1a, 0x10, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e,
+	0x44, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x76, 0x65, 0x22, 0x00, 0x30, 0x01, 0x12, 0x40, 0x0a,
+	0x10, 0x52, 0x65, 0x74, 0x72, 0x69, 0x65, 0x76, 0x65, 0x53, 0x6e, 0x61, 0x70, 0x73, 0x68, 0x6f,
+	0x74, 0x12, 0x0f, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69,
+	0x74, 0x79, 0x1a, 0x17, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x52, 0x61, 0x77, 0x53, 0x6e,
+	0x61, 0x70, 0x73, 0x68, 0x6f, 0x74, 0x43, 0x68, 0x75, 0x6e, 0x6b, 0x22, 0x00, 0x30, 0x01, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -653,13 +660,15 @@ var file_agent_director_proto_depIdxs = []int32{
 	10, // 5: agent.Directive.min_report_period:type_name -> google.protobuf.Duration
 	6,  // 6: agent.Directive.commands:type_name -> agent.Command
 	1,  // 7: agent.Director.Report:input_type -> agent.Snapshot
-	0,  // 8: agent.Director.Retrieve:input_type -> agent.Identity
-	0,  // 9: agent.Director.RetrieveSnapshot:input_type -> agent.Identity
-	4,  // 10: agent.Director.Report:output_type -> agent.SnapshotResponse
-	5,  // 11: agent.Director.Retrieve:output_type -> agent.Directive
-	2,  // 12: agent.Director.RetrieveSnapshot:output_type -> agent.RawSnapshotChunk
-	10, // [10:13] is the sub-list for method output_type
-	7,  // [7:10] is the sub-list for method input_type
+	2,  // 8: agent.Director.ReportStream:input_type -> agent.RawSnapshotChunk
+	0,  // 9: agent.Director.Retrieve:input_type -> agent.Identity
+	0,  // 10: agent.Director.RetrieveSnapshot:input_type -> agent.Identity
+	4,  // 11: agent.Director.Report:output_type -> agent.SnapshotResponse
+	4,  // 12: agent.Director.ReportStream:output_type -> agent.SnapshotResponse
+	5,  // 13: agent.Director.Retrieve:output_type -> agent.Directive
+	2,  // 14: agent.Director.RetrieveSnapshot:output_type -> agent.RawSnapshotChunk
+	11, // [11:15] is the sub-list for method output_type
+	7,  // [7:11] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name
 	7,  // [7:7] is the sub-list for extension extendee
 	0,  // [0:7] is the sub-list for field type_name
@@ -788,8 +797,12 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type DirectorClient interface {
-	// Report a consistent Snapshot of information to the CEPC
+	// Deprecated: Do not use.
+	// Report a consistent Snapshot of information to the CEPC.  This
+	// method is deprecated, you should call ReportStream instead.
 	Report(ctx context.Context, in *Snapshot, opts ...grpc.CallOption) (*SnapshotResponse, error)
+	// Report a consistent Snapshot of information to the CEPC.
+	ReportStream(ctx context.Context, opts ...grpc.CallOption) (Director_ReportStreamClient, error)
 	// Retrieve Directives from the CEPC
 	Retrieve(ctx context.Context, in *Identity, opts ...grpc.CallOption) (Director_RetrieveClient, error)
 	RetrieveSnapshot(ctx context.Context, in *Identity, opts ...grpc.CallOption) (Director_RetrieveSnapshotClient, error)
@@ -803,6 +816,7 @@ func NewDirectorClient(cc grpc.ClientConnInterface) DirectorClient {
 	return &directorClient{cc}
 }
 
+// Deprecated: Do not use.
 func (c *directorClient) Report(ctx context.Context, in *Snapshot, opts ...grpc.CallOption) (*SnapshotResponse, error) {
 	out := new(SnapshotResponse)
 	err := c.cc.Invoke(ctx, "/agent.Director/Report", in, out, opts...)
@@ -812,8 +826,42 @@ func (c *directorClient) Report(ctx context.Context, in *Snapshot, opts ...grpc.
 	return out, nil
 }
 
+func (c *directorClient) ReportStream(ctx context.Context, opts ...grpc.CallOption) (Director_ReportStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Director_serviceDesc.Streams[0], "/agent.Director/ReportStream", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &directorReportStreamClient{stream}
+	return x, nil
+}
+
+type Director_ReportStreamClient interface {
+	Send(*RawSnapshotChunk) error
+	CloseAndRecv() (*SnapshotResponse, error)
+	grpc.ClientStream
+}
+
+type directorReportStreamClient struct {
+	grpc.ClientStream
+}
+
+func (x *directorReportStreamClient) Send(m *RawSnapshotChunk) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *directorReportStreamClient) CloseAndRecv() (*SnapshotResponse, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(SnapshotResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *directorClient) Retrieve(ctx context.Context, in *Identity, opts ...grpc.CallOption) (Director_RetrieveClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Director_serviceDesc.Streams[0], "/agent.Director/Retrieve", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Director_serviceDesc.Streams[1], "/agent.Director/Retrieve", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -845,7 +893,7 @@ func (x *directorRetrieveClient) Recv() (*Directive, error) {
 }
 
 func (c *directorClient) RetrieveSnapshot(ctx context.Context, in *Identity, opts ...grpc.CallOption) (Director_RetrieveSnapshotClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_Director_serviceDesc.Streams[1], "/agent.Director/RetrieveSnapshot", opts...)
+	stream, err := c.cc.NewStream(ctx, &_Director_serviceDesc.Streams[2], "/agent.Director/RetrieveSnapshot", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -878,8 +926,12 @@ func (x *directorRetrieveSnapshotClient) Recv() (*RawSnapshotChunk, error) {
 
 // DirectorServer is the server API for Director service.
 type DirectorServer interface {
-	// Report a consistent Snapshot of information to the CEPC
+	// Deprecated: Do not use.
+	// Report a consistent Snapshot of information to the CEPC.  This
+	// method is deprecated, you should call ReportStream instead.
 	Report(context.Context, *Snapshot) (*SnapshotResponse, error)
+	// Report a consistent Snapshot of information to the CEPC.
+	ReportStream(Director_ReportStreamServer) error
 	// Retrieve Directives from the CEPC
 	Retrieve(*Identity, Director_RetrieveServer) error
 	RetrieveSnapshot(*Identity, Director_RetrieveSnapshotServer) error
@@ -891,6 +943,9 @@ type UnimplementedDirectorServer struct {
 
 func (*UnimplementedDirectorServer) Report(context.Context, *Snapshot) (*SnapshotResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Report not implemented")
+}
+func (*UnimplementedDirectorServer) ReportStream(Director_ReportStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method ReportStream not implemented")
 }
 func (*UnimplementedDirectorServer) Retrieve(*Identity, Director_RetrieveServer) error {
 	return status.Errorf(codes.Unimplemented, "method Retrieve not implemented")
@@ -919,6 +974,32 @@ func _Director_Report_Handler(srv interface{}, ctx context.Context, dec func(int
 		return srv.(DirectorServer).Report(ctx, req.(*Snapshot))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _Director_ReportStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(DirectorServer).ReportStream(&directorReportStreamServer{stream})
+}
+
+type Director_ReportStreamServer interface {
+	SendAndClose(*SnapshotResponse) error
+	Recv() (*RawSnapshotChunk, error)
+	grpc.ServerStream
+}
+
+type directorReportStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *directorReportStreamServer) SendAndClose(m *SnapshotResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *directorReportStreamServer) Recv() (*RawSnapshotChunk, error) {
+	m := new(RawSnapshotChunk)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func _Director_Retrieve_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -973,6 +1054,11 @@ var _Director_serviceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "ReportStream",
+			Handler:       _Director_ReportStream_Handler,
+			ClientStreams: true,
+		},
 		{
 			StreamName:    "Retrieve",
 			Handler:       _Director_Retrieve_Handler,

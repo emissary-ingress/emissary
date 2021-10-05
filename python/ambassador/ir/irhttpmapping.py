@@ -86,6 +86,7 @@ class IRHTTPMapping (IRBaseMapping):
         "connect_timeout_ms": False,
         "cors": False,
         "docs": False,
+        "dns_type": False,
         "enable_ipv4": False,
         "enable_ipv6": False,
         "error_response_overrides": False,
@@ -140,7 +141,7 @@ class IRHTTPMapping (IRBaseMapping):
                  namespace: Optional[str] = None,
                  metadata_labels: Optional[Dict[str, str]] = None,
                  kind: str="IRHTTPMapping",
-                 apiVersion: str="x.getambassador.io/v3alpha1",   # Not a typo! See below.
+                 apiVersion: str="getambassador.io/v3alpha1",   # Not a typo! See below.
                  precedence: int=0,
                  rewrite: str="/",
                  cluster_tag: Optional[str]=None,

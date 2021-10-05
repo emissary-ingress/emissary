@@ -1,0 +1,17 @@
+version: 2.1
+
+jobs:
+  'NoOp Job':
+    docker:
+      - image: docker.io/alpine:latest
+    steps:
+      - run: 'true'
+
+workflows:
+  'NoOp Workflow':
+    when:
+      equal:
+        - foo
+        - bar
+    jobs:
+      - 'NoOp Job'

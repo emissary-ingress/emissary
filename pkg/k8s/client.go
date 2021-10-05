@@ -290,19 +290,19 @@ func mappingFor(resourceOrKindArg string, restMapper meta.RESTMapper) (*meta.RES
 }
 
 // List calls ListNamespace(...) with NamespaceAll.
-func (c *Client) List(resource string) ([]Resource, error) {
-	return c.ListNamespace(NamespaceAll, resource)
+func (c *Client) List(ctx context.Context, resource string) ([]Resource, error) {
+	return c.ListNamespace(ctx, NamespaceAll, resource)
 }
 
 // ListNamespace returns a slice of Resources.
 // If the resource is not namespaced, the namespace must be NamespaceNone.
 // If the resource is namespaced, NamespaceAll lists across all namespaces.
-func (c *Client) ListNamespace(namespace, resource string) ([]Resource, error) {
-	return c.SelectiveList(namespace, resource, "", "")
+func (c *Client) ListNamespace(ctx context.Context, namespace, resource string) ([]Resource, error) {
+	return c.SelectiveList(ctx, namespace, resource, "", "")
 }
 
-func (c *Client) SelectiveList(namespace, resource, fieldSelector, labelSelector string) ([]Resource, error) {
-	return c.ListQuery(Query{
+func (c *Client) SelectiveList(ctx context.Context, namespace, resource, fieldSelector, labelSelector string) ([]Resource, error) {
+	return c.ListQuery(ctx, Query{
 		Kind:          resource,
 		Namespace:     namespace,
 		FieldSelector: fieldSelector,
@@ -342,7 +342,7 @@ func (q *Query) resolve(c *Client) error {
 
 // ListQuery returns all the Kubernetes resources that satisfy the
 // supplied query.
-func (c *Client) ListQuery(query Query) ([]Resource, error) {
+func (c *Client) ListQuery(ctx context.Context, query Query) ([]Resource, error) {
 	err := query.resolve(c)
 	if err != nil {
 		return nil, err
@@ -368,7 +368,7 @@ func (c *Client) ListQuery(query Query) ([]Resource, error) {
 		filtered = cli
 	}
 
-	uns, err := filtered.List(context.TODO(), metav1.ListOptions{
+	uns, err := filtered.List(ctx, metav1.ListOptions{
 		FieldSelector: query.FieldSelector,
 		LabelSelector: query.LabelSelector,
 	})

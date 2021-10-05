@@ -26,9 +26,7 @@ OSS_HOME := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 _git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
 IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
-images: python/ambassador.version
-push: python/ambassador.version
-
+include $(OSS_HOME)/build-aux/tools.mk
 include $(OSS_HOME)/builder/builder.mk
 include $(OSS_HOME)/_cxx/envoy.mk
 include $(OSS_HOME)/charts/emissary-ingress/Makefile
@@ -42,6 +40,15 @@ include $(OSS_HOME)/build-aux-local/generate.mk
 include $(OSS_HOME)/build-aux-local/lint.mk
 
 include $(OSS_HOME)/docs/yaml.mk
+
+test-chart-values.yaml: docker/$(LCNAME).docker.push.remote
+	{ \
+	  echo 'image:'; \
+	  sed -E -n '2s/^(.*):.*/  repository: \1/p' < $<; \
+	  sed -E -n '2s/.*:/  tag: /p' < $<; \
+	} >$@
+HELM_TEST_VALUES = test-chart-values.yaml
+test-chart: test-chart-values.yaml
 
 # Configure GNU Make itself
 SHELL = bash

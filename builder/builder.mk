@@ -111,7 +111,6 @@ MODULES :=
 module = $(eval MODULES += $(1))$(eval SOURCE_$(1)=$(abspath $(2)))
 
 BUILDER = BUILDER_NAME=$(BUILDER_NAME) $(abspath $(BUILDER_HOME)/builder.sh)
-DBUILD = $(abspath $(BUILDER_HOME)/dbuild.sh)
 COPY_GOLD = $(abspath $(BUILDER_HOME)/copy-gold.sh)
 
 AWS_S3_BUCKET ?= datawire-static-files
@@ -147,6 +146,8 @@ INGRESS_TEST_LOCAL_ADMIN_PORT = 8877
 # NOTE: these manifests can be slightly different to the regular ones asd they include
 INGRESS_TEST_MANIF_DIR = $(BUILDER_HOME)/../manifests/emissary/
 INGRESS_TEST_MANIFS = ambassador-crds.yaml ambassador.yaml
+
+export DOCKER_BUILDKIT := 0
 
 all: help
 .PHONY: all
@@ -235,9 +236,8 @@ raw-version:
 	@$(BUILDER) raw-version
 .PHONY: raw-version
 
-python/ambassador.version:
-	$(BUILDER) raw-version > python/ambassador.version
-.PHONY: python/ambassador.version
+python/ambassador.version: $(tools/write-ifchanged) FORCE
+	set -o pipefail; $(BUILDER) raw-version | $(tools/write-ifchanged) python/ambassador.version
 
 compile: sync
 	@$(BUILDER) compile
@@ -249,8 +249,8 @@ compile: sync
 # ".stamp" should NEVER appear in a dependency list (that is, it
 # should never be on the right-side of the ":"), save for in this rule
 # itself.
-%: %.stamp $(COPY_IFCHANGED)
-	@$(COPY_IFCHANGED) $< $@
+%: %.stamp $(tools/copy-ifchanged)
+	@$(tools/copy-ifchanged) $< $@
 
 # Give Make a hint about which pattern rules to apply.  Honestly, I'm
 # not sure why Make isn't figuring it out on its own, but it isn't.
@@ -277,20 +277,17 @@ docker/base-envoy.docker.stamp: FORCE
 	    docker image inspect $(ENVOY_DOCKER_TAG) --format='{{ .Id }}' >$@; \
 	  fi; \
 	}
-docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker python/ambassador.version $(BUILDER_HOME)/Dockerfile FORCE
-	@set -e; { \
-	    printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"; \
-	    printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"; \
-	    printf "    ${BLU}builderbase=$$(cat $*/builder-base.docker)${END}\n"; \
-	    TIMEFORMAT="     (docker build took %1R seconds)"; \
-	    time ${DBUILD} -f ${BUILDER_HOME}/Dockerfile . \
-	      --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
-	      --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
-	      --build-arg=version="$(BUILD_VERSION)" \
-	      --target=ambassador \
-	      --iidfile=$@; \
-	    unset TIMEFORMAT; \
-	}
+docker/$(LCNAME).docker.stamp: %/$(LCNAME).docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker python/ambassador.version $(BUILDER_HOME)/Dockerfile $(tools/dsum) FORCE
+	@printf "${CYN}==> ${GRN}Building image ${BLU}$(LCNAME)${END}\n"
+	@printf "    ${BLU}envoy=$$(cat $*/base-envoy.docker)${END}\n"
+	@printf "    ${BLU}builderbase=$$(cat $*/builder-base.docker)${END}\n"
+	{ $(tools/dsum) '$(LCNAME) build' 3s \
+	  docker build -f ${BUILDER_HOME}/Dockerfile . \
+	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
+	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
+	    --build-arg=version="$(BUILD_VERSION)" \
+	    --target=ambassador \
+	    --iidfile=$@; }
 
 docker/$(LCNAME)-ea.docker.stamp: %/$(LCNAME)-ea.docker.stamp: %/$(LCNAME).docker FORCE
 	@set -e; { \
@@ -298,28 +295,22 @@ docker/$(LCNAME)-ea.docker.stamp: %/$(LCNAME)-ea.docker.stamp: %/$(LCNAME).docke
 	  cat docker/$(LCNAME).docker > $@; \
 	}
 
-docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
-	@set -e; { \
-	  printf "${CYN}==> ${GRN}Building image ${BLU}kat-client${END}\n"; \
-	  TIMEFORMAT="     (kat-client build took %1R seconds)"; \
-	  time ${DBUILD} -f ${BUILDER_HOME}/Dockerfile . \
+docker/kat-client.docker.stamp: %/kat-client.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile $(tools/dsum) FORCE
+	@printf "${CYN}==> ${GRN}Building image ${BLU}kat-client${END}\n"
+	{ $(tools/dsum) 'kat-client build' 3s \
+	  docker build -f ${BUILDER_HOME}/Dockerfile . \
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
 	    --target=kat-client \
-	    --iidfile=$@; \
-	  unset TIMEFORMAT; \
-	}
-docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile FORCE
-	@set -e; { \
-	  printf "${CYN}==> ${GRN}Building image ${BLU}kat-server${END}\n"; \
-	  TIMEFORMAT="     (kat-server build took %1R seconds)"; \
-	  time ${DBUILD} -f ${BUILDER_HOME}/Dockerfile . \
+	    --iidfile=$@; }
+docker/kat-server.docker.stamp: %/kat-server.docker.stamp: %/base-envoy.docker.tag.local %/builder-base.docker $(BUILDER_HOME)/Dockerfile $(tools/dsum) FORCE
+	@printf "${CYN}==> ${GRN}Building image ${BLU}kat-server${END}\n"
+	{ $(tools/dsum) 'kat-server build' 3s \
+	  docker build -f ${BUILDER_HOME}/Dockerfile . \
 	    --build-arg=envoy="$$(cat $*/base-envoy.docker)" \
 	    --build-arg=builderbase="$$(cat $*/builder-base.docker)" \
 	    --target=kat-server \
-	    --iidfile=$@; \
-	  unset TIMEFORMAT; \
-	}
+	    --iidfile=$@; }
 
 REPO=$(BUILDER_NAME)
 
@@ -369,7 +360,7 @@ push-dev: docker/$(LCNAME).docker.tag.local
 			IMAGE_TAG=$${suffix} \
 			IMAGE_REPO="$(DEV_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
-		$(MAKE) update-yaml --always-make; \
+		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$$suffix push-manifests  ; \
 		$(MAKE) clean-manifests ; \
 	}
@@ -436,7 +427,10 @@ docker/run/shell:
 
 setup-envoy: extract-bin-envoy
 
-pytest: docker/$(LCNAME).docker.push.remote docker/kat-client.docker.push.remote docker/kat-server.docker.push.remote $(OSS_HOME)/bin/kubestatus
+pytest: docker/$(LCNAME).docker.push.remote
+pytest: docker/kat-client.docker.push.remote
+pytest: docker/kat-server.docker.push.remote
+pytest: $(tools/kubestatus)
 	@$(MAKE) setup-diagd
 	@$(MAKE) setup-envoy
 	@$(MAKE) proxy
@@ -478,9 +472,6 @@ extract-bin-envoy: docker/base-envoy.docker.tag.local
 	@echo "docker run -v $(OSS_HOME):$(OSS_HOME) -v /var/:/var/ -v /tmp/:/tmp/ -t --entrypoint /usr/local/bin/envoy-static-stripped $$(cat docker/base-envoy.docker) \"\$$@\"" >> $(OSS_HOME)/bin/envoy
 	@chmod +x $(OSS_HOME)/bin/envoy
 .PHONY: extract-bin-envoy
-
-$(OSS_HOME)/bin/kubestatus:
-	@(cd $(OSS_HOME) && mkdir -p bin && go build -o bin/kubestatus ./cmd/busyambassador)
 
 pytest-builder: test-ready
 	$(MAKE) pytest-builder-only
@@ -700,12 +691,8 @@ ingresstest: | docker/$(LCNAME).docker.push.remote
 		printf "$(CYN)==> $(GRN)We are done. You should destroy the cluster with 'kind delete cluster'.$(END)\n"; \
 	fi
 
-test: ingresstest gotest pytest e2etest
+test: ingresstest gotest pytest
 .PHONY: test
-
-# Empty stub; 'e2etest' is AES-only
-e2etest:
-.PHONY: e2etest
 
 shell: docker/container.txt
 	@printf "$(CYN)==> $(GRN)Launching interactive shell...$(END)\n"
@@ -713,7 +700,6 @@ shell: docker/container.txt
 .PHONY: shell
 
 AMB_IMAGE_RC=$(RELEASE_REGISTRY)/$(REPO):$(RELEASE_VERSION)
-AMB_IMAGE_RC_LATEST=$(RELEASE_REGISTRY)/$(REPO):$(BUILD_VERSION)-rc-latest
 AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/$(REPO):$(BUILD_VERSION)
 
 export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/env variable to the docker registry\n       you would like to use for release$(END)
@@ -723,7 +709,7 @@ RELEASE_VERSION=$$($(BUILDER) release-version)
 BUILD_VERSION=$$($(BUILDER) version)
 IS_DIRTY=$$($(BUILDER) is-dirty)
 
-release/promote-oss/.main:
+release/promote-oss/.main: $(tools/docker-promote)
 	@[[ "$(RELEASE_VERSION)"      =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET RELEASE_VERSION"; exit 1)
 	@[[ -n "$(PROMOTE_FROM_VERSION)" ]] || (echo "MUST SET PROMOTE_FROM_VERSION"; exit 1)
 	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]] || (echo "MUST SET PROMOTE_TO_VERSION" ; exit 1)
@@ -742,8 +728,7 @@ release/promote-oss/.main:
 			exit 1; \
 		fi ; \
 		printf '  $(CYN)$${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION)$(END)\n' ; \
-		docker pull $${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION) && \
-		docker tag $${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) && \
+		$(tools/docker-promote) $${pullregistry}/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) && \
 		docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION) ;\
 	}
 
@@ -789,7 +774,7 @@ release/promote-oss/dev-to-rc:
 			IMAGE_TAG=$${veroverride} \
 			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ; \
-		$(MAKE) update-yaml --always-make; \
+		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} push-manifests  ; \
 		$(MAKE) VERSION_OVERRIDE=$${veroverride} publish-docs-yaml ; \
 		$(MAKE) clean-manifests ; \
@@ -797,7 +782,7 @@ release/promote-oss/dev-to-rc:
 .PHONY: release/promote-oss/dev-to-rc
 
 release/promote-oss/rc-update-apro:
-	$(OSS_HOME)/releng/01-release-rc-update-apro v$(RELEASE_VERSION) v$(VERSIONS_YAML_VERSION)
+	$(OSS_HOME)/releng/01-release-rc-update-apro v$(RELEASE_VERSION) v$(VERSIONS_YAML_VER)
 .PHONY: release/promote-oss/rc-update-apro
 
 release/print-test-artifacts:
@@ -808,18 +793,6 @@ release/print-test-artifacts:
 		echo "export HELM_CHART_VERSION=`grep 'version' $(OSS_HOME)/charts/emissary-ingress/Chart.yaml | awk '{ print $$2 }'`" ; \
 	}
 .PHONY: release/print-test-artifacts
-
-# To be run from a checkout at the tag you are promoting _from_.
-# At present, this is to be run by-hand.
-release/promote-oss/to-rc-latest:
-	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
-	@{ $(MAKE) release/promote-oss/.main \
-	  PROMOTE_FROM_VERSION="$(RELEASE_VERSION)" \
-	  PROMOTE_TO_VERSION="$$(echo "$(RELEASE_VERSION)" | sed 's/-rc.*/-rc-latest/')" \
-	  PROMOTE_CHANNEL=test \
-	; }
-.PHONY: release/promote-oss/to-rc-latest
 
 # just push the commit hash to s3
 # this should only happen if all tests have passed at a certain commit
@@ -884,7 +857,7 @@ release/promote-oss/to-hotfix:
 			IMAGE_TAG=$${hotfix_tag} \
 			IMAGE_REPO="$(RELEASE_REGISTRY)/$(LCNAME)" \
 			chart-push-ci ;\
-		$(MAKE) update-yaml --always-make ;\
+		$(MAKE) generate-fast --always-make; \
 		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} push-manifests ;\
 		$(MAKE) VERSION_OVERRIDE=$${hotfix_tag} publish-docs-yaml ;\
 		$(MAKE) clean-manifests ;\
@@ -956,7 +929,6 @@ release/ga-check:
 	@$(OSS_HOME)/releng/release-ga-check --ga-version $(VERSIONS_YAML_VER) --source-registry $(RELEASE_REGISTRY) --image-name $(LCNAME)
 
 clean:
-	@rm -f $(OSS_HOME)/bin/*
 	@$(BUILDER) clean
 .PHONY: clean
 
@@ -1119,8 +1091,6 @@ define _help.targets
 
   $(BLD)$(MAKE) $(BLU)shell$(END)        -- starts a shell in the build container
 
-  $(BLD)$(MAKE) $(BLU)release/promote-oss/to-rc-latest$(END) -- promote a release candidate '-rc.N' release to '-rc-latest'
-
     The current commit must be tagged for this to work, and your tree must be clean.
     Additionally, the tag must be of the form 'vX.Y.Z-rc.N'. You must also have previously
     built an RC for the same tag using $(BLD)release/bits$(END).
@@ -1129,8 +1099,7 @@ define _help.targets
 
     The current commit must be tagged for this to work, and your tree must be clean.
     Additionally, the tag must be of the form 'vX.Y.Z'. You must also have previously
-    built and promoted the RC that will become GA, using $(BLD)release/bits$(END) and
-    $(BLD)release/promote-oss/to-rc-latest$(END).
+    built and promoted the RC that will become GA, using $(BLD)release/bits$(END).
 
   $(BLD)$(MAKE) $(BLU)clean$(END)     -- kills the build container.
 
@@ -1146,7 +1115,7 @@ define _help.targets
     4. Use the Go CRD definitions in 'pkg/api/getambassador.io/' to generate YAML
        (and a few 'zz_generated.*.go' files).
 
-  $(BLD)$(MAKE) $(BLU)update-yaml$(END) -- like $(BLD)make generate$(END), but skips the slow Envoy stuff.
+  $(BLD)$(MAKE) $(BLU)generate-fast$(END) -- like $(BLD)make generate$(END), but skips the slow Envoy stuff.
 
   $(BLD)$(MAKE) $(BLU)go-mod-tidy$(END) -- 'go mod tidy', but plays nice with 'make generate'
 

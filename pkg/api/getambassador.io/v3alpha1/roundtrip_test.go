@@ -1,10 +1,5 @@
 package v3alpha1
 
-// Note that getambassador.io/v2 contains many more CRDs than does
-// getambassador.io/v3alpha1. This test only covers the CRDs that are
-// only in v3alpha1 -- v2 resources are tested by their own roundtrip
-// test.
-
 import (
 	"encoding/json"
 	"io/ioutil"
@@ -15,16 +10,54 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Need AmbassadorListener and AmbassadorHost too...
+func TestAuthSvcRoundTrip(t *testing.T) {
+	var a []AuthService
+	checkRoundtrip(t, "authsvc.json", &a)
+}
+
+func TestDevPortalRoundTrip(t *testing.T) {
+	var d []DevPortal
+	checkRoundtrip(t, "devportals.json", &d)
+}
+
+func TestHostRoundTrip(t *testing.T) {
+	var h []Host
+	checkRoundtrip(t, "hosts.json", &h)
+}
+
+func TestLogSvcRoundTrip(t *testing.T) {
+	var l []LogService
+	checkRoundtrip(t, "logsvc.json", &l)
+}
 
 func TestMappingRoundTrip(t *testing.T) {
-	var m []AmbassadorMapping
+	var m []Mapping
 	checkRoundtrip(t, "mappings.json", &m)
 }
 
+func TestModuleRoundTrip(t *testing.T) {
+	var m []Module
+	checkRoundtrip(t, "modules.json", &m)
+}
+
+func TestRateLimitSvcRoundTrip(t *testing.T) {
+	var r []RateLimitService
+	checkRoundtrip(t, "ratelimitsvc.json", &r)
+}
+
 func TestTCPMappingRoundTrip(t *testing.T) {
-	var tm []AmbassadorTCPMapping
+	var tm []TCPMapping
 	checkRoundtrip(t, "tcpmappings.json", &tm)
+}
+
+func TestTLSContextRoundTrip(t *testing.T) {
+	var tc []TLSContext
+	checkRoundtrip(t, "tlscontexts.json", &tc)
+}
+
+func TestTracingSvcRoundTrip(t *testing.T) {
+	var tr []TracingService
+	checkRoundtrip(t, "tracingsvc.json", &tr)
 }
 
 func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {

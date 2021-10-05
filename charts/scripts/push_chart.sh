@@ -80,19 +80,15 @@ if [[ `basename ${chart_dir}` != emissary-ingress ]] ; then
 fi
 
 if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] && [[ -n "${PUBLISH_GIT_RELEASE}" ]]; then
-    if [[ -z "${CIRCLE_SHA1}" ]] ; then
-        echo "CIRCLE_SHA1 not set"
-        exit 1
-    fi
-    if [[ -z "${GH_RELEASE_TOKEN}" ]] ; then
-        echo "GH_RELEASE_TOKEN not set"
+    if [[ -z "${GH_GITHUB_API_KEY}" ]] ; then
+        echo "GH_GITHUB_API_KEY not set"
         exit 1
     fi
     tag="chart-v${thisversion}"
     export CHART_VERSION=${thisversion}
     title=`envsubst < ${chart_dir}/RELEASE_TITLE.tpl`
     repo_full_name="emissary-ingress/emissary"
-    token="${GH_RELEASE_TOKEN}"
+    token="${GH_GITHUB_API_KEY}"
     description=`envsubst < ${chart_dir}/RELEASE.tpl | awk '{printf "%s\\\n", $0}'`
     in_changelog=false
     while IFS= read -r line ; do
@@ -119,7 +115,7 @@ if [[ $thisversion =~ ^[0-9]+\.[0-9]+\.[0-9]+(-ea)?$ ]] && [[ -n "${PUBLISH_GIT_
   "body": "${description}",
   "draft": false,
   "prerelease": false,
-  "target_commitish": "${CIRCLE_SHA1}"
+  "target_commitish": "${GITHUB_REF}"
 }
 EOF
     }

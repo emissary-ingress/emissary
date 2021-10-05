@@ -5,12 +5,13 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/datawire/ambassador/v2/pkg/agent"
-	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
+	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
-	"github.com/stretchr/testify/assert"
+	"github.com/datawire/dlib/dlog"
 )
 
 func TestAPIDocsStore(t *testing.T) {
@@ -20,7 +21,7 @@ func TestAPIDocsStore(t *testing.T) {
 
 	type testCases struct {
 		name     string
-		mappings []*v3alpha1.AmbassadorMapping
+		mappings []*amb.Mapping
 
 		rawJSONDocsContent string
 		JSONDocsErr        error
@@ -33,9 +34,9 @@ func TestAPIDocsStore(t *testing.T) {
 	cases := []*testCases{
 		{
 			name: "will ignore mappings without a 'docs' property",
-			mappings: []*v3alpha1.AmbassadorMapping{
+			mappings: []*amb.Mapping{
 				{
-					Spec: v3alpha1.AmbassadorMappingSpec{
+					Spec: amb.MappingSpec{
 						Prefix:  "",
 						Service: "some-svc",
 						Docs:    nil,
@@ -51,12 +52,12 @@ func TestAPIDocsStore(t *testing.T) {
 		},
 		{
 			name: "will ignore mappings with docs.ignored setting",
-			mappings: []*v3alpha1.AmbassadorMapping{
+			mappings: []*amb.Mapping{
 				{
-					Spec: v3alpha1.AmbassadorMappingSpec{
+					Spec: amb.MappingSpec{
 						Prefix:  "",
 						Service: "some-svc",
-						Docs: &v3alpha1.DocsInfo{
+						Docs: &amb.DocsInfo{
 							Ignored: &shouldIgnore,
 						},
 					},
@@ -70,13 +71,13 @@ func TestAPIDocsStore(t *testing.T) {
 		},
 		{
 			name: "will scrape OpenAPI docs from docs path and ignore malformed OpenAPI docs",
-			mappings: []*v3alpha1.AmbassadorMapping{
+			mappings: []*amb.Mapping{
 				{
-					Spec: v3alpha1.AmbassadorMappingSpec{
+					Spec: amb.MappingSpec{
 						Prefix:  "",
 						Rewrite: &mappingRewrite,
 						Service: "https://some-svc.fqdn:443",
-						Docs: &v3alpha1.DocsInfo{
+						Docs: &amb.DocsInfo{
 							DisplayName: "docs-display-name",
 							Path:        "/docs-location",
 						},
@@ -102,20 +103,20 @@ func TestAPIDocsStore(t *testing.T) {
 		},
 		{
 			name: "will scrape OpenAPI docs from docs path",
-			mappings: []*v3alpha1.AmbassadorMapping{
+			mappings: []*amb.Mapping{
 				{
 					TypeMeta: kates.TypeMeta{
 						Kind: "Mapping",
 					},
-					Spec: v3alpha1.AmbassadorMappingSpec{
+					Spec: amb.MappingSpec{
 						Prefix:  "/prefix",
 						Service: "some-svc:8080",
-						Docs: &v3alpha1.DocsInfo{
+						Docs: &amb.DocsInfo{
 							DisplayName: "docs-display-name",
 							Path:        "/docs-location",
 						},
-						Host:     "mapping-host",
-						Hostname: "mapping-hostname",
+						DeprecatedHost: "mapping-host",
+						Hostname:       "mapping-hostname",
 					},
 					ObjectMeta: kates.ObjectMeta{
 						Name:      "some-endpoint",
@@ -147,15 +148,15 @@ func TestAPIDocsStore(t *testing.T) {
 		},
 		{
 			name: "will scrape OpenAPI docs from docs url",
-			mappings: []*v3alpha1.AmbassadorMapping{
+			mappings: []*amb.Mapping{
 				{
 					TypeMeta: kates.TypeMeta{
 						Kind: "Mapping",
 					},
-					Spec: v3alpha1.AmbassadorMappingSpec{
+					Spec: amb.MappingSpec{
 						Prefix:  "/api-prefix",
 						Service: "some-svc",
-						Docs: &v3alpha1.DocsInfo{
+						Docs: &amb.DocsInfo{
 							URL: "https://external-url",
 						},
 						Hostname: "*",
@@ -194,7 +195,7 @@ func TestAPIDocsStore(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctx, cancel := context.WithCancel(context.Background())
+			ctx, cancel := context.WithCancel(dlog.NewTestContext(t, false))
 			defer cancel()
 
 			snapshot := &snapshotTypes.Snapshot{

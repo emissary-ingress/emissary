@@ -993,4 +993,4 @@ class V2Listener(dict):
             if v2listener._filter_chains:
                 config.listeners.append(v2listener)
             else:
-                irlistener.post_error("No matching AmbassadorHosts found, disabling!")
+                irlistener.post_error("No matching Hosts found, disabling!")
