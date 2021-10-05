@@ -705,10 +705,3 @@ Additionally, if your hostname contains an upper-case character, the build scrip
 `NAME` environment variable, which should contain your hostname. You can solve this issue by doing `export NAME=my-lowercase-host-name`.
 If you do this *after* you've already run `make images` once, you will manually have to clean up the docker images
 that have been created using your upper-case host name.
-
-How do I stop CI from removing the Kubeception cluster when I'm debugging with SSH?
------------------------------------------------------------------------------------
-
-While SSH'ed in, in the `ambassador/` source directory, run the
-command `:> .ci/cluster-unclaim` to replace the `cluster-unclaims`
-script with an empty file--turning it in to a no-op script.
