@@ -124,7 +124,7 @@ class AmbScout:
             typecast(LocalScout, self._scout).reset_events()
 
     def __str__(self) -> str:
-        return ("%s: %s" % ("OK" if self._scout else "??", 
+        return ("%s: %s" % ("OK" if self._scout else "??",
                             self._scout_error if self._scout_error else "OK"))
 
     @property

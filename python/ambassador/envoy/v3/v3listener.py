@@ -361,12 +361,12 @@ def v3filter_authv1(auth: IRAuth, v3config: 'V3Config'):
             })
 
         for key in list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)):
-            allowed_authorization_headers.append({"exact": key})
+            allowed_authorization_headers.append({"exact": key, "ignore_case": True})
 
         allowed_request_headers = []
 
         for key in list(set(auth.allowed_request_headers).union(AllowedRequestHeaders)):
-            allowed_request_headers.append({"exact": key})
+            allowed_request_headers.append({"exact": key, "ignore_case": True})
 
         if auth.get('add_linkerd_headers', False):
             svc = Service(auth.ir.logger, auth_cluster_uri(auth, cluster))
@@ -1276,7 +1276,7 @@ class V3Listener(dict):
         if 'buffer_limit_bytes' in self.config.ir.ambassador_module and self.config.ir.ambassador_module.buffer_limit_bytes != None:
             listener["per_connection_buffer_limit_bytes"] = self.config.ir.ambassador_module.buffer_limit_bytes
         return listener
-        
+
     def pretty(self) -> dict:
         return { "name": self.name,
                  "port": self.service_port,

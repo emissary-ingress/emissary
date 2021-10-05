@@ -481,11 +481,11 @@ class Config:
 
         # If we're not running in legacy mode, though...
         if not Config.legacy_mode:
-            # ...then entrypoint.go will have already done validation, and we'll 
+            # ...then entrypoint.go will have already done validation, and we'll
             # trust that its validation is good _UNLESS THIS IS A MODULE_. Why?
-            # Well, at present entrypoint.go can't actually validate Modules _at all_ 
+            # Well, at present entrypoint.go can't actually validate Modules _at all_
             # (because Module.spec.config is just a dict of anything, pretty much),
-            # and that means it can't check for Modules with missing configs, and 
+            # and that means it can't check for Modules with missing configs, and
             # Modules with missing configs will crash Ambassador.
 
             if resource.kind.lower() != "module":
@@ -498,11 +498,11 @@ class Config:
             need_validation = True
             del(resource['_force_validation'])
 
-        # Did entrypoint.go flag errors here? (This can only happen if we're not in 
-        # legacy mode -- in a later version we'll short-circuit earlier, but for now 
+        # Did entrypoint.go flag errors here? (This can only happen if we're not in
+        # legacy mode -- in a later version we'll short-circuit earlier, but for now
         # we're going to re-validate as a sanity check.)
         #
-        # (It's still called watt_errors because our other docs talk about "watt 
+        # (It's still called watt_errors because our other docs talk about "watt
         # snapshots", and I'm OK with retaining that name for the format.)
 
         watt_errors = None
@@ -526,7 +526,7 @@ class Config:
 
         # ...then, let's see whether reality matches our assumption.
         if need_validation:
-            # Aha, we need to do validation -- either we're in legacy mode, or 
+            # Aha, we need to do validation -- either we're in legacy mode, or
             # entrypoint.go reported errors. So if we can do validation, do it.
 
             # Do we have a validator that can work on this object?

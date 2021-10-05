@@ -149,12 +149,12 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
 
             # ...and link the Group to the cluster.
             #
-            # Right now, I'm going for maximum safety, which means a single chain linking 
+            # Right now, I'm going for maximum safety, which means a single chain linking
             # Mapping -> Group -> Cluster. That means that deleting a single Mapping deletes
             # the Group to which that Mapping is attached, which in turn deletes all the
             # Clusters for that Group.
             #
-            # Performance might dictate linking Mapping -> Group and Mapping -> Cluster, so 
+            # Performance might dictate linking Mapping -> Group and Mapping -> Cluster, so
             # that deleting a Mapping deletes the Group but only the single Cluster. Needs
             # testing.
 

@@ -71,7 +71,7 @@ def normalize_service_name(ir: 'IR', in_service: str, mapping_namespace: Optiona
         is_qualified,
         out_service
     ))
-    
+
     return out_service
 
 class IRBaseMapping (IRResource):

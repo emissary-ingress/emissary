@@ -89,7 +89,7 @@ service: {self.target.path.fqdn}
 
     def check(self):
         # For query 0, check the redirection target.
-        assert len(self.results[0].headers['Location']) > 0 
+        assert len(self.results[0].headers['Location']) > 0
         assert self.results[0].headers['Location'][0].find('/tls-target/') > 0
 
         # For query 1, we require no errors.
