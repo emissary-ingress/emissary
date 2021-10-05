@@ -135,6 +135,7 @@ class V2Listener(dict):
         self.use_proxy_proto = False
         self.listener_filters: List[dict] = []
         self.traffic_direction: str = "UNSPECIFIED"
+        self.per_connection_buffer_limit_bytes: Optional[int] = None
         self._irlistener = irlistener   # We cache the IRListener to use its match method later
         self._stats_prefix = irlistener.statsPrefix
         self._security_model: str = irlistener.securityModel
@@ -154,6 +155,10 @@ class V2Listener(dict):
 
         # If the IRListener is marked insecure-only, so are we.
         self._insecure_only = irlistener.insecure_only
+
+        buffer_limit_bytes = self.config.ir.ambassador_module.get('buffer_limit_bytes', None)
+        if buffer_limit_bytes:
+            self.per_connection_buffer_limit_bytes = buffer_limit_bytes
 
         # Build out our listener filters, and figure out if we're an HTTP listener
         # in the process.
@@ -944,6 +949,9 @@ class V2Listener(dict):
 
         if self.listener_filters:
             odict["listener_filters"] = self.listener_filters
+
+        if self.per_connection_buffer_limit_bytes:
+            odict['per_connection_buffer_limit_bytes'] = self.per_connection_buffer_limit_bytes
 
         return odict          
 

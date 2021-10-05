@@ -86,6 +86,8 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 
 ## Emissary-ingress
 
+- Feature: You can now set `buffer_limit_bytes` in the Ambassador Module to configure Envoy's default 1MiB soft cap on upstream read and write buffers.
+
 - Bugfix: The release now shows its actual released version number, rather than the internal development
   version number.
 
