@@ -88,7 +88,7 @@ class IRListener (IRResource):
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
             kind=kind, name=name, namespace=namespace, apiVersion=apiVersion,
-            insecure_only=insecure_only, 
+            insecure_only=insecure_only,
             **new_args
         )
 
@@ -103,7 +103,7 @@ class IRListener (IRResource):
         # Was a bind address specified?
         if not self.get('bind_address', None):
             # Nope, use the default.
-            self.bind_address = Config.envoy_bind_address            
+            self.bind_address = Config.envoy_bind_address
 
         ir.logger.debug(f"Listener {self.name} setting up on {self.bind_address}:{self.port}")
 
@@ -129,10 +129,10 @@ class IRListener (IRResource):
             if not pstack:
                 self.post_error(f"protocol %s is not valid", protocol)
                 return False
-            
+
             ir.logger.debug(f"Listener {self.name} forcing pstack {';'.join(pstack)}")
             self.protocolStack = pstack
-        
+
         if not securityModel:
             self.post_error("securityModel is required")
             return False
@@ -159,10 +159,10 @@ class IRListener (IRResource):
         if not hostbinding:
             self.post_error("hostBinding is required")
             return False
-        
+
         # We don't want self.hostBinding any more: the relevant stuff will be stored elsewhere
         # for ease of use.
-        # 
+        #
         # XXX You can't do del(self.hostBinding) here, because underneath everything, an
         # IRListener is a Resource, and Resources are really much more like dicts than we
         # like to admit.
@@ -206,7 +206,7 @@ class IRListener (IRResource):
                 # if not nsselector:
                 #     self.post_error("hostBinding.namespace.selector is required when hostBinding.namespace.from is SELECTOR")
                 #     return False
-                
+
                 # match: Optional[Dict[str, str]] = nsselector.get("matchLabels", None)
 
                 # if not match:
@@ -310,7 +310,7 @@ class ListenerFactory:
         #         ir.logger.debug("ListenerFactory: synthesizing default listeners (TLS)")
 
         #         # Add the default HTTP listener.
-        #         # 
+        #         #
         #         # We use protocol HTTPS here so that the TLS inspector is active; that
         #         # lets us make better decisions about the security of a given request.
         #         ir.save_listener(IRListener(
@@ -341,7 +341,7 @@ class ListenerFactory:
         #         ir.logger.debug("ListenerFactory: synthesizing default listener (cleartext)")
 
         #         # Add the default HTTP listener.
-        #         # 
+        #         #
         #         # We use protocol HTTP here because no, we don't want TLS active.
         #         ir.save_listener(IRListener(
         #             ir, aconf, "-internal-", "ambassador-listener-8080", "-internal-",
@@ -355,18 +355,18 @@ class ListenerFactory:
         #             }
         #         ))
 
-        # # After that, cycle over our Hosts and see if any refer to 
+        # # After that, cycle over our Hosts and see if any refer to
         # # insecure.additionalPorts that don't already have Listeners.
         # for host in ir.get_hosts():
         #     # Hosts don't choose bind addresses, so if we see an insecure_addl_port,
         #     # look for it on Config.envoy_bind_address.
         #     if (host.insecure_addl_port is not None) and (host.insecure_addl_port > 0):
         #         listener_key = f"{Config.envoy_bind_address}-{host.insecure_addl_port}"
-                
+
         #         if listener_key not in ir.listeners:
-        #             ir.logger.debug("ListenerFactory: synthesizing listener for Host %s insecure.additionalPort %d", 
+        #             ir.logger.debug("ListenerFactory: synthesizing listener for Host %s insecure.additionalPort %d",
         #                             host.hostname, host.insecure_addl_port)
-                    
+
         #             name = "insecure-for-%d" % host.insecure_addl_port
 
         #             # Note that we don't specify the bind address here, so that it

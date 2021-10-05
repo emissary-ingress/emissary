@@ -49,7 +49,7 @@ class IRIPAllowDeny(IRFilter):
         assert action is not None
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, 
+            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
             parent=parent, action=action, **kwargs)
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
@@ -80,13 +80,13 @@ class IRIPAllowDeny(IRFilter):
 
         # principals looks like
         #
-        # [ 
+        # [
         #    { 'peer': '127.0.0.1' },
         #    { 'remote': '192.68.0.0/24' },
         #    { 'remote': '::1' }
         # ]
         #
-        # or the like, where the key in the dict specifies how Envoy will handle the 
+        # or the like, where the key in the dict specifies how Envoy will handle the
         # IP match, and the value is a CIDRRange spec.
 
         for pdict in principals:
@@ -108,7 +108,7 @@ class IRIPAllowDeny(IRFilter):
                     continue
 
                 cidrrange = CIDRRange(spec)
-        
+
                 if cidrrange:
                     self.principals.append((envoy_kind, cidrrange))
                 else:

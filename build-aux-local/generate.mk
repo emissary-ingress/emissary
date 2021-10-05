@@ -64,6 +64,7 @@ generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-ingress.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
+generate-fast/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml
 
 generate: ## Update generated sources that get committed to Git
 generate:
@@ -294,6 +295,10 @@ $(OSS_HOME)/manifests/emissary/emissary-crds.yaml: $(OSS_HOME)/charts/emissary-i
 $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml: $(OSS_HOME)/charts/emissary-ingress/crds $(tools/fix-crds)
 	@printf '  $(CYN)$@$(END)\n'
 	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $</*.yaml)) > $@
+
+$(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml: %: %.m4 $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
+	@printf '  $(CYN)$@$(END)\n'
+	cd $(@D) && m4 < $(<F) > $(@F)
 
 $(OSS_HOME)/python/schemas/v3alpha1: $(OSS_HOME)/manifests/emissary/emissary-crds.yaml $(tools/crds2schemas)
 	rm -rf $@

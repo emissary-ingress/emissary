@@ -165,28 +165,36 @@
                             "allowed_headers": {
                               "patterns": [
                                 {
-                                  "exact": "authorization"
+                                  "exact": "authorization",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "cookie"
+                                  "exact": "cookie",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "from"
+                                  "exact": "from",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "proxy-authorization"
+                                  "exact": "proxy-authorization",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "user-agent"
+                                  "exact": "user-agent",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-forwarded-for"
+                                  "exact": "x-forwarded-for",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-forwarded-host"
+                                  "exact": "x-forwarded-host",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-forwarded-proto"
+                                  "exact": "x-forwarded-proto",
+                                  "ignore_case": true
                                 }
                               ]
                             },
@@ -196,50 +204,64 @@
                             "allowed_client_headers": {
                               "patterns": [
                                 {
-                                  "exact": "authorization"
+                                  "exact": "authorization",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "extauth"
+                                  "exact": "extauth",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "location"
+                                  "exact": "location",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "proxy-authenticate"
+                                  "exact": "proxy-authenticate",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "set-cookie"
+                                  "exact": "set-cookie",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "www-authenticate"
+                                  "exact": "www-authenticate",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-auth-route"
+                                  "exact": "x-auth-route",
+                                  "ignore_case": true
                                 }
                               ]
                             },
                             "allowed_upstream_headers": {
                               "patterns": [
                                 {
-                                  "exact": "authorization"
+                                  "exact": "authorization",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "extauth"
+                                  "exact": "extauth",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "location"
+                                  "exact": "location",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "proxy-authenticate"
+                                  "exact": "proxy-authenticate",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "set-cookie"
+                                  "exact": "set-cookie",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "www-authenticate"
+                                  "exact": "www-authenticate",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-auth-route"
+                                  "exact": "x-auth-route",
+                                  "ignore_case": true
                                 }
                               ]
                             }
@@ -543,28 +565,36 @@
                             "allowed_headers": {
                               "patterns": [
                                 {
-                                  "exact": "authorization"
+                                  "exact": "authorization",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "cookie"
+                                  "exact": "cookie",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "from"
+                                  "exact": "from",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "proxy-authorization"
+                                  "exact": "proxy-authorization",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "user-agent"
+                                  "exact": "user-agent",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-forwarded-for"
+                                  "exact": "x-forwarded-for",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-forwarded-host"
+                                  "exact": "x-forwarded-host",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-forwarded-proto"
+                                  "exact": "x-forwarded-proto",
+                                  "ignore_case": true
                                 }
                               ]
                             },
@@ -574,50 +604,64 @@
                             "allowed_client_headers": {
                               "patterns": [
                                 {
-                                  "exact": "authorization"
+                                  "exact": "authorization",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "extauth"
+                                  "exact": "extauth",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "location"
+                                  "exact": "location",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "proxy-authenticate"
+                                  "exact": "proxy-authenticate",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "set-cookie"
+                                  "exact": "set-cookie",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "www-authenticate"
+                                  "exact": "www-authenticate",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-auth-route"
+                                  "exact": "x-auth-route",
+                                  "ignore_case": true
                                 }
                               ]
                             },
                             "allowed_upstream_headers": {
                               "patterns": [
                                 {
-                                  "exact": "authorization"
+                                  "exact": "authorization",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "extauth"
+                                  "exact": "extauth",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "location"
+                                  "exact": "location",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "proxy-authenticate"
+                                  "exact": "proxy-authenticate",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "set-cookie"
+                                  "exact": "set-cookie",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "www-authenticate"
+                                  "exact": "www-authenticate",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-auth-route"
+                                  "exact": "x-auth-route",
+                                  "ignore_case": true
                                 }
                               ]
                             }
@@ -941,28 +985,36 @@
                             "allowed_headers": {
                               "patterns": [
                                 {
-                                  "exact": "authorization"
+                                  "exact": "authorization",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "cookie"
+                                  "exact": "cookie",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "from"
+                                  "exact": "from",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "proxy-authorization"
+                                  "exact": "proxy-authorization",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "user-agent"
+                                  "exact": "user-agent",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-forwarded-for"
+                                  "exact": "x-forwarded-for",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-forwarded-host"
+                                  "exact": "x-forwarded-host",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-forwarded-proto"
+                                  "exact": "x-forwarded-proto",
+                                  "ignore_case": true
                                 }
                               ]
                             },
@@ -972,50 +1024,64 @@
                             "allowed_client_headers": {
                               "patterns": [
                                 {
-                                  "exact": "authorization"
+                                  "exact": "authorization",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "extauth"
+                                  "exact": "extauth",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "location"
+                                  "exact": "location",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "proxy-authenticate"
+                                  "exact": "proxy-authenticate",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "set-cookie"
+                                  "exact": "set-cookie",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "www-authenticate"
+                                  "exact": "www-authenticate",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-auth-route"
+                                  "exact": "x-auth-route",
+                                  "ignore_case": true
                                 }
                               ]
                             },
                             "allowed_upstream_headers": {
                               "patterns": [
                                 {
-                                  "exact": "authorization"
+                                  "exact": "authorization",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "extauth"
+                                  "exact": "extauth",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "location"
+                                  "exact": "location",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "proxy-authenticate"
+                                  "exact": "proxy-authenticate",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "set-cookie"
+                                  "exact": "set-cookie",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "www-authenticate"
+                                  "exact": "www-authenticate",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-auth-route"
+                                  "exact": "x-auth-route",
+                                  "ignore_case": true
                                 }
                               ]
                             }
@@ -1319,28 +1385,36 @@
                             "allowed_headers": {
                               "patterns": [
                                 {
-                                  "exact": "authorization"
+                                  "exact": "authorization",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "cookie"
+                                  "exact": "cookie",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "from"
+                                  "exact": "from",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "proxy-authorization"
+                                  "exact": "proxy-authorization",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "user-agent"
+                                  "exact": "user-agent",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-forwarded-for"
+                                  "exact": "x-forwarded-for",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-forwarded-host"
+                                  "exact": "x-forwarded-host",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-forwarded-proto"
+                                  "exact": "x-forwarded-proto",
+                                  "ignore_case": true
                                 }
                               ]
                             },
@@ -1350,50 +1424,64 @@
                             "allowed_client_headers": {
                               "patterns": [
                                 {
-                                  "exact": "authorization"
+                                  "exact": "authorization",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "extauth"
+                                  "exact": "extauth",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "location"
+                                  "exact": "location",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "proxy-authenticate"
+                                  "exact": "proxy-authenticate",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "set-cookie"
+                                  "exact": "set-cookie",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "www-authenticate"
+                                  "exact": "www-authenticate",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-auth-route"
+                                  "exact": "x-auth-route",
+                                  "ignore_case": true
                                 }
                               ]
                             },
                             "allowed_upstream_headers": {
                               "patterns": [
                                 {
-                                  "exact": "authorization"
+                                  "exact": "authorization",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "extauth"
+                                  "exact": "extauth",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "location"
+                                  "exact": "location",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "proxy-authenticate"
+                                  "exact": "proxy-authenticate",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "set-cookie"
+                                  "exact": "set-cookie",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "www-authenticate"
+                                  "exact": "www-authenticate",
+                                  "ignore_case": true
                                 },
                                 {
-                                  "exact": "x-auth-route"
+                                  "exact": "x-auth-route",
+                                  "ignore_case": true
                                 }
                               ]
                             }

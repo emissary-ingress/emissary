@@ -55,7 +55,7 @@ the default for all 1.X releases of Emissary-ingress.
 
 This change is being made the original Envay `regex` matcher was [deprecated in favor of safe_regex]
 in Envoy v1.12.0, then removed entirely from the Envoy V3 APIs. Additionally, setting
-[max_program_size was deprecated] in Envoy v1.15.0. As such, `regex_type: unsafe` and setting 
+[max_program_size was deprecated] in Envoy v1.15.0. As such, `regex_type: unsafe` and setting
 `regex_max_size` are no longer supported unless `AMBASSADOR_ENVOY_API_VERSION` is set to `V2`.
 
 Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/api-v3/type/matcher/v3/regex.proto.html) for more information.
@@ -88,7 +88,7 @@ larger installations, reduce global configuration to better handle multitenant o
 multiorganizational installations, reduce memory footprint, and improve performance. We welcome
 feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
 
-## Emissary-ingress
+### Emissary-ingress
 
 - Change: The `x.getambassador.io/v3alpha1` API version has become the `getambassador.io/v3alpha1` API
   version. The `Ambassador-` prefixes from `x.getambassador.io/v3alpha1` resources have been removed
@@ -113,7 +113,7 @@ installations, reduce global configuration to better handle multitenant or multi
 installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on
 <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
 
-## Emissary-ingress
+### Emissary-ingress
 
 - Feature: The environment variable `AES_LOG_LEVEL` now also sets the log level for the `diagd` logger. ([#3686]) ([#3666])
 
@@ -136,7 +136,7 @@ installations, reduce global configuration to better handle multitenant or multi
 installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on
 <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
 
-## Emissary-ingress
+### Emissary-ingress
 
 - Bugfix: Upgraded envoy to 1.17.4 to address security vulnerabilities CVE-2021-32777, CVE-2021-32778,
   CVE-2021-32779, and CVE-2021-32781.
@@ -157,7 +157,7 @@ installations, reduce global configuration to better handle multitenant or multi
 installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on
 <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
 
-## Emissary-ingress
+### Emissary-ingress
 
 - Feature: Ambassador Agent reports sidecar process information and `AmbassadorMapping` OpenAPI documentation
   to Ambassador Cloud to provide more visibility into services and clusters.
@@ -188,7 +188,7 @@ installations, reduce global configuration to better handle multitenant or multi
 installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on
 <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
 
-## Emissary-ingress
+### Emissary-ingress
 
 - Feature: Emissary-ingress 2.0.0 introduces API version `x.getambassador.io/v3alpha1` for configuration
   changes that are not backwards compatible with the 1.X family.  API versions
@@ -260,7 +260,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 ## [1.14.2] 2021-09-27
 [1.14.2]: https://github.com/emissary-ingress/emissary/releases/v1.14.2
 
-## Emissary-ingress
+### Emissary-ingress
 
 - Feature: You can now set `respect_dns_ttl` to `true` to force the DNS refresh rate for a `Mapping` to be
   set to the record's TTL obtained from DNS resolution.
@@ -274,7 +274,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 ## [1.14.1] 2021-08-24
 [1.14.1]: https://github.com/emissary-ingress/emissary/releases/v1.14.1
 
-## Emissary-ingress
+### Emissary-ingress
 
 - Change: Upgraded envoy to 1.17.4 to address security vulnerabilities CVE-2021-32777, CVE-2021-32778,
   CVE-2021-32779, and CVE-2021-32781.
@@ -282,7 +282,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 ## [1.14.0] 2021-08-19
 [1.14.0]: https://github.com/emissary-ingress/emissary/releases/v1.14.0
 
-## Emissary-ingress
+### Emissary-ingress
 
 - Change: Upgraded Envoy from 1.15 to 1.17.3, see the <a
   href="https://www.envoyproxy.io/docs/envoy/latest/version_history/version_history">Envoy
@@ -299,7 +299,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 ## [1.13.10] 2021-07-27
 [1.13.10]: https://github.com/emissary-ingress/emissary/releases/v1.13.10
 
-## Emissary-ingress
+### Emissary-ingress
 
 - Bugfix: Fixed a regression when specifying a comma separated string for `cors.origins` on the `Mapping`
   resource
@@ -315,7 +315,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 ## [1.13.9] 2021-06-30
 [1.13.9]: https://github.com/emissary-ingress/emissary/releases/v1.13.9
 
-## Emissary-ingress
+### Emissary-ingress
 
 - Bugfix: Fixed a bug which caused Emissary-ingress to generate invalid Envoy configuration when two
   TCPMappings were deployed with the same port, but different host.
@@ -323,7 +323,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 ## [1.13.8] 2021-06-08
 [1.13.8]: https://github.com/emissary-ingress/emissary/releases/v1.13.8
 
-## Emissary-ingress
+### Emissary-ingress
 
 - Bugfix: Fixed a bug that occasionally caused missing version information for a service in the Ambassador
   Service Catalog, especially in clusters with high pod churn.
@@ -334,7 +334,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 ## [1.13.7] 2021-06-03
 [1.13.7]: https://github.com/emissary-ingress/emissary/releases/v1.13.7
 
-## Emissary-ingress
+### Emissary-ingress
 
 - Feature: An `AMBASSADOR_JSON_LOGGING` environment variable has been added. When set to `true` JSON format
   will be used for most of the control plane logs. Some (but few) logs from `gunicorn` and the
@@ -351,7 +351,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 ## [1.13.6] 2021-05-24
 [1.13.6]: https://github.com/emissary-ingress/emissary/releases/v1.13.6
 
-## Emissary-ingress
+### Emissary-ingress
 
 - Bugfix: Fixed a regression where Ambassador snapshot data was logged at the INFO label when using
   `AMBASSADOR_LEGACY_MODE=true`.
@@ -359,7 +359,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 ## [1.13.5] 2021-05-13
 [1.13.5]: https://github.com/emissary-ingress/emissary/releases/v1.13.5
 
-## Emissary-ingress
+### Emissary-ingress
 
 - Bugfix: Fix a regression from 1.8.0 that prevented `ambassador` `Module` config keys `proper_case` and
   `preserve_external_request_id` from working correctly.
@@ -370,7 +370,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 ## [1.13.4] 2021-05-13
 [1.13.4]: https://github.com/emissary-ingress/emissary/releases/v1.13.4
 
-## Emissary-ingress
+### Emissary-ingress
 
 - Security: Emissary-ingress has been updated to Envoy 1.15.5, which addresses a high severity security
   vulnerability (CVE-2021-29492). Emissary-ingress can now be configured to reject client requests
