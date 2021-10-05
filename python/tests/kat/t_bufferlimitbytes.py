@@ -23,10 +23,10 @@ config:
     end
 ---
 apiVersion: x.getambassador.io/v3alpha1
-kind:  AmbassadorMapping
+kind: AmbassadorMapping
 name:  {self.target.path.k8s}-foo
-prefix: /foo/
 hostname: "*"
+prefix: /foo/
 service: {self.target.path.fqdn}
 """)
 

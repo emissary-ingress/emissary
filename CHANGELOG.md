@@ -87,6 +87,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 ## Emissary-ingress
 
 - Feature: The environment variable `AES_LOG_LEVEL` now also sets the log level for the `diagd` logger.
+- Feature: You can now set `buffer_limit_bytes` in the Ambassador Module to configure Envoy's default 1MiB soft cap on upstream read and write buffers.
 
 ## [2.0.2-ea] (2021-08-24)
 [2.0.2-ea]: https://github.com/emissary-ingress/emissary/releases/v2.0.2-ea
