@@ -87,7 +87,7 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 {{ .body | strings.ReplaceAll "$productName$" "Emissary-ingress" | strings.ReplaceAll "<b>" "_" | strings.ReplaceAll "</b>" "_" | strings.ReplaceAll "<code>" "`" | strings.ReplaceAll "</code>" "`" | strings.WordWrap 98 }}
 {{- end }}{{ end }}{{ end }}
 
-## Emissary-ingress
+### Emissary-ingress
 {{ range .notes -}}{{ if not (index . "isHeadline") }}
 - {{ .type | strings.Title }}: {{ .body | strings.ReplaceAll "$productName$" "Emissary-ingress" | strings.ReplaceAll "<b>" "_" | strings.ReplaceAll "</b>" "_" | strings.ReplaceAll "<code>" "`" | strings.ReplaceAll "</code>" "`" | strings.WordWrap 98 "\n  " }}{{ if index . "github" }}{{ range .github }} ([{{.title}}]){{ end }}{{ end }}
 {{ end }}{{ end }}{{ $anyGitLinks := false }}{{ range .notes -}}{{- if index . "github" -}}{{- range .github }}{{ $anyGitLinks = true }}
