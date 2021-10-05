@@ -26,7 +26,7 @@ type MemoryGetter func() int
 // time. The function assumes updates are cumulative and it will drop old queued updates if a new
 // update arrives.
 func Updater(ctx context.Context, updates <-chan Update, getUsage MemoryGetter) error {
-	drainTime := GetAmbassadorDrainTime()
+	drainTime := GetAmbassadorDrainTime(ctx)
 	ticker := time.NewTicker(drainTime)
 	defer ticker.Stop()
 	return updaterWithTicker(ctx, updates, getUsage, drainTime, ticker, time.Now)
@@ -137,7 +137,7 @@ func updaterWithTicker(ctx context.Context, updates <-chan Update, getUsage Memo
 		// Decide if we have enough capacity left to perform a reconfig.
 		if maxStaleReconfigs > 0 && staleReconfigs >= maxStaleReconfigs {
 			if !tick {
-				log.Warnf("Memory Usage: throttling reconfig %+v due to constrained memory with %d stale reconfigs (%d max)",
+				dlog.Warnf(ctx, "Memory Usage: throttling reconfig %+v due to constrained memory with %d stale reconfigs (%d max)",
 					latest.Version, staleReconfigs, maxStaleReconfigs)
 			}
 			continue
@@ -156,7 +156,7 @@ func updaterWithTicker(ctx context.Context, updates <-chan Update, getUsage Memo
 
 		// Since we just pushed an update, we add the current time to the set of update times.
 		updateTimes = append(updateTimes, now)
-		log.Infof("Pushing snapshot %+v", latest.Version)
+		dlog.Infof(ctx, "Pushing snapshot %+v", latest.Version)
 		pushed = true
 
 		info.Store(debugInfo{updateTimes, staleReconfigs, maxStaleReconfigs, pushed, disableRatelimiter})
@@ -175,14 +175,14 @@ func gcUpdateTimes(updateTimes []time.Time, now time.Time, drainTime time.Durati
 }
 
 // The GetAmbassadorDrainTime function retuns the AMBASSADOR_DRAIN_TIME env var as a time.Duration
-func GetAmbassadorDrainTime() time.Duration {
+func GetAmbassadorDrainTime(ctx context.Context) time.Duration {
 	s := os.Getenv("AMBASSADOR_DRAIN_TIME")
 	if s == "" {
 		s = "600"
 	}
 	i, err := strconv.Atoi(s)
 	if err != nil {
-		log.Printf("Error parsing AMBASSADOR_DRAIN_TIME: %v", err)
+		dlog.Printf(ctx, "Error parsing AMBASSADOR_DRAIN_TIME: %v", err)
 		i = 600
 	}
 

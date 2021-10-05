@@ -18,9 +18,10 @@ func TestFakeQueueGet(t *testing.T) {
 	}()
 
 	for count := 0; count < 10; count++ {
-		obj := q.Get(func(obj interface{}) bool {
+		obj, err := q.Get(func(obj interface{}) bool {
 			return true
 		})
+		require.NoError(t, err)
 		require.Equal(t, count, obj)
 	}
 }
@@ -35,10 +36,11 @@ func TestFakeQueueSkip(t *testing.T) {
 	}()
 
 	for count := 0; count < 10; count += 2 {
-		obj := q.Get(func(obj interface{}) bool {
+		obj, err := q.Get(func(obj interface{}) bool {
 			i := obj.(int)
 			return (i % 2) == 0
 		})
+		require.NoError(t, err)
 		require.Equal(t, count, obj)
 	}
 }

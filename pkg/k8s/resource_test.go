@@ -4,14 +4,16 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/datawire/ambassador/v2/pkg/k8s"
 )
 
 func TestQKind(t *testing.T) {
 	t.Parallel()
 	testcases := []struct {
-		Resource k8s.Resource
-		QKind    string
+		InputResource k8s.Resource
+		ExpectedQKind string
 	}{
 		// Sane things we need to handle correcly
 		{k8s.Resource{"apiVersion": "apps/v1", "kind": "Deployment"}, "Deployment.v1.apps"},
@@ -24,21 +26,10 @@ func TestQKind(t *testing.T) {
 		{k8s.Resource{"kind": "Pod", "apiVersion": 1}, "Pod.."},
 	}
 	for i, testcase := range testcases {
-		t.Run(strconv.Itoa(i), func(testcase struct {
-			Resource k8s.Resource
-			QKind    string
-		}) func(t *testing.T) {
-			return func(t *testing.T) {
-				defer func() {
-					if r := recover(); r != nil {
-						t.Errorf("fail: %#v.QKind() paniced: %v", testcase.Resource, r)
-					}
-				}()
-				qkind := testcase.Resource.QKind()
-				if qkind != testcase.QKind {
-					t.Errorf("fail: %#v.QKind()=%#v, expected %#v", testcase.Resource, qkind, testcase.QKind)
-				}
-			}
-		}(testcase))
+		testcase := testcase
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			actualQKind := testcase.InputResource.QKind()
+			assert.Equal(t, testcase.ExpectedQKind, actualQKind)
+		})
 	}
 }

@@ -6,16 +6,15 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
 	// third party
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	// first party (protobuf)
 	core "github.com/datawire/ambassador/v2/pkg/api/envoy/api/v2/core"
@@ -25,6 +24,7 @@ import (
 	// first party
 	"github.com/datawire/dlib/dgroup"
 	"github.com/datawire/dlib/dhttp"
+	"github.com/datawire/dlib/dlog"
 )
 
 // GRPCAUTH server object (all fields are required).
@@ -40,15 +40,16 @@ type GRPCAUTH struct {
 
 // Start initializes the HTTP server.
 func (g *GRPCAUTH) Start(ctx context.Context) <-chan bool {
-	log.Printf("GRPCAUTH: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
+	dlog.Printf(ctx, "GRPCAUTH: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
 	grpcHandler := grpc.NewServer()
-	log.Printf("registering v2 service")
+	dlog.Printf(ctx, "registering v2 service")
 	pb.RegisterAuthorizationServer(grpcHandler, g)
 
 	cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
 	if err != nil {
-		log.Fatal(err)
+		dlog.Error(ctx, err)
+		panic(err) // TODO: do something better
 	}
 
 	sc := &dhttp.ServerConfig{
@@ -66,11 +67,14 @@ func (g *GRPCAUTH) Start(ctx context.Context) <-chan bool {
 		return sc.ListenAndServeTLS(ctx, fmt.Sprintf(":%v", g.SecurePort), "", "")
 	})
 
-	log.Print("starting gRPC authorization service")
+	dlog.Print(ctx, "starting gRPC authorization service")
 
 	exited := make(chan bool)
 	go func() {
-		log.Fatal(grp.Wait())
+		if err := grp.Wait(); err != nil {
+			dlog.Error(ctx, err)
+			panic(err) // TODO: do something better
+		}
 		close(exited)
 	}()
 	return exited
@@ -97,7 +101,7 @@ func (g *GRPCAUTH) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResp
 	}
 
 	// Sets requested HTTP status.
-	rs.SetStatus(rheader["requested-status"])
+	rs.SetStatus(ctx, rheader["requested-status"])
 
 	rs.AddHeader(false, "x-grpc-service-protocol-version", g.ProtocolVersion)
 
@@ -112,7 +116,7 @@ func (g *GRPCAUTH) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResp
 	for _, token := range strings.Split(rheader["x-grpc-auth-append"], ";") {
 		header := strings.Split(strings.TrimSpace(token), "=")
 		if len(header) > 1 {
-			log.Printf("appending header %s : %s", header[0], header[1])
+			dlog.Printf(ctx, "appending header %s : %s", header[0], header[1])
 			rs.AddHeader(true, header[0], header[1])
 		}
 	}
@@ -170,7 +174,7 @@ func (g *GRPCAUTH) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResp
 	}
 
 	// Sets response body.
-	log.Printf("setting response body: %s", string(body))
+	dlog.Printf(ctx, "setting response body: %s", string(body))
 	rs.SetBody(string(body))
 
 	return rs.GetResponse(), nil
@@ -191,7 +195,7 @@ func (r *Response) AddHeader(a bool, k, v string) {
 			Key:   k,
 			Value: v,
 		},
-		Append: &wrappers.BoolValue{Value: a},
+		Append: &wrapperspb.BoolValue{Value: a},
 	}
 	r.headers = append(r.headers, val)
 }
@@ -211,18 +215,18 @@ func (r *Response) SetBody(s string) {
 }
 
 // SetStatus sets the authorization response HTTP status code.
-func (r *Response) SetStatus(s string) {
+func (r *Response) SetStatus(ctx context.Context, s string) {
 	if len(s) == 0 {
 		s = "200"
 	}
 	if val, err := strconv.Atoi(s); err == nil {
 		r.status = uint32(val)
 		r.AddHeader(false, "status", s)
-		log.Printf("setting HTTP status %v", r.status)
+		dlog.Printf(ctx, "setting HTTP status %v", r.status)
 	} else {
 		r.status = uint32(500)
 		r.AddHeader(false, "status", "500")
-		log.Printf("error setting HTTP status. Cannot parse string %s: %v.", s, err)
+		dlog.Printf(ctx, "error setting HTTP status. Cannot parse string %s: %v.", s, err)
 	}
 }
 

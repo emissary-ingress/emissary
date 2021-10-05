@@ -3,7 +3,6 @@ package kubeapply
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -156,7 +155,7 @@ func applyAndWait(ctx context.Context, kubeinfo *k8s.KubeInfo, deadline time.Tim
 			if valid[n] {
 				err := os.Remove(n)
 				if err != nil {
-					log.Print(err)
+					dlog.Print(ctx, err)
 				}
 			}
 		}
@@ -170,7 +169,11 @@ func applyAndWait(ctx context.Context, kubeinfo *k8s.KubeInfo, deadline time.Tim
 		return errors.Errorf("errors expanding templates:\n  %s", strings.Join(msgs, "\n  "))
 	}
 
-	if !waiter.Wait(ctx, deadline) {
+	finished, err := waiter.Wait(ctx, deadline)
+	if err != nil {
+		return err
+	}
+	if !finished {
 		return errorDeadlineExceeded
 	}
 

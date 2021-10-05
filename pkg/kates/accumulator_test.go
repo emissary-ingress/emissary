@@ -41,12 +41,15 @@ func TestBootstrapNoNotifyBeforeSync(t *testing.T) {
 	cli2.watchAdded = func(old *Unstructured, new *Unstructured) {
 		time.Sleep(1 * time.Second)
 	}
-	acc := cli2.Watch(ctx, Query{Name: "ConfigMaps", Kind: "ConfigMap", LabelSelector: "test=test-bootstrap"})
+	acc, err := cli2.Watch(ctx, Query{Name: "ConfigMaps", Kind: "ConfigMap", LabelSelector: "test=test-bootstrap"})
+	require.NoError(t, err)
 
 	snap := &Snap{}
 	for {
 		<-acc.Changed()
-		if acc.Update(snap) {
+		updated, err := acc.Update(ctx, snap)
+		require.NoError(t, err)
+		if updated {
 			break
 		}
 	}
@@ -62,12 +65,15 @@ func TestBootstrapNotifyEvenOnEmptyWatch(t *testing.T) {
 	ctx, cli := testClient(t, nil)
 
 	// Create a watch with a nonexistent label filter to gaurantee no resources will satisfy the watch.
-	acc := cli.Watch(ctx, Query{Name: "ConfigMaps", Kind: "ConfigMap", LabelSelector: "nonexistent-label"})
+	acc, err := cli.Watch(ctx, Query{Name: "ConfigMaps", Kind: "ConfigMap", LabelSelector: "nonexistent-label"})
+	require.NoError(t, err)
 
 	snap := &Snap{}
 	for {
 		<-acc.Changed()
-		if acc.Update(snap) {
+		updated, err := acc.Update(ctx, snap)
+		require.NoError(t, err)
+		if updated {
 			break
 		}
 	}

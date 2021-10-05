@@ -25,7 +25,7 @@ type Foo struct {
 
 type FooSpec struct {
 	Value    string
-	PanicArg interface{}
+	PanicArg error
 }
 
 func (f *Foo) DeepCopyObject() runtime.Object {

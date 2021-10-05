@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
@@ -420,14 +419,15 @@ func (m *mockAccumulator) Changed() chan struct{} {
 	return m.changedChan
 }
 
-func (m *mockAccumulator) FilteredUpdate(target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) bool {
+func (m *mockAccumulator) FilteredUpdate(_ context.Context, target interface{}, deltas *[]*kates.Delta, predicate func(*kates.Unstructured) bool) (bool, error) {
 	rawtarget, err := json.Marshal(m.targetInterface)
-
 	if err != nil {
-		return false
+		return false, err
 	}
-	err = json.Unmarshal(rawtarget, target)
-	return true
+	if err := json.Unmarshal(rawtarget, target); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // Set up a watch and send a MinReportPeriod directive to the directive channel
@@ -650,10 +650,12 @@ func TestWatchErrorSendingSnapshot(t *testing.T) {
 			Kubernetes: &snapshotTypes.KubernetesSnapshot{},
 		}
 		enSnapshot, err := json.Marshal(&snapshot)
-		if err != nil {
-			t.Fatal("error marshalling snapshot")
+		if !assert.NoError(t, err) {
+			return
 		}
-		w.Write(enSnapshot)
+		_, err = w.Write(enSnapshot)
+		assert.NoError(t, err)
+
 	}))
 	defer ts.Close()
 	mockError := errors.New("MockClient: Error sending report")
@@ -790,10 +792,11 @@ func TestWatchWithSnapshot(t *testing.T) {
 	var snapshotSentTime time.Time
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		enSnapshot, err := json.Marshal(&snapshot)
-		if err != nil {
-			t.Fatal("error marshalling snapshot")
+		if !assert.NoError(t, err) {
+			return
 		}
-		w.Write(enSnapshot)
+		_, err = w.Write(enSnapshot)
+		assert.NoError(t, err)
 		snapshotSentTime = time.Now()
 	}))
 	defer ts.Close()
@@ -1002,7 +1005,7 @@ func TestWatchEmptySnapshot(t *testing.T) {
 			t.Fatal("error marshalling snapshot")
 		}
 
-		w.Write(enSnapshot)
+		_, _ = w.Write(enSnapshot)
 		select {
 		case snapshotRequested <- true:
 		default:
@@ -1018,12 +1021,6 @@ func TestWatchEmptySnapshot(t *testing.T) {
 	rolloutCallback := make(chan *GenericCallback)
 	appCallback := make(chan *GenericCallback)
 	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				watchDone <- errors.New(fmt.Sprintf("%v", r))
-				t.Errorf("Panic-ed while sending an empty snapshot")
-			}
-		}()
 		err := a.watch(ctx, ts.URL, configAcc, podAcc, rolloutCallback, appCallback)
 		watchDone <- err
 	}()

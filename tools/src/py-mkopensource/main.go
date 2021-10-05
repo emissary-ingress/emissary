@@ -155,8 +155,8 @@ func Main() error {
 	sort.Strings(distribNames)
 
 	table := tabwriter.NewWriter(os.Stdout, 0, 8, 2, ' ', 0)
-	io.WriteString(table, "  \tName\tVersion\tLicense(s)\n")
-	io.WriteString(table, "  \t----\t-------\t----------\n")
+	_, _ = io.WriteString(table, "  \tName\tVersion\tLicense(s)\n")
+	_, _ = io.WriteString(table, "  \t----\t-------\t----------\n")
 	var errs errset
 	for _, distribName := range distribNames {
 		distrib := distribs[distribName]

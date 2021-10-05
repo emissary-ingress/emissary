@@ -26,13 +26,12 @@ func TestValidation(t *testing.T) {
 	crd := objs[0].(*CustomResourceDefinition)
 
 	defer func() {
-		client.Delete(ctx, crd, nil)
+		assert.NoError(t, client.Delete(ctx, crd, nil))
 	}()
 
-	err = client.Create(ctx, crd, crd)
-	require.NoError(t, err)
+	require.NoError(t, client.Create(ctx, crd, crd))
 
-	client.WaitFor(ctx, crd.GetName())
+	require.NoError(t, client.WaitFor(ctx, crd.GetName()))
 
 	// check that an invalid crd errors out
 	validator, err := NewValidator(client, nil)

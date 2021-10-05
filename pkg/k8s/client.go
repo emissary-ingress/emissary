@@ -23,7 +23,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 
-	"github.com/google/shlex"
+	"github.com/kballard/go-shellquote"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
@@ -49,10 +49,7 @@ type KubeInfo struct {
 // NewKubeInfo returns a useable KubeInfo, handling optional
 // kubeconfig, context, and namespace.
 func NewKubeInfo(configfile, context, namespace string) *KubeInfo {
-	// Because we are constructing the args for this flagset
-	// below, it's ok to use pflag.PanicOnError. We should never
-	// supply it with erroneous arguments.
-	flags := pflag.NewFlagSet("KubeInfo", pflag.PanicOnError)
+	flags := pflag.NewFlagSet("KubeInfo", pflag.ContinueOnError)
 	result := NewKubeInfoFromFlags(flags)
 
 	var args []string
@@ -66,8 +63,7 @@ func NewKubeInfo(configfile, context, namespace string) *KubeInfo {
 		args = append(args, "--namespace", namespace)
 	}
 
-	err := flags.Parse(args)
-	if err != nil {
+	if err := flags.Parse(args); err != nil {
 		// Args is constructed by us, we should never get an
 		// error, so it's ok to panic.
 		panic(err)
@@ -138,9 +134,9 @@ func (info *KubeInfo) GetRestConfig() (*rest.Config, error) {
 // GetKubectl returns the arguments for a runnable kubectl command that talks to
 // the same cluster as the associated ClientConfig.
 func (info *KubeInfo) GetKubectl(args string) (string, error) {
-	parts, err := shlex.Split(args)
+	parts, err := shellquote.Split(args)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 	kargs, err := info.GetKubectlArray(parts...)
 	if err != nil {
