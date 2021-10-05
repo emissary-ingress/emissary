@@ -90,6 +90,9 @@ feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know w
 
 ## Emissary-ingress
 
+- Feature: You can now set `buffer_limit_bytes` in the `ambassador` `Module` to to change the size of the
+  upstream read and write buffers. The default is 1MiB. 
+  
 - Change: The `x.getambassador.io/v3alpha1` API version has become the `getambassador.io/v3alpha1` API
   version. The `Ambassador-` prefixes from `x.getambassador.io/v3alpha1` resources have been removed
   for ease of migration. _Note that `getambassador.io/v3alpha1` is the only supported API version
