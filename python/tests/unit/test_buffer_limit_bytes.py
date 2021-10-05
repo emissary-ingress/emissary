@@ -10,16 +10,16 @@ logging.basicConfig(
 
 logger = logging.getLogger("ambassador")
 
-from ambassador import Config, IR 
-from ambassador.envoy import EnvoyConfig
+from ambassador import Config, IR, EnvoyConfig
 from ambassador.fetch import ResourceFetcher
 from ambassador.utils import NullSecretHandler
 
+from tests.utils import default_listener_manifests
 
 def _get_envoy_config(yaml, version='V3'):
     aconf = Config()
     fetcher = ResourceFetcher(logger, aconf)
-    fetcher.parse_yaml(yaml)
+    fetcher.parse_yaml(default_listener_manifests() + yaml, k8s=True)
     aconf.load_all(fetcher.sorted())
     secret_handler = NullSecretHandler(logger, None, None, "0")
     ir = IR(aconf, file_checker=lambda path: True, secret_handler=secret_handler)
@@ -54,20 +54,6 @@ spec:
   prefix: /test/
   hostname: "*"
   service: test:9999
----
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
-metadata:
-  name: ambassador-listener-8080
-  namespace: default
-spec:
-  port: 8080
-  protocol: HTTPS
-  securityModel: XFP
-  hostBinding:
-    namespace:
-      from: ALL
-
 """
     econf = _get_envoy_config(yaml, version='V2')
     expected = 5242880
@@ -76,6 +62,7 @@ spec:
     conf = econf.as_dict()
 
     for listener in conf['static_resources']['listeners']:
+        print(f"checking for per_connection_buffer_limit_bytes in Listener: {listener.name}")
         per_connection_buffer_limit_bytes = listener.get('per_connection_buffer_limit_bytes', None)
         assert per_connection_buffer_limit_bytes is not None, \
             f"per_connection_buffer_limit_bytes not found on listener: {listener.name}"
@@ -108,19 +95,7 @@ spec:
   prefix: /test/
   hostname: "*"
   service: test:9999
----
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
-metadata:
-  name: ambassador-listener-8080
-  namespace: default
-spec:
-  port: 8080
-  protocol: HTTPS
-  securityModel: XFP
-  hostBinding:
-    namespace:
-      from: ALL
+
 
 """
     econf = _get_envoy_config(yaml)
@@ -153,19 +128,6 @@ spec:
   prefix: /test/
   hostname: "*"
   service: test:9999
----
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
-metadata:
-  name: ambassador-listener-8080
-  namespace: default
-spec:
-  port: 8080
-  protocol: HTTPS
-  securityModel: XFP
-  hostBinding:
-    namespace:
-      from: ALL
 """
     econf = _get_envoy_config(yaml, version='V2')
 
@@ -190,19 +152,6 @@ spec:
   prefix: /test/
   hostname: "*"
   service: test:9999
----
-apiVersion: x.getambassador.io/v3alpha1
-kind: AmbassadorListener
-metadata:
-  name: ambassador-listener-8080
-  namespace: default
-spec:
-  port: 8080
-  protocol: HTTPS
-  securityModel: XFP
-  hostBinding:
-    namespace:
-      from: ALL
 """
     econf = _get_envoy_config(yaml)
 
