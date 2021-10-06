@@ -98,6 +98,9 @@ feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know w
 - Feature: You can now set `dns_type` between `strict_dns` and `logical_dns` in a `Mapping` to configure the
   Service Discovery Type.
 
+- Feature: You can now set `respect_dns_ttl` to `true` to force the DNS refresh rate for a `Mapping` to be
+  set to the record's TTL obtained from DNS resolution.
+
 - Bugfix: The release now shows its actual released version number, rather than the internal development
   version number. ([#3854])
 
