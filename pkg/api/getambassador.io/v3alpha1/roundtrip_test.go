@@ -4,67 +4,80 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"sigs.k8s.io/yaml"
 )
 
 func TestAuthSvcRoundTrip(t *testing.T) {
 	var a []AuthService
-	checkRoundtrip(t, "authsvc.json", &a)
+	checkRoundtrip(t, "authsvc.yaml", &a)
 }
 
 func TestDevPortalRoundTrip(t *testing.T) {
 	var d []DevPortal
-	checkRoundtrip(t, "devportals.json", &d)
+	checkRoundtrip(t, "devportals.yaml", &d)
 }
 
 func TestHostRoundTrip(t *testing.T) {
 	var h []Host
-	checkRoundtrip(t, "hosts.json", &h)
+	checkRoundtrip(t, "hosts.yaml", &h)
 }
 
 func TestLogSvcRoundTrip(t *testing.T) {
 	var l []LogService
-	checkRoundtrip(t, "logsvc.json", &l)
+	checkRoundtrip(t, "logsvc.yaml", &l)
 }
 
 func TestMappingRoundTrip(t *testing.T) {
 	var m []Mapping
-	checkRoundtrip(t, "mappings.json", &m)
+	checkRoundtrip(t, "mappings.yaml", &m)
 }
 
 func TestModuleRoundTrip(t *testing.T) {
 	var m []Module
-	checkRoundtrip(t, "modules.json", &m)
+	checkRoundtrip(t, "modules.yaml", &m)
 }
 
 func TestRateLimitSvcRoundTrip(t *testing.T) {
 	var r []RateLimitService
-	checkRoundtrip(t, "ratelimitsvc.json", &r)
+	checkRoundtrip(t, "ratelimitsvc.yaml", &r)
 }
 
 func TestTCPMappingRoundTrip(t *testing.T) {
 	var tm []TCPMapping
-	checkRoundtrip(t, "tcpmappings.json", &tm)
+	checkRoundtrip(t, "tcpmappings.yaml", &tm)
 }
 
 func TestTLSContextRoundTrip(t *testing.T) {
 	var tc []TLSContext
-	checkRoundtrip(t, "tlscontexts.json", &tc)
+	checkRoundtrip(t, "tlscontexts.yaml", &tc)
 }
 
 func TestTracingSvcRoundTrip(t *testing.T) {
 	var tr []TracingService
-	checkRoundtrip(t, "tracingsvc.json", &tr)
+	checkRoundtrip(t, "tracingsvc.yaml", &tr)
 }
 
 func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {
 	bytes, err := ioutil.ReadFile(path.Join("testdata", filename))
 	require.NoError(t, err)
 
-	canonical := func() string {
+	canonicalYAML := func() string {
+		var untyped interface{}
+		err = yaml.Unmarshal(bytes, &untyped)
+		require.NoError(t, err)
+		canonical, err := json.MarshalIndent(untyped, "", "\t")
+		require.NoError(t, err)
+		return string(canonical)
+	}()
+
+	canonicalJSON := func() string {
+		bytes, err := ioutil.ReadFile(strings.TrimSuffix(path.Join("testdata", filename), ".yaml") + ".json")
+		require.NoError(t, err)
 		var untyped interface{}
 		err = json.Unmarshal(bytes, &untyped)
 		require.NoError(t, err)
@@ -73,11 +86,13 @@ func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {
 		return string(canonical)
 	}()
 
+	require.Equal(t, canonicalYAML, canonicalJSON)
+
 	actual := func() string {
 		// Round-trip twice, to get map field ordering, instead of struct field ordering.
 
 		// first
-		err = json.Unmarshal(bytes, ptr)
+		err = yaml.Unmarshal(bytes, ptr)
 		require.NoError(t, err)
 		first, err := json.Marshal(ptr)
 		require.NoError(t, err)
@@ -92,5 +107,6 @@ func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {
 		return string(second)
 	}()
 
-	assert.Equal(t, canonical, actual)
+	assert.Equal(t, canonicalYAML, actual)
+	assert.Equal(t, canonicalJSON, actual)
 }
