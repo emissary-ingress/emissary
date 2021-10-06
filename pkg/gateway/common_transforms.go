@@ -10,7 +10,7 @@ import (
 )
 
 // Compile_Endpoints transforms a kubernetes endpoints resource into a v2.ClusterLoadAssignment
-func Compile_Endpoints(endpoints *kates.Endpoints) *CompiledConfig {
+func Compile_Endpoints(endpoints *kates.Endpoints) (*CompiledConfig, error) {
 	var clas []*CompiledLoadAssignment
 
 	for _, subset := range endpoints.Subsets {
@@ -43,7 +43,7 @@ func Compile_Endpoints(endpoints *kates.Endpoints) *CompiledConfig {
 	return &CompiledConfig{
 		CompiledItem:    NewCompiledItem(SourceFromResource(endpoints)),
 		LoadAssignments: clas,
-	}
+	}, nil
 }
 
 // makeLbEndpoint takes a protocol, ip, and port and makes an envoy LbEndpoint.

@@ -5,17 +5,16 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
-
 	"strings"
+
+	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	core "github.com/datawire/ambassador/v2/pkg/api/envoy/config/core/v3"
 	pb "github.com/datawire/ambassador/v2/pkg/api/envoy/service/ratelimit/v3"
-
-	"github.com/golang/protobuf/ptypes/wrappers"
-	"google.golang.org/grpc"
+	"github.com/datawire/dlib/dlog"
 )
 
 // GRPCRLSV3 server object (all fields are required).
@@ -30,8 +29,8 @@ type GRPCRLSV3 struct {
 }
 
 // Start initializes the HTTP server.
-func (g *GRPCRLSV3) Start(_ context.Context) <-chan bool {
-	log.Printf("GRPCRLSV3: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
+func (g *GRPCRLSV3) Start(ctx context.Context) <-chan bool {
+	dlog.Printf(ctx, "GRPCRLSV3: %s listening on %d/%d", g.Backend, g.Port, g.SecurePort)
 
 	exited := make(chan bool)
 	proto := "tcp"
@@ -41,13 +40,16 @@ func (g *GRPCRLSV3) Start(_ context.Context) <-chan bool {
 
 		ln, err := net.Listen(proto, port)
 		if err != nil {
-			log.Fatal()
+			dlog.Error(ctx, err)
+			panic(err) // TODO: do something better
 		}
 
 		s := grpc.NewServer()
-		log.Printf("registering v3 service")
+		dlog.Printf(ctx, "registering v3 service")
 		pb.RegisterRateLimitServiceServer(s, g)
-		s.Serve(ln)
+		if err := s.Serve(ln); err != nil {
+			panic(err) // TODO: do something better
+		}
 
 		defer ln.Close()
 		close(exited)
@@ -56,28 +58,31 @@ func (g *GRPCRLSV3) Start(_ context.Context) <-chan bool {
 	go func() {
 		cer, err := tls.LoadX509KeyPair(g.Cert, g.Key)
 		if err != nil {
-			log.Fatal(err)
-			return
+			dlog.Error(ctx, err)
+			panic(err) // TODO: do something better
 		}
 
 		config := &tls.Config{Certificates: []tls.Certificate{cer}}
 		port := fmt.Sprintf(":%v", g.SecurePort)
 		ln, err := tls.Listen(proto, port, config)
 		if err != nil {
-			log.Fatal(err)
-			return
+			dlog.Error(ctx, err)
+			panic(err)
+			// TODO: do something better
 		}
 
 		s := grpc.NewServer()
-		log.Printf("registering v3 service")
+		dlog.Printf(ctx, "registering v3 service")
 		pb.RegisterRateLimitServiceServer(s, g)
-		s.Serve(ln)
+		if err := s.Serve(ln); err != nil {
+			panic(err) // TODO: do something better
+		}
 
 		defer ln.Close()
 		close(exited)
 	}()
 
-	log.Print("starting gRPC rls service")
+	dlog.Print(ctx, "starting gRPC rls service")
 	return exited
 }
 
@@ -85,7 +90,7 @@ func (g *GRPCRLSV3) Start(_ context.Context) <-chan bool {
 func (g *GRPCRLSV3) ShouldRateLimit(ctx context.Context, r *pb.RateLimitRequest) (*pb.RateLimitResponse, error) {
 	rs := &RLSResponseV3{}
 
-	log.Printf("shouldRateLimit descriptors: %v\n", r.Descriptors)
+	dlog.Printf(ctx, "shouldRateLimit descriptors: %v\n", r.Descriptors)
 
 	descEntries := make(map[string]string)
 	for _, desc := range r.Descriptors {
@@ -108,7 +113,7 @@ func (g *GRPCRLSV3) ShouldRateLimit(ctx context.Context, r *pb.RateLimitRequest)
 		for _, token := range strings.Split(descEntries["x-ambassador-test-headers-append"], ";") {
 			header := strings.Split(strings.TrimSpace(token), "=")
 			if len(header) > 1 {
-				log.Printf("appending header %s : %s", header[0], header[1])
+				dlog.Printf(ctx, "appending header %s : %s", header[0], header[1])
 				rs.AddHeader(true, header[0], header[1])
 			}
 		}
@@ -132,7 +137,7 @@ func (g *GRPCRLSV3) ShouldRateLimit(ctx context.Context, r *pb.RateLimitRequest)
 		}
 
 		// Sets response body.
-		log.Printf("setting response body: %s", string(body))
+		dlog.Printf(ctx, "setting response body: %s", string(body))
 		rs.SetBody(string(body))
 	}
 
@@ -154,7 +159,7 @@ func (r *RLSResponseV3) AddHeader(a bool, k, v string) {
 			Key:   k,
 			Value: v,
 		},
-		Append: &wrappers.BoolValue{Value: a},
+		Append: &wrapperspb.BoolValue{Value: a},
 	}
 	r.headers = append(r.headers, val)
 }

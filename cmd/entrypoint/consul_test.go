@@ -71,7 +71,7 @@ secret: consultest-client-cert-secret
 
 func TestReconcile(t *testing.T) {
 	ctx, resolvers, mappings, c, tw := setup(t)
-	c.reconcile(ctx, resolvers, mappings)
+	require.NoError(t, c.reconcile(ctx, resolvers, mappings))
 	tw.Assert(
 		"consultest-resolver.default:consultest-consul-service:watch",
 		"consultest-resolver.default:consultest-consul-service-tcp:watch",
@@ -80,11 +80,11 @@ func TestReconcile(t *testing.T) {
 		Service:  "foo",
 		Resolver: "consultest-resolver",
 	}
-	c.reconcile(ctx, resolvers, append(mappings, extra))
+	require.NoError(t, c.reconcile(ctx, resolvers, append(mappings, extra)))
 	tw.Assert(
 		"consultest-resolver.default:foo:watch",
 	)
-	c.reconcile(ctx, resolvers, nil)
+	require.NoError(t, c.reconcile(ctx, resolvers, nil))
 	tw.Assert(
 		"consultest-resolver.default:consultest-consul-service-tcp:stop",
 		"consultest-resolver.default:consultest-consul-service:stop",
@@ -94,12 +94,12 @@ func TestReconcile(t *testing.T) {
 
 func TestCleanup(t *testing.T) {
 	ctx, resolvers, mappings, c, tw := setup(t)
-	c.reconcile(ctx, resolvers, mappings)
+	require.NoError(t, c.reconcile(ctx, resolvers, mappings))
 	tw.Assert(
 		"consultest-resolver.default:consultest-consul-service:watch",
 		"consultest-resolver.default:consultest-consul-service-tcp:watch",
 	)
-	c.cleanup(ctx)
+	require.NoError(t, c.cleanup(ctx))
 	tw.Assert(
 		"consultest-resolver.default:consultest-consul-service:stop",
 		"consultest-resolver.default:consultest-consul-service-tcp:stop",
@@ -109,7 +109,7 @@ func TestCleanup(t *testing.T) {
 func TestBootstrap(t *testing.T) {
 	ctx, resolvers, mappings, c, _ := setup(t)
 	assert.False(t, c.isBootstrapped())
-	c.reconcile(ctx, resolvers, mappings)
+	require.NoError(t, c.reconcile(ctx, resolvers, mappings))
 	assert.False(t, c.isBootstrapped())
 	// XXX: break this (maybe use a chan to replace uncoalesced dirties and passing con around?)
 	//
@@ -173,10 +173,10 @@ func (tw *testWatcher) Assert(events ...string) {
 	tw.events = make(map[string]bool)
 }
 
-func (tw *testWatcher) Watch(ctx context.Context, resolver *amb.ConsulResolver, svc string, _ chan consulwatch.Endpoints) Stopper {
+func (tw *testWatcher) Watch(ctx context.Context, resolver *amb.ConsulResolver, svc string, _ chan consulwatch.Endpoints) (Stopper, error) {
 	rname := fmt.Sprintf("%s.%s", resolver.GetName(), resolver.GetNamespace())
 	tw.Logf("%s:%s:watch", rname, svc)
-	return &testStopper{watcher: tw, resolver: rname, service: svc}
+	return &testStopper{watcher: tw, resolver: rname, service: svc}, nil
 }
 
 type testStopper struct {

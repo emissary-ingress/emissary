@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	"github.com/datawire/dlib/dlog"
 )
@@ -296,7 +298,7 @@ func TestFSWatcherExtantFiles(t *testing.T) {
 		return
 	}
 
-	m.fsw.WatchDir(ctx, m.dir, m.eventHandler)
+	assert.NoError(t, m.fsw.WatchDir(ctx, m.dir, m.eventHandler))
 
 	m.check("f1", true, 1, 0)
 	m.check("f2", true, 1, 0)
@@ -318,7 +320,7 @@ func TestFSWatcherNoExtantFiles(t *testing.T) {
 
 	m.t.Logf("FSW initialized for NonExtantFiles (%s)", m.dir)
 
-	m.fsw.WatchDir(ctx, m.dir, m.eventHandler)
+	assert.NoError(t, m.fsw.WatchDir(ctx, m.dir, m.eventHandler))
 
 	if !m.writeFile("f1", 1, false) {
 		return
@@ -358,7 +360,7 @@ func TestFSWatcherSlow(t *testing.T) {
 
 	m.t.Logf("FSW initialized for NonExtantFiles (%s)", m.dir)
 
-	m.fsw.WatchDir(ctx, m.dir, m.eventHandler)
+	assert.NoError(t, m.fsw.WatchDir(ctx, m.dir, m.eventHandler))
 
 	if !m.writeFile("f1", 1, true) {
 		return

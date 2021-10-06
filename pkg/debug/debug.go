@@ -104,8 +104,7 @@ func (d *Debug) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, fmt.Sprintf("error marshalling debug info: %v", err), http.StatusInternalServerError)
 		} else {
-			w.Write(bytes)
-			w.Write([]byte("\n"))
+			_, _ = w.Write(append(bytes, '\n'))
 		}
 	})
 }

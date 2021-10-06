@@ -40,9 +40,9 @@ func (rt ResolverType) String() string {
 		return "KubernetesEndpointResolver"
 	case ConsulResolver:
 		return "ConsulResolver"
+	default:
+		panic(fmt.Errorf("ResolverType.String: invalid enum value: %d", rt))
 	}
-
-	panic("unknown resolver type")
 }
 
 // newEndpointRoutingInfo creates a shiny new struct to hold information about

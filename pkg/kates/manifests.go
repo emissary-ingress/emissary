@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"io"
-	"reflect"
 	"strings"
 
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -22,10 +21,18 @@ import (
 var sch = runtime.NewScheme()
 
 func init() {
-	scheme.AddToScheme(sch)
-	apiextensions.AddToScheme(sch)
-	amb.AddToScheme(sch)
-	gw.AddToScheme(sch)
+	if err := scheme.AddToScheme(sch); err != nil {
+		panic(err) // panic is ok in init() I guess
+	}
+	if err := apiextensions.AddToScheme(sch); err != nil {
+		panic(err) // panic is ok in init() I guess
+	}
+	if err := amb.AddToScheme(sch); err != nil {
+		panic(err) // panic is ok in init() I guess
+	}
+	if err := gw.AddToScheme(sch); err != nil {
+		panic(err) // panic is ok in init() I guess
+	}
 }
 
 func NewObject(kind, version string) (Object, error) {
@@ -160,16 +167,6 @@ func SetOwnerReferences(owner Object, objects ...Object) {
 			ref := v1.NewControllerRef(owner, gvk)
 			o.SetOwnerReferences(append(o.GetOwnerReferences(), *ref))
 		}
-	}
-}
-
-func ByName(objs interface{}, target interface{}) {
-	vobjs := reflect.ValueOf(objs)
-	vtarget := reflect.ValueOf(target)
-	for i := 0; i < vobjs.Len(); i++ {
-		obj := vobjs.Index(i).Interface()
-		name := obj.(Object).GetName()
-		vtarget.SetMapIndex(reflect.ValueOf(name), reflect.ValueOf(obj).Convert(vtarget.Type().Elem()))
 	}
 }
 

@@ -26,7 +26,7 @@ func externalSnapshotServer(ctx context.Context, snapshot *atomic.Value) error {
 			return
 		}
 		w.Header().Set("content-type", "application/json")
-		w.Write(sanitizedSnap)
+		_, _ = w.Write(sanitizedSnap)
 	})
 
 	s := &dhttp.ServerConfig{
@@ -39,7 +39,7 @@ func externalSnapshotServer(ctx context.Context, snapshot *atomic.Value) error {
 func snapshotServer(ctx context.Context, snapshot *atomic.Value) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/snapshot", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(snapshot.Load().([]byte))
+		_, _ = w.Write(snapshot.Load().([]byte))
 	})
 
 	s := &dhttp.ServerConfig{
@@ -59,7 +59,11 @@ func sanitizeExternalSnapshot(ctx context.Context, rawSnapshot []byte, client *h
 	if err != nil {
 		return nil, err
 	}
-	if snapDecoded.AmbassadorMeta != nil && IsEdgeStack() {
+	isEdgeStack, err := IsEdgeStack()
+	if err != nil {
+		return nil, err
+	}
+	if snapDecoded.AmbassadorMeta != nil && isEdgeStack {
 		sidecarProcessInfoUrl := fmt.Sprintf("%s/process-info/", GetSidecarHost())
 		dlog.Debugf(ctx, "loading sidecar process-info using [%s]...", sidecarProcessInfoUrl)
 		resp, err := client.Get(sidecarProcessInfoUrl)

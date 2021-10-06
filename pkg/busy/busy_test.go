@@ -4,8 +4,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+
+	//nolint:depguard // This is one of the few places where it is approrpiate to not go through
+	// dlog: to initialize dlog.
+	"github.com/sirupsen/logrus"
 )
 
 func TestLoggingTextFormatterDefault(t *testing.T) {

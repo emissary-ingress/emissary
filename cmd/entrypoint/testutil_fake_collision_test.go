@@ -1,14 +1,15 @@
 package entrypoint_test
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestFakeCollision(t *testing.T) {
@@ -19,16 +20,17 @@ func TestFakeCollision(t *testing.T) {
 
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true, DiagdDebug: true}, nil)
 
-	f.UpsertFile("testdata/Collision1.yaml")
+	assert.NoError(t, f.UpsertFile("testdata/Collision1.yaml"))
 	f.Flush()
 
-	snap := f.GetSnapshot(HasMapping("staging", "subway-staging-socket-stable-mapping"))
+	snap, err := f.GetSnapshot(HasMapping("staging", "subway-staging-socket-stable-mapping"))
+	require.NoError(t, err)
 
 	// assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
 	assert.NotNil(t, snap)
 
 	// Grab the next envoy config that satisfies our predicate.
-	envoyConfig := f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err := f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
 		// The first time we look at the Envoy config, we should find only two clusters.
 		//
 		// First up, a cluster named cluster_subway_staging_stable_staging_30-0,
@@ -67,21 +69,21 @@ func TestFakeCollision(t *testing.T) {
 
 		return true
 	})
-
+	require.NoError(t, err)
 	assert.NotNil(t, envoyConfig)
 
-	fmt.Println(Jsonify(envoyConfig))
+	LogJSON(t, envoyConfig)
 
-	f.UpsertFile("testdata/Collision2.yaml")
+	assert.NoError(t, f.UpsertFile("testdata/Collision2.yaml"))
 	f.Flush()
 
-	snap = f.GetSnapshot(HasMapping("staging", "subway-staging-socket-stable-mapping"))
+	snap, err = f.GetSnapshot(HasMapping("staging", "subway-staging-socket-stable-mapping"))
 
 	// assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
 	assert.NotNil(t, snap)
 
 	// Grab the next envoy config that satisfies our predicate.
-	envoyConfig = f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err = f.GetEnvoyConfig(func(config *v3bootstrap.Bootstrap) bool {
 		// The second time we look at the Envoy config, we need to see three
 		// clusters, but note that some of the contents of the clusters will have
 		// changed.
@@ -127,8 +129,8 @@ func TestFakeCollision(t *testing.T) {
 
 		return true
 	})
-
+	require.NoError(t, err)
 	assert.NotNil(t, envoyConfig)
 
-	fmt.Println(Jsonify(envoyConfig))
+	LogJSON(t, envoyConfig)
 }

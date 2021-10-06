@@ -8,14 +8,15 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/datawire/ambassador/v2/cmd/ambex"
 	"github.com/datawire/ambassador/v2/cmd/entrypoint"
 	v3bootstrap "github.com/datawire/ambassador/v2/pkg/api/envoy/config/bootstrap/v3"
 	v3cluster "github.com/datawire/ambassador/v2/pkg/api/envoy/config/cluster/v3"
 	"github.com/datawire/ambassador/v2/pkg/kates"
 	"github.com/datawire/ambassador/v2/pkg/snapshot/v1"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 // The Fake struct is a test harness for edgestack. It spins up the key portions of the edgestack
@@ -35,7 +36,7 @@ func TestFakeHello(t *testing.T) {
 	// doing a `kubectl apply` to a real kubernetes API server, however apply uses fancy merge
 	// logic, whereas UpsertFile() does a simple Upsert operation. The `testdata/FakeHello.yaml`
 	// file has a single mapping named "hello".
-	f.UpsertFile("testdata/FakeHello.yaml")
+	assert.NoError(t, f.UpsertFile("testdata/FakeHello.yaml"))
 	// Initially the Fake harness is paused. This means we can make as many method calls as we want
 	// to in order to set up our initial conditions, and no inputs will be fed into the control
 	// plane. To feed inputs to the control plane, we can choose to either manually invoke the
@@ -52,9 +53,10 @@ func TestFakeHello(t *testing.T) {
 	// whatever conditions are being tested. This allows the test to verify that the correct
 	// computation is occurring without being overly prescriptive about the exact number of
 	// snapshots and/or envoy configs that are produce to achieve a certain result.
-	snap := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
+	snap, err := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
 		return len(snap.Kubernetes.Mappings) > 0
 	})
+	require.NoError(t, err)
 	// Check that the snapshot contains the mapping from the file.
 	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
 }
@@ -72,16 +74,17 @@ func TestFakeHelloWithEnvoyConfig(t *testing.T) {
 	f := entrypoint.RunFake(t, entrypoint.FakeConfig{EnvoyConfig: true}, nil)
 
 	// We will use the same inputs we used in TestFakeHello. A single mapping named "hello".
-	f.UpsertFile("testdata/FakeHello.yaml")
+	assert.NoError(t, f.UpsertFile("testdata/FakeHello.yaml"))
 	// Instead of using AutoFlush(true) we will manually Flush() when we want to feed inputs to the
 	// control plane.
 	f.Flush()
 
 	// Grab the next snapshot that has mappings. The v3bootstrap logic should actually gaurantee this
 	// is also the first mapping, but we aren't trying to test that here.
-	snap := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
+	snap, err := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
 		return len(snap.Kubernetes.Mappings) > 0
 	})
+	require.NoError(t, err)
 	// The first snapshot should contain the one and only mapping we have supplied the control
 	// plane.x
 	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
@@ -94,9 +97,10 @@ func TestFakeHelloWithEnvoyConfig(t *testing.T) {
 	}
 
 	// Grab the next envoy config that satisfies our predicate.
-	envoyConfig := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
 		return FindCluster(envoy, isHelloCluster) != nil
 	})
+	require.NoError(t, err)
 
 	// Now let's dig into the envoy configuration and check that the correct target endpoint is
 	// present.
@@ -140,7 +144,8 @@ func deltaSummary(snap *snapshot.Snapshot) []string {
 		case kates.ObjectDelete:
 			typestr = "delete"
 		default:
-			panic("missing case")
+			// Bug because the programmer needs to add another case here.
+			panic(fmt.Errorf("missing case for DeltaType enum: %#v", delta))
 		}
 
 		summary = append(summary, fmt.Sprintf("%s %s %s", typestr, delta.Kind, delta.Name))
@@ -168,7 +173,7 @@ func TestFakeHelloConsul(t *testing.T) {
 
 	// Feed the control plane the kubernetes resources supplied in the referenced file. In this case
 	// that includes a consul resolver and a mapping that uses that consul resolver.
-	f.UpsertFile("testdata/FakeHelloConsul.yaml")
+	assert.NoError(t, f.UpsertFile("testdata/FakeHelloConsul.yaml"))
 	// This test is a bit more interesting for the control plane from a v3bootstrapping perspective,
 	// so we invoke Flush() manually rather than using AutoFlush(true). The control plane needs to
 	// figure out that there is a mapping that depends on consul endpoint data, and it needs to wait
@@ -184,9 +189,10 @@ func TestFakeHelloConsul(t *testing.T) {
 	// In this case the snapshot is considered incomplete until we supply enough consul endpoint
 	// data for edgestack to construct an envoy config that won't send requests to our hello mapping
 	// into a black hole.
-	entry := f.GetSnapshotEntry(func(entry entrypoint.SnapshotEntry) bool {
+	entry, err := f.GetSnapshotEntry(func(entry entrypoint.SnapshotEntry) bool {
 		return entry.Disposition == entrypoint.SnapshotIncomplete && len(entry.Snapshot.Kubernetes.Mappings) > 0
 	})
+	require.NoError(t, err)
 	// Check that the snapshot contains the mapping from the file.
 	assert.Equal(t, "hello", entry.Snapshot.Kubernetes.Mappings[0].Name)
 	// ..and the TCPMapping as well
@@ -200,7 +206,7 @@ func TestFakeHelloConsul(t *testing.T) {
 
 	// The Fake harness also tracks endpoints that get sent to ambex. We can use the GetEndpoints()
 	// method to access them and check to see that the endpoint we supplied got delivered to ambex.
-	endpoints := f.GetEndpoints(func(endpoints *ambex.Endpoints) bool {
+	endpoints, err := f.GetEndpoints(func(endpoints *ambex.Endpoints) bool {
 		_, ok := endpoints.Entries["consul/dc1/hello"]
 		if ok {
 			_, okTcp := endpoints.Entries["consul/dc1/hello-tcp"]
@@ -208,15 +214,17 @@ func TestFakeHelloConsul(t *testing.T) {
 		}
 		return false
 	})
+	require.NoError(t, err)
 	assert.Len(t, endpoints.Entries, 2)
 	assert.Equal(t, "1.2.3.4", endpoints.Entries["consul/dc1/hello"][0].Ip)
 
 	// Grab the next snapshot that has both mappings, tcpmappings, and a Consul resolver. The v3bootstrap logic
 	// should actually guarantee this is also the first mapping, but we aren't trying to test
 	// that here.
-	snap := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
+	snap, err := f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
 		return (len(snap.Kubernetes.Mappings) > 0) && (len(snap.Kubernetes.TCPMappings) > 0) && (len(snap.Kubernetes.ConsulResolvers) > 0)
 	})
+	require.NoError(t, err)
 	// The first snapshot should contain both the mapping and tcpmapping we have supplied the control
 	// plane.
 	assert.Equal(t, "hello", snap.Kubernetes.Mappings[0].Name)
@@ -240,9 +248,10 @@ func TestFakeHelloConsul(t *testing.T) {
 	}
 
 	// Grab the next envoy config that satisfies our predicate.
-	envoyConfig := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
+	envoyConfig, err := f.GetEnvoyConfig(func(envoy *v3bootstrap.Bootstrap) bool {
 		return FindCluster(envoy, isHelloCluster) != nil
 	})
+	require.NoError(t, err)
 
 	// Now let's check that the cluster produced properly references the endpoints that have already
 	// arrived at ambex.
@@ -274,7 +283,7 @@ func TestFakeHelloConsul(t *testing.T) {
 	assert.Equal(t, "5.6.7.8", eps[0].Ip)
 
 	// Next up, change the Consul resolver definition.
-	f.UpsertYAML(`
+	assert.NoError(t, f.UpsertYAML(`
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: ConsulResolver
@@ -283,13 +292,14 @@ metadata:
 spec:
   address: $CONSULHOST:$CONSULPORT
   datacenter: dc1
-`)
+`))
 	f.Flush()
 
 	// Repeat the snapshot checks. We must have mappings and consulresolvers...
-	snap = f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
+	snap, err = f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
 		return (len(snap.Kubernetes.Mappings) > 0) && (len(snap.Kubernetes.TCPMappings) > 0) && (len(snap.Kubernetes.ConsulResolvers) > 0)
 	})
+	require.NoError(t, err)
 
 	// ...with one delta, namely the ConsulResolver...
 	assert.Equal(t, []string{"update ConsulResolver consul-dc1"}, deltaSummary(snap))
@@ -304,10 +314,10 @@ spec:
 	// Finally, delete the Consul resolver, then replace it. This is mostly just testing that
 	// things don't crash.
 
-	f.Delete("ConsulResolver", "default", "consul-dc1")
+	assert.NoError(t, f.Delete("ConsulResolver", "default", "consul-dc1"))
 	f.Flush()
 
-	f.UpsertYAML(`
+	assert.NoError(t, f.UpsertYAML(`
 ---
 apiVersion: getambassador.io/v3alpha1
 kind: ConsulResolver
@@ -316,13 +326,14 @@ metadata:
 spec:
   address: $CONSULHOST:9999
   datacenter: dc1
-`)
+`))
 	f.Flush()
 
 	// Repeat all the checks.
-	snap = f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
+	snap, err = f.GetSnapshot(func(snap *snapshot.Snapshot) bool {
 		return (len(snap.Kubernetes.Mappings) > 0) && (len(snap.Kubernetes.TCPMappings) > 0) && (len(snap.Kubernetes.ConsulResolvers) > 0)
 	})
+	require.NoError(t, err)
 
 	// Two deltas here since we've deleted and re-added without a check in between.
 	// (They appear out of order here because of string sorting. Don't panic.)
