@@ -35,7 +35,7 @@ following Free and Open Source software:
     github.com/evanphx/json-patch                            v4.9.0+incompatible                        3-clause BSD license
     github.com/exponent-io/jsonpath                          v0.0.0-20151013193312-d6023ce2651d         MIT license
     github.com/fatih/camelcase                               v1.0.0                                     MIT license
-    github.com/fatih/color                                   v1.7.0                                     MIT license
+    github.com/fatih/color                                   v1.9.0                                     MIT license
     github.com/form3tech-oss/jwt-go                          v3.2.2+incompatible                        MIT license
     github.com/fsnotify/fsnotify                             v1.4.9                                     3-clause BSD license
     github.com/getkin/kin-openapi                            v0.66.0                                    MIT license
@@ -45,7 +45,7 @@ following Free and Open Source software:
     github.com/go-openapi/jsonreference                      v0.19.3                                    Apache License 2.0
     github.com/go-openapi/spec                               v0.19.3                                    Apache License 2.0
     github.com/go-openapi/swag                               v0.19.5                                    Apache License 2.0
-    github.com/gobuffalo/flect                               v0.2.0                                     MIT license
+    github.com/gobuffalo/flect                               v0.2.2                                     MIT license
     github.com/gogo/protobuf                                 v1.3.1                                     3-clause BSD license
     github.com/golang/protobuf                               v1.4.3                                     3-clause BSD license
     github.com/google/btree                                  v1.0.0                                     Apache License 2.0
@@ -68,8 +68,8 @@ following Free and Open Source software:
     github.com/kballard/go-shellquote                        v0.0.0-20180428030007-95032a82bc51         MIT license
     github.com/liggitt/tabwriter                             v0.0.0-20181228230101-89fcab3d43de         3-clause BSD license
     github.com/mailru/easyjson                               v0.7.0                                     MIT license
-    github.com/mattn/go-colorable                            v0.1.2                                     MIT license
-    github.com/mattn/go-isatty                               v0.0.8                                     MIT license
+    github.com/mattn/go-colorable                            v0.1.8                                     MIT license
+    github.com/mattn/go-isatty                               v0.0.12                                    MIT license
     github.com/matttproud/golang_protobuf_extensions         v1.0.2-0.20181231171920-c182affec369       Apache License 2.0
     github.com/mitchellh/go-homedir                          v1.1.0                                     MIT license
     github.com/mitchellh/go-wordwrap                         v1.0.0                                     MIT license
@@ -122,7 +122,7 @@ following Free and Open Source software:
     k8s.io/utils                                             v0.0.0-20201110183641-67b214c5f920         Apache License 2.0
     sigs.k8s.io/apiserver-network-proxy/konnectivity-client  v0.0.14                                    Apache License 2.0
     sigs.k8s.io/controller-runtime                           v0.8.0                                     Apache License 2.0
-    sigs.k8s.io/controller-tools                             v0.4.1                                     Apache License 2.0
+    sigs.k8s.io/controller-tools                             v0.5.0                                     Apache License 2.0
     sigs.k8s.io/gateway-api                                  v0.2.0                                     Apache License 2.0
     sigs.k8s.io/kustomize                                    v2.0.3+incompatible                        Apache License 2.0
     sigs.k8s.io/structured-merge-diff/v4                     v4.0.2                                     Apache License 2.0

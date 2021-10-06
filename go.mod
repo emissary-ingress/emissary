@@ -91,7 +91,7 @@ require (
 	k8s.io/kubernetes v1.20.2
 	k8s.io/metrics v0.20.2
 	sigs.k8s.io/controller-runtime v0.8.0
-	sigs.k8s.io/controller-tools v0.4.1
+	sigs.k8s.io/controller-tools v0.5.0
 	sigs.k8s.io/gateway-api v0.2.0
 	sigs.k8s.io/yaml v1.2.0
 )
