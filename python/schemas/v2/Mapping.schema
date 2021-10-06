@@ -414,6 +414,9 @@
         "resolver": {
             "type": "string"
         },
+        "respect_dns_ttl": {
+            "type": "boolean"
+        },
         "retry_policy": {
             "type": "object",
             "properties": {

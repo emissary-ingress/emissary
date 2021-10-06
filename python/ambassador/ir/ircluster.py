@@ -62,6 +62,7 @@ class IRCluster (IRResource):
                  load_balancer: Optional[dict] = None,
                  keepalive: Optional[dict] = None,
                  circuit_breakers: Optional[list] = None,
+                 respect_dns_ttl: Optional[bool] = False,
 
                  rkey: str="-override-",
                  kind: str="IRCluster",
@@ -285,6 +286,7 @@ class IRCluster (IRResource):
             'connect_timeout_ms': connect_timeout_ms,
             'cluster_idle_timeout_ms': cluster_idle_timeout_ms,
             'cluster_max_connection_lifetime_ms': cluster_max_connection_lifetime_ms,
+            'respect_dns_ttl': respect_dns_ttl,
         }
 
         # If we have a stats_name, use it. If not, default it to the service to make life
