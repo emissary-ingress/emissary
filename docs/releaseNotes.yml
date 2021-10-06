@@ -71,6 +71,14 @@ items:
           obtained from DNS resolution.
         docs: topics/using/mappings/#dns-configuration-for-mappings
 
+      - title: Support configuring upstream buffer sizes
+        type: feature
+        body: >-
+          You can now set <code>buffer_limit_bytes</code> in the <code>ambassador</code>
+          <code>Module</code> to to change the size of the upstream read and write buffers.
+          The default is 1MiB.
+        docs: topics/running/ambassador/#modify-default-buffer-size
+
       - title: Version number reported correctly
         type: bugfix
         body: >-
@@ -319,7 +327,7 @@ items:
         body: >-
           You can now set <code>buffer_limit_bytes</code> in the <code>ambassador</code>
           <code>Module</code> to to change the size of the upstream read and write buffers.
-          The default is 1MiB. 
+          The default is 1MiB.
         docs: topics/running/ambassador/#modify-default-buffer-size
 
   - version: 1.14.1
