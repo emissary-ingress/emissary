@@ -38,15 +38,7 @@ go 1.13
 //  3. If you do add a `replace` command to this file, you must also
 //     add it to the go.mod in apro.git (see above for explanation).
 //
-//  4. We use https://github.com/datawire/libk8s to manage the
-//     Kubernetes library versions (since the Kubernetes folks make it
-//     such a nightmare).  See the docs there if you need to fuss with
-//     the versions of any of the k8s.io/ libraries.  If you find
-//     yourself having to do any hacks with k8s.io library versions
-//     (like doing a `replace` for a dozen different k8s.io/
-//     packages), stop, and ask someone for advice.
-//
-//  5. Use `make go-mod-tidy` instead of `go mod tidy`.  Normal `go
+//  4. Use `make go-mod-tidy` instead of `go mod tidy`.  Normal `go
 //     mod tidy` will try to remove `github.com/cncf/udpa`--don't let
 //     it, that would break `make generate`; the github.com/cncf/udpa
 //     version needs to be kept in-sync with the
@@ -96,11 +88,45 @@ require (
 	k8s.io/klog/v2 v2.10.0
 	k8s.io/kube-openapi v0.0.0-20201113171705-d219536bb9fd
 	k8s.io/kubectl v0.20.2
+	k8s.io/kubernetes v1.20.2
 	k8s.io/metrics v0.20.2
 	sigs.k8s.io/controller-runtime v0.8.0
 	sigs.k8s.io/controller-tools v0.4.1
 	sigs.k8s.io/gateway-api v0.2.0
 	sigs.k8s.io/yaml v1.2.0
+)
+
+// Because we (unfortunately) need to require k8s.io/kubernetes, which
+// is (unfortunately) managed in a way that makes it hostile to being
+// used as a library (see
+// https://news.ycombinator.com/item?id=27827389) we need to provide
+// replacements for a bunch of k8s.io modules that it refers to by
+// bogus/broken v0.0.0 versions.
+replace (
+	k8s.io/api v0.0.0 => k8s.io/api v0.20.2
+	k8s.io/apiextensions-apiserver v0.0.0 => k8s.io/apiextensions-apiserver v0.20.2
+	k8s.io/apimachinery v0.0.0 => k8s.io/apimachinery v0.20.2
+	k8s.io/apiserver v0.0.0 => k8s.io/apiserver v0.20.2
+	k8s.io/cli-runtime v0.0.0 => k8s.io/cli-runtime v0.20.2
+	k8s.io/client-go v0.0.0 => k8s.io/client-go v0.20.2
+	k8s.io/cloud-provider v0.0.0 => k8s.io/cloud-provider v0.20.2
+	k8s.io/cluster-bootstrap v0.0.0 => k8s.io/cluster-bootstrap v0.20.2
+	k8s.io/code-generator v0.0.0 => k8s.io/code-generator v0.20.2
+	k8s.io/component-base v0.0.0 => k8s.io/component-base v0.20.2
+	k8s.io/component-helpers v0.0.0 => k8s.io/component-helpers v0.20.2
+	k8s.io/controller-manager v0.0.0 => k8s.io/controller-manager v0.20.2
+	k8s.io/cri-api v0.0.0 => k8s.io/cri-api v0.20.2
+	k8s.io/csi-translation-lib v0.0.0 => k8s.io/csi-translation-lib v0.20.2
+	k8s.io/kube-aggregator v0.0.0 => k8s.io/kube-aggregator v0.20.2
+	k8s.io/kube-controller-manager v0.0.0 => k8s.io/kube-controller-manager v0.20.2
+	k8s.io/kube-proxy v0.0.0 => k8s.io/kube-proxy v0.20.2
+	k8s.io/kube-scheduler v0.0.0 => k8s.io/kube-scheduler v0.20.2
+	k8s.io/kubectl v0.0.0 => k8s.io/kubectl v0.20.2
+	k8s.io/kubelet v0.0.0 => k8s.io/kubelet v0.20.2
+	k8s.io/legacy-cloud-providers v0.0.0 => k8s.io/legacy-cloud-providers v0.20.2
+	k8s.io/metrics v0.0.0 => k8s.io/metrics v0.20.2
+	k8s.io/mount-utils v0.0.0 => k8s.io/mount-utils v0.20.2
+	k8s.io/sample-apiserver v0.0.0 => k8s.io/sample-apiserver v0.20.2
 )
 
 // The issue doesn't trigger with the current versions of our

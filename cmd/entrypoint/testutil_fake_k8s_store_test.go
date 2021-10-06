@@ -190,57 +190,77 @@ func sortedKeys(resources map[K8sKey]kates.Object) []K8sKey {
 	return keys
 }
 
-func canonGVK(kind string) (canonKind string, canonGroupVersion string, err error) {
+func canonGVK(rawString string) (canonKind string, canonGroupVersion string, err error) {
 	// XXX: there is probably a better way to do this, but this is good enough for now, we just need
 	// this to work well for ambassador and core types.
 
-	switch strings.ToLower(kind) {
-	case "service", "services", "services.":
+	rawParts := strings.SplitN(rawString, ".", 2)
+	var rawKind, rawVG string
+	switch len(rawParts) {
+	case 1:
+		rawKind = rawParts[0]
+	case 2:
+		rawKind = rawParts[0]
+		rawVG = rawParts[1]
+	}
+
+	// Each case should be `case "singular", "plural":`
+	switch strings.ToLower(rawKind) {
+	// Native Kubernetes types
+	case "service", "services":
 		return "Service", "v1", nil
-	case "secret", "secrets", "secrets.":
-		return "Secret", "v1", nil
-	case "endpoints", "endpoints.":
+	case "endpoints":
 		return "Endpoints", "v1", nil
-	case "ingress", "ingresses", "ingresses.extensions":
-		return "Ingress", "v1", nil
-	case "ingressclass", "ingressclasses", "ingressclasses.networking.k8s.io":
-		return "IngressClass", "v1", nil
-	case "authservice", "authservices", "authservices.getambassador.io":
-		return "AuthService", "getambassador.io/v3alpha1", nil
-	case "consulresolver", "consulresolvers", "consulresolvers.getambassador.io":
-		return "ConsulResolver", "getambassador.io/v3alpha1", nil
-	case "devportal", "devportals", "devportals.getambassador.io":
-		return "DevPortal", "getambassador.io/v3alpha1", nil
-	case "host", "hosts", "hosts.getambassador.io":
-		return "Host", "getambassador.io/v3alpha1", nil
-	case "kubernetesendpointresolver", "kubernetesendpointresolvers", "kubernetesendpointresolvers.getambassador.io":
-		return "KubernetesEndpointResolver", "getambassador.io/v3alpha1", nil
-	case "kubernetesserviceresolver", "kubernetesserviceresolvers", "kubernetesserviceresolvers.getambassador.io":
-		return "KubernetesServiceResolver", "getambassador.io/v3alpha1", nil
-	case "listener", "listeners", "listeners.getambassador.io":
-		return "Listener", "getambassador.io/v3alpha1", nil
-	case "logservice", "logservices", "logservices.getambassador.io":
-		return "LogService", "getambassador.io/v3alpha1", nil
-	case "mapping", "mappings", "mappings.getambassador.io":
-		return "Mapping", "getambassador.io/v3alpha1", nil
-	case "module", "modules", "modules.getambassador.io":
-		return "Module", "getambassador.io/v3alpha1", nil
-	case "ratelimitservice", "ratelimitservices", "ratelimitservices.getambassador.io":
-		return "RateLimitServices", "getambassador.io/v3alpha1", nil
-	case "tcpmapping", "tcpmappings", "tcpmappings.getambassador.io":
-		return "TCPMapping", "getambassador.io/v3alpha1", nil
-	case "tlscontext", "tlscontexts", "tlscontexts.getambassador.io":
-		return "TLSContext", "getambassador.io/v3alpha1", nil
-	case "tracingservice", "tracingservices", "tracingservices.getambassador.io":
-		return "TracingService", "getambassador.io/v3alpha1", nil
-	case "gatewayclasses.networking.x-k8s.io":
+	case "secret", "secrets":
+		return "Secret", "v1", nil
+	case "ingress", "ingresses":
+		if strings.HasSuffix(rawVG, ".knative.dev") {
+			return "Ingress", "networking.internal.knative.dev/v1alpha1", nil
+		}
+		return "Ingress", "networking.k8s.io/v1", nil
+	case "ingressclass", "ingressclasses":
+		return "IngressClass", "networking.k8s.io/v1", nil
+	// Gateway API
+	case "gatewayclass", "gatewayclasses":
 		return "GatewayClass", "networking.x-k8s.io/v1alpha1", nil
-	case "gateways.networking.x-k8s.io":
+	case "gateway", "gateways":
 		return "Gateway", "networking.x-k8s.io/v1alpha1", nil
-	case "httproutes.networking.x-k8s.io":
+	case "httproute", "httproutes":
 		return "HTTPRoute", "networking.x-k8s.io/v1alpha1", nil
+	// Knative types
+	case "clusteringress", "clusteringresses":
+		return "ClusterIngress", "networking.internal.knative.dev/v1alpha1", nil
+	// Native Emissary types
+	case "authservice", "authservices":
+		return "AuthService", "getambassador.io/v3alpha1", nil
+	case "consulresolver", "consulresolvers":
+		return "ConsulResolver", "getambassador.io/v3alpha1", nil
+	case "devportal", "devportals":
+		return "DevPortal", "getambassador.io/v3alpha1", nil
+	case "host", "hosts":
+		return "Host", "getambassador.io/v3alpha1", nil
+	case "kubernetesendpointresolver", "kubernetesendpointresolvers":
+		return "KubernetesEndpointResolver", "getambassador.io/v3alpha1", nil
+	case "kubernetesserviceresolver", "kubernetesserviceresolvers":
+		return "KubernetesServiceResolver", "getambassador.io/v3alpha1", nil
+	case "listener", "listeners":
+		return "Listener", "getambassador.io/v3alpha1", nil
+	case "logservice", "logservices":
+		return "LogService", "getambassador.io/v3alpha1", nil
+	case "mapping", "mappings":
+		return "Mapping", "getambassador.io/v3alpha1", nil
+	case "module", "modules":
+		return "Module", "getambassador.io/v3alpha1", nil
+	case "ratelimitservice", "ratelimitservices":
+		return "RateLimitServices", "getambassador.io/v3alpha1", nil
+	case "tcpmapping", "tcpmappings":
+		return "TCPMapping", "getambassador.io/v3alpha1", nil
+	case "tlscontext", "tlscontexts":
+		return "TLSContext", "getambassador.io/v3alpha1", nil
+	case "tracingservice", "tracingservices":
+		return "TracingService", "getambassador.io/v3alpha1", nil
 	default:
-		return "", "", fmt.Errorf("I don't know how to canonicalize kind: %q", kind)
+		return "", "", fmt.Errorf("I don't know how to canonicalize kind: %q", rawString)
 	}
 }
 

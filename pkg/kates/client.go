@@ -3,7 +3,6 @@ package kates
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -13,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/datawire/dlib/dlog"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
@@ -38,6 +36,9 @@ import (
 
 	// k8s plugins
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+
+	kates_internal "github.com/datawire/ambassador/v2/pkg/kates/internal"
+	"github.com/datawire/dlib/dlog"
 )
 
 // The Client struct provides an interface to interact with the kubernetes api-server. You can think
@@ -1131,21 +1132,7 @@ func gteq(v1, v2 string) (bool, error) {
 }
 
 func convert(in interface{}, out interface{}) error {
-	if out == nil {
-		return nil
-	}
-
-	jsonBytes, err := json.Marshal(in)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(jsonBytes, out)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return kates_internal.Convert(in, out)
 }
 
 func unKey(u *Unstructured) string {
