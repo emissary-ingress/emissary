@@ -55,6 +55,14 @@ items:
           <code>getambassador.io/v2</code> will arrive soon in a later 2.X version.
         docs: about/changes-2.0.0
 
+      - title: Mappings support configuring strict or logical DNS
+        type: feature
+        body: >-
+          You can now set <code>dns_type</code> between <code>strict_dns</code> and
+          <code>logical_dns</code> in a <code>Mapping</code> to configure the Service
+          Discovery Type.
+        docs: topics/using/mappings/#dns-configuration-for-mappings
+
       - title: Version number reported correctly
         type: bugfix
         body: >-
