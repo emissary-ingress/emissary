@@ -31,11 +31,13 @@ service: {self.target.path.fqdn}
 labels:
   ambassador:
     - request_label_group:
-      - x-ambassador-test-allow:
-          header: "x-ambassador-test-allow"
+      - request_headers:
+          descriptor_key: x-ambassador-test-allow
+          header_name: "x-ambassador-test-allow"
           omit_if_not_present: true
-      - x-ambassador-test-headers-append:
-          header: "x-ambassador-test-headers-append"
+      - request_headers:
+          descriptor_key: x-ambassador-test-headers-append
+          header_name: "x-ambassador-test-headers-append"
           omit_if_not_present: true
 ---
 apiVersion: getambassador.io/v3alpha1
@@ -47,16 +49,19 @@ service: {self.target.path.fqdn}
 labels:
   ambassador:
     - host_and_user:
-      - custom-label:
-          header: ":authority"
+      - request_headers:
+          descriptor_key: custom-label
+          header_name: ":authority"
           omit_if_not_present: true
-      - user:
-          header: "x-user"
+      - request_headers:
+          descriptor_key: user
+          header_name: "x-user"
           omit_if_not_present: true
 
     - omg_header:
-      - custom-label:
-          header: "x-omg"
+      - request_headers:
+          descriptor_key: custom-label
+          header_name: "x-omg"
           default: "OMFG!"
 """)
 
@@ -126,11 +131,13 @@ service: {self.target.path.fqdn}
 labels:
   ambassador:
     - request_label_group:
-      - x-ambassador-test-allow:
-          header: "x-ambassador-test-allow"
+      - request_headers:
+          descriptor_key: x-ambassador-test-allow
+          header_name: "x-ambassador-test-allow"
           omit_if_not_present: true
-      - x-ambassador-test-headers-append:
-          header: "x-ambassador-test-headers-append"
+      - request_headers:
+          descriptor_key: x-ambassador-test-headers-append
+          header_name: "x-ambassador-test-headers-append"
           omit_if_not_present: true
 """)
 
@@ -213,11 +220,13 @@ service: {self.target.path.fqdn}
 labels:
   ambassador:
     - request_label_group:
-      - x-ambassador-test-allow:
-          header: "x-ambassador-test-allow"
+      - request_headers:
+          descriptor_key: x-ambassador-test-allow
+          header_name: "x-ambassador-test-allow"
           omit_if_not_present: true
-      - x-ambassador-test-headers-append:
-          header: "x-ambassador-test-headers-append"
+      - request_headers:
+          descriptor_key: x-ambassador-test-headers-append
+          header_name: "x-ambassador-test-headers-append"
           omit_if_not_present: true
 """)
 
@@ -281,11 +290,13 @@ service: {self.target.path.fqdn}
 labels:
   ambassador:
     - request_label_group:
-      - x-ambassador-test-allow:
-          header: "x-ambassador-test-allow"
+      - request_headers:
+          descriptor_key: x-ambassador-test-allow
+          header_name: "x-ambassador-test-allow"
           omit_if_not_present: true
-      - x-ambassador-test-headers-append:
-          header: "x-ambassador-test-headers-append"
+      - request_headers:
+          descriptor_key: x-ambassador-test-headers-append
+          header_name: "x-ambassador-test-headers-append"
           omit_if_not_present: true
 """)
 
@@ -353,11 +364,13 @@ service: {self.target.path.fqdn}
 labels:
   ambassador:
     - request_label_group:
-      - x-ambassador-test-allow:
-          header: "x-ambassador-test-allow"
+      - request_headers:
+          descriptor_key: x-ambassador-test-allow
+          header_name: "x-ambassador-test-allow"
           omit_if_not_present: true
-      - x-ambassador-test-headers-append:
-          header: "x-ambassador-test-headers-append"
+      - request_headers:
+          descriptor_key: x-ambassador-test-headers-append
+          header_name: "x-ambassador-test-headers-append"
           omit_if_not_present: true
 """)
 

@@ -300,11 +300,98 @@
                 "items": {
                     "description": "A MappingLabelGroup is a single element of a MappingLabelGroupsArray: a second map, where the key is a human-readable name that identifies the group.",
                     "type": "object",
+                    "maxProperties": 1,
+                    "minProperties": 1,
                     "additionalProperties": {
                         "description": "A MappingLabelsArray is the value in the MappingLabelGroup: an array of label specifiers.",
                         "type": "array",
                         "items": {
-                            "description": "A MappingLabelSpecifier (finally!) defines a single label. There are multiple kinds of label, so this is more complex than we'd like it to be. See the remarks about schema on custom types in `./common.go`."
+                            "description": "A MappingLabelSpecifier (finally!) defines a single label. \n This mimics envoy/config/route/v3/route_components.proto:RateLimit:Action:action_specifier.",
+                            "type": "object",
+                            "maxProperties": 1,
+                            "minProperties": 1,
+                            "properties": {
+                                "destination_cluster": {
+                                    "description": "Sets the label \"destination_cluster=«Envoy destination cluster name»\".",
+                                    "type": "object",
+                                    "required": [
+                                        "descriptor_key"
+                                    ],
+                                    "properties": {
+                                        "descriptor_key": {
+                                            "type": "string",
+                                            "enum": [
+                                                "destination_cluster"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "generic_key": {
+                                    "description": "Sets the label \"«descriptor_key»=«descriptor_value»\" (where by default «descriptor_key» is \"generic_key\").",
+                                    "type": "object",
+                                    "required": [
+                                        "descriptor_value"
+                                    ],
+                                    "properties": {
+                                        "descriptor_key": {
+                                            "description": "The default is \"generic_key\".",
+                                            "type": "string"
+                                        },
+                                        "descriptor_value": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "remote_address": {
+                                    "description": "Sets the label \"remote_address=«IP address of the client»\".",
+                                    "type": "object",
+                                    "required": [
+                                        "descriptor_key"
+                                    ],
+                                    "properties": {
+                                        "descriptor_key": {
+                                            "type": "string",
+                                            "enum": [
+                                                "remote_address"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "request_headers": {
+                                    "description": "If the «header_name» header is set, then set the label \"«descriptor_key»=«Value of the «header_name» header»\"; otherwise skip applying this label group.",
+                                    "type": "object",
+                                    "required": [
+                                        "descriptor_key",
+                                        "header_name"
+                                    ],
+                                    "properties": {
+                                        "descriptor_key": {
+                                            "type": "string"
+                                        },
+                                        "header_name": {
+                                            "type": "string"
+                                        },
+                                        "omit_if_not_present": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                },
+                                "source_cluster": {
+                                    "description": "Sets the label \"source_cluster=«Envoy source cluster name»\".",
+                                    "type": "object",
+                                    "required": [
+                                        "descriptor_key"
+                                    ],
+                                    "properties": {
+                                        "descriptor_key": {
+                                            "type": "string",
+                                            "enum": [
+                                                "source_cluster"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }

@@ -78,7 +78,7 @@ func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {
 		// Round-trip twice, to get map field ordering, instead of struct field ordering.
 
 		// first
-		err = yaml.Unmarshal(bytes, ptr)
+		err = yaml.UnmarshalStrict(bytes, ptr)
 		require.NoError(t, err)
 		first, err := json.Marshal(ptr)
 		require.NoError(t, err)

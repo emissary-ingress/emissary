@@ -20,9 +20,6 @@
 package v3alpha1
 
 import (
-	"encoding/json"
-	"errors"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -180,126 +177,76 @@ type MappingLabelGroupsArray []MappingLabelGroup
 
 // A MappingLabelGroup is a single element of a MappingLabelGroupsArray: a second
 // map, where the key is a human-readable name that identifies the group.
+//
+// +kubebuilder:validation:MinProperties=1
+// +kubebuilder:validation:MaxProperties=1
 type MappingLabelGroup map[string]MappingLabelsArray
 
 // A MappingLabelsArray is the value in the MappingLabelGroup: an array of label
 // specifiers.
 type MappingLabelsArray []MappingLabelSpecifier
 
-// A MappingLabelSpecifier (finally!) defines a single label. There are multiple
-// kinds of label, so this is more complex than we'd like it to be. See the remarks
-// about schema on custom types in `./common.go`.
+// A MappingLabelSpecifier (finally!) defines a single label.
 //
-// +kubebuilder:validation:Type=""
+// This mimics envoy/config/route/v3/route_components.proto:RateLimit:Action:action_specifier.
+//
+// +kubebuilder:validation:MinProperties=1
+// +kubebuilder:validation:MaxProperties=1
 type MappingLabelSpecifier struct {
-	String  *string                  `json:"-"` // source-cluster, destination-cluster, remote-address, or shorthand generic
-	Header  MappingLabelSpecHeader   `json:"-"` // header (NB: no need to make this a pointer because MappingLabelSpecHeader is already nil-able)
-	Generic *MappingLabelSpecGeneric `json:"-"` // longhand generic
+	// Sets the label "source_cluster=«Envoy source cluster name»".
+	SourceCluster *MappingLabelSpecifier_SourceCluster `json:"source_cluster,omitempty"`
+
+	// Sets the label "destination_cluster=«Envoy destination cluster name»".
+	DestinationCluster *MappingLabelSpecifier_DestinationCluster `json:"destination_cluster,omitempty"`
+
+	// If the «header_name» header is set, then set the label "«descriptor_key»=«Value of the
+	// «header_name» header»"; otherwise skip applying this label group.
+	RequestHeaders *MappingLabelSpecifier_RequestHeaders `json:"request_headers,omitempty"`
+
+	// Sets the label "remote_address=«IP address of the client»".
+	RemoteAddress *MappingLabelSpecifier_RemoteAddress `json:"remote_address,omitempty"`
+
+	// Sets the label "«descriptor_key»=«descriptor_value»" (where by default «descriptor_key»
+	// is "generic_key").
+	GenericKey *MappingLabelSpecifier_GenericKey `json:"generic_key,omitempty"`
+
+	// TODO: Consider implementing `header_value_match`, `metadata`, or `extension`?
 }
 
-// A MappingLabelSpecHeaderStruct is the value struct for MappingLabelSpecifier.Header:
-// the form of MappingLabelSpecifier to use when you want to take the label value from
-// an HTTP header. (If we make this an anonymous struct like the others, it breaks the
-// generation of its deepcopy routine. Sigh.)
-type MappingLabelSpecHeaderStruct struct {
-	Header string `json:"header,omitifempty"`
-	// XXX This is bool rather than *bool because it breaks zz_generated_deepcopy. ???!
+type MappingLabelSpecifier_SourceCluster struct {
+	// +kubebuilder:validation:Enum={"source_cluster"}
+	// +kubebuilder:validation:Required
+	DescriptorKey string `json:"descriptor_key"`
+}
+
+type MappingLabelSpecifier_DestinationCluster struct {
+	// +kubebuilder:validation:Enum={"destination_cluster"}
+	// +kubebuilder:validation:Required
+	DescriptorKey string `json:"descriptor_key"`
+}
+
+type MappingLabelSpecifier_RequestHeaders struct {
+	// +kubebuilder:validation:Required
+	DescriptorKey string `json:"descriptor_key"`
+
+	// +kubebuilder:validation:Required
+	HeaderName string `json:"header_name"`
+
 	OmitIfNotPresent *bool `json:"omit_if_not_present,omitempty"`
 }
 
-// A MappingLabelSpecHeader is just the aggregate map of MappingLabelSpecHeaderStruct,
-// above. The key in the map is the label key that it will set to that header value;
-// there must be exactly one key in the map.
-type MappingLabelSpecHeader map[string]MappingLabelSpecHeaderStruct
-
-// func (in *MappingLabelSpecHeader) DeepCopyInfo(out *MappingLabelSpecHeader) {
-// 	x := in.OmitIfNotPresent
-
-// 	out = MappingLabelSpecHeader{
-// 		Header:           in.Header,
-// 		OmitIfNotPresent: &x,
-// 	}
-
-// 	return &out
-// }
-
-// A MappingLabelSpecGeneric is a longhand generic key: it states a string which
-// will be included literally in the label.
-type MappingLabelSpecGeneric struct {
-	GenericKey string `json:"generic_key"`
+type MappingLabelSpecifier_RemoteAddress struct {
+	// +kubebuilder:validation:Enum={"remote_address"}
+	// +kubebuilder:validation:Required
+	DescriptorKey string `json:"descriptor_key"`
 }
 
-// MarshalJSON is important both so that we generate the proper
-// output, and to trigger controller-gen to not try to generate
-// jsonschema for our sub-fields:
-// https://github.com/kubernetes-sigs/controller-tools/pull/427
-func (o MappingLabelSpecifier) MarshalJSON() ([]byte, error) {
-	nonNil := uint(0)
+type MappingLabelSpecifier_GenericKey struct {
+	// The default is "generic_key".
+	DescriptorKey string `json:"descriptor_key,omitempty"`
 
-	if o.String != nil {
-		nonNil++
-	}
-	if o.Header != nil {
-		nonNil++
-	}
-	if o.Generic != nil {
-		nonNil++
-	}
-
-	switch nonNil {
-	case 0:
-		return json.Marshal(nil)
-	case 1:
-		// OK, exactly one thing is set. Marshal it.
-		switch {
-		case o.String != nil:
-			return json.Marshal(o.String)
-		case o.Header != nil:
-			return json.Marshal(o.Header)
-		case o.Generic != nil:
-			return json.Marshal(o.Generic)
-		default:
-			// We already checked that nonNil == 1, so this can't happen.
-			panic("not reached")
-		}
-	default:
-		return nil, errors.New("invalid MappingLabelSpecifier")
-	}
-}
-
-// UnmarshalJSON is MarshalJSON's other half.
-func (o *MappingLabelSpecifier) UnmarshalJSON(data []byte) error {
-	// Handle "null" straight off...
-	if string(data) == "null" {
-		*o = MappingLabelSpecifier{}
-		return nil
-	}
-
-	// ...and if it's anything else, try all the possibilities in turn.
-	var err error
-
-	var header MappingLabelSpecHeader
-
-	if err = json.Unmarshal(data, &header); err == nil {
-		*o = MappingLabelSpecifier{Header: header}
-		return nil
-	}
-
-	var generic MappingLabelSpecGeneric
-
-	if err = json.Unmarshal(data, &generic); err == nil {
-		*o = MappingLabelSpecifier{Generic: &generic}
-		return nil
-	}
-
-	var str string
-
-	if err = json.Unmarshal(data, &str); err == nil {
-		*o = MappingLabelSpecifier{String: &str}
-		return nil
-	}
-
-	return errors.New("could not unmarshal MappingLabelSpecifier: invalid input")
+	// +kubebuilder:validation:Required
+	DescriptorValue string `json:"descriptor_value"`
 }
 
 type AddedHeader struct {

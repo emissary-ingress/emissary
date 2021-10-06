@@ -55,69 +55,86 @@ class V3RateLimitAction(dict):
         for action in actions:
             config.ir.logger.debug("V3RateLimitAction working on '%s'" % action)
 
-            if ((action == "source_cluster") or
-                (action == "destination_cluster") or
-                (action == "remote_address")):
-                self.save_action({ action: {} })
-            elif isinstance(action, dict):
-                # This should be a dict with a single key.
-                keylist = list(action.keys())
+            # This should be a dict with a single key.
+            keylist = list(action.keys())
+            if len(keylist) != 1:
+                config.ir.post_error("Label for RateLimit has invalid custom header '%s' (%s)" %
+                                     (action, rate_limit))
+                continue
+            dkey = keylist[0]
 
-                if len(keylist) != 1:
-                    config.ir.post_error("Label for RateLimit has invalid custom header '%s' (%s)" %
-                                         (action, rate_limit))
-                    continue
-
-                dkey = keylist[0]
-
-                if dkey == 'generic_key':
-                    self.save_action({
-                        'generic_key': {
-                            'descriptor_value': action[dkey]
-                        }
-                    })
-                else:
-                    # This is a header block.
-                    hdr_action = action[dkey]
-
-                    hdr_name = hdr_action['header']
-                    # Envoy API v3 adds a "skip_if_absent"
-                    # setting--but we don't have access to it because
-                    # we're still using API v3.
-                    #hdr_omit = hdr_action.get('omit_if_not_present', False)
-
-                    self.save_action({
-                        'request_headers': {
-                            'header_name': hdr_name,
-                            'descriptor_key': dkey
-                        }
-                    })
-
-                    ### This whole bit doesn't work with the existing RateLimit filter. We're
-                    ### going to have to tweak it to allow request_headers with a default value.
-                    # if not hdr_omit:
-                    #     if 'default' not in hdr_action:
-                    #         config.ir.logger.error("V3RateLimitAction '%s' is missing a default value" % rate_limit)
-                    #     else:
-                    #         hdr_default = hdr_action['default']
-                    #
-                    #         self.save_action({
-                    #             'header_value_match': {
-                    #                 'headers': [{
-                    #                     'name': hdr_name,
-                    #                     'present_match': True
-                    #                 }],
-                    #                 'expect_match': False,
-                    #                 'descriptor_value': hdr_default
-                    #             }
-                    #         })
-            elif isinstance(action, str):
-                # This is a shorthand for a generic_key.
+            if dkey == 'source_cluster':
+                self.save_action({
+                    'source_cluster': {},
+                })
+            elif dkey == 'destination_cluster':
+                self.save_action({
+                    'destination_cluster': {},
+                })
+            elif dkey == 'remote_address':
+                self.save_action({
+                    'remote_address': {},
+                })
+            elif dkey == 'generic_key':
                 self.save_action({
                     'generic_key': {
-                        'descriptor_value': action
-                    }
+                        'descriptor_key': action[dkey].get('descriptor_key', 'generic_key'),
+                        'descriptor_value': action[dkey]['descriptor_value'],
+                    },
                 })
+            elif dkey == 'request_headers':
+                self.save_action({
+                    'request_headers': {
+                        'descriptor_key': action[dkey]['descriptor_key'],
+                        'header_name': action[dkey]['header_name'],
+                        # This line was written and commented out with the comment "Need to upgrade
+                        # to Envoy API v3 to set `skip_if_absent`."  Well, we're on Envoy API v3,
+                        # but I'm leaving it commented out because it seems that `skip_if_absent`
+                        # doesn't quite work the way that this line of code implies it does.
+                        #
+                        #'skip_if_absent': action[dkey].get('omit_if_not_present', False),
+                    },
+                })
+            ### This whole bit doesn't work with the existing RateLimit filter. We're
+            ### going to have to tweak it to allow request_headers with a default value.
+            ###
+            ### ... and it was written for the old getambassador.io/v{1,2} version of labels:
+            ###
+            ###     action = {
+            ###         f'{descriptor_key}': {                      # AKA 'dkey'
+            ###             'header_name':         f'{hdr_name}',
+            ###             'default':             f'{default}',    # not actually implemented
+            ###             'omit_if_not_present': bool,            # optional
+            ###         },
+            ###     }
+            # elif dkey == 'header_value_match':
+            #         # This is a header block.
+            #         hdr_action = action[dkey]
+            #         hdr_name = hdr_action['header']
+            #         hdr_omit = hdr_action.get('omit_if_not_present', False)
+            #         if hdr_omit:
+            #             self.save_action({
+            #                 'request_headers': {
+            #                     'descriptor_key': dkey,
+            #                     'header_name': hdr_name,
+            #                     'skip_if_absent': True,
+            #                 }
+            #             })
+            #         else:
+            #             if 'default' not in hdr_action:
+            #                 config.ir.logger.error("V3RateLimitAction '%s' is missing a default value" % rate_limit)
+            #                 continue
+            #             hdr_default = hdr_action['default']
+            #             self.save_action({
+            #                 'header_value_match': {
+            #                     'headers': [{
+            #                         'name': hdr_name,
+            #                         'present_match': True
+            #                     }],
+            #                     'expect_match': False,
+            #                     'descriptor_value': hdr_default
+            #                 }
+            #             })
             else:
                 # WTF.
                 config.ir.post_error("Label for RateLimit is not valid: %s" % action)
