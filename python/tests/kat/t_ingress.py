@@ -27,7 +27,7 @@ class IngressStatusTest1(AmbassadorTest):
     def manifests(self) -> str:
         return """
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -39,9 +39,12 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """ + super().manifests()
 
     def queries(self):
@@ -93,7 +96,7 @@ class IngressStatusTest2(AmbassadorTest):
     def manifests(self) -> str:
         return """
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -105,9 +108,12 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """ + super().manifests()
 
     def queries(self):
@@ -159,7 +165,7 @@ class IngressStatusTestAcrossNamespaces(AmbassadorTest):
     def manifests(self) -> str:
         return namespace_manifest("alt-namespace") + """
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -172,9 +178,12 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """ + super().manifests()
 
     def queries(self):
@@ -226,7 +235,7 @@ class IngressStatusTestWithAnnotations(AmbassadorTest):
     def manifests(self) -> str:
         return """
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -247,9 +256,12 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """ + super().manifests()
 
     def queries(self):
@@ -295,7 +307,7 @@ class SameIngressMultipleNamespaces(AmbassadorTest):
     def manifests(self) -> str:
         return namespace_manifest("same-ingress-1") + """
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -308,12 +320,15 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}-target1
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}-target1
+            port:
+              number: 80
         path: /{self.name}-target1/
+        pathType: Prefix
 """ + namespace_manifest("same-ingress-2") + """
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -326,9 +341,12 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}-target2
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}-target2
+            port:
+              number: 80
         path: /{self.name}-target2/
+        pathType: Prefix
 """ + super().manifests()
 
     def queries(self):
@@ -401,7 +419,7 @@ subjects:
   name: {self.path.k8s}
   namespace: {self.namespace}
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: IngressClass
 metadata:
   annotations:
@@ -410,7 +428,7 @@ metadata:
 spec:
   controller: getambassador.io/ingress-controller
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -422,9 +440,12 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """ + super().manifests()
 
     def queries(self):

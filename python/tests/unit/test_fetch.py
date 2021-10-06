@@ -80,7 +80,7 @@ status:
 ''')
 
 valid_ingress_class = k8s_object_from_yaml('''
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: IngressClass
 metadata:
   name: external-lb

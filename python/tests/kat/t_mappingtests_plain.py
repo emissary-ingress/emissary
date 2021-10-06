@@ -69,7 +69,7 @@ class SimpleMappingIngress(MappingTest):
 
     def manifests(self) -> str:
         return f"""
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -81,9 +81,12 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """
 
     def queries(self):
@@ -110,7 +113,7 @@ spec:
 #
 #     def manifests(self) -> str:
 #         return f"""
-# apiVersion: extensions/v1beta1
+# apiVersion: networking.k8s.io/v1
 # kind: Ingress
 # metadata:
 #   annotations:
@@ -119,8 +122,10 @@ spec:
 #   name: {self.name.lower()}
 # spec:
 #   backend:
-#     serviceName: {self.target.path.k8s}
-#     servicePort: 80
+#     service:
+#       name: {self.target.path.k8s}
+#       port:
+#         number: 80
 # """
 #
 #     def queries(self):
@@ -145,7 +150,7 @@ class SimpleIngressWithAnnotations(MappingTest):
 
     def manifests(self) -> str:
         return f"""
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -166,9 +171,12 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """
 
     def queries(self):
@@ -195,7 +203,7 @@ class HostHeaderMappingIngress(MappingTest):
 
     def manifests(self) -> str:
         return f"""
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -208,9 +216,12 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """
 
     def queries(self):
