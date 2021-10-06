@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"path"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -66,7 +65,7 @@ func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {
 	bytes, err := ioutil.ReadFile(path.Join("testdata", filename))
 	require.NoError(t, err)
 
-	canonicalYAML := func() string {
+	canonical := func() string {
 		var untyped interface{}
 		err = yaml.Unmarshal(bytes, &untyped)
 		require.NoError(t, err)
@@ -74,19 +73,6 @@ func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {
 		require.NoError(t, err)
 		return string(canonical)
 	}()
-
-	canonicalJSON := func() string {
-		bytes, err := ioutil.ReadFile(strings.TrimSuffix(path.Join("testdata", filename), ".yaml") + ".json")
-		require.NoError(t, err)
-		var untyped interface{}
-		err = json.Unmarshal(bytes, &untyped)
-		require.NoError(t, err)
-		canonical, err := json.MarshalIndent(untyped, "", "\t")
-		require.NoError(t, err)
-		return string(canonical)
-	}()
-
-	require.Equal(t, canonicalYAML, canonicalJSON)
 
 	actual := func() string {
 		// Round-trip twice, to get map field ordering, instead of struct field ordering.
@@ -107,6 +93,5 @@ func checkRoundtrip(t *testing.T, filename string, ptr interface{}) {
 		return string(second)
 	}()
 
-	assert.Equal(t, canonicalYAML, actual)
-	assert.Equal(t, canonicalJSON, actual)
+	assert.Equal(t, canonical, actual)
 }
