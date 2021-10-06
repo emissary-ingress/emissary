@@ -379,7 +379,7 @@ class IngressStatusTestWithIngressClass(AmbassadorTest):
     def manifests(self) -> str:
         return """
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {self.name.k8s}-ext
@@ -388,7 +388,7 @@ rules:
   resources: ["ingressclasses"]
   verbs: ["get", "list", "watch"]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: {self.name.k8s}-ext
