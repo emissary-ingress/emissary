@@ -135,6 +135,7 @@ class V3Listener(dict):
         self.use_proxy_proto = False
         self.listener_filters: List[dict] = []
         self.traffic_direction: str = "UNSPECIFIED"
+        self.per_connection_buffer_limit_bytes: Optional[int] = None
         self._irlistener = irlistener   # We cache the IRListener to use its match method later
         self._stats_prefix = irlistener.statsPrefix
         self._security_model: str = irlistener.securityModel
@@ -154,6 +155,10 @@ class V3Listener(dict):
 
         # If the IRListener is marked insecure-only, so are we.
         self._insecure_only = irlistener.insecure_only
+
+        buffer_limit_bytes = self.config.ir.ambassador_module.get('buffer_limit_bytes', None)
+        if buffer_limit_bytes:
+            self.per_connection_buffer_limit_bytes = buffer_limit_bytes
 
         # Build out our listener filters, and figure out if we're an HTTP listener
         # in the process.
@@ -969,17 +974,22 @@ class V3Listener(dict):
             self._filter_chains.append(filter_chain)
 
     def as_dict(self) -> dict:
-        odict = {
+        listener = {
             "name": self.name,
             "address": self.address,
             "filter_chains": self._filter_chains,
             "traffic_direction": self.traffic_direction
         }
 
-        if self.listener_filters:
-            odict["listener_filters"] = self.listener_filters
+        # We only want to add the buffer limit setting to the listener if specified in the module.
+        # Otherwise, we want to leave it unset and allow Envoys Default 1MiB setting.
+        if self.per_connection_buffer_limit_bytes:
+            listener['per_connection_buffer_limit_bytes'] = self.per_connection_buffer_limit_bytes
 
-        return odict
+        if self.listener_filters:
+            listener["listener_filters"] = self.listener_filters
+
+        return listener
 
     def pretty(self) -> dict:
         return {
