@@ -30,7 +30,6 @@ spec:
       canaryService: echo-canary
       trafficRouting:
         ambassador:
-          apiVersion: getambassador.io/v1
           mappings:
             - echo
       steps:
