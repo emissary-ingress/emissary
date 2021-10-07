@@ -162,6 +162,7 @@ type AmbassadorID []string
 // UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable
 // way.
 // +kubebuilder:validation:Type="object"
+// +kubebuilder:pruning:PreserveUnknownFields
 type UntypedDict struct {
 	Values map[string]UntypedValue `json:"-"`
 }
