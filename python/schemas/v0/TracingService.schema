@@ -1,7 +1,14 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "additionalProperties": false,
     "id": "https://getambassador.io/schemas/tracing.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "driver",
+        "service"
+    ],
     "properties": {
         "ambassador_id": {
             "anyOf": [
@@ -9,10 +16,10 @@
                     "type": "string"
                 },
                 {
+                    "type": "array",
                     "items": {
                         "type": "string"
-                    },
-                    "type": "array"
+                    }
                 }
             ]
         },
@@ -22,7 +29,7 @@
             ]
         },
         "config": {
-            "additionalProperties": false,
+            "type": "object",
             "properties": {
                 "access_token_file": {
                     "type": "string"
@@ -37,7 +44,7 @@
                     "type": "boolean"
                 }
             },
-            "type": "object"
+            "additionalProperties": false
         },
         "driver": {
             "enum": [
@@ -52,6 +59,7 @@
             "type": "string"
         },
         "metadata_labels": {
+            "type": "object",
             "additionalProperties": {
                 "oneOf": [
                     {
@@ -61,8 +69,7 @@
                         "type": "boolean"
                     }
                 ]
-            },
-            "type": "object"
+            }
         },
         "name": {
             "type": "string"
@@ -74,18 +81,11 @@
             "type": "string"
         },
         "tag_headers": {
+            "type": "array",
             "items": {
                 "type": "string"
-            },
-            "type": "array"
+            }
         }
     },
-    "required": [
-        "apiVersion",
-        "kind",
-        "name",
-        "driver",
-        "service"
-    ],
-    "type": "object"
+    "additionalProperties": false
 }

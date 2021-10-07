@@ -1,7 +1,12 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "additionalProperties": false,
     "id": "https://getambassador.io/schemas/circuitbreaker.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name"
+    ],
     "properties": {
         "ambassador_id": {
             "anyOf": [
@@ -9,10 +14,10 @@
                     "type": "string"
                 },
                 {
+                    "type": "array",
                     "items": {
                         "type": "string"
-                    },
-                    "type": "array"
+                    }
                 }
             ]
         },
@@ -40,6 +45,7 @@
             "type": "integer"
         },
         "metadata_labels": {
+            "type": "object",
             "additionalProperties": {
                 "oneOf": [
                     {
@@ -49,8 +55,7 @@
                         "type": "boolean"
                     }
                 ]
-            },
-            "type": "object"
+            }
         },
         "name": {
             "type": "string"
@@ -59,10 +64,5 @@
             "type": "string"
         }
     },
-    "required": [
-        "apiVersion",
-        "kind",
-        "name"
-    ],
-    "type": "object"
+    "additionalProperties": false
 }

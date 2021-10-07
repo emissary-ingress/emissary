@@ -1,37 +1,14 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "additionalProperties": false,
-    "definitions": {
-        "mapStrStr": {
-            "additionalProperties": {
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
-            },
-            "type": "object"
-        },
-        "rateLimit": {
-            "additionalProperties": false,
-            "properties": {
-                "descriptor": {
-                    "type": "string"
-                },
-                "headers": {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                }
-            },
-            "type": "object"
-        }
-    },
     "id": "https://getambassador.io/schemas/mapping.json",
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "service",
+        "prefix"
+    ],
     "properties": {
         "add_request_headers": {
             "$ref": "#/definitions/mapStrStr"
@@ -45,10 +22,10 @@
                     "type": "string"
                 },
                 {
+                    "type": "array",
                     "items": {
                         "type": "string"
-                    },
-                    "type": "array"
+                    }
                 }
             ]
         },
@@ -70,7 +47,7 @@
             "type": "integer"
         },
         "cors": {
-            "additionalProperties": false,
+            "type": "object",
             "properties": {
                 "credentials": {
                     "type": "boolean"
@@ -81,10 +58,10 @@
                             "type": "string"
                         },
                         {
+                            "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "type": "array"
+                            }
                         }
                     ]
                 },
@@ -94,10 +71,10 @@
                             "type": "string"
                         },
                         {
+                            "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "type": "array"
+                            }
                         }
                     ]
                 },
@@ -110,10 +87,10 @@
                             "type": "string"
                         },
                         {
+                            "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "type": "array"
+                            }
                         }
                     ]
                 },
@@ -123,15 +100,15 @@
                             "type": "string"
                         },
                         {
+                            "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "type": "array"
+                            }
                         }
                     ]
                 }
             },
-            "type": "object"
+            "additionalProperties": false
         },
         "envoy_override": {
             "type": "object"
@@ -161,6 +138,7 @@
             "type": "string"
         },
         "metadata_labels": {
+            "type": "object",
             "additionalProperties": {
                 "oneOf": [
                     {
@@ -170,8 +148,7 @@
                         "type": "boolean"
                     }
                 ]
-            },
-            "type": "object"
+            }
         },
         "method": {
             "type": "string"
@@ -180,10 +157,10 @@
             "type": "boolean"
         },
         "modules": {
+            "type": "array",
             "items": {
                 "type": "object"
-            },
-            "type": "array"
+            }
         },
         "name": {
             "type": "string"
@@ -210,10 +187,10 @@
             "type": "string"
         },
         "rate_limits": {
+            "type": "array",
             "items": {
                 "$ref": "#/definitions/rateLimit"
-            },
-            "type": "array"
+            }
         },
         "regex_headers": {
             "$ref": "#/definitions/mapStrStr"
@@ -247,12 +224,35 @@
             "type": "integer"
         }
     },
-    "required": [
-        "apiVersion",
-        "kind",
-        "name",
-        "service",
-        "prefix"
-    ],
-    "type": "object"
+    "additionalProperties": false,
+    "definitions": {
+        "mapStrStr": {
+            "type": "object",
+            "additionalProperties": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            }
+        },
+        "rateLimit": {
+            "type": "object",
+            "properties": {
+                "descriptor": {
+                    "type": "string"
+                },
+                "headers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "additionalProperties": false
+        }
+    }
 }
