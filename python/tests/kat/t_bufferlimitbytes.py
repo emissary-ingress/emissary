@@ -32,7 +32,7 @@ service: {self.target.path.fqdn}
 
     def queries(self):
         yield Query(self.url("foo/"))
-        yield Query(self.url("ambassador/v0/diag/"))   
+        yield Query(self.url("ambassador/v0/diag/"))
 
     def check(self):
         assert self.results[0].status == 200
