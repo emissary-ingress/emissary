@@ -304,9 +304,9 @@ items:
 
 
   - version: 1.14.2
-    date: '2021-09-27'
+    date: '2021-09-29'
     notes:
-      - title: Mappings support controlling DNS refresh with DNS TTL 
+      - title: Mappings support controlling DNS refresh with DNS TTL
         type: feature
         body: >-
           You can now set <code>respect_dns_ttl</code> to <code>true</code> to force the

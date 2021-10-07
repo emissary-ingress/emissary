@@ -58,6 +58,8 @@
         "case_sensitive": {
             "type": "boolean"
         },
+        "respect_dns_ttl": { "type": "boolean" },
+        "dns_type": { "type": "string" },
         "circuit_breakers": {
             "type": "array",
             "items": {

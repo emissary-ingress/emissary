@@ -41,6 +41,7 @@
             },
             "additionalProperties": false
         },
+        "preserve_servers": { "type": "boolean" },
         "default": {
             "type": "boolean"
         },
