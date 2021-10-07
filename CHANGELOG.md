@@ -1,3 +1,5 @@
+<!-- -*- fill-column: 100 -*- -->
+
 # Changelog
 
 ## AMBASSADOR EDGE STACK
@@ -68,12 +70,17 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary Ingress and Ambassador Edge Stack
 
-- Feature: You can now set `respect_dns_ttl` in Ambassador Mappings. When true it configures that upstream's refresh rate to be set to resource record’s TTL
-- Feature: You can now set `dns_type` to in Ambassador Mappings to use Envoy's `logical_dns` resolution instead of the default `strict_dns`.
+- Feature: You can now set `respect_dns_ttl` in Ambassador Mappings. When true it configures that
+  upstream's refresh rate to be set to resource record’s TTL
+
+- Feature: You can now set `dns_type` to in Ambassador Mappings to use Envoy's `logical_dns`
+  resolution instead of the default `strict_dns`.
 
 ### Ambassador Edge Stack only
 
-- Feature: You can now set `preserve_servers` in Ambassador Edge Stack's `DevPortal` resource to configure the DevPortal to use server definitions from the OpenAPI document when displaying connection information for services in the DevPortal.
+- Feature: You can now set `preserve_servers` in Ambassador Edge Stack's `DevPortal` resource to
+  configure the DevPortal to use server definitions from the OpenAPI document when displaying
+  connection information for services in the DevPortal.
 
 ## [1.14.1] August 24, 2021
 [1.14.1]: https://github.com/emissary-ingress/emissary/compare/v1.14.0...v1.14.1
@@ -92,9 +99,13 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ### Emissary Ingress and Ambassador Edge Stack
 
 - Change: Logs now include subsecond time resolutions, rather than just seconds.
+
 - Change: Update from Envoy 1.15 to 1.17.3
+
 - Change: `AMBASSADOR_ENVOY_API_VERSION` now defaults to `V3`
-- Feature: You can now set `allow_chunked_length` in the Ambassador Module to configure the same value in Envoy.
+
+- Feature: You can now set `allow_chunked_length` in the Ambassador Module to configure the same
+  value in Envoy.
 
 ## [1.13.10] July 28, 2021
 [1.13.10]: https://github.com/emissary-ingress/emissary/compare/v1.13.9...v1.13.10
@@ -103,9 +114,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 - Bugfix: Fixed a regression when specifying a comma separated string for `cors.origins` on the
   `Mapping` resource. ([#3609])
+
 - Change: Envoy-configuration snapshots get saved (as `ambex-#.json`) in `/ambassador/snapshots`.
   The number of snapshots is controlled by the `AMBASSADOR_AMBEX_SNAPSHOT_COUNT` environment
   variable; set it to 0 to disable. The default is 30.
+
 - Change: Set `AMBASSADOR_AMBEX_NO_RATELIMIT` to `true` to completely disable ratelimiting Envoy
   reconfiguration under memory pressure. This can help performance with the endpoint or Consul
   resolvers, but could make OOMkills more likely with large configurations. The default is `false`,
@@ -113,12 +126,14 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Ambassador Edge Stack only
 
-- Bugfix: The `Mapping` resource can now specify `docs.timeout_ms` to set the timeout when the
-  Dev Portal is fetching API specifications.
-- Bugfix: The Dev Portal will now strip HTML tags when displaying search results, showing just
-  the actual content of the search result.
-- Change: Consul certificate-rotation logging now includes the fingerprints and validity
-  timestamps of certificates being rotated.
+- Bugfix: The `Mapping` resource can now specify `docs.timeout_ms` to set the timeout when the Dev
+  Portal is fetching API specifications.
+
+- Bugfix: The Dev Portal will now strip HTML tags when displaying search results, showing just the
+  actual content of the search result.
+
+- Change: Consul certificate-rotation logging now includes the fingerprints and validity timestamps
+  of certificates being rotated.
 
 [#3609]: https://github.com/emissary-ingress/emissary/issues/3609
 
@@ -127,44 +142,60 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary Ingress and Ambassador Edge Stack
 
-- Bugfix: Configuring multiple TCPMappings with the same ports (but different hosts) no longer generates invalid Envoy configuration.
+- Bugfix: Configuring multiple TCPMappings with the same ports (but different hosts) no longer
+  generates invalid Envoy configuration.
 
 ## [1.13.8] June 08, 2021
 [1.13.8]: https://github.com/emissary-ingress/emissary/compare/v1.13.7...v1.13.8
 
 ### Emissary Ingress and Ambassador Edge Stack
 
-- Bugfix: Ambassador Agent now accurately reports up-to-date Endpoint information to Ambassador Cloud
-- Feature: Ambassador Agent reports ConfigMaps and Deployments to Ambassador Cloud to provide a better Argo Rollouts experience. See [Argo+Ambassador documentation](https://www.getambassador.io/docs/argo) for more info.
+- Bugfix: Ambassador Agent now accurately reports up-to-date Endpoint information to Ambassador
+  Cloud
+
+- Feature: Ambassador Agent reports ConfigMaps and Deployments to Ambassador Cloud to provide a
+  better Argo Rollouts experience. See [Argo+Ambassador
+  documentation](https://www.getambassador.io/docs/argo) for more info.
 
 ## [1.13.7] June 03, 2021
 [1.13.7]: https://github.com/datawire/ambassador/compare/v1.13.6...v1.13.7
 
 ### Emissary Ingress and Ambassador Edge Stack
 
-- Feature: Add AMBASSADOR_JSON_LOGGING to enable JSON for most of the Ambassador control plane. Some (but few) logs from gunicorn and the Kubernetes client-go package still log text.
-- Bugfix: Fixed a bug where the Consul resolver would not actually use Consul endpoints with TCPMappings.
-- Change: Ambassador now calculates its own memory usage in a way that is more similar to how the kernel OOMKiller tracks memory.
+- Feature: Add AMBASSADOR_JSON_LOGGING to enable JSON for most of the Ambassador control plane. Some
+  (but few) logs from gunicorn and the Kubernetes client-go package still log text.
+
+- Bugfix: Fixed a bug where the Consul resolver would not actually use Consul endpoints with
+  TCPMappings.
+
+- Change: Ambassador now calculates its own memory usage in a way that is more similar to how the
+  kernel OOMKiller tracks memory.
 
 ## [1.13.6] May 24, 2021
 [1.13.6]: https://github.com/datawire/ambassador/compare/v1.13.5...v1.13.6
 
-- Bugfix: Fixed a regression where Ambassador snapshot data was logged at the INFO label when using AMBASSADOR_LEGACY_MODE=true
+- Bugfix: Fixed a regression where Ambassador snapshot data was logged at the INFO label when using
+  AMBASSADOR_LEGACY_MODE=true
 
 ## [1.13.5] May 13, 2021
 [1.13.5]: https://github.com/datawire/ambassador/compare/v1.13.4...v1.13.5
 
 ### Emissary Ingress and Ambassador Edge Stack
 
-- Bugfix: Fix a regression from 1.8.0 that prevented Ambassador module config keys `proper_case` and `preserve_external_request_id` from working correctly.
-- Bugfix: Fixed a regression in detecting the Ambassador Kubernetes service that could cause the wrong IP or hostname to be used in Ingress statuses (thanks, [Noah Fontes](https://github.com/impl)!
+- Bugfix: Fix a regression from 1.8.0 that prevented Ambassador module config keys `proper_case` and
+  `preserve_external_request_id` from working correctly.
+
+- Bugfix: Fixed a regression in detecting the Ambassador Kubernetes service that could cause the
+  wrong IP or hostname to be used in Ingress statuses (thanks, [Noah
+  Fontes](https://github.com/impl)!
 
 ## [1.13.4] May 11, 2021
 [1.13.4]: https://github.com/datawire/ambassador/compare/v1.13.3...v1.13.4
 
 ### Emissary Ingress and Ambassador Edge Stack
 
-- Bugfix: Incorporate the Envoy 1.15.5 security update by adding the `reject_requests_with_escaped_slashes` option to the Ambassador module.
+- Bugfix: Incorporate the Envoy 1.15.5 security update by adding the
+  `reject_requests_with_escaped_slashes` option to the Ambassador module.
 
 ## [1.13.3] May 03, 2021
 [1.13.3]: https://github.com/datawire/ambassador/compare/v1.13.2...v1.13.3
