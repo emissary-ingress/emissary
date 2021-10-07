@@ -396,8 +396,8 @@ class V2Listener(dict):
         if 'use_remote_address' in self.config.ir.ambassador_module:
             base_http_config["use_remote_address"] = self.config.ir.ambassador_module.use_remote_address
 
-        if 'xff_num_trusted_hops' in self.config.ir.ambassador_module:
-            base_http_config["xff_num_trusted_hops"] = self.config.ir.ambassador_module.xff_num_trusted_hops
+        if self._l7_depth > 0:
+            base_http_config["xff_num_trusted_hops"] = self._l7_depth
 
         if 'server_name' in self.config.ir.ambassador_module:
             base_http_config["server_name"] = self.config.ir.ambassador_module.server_name
