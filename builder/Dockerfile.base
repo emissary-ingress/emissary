@@ -69,7 +69,8 @@ RUN npm config set user 0 && \
     npm install -g rollup@2.9.1 rollup-plugin-terser@5.3.0
 RUN curl --fail -L https://dl.google.com/go/go1.15.linux-amd64.tar.gz | tar -C /usr/local -xzf -
 
-RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.16.0/bin/linux/amd64/kubectl -o /usr/bin/kubectl && chmod a+x /usr/bin/kubectl && \
+RUN curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.22.2/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
+    chmod a+x /usr/bin/kubectl && \
     kubectl completion bash > /usr/share/bash-completion/completions/kubectl
 RUN curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/kubectx -o /usr/local/bin/kubectx && chmod a+x /usr/local/bin/kubectx && \
     curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubectx.bash -o /usr/share/bash-completion/completions/kubectx

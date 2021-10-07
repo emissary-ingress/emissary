@@ -5,6 +5,13 @@ GOLDDIR=${1:-python/tests/gold}
 # rm -rf "$GOLDDIR"
 mkdir -p "$GOLDDIR"
 
+kubectl() {
+    if ! test -f tools/bin/kubectl; then
+        make tools/bin/kubectl >&2
+    fi
+    tools/bin/kubectl "$@"
+}
+
 copy_gold () {
 	local pod="$1"
 	local namespace="${2:-default}"

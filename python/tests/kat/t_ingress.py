@@ -71,7 +71,7 @@ spec:
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
         # check for Ingress IP here
-        ingress_cmd = ["kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
+        ingress_cmd = ["tools/bin/kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
         ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
         ingress_out, _ = ingress_run.communicate()
         ingress_json = json.loads(ingress_out)
@@ -137,7 +137,7 @@ spec:
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
         # check for Ingress IP here
-        ingress_cmd = ["kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
+        ingress_cmd = ["tools/bin/kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
         ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
         ingress_out, _ = ingress_run.communicate()
         ingress_json = json.loads(ingress_out)
@@ -204,7 +204,7 @@ spec:
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
         # check for Ingress IP here
-        ingress_cmd = ["kubectl", "get", "-o", "json", "ingress", self.path.k8s, "-n", "alt-namespace"]
+        ingress_cmd = ["tools/bin/kubectl", "get", "-o", "json", "ingress", self.path.k8s, "-n", "alt-namespace"]
         ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
         ingress_out, _ = ingress_run.communicate()
         ingress_json = json.loads(ingress_out)
@@ -271,7 +271,7 @@ spec:
             pytest.xfail('AMBASSADOR_PYTEST_INGRESS_TEST not set, xfailing...')
 
         # check for Ingress IP here
-        ingress_cmd = ["kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
+        ingress_cmd = ["tools/bin/kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
         ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
         ingress_out, _ = ingress_run.communicate()
         ingress_json = json.loads(ingress_out)
@@ -354,7 +354,7 @@ spec:
 
         for namespace in ['same-ingress-1', 'same-ingress-2']:
             # check for Ingress IP here
-            ingress_cmd = ["kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s, "-n", namespace]
+            ingress_cmd = ["tools/bin/kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s, "-n", namespace]
             ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
             ingress_out, _ = ingress_run.communicate()
             ingress_json = json.loads(ingress_out)
@@ -454,7 +454,7 @@ spec:
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
         # check for Ingress IP here
-        ingress_cmd = ["kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
+        ingress_cmd = ["tools/bin/kubectl", "get", "-n", "default", "-o", "json", "ingress", self.path.k8s]
         ingress_run = subprocess.Popen(ingress_cmd, stdout=subprocess.PIPE)
         ingress_out, _ = ingress_run.communicate()
         ingress_json = json.loads(ingress_out)

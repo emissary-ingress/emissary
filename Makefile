@@ -78,20 +78,20 @@ deploy: push preflight-cluster
 	$(MAKE) deploy-only
 .PHONY: deploy
 
-deploy-only: preflight-dev-kubeconfig
+deploy-only: preflight-dev-kubeconfig $(tools/kubectl)
 	mkdir -p $(OSS_HOME)/build/helm/ && \
-	(kubectl --kubeconfig $(DEV_KUBECONFIG) create ns ambassador || true) && \
+	($(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) create ns ambassador || true) && \
 	helm template ambassador --include-crds --output-dir $(OSS_HOME)/build/helm -n ambassador charts/emissary-ingress/ \
 		--set createNamespace=true \
 		--set service.selector.service=ambassador \
 		--set replicaCount=1 \
 		--set enableAES=false \
 		--set image.fullImageOverride=$$(sed -n 2p docker/$(LCNAME).docker.push.remote) && \
-	kubectl --kubeconfig $(DEV_KUBECONFIG) apply -f $(OSS_HOME)/build/helm/emissary-ingress/crds/ && \
-	kubectl --kubeconfig $(DEV_KUBECONFIG) apply -f $(OSS_HOME)/build/helm/emissary-ingress/templates && \
+	$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) apply -f $(OSS_HOME)/build/helm/emissary-ingress/crds/ && \
+	$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) apply -f $(OSS_HOME)/build/helm/emissary-ingress/templates && \
 	rm -rf $(OSS_HOME)/build/helm
-	kubectl --kubeconfig $(DEV_KUBECONFIG) -n ambassador wait --for condition=available --timeout=90s deploy --all
-	@printf "$(GRN)Your ambassador service IP:$(END) $(BLD)$$(kubectl --kubeconfig $(DEV_KUBECONFIG) get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}')$(END)\n"
-	@printf "$(GRN)Your ambassador image:$(END) $(BLD)$$(kubectl --kubeconfig $(DEV_KUBECONFIG) get -n ambassador deploy ambassador -o 'go-template={{(index .spec.template.spec.containers 0).image}}')$(END)\n"
+	$(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) -n ambassador wait --for condition=available --timeout=90s deploy --all
+	@printf "$(GRN)Your ambassador service IP:$(END) $(BLD)$$($(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}')$(END)\n"
+	@printf "$(GRN)Your ambassador image:$(END) $(BLD)$$($(tools/kubectl) --kubeconfig $(DEV_KUBECONFIG) get -n ambassador deploy ambassador -o 'go-template={{(index .spec.template.spec.containers 0).image}}')$(END)\n"
 	@printf "$(GRN)Your built image:$(END) $(BLD)$$(sed -n 2p docker/$(LCNAME).docker.push.remote)$(END)\n"
 .PHONY: deploy-only

@@ -112,4 +112,11 @@ $(tools.bindir)/protoc-gen-grpc-web: $(tools.mk)
 	curl -o $@ -L --fail https://github.com/grpc/grpc-web/releases/download/$(GRPC_WEB_VERSION)/protoc-gen-grpc-web-$(GRPC_WEB_VERSION)-$(GRPC_WEB_PLATFORM)
 	chmod 755 $@
 
+tools/kubectl = $(tools.bindir)/kubectl
+KUBECTL_VERSION = $(shell sed -En 's,.*https://storage\.googleapis\.com/kubernetes-release/release/v([0-9.]*)/bin/linux/amd64/kubectl.*,\1,p' builder/Dockerfile.base)
+$(tools.bindir)/kubectl: builder/Dockerfile.base
+	mkdir -p $(@D)
+	curl -o $@ -L --fail https://storage.googleapis.com/kubernetes-release/release/v$(KUBECTL_VERSION)/bin/$(GOHOSTOS)/$(GOHOSTARCH)/kubectl
+	chmod 755 $@
+
 endif
