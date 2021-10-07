@@ -134,9 +134,6 @@
         "host_rewrite": {
             "type": "string"
         },
-        "hostname": {
-            "type": "string"
-        },
         "kind": {
             "type": "string"
         },
