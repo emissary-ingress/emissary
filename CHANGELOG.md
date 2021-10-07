@@ -266,7 +266,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
 
 [#2888]: https://github.com/datawire/ambassador/issues/2888
 
-## [1.14.2] 2021-09-27
+## [1.14.2] 2021-09-29
 [1.14.2]: https://github.com/emissary-ingress/emissary/releases/v1.14.2
 
 ### Emissary-ingress
