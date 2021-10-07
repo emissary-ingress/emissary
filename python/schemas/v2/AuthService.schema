@@ -1,68 +1,143 @@
 {
     "$schema": "http://json-schema.org/schema#",
+    "additionalProperties": false,
     "id": "https://getambassador.io/schemas/mapping.json",
-    "type": "object",
     "properties": {
-        "apiVersion": { "enum": [ "getambassador.io/v2" ] },
-        "generation": { "type": "integer" },
-        "kind": { "type": "string" },
-        "name": { "type": "string" },
-        "namespace": { "type": "string" },
-        "metadata_labels": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
+        "add_auth_headers": {
+            "additionalProperties": {
+                "type": [
+                    "string",
+                    "boolean"
+                ]
+            },
+            "type": "object"
+        },
+        "add_linkerd_headers": {
+            "type": "boolean"
+        },
+        "allow_request_body": {
+            "type": "boolean"
+        },
+        "allowed_authorization_headers": {
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        },
+        "allowed_request_headers": {
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
         },
         "ambassador_id": {
             "anyOf": [
-                { "type": "string" },
-                { "type": "array", "items": { "type": "string" } }
+                {
+                    "type": "string"
+                },
+                {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
             ]
         },
-        "auth_service": { "type": "string" },
-        "path_prefix": { "type": "string" },
-        "tls": { "type": [ "string", "boolean" ] },
-        "proto": {
-            "oneOf" : [
-                { "enum": [ "http" ] },
-                { "enum": [ "grpc" ] }
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v2"
             ]
         },
-        "timeout_ms": { "type": "integer" },
-        "allowed_request_headers": {
-            "type": "array",
-            "items": { "type": "string" }
+        "auth_service": {
+            "type": "string"
         },
-        "allowed_authorization_headers": {
-            "type": "array",
-            "items": { "type": "string" }
+        "failure_mode_allow": {
+            "type": "boolean"
         },
-        "add_auth_headers": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
+        "generation": {
+            "type": "integer"
         },
-        "allow_request_body": { "type": "boolean" },
-        "add_linkerd_headers": { "type": "boolean" },
         "include_body": {
-            "type": "object",
+            "additionalProperties": false,
             "properties": {
-                "max_bytes": { "type": "integer" },
-                "allow_partial": { "type": "boolean" }
+                "allow_partial": {
+                    "type": "boolean"
+                },
+                "max_bytes": {
+                    "type": "integer"
+                }
             },
-            "required": [ "max_bytes", "allow_partial" ],
-            "additionalProperties": false
+            "required": [
+                "max_bytes",
+                "allow_partial"
+            ],
+            "type": "object"
+        },
+        "kind": {
+            "type": "string"
+        },
+        "metadata_labels": {
+            "additionalProperties": {
+                "type": [
+                    "string",
+                    "boolean"
+                ]
+            },
+            "type": "object"
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
+        "path_prefix": {
+            "type": "string"
+        },
+        "proto": {
+            "oneOf": [
+                {
+                    "enum": [
+                        "http"
+                    ]
+                },
+                {
+                    "enum": [
+                        "grpc"
+                    ]
+                }
+            ]
+        },
+        "protocol_version": {
+            "enum": [
+                "v2",
+                "v3"
+            ],
+            "type": "string"
         },
         "status_on_error": {
-            "type": "object",
             "properties": {
-                "code": { "type": "integer" }
-            }
+                "code": {
+                    "type": "integer"
+                }
+            },
+            "type": "object"
         },
-        "failure_mode_allow": { "type": "boolean" },
-        "protocol_version": {
-            "type": "string",
-            "enum": [ "v2", "v3" ]
+        "timeout_ms": {
+            "type": "integer"
+        },
+        "tls": {
+            "type": [
+                "string",
+                "boolean"
+            ]
         }
     },
-    "required": [ "apiVersion", "kind", "name", "auth_service" ],
-    "additionalProperties": false
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "auth_service"
+    ],
+    "type": "object"
 }

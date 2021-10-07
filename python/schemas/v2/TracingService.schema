@@ -1,55 +1,115 @@
 {
     "$schema": "http://json-schema.org/schema#",
+    "additionalProperties": false,
     "id": "https://getambassador.io/schemas/tracing.json",
-
-    "type": "object",
     "properties": {
-        "apiVersion": { "enum": [ "getambassador.io/v2" ] },
-        "generation": { "type": "integer" },
-        "kind": { "type": "string" },
-        "name": { "type": "string" },
-        "namespace": { "type": "string" },
-        "metadata_labels": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
-        },
         "ambassador_id": {
             "anyOf": [
-                { "type": "string" },
-                { "type": "array", "items": { "type": "string" } }
+                {
+                    "type": "string"
+                },
+                {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
             ]
         },
-
-        "driver": { "enum": ["lightstep", "zipkin", "datadog"] },
-        "service": { "type": "string" },
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v2"
+            ]
+        },
         "config": {
-            "type": "object",
+            "additionalProperties": false,
             "properties": {
-                "access_token_file": { "type": "string" },
-                "collector_cluster": { "type": "string" },
-                "collector_endpoint": { "type": "string" },
-                "collector_endpoint_version": { "type": "string"},
-                "collector_hostname": { "type": "string"},
-                "trace_id_128bit": { "type": "boolean" },
-                "shared_span_context": { "type": "boolean" },
-                "service_name": { "type": "string" }
+                "access_token_file": {
+                    "type": "string"
+                },
+                "collector_cluster": {
+                    "type": "string"
+                },
+                "collector_endpoint": {
+                    "type": "string"
+                },
+                "collector_endpoint_version": {
+                    "type": "string"
+                },
+                "collector_hostname": {
+                    "type": "string"
+                },
+                "service_name": {
+                    "type": "string"
+                },
+                "shared_span_context": {
+                    "type": "boolean"
+                },
+                "trace_id_128bit": {
+                    "type": "boolean"
+                }
             },
-            "additionalProperties": false
+            "type": "object"
+        },
+        "driver": {
+            "enum": [
+                "lightstep",
+                "zipkin",
+                "datadog"
+            ]
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "kind": {
+            "type": "string"
+        },
+        "metadata_labels": {
+            "additionalProperties": {
+                "type": [
+                    "string",
+                    "boolean"
+                ]
+            },
+            "type": "object"
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
         },
         "sampling": {
-            "type": "object",
+            "additionalProperties": false,
             "properties": {
-                "client": { "type": "integer" },
-                "random": { "type": "integer" },
-                "overall": { "type": "integer" }
+                "client": {
+                    "type": "integer"
+                },
+                "overall": {
+                    "type": "integer"
+                },
+                "random": {
+                    "type": "integer"
+                }
             },
-            "additionalProperties": false
+            "type": "object"
+        },
+        "service": {
+            "type": "string"
         },
         "tag_headers": {
-            "type": "array",
-            "items": { "type": "string" }
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
         }
     },
-    "required": [ "apiVersion", "kind", "name", "driver", "service" ],
-    "additionalProperties": false
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "driver",
+        "service"
+    ],
+    "type": "object"
 }

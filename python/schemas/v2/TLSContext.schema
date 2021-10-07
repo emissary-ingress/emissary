@@ -1,41 +1,116 @@
 {
     "$schema": "http://json-schema.org/schema#",
+    "additionalProperties": false,
     "id": "https://getambassador.io/schemas/tlscontext.json",
-
-    "type": "object",
     "properties": {
-        "apiVersion": { "enum": [ "getambassador.io/v2" ] },
-        "generation": { "type": "integer" },
-        "kind": { "type": "string" },
-        "name": { "type": "string" },
-        "namespace": { "type": "string" },
-        "metadata_labels": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
+        "alpn_protocols": {
+            "type": "string"
         },
         "ambassador_id": {
             "anyOf": [
-                { "type": "string" },
-                { "type": "array", "items": { "type": "string" } }
+                {
+                    "type": "string"
+                },
+                {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
             ]
         },
-
-        "hosts": { "type": "array", "items": { "type": "string" } },
-        "secret": { "type": "string" },
-        "cert_chain_file": { "type": "string" },
-        "private_key_file": { "type": "string" },
-        "ca_secret": { "type": "string" },
-        "cacert_chain_file": { "type": "string" },
-        "alpn_protocols": { "type": "string" },
-        "cert_required": { "type": "boolean" },
-        "min_tls_version": { "enum": [ "v1.0", "v1.1", "v1.2", "v1.3" ] },
-        "max_tls_version": { "enum": [ "v1.0", "v1.1", "v1.2", "v1.3" ] },
-        "cipher_suites": { "type": "array", "items": { "type": "string" }  },
-        "ecdh_curves": { "type": "array", "items": { "type": "string" }  },
-        "secret_namespacing": { "type": "boolean" },
-        "redirect_cleartext_from": { "type": "integer" },
-        "sni": { "type": "string" }
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v2"
+            ]
+        },
+        "ca_secret": {
+            "type": "string"
+        },
+        "cacert_chain_file": {
+            "type": "string"
+        },
+        "cert_chain_file": {
+            "type": "string"
+        },
+        "cert_required": {
+            "type": "boolean"
+        },
+        "cipher_suites": {
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        },
+        "ecdh_curves": {
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "hosts": {
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        },
+        "kind": {
+            "type": "string"
+        },
+        "max_tls_version": {
+            "enum": [
+                "v1.0",
+                "v1.1",
+                "v1.2",
+                "v1.3"
+            ]
+        },
+        "metadata_labels": {
+            "additionalProperties": {
+                "type": [
+                    "string",
+                    "boolean"
+                ]
+            },
+            "type": "object"
+        },
+        "min_tls_version": {
+            "enum": [
+                "v1.0",
+                "v1.1",
+                "v1.2",
+                "v1.3"
+            ]
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
+        "private_key_file": {
+            "type": "string"
+        },
+        "redirect_cleartext_from": {
+            "type": "integer"
+        },
+        "secret": {
+            "type": "string"
+        },
+        "secret_namespacing": {
+            "type": "boolean"
+        },
+        "sni": {
+            "type": "string"
+        }
     },
-    "required": [ "apiVersion", "kind", "name" ],
-    "additionalProperties": false
+    "required": [
+        "apiVersion",
+        "kind",
+        "name"
+    ],
+    "type": "object"
 }

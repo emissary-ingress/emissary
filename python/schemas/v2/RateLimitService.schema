@@ -1,34 +1,75 @@
 {
     "$schema": "http://json-schema.org/schema#",
+    "additionalProperties": false,
     "id": "https://getambassador.io/schemas/mapping.json",
-
-    "type": "object",
     "properties": {
-        "apiVersion": { "enum": [ "getambassador.io/v2" ] },
-        "generation": { "type": "integer" },
-        "kind": { "type": "string" },
-        "name": { "type": "string" },
-        "namespace": { "type": "string" },
-        "metadata_labels": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
-        },
         "ambassador_id": {
             "anyOf": [
-                { "type": "string" },
-                { "type": "array", "items": { "type": "string" } }
+                {
+                    "type": "string"
+                },
+                {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
             ]
         },
-
-        "service": { "type": "string" },
-        "timeout_ms": { "type": "integer" },
-        "domain": { "type": "string" },
-        "tls": { "type": [ "string", "boolean" ] },
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v2"
+            ]
+        },
+        "domain": {
+            "type": "string"
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "kind": {
+            "type": "string"
+        },
+        "metadata_labels": {
+            "additionalProperties": {
+                "type": [
+                    "string",
+                    "boolean"
+                ]
+            },
+            "type": "object"
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
         "protocol_version": {
-            "type": "string",
-            "enum": [ "v2", "v3" ]
+            "enum": [
+                "v2",
+                "v3"
+            ],
+            "type": "string"
+        },
+        "service": {
+            "type": "string"
+        },
+        "timeout_ms": {
+            "type": "integer"
+        },
+        "tls": {
+            "type": [
+                "string",
+                "boolean"
+            ]
         }
     },
-    "required": [ "apiVersion", "kind", "name", "service" ],
-    "additionalProperties": false
+    "required": [
+        "apiVersion",
+        "kind",
+        "name",
+        "service"
+    ],
+    "type": "object"
 }
