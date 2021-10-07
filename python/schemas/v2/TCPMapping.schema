@@ -75,9 +75,13 @@
         },
         "metadata_labels": {
             "additionalProperties": {
-                "type": [
-                    "string",
-                    "boolean"
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
                 ]
             },
             "type": "object"
@@ -98,9 +102,13 @@
             "type": "string"
         },
         "tls": {
-            "type": [
-                "string",
-                "boolean"
+            "oneOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "boolean"
+                }
             ]
         },
         "weight": {

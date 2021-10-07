@@ -69,9 +69,13 @@
         },
         "metadata_labels": {
             "additionalProperties": {
-                "type": [
-                    "string",
-                    "boolean"
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
                 ]
             },
             "type": "object"
@@ -111,9 +115,13 @@
             "type": "integer"
         },
         "tls": {
-            "type": [
-                "string",
-                "boolean"
+            "oneOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "boolean"
+                }
             ]
         }
     },
