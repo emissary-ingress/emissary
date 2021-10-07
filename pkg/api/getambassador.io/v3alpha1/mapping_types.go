@@ -49,6 +49,7 @@ type MappingSpec struct {
 	KeepAlive          *KeepAlive             `json:"keepalive,omitempty"`
 	CORS               *CORS                  `json:"cors,omitempty"`
 	RetryPolicy        *RetryPolicy           `json:"retry_policy,omitempty"`
+	RespectDNSTTL      *bool                  `json:"respect_dns_ttl,omitempty"`
 	GRPC               *bool                  `json:"grpc,omitempty"`
 	HostRedirect       *bool                  `json:"host_redirect,omitempty"`
 	HostRewrite        string                 `json:"host_rewrite,omitempty"`
@@ -158,6 +159,7 @@ type DocsInfo struct {
 	URL         string `json:"url,omitempty"`
 	Ignored     *bool  `json:"ignored,omitempty"`
 	DisplayName string `json:"display_name,omitempty"`
+	Timeout     int    `json:"timeout_ms,omitempty"`
 }
 
 // These are separate types partly because it makes it easier to think about

@@ -4,14 +4,17 @@ cut an RC from; that you're in the right repo, that you're on the
 right branch, that all of the subtrees are up-to-date...
 """
 
-import os.path
-from os import getenv
-import sys
-import time
-from contextlib import contextmanager
 from typing import Generator
 
-from lib import assert_eq, git_check_clean, vX, vY, re_ga, re_ea
+import sys
+import time
+
+import os.path
+
+from os import getenv
+from contextlib import contextmanager
+
+from lib import assert_eq, git_check_clean, parse_bool, vX, vY, re_ga, re_ea
 from lib.uiutil import Checker, CheckResult, run
 from lib.uiutil import run_txtcapture as run_capture
 
@@ -19,7 +22,7 @@ from lib.uiutil import run_txtcapture as run_capture
 DEFAULT_REPO = 'git@github.com:emissary-ingress/emissary'
 
 
-def main(next_ver: str, quiet: bool = False) -> int:
+def main(next_ver: str, quiet: bool = False, allow_untracked: bool = False) -> int:
     print(f'Starting work on "v{next_ver}"...')
     print()
     remote_repo = getenv('AMBASSADOR_RELEASE_REPO_OVERRIDE')
@@ -53,7 +56,7 @@ def main(next_ver: str, quiet: bool = False) -> int:
             raise Exception(f"Not in {toplevel}")
 
     with check("You're in a clean checkout"):
-        git_check_clean()
+        git_check_clean(allow_untracked=allow_untracked)
 
     # Cache the name of our remote...
     remote_name = f'{remote_repo}.git' if is_private else 'origin'
@@ -127,6 +130,8 @@ if __name__ == '__main__':
     args = sys.argv[1:]
     quiet = False
 
+    allow_untracked = parse_bool(getenv("ALLOW_UNTRACKED", "false"))
+
     if args and (args[0] == '--quiet'):
         quiet = True
         args.pop(0)
@@ -135,4 +140,4 @@ if __name__ == '__main__':
         sys.stderr.write(f"{os.path.basename(sys.argv[0])} Version must match X.Y.Z(-ea)\n")
         sys.exit(2)
 
-    sys.exit(main(next_ver=args[0], quiet=quiet))
+    sys.exit(main(next_ver=args[0], quiet=quiet, allow_untracked=allow_untracked))

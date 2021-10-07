@@ -95,6 +95,15 @@ feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know w
   for ease of migration. _Note that `getambassador.io/v3alpha1` is the only supported API version
   for 2.0.4_ &mdash; full support for `getambassador.io/v2` will arrive soon in a later 2.X version.
 
+- Feature: You can now set `dns_type` between `strict_dns` and `logical_dns` in a `Mapping` to configure the
+  Service Discovery Type.
+
+- Feature: You can now set `respect_dns_ttl` to `true` to force the DNS refresh rate for a `Mapping` to be
+  set to the record's TTL obtained from DNS resolution.
+
+- Feature: You can now set `buffer_limit_bytes` in the `ambassador` `Module` to to change the size of the
+  upstream read and write buffers. The default is 1MiB.
+
 - Bugfix: The release now shows its actual released version number, rather than the internal development
   version number. ([#3854])
 
@@ -269,7 +278,7 @@ installations, reduce memory footprint, and improve performance. We welcome feed
   Service Discovery Type.
 
 - Feature: You can now set `buffer_limit_bytes` in the `ambassador` `Module` to to change the size of the
-  upstream read and write buffers. The default is 1MiB. 
+  upstream read and write buffers. The default is 1MiB.
 
 ## [1.14.1] 2021-08-24
 [1.14.1]: https://github.com/emissary-ingress/emissary/releases/v1.14.1

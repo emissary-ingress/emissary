@@ -173,6 +173,9 @@
                 "path": {
                     "type": "string"
                 },
+                "timeout_ms": {
+                    "type": "integer"
+                },
                 "url": {
                     "type": "string"
                 }
@@ -506,6 +509,9 @@
         },
         "resolver": {
             "type": "string"
+        },
+        "respect_dns_ttl": {
+            "type": "boolean"
         },
         "retry_policy": {
             "type": "object",

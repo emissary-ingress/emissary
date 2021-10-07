@@ -68,3 +68,21 @@ def test_logical_dns_type_wrong():
         # The dns type is listed as just "type"
         _test_cluster_setting(yaml, setting="type",
             expected="EDS", exists=True, envoy_version=v)
+
+@pytest.mark.compilertest
+def test_dns_ttl():
+    # Test configuring the respect_dns_ttl generates an Envoy config
+    yaml = module_and_mapping_manifests(None, ["respect_dns_ttl: true"])
+    for v in SUPPORTED_ENVOY_VERSIONS:
+        # The dns type is listed as just "type"
+        _test_cluster_setting(yaml, setting="respect_dns_ttl", 
+            expected="true", exists=True, envoy_version=v)
+
+@pytest.mark.compilertest
+def test_dns_ttl():
+    # Test dns_ttl is not configured when not applied in the Mapping
+    yaml = module_and_mapping_manifests(None, None)
+    for v in SUPPORTED_ENVOY_VERSIONS:
+        # The dns type is listed as just "type"
+        _test_cluster_setting(yaml, setting="respect_dns_ttl", 
+            expected="false", exists=False, envoy_version=v)

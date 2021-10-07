@@ -255,7 +255,9 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                                 cluster_idle_timeout_ms=mapping.get('cluster_idle_timeout_ms', None),
                                 cluster_max_connection_lifetime_ms=mapping.get('cluster_max_connection_lifetime_ms', None),
                                 circuit_breakers=mapping.get('circuit_breakers', None),
-                                marker=marker, stats_name=mapping.get('stats_name'))
+                                marker=marker,
+                                stats_name=mapping.get('stats_name'),
+                                respect_dns_ttl=mapping.get('respect_dns_ttl', False))
 
         # Make sure that the cluster is actually in our IR...
         stored = self.ir.add_cluster(cluster)

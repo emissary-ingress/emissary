@@ -1,4 +1,4 @@
-from utils import econf_compile, econf_foreach_listener, econf_foreach_listener_chain, EnvoyHCMInfo, EnvoyTCPInfo, SUPPORTED_ENVOY_VERSIONS
+from tests.utils import econf_compile, econf_foreach_listener, econf_foreach_listener_chain, EnvoyHCMInfo, EnvoyTCPInfo, SUPPORTED_ENVOY_VERSIONS
 
 import pytest
 import json
