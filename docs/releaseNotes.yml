@@ -320,7 +320,15 @@ items:
           You can now set <code>dns_type</code> to in Ambassador Mappings to use Envoy's
           <code>logical_dns</code> resolution instead of the default <code>strict_dns</code>.
         docs: topics/using/mappings/#dns-configuration-for-mappings
-  
+
+      - title: Support configuring upstream buffer size
+        type: feature
+        body: >-
+          You can now set <code>buffer_limit_bytes</code> in the <code>ambassador</code>
+          <code>Module</code> to to change the size of the upstream read and write buffers.
+          The default is 1MiB.
+        docs: topics/running/ambassador/#modify-default-buffer-size
+
     edgeStackNotes:
       - type: feature
         body: >-
@@ -392,7 +400,7 @@ items:
         type: change
         docs: topics/running/environment/
 
-        edgeStackNotes:
+    edgeStackNotes:
       - type: bugfix
         body: >-
           The <code>Mapping</code> resource can now specify <code>docs.timeout_ms</code> to set the

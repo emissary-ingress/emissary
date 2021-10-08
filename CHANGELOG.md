@@ -282,6 +282,9 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 - Feature: You can now set `dns_type` to in Ambassador Mappings to use Envoy's `logical_dns`
   resolution instead of the default `strict_dns`.
 
+- Feature: You can now set `buffer_limit_bytes` in the `ambassador` `Module` to to change the size
+  of the upstream read and write buffers. The default is 1MiB.
+
 ### Ambassador Edge Stack only
 
 - Feature: You can now set `preserve_servers` in Ambassador Edge Stack's `DevPortal` resource to
@@ -326,6 +329,8 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
   reconfiguration under memory pressure. This can help performance with the endpoint or Consul
   resolvers, but could make OOMkills more likely with large configurations. The default is `false`,
   meaning that the rate limiter is active.
+
+### Ambassador Edge Stack only
 
 - Bugfix: The `Mapping` resource can now specify `docs.timeout_ms` to set the timeout when the Dev
   Portal is fetching API specifications.
