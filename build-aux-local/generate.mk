@@ -12,6 +12,8 @@ generate/files += $(OSS_HOME)/pkg/envoy-control-plane
 generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
 generate/files += $(OSS_HOME)/OPENSOURCE.md
 generate/files += $(OSS_HOME)/builder/requirements.txt
+generate/files += $(OSS_HOME)/CHANGELOG.md
+
 generate: ## Update generated sources that get committed to git
 generate:
 	$(MAKE) generate-clean
@@ -44,6 +46,12 @@ go-mod-tidy/oss-evaluate:
 	@echo '# evaluate $$(proto_path)'; # $(proto_path) # cause Make to call `go list STUFF`, which will maybe edit go.mod or go.sum
 go-mod-tidy: go-mod-tidy/oss
 .PHONY: go-mod-tidy/oss go-mod-tidy
+
+$(OSS_HOME)/CHANGELOG.md: $(OSS_HOME)/docs/CHANGELOG.tpl $(OSS_HOME)/docs/releaseNotes.yml
+	docker run --rm \
+	  -v $(OSS_HOME)/docs/CHANGELOG.tpl:/tmp/CHANGELOG.tpl \
+	  -v $(OSS_HOME)/docs/releaseNotes.yml:/tmp/releaseNotes.yml \
+	  hairyhenderson/gomplate --verbose --file /tmp/CHANGELOG.tpl --datasource relnotes=/tmp/releaseNotes.yml > CHANGELOG.md
 
 #
 # Helper Make functions and variables

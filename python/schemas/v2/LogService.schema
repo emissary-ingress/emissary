@@ -1,50 +1,101 @@
 {
-    "$schema": "http://json-schema.org/schema#",
     "id": "https://getambassador.io/schemas/logservice.json",
-
+    "$schema": "http://json-schema.org/schema#",
     "type": "object",
+    "required": [
+        "apiVersion",
+        "kind",
+        "name"
+    ],
     "properties": {
-        "apiVersion": { "enum": [ "getambassador.io/v2" ] },
-        "generation": { "type": "integer" },
-        "kind": { "type": "string" },
-        "name": { "type": "string" },
-        "namespace": { "type": "string" },
-        "metadata_labels": {
-            "type": "object",
-            "additionalProperties": { "type": [ "string", "boolean" ] }
-        },
         "ambassador_id": {
             "anyOf": [
-                { "type": "string" },
-                { "type": "array", "items": { "type": "string" } }
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
             ]
         },
-
-        "service": { "type": "string" },
-        "driver": { "enum": ["tcp", "http"] },
-        "driver_config": {
-          "type": "object",
-          "properties": {
-            "additional_log_headers": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "header_name": { "type": "string" },
-                  "during_request": { "type": "boolean" },
-                  "during_response": { "type": "boolean" },
-                  "during_trailer": { "type": "boolean" }
-                },
-                "additionalProperties": false
-              }
-            }
-          },
-          "additionalProperties": false
+        "apiVersion": {
+            "enum": [
+                "getambassador.io/v2"
+            ]
         },
-        "flush_interval_time": { "type": "integer" },
-        "flush_interval_byte_size": { "type": "integer" },
-        "grpc": { "type": "boolean" }
+        "driver": {
+            "enum": [
+                "tcp",
+                "http"
+            ]
+        },
+        "driver_config": {
+            "type": "object",
+            "properties": {
+                "additional_log_headers": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "during_request": {
+                                "type": "boolean"
+                            },
+                            "during_response": {
+                                "type": "boolean"
+                            },
+                            "during_trailer": {
+                                "type": "boolean"
+                            },
+                            "header_name": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "flush_interval_byte_size": {
+            "type": "integer"
+        },
+        "flush_interval_time": {
+            "type": "integer"
+        },
+        "generation": {
+            "type": "integer"
+        },
+        "grpc": {
+            "type": "boolean"
+        },
+        "kind": {
+            "type": "string"
+        },
+        "metadata_labels": {
+            "type": "object",
+            "additionalProperties": {
+                "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "boolean"
+                    }
+                ]
+            }
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
+        "service": {
+            "type": "string"
+        }
     },
-    "required": [ "apiVersion", "kind", "name" ],
     "additionalProperties": false
 }
