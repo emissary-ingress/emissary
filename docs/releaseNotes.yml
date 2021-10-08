@@ -99,6 +99,13 @@ items:
           link: https://github.com/emissary-ingress/emissary/issues/3593
         docs: https://github.com/emissary-ingress/emissary/issues/3593
 
+      - title: Listeners correctly support l7Depth
+        type: bugfix
+        body: >-
+          The <code>l7Depth</code> element of the <code>Listener</code> CRD is 
+          properly supported.
+        docs: topics/running/listener#l7depth
+
   - version: 2.0.3-ea
     date: '2021-09-16'
     notes:
