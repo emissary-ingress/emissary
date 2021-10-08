@@ -1,3 +1,5 @@
+# -*- fill-column: 100 -*-
+
 # This file should be placed in the folder for the version of the
 # product that's meant to be documented. A `/release-notes` page will
 # be automatically generated and populated at build time.
@@ -302,33 +304,29 @@ items:
         docs: topics/install/helm/
         type: change
 
-
   - version: 1.14.2
     date: '2021-09-29'
     notes:
       - title: Mappings support controlling DNS refresh with DNS TTL
         type: feature
         body: >-
-          You can now set <code>respect_dns_ttl</code> to <code>true</code> to force the
-          DNS refresh rate for a <code>Mapping</code> to be set to the record's TTL
-          obtained from DNS resolution.
+          You can now set <code>respect_dns_ttl</code> in Ambassador Mappings. When true it
+          configures that upstream's refresh rate to be set to resource record’s TTL
         docs: topics/using/mappings/#dns-configuration-for-mappings
 
       - title: Mappings support configuring strict or logical DNS
         type: feature
         body: >-
-          You can now set <code>dns_type</code> between <code>strict_dns</code> and
-          <code>logical_dns</code> in a <code>Mapping</code> to configure the Service
-          Discovery Type.
+          You can now set <code>dns_type</code> to in Ambassador Mappings to use Envoy's
+          <code>logical_dns</code> resolution instead of the default <code>strict_dns</code>.
         docs: topics/using/mappings/#dns-configuration-for-mappings
-
-      - title: Support configuring upstream buffer sizes
-        type: feature
+  
+    edgeStackNotes:
+      - type: feature
         body: >-
-          You can now set <code>buffer_limit_bytes</code> in the <code>ambassador</code>
-          <code>Module</code> to to change the size of the upstream read and write buffers.
-          The default is 1MiB.
-        docs: topics/running/ambassador/#modify-default-buffer-size
+          You can now set <code>preserve_servers</code> in Ambassador Edge Stack's
+          <code>DevPortal</code> resource to configure the DevPortal to use server definitions from
+          the OpenAPI document when displaying connection information for services in the DevPortal.
 
   - version: 1.14.1
     date: '2021-08-24'
@@ -336,8 +334,8 @@ items:
       - title: Envoy security updates
         type: change
         body: >-
-          Upgraded envoy to 1.17.4 to address security vulnerabilities CVE-2021-32777, CVE-2021-32778, CVE-2021-32779,
-          and CVE-2021-32781.
+          Upgraded Envoy to 1.17.4 to address security vulnerabilities CVE-2021-32777,
+          CVE-2021-32778, CVE-2021-32779, and CVE-2021-32781.
         docs: https://groups.google.com/g/envoy-announce/c/5xBpsEZZDfE
 
   - version: 1.14.0
@@ -345,17 +343,21 @@ items:
     notes:
       - title: Envoy upgraded to 1.17.3!
         type: change
-        body: "Upgraded Envoy from 1.15 to 1.17.3, see the <a href=\"https://www.envoyproxy.io/docs/envoy/latest/version_history/version_history\">Envoy changelog</a> for more information"
+        body: >-
+          Update from Envoy 1.15 to 1.17.3
         docs: https://www.envoyproxy.io/docs/envoy/latest/version_history/version_history
 
       - title: Expose Envoy's allow_chunked_length HTTPProtocolOption
         type: feature
-        body: "You can now set <code>allow_chunked_length</code> in the Ambassador Module to configure the same value in Envoy"
+        body: >-
+          You can now set <code>allow_chunked_length</code> in the Ambassador Module to configure
+          the same value in Envoy.
         docs: topics/running/ambassador/#content-length-headers
 
       - title: Default Envoy API version is now V3
         type: change
-        body: The default Envoy API version has changed from V2 to V3, as V2 has fallen out of support, and has been removed as of Envoy 1.18.0.
+        body: >-
+          <code>AMBASSADOR_ENVOY_API_VERSION</code> now defaults to <code>V3</code>
         docs: https://www.getambassador.io/docs/edge-stack/latest/topics/running/running/#ambassador_envoy_api_version
 
       - title: Subsecond time resolution in logs
@@ -364,11 +366,14 @@ items:
         docs: https://github.com/emissary-ingress/emissary/pull/3650
 
   - version: 1.13.10
-    date: '2021-07-27'
+    date: '2021-07-28'
     notes:
       - title: Fix for CORS origins configuration on the Mapping resource
         type: bugfix
-        body: "Fixed a regression when specifying a comma separated string for <code>cors.origins</code> on the <code>Mapping</code> resource"
+        body: >-
+          Fixed a regression when specifying a comma separated string for <code>cors.origins</code>
+          on the <code>Mapping</code> resource.
+          ([#3609](https://github.com/emissary-ingress/emissary/issues/3609))
         docs: topics/using/cors
         image: ../images/emissary-1.13.10-cors-origin.png
 
@@ -378,15 +383,36 @@ items:
         docs: topics/running/environment/
 
       - title: Optionally remove ratelimiting for Envoy reconfiguration
-        body: "Set <code>AMBASSADOR_AMBEX_NO_RATELIMIT</code> to <code>true</code> to completely disable ratelimiting Envoy reconfiguration under memory pressure. This can help performance with the endpoint or Consul resolvers, but could make OOMkills more likely with large configurations."
+        body: >-
+          Set <code>AMBASSADOR_AMBEX_NO_RATELIMIT</code> to <code>true</code> to completely disable
+          ratelimiting Envoy reconfiguration under memory pressure. This can help performance with
+          the endpoint or Consul resolvers, but could make OOMkills more likely with large
+          configurations. The default is <code>false</code>, meaning that the rate limiter is
+          active.
         type: change
         docs: topics/running/environment/
+
+        edgeStackNotes:
+      - type: bugfix
+        body: >-
+          The <code>Mapping</code> resource can now specify <code>docs.timeout_ms</code> to set the
+          timeout when the Dev Portal is fetching API specifications.
+      - type: bugfix
+        body: >-
+          The Dev Portal will now strip HTML tags when displaying search results, showing just the
+          actual content of the search result.
+      - type: change
+        body: >-
+          Consul certificate-rotation logging now includes the fingerprints and validity timestamps
+          of certificates being rotated.
 
   - version: 1.13.9
     date: '2021-06-30'
     notes:
       - title: Fix for TCPMappings
-        body: "Fixed a bug which caused $productName$ to generate invalid Envoy configuration when two TCPMappings were deployed with the same port, but different host."
+        body: >-
+          Configuring multiple TCPMappings with the same ports (but different hosts) no longer
+          generates invalid Envoy configuration.
         type: bugfix
         docs: topics/using/tcpmappings/
 
@@ -394,13 +420,18 @@ items:
     date: '2021-06-08'
     notes:
       - title: Fix Ambassador Cloud Service Details
-        body: "Fixed a bug that occasionally caused missing version information for a service in the Ambassador Service Catalog, especially in clusters with high pod churn."
+        body: >-
+          Ambassador Agent now accurately reports up-to-date Endpoint information to Ambassador
+          Cloud
         type: bugfix
         docs: tutorials/getting-started/#3-connect-your-cluster-to-ambassador-cloud
         image: ../images/edge-stack-1.13.8-cloud-bugfix.png
 
       - title: Improved Argo Rollouts Experience with Ambassador Cloud
-        body: "Ambassador Agent now reports the state of ArgoCD configurations and Deployments in order to provide proper configurations to the users while setting up the Argo Rollouts feature."
+        body: >-
+          Ambassador Agent reports ConfigMaps and Deployments to Ambassador Cloud to provide a
+          better Argo Rollouts experience. See [Argo+Ambassador
+          documentation](https://www.getambassador.io/docs/argo) for more info.
         type: feature
         docs: https://www.getambassador.io/docs/argo
 
@@ -408,19 +439,25 @@ items:
     date: '2021-06-03'
     notes:
       - title: JSON logging support
-        body: "An <code>AMBASSADOR_JSON_LOGGING</code> environment variable has been added. When set to <code>true</code> JSON format will be used for most of the control plane logs. Some (but few) logs from <code>gunicorn</code> and the Kubernetes <code>client-go</code> package will still be in text only format."
+        body: >-
+          Add AMBASSADOR_JSON_LOGGING to enable JSON for most of the Ambassador control plane. Some
+          (but few) logs from gunicorn and the Kubernetes client-go package still log text.
         image: ../images/edge-stack-1.13.7-json-logging.png
         docs: topics/running/running/#log-format
         type: feature
 
       - title: Consul resolver bugfix with TCPMappings
-        body: "The TCPMapping has the ability to specify a resolver, however the <code>ConsulResolver</code> did not work properly with it. It now utilizes the Consul Connect service discovery instead of falling back to attempting to register an arbitrary endpoint."
+        body: >-
+          Fixed a bug where the Consul resolver would not actually use Consul endpoints with
+          TCPMappings.
         image: ../images/edge-stack-1.13.7-tcpmapping-consul.png
         docs: topics/running/resolvers/#the-consul-resolver
         type: bugfix
 
       - title: Memory usage calculation improvements
-        body: "The internal memory usage calculation that $productName$ performs has been updated to exclude cache memory. This now matches how the kernel OOMKiller calculates memory and should avoid situations where Envoy updates are throttled unnecessarily."
+        body: >-
+          Ambassador now calculates its own memory usage in a way that is more similar to how the
+          kernel OOMKiller tracks memory.
         image: ../images/edge-stack-1.13.7-memory.png
         docs: topics/running/scaling/#inspecting-ambassador-performance
         type: change
@@ -441,25 +478,27 @@ items:
         type: bugfix
         body: >-
           Fix a regression from 1.8.0 that prevented <code>ambassador</code> <code>Module</code>
-          config keys <code>proper_case</code> and <code>preserve_external_request_id</code> from
-          working correctly.
+          config keys <code>proper_case</code> and <code>preserve_external_request_id</code>
+          from working correctly.
         docs: topics/running/ambassador/#header-case
 
       - title: Correctly support Ingress statuses in all cases
         type: bugfix
         body: >-
-          Fixed a regression in detecting the Ambassador Kubernetes service that could
-          cause the wrong IP or hostname to be used in Ingress statuses (thanks,
-          [Noah Fontes](https://github.com/impl)!
+          Fixed a regression in detecting the Ambassador Kubernetes service that could cause the
+          wrong IP or hostname to be used in Ingress statuses (thanks, [Noah
+          Fontes](https://github.com/impl)!
         docs: topics/running/ingress-controller
 
   - version: 1.13.4
-    date: '2021-05-13'
+    date: '2021-05-11'
     notes:
       - title: Envoy 1.15.5
-        body: $productName$ has been updated to Envoy 1.15.5, which addresses a high severity security vulnerability (CVE-2021-29492). $productName$ can now be configured to reject client requests that contain escaped slashes.
+        body: >-
+          Incorporate the Envoy 1.15.5 security update by adding the
+          <code>reject_requests_with_escaped_slashes</code> option to the Ambassador module.
         image: ../images/edge-stack-1.13.4.png
         docs: topics/running/ambassador/#rejecting-client-requests-with-escaped-slashes
-        type: security
+        type: bugfix
 
 # Don't go any further back than 1.13.4.

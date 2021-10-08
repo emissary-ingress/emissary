@@ -1,3 +1,4 @@
+<!-- -*- fill-column: 100 -*- -->
 # CHANGELOG -- this is {{/* NOT */}}a GENERATED FILE, edit docs/releaseNotes.yml and "make generate" to change.
 
 ## EMISSARY-INGRESS and AMBASSADOR EDGE STACK
@@ -15,10 +16,10 @@ The core of Ambassador Edge Stack is Emissary-ingress.
 - Ambassador Edge Stack provides all the capabilities of Emissary-ingress,
   as well as additional capabilities including:
 
-   - Security features such as automatic TLS setup via ACME integration, OAuth/OpenID Connect
-     integration, rate limiting, and fine-grained access control; and
-   - Developer onboarding assistance, including an API catalog, Swagger/OpenAPI documentation
-     support, and a fully customizable developer portal.
+  - Security features such as automatic TLS setup via ACME integration, OAuth/OpenID Connect
+    integration, rate limiting, and fine-grained access control; and
+  - Developer onboarding assistance, including an API catalog, Swagger/OpenAPI documentation
+    support, and a fully customizable developer portal.
 
 - Emissary-ingress can do everything that Ambassador Edge Stack can do, but you'll need to
   write your own code to take advantage of the capabilities above.
@@ -78,22 +79,58 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 [HTTP_JSON_V1]: https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/trace/v2/zipkin.proto#envoy-api-field-config-trace-v2-zipkinconfig-collector-endpoint-version
 
 ## RELEASE NOTES
+{{ $relnotes := (datasource "relnotes") -}}
+{{ $ghName := "emissary-ingress/emissary" -}}
 
-{{ range (datasource "relnotes").items -}}
-## [{{ .version }}] {{ .date }}
-[{{ .version }}]: https://github.com/emissary-ingress/emissary/releases/v{{ .version }}
-{{- range .notes }}{{ if index . "isHeadline" }}{{ if .isHeadline }}
+{{ range $i, $release := $relnotes.items -}}
+{{ $prevVersion := "1.13.3" -}}
+{{ if lt (add $i 1) (len $relnotes.items) -}}
+{{   $prevVersion = (index $relnotes.items (add $i 1)).version -}}
+{{ end -}}
+{{ if eq $release.version "1.13.7" -}}
+{{   $ghName = "datawire/ambassador" -}}
+{{ end }}
+## [{{ $release.version }}] {{ if eq $release.date "TBD" }}TBD{{ else }}{{ (time.Parse "2006-01-02" $release.date).Format "January 02, 2006" }}{{ end }}
+[{{ $release.version }}]: https://github.com/{{ $ghName }}/compare/v{{ $prevVersion }}...v{{ $release.version }}
+{{- range $release.notes }}{{ if index . "isHeadline" }}{{ if .isHeadline }}
 
-{{ .body | strings.ReplaceAll "$productName$" "Emissary-ingress" | strings.ReplaceAll "<b>" "_" | strings.ReplaceAll "</b>" "_" | strings.ReplaceAll "<code>" "`" | strings.ReplaceAll "</code>" "`" | strings.WordWrap 98 }}
+{{ .body |
+    strings.ReplaceAll "$productName$" "Emissary-ingress" |
+    strings.ReplaceAll "<b>" "_" |
+    strings.ReplaceAll "</b>" "_" |
+    strings.ReplaceAll "<code>" "`" |
+    strings.ReplaceAll "</code>" "`" |
+    strings.WordWrap 100 }}
 {{- end }}{{ end }}{{ end }}
 
-### Emissary-ingress
-{{ range .notes -}}{{ if not (index . "isHeadline") }}
-- {{ .type | strings.Title }}: {{ .body | strings.ReplaceAll "$productName$" "Emissary-ingress" | strings.ReplaceAll "<b>" "_" | strings.ReplaceAll "</b>" "_" | strings.ReplaceAll "<code>" "`" | strings.ReplaceAll "</code>" "`" | strings.WordWrap 98 "\n  " }}{{ if index . "github" }}{{ range .github }} ([{{.title}}]){{ end }}{{ end }}
-{{ end }}{{ end }}{{ $anyGitLinks := false }}{{ range .notes -}}{{- if index . "github" -}}{{- range .github }}{{ $anyGitLinks = true }}
-[{{.title}}]: {{.link}}{{ end -}}{{- end -}}{{- end }}
-{{ if $anyGitLinks }}
-{{ end }}{{ end }}
+### Emissary-ingress and Ambassador Edge Stack
+{{ range $release.notes }}{{ if not (index . "isHeadline") }}
+- {{ printf "%s: %s" (.type | strings.Title) .body |
+    strings.ReplaceAll "$productName$" "Emissary-ingress" |
+    strings.ReplaceAll "<b>" "_" |
+    strings.ReplaceAll "</b>" "_" |
+    strings.ReplaceAll "<code>" "`" |
+    strings.ReplaceAll "</code>" "`" |
+    strings.WordWrap 98 |
+    strings.Indent 2 |
+    strings.TrimPrefix "  " }}{{ if index . "github" }}{{ range .github }} ([{{.title}}]){{ end }}{{ end }}
+{{ end }}{{ end }}{{ $anyGitLinks := false }}{{ range $release.notes -}}{{- if index . "github" -}}{{- range .github }}{{ $anyGitLinks = true }}
+[{{.title}}]: {{.link}}{{ end -}}{{- end -}}{{- end -}}{{ if $anyGitLinks }}
+{{ end }}{{ if index $release "edgeStackNotes" }}
+### Ambassador Edge Stack only
+{{ range $release.edgeStackNotes }}
+- {{ printf "%s: %s" (.type | strings.Title) .body |
+    strings.ReplaceAll "$productName$" "Emissary-ingress" |
+    strings.ReplaceAll "<b>" "_" |
+    strings.ReplaceAll "</b>" "_" |
+    strings.ReplaceAll "<code>" "`" |
+    strings.ReplaceAll "</code>" "`" |
+    strings.WordWrap 98 |
+    strings.Indent 2 |
+    strings.TrimPrefix "  " }}{{ if index . "github" }}{{ range .github }} ([{{.title}}]){{ end }}{{ end }}
+{{ end }}{{ $anyGitLinks := false }}{{ range $release.edgeStackNotes -}}{{- if index . "github" -}}{{- range .github }}{{ $anyGitLinks = true }}
+[{{.title}}]: {{.link}}{{ end -}}{{- end -}}{{- end -}}{{ if $anyGitLinks }}
+{{ end }}{{ end }}{{ end }}
 ## [1.13.3] May 03, 2021
 [1.13.3]: https://github.com/datawire/ambassador/compare/v1.13.2...v1.13.3
 
