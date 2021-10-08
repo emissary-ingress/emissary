@@ -292,7 +292,7 @@
                   "server_name": "envoy",
                   "stat_prefix": "ingress_http",
                   "use_remote_address": false,
-                  "xff_num_trusted_hops": 0
+                  "xff_num_trusted_hops": 1
                 }
               }
             ]
