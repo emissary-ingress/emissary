@@ -174,13 +174,7 @@
                 "ignored": {
                     "type": "boolean"
                 },
-                "num_retries": {
-                    "type": "integer"
-                },
                 "path": {
-                    "type": "string"
-                },
-                "per_try_timeout": {
                     "type": "string"
                 },
                 "timeout_ms": {
@@ -240,9 +234,6 @@
             "type": "boolean"
         },
         "host_rewrite": {
-            "type": "string"
-        },
-        "hostname": {
             "type": "string"
         },
         "idle_timeout_ms": {
@@ -448,9 +439,6 @@
         },
         "shadow": {
             "type": "boolean"
-        },
-        "stats_name": {
-            "type": "string"
         },
         "timeout_ms": {
             "type": "integer"

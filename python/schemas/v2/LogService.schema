@@ -95,9 +95,6 @@
         },
         "service": {
             "type": "string"
-        },
-        "stats_name": {
-            "type": "string"
         }
     },
     "additionalProperties": false

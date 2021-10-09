@@ -65,9 +65,6 @@
         "service": {
             "type": "string"
         },
-        "stats_name": {
-            "type": "string"
-        },
         "timeout_ms": {
             "type": "integer"
         },
