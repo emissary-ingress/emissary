@@ -416,33 +416,45 @@ func TestDeltasWithRemoteDelay(t *testing.T) {
 }
 
 func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstructured, *Unstructured)) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-
+	_ctx := context.TODO()
 	cli := testClient(t)
+	var (
+		_cm1 = &ConfigMap{
+			TypeMeta: TypeMeta{
+				Kind: "ConfigMap",
+			},
+			ObjectMeta: ObjectMeta{
+				Name:   "test-deltas-1",
+				Labels: map[string]string{},
+			},
+		}
+		_cm2 = &ConfigMap{
+			TypeMeta: TypeMeta{
+				Kind: "ConfigMap",
+			},
+			ObjectMeta: ObjectMeta{
+				Name:   "test-deltas-2",
+				Labels: map[string]string{},
+			},
+		}
+	)
+	t.Cleanup(func() {
+		if err := cli.Delete(_ctx, _cm1, nil); err != nil && !IsNotFound(err) {
+			t.Error(err)
+		}
+		if err := cli.Delete(_ctx, _cm2, nil); err != nil && !IsNotFound(err) {
+			t.Error(err)
+		}
+	})
+
+	ctx, cancel := context.WithTimeout(_ctx, 30*time.Second)
+	defer cancel()
 
 	cli.watchAdded = watchHook
 	cli.watchUpdated = watchHook
 	cli.watchDeleted = watchHook
 
-	cm1 := &ConfigMap{
-		TypeMeta: TypeMeta{
-			Kind: "ConfigMap",
-		},
-		ObjectMeta: ObjectMeta{
-			Name:   "test-deltas-1",
-			Labels: map[string]string{},
-		},
-	}
-
-	cm2 := &ConfigMap{
-		TypeMeta: TypeMeta{
-			Kind: "ConfigMap",
-		},
-		ObjectMeta: ObjectMeta{
-			Name:   "test-deltas-2",
-			Labels: map[string]string{},
-		},
-	}
+	cm1, cm2 := _cm1, _cm2
 
 	defer func() {
 		ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
