@@ -110,6 +110,8 @@ feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know w
 - Bugfix: Large configurations no longer cause Emissary-ingress to be unable to communicate with Ambassador
   Cloud. ([#3593])
 
+- Bugfix: The `l7Depth` element of the `Listener` CRD is  properly supported.
+
 [#3854]: https://github.com/emissary-ingress/emissary/issues/3854
 [#3593]: https://github.com/emissary-ingress/emissary/issues/3593
 

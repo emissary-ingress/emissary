@@ -928,8 +928,6 @@ class IR:
 
         od['service_resource_total'] = len(list(self.services.keys()))
 
-        od['xff_num_trusted_hops'] = self.ambassador_module.get('xff_num_trusted_hops', 0)
-
         od['listener_idle_timeout_ms'] = self.ambassador_module.get('listener_idle_timeout_ms', None)
         od['headers_with_underscores_action'] = self.ambassador_module.get('headers_with_underscores_action', None)
         od['max_request_headers_kb'] = self.ambassador_module.get('max_request_headers_kb', None)

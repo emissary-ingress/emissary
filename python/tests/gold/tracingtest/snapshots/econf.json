@@ -348,8 +348,7 @@
                       }
                     ]
                   },
-                  "use_remote_address": true,
-                  "xff_num_trusted_hops": 0
+                  "use_remote_address": true
                 }
               }
             ]
@@ -593,8 +592,7 @@
                       }
                     ]
                   },
-                  "use_remote_address": true,
-                  "xff_num_trusted_hops": 0
+                  "use_remote_address": true
                 }
               }
             ]
@@ -858,8 +856,7 @@
                       }
                     ]
                   },
-                  "use_remote_address": true,
-                  "xff_num_trusted_hops": 0
+                  "use_remote_address": true
                 }
               }
             ]
@@ -1103,8 +1100,7 @@
                       }
                     ]
                   },
-                  "use_remote_address": true,
-                  "xff_num_trusted_hops": 0
+                  "use_remote_address": true
                 }
               }
             ]
