@@ -90,8 +90,8 @@ spec:
 """
 
     def queries(self):
-        yield Query(self.parent.url(self.name + "/"), xfail="IHA hostglob")
-        yield Query(self.parent.url(f'need-normalization/../{self.name}/'), xfail="IHA hostglob")
+        yield Query(self.parent.url(self.name + "/"))    # , xfail="IHA hostglob")
+        yield Query(self.parent.url(f'need-normalization/../{self.name}/'))    # , xfail="IHA hostglob")
 
     def check(self):
         for r in self.results:
@@ -180,10 +180,10 @@ spec:
 """
 
     def queries(self):
-        yield Query(self.parent.url(self.name + "/"), xfail="IHA hostglob")
-        yield Query(self.parent.url(f'need-normalization/../{self.name}/'), xfail="IHA hostglob")
-        yield Query(self.parent.url(self.name + "-nested/"), xfail="IHA hostglob")
-        yield Query(self.parent.url(self.name + "-non-existent/"), expected=404, xfail="IHA hostglob")
+        yield Query(self.parent.url(self.name + "/")) # , xfail="IHA hostglob")
+        yield Query(self.parent.url(f'need-normalization/../{self.name}/')) # , xfail="IHA hostglob")
+        yield Query(self.parent.url(self.name + "-nested/")) # , xfail="IHA hostglob")
+        yield Query(self.parent.url(self.name + "-non-existent/"), expected=404) # , xfail="IHA hostglob")
 
     def check(self):
         for r in self.results:
