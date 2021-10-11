@@ -2365,7 +2365,7 @@
         "type": "STRICT_DNS"
       },
       {
-        "alt_stat_name": "plain_tlsorigination_grpc_implicit_grpc_plain_namespace",
+        "alt_stat_name": "plain_tlsorigination_grpc_explicit_grpc_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
@@ -2378,7 +2378,7 @@
                   "endpoint": {
                     "address": {
                       "socket_address": {
-                        "address": "plain-tlsorigination-grpc-implicit-grpc.plain-namespace",
+                        "address": "plain-tlsorigination-grpc-explicit-grpc.plain-namespace",
                         "port_value": 443,
                         "protocol": "TCP"
                       }
@@ -2400,12 +2400,82 @@
         "type": "STRICT_DNS"
       },
       {
-        "alt_stat_name": "plain_tlsorigination_http_implicit_http_plain_namespace",
+        "alt_stat_name": "plain_tlsorigination_grpc_implicit_grpc_plain_namespace",
+        "connect_timeout": "3.000s",
+        "dns_lookup_family": "V4_ONLY",
+        "lb_policy": "ROUND_ROBIN",
+        "load_assignment": {
+          "cluster_name": "cluster_https___plain_tlsorigination_grp-1",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "plain-tlsorigination-grpc-implicit-grpc.plain-namespace",
+                        "port_value": 443,
+                        "protocol": "TCP"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "cluster_https___plain_tlsorigination_grp-1",
+        "transport_socket": {
+          "name": "envoy.transport_sockets.tls",
+          "typed_config": {
+            "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext",
+            "common_tls_context": {}
+          }
+        },
+        "type": "STRICT_DNS"
+      },
+      {
+        "alt_stat_name": "plain_tlsorigination_http_explicit_http_plain_namespace",
         "connect_timeout": "3.000s",
         "dns_lookup_family": "V4_ONLY",
         "lb_policy": "ROUND_ROBIN",
         "load_assignment": {
           "cluster_name": "cluster_https___plain_tlsorigination_htt-0",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "plain-tlsorigination-http-explicit-http.plain-namespace",
+                        "port_value": 443,
+                        "protocol": "TCP"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "cluster_https___plain_tlsorigination_htt-0",
+        "transport_socket": {
+          "name": "envoy.transport_sockets.tls",
+          "typed_config": {
+            "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext",
+            "common_tls_context": {}
+          }
+        },
+        "type": "STRICT_DNS"
+      },
+      {
+        "alt_stat_name": "plain_tlsorigination_http_implicit_http_plain_namespace",
+        "connect_timeout": "3.000s",
+        "dns_lookup_family": "V4_ONLY",
+        "lb_policy": "ROUND_ROBIN",
+        "load_assignment": {
+          "cluster_name": "cluster_https___plain_tlsorigination_htt-1",
           "endpoints": [
             {
               "lb_endpoints": [
@@ -2424,7 +2494,7 @@
             }
           ]
         },
-        "name": "cluster_https___plain_tlsorigination_htt-0",
+        "name": "cluster_https___plain_tlsorigination_htt-1",
         "transport_socket": {
           "name": "envoy.transport_sockets.tls",
           "typed_config": {
@@ -2600,76 +2670,6 @@
           ]
         },
         "name": "cluster_plain_simplemappingingress_http_-0",
-        "type": "STRICT_DNS"
-      },
-      {
-        "alt_stat_name": "plain_tlsorigination_grpc_explicit_grpc_plain_namespace",
-        "connect_timeout": "3.000s",
-        "dns_lookup_family": "V4_ONLY",
-        "lb_policy": "ROUND_ROBIN",
-        "load_assignment": {
-          "cluster_name": "cluster_plain_tlsorigination_grpc_explic-0",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "plain-tlsorigination-grpc-explicit-grpc.plain-namespace",
-                        "port_value": 443,
-                        "protocol": "TCP"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "cluster_plain_tlsorigination_grpc_explic-0",
-        "transport_socket": {
-          "name": "envoy.transport_sockets.tls",
-          "typed_config": {
-            "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext",
-            "common_tls_context": {}
-          }
-        },
-        "type": "STRICT_DNS"
-      },
-      {
-        "alt_stat_name": "plain_tlsorigination_http_explicit_http_plain_namespace",
-        "connect_timeout": "3.000s",
-        "dns_lookup_family": "V4_ONLY",
-        "lb_policy": "ROUND_ROBIN",
-        "load_assignment": {
-          "cluster_name": "cluster_plain_tlsorigination_http_explic-0",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "plain-tlsorigination-http-explicit-http.plain-namespace",
-                        "port_value": 443,
-                        "protocol": "TCP"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "cluster_plain_tlsorigination_http_explic-0",
-        "transport_socket": {
-          "name": "envoy.transport_sockets.tls",
-          "typed_config": {
-            "@type": "type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext",
-            "common_tls_context": {}
-          }
-        },
         "type": "STRICT_DNS"
       },
       {
@@ -4858,11 +4858,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-1"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_https___plain_tlsorigination_htt-0",
+                              "cluster": "cluster_https___plain_tlsorigination_htt-1",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -4877,6 +4877,50 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-1"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_https___plain_tlsorigination_htt-1",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-0"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_https___plain_tlsorigination_htt-0",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
                                 "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-0"
                               }
                             },
@@ -4896,61 +4940,17 @@
                                   "name": "x-forwarded-proto"
                                 }
                               ],
-                              "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_tlsorigination_http_explic-0"
-                              }
-                            },
-                            "route": {
-                              "cluster": "cluster_plain_tlsorigination_http_explic-0",
-                              "prefix_rewrite": "/",
-                              "priority": null,
-                              "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_tlsorigination_http_explic-0"
-                              }
-                            },
-                            "route": {
-                              "cluster": "cluster_plain_tlsorigination_http_explic-0",
-                              "prefix_rewrite": "/",
-                              "priority": null,
-                              "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "headers": [
-                                {
-                                  "exact_match": "https",
-                                  "name": "x-forwarded-proto"
-                                }
-                              ],
                               "prefix": "/TLSOrigination-GRPC-IMPLICIT/",
                               "runtime_fraction": {
                                 "default_value": {
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-1"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_https___plain_tlsorigination_grp-0",
+                              "cluster": "cluster_https___plain_tlsorigination_grp-1",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -4965,11 +4965,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-1"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_https___plain_tlsorigination_grp-0",
+                              "cluster": "cluster_https___plain_tlsorigination_grp-1",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -4990,11 +4990,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_tlsorigination_grpc_explic-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-0"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_plain_tlsorigination_grpc_explic-0",
+                              "cluster": "cluster_https___plain_tlsorigination_grp-0",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -5009,11 +5009,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_tlsorigination_grpc_explic-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-0"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_plain_tlsorigination_grpc_explic-0",
+                              "cluster": "cluster_https___plain_tlsorigination_grp-0",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -10339,11 +10339,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-1"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_https___plain_tlsorigination_htt-0",
+                              "cluster": "cluster_https___plain_tlsorigination_htt-1",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -10358,6 +10358,50 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-1"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_https___plain_tlsorigination_htt-1",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-0"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_https___plain_tlsorigination_htt-0",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
                                 "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-0"
                               }
                             },
@@ -10377,61 +10421,17 @@
                                   "name": "x-forwarded-proto"
                                 }
                               ],
-                              "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_tlsorigination_http_explic-0"
-                              }
-                            },
-                            "route": {
-                              "cluster": "cluster_plain_tlsorigination_http_explic-0",
-                              "prefix_rewrite": "/",
-                              "priority": null,
-                              "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_tlsorigination_http_explic-0"
-                              }
-                            },
-                            "route": {
-                              "cluster": "cluster_plain_tlsorigination_http_explic-0",
-                              "prefix_rewrite": "/",
-                              "priority": null,
-                              "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "headers": [
-                                {
-                                  "exact_match": "https",
-                                  "name": "x-forwarded-proto"
-                                }
-                              ],
                               "prefix": "/TLSOrigination-GRPC-IMPLICIT/",
                               "runtime_fraction": {
                                 "default_value": {
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-1"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_https___plain_tlsorigination_grp-0",
+                              "cluster": "cluster_https___plain_tlsorigination_grp-1",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -10446,11 +10446,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-1"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_https___plain_tlsorigination_grp-0",
+                              "cluster": "cluster_https___plain_tlsorigination_grp-1",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -10471,11 +10471,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_tlsorigination_grpc_explic-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-0"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_plain_tlsorigination_grpc_explic-0",
+                              "cluster": "cluster_https___plain_tlsorigination_grp-0",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -10490,11 +10490,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_tlsorigination_grpc_explic-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-0"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_plain_tlsorigination_grpc_explic-0",
+                              "cluster": "cluster_https___plain_tlsorigination_grp-0",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -15840,11 +15840,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-1"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_https___plain_tlsorigination_htt-0",
+                              "cluster": "cluster_https___plain_tlsorigination_htt-1",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -15859,6 +15859,50 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-1"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_https___plain_tlsorigination_htt-1",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-0"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_https___plain_tlsorigination_htt-0",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
                                 "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-0"
                               }
                             },
@@ -15878,61 +15922,17 @@
                                   "name": "x-forwarded-proto"
                                 }
                               ],
-                              "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_tlsorigination_http_explic-0"
-                              }
-                            },
-                            "route": {
-                              "cluster": "cluster_plain_tlsorigination_http_explic-0",
-                              "prefix_rewrite": "/",
-                              "priority": null,
-                              "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_tlsorigination_http_explic-0"
-                              }
-                            },
-                            "route": {
-                              "cluster": "cluster_plain_tlsorigination_http_explic-0",
-                              "prefix_rewrite": "/",
-                              "priority": null,
-                              "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "headers": [
-                                {
-                                  "exact_match": "https",
-                                  "name": "x-forwarded-proto"
-                                }
-                              ],
                               "prefix": "/TLSOrigination-GRPC-IMPLICIT/",
                               "runtime_fraction": {
                                 "default_value": {
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-1"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_https___plain_tlsorigination_grp-0",
+                              "cluster": "cluster_https___plain_tlsorigination_grp-1",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -15947,11 +15947,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-1"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_https___plain_tlsorigination_grp-0",
+                              "cluster": "cluster_https___plain_tlsorigination_grp-1",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -15972,11 +15972,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_tlsorigination_grpc_explic-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-0"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_plain_tlsorigination_grpc_explic-0",
+                              "cluster": "cluster_https___plain_tlsorigination_grp-0",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -15991,11 +15991,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_tlsorigination_grpc_explic-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-0"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_plain_tlsorigination_grpc_explic-0",
+                              "cluster": "cluster_https___plain_tlsorigination_grp-0",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -21321,11 +21321,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-1"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_https___plain_tlsorigination_htt-0",
+                              "cluster": "cluster_https___plain_tlsorigination_htt-1",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -21340,6 +21340,50 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-1"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_https___plain_tlsorigination_htt-1",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "headers": [
+                                {
+                                  "exact_match": "https",
+                                  "name": "x-forwarded-proto"
+                                }
+                              ],
+                              "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-0"
+                              }
+                            },
+                            "route": {
+                              "cluster": "cluster_https___plain_tlsorigination_htt-0",
+                              "prefix_rewrite": "/",
+                              "priority": null,
+                              "timeout": "3.000s"
+                            }
+                          },
+                          {
+                            "match": {
+                              "case_sensitive": true,
+                              "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
+                              "runtime_fraction": {
+                                "default_value": {
+                                  "denominator": "HUNDRED",
+                                  "numerator": 100
+                                },
                                 "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_htt-0"
                               }
                             },
@@ -21359,61 +21403,17 @@
                                   "name": "x-forwarded-proto"
                                 }
                               ],
-                              "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_tlsorigination_http_explic-0"
-                              }
-                            },
-                            "route": {
-                              "cluster": "cluster_plain_tlsorigination_http_explic-0",
-                              "prefix_rewrite": "/",
-                              "priority": null,
-                              "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "prefix": "/TLSOrigination-HTTP-EXPLICIT/",
-                              "runtime_fraction": {
-                                "default_value": {
-                                  "denominator": "HUNDRED",
-                                  "numerator": 100
-                                },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_tlsorigination_http_explic-0"
-                              }
-                            },
-                            "route": {
-                              "cluster": "cluster_plain_tlsorigination_http_explic-0",
-                              "prefix_rewrite": "/",
-                              "priority": null,
-                              "timeout": "3.000s"
-                            }
-                          },
-                          {
-                            "match": {
-                              "case_sensitive": true,
-                              "headers": [
-                                {
-                                  "exact_match": "https",
-                                  "name": "x-forwarded-proto"
-                                }
-                              ],
                               "prefix": "/TLSOrigination-GRPC-IMPLICIT/",
                               "runtime_fraction": {
                                 "default_value": {
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-1"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_https___plain_tlsorigination_grp-0",
+                              "cluster": "cluster_https___plain_tlsorigination_grp-1",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -21428,11 +21428,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-1"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_https___plain_tlsorigination_grp-0",
+                              "cluster": "cluster_https___plain_tlsorigination_grp-1",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -21453,11 +21453,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_tlsorigination_grpc_explic-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-0"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_plain_tlsorigination_grpc_explic-0",
+                              "cluster": "cluster_https___plain_tlsorigination_grp-0",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
@@ -21472,11 +21472,11 @@
                                   "denominator": "HUNDRED",
                                   "numerator": 100
                                 },
-                                "runtime_key": "routing.traffic_shift.cluster_plain_tlsorigination_grpc_explic-0"
+                                "runtime_key": "routing.traffic_shift.cluster_https___plain_tlsorigination_grp-0"
                               }
                             },
                             "route": {
-                              "cluster": "cluster_plain_tlsorigination_grpc_explic-0",
+                              "cluster": "cluster_https___plain_tlsorigination_grp-0",
                               "prefix_rewrite": "/",
                               "priority": null,
                               "timeout": "3.000s"
