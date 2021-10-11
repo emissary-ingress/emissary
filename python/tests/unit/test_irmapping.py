@@ -32,7 +32,7 @@ def _get_ir_config(yaml):
 @pytest.mark.compilertest
 def test_ir_mapping():
     yaml = """
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Mapping
 name: slowsvc-slow
 namespace: ambassador

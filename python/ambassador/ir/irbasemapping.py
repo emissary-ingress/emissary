@@ -90,7 +90,7 @@ class IRBaseMapping (IRResource):
                  kind: str,      # REQUIRED
                  namespace: Optional[str] = None,
                  metadata_labels: Optional[Dict[str, str]] = None,
-                 apiVersion: str="getambassador.io/v2",
+                 apiVersion: str="getambassador.io/v3alpha1",
                  precedence: int=0,
                  cluster_tag: Optional[str]=None,
                  **kwargs) -> None:

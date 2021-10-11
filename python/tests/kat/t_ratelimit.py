@@ -302,7 +302,7 @@ labels:
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"
@@ -376,7 +376,7 @@ labels:
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind: RateLimitService
 name: {self.rls.path.k8s}
 service: "{self.rls.path.fqdn}"

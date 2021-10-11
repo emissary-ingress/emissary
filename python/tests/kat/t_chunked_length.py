@@ -11,7 +11,7 @@ class AllowChunkedLengthTestTrue(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: ambassador
 kind:  Module
 name:  ambassador
 config:
