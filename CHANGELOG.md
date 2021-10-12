@@ -97,6 +97,9 @@ feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know w
   version for 2.0.4_ &mdash; full support for `getambassador.io/v2` will arrive soon in a later 2.X
   version.
 
+- Feature: The `getambassador.io/v3alpha1` API version and the published chart and manifests have
+  been updated to support Kubernetes 1.22.
+
 - Feature: You can now set `dns_type` between `strict_dns` and `logical_dns` in a `Mapping` to
   configure the Service Discovery Type.
 
