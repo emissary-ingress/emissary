@@ -89,11 +89,11 @@ def V2HTTPFilter(irfilter: IRFilter, v2config: 'V2Config'):
     if irfilter.kind == 'IRAuth':
         if irfilter.api_version == 'getambassador.io/v0':
             return 'IRAuth_v0'
-        elif irfilter.api_version in ['getambassador.io/v1', 'getambassador.io/v2']:
-            return 'IRAuth_v1-2'
+        elif irfilter.api_version in ['getambassador.io/v1', 'getambassador.io/v2', 'getambassador.io/v3alpha1']:
+            return 'IRAuth_v1-3'
         else:
-            irfilter.post_error('AuthService version %s unknown, treating as v2' % irfilter.api_version)
-            return 'IRAuth_v1-2'
+            irfilter.post_error('AuthService version %s unknown, treating as v3alpha1' % irfilter.api_version)
+            return 'IRAuth_v1-3'
     else:
         return irfilter.kind
 
@@ -231,14 +231,14 @@ def V2HTTPFilter_authv0(auth: IRAuth, v2config: 'V2Config'):
     }
 
 
-@V2HTTPFilter.when("IRAuth_v1-2")
+@V2HTTPFilter.when("IRAuth_v1-3")
 def V2HTTPFilter_authv1(auth: IRAuth, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
 
-    if auth.api_version not in ['getambassador.io/v1', 'getambassador.io/v2']:
+    if auth.api_version not in ['getambassador.io/v1', 'getambassador.io/v2', 'getambassador.io/v3alpha1']:
         auth.ir.logger.warning("IRAuth_v1 working on %s, mismatched at %s" % (auth.name, auth.api_version))
 
     assert auth.proto

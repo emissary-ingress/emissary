@@ -36,7 +36,7 @@ def _get_envoy_config(yaml, version='V3'):
 def test_setting_buffer_limit():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   name: ambassador
@@ -76,7 +76,7 @@ spec:
 def test_setting_buffer_limit_V3():
     yaml = """
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 metadata:
   name: ambassador

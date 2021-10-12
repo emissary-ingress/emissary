@@ -69,7 +69,7 @@ class SimpleMappingIngress(MappingTest):
 
     def manifests(self) -> str:
         return f"""
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -81,14 +81,17 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """
 
     def queries(self):
-        yield Query(self.parent.url(self.name + "/"), xfail="IHA hostglob")
-        yield Query(self.parent.url(f'need-normalization/../{self.name}/'), xfail="IHA hostglob")
+        yield Query(self.parent.url(self.name + "/"))    # , xfail="IHA hostglob")
+        yield Query(self.parent.url(f'need-normalization/../{self.name}/'))    # , xfail="IHA hostglob")
 
     def check(self):
         for r in self.results:
@@ -110,7 +113,7 @@ spec:
 #
 #     def manifests(self) -> str:
 #         return f"""
-# apiVersion: extensions/v1beta1
+# apiVersion: networking.k8s.io/v1
 # kind: Ingress
 # metadata:
 #   annotations:
@@ -119,8 +122,10 @@ spec:
 #   name: {self.name.lower()}
 # spec:
 #   backend:
-#     serviceName: {self.target.path.k8s}
-#     servicePort: 80
+#     service:
+#       name: {self.target.path.k8s}
+#       port:
+#         number: 80
 # """
 #
 #     def queries(self):
@@ -145,7 +150,7 @@ class SimpleIngressWithAnnotations(MappingTest):
 
     def manifests(self) -> str:
         return f"""
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -166,16 +171,19 @@ spec:
   - http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """
 
     def queries(self):
-        yield Query(self.parent.url(self.name + "/"), xfail="IHA hostglob")
-        yield Query(self.parent.url(f'need-normalization/../{self.name}/'), xfail="IHA hostglob")
-        yield Query(self.parent.url(self.name + "-nested/"), xfail="IHA hostglob")
-        yield Query(self.parent.url(self.name + "-non-existent/"), expected=404, xfail="IHA hostglob")
+        yield Query(self.parent.url(self.name + "/")) # , xfail="IHA hostglob")
+        yield Query(self.parent.url(f'need-normalization/../{self.name}/')) # , xfail="IHA hostglob")
+        yield Query(self.parent.url(self.name + "-nested/")) # , xfail="IHA hostglob")
+        yield Query(self.parent.url(self.name + "-non-existent/"), expected=404) # , xfail="IHA hostglob")
 
     def check(self):
         for r in self.results:
@@ -195,7 +203,7 @@ class HostHeaderMappingIngress(MappingTest):
 
     def manifests(self) -> str:
         return f"""
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -208,9 +216,12 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /{self.name}/
+        pathType: Prefix
 """
 
     def queries(self):
@@ -333,10 +344,8 @@ kind: Mapping
 name:  {self.name}
 hostname: "*"
 prefix: /{self.name}/
-service: {self.target.path.fqdn}
-tls: true
+service: https://{self.target.path.fqdn}
 """
-
     @classmethod
     def variants(cls):
         for v in variants(ServiceType):
@@ -638,7 +647,8 @@ add_response_headers:
         value: ZooZ
     test:
         value: boo
-    foo: Foo
+    foo:
+        value: Foo
 """)
 
     def queries(self):
@@ -749,7 +759,8 @@ add_request_headers:
         value: aoo
     boo:
         value: boo
-    foo: Foo
+    foo:
+        value: Foo
 """)
 
     def queries(self):

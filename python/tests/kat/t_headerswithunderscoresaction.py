@@ -35,7 +35,7 @@ class RejectHeadersWithUnderscoresTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind: Module
 name: ambassador
 ambassador_id: [{self.ambassador_id}]

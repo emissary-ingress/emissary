@@ -70,9 +70,9 @@ class CircuitBreakingTest(AmbassadorTest):
         return """
 ---
 apiVersion: getambassador.io/v3alpha1
-kind: Host
+kind: Listener
 metadata:
-  name: cleartext-host
+  name: cleartext-listener
   labels:
     kat-ambassador-id: {self.ambassador_id}
 spec:
@@ -80,6 +80,19 @@ spec:
   port: 8080
   protocol: HTTP
   securityModel: INSECURE
+  hostBinding:
+    selector:
+      matchLabels:
+        kat-ambassador-id: {self.ambassador_id}
+---
+apiVersion: getambassador.io/v3alpha1
+kind: Host
+metadata:
+  name: cleartext-host
+  labels:
+    kat-ambassador-id: {self.ambassador_id}
+spec:
+  ambassador_id: [ {self.ambassador_id} ]
   requestPolicy:
     insecure:
       action: Route

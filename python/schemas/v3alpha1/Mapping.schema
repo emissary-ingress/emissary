@@ -16,33 +16,29 @@
         "add_request_headers": {
             "type": "object",
             "additionalProperties": {
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
+                "type": "object",
+                "properties": {
+                    "append": {
                         "type": "boolean"
                     },
-                    {
-                        "type": "object"
+                    "value": {
+                        "type": "string"
                     }
-                ]
+                }
             }
         },
         "add_response_headers": {
             "type": "object",
             "additionalProperties": {
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
+                "type": "object",
+                "properties": {
+                    "append": {
                         "type": "boolean"
                     },
-                    {
-                        "type": "object"
+                    "value": {
+                        "type": "string"
                     }
-                ]
+                }
             }
         },
         "allow_upgrade": {
@@ -189,7 +185,8 @@
         },
         "envoy_override": {
             "description": "UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.",
-            "type": "object"
+            "type": "object",
+            "x-kubernetes-preserve-unknown-fields": true
         },
         "error_response_overrides": {
             "description": "Error response overrides for this Mapping. Replaces all of the `error_response_overrides` set on the Ambassador module, if any.",
@@ -252,15 +249,7 @@
         "headers": {
             "type": "object",
             "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+                "type": "string"
             }
         },
         "host": {
@@ -312,11 +301,98 @@
                 "items": {
                     "description": "A MappingLabelGroup is a single element of a MappingLabelGroupsArray: a second map, where the key is a human-readable name that identifies the group.",
                     "type": "object",
+                    "maxProperties": 1,
+                    "minProperties": 1,
                     "additionalProperties": {
                         "description": "A MappingLabelsArray is the value in the MappingLabelGroup: an array of label specifiers.",
                         "type": "array",
                         "items": {
-                            "description": "A MappingLabelSpecifier (finally!) defines a single label. There are multiple kinds of label, so this is more complex than we'd like it to be. See the remarks about schema on custom types in `./common.go`."
+                            "description": "A MappingLabelSpecifier (finally!) defines a single label. \n This mimics envoy/config/route/v3/route_components.proto:RateLimit:Action:action_specifier.",
+                            "type": "object",
+                            "maxProperties": 1,
+                            "minProperties": 1,
+                            "properties": {
+                                "destination_cluster": {
+                                    "description": "Sets the label \"destination_cluster=«Envoy destination cluster name»\".",
+                                    "type": "object",
+                                    "required": [
+                                        "key"
+                                    ],
+                                    "properties": {
+                                        "key": {
+                                            "type": "string",
+                                            "enum": [
+                                                "destination_cluster"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "generic_key": {
+                                    "description": "Sets the label \"«key»=«value»\" (where by default «key» is \"generic_key\").",
+                                    "type": "object",
+                                    "required": [
+                                        "value"
+                                    ],
+                                    "properties": {
+                                        "key": {
+                                            "description": "The default is \"generic_key\".",
+                                            "type": "string"
+                                        },
+                                        "value": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "remote_address": {
+                                    "description": "Sets the label \"remote_address=«IP address of the client»\".",
+                                    "type": "object",
+                                    "required": [
+                                        "key"
+                                    ],
+                                    "properties": {
+                                        "key": {
+                                            "type": "string",
+                                            "enum": [
+                                                "remote_address"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "request_headers": {
+                                    "description": "If the «header_name» header is set, then set the label \"«key»=«Value of the «header_name» header»\"; otherwise skip applying this label group.",
+                                    "type": "object",
+                                    "required": [
+                                        "header_name",
+                                        "key"
+                                    ],
+                                    "properties": {
+                                        "header_name": {
+                                            "type": "string"
+                                        },
+                                        "key": {
+                                            "type": "string"
+                                        },
+                                        "omit_if_not_present": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                },
+                                "source_cluster": {
+                                    "description": "Sets the label \"source_cluster=«Envoy source cluster name»\".",
+                                    "type": "object",
+                                    "required": [
+                                        "key"
+                                    ],
+                                    "properties": {
+                                        "key": {
+                                            "type": "string",
+                                            "enum": [
+                                                "source_cluster"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -378,7 +454,8 @@
             "type": "array",
             "items": {
                 "description": "UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.",
-                "type": "object"
+                "type": "object",
+                "x-kubernetes-preserve-unknown-fields": true
             }
         },
         "name": {
@@ -416,15 +493,7 @@
         "query_parameters": {
             "type": "object",
             "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+                "type": "string"
             }
         },
         "redirect_response_code": {
@@ -441,58 +510,36 @@
         "regex_headers": {
             "type": "object",
             "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+                "type": "string"
             }
         },
         "regex_query_parameters": {
             "type": "object",
             "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+                "type": "string"
             }
         },
         "regex_redirect": {
             "description": "Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.",
             "type": "object",
-            "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+            "properties": {
+                "pattern": {
+                    "type": "string"
+                },
+                "substitution": {
+                    "type": "string"
+                }
             }
         },
         "regex_rewrite": {
             "type": "object",
-            "additionalProperties": {
-                "description": "BoolOrString is a type that can hold a Boolean or a string.",
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
-                        "type": "boolean"
-                    }
-                ]
+            "properties": {
+                "pattern": {
+                    "type": "string"
+                },
+                "substitution": {
+                    "type": "string"
+                }
             }
         },
         "remove_request_headers": {
@@ -552,15 +599,7 @@
             "type": "integer"
         },
         "tls": {
-            "description": "BoolOrString is a type that can hold a Boolean or a string.",
-            "oneOf": [
-                {
-                    "type": "string"
-                },
-                {
-                    "type": "boolean"
-                }
-            ]
+            "type": "string"
         },
         "use_websocket": {
             "description": "use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: [\"websocket\"]`",

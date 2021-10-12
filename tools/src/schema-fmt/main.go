@@ -10,7 +10,7 @@ import (
 	"os"
 
 	"github.com/google/go-cmp/cmp"
-	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
 	"github.com/datawire/dlib/dlog"
 )

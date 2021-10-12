@@ -355,8 +355,8 @@ spec:
         create_headerecho_mapping(namespace=namespace)
 
         # Now let's wait for ambassador and httpbin pods to become ready
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=httpbin', '-n', namespace])
+        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
+        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=httpbin', '-n', namespace])
 
         # Assume we can reach Ambassador through telepresence
         ambassador_host = "ambassador." + namespace

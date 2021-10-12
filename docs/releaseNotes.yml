@@ -53,8 +53,15 @@ items:
           <code>getambassador.io/v3alpha1</code> API version. The <code>Ambassador-</code>
           prefixes from <code>x.getambassador.io/v3alpha1</code> resources have been
           removed for ease of migration. <b>Note that <code>getambassador.io/v3alpha1</code>
-          is the only supported API version for 2.0.4<b> &mdash; full support for
+          is the only supported API version for 2.0.4</b> &mdash; full support for
           <code>getambassador.io/v2</code> will arrive soon in a later 2.X version.
+        docs: about/changes-2.0.0
+
+      - title: Support for Kubernetes 1.22
+        type: feature
+        body: >-
+          The <code>getambassador.io/v3alpha1</code> API version and the published chart
+          and manifests have been updated to support Kubernetes 1.22.
         docs: about/changes-2.0.0
 
       - title: Mappings support configuring strict or logical DNS

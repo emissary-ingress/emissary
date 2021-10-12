@@ -43,7 +43,7 @@ imagePullSecrets:
 - name: {{ .Values.docker.imagePullSecretName }}
 {{- end }}
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ include "ambassador.fullname" . }}-agent-config
@@ -70,7 +70,7 @@ subjects:
   name: {{ include "ambassador.fullname" . }}-agent
   namespace: {{ include "ambassador.namespace" . }}
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {{ include "ambassador.fullname" . }}-agent-config
@@ -93,7 +93,7 @@ rules:
   resources: [ "configmaps" ]
   verbs: [ "get", "list", "watch" ]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: {{ include "ambassador.fullname" . }}-agent
@@ -119,7 +119,7 @@ subjects:
   name: {{ include "ambassador.fullname" . }}-agent
   namespace: {{ include "ambassador.namespace" . }}
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {{ include "ambassador.fullname" . }}-agent
@@ -142,7 +142,7 @@ aggregationRule:
       rbac.getambassador.io/role-group: {{ include "ambassador.rbacName" . }}-agent
 rules: []
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {{ include "ambassador.fullname" . }}-agent-pods
@@ -165,7 +165,7 @@ rules:
   resources: [ "pods"]
   verbs: [ "get", "list", "watch" ]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {{ include "ambassador.fullname" . }}-agent-deployments
@@ -188,7 +188,7 @@ rules:
   resources: [ "deployments" ]
   verbs: [ "get", "list", "watch" ]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {{ include "ambassador.fullname" . }}-agent-endpoints
@@ -211,7 +211,7 @@ rules:
   resources: [ "endpoints" ]
   verbs: [ "get", "list", "watch" ]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {{ include "ambassador.fullname" . }}-agent-configmaps
@@ -235,7 +235,7 @@ rules:
   verbs: [ "get", "list", "watch" ]
 ---
 {{- if .Values.agent.createArgoRBAC }}
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {{ include "ambassador.fullname" . }}-agent-rollouts
@@ -258,7 +258,7 @@ rules:
   resources: [ "rollouts" ]
   verbs: [ "get", "list", "watch" ]
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {{ include "ambassador.fullname" . }}-agent-applications

@@ -28,11 +28,6 @@ runs:
           awscli
           packaging
       name: "Install Python requirements with pip"
-    - uses: azure/setup-kubectl@v1
-      id: install
-      with:
-        version: 'v1.19.12'
-      name: "Install kubectl (v1.19.12)" # maybe not?
     - name: "Install and start k3d"
       shell: bash
       run: |

@@ -100,8 +100,8 @@ spec:
         self.apply_qotm_endpoint_manifests(namespace=namespace)
 
         # Now let's wait for ambassador and QOTM pods to become ready
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
-        run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=qotm', '-n', namespace])
+        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
+        run_and_assert(['tools/bin/kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=qotm', '-n', namespace])
 
         # Assume we can reach Ambassador through telepresence
         qotm_host = "ambassador." + namespace

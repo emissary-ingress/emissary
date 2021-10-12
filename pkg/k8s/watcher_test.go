@@ -46,7 +46,7 @@ func fetch(ctx context.Context, w *k8s.Watcher, resource, qname string) (result 
 }
 
 func info(ctx context.Context) *k8s.KubeInfo {
-	return k8s.NewKubeInfo(dtest.Kubeconfig(ctx), "", "")
+	return k8s.NewKubeInfo(dtest.KubeVersionConfig(ctx, dtest.Kube22), "", "")
 }
 
 func TestUpdateStatus(t *testing.T) {
@@ -109,15 +109,9 @@ func TestWatchCustomCollision(t *testing.T) {
 
 	easter, err := fetch(ctx, w, "csrv", "easter.default")
 	require.NoError(t, err)
-	if easter == nil {
-		t.Error("couln't find easter")
-	} else {
-		spec := easter.Spec()
-		deck := spec["deck"]
-		if deck != "the lawn" {
-			t.Errorf("expected the lawn, got %v", deck)
-		}
-	}
+	require.NotNil(t, easter)
+	t.Logf("easter: %#v", easter)
+	require.Equal(t, "the lawn", easter.Spec()["deck"])
 }
 
 func TestWatchQuery(t *testing.T) {

@@ -24,7 +24,7 @@ class NormalizedResource:
 
     @classmethod
     def from_data(cls, kind: str, name: str, namespace: Optional[str] = None,
-                  generation: Optional[int] = None, version: str = 'v2',
+                  generation: Optional[int] = None, version: str = 'v3alpha1',
                   api_group = 'getambassador.io',
                   labels: Optional[Dict[str, Any]] = None,
                   spec: Dict[str, Any] = None, errors: Optional[str] = None,

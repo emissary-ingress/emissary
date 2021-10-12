@@ -21,7 +21,7 @@ func testClient(t *testing.T, ctx context.Context) (context.Context, *Client) {
 	if ctx == nil {
 		ctx = dlog.NewTestContext(t, false)
 	}
-	cli, err := NewClient(ClientConfig{Kubeconfig: dtest_k3s.Kubeconfig(ctx)})
+	cli, err := NewClient(ClientConfig{Kubeconfig: dtest_k3s.KubeVersionConfig(ctx, dtest_k3s.Kube22)})
 	require.NoError(t, err)
 	return ctx, cli
 }
@@ -419,33 +419,44 @@ func TestDeltasWithRemoteDelay(t *testing.T) {
 }
 
 func doDeltaTest(t *testing.T, localDelay time.Duration, watchHook func(*Unstructured, *Unstructured)) {
-	ctx, cli := testClient(t, nil)
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	_ctx, cli := testClient(t, nil)
+	var (
+		_cm1 = &ConfigMap{
+			TypeMeta: TypeMeta{
+				Kind: "ConfigMap",
+			},
+			ObjectMeta: ObjectMeta{
+				Name:   "test-deltas-1",
+				Labels: map[string]string{},
+			},
+		}
+		_cm2 = &ConfigMap{
+			TypeMeta: TypeMeta{
+				Kind: "ConfigMap",
+			},
+			ObjectMeta: ObjectMeta{
+				Name:   "test-deltas-2",
+				Labels: map[string]string{},
+			},
+		}
+	)
+	t.Cleanup(func() {
+		if err := cli.Delete(_ctx, _cm1, nil); err != nil && !IsNotFound(err) {
+			t.Error(err)
+		}
+		if err := cli.Delete(_ctx, _cm2, nil); err != nil && !IsNotFound(err) {
+			t.Error(err)
+		}
+	})
+
+	ctx, cancel := context.WithTimeout(_ctx, 30*time.Second)
 	defer cancel()
 
 	cli.watchAdded = watchHook
 	cli.watchUpdated = watchHook
 	cli.watchDeleted = watchHook
 
-	cm1 := &ConfigMap{
-		TypeMeta: TypeMeta{
-			Kind: "ConfigMap",
-		},
-		ObjectMeta: ObjectMeta{
-			Name:   "test-deltas-1",
-			Labels: map[string]string{},
-		},
-	}
-
-	cm2 := &ConfigMap{
-		TypeMeta: TypeMeta{
-			Kind: "ConfigMap",
-		},
-		ObjectMeta: ObjectMeta{
-			Name:   "test-deltas-2",
-			Labels: map[string]string{},
-		},
-	}
+	cm1, cm2 := _cm1, _cm2
 
 	defer func() {
 		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)

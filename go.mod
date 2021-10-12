@@ -53,7 +53,7 @@ require (
 	github.com/census-instrumentation/opencensus-proto v0.2.1
 	github.com/cncf/udpa/go v0.0.0-20210322005330-6414d713912e
 	github.com/datawire/dlib v1.2.4-0.20210629021142-e221f3b9c3b8
-	github.com/datawire/dtest v0.0.0-20210914162017-6f63de0a5718
+	github.com/datawire/dtest v0.0.0-20210927191556-2cccf1a938b0
 	github.com/envoyproxy/protoc-gen-validate v0.3.0-java.0.20200609174644-bd816e4522c1
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/getkin/kin-openapi v0.66.0
@@ -91,7 +91,7 @@ require (
 	k8s.io/kubernetes v1.20.2
 	k8s.io/metrics v0.20.2
 	sigs.k8s.io/controller-runtime v0.8.0
-	sigs.k8s.io/controller-tools v0.4.1
+	sigs.k8s.io/controller-tools v0.5.0
 	sigs.k8s.io/gateway-api v0.2.0
 	sigs.k8s.io/yaml v1.2.0
 )

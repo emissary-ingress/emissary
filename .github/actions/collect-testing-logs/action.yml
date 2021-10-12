@@ -38,10 +38,12 @@ runs:
           exit 0
         fi
 
+        make tools/bin/kubectl
+
         mkdir -p /tmp/pod-logs
         podsfile=/tmp/pod-logs/all-pods.txt
-        (kubectl get pods --all-namespaces -ocustom-columns="name:.metadata.name,namespace:.metadata.namespace " --no-headers || true) > $podsfile
-        (kubectl describe pods --all-namespaces || true) > /tmp/pod-logs/all-pods-described.txt
+        (tools/bin/kubectl get pods --all-namespaces -ocustom-columns="name:.metadata.name,namespace:.metadata.namespace " --no-headers || true) > $podsfile
+        (tools/bin/kubectl describe pods --all-namespaces || true) > /tmp/pod-logs/all-pods-described.txt
 
         cat $podsfile | while IFS= read -r line; do
           name=$(echo $line | awk '{print $1}')
@@ -49,7 +51,7 @@ runs:
           nsdir=/tmp/pod-logs/${ns}/
           mkdir -p $nsdir
           outfile=${nsdir}/${name}-pod.log
-          (kubectl logs -n $ns $name > $outfile || echo "FAILED, status $ret, continuing...") || true
+          (tools/bin/kubectl logs -n $ns $name > $outfile || echo "FAILED, status $ret, continuing...") || true
         done
     # upload artifacts
     - name: "Upload Test Logs (test-logs)"

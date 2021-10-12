@@ -20,9 +20,6 @@
 package v3alpha1
 
 import (
-	"encoding/json"
-	"errors"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -61,27 +58,27 @@ type MappingSpec struct {
 	// Prefix rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
 	PrefixRedirect string `json:"prefix_redirect,omitempty"`
 	// Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
-	RegexRedirect map[string]BoolOrString `json:"regex_redirect,omitempty"`
+	RegexRedirect *RegexMap `json:"regex_redirect,omitempty"`
 	// The response code to use when generating an HTTP redirect. Defaults to 301. Used with
 	// `host_redirect`.
 	// +kubebuilder:validation:Enum={301,302,303,307,308}
-	RedirectResponseCode           *int                    `json:"redirect_response_code,omitempty"`
-	Priority                       string                  `json:"priority,omitempty"`
-	Precedence                     *int                    `json:"precedence,omitempty"`
-	ClusterTag                     string                  `json:"cluster_tag,omitempty"`
-	RemoveRequestHeaders           []string                `json:"remove_request_headers,omitempty"`
-	RemoveResponseHeaders          []string                `json:"remove_response_headers,omitempty"`
-	Resolver                       string                  `json:"resolver,omitempty"`
-	Rewrite                        *string                 `json:"rewrite,omitempty"`
-	RegexRewrite                   map[string]BoolOrString `json:"regex_rewrite,omitempty"`
-	Shadow                         *bool                   `json:"shadow,omitempty"`
-	ConnectTimeoutMs               *int                    `json:"connect_timeout_ms,omitempty"`
-	ClusterIdleTimeoutMs           *int                    `json:"cluster_idle_timeout_ms,omitempty"`
-	ClusterMaxConnectionLifetimeMs int                     `json:"cluster_max_connection_lifetime_ms,omitempty"`
+	RedirectResponseCode           *int      `json:"redirect_response_code,omitempty"`
+	Priority                       string    `json:"priority,omitempty"`
+	Precedence                     *int      `json:"precedence,omitempty"`
+	ClusterTag                     string    `json:"cluster_tag,omitempty"`
+	RemoveRequestHeaders           []string  `json:"remove_request_headers,omitempty"`
+	RemoveResponseHeaders          []string  `json:"remove_response_headers,omitempty"`
+	Resolver                       string    `json:"resolver,omitempty"`
+	Rewrite                        *string   `json:"rewrite,omitempty"`
+	RegexRewrite                   *RegexMap `json:"regex_rewrite,omitempty"`
+	Shadow                         *bool     `json:"shadow,omitempty"`
+	ConnectTimeoutMs               *int      `json:"connect_timeout_ms,omitempty"`
+	ClusterIdleTimeoutMs           *int      `json:"cluster_idle_timeout_ms,omitempty"`
+	ClusterMaxConnectionLifetimeMs int       `json:"cluster_max_connection_lifetime_ms,omitempty"`
 	// The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
-	TimeoutMs     *int          `json:"timeout_ms,omitempty"`
-	IdleTimeoutMs *int          `json:"idle_timeout_ms,omitempty"`
-	TLS           *BoolOrString `json:"tls,omitempty"`
+	TimeoutMs     *int   `json:"timeout_ms,omitempty"`
+	IdleTimeoutMs *int   `json:"idle_timeout_ms,omitempty"`
+	TLS           string `json:"tls,omitempty"`
 
 	// use_websocket is deprecated, and is equivlaent to setting
 	// `allow_upgrade: ["websocket"]`
@@ -141,15 +138,20 @@ type MappingSpec struct {
 	//
 	// If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is
 	// used.
-	Hostname             string                  `json:"hostname,omitempty"`
-	Headers              map[string]BoolOrString `json:"headers,omitempty"`
-	RegexHeaders         map[string]BoolOrString `json:"regex_headers,omitempty"`
-	Labels               DomainMap               `json:"labels,omitempty"`
-	EnvoyOverride        *UntypedDict            `json:"envoy_override,omitempty"`
-	LoadBalancer         *LoadBalancer           `json:"load_balancer,omitempty"`
-	QueryParameters      map[string]BoolOrString `json:"query_parameters,omitempty"`
-	RegexQueryParameters map[string]BoolOrString `json:"regex_query_parameters,omitempty"`
-	StatsName            string                  `json:"stats_name,omitempty"`
+	Hostname             string            `json:"hostname,omitempty"`
+	Headers              map[string]string `json:"headers,omitempty"`
+	RegexHeaders         map[string]string `json:"regex_headers,omitempty"`
+	Labels               DomainMap         `json:"labels,omitempty"`
+	EnvoyOverride        *UntypedDict      `json:"envoy_override,omitempty"`
+	LoadBalancer         *LoadBalancer     `json:"load_balancer,omitempty"`
+	QueryParameters      map[string]string `json:"query_parameters,omitempty"`
+	RegexQueryParameters map[string]string `json:"regex_query_parameters,omitempty"`
+	StatsName            string            `json:"stats_name,omitempty"`
+}
+
+type RegexMap struct {
+	Pattern      string `json:"pattern,omitempty"`
+	Substitution string `json:"substitution,omitempty"`
 }
 
 // DocsInfo provides some extra information about the docs for the Mapping.
@@ -175,179 +177,81 @@ type MappingLabelGroupsArray []MappingLabelGroup
 
 // A MappingLabelGroup is a single element of a MappingLabelGroupsArray: a second
 // map, where the key is a human-readable name that identifies the group.
+//
+// +kubebuilder:validation:MinProperties=1
+// +kubebuilder:validation:MaxProperties=1
 type MappingLabelGroup map[string]MappingLabelsArray
 
 // A MappingLabelsArray is the value in the MappingLabelGroup: an array of label
 // specifiers.
 type MappingLabelsArray []MappingLabelSpecifier
 
-// A MappingLabelSpecifier (finally!) defines a single label. There are multiple
-// kinds of label, so this is more complex than we'd like it to be. See the remarks
-// about schema on custom types in `./common.go`.
+// A MappingLabelSpecifier (finally!) defines a single label.
 //
-// +kubebuilder:validation:Type=""
+// This mimics envoy/config/route/v3/route_components.proto:RateLimit:Action:action_specifier.
+//
+// +kubebuilder:validation:MinProperties=1
+// +kubebuilder:validation:MaxProperties=1
 type MappingLabelSpecifier struct {
-	String  *string                  `json:"-"` // source-cluster, destination-cluster, remote-address, or shorthand generic
-	Header  MappingLabelSpecHeader   `json:"-"` // header (NB: no need to make this a pointer because MappingLabelSpecHeader is already nil-able)
-	Generic *MappingLabelSpecGeneric `json:"-"` // longhand generic
+	// Sets the label "source_cluster=«Envoy source cluster name»".
+	SourceCluster *MappingLabelSpecifier_SourceCluster `json:"source_cluster,omitempty"`
+
+	// Sets the label "destination_cluster=«Envoy destination cluster name»".
+	DestinationCluster *MappingLabelSpecifier_DestinationCluster `json:"destination_cluster,omitempty"`
+
+	// If the «header_name» header is set, then set the label "«key»=«Value of the
+	// «header_name» header»"; otherwise skip applying this label group.
+	RequestHeaders *MappingLabelSpecifier_RequestHeaders `json:"request_headers,omitempty"`
+
+	// Sets the label "remote_address=«IP address of the client»".
+	RemoteAddress *MappingLabelSpecifier_RemoteAddress `json:"remote_address,omitempty"`
+
+	// Sets the label "«key»=«value»" (where by default «key»
+	// is "generic_key").
+	GenericKey *MappingLabelSpecifier_GenericKey `json:"generic_key,omitempty"`
+
+	// TODO: Consider implementing `header_value_match`, `metadata`, or `extension`?
 }
 
-// A MappingLabelSpecHeaderStruct is the value struct for MappingLabelSpecifier.Header:
-// the form of MappingLabelSpecifier to use when you want to take the label value from
-// an HTTP header. (If we make this an anonymous struct like the others, it breaks the
-// generation of its deepcopy routine. Sigh.)
-type MappingLabelSpecHeaderStruct struct {
-	Header string `json:"header,omitifempty"`
-	// XXX This is bool rather than *bool because it breaks zz_generated_deepcopy. ???!
+type MappingLabelSpecifier_SourceCluster struct {
+	// +kubebuilder:validation:Enum={"source_cluster"}
+	// +kubebuilder:validation:Required
+	Key string `json:"key"`
+}
+
+type MappingLabelSpecifier_DestinationCluster struct {
+	// +kubebuilder:validation:Enum={"destination_cluster"}
+	// +kubebuilder:validation:Required
+	Key string `json:"key"`
+}
+
+type MappingLabelSpecifier_RequestHeaders struct {
+	// +kubebuilder:validation:Required
+	Key string `json:"key"`
+
+	// +kubebuilder:validation:Required
+	HeaderName string `json:"header_name"`
+
 	OmitIfNotPresent *bool `json:"omit_if_not_present,omitempty"`
 }
 
-// A MappingLabelSpecHeader is just the aggregate map of MappingLabelSpecHeaderStruct,
-// above. The key in the map is the label key that it will set to that header value;
-// there must be exactly one key in the map.
-type MappingLabelSpecHeader map[string]MappingLabelSpecHeaderStruct
-
-// func (in *MappingLabelSpecHeader) DeepCopyInfo(out *MappingLabelSpecHeader) {
-// 	x := in.OmitIfNotPresent
-
-// 	out = MappingLabelSpecHeader{
-// 		Header:           in.Header,
-// 		OmitIfNotPresent: &x,
-// 	}
-
-// 	return &out
-// }
-
-// A MappingLabelSpecGeneric is a longhand generic key: it states a string which
-// will be included literally in the label.
-type MappingLabelSpecGeneric struct {
-	GenericKey string `json:"generic_key"`
+type MappingLabelSpecifier_RemoteAddress struct {
+	// +kubebuilder:validation:Enum={"remote_address"}
+	// +kubebuilder:validation:Required
+	Key string `json:"key"`
 }
 
-// MarshalJSON is important both so that we generate the proper
-// output, and to trigger controller-gen to not try to generate
-// jsonschema for our sub-fields:
-// https://github.com/kubernetes-sigs/controller-tools/pull/427
-func (o MappingLabelSpecifier) MarshalJSON() ([]byte, error) {
-	nonNil := uint(0)
+type MappingLabelSpecifier_GenericKey struct {
+	// The default is "generic_key".
+	Key string `json:"key,omitempty"`
 
-	if o.String != nil {
-		nonNil++
-	}
-	if o.Header != nil {
-		nonNil++
-	}
-	if o.Generic != nil {
-		nonNil++
-	}
-
-	switch nonNil {
-	case 0:
-		return json.Marshal(nil)
-	case 1:
-		// OK, exactly one thing is set. Marshal it.
-		switch {
-		case o.String != nil:
-			return json.Marshal(o.String)
-		case o.Header != nil:
-			return json.Marshal(o.Header)
-		case o.Generic != nil:
-			return json.Marshal(o.Generic)
-		default:
-			// We already checked that nonNil == 1, so this can't happen.
-			panic("not reached")
-		}
-	default:
-		return nil, errors.New("invalid MappingLabelSpecifier")
-	}
+	// +kubebuilder:validation:Required
+	Value string `json:"value"`
 }
 
-// UnmarshalJSON is MarshalJSON's other half.
-func (o *MappingLabelSpecifier) UnmarshalJSON(data []byte) error {
-	// Handle "null" straight off...
-	if string(data) == "null" {
-		*o = MappingLabelSpecifier{}
-		return nil
-	}
-
-	// ...and if it's anything else, try all the possibilities in turn.
-	var err error
-
-	var header MappingLabelSpecHeader
-
-	if err = json.Unmarshal(data, &header); err == nil {
-		*o = MappingLabelSpecifier{Header: header}
-		return nil
-	}
-
-	var generic MappingLabelSpecGeneric
-
-	if err = json.Unmarshal(data, &generic); err == nil {
-		*o = MappingLabelSpecifier{Generic: &generic}
-		return nil
-	}
-
-	var str string
-
-	if err = json.Unmarshal(data, &str); err == nil {
-		*o = MappingLabelSpecifier{String: &str}
-		return nil
-	}
-
-	return errors.New("could not unmarshal MappingLabelSpecifier: invalid input")
-}
-
-// +kubebuilder:validation:Type="d6e-union:string,boolean,object"
 type AddedHeader struct {
-	String *string      `json:"-"`
-	Bool   *bool        `json:"-"`
-	Object *UntypedDict `json:"-"`
-}
-
-// MarshalJSON is important both so that we generate the proper
-// output, and to trigger controller-gen to not try to generate
-// jsonschema for our sub-fields:
-// https://github.com/kubernetes-sigs/controller-tools/pull/427
-func (o AddedHeader) MarshalJSON() ([]byte, error) {
-	switch {
-	case o.String != nil:
-		return json.Marshal(*o.String)
-	case o.Bool != nil:
-		return json.Marshal(*o.Bool)
-	case o.Object != nil:
-		return json.Marshal(*o.Object)
-	default:
-		return json.Marshal(nil)
-	}
-}
-
-func (o *AddedHeader) UnmarshalJSON(data []byte) error {
-	if string(data) == "null" {
-		*o = AddedHeader{}
-		return nil
-	}
-
-	var err error
-
-	var str string
-	if err = json.Unmarshal(data, &str); err == nil {
-		*o = AddedHeader{String: &str}
-		return nil
-	}
-
-	var b bool
-	if err = json.Unmarshal(data, &b); err == nil {
-		*o = AddedHeader{Bool: &b}
-		return nil
-	}
-
-	var obj UntypedDict
-	if err = json.Unmarshal(data, &obj); err == nil {
-		*o = AddedHeader{Object: &obj}
-		return nil
-	}
-
-	return err
+	Value  string `json:"value,omitempty"`
+	Append *bool  `json:"append,omitempty"`
 }
 
 type KeepAlive struct {
