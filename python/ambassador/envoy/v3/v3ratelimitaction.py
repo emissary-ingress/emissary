@@ -78,14 +78,14 @@ class V3RateLimitAction(dict):
             elif dkey == 'generic_key':
                 self.save_action({
                     'generic_key': {
-                        'descriptor_key': action[dkey].get('descriptor_key', 'generic_key'),
-                        'descriptor_value': action[dkey]['descriptor_value'],
+                        'descriptor_key': action[dkey].get('key', 'generic_key'),
+                        'descriptor_value': action[dkey]['value'],
                     },
                 })
             elif dkey == 'request_headers':
                 self.save_action({
                     'request_headers': {
-                        'descriptor_key': action[dkey]['descriptor_key'],
+                        'descriptor_key': action[dkey]['key'],
                         'header_name': action[dkey]['header_name'],
                         # This line was written and commented out with the comment "Need to upgrade
                         # to Envoy API v3 to set `skip_if_absent`."  Well, we're on Envoy API v3,
@@ -101,7 +101,7 @@ class V3RateLimitAction(dict):
             ### ... and it was written for the old getambassador.io/v{1,2} version of labels:
             ###
             ###     action = {
-            ###         f'{descriptor_key}': {                      # AKA 'dkey'
+            ###         f'{key}': {                      # AKA 'dkey'
             ###             'header_name':         f'{hdr_name}',
             ###             'default':             f'{default}',    # not actually implemented
             ###             'omit_if_not_present': bool,            # optional
@@ -132,7 +132,7 @@ class V3RateLimitAction(dict):
             #                         'present_match': True
             #                     }],
             #                     'expect_match': False,
-            #                     'descriptor_value': hdr_default
+            #                     'value': hdr_default
             #                 }
             #             })
             else:

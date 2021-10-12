@@ -78,15 +78,16 @@ class V2RateLimitAction(dict):
             elif dkey == 'generic_key':
                 self.save_action({
                     'generic_key': {
-                        # Need to upgrade to Envoy API v3 to set `descriptor_key`.
-                        #'descriptor_key': action[dkey].get('descriptor_key', 'generic_key'),
-                        'descriptor_value': action[dkey]['descriptor_value'],
+                        # This is the v2ratelimitaction, and Envoy V2 doesn't support setting
+                        # the key for a generic_key. Sigh.
+                        #'descriptor_key': action[dkey].get('key', 'generic_key'),
+                        'descriptor_value': action[dkey]['value'],
                     },
                 })
             elif dkey == 'request_headers':
                 self.save_action({
                     'request_headers': {
-                        'descriptor_key': action[dkey]['descriptor_key'],
+                        'descriptor_key': action[dkey]['key'],
                         'header_name': action[dkey]['header_name'],
                         # Need to upgrade to Envoy API v3 to set `skip_if_absent`.
                         #'skip_if_absent': action[dkey].get('omit_if_not_present', False),
@@ -98,7 +99,7 @@ class V2RateLimitAction(dict):
             ### ... and it was written for the old getambassador.io/v{1,2} version of labels:
             ###
             ###     action = {
-            ###         f'{descriptor_key}': {                      # AKA 'dkey'
+            ###         f'{key}': {                      # AKA 'dkey'
             ###             'header_name':         f'{hdr_name}',
             ###             'default':             f'{default}',    # not actually implemented
             ###             'omit_if_not_present': bool,            # optional
@@ -129,7 +130,7 @@ class V2RateLimitAction(dict):
             #                         'present_match': True
             #                     }],
             #                     'expect_match': False,
-            #                     'descriptor_value': hdr_default
+            #                     'value': hdr_default
             #                 }
             #             })
             else:

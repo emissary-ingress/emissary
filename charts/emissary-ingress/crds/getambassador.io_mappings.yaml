@@ -251,56 +251,56 @@ spec:
                           destination_cluster:
                             description: Sets the label "destination_cluster=«Envoy destination cluster name»".
                             properties:
-                              descriptor_key:
+                              key:
                                 enum:
                                 - destination_cluster
                                 type: string
                             required:
-                            - descriptor_key
+                            - key
                             type: object
                           generic_key:
-                            description: Sets the label "«descriptor_key»=«descriptor_value»" (where by default «descriptor_key» is "generic_key").
+                            description: Sets the label "«key»=«value»" (where by default «key» is "generic_key").
                             properties:
-                              descriptor_key:
+                              key:
                                 description: The default is "generic_key".
                                 type: string
-                              descriptor_value:
+                              value:
                                 type: string
                             required:
-                            - descriptor_value
+                            - value
                             type: object
                           remote_address:
                             description: Sets the label "remote_address=«IP address of the client»".
                             properties:
-                              descriptor_key:
+                              key:
                                 enum:
                                 - remote_address
                                 type: string
                             required:
-                            - descriptor_key
+                            - key
                             type: object
                           request_headers:
-                            description: If the «header_name» header is set, then set the label "«descriptor_key»=«Value of the «header_name» header»"; otherwise skip applying this label group.
+                            description: If the «header_name» header is set, then set the label "«key»=«Value of the «header_name» header»"; otherwise skip applying this label group.
                             properties:
-                              descriptor_key:
-                                type: string
                               header_name:
+                                type: string
+                              key:
                                 type: string
                               omit_if_not_present:
                                 type: boolean
                             required:
-                            - descriptor_key
                             - header_name
+                            - key
                             type: object
                           source_cluster:
                             description: Sets the label "source_cluster=«Envoy source cluster name»".
                             properties:
-                              descriptor_key:
+                              key:
                                 enum:
                                 - source_cluster
                                 type: string
                             required:
-                            - descriptor_key
+                            - key
                             type: object
                         type: object
                       type: array

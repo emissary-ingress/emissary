@@ -426,9 +426,9 @@ class IRHTTPMapping (IRBaseMapping):
                     # forcing back in the pre-0.50 days.
 
                     label_specs: List[Dict[str,Any]] = [
-                        { 'source_cluster': { 'descriptor_key': 'source_cluster' } },
-                        { 'destination_cluster': { 'descriptor_key': 'destination_cluster' } },
-                        { 'remote_address': { 'descriptor_key': 'remote_address' } },
+                        { 'source_cluster': { 'key': 'source_cluster' } },
+                        { 'destination_cluster': { 'key': 'destination_cluster' } },
+                        { 'remote_address': { 'key': 'remote_address' } },
                     ]
 
                     # Next up: old rate_limit "descriptor" becomes label "generic_key".
@@ -443,7 +443,7 @@ class IRHTTPMapping (IRBaseMapping):
                     for rate_limit_header in rate_limit_headers:
                         label_specs.append({
                             'request_headers': {
-                                'descriptor_key': rate_limit_header,
+                                'key': rate_limit_header,
                                 'header_name': rate_limit_header,
                                 # XXX: This has been setting `omit_if_not_present` for a long time,
                                 # but prior to 2.0.4 the backend ignored it... so maybe we should

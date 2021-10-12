@@ -199,14 +199,14 @@ type MappingLabelSpecifier struct {
 	// Sets the label "destination_cluster=«Envoy destination cluster name»".
 	DestinationCluster *MappingLabelSpecifier_DestinationCluster `json:"destination_cluster,omitempty"`
 
-	// If the «header_name» header is set, then set the label "«descriptor_key»=«Value of the
+	// If the «header_name» header is set, then set the label "«key»=«Value of the
 	// «header_name» header»"; otherwise skip applying this label group.
 	RequestHeaders *MappingLabelSpecifier_RequestHeaders `json:"request_headers,omitempty"`
 
 	// Sets the label "remote_address=«IP address of the client»".
 	RemoteAddress *MappingLabelSpecifier_RemoteAddress `json:"remote_address,omitempty"`
 
-	// Sets the label "«descriptor_key»=«descriptor_value»" (where by default «descriptor_key»
+	// Sets the label "«key»=«value»" (where by default «key»
 	// is "generic_key").
 	GenericKey *MappingLabelSpecifier_GenericKey `json:"generic_key,omitempty"`
 
@@ -216,18 +216,18 @@ type MappingLabelSpecifier struct {
 type MappingLabelSpecifier_SourceCluster struct {
 	// +kubebuilder:validation:Enum={"source_cluster"}
 	// +kubebuilder:validation:Required
-	DescriptorKey string `json:"descriptor_key"`
+	Key string `json:"key"`
 }
 
 type MappingLabelSpecifier_DestinationCluster struct {
 	// +kubebuilder:validation:Enum={"destination_cluster"}
 	// +kubebuilder:validation:Required
-	DescriptorKey string `json:"descriptor_key"`
+	Key string `json:"key"`
 }
 
 type MappingLabelSpecifier_RequestHeaders struct {
 	// +kubebuilder:validation:Required
-	DescriptorKey string `json:"descriptor_key"`
+	Key string `json:"key"`
 
 	// +kubebuilder:validation:Required
 	HeaderName string `json:"header_name"`
@@ -238,15 +238,15 @@ type MappingLabelSpecifier_RequestHeaders struct {
 type MappingLabelSpecifier_RemoteAddress struct {
 	// +kubebuilder:validation:Enum={"remote_address"}
 	// +kubebuilder:validation:Required
-	DescriptorKey string `json:"descriptor_key"`
+	Key string `json:"key"`
 }
 
 type MappingLabelSpecifier_GenericKey struct {
 	// The default is "generic_key".
-	DescriptorKey string `json:"descriptor_key,omitempty"`
+	Key string `json:"key,omitempty"`
 
 	// +kubebuilder:validation:Required
-	DescriptorValue string `json:"descriptor_value"`
+	Value string `json:"value"`
 }
 
 type AddedHeader struct {

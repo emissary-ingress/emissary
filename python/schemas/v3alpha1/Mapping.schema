@@ -316,10 +316,10 @@
                                     "description": "Sets the label \"destination_cluster=«Envoy destination cluster name»\".",
                                     "type": "object",
                                     "required": [
-                                        "descriptor_key"
+                                        "key"
                                     ],
                                     "properties": {
-                                        "descriptor_key": {
+                                        "key": {
                                             "type": "string",
                                             "enum": [
                                                 "destination_cluster"
@@ -328,17 +328,17 @@
                                     }
                                 },
                                 "generic_key": {
-                                    "description": "Sets the label \"«descriptor_key»=«descriptor_value»\" (where by default «descriptor_key» is \"generic_key\").",
+                                    "description": "Sets the label \"«key»=«value»\" (where by default «key» is \"generic_key\").",
                                     "type": "object",
                                     "required": [
-                                        "descriptor_value"
+                                        "value"
                                     ],
                                     "properties": {
-                                        "descriptor_key": {
+                                        "key": {
                                             "description": "The default is \"generic_key\".",
                                             "type": "string"
                                         },
-                                        "descriptor_value": {
+                                        "value": {
                                             "type": "string"
                                         }
                                     }
@@ -347,10 +347,10 @@
                                     "description": "Sets the label \"remote_address=«IP address of the client»\".",
                                     "type": "object",
                                     "required": [
-                                        "descriptor_key"
+                                        "key"
                                     ],
                                     "properties": {
-                                        "descriptor_key": {
+                                        "key": {
                                             "type": "string",
                                             "enum": [
                                                 "remote_address"
@@ -359,17 +359,17 @@
                                     }
                                 },
                                 "request_headers": {
-                                    "description": "If the «header_name» header is set, then set the label \"«descriptor_key»=«Value of the «header_name» header»\"; otherwise skip applying this label group.",
+                                    "description": "If the «header_name» header is set, then set the label \"«key»=«Value of the «header_name» header»\"; otherwise skip applying this label group.",
                                     "type": "object",
                                     "required": [
-                                        "descriptor_key",
-                                        "header_name"
+                                        "header_name",
+                                        "key"
                                     ],
                                     "properties": {
-                                        "descriptor_key": {
+                                        "header_name": {
                                             "type": "string"
                                         },
-                                        "header_name": {
+                                        "key": {
                                             "type": "string"
                                         },
                                         "omit_if_not_present": {
@@ -381,10 +381,10 @@
                                     "description": "Sets the label \"source_cluster=«Envoy source cluster name»\".",
                                     "type": "object",
                                     "required": [
-                                        "descriptor_key"
+                                        "key"
                                     ],
                                     "properties": {
-                                        "descriptor_key": {
+                                        "key": {
                                             "type": "string",
                                             "enum": [
                                                 "source_cluster"

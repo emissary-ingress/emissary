@@ -32,11 +32,11 @@ labels:
   ambassador:
     - request_label_group:
       - request_headers:
-          descriptor_key: x-ambassador-test-allow
+          key: x-ambassador-test-allow
           header_name: "x-ambassador-test-allow"
           omit_if_not_present: true
       - request_headers:
-          descriptor_key: x-ambassador-test-headers-append
+          key: x-ambassador-test-headers-append
           header_name: "x-ambassador-test-headers-append"
           omit_if_not_present: true
 ---
@@ -50,17 +50,17 @@ labels:
   ambassador:
     - host_and_user:
       - request_headers:
-          descriptor_key: custom-label
+          key: custom-label
           header_name: ":authority"
           omit_if_not_present: true
       - request_headers:
-          descriptor_key: user
+          key: user
           header_name: "x-user"
           omit_if_not_present: true
 
     - omg_header:
       - request_headers:
-          descriptor_key: custom-label
+          key: custom-label
           header_name: "x-omg"
           default: "OMFG!"
 """)
@@ -132,11 +132,11 @@ labels:
   ambassador:
     - request_label_group:
       - request_headers:
-          descriptor_key: x-ambassador-test-allow
+          key: x-ambassador-test-allow
           header_name: "x-ambassador-test-allow"
           omit_if_not_present: true
       - request_headers:
-          descriptor_key: x-ambassador-test-headers-append
+          key: x-ambassador-test-headers-append
           header_name: "x-ambassador-test-headers-append"
           omit_if_not_present: true
 """)
@@ -221,11 +221,11 @@ labels:
   ambassador:
     - request_label_group:
       - request_headers:
-          descriptor_key: x-ambassador-test-allow
+          key: x-ambassador-test-allow
           header_name: "x-ambassador-test-allow"
           omit_if_not_present: true
       - request_headers:
-          descriptor_key: x-ambassador-test-headers-append
+          key: x-ambassador-test-headers-append
           header_name: "x-ambassador-test-headers-append"
           omit_if_not_present: true
 """)
@@ -291,11 +291,11 @@ labels:
   ambassador:
     - request_label_group:
       - request_headers:
-          descriptor_key: x-ambassador-test-allow
+          key: x-ambassador-test-allow
           header_name: "x-ambassador-test-allow"
           omit_if_not_present: true
       - request_headers:
-          descriptor_key: x-ambassador-test-headers-append
+          key: x-ambassador-test-headers-append
           header_name: "x-ambassador-test-headers-append"
           omit_if_not_present: true
 """)
@@ -365,11 +365,11 @@ labels:
   ambassador:
     - request_label_group:
       - request_headers:
-          descriptor_key: x-ambassador-test-allow
+          key: x-ambassador-test-allow
           header_name: "x-ambassador-test-allow"
           omit_if_not_present: true
       - request_headers:
-          descriptor_key: x-ambassador-test-headers-append
+          key: x-ambassador-test-headers-append
           header_name: "x-ambassador-test-headers-append"
           omit_if_not_present: true
 """)

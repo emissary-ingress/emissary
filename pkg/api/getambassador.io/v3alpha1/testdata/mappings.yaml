@@ -546,7 +546,7 @@
       labels:
           ambassador:
               -   request_label_group:
-                    - generic_key: { descriptor_value: "minute" }
+                    - generic_key: { value: "minute" }
       prefix: "/load-testing/rl-minute/"
       service: "load-http-echo.default"
 - apiVersion: "getambassador.io/v3alpha1"
@@ -565,7 +565,7 @@
       labels:
           ambassador:
             - request_label_group:
-                - generic_key: { descriptor_value: "second" }
+                - generic_key: { value: "second" }
       prefix: "/load-testing/rl-second/"
       service: "load-http-echo.default"
 - apiVersion: "getambassador.io/v3alpha1"
@@ -584,10 +584,10 @@
       labels:
           ambassador:
               -   test_limit:
-                    - source_cluster: { descriptor_key: "source_cluster" }
-                    - destination_cluster: { descriptor_key: "destination_cluster" }
-                    - remote_address: { descriptor_key: "remote_address" }
-                    - generic_key: { descriptor_value: "rltest" }
+                    - source_cluster: { key: "source_cluster" }
+                    - destination_cluster: { key: "destination_cluster" }
+                    - remote_address: { key: "remote_address" }
+                    - generic_key: { value: "rltest" }
       prefix: "/rl/"
       service: "httpbin.default.svc.cluster.local"
       retry_policy: {}
@@ -612,17 +612,17 @@
       labels:
           ambassador:
               - d0:
-                - generic_key: { descriptor_value: "a" }
+                - generic_key: { value: "a" }
                 - request_headers:
-                      descriptor_key: xratelimitid
+                      key: xratelimitid
                       header_name: "X-Ratelimit-Id"
                       omit_if_not_present: true
                 - request_headers:
-                      descriptor_key: xratelimitid2
+                      key: xratelimitid2
                       header_name: "X-Ratelimit-Id2"
                       omit_if_not_present: false
                 - request_headers:
-                      descriptor_key: xratelimitid3
+                      key: xratelimitid3
                       header_name: "X-Ratelimit-Id3"
       prefix: "/api/[^/]+/projects/[^/]+/a(/.*)?"
       prefix_regex: true
@@ -648,11 +648,11 @@
       labels:
           ambassador:
               -   minute_group:
-                    - generic_key: { descriptor_value: "backend" }
-                    - generic_key: { descriptor_value: "minutely" }
+                    - generic_key: { value: "backend" }
+                    - generic_key: { value: "minutely" }
               -   hour_group:
-                    - generic_key: { descriptor_value: "backend" }
-                    - generic_key: { descriptor_value: "hourly" }
+                    - generic_key: { value: "backend" }
+                    - generic_key: { value: "hourly" }
       prefix: "/backend/"
       retry_policy:
           num_retries: 0
