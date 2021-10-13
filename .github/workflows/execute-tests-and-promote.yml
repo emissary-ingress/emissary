@@ -2,8 +2,9 @@ name: job-promote-to-passed
 
 on:
   push:
-    branches:
-      - master
+    #branches:
+    #  - master
+    #  - release/v1.14
     paths-ignore:
       - 'releng/**'
       - 'charts/**'

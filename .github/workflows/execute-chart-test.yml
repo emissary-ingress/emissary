@@ -1,8 +1,9 @@
 name: chart-test
 on:
   push:
-    branches:
-      - master
+    #branches:
+    #  - master
+    #  - release/v1.14
     paths:
       - 'charts/**'
   pull_request:
