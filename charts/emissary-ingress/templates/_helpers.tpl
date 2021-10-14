@@ -41,7 +41,7 @@ Then if the image repository is explicitly set, use "repository:image"
 {{- else if hasKey .Values.image "repository"  -}}
 {{- printf "%s:%s" .Values.image.repository .Values.image.tag -}}
 {{- else -}}
-{{- printf "%s:%s" "docker.io/datawire/emissary" .Values.image.tag -}}
+{{- printf "%s:%s" "docker.io/emissaryingress/emissary" .Values.image.tag -}}
 {{- end -}}
 {{- end -}}
 
@@ -58,7 +58,7 @@ disabled if fullImageOverride is present
 {{- if hasKey .Values.image "repository" -}}
 {{- printf "%s:%s" .Values.image.repository .Values.canary.image.tag -}}
 {{- else -}}
-{{- printf "%s:%s" "docker.io/datawire/emissary" .Values.canary.image.tag -}}
+{{- printf "%s:%s" "docker.io/emissaryingress/emissary" .Values.canary.image.tag -}}
 {{- end -}}
 {{- else -}}
 {{- printf "%s" "" -}}
