@@ -1,4 +1,4 @@
-from utils import econf_compile, econf_foreach_cluster, module_and_mapping_manifests, SUPPORTED_ENVOY_VERSIONS
+from tests.utils import econf_compile, econf_foreach_cluster, module_and_mapping_manifests, SUPPORTED_ENVOY_VERSIONS
 
 import pytest
 

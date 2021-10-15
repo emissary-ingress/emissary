@@ -8,6 +8,8 @@ from kat.utils import namespace_manifest
 
 # Plain is the place that all the MappingTests get pulled in.
 
+import t_mappingtests_plain
+import t_optiontests
 
 class Plain(AmbassadorTest):
     single_namespace = True

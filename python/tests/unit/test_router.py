@@ -1,4 +1,4 @@
-from utils import econf_compile, econf_foreach_hcm, module_and_mapping_manifests, zipkin_tracing_service_manifest, SUPPORTED_ENVOY_VERSIONS
+from tests.utils import econf_compile, econf_foreach_hcm, module_and_mapping_manifests, zipkin_tracing_service_manifest, SUPPORTED_ENVOY_VERSIONS
 
 import pytest
 

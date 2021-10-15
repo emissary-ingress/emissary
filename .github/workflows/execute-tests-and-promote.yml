@@ -88,6 +88,7 @@ jobs:
       DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
       DOCKER_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+      KUBECEPTION_TOKEN: ${{ secrets.GH_KUBECEPTION_TOKEN }}
     strategy:
       matrix:
         # NOTES:
@@ -103,7 +104,7 @@ jobs:
           - {legacy-mode: true, fast-reconfigure: false}
           - {legacy-mode: false, fast-reconfigure: true}
           - {legacy-mode: false, fast-reconfigure: false}
-        test: [envoy-ah, envoy-v2-ah, envoy-ip, envoy-v2-ip, envoy-qz, envoy-v2-qz, kat, integration]
+        test: [envoy-ah, envoy-v2-ah, envoy-ip, envoy-v2-ip, envoy-qz, envoy-v2-qz, kat-ah, kat-ip, kat-qz, integration]
         isMasterOrRelease:
           # is this close enough to release branch being /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/ ?
           - ${{ contains(github.ref, 'master') || startsWith(github.ref, 'refs/heads/rel/v') }}

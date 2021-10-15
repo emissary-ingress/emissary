@@ -673,6 +673,38 @@ case "${cmd}" in
         fi
         ;;
 
+    pytest-local-unit)
+        fail=""
+        mkdir -p ${TEST_DATA_DIR}
+
+        if [ -z "$SOURCE_ROOT" ] ; then
+            export SOURCE_ROOT="$PWD"
+        fi
+
+        if [ -z "$MODDIR" ] ; then
+            export MODDIR="$PWD"
+        fi
+
+        if [ -z "$ENVOY_PATH" ] ; then
+            export ENVOY_PATH="${MODDIR}/bin/envoy"
+        fi
+        if [ ! -f "$ENVOY_PATH" ] ; then
+            echo "Envoy not found at ENVOY_PATH=$ENVOY_PATH"
+            exit 1
+        fi
+
+        echo "$0: SOURCE_ROOT=$SOURCE_ROOT"
+        echo "$0: MODDIR=$MODDIR"
+        echo "$0: ENVOY_PATH=$ENVOY_PATH"
+        if ! (cd ${MODDIR} && pytest --cov-branch --cov=ambassador --cov-report html:/tmp/cov_html --junitxml=${TEST_DATA_DIR}/pytest.xml --tb=short -rP "${pytest_args[@]}") then
+            fail="yes"
+        fi
+
+        if [ "${fail}" = yes ]; then
+            exit 1
+        fi
+        ;;
+
     pytest-internal)
         # This runs inside the builder image
         fail=""

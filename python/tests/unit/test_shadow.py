@@ -7,7 +7,7 @@ from typing import Optional
 import pytest
 import requests
 
-from utils import assert_valid_envoy_config
+from tests.utils import assert_valid_envoy_config
 
 logging.basicConfig(
     level=logging.INFO,
