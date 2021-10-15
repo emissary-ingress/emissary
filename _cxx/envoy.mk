@@ -179,6 +179,24 @@ check-envoy: $(ENVOY_BASH.deps)
 	 )
 .PHONY: check-envoy
 
+.PHONY: check-envoy-version
+check-envoy-version: ## Check that Envoy version has been pushed to the right places
+check-envoy-version: $(OSS_HOME)/_cxx/envoy
+	# First, we're going to check whether the envoy commit is tagged, which
+	# is one of the things that has to happen before landing a PR that bumps
+	# the ENVOY_COMMIT.
+	cd $< && unset GIT_DIR GIT_WORK_TREE && git describe --tags --exact-match
+	# Now, we're going to check that the Envoy Docker images have been
+	# pushed to all of the mirrors, which is another thing that has to
+	# happen before landing a PR that bumps the ENVOY_COMMIT.
+	#
+	# We "could" use `docker manifest inspect` instead of `docker
+	# pull` to test that these exist without actually pulling
+	# them... except that gcr.io doesn't allow `manifest inspect`.
+	# So just go ahead and do the `pull` :(
+	@PS4=; set -ex; $(foreach ENVOY_DOCKER_REPO,$(ENVOY_DOCKER_REPOS), docker pull $(ENVOY_DOCKER_TAG) >/dev/null; )
+	@PS4=; set -ex; $(foreach ENVOY_DOCKER_REPO,$(ENVOY_DOCKER_REPOS), docker pull $(ENVOY_FULL_DOCKER_TAG) >/dev/null; )
+
 envoy-shell: ## Run a shell in the Envoy build container
 envoy-shell: $(ENVOY_BASH.deps)
 	$(call ENVOY_BASH.cmd, \

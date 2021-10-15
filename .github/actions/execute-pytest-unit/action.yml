@@ -1,0 +1,43 @@
+name: pytest
+description: "execute emissary pytests"
+
+runs:
+  using: "composite"
+  steps:
+    - run: echo "PREFIX=pytest-${{ matrix.test }}-legacy-mode.${{ matrix.pytest-settings.legacy-mode }}-fast-reconfigure.${{ matrix.pytest-settings.fast-reconfigure }}" >> $GITHUB_ENV
+      name: Set Unique Test prefix ${{ env.PREFIX }}
+      shell: bash
+    - run: |
+        sudo sysctl -w fs.file-max=1600000
+        sudo sysctl -w fs.inotify.max_user_instances=4096
+      shell: bash
+      name: "Configure system file and inotify maximums (1600000/4096)"
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '^3.9.5'
+      name: "Install Python (^3.9.5)"
+    - run: python --version
+      shell: bash
+      name: "Check python installed"
+    - uses: BSFishy/pip-action@v1
+      with:
+        packages: |
+          awscli
+          packaging
+      name: "Install Python requirements with pip"
+    - name: make pytest-${{ matrix.test }} (legacy-mode:${{ matrix.pytest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.pytest-settings.fast-reconfigure }} )
+      uses: nick-invision/retry@v2.4.0
+      with:
+        max_attempts: 3
+        timeout_minutes: 20
+        command: |
+          export DEV_KUBE_NO_PVC=yes
+          export KAT_REQ_LIMIT=900
+          export AMBASSADOR_LEGACY_MODE=${{ matrix.pytest-settings.legacy-mode }}
+          export AMBASSADOR_FAST_RECONFIGURE=${{ matrix.pytest-settings.fast-reconfigure }}
+          export TEST_XML_DIR=/tmp/test-logs/xml/
+          export DEV_KUBECONFIG=~/.kube/kubeception.yaml
+          mkdir -p ${TEST_XML_DIR}
+          make pytest-${{ matrix.test }}
+    - uses: ./.github/actions/git-dirty-check
+      name: "Check git not dirty from testing"

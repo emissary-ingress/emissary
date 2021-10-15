@@ -1,0 +1,207 @@
+name: job-promote-to-passed
+
+on:
+  push:
+    branches:
+      - master
+      - release/v1.14
+    paths-ignore:
+      - 'releng/**'
+      - 'charts/**'
+      - 'manifests/**'
+      - 'k8s-config/**'
+      - 'docs/**'
+      - '*.md$'
+  pull_request:
+    paths-ignore:
+      - 'releng/**'
+      - 'charts/**'
+      - 'manifests/**'
+      - 'k8s-config/**'
+      - 'docs/**'
+      - '*.md$'
+
+jobs:
+  lint-test:
+    name: "lint-test"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/execute-lint-test
+        name: "execute lint-test action"
+  generate:
+    name: "generate"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/execute-generate
+        name: "execute generate action"
+  check-envoy-version:
+    name: "check-envoy-version"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - run: make check-envoy-version
+  go-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # NOTES:
+        # legacy mode does not do fast reconfigure - never test state true, true
+        # on master/release branch (legacy + reconfigure testing)
+        #   - legacy + no reconfigure (true, false)
+        #   -  no legacy + reconfigure (false, true)
+        #   - no legacy + no reconfigure (false, false)
+        # other branches (no legacy testing)
+        #   - no legacy + no reconfigure (false, true)
+        #   - no legacy + reconfigure (false, false)
+        gotest-settings:
+          - {legacy-mode: true, fast-reconfigure: false}
+          - {legacy-mode: false, fast-reconfigure: true}
+          - {legacy-mode: false, fast-reconfigure: false}
+        isMasterOrRelease:
+          # is this close enough to release branch being /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/ ?
+          - ${{ contains(github.ref, 'master') || startsWith(github.ref, 'refs/heads/rel/v') }}
+        exclude:
+          - isMasterOrRelease: false # if we are not master/release then we exclude legacy mode
+            gotest-settings: {legacy-mode: true, fast-reconfigure: false}
+    name: gotest-legacy-mode:${{ matrix.gotest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.gotest-settings.fast-reconfigure }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/execute-go-tests
+        name: "execute go-tests action"
+      # collect logs
+      - uses: ./.github/actions/collect-testing-logs
+        if: always()
+        name: "Collect testing logs"
+  pytests:
+    runs-on: ubuntu-latest
+    env:
+      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
+      DOCKER_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+    strategy:
+      matrix:
+        # NOTES:
+        # legacy mode does not do fast reconfigure - never test state true, true
+        # on master/release branch (legacy + reconfigure testing)
+        #   - legacy + no reconfigure (true, false)
+        #   -  no legacy + reconfigure (false, true)
+        #   - no legacy + no reconfigure (false, false)
+        # other branches (no legacy testing)
+        #   - no legacy + no reconfigure (false, true)
+        #   - no legacy + reconfigure (false, false)
+        pytest-settings:
+          - {legacy-mode: true, fast-reconfigure: false}
+          - {legacy-mode: false, fast-reconfigure: true}
+          - {legacy-mode: false, fast-reconfigure: false}
+        test: [envoy-ah, envoy-v2-ah, envoy-ip, envoy-v2-ip, envoy-qz, envoy-v2-qz, kat, integration]
+        isMasterOrRelease:
+          # is this close enough to release branch being /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/ ?
+          - ${{ contains(github.ref, 'master') || startsWith(github.ref, 'refs/heads/rel/v') }}
+        exclude:
+          - isMasterOrRelease: false # if we are not master/release then we exclude legacy mode
+            pytest-settings: {legacy-mode: true, fast-reconfigure: false}
+    name: pytest-${{ matrix.test }} (legacy-mode:${{ matrix.pytest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.pytest-settings.fast-reconfigure }})
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/execute-pytests
+        name: "execute pytests action"
+      # teardown
+      - run: |
+          ./.ci/cluster-unclaim
+        shell: bash
+        if: always()
+        name: "Teardown Kubernetes cluster"
+      # collect logs
+      - uses: ./.github/actions/collect-testing-logs
+        if: always()
+        name: "Collect testing logs"
+  pytest-unit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # NOTES:
+        # legacy mode does not do fast reconfigure - never test state true, true
+        # on master/release branch (legacy + reconfigure testing)
+        #   - legacy + no reconfigure (true, false)
+        #   -  no legacy + reconfigure (false, true)
+        #   - no legacy + no reconfigure (false, false)
+        # other branches (no legacy testing)
+        #   - no legacy + no reconfigure (false, true)
+        #   - no legacy + reconfigure (false, false)
+        pytest-settings:
+          - {legacy-mode: true, fast-reconfigure: false}
+          - {legacy-mode: false, fast-reconfigure: true}
+          - {legacy-mode: false, fast-reconfigure: false}
+        test:
+          - unit
+        isMasterOrRelease:
+          # is this close enough to release branch being /^rel\/v[0-9]+\.[0-9]+\.[0-9]+(-ea)?$/ ?
+          - ${{ contains(github.ref, 'master') || startsWith(github.ref, 'refs/heads/rel/v') }}
+        exclude:
+          - isMasterOrRelease: false # if we are not master/release then we exclude legacy mode
+            pytest-settings: {legacy-mode: true, fast-reconfigure: false}
+    name: pytest-${{ matrix.test }} (legacy-mode:${{ matrix.pytest-settings.legacy-mode }}, fast-reconfigure:${{ matrix.pytest-settings.fast-reconfigure }})
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/execute-pytest-unit
+        name: "execute pytest-unit action"
+      # collect logs
+      - uses: ./.github/actions/collect-testing-logs
+        if: always()
+        name: "Collect testing logs"
+  job-image:
+    name: "job-image"
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
+      AWS_EC2_METADATA_DISABLED: true
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
+      DOCKER_USERNAME: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: ./.github/actions/execute-job-image
+        name: "execute job-image action"
+  promote-to-passed:
+    needs:
+      - lint-test
+      - job-image
+      - generate
+      - check-envoy-version
+      - go-tests
+      - pytests
+      - pytest-unit
+    runs-on: ubuntu-latest
+    name: job-promote-to-passed
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
+      AWS_EC2_METADATA_DISABLED: true
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: "promote build to passed"
+        run: |
+          make release/promote-oss/dev-to-passed-ci

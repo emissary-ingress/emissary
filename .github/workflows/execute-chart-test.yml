@@ -1,0 +1,42 @@
+name: chart-test
+on:
+  push:
+    branches:
+      - master
+      - release/v1.14
+    paths:
+      - 'charts/**'
+  pull_request:
+    paths:
+      - 'charts/**'
+
+jobs:
+  execute-chart-test:
+    runs-on: ubuntu-latest
+    name: chart-test
+    env:
+      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.GH_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.GH_AWS_SECRET_ACCESS_KEY }}
+      AWS_EC2_METADATA_DISABLED: true
+      DEV_REGISTRY: ${{ secrets.DEV_REGISTRY }}
+    steps:
+      - uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.GH_DOCKER_BUILD_USERNAME }}
+          password: ${{ secrets.GH_DOCKER_BUILD_TOKEN }}
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: "Install/Setup K3d/K3s"
+        uses: nolar/setup-k3d-k3s@v1.0.8
+        with:
+          version: v1.21.5+k3s1
+          k3d-tag: v4.4.8
+      - name: make test-chart
+        run: |
+          make test-chart
+      - name: make release/promote-chart-passed
+        run: |
+          make release/promote-chart-passed
