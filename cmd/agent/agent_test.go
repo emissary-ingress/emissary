@@ -222,7 +222,7 @@ func setup(t *testing.T, ctx context.Context, kubeconfig string, cli *kates.Clie
 	image := os.Getenv("AMBASSADOR_DOCKER_IMAGE")
 	require.NotEmpty(t, image)
 
-	aesReplaced := regexp.MustCompile(`docker\.io/datawire/emissary:\S+`).ReplaceAllString(string(aesDat), image)
+	aesReplaced := regexp.MustCompile(`docker\.io/emissaryingress/emissary:\S+`).ReplaceAllString(string(aesDat), image)
 	newAesFile := filepath.Join(t.TempDir(), "emissary-ingress.yaml")
 
 	require.NoError(t, ioutil.WriteFile(newAesFile, []byte(aesReplaced), 0644))
