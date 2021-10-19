@@ -83,11 +83,11 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 ## [2.0.4] TBD
 [2.0.4]: https://github.com/emissary-ingress/emissary/compare/v2.0.3-ea...v2.0.4
 
-We're pleased to introduce Emissary-ingress 2.0.4 for general availability for new installations!
-The 2.X family introduces a number of changes to allow Emissary-ingress to more gracefully handle
-larger installations, reduce global configuration to better handle multitenant or
-multiorganizational installations, reduce memory footprint, and improve performance. We welcome
-feedback!! Join us on <a href="https://a8r.io/slack">Slack</a> and let us know what you think.
+We're pleased to introduce Emissary-ingress 2.0.4 for general availability! The 2.X family
+introduces a number of changes to allow Emissary-ingress to more gracefully handle larger
+installations, reduce global configuration to better handle multitenant or multiorganizational
+installations, reduce memory footprint, and improve performance. We welcome feedback!! Join us on <a
+href="https://a8r.io/slack">Slack</a> and let us know what you think.
 
 ### Emissary-ingress and Ambassador Edge Stack
 
@@ -284,8 +284,8 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 - Feature: You can now set `respect_dns_ttl` in Ambassador Mappings. When true it configures that
   upstream's refresh rate to be set to resource record’s TTL
 
-- Feature: You can now set `dns_type` to in Ambassador Mappings to use Envoy's `logical_dns`
-  resolution instead of the default `strict_dns`.
+- Feature: You can now set `dns_type` in Ambassador Mappings to use Envoy's `logical_dns` resolution
+  instead of the default `strict_dns`.
 
 - Feature: You can now set `buffer_limit_bytes` in the `ambassador` `Module` to to change the size
   of the upstream read and write buffers. The default is 1MiB.
