@@ -45,5 +45,6 @@ fi
 # set emissary tag into apro
 CURRENT_EMISSARY_TAG=$(grep 'imageTag' emissaryInfo.yml | sed 's/imageTag://g' | tr -d ' ')
 sed -i "s/$CURRENT_EMISSARY_TAG/$1/g" emissaryInfo.yml
+git add .
 git commit -s -m "(from CI) bump emissary version to latest RC"
 git push --set-upstream origin rel/$2
