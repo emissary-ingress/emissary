@@ -337,7 +337,7 @@ regex_headers:
   X-Foo: "^[a-z].*"
 service: http://{self.target.path.fqdn}
 ---
-apiVersion: ambassador/v2
+apiVersion: getambassador.io/v3alpha1
 kind:  Module
 name:  ambassador
 config:

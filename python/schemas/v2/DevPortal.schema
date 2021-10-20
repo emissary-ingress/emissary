@@ -85,6 +85,9 @@
         "namespace": {
             "type": "string"
         },
+        "preserve_servers": {
+            "type": "boolean"
+        },
         "selector": {
             "type": "object",
             "properties": {

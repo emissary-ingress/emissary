@@ -136,10 +136,10 @@ name:  {self.target.path.k8s}
 prefix: /{self.name}/
 service: {self.target.path.fqdn}
 add_request_headers:
-  x-cert-start: "%DOWNSTREAM_PEER_CERT_V_START%"
-  x-cert-end: "%DOWNSTREAM_PEER_CERT_V_END%"
-  x-cert-start-custom: "%DOWNSTREAM_PEER_CERT_V_START(%b %e %H:%M:%S %Y %Z)%"
-  x-cert-end-custom: "%DOWNSTREAM_PEER_CERT_V_END(%b %e %H:%M:%S %Y %Z)%"
+  x-cert-start: { value: "%DOWNSTREAM_PEER_CERT_V_START%" }
+  x-cert-end: { value: "%DOWNSTREAM_PEER_CERT_V_END%" }
+  x-cert-start-custom: { value: "%DOWNSTREAM_PEER_CERT_V_START(%b %e %H:%M:%S %Y %Z)%" }
+  x-cert-end-custom: { value: "%DOWNSTREAM_PEER_CERT_V_END(%b %e %H:%M:%S %Y %Z)%" }
 """)
 
     def scheme(self) -> str:
@@ -816,7 +816,7 @@ metadata:
     kat-ambassador-id: tlsingresstest
 type: kubernetes.io/tls
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -833,11 +833,14 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /tls-context-same/
+        pathType: Prefix
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -854,9 +857,12 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: {self.target.path.k8s}
-          servicePort: 80
+          service:
+            name: {self.target.path.k8s}
+            port:
+              number: 80
         path: /tls-context-same/
+        pathType: Prefix
 """ + super().manifests()
 
     def config(self):

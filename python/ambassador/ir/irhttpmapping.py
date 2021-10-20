@@ -86,6 +86,7 @@ class IRHTTPMapping (IRBaseMapping):
         "connect_timeout_ms": False,
         "cors": False,
         "docs": False,
+        "dns_type": False,
         "enable_ipv4": False,
         "enable_ipv6": False,
         "error_response_overrides": False,
@@ -117,6 +118,7 @@ class IRHTTPMapping (IRBaseMapping):
         "remove_request_headers": True,
         "remove_response_headers": True,
         "resolver": False,
+        "respect_dns_ttl": False,
         "retry_policy": False,
         # Do not include rewrite
         "service": False,       # See notes above
@@ -244,14 +246,14 @@ class IRHTTPMapping (IRBaseMapping):
                     ir.logger.debug("IRHTTPMapping %s: self.host contains * (%s, host)", name, host)
                 else:
                     ir.logger.debug("IRHTTPMapping %s: self.host == %s (host)", name, self.host)
-    
+
         # Finally, check for 'hostname'.
         if 'hostname' in kwargs:
             # It's deliberate that we allow kwargs['hostname'] to override anything else -- even a regex host.
             # Yell about it, though.
             if host:
                 ir.logger.warning("Mapping %s in namespace %s: both host and hostname are set, using hostname and ignoring host", name, namespace)
-            
+
             # No need to be so careful about "*" here, since hostname is defined to be a glob.
             host = kwargs['hostname']
             host_regex = False
@@ -407,57 +409,73 @@ class IRHTTPMapping (IRBaseMapping):
             else:
                 return False
 
-        # Likewise, labels is supported only in V1+:
-        if 'labels' in self:
-            if self.apiVersion == 'getambassador.io/v0':
+        # RateLimit labels are different in different versions:
+        if self.apiVersion in ['getambassador.io/v0']:
+            if 'labels' in self:
                 self.post_error("labels not supported in getambassador.io/v0 Mapping resources")
                 return False
+            if 'rate_limits' in self:
+                # Let's turn this into a set of labels instead.
+                label_groups = []
+                rlcount = 0
 
-        if 'rate_limits' in self:
-            if self.apiVersion != 'getambassador.io/v0':
-                self.post_error("rate_limits supported only in getambassador.io/v0 Mapping resources")
-                return False
+                for rate_limit in self.pop('rate_limits', []):
+                    rlcount += 1
 
-            # Let's turn this into a set of labels instead.
-            labels = []
-            rlcount = 0
+                    # Since this is a V0 Mapping, prepend the static default stuff that we were implicitly
+                    # forcing back in the pre-0.50 days.
 
-            for rate_limit in self.pop('rate_limits', []):
-                rlcount += 1
+                    label_specs: List[Dict[str,Any]] = [
+                        { 'source_cluster': { 'key': 'source_cluster' } },
+                        { 'destination_cluster': { 'key': 'destination_cluster' } },
+                        { 'remote_address': { 'key': 'remote_address' } },
+                    ]
 
-                # Since this is a V0 Mapping, prepend the static default stuff that we were implicitly
-                # forcing back in the pre-0.50 days.
+                    # Next up: old rate_limit "descriptor" becomes label "generic_key".
+                    rate_limit_descriptor = rate_limit.get('descriptor', None)
 
-                label: List[Any] = [
-                    'source_cluster',
-                    'destination_cluster',
-                    'remote_address'
-                ]
+                    if rate_limit_descriptor:
+                        label_specs.append({ 'generic_key': rate_limit_descriptor })
 
-                # Next up: old rate_limit "descriptor" becomes label "generic_key".
-                rate_limit_descriptor = rate_limit.get('descriptor', None)
+                    # Header names get turned into omit-if-not-present header dictionaries.
+                    rate_limit_headers = rate_limit.get('headers', [])
 
-                if rate_limit_descriptor:
-                    label.append({ 'generic_key': rate_limit_descriptor })
+                    for rate_limit_header in rate_limit_headers:
+                        label_specs.append({
+                            'request_headers': {
+                                'key': rate_limit_header,
+                                'header_name': rate_limit_header,
+                                # XXX: This has been setting `omit_if_not_present` for a long time,
+                                # but prior to 2.0.4 the backend ignored it... so maybe we should
+                                # not set it, in order to preserve that behavior?
+                                'omit_if_not_present': True,
+                            }
+                        })
 
-                # Header names get turned into omit-if-not-present header dictionaries.
-                rate_limit_headers = rate_limit.get('headers', [])
-
-                for rate_limit_header in rate_limit_headers:
-                    label.append({
-                        rate_limit_header: {
-                            'header': rate_limit_header,
-                            'omit_if_not_present': True
-                        }
+                    label_groups.append({
+                        'v0_ratelimit_%02d' % rlcount: label_specs,
                     })
 
-                labels.append({
-                    'v0_ratelimit_%02d' % rlcount: label
-                })
-
-            if labels:
-                domain = 'ambassador' if not ir.ratelimit else ir.ratelimit.domain
-                self['labels'] = { domain: labels }
+                if label_groups:
+                    domain = 'ambassador' if not ir.ratelimit else ir.ratelimit.domain
+                    self['labels'] = { domain: label_groups }
+        elif self.apiVersion in ['getambassador.io/v1', 'getambassador.io/v2']:
+            if 'rate_limits' in self:
+                self.post_error("rate_limits supported only in getambassador.io/v0 Mapping resources")
+                return False
+            # Re-work any labels to be in the v3alpha1 syntax... eventually.  We aren't supporting
+            # the old CRDs in Emissary 2.0 yet.
+            if 'labels' in self:
+                # TODO
+                self.post_error("the old getambassador.io/v1 and /v2 version of Mapping ratelimit 'labels' is not yet supported in Emissary 2.0")
+                return False
+        elif self.apiVersion in ['getambassador.io/v3alpha1']:
+            if 'rate_limits' in self:
+                self.post_error("rate_limits supported only in getambassador.io/v0 Mapping resources")
+                return False
+        else:
+            self.post_error(f"Mapping has an invalid apiVersion: {self.apiVersion}")
+            return False
 
         if self.get('load_balancer', None) is not None:
             if not self.validate_load_balancer(self['load_balancer']):
@@ -473,7 +491,7 @@ class IRHTTPMapping (IRBaseMapping):
         self._enforce_mutual_exclusion('path_redirect', 'regex_redirect')
         self._enforce_mutual_exclusion('prefix_redirect', 'regex_redirect')
 
-        ir.logger.debug("Mapping %s: setup OK: host %s hostname %s regex %s", 
+        ir.logger.debug("Mapping %s: setup OK: host %s hostname %s regex %s",
                         self.name, self.get('host'), self.get('hostname'), self.get('host_regex'))
 
         return True

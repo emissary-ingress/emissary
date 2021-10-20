@@ -18,6 +18,11 @@ jobs:
       - name: "check that chart version was updated"
         run: |
           git fetch origin master:master
+
+          if [ $(git branch -r --list "$BASE_REF" | wc -l) == 1 ]; then
+            BASE_REF="origin/$BASE_REF"
+          fi
+          
           COMMIT_RANGE="$BASE_REF $SHA"
           echo "Commit range: " $COMMIT_RANGE
           git --no-pager diff $COMMIT_RANGE charts/emissary-ingress/Chart.yaml

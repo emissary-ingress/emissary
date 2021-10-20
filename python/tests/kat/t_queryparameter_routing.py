@@ -83,8 +83,8 @@ name:  {self.name}-target
 hostname: "*"
 prefix: /target/
 service: http://{self.target.path.fqdn}
-query_parameters:
-    test_param: true
+regex_query_parameters:
+    test_param: ".*"
 """)
 
     def queries(self):

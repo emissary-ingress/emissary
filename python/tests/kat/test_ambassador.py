@@ -14,11 +14,13 @@ if letter_range not in ["all", "ah", "ip", "qz"]:
 
 if letter_range in ["all","ah"]:
     import t_basics
+    import t_bufferlimitbytes
     import t_chunked_length
     import t_circuitbreaker
     import t_cluster_tag
     import t_consul
     import t_cors
+    import t_dns_type
     import t_envoy_logs
     import t_error_response
     import t_extauth

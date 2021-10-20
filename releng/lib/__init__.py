@@ -7,8 +7,9 @@ from os import getenv
 import subprocess
 
 from .gitutil import git_check_clean as git_check_clean  # Stop mypy complaining about implicit reexport
-from .uiutil import run_txtcapture
+from .gitutil import parse_bool as parse_bool  # Stop mypy complaining about implicit reexport
 from .gitutil import git_add as git_add # Stop mypy complaining about implicit reexport
+from .uiutil import run_txtcapture
 
 # These are some regular expressions to validate and parse
 # X.Y.Z[-rc.N] versions.

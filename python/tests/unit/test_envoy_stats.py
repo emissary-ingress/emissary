@@ -66,8 +66,8 @@ def test_levels():
     # This one may be a bit more fragile than we'd like.
     esm.update()
     assert esm.loginfo == {
-        'error': [ 'admin', 'aws', 'assert', 'backtrace', 'cache_filter', 
-                   'client', 'config', 'connection', 'conn_handler', 
+        'error': [ 'admin', 'aws', 'assert', 'backtrace', 'cache_filter',
+                   'client', 'config', 'connection', 'conn_handler',
                    'decompression', 'envoy_bug', 'ext_authz', 'rocketmq',
                    'file', 'filter', 'forward_proxy', 'grpc', 'hc', 'health_checker',
                    'http', 'http2', 'hystrix', 'init', 'io', 'jwt', 'kafka',

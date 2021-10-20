@@ -10,6 +10,7 @@ import (
 
 	amb "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 	"github.com/datawire/ambassador/v2/pkg/kates"
+	"github.com/datawire/ambassador/v2/pkg/kates/k8s_resource_types"
 	snapshotTypes "github.com/datawire/ambassador/v2/pkg/snapshot/v1"
 	"github.com/datawire/dlib/dlog"
 )
@@ -50,7 +51,7 @@ name: cool-mapping
 prefix: /blah/
 `
 
-	ingress := &kates.Ingress{
+	ingress := &k8s_resource_types.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "ingress",
 			Namespace: "somens",
@@ -102,7 +103,7 @@ prefix: /blah/`
 
 	ks := &snapshotTypes.KubernetesSnapshot{
 		Services:  []*kates.Service{svc, ambSvc},
-		Ingresses: []*kates.Ingress{ingress},
+		Ingresses: []*snapshotTypes.Ingress{{Ingress: *ingress}},
 		Hosts:     []*amb.Host{ignoredHost},
 	}
 

@@ -47,11 +47,11 @@ ever find anything missing from this list.
  - docker (make sure you can run docker commands as your dev user without sudo)
  - bash
  - rsync (with the --info option)
- - golang 1.13
- - python 3.7+
+ - golang 1.15
+ - python 3.8 or 3.9
  - kubectl
  - a kubernetes cluster
- - a docker registry
+ - a Docker registry
 
 ### Configuration:
 
@@ -110,11 +110,16 @@ NOTE: This will also push the `kat-client` and `kat-server` images.
 How do I deploy an ambassador to a cluster from source?
 -------------------------------------------------------
 
-XXX: This does not work yet, but will be fixed in a future commit!!!
-
 1. `export DEV_REGISTRY=<your-dev-docker-registry>` (you need to be logged in and have permission to push)
 2. `export DEV_KUBECONFIG=<your-dev-kubeconfig>`
 3. `make deploy`
+
+How do I clear everything out to make sure my build runs like it will in CI?
+----------------------------------------------------------------------------
+
+Use `make clobber` to completely remove all derived objects, all cached artifacts, everything, and get back to a clean slate. This is recommended if you change branches within a clone, or if you need to `make generate` when you're not _certain_ that your last `make generate` was using the same Envoy version.
+
+Use `make clean` to remove derived objects, but _not_ clear the caches.
 
 How do I run ambassador tests?
 ------------------------------
@@ -700,10 +705,3 @@ Additionally, if your hostname contains an upper-case character, the build scrip
 `NAME` environment variable, which should contain your hostname. You can solve this issue by doing `export NAME=my-lowercase-host-name`.
 If you do this *after* you've already run `make images` once, you will manually have to clean up the docker images
 that have been created using your upper-case host name.
-
-How do I stop CI from removing the Kubeception cluster when I'm debugging with SSH?
------------------------------------------------------------------------------------
-
-While SSH'ed in, in the `ambassador/` source directory, run the
-command `:> .ci/cluster-unclaim` to replace the `cluster-unclaims`
-script with an empty file--turning it in to a no-op script.

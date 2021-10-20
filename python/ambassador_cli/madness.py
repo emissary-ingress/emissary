@@ -16,7 +16,7 @@ OptionalStats = Optional[pstats.Stats]
 class Profiler:
     def __init__(self):
         self.pr = cProfile.Profile()
-    
+
     def __enter__(self) -> None:
         self.pr.enable()
 
@@ -24,13 +24,13 @@ class Profiler:
         self.pr.disable()
 
     def stats(self) -> OptionalStats:
-        return pstats.Stats(self.pr).sort_stats("tottime")        
+        return pstats.Stats(self.pr).sort_stats("tottime")
 
 
 class NullProfiler(Profiler):
     def __init__(self):
         pass
-    
+
     def __enter__(self) -> None:
         pass
 
@@ -39,14 +39,14 @@ class NullProfiler(Profiler):
 
     def stats(self) -> OptionalStats:
         return None
-        
+
 
 class Madness:
     def __init__(self,
                  watt_path: Optional[str]=None,
                  yaml_path: Optional[str]=None,
                  logger: Optional[logging.Logger]=None,
-                 secret_handler: Optional[SecretHandler]=None, 
+                 secret_handler: Optional[SecretHandler]=None,
                  file_checker: Optional[IRFileChecker]=None) -> None:
         if not logger:
             logging.basicConfig(
@@ -56,7 +56,7 @@ class Madness:
             )
 
             logger = logging.getLogger('mockery')
-        
+
         self.logger = logger
 
         if not secret_handler:
@@ -69,7 +69,7 @@ class Madness:
         self.file_checker = file_checker
 
         self.reset_cache()
-        
+
         self.aconf_timer = Timer("aconf")
         self.fetcher_timer = Timer("fetcher")
         self.ir_timer = Timer("ir")
@@ -80,7 +80,7 @@ class Madness:
         with self.fetcher_timer:
             self.fetcher = ResourceFetcher(self.logger, self.aconf)
 
-            if watt_path: 
+            if watt_path:
                 self.fetcher.parse_watt(open(watt_path, "r").read())
             elif yaml_path:
                 self.fetcher.parse_yaml(open(yaml_path, "r").read(), k8s=True)
@@ -109,7 +109,7 @@ class Madness:
 
         _cache = self.cache if cache else None
         _pr = Profiler() if profile else NullProfiler()
-            
+
         with self.ir_timer:
             with _pr:
                 ir = IR(self.aconf, cache=_cache,

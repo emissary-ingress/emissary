@@ -15,7 +15,7 @@ spec:
   selector:
     service: ambassador
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ambassador
@@ -50,7 +50,7 @@ kind: ServiceAccount
 metadata:
   name: ambassador
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: ambassador
@@ -62,7 +62,7 @@ subjects:
 - kind: ServiceAccount
   name: ambassador
   namespace: default
-include(ambassador-crds.yaml)
+include(../../../manifests/emissary/ambassador-crds.yaml)
 ---
 apiVersion: v1
 kind: ConfigMap

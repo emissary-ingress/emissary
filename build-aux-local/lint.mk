@@ -1,5 +1,7 @@
 # Must be included *after* generate.mk, because we use GOHOSTOS and GOHOSTARCH defined there.
 
+include build-aux/tools.mk
+
 lint/go-dirs = $(OSS_HOME)
 
 lint:

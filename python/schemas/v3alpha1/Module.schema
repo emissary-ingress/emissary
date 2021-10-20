@@ -23,7 +23,8 @@
         },
         "config": {
             "description": "UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.",
-            "type": "object"
+            "type": "object",
+            "x-kubernetes-preserve-unknown-fields": true
         },
         "generation": {
             "type": "integer"

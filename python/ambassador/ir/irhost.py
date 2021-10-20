@@ -25,7 +25,7 @@ class IRHost(IRResource):
         'tlsContext',
         'tls',
     }
-    
+
     hostname: str
     secure_action: str
     insecure_action: str
@@ -244,7 +244,7 @@ class IRHost(IRResource):
                         # Override noisily, since they tried to explicitly disable it.
                         self.post_error("ACME requires insecure.additionalPort to function; forcing to 8080")
                         override_insecure = True
-                    
+
                     if override_insecure:
                         # Force self.insecure_addl_port...
                         self.insecure_addl_port = 8080
@@ -294,14 +294,14 @@ class IRHost(IRResource):
             assert(secret_name)     # For mypy -- if has_secret() is true, secret_name() will be there.
 
             # This is a little weird. Basically we're going to resolve the secret (which should just
-            # be a cache lookup here) so that we can use SavedSecret.__str__() as a serializer to 
+            # be a cache lookup here) so that we can use SavedSecret.__str__() as a serializer to
             # compare the configurations.
             context_ss = self.resolve(ir, secret_name)
 
             self.logger.debug(f"Host {self.name}, ctx {ctx.name}, secret {secret_name}, resolved {context_ss}")
 
             if str(context_ss) != str(tls_ss):
-                self.post_error("Secret info mismatch between Host %s (secret: %s) and TLSContext %s: (secret: %s)" % 
+                self.post_error("Secret info mismatch between Host %s (secret: %s) and TLSContext %s: (secret: %s)" %
                                 (self.name, tls_name, ctx_name, secret_name))
                 return False
         else:
@@ -321,7 +321,7 @@ class IRHost(IRResource):
         if context_hosts:
             is_valid_hosts = False
 
-            # XXX Should we be doing a glob check here? 
+            # XXX Should we be doing a glob check here?
             for host_tc in context_hosts:
                 if host_tc in host_hosts:
                     is_valid_hosts = True
@@ -373,7 +373,7 @@ class IRHost(IRResource):
 
         if selector:
             sel_match = selector_matches(self.logger, selector, group.get('metadata_labels', {}))
-            self.logger.debug("-- host sel %s group labels %s => %s", 
+            self.logger.debug("-- host sel %s group labels %s => %s",
                              dump_json(selector), dump_json(group.get('metadata_labels')), sel_match)
 
         return host_match or sel_match
@@ -448,14 +448,14 @@ class HostFactory:
             if found_termination_context:
                 ir.post_error("No Hosts defined, but TLSContexts exist that terminate TLS. The TLSContexts are being ignored.")
 
-            # If we don't have a fallback secret, don't try to use it. 
+            # If we don't have a fallback secret, don't try to use it.
             #
-            # We use the Ambassador's namespace here because we'll be creating the 
+            # We use the Ambassador's namespace here because we'll be creating the
             # fallback Host in the Ambassador's namespace.
             fallback_ss = ir.resolve_secret(ir.ambassador_module, "fallback-self-signed-cert", ir.ambassador_namespace)
 
             host: IRHost
-        
+
             if not fallback_ss:
                 ir.aconf.post_notice("No TLS termination and no fallback cert -- defaulting to cleartext-only.")
                 ir.logger.debug("HostFactory: creating cleartext-only default host")

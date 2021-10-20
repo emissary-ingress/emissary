@@ -129,9 +129,6 @@
                 "v3"
             ]
         },
-        "stats_name": {
-            "type": "string"
-        },
         "status_on_error": {
             "type": "object",
             "properties": {

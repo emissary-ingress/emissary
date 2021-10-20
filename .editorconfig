@@ -51,7 +51,7 @@ indent_style = tab
 ; won't work.
 indent_style = tab
 
-[{*.sh,cluster-claim,cluster-unclaim}]
+[*.sh]
 indent_style = space
 indent_size = 4
 [docker-promote.sh]

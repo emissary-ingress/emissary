@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from .ir import IR # pragma: no cover
 
 class IRBuffer (IRFilter):
-    
+
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.buffer",
                  name: str="ir.buffer",

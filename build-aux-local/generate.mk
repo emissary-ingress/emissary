@@ -64,6 +64,7 @@ generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-ingress.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
+generate-fast/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml
 
 generate: ## Update generated sources that get committed to Git
 generate:
@@ -274,8 +275,8 @@ _generate_clean:
 #controller-gen/options/schemapatch += manifests=foo
 #controller-gen/options/rbac        += roleName=ambassador
 controller-gen/options/object      += # headerFile=hack/boilerplate.go.txt
-controller-gen/options/crd         += trivialVersions=false # change this to "false" once we're OK with requiring Kubernetes 1.13+
-controller-gen/options/crd         += crdVersions=v1beta1 # change this to "v1" once we're OK with requiring Kubernetes 1.16+
+controller-gen/options/crd         += trivialVersions=false # Requires Kubernetes 1.13+
+controller-gen/options/crd         += crdVersions=v1        # Requires Kubernetes 1.16+
 controller-gen/output/crd           = dir=$@
 $(OSS_HOME)/charts/emissary-ingress/crds: $(tools/controller-gen) $(tools/fix-crds) FORCE
 	@printf '  $(CYN)Running controller-gen$(END)\n'
@@ -294,6 +295,10 @@ $(OSS_HOME)/manifests/emissary/emissary-crds.yaml: $(OSS_HOME)/charts/emissary-i
 $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml: $(OSS_HOME)/charts/emissary-ingress/crds $(tools/fix-crds)
 	@printf '  $(CYN)$@$(END)\n'
 	$(tools/fix-crds) oss 1.11 $(sort $(wildcard $</*.yaml)) > $@
+
+$(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml: %: %.m4 $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
+	@printf '  $(CYN)$@$(END)\n'
+	cd $(@D) && m4 < $(<F) > $(@F)
 
 $(OSS_HOME)/python/schemas/v3alpha1: $(OSS_HOME)/manifests/emissary/emissary-crds.yaml $(tools/crds2schemas)
 	rm -rf $@

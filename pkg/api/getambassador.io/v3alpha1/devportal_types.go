@@ -54,6 +54,10 @@ type DevPortalDocsSpec struct {
 
 	// URL is the URL used for obtaining docs
 	URL string `json:"url,omitempty"`
+
+	// Timeout specifies the amount of time devportal will wait
+	// for the downstream service to report an openapi spec back
+	Timeout int `json:"timeout_ms,omitempty"`
 }
 
 // DevPortalSearchSpec allows configuration over search functionality for the DevPortal
@@ -90,6 +94,10 @@ type DevPortalSpec struct {
 	NamingScheme string `json:"naming_scheme,omitempty"`
 
 	Search *DevPortalSearchSpec `json:"search,omitempty"`
+
+	// Configures this DevPortal to use server definitions from the openAPI doc instead of
+	// rewriting them based on the url used for the connection.
+	PreserveServers *bool `json:"preserve_servers,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

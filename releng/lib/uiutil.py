@@ -41,7 +41,7 @@ from . import ansiterm
 _capturing = False
 
 
-def check_command(args) -> int:
+def check_command(args) -> bool:
     p = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     return p.returncode == 0
 

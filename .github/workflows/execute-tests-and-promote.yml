@@ -116,12 +116,6 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/execute-pytests
         name: "execute pytests action"
-      # teardown
-      - run: |
-          ./.ci/cluster-unclaim
-        shell: bash
-        if: always()
-        name: "Teardown Kubernetes cluster"
       # collect logs
       - uses: ./.github/actions/collect-testing-logs
         if: always()

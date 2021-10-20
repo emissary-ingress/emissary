@@ -7,6 +7,14 @@ numbering uses [semantic versioning](http://semver.org).
 
 (no changes yet)
 
+## v7.1.9
+
+- Update Ambassador chart image to version v2.0.4: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
+## v7.1.8-ea
+
+- Update Ambassador chart image to version v2.0.3-ea: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
 ## v7.1.2-ea
 
 - Update Ambassador chart image to version v2.0.2-ea: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
@@ -30,6 +38,40 @@ Emissary Ingress chart v7.0.0-ea provides early access to Emissary 2.0 features.
 - Change: removed helm 2 support
 - Feature: Add an option to create default HTTP and HTTPS listeners
 
+## v6.9.3
+
+- Update Ambassador API Gateway chart image to version v1.14.2: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+- Update Ambassador Edge Stack chart image to version v1.14.2: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
+(v6.9.2 was withdrawn)
+
+## v6.9.1
+
+- Update Ambassador API Gateway chart image to version v1.14.1: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+- Update Ambassador Edge Stack chart image to version v1.14.1: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
+## v6.9.0
+
+- Update Ambassador Edge Stack chart image to version v1.14.0: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
+## v6.8.0
+
+- Update Ambassador API Gateway chart image to version v1.14.0: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
+## v6.7.14
+
+- Feature: New Values to expose `progressDeadlineSeconds` for the Ambassador and Ambassador-agent Deployments.
+
+## v6.7.13
+
+- Update Ambassador API Gateway chart image to version v1.13.10: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+- Update Ambassador Edge Stack chart image to version v1.13.10: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
+## v6.7.12
+
+- Update Ambassador API Gateway chart image to version v1.13.9: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+- Update Ambassador Edge Stack chart image to version v1.13.9: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
+
 ## v6.7.11
 
 - Update Ambassador API Gateway chart image to version v1.13.8: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
@@ -49,7 +91,6 @@ Emissary Ingress chart v7.0.0-ea provides early access to Emissary 2.0 features.
 ## v6.7.8
 
 - Update Ambassador chart image to version 1.13.5: [CHANGELOG](https://github.com/datawire/ambassador/blob/master/CHANGELOG.md)
-
 
 ## v6.7.7
 
