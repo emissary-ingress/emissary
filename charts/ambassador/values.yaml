@@ -294,6 +294,10 @@ resources:
     cpu: 200m
     memory: 300Mi
 
+# Configure Container Lifecycle Hooks for Emissary Ingress
+# See https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
+lifeCycle:
+
 priorityClassName: ''
 
 nodeSelector: {}

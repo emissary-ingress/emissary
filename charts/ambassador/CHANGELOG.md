@@ -6,6 +6,7 @@ numbering uses [semantic versioning](http://semver.org).
 ## Next Release
 
 (no changes yet)
+- Add support for configuring [Container Lifecycle Hooks](https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/)
 
 ## v6.9.3
 
