@@ -238,6 +238,8 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          lifeCycle:
+            {{- toYaml .Values.lifecycle | nindent 12 }}
       {{- with .Values.sidecarContainers }}
         {{- toYaml . | nindent 8 }}
       {{- end }}

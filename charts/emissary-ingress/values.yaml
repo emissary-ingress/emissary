@@ -282,6 +282,10 @@ resources: # +doc-gen:break
     cpu: 200m
     memory: 300Mi
 
+# Configure Container Lifecycle Hooks for Emissary Ingress
+# See https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
+lifeCycle:
+
 # The name of the priorityClass for the ambassador DaemonSet/Deployment
 priorityClassName: ''
 

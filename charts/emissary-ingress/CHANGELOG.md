@@ -6,7 +6,7 @@ numbering uses [semantic versioning](http://semver.org).
 ## Next Release
 
 (no changes yet)
-
+- Add support for configuring [Container Lifecycle Hooks](https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/)
 ## v7.1.9
 
 - Update Ambassador chart image to version v2.0.4: [CHANGELOG](https://github.com/emissary-ingress/emissary/blob/master/CHANGELOG.md)
