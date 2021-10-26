@@ -51,7 +51,6 @@ type AuthServiceSpec struct {
 	AllowedRequestHeaders       []string                  `json:"allowed_request_headers,omitempty"`
 	AllowedAuthorizationHeaders []string                  `json:"allowed_authorization_headers,omitempty"`
 	AddAuthHeaders              map[string]string         `json:"add_auth_headers,omitempty"`
-	AllowRequestBody            *bool                     `json:"allow_request_body,omitempty"`
 	AddLinkerdHeaders           *bool                     `json:"add_linkerd_headers,omitempty"`
 	FailureModeAllow            *bool                     `json:"failure_mode_allow,omitempty"`
 	IncludeBody                 *AuthServiceIncludeBody   `json:"include_body,omitempty"`

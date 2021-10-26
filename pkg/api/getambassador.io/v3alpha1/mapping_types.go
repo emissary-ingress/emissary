@@ -80,10 +80,6 @@ type MappingSpec struct {
 	IdleTimeoutMs *int   `json:"idle_timeout_ms,omitempty"`
 	TLS           string `json:"tls,omitempty"`
 
-	// use_websocket is deprecated, and is equivlaent to setting
-	// `allow_upgrade: ["websocket"]`
-	UseWebsocket *bool `json:"use_websocket,omitempty"`
-
 	// A case-insensitive list of the non-HTTP protocols to allow
 	// "upgrading" to from HTTP via the "Connection: upgrade"
 	// mechanism[1].  After the upgrade, Ambassador does not
@@ -116,29 +112,23 @@ type MappingSpec struct {
 	// +kubebuilder:validation:MinItems=1
 	ErrorResponseOverrides []ErrorResponseOverride `json:"error_response_overrides,omitempty"`
 	Modules                []UntypedDict           `json:"modules,omitempty"`
-	// Exact match for the hostname of a request if HostRegex is false; regex match for the
-	// hostname if HostRegex is true.
-	//
-	// Host specifies both a match for the ':authority' header of a request, as well as a match
-	// criterion for Host CRDs: a Mapping that specifies Host will not associate with a Host that
-	// doesn't have a matching Hostname.
-	//
-	// If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is
-	// used.
-	//
-	// DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.
-	DeprecatedHost string `json:"host,omitempty"`
-	// DEPRECATED: Host is either an exact match or a regex, depending on HostRegex. Use HostName instead.
-	DeprecatedHostRegex *bool `json:"host_regex,omitempty"`
+
 	// Hostname is a DNS glob specifying the hosts to which this Mapping applies.
 	//
 	// Hostname specifies both a match for the ':authority' header of a request, as well as a
-	// match criterion for Host CRDs: a Mapping that specifies Hostname will not associate with
-	// a Host that doesn't have a matching Hostname.
+	// match criterion for Host resources: a Mapping that specifies Hostname will not associate
+	// with a Host that doesn't have a matching Hostname.
 	//
-	// If both Host and Hostname are set, an error is logged, Host is ignored, and Hostname is
-	// used.
-	Hostname             string            `json:"hostname,omitempty"`
+	// If both Hostname and DeprecatedHostnameRegex are set, then an error is logged,
+	// DeprecateHostnameRegex is ignored, and Hostname is used.
+	Hostname string `json:"hostname,omitempty"`
+
+	// DeprecatedHostnameRegex is like Hostname, but is a regexp rather than a DNS glob.
+	//
+	// DEPRECATED: Use Hostname instead.  DeprecatedHostnameRegex exists only to facilitate
+	// conversion from v2 Mappings.
+	DeprecatedHostnameRegex string `json:"deprecated_hostname_regex,omitempty"`
+
 	Headers              map[string]string `json:"headers,omitempty"`
 	RegexHeaders         map[string]string `json:"regex_headers,omitempty"`
 	Labels               DomainMap         `json:"labels,omitempty"`
