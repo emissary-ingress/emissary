@@ -178,7 +178,7 @@ libraries:
     oauthlib              3.1.0      3-clause BSD license
     od                    1.0        MIT license
     ordered-set           4.0.1      MIT license
-    orjson                3.3.1      Apache License 2.0
+    orjson                3.3.1      Apache License 2.0, MIT license
     packaging             20.4       2-clause BSD license, Apache License 2.0
     pep517                0.8.2      MIT license
     pexpect               4.8.0      ISC license
