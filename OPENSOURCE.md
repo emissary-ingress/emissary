@@ -27,6 +27,7 @@ following Free and Open Source software:
     github.com/cncf/udpa/go                                  v0.0.0-20210322005330-6414d713912e         Apache License 2.0
     github.com/datawire/dlib                                 v1.2.4-0.20210629021142-e221f3b9c3b8       Apache License 2.0
     github.com/datawire/dtest                                v0.0.0-20210927191556-2cccf1a938b0         Apache License 2.0
+    github.com/datawire/go-mkopensource                      v0.0.0-20211026180000-06f43d9d3384         Apache License 2.0
     github.com/davecgh/go-spew                               v1.1.1                                     ISC license
     github.com/docker/distribution                           v2.7.1+incompatible                        Apache License 2.0
     github.com/docker/spdystream                             v0.0.0-20160310174837-449fdfce4d96         Apache License 2.0
@@ -178,7 +179,7 @@ libraries:
     oauthlib              3.1.0      3-clause BSD license
     od                    1.0        MIT license
     ordered-set           4.0.1      MIT license
-    orjson                3.3.1      Apache License 2.0
+    orjson                3.3.1      Apache License 2.0, MIT license
     packaging             20.4       2-clause BSD license, Apache License 2.0
     pep517                0.8.2      MIT license
     pexpect               4.8.0      ISC license
