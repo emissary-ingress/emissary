@@ -9,8 +9,8 @@ runs:
       name: Set Unique Test prefix (gotests-legacy-mode.${{ matrix.gotest-settings.legacy-mode }}-fast-reconfigure.${{ matrix.gotest-settings.fast-reconfigure }})
     - uses: actions/setup-python@v2
       with:
-        python-version: '^3.9.5'
-      name: "Install Python (^3.9.5)"
+        python-version: '~3.9.5'
+      name: "Install Python (~3.9.5)"
     - run: python --version
       shell: bash
       name: "Check python installed"
