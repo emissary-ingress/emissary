@@ -59,7 +59,7 @@ spec:
     authority: none
   tlsSecret:
     name: {self.name.k8s}-secret
-  selector:
+  mapping_selector:
     matchLabels:
       hostname: {self.path.fqdn}
 ---
@@ -138,7 +138,7 @@ spec:
     authority: none
   tlsSecret:
     name: {self.name.k8s}-secret
-  selector:
+  mapping_selector:
     matchLabels:
       hostname: {self.path.fqdn}
   requestPolicy:
@@ -202,7 +202,7 @@ spec:
   hostname: {self.path.fqdn}
   acmeProvider:
     authority: none
-  selector:
+  mapping_selector:
     matchLabels:
       hostname: {self.path.k8s}-manual-hostname
   tlsSecret:
@@ -282,7 +282,7 @@ spec:
   hostname: {self.path.fqdn}
   acmeProvider:
     authority: none
-  selector:
+  mapping_selector:
     matchLabels:
       hostname: {self.path.fqdn}
   tlsSecret:
@@ -360,7 +360,7 @@ spec:
   hostname: {self.path.fqdn}
   acmeProvider:
     authority: none
-  selector:
+  mapping_selector:
     matchLabels:
       hostname: {self.path.fqdn}
   tlsSecret:
@@ -425,7 +425,7 @@ spec:
   hostname: {self.path.fqdn}
   acmeProvider:
     authority: none
-  selector:
+  mapping_selector:
     matchLabels:
       hostname: {self.path.k8s}-host-cleartext
   requestPolicy:
@@ -492,7 +492,7 @@ spec:
   hostname: tls-context-host-1
   acmeProvider:
     authority: none
-  selector:
+  mapping_selector:
     matchLabels:
       hostname: tls-context-host-1
   tlsSecret:
@@ -579,7 +579,7 @@ spec:
   hostname: ambassador.example.com
   acmeProvider:
     authority: none
-  selector:
+  mapping_selector:
     matchLabels:
       hostname: ambassador.example.com
   tlsSecret:
@@ -1116,7 +1116,7 @@ spec:
   hostname: tls-context-host-1
   acmeProvider:
     authority: none
-  selector:
+  mapping_selector:
     matchLabels:
       hostname: tls-context-host-1
   tlsSecret:
@@ -1180,7 +1180,7 @@ spec:
   hostname: tls-context-host-1
   acmeProvider:
     authority: none
-  selector:
+  mapping_selector:
     matchLabels:
       hostname: {self.path.fqdn}
   tlsSecret:
@@ -1255,7 +1255,7 @@ spec:
   hostname: tls-context-host-1
   acmeProvider:
     authority: none
-  selector:
+  mapping_selector:
     matchLabels:
       hostname: {self.path.fqdn}
   tlsSecret:
@@ -1347,7 +1347,7 @@ spec:
   hostname: tls-context-host-1
   acmeProvider:
     authority: none
-  selector:
+  mapping_selector:
     matchLabels:
       hostname: {self.path.fqdn}
   tlsSecret:

@@ -44,7 +44,7 @@ metadata:
       name: cleartext-host-{self.path.k8s}
       ambassador_id: [ "plain" ]
       hostname: "*"
-      selector:
+      mapping_selector:
         matchLabels:
           hostname: {self.path.k8s}
       acmeProvider:
@@ -85,7 +85,7 @@ metadata:
       name: cleartext-host-{self.path.k8s}
       ambassador_id: [ "plain" ]
       hostname: "*"
-      selector:
+      mapping_selector:
         matchLabels:
           hostname: {self.path.k8s}
       acmeProvider:

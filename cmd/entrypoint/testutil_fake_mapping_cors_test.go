@@ -37,7 +37,7 @@ metadata:
   name: test-host
   namespace: default
 spec:
-  selector:
+  mapping_selector:
     matchLabels:
       host: minimal
 ---
