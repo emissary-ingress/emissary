@@ -20,7 +20,7 @@ class IRHost(IRResource):
         'hostname',
         'metadata_labels',
         'requestPolicy',
-        'selector',
+        'mapping_selector',
         'tlsSecret',
         'tlsContext',
         'tls',
@@ -166,7 +166,7 @@ class IRHost(IRResource):
                         tls_config_context = IRTLSContext(ir, aconf, **tls_context_init, **host_tls_config)
 
                         # XXX This seems kind of pointless -- nothing looks at the context's labels?
-                        match_labels = self.get('selector', {}).get('matchLabels')
+                        match_labels = self.get('mapping_selector', {}).get('matchLabels')
 
                         if match_labels:
                             tls_config_context['metadata_labels'] = match_labels
@@ -369,7 +369,7 @@ class IRHost(IRResource):
                 host_match = hostglob_matches(self.hostname, group_glob)
                 self.logger.debug("-- hostname %s group glob %s => %s", self.hostname, group_glob, host_match)
 
-        selector = self.get('selector')
+        selector = self.get('mapping_selector')
 
         if selector:
             sel_match = selector_matches(self.logger, selector, group.get('metadata_labels', {}))
