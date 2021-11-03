@@ -124,7 +124,7 @@ def _test_errorresponse(yaml, expectations, expect_fail=False):
     assert body_format is None
 
     mappers = ir_conf.get('mappers', None)
-    assert mappersx
+    assert mappers
     assert len(mappers) == len(expectations), \
             f"unexpected len(mappers) {len(expectations)} != len(expectations) {len(expectations)}"
 
@@ -170,7 +170,13 @@ def _test_errorresponse_onemapper_onstatuscode_textformat_contenttype(
 
 def _test_errorresponse_onemapper_onstatuscode_textformat_datasource(
         status_code, text_format, source, content_type):
-    open(source, "x").close()
+
+
+    # in order for tests to pass the files (all located in /tmp) need to exist
+    try:
+        open(source, "x").close()
+    # except OSError: the file already exists
+
     _test_errorresponse_onemapper(
         _ambassador_module_onemapper(status_code, 'text_format_source', source,
             content_type=content_type),
