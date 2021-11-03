@@ -97,8 +97,9 @@ type HostSpec struct {
 	// DEPRECATED: Selector by which we can find further configuration. Use MappingSelector instead.
 	Selector *metav1.LabelSelector `json:"selector,omitempty"`
 
-	// Selector for Mappings we'll associate with this Host.
-	MappingSelector *metav1.LabelSelector `json:"mapping_selector,omitempty"`
+	// Selector for Mappings we'll associate with this Host. At the moment, Selector and
+	// MappingSelector are synonyms, but that will change soon.
+	MappingSelector *metav1.LabelSelector `json:"mappingSelector,omitempty"`
 
 	// Specifies whether/who to talk ACME with to automatically manage the $tlsSecret.
 	AcmeProvider *ACMEProviderSpec `json:"acmeProvider,omitempty"`

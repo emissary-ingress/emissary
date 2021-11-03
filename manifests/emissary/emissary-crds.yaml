@@ -347,8 +347,8 @@ spec:
               hostname:
                 description: Hostname by which the Ambassador can be reached.
                 type: string
-              mapping_selector:
-                description: Selector for Mappings we'll associate with this Host.
+              mappingSelector:
+                description: Selector for Mappings we'll associate with this Host. At the moment, Selector and MappingSelector are synonyms, but that will change soon.
                 properties:
                   matchExpressions:
                     description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
