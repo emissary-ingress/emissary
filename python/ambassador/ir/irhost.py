@@ -18,6 +18,7 @@ class IRHost(IRResource):
     AllowedKeys = {
         'acmeProvider',
         'hostname',
+        'mappingSelector',
         'metadata_labels',
         'requestPolicy',
         'selector',
@@ -71,6 +72,16 @@ class IRHost(IRResource):
         insecure_policy = request_policy.get('insecure', {})
         self.insecure_action = insecure_policy.get('action', 'Redirect')
         self.insecure_addl_port: Optional[int] = insecure_policy.get('additionalPort', None)
+
+        # If we have no mappingSelector, check for selector.
+        mapsel = self.get('mappingSelector', None)
+
+        if not mapsel:
+            mapsel = self.get('selector', None)
+
+            if mapsel:
+                self.mappingSelector = mapsel
+                del self['selector']
 
         if self.get('tlsSecret', None):
             tls_secret = self.tlsSecret
@@ -165,11 +176,17 @@ class IRHost(IRResource):
 
                         tls_config_context = IRTLSContext(ir, aconf, **tls_context_init, **host_tls_config)
 
-                        # XXX This seems kind of pointless -- nothing looks at the context's labels?
-                        match_labels = self.get('selector', {}).get('matchLabels')
+                        # This code was here because, while 'selector' was controlling things to be watched
+                        # for, we figured we should update the labels on this generated TLSContext so that
+                        # it would actually match the 'selector'. Nothing was actually using that, though, so
+                        # we're not doing that any more.
+                        #
+                        #-----------------------------------------------------------------------------------
+                        # # XXX This seems kind of pointless -- nothing looks at the context's labels?
+                        # match_labels = self.get('selector', {}).get('matchLabels')
 
-                        if match_labels:
-                            tls_config_context['metadata_labels'] = match_labels
+                        # if match_labels:
+                        #     tls_config_context['metadata_labels'] = match_labels
 
                         if tls_config_context.is_active():
                             self.context = tls_config_context
@@ -346,11 +363,11 @@ class IRHost(IRResource):
         Make sure a given IRHTTPMappingGroup is a match for this Host, meaning
         that at least one of the following is true:
 
-        - The Host specifies matchLabels, and the group has matching labels
+        - The Host specifies mappingSelector.matchLabels, and the group has matching labels
         - The group specifies a host glob, and the Host has a matching domain.
 
-        A Mapping that specifies no host can never match a Host that specifies
-        no selectors.
+        A Mapping that specifies no host can never match a Host that specifies no
+        mappingSelector.
         """
 
         host_match = False
@@ -363,18 +380,20 @@ class IRHost(IRResource):
             host_match = True
             self.logger.debug("-- hostname %s group regex => %s", self.hostname, host_match)
         else:
-            group_glob = group.get('host') or None
+            # It is NOT A TYPO that we use group.get("host") here -- whether the Mapping supplies
+            # "hostname" or "host", the Mapping code normalizes to "host" internally.
+            group_glob = group.get('host') or None  # NOT A TYPO: see above.
 
             if group_glob:
                 host_match = hostglob_matches(self.hostname, group_glob)
                 self.logger.debug("-- hostname %s group glob %s => %s", self.hostname, group_glob, host_match)
 
-        selector = self.get('selector')
+        mapsel = self.get('mappingSelector')
 
-        if selector:
-            sel_match = selector_matches(self.logger, selector, group.get('metadata_labels', {}))
+        if mapsel:
+            sel_match = selector_matches(self.logger, mapsel, group.get('metadata_labels', {}))
             self.logger.debug("-- host sel %s group labels %s => %s",
-                             dump_json(selector), dump_json(group.get('metadata_labels')), sel_match)
+                             dump_json(mapsel), dump_json(group.get('metadata_labels')), sel_match)
 
         return host_match or sel_match
 
