@@ -80,6 +80,17 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [2.0.5] TBD
+[2.0.5]: https://github.com/emissary-ingress/emissary/compare/v2.0.4...v2.0.5
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Bugfix: The `Host` CRD now correctly supports the `mappingSelector` element, as documented. As a
+  transition aid, `selector` is a synonym for `mappingSelector`; a future version of
+  Emissary-ingress will remove the `selector` element. ([3902])
+
+[3902]: https://github.com/emissary-ingress/emissary/issues/3902
+
 ## [2.0.4] October 19, 2021
 [2.0.4]: https://github.com/emissary-ingress/emissary/compare/v2.0.3-ea...v2.0.4
 
