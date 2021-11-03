@@ -233,10 +233,17 @@ class DiagApp (Flask):
                                  namespace='ambassador', registry=self.metrics_registry)
         self.diag_notices = Gauge(f'diagnostics_notices', f'Number of configuration notices',
                                  namespace='ambassador', registry=self.metrics_registry)
+        self.diag_log_level = Gauge(f'log_level', f'Debug log level enabled or not',
+                                 ["level"],
+                                 namespace='ambassador', registry=self.metrics_registry)
 
         if debug:
             self.logger.setLevel(logging.DEBUG)
+            self.diag_log_level.labels('debug').set(1)
             logging.getLogger('ambassador').setLevel(logging.DEBUG)
+        else:
+            self.diag_log_level.labels('debug').set(0)
+
 
         # Assume that we will NOT update Mapping status.
         ksclass: Type[KubeStatus] = KubeStatusNoMappings
@@ -1019,6 +1026,7 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
 
     if loglevel:
         app.logger.debug("%s %s -- requesting loglevel %s" % (what, reqid, loglevel))
+        app.diag_log_level.labels('debug').set(1 if loglevel == 'debug' else 0)
 
         if not app.estatsmgr.update_log_levels(time.time(), level=loglevel):
             notice = { 'level': 'WARNING', 'message': "Could not update log level!" }
