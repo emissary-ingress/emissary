@@ -215,9 +215,13 @@ class IRErrorResponse (IRFilter):
                     continue
 
                 body_format_override["text_format_source"] = ir_text_format_source
-                fmt_file = open(ir_text_format_source["filename"], mode='r')
-                format_body = fmt_file.read()
-                fmt_file.close()
+                try:
+                    fmt_file = open(ir_text_format_source["filename"], mode='r')
+                    format_body = fmt_file.read()
+                    fmt_file.close()
+                except OSError:
+                    self.post_error("IRErrorResponse: text_format_source field references a file that does not exist")
+                    continue
 
             elif ir_text_format is not None:
                 # Verify that the text_format field is a string
