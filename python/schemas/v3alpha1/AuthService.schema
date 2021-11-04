@@ -48,6 +48,33 @@
         "auth_service": {
             "type": "string"
         },
+        "circuit_breakers": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "max_connections": {
+                        "type": "integer"
+                    },
+                    "max_pending_requests": {
+                        "type": "integer"
+                    },
+                    "max_requests": {
+                        "type": "integer"
+                    },
+                    "max_retries": {
+                        "type": "integer"
+                    },
+                    "priority": {
+                        "type": "string",
+                        "enum": [
+                            "default",
+                            "high"
+                        ]
+                    }
+                }
+            }
+        },
         "failure_mode_allow": {
             "type": "boolean"
         },
