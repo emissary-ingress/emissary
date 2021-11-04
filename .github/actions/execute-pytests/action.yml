@@ -17,8 +17,8 @@ runs:
       name: "Configure system file and inotify maximums (1600000/4096)"
     - uses: actions/setup-python@v2
       with:
-        python-version: '^3.9.5'
-      name: "Install Python (^3.9.5)"
+        python-version: '~3.9.5'
+      name: "Install Python (~3.9.5)"
     - run: python --version
       shell: bash
       name: "Check python installed"

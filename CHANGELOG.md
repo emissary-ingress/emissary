@@ -80,6 +80,25 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ## RELEASE NOTES
 
+## [2.0.5] TBD
+[2.0.5]: https://github.com/emissary-ingress/emissary/compare/v2.0.4...v2.0.5
+
+### Emissary-ingress and Ambassador Edge Stack
+
+- Feature: Any token delimited by '%' is now validated agains a whitelist of valid Envoy command
+  operators. Any mapping containing an error_response_overrides section with invalid command
+  operators will be discarded.
+
+- Bugfix: It is now possible to set the `circuit_breakers` for `AuthServices`, exactly the same as
+  for `Mappings` and `TCPMappings`. This makes it possible to configure your `AuthService` to be
+  able to handle more than 1024 concurrent requests.
+
+- Bugfix: The `Host` CRD now correctly supports the `mappingSelector` element, as documented. As a
+  transition aid, `selector` is a synonym for `mappingSelector`; a future version of
+  Emissary-ingress will remove the `selector` element. ([3902])
+
+[3902]: https://github.com/emissary-ingress/emissary/issues/3902
+
 ## [2.0.4] October 19, 2021
 [2.0.4]: https://github.com/emissary-ingress/emissary/compare/v2.0.3-ea...v2.0.4
 
@@ -115,7 +134,7 @@ href="https://a8r.io/slack">Slack</a> and let us know what you think.
 - Bugfix: Large configurations no longer cause Emissary-ingress to be unable to communicate with
   Ambassador Cloud. ([#3593])
 
-- Bugfix: The `l7Depth` element of the `Listener` CRD is  properly supported.
+- Bugfix: The `l7Depth` element of the `Listener` CRD is properly supported.
 
 [#3854]: https://github.com/emissary-ingress/emissary/issues/3854
 [#3593]: https://github.com/emissary-ingress/emissary/issues/3593

@@ -31,6 +31,37 @@
 
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
+  - version: 2.0.5
+    date: 'TBD'
+    notes:
+      - title: Error_response_overrides validation
+        type: feature
+        body: >-
+          Any token delimited by '%' is now validated agains a whitelist of valid
+          Envoy command operators. Any mapping containing an error_response_overrides
+          section with invalid command operators will be discarded.
+          
+      - title: AuthService circuit breakers
+        type: bugfix
+        body: >-
+          It is now possible to set the <code>circuit_breakers</code> for <code>AuthServices</code>,
+          exactly the same as for <code>Mappings</code> and <code>TCPMappings</code>. This makes it
+          possible to configure your <code>AuthService</code> to be able to handle more than 1024
+          concurrent requests.
+        docs: topics/running/services/auth-service/
+
+      - title: mappingSelector is now correctly supported in the Host CRD
+        type: bugfix
+        body: >-
+          The <code>Host</code> CRD now correctly supports the <code>mappingSelector</code>
+          element, as documented. As a transition aid, <code>selector</code> is a synonym for
+          <code>mappingSelector</code>; a future version of $productName$ will remove the
+          <code>selector</code> element.
+        github:
+        - title: 3902
+          link: https://github.com/emissary-ingress/emissary/issues/3902
+        docs: https://github.com/emissary-ingress/emissary/issues/3902
+
   - version: 2.0.4
     date: '2021-10-19'
     notes:
@@ -116,7 +147,7 @@ items:
       - title: Listeners correctly support l7Depth
         type: bugfix
         body: >-
-          The <code>l7Depth</code> element of the <code>Listener</code> CRD is 
+          The <code>l7Depth</code> element of the <code>Listener</code> CRD is
           properly supported.
         docs: topics/running/listener#l7depth
         image: ./v2.0.4-l7depth.png
