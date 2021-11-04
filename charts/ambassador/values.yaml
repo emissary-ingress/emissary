@@ -377,6 +377,14 @@ redis:
   nodeSelector: {}
   affinity: {}
   tolerations: {}
+  # Arguments for the redis container
+  containerArgs: {}
+  #  - arg1
+  #  - arg2
+  # Secrets used for pulling the redis image from a private repo
+  imagePullSecrets: {}
+  #  - name: example-secret-1
+  #  - name: example-secret-2
 
 
 # Configures the AuthService that ships with the Ambassador Edge Stack.
