@@ -150,11 +150,12 @@ def _test_errorresponse_twomappers(yaml, expectation1, expectation2, fail=False)
     return _test_errorresponse(yaml, [ expectation1, expectation2 ], expect_fail=fail)
 
 
-def _test_errorresponse_onemapper_onstatuscode_textformat(status_code, text_format):
+def _test_errorresponse_onemapper_onstatuscode_textformat(status_code, text_format, fail=False):
     _test_errorresponse_onemapper(
         _ambassador_module_onemapper(status_code, 'text_format', text_format),
         _status_code_filter_eq_obj(status_code),
-        _text_format_obj(text_format)
+        _text_format_obj(text_format),
+        fail=fail
     )
 
 
@@ -175,7 +176,9 @@ def _test_errorresponse_onemapper_onstatuscode_textformat_datasource(
     # in order for tests to pass the files (all located in /tmp) need to exist
     try:
         open(source, "x").close()
-    # except OSError: the file already exists
+    except OSError:
+        # the file already exists
+        pass
 
     _test_errorresponse_onemapper(
         _ambassador_module_onemapper(status_code, 'text_format_source', source,
