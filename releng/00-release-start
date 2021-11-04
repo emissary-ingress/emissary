@@ -24,8 +24,6 @@ All commits that are going out in {next_ver} release **must** be on {pr_branch}.
 This will allow the appropriate CI to run.
 
 Reviewers, please review the changelog and commits in this branch to make sure everything that needs to go out in the release is on this branch.
-
-Each push to this branch will generate a new RC tag.
 """
 
 
