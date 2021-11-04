@@ -34,6 +34,13 @@ items:
   - version: 2.0.5
     date: 'TBD'
     notes:
+      - title: Error_response_overrides validation
+        type: feature
+        body: >-
+          Any token delimited by '%' is now validated agains a whitelist of valid
+          Envoy command operators. Any mapping containing an error_response_overrides
+          section with invalid command operators will be discarded.
+          
       - title: AuthService circuit breakers
         type: bugfix
         body: >-

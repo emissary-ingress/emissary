@@ -85,6 +85,10 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
 
 ### Emissary-ingress and Ambassador Edge Stack
 
+- Feature: Any token delimited by '%' is now validated agains a whitelist of valid Envoy command
+  operators. Any mapping containing an error_response_overrides section with invalid command
+  operators will be discarded.
+
 - Bugfix: It is now possible to set the `circuit_breakers` for `AuthServices`, exactly the same as
   for `Mappings` and `TCPMappings`. This makes it possible to configure your `AuthService` to be
   able to handle more than 1024 concurrent requests.

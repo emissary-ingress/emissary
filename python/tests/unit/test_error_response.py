@@ -142,18 +142,20 @@ def _test_errorresponse(yaml, expectations, expect_fail=False):
             assert actual_body_format_override == expected_body_format_override
 
 
-def _test_errorresponse_onemapper(yaml, expected_filter, expected_body_format_override):
-    return _test_errorresponse(yaml, [ (expected_filter, expected_body_format_override) ])
+def _test_errorresponse_onemapper(yaml, expected_filter, expected_body_format_override, fail=False):
+    return _test_errorresponse(yaml, [ (expected_filter, expected_body_format_override) ], expect_fail=fail)
 
 
-def _test_errorresponse_twomappers(yaml, expectation1, expectation2):
-    return _test_errorresponse(yaml, [ expectation1, expectation2 ])
+def _test_errorresponse_twomappers(yaml, expectation1, expectation2, fail=False):
+    return _test_errorresponse(yaml, [ expectation1, expectation2 ], expect_fail=fail)
 
-def _test_errorresponse_onemapper_onstatuscode_textformat(status_code, text_format):
+
+def _test_errorresponse_onemapper_onstatuscode_textformat(status_code, text_format, fail=False):
     _test_errorresponse_onemapper(
         _ambassador_module_onemapper(status_code, 'text_format', text_format),
         _status_code_filter_eq_obj(status_code),
-        _text_format_obj(text_format)
+        _text_format_obj(text_format),
+        fail=fail
     )
 
 
@@ -169,11 +171,20 @@ def _test_errorresponse_onemapper_onstatuscode_textformat_contenttype(
 
 def _test_errorresponse_onemapper_onstatuscode_textformat_datasource(
         status_code, text_format, source, content_type):
+
+
+    # in order for tests to pass the files (all located in /tmp) need to exist
+    try:
+        open(source, "x").close()
+    except OSError:
+        # the file already exists
+        pass
+
     _test_errorresponse_onemapper(
         _ambassador_module_onemapper(status_code, 'text_format_source', source,
             content_type=content_type),
         _status_code_filter_eq_obj(status_code),
-        _text_format_source_obj(source, content_type=content_type)
+        _text_format_source_obj(source, content_type=content_type),
     )
 
 
@@ -198,7 +209,7 @@ def _test_errorresponse_onemapper_onstatuscode_jsonformat(status_code, json_form
     )
 
 
-def _test_errorresponse_twomappers_onstatuscode_textformat(code1, text1, code2, text2):
+def _test_errorresponse_twomappers_onstatuscode_textformat(code1, text1, code2, text2, fail=False):
     _test_errorresponse_twomappers(
 f'''
 ---
@@ -215,7 +226,8 @@ config:
       text_format: {text2}
 ''',
         (_status_code_filter_eq_obj(code1), _text_format_obj(text1)),
-        (_status_code_filter_eq_obj(code2), _text_format_obj(text2))
+        (_status_code_filter_eq_obj(code2), _text_format_obj(text2)),
+        fail=fail
     )
 
 
@@ -241,6 +253,11 @@ def test_errorresponse_onemapper_onstatuscode_textformat():
     _test_errorresponse_onemapper_onstatuscode_textformat(
         '429', 'too fast, too furious on host %REQ(:authority)%'
     )
+
+
+@pytest.mark.compilertest
+def test_errorresponse_invalid_envoy_operator():
+    _test_errorresponse_onemapper_onstatuscode_textformat(404, '%FAILME%', fail=True)
 
 
 @pytest.mark.compilertest
@@ -294,7 +311,7 @@ def test_errorresponse_onemapper_onstatuscode_textformatsource():
     _test_errorresponse_onemapper_onstatuscode_textformat_datasource(
             '429', '2fast', '/tmp/2fast.html', 'text/html' )
     _test_errorresponse_onemapper_onstatuscode_textformat_datasource(
-            '503', 'something went wrong', '/tmp/replies/503.html', 'text/html; charset=UTF-8' )
+            '503', 'something went wrong', '/tmp/503.html', 'text/html; charset=UTF-8' )
 
 
 @pytest.mark.compilertest
