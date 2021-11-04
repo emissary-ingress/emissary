@@ -89,6 +89,12 @@ Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest
   operators. Any mapping containing an error_response_overrides section with invalid command
   operators will be discarded.
 
+- Bugfix: The `Host` CRD now correctly supports the `mappingSelector` element, as documented. As a
+  transition aid, `selector` is a synonym for `mappingSelector`; a future version of
+  Emissary-ingress will remove the `selector` element. ([3902])
+
+[3902]: https://github.com/emissary-ingress/emissary/issues/3902
+
 ## [2.0.4] October 19, 2021
 [2.0.4]: https://github.com/emissary-ingress/emissary/compare/v2.0.3-ea...v2.0.4
 
