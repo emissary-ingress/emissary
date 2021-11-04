@@ -311,7 +311,7 @@ def test_errorresponse_onemapper_onstatuscode_textformatsource():
     _test_errorresponse_onemapper_onstatuscode_textformat_datasource(
             '429', '2fast', '/tmp/2fast.html', 'text/html' )
     _test_errorresponse_onemapper_onstatuscode_textformat_datasource(
-            '503', 'something went wrong', '/tmp/replies/503.html', 'text/html; charset=UTF-8' )
+            '503', 'something went wrong', '/tmp/503.html', 'text/html; charset=UTF-8' )
 
 
 @pytest.mark.compilertest
