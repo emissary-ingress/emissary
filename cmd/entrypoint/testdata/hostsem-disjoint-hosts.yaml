@@ -43,7 +43,7 @@ spec:
   requestPolicy:
     insecure:
       action: Route
-  selector:
+  mappingSelector:    # Test mappingSelector here...
     matchLabels:
       h1-host: "yes"
 ---
@@ -60,7 +60,7 @@ spec:
   requestPolicy:
     insecure:
       action: Redirect
-  selector:
+  selector:           # ...and selector here.
     matchLabels:
       h2-host: "yes"
 ---
@@ -75,7 +75,7 @@ spec:
   requestPolicy:
     insecure:
       action: Reject
-  selector:
+  mappingSelector:
     matchLabels:
       h3-host: "yes"
 ---

@@ -17,7 +17,7 @@ kind: Host
 metadata:
   name: test-host
 spec:
-  selector:
+  mappingSelector:
     matchLabels:
       host: minimal
     
