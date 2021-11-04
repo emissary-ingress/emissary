@@ -130,7 +130,10 @@ class IRAuth (IRFilter):
         if module.get('circuit_breakers', None):
             self['circuit_breakers'] = module.get('circuit_breakers')
         else:
-            self['circuit_breakers'] = ir.ambassador_module.circuit_breakers
+            cb = ir.ambassador_module.get('circuit_breakers')
+
+            if cb:
+                self['circuit_breakers'] = cb
 
         self["allow_request_body"] = module.get("allow_request_body", False)
         self["include_body"] = module.get("include_body", None)
