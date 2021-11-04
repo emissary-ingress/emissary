@@ -57,8 +57,9 @@ type AuthServiceSpec struct {
 	IncludeBody                 *AuthServiceIncludeBody   `json:"include_body,omitempty"`
 	StatusOnError               *AuthServiceStatusOnError `json:"status_on_error,omitempty"`
 	// +kubebuilder:validation:Enum={"v2","v3"}
-	ProtocolVersion string `json:"protocol_version,omitempty"`
-	StatsName       string `json:"stats_name,omitempty"`
+	ProtocolVersion string            `json:"protocol_version,omitempty"`
+	StatsName       string            `json:"stats_name,omitempty"`
+	CircuitBreakers []*CircuitBreaker `json:"circuit_breakers,omitempty"`
 }
 
 // AuthService is the Schema for the authservices API

@@ -60,6 +60,24 @@ spec:
                 type: array
               auth_service:
                 type: string
+              circuit_breakers:
+                items:
+                  properties:
+                    max_connections:
+                      type: integer
+                    max_pending_requests:
+                      type: integer
+                    max_requests:
+                      type: integer
+                    max_retries:
+                      type: integer
+                    priority:
+                      enum:
+                      - default
+                      - high
+                      type: string
+                  type: object
+                type: array
               failure_mode_allow:
                 type: boolean
               include_body:
