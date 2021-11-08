@@ -207,7 +207,7 @@ spec:
             path: labels
       containers:
       - name: ambassador
-        image: docker.io/emissaryingress/emissary:2.0.5-rc.0
+        image: docker.io/emissaryingress/emissary:2.0.5
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
@@ -435,7 +435,7 @@ spec:
       serviceAccountName: emissary-ingress-agent
       containers:
       - name: agent
-        image: docker.io/emissaryingress/emissary:2.0.5-rc.0
+        image: docker.io/emissaryingress/emissary:2.0.5
         imagePullPolicy: IfNotPresent
         command: [agent]
         env:
