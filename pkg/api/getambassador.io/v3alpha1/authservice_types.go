@@ -34,7 +34,7 @@ type AuthServiceIncludeBody struct {
 
 // Why isn't this just an int??
 type AuthServiceStatusOnError struct {
-	Code *int `json:"code,omitempty"`
+	Code int `json:"code,omitempty"`
 }
 
 // AuthServiceSpec defines the desired state of AuthService
