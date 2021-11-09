@@ -47,7 +47,7 @@ type AuthServiceSpec struct {
 	TLS         string `json:"tls,omitempty"`
 	// +kubebuilder:validation:Enum={"http","grpc"}
 	Proto                       string                    `json:"proto,omitempty"`
-	TimeoutMs                   *int                      `json:"timeout_ms,omitempty"`
+	Timeout                     *MillisecondDuration      `json:"timeout_ms,omitempty"`
 	AllowedRequestHeaders       []string                  `json:"allowed_request_headers,omitempty"`
 	AllowedAuthorizationHeaders []string                  `json:"allowed_authorization_headers,omitempty"`
 	AddAuthHeaders              map[string]string         `json:"add_auth_headers,omitempty"`

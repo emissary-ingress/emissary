@@ -29,10 +29,10 @@ type RateLimitServiceSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id,omitempty"`
 
 	// +kubebuilder:validation:Required
-	Service   string `json:"service,omitempty"`
-	TimeoutMs *int   `json:"timeout_ms,omitempty"`
-	Domain    string `json:"domain,omitempty"`
-	TLS       string `json:"tls,omitempty"`
+	Service string               `json:"service,omitempty"`
+	Timeout *MillisecondDuration `json:"timeout_ms,omitempty"`
+	Domain  string               `json:"domain,omitempty"`
+	TLS     string               `json:"tls,omitempty"`
 	// +kubebuilder:validation:Enum={"v2","v3"}
 	ProtocolVersion string `json:"protocol_version,omitempty"`
 	StatsName       string `json:"stats_name,omitempty"`
