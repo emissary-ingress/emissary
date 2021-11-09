@@ -1,0 +1,863 @@
+[
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"labels\":{\"product\":\"aes\"},\"name\":\"ambassador-devportal-api\",\"namespace\":\"ambassador\"},\"spec\":{\"prefix\":\"/openapi/\",\"rewrite\":\"\",\"service\":\"127.0.0.1:8500\"}}\n"
+            },
+            "creationTimestamp": "2020-07-03T02:19:06Z",
+            "generation": 1,
+            "labels": {
+                "product": "aes"
+            },
+            "name": "ambassador-devportal-api",
+            "namespace": "ambassador",
+            "resourceVersion": "701",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/ambassador-devportal-api",
+            "uid": "2fd46b2e-a553-455c-9a67-5b22848c1167"
+        },
+        "spec": {
+            "prefix": "/openapi/",
+            "auto_host_rewrite": false,
+            "prefix_regex": false,
+            "rewrite": "",
+            "service": "127.0.0.1:8500"
+        },
+        "status": {
+            "state": "Running"
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"labels\":{\"product\":\"aes\"},\"name\":\"ambassador-devportal\",\"namespace\":\"ambassador\"},\"spec\":{\"prefix\":\"/docs/\",\"rewrite\":\"/docs/\",\"service\":\"127.0.0.1:8500\"}}\n"
+            },
+            "creationTimestamp": "2020-07-03T02:19:06Z",
+            "generation": 1,
+            "labels": {
+                "product": "aes"
+            },
+            "name": "ambassador-devportal",
+            "namespace": "ambassador",
+            "resourceVersion": "702",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/ambassador-devportal",
+            "uid": "d19f50c2-ad3c-4b8b-8a90-20263aa7beee"
+        },
+        "spec": {
+            "prefix": "/docs/",
+            "auto_host_rewrite": true,
+            "prefix_regex": false,
+            "rewrite": "/docs/",
+            "service": "127.0.0.1:8500"
+        },
+        "status": {
+            "state": "Running"
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"mapping-for-echo\",\"namespace\":\"ambassador\"},\"spec\":{\"prefix\":\"/echo/\",\"service\":\"echo\"}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:11Z",
+            "generation": 1,
+            "name": "mapping-for-echo",
+            "namespace": "ambassador",
+            "resourceVersion": "4462369",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/mapping-for-echo",
+            "uid": "486c2af1-70d3-4d7b-9fc8-99bd19fd9107"
+        },
+        "spec": {
+            "prefix": "/echo/",
+            "prefix_regex": true,
+            "prefix_exact": false,
+            "service": "echo"
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"filter-actions-on-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/filter-actions/on/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:11Z",
+            "generation": 1,
+            "name": "filter-actions-on-mapping",
+            "namespace": "ambassador",
+            "resourceVersion": "4462382",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/filter-actions-on-mapping",
+            "uid": "f30549f4-1cf7-4b03-a775-b2dab1e789a0"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "prefix": "/filter-actions/on/",
+            "prefix_exact": true,
+            "add_linkerd_headers": false,
+            "rewrite": "/",
+            "service": "httpbin.default.svc.cluster.local",
+            "timeout_ms": 5000
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"filter-actions-if-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/filter-actions/if/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":0}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:12Z",
+            "generation": 1,
+            "name": "filter-actions-if-mapping",
+            "namespace": "ambassador",
+            "resourceVersion": "4462389",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/filter-actions-if-mapping",
+            "uid": "410db612-dd15-461c-bc08-bf3a5a47f1cc"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "add_linkerd_headers": true,
+            "case_sensitive": false,
+            "prefix": "/filter-actions/if/",
+            "rewrite": "/",
+            "service": "httpbin.default.svc.cluster.local",
+            "timeout_ms": 0
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"external-grpc-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/external-grpc/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000,\"idle_timeout_ms\":0}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:13Z",
+            "generation": 1,
+            "name": "external-grpc-mapping",
+            "namespace": "ambassador",
+            "resourceVersion": "4462430",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/external-grpc-mapping",
+            "uid": "be652a11-10f4-4c72-b4e7-b234cc3c6e93"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "prefix": "/external-grpc/",
+            "service": "httpbin.default.svc.cluster.local",
+            "case_sensitive": true,
+            "enable_ipv4": false,
+            "timeout_ms": 5000,
+            "idle_timeout_ms": 0
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"external-http-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/external-http/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000,\"weight\":0}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:14Z",
+            "generation": 1,
+            "name": "external-http-mapping",
+            "namespace": "ambassador",
+            "resourceVersion": "4462431",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/external-http-mapping",
+            "uid": "fcb3a3f1-7c91-4eb5-8769-7a83f7bec196"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "prefix": "/external-http/",
+            "service": "httpbin.default.svc.cluster.local",
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "timeout_ms": 5000,
+            "weight": 0
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"invalid-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/invalid/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:14Z",
+            "generation": 1,
+            "name": "invalid-mapping",
+            "namespace": "ambassador",
+            "resourceVersion": "4462434",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/invalid-mapping",
+            "uid": "40e2b505-eba8-4798-b9ef-99e83b2cfec0"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "prefix": "/invalid/",
+            "service": "httpbin.default.svc.cluster.local",
+            "enable_ipv6": true,
+            "grpc": false,
+            "timeout_ms": 5000
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"jwt-filter-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/jwt/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:15Z",
+            "generation": 1,
+            "name": "jwt-filter-mapping",
+            "namespace": "ambassador",
+            "resourceVersion": "4462442",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/jwt-filter-mapping",
+            "uid": "4345821c-9e99-42d2-aa41-6fd78a72967f"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "prefix": "/jwt/",
+            "service": "httpbin.default.svc.cluster.local",
+            "grpc": true,
+            "host_redirect": false,
+            "timeout_ms": 5000
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"oauth2-auth0-nojwt-and-plugin-and-whitelist\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/oauth2-auth0-nojwt-and-plugin-and-whitelist/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:15Z",
+            "generation": 1,
+            "name": "oauth2-auth0-nojwt-and-plugin-and-whitelist",
+            "namespace": "ambassador",
+            "resourceVersion": "4462448",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/oauth2-auth0-nojwt-and-plugin-and-whitelist",
+            "uid": "6ed048d0-e8b3-4eec-a016-27743871d12a"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "prefix": "/oauth2-auth0-nojwt-and-plugin-and-whitelist/",
+            "rewrite": "/",
+            "service": "httpbin.default.svc.cluster.local",
+            "host_redirect": true,
+            "method_regex": false,
+            "timeout_ms": 5000
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"oauth2-auth0-nojwt-and-k8ssecret-and-xhrerror\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/oauth2-auth0-nojwt-and-k8ssecret-and-xhrerror/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:16Z",
+            "generation": 1,
+            "name": "oauth2-auth0-nojwt-and-k8ssecret-and-xhrerror",
+            "namespace": "ambassador",
+            "resourceVersion": "4462459",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/oauth2-auth0-nojwt-and-k8ssecret-and-xhrerror",
+            "uid": "117a70a0-b0c2-465d-aa06-d4cd1dae475c"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "prefix": "/oauth2-auth0-nojwt-and-k8ssecret-and-xhrerror/",
+            "rewrite": "/",
+            "service": "httpbin.default.svc.cluster.local",
+            "method_regex": true,
+            "redirect_response_code": 0,
+            "timeout_ms": 5000
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"oauth2-auth0-nojwt-and-anyerror\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/oauth2-auth0-nojwt-and-anyerror/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:17Z",
+            "generation": 1,
+            "name": "oauth2-auth0-nojwt-and-anyerror",
+            "namespace": "ambassador",
+            "resourceVersion": "4462463",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/oauth2-auth0-nojwt-and-anyerror",
+            "uid": "3e4e6047-e30f-4f98-bee2-3f7cb5eac929"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "prefix": "/oauth2-auth0-nojwt-and-anyerror/",
+            "rewrite": "/",
+            "redirect_response_code": 400,
+            "precedence": 0,
+            "service": "httpbin.default.svc.cluster.local",
+            "timeout_ms": 5000
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"oauth2-auth0-simplejwt\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/oauth2-auth0-simplejwt/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:17Z",
+            "generation": 1,
+            "name": "oauth2-auth0-simplejwt",
+            "namespace": "ambassador",
+            "resourceVersion": "4462468",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/oauth2-auth0-simplejwt",
+            "uid": "d8a48a30-012a-4173-ada6-820834a96018"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "prefix": "/oauth2-auth0-simplejwt/",
+            "rewrite": "/",
+            "service": "httpbin.default.svc.cluster.local",
+            "precedence": 100,
+            "shadow": false,
+            "timeout_ms": 5000
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"oauth2-auth0-complexjwt\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/oauth2-auth0-complexjwt/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:19Z",
+            "generation": 1,
+            "name": "oauth2-auth0-complexjwt",
+            "namespace": "ambassador",
+            "resourceVersion": "4462486",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/oauth2-auth0-complexjwt",
+            "uid": "0c4e65b7-6193-4e9f-9c65-060b85d8e50d"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "prefix": "/oauth2-auth0-complexjwt/",
+            "rewrite": "/",
+            "service": "httpbin.default.svc.cluster.local",
+            "shadow": true,
+            "use_websocket": false,
+            "timeout_ms": 5000
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"oauth2-auth0-differingscope-1\",\"namespace\":\"ambassador\"},\"spec\":{\"prefix\":\"/differingscope/endpoint1/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\"}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:19Z",
+            "generation": 1,
+            "name": "oauth2-auth0-differingscope-1",
+            "namespace": "ambassador",
+            "resourceVersion": "4462488",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/oauth2-auth0-differingscope-1",
+            "uid": "eb9e5b6a-617b-4e69-a00e-978aa79c8aa2"
+        },
+        "spec": {
+            "prefix": "/differingscope/endpoint1/",
+            "rewrite": "/",
+            "use_websocket": true,
+            "bypass_auth": false,
+            "service": "httpbin.default.svc.cluster.local"
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"oauth2-auth0-differingscope-2\",\"namespace\":\"ambassador\"},\"spec\":{\"prefix\":\"/differingscope/endpoint2/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\"}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:19Z",
+            "generation": 1,
+            "name": "oauth2-auth0-differingscope-2",
+            "namespace": "ambassador",
+            "resourceVersion": "4462489",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/oauth2-auth0-differingscope-2",
+            "uid": "6140233e-0edc-4d55-84dc-4723e69344d6"
+        },
+        "spec": {
+            "prefix": "/differingscope/endpoint2/",
+            "rewrite": "/",
+            "bypass_auth": true,
+            "bypass_error_response_overrides": false,
+            "service": "httpbin.default.svc.cluster.local"
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"filter-oauth2-azure-header-credentialsmapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/azure-header-credentials/httpbin/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:20Z",
+            "generation": 1,
+            "name": "filter-oauth2-azure-header-credentialsmapping",
+            "namespace": "ambassador",
+            "resourceVersion": "4462492",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/filter-oauth2-azure-header-credentialsmapping",
+            "uid": "39ecb9d6-5703-4d81-9690-5c6445283821"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "prefix": "/azure-header-credentials/httpbin/",
+            "rewrite": "/",
+            "bypass_error_response_overrides": true,
+            "host_regex": false,
+            "service": "httpbin.default.svc.cluster.local",
+            "timeout_ms": 5000
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"filter-oauth2-azure-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/azure/httpbin/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:21Z",
+            "generation": 1,
+            "name": "filter-oauth2-azure-mapping",
+            "namespace": "ambassador",
+            "resourceVersion": "4462500",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/filter-oauth2-azure-mapping",
+            "uid": "6f46fee5-9fb6-4a21-9f6d-d3ea0e2e293e"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "prefix": "/azure/httpbin/",
+            "rewrite": "/",
+            "service": "httpbin.default.svc.cluster.local",
+            "host_regex": true,
+            "timeout_ms": 5000,
+            "docs": {}
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"filter-oauth2-google-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/google/httpbin/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:21Z",
+            "generation": 1,
+            "name": "filter-oauth2-google-mapping",
+            "namespace": "ambassador",
+            "resourceVersion": "4462511",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/filter-oauth2-google-mapping",
+            "uid": "7ad1622b-11cf-47fb-9a46-625238a6021b"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "prefix": "/google/httpbin/",
+            "rewrite": "/",
+            "service": "httpbin.default.svc.cluster.local",
+            "timeout_ms": 5000,
+            "docs": {
+                "ignored": false,
+                "path": "ffs"
+            }
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"filter-oauth2-keycloak-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/keycloak/httpbin/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:22Z",
+            "generation": 1,
+            "name": "filter-oauth2-keycloak-mapping",
+            "namespace": "ambassador",
+            "resourceVersion": "4462515",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/filter-oauth2-keycloak-mapping",
+            "uid": "7bf6a07d-2b5a-40bb-b047-feadf1801d91"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "prefix": "/keycloak/httpbin/",
+            "rewrite": "/",
+            "service": "httpbin.default.svc.cluster.local",
+            "timeout_ms": 5000,
+            "docs": {
+                "ignored": true,
+                "url": "ffs"
+            }
+
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"filter-oauth2-okta-client-credentialsmapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/okta-client-credentials/httpbin/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:23Z",
+            "generation": 1,
+            "name": "filter-oauth2-okta-client-credentialsmapping",
+            "namespace": "ambassador",
+            "resourceVersion": "4462519",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/filter-oauth2-okta-client-credentialsmapping",
+            "uid": "71379014-130e-45aa-a49b-5869ba135fad"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "prefix": "/okta-client-credentials/httpbin/",
+            "rewrite": "/",
+            "service": "httpbin.default.svc.cluster.local",
+            "timeout_ms": 5000,
+            "load_balancer": {}
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"filter-oauth2-okta-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/okta/httpbin/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:23Z",
+            "generation": 1,
+            "name": "filter-oauth2-okta-mapping",
+            "namespace": "ambassador",
+            "resourceVersion": "4462523",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/filter-oauth2-okta-mapping",
+            "uid": "69a04d0c-ca45-4671-b056-ec315b64fae7"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "prefix": "/okta/httpbin/",
+            "rewrite": "/",
+            "service": "httpbin.default.svc.cluster.local",
+            "timeout_ms": 5000,
+            "load_balancer": {
+                "source_ip": false
+            }
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"filter-oauth2-uaa-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"host_rewrite\":\"httpbin.org\",\"prefix\":\"/uaa/httpbin/\",\"rewrite\":\"/\",\"service\":\"httpbin.default.svc.cluster.local\",\"timeout_ms\":5000}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:24Z",
+            "generation": 1,
+            "name": "filter-oauth2-uaa-mapping",
+            "namespace": "ambassador",
+            "resourceVersion": "4462528",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/filter-oauth2-uaa-mapping",
+            "uid": "6e1a60ea-6ea0-400a-98b2-218b60aaf514"
+        },
+        "spec": {
+            "host_rewrite": "httpbin.org",
+            "prefix": "/uaa/httpbin/",
+            "rewrite": "/",
+            "service": "httpbin.default.svc.cluster.local",
+            "timeout_ms": 5000,
+            "load_balancer": {
+                "policy": "some_policy",
+                "source_ip": true
+            }
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"filter-oauth2-logout-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"prefix\":\"/logout\",\"service\":\"filter-oauth2-logout-service.default\"}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:25Z",
+            "generation": 1,
+            "name": "filter-oauth2-logout-mapping",
+            "namespace": "ambassador",
+            "resourceVersion": "4462553",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/filter-oauth2-logout-mapping",
+            "uid": "3b35230c-0c59-4d98-8871-6e13d4cb7f86"
+        },
+        "spec": {
+            "prefix": "/logout",
+            "service": "filter-oauth2-logout-service.default",
+            "cors": {}
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"mapping-for-intercepted\",\"namespace\":\"ambassador\"},\"spec\":{\"prefix\":\"/intercepted/\",\"service\":\"intercepted.default\"}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:25Z",
+            "generation": 1,
+            "name": "mapping-for-intercepted",
+            "namespace": "ambassador",
+            "resourceVersion": "4462562",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/mapping-for-intercepted",
+            "uid": "8727af82-ca1c-4a29-82ad-8ba94bfc3c52"
+        },
+        "spec": {
+            "prefix": "/intercepted/",
+            "service": "intercepted.default",
+            "cors": {
+                "credentials": false
+            }
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"load-testing-base\",\"namespace\":\"ambassador\"},\"spec\":{\"prefix\":\"/load-testing/\",\"service\":\"load-http-echo.default\"}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:27Z",
+            "generation": 1,
+            "name": "cors-origins-string",
+            "namespace": "ambassador",
+            "resourceVersion": "4462591",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/load-testing-base",
+            "uid": "d5ef2932-a6a3-439b-bca8-d80f195cd9f6"
+        },
+        "spec": {
+            "prefix": "/load-testing/",
+            "service": "load-http-echo.default",
+            "cors": {
+                "origins": "ffs,ffs2",
+                "credentials": true
+            }
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"load-testing-base\",\"namespace\":\"ambassador\"},\"spec\":{\"prefix\":\"/load-testing/\",\"service\":\"load-http-echo.default\"}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:27Z",
+            "generation": 1,
+            "name": "load-testing-base",
+            "namespace": "ambassador",
+            "resourceVersion": "4462591",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/load-testing-base",
+            "uid": "d5ef2932-a6a3-439b-bca8-d80f195cd9f6"
+        },
+        "spec": {
+            "prefix": "/load-testing/",
+            "service": "load-http-echo.default",
+            "cors": {
+                "origins": [ "ffs", "ffs2" ],
+                "credentials": true
+            }
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"load-testing-rl-minute\",\"namespace\":\"ambassador\"},\"spec\":{\"labels\":{\"ambassador\":[{\"request_label_group\":[\"minute\"]}]},\"prefix\":\"/load-testing/rl-minute/\",\"service\":\"load-http-echo.default\"}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:28Z",
+            "generation": 1,
+            "name": "load-testing-rl-minute",
+            "namespace": "ambassador",
+            "resourceVersion": "4462630",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/load-testing-rl-minute",
+            "uid": "ad827545-4844-4005-90e4-208f4a53fb72"
+        },
+        "spec": {
+            "labels": {
+                "ambassador": [
+                    {
+                        "request_label_group": [
+                            "minute"
+                        ]
+                    }
+                ]
+            },
+            "prefix": "/load-testing/rl-minute/",
+            "service": "load-http-echo.default"
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"load-testing-rl-second\",\"namespace\":\"ambassador\"},\"spec\":{\"labels\":{\"ambassador\":[{\"request_label_group\":[\"second\"]}]},\"prefix\":\"/load-testing/rl-second/\",\"service\":\"load-http-echo.default\"}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:30Z",
+            "generation": 1,
+            "name": "load-testing-rl-second",
+            "namespace": "ambassador",
+            "resourceVersion": "4462660",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/load-testing-rl-second",
+            "uid": "143cde54-642b-4069-a03b-033928eab103"
+        },
+        "spec": {
+            "labels": {
+                "ambassador": [
+                    {
+                        "request_label_group": [
+                            "second"
+                        ]
+                    }
+                ]
+            },
+            "prefix": "/load-testing/rl-second/",
+            "service": "load-http-echo.default"
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"rl-test\",\"namespace\":\"ambassador\"},\"spec\":{\"labels\":{\"ambassador\":[{\"test_limit\":[\"source_cluster\",\"destination_cluster\",\"remote_address\",\"rltest\"]}]},\"prefix\":\"/rl/\",\"service\":\"httpbin.default.svc.cluster.local\"}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:32Z",
+            "generation": 1,
+            "name": "rl-test",
+            "namespace": "ambassador",
+            "resourceVersion": "4462685",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/rl-test",
+            "uid": "3d0b7b27-7876-4f55-bfbe-9fa1462f60f0"
+        },
+        "spec": {
+            "labels": {
+                "ambassador": [
+                    {
+                        "test_limit": [
+                            "source_cluster",
+                            "destination_cluster",
+                            "remote_address",
+                            "rltest"
+                        ]
+                    }
+                ]
+            },
+            "prefix": "/rl/",
+            "service": "httpbin.default.svc.cluster.local",
+            "retry_policy": {}
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"consultest\"},\"name\":\"a\",\"namespace\":\"default\"},\"spec\":{\"add_response_headers\":{\"Strict-Transport-Security\":\"max-age=31536000\"},\"ambassador_id\":\"consultest\",\"labels\":{\"ambassador\":[{\"d0\":[\"a\",{\"xratelimitid\":{\"header\":\"X-Ratelimit-Id\",\"omit_if_not_present\":true}}]}]},\"prefix\":\"/api/[^/]+/projects/[^/]+/a(/.*)?\",\"prefix_regex\":true,\"retry_policy\":{\"num_retries\":15,\"retry_on\":\"gateway-error\"},\"rewrite\":\"\",\"service\":\"https://a\",\"timeout_ms\":10000}}\n"
+            },
+            "creationTimestamp": "2021-01-07T20:27:54Z",
+            "generation": 2,
+            "labels": {
+                "kat-ambassador-id": "consultest"
+            },
+            "name": "a",
+            "namespace": "default",
+            "resourceVersion": "9298",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/default/mappings/a",
+            "uid": "caf33312-1f60-4aed-9d8d-7a9f37b68da0"
+        },
+        "spec": {
+            "add_response_headers": {
+                "Strict-Transport-Security": "max-age=31536000"
+            },
+            "ambassador_id": [ "consultest" ],
+            "labels": {
+                "ambassador": [
+                    {
+                        "d0": [
+                            "a",
+                            {
+                                "xratelimitid": {
+                                    "header": "X-Ratelimit-Id",
+                                    "omit_if_not_present": true
+                                },
+                                "xratelimitid2": {
+                                    "header": "X-Ratelimit-Id2",
+                                    "omit_if_not_present": false
+                                },
+                                "xratelimitid3": {
+                                    "header": "X-Ratelimit-Id3"
+                                }
+
+                            }
+                        ]
+                    }
+                ]
+            },
+            "prefix": "/api/[^/]+/projects/[^/]+/a(/.*)?",
+            "prefix_regex": true,
+            "retry_policy": {
+                "num_retries": 15,
+                "retry_on": "gateway-error"
+            },
+            "rewrite": "",
+            "service": "https://a",
+            "timeout_ms": 10000
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "Mapping",
+        "metadata": {
+            "annotations": {
+                "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"name\":\"rl-dual\",\"namespace\":\"ambassador\"},\"spec\":{\"labels\":{\"ambassador\":[{\"minute_group\":[\"backend\",\"minutely\"]},{\"hour_group\":[\"backend\",\"hourly\"]}]},\"prefix\":\"/backend/\",\"service\":\"httpbin.default.svc.cluster.local\"}}\n"
+            },
+            "creationTimestamp": "2020-08-11T20:54:33Z",
+            "generation": 1,
+            "name": "rl-dual",
+            "namespace": "ambassador",
+            "resourceVersion": "4462691",
+            "selfLink": "/apis/getambassador.io/v2/namespaces/ambassador/mappings/rl-dual",
+            "uid": "27c54989-78df-433c-97a0-7c516d0bd9f5"
+        },
+        "spec": {
+            "labels": {
+                "ambassador": [
+                    {
+                        "minute_group": [
+                            "backend",
+                            "minutely"
+                        ]
+                    },
+                    {
+                        "hour_group": [
+                            "backend",
+                            "hourly"
+                        ]
+                    }
+                ]
+            },
+            "prefix": "/backend/",
+            "retry_policy": {
+                "num_retries": 0,
+                "retry_on": "gateway-error"
+            },
+            "service": "httpbin.default.svc.cluster.local"
+        }
+    }
+]
