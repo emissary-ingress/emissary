@@ -185,6 +185,7 @@ type Listener struct {
 
 	Spec *ListenerSpec `json:"spec,omitempty"`
 }
+func (*Listener) Hub() {}
 
 // ListenerList contains a list of Listener.
 //
