@@ -45,6 +45,7 @@ type Module struct {
 
 	Spec ModuleSpec `json:"spec,omitempty"`
 }
+func (*Module) Hub() {}
 
 // ModuleList contains a list of Modules.
 //

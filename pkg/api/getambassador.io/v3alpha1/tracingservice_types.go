@@ -66,6 +66,7 @@ type TracingService struct {
 
 	Spec TracingServiceSpec `json:"spec,omitempty"`
 }
+func (*TracingService) Hub() {}
 
 // TracingServiceList contains a list of TracingServices.
 //

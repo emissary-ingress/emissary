@@ -40,6 +40,7 @@ type KubernetesServiceResolver struct {
 
 	Spec KubernetesServiceResolverSpec `json:"spec,omitempty"`
 }
+func (*KubernetesServiceResolver) Hub() {}
 
 // KubernetesServiceResolverList contains a list of KubernetesServiceResolvers.
 //
@@ -67,6 +68,7 @@ type KubernetesEndpointResolver struct {
 
 	Spec KubernetesEndpointResolverSpec `json:"spec,omitempty"`
 }
+func (*KubernetesEndpointResolver) Hub() {}
 
 // KubernetesEndpointResolverList contains a list of KubernetesEndpointResolvers.
 //
@@ -97,6 +99,7 @@ type ConsulResolver struct {
 
 	Spec ConsulResolverSpec `json:"spec,omitempty"`
 }
+func (*ConsulResolver) Hub() {}
 
 // ConsulResolverList contains a list of ConsulResolvers.
 //

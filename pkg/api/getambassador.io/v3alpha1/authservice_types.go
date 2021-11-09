@@ -73,6 +73,7 @@ type AuthService struct {
 
 	Spec AuthServiceSpec `json:"spec,omitempty"`
 }
+func (*AuthService) Hub() {}
 
 // AuthServiceList contains a list of AuthServices.
 //

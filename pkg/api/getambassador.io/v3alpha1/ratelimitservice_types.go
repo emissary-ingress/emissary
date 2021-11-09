@@ -48,6 +48,7 @@ type RateLimitService struct {
 
 	Spec RateLimitServiceSpec `json:"spec,omitempty"`
 }
+func (*RateLimitService) Hub() {}
 
 // RateLimitServiceList contains a list of RateLimitServices.
 //

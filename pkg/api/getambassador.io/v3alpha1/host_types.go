@@ -214,6 +214,7 @@ type Host struct {
 	Spec   *HostSpec  `json:"spec,omitempty"`
 	Status HostStatus `json:"status,omitempty"`
 }
+func (*Host) Hub() {}
 
 // HostList contains a list of Hosts.
 //

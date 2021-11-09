@@ -56,6 +56,7 @@ type TLSContext struct {
 
 	Spec TLSContextSpec `json:"spec,omitempty"`
 }
+func (*TLSContext) Hub() {}
 
 // TLSContextList contains a list of TLSContexts.
 //

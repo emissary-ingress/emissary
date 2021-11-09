@@ -327,6 +327,7 @@ type Mapping struct {
 	Spec   MappingSpec    `json:"spec,omitempty"`
 	Status *MappingStatus `json:"status,omitempty"`
 }
+func (*Mapping) Hub() {}
 
 // MappingList contains a list of Mappings.
 //
