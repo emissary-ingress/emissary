@@ -1,0 +1,88 @@
+[
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "DevPortal",
+        "metadata": {
+            "creationTimestamp": "2020-07-03T02:19:06Z",
+            "name": "devportal-base",
+            "namespace": "default"
+        },
+        "spec": {
+            "content": {
+                "branch": "devportal-base"
+            },
+            "docs": [
+                {
+                    "service": "myservice",
+                    "url": "https://devportal-base/"
+                }
+            ],
+            "selector": {
+                "matchLabels": {
+                    "string": "string"
+                },
+                "matchNamespaces": [
+                    "string"
+                ]
+            }
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "DevPortal",
+        "metadata": {
+            "creationTimestamp": "2020-07-03T02:19:06Z",
+            "name": "devportal-default-true",
+            "namespace": "default"
+        },
+        "spec": {
+            "content": {
+                "branch": "devportal-default-true"
+            },
+            "default": true,
+            "docs": [
+                {
+                    "service": "myservice",
+                    "url": "https://devportal-default-true/"
+                }
+            ],
+            "selector": {
+                "matchLabels": {
+                    "string": "string"
+                },
+                "matchNamespaces": [
+                    "string"
+                ]
+            }
+        }
+    },
+    {
+        "apiVersion": "getambassador.io/v2",
+        "kind": "DevPortal",
+        "metadata": {
+            "creationTimestamp": "2020-07-03T02:19:06Z",
+            "name": "devportal-default-false",
+            "namespace": "default"
+        },
+        "spec": {
+            "content": {
+                "branch": "devportal-default-false"
+            },
+            "default": false,
+            "docs": [
+                {
+                    "service": "myservice",
+                    "url": "https://devportal-default-false/"
+                }
+            ],
+            "selector": {
+                "matchLabels": {
+                    "string": "string"
+                },
+                "matchNamespaces": [
+                    "string"
+                ]
+            }
+        }
+    }
+]
