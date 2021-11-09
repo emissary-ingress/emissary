@@ -58,6 +58,7 @@ type TCPMapping struct {
 
 	Spec TCPMappingSpec `json:"spec,omitempty"`
 }
+func (*TCPMapping) Hub() {}
 
 // TCPMappingList contains a list of TCPMappings.
 //

@@ -58,6 +58,7 @@ type LogService struct {
 
 	Spec LogServiceSpec `json:"spec,omitempty"`
 }
+func (*LogService) Hub() {}
 
 // LogServiceList contains a list of LogServices.
 //
