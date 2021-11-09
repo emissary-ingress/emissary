@@ -160,6 +160,18 @@ type ErrorResponseOverride struct {
 //    - "default"
 type AmbassadorID []string
 
+func (aid AmbassadorID) Matches(envVar string) bool {
+	if len(aid) == 0 {
+		aid = []string{"default"}
+	}
+	for _, item := range aid {
+		if item == envVar {
+			return true
+		}
+	}
+	return false
+}
+
 // +kubebuilder:validation:Type="integer"
 type MillisecondDuration struct {
 	time.Duration `json:"-"`
