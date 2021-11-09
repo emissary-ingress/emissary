@@ -22,6 +22,7 @@ package v2
 
 import (
 	"encoding/json"
+	"time"
 )
 
 // The old `k8s.io/kube-openapi/cmd/openapi-gen` command had ways to
@@ -276,6 +277,29 @@ func (o *BoolOrString) UnmarshalJSON(data []byte) error {
 	}
 
 	return err
+}
+
+// +kubebuilder:validation:Type="integer"
+type MillisecondDuration struct {
+	time.Duration `json:"-"`
+}
+
+func (d *MillisecondDuration) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		d.Duration = 0
+		return nil
+	}
+
+	var intval int64
+	if err := json.Unmarshal(data, &intval); err != nil {
+		return err
+	}
+	d.Duration = time.Duration(intval) * time.Millisecond
+	return nil
+}
+
+func (d *MillisecondDuration) MarshalJSON() ([]byte, error) {
+	return json.Marshal(d.Milliseconds())
 }
 
 // UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable

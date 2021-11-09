@@ -57,7 +57,7 @@ type DevPortalDocsSpec struct {
 
 	// Timeout specifies the amount of time devportal will wait
 	// for the downstream service to report an openapi spec back
-	Timeout int `json:"timeout_ms,omitempty"`
+	Timeout *MillisecondDuration `json:"timeout_ms,omitempty"`
 }
 
 // DevPortalSearchSpec allows configuration over search functionality for the DevPortal
