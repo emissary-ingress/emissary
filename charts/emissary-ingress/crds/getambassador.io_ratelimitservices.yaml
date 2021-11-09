@@ -21,6 +21,51 @@ spec:
     singular: ratelimitservice
   scope: Namespaced
   versions:
+  - name: v2
+    schema:
+      openAPIV3Schema:
+        description: RateLimitService is the Schema for the ratelimitservices API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: RateLimitServiceSpec defines the desired state of RateLimitService
+            properties:
+              ambassador_id:
+                description: Common to all Ambassador objects.
+                items:
+                  type: string
+                oneOf:
+                - type: string
+                - type: array
+              domain:
+                type: string
+              protocol_version:
+                enum:
+                - v2
+                - v3
+                type: string
+              service:
+                type: string
+              timeout_ms:
+                type: integer
+              tls:
+                description: BoolOrString is a type that can hold a Boolean or a string.
+                oneOf:
+                - type: string
+                - type: boolean
+            required:
+            - service
+            type: object
+        type: object
+    served: true
+    storage: false
   - name: v3alpha1
     schema:
       openAPIV3Schema:
