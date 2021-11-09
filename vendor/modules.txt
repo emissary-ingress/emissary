@@ -87,8 +87,8 @@ github.com/datawire/go-mkopensource/pkg/golist
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/docker/distribution v2.7.1+incompatible
-## explicit
+# github.com/docker/distribution v2.7.1+incompatible => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d
+## explicit; go 1.12
 github.com/docker/distribution/digestset
 github.com/docker/distribution/reference
 # github.com/docker/spdystream v0.0.0-20160310174837-449fdfce4d96
@@ -952,6 +952,7 @@ sigs.k8s.io/structured-merge-diff/v4/value
 # sigs.k8s.io/yaml v1.2.0
 ## explicit; go 1.12
 sigs.k8s.io/yaml
+# github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d
 # k8s.io/api v0.0.0 => k8s.io/api v0.20.2
 # k8s.io/apiextensions-apiserver v0.0.0 => k8s.io/apiextensions-apiserver v0.20.2
 # k8s.io/apimachinery v0.0.0 => k8s.io/apimachinery v0.20.2

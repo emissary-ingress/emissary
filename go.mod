@@ -183,6 +183,7 @@ require (
 // replacements for a bunch of k8s.io modules that it refers to by
 // bogus/broken v0.0.0 versions.
 replace (
+	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d
 	k8s.io/api v0.0.0 => k8s.io/api v0.20.2
 	k8s.io/apiextensions-apiserver v0.0.0 => k8s.io/apiextensions-apiserver v0.20.2
 	k8s.io/apimachinery v0.0.0 => k8s.io/apimachinery v0.20.2

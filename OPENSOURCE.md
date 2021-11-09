@@ -29,7 +29,7 @@ following Free and Open Source software:
     github.com/datawire/dtest                                v0.0.0-20210927191556-2cccf1a938b0         Apache License 2.0
     github.com/datawire/go-mkopensource                      v0.0.0-20211110205306-9a3f29b7c373         Apache License 2.0
     github.com/davecgh/go-spew                               v1.1.1                                     ISC license
-    github.com/docker/distribution                           v2.7.1+incompatible                        Apache License 2.0
+    github.com/docker/distribution                           v0.0.0-20191216044856-a8371794149d         Apache License 2.0
     github.com/docker/spdystream                             v0.0.0-20160310174837-449fdfce4d96         Apache License 2.0
     github.com/emicklei/go-restful                           v2.9.5+incompatible                        MIT license
     github.com/envoyproxy/protoc-gen-validate                v0.3.0-java.0.20200609174644-bd816e4522c1  Apache License 2.0
