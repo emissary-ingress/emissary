@@ -133,11 +133,13 @@ func (*DevPortal) Hub() {}
 // DevPortalList contains a list of DevPortals.
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
 type DevPortalList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []DevPortal `json:"items"`
 }
+func (*DevPortalList) Hub() {}
 
 func init() {
 	SchemeBuilder.Register(&DevPortal{}, &DevPortalList{})

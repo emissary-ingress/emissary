@@ -61,11 +61,13 @@ func (*TLSContext) Hub() {}
 // TLSContextList contains a list of TLSContexts.
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
 type TLSContextList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []TLSContext `json:"items"`
 }
+func (*TLSContextList) Hub() {}
 
 func init() {
 	SchemeBuilder.Register(&TLSContext{}, &TLSContextList{})

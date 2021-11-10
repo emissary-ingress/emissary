@@ -50,11 +50,13 @@ func (*Module) Hub() {}
 // ModuleList contains a list of Modules.
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
 type ModuleList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Module `json:"items"`
 }
+func (*ModuleList) Hub() {}
 
 type Features struct {
 	// The diagnostic service (at /ambassador/v0/diag/) defaults on, but
