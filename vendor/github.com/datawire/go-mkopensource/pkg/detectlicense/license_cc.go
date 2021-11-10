@@ -1,6 +1,10 @@
 package detectlicense
 
-var reCcBySa40 = reCompile(`\s*` + reWrap(reQuote(``+
+import (
+	"regexp"
+)
+
+var reCcBySa40 = regexp.MustCompile(`\s*` + reWrap(reQuote(``+
 	`Attribution-ShareAlike 4.0 International
 
 =======================================================================

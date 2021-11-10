@@ -1,11 +1,12 @@
 package detectlicense
 
 import (
+	"regexp"
 	"strings"
 )
 
 var (
-	reMIT = reCompile(reCaseInsensitive(`\s*` +
+	reMIT = regexp.MustCompile(reCaseInsensitive(`\s*` +
 		// Any number of license-name, copyright-holder, or header-separator lines
 		`((` +
 		strings.Join([]string{

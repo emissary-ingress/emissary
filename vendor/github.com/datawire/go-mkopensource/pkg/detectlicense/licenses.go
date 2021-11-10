@@ -16,6 +16,7 @@ type License struct {
 	StrongCopyleft bool // requires the resulting program to be open-source
 }
 
+//nolint:gochecknoglobals // Would be 'const'.
 var (
 	Proprietary = License{Name: "proprietary"}
 
@@ -33,6 +34,8 @@ var (
 )
 
 // https://spdx.org/licenses/
+//
+//nolint:gochecknoglobals // Would be 'const'.
 var (
 	// split with "+" to avoid a false-positive on itself
 	spdxTag = []byte("SPDX-License" + "-Identifier:")
@@ -59,11 +62,11 @@ func expectsNotice(licenses map[License]struct{}) bool {
 }
 
 func DetectLicenses(files map[string][]byte) (map[License]struct{}, error) {
-	licenses := make(map[License]struct{})
+	licenses := make(map[License][]string)
 	hasNotice := false
 	hasLicenseFile := false
 	hasNonSPDXSource := false
-	hasPatents := false
+	patents := []string(nil)
 
 loop:
 	for filename, filebody := range files {
@@ -103,14 +106,14 @@ loop:
 				}
 			}
 			for l := range ls {
-				licenses[l] = struct{}{}
+				licenses[l] = append(licenses[l], filename)
 			}
 			hasLicenseFile = true
 		case strings.HasPrefix(name, "NOTICE"):
 			hasNotice = true
 		case strings.HasPrefix(name, "PATENTS"):
 			// ignore this file, for now
-			hasPatents = true
+			patents = append(patents, filename)
 		default:
 			// This is a source file; look for an SPDX
 			// identifier.
@@ -122,17 +125,42 @@ loop:
 				hasNonSPDXSource = true
 			}
 			for l := range ls {
-				licenses[l] = struct{}{}
+				licenses[l] = append(licenses[l], filename)
 			}
 		}
 	}
 
-	if !expectsNotice(licenses) && hasNotice {
+	bareLicenses := make(map[License]struct{}, len(licenses))
+	for license := range licenses {
+		bareLicenses[license] = struct{}{}
+	}
+
+	if !expectsNotice(bareLicenses) && hasNotice {
 		return nil, errors.New("the NOTICE file is really only for the Apache 2.0 and MPL 2.0 licenses; something hokey is going on")
 	}
-	if _, hasApache := licenses[Apache2]; hasApache && hasPatents {
-		// TODO: Check if the MPL has a patent grant.  A quick skimming says "seems to explicitly say no", but I'm too tired to actually read the thing.
-		return nil, errors.New("the Apache license contains a patent-grant, but there's a separate PATENTS file; something hokey is going on")
+	for _, patentFile := range patents {
+		// TODO: Check if the MPL has a patent grant.  A quick skimming says "seems to explicitly say no", but
+		// I'm too tired to actually read the thing.
+		if _, hasApache := licenses[Apache2]; hasApache {
+			dir := filepath.Dir(patentFile)
+			// We want to blow up if an Apache-licensed thing has a PATENTS file.  But let it through if a
+			// subdirectory of an otherwise-Apache-licensed thing has a different license and includes a
+			// PATENTS file.
+			hasOther := false
+			for license, licenseFiles := range licenses {
+				if license == Apache2 {
+					continue
+				}
+				for _, licenseFile := range licenseFiles {
+					if strings.HasPrefix(licenseFile, dir+"/") {
+						hasOther = true
+					}
+				}
+			}
+			if !hasOther {
+				return nil, errors.New("the Apache license contains a patent-grant, but there's a separate PATENTS file; something hokey is going on")
+			}
+		}
 	}
 	if !hasLicenseFile && hasNonSPDXSource {
 		return nil, errors.New("could not identify a license for all sources (had no global LICENSE file)")
@@ -141,7 +169,7 @@ loop:
 	if len(licenses) == 0 {
 		panic(errors.New("should not happen"))
 	}
-	return licenses, nil
+	return bareLicenses, nil
 }
 
 // IdentifySPDX takes the contents of a source-file and looks for SPDX
@@ -168,6 +196,7 @@ func IdentifySPDXLicenses(body []byte) (map[License]struct{}, error) {
 	return licenses, nil
 }
 
+//nolint:gochecknoglobals // Would be 'const'.
 var (
 	bsd3funnyAttributionLines = []string{
 		`(?:Copyright [^\n]*(?:\s+All rights reserved\.)? *\n)`,
@@ -217,10 +246,8 @@ specific language governing permissions and limitations under the License.      
 
     This software is provided "as is", without any warranty.
 `
-)
 
-var (
-	yamlHeader = reWrap(`The following files were ported to Go from C files of libyaml, and thus
+	yamlHeader = `The following files were ported to Go from C files of libyaml, and thus
 are still covered by their original (copyright and license|MIT license, with the additional
 copyright start?ing in 2011 when the project was ported over):
 
@@ -233,13 +260,16 @@ copyright start?ing in 2011 when the project was ported over):
     yamlh\.go
     yamlprivateh\.go
 
-`)
-	reYamlV2 = reCompile(yamlHeader + `\s*` + reMIT.String())
+`
+)
 
-	reYamlV3 = reCompile(`\s*` +
+var (
+	reYamlV2 = regexp.MustCompile(reWrap(yamlHeader) + `\s*` + reMIT.String())
+
+	reYamlV3 = regexp.MustCompile(`\s*` +
 		reQuote(`This project is covered by two different licenses: MIT and Apache.`) + `\s*` +
 		`#+ MIT License #+\s*` +
-		yamlHeader + `\s*` +
+		reWrap(yamlHeader) + `\s*` +
 		reMIT.String() + `\s*` +
 		`#+ Apache License #+\s*` +
 		reQuote(`All the remaining project files are covered by the Apache license:`) + `\s*` +
@@ -270,11 +300,11 @@ func IdentifyLicenses(body []byte) map[License]struct{} {
 		licenses[CcBySa40] = struct{}{}
 
 	// special-purpose hacks
-	case reMatch(reCompile(fmt.Sprintf(`%s\n-+\n+AVL Tree:\n+%s`, reBSD2, reISC)), body):
+	case reMatch(regexp.MustCompile(fmt.Sprintf(`%s\n-+\n+AVL Tree:\n+%s`, reBSD2, reISC)), body):
 		// github.com/emirpasic/gods/LICENSE
 		licenses[BSD2] = struct{}{}
 		licenses[ISC] = struct{}{}
-	case reMatch(reCompile(``+
+	case reMatch(regexp.MustCompile(``+
 		`(?:`+strings.Join(bsd3funnyAttributionLines, `\s*|`)+`\s*)*`+
 		reWrap(``+
 			bsdPrefix+
@@ -288,13 +318,13 @@ func IdentifyLicenses(body []byte) map[License]struct{} {
 		// github.com/src-d/gcfg/LICENSE
 		// github.com/miekg/dns/LICENSE
 		licenses[BSD3] = struct{}{}
-	case reMatch(reCompile(reQuote(rackspaceHeader)+reApacheLicense.String()), body):
+	case reMatch(regexp.MustCompile(reQuote(rackspaceHeader)+reApacheLicense.String()), body):
 		// github.com/gophercloud/gophercloud/LICENSE
 		licenses[Apache2] = struct{}{}
-	case reMatch(reCompile(fmt.Sprintf(`%s=*\s*The lexer and parser[^\n]*\n[^\n]*below\.%s`, reMIT, reMIT)), body):
+	case reMatch(regexp.MustCompile(fmt.Sprintf(`%s=*\s*The lexer and parser[^\n]*\n[^\n]*below\.%s`, reMIT, reMIT)), body):
 		// github.com/kevinburke/ssh_config/LICENSE
 		licenses[MIT] = struct{}{}
-	case reMatch(reCompile(`Blackfriday is distributed under the Simplified BSD License:\s*`+reBSD2.String()), regexp.MustCompile(`>\s*`).ReplaceAllLiteral(body, []byte{})):
+	case reMatch(regexp.MustCompile(`Blackfriday is distributed under the Simplified BSD License:\s*`+reBSD2.String()), regexp.MustCompile(`>\s*`).ReplaceAllLiteral(body, []byte{})):
 		// gopkg.in/russross/blackfriday.v2/LICENSE.txt
 		licenses[BSD2] = struct{}{}
 	case reMatch(reYamlV2, body):
@@ -302,12 +332,22 @@ func IdentifyLicenses(body []byte) map[License]struct{} {
 	case reMatch(reYamlV3, body):
 		licenses[MIT] = struct{}{}
 		licenses[Apache2] = struct{}{}
-	case reMatch(reCompile(reMIT.String()+`\s*`+reBSD3.String()), body):
+	case reMatch(regexp.MustCompile(reMIT.String()+`\s*`+reBSD3.String()), body):
 		// sigs.k8s.io/yaml/LICENSE
 		licenses[MIT] = struct{}{}
 		licenses[BSD3] = struct{}{}
-	case reMatch(reCompile(reMIT.String()+`\s*- Based on \S*, which has the following license:\n"""\s*`+reMIT.String()+`\s*"""\s*`), body):
+	case reMatch(regexp.MustCompile(reMIT.String()+`\s*- Based on \S*, which has the following license:\n"""\s*`+reMIT.String()+`\s*"""\s*`), body):
 		// github.com/shopspring/decimal/LICENSE
+		licenses[MIT] = struct{}{}
+	case reMatch(regexp.MustCompile(reBSD3.String()+
+		`-+\n+(Files: \S+\n+)+`+reApacheLicense.String()+
+		`-+\n+(Files: \S+\n+)+`+reMIT.String()+
+		`-+\n+(Files: \S+\n+)+`+reBSD3.String()+
+		`-+\n+(Files: \S+\n+)+`+reMIT.String()),
+		body):
+		// github.com/klauspost/compress/LICENSE
+		licenses[Apache2] = struct{}{}
+		licenses[BSD3] = struct{}{}
 		licenses[MIT] = struct{}{}
 	case string(body) == xzPublicDomain:
 		// github.com/xi2/xz/LICENSE

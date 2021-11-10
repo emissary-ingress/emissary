@@ -2,4 +2,4 @@
 go-mkopensource
 
 # `go mod vendor`
-/vendor/
+vendor/
