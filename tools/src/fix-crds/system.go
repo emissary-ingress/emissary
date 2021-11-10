@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -142,60 +143,124 @@ func Main(args Args, output io.Writer) error {
 	return nil
 }
 
-func VisitAllSchemaProps(crd *CRD, callback func(*apiext.JSONSchemaProps)) {
+// VisitSchemaFunc is a callback to be passed to VisitAllSchemaProps.
+//
+// As a special case, if the returned error is ErrExcludeFromSchema, then the node is excluded from
+// the schema and the appropriate `.XPreserveUnknownFields` is set.
+type VisitSchemaFunc func(version string, node *apiext.JSONSchemaProps) error
+
+var ErrExcludeFromSchema = errors.New("exclude from schema")
+
+func VisitAllSchemaProps(crd *CRD, callback VisitSchemaFunc) error {
 	if crd == nil {
-		return
+		return nil
 	}
 	if crd.Spec.Validation != nil {
-		visitAllSchemaProps(crd.Spec.Validation.OpenAPIV3Schema, callback)
+		err := visitAllSchemaProps("validation", crd.Spec.Validation.OpenAPIV3Schema, callback)
+		if errors.Is(err, ErrExcludeFromSchema) {
+			crd.Spec.Validation = nil
+			err = nil
+		}
+		if err != nil {
+			return fmt.Errorf(".spec.validation: %w", err)
+		}
 	}
 	for _, version := range crd.Spec.Versions {
 		if version.Schema != nil {
-			visitAllSchemaProps(version.Schema.OpenAPIV3Schema, callback)
+			err := visitAllSchemaProps(version.Name, version.Schema.OpenAPIV3Schema, callback)
+			if errors.Is(err, ErrExcludeFromSchema) {
+				version.Schema.OpenAPIV3Schema = nil
+				err = nil
+			}
+			if err != nil {
+				return fmt.Errorf(".spec.version.find(x=>(x.name==%q)).schema.openAPIV3Schema: %w", version.Name, err)
+			}
 		}
 	}
+	return nil
 }
 
-func visitAllSchemaProps(root *apiext.JSONSchemaProps, callback func(*apiext.JSONSchemaProps)) {
+func visitAllSchemaProps(version string, root *apiext.JSONSchemaProps, callback VisitSchemaFunc) error {
 	if root == nil {
-		return
+		return nil
 	}
-	callback(root)
+	if err := callback(version, root); err != nil {
+		return err
+	}
 	if root.Items != nil {
-		visitAllSchemaProps(root.Items.Schema, callback)
+		if err := visitAllSchemaProps(version, root.Items.Schema, callback); err != nil {
+			return fmt.Errorf(".items: %w", err)
+		}
 		for i := range root.Items.JSONSchemas {
-			visitAllSchemaProps(&(root.Items.JSONSchemas[i]), callback)
+			if err := visitAllSchemaProps(version, &(root.Items.JSONSchemas[i]), callback); err != nil {
+				return fmt.Errorf(".items[%d]: %w", i, err)
+			}
 		}
 	}
 	for i := range root.AllOf {
-		visitAllSchemaProps(&(root.AllOf[i]), callback)
+		if err := visitAllSchemaProps(version, &(root.AllOf[i]), callback); err != nil {
+			return fmt.Errorf(".allOf[%d]: %w", i, err)
+		}
 	}
 	for i := range root.OneOf {
-		visitAllSchemaProps(&(root.OneOf[i]), callback)
+		if err := visitAllSchemaProps(version, &(root.OneOf[i]), callback); err != nil {
+			return fmt.Errorf(".oneOf[%d]: %w", i, err)
+		}
 	}
 	for i := range root.AnyOf {
-		visitAllSchemaProps(&(root.AnyOf[i]), callback)
+		if err := visitAllSchemaProps(version, &(root.AnyOf[i]), callback); err != nil {
+			return fmt.Errorf(".anyOf[%d]: %w", i, err)
+		}
 	}
-	visitAllSchemaProps(root.Not, callback)
+	if err := visitAllSchemaProps(version, root.Not, callback); err != nil {
+		return fmt.Errorf(".not: %w", err)
+	}
 	for k, v := range root.Properties {
-		visitAllSchemaProps(&v, callback)
-		root.Properties[k] = v
+		if err := visitAllSchemaProps(version, &v, callback); errors.Is(err, ErrExcludeFromSchema) {
+			delete(root.Properties, k)
+			val := true
+			root.XPreserveUnknownFields = &val
+		} else if err != nil {
+			return fmt.Errorf(".properties[%q]: %w", k, err)
+		} else {
+			root.Properties[k] = v
+		}
 	}
 	if root.AdditionalProperties != nil {
-		visitAllSchemaProps(root.AdditionalProperties.Schema, callback)
+		if err := visitAllSchemaProps(version, root.AdditionalProperties.Schema, callback); errors.Is(err, ErrExcludeFromSchema) {
+			root.AdditionalProperties = nil
+			val := true
+			root.XPreserveUnknownFields = &val
+		} else if err != nil {
+			return fmt.Errorf(".additionalProperties: %w", err)
+		}
 	}
 	for k, v := range root.PatternProperties {
-		visitAllSchemaProps(&v, callback)
-		root.PatternProperties[k] = v
+		if err := visitAllSchemaProps(version, &v, callback); errors.Is(err, ErrExcludeFromSchema) {
+			delete(root.PatternProperties, k)
+			val := true
+			root.XPreserveUnknownFields = &val
+		} else if err != nil {
+			return fmt.Errorf(".patternProperties[%q]: %w", k, err)
+		} else {
+			root.PatternProperties[k] = v
+		}
 	}
 	for k := range root.Dependencies {
-		visitAllSchemaProps(root.Dependencies[k].Schema, callback)
+		if err := visitAllSchemaProps(version, root.Dependencies[k].Schema, callback); err != nil {
+			return fmt.Errorf(".depenencies[%q]: %w", k, err)
+		}
 	}
 	if root.AdditionalItems != nil {
-		visitAllSchemaProps(root.AdditionalItems.Schema, callback)
+		if err := visitAllSchemaProps(version, root.AdditionalItems.Schema, callback); err != nil {
+			return fmt.Errorf(".additionalItems: %w", err)
+		}
 	}
 	for k, v := range root.Definitions {
-		visitAllSchemaProps(&v, callback)
+		if err := visitAllSchemaProps(version, &v, callback); err != nil {
+			return fmt.Errorf(".definitions[%q]: %w", k, err)
+		}
 		root.Definitions[k] = v
 	}
+	return nil
 }

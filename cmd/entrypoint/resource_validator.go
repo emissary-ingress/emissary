@@ -2,9 +2,8 @@ package entrypoint
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
-	"io/ioutil"
-	"os"
 
 	"github.com/datawire/ambassador/v2/pkg/kates"
 )
@@ -14,21 +13,11 @@ type resourceValidator struct {
 	katesValidator *kates.Validator
 }
 
-func newResourceValidator() (*resourceValidator, error) {
-	crdFile, err := findCRDFile()
-	if err != nil {
-		return nil, err
-	}
-	crdYAML, err := ioutil.ReadAll(crdFile)
-	if err != nil {
-		_ = crdFile.Close()
-		return nil, err
-	}
-	if err := crdFile.Close(); err != nil {
-		return nil, err
-	}
+//go:embed crds.yaml
+var crdYAML string
 
-	crdObjs, err := kates.ParseManifests(string(crdYAML))
+func newResourceValidator() (*resourceValidator, error) {
+	crdObjs, err := kates.ParseManifests(crdYAML)
 	if err != nil {
 		return nil, err
 	}
@@ -64,25 +53,4 @@ func (v *resourceValidator) getInvalid() []*kates.Unstructured {
 		result = append(result, inv)
 	}
 	return result
-}
-
-func findCRDFile() (*os.File, error) {
-	candidateFilepaths := []string{
-		"/opt/ambassador/etc/crds.yaml",
-		"manifests/emissary/emissary-crds.yaml",
-		"ambassador/manifests/emissary/emissary-crds.yaml",
-		"../../manifests/emissary/emissary-crds.yaml",
-	}
-	for _, filepath := range candidateFilepaths {
-		file, err := os.Open(filepath)
-		if err != nil {
-			if os.IsNotExist(err) {
-				continue
-			}
-			return nil, err
-		}
-		return file, nil
-	}
-
-	return nil, fmt.Errorf("couldn't find CRDs at any of the following locations: %q", candidateFilepaths)
 }

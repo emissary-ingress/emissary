@@ -8,13 +8,15 @@ import (
 )
 
 const (
-	TargetAPIServerHelm    = "apiserver-helm"
-	TargetAPIServerKubectl = "apiserver-kubectl"
+	TargetAPIServerHelm     = "apiserver-helm"
+	TargetAPIServerKubectl  = "apiserver-kubectl"
+	TargetInternalValidator = "internal-validator"
 )
 
 var Targets = []string{
 	TargetAPIServerHelm,
 	TargetAPIServerKubectl,
+	TargetInternalValidator,
 }
 
 // Like apiext.CustomResourceDefinition, but we have a little more
@@ -52,8 +54,14 @@ func FixCRD(args Args, crd *CRD) error {
 
 	// hack around non-structural schemas; see the comments in
 	// `pkg/api/getambassdor.io/v2/common.go`.
-	VisitAllSchemaProps(crd, func(node *apiext.JSONSchemaProps) {
+	if err := VisitAllSchemaProps(crd, func(version string, node *apiext.JSONSchemaProps) error {
 		if strings.HasPrefix(node.Type, "d6e-union:") {
+			if strings.HasPrefix(version, "v3") {
+				return fmt.Errorf("v3 schemas should not contain d6e-union types")
+			}
+			if args.Target != TargetInternalValidator {
+				return ErrExcludeFromSchema
+			}
 			types := strings.Split(strings.TrimPrefix(node.Type, "d6e-union:"), ",")
 			node.Type = ""
 			node.OneOf = nil
@@ -63,7 +71,10 @@ func FixCRD(args Args, crd *CRD) error {
 				})
 			}
 		}
-	})
+		return nil
+	}); err != nil {
+		return err
+	}
 
 	// fix labels
 	if crd.Metadata.Labels == nil {

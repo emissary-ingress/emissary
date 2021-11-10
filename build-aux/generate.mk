@@ -64,6 +64,7 @@ generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-ingress.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
+generate-fast/files += $(OSS_HOME)/cmd/entrypoint/crds.yaml
 generate-fast/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml
 # Individual files: Test TLS Certificates
 generate-fast/files += $(OSS_HOME)/builder/server.crt
@@ -314,29 +315,36 @@ controller-gen/options/object      += # headerFile=hack/boilerplate.go.txt
 controller-gen/options/crd         += trivialVersions=false # Requires Kubernetes 1.13+
 controller-gen/options/crd         += crdVersions=v1        # Requires Kubernetes 1.16+
 controller-gen/output/crd           = dir=$@
-$(OSS_HOME)/charts/emissary-ingress/crds: $(tools/controller-gen) $(tools/fix-crds) FORCE
+$(OSS_HOME)/_generate.tmp/crds: $(tools/controller-gen) FORCE
 	@printf '  $(CYN)Running controller-gen$(END)\n'
 	rm -rf $@
-	mkdir $@
+	mkdir -p $@
 	cd $(OSS_HOME) && $(tools/controller-gen) \
 	  $(foreach varname,$(sort $(filter controller-gen/options/%,$(.VARIABLES))), $(patsubst controller-gen/options/%,%,$(varname))$(if $(strip $($(varname))),:$(call joinlist,$(comma),$($(varname)))) ) \
 	  $(foreach varname,$(sort $(filter controller-gen/output/%,$(.VARIABLES))), $(call joinlist,:,output $(patsubst controller-gen/output/%,%,$(varname)) $($(varname))) ) \
 	  paths="./pkg/api/getambassador.io/..."
-	@PS4=; set -ex; for file in $@/*.yaml; do $(tools/fix-crds) apiserver-helm "$$file" > "$$file.tmp"; mv "$$file.tmp" "$$file"; done
 
-$(OSS_HOME)/manifests/emissary/emissary-crds.yaml: $(OSS_HOME)/charts/emissary-ingress/crds $(tools/fix-crds)
+$(OSS_HOME)/charts/emissary-ingress/crds: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
+	rm -rf $@
+	mkdir $@
+	@PS4=; set -ex; for file in $</*.yaml; do $(tools/fix-crds) apiserver-helm "$${file}" >$@/"$${file##*/}"; done
+
+$(OSS_HOME)/manifests/emissary/emissary-crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	@printf '  $(CYN)$@$(END)\n'
 	$(tools/fix-crds) apiserver-kubectl $(sort $(wildcard $</*.yaml)) > $@
 
-$(OSS_HOME)/manifests/emissary/ambassador-crds.yaml: $(OSS_HOME)/charts/emissary-ingress/crds $(tools/fix-crds)
+$(OSS_HOME)/manifests/emissary/ambassador-crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
 	@printf '  $(CYN)$@$(END)\n'
 	$(tools/fix-crds) apiserver-kubectl $(sort $(wildcard $</*.yaml)) > $@
+
+$(OSS_HOME)/cmd/entrypoint/crds.yaml: $(OSS_HOME)/_generate.tmp/crds $(tools/fix-crds)
+	$(tools/fix-crds) internal-validator $(sort $(wildcard $</*.yaml)) > $@
 
 $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml: %: %.m4 $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
 	@printf '  $(CYN)$@$(END)\n'
 	cd $(@D) && m4 < $(<F) > $(@F)
 
-$(OSS_HOME)/python/schemas/v3alpha1: $(OSS_HOME)/manifests/emissary/emissary-crds.yaml $(tools/crds2schemas)
+$(OSS_HOME)/python/schemas/v3alpha1: $(OSS_HOME)/cmd/entrypoint/crds.yaml $(tools/crds2schemas)
 	rm -rf $@
 	$(tools/crds2schemas) $< $@
 
