@@ -203,8 +203,8 @@ class Config:
         # Build up the Ambassador node name.
         #
         # XXX This should be overrideable by the Ambassador module.
-        self.ambassador_nodename = "%s-%s" % (os.environ.get('AMBASSADOR_ID', 'ambassador'),
-                                              Config.ambassador_namespace)
+        # Build up the Ambassador node name.
+        self.ambassador_nodename = os.environ.get('AMBASSADOR_NODENAME', "%s-%s" % (os.environ.get('AMBASSADOR_ID', 'ambassador'), Config.ambassador_namespace))
 
     def __str__(self) -> str:
         s = [ "<Config:" ]
