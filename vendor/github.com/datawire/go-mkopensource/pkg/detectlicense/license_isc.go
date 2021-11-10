@@ -1,7 +1,11 @@
 package detectlicense
 
+import (
+	"regexp"
+)
+
 var (
-	reISC = reCompile(reCaseInsensitive(`` +
+	reISC = regexp.MustCompile(reCaseInsensitive(`` +
 		`(?:ISC License\s*)?` +
 		`(?:Copyright [^\n]*\n)+\s*` +
 		reWrap(``+

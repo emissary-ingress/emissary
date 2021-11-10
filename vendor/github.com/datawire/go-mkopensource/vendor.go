@@ -3,7 +3,7 @@ package main
 // This file mimics the behavior of `go mod vendor`.
 
 import (
-	"io/ioutil"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,31 +16,38 @@ import (
 // the same file repeatedly; instead, just maintain a global cache of
 // filesystem access.
 
-var (
-	fsFileCache = make(map[string][]byte)
-	fsDirCache  = make(map[string][]os.FileInfo)
-)
-
-func readFile(filename string) ([]byte, error) {
-	if _, done := fsFileCache[filename]; !done {
-		body, err := ioutil.ReadFile(filename)
-		if err != nil {
-			return nil, err
-		}
-		fsFileCache[filename] = body
-	}
-	return fsFileCache[filename], nil
+type fsCache struct {
+	fileCache map[string][]byte
+	dirCache  map[string][]fs.DirEntry
 }
 
-func readDir(dirname string) ([]os.FileInfo, error) {
-	if _, done := fsDirCache[dirname]; !done {
-		body, err := ioutil.ReadDir(dirname)
+func newFSCache() *fsCache {
+	return &fsCache{
+		fileCache: make(map[string][]byte),
+		dirCache:  make(map[string][]fs.DirEntry),
+	}
+}
+
+func (fs *fsCache) readFile(filename string) ([]byte, error) {
+	if _, done := fs.fileCache[filename]; !done {
+		body, err := os.ReadFile(filename)
 		if err != nil {
 			return nil, err
 		}
-		fsDirCache[dirname] = body
+		fs.fileCache[filename] = body
 	}
-	return fsDirCache[dirname], nil
+	return fs.fileCache[filename], nil
+}
+
+func (fs *fsCache) readDir(dirname string) ([]fs.DirEntry, error) {
+	if _, done := fs.dirCache[dirname]; !done {
+		body, err := os.ReadDir(dirname)
+		if err != nil {
+			return nil, err
+		}
+		fs.dirCache[dirname] = body
+	}
+	return fs.dirCache[dirname], nil
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -54,18 +61,18 @@ func readDir(dirname string) ([]os.FileInfo, error) {
 //  1. instead of copying them to a ./vendor/ directory, it adds them
 //     to the in-memory 'vendor' map.
 //  2. the match() function takes a full filename, instead of a
-//     (dirname, os.FileInfo) tuple.
-func collectDir(vendor map[string][]byte, dst, src string, match func(filename string) bool) error {
-	files, err := readDir(src)
+//     (dirname, fs.DirEntry) tuple.
+func (fs *fsCache) collectDir(vendor map[string][]byte, dst, src string, match func(filename string) bool) error {
+	files, err := fs.readDir(src)
 	if err != nil {
 		return err
 	}
 	for _, file := range files {
 		filename := filepath.Join(src, file.Name())
-		if file.IsDir() || !file.Mode().IsRegular() || !match(filename) {
+		if file.IsDir() || !file.Type().IsRegular() || !match(filename) {
 			continue
 		}
-		body, err := readFile(filename)
+		body, err := fs.readFile(filename)
 		if err != nil {
 			return err
 		}
@@ -87,6 +94,8 @@ func collectDir(vendor map[string][]byte, dst, src string, match func(filename s
 // prefixes and also insisting on capitalized file names, we are trying
 // to nudge people toward more agreement on the naming
 // and also trying to avoid false positives.
+//
+//nolint:gochecknoglobals // Would be 'const'.
 var metaPrefixes = []string{
 	"AUTHORS",
 	"CONTRIBUTORS",
@@ -148,21 +157,21 @@ func matchAll(string) bool {
 
 // collectPkg mimics
 // /usr/lib/go/src/cmd/go/internal/modcmd/vendor.go:vendorPkg().
-func collectPkg(vendor map[string][]byte, pkgInfo golist.Package) error {
+func (fs *fsCache) collectPkg(vendor map[string][]byte, pkgInfo golist.Package) error {
 	dst := pkgInfo.ImportPath
 	src := pkgInfo.Dir
-	err := collectDir(vendor, dst, src, matchSourceFiles(pkgInfo))
+	err := fs.collectDir(vendor, dst, src, matchSourceFiles(pkgInfo))
 	if err != nil {
 		return err
 	}
-	return collectMetadata(vendor, pkgInfo.Module.Path, dst, src)
+	return fs.collectMetadata(vendor, pkgInfo.Module.Path, dst, src)
 }
 
 // collectMetadata mimics
 // /usr/lib/go/src/cmd/go/internal/modcmd/vendor.go:copyMetadata().
-func collectMetadata(ret map[string][]byte, modPath, dst, src string) error {
+func (fs *fsCache) collectMetadata(ret map[string][]byte, modPath, dst, src string) error {
 	for {
-		err := collectDir(ret, dst, src, matchMetadata)
+		err := fs.collectDir(ret, dst, src, matchMetadata)
 		if err != nil {
 			return err
 		}
@@ -182,12 +191,12 @@ func collectMetadata(ret map[string][]byte, modPath, dst, src string) error {
 //     don't want, and
 //  2. VendorList() doesn't populate the `pkgInfo.{Whatever}Files`
 //     variables.
-func collectVendoredPkg(vendor map[string][]byte, pkgInfo golist.Package) error {
+func (fs *fsCache) collectVendoredPkg(vendor map[string][]byte, pkgInfo golist.Package) error {
 	dst := pkgInfo.ImportPath
 	src := pkgInfo.Dir
-	err := collectDir(vendor, dst, src, matchAll)
+	err := fs.collectDir(vendor, dst, src, matchAll)
 	if err != nil {
 		return err
 	}
-	return collectMetadata(vendor, pkgInfo.Module.Path, dst, src)
+	return fs.collectMetadata(vendor, pkgInfo.Module.Path, dst, src)
 }

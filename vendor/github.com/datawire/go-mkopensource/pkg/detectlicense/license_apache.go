@@ -1,6 +1,12 @@
 package detectlicense
 
-var apacheMain = `\s*` + reWrap(reQuote(`Apache License
+import (
+	"regexp"
+)
+
+//nolint:gochecknoglobals // Would be 'const'.
+var (
+	apacheMain = `\s*` + reWrap(reQuote(`Apache License
                            Version 2.0, January 2004
                         `)+`https?://www\.apache\.org/licenses/`+reQuote(`
 
@@ -174,10 +180,10 @@ var apacheMain = `\s*` + reWrap(reQuote(`Apache License
       defend, and hold each Contributor harmless for any liability
       incurred by, or claims asserted against, such Contributor by reason
       of your accepting any such warranty or additional liability.`)+
-	`(?: END OF TERMS AND CONDITIONS)?`)
+		`(?: END OF TERMS AND CONDITIONS)?`)
 
-var apacheAppendixStart = `` +
-	`\s*` + reWrap(`APPENDIX: How to apply the Apache License to your work\.?
+	apacheAppendixStart = `` +
+		`\s*` + reWrap(`APPENDIX: How to apply the Apache License to your work\.?
 
       To apply the Apache License to your work, attach the following
       boilerplate notice, with the fields enclosed by brackets "(:?\[\]|\{\})"
@@ -188,8 +194,8 @@ var apacheAppendixStart = `` +
       same "printed page" as the copyright notice for easier
       identification within third-party archives\.`)
 
-var apacheStatement = `(?: *Copyright [^\n]+\n)+` +
-	reWrap(reQuote(`
+	apacheStatement = `(?: *Copyright [^\n]+\n)+` +
+		reWrap(reQuote(`
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
@@ -202,9 +208,10 @@ var apacheStatement = `(?: *Copyright [^\n]+\n)+` +
    See the License for the specific language governing permissions and
    limitations under the License.`))
 
-var apacheAppendix = `(?:` + apacheAppendixStart + `\s+)?` + apacheStatement
+	apacheAppendix = `(?:` + apacheAppendixStart + `\s+)?` + apacheStatement
+)
 
 var (
-	reApacheLicense   = reCompile(`\s*` + apacheMain + `(?:\s+` + apacheAppendix + `+)?\s*`)
-	reApacheStatement = reCompile(`\s*(?:[^\n]{0,15}\n)?\s*` + apacheStatement + `\s*`)
+	reApacheLicense   = regexp.MustCompile(`\s*` + apacheMain + `(?:\s+` + apacheAppendix + `+)?\s*`)
+	reApacheStatement = regexp.MustCompile(`\s*(?:[^\n]{0,15}\n)?\s*` + apacheStatement + `\s*`)
 )

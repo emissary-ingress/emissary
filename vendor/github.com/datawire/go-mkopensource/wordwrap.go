@@ -4,42 +4,63 @@ import (
 	"strings"
 )
 
-func wordwrap(width int, str string) string {
-	var words []string
-	for len(str) > 0 {
-		sep := strings.IndexAny(str, " \n")
-		if sep < 0 {
-			words = append(words, str)
-			break
+const whitespace = " \t\n"
+
+func indexWordSep(str string) int {
+	bs := []byte(str)
+	for i := 0; i < len(bs); i++ {
+		switch {
+		case strings.HasPrefix(str[i:], ". "):
+			// First space after a period is a non-breaking-space.
+			i++
+		case strings.ContainsRune(whitespace, rune(bs[i])):
+			return i
 		}
-		word := str[:sep]
-		rest := str[sep+1:]
-		words = append(words, word)
-		// First space after a period is a non-breaking space;
-		// encode that with an empty word.
-		if strings.HasSuffix(word, ".") && strings.HasPrefix(rest, " ") {
-			words = append(words, "")
-		}
-		str = strings.TrimLeft(rest, " \n")
 	}
+	return -1
+}
+
+func wordwrap(indent, width int, str string) string {
+	// 1. Tokenize the input
+	var words []string
+	str = strings.TrimLeft(str, whitespace)
+	for len(str) > 0 {
+		sep := indexWordSep(str)
+		if sep < 0 {
+			sep = len(str)
+		}
+		words = append(words, strings.TrimRight(str[:sep], " "))
+		str = str[sep:]
+		if strings.HasPrefix(str, "\n\n") {
+			words = append(words, "\n")
+		}
+		str = strings.TrimLeft(str, whitespace)
+	}
+	// 2. Build the output
 	linewidth := 0
 	ret := new(strings.Builder)
-	sep := ""
+	sep := strings.Repeat(" ", indent)
 	for _, word := range words {
-		if word == "" {
-			sep = "  "
-		} else if linewidth+len(sep)+len(word) > width {
+		switch {
+		case word == "\n":
+			ret.WriteString("\n\n")
+			linewidth = 0
+			sep = strings.Repeat(" ", indent)
+		case linewidth > indent && linewidth+len(sep)+len(word) > width:
 			ret.WriteString("\n")
-			ret.WriteString(word)
-			linewidth = len(word)
-			sep = " "
-		} else {
+			linewidth = 0
+			sep = strings.Repeat(" ", indent)
+			fallthrough
+		default:
 			ret.WriteString(sep)
 			ret.WriteString(word)
 			linewidth += len(sep) + len(word)
-			sep = " "
+			if strings.HasSuffix(word, ".") {
+				sep = "  "
+			} else {
+				sep = " "
+			}
 		}
 	}
-	ret.WriteString("\n")
 	return ret.String()
 }

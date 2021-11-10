@@ -1,6 +1,10 @@
 package detectlicense
 
-var (
+import (
+	"regexp"
+)
+
+const (
 	bsdHeader = `(?:BSD [123]-Clause License\n)?\s*` +
 		`(?:Copyright [^\n]*(?:\s+All rights reserved\.)? *\n)+\s*`
 	bsdPrefix = `` +
@@ -34,7 +38,7 @@ var (
 )
 
 var (
-	reBSD3 = reCompile(reCaseInsensitive(`` +
+	reBSD3 = regexp.MustCompile(reCaseInsensitive(`` +
 		bsdHeader +
 		reWrap(``+
 			bsdPrefix+
@@ -42,7 +46,7 @@ var (
 			bsdClause2+
 			bsdClause3+
 			bsdSuffix)))
-	reBSD2 = reCompile(reCaseInsensitive(`` +
+	reBSD2 = regexp.MustCompile(reCaseInsensitive(`` +
 		bsdHeader +
 		reWrap(``+
 			bsdPrefix+
