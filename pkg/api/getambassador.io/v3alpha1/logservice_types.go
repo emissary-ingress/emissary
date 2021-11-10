@@ -63,11 +63,13 @@ func (*LogService) Hub() {}
 // LogServiceList contains a list of LogServices.
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
 type LogServiceList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []LogService `json:"items"`
 }
+func (*LogServiceList) Hub() {}
 
 func init() {
 	SchemeBuilder.Register(&LogService{}, &LogServiceList{})
