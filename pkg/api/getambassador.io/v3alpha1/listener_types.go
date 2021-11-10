@@ -190,11 +190,13 @@ func (*Listener) Hub() {}
 // ListenerList contains a list of Listener.
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
 type ListenerList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Listener `json:"items"`
 }
+func (*ListenerList) Hub() {}
 
 func init() {
 	SchemeBuilder.Register(&Listener{}, &ListenerList{})

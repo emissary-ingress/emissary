@@ -322,11 +322,13 @@ func (*Mapping) Hub() {}
 // MappingList contains a list of Mappings.
 //
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
 type MappingList struct {
 	metav1.TypeMeta `json:""`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Mapping `json:"items"`
 }
+func (*MappingList) Hub() {}
 
 func init() {
 	SchemeBuilder.Register(&Mapping{}, &MappingList{})
