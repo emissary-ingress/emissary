@@ -54,7 +54,6 @@ generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/
 generate-fast/files += $(OSS_HOME)/charts/emissary-ingress/crds/
 generate-fast/files += $(OSS_HOME)/python/schemas/v3alpha1/
 # Individual files
-generate/files      += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
 generate/files      += $(OSS_HOME)/OPENSOURCE.md
 generate/files      += $(OSS_HOME)/builder/requirements.txt
 generate/precious   += $(OSS_HOME)/builder/requirements.txt
@@ -151,14 +150,6 @@ $(OSS_HOME)/pkg/envoy-control-plane: $(OSS_HOME)/_cxx/go-control-plane FORCE
 	  mv "$$tmpdir" $(abspath $@); \
 	}
 	cd $(OSS_HOME) && gofmt -w -s ./pkg/envoy-control-plane/
-
-$(OSS_HOME)/docker/test-ratelimit/ratelimit.proto:
-	set -e; { \
-	  url=https://raw.githubusercontent.com/envoyproxy/ratelimit/v1.3.0/proto/ratelimit/ratelimit.proto; \
-	  echo "// Downloaded from $$url"; \
-	  echo; \
-	  curl --fail -L "$$url"; \
-	} > $@
 
 #
 # `make generate` protobuf rules

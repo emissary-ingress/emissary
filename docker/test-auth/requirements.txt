@@ -1,7 +1,0 @@
-clize==4.0.1
-flask==1.0.2
-jinja2==2.10.1
-jsonschema==2.6.0
-pyyaml==5.1
-scout.py==0.3.0
-semantic-version==2.6.0
