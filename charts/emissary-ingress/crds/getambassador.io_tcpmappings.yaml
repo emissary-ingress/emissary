@@ -43,9 +43,8 @@ spec:
                 description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
                 items:
                   type: string
-                oneOf:
-                - type: string
-                - type: array
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
               circuit_breakers:
                 items:
                   properties:
@@ -84,9 +83,8 @@ spec:
                 type: string
               tls:
                 description: BoolOrString is a type that can hold a Boolean or a string.
-                oneOf:
-                - type: string
-                - type: boolean
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
               weight:
                 type: integer
             required:
