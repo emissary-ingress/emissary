@@ -1,6 +1,6 @@
 # GENERATED FILE: edits made by hand will not be preserved.
 ---
-apiVersion: apiextensions.k8s.io/v1
+apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
@@ -11,6 +11,25 @@ metadata:
     product: aes
   name: listeners.getambassador.io
 spec:
+  additionalPrinterColumns:
+  - jsonPath: .spec.port
+    name: Port
+    type: string
+  - jsonPath: .spec.protocol
+    name: Protocol
+    type: string
+  - jsonPath: .spec.protocolStack
+    name: Stack
+    type: string
+  - jsonPath: .spec.statsPrefix
+    name: StatsPrefix
+    type: string
+  - jsonPath: .spec.securityModel
+    name: Security
+    type: string
+  - jsonPath: .spec.l7Depth
+    name: L7Depth
+    type: string
   group: getambassador.io
   names:
     categories:
@@ -20,141 +39,123 @@ spec:
     plural: listeners
     singular: listener
   scope: Namespaced
-  versions:
-  - additionalPrinterColumns:
-    - jsonPath: .spec.port
-      name: Port
-      type: string
-    - jsonPath: .spec.protocol
-      name: Protocol
-      type: string
-    - jsonPath: .spec.protocolStack
-      name: Stack
-      type: string
-    - jsonPath: .spec.statsPrefix
-      name: StatsPrefix
-      type: string
-    - jsonPath: .spec.securityModel
-      name: Security
-      type: string
-    - jsonPath: .spec.l7Depth
-      name: L7Depth
-      type: string
-    name: v3alpha1
-    schema:
-      openAPIV3Schema:
-        description: Listener is the Schema for the hosts API
-        properties:
-          apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-            type: string
-          kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-            type: string
-          metadata:
-            type: object
-          spec:
-            description: ListenerSpec defines the desired state of this Port
-            properties:
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: array
-              hostBinding:
-                description: HostBinding allows restricting which Hosts will be used for this Listener.
-                properties:
-                  namespace:
-                    description: NamespaceBindingType defines we we specify which namespaces to look for Hosts in.
-                    properties:
-                      from:
-                        description: NamespaceFromType defines how we evaluate a NamespaceBindingType.
-                        enum:
-                        - SELF
-                        - ALL
-                        - SELECTOR
-                        type: string
-                    type: object
-                  selector:
-                    description: A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
-                    properties:
-                      matchExpressions:
-                        description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
-                        items:
-                          description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
-                          properties:
-                            key:
-                              description: key is the label key that the selector applies to.
+  subresources: {}
+  validation:
+    openAPIV3Schema:
+      description: Listener is the Schema for the hosts API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ListenerSpec defines the desired state of this Port
+          properties:
+            ambassador_id:
+              description: "AmbassadorID declares which Ambassador instances should pay attention to this resource. If no value is provided, the default is: \n    ambassador_id:    - \"default\""
+              items:
+                type: string
+              type: array
+            hostBinding:
+              description: HostBinding allows restricting which Hosts will be used for this Listener.
+              properties:
+                namespace:
+                  description: NamespaceBindingType defines we we specify which namespaces to look for Hosts in.
+                  properties:
+                    from:
+                      description: NamespaceFromType defines how we evaluate a NamespaceBindingType.
+                      enum:
+                      - SELF
+                      - ALL
+                      - SELECTOR
+                      type: string
+                  type: object
+                selector:
+                  description: A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.
+                  properties:
+                    matchExpressions:
+                      description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                      items:
+                        description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                        properties:
+                          key:
+                            description: key is the label key that the selector applies to.
+                            type: string
+                          operator:
+                            description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                            type: string
+                          values:
+                            description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                            items:
                               type: string
-                            operator:
-                              description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
-                              type: string
-                            values:
-                              description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
-                              items:
-                                type: string
-                              type: array
-                          required:
-                          - key
-                          - operator
-                          type: object
-                        type: array
-                      matchLabels:
-                        additionalProperties:
-                          type: string
-                        description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                            type: array
+                        required:
+                        - key
+                        - operator
                         type: object
-                    type: object
-                type: object
-              l7Depth:
-                description: L7Depth specifies how many layer 7 load balancers are between us and the edge of the network.
-                format: int32
-                type: integer
-              port:
-                description: Port is the network port. Only one Listener can use a given port.
-                format: int32
-                maximum: 65535
-                minimum: 1
-                type: integer
-              protocol:
-                description: Protocol is a shorthand for certain predefined stacks. Exactly one of Protocol or ProtocolStack must be supplied.
+                      type: array
+                    matchLabels:
+                      additionalProperties:
+                        type: string
+                      description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                      type: object
+                  type: object
+              type: object
+            l7Depth:
+              description: L7Depth specifies how many layer 7 load balancers are between us and the edge of the network.
+              format: int32
+              type: integer
+            port:
+              description: Port is the network port. Only one Listener can use a given port.
+              format: int32
+              maximum: 65535
+              minimum: 1
+              type: integer
+            protocol:
+              description: Protocol is a shorthand for certain predefined stacks. Exactly one of Protocol or ProtocolStack must be supplied.
+              enum:
+              - HTTP
+              - HTTPS
+              - HTTPPROXY
+              - HTTPSPROXY
+              - TCP
+              - TLS
+              - UDP
+              type: string
+            protocolStack:
+              description: ProtocolStack explicitly specifies the protocol stack to set up. Exactly one of Protocol or ProtocolStack must be supplied.
+              items:
+                description: ProtocolStackElement defines specific layers that may be combined in a protocol stack for processing connections to a port.
                 enum:
                 - HTTP
-                - HTTPS
-                - HTTPPROXY
-                - HTTPSPROXY
-                - TCP
+                - PROXY
                 - TLS
+                - TCP
                 - UDP
                 type: string
-              protocolStack:
-                description: ProtocolStack explicitly specifies the protocol stack to set up. Exactly one of Protocol or ProtocolStack must be supplied.
-                items:
-                  description: ProtocolStackElement defines specific layers that may be combined in a protocol stack for processing connections to a port.
-                  enum:
-                  - HTTP
-                  - PROXY
-                  - TLS
-                  - TCP
-                  - UDP
-                  type: string
-                type: array
-              securityModel:
-                description: SecurityModel specifies how to determine whether connections to this port are secure or insecure.
-                enum:
-                - XFP
-                - SECURE
-                - INSECURE
-                type: string
-              statsPrefix:
-                description: 'StatsPrefix specifies the prefix for statistics sent by Envoy about this Listener. The default depends on the protocol: "ingress-http", "ingress-https", "ingress-tls-$port", or "ingress-$port".'
-                type: string
-            required:
-            - hostBinding
-            - port
-            - securityModel
-            type: object
-        type: object
+              type: array
+            securityModel:
+              description: SecurityModel specifies how to determine whether connections to this port are secure or insecure.
+              enum:
+              - XFP
+              - SECURE
+              - INSECURE
+              type: string
+            statsPrefix:
+              description: 'StatsPrefix specifies the prefix for statistics sent by Envoy about this Listener. The default depends on the protocol: "ingress-http", "ingress-https", "ingress-tls-$port", or "ingress-$port".'
+              type: string
+          required:
+          - hostBinding
+          - port
+          - securityModel
+          type: object
+      type: object
+  version: v3alpha1
+  versions:
+  - name: v3alpha1
     served: true
     storage: true
-    subresources: {}
