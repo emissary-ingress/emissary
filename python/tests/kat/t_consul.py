@@ -1,7 +1,7 @@
 from kat.harness import Query
 
 from abstract_tests import AmbassadorTest, ServiceType, HTTP
-from selfsigned import TLSCerts
+from tests.selfsigned import TLSCerts
 
 SECRETS="""
 ---
