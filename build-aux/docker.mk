@@ -40,7 +40,7 @@
 #
 #     2. It must only adjust the timestamp of IMAGE.docker if the
 #        contents of the file change.  (This is trivially accomplished
-#        using any of the `*_IFCHANGED` build-aux helper programs.)
+#        using any of the `$(tools/*-ifchanged)` helper programs.)
 #
 #    The simplest version of that is:
 #
