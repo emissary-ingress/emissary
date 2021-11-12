@@ -2,7 +2,7 @@ from kat.harness import Query
 import os
 
 from abstract_tests import AmbassadorTest, HTTP, ServiceType, RLSGRPC
-from selfsigned import TLSCerts
+from tests.selfsigned import TLSCerts
 
 class RateLimitV0Test(AmbassadorTest):
     # debug = True

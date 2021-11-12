@@ -3,7 +3,7 @@ import json
 from kat.harness import Query, Test, variants
 
 from abstract_tests import AmbassadorTest, ServiceType, HTTP
-from selfsigned import TLSCerts
+from tests.selfsigned import TLSCerts
 from kat.utils import namespace_manifest
 
 # An AmbassadorTest subclass will actually create a running Ambassador.
