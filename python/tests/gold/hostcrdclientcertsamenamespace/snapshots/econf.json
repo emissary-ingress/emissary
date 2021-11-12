@@ -308,16 +308,16 @@
                   "tls_certificates": [
                     {
                       "certificate_chain": {
-                        "filename": "/tmp/ambassador/snapshots/alt2-namespace/secrets-decoded/hostcrdclientcertsamenamespace.server/8FB752F9041E28BF670D13CAACFCAA93444B6955.crt"
+                        "filename": "/tmp/ambassador/snapshots/alt2-namespace/secrets-decoded/hostcrdclientcertsamenamespace.server/300765A404006AF7D11272D8DFE3B7230313C40F.crt"
                       },
                       "private_key": {
-                        "filename": "/tmp/ambassador/snapshots/alt2-namespace/secrets-decoded/hostcrdclientcertsamenamespace.server/8FB752F9041E28BF670D13CAACFCAA93444B6955.key"
+                        "filename": "/tmp/ambassador/snapshots/alt2-namespace/secrets-decoded/hostcrdclientcertsamenamespace.server/300765A404006AF7D11272D8DFE3B7230313C40F.key"
                       }
                     }
                   ],
                   "validation_context": {
                     "trusted_ca": {
-                      "filename": "/tmp/ambassador/snapshots/alt2-namespace/secrets-decoded/hostcrdclientcertsamenamespace-ca/631341503C68B2279DD972CC1936DCAE84D9C177.crt"
+                      "filename": "/tmp/ambassador/snapshots/alt2-namespace/secrets-decoded/hostcrdclientcertsamenamespace-ca/3F6484405FFDDE45F1844FB414CE70E47705CBBE.crt"
                     }
                   }
                 },

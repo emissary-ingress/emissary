@@ -53,18 +53,29 @@ generate/files      += $(OSS_HOME)/pkg/api/pb/
 generate/files      += $(OSS_HOME)/pkg/envoy-control-plane/
 generate-fast/files += $(OSS_HOME)/charts/emissary-ingress/crds/
 generate-fast/files += $(OSS_HOME)/python/schemas/v3alpha1/
-# Individual files
+# Individual files: Misc
 generate/files      += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
 generate/files      += $(OSS_HOME)/OPENSOURCE.md
 generate/files      += $(OSS_HOME)/builder/requirements.txt
 generate/precious   += $(OSS_HOME)/builder/requirements.txt
 generate-fast/files += $(OSS_HOME)/CHANGELOG.md
 generate-fast/files += $(OSS_HOME)/charts/emissary-ingress/README.md
+# Individual files: YAML
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-crds.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/emissary-ingress.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador.yaml
 generate-fast/files += $(OSS_HOME)/manifests/emissary/ambassador-crds.yaml
 generate-fast/files += $(OSS_HOME)/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml
+# Individual files: Test TLS Certificates
+generate-fast/files += $(OSS_HOME)/builder/server.crt
+generate-fast/files += $(OSS_HOME)/builder/server.key
+generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.crt
+generate-fast/files += $(OSS_HOME)/docker/test-auth/authsvc.key
+generate-fast/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.crt
+generate-fast/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.key
+generate-fast/files += $(OSS_HOME)/docker/test-shadow/shadowsvc.crt
+generate-fast/files += $(OSS_HOME)/docker/test-shadow/shadowsvc.key
+generate-fast/files += $(OSS_HOME)/python/tests/selfsigned.py
 
 generate: ## Update generated sources that get committed to Git
 generate:
@@ -159,6 +170,32 @@ $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto:
 	  echo; \
 	  curl --fail -L "$$url"; \
 	} > $@
+
+#
+# `make generate` certificate generation
+
+$(OSS_HOME)/builder/server.crt: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=kat-server.test.getambassador.io
+$(OSS_HOME)/builder/server.key: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=kat-server.test.getambassador.io
+
+$(OSS_HOME)/docker/test-auth/authsvc.crt: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=authsvc.datawire.io
+$(OSS_HOME)/docker/test-auth/authsvc.key: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=authsvc.datawire.io
+
+$(OSS_HOME)/docker/test-ratelimit/ratelimit.crt: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=ratelimit.datawire.io
+$(OSS_HOME)/docker/test-ratelimit/ratelimit.key: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=ratelimit.datawire.io
+
+$(OSS_HOME)/docker/test-shadow/shadowsvc.crt: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=demosvc.datawire.io
+$(OSS_HOME)/docker/test-shadow/shadowsvc.key: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=demosvc.datawire.io
+
+$(OSS_HOME)/python/tests/selfsigned.py: %: %.gen $(tools/testcert-gen)
+	$@.gen $(tools/testcert-gen) >$@
 
 #
 # `make generate` protobuf rules

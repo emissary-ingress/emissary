@@ -308,10 +308,10 @@
                   "tls_certificates": [
                     {
                       "certificate_chain": {
-                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdseparatetlscontext-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt"
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdseparatetlscontext-secret/541D7637D32DC5146917E69AD9D89FDCB380C6F7.crt"
                       },
                       "private_key": {
-                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdseparatetlscontext-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key"
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdseparatetlscontext-secret/541D7637D32DC5146917E69AD9D89FDCB380C6F7.key"
                       }
                     }
                   ],
@@ -787,10 +787,10 @@
                   "tls_certificates": [
                     {
                       "certificate_chain": {
-                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdseparatetlscontext-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt"
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdseparatetlscontext-secret/541D7637D32DC5146917E69AD9D89FDCB380C6F7.crt"
                       },
                       "private_key": {
-                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdseparatetlscontext-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key"
+                        "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/hostcrdseparatetlscontext-secret/541D7637D32DC5146917E69AD9D89FDCB380C6F7.key"
                       }
                     }
                   ],
