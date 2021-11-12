@@ -1,6 +1,6 @@
 # GENERATED FILE: edits made by hand will not be preserved.
 ---
-apiVersion: apiextensions.k8s.io/v1
+apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
@@ -11,6 +11,25 @@ metadata:
     product: aes
   name: listeners.getambassador.io
 spec:
+  additionalPrinterColumns:
+  - jsonPath: .spec.port
+    name: Port
+    type: string
+  - jsonPath: .spec.protocol
+    name: Protocol
+    type: string
+  - jsonPath: .spec.protocolStack
+    name: Stack
+    type: string
+  - jsonPath: .spec.statsPrefix
+    name: StatsPrefix
+    type: string
+  - jsonPath: .spec.securityModel
+    name: Security
+    type: string
+  - jsonPath: .spec.l7Depth
+    name: L7Depth
+    type: string
   group: getambassador.io
   names:
     categories:
@@ -89,72 +108,70 @@ spec:
                             operator:
                               description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
                               type: string
-                            values:
-                              description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
-                              items:
-                                type: string
-                              type: array
-                          required:
-                          - key
-                          - operator
-                          type: object
-                        type: array
-                      matchLabels:
-                        additionalProperties:
-                          type: string
-                        description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                            type: array
+                        required:
+                        - key
+                        - operator
                         type: object
-                    type: object
-                type: object
-              l7Depth:
-                description: L7Depth specifies how many layer 7 load balancers are between us and the edge of the network.
-                format: int32
-                type: integer
-              port:
-                description: Port is the network port. Only one Listener can use a given port.
-                format: int32
-                maximum: 65535
-                minimum: 1
-                type: integer
-              protocol:
-                description: Protocol is a shorthand for certain predefined stacks. Exactly one of Protocol or ProtocolStack must be supplied.
+                      type: array
+                    matchLabels:
+                      additionalProperties:
+                        type: string
+                      description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                      type: object
+                  type: object
+              type: object
+            l7Depth:
+              description: L7Depth specifies how many layer 7 load balancers are between us and the edge of the network.
+              format: int32
+              type: integer
+            port:
+              description: Port is the network port. Only one Listener can use a given port.
+              format: int32
+              maximum: 65535
+              minimum: 1
+              type: integer
+            protocol:
+              description: Protocol is a shorthand for certain predefined stacks. Exactly one of Protocol or ProtocolStack must be supplied.
+              enum:
+              - HTTP
+              - HTTPS
+              - HTTPPROXY
+              - HTTPSPROXY
+              - TCP
+              - TLS
+              - UDP
+              type: string
+            protocolStack:
+              description: ProtocolStack explicitly specifies the protocol stack to set up. Exactly one of Protocol or ProtocolStack must be supplied.
+              items:
+                description: ProtocolStackElement defines specific layers that may be combined in a protocol stack for processing connections to a port.
                 enum:
                 - HTTP
-                - HTTPS
-                - HTTPPROXY
-                - HTTPSPROXY
-                - TCP
+                - PROXY
                 - TLS
+                - TCP
                 - UDP
                 type: string
-              protocolStack:
-                description: ProtocolStack explicitly specifies the protocol stack to set up. Exactly one of Protocol or ProtocolStack must be supplied.
-                items:
-                  description: ProtocolStackElement defines specific layers that may be combined in a protocol stack for processing connections to a port.
-                  enum:
-                  - HTTP
-                  - PROXY
-                  - TLS
-                  - TCP
-                  - UDP
-                  type: string
-                type: array
-              securityModel:
-                description: SecurityModel specifies how to determine whether connections to this port are secure or insecure.
-                enum:
-                - XFP
-                - SECURE
-                - INSECURE
-                type: string
-              statsPrefix:
-                description: 'StatsPrefix specifies the prefix for statistics sent by Envoy about this Listener. The default depends on the protocol: "ingress-http", "ingress-https", "ingress-tls-$port", or "ingress-$port".'
-                type: string
-            required:
-            - hostBinding
-            - port
-            - securityModel
-            type: object
-        type: object
+              type: array
+            securityModel:
+              description: SecurityModel specifies how to determine whether connections to this port are secure or insecure.
+              enum:
+              - XFP
+              - SECURE
+              - INSECURE
+              type: string
+            statsPrefix:
+              description: 'StatsPrefix specifies the prefix for statistics sent by Envoy about this Listener. The default depends on the protocol: "ingress-http", "ingress-https", "ingress-tls-$port", or "ingress-$port".'
+              type: string
+          required:
+          - hostBinding
+          - port
+          - securityModel
+          type: object
+      type: object
+  version: v3alpha1
+  versions:
+  - name: v3alpha1
     served: true
     storage: true
-    subresources: {}

@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
-	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/yaml"
 
@@ -80,16 +80,20 @@ func Main(ctx context.Context, inputFilename, outputDir string) error {
 		dlog.Infof(ctx, "Generating %q...", outputFilename)
 
 		var spec apiext.JSONSchemaProps
-		found := false
-		for _, version := range crd.Spec.Versions {
-			if version.Name == apiVersion {
-				spec = version.Schema.OpenAPIV3Schema.Properties["spec"]
-				found = true
-				break
+		if crd.Spec.Validation != nil {
+			spec = crd.Spec.Validation.OpenAPIV3Schema.Properties["spec"]
+		} else {
+			found := false
+			for _, version := range crd.Spec.Versions {
+				if version.Name == apiVersion {
+					spec = version.Schema.OpenAPIV3Schema.Properties["spec"]
+					found = true
+					break
+				}
 			}
-		}
-		if !found {
-			return fmt.Errorf("could not find a schema in %q", inputFilename)
+			if !found {
+				return fmt.Errorf("could not find a schema in %q", inputFilename)
+			}
 		}
 		outputData := apiext.JSONSchemaProps{
 			Schema: "http://json-schema.org/schema#",

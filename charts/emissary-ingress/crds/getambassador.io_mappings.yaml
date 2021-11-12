@@ -1,6 +1,6 @@
 # GENERATED FILE: edits made by hand will not be preserved.
 ---
-apiVersion: apiextensions.k8s.io/v1
+apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
@@ -11,6 +11,22 @@ metadata:
     product: aes
   name: mappings.getambassador.io
 spec:
+  additionalPrinterColumns:
+  - jsonPath: .spec.host
+    name: Source Host
+    type: string
+  - jsonPath: .spec.prefix
+    name: Source Prefix
+    type: string
+  - jsonPath: .spec.service
+    name: Dest Service
+    type: string
+  - jsonPath: .status.state
+    name: State
+    type: string
+  - jsonPath: .status.reason
+    name: Reason
+    type: string
   group: getambassador.io
   names:
     categories:
@@ -20,24 +36,11 @@ spec:
     plural: mappings
     singular: mapping
   scope: Namespaced
+  subresources:
+    status: {}
+  version: v2
   versions:
-  - additionalPrinterColumns:
-    - jsonPath: .spec.host
-      name: Source Host
-      type: string
-    - jsonPath: .spec.prefix
-      name: Source Prefix
-      type: string
-    - jsonPath: .spec.service
-      name: Dest Service
-      type: string
-    - jsonPath: .status.state
-      name: State
-      type: string
-    - jsonPath: .status.reason
-      name: Reason
-      type: string
-    name: v2
+  - name: v2
     schema:
       openAPIV3Schema:
         description: Mapping is the Schema for the mappings API
@@ -411,25 +414,7 @@ spec:
         type: object
     served: true
     storage: false
-    subresources:
-      status: {}
-  - additionalPrinterColumns:
-    - jsonPath: .spec.host
-      name: Source Host
-      type: string
-    - jsonPath: .spec.prefix
-      name: Source Prefix
-      type: string
-    - jsonPath: .spec.service
-      name: Dest Service
-      type: string
-    - jsonPath: .status.state
-      name: State
-      type: string
-    - jsonPath: .status.reason
-      name: Reason
-      type: string
-    name: v3alpha1
+  - name: v3alpha1
     schema:
       openAPIV3Schema:
         description: Mapping is the Schema for the mappings API
@@ -864,5 +849,3 @@ spec:
         type: object
     served: true
     storage: true
-    subresources:
-      status: {}
