@@ -41,9 +41,8 @@ spec:
                 description: Common to all Ambassador objects.
                 items:
                   type: string
-                oneOf:
-                - type: string
-                - type: array
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
               domain:
                 type: string
               protocol_version:
@@ -57,9 +56,8 @@ spec:
                 type: integer
               tls:
                 description: BoolOrString is a type that can hold a Boolean or a string.
-                oneOf:
-                - type: string
-                - type: boolean
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
             required:
             - service
             type: object
