@@ -5,7 +5,7 @@ import os
 from kat.harness import Query
 
 from abstract_tests import AmbassadorTest, ServiceType, HTTP, AHTTP, AGRPC
-from selfsigned import TLSCerts
+from tests.selfsigned import TLSCerts
 
 from ambassador import Config
 

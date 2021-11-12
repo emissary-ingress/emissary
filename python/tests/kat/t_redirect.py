@@ -2,7 +2,7 @@ from kat.harness import Query, EDGE_STACK
 
 from abstract_tests import AmbassadorTest, HTTP
 from abstract_tests import ServiceType
-from selfsigned import TLSCerts
+from tests.selfsigned import TLSCerts
 from kat.utils import namespace_manifest
 
 

@@ -5,7 +5,7 @@ import pytest
 import os
 
 from abstract_tests import AmbassadorTest, ServiceType, HTTP
-from selfsigned import TLSCerts
+from tests.selfsigned import TLSCerts
 
 from ambassador import Config
 
