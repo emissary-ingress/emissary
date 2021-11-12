@@ -242,10 +242,10 @@
                 "tls_certificates": [
                   {
                     "certificate_chain": {
-                      "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/secret.max-version/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt"
+                      "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/secret.max-version/6F3041C4F66B50E21731FCD2EE9CFF137AF932FC.crt"
                     },
                     "private_key": {
-                      "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/secret.max-version/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key"
+                      "filename": "/tmp/ambassador/snapshots/default/secrets-decoded/secret.max-version/6F3041C4F66B50E21731FCD2EE9CFF137AF932FC.key"
                     }
                   }
                 ],

@@ -15,6 +15,16 @@ generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.proto
 generate/files += $(OSS_HOME)/OPENSOURCE.md
 generate/files += $(OSS_HOME)/builder/requirements.txt
 generate/files += $(OSS_HOME)/CHANGELOG.md
+# Individual files: Test TLS Certificates
+generate/files += $(OSS_HOME)/builder/server.crt
+generate/files += $(OSS_HOME)/builder/server.key
+generate/files += $(OSS_HOME)/docker/test-auth/authsvc.crt
+generate/files += $(OSS_HOME)/docker/test-auth/authsvc.key
+generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.crt
+generate/files += $(OSS_HOME)/docker/test-ratelimit/ratelimit.key
+generate/files += $(OSS_HOME)/docker/test-shadow/shadowsvc.crt
+generate/files += $(OSS_HOME)/docker/test-shadow/shadowsvc.key
+generate/files += $(OSS_HOME)/python/tests/selfsigned.py
 
 generate: ## Update generated sources that get committed to git
 generate:
@@ -134,6 +144,32 @@ $(tools/py-mkopensource): FORCE
 
 #
 # `make generate` vendor rules
+
+#
+# `make generate` certificate generation
+
+$(OSS_HOME)/builder/server.crt: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=kat-server.test.getambassador.io
+$(OSS_HOME)/builder/server.key: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=kat-server.test.getambassador.io
+
+$(OSS_HOME)/docker/test-auth/authsvc.crt: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=authsvc.datawire.io
+$(OSS_HOME)/docker/test-auth/authsvc.key: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=authsvc.datawire.io
+
+$(OSS_HOME)/docker/test-ratelimit/ratelimit.crt: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=ratelimit.datawire.io
+$(OSS_HOME)/docker/test-ratelimit/ratelimit.key: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=ratelimit.datawire.io
+
+$(OSS_HOME)/docker/test-shadow/shadowsvc.crt: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=$@ --out-key=/dev/null --hosts=demosvc.datawire.io
+$(OSS_HOME)/docker/test-shadow/shadowsvc.key: $(tools/testcert-gen)
+	$(tools/testcert-gen) --out-cert=/dev/null --out-key=$@ --hosts=demosvc.datawire.io
+
+$(OSS_HOME)/python/tests/selfsigned.py: %: %.gen $(tools/testcert-gen)
+	$@.gen $(tools/testcert-gen) >$@
 
 #
 # `make generate` protobuf rules

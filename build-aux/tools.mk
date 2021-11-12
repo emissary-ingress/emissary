@@ -41,6 +41,7 @@ $(tools/golangci-lint): $(OSS_HOME)/build-aux/bin-go/golangci-lint/go.mod
 # ================
 #
 tools/schema-fmt      = $(tools.bindir)/schema-fmt
+tools/testcert-gen    = $(tools.bindir)/testcert-gen
 $(tools.bindir)/.%.stamp: $(tools.srcdir)/%/main.go FORCE
 	cd $(<D) && GOOS= GOARCH= go build -o $(abspath $@) .
 $(tools.bindir)/%: $(tools.bindir)/.%.stamp $(tools/copy-ifchanged)
