@@ -41,9 +41,8 @@ spec:
                 description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
                 items:
                   type: string
-                oneOf:
-                - type: string
-                - type: array
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
               content:
                 description: Content specifies where the content shown in the DevPortal come from
                 properties:

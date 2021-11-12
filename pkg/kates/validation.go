@@ -9,7 +9,9 @@ import (
 	apiextVInternal "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
 	apiextV1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextV1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	apiextValidation "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/validation"
 	"k8s.io/apiextensions-apiserver/pkg/apiserver/validation"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/kube-openapi/pkg/validation/validate"
 
 	"github.com/pkg/errors"
@@ -37,8 +39,10 @@ func NewValidator(client *Client, staticCRDs []Object) (*Validator, error) {
 	static := make(map[TypeMeta]*apiextVInternal.CustomResourceDefinition, len(staticCRDs))
 	for i, untypedCRD := range staticCRDs {
 		var crd apiextVInternal.CustomResourceDefinition
+		var gv schema.GroupVersion
 		switch untypedCRD.GetObjectKind().GroupVersionKind() {
 		case apiextV1beta1.SchemeGroupVersion.WithKind("CustomResourceDefinition"):
+			gv = apiextV1beta1.SchemeGroupVersion
 			var crdV1beta1 apiextV1beta1.CustomResourceDefinition
 			if err := convert(untypedCRD, &crdV1beta1); err != nil {
 				return nil, errors.Wrapf(err, "staticCRDs[%d]", i)
@@ -48,6 +52,7 @@ func NewValidator(client *Client, staticCRDs []Object) (*Validator, error) {
 				return nil, errors.Wrapf(err, "staticCRDs[%d]", i)
 			}
 		case apiextV1.SchemeGroupVersion.WithKind("CustomResourceDefinition"):
+			gv = apiextV1.SchemeGroupVersion
 			var crdV1 apiextV1.CustomResourceDefinition
 			if err := convert(untypedCRD, &crdV1); err != nil {
 				return nil, errors.Wrapf(err, "staticCRDs[%d]", i)
@@ -58,6 +63,9 @@ func NewValidator(client *Client, staticCRDs []Object) (*Validator, error) {
 			}
 		default:
 			return nil, errors.Wrapf(errors.Errorf("unrecognized CRD GroupVersionKind: %v", untypedCRD.GetObjectKind().GroupVersionKind()), "staticCRDs[%d]", i)
+		}
+		if errs := apiextValidation.ValidateCustomResourceDefinition(&crd, gv); len(errs) > 0 {
+			return nil, errors.Wrapf(errs.ToAggregate(), "staticCRDs[%d]", i)
 		}
 		for _, version := range crd.Spec.Versions {
 			static[TypeMeta{

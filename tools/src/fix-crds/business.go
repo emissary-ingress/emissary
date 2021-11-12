@@ -77,16 +77,31 @@ func FixCRD(args Args, crd *CRD) error {
 
 	// hack around limitations in `controller-gen`; see the comments in
 	// `pkg/api/getambassdor.io/v2/common.go`.
-	VisitAllSchemaProps(crd, func(node *apiext.JSONSchemaProps) {
+	VisitAllSchemaProps(crd, func(crdName string, version string, node *apiext.JSONSchemaProps) {
+		// Don't do anything for the v3CRDs, they should already be structural.
+		if strings.HasPrefix(version, "v3") {
+			return
+		}
+
+		// When we need to set node.XPreserveUnknownFields, we need to hand
+		// it a pointer. trueVal is the thing we'll point to.
+		trueVal := true
+
 		if strings.HasPrefix(node.Type, "d6e-union:") {
-			types := strings.Split(strings.TrimPrefix(node.Type, "d6e-union:"), ",")
-			node.Type = ""
-			node.OneOf = nil
-			for _, typ := range types {
-				node.OneOf = append(node.OneOf, apiext.JSONSchemaProps{
-					Type: typ,
-				})
-			}
+			node.Type = "object"
+			node.XPreserveUnknownFields = &trueVal
+
+			// types := strings.Split(strings.TrimPrefix(node.Type, "d6e-union:"), ",")
+			// node.Type = ""
+			// node.OneOf = nil
+			// for _, typ := range types {
+			// 	node.OneOf = append(node.OneOf, apiext.JSONSchemaProps{
+			// 		Type: typ,
+			// 	})
+			// }
+		} else if node.Type == "" {
+			node.Type = "object"
+			node.XPreserveUnknownFields = &trueVal
 		}
 	})
 
