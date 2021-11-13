@@ -48,8 +48,8 @@ include $(OSS_HOME)/manifests/manifests.mk
 
 $(call module,ambassador,$(OSS_HOME))
 
-include $(OSS_HOME)/build-aux-local/generate.mk
-include $(OSS_HOME)/build-aux-local/lint.mk
+include $(OSS_HOME)/build-aux/generate.mk
+include $(OSS_HOME)/build-aux/lint.mk
 
 include $(OSS_HOME)/docs/yaml.mk
 
