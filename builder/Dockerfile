@@ -100,7 +100,7 @@ ADD python python
 RUN time pip install --no-deps -e python
 
 # Run post-compile.sh
-ADD build-aux-local build-aux-local
+ADD build-aux build-aux
 ADD post-compile.sh post-compile.sh
 RUN bash post-compile.sh
 
