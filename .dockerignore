@@ -3,7 +3,7 @@
 !manifests/emissary/emissary-crds.yaml
 !post-compile.sh
 !api/
-!build-aux-local
+!build-aux
 !builder/server.crt
 !builder/server.key
 !cmd/
