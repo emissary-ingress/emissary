@@ -1,6 +1,6 @@
 # GENERATED FILE: edits made by hand will not be preserved.
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
@@ -20,7 +20,6 @@ spec:
     plural: modules
     singular: module
   scope: Namespaced
-  version: v2
   versions:
   - name: v2
     schema:
