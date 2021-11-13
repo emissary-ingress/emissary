@@ -181,9 +181,12 @@ func visitAllSchemaProps(crdName string, version string, root *apiext.JSONSchema
 	callback(crdName, version, root)
 	if root.Items != nil {
 		visitAllSchemaProps(crdName, version, root.Items.Schema, callback)
+		// new items = []
 		for i := range root.Items.JSONSchemas {
 			visitAllSchemaProps(crdName, version, &(root.Items.JSONSchemas[i]), callback)
+			// append to new items
 		}
+		// set root.Items or root.Items.JSONSchemas
 	}
 	for i := range root.AllOf {
 		visitAllSchemaProps(crdName, version, &(root.AllOf[i]), callback)
@@ -198,6 +201,8 @@ func visitAllSchemaProps(crdName string, version string, root *apiext.JSONSchema
 	for k, v := range root.Properties {
 		visitAllSchemaProps(crdName, version, &v, callback)
 		root.Properties[k] = v
+
+		// if visitAllSchemaProps fails, delete root.Properties[k]
 	}
 	if root.AdditionalProperties != nil {
 		visitAllSchemaProps(crdName, version, root.AdditionalProperties.Schema, callback)
@@ -205,6 +210,7 @@ func visitAllSchemaProps(crdName string, version string, root *apiext.JSONSchema
 	for k, v := range root.PatternProperties {
 		visitAllSchemaProps(crdName, version, &v, callback)
 		root.PatternProperties[k] = v
+				// if visitAllSchemaProps fails, delete root.Properties[k]
 	}
 	for k := range root.Dependencies {
 		visitAllSchemaProps(crdName, version, root.Dependencies[k].Schema, callback)
@@ -215,5 +221,6 @@ func visitAllSchemaProps(crdName string, version string, root *apiext.JSONSchema
 	for k, v := range root.Definitions {
 		visitAllSchemaProps(crdName, version, &v, callback)
 		root.Definitions[k] = v
+		// if visitAllSchemaProps fails, delete root.Properties[k]
 	}
 }
