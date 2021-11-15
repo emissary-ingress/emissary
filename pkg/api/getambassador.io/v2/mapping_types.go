@@ -22,12 +22,8 @@ package v2
 import (
 	"encoding/json"
 	"errors"
-	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/conversion"
-
-	v3a1 "github.com/datawire/ambassador/v2/pkg/api/getambassador.io/v3alpha1"
 )
 
 // MappingSpec defines the desired state of Mapping
@@ -398,26 +394,6 @@ type Mapping struct {
 
 	Spec   MappingSpec    `json:"spec,omitempty"`
 	Status *MappingStatus `json:"status,omitempty"`
-}
-
-func (src *Mapping) ConvertTo(dstRaw conversion.Hub) {
-	dst := dstRaw.(*v3a1.Mapping)
-
-	dst.Spec = src.Spec
-	dst.Status = src.Status
-
-	svcTmp := ""
-	if src.Spec.TLS.Bool != nil && src.Spec.TLS.Bool {
-		if strings.HasPrefix(src.Spec.Service, "https://") {
-			dst.Spec.Service = src.Spec.Service
-		} else if strings.HasPrefix(src.Spec.Service, "http://") {
-			dst.Spec.Service = "https://" + src.Spec.Service[len("http://"): len(src.Spec.Service)]
-		} else {
-			dst.Spec.Service = "https://" + src.Spec.Service
-		}
-	} else {
-		dst.Spec.TLS = src.Spec.TLS
-	}
 }
 
 // MappingList contains a list of Mappings.
