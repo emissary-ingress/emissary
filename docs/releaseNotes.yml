@@ -32,23 +32,25 @@
 changelog: https://github.com/emissary-ingress/emissary/blob/$branch$/CHANGELOG.md
 items:
   - version: 2.0.5
-    date: 'TBD'
+    date: '2021-11-08'
     notes:
-      - title: Error_response_overrides validation
-        type: feature
-        body: >-
-          Any token delimited by '%' is now validated agains a whitelist of valid
-          Envoy command operators. Any mapping containing an error_response_overrides
-          section with invalid command operators will be discarded.
-          
       - title: AuthService circuit breakers
-        type: bugfix
+        type: feature
         body: >-
           It is now possible to set the <code>circuit_breakers</code> for <code>AuthServices</code>,
           exactly the same as for <code>Mappings</code> and <code>TCPMappings</code>. This makes it
           possible to configure your <code>AuthService</code> to be able to handle more than 1024
           concurrent requests.
         docs: topics/running/services/auth-service/
+        image: ./v2.0.5-auth-circuit-breaker.png
+
+      - title: Improved validity checking for error response overrides
+        type: bugfix
+        body: >-
+          Any token delimited by '%' is now validated agains a whitelist of valid
+          Envoy command operators. Any mapping containing an <code>error_response_overrides</code>
+          section with invalid command operators will be discarded.
+        docs: topics/running/custom-error-responses
 
       - title: mappingSelector is now correctly supported in the Host CRD
         type: bugfix
@@ -61,6 +63,7 @@ items:
         - title: 3902
           link: https://github.com/emissary-ingress/emissary/issues/3902
         docs: https://github.com/emissary-ingress/emissary/issues/3902
+        image: ./v2.0.5-mappingselector.png
 
   - version: 2.0.4
     date: '2021-10-19'
@@ -94,7 +97,9 @@ items:
         type: feature
         body: >-
           The <code>getambassador.io/v3alpha1</code> API version and the published chart
-          and manifests have been updated to support Kubernetes 1.22.
+          and manifests have been updated to support Kubernetes 1.22. Thanks to
+          <a href="https://github.com/imoisharma">Mohit Sharma</a> for contributions to
+          this feature!
         docs: about/changes-2.0.0
         image: ./v2.0.4-k8s-1.22.png
 
@@ -225,7 +230,7 @@ items:
       - title: Configurable per-AmbassadorListener statistics prefix
         body: The optional <code>stats_prefix</code> element of the <code>AmbassadorListener</code> CRD now determines the prefix of HTTP statistics emitted for a specific <code>AmbassadorListener</code>.
         type: feature
-        docs: topics/running/ambassadorlistener
+        docs: topics/running/listener
 
       - title: Configurable statistics names
         body: The optional <code>stats_name</code> element of <code>AmbassadorMapping</code>, <code>AmbassadorTCPMapping</code>, <code>AuthService</code>, <code>LogService</code>, <code>RateLimitService</code>, and <code>TracingService</code> now sets the name under which cluster statistics will be logged. The default is the <code>service</code>, with non-alphanumeric characters replaced by underscores.
@@ -262,16 +267,16 @@ items:
           configuration changes that are not backwards compatible with the 1.X family.  API versions
           <code>getambassador.io/v0</code>, <code>getambassador.io/v1</code>, and
           <code>getambassador.io/v2</code> are deprecated.  Further details are available in the <a
-          href="about/changes-2.0.0/#1-configuration-api-version-xgetambassadoriov3alpha1">2.0.0
+          href="../about/changes-2.0.0/#1-configuration-api-version-xgetambassadoriov3alpha1">2.0.0
           Changes</a> document.
         type: feature
         docs: about/changes-2.0.0/#1-configuration-api-version-getambassadoriov3alpha1
         image: ./edge-stack-2.0.0-v3alpha1.png
 
       - title: The AmbassadorListener Resource
-        body: The new <code>AmbassadorListener</code> CRD defines where and how to listen for requests from the network, and which <code>AmbassadorHost</code> definitions should be used to process those requests. Note that the <code>AmbassadorListener</code> CRD is <b>mandatory</b> and consolidates <i>all</i> port configuration; see the <a href="topics/running/ambassadorlistener"><code>AmbassadorListener</code> documentation</a> for more details.
+        body: The new <code>AmbassadorListener</code> CRD defines where and how to listen for requests from the network, and which <code>AmbassadorHost</code> definitions should be used to process those requests. Note that the <code>AmbassadorListener</code> CRD is <b>mandatory</b> and consolidates <i>all</i> port configuration; see the <a href="../topics/running/listener"><code>AmbassadorListener</code> documentation</a> for more details.
         type: feature
-        docs: topics/running/ambassadorlistener
+        docs: topics/running/listener
         image: ./edge-stack-2.0.0-listener.png
 
       - title: AmbassadorMapping hostname DNS glob support
@@ -317,18 +322,18 @@ items:
         docs: about/changes-2.0.0/#proxy-protocol-configuration
 
       - title: Stricter rules for AmbassadorHost/AmbassadorMapping association
-        body: An <code>AmbassadorMapping</code> will only be matched with an <code>AmbassadorHost</code> if the <code>AmbassadorMapping</code>'s <code>host</code> or the <code>AmbassadorHost</code>'s <code>selector</code> (or both) are explicitly set, and match. This change can significantly improve $productName$'s memory footprint when many <code>AmbassadorHost</code>s are involved. Further details are available in the <a href="about/changes-2.0.0/#host-and-mapping-association">2.0.0 Changes</a> document.
+        body: An <code>AmbassadorMapping</code> will only be matched with an <code>AmbassadorHost</code> if the <code>AmbassadorMapping</code>'s <code>host</code> or the <code>AmbassadorHost</code>'s <code>selector</code> (or both) are explicitly set, and match. This change can significantly improve $productName$'s memory footprint when many <code>AmbassadorHost</code>s are involved. Further details are available in the <a href="../about/changes-2.0.0/#host-and-mapping-association">2.0.0 Changes</a> document.
         docs: about/changes-2.0.0/#host-and-mapping-association
         type: change
 
       - title: AmbassadorHost or Ingress now required for TLS termination
-        body: An <code>AmbassadorHost</code> or <code>Ingress</code> resource is now required when terminating TLS -- simply creating a <code>TLSContext</code> is not sufficient. Further details are available in the <a href="about/changes-2.0.0/#host-tlscontext-and-tls-termination"><code>AmbassadorHost</code> CRD documentation.</a>
+        body: An <code>AmbassadorHost</code> or <code>Ingress</code> resource is now required when terminating TLS -- simply creating a <code>TLSContext</code> is not sufficient. Further details are available in the <a href="../about/changes-2.0.0/#host-tlscontext-and-tls-termination"><code>AmbassadorHost</code> CRD documentation.</a>
         docs: about/changes-2.0.0/#host-tlscontext-and-tls-termination
         type: change
         image: ./edge-stack-2.0.0-host_crd.png
 
       - title: Envoy V3 APIs
-        body: By default, $productName$ will configure Envoy using the V3 Envoy API. This change is mostly transparent to users, but note that Envoy V3 does not support unsafe regular expressions or, e.g., Zipkin's V1 collector protocol. Further details are available in the <a href="about/changes-2.0.0">2.0.0 Changes</a> document.
+        body: By default, $productName$ will configure Envoy using the V3 Envoy API. This change is mostly transparent to users, but note that Envoy V3 does not support unsafe regular expressions or, e.g., Zipkin's V1 collector protocol. Further details are available in the <a href="../about/changes-2.0.0">2.0.0 Changes</a> document.
         type: change
         docs: about/changes-2.0.0/#envoy-v3-api-by-default
 
@@ -558,6 +563,6 @@ items:
           <code>reject_requests_with_escaped_slashes</code> option to the Ambassador module.
         image: ../images/edge-stack-1.13.4.png
         docs: topics/running/ambassador/#rejecting-client-requests-with-escaped-slashes
-        type: bugfix
+        type: security
 
 # Don't go any further back than 1.13.4.

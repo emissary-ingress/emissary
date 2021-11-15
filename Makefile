@@ -1,4 +1,3 @@
-# Emissary Makefile
 # Sanitize the environment a bit.
 unexport ENV      # bad configuration mechanism
 unexport BASH_ENV # bad configuration mechanism, but CircleCI insists on it
