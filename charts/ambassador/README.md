@@ -1,18 +1,39 @@
 # Ambassador
 
-The Ambassador Edge Stack is a self-service, comprehensive edge stack that is Kubernetes-native and built on [Envoy Proxy](https://www.envoyproxy.io/).
+The Ambassador Edge Stack and its open source version Emissary-Ingress (FKA Ambassador API Gateway) offer a self-service, comprehensive API Gateway that is Kubernetes-native and built on [Envoy Proxy](https://www.envoyproxy.io/).
 
 ## TL;DR;
 
+For Edge Stack:
 ```console
 $ helm repo add datawire https://getambassador.io
+$ helm repo update
 $ helm install ambassador datawire/ambassador
 ```
 
+For Emissary-Ingress:
+```console
+$ helm repo add datawire https://getambassador.io
+$ helm repo update
+$ helm install ambassador datawire/ambassador --set enableAES=false
+```
+
+Get Started using a demo service with the quick start guide available in the documentation at [getambassador.io](https://www.getambassador.io/docs/edge-stack/1.14/tutorials/getting-started/)
+
 ## Introduction
 
-This chart bootstraps an [Ambassador](https://www.getambassador.io) deployment on
+This chart deploys either Edge Stack or Emissary-Ingress 1.14 on
 a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
+
+> The helm value `enableAES` is used in this chart to determine whether Emissary-Ingress or Edge Stack is Installed. The default is to install Edge Stack. 
+
+For the 2.0 release line, Emissary-Ingress and Edge-Stack have separate charts. You should use the following 2.0 chart for the product of your choice when migrating to newer versions or starting a new install.
+
+The Edge Stack 2.0 chart can be found in the [Edge-Stack chart repository](https://github.com/datawire/edge-stack/tree/main/charts/edge-stack).
+
+The Emissary-Ingress 2.0 chart can be found on [the master branch of this repo](https://github.com/emissary-ingress/emissary/tree/master/charts/emissary-ingress).
+
+See [this page](https://www.getambassador.io/docs/edge-stack/latest/about/faq/#whats-the-difference-between-ossproductname-and-aesproductname) for more information about the differences between Emissary-Ingress and Edge Stack.
 
 ## Prerequisites
 
