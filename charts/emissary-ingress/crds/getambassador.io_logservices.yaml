@@ -37,12 +37,6 @@ spec:
           spec:
             description: LogServiceSpec defines the desired state of LogService
             properties:
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               driver:
                 enum:
                 - tcp
@@ -73,6 +67,7 @@ spec:
               service:
                 type: string
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false

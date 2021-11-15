@@ -37,11 +37,8 @@ spec:
             description: AuthServiceSpec defines the desired state of AuthService
             properties:
               add_auth_headers:
-                additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
                 type: object
+                x-kubernetes-preserve-unknown-fields: true
               add_linkerd_headers:
                 type: boolean
               allow_request_body:
@@ -54,12 +51,6 @@ spec:
                 items:
                   type: string
                 type: array
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               auth_service:
                 type: string
               failure_mode_allow:
@@ -95,13 +86,10 @@ spec:
                 type: object
               timeout_ms:
                 type: integer
-              tls:
-                description: BoolOrString is a type that can hold a Boolean or a string.
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
             required:
             - auth_service
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false
@@ -244,15 +232,10 @@ spec:
             properties:
               address:
                 type: string
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               datacenter:
                 type: string
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false
@@ -322,12 +305,6 @@ spec:
           spec:
             description: DevPortalSpec defines the desired state of DevPortal
             properties:
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               content:
                 description: Content specifies where the content shown in the DevPortal come from
                 properties:
@@ -393,6 +370,7 @@ spec:
                     type: array
                 type: object
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false
@@ -557,18 +535,6 @@ spec:
                     description: This is normally set automatically
                     type: string
                 type: object
-              ambassador_id:
-                description: Common to all Ambassador objects (and optional).
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
-              ambassadorId:
-                description: A compatibility alias for "ambassador_id"; because Host used to be specified with protobuf, and jsonpb allowed either "ambassador_id" or "ambassadorId", and even though we didn't tell people about "ambassadorId" it's what the web policy console generated because of jsonpb.  So Hosts with 'ambassadorId' exist in the wild.
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               hostname:
                 description: Hostname by which the Ambassador can be reached.
                 type: string
@@ -676,6 +642,7 @@ spec:
                     type: string
                 type: object
             type: object
+            x-kubernetes-preserve-unknown-fields: true
           status:
             description: HostStatus defines the observed state of Host
             properties:
@@ -1010,14 +977,8 @@ spec:
             type: object
           spec:
             description: KubernetesEndpointResolver tells Ambassador to use Kubernetes Endpoints resources to resolve services. It actually has no spec other than the AmbassadorID.
-            properties:
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false
@@ -1082,14 +1043,8 @@ spec:
             type: object
           spec:
             description: KubernetesServiceResolver tells Ambassador to use Kubernetes Service resources to resolve services. It actually has no spec other than the AmbassadorID.
-            properties:
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false
@@ -1313,12 +1268,6 @@ spec:
           spec:
             description: LogServiceSpec defines the desired state of LogService
             properties:
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               driver:
                 enum:
                 - tcp
@@ -1349,6 +1298,7 @@ spec:
               service:
                 type: string
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false
@@ -1464,26 +1414,16 @@ spec:
               add_linkerd_headers:
                 type: boolean
               add_request_headers:
-                additionalProperties:
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
                 type: object
+                x-kubernetes-preserve-unknown-fields: true
               add_response_headers:
-                additionalProperties:
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
                 type: object
+                x-kubernetes-preserve-unknown-fields: true
               allow_upgrade:
                 description: "A case-insensitive list of the non-HTTP protocols to allow \"upgrading\" to from HTTP via the \"Connection: upgrade\" mechanism[1].  After the upgrade, Ambassador does not interpret the traffic, and behaves similarly to how it does for TCPMappings. \n [1]: https://tools.ietf.org/html/rfc7230#section-6.7 \n For example, if your upstream service supports WebSockets, you would write \n    allow_upgrade:    - websocket \n Or if your upstream service supports upgrading from HTTP to SPDY (as the Kubernetes apiserver does for `kubectl exec` functionality), you would write \n    allow_upgrade:    - spdy/3.1"
                 items:
                   type: string
                 type: array
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               auth_context_extensions:
                 additionalProperties:
                   type: string
@@ -1527,31 +1467,10 @@ spec:
                 properties:
                   credentials:
                     type: boolean
-                  exposed_headers:
-                    description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
-                    items:
-                      type: string
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
-                  headers:
-                    description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
-                    items:
-                      type: string
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
                   max_age:
                     type: string
-                  methods:
-                    description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
-                    items:
-                      type: string
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
-                  origins:
-                    description: StringLiteralOrStringList is mostly like StringOrStringList, but instead of always forcing a list of strings, it will marshal a string literal as a string.
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
                 type: object
+                x-kubernetes-preserve-unknown-fields: true
               dns_type:
                 type: string
               docs:
@@ -1616,11 +1535,8 @@ spec:
               grpc:
                 type: boolean
               headers:
-                additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
                 type: object
+                x-kubernetes-preserve-unknown-fields: true
               host:
                 type: string
               host_redirect:
@@ -1711,11 +1627,8 @@ spec:
               priority:
                 type: string
               query_parameters:
-                additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
                 type: object
+                x-kubernetes-preserve-unknown-fields: true
               redirect_response_code:
                 description: The response code to use when generating an HTTP redirect. Defaults to 301. Used with `host_redirect`.
                 enum:
@@ -1726,40 +1639,16 @@ spec:
                 - 308
                 type: integer
               regex_headers:
-                additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
-                type: object
-              regex_query_parameters:
-                additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
-                type: object
-              regex_redirect:
-                additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
-                description: Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
-                type: object
-              regex_rewrite:
-                additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
-                type: object
-              remove_request_headers:
-                description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
-                items:
-                  type: string
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
-              remove_response_headers:
-                description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
-                items:
-                  type: string
+              regex_query_parameters:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              regex_redirect:
+                description: Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              regex_rewrite:
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               resolver:
@@ -1791,10 +1680,6 @@ spec:
               timeout_ms:
                 description: The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
                 type: integer
-              tls:
-                description: BoolOrString is a type that can hold a Boolean or a string.
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               use_websocket:
                 description: 'use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: ["websocket"]`'
                 type: boolean
@@ -1804,6 +1689,7 @@ spec:
             - prefix
             - service
             type: object
+            x-kubernetes-preserve-unknown-fields: true
           status:
             description: MappingStatus defines the observed state of Mapping
             properties:
@@ -2305,16 +2191,11 @@ spec:
             type: object
           spec:
             properties:
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               config:
                 description: UntypedDict is relatively opaque as a Go type, but it preserves its contents in a roundtrippable way.
                 type: object
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false
@@ -2385,12 +2266,6 @@ spec:
           spec:
             description: RateLimitServiceSpec defines the desired state of RateLimitService
             properties:
-              ambassador_id:
-                description: Common to all Ambassador objects.
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               domain:
                 type: string
               protocol_version:
@@ -2402,13 +2277,10 @@ spec:
                 type: string
               timeout_ms:
                 type: integer
-              tls:
-                description: BoolOrString is a type that can hold a Boolean or a string.
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
             required:
             - service
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false
@@ -2493,12 +2365,6 @@ spec:
             properties:
               address:
                 type: string
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               circuit_breakers:
                 items:
                   properties:
@@ -2535,16 +2401,13 @@ spec:
                 type: string
               service:
                 type: string
-              tls:
-                description: BoolOrString is a type that can hold a Boolean or a string.
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               weight:
                 type: integer
             required:
             - port
             - service
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false
@@ -2659,12 +2522,6 @@ spec:
             properties:
               alpn_protocols:
                 type: string
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               ca_secret:
                 type: string
               cacert_chain_file:
@@ -2710,6 +2567,7 @@ spec:
               sni:
                 type: string
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false
@@ -2821,12 +2679,6 @@ spec:
           spec:
             description: TracingServiceSpec defines the desired state of TracingService
             properties:
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               config:
                 properties:
                   access_token_file:
@@ -2875,6 +2727,7 @@ spec:
             - driver
             - service
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false

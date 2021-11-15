@@ -37,12 +37,6 @@ spec:
           spec:
             description: RateLimitServiceSpec defines the desired state of RateLimitService
             properties:
-              ambassador_id:
-                description: Common to all Ambassador objects.
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               domain:
                 type: string
               protocol_version:
@@ -54,13 +48,10 @@ spec:
                 type: string
               timeout_ms:
                 type: integer
-              tls:
-                description: BoolOrString is a type that can hold a Boolean or a string.
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
             required:
             - service
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false

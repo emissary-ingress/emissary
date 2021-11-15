@@ -37,12 +37,6 @@ spec:
           spec:
             description: TracingServiceSpec defines the desired state of TracingService
             properties:
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               config:
                 properties:
                   access_token_file:
@@ -91,6 +85,7 @@ spec:
             - driver
             - service
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false

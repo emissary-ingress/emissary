@@ -160,67 +160,118 @@ func (args Args) HaveKubeversion(requiredVersion string) bool {
 	return args.KubeVersion.Compare(semver.MustParse(requiredVersion)) >= 0
 }
 
-func VisitAllSchemaProps(crd *CRD, callback func(string, string, *apiext.JSONSchemaProps)) {
+func VisitAllSchemaProps(crd *CRD, callback func(string, string, *apiext.JSONSchemaProps, *apiext.JSONSchemaProps) bool) {
 	if crd == nil {
 		return
 	}
 	if crd.Spec.Validation != nil {
-		visitAllSchemaProps(crd.Spec.Names.Kind, "validation", crd.Spec.Validation.OpenAPIV3Schema, callback)
+		visitAllSchemaProps(crd.Spec.Names.Kind, "validation", crd.Spec.Validation.OpenAPIV3Schema, nil, callback)
 	}
 	for _, version := range crd.Spec.Versions {
 		if version.Schema != nil {
-			visitAllSchemaProps(crd.Spec.Names.Kind, version.Name, version.Schema.OpenAPIV3Schema, callback)
+			visitAllSchemaProps(crd.Spec.Names.Kind, version.Name, version.Schema.OpenAPIV3Schema, nil, callback)
 		}
 	}
 }
 
-func visitAllSchemaProps(crdName string, version string, root *apiext.JSONSchemaProps, callback func(string, string, *apiext.JSONSchemaProps)) {
+func visitAllSchemaProps(
+	crdName string,
+	version string,
+	root *apiext.JSONSchemaProps,
+	parent *apiext.JSONSchemaProps,
+	callback func(string, string, *apiext.JSONSchemaProps, *apiext.JSONSchemaProps) bool,
+) bool {
 	if root == nil {
-		return
+		return true
 	}
-	callback(crdName, version, root)
-	if root.Items != nil {
-		visitAllSchemaProps(crdName, version, root.Items.Schema, callback)
-		// new items = []
-		for i := range root.Items.JSONSchemas {
-			visitAllSchemaProps(crdName, version, &(root.Items.JSONSchemas[i]), callback)
-			// append to new items
-		}
-		// set root.Items or root.Items.JSONSchemas
-	}
-	for i := range root.AllOf {
-		visitAllSchemaProps(crdName, version, &(root.AllOf[i]), callback)
-	}
-	for i := range root.OneOf {
-		visitAllSchemaProps(crdName, version, &(root.OneOf[i]), callback)
-	}
-	for i := range root.AnyOf {
-		visitAllSchemaProps(crdName, version, &(root.AnyOf[i]), callback)
-	}
-	visitAllSchemaProps(crdName, version, root.Not, callback)
-	for k, v := range root.Properties {
-		visitAllSchemaProps(crdName, version, &v, callback)
-		root.Properties[k] = v
 
-		// if visitAllSchemaProps fails, delete root.Properties[k]
+	if !callback(crdName, version, root, parent) {
+		return false
 	}
+
+	if root.Items != nil {
+		if !visitAllSchemaProps(crdName, version, root.Items.Schema, root, callback) {
+			root.Items.Schema = nil
+		}
+
+		tmpItems := []apiext.JSONSchemaProps{}
+		for i := range root.Items.JSONSchemas {
+			if visitAllSchemaProps(crdName, version, &(root.Items.JSONSchemas[i]), root, callback) {
+				tmpItems = append(tmpItems, root.Items.JSONSchemas[i])
+			}
+		}
+		root.Items.JSONSchemas = tmpItems
+	}
+
+	tmpItems := []apiext.JSONSchemaProps{}
+	for i := range root.AllOf {
+		if visitAllSchemaProps(crdName, version, &(root.AllOf[i]), root, callback) {
+			tmpItems = append(tmpItems, root.AllOf[i])
+		}
+	}
+	root.AllOf = tmpItems
+
+	tmpItems = []apiext.JSONSchemaProps{}
+	for i := range root.OneOf {
+		if visitAllSchemaProps(crdName, version, &(root.OneOf[i]), root, callback) {
+			tmpItems = append(tmpItems, root.OneOf[i])
+		}
+	}
+	root.OneOf = tmpItems
+
+	tmpItems = []apiext.JSONSchemaProps{}
+	for i := range root.AnyOf {
+		if visitAllSchemaProps(crdName, version, &(root.AnyOf[i]), root, callback) {
+			tmpItems = append(tmpItems, root.AnyOf[i])
+		}
+	}
+	root.AnyOf = tmpItems
+
+	if !visitAllSchemaProps(crdName, version, root.Not, root, callback) {
+		root.Not = nil
+	}
+
+	for k, v := range root.Properties {
+		if !visitAllSchemaProps(crdName, version, &v, root, callback) {
+			delete(root.Properties, k)
+		} else {
+			root.Properties[k] = v
+		}
+	}
+
 	if root.AdditionalProperties != nil {
-		visitAllSchemaProps(crdName, version, root.AdditionalProperties.Schema, callback)
+		if !visitAllSchemaProps(crdName, version, root.AdditionalProperties.Schema, root, callback) {
+			root.AdditionalProperties = nil
+		}
 	}
+
 	for k, v := range root.PatternProperties {
-		visitAllSchemaProps(crdName, version, &v, callback)
-		root.PatternProperties[k] = v
-				// if visitAllSchemaProps fails, delete root.Properties[k]
+		if !visitAllSchemaProps(crdName, version, &v, root, callback) {
+			delete(root.PatternProperties, k)
+		} else {
+			root.PatternProperties[k] = v
+		}
 	}
+
 	for k := range root.Dependencies {
-		visitAllSchemaProps(crdName, version, root.Dependencies[k].Schema, callback)
+		if !visitAllSchemaProps(crdName, version, root.Dependencies[k].Schema, root, callback) {
+			delete(root.Dependencies, k)
+		}
 	}
+
 	if root.AdditionalItems != nil {
-		visitAllSchemaProps(crdName, version, root.AdditionalItems.Schema, callback)
+		if !visitAllSchemaProps(crdName, version, root.AdditionalItems.Schema, root, callback) {
+			root.AdditionalItems = nil
+		}
 	}
+
 	for k, v := range root.Definitions {
-		visitAllSchemaProps(crdName, version, &v, callback)
-		root.Definitions[k] = v
-		// if visitAllSchemaProps fails, delete root.Properties[k]
+		if !visitAllSchemaProps(crdName, version, &v, root, callback) {
+			delete(root.Definitions, k)
+		} else {
+			root.Definitions[k] = v
+		}
 	}
+
+	return true
 }

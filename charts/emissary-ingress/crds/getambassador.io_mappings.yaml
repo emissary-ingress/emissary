@@ -56,26 +56,16 @@ spec:
               add_linkerd_headers:
                 type: boolean
               add_request_headers:
-                additionalProperties:
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
                 type: object
+                x-kubernetes-preserve-unknown-fields: true
               add_response_headers:
-                additionalProperties:
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
                 type: object
+                x-kubernetes-preserve-unknown-fields: true
               allow_upgrade:
                 description: "A case-insensitive list of the non-HTTP protocols to allow \"upgrading\" to from HTTP via the \"Connection: upgrade\" mechanism[1].  After the upgrade, Ambassador does not interpret the traffic, and behaves similarly to how it does for TCPMappings. \n [1]: https://tools.ietf.org/html/rfc7230#section-6.7 \n For example, if your upstream service supports WebSockets, you would write \n    allow_upgrade:    - websocket \n Or if your upstream service supports upgrading from HTTP to SPDY (as the Kubernetes apiserver does for `kubectl exec` functionality), you would write \n    allow_upgrade:    - spdy/3.1"
                 items:
                   type: string
                 type: array
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               auth_context_extensions:
                 additionalProperties:
                   type: string
@@ -119,31 +109,10 @@ spec:
                 properties:
                   credentials:
                     type: boolean
-                  exposed_headers:
-                    description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
-                    items:
-                      type: string
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
-                  headers:
-                    description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
-                    items:
-                      type: string
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
                   max_age:
                     type: string
-                  methods:
-                    description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
-                    items:
-                      type: string
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
-                  origins:
-                    description: StringLiteralOrStringList is mostly like StringOrStringList, but instead of always forcing a list of strings, it will marshal a string literal as a string.
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
                 type: object
+                x-kubernetes-preserve-unknown-fields: true
               dns_type:
                 type: string
               docs:
@@ -208,11 +177,8 @@ spec:
               grpc:
                 type: boolean
               headers:
-                additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
                 type: object
+                x-kubernetes-preserve-unknown-fields: true
               host:
                 type: string
               host_redirect:
@@ -303,11 +269,8 @@ spec:
               priority:
                 type: string
               query_parameters:
-                additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
                 type: object
+                x-kubernetes-preserve-unknown-fields: true
               redirect_response_code:
                 description: The response code to use when generating an HTTP redirect. Defaults to 301. Used with `host_redirect`.
                 enum:
@@ -318,40 +281,16 @@ spec:
                 - 308
                 type: integer
               regex_headers:
-                additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
-                type: object
-              regex_query_parameters:
-                additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
-                type: object
-              regex_redirect:
-                additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
-                description: Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
-                type: object
-              regex_rewrite:
-                additionalProperties:
-                  description: BoolOrString is a type that can hold a Boolean or a string.
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
-                type: object
-              remove_request_headers:
-                description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
-                items:
-                  type: string
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
-              remove_response_headers:
-                description: StringOrStringList is just what it says on the tin, but note that it will always marshal as a list of strings right now.
-                items:
-                  type: string
+              regex_query_parameters:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              regex_redirect:
+                description: Prefix regex rewrite to use when generating an HTTP redirect. Used with `host_redirect`.
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              regex_rewrite:
                 type: object
                 x-kubernetes-preserve-unknown-fields: true
               resolver:
@@ -383,10 +322,6 @@ spec:
               timeout_ms:
                 description: The timeout for requests that use this Mapping. Overrides `cluster_request_timeout_ms` set on the Ambassador Module, if it exists.
                 type: integer
-              tls:
-                description: BoolOrString is a type that can hold a Boolean or a string.
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               use_websocket:
                 description: 'use_websocket is deprecated, and is equivlaent to setting `allow_upgrade: ["websocket"]`'
                 type: boolean
@@ -396,6 +331,7 @@ spec:
             - prefix
             - service
             type: object
+            x-kubernetes-preserve-unknown-fields: true
           status:
             description: MappingStatus defines the observed state of Mapping
             properties:

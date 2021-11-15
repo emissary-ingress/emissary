@@ -37,12 +37,6 @@ spec:
           spec:
             description: DevPortalSpec defines the desired state of DevPortal
             properties:
-              ambassador_id:
-                description: "AmbassadorID declares which Ambassador instances should pay attention to this resource.  May either be a string or a list of strings.  If no value is provided, the default is: \n    ambassador_id:    - \"default\""
-                items:
-                  type: string
-                type: object
-                x-kubernetes-preserve-unknown-fields: true
               content:
                 description: Content specifies where the content shown in the DevPortal come from
                 properties:
@@ -108,6 +102,7 @@ spec:
                     type: array
                 type: object
             type: object
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: false
