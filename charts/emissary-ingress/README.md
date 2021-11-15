@@ -14,6 +14,16 @@ $ helm install emissary-ingress --devel emissary-ingress/emissary-ingress -n amb
 
 This chart deploys Emissary Ingress on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
 
+This chart is used to install the 2.0 release line of Emissary-Ingress. 
+
+Versions in the older 1.0 release line of Emissary Ingress and Edge Stack share a single chart that can be found in this repository under the branch for the specific release. Eg [branch release/v1.14](https://github.com/emissary-ingress/emissary/tree/release/v1.14/charts/ambassador) for the latest 1.14 chart, `release/v1.13` for 1.13 and so on.
+
+> Note that for 1.0 releases, the `enableAES` helm value is used to control installing Edge-Stack or Emissary-Ingress.
+
+As of version 2.0, Emissary-Ingress and Ambassador Edge Stack have separate charts. The helm chart for Edge Stack 2.0 lives in the [Edge-Stack chart repository](https://github.com/datawire/edge-stack/tree/main/charts/edge-stack).
+
+See [this page](https://www.getambassador.io/docs/edge-stack/latest/about/faq/#whats-the-difference-between-ossproductname-and-aesproductname) for more information about the differences between Emissary-Ingress and Edge Stack.
+
 ## Prerequisites
 
 - Kubernetes v1.11+
