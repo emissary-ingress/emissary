@@ -327,6 +327,7 @@ type Mapping struct {
 	Spec   MappingSpec    `json:"spec,omitempty"`
 	Status *MappingStatus `json:"status,omitempty"`
 }
+
 func (*Mapping) Hub() {}
 
 // MappingList contains a list of Mappings.
@@ -338,6 +339,7 @@ type MappingList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Mapping `json:"items"`
 }
+
 func (*MappingList) Hub() {}
 
 func init() {

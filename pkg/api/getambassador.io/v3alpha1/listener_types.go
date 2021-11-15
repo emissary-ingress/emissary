@@ -185,6 +185,7 @@ type Listener struct {
 
 	Spec *ListenerSpec `json:"spec,omitempty"`
 }
+
 func (*Listener) Hub() {}
 
 // ListenerList contains a list of Listener.
@@ -196,6 +197,7 @@ type ListenerList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Listener `json:"items"`
 }
+
 func (*ListenerList) Hub() {}
 
 func init() {

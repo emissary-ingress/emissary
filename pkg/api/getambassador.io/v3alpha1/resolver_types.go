@@ -40,6 +40,7 @@ type KubernetesServiceResolver struct {
 
 	Spec KubernetesServiceResolverSpec `json:"spec,omitempty"`
 }
+
 func (*KubernetesServiceResolver) Hub() {}
 
 // KubernetesServiceResolverList contains a list of KubernetesServiceResolvers.
@@ -51,6 +52,7 @@ type KubernetesServiceResolverList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []KubernetesServiceResolver `json:"items"`
 }
+
 func (*KubernetesServiceResolverList) Hub() {}
 
 // KubernetesEndpointResolver tells Ambassador to use Kubernetes Endpoints
@@ -70,6 +72,7 @@ type KubernetesEndpointResolver struct {
 
 	Spec KubernetesEndpointResolverSpec `json:"spec,omitempty"`
 }
+
 func (*KubernetesEndpointResolver) Hub() {}
 
 // KubernetesEndpointResolverList contains a list of KubernetesEndpointResolvers.
@@ -81,6 +84,7 @@ type KubernetesEndpointResolverList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []KubernetesEndpointResolver `json:"items"`
 }
+
 func (*KubernetesEndpointResolverList) Hub() {}
 
 // ConsulResolver tells Ambassador to use Consul to resolve services. In addition
@@ -103,6 +107,7 @@ type ConsulResolver struct {
 
 	Spec ConsulResolverSpec `json:"spec,omitempty"`
 }
+
 func (*ConsulResolver) Hub() {}
 
 // ConsulResolverList contains a list of ConsulResolvers.
@@ -114,6 +119,7 @@ type ConsulResolverList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []ConsulResolver `json:"items"`
 }
+
 func (*ConsulResolverList) Hub() {}
 
 func init() {
