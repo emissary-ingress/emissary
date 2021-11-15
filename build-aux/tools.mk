@@ -114,8 +114,8 @@ $(tools.bindir)/protoc-gen-grpc-web: $(tools.mk)
 	chmod 755 $@
 
 tools/kubectl = $(tools.bindir)/kubectl
-KUBECTL_VERSION = $(shell sed -En 's,.*https://storage\.googleapis\.com/kubernetes-release/release/v([0-9.]*)/bin/linux/amd64/kubectl.*,\1,p' builder/Dockerfile.base)
-$(tools.bindir)/kubectl: builder/Dockerfile.base
+KUBECTL_VERSION = 1.21.6
+$(tools.bindir)/kubectl: $(tools.mk)
 	mkdir -p $(@D)
 	curl -o $@ -L --fail https://storage.googleapis.com/kubernetes-release/release/v$(KUBECTL_VERSION)/bin/$(GOHOSTOS)/$(GOHOSTARCH)/kubectl
 	chmod 755 $@
